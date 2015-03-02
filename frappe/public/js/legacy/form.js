@@ -172,10 +172,7 @@ _f.Frm.prototype.print_doc = function() {
 		msgprint(__("Cannot print cancelled documents"));
 		return;
 	}
-	this.print_preview.print_sel
-		.empty().add_options(this.print_preview.print_formats)
-		.trigger("change");
-
+	this.print_preview.refresh_print_options().trigger("change");
 	this.page.set_view("print");
 }
 
@@ -397,6 +394,10 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.render_form();
 		}
 
+		// if print format is shown, refresh the format
+		if(this.print_preview.wrapper.is(":visible")) {
+			this.print_preview.preview();
+		}
 	}
 }
 

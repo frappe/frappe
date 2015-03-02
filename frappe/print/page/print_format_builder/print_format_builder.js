@@ -4,9 +4,16 @@ frappe.pages['print-format-builder'].on_page_load = function(wrapper) {
 
 frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 	if(frappe.route_options) {
-		frappe.print_format_builder.print_format = frappe.route_options;
-		frappe.route_options = null;
-		frappe.print_format_builder.refresh();
+		if(frappe.route_options.make_new) {
+			var doctype = frappe.route_options.doctype;
+			var name = frappe.route_options.name;
+			frappe.route_options = null;
+			frappe.print_format_builder.setup_new_print_format(doctype, name);
+		} else {
+			frappe.print_format_builder.print_format = frappe.route_options;
+			frappe.route_options = null;
+			frappe.print_format_builder.refresh();
+		}
 	}
 }
 
@@ -103,24 +110,27 @@ frappe.PrintFormatBuilder = Class.extend({
 				msgprint(__("Both DocType and Name required"));
 				return;
 			}
+			me.setup_new_print_format(doctype, name);
 
-			frappe.call({
-				method: "frappe.client.insert",
-				args: {
-					doc: {
-						doctype: "Print Format",
-						name: name,
-						standard: "No",
-						doc_type: doctype,
-						print_format_builder: 1
-					}
-				},
-				callback: function(r) {
-					me.print_format = r.message;
-					me.refresh();
+		});
+	},
+	setup_new_print_format: function(doctype, name) {
+		var me = this;
+		frappe.call({
+			method: "frappe.client.insert",
+			args: {
+				doc: {
+					doctype: "Print Format",
+					name: name,
+					standard: "No",
+					doc_type: doctype,
+					print_format_builder: 1
 				}
-			});
-
+			},
+			callback: function(r) {
+				me.print_format = r.message;
+				me.refresh();
+			}
 		});
 	},
 	setup_print_format: function() {
@@ -169,6 +179,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.setup_edit_heading();
 	},
 	prepare_data: function() {
+		this.print_heading_template = null;
 		this.data = JSON.parse(this.print_format.format_data || "[]");
 		if(!this.data.length) {
 			// new layout

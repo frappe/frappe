@@ -85,6 +85,7 @@ class SMTPServer:
 
 		self._sess = None
 		self.email_account = None
+		self.server = None
 		if server:
 			self.server = server
 			self.port = port

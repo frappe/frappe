@@ -75,7 +75,7 @@
 .page-form .checkbox input {
   margin-top: -3px;
 }
-.page-form select.input-sm {
+select.input-sm {
   line-height: 1.2em !important;
 }
 .message-page {

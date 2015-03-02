@@ -76,13 +76,21 @@ frappe.ui.form.PrintPreview = Class.extend({
 					frappe.set_route("Form", "Print Format", print_format.name);
 				}
 			} else {
-				msgprint(__("Standard Format Not Editable"));
+				// start a new print format
+				frappe.prompt({fieldname:"print_format_name", fieldtype:"Data", reqd: 1,
+					label:"New Print Format Name"}, function(data) {
+						frappe.route_options = {
+							make_new: true,
+							doctype: me.frm.doctype,
+							name: data.print_format_name
+						};
+						frappe.set_route("print-format-builder");
+				}, __("New Custom Print Format"), __("Start"));
 			}
 		});
 	},
 	preview: function() {
 		var me = this;
-		this.wrapper.find(".btn-print-edit").toggle(this.get_print_format().name);
 		this.get_print_html(function(html) {
 			me.wrapper.find(".print-format").html(html);
 		});
@@ -133,6 +141,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 			only_body: true,
 			no_heading: true
 		});
+	},
+	refresh_print_options: function() {
+		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
+		return this.print_sel
+			.empty().add_options(this.print_formats);
 	},
 	with_old_style: function(opts) {
 		var me = this;
