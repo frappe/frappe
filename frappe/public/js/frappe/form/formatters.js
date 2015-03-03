@@ -10,7 +10,7 @@ frappe.form.formatters = {
 		if(options && options.inline) {
 			return value;
 		} else {
-			return "<div style='text-align: right'>" + value + "</div>";
+			return "<span style='text-align: right'>" + value + "</span>";
 		}
 	},
 	Data: function(value) {

@@ -403,9 +403,14 @@ frappe.ui.form.GridRow = Class.extend({
 			for(var i in this.static_display_template) {
 				var df = this.static_display_template[i][0];
 				var colsize = this.static_display_template[i][1];
-				if(colsize > 1 && colsize < 12 && ["Int", "Currency", "Float",
-					"Check", "Percent"].indexOf(df.fieldtype)===-1
+				if(colsize > 1 && colsize < 12
 					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
+
+					if (passes < 3 && ["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype)!==-1) {
+						// don't increase col size of these fields in first 3 passes
+						continue;
+					}
+
 					this.static_display_template[i][1] += 1;
 					total_colsize++;
 				}
