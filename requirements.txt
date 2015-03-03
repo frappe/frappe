@@ -24,3 +24,4 @@ selenium
 pdfkit
 babel
 ipython
+click
