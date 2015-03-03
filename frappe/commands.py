@@ -5,13 +5,14 @@ from __future__ import unicode_literals
 import sys
 import os
 import subprocess
-import frappe
 import json
+import click
+import hashlib
+import frappe
+import frappe.utils
 from frappe.utils import cint
 from distutils.spawn import find_executable
 from functools import wraps
-
-import click
 
 def pass_context(f):
 	@wraps(f)
@@ -27,8 +28,8 @@ def get_single_site(context):
 	return site
 
 @click.command('new-site')
-@click.argument('db-name')
 @click.argument('site')
+@click.option('--db-name', help='Database name')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--admin-password', help='Administrator password for new site', prompt=True)
@@ -36,11 +37,15 @@ def get_single_site(context):
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None):
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
 	"Install a new site"
+	if not db_name:
+		db_name = hashlib.sha1(site).hexdigest()[:10]
+		
 	frappe.init(site=site)
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
-	pass
+	if len(frappe.utils.get_sites()) == 1:
+		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
 	"Install a new Frappe site"
@@ -670,6 +675,15 @@ def make_app(destination, app_name):
 	from frappe.utils.boilerplate import make_boilerplate
 	make_boilerplate(destination, app_name)
 
+@click.command('set-default-site')
+@click.argument('site')
+def _use(site, sites_path='.'):
+	use(site, sites_path=sites_path)
+
+def use(site, sites_path='.'):
+	with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+		sitefile.write(site)
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -721,4 +735,5 @@ commands = [
 	dump_queue_status,
 	console,
 	make_app,
+	use
 ]

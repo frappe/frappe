@@ -4,6 +4,7 @@ import frappe
 import os
 import json
 import importlib
+import frappe.utils
 
 def main():
 	commands = get_app_groups()
@@ -40,9 +41,7 @@ def app_group(ctx, site, force, verbose):
 
 def get_sites(site_arg):
 	if site_arg and site_arg == 'all':
-		return [site for site in os.listdir('.')
-				if os.path.isdir(site)
-					and not site in ('assets',)]
+		return frappe.utils.get_sites()
 	else:
 		if site_arg:
 			return [site_arg]
