@@ -48,8 +48,10 @@ def get_module_name(doc):
 		module = doc.name
 	elif doc.doctype=="Workflow":
 		module = frappe.db.get_value("DocType", doc.document_type, "module")
-	else:
+	elif hasattr(doc, 'module'):
 		module = doc.module
+	else:
+		module = frappe.db.get_value("DocType", doc.doctype, "module")
 
 	return module
 
