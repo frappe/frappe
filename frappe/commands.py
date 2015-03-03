@@ -661,6 +661,13 @@ def dump_queue_status():
 	from frappe.utils.doctor import dump_queue_status as _dump_queue_status
 	print json.dumps(_dump_queue_status(), indent=1)
 
+@click.command('make-app')
+@click.argument('destination')
+@click.argument('app_name')
+def make_app(destination, app_name):
+	from frappe.utils.boilerplate import make_boilerplate
+	make_boilerplate(destination, app_name)
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -711,4 +718,5 @@ commands = [
 	purge_all_tasks,
 	dump_queue_status,
 	console,
+	make_app,
 ]
