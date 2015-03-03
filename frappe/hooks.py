@@ -45,7 +45,10 @@ website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
 
 # login
 
-on_session_creation = "frappe.desk.doctype.feed.feed.login_feed"
+on_session_creation = [
+	"frappe.desk.doctype.feed.feed.login_feed",
+	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager"
+]
 
 # permissions
 

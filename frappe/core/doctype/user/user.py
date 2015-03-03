@@ -3,10 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, now, get_gravatar
+from frappe.utils import cint, now, get_gravatar, format_datetime, now_datetime
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
+from frappe.utils.user import get_system_managers
 import frappe.permissions
 import frappe.share
 
@@ -456,3 +457,28 @@ def has_permission(doc, user):
 
 	else:
 		return True
+
+def notifify_admin_access_to_system_manager(login_manager=None):
+	if (login_manager
+		and login_manager.user == "Administrator"
+		and frappe.local.conf.notifify_admin_access_to_system_manager):
+
+		message = """<p>
+			{dear_system_manager} <br><br>
+			{access_message} <br><br>
+			{is_it_unauthorized}
+		</p>""".format(
+			dear_system_manager=_("Dear System Manager,"),
+
+			access_message=_("""Administrator accessed {0} on {1} via IP Address {2}.""").format(
+				"""<a href="{site}" target="_blank">{site}</a>""".format(site=frappe.local.request.host_url),
+				"""<b>{date_and_time}</b>""".format(date_and_time=format_datetime(now_datetime(), format_string="medium")),
+				frappe.local.request_ip
+			),
+
+			is_it_unauthorized=_("If you think this is unauthorized, please change the Administrator password.")
+		)
+
+		frappe.sendmail(recipients=get_system_managers(), subject=_("Administrator Logged In"),
+			message=message, bulk=True)
+

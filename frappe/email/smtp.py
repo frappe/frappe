@@ -26,8 +26,6 @@ def send(email, as_bulk=False, append_to=None):
 			if not email.reply_to:
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
-		else:
-			email.sender = smtpserver.sender
 
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
 			email.as_string())
@@ -104,8 +102,7 @@ class SMTPServer:
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls
-			self.sender = self.email_account.sender
-
+			self.sender = self.email_account.email_id
 
 	@property
 	def sess(self):
