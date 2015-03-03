@@ -157,7 +157,8 @@ frappe.search.verbs = [
 			var doctype = doctypes[i];
 			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
 				&& !in_list(frappe.boot.single_types, doctype)
-				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country", "Currency", "Page Role"], doctype)) {
+				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
+					"Currency", "Page Role", "Print Format"], doctype)) {
 				var values = frappe.utils.unique(keys(locals[doctype]).concat(frappe.search.recent[doctype] || []));
 				var ret = frappe.search.find(values, txt, function(match) {
 					return {
