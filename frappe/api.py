@@ -102,6 +102,7 @@ def handle():
 				if frappe.local.request.method=="GET":
 					if frappe.local.form_dict.get('fields'):
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
+					frappe.local.form_dict.setdefault('limit_page_length', 20)
 					frappe.local.response.update({
 						"data":  frappe.call(frappe.client.get_list,
 							doctype, **frappe.local.form_dict)})
