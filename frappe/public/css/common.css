@@ -158,3 +158,6 @@ a.badge-hover:active .badge {
 .close-inline:focus {
   text-decoration: none;
 }
+.middle {
+  vertical-align: middle;
+}

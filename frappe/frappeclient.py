@@ -126,7 +126,7 @@ class FrappeClient(object):
 		}
 		return self.post_request(params)
 
-	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1):
+	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None):
 		"""Migrate records from another doctype"""
 		meta = frappe.get_meta(doctype)
 		tables = {}
@@ -140,20 +140,27 @@ class FrappeClient(object):
 
 		# build - attach children to parents
 		if tables:
-			docs_map = {}
-			for doc in docs:
-				docs_map[doc.name] = doc
+			docs = [frappe._dict(doc) for doc in docs]
+			docs_map = dict((doc.name, doc) for doc in docs)
 
 			for fieldname in tables:
 				for child in tables[fieldname]:
-					docs_map[child.parent].append(fieldname, child)
+					child = frappe._dict(child)
+					if child.parent in docs_map:
+						docs_map[child.parent].setdefault(fieldname, []).append(child)
 
 		if verbose: print "inserting " + doctype
 		for doc in docs:
+			if exclude and doc["name"] in exclude:
+				continue
+
+			if preprocess:
+				preprocess(doc)
+
 			if not doc.get("owner"):
 				doc["owner"] = "Administrator"
 
-			if not frappe.db.exists("User", doc.get("owner")):
+			if doctype != "User" and not frappe.db.exists("User", doc.get("owner")):
 				frappe.get_doc({"doctype": "User", "email": doc.get("owner"),
 					"first_name": doc.get("owner").split("@")[0] }).insert()
 

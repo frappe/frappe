@@ -33,9 +33,9 @@
 	</div>
 </div>
 {% endif %}
-
 <script>
 frappe.ready(function() {
+	console.log("ready!");
 	var n_comments = $(".comment-row").length;
 
 	if(n_comments) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.messages")
@@ -108,15 +108,15 @@ var msgprint = frappe.msgprint;
 // Floating Message
 function show_alert(txt, seconds) {
 	if(!$('#dialog-container').length) {
-		$('<div id="dialog-container">').appendTo('body');
-	}
-	if(!$('#alert-container').length) {
-		$('<div id="alert-container"></div>').appendTo('#dialog-container');
+		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	var div = $('<div class="alert alert-warning" style="box-shadow: 0px 0px 2px rgba(0,0,0,0.5)">\
-		<a class="close" style="margin-left: 10px;">&times;</a>'+ txt +'</div>')
-			.appendTo('#alert-container')
+	var div = $(repl('<div class="alert alert-info desk-alert" style="display: none;">'
+			+ '<a class="close">&times;</a><span class="alert-message">%(txt)s</span>'
+		+ '</div>', {txt: txt}))
+		.appendTo("#alert-container")
+		.fadeIn(300);
+
 	div.find('.close').click(function() {
 		$(this).parent().remove();
 		return false;

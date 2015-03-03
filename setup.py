@@ -9,7 +9,7 @@ setup(
     name='frappe',
     version=version,
     description='Metadata driven, full-stack web framework',
-    author='Web Notes Technologies',
+    author='Frappe Technologies',
     author_email='info@frappe.io',
     packages=find_packages(),
     zip_safe=False,

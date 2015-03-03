@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 
 frappe.get_indicator = function(doc, doctype) {
 	if(doc.__unsaved) {
