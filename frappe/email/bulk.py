@@ -17,6 +17,10 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None,
 		ref_docname=None, add_unsubscribe_link=True, attachments=None, reply_to=None):
 
+	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+		msgprint(_("Emails are muted"))
+		return
+
 	def is_unsubscribed(rdata):
 		if not rdata:
 			return 1
