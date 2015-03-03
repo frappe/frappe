@@ -349,12 +349,14 @@ def reset_perms(context):
 			frappe.destroy()
 
 @click.command('execute')
+@click.argument('method')
 @pass_context
-def execute(context):
+def execute(context, method):
 	"execute a function"
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
+			frappe.connect()
 			ret = frappe.get_attr(method)()
 
 			if frappe.db:

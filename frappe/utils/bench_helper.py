@@ -14,7 +14,7 @@ def main():
 
 def get_app_groups():
 	ret = {}
-	for app in get_apps():
+	for app in ["frappe"]: #get_apps():
 		app_group = get_app_group(app)
 		if app_group:
 			ret[app] = app_group
@@ -55,7 +55,7 @@ def get_app_commands(app):
 		app_command_module = importlib.import_module(app + '.commands')
 	except ImportError:
 		return []
-	
+
 	ret = {}
 	for command in getattr(app_command_module, 'commands', []):
 		ret[command.name] = command

@@ -52,7 +52,7 @@ def get_data():
 			"type": "module"
 		},
 		"Installer": {
-			"color": "#888",
+			"color": "#5ac8fb",
 			"icon": "icon-download",
 			"icon": "octicon octicon-cloud-download",
 			"link": "applications",
