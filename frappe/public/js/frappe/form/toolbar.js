@@ -60,21 +60,21 @@ frappe.ui.form.Toolbar = Class.extend({
 		var docstatus = cint(this.frm.doc.docstatus);
 
 		// Print
-		if(!me.frm.doc.__islocal && frappe.model.can_print(null, me.frm)) {
+		if(frappe.model.can_print(null, me.frm)) {
 			this.page.add_menu_item(__("Print"), function() {
 				me.frm.print_doc();}, true);
-			this.page.add_action_icon("icon-print", function() {
+			this.print_icon = this.page.add_action_icon("icon-print", function() {
 				me.frm.print_doc();});
 		}
 
 		// email
-		if(!me.frm.doc.__islocal && frappe.model.can_email(null, me.frm)) {
+		if(frappe.model.can_email(null, me.frm)) {
 			this.page.add_menu_item(__("Email"), function() {
 				me.frm.email_doc();}, true);
 		}
 
 		// Linked With
-		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
+		if(!me.frm.meta.issingle) {
 			this.page.add_menu_item(__('Links'), function() {
 				me.show_linked_with();
 			}, true)

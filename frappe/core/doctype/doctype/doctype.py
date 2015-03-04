@@ -9,7 +9,6 @@ from frappe import _
 from frappe.utils import now, cint
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.model.db_schema import type_map
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
@@ -106,7 +105,7 @@ class DocType(Document):
 		make_module_and_roles(self)
 
 		from frappe import conf
-		if not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode') or 0:
+		if not self.custom and not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode'):
 			self.export_doc()
 			self.make_controller_template()
 

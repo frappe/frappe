@@ -168,10 +168,12 @@ frappe.ui.Page = Class.extend({
 
 	show_menu: function() {
 		this.menu_btn_group.removeClass("hide");
+		this.icon_group.removeClass("hide");
 	},
 
 	hide_menu: function() {
 		this.menu_btn_group.addClass("hide");
+		this.icon_group.addClass("hide");
 	},
 
 	//--- Actions (workflow) --//
