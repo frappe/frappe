@@ -37,6 +37,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.sections = [];
 	this.grids = [];
 	this.cscript = new frappe.ui.form.Controller({frm:this});
+	this.events = {};
 	this.pformat = {};
 	this.fetch_dict = {};
 	this.parent = parent;
@@ -505,26 +506,20 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 		if(callingfield)
 			$(callingfield.input).set_working();
 
-		return $c('runserverobj', {'docs':this.doc, 'method':scriptname },
-			function(r, rtxt) {
-				// run refresh
-				if(onrefresh)
-					onrefresh(r,rtxt);
+		frappe.call({
+			method: "runserverobj",
+			args: {'docs':this.doc, 'method':scriptname },
+			btn: callingfield.$input,
+			callback: function(r) {
+				if(!r.exc) {
+					if(onrefresh) {
+						onrefresh(r);
+					}
 
-				// fields
-				me.refresh_fields();
-
-				// enable button
-				if(callingfield)
-					$(callingfield.input).done_working();
-			},
-			// error
-			function() {
-				// enable button
-				if(callingfield)
-					$(callingfield.input).done_working();
+					me.refresh_fields();
+				}
 			}
-		);
+		});
 	}
 }
 
@@ -795,3 +790,7 @@ _f.Frm.prototype.validate_form_action = function(action) {
 		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
 	}
 };
+
+_f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
+	return this.script_manager.get_handlers(fieldname, doctype || this.doctype, docname || this.docname)
+}

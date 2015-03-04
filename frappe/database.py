@@ -524,9 +524,10 @@ class Database:
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
 
-	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
+	def set_value(self, dt, dn, field, val, modified=None, modified_by=None,
+		update_modified=True, debug=False):
 		"""Set a single value in the database, do not call the ORM triggers
-		but update the modified timestamp.
+		but update the modified timestamp (unless specified not to).
 
 		**Warning:** this function will not call Document events and should be avoided in normal cases.
 
@@ -536,6 +537,8 @@ class Database:
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
 		:param modified_by: Set this user as `modified_by`.
+		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
+		:param debug: Print the query in the developer / js console.
 		"""
 		if not modified:
 			modified = now()
@@ -545,20 +548,22 @@ class Database:
 		if dn and dt!=dn:
 			conditions, values = self.build_conditions(dn)
 
-			values.update({"val": val, "modified": modified, "modified_by": modified_by})
+			if update_modified:
+				values.update({"val": val, "modified": modified, "modified_by": modified_by})
 
-			self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
-				{2}""".format(dt, field, conditions), values)
+				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
+					{2}""".format(dt, field, conditions), values, debug=debug)
+			else:
+				self.sql("""update `tab{0}` set `{1}`=%s where
+					{2}""".format(dt, field, conditions), val, debug=debug)
+
 
 		else:
-			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
-				self.sql("""update tabSingles set value=%s where field=%s and doctype=%s""",
-					(val, field, dt))
-			else:
-				self.sql("""insert into tabSingles(doctype, field, value)
-					values (%s, %s, %s)""", (dt, field, val))
+			self.sql("delete from tabSingles where field=%s and doctype=%s", (field, dt))
+			self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)",
+				(dt, field, val), debug=debug)
 
-			if field not in ("modified", "modified_by"):
+			if update_modified and (field not in ("modified", "modified_by")):
 				self.set_value(dt, dn, "modified", modified)
 				self.set_value(dt, dn, "modified_by", modified_by)
 
