@@ -973,7 +973,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Enviar como correo electrónico
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,El usuario {0} no se puede deshabilitar
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Una nueva tarea,% s, se ha asignado a usted por% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Descargar Copia de Seguridad
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Actividad
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Actividad
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Cuadro de diálogo para seleccionar un valor de Enlace
 DocType: Contact Us Settings,Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
 DocType: Letter Head,Letter Head Name,Nombre Membrete

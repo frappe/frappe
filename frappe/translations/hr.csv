@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Pošalji kao email
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Korisnik {0} se ne može isključiti
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Novi zadatak,% s, dodijeljen vam je% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Preuzmite Backup
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Dialog box za odabir link vrijednost
 DocType: Contact Us Settings,Send enquiries to this email address,Upite slati na ovu e-mail adresu
 DocType: Letter Head,Letter Head Name,Naziv zaglavlja

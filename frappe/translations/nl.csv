@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Verstuur als e-mail
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Gebruiker {0} kan niet worden uitgeschakeld
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Een nieuwe taak, %s, is aan u door %s toegekend. %s"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Download Backup
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activiteit
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activiteit
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Dialoogvenster om een ​​Link Waarde selecteren
 DocType: Contact Us Settings,Send enquiries to this email address,Stuur uw vragen naar dit e-mailadres
 DocType: Letter Head,Letter Head Name,Brief Hoofd Naam

@@ -148,7 +148,6 @@ class Session:
 
 		# insert session
 		if self.user!="Guest":
-			frappe.db.begin()
 			self.insert_session_record()
 
 			# update user

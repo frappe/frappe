@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,أرسل للبريد الالك�
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,المستخدم {0} لا يمكن تعطيل
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",مهمة جديدة،٪ ق، تم تعيين لك من قبل٪ الصورة. ٪ ق
 apps/frappe/frappe/config/setup.py +207,Download Backup,تحميل النسخ الاحتياطي
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,مربع الحوار لتحديد قيمة لينك
 DocType: Contact Us Settings,Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا
 DocType: Letter Head,Letter Head Name,رسالة رئيس الاسم

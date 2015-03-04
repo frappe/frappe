@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,ಇಮೇಲ್ ಕಳುಹ�
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,ಬಳಕೆದಾರ {0} ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","ಹೊಸ ಕೆಲಸವನ್ನು,% ರು,% ರು ನಿಮಗೆ ಗೊತ್ತುಮಾಡಲ. % ರು"
 apps/frappe/frappe/config/setup.py +207,Download Backup,ಡೌನ್ಲೋಡ್ ಬ್ಯಾಕಪ್
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,ಒಂದು ಲಿಂಕ್ ಮೌಲ್ಯವನ್ನು ಆಯ್ಕೆ ಸಂವಾದ ಪೆಟ್ಟಿಗೆಯಲ್ಲಿ
 DocType: Contact Us Settings,Send enquiries to this email address,ಈ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ ಕಳುಹಿಸಿ ವಿಚಾರಣೆಯಲ್ಲಿ
 DocType: Letter Head,Letter Head Name,ತಲೆಬರಹ ಹೆಸರು

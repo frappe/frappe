@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,전자 우편으로 보내기
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,{0} 사용자를 비활성화 할 수 없습니다
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","새 작업 % s이 (가), % s에가 할당되었습니다. %의"
 apps/frappe/frappe/config/setup.py +207,Download Backup,다운로드 지원
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,링크 값을 선택 대화 상자
 DocType: Contact Us Settings,Send enquiries to this email address,이 이메일 주소로 문의를 보내
 DocType: Letter Head,Letter Head Name,레터 헤드 이름

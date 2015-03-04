@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,发送电​​子邮件
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,用户{0}不能被禁用
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",一个新的任务，％S，已分配给您％S。 ％S
 apps/frappe/frappe/config/setup.py +207,Download Backup,下载备份
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,对话框中选择一个链接的价值
 DocType: Contact Us Settings,Send enquiries to this email address,发送咨询到这个邮箱地址
 DocType: Letter Head,Letter Head Name,信头名

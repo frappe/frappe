@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Αποστολή ως e-mail
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Χρήστης {0} δεν μπορεί να απενεργοποιηθεί
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Ένα νέο έργο,% s, έχει ανατεθεί σε σας από το% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Λήψη αντιγράφων ασφαλείας
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Παράθυρο διαλόγου για να επιλέξετε μια τιμή σύνδεσης
 DocType: Contact Us Settings,Send enquiries to this email address,Στείλτε τις απορίες σε αυτή τη διεύθυνση ηλεκτρονικού ταχυδρομείου
 DocType: Letter Head,Letter Head Name,Επιστολή Όνομα Head

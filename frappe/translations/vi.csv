@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Khi gửi Email
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Người sử dụng {0} không thể bị vô hiệu hóa
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Một nhiệm vụ mới,% s, đã được giao cho bạn bởi% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Tải về sao lưu
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Hộp thoại để chọn một giá trị liên kết
 DocType: Contact Us Settings,Send enquiries to this email address,Gửi yêu cầu đến địa chỉ email này
 DocType: Letter Head,Letter Head Name,Tên thư Head

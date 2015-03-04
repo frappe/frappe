@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,電子メールとして送信す
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,ユーザー{0}無効にすることはできません
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",新しいタスク、％sは、％sによって自分に割り当てられている。 ％sの
 apps/frappe/frappe/config/setup.py +207,Download Backup,ダウンロードバックアップ
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,リンク値を選択するためのダイアログボックス
 DocType: Contact Us Settings,Send enquiries to this email address,このメールアドレスに問い合わせを送る
 DocType: Letter Head,Letter Head Name,レターヘッドの名前

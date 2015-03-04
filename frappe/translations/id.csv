@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Kirim Sebagai Email
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Pengguna {0} tidak dapat dinonaktifkan
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Sebuah tugas baru,% s, telah diberikan kepada Anda oleh% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Download Backup
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Dialog box untuk memilih Link Value
 DocType: Contact Us Settings,Send enquiries to this email address,Kirim pertanyaan ke alamat email ini
 DocType: Letter Head,Letter Head Name,Nama Surat Kepala

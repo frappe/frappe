@@ -970,7 +970,7 @@ sites/assets/js/desk.min.js +822,Send As Email,ईमेल के रूप म
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,प्रयोक्ता {0} निष्क्रिय नहीं किया जा सकता है
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","एक नया कार्य,% s% s के द्वारा आप के लिए सौंपा गया है। % एस"
 apps/frappe/frappe/config/setup.py +207,Download Backup,बैकअप डाउनलोड
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,एक लिंक मूल्य का चयन करने के लिए संवाद बॉक्स
 DocType: Contact Us Settings,Send enquiries to this email address,इस ईमेल पते पर पूछताछ भेजें
 DocType: Letter Head,Letter Head Name,लेटर हेड का नाम
