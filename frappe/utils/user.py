@@ -134,6 +134,24 @@ class User:
 		self.defaults = frappe.defaults.get_defaults(self.name)
 		return self.defaults
 
+	# update recent documents
+	def update_recent(self, dt, dn):
+		rdl = frappe.cache().get_value("recent:" + self.name) or []
+		new_rd = [dt, dn]
+
+		# clear if exists
+		for i in range(len(rdl)):
+			rd = rdl[i]
+			if rd==new_rd:
+				del rdl[i]
+				break
+
+		if len(rdl) > 19:
+			rdl = rdl[:19]
+
+		rdl = [new_rd] + rdl
+		r = frappe.cache().set_value("recent:" + self.name, rdl)
+
 	def _get(self, key):
 		if not self.can_read:
 			self.build_permissions()
