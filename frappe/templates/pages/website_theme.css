@@ -70,6 +70,10 @@ a:active {
 	border-top: 1px solid {{ border_color }};
 }
 
+.border-color {
+	border-color: {{ border_color }};
+}
+
 {% if theme.css -%} {% include theme.css %} {%- endif %}
 
 {%- endif -%}

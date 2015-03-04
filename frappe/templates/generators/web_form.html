@@ -43,7 +43,7 @@
 
 {%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
 
-{%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or "" }}{% endif %}{%- endmacro -%}
+{%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or field.default or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
 {% if field.description -%}
