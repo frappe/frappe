@@ -111,7 +111,7 @@ function show_alert(txt, seconds) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	var div = $(repl('<div class="alert alert-info desk-alert" style="display: none;">'
+	var div = $(repl('<div class="alert desk-alert" style="display: none;">'
 			+ '<a class="close">&times;</a><span class="alert-message">%(txt)s</span>'
 		+ '</div>', {txt: txt}))
 		.appendTo("#alert-container")
