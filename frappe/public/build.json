@@ -109,6 +109,7 @@
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/views/communication.js",
 
+		"public/js/frappe/change_log.html",
 		"public/js/frappe/desk.js"
 	],
 	"css/module.min.css": [

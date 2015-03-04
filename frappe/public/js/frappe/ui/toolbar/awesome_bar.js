@@ -107,7 +107,7 @@ frappe.search = {
 		});
 	},
 	setup_recent: function() {
-		var recent = JSON.parse(frappe.boot.user.recent || "[]");
+		var recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 		frappe.search.recent = {};
 		for (var i=0, l=recent.length; i < l; i++) {
 			var d = recent[i];

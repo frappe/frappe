@@ -586,31 +586,6 @@ def get_installed_apps(sort=False):
 
 	return installed
 
-@whitelist()
-def get_versions():
-	"""Get versions of all installed apps.
-
-	Example:
-
-		{
-			"frappe": {
-				"title": "Frappe Framework",
-				"version": "5.0.0"
-			}
-		}"""
-	versions = {}
-	for app in get_installed_apps():
-		versions[app] = {
-			"title": get_hooks("app_title", app_name=app),
-			"description": get_hooks("app_description", app_name=app)
-		}
-		try:
-			versions[app]["version"] = get_attr(app + ".__version__")
-		except AttributeError:
-			versions[app]["version"] = '0.0.1'
-
-	return versions
-
 def get_hooks(hook=None, default=None, app_name=None):
 	"""Get hooks via `app/hooks.py`
 

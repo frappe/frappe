@@ -45,6 +45,10 @@ frappe.Application = Class.extend({
 		if (frappe.boot.messages) {
 			frappe.msgprint(frappe.boot.messages);
 		}
+
+		if (frappe.boot.change_log && frappe.boot.change_log.length) {
+			this.show_change_log();
+		}
 	},
 
 	load_bootinfo: function() {
@@ -251,6 +255,19 @@ frappe.Application = Class.extend({
 				frappe.ui.toolbar.clear_cache();
 			});
 
+	},
+
+	show_change_log: function() {
+		var d = frappe.msgprint(
+			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
+			__("Updated To New Version")
+		);
+		d.keep_open = true;
+		d.custom_onhide = function() {
+			frappe.call({
+				"method": "frappe.change_log.update_last_known_versions"
+			});
+		};
 	}
 });
 

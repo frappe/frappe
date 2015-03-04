@@ -5,7 +5,6 @@
 		"Column Break": "f5f7fa"
 	}[doc.fieldtype] || "fff" %}; padding: 10px; margin: -10px -15px;">
 		<div class="col-sm-4">
-			<p>
 			{% if (doc.fieldtype==="Section Break") { %}<strong>{% } %}
 				{% if (doc.reqd) { %}<span class="text-danger">{% } %}
 				{% if (doc.hidden) { %}
@@ -17,7 +16,6 @@
 				{% if (doc.hidden) { %}</span>{% } %}
 				{% if (doc.reqd) { %}</span>{% } %}
 			{% if (doc.fieldtype=="Section Break") { %}</strong>{% } %}
-			</p>
 			{% if (doc.description) { %}<p class="text-muted small">{%= doc.description %}</p>{% } %}
 		</div>
 		<div class="col-sm-3">

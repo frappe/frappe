@@ -350,6 +350,16 @@
    "read_only": 1
   }, 
   {
+   "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.", 
+   "fieldname": "last_known_versions", 
+   "fieldtype": "Text", 
+   "hidden": 1, 
+   "label": "Last Known Versions", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "roles_assigned_to_user", 
    "fieldtype": "Section Break", 
    "hidden": 1, 
@@ -373,7 +383,7 @@
    "fieldname": "third_party_authentication", 
    "fieldtype": "Section Break", 
    "label": "Third Party Authentication", 
-   "permlevel": 0
+   "permlevel": 1
   }, 
   {
    "fieldname": "fb_username", 
@@ -400,6 +410,12 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "column_break_49", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "github_userid", 
    "fieldtype": "Data", 
    "label": "Github User ID", 
@@ -423,7 +439,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-02-11 14:49:33.285955", 
+ "modified": "2015-03-04 02:37:27.094830", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

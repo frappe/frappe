@@ -136,7 +136,7 @@ class User:
 
 	# update recent documents
 	def update_recent(self, dt, dn):
-		rdl = frappe.cache().get_value("recent:" + self.name) or []
+		rdl = frappe.cache().get_value("recent", user=True) or []
 		new_rd = [dt, dn]
 
 		# clear if exists
@@ -150,7 +150,8 @@ class User:
 			rdl = rdl[:19]
 
 		rdl = [new_rd] + rdl
-		r = frappe.cache().set_value("recent:" + self.name, rdl)
+
+		r = frappe.cache().set_value("recent", rdl, user=True)
 
 	def _get(self, key):
 		if not self.can_read:
@@ -172,7 +173,7 @@ class User:
 			self.build_permissions()
 
 		d.name = self.name
-		d.recent = json.dumps(frappe.cache().get_value("recent:" + self.name) or [])
+		d.recent = json.dumps(frappe.cache().get_value("recent", user=True) or [])
 
 		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()

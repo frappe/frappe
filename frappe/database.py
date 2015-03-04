@@ -548,14 +548,14 @@ class Database:
 		if dn and dt!=dn:
 			conditions, values = self.build_conditions(dn)
 
-			if update_modified:
-				values.update({"val": val, "modified": modified, "modified_by": modified_by})
+			values.update({"val": val, "modified": modified, "modified_by": modified_by})
 
+			if update_modified:
 				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
 					{2}""".format(dt, field, conditions), values, debug=debug)
 			else:
-				self.sql("""update `tab{0}` set `{1}`=%s where
-					{2}""".format(dt, field, conditions), val, debug=debug)
+				self.sql("""update `tab{0}` set `{1}`=%(val)s where
+					{2}""".format(dt, field, conditions), values, debug=debug)
 
 
 		else:
