@@ -8,6 +8,9 @@ import subprocess
 import json
 import click
 import hashlib
+import cProfile
+import StringIO
+import pstats
 import frappe
 import frappe.utils
 from frappe.utils import cint
@@ -17,7 +20,22 @@ from functools import wraps
 def pass_context(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
-		return f(frappe._dict(ctx.obj), *args, **kwargs)
+		profile = ctx.obj['profile']
+		if profile:
+			pr = cProfile.Profile()
+			pr.enable()
+
+		ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+
+		if profile:
+			pr.disable()
+			s = StringIO.StringIO()
+			ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
+			ps.print_stats()
+			print s.getvalue()
+
+		return ret
+
 	return click.pass_context(_func)
 
 def get_single_site(context):

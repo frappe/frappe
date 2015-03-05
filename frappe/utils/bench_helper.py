@@ -27,14 +27,16 @@ def get_app_group(app):
 		return click.group(name=app, commands=app_commands)(app_group)
 
 @click.option('--site')
+@click.option('--profile', is_flag=True, default=False, help='Profile')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force')
 @click.pass_context
-def app_group(ctx, site, force, verbose):
+def app_group(ctx, site, force, verbose, profile):
 	ctx.obj = {
 		'sites': get_sites(site),
 		'force': force,
-		'verbose': verbose
+		'verbose': verbose,
+		'profile': profile
 	}
 	if ctx.info_name == 'frappe':
 		ctx.info_name = ''
