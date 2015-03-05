@@ -32,9 +32,19 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	if fieldname and fieldname.startswith("["):
+	try:
+		filters = json.loads(filters)
+	except ValueError:
+		# name passed, not json
+		pass
+
+	try:
 		fieldname = json.loads(fieldname)
-	return frappe.db.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
+	except ValueError:
+		# name passed, not json
+		pass
+
+	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value):

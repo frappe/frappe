@@ -148,7 +148,7 @@ class WebsiteGenerator(Document):
 		if context.parents:
 			return context.parents
 
-		# home_page = get_home_page()
+		home_page = get_home_page()
 
 		parents = []
 		me = self
@@ -157,8 +157,8 @@ class WebsiteGenerator(Document):
 			_parent_val = me.get(_parent_field) if _parent_field else None
 
 			# if no parent and not home page, then parent is home page
-			# if not _parent_val and me.get_route() != home_page:
-			# 	_parent_val = home_page
+			if not _parent_val and me.get_route() != home_page:
+			 	_parent_val = home_page
 
 			if _parent_val:
 				df = me.meta.get_field(_parent_field)

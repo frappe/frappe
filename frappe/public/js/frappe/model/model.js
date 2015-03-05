@@ -242,12 +242,28 @@ $.extend(frappe.model, {
 		return frappe.utils.filter_dict(docsdict, filters);
 	},
 
-	get_value: function(doctype, filters, fieldname) {
-		if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
-			return locals[doctype][filters][fieldname];
+	get_value: function(doctype, filters, fieldname, callback) {
+		if(callback) {
+			frappe.call({
+				method:"frappe.client.get_value",
+				args: {
+					doctype: doctype,
+					fieldname: fieldname,
+					filters: filters
+				},
+				callback: function(r) {
+					if(!r.exc) {
+						callback(r.message);
+					}
+				}
+			});
 		} else {
-			var l = frappe.get_list(doctype, filters);
-			return (l.length && l[0]) ? l[0][fieldname] : null;
+			if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+				return locals[doctype][filters][fieldname];
+			} else {
+				var l = frappe.get_list(doctype, filters);
+				return (l.length && l[0]) ? l[0][fieldname] : null;
+			}
 		}
 	},
 

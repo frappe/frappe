@@ -80,7 +80,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// setup add fetch
 		$.each(this.frm.fields, function(i, field) {
 			var df = field.df;
-			if(df.fieldtype==="Read Only" && df.options && df.options.indexOf(".")!=-1) {
+			if((df.fieldtype==="Read Only" || df.read_only==1) && df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
 			}
