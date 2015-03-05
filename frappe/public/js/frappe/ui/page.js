@@ -168,11 +168,17 @@ frappe.ui.Page = Class.extend({
 
 	show_menu: function() {
 		this.menu_btn_group.removeClass("hide");
-		this.icon_group.removeClass("hide");
 	},
 
 	hide_menu: function() {
 		this.menu_btn_group.addClass("hide");
+	},
+
+	show_icon_group: function() {
+		this.icon_group.removeClass("hide");
+	},
+
+	hide_icon_group: function() {
 		this.icon_group.addClass("hide");
 	},
 
@@ -268,17 +274,11 @@ frappe.ui.Page = Class.extend({
 		},
 
 	add_help_button: function(txt) {
-		this.add_icon_btn("2", "icon-question-sign", __("Help"),
-			function() { msgprint($(this).data('help-text'), 'Help'); })
-			.data("help-text", txt);
-	},
-
-	add_icon_btn: function(group, icon, label, click) {
-		return this.iconbar.add_btn(group, icon, label, click);
+		//
 	},
 
 	add_button: function(label, click, icon, is_title) {
-		return this.add_icon_btn("1", icon, __(label), click);
+		//
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {

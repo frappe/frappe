@@ -39,7 +39,8 @@ frappe.ui.form.Control = Class.extend({
 	},
 
 	toggle: function(show) {
-		this.$wrapper.toggleClass("hide-control", !!!show);
+		this.df.hidden = show ? 0 : 1;
+		this.refresh();
 	},
 
 	// returns "Read", "Write" or "None"

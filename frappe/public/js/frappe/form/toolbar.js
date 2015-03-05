@@ -20,8 +20,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else {
 			if(this.frm.doc.__islocal) {
 				this.page.hide_menu();
+				this.print_icon && this.print_icon.addClass("hide");
 			} else {
 				this.page.show_menu();
+				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
 	},
@@ -154,14 +156,22 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.frm.linked_with.show();
 	},
 	set_primary_action: function(dirty) {
-		var me = this,
-			status = null;
-
 		if (!dirty) {
 			// don't clear actions menu if dirty
 			this.page.clear_user_actions();
 		}
 
+		status = this.get_action_status();
+		if (status) {
+			if (status !== this.current_status) {
+				this.set_page_actions(status);
+			}
+		} else {
+			this.page.clear_actions();
+		}
+	},
+	get_action_status: function() {
+		var status = null;
 		if (this.can_submit()) {
 			status = "Submit";
 		} else if (this.can_save()) {
@@ -175,51 +185,48 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else if (this.can_amend()) {
 			status = "Amend";
 		}
+		return status;
+	},
+	set_page_actions: function(status) {
+		var me = this;
+		this.page.clear_actions();
 
-		if (status) {
-			if (status !== this.current_status) {
-				this.page.clear_actions();
-
-				var perm_to_check = this.frm.action_perm_type_map[status];
-				if(!this.frm.perm[0][perm_to_check]) {
-					return;
-				}
-
-				if(status == "Cancel") {
-					this.page.set_secondary_action(__(status), function() {
-						me.frm.savecancel(this);
-					}, "octicon octicon-circle-slash");
-				} else {
-					var click = {
-						"Save": function() {
-							me.frm.save('Save', null, this);
-						},
-						"Submit": function() {
-							me.frm.savesubmit(this);
-						},
-						"Update": function() {
-							me.frm.save('Update', null, this);
-						},
-						"Amend": function() {
-							me.frm.amend_doc();
-						}
-					}[status];
-
-					var icon = {
-						"Save": "octicon octicon-check",
-						"Submit": "octicon octicon-lock",
-						"Update": "octicon octicon-check",
-						"Amend": "octicon octicon-split"
-					}[status];
-
-					this.page.set_primary_action(__(status), click, icon);
-				}
-
-				this.current_status = status;
-			}
-		} else {
-			this.page.clear_actions();
+		var perm_to_check = this.frm.action_perm_type_map[status];
+		if(!this.frm.perm[0][perm_to_check]) {
+			return;
 		}
+
+		if(status == "Cancel") {
+			this.page.set_secondary_action(__(status), function() {
+				me.frm.savecancel(this);
+			}, "octicon octicon-circle-slash");
+		} else {
+			var click = {
+				"Save": function() {
+					me.frm.save('Save', null, this);
+				},
+				"Submit": function() {
+					me.frm.savesubmit(this);
+				},
+				"Update": function() {
+					me.frm.save('Update', null, this);
+				},
+				"Amend": function() {
+					me.frm.amend_doc();
+				}
+			}[status];
+
+			var icon = {
+				"Save": "octicon octicon-check",
+				"Submit": "octicon octicon-lock",
+				"Update": "octicon octicon-check",
+				"Amend": "octicon octicon-split"
+			}[status];
+
+			this.page.set_primary_action(__(status), click, icon);
+		}
+
+		this.current_status = status;
 	},
 	make_cancel_amend_button: function() {
 		var me = this;
