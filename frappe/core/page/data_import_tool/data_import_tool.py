@@ -46,8 +46,11 @@ def export_csv(doctype, path):
 def export_json(doctype, path, filters=None):
 	from frappe.utils.response import json_handler
 	out = []
-	for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
-		out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	if frappe.db.get_value("DocType", doctype, "issingle"):
+		out.append(frappe.get_doc(doctype).as_dict())
+	else:
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
+			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	with open(path, "w") as outfile:
 		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
 

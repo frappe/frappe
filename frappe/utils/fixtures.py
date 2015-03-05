@@ -28,6 +28,6 @@ def export_fixtures():
 			if isinstance(fixture, basestring):
 				fixture = [fixture];
 			if frappe.db.get_value("DocType", fixture[0], "issingle"):
-				export_fixture(fixture[0], fixture[0], app)
+				export_fixture(fixture[0], app)
 			else:
 				export_csv(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture[0]) + ".csv"))
