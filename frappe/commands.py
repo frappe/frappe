@@ -702,6 +702,20 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 				print "files backup taken -", odb.backup_path_files, "- on", now()
 		frappe.destroy()
 
+
+@click.command('remove-from-installed-apps')
+@click.argument('app')
+@pass_context
+def remove_from_installed_apps(context, app):
+	from frappe.installer import remove_from_installed_apps
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			remove_from_installed_apps(app)
+		finally:
+			frappe.destroy()
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -755,4 +769,5 @@ commands = [
 	make_app,
 	_use,
 	backup,
+	remove_from_installed_apps,
 ]
