@@ -1148,13 +1148,17 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_rich_text_editor: function() {
 		var me = this;
 		this.editor_wrapper = $("<div>").appendTo(this.input_area);
+		var onchange = function(value) {
+			me.md_editor.val(value);
+			me.parse_validate_and_set_in_model(value);
+		}
 		this.editor = new (frappe.provide(this.editor_name))({
 			parent: this.editor_wrapper,
-			change: function(value) {
-				me.md_editor.val(value);
-				me.parse_validate_and_set_in_model(value);
-			},
+			change: onchange,
 			field: this
+		});
+		this.editor.editor.on("blur", function() {
+			onchange(me.editor.clean_html());
 		});
 		this.editor.editor.keypress("ctrl+s meta+s", function() {
 			me.frm.save_or_update();
