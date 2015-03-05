@@ -172,7 +172,7 @@ class EMail:
 
 		if not self.sender:
 			email_account = get_outgoing_email_account()
-			self.sender = "{0} <{1}>".format(email_account.name, email_account.email_id)
+			self.sender = email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
 
 		self.sender = _validate(strip(self.sender))
 		self.reply_to = _validate(strip(self.reply_to) or self.sender)

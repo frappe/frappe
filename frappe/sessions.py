@@ -84,7 +84,7 @@ def get():
 		if bootinfo:
 			bootinfo['from_cache'] = 1
 			bootinfo["notification_info"].update(get_notifications())
-			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent", user=True))
+			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 
 	if not bootinfo:
 		# if not create it

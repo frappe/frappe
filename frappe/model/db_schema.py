@@ -42,7 +42,7 @@ type_map = {
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
 	'docstatus', 'parent', 'parentfield', 'parenttype', 'idx']
 
-default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
+default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
 
 def updatedb(dt):
 	"""

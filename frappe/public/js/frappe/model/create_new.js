@@ -109,6 +109,9 @@ $.extend(frappe.model, {
 			} else if (df["default"] == "Today") {
 				return dateutil.get_today();
 
+			} else if ((df["default"] || "").toLowerCase() === "now") {
+				return dateutil.now_datetime();
+
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
 				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].indexOf(boot_doc)!==-1;
@@ -126,9 +129,6 @@ $.extend(frappe.model, {
 
 		} else if (df.fieldtype=="Time") {
 			return dateutil.now_time();
-
-		} else if(df.fieldtype=="Datetime") {
-			return dateutil.now_datetime()
 
 		}
 	},

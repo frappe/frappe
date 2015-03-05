@@ -41,7 +41,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	"Install a new site"
 	if not db_name:
 		db_name = hashlib.sha1(site).hexdigest()[:10]
-		
+
 	frappe.init(site=site)
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 	if len(frappe.utils.get_sites()) == 1:
@@ -594,14 +594,14 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 	import frappe.test_runner
 	from frappe.utils import sel
 	tests = test
+
 	site = get_single_site(context)
 
 	# sel.start(verbose, driver)
 
 	try:
 		frappe.init(site=site)
-		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], context.verbose,
-			tests=tests, force=context.force)
+		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests, force=context.force)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:

@@ -70,6 +70,13 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 		if not email_account and not raise_exception_not_set:
 			return None
 
+		if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+			# create a stub
+			email_account = frappe.new_doc("Email Account")
+			email_account.update({
+				"sender": "notifications@example.com"
+			})
+
 		if not email_account:
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"))
 
