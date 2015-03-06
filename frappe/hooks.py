@@ -4,7 +4,7 @@ app_title = "Frappe Framework"
 app_publisher = "Web Notes Technologies Pvt. Ltd."
 app_description = "Full Stack Web Application Framework in Python"
 app_icon = "assets/frappe/images/frappe.svg"
-app_version = "4.13.0"
+app_version = "4.13.1"
 app_color = "#3498db"
 app_email = "support@frappe.io"
 
