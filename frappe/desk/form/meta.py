@@ -68,6 +68,7 @@ class FormMeta(Meta):
 			self.set("__listview_template", get_html_format(listview_template))
 
 		self.add_code_via_hook("doctype_js", "__js")
+		self.add_code_via_hook("doctype_list_js", "__list_js")
 		self.add_custom_script()
 
 	def _add_code(self, path, fieldname):

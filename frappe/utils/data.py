@@ -210,12 +210,14 @@ def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
 	if isinstance(s, basestring):
 		s = s.replace(',','')
+
 	try:
 		num = float(s)
 		if precision is not None:
 			num = rounded(num, precision)
 	except Exception:
 		num = 0
+
 	return num
 
 def cint(s):
@@ -235,7 +237,7 @@ def cstr(s):
 		return unicode(s)
 
 def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm"""
+	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
 	precision = cint(precision)
 	multiplier = 10 ** precision
 
@@ -245,7 +247,7 @@ def rounded(num, precision=0):
 	floor = math.floor(num)
 	decimal_part = num - floor
 
-	if decimal_part == 0.5:
+	if not precision and decimal_part == 0.5:
 		num = floor if (floor % 2 == 0) else floor + 1
 	else:
 		num = round(num)

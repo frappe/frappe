@@ -84,7 +84,9 @@ def rename_parent_and_child(doctype, old, new, meta):
 	update_child_docs(old, new, meta)
 
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
-	exists = frappe.db.get_value(doctype, new)
+	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
+	exists = frappe.db.sql("select name from `tab{doctype}` where name=%s for update".format(doctype=doctype), new)
+	exists = exists[0][0] if exists else None
 
 	if merge and not exists:
 		frappe.msgprint(_("{0} {1} does not exist, select a new target to merge").format(doctype, new), raise_exception=1)
