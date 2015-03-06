@@ -404,6 +404,11 @@ _f.Frm.prototype.refresh = function(docname) {
 
 _f.Frm.prototype.render_form = function() {
 	if(!this.meta.istable) {
+		// header must be refreshed before client methods
+		// because add_custom_button
+		this.refresh_header();
+		this.sidebar.refresh();
+
 		// call trigger
 		this.script_manager.trigger("refresh");
 
@@ -414,9 +419,6 @@ _f.Frm.prototype.render_form = function() {
 		// fields
 		this.refresh_fields();
 
-		// header
-		this.refresh_header();
-		this.sidebar.refresh();
 
 		// call onload post render for callbacks to be fired
 		if(this.cscript.is_onload) {
