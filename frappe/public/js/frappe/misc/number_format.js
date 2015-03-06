@@ -178,7 +178,7 @@ function _round(num, precision) {
     var m = Math.pow(10, d);
     var n = +(d ? num * m : num).toFixed(8); // Avoid rounding errors
     var i = Math.floor(n), f = n - i;
-    var r = (f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n);
+    var r = (!precision && f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n);
     return d ? r / m : r;
 }
 
