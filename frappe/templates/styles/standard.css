@@ -1,3 +1,5 @@
+@import url(/assets/frappe/css/font/open-sans/open-sans.css);
+
 @media screen {
 	.print-format-gutter {
 		background-color: #ddd;
@@ -35,7 +37,7 @@
 
 .print-format {
 	font-size: 9pt;
-	font-family: Helvetica, Arial, sans-serif;
+	font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
 	-webkit-print-color-adjust:exact;
 }
 

@@ -13,7 +13,8 @@
 				col-xs-3
 			{% } else { %}
 				hidden-xs
-			{% } %}"
+			{% } %}
+			{% if(col.df && ["Int", "Float", "Currency", "Percent"].indexOf(col.df.fieldtype)!==-1) { %}text-right{% } %}"
             {% if(col.type!=="Indicator" && col.title) { %}title="{%= col.title + ": " + value %}"{% } %}>
             {% if(col.type!=="Indicator") { %}<span class="list-value">{% } %}
             {% if (col.type==="Subject") { %}

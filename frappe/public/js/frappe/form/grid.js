@@ -358,7 +358,7 @@ frappe.ui.form.GridRow = Class.extend({
 			}
 			var add_class = (["Text", "Small Text"].indexOf(df.fieldtype)===-1) ?
 				" grid-overflow-ellipsis" : " grid-overflow-no-ellipsis";
-			add_class += (["Int", "Currency", "Float"].indexOf(df.fieldtype)!==-1) ?
+			add_class += (["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype)!==-1) ?
 				" text-right": "";
 
 			$col = $('<div class="col col-xs-'+colsize+add_class+' grid-static-col"></div>')

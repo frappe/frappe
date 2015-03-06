@@ -94,8 +94,6 @@ $.extend(frappe.report_dump, {
 frappe.provide("frappe.views");
 frappe.views.GridReport = Class.extend({
 	init: function(opts) {
-		frappe.assets.views["Report"]();
-
 		this.filter_inputs = {};
 		this.preset_checks = [];
 		this.tree_grid = {show: false};

@@ -216,7 +216,7 @@ def make_layout(doc, meta, format_data=None):
 						page[-1][-1].append(df)
 
 	# filter empty sections
-	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), page) for page in layout]
+	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), pg) for pg in layout]
 	return layout
 
 def is_visible(df, doc):
@@ -251,18 +251,16 @@ def get_print_style(style=None):
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
 	try:
-		additional_css = frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
-
-		# move @import to top
-		for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", additional_css))):
-			additional_css = additional_css.replace(at_import, "")
-
-			# prepend css with at_import
-			css = at_import + css
-
-		css += "\n" + additional_css
+		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
 	except TemplateNotFound:
 		pass
+
+	# move @import to top
+	for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", css))):
+		css = css.replace(at_import, "")
+
+		# prepend css with at_import
+		css = at_import + css
 
 	return css
 
