@@ -693,7 +693,7 @@ def make_app(destination, app_name):
 	from frappe.utils.boilerplate import make_boilerplate
 	make_boilerplate(destination, app_name)
 
-@click.command('set-default-site')
+@click.command('use')
 @click.argument('site')
 def _use(site, sites_path='.'):
 	use(site, sites_path=sites_path)
