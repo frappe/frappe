@@ -106,21 +106,20 @@ def _is_scheduler_enabled():
 
 @click.command('restore')
 @click.argument('sql-file-path')
-@click.argument('site')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--db-name', help='Database name for site in case it is a new one')
-@click.option('--admin-password', help='Administrator password for new site', prompt=True)
-@click.option('--verbose', is_flag=True, default=False, help='Verbose')
-@click.option('--force', help='Force restore if site already exists', is_flag=True, default=False)
+@click.option('--admin-password', help='Administrator password for new site')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def restore(sql_file_path, site, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None):
+@pass_context
+def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None):
 	"Restore site database from an sql file"
+
+	site = get_single_site(context)
 	frappe.init(site=site)
 	if not db_name:
 		db_name = frappe.conf.db_name
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=sql_file_path, force=force)
-
+		_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
 
 @click.command('reinstall')
 @pass_context
