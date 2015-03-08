@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Enviar com a correu electrònic
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,L'usuari {0} no es pot desactivar
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Se li ha assignat una nova tasca,%s, de%s. %s"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Descarregar còpia de seguretat
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Quadre de diàleg per a seleccionar un valor d'Enllaç
 DocType: Contact Us Settings,Send enquiries to this email address,Envieu les seves consultes a la següent adreça de correu electrònic
 DocType: Letter Head,Letter Head Name,Nom Carta Head

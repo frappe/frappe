@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,Trimite ca e-mail
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Utilizatorul {0} nu poate fi dezactivat
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Un nou sarcină,% s, a fost atribuit la tine de% s. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Descarca Backup
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Fereastra de dialog pentru a selecta o valoare de link
 DocType: Contact Us Settings,Send enquiries to this email address,Trimite întrebări cu privire la această adresă de e-mail
 DocType: Letter Head,Letter Head Name,Nume scrisoare cap

@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,ส่งเป็น อีเ�
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,ผู้ใช้ {0} ไม่สามารถ ปิดการใช้งาน
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",งานใหม่% s ได้รับการมอบหมายให้คุณโดย% s % s
 apps/frappe/frappe/config/setup.py +207,Download Backup,ดาวน์โหลดสำรอง
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,กล่องโต้ตอบเพื่อเลือกค่าเชื่อมโยง
 DocType: Contact Us Settings,Send enquiries to this email address,ส่งคำถาม ไปยังที่อยู่ อีเมลนี้
 DocType: Letter Head,Letter Head Name,ชื่อหัวจดหมาย

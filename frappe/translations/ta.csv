@@ -971,7 +971,7 @@ sites/assets/js/desk.min.js +822,Send As Email,மின்னஞ்சல் �
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,பயனர் {0} முடக்க முடியாது
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","ஒரு புதிய பணி,% கள்,% கள் மூலம் நீங்கள் ஒதுக்கப்படும். % கள்"
 apps/frappe/frappe/config/setup.py +207,Download Backup,காப்பு பதிவிறக்க
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,"ஒரு இணைப்பு மதிப்பு தேர்வு, உரையாடல் பெட்டி"
 DocType: Contact Us Settings,Send enquiries to this email address,இந்த மின்னஞ்சல் முகவரியை விசாரணைகள் அனுப்பவும்
 DocType: Letter Head,Letter Head Name,கடிதத்தை தலைமை பெயர்

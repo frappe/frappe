@@ -921,7 +921,7 @@ sites/assets/js/desk.min.js +465,Create a new {0},Yeni {0} oluşturun
 sites/assets/js/desk.min.js +788,Open {0},Open {0}
 DocType: Workflow State,ok-sign,ok-sign
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,Değer alanı kontrol edilmesi gerektiği belirtiniz
-apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Ana"" Bu satır eklenmelidir hangi üst tablo anlamına"
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Ana"" bu satırın ekleneceği üst tabloyu belirtir"
 DocType: Style Settings,Apply Style,Stil Uygula
 apps/frappe/frappe/templates/includes/blog.js +34,Nothing more to show.,Hiçbir şey daha göstermek için.
 ,Modules Setup,Kurulmuş Modüller
@@ -984,7 +984,7 @@ sites/assets/js/desk.min.js +822,Send As Email,E-posta Olarak Gönder
 apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,Kullanıcı {0} devre dışı edilemez
 apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s","Yeni görev,% s,% s tarafından size atanmıştır. % S"
 apps/frappe/frappe/config/setup.py +207,Download Backup,Yedekleme
-apps/frappe/frappe/desk/page/activity/activity.js +20,Activity,Activity
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,Activty
 sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,Bağlantı değeri seçmek için iletişim kutusu
 DocType: Contact Us Settings,Send enquiries to this email address,Bu e-posta adresine soruşturma gönder
 DocType: Letter Head,Letter Head Name,Antet Adı
