@@ -80,14 +80,16 @@ def before_tests():
 
 def import_country_and_currency():
 	from frappe.geo.country_info import get_all
-	print "Importing Geo..."
+	from frappe.utils import update_progress_bar
 
 	data = get_all()
 
-
-	for name in data:
+	for i, name in enumerate(data):
+		update_progress_bar("Updating country info", i, len(data))
 		country = frappe._dict(data[name])
 		add_country_and_currency(name, country)
+
+	print
 
 	# enable frequently used currencies
 	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):

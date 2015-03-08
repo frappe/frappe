@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<!--
-Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.io/
--->
+<!-- Built on Frappe. https://frappe.io/ -->
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -11,13 +9,14 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 	<script type="text/javascript"
 		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 
+    {% block favicon %}
 	<link rel="shortcut icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
 		type="image/x-icon">
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
 		type="image/x-icon">
-	{%- block head_include %}{% endblock -%}
+    {% endblock %}
 	{%- block head -%}
 		{% if meta_block is defined %}
 		{{ meta_block }}
@@ -36,6 +35,7 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 		{%- for link in web_include_js %}
 		<script type="text/javascript" src="{{ link }}"></script>
 		{%- endfor -%}
+        {%- block head_include %}{% endblock -%}
 	{%- endblock -%}
 </head>
 <body>
@@ -51,29 +51,8 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 					{%- endblock -%}
 
 					{%- block navbar -%}{% include "templates/includes/navbar/navbar.html" %}{%- endblock -%}
-			        <div class="container">
-			    		<div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}">
-			    			<div class="row">
-			    				<div class="col-sm-10 col-xs-12 page-content">
-			            			<div class="page-header-block" data-html-block="header">
-			            				{%- if header is defined -%}{% if header %}{{ header }}{% endif %}{%- endif -%}
-			            			</div>
-			                		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
-			                			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
-			                		</div>
-			                        <div class="page-content-block" data-html-block="content">
-			    					{%- block content -%}{{ content or "" }}{%- endblock -%}
-			                        </div>
-			    				</div>
-			    				<div class="col-sm-2 hidden-xs page-sidebar" data-html-block="sidebar">
-			    					{%- block sidebar -%}
-			    					{%- if sidebar is defined -%}
-			    						{{ sidebar }}
-			    					{%- endif -%}
-			    					{%- endblock -%}
-			    				</div>
-			    			</div>
-			    		</div>
+			        <div class="container" data-html-block="content">
+                        {{ content }}
 			        </div>
 					<footer class="page-footer">
 						<div class="container" data-html-block="footer">

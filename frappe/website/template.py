@@ -31,8 +31,12 @@ def render_blocks(context):
 
 	_render_blocks(context["template"])
 
+	out["has_sidebar"] = not (context.get("no_sidebar", 0) or ("<!-- no-sidebar -->" in out.get("content", "")))
+
+	if out.get("has_sidebar"):
+		out["sidebar"] = frappe.get_template("templates/includes/sidebar.html").render(context)
+
 	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
-	out["no_sidebar"] = context.get("no_sidebar", 0) or ("<!-- no-sidebar -->" in out.get("content", ""))
 	out["no_header"] = context.get("no_header", 0) or ("<!-- no-header -->" in out.get("content", ""))
 
 	# default blocks if not found
@@ -68,11 +72,6 @@ def render_blocks(context):
 		out["breadcrumbs"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 
-	# sidebar
-	if not out.get("no_sidebar") and "sidebar" not in out:
-		out["sidebar"] = scrub_relative_urls(
-			frappe.get_template("templates/includes/sidebar.html").render(context))
-
 	# meta
 	if "meta_block" not in out:
 		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
@@ -95,5 +94,8 @@ def render_blocks(context):
 	# remove style and script tags from blocks
 	out["style"] = re.sub("</?style[^<>]*>", "", out.get("style") or "")
 	out["script"] = re.sub("</?script[^<>]*>", "", out.get("script") or "")
+
+	# render
+	out["content"] = frappe.get_template("templates/includes/page_content.html").render(out)
 
 	return out

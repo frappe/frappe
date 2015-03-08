@@ -2,17 +2,18 @@
 
 {% block content %}
 <!-- no-header -->
+<!-- no-sidebar -->
 <div class="row">
 	<div class="col-sm-3">
 		<div class="your-account-info">
 			<div class="avatar avatar-large">
-				<a href="/user"><img class="user-image" src="{{ user_image }}" /></a>
+				<a href="/me"><img class="user-image" src="{{ user_image }}" /></a>
 			</div>
 			<div>
-				<h4><a href="/user">{{ fullname }}</a></h4>
+				<h4><a href="/me">{{ fullname }}</a></h4>
 				<ul class="list-unstyled small user-options">
-					<li><a href="">{{ _("Reset Password") }}</a></li>
-					<li><a href="">{{ _("Logout") }}</a></li>
+					<li><a href="/update-password">{{ _("Reset Password") }}</a></li>
+					<li><a href="/?cmd=web_logout">{{ _("Logout") }}</a></li>
 				</ul>
 			</div>
 		</div>

@@ -42,7 +42,6 @@ def build_context(context):
 	"""get_context method of doc or module is supposed to render content templates and push it into context"""
 	context = frappe._dict(context)
 	context.update(get_website_settings())
-	context.update(frappe.get_hooks("website_context") or {})
 	context.update(frappe.local.conf.get("website_context") or {})
 
 	# provide doc

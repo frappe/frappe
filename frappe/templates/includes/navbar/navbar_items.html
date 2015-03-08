@@ -13,28 +13,5 @@
 	{% include "templates/includes/navbar/navbar_link.html" %}
 	{%- endif -%}
 	{%- endfor %}
-	<!-- post login tools -->
-	<li class="dropdown logged-in" id="website-post-login"
-		data-label="website-post-login" style="display: none">
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-			<span class="avatar avatar-small user-image-wrapper"><img class="user-image"/></span>
-			<span class="visible-xs full-name"></span>
-		</a>
-        <ul class="dropdown-menu" role="menu">
-			{%- for child in post_login -%}
-			<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
-				{% if child.class %} class="{{ child.class }}" {% endif %}>
-
-				{%- if child.url -%}
-					<a href="{{ child.url }}" {{ child.target or '' }}
-						rel="nofollow">
-						{{ child.label }}
-					</a>
-				{%- endif -%}
-			</li>
-			{%- endfor -%}
-		</ul>
-	</li>
-	<li class="btn-login-area"><a href="/login">
-		{%- if not disable_signup %}{{ _("Sign Up") }} / {% endif -%} {{ _("Login") }}</a></li>
+	{% include "templates/includes/navbar/navbar_login.html" %}
 </ul>

@@ -261,7 +261,7 @@ $.extend(frappe, {
 		if (last_part.indexOf(".")!==-1 && (last_part.indexOf(".htm")===-1))
 			return;
 
-		event.preventDefault()
+		event.preventDefault();
 		frappe.load_via_ajax(link.href);
 
 	},
@@ -281,6 +281,7 @@ $.extend(frappe, {
 			frappe.render_json(data);
 		};
 
+		frappe.freeze();
 		$.ajax({
 			url: href,
 			cache: false,
@@ -290,6 +291,8 @@ $.extend(frappe, {
 			}
 		}).fail(function(xhr, status, error) {
 			window.location.reload();
+		}).always(function() {
+			frappe.unfreeze();
 		});
 	},
 	render_json: function(data) {
@@ -357,6 +360,40 @@ $.extend(frappe, {
 		}
 		frappe.page_ready_events[frappe.get_pathname()].push(fn);
 	},
+	freeze_count: 0,
+	freeze: function(msg) {
+		// blur
+		if(!$('#freeze').length) {
+			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
+				.on("click", function() {
+					if (cur_frm && cur_frm.cur_grid) {
+						cur_frm.cur_grid.toggle_view();
+						return false;
+					}
+				})
+				.appendTo("body");
+
+			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
+				{msg: msg || ""}));
+
+			setTimeout(function() { freeze.addClass("in") }, 1);
+
+		} else {
+			$("#freeze").addClass("in");
+		}
+		frappe.freeze_count++;
+	},
+	unfreeze: function() {
+		if(!frappe.freeze_count) return; // anything open?
+		frappe.freeze_count--;
+		if(!frappe.freeze_count) {
+			var freeze = $('#freeze').removeClass("in");
+			setTimeout(function() {
+				if(!frappe.freeze_count) { freeze.remove(); }
+			}, 150);
+		}
+	},
+
 	trigger_ready: function() {
 		var ready_functions = frappe.page_ready_events[frappe.get_pathname()];
 		if (ready_functions && ready_functions.length) {
@@ -420,29 +457,6 @@ $.extend(frappe, {
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 			!$("[data-html-block='breadcrumbs']").text().trim() ||
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
-
-		// to show full content width, when no sidebar content
-		var sidebar_content = $("[data-html-block='sidebar']").html(),
-			sidebar_has_content = sidebar_content ? !!sidebar_content.trim() : false;
-
-		// hide sidebar if no content
-		$(".page-sidebar, .toggle-sidebar").toggleClass("hide", !sidebar_has_content);
-
-		// push sidebar to the right if there is content
-		// $(".page-sidebar").toggleClass("col-sm-push-" + frappe.page_cols, sidebar_has_content);
-
-		// make page content wide if no sidebar
-		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
-
-		// narrow page content if sidebar
-		$(".page-content").toggleClass("col-sm-"+frappe.page_cols, sidebar_has_content);
-
-		// no borders if no sidebars
-		$(".page-content").toggleClass("no-border", !sidebar_has_content);
-
-		// if everything in the sub-header is hidden, hide the sub-header
-		// var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
-		// $(".page-sub-header").toggleClass("hidden", hide_sub_header);
 	}
 });
 
@@ -627,8 +641,6 @@ $(document).ready(function() {
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
-	frappe.sidebar_cols = $(".page-sidebar").hasClass("col-sm-3") ? 3 : 2;
-	frappe.page_cols = 12 - frappe.sidebar_cols;
 	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
 	frappe.bind_filters();
