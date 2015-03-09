@@ -79,7 +79,7 @@ def application(request):
 				# code 409 represents conflict
 				http_status_code = 409
 
-		if frappe.local.is_ajax:
+		if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
 			response = frappe.utils.response.report_error(http_status_code)
 		else:
 			frappe.respond_as_web_page("Server Error",
