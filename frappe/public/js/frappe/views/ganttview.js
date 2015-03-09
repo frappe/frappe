@@ -41,7 +41,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 
 		this.page = this.parent.page;
 		this.page.set_title(__("Gantt Chart") + " - " + __(this.doctype));
-		frappe.add_breadcrumbs(module, this.doctype);
+		frappe.breadcrumbs.add(module, this.doctype);
 
 		this.page.set_secondary_action(__("Refresh"),
 			function() { me.refresh(); }, "icon-refresh")

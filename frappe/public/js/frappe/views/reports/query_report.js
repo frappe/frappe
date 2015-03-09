@@ -96,7 +96,7 @@ frappe.views.QueryReport = Class.extend({
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						var module = locals.DocType[me.report_doc.ref_doctype].module;
-						frappe.add_breadcrumbs(module)
+						frappe.breadcrumbs.add(module)
 
 						if(!frappe.query_reports[me.report_name]) {
 							return frappe.call({

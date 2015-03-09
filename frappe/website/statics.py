@@ -28,7 +28,7 @@ class sync(object):
 			frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 
 		for app in frappe.get_installed_apps():
-			print app
+			print "Syncing for {0}".format(app)
 			self.sync_for_app(app)
 		self.cleanup()
 

@@ -6,7 +6,7 @@ frappe.pages['user-permissions'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-	frappe.add_breadcrumbs("Setup");
+	frappe.breadcrumbs.add("Setup");
 
 	$("<div class='user-settings' \
 		style='min-height: 200px; padding: 15px;'></div>\

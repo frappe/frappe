@@ -51,7 +51,7 @@ frappe.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		this.page.set_title(__(this.doctype));
 		var module = locals.DocType[this.doctype].module;
-		frappe.add_breadcrumbs(module, this.doctype)
+		frappe.breadcrumbs.add(module, this.doctype)
 
 		this.parent.reportview = new frappe.views.ReportView({
 			doctype: this.doctype,

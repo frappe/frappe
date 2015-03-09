@@ -57,13 +57,18 @@ a.grey:hover,
 .sidebar-section a:hover,
 .nav-pills a:hover,
 .control-value a:hover,
-.data-row a:hover {
+.data-row a:hover,
+a.grey:focus,
+.sidebar-section a:focus,
+.nav-pills a:focus,
+.control-value a:focus,
+.data-row a:focus {
   border-bottom: 1px solid #212a33;
   color: #212a33;
 }
 a.text-muted,
 a.text-extra-muted {
-  border-bottom: 1px solid transparent;
+  text-underline: none;
 }
 a.text-muted:hover,
 a.text-muted:focus,

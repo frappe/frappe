@@ -48,15 +48,16 @@ a.disabled, a.disabled:hover {
 }
 
 a.grey, .sidebar-section a, .nav-pills a, .control-value a, .data-row a {
-	.underline;
+	.underline();
 }
 
-a.grey:hover, .sidebar-section a:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
-    .underline-hover;
+a.grey:hover, .sidebar-section a:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover,
+a.grey:focus, .sidebar-section a:focus, .nav-pills a:focus, .control-value a:focus, .data-row a:focus {
+    .underline-hover();
 }
 
 a.text-muted, a.text-extra-muted {
-	border-bottom: 1px solid transparent;
+	text-underline: none;
 }
 
 a.text-muted:hover,

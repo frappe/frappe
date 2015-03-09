@@ -51,9 +51,11 @@
 					{%- endblock -%}
 
 					{%- block navbar -%}{% include "templates/includes/navbar/navbar.html" %}{%- endblock -%}
-			        <div class="container" data-html-block="content">
+                    {% block content %}
+                        <div class="container" data-html-block="content">
                         {{ content }}
-			        </div>
+                        </div>
+                    {% endblock %}
 					<footer class="page-footer">
 						<div class="container" data-html-block="footer">
 							{%- if footer is defined -%}{{ footer }}{%- endif -%}

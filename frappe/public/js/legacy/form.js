@@ -496,7 +496,7 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
-		frappe.add_breadcrumbs(me.meta.module, me.doctype)
+		frappe.breadcrumbs.add(me.meta.module, me.doctype)
 	})
 
 }
