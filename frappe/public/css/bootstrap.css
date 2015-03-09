@@ -1074,7 +1074,7 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
   font-size: 14px;
   line-height: 1.42857143;
   color: #36414c;
@@ -5813,7 +5813,7 @@ button.close {
   position: absolute;
   z-index: 1070;
   display: block;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
   font-size: 12px;
   font-weight: normal;
   line-height: 1.4;
@@ -5921,7 +5921,7 @@ button.close {
   display: none;
   max-width: 276px;
   padding: 1px;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
   font-size: 14px;
   font-weight: normal;
   line-height: 1.42857143;
@@ -6552,6 +6552,9 @@ button.close {
     display: none !important;
   }
 }
+body {
+  text-rendering: optimizeLegibility;
+}
 .list-group-item {
   padding: 8px 15px;
 }
@@ -6612,3 +6615,4 @@ h4.modal-title {
 .navbar-search-icon {
   color: #b8c2cb;
 }
+/*# sourceMappingURL=bootstrap.css.map */

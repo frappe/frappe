@@ -49,9 +49,7 @@ a.grey,
 .nav-pills a,
 .control-value a,
 .data-row a {
-  color: inherit;
-  border-bottom: 1px solid transparent;
-  margin-bottom: 0.4em;
+  text-decoration: underline;
 }
 a.grey:hover,
 .sidebar-section a:hover,
@@ -63,8 +61,7 @@ a.grey:focus,
 .nav-pills a:focus,
 .control-value a:focus,
 .data-row a:focus {
-  border-bottom: 1px solid #212a33;
-  color: #212a33;
+  text-decoration: underline;
 }
 a.text-muted,
 a.text-extra-muted {
