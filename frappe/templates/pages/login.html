@@ -9,17 +9,17 @@
 		<h4 class="form-signin-heading text-center">{{ _("Sign in using") }}</h4>
 		<p class="text-center" style="margin-top: 15px">
 				{%- if facebook_login is defined %}
-				<a href="{{ facebook_login }}" class="grey btn-social btn-facebook">
+				<a href="{{ facebook_login }}" class="grey no-decoration btn-social btn-facebook">
 				<i class="icon-facebook-sign"></i> {{ _("Facebook") }}</a>
 				{%- endif -%}
 
 				{%- if google_login is defined %}
-				<a href="{{ google_login }}" class="grey btn-social btn-google">
+				<a href="{{ google_login }}" class="grey no-decoration btn-social btn-google">
 				<i class="icon-google-plus-sign"></i> {{ _("Google") }}</a>
 				{%- endif -%}
 
 				{%- if github_login is defined %}
-				<a href="{{ github_login }}" class="grey btn-social btn-github">
+				<a href="{{ github_login }}" class="grey no-decoration btn-social btn-github">
 				<i class="icon-github-sign"></i> {{ _("GitHub") }}</a>
 				{%- endif -%}
 			</p>

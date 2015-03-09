@@ -98,4 +98,12 @@ def render_blocks(context):
 	# render
 	out["content"] = frappe.get_template("templates/includes/page_content.html").render(out)
 
+	# extract hero (if present)
+	out["hero"] = ""
+	if "<!-- start-hero -->" in out["content"]:
+		parts1 = out["content"].split("<!-- start-hero -->")
+		parts2 = parts1[1].split("<!-- end-hero -->")
+		out["content"] = parts1[0] + parts2[1]
+		out["hero"] = parts2[0]
+
 	return out

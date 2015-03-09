@@ -49,9 +49,7 @@ a.grey,
 .nav-pills a,
 .control-value a,
 .data-row a {
-  color: inherit;
-  border-bottom: 1px solid transparent;
-  margin-bottom: 0.4em;
+  text-decoration: underline;
 }
 a.grey:hover,
 .sidebar-section a:hover,
@@ -63,8 +61,7 @@ a.grey:focus,
 .nav-pills a:focus,
 .control-value a:focus,
 .data-row a:focus {
-  border-bottom: 1px solid #212a33;
-  color: #212a33;
+  text-decoration: underline;
 }
 a.text-muted,
 a.text-extra-muted {
@@ -165,6 +162,46 @@ a.badge-hover:active .badge {
 }
 .middle {
   vertical-align: middle;
+}
+.full-center-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.full-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+}
+#freeze {
+  z-index: 1020;
+  bottom: 0px;
+  opacity: 0;
+}
+#freeze .freeze-message-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#freeze .freeze-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff !important;
+}
+#freeze.in {
+  opacity: 0.5;
 }
 html {
   min-height: 100%;
@@ -552,6 +589,12 @@ a.no-decoration {
   text-decoration: none;
   color: inherit;
 }
+a.no-decoration:hover,
+a.no-decoration:focus,
+a.no-decoration:active {
+  text-decoration: none;
+  color: inherit;
+}
 a.active {
   pointer-events: none;
   cursor: default;
@@ -659,40 +702,7 @@ a.active {
     border-right: 1px solid #f2f2f2;
   }
 }
-.full-center-container {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-.full-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  transform: translate(-50%, -50%);
-  -webkit-transform: translate(-50%, -50%);
-}
 #freeze {
-  z-index: 1020;
-  bottom: 0px;
   background-color: #fafbfc;
-}
-#freeze .freeze-message-container {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-#freeze .freeze-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  transform: translate(-50%, -50%);
-  -webkit-transform: translate(-50%, -50%);
-  text-align: center;
-  color: #fff !important;
+  position: fixed;
 }

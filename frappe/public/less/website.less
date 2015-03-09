@@ -301,9 +301,16 @@ textarea {
 	margin: 10px 0px;
 }
 
-a.no-decoration {
+a.no-decoration& {
 	text-decoration: none;
 	color: inherit;
+
+	&:hover,
+	&:focus,
+	&:active {
+		text-decoration: none;
+		color: inherit;
+	}
 }
 
 a.active {
@@ -378,37 +385,7 @@ a.active {
 	}
 }
 
-.full-center-container {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
-.full-center {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 100%;
-	transform: translate(-50%, -50%);
-	-webkit-transform: translate(-50%, -50%);
-}
-
 #freeze {
-	z-index: 1020;
-	bottom: 0px;
 	background-color: @light-bg;
-
-	.freeze-message-container {
-		.full-center-container;
-	}
-
-	.freeze-message {
-		.full-center;
-		text-align: center;
-		color: #fff !important;
-	}
+	position: fixed;
 }
-
-
