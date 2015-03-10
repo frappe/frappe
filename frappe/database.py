@@ -582,13 +582,13 @@ class Database:
 	def set_temp(self, value):
 		"""Set a temperory value and return a key."""
 		key = frappe.generate_hash()
-		frappe.defaults.set_default(key, value, parent="__temp")
+		frappe.cache().set_value(key, value)
 		return key
 
 	def get_temp(self, key):
 		"""Return the temperory value and delete it."""
-		value = self.get_global(key, "__temp")
-		frappe.defaults.clear_default(key=key, parent="__temp")
+		value = frappe.cache().get_value(key)
+		frappe.cache().delete_value(key)
 		return value
 
 	def set_global(self, key, val, user='__global'):

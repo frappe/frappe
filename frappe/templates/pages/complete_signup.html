@@ -6,8 +6,12 @@
         action="/api/method/frappe.templates.pages.login.login_oauth_user">
 		<h2 class="form-signin-heading">{{ _("One Last Step") }}</h2>
         <input type="hidden" name="key" value="{{ frappe.form_dict.key }}">
-		<input type="email" id="email_id" name="email_id"
+		<input type="email" name="email_id"
 			class="form-control" placeholder="{{ _('Email Id') }}" required autofocus>
+		<input type="email" name="first_name"
+			class="form-control" placeholder="{{ _('First Name') }}" required>
+		<input type="email" name="last_name"
+			class="form-control" placeholder="{{ _('Last Name') }}">
 		<br>
 		<button class="btn btn-primary btn-complete-signup" type="submit">{{ _("Complete") }}</button>
 	</form>
