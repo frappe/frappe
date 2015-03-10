@@ -48,18 +48,19 @@ frappe.applications.Installer = Class.extend({
 
 	make_app_list: function(apps) {
 		var me = this;
+		var modules = {};
 
 		$.each(Object.keys(apps).sort(), function(i, app_key) {
 			var app = apps[app_key];
 
-			frappe.modules[app_key] = {
+			modules[app_key] = {
 				label: app.app_title,
 				icon: app.app_icon,
 				color: app.app_color,
 				is_app: true
 			};
 
-			app.app_icon = frappe.ui.app_icon.get_html(app_key);
+			app.app_icon = frappe.ui.app_icon.get_html(app_key, null, modules);
 
 			$(frappe.render_template("application_row", {app: app})).appendTo(me.wrapper);
 		});
