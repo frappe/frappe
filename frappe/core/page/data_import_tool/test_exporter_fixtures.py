@@ -6,6 +6,7 @@ import frappe
 import frappe.defaults
 from frappe.core.page.data_import_tool.data_import_tool import export_csv
 import unittest
+import os
 
 class TestDataImportFixtures(unittest.TestCase):
 	def setUp(self):
@@ -18,6 +19,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal_default(self):
 		fixture = ["Custom Script", {"name":["Item-Client"]}]
@@ -25,6 +27,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_equal(self):
 		fixture = ["Custom Script", {"name":["Item-Client"],"op":"="}]
@@ -32,6 +35,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_simple_name_not_equal(self):
 		fixture = ["Custom Script", {"name":["Item-Client"],"op":"!="}]
@@ -39,6 +43,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	#without [] around the name...
 	def test_Custom_Script_fixture_simple_name_at_least_equal(self):
@@ -47,6 +52,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_equal(self):
 		fixture = ["Custom Script", {"name":["Item-Client", "Customer-Client"],"op":"="}]
@@ -54,6 +60,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_multi_name_not_equal(self):
 		fixture = ["Custom Script", {"name":["Item-Client", "Customer-Client"],"op":"!="}]
@@ -61,6 +68,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_empty_object(self):
 		fixture = ["Custom Script", {}]
@@ -68,6 +76,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_just_list(self):
 		fixture = ["Custom Script"]
@@ -75,6 +84,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	# Custom Script regular expression
 	def test_Custom_Script_fixture_rex_no_flags(self):
@@ -83,6 +93,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Script_fixture_rex_with_flags(self):
 		fixture = ["Custom Script", {"name":r"^[i|A]", "flags":"L,M"}]
@@ -90,7 +101,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
-
+		os.remove(path)
 
 	#start test for Custom Field
 	def test_Custom_Field_fixture_simple(self):
@@ -99,6 +110,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_equal_default(self):
 		fixture = ["Custom Field", {"name":["Item-vat"]}]
@@ -106,6 +118,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_equal(self):
 		fixture = ["Custom Field", {"name":["Item-vat"],"op":"="}]
@@ -113,6 +126,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_simple_name_not_equal(self):
 		fixture = ["Custom Field", {"name":["Item-vat"],"op":"!="}]
@@ -120,6 +134,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	#without [] around the name...
 	def test_Custom_Field_fixture_simple_name_at_least_equal(self):
@@ -128,6 +143,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_multi_name_equal(self):
 		fixture = ["Custom Field", {"name":["Item-vat", "Bin-vat"],"op":"="}]
@@ -135,6 +151,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_multi_name_not_equal(self):
 		fixture = ["Custom Field", {"name":["Item-vat", "Bin-vat"],"op":"!="}]
@@ -142,6 +159,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_empty_object(self):
 		fixture = ["Custom Field", {}]
@@ -149,6 +167,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_just_list(self):
 		fixture = ["Custom Field"]
@@ -156,6 +175,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	# Custom Field regular expression
 	def test_Custom_Field_fixture_rex_no_flags(self):
@@ -164,6 +184,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Custom_Field_fixture_rex_with_flags(self):
 		fixture = ["Custom Field", {"name":r"^[i|A]", "flags":"L,M"}]
@@ -171,6 +192,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 
 	#start test for Doctype
@@ -180,6 +202,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_fixture_simple_name_equal_default(self):
 		fixture = ["ToDo", {"name":["TDI00000008"]}]
@@ -187,6 +210,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_fixture_simple_name_equal(self):
 		fixture = ["ToDo", {"name":["TDI00000002"],"op":"="}]
@@ -194,6 +218,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_simple_name_not_equal(self):
 		fixture = ["ToDo", {"name":["TDI00000002"],"op":"!="}]
@@ -201,6 +226,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	#without [] around the name...
 	def test_Doctype_fixture_simple_name_at_least_equal(self):
@@ -209,6 +235,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_multi_name_equal(self):
 		fixture = ["ToDo", {"name":["TDI00000002", "TDI00000008"],"op":"="}]
@@ -216,6 +243,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_multi_name_not_equal(self):
 		fixture = ["ToDo", {"name":["TDI00000002", "TDI00000008"],"op":"!="}]
@@ -223,6 +251,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_fixture_empty_object(self):
 		fixture = ["ToDo", {}]
@@ -230,6 +259,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_fixture_just_list(self):
 		fixture = ["ToDo"]
@@ -237,6 +267,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	# Doctype regular expression
 	def test_Doctype_fixture_rex_no_flags(self):
@@ -245,6 +276,7 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
 	def test_Doctype_fixture_rex_with_flags(self):
 		fixture = ["ToDo", {"name":r"^TDi", "flags":"L,M"}]
@@ -252,4 +284,5 @@ class TestDataImportFixtures(unittest.TestCase):
 		# print "teste done {}".format(path)
 		export_csv(fixture, path)
 		self.assertTrue(True)
+		os.remove(path)
 
