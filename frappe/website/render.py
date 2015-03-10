@@ -99,7 +99,7 @@ def build_response(path, data, http_status_code, headers=None):
 
 def render_page(path):
 	"""get page html"""
-	cache_key = ("page_context:{}" if is_ajax() else "page:{}").format(path)
+	cache_key = ("page_context:{0}:{1}" if is_ajax() else "page:{0}:{1}").format(path, frappe.local.lang)
 
 	out = None
 
@@ -144,7 +144,7 @@ def build_page(path):
 	html = scrub_relative_urls(html)
 
 	if can_cache(context.no_cache):
-		frappe.cache().set_value("page:" + path, html)
+		frappe.cache().set_value("page:{0}:{1}".format(path, frappe.local.lang), html)
 
 	return html
 

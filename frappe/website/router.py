@@ -9,7 +9,7 @@ from frappe.model.document import get_controller
 
 def get_route_info(path):
 	sitemap_options = None
-	cache_key = "sitemap_options:{}".format(path)
+	cache_key = "sitemap_options:{0}:{1}".format(path, frappe.local.lang)
 
 	if can_cache():
 		sitemap_options = frappe.cache().get_value(cache_key)

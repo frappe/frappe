@@ -11,7 +11,7 @@ from frappe.website.utils import can_cache
 
 def get_context(path):
 	context = None
-	cache_key = "page_context:{}".format(path)
+	cache_key = "page_context:{0}:{1}".format(path, frappe.local.lang)
 
 	def add_data_path(context):
 		if not context.data:
