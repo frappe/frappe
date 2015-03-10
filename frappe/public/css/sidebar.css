@@ -85,9 +85,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   display: none !important;
 }
 .layout-side-section .sidebar-menu > li > a {
-  color: inherit;
-  border-bottom: 1px solid transparent;
-  margin-bottom: 0.4em;
+  text-decoration: underline;
   display: inline-block;
 }
 .layout-side-section .sidebar-menu {
@@ -96,8 +94,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .layout-side-section .sidebar-menu > li > a:hover,
 .layout-side-section .sidebar-menu > li > a:focus,
 .layout-side-section .sidebar-menu > li > a:active {
-  border-bottom: 1px solid #212a33;
-  color: #212a33;
+  text-decoration: underline;
 }
 .sidebar-menu .badge {
   position: absolute;

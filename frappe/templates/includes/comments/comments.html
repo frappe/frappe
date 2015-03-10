@@ -1,6 +1,6 @@
 {% if not comment_list %}
 <div class="no-comment">
-	<p class="text-muted">Start a new discussion.</p>
+	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
 </div>
 {% endif %}
 
@@ -12,27 +12,33 @@
 
 <div class="add-comment-section">
 {% if login_required and frappe.user=="Guest" %}
-	<div class="alert alert-warning">You must <a href="/login?redirect-to={{ pathname }}">login</a> to comment.</div>
+	<div class="text-muted"><a href="/login?redirect-to={{ pathname }}">{{ _("Login to comment") }}</a></div>
 {% else %}
-	<p><a class="add-comment">Add Comment</a></p>
+	<p><a class="add-comment">{{ _("Add Comment") }}</a></p>
 	<div style="display: none;" id="comment-form">
-		<p>Add Comment</p>
+		<p>{{ _("Add Comment") }}</p>
 		<div class="alert" style="display:none;"></div>
 		<form>
 			<fieldset>
-				<input class="form-control" name="comment_by_fullname" placeholder="Your Name"
-					type="text" {% if login_required %}disabled{% endif %}><br><br>
-				<input class="form-control" name="comment_by"
-					placeholder="Your Email Id" type="email" {% if login_required %}disabled{% endif %}><br>
+				<div class="row {% if login_required %}hide{% endif %}" style="margin-bottom: 15px">
+					<div class="col-sm-6">
+						<input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
+							type="text">
+					</div>
+					<div class="col-sm-6">
+						<input class="form-control" name="comment_by"
+							placeholder="{{ _("Your Email Id") }}" type="email">
+					</div>
+				</div>
 				<textarea class="form-control" name="comment" rows=10
-					placeholder="Comment"/>
-				</textarea><br>
-				<button class="btn btn-primary" id="submit-comment">Submit</button>
+					placeholder="{{ _("Comment") }}"></textarea>
+				<br>
+				<button class="btn btn-primary" id="submit-comment">{{ _("Submit") }}</button>
 			</fieldset>
 		</form>
 	</div>
-</div>
 {% endif %}
+</div>
 <script>
 frappe.ready(function() {
 	console.log("ready!");

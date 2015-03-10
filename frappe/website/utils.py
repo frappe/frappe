@@ -156,3 +156,9 @@ def convert_to_hex(channel_value):
 		h = "0" + h
 
 	return h
+
+def with_leading_slash(path):
+	if path and not path.startswith("/"):
+		path = "/" + path
+
+	return path

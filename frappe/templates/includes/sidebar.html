@@ -3,7 +3,7 @@
 {% if parents -%}
 <ul class="list-unstyled sidebar-menu sidebar-item">
 	<li>
-		<a href="{{ parents[-1].name }}" class="no-decoration">
+		<a href="{{ parents[-1].name | with_leading_slash }}" class="no-decoration">
 			<i class="icon-angle-left"></i> {{ _("Back") }}
 		</a>
 	</li>

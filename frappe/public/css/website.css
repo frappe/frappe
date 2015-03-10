@@ -510,7 +510,7 @@ fieldset {
 }
 /* post and post list */
 .web-list-item {
-  padding: 15px 0px;
+  padding: 5px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
 .web-list-item h1,
@@ -520,7 +520,10 @@ fieldset {
 }
 .web-list-item h1 a,
 .web-list-item h2 a,
-.web-list-item h3 a {
+.web-list-item h3 a,
+.web-list-item h4 a,
+.web-list-item h5 a,
+.web-list-item h6 a {
   color: inherit !important;
   text-decoration: none;
 }
@@ -705,4 +708,8 @@ a.active {
 #freeze {
   background-color: #fafbfc;
   position: fixed;
+}
+.padding-lg {
+  padding-top: 30px;
+  padding-bottom: 30px;
 }
