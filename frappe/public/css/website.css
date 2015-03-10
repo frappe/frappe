@@ -713,3 +713,15 @@ a.active {
   padding-top: 30px;
   padding-bottom: 30px;
 }
+.list-hero {
+  border-bottom: 1px solid #d1d8dd;
+  padding-top: 60px;
+  padding-bottom: 10px;
+}
+.page-hero {
+  padding: 130px 0px 100px;
+  margin-top: -60px;
+}
+.page-hero h1 {
+  font-size: 32px;
+}

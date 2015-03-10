@@ -1,23 +1,43 @@
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
 
-{% block header %}
-<div style="padding-bottom: 10px;">
-	{% if blog_title -%} <h1>{{ blog_title }}</h1> {%- endif %}
-	{% if blog_subtitle -%} <h3>{{ blog_subtitle }}</h3> {%- endif %}
-</div>
-{% endblock %}
-
 {% block content %}
-{% if not (blog_title or blog_subtitle) -%} <!-- no-header --> {%- endif %}
+<!-- no-header -->
+<!-- no-breadcrumbs -->
+{% if blog_title and pathname == 'blog' and not frappe.local.form_dict.by %}
+<!-- start-hero -->
+<div class="page-hero border-bottom">
+    <div class="container">
+        <h1 class="page-title">
+            {{ blog_title }}
+        </h1>
+		{% if blog_introduction -%}
+		<p class="blog-introduction">{{ blog_introduction }}</p>
+		{%- endif %}
+    </div>
+</div>
+<!-- end-hero -->
+{% elif blog_subtitle %}
+<!-- start-hero -->
+<div class="container list-hero">
+	<h1>
+		{{ blog_subtitle }}
+	</h1>
+</div>
+<!-- end-hero -->
+{% endif %}
 <div class="blog-list-content">
-	{% if not blog_subtitle and blog_introduction %}
-	<p class="blog-introduction">{{ blog_introduction }}</p>
-	{% endif %}
 	<div id="blog-list">
 		{% include "templates/includes/list/list.html" %}
 	</div>
-	{% include 'templates/includes/blog/blog_footer.html' %}
 </div>
 {% endblock %}
 
 {% block script %}{% include "templates/includes/list/list.js" %}{% endblock %}
+
+{% block style %}
+<style>
+.page-content {
+	padding-bottom: 0px;
+}
+</style>
+{% endblock %}

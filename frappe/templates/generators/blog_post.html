@@ -7,11 +7,11 @@
 {% block content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
-	<h6 class="text-muted">
+	<p class="small text-muted">
 		<span itemprop="author">{{ blogger_info and blogger_info.full_name or full_name }}</span>,
 		<span itemprop="dateCreated">{{ updated }}</span>
-    </h6>
-	<div itemprop="articleBody" style="padding-bottom: 15px;">
+    </p>
+	<div itemprop="articleBody" style="padding: 15px 0px;">
 	{{ content }}
 	</div>
 	<!-- end blog content -->
@@ -33,5 +33,4 @@
 	});
 	</script>
 </div>
-{% include 'templates/includes/blog/blog_footer.html' %}
 {% endblock %}
