@@ -3,12 +3,12 @@
 		<div class="page-header-block" data-html-block="header">
 			{%- if header is defined -%}{% if header %}{{ header }}{% endif %}{%- endif -%}
 		</div>
+		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+		</div>
 	    <div class="page-content-block">
 		{%- block content -%}{{ content or "" }}{%- endblock -%}
 	    </div>
-	</div>
-	<div class="page-breadcrumbs" data-html-block="breadcrumbs">
-		{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
 	</div>
 {% endmacro %}
 
