@@ -96,7 +96,10 @@ def render_blocks(context):
 	out["script"] = re.sub("</?script[^<>]*>", "", out.get("script") or "")
 
 	# render
-	out["content"] = frappe.get_template("templates/includes/page_content.html").render(out)
+	content_context = {}
+	content_context.update(context)
+	content_context.update(out)
+	out["content"] = frappe.get_template("templates/includes/page_content.html").render(content_context)
 
 	# extract hero (if present)
 	out["hero"] = ""

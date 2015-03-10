@@ -1,13 +1,15 @@
 {% macro inner() %}
-	<div class="page-header-block" data-html-block="header">
-		{%- if header is defined -%}{% if header %}{{ header }}{% endif %}{%- endif -%}
+	<div class="page-content-wrapper">
+		<div class="page-header-block" data-html-block="header">
+			{%- if header is defined -%}{% if header %}{{ header }}{% endif %}{%- endif -%}
+		</div>
+	    <div class="page-content-block">
+		{%- block content -%}{{ content or "" }}{%- endblock -%}
+	    </div>
 	</div>
 	<div class="page-breadcrumbs" data-html-block="breadcrumbs">
 		{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
 	</div>
-    <div class="page-content-block">
-	{%- block content -%}{{ content or "" }}{%- endblock -%}
-    </div>
 {% endmacro %}
 
 <div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}">
