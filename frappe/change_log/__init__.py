@@ -14,6 +14,10 @@ def get_change_log(user=None):
 	last_known_versions = frappe._dict(json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}"))
 	current_versions = get_versions()
 
+	if not last_known_versions:
+		update_last_known_versions()
+		return []
+
 	change_log = []
 	for app, opts in current_versions.items():
 		from_version = last_known_versions.get(app, {}).get("version") or "0.0.1"
