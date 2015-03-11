@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, os
-from frappe.core.page.data_import_tool.data_import_tool import import_doc, export_fixture, export_csv
+from frappe.core.page.data_import_tool.data_import_tool import import_doc, export_json
 
 def sync_fixtures(app=None):
 	if app:
@@ -25,9 +25,5 @@ def export_fixtures():
 			print "Exporting {0}".format(fixture)
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
-			if isinstance(fixture, basestring):
-				fixture = [fixture];
-			if frappe.db.get_value("DocType", fixture[0], "issingle"):
-				export_fixture(fixture[0], app)
-			else:
-				export_csv(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture[0]) + ".csv"))
+
+			export_json(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"))

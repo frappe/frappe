@@ -44,6 +44,19 @@ def export_csv(doctype, path):
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
 def export_json(doctype, path, filters=None):
+	def post_process(out):
+		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+		for doc in out:
+			for key in del_keys:
+				if key in doc:
+					del doc[key]
+			for k, v in doc.items():
+				if isinstance(v, list):
+					for child in v:
+						for key in del_keys + ('docstatus', 'doctype', 'modified', 'name'):
+							if key in child:
+								del child[key]
+
 	from frappe.utils.response import json_handler
 	out = []
 	if frappe.db.get_value("DocType", doctype, "issingle"):
@@ -51,6 +64,7 @@ def export_json(doctype, path, filters=None):
 	else:
 		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	post_process(out)
 	with open(path, "w") as outfile:
 		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
 
