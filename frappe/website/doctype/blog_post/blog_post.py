@@ -9,6 +9,7 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname
 from frappe.website.utils import find_first_image, get_comment_list
+from markdown2 import markdown
 
 class BlogPost(WebsiteGenerator):
 	save_versions = True
@@ -63,6 +64,9 @@ class BlogPost(WebsiteGenerator):
 			"name": self.title,
 			"description": context.description,
 		}
+
+		if "<!-- markdown -->" in context.content:
+			context.content = markdown(context.content)
 
 		image = find_first_image(self.content)
 		if image:

@@ -49,11 +49,6 @@ def render_blocks(context):
 	if "title" not in out:
 		out["title"] = context.get("title")
 
-	# markdown
-	if "<!-- markdown -->" in out.get("content", ""):
-		out["content"] = markdown(out["content"])
-
-
 	# header
 	if out["no_header"]:
 		out["header"] = ""
