@@ -50,7 +50,7 @@ def render_blocks(context):
 		out["title"] = context.get("title")
 
 	# markdown
-	if "<!-- title -->" in out.get("content", ""):
+	if "<!-- markdown -->" in out.get("content", ""):
 		out["content"] = markdown(out["content"])
 
 
