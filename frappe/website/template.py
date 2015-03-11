@@ -9,6 +9,7 @@ from frappe import _
 from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
+from markdown2 import markdown
 import re
 
 def render_blocks(context):
@@ -47,6 +48,11 @@ def render_blocks(context):
 
 	if "title" not in out:
 		out["title"] = context.get("title")
+
+	# markdown
+	if "<!-- title -->" in out.get("content", ""):
+		out["content"] = markdown(out["content"])
+
 
 	# header
 	if out["no_header"]:
