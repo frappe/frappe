@@ -5,10 +5,13 @@
 {% endblock %}
 
 {% block content %}
-{% if introduction_text %}
-<p class="lead">{{ introduction_text }}</p>
-<hr>
-{% endif %}
+<!-- no-sidebar -->
+<div class="introduction">
+    {% if introduction_text %}
+    <p class="lead">{{ introduction_text }}</p>
+    <hr>
+    {% endif %}
+</div>
 {% if login_required and frappe.user=="Guest" %}
 <div class="text-muted">
 	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
@@ -253,11 +256,11 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					$form.addClass("hide");
-					$(".comments").addClass("hide");
+					$(".comments, .introduction").addClass("hide");
 					scroll(0, 0);
 					$(".form-message")
-						.html("{{ success_message or 'Thank You!' }}"
-							+ '<p><a href="{{ success_url }}">Continue</a></p>')
+						.html('{{ success_message or __("Thank You") }}'
+							+ '<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
 						.removeClass("hide");
 				}
 				window.saving = false;

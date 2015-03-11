@@ -47,6 +47,10 @@ def after_install():
 
 	import_country_and_currency()
 
+	# save default print setting
+	print_settings = frappe.get_doc("Print Settings")
+	print_settings.save()
+
 	# all roles to admin
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-$(document).ready(function() {
+frappe.ready(function() {
 
 	$('.btn-send').click(function() {
 		var email = $('[name="email"]').val();

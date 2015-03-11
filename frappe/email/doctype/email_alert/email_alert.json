@@ -119,6 +119,13 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "attach_print", 
+   "fieldtype": "Check", 
+   "label": "Attach Print", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "message_examples", 
    "fieldtype": "HTML", 
    "label": "Message Examples", 
@@ -127,7 +134,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2015-02-05 05:11:37.924396", 
+ "modified": "2015-03-11 16:43:51.288063", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Alert", 

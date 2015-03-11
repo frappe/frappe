@@ -397,9 +397,10 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	:param doc: Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 
-	if not user: user = session.user
+	if not user:
+		user = session.user
 
-	for method in get_hooks("has_website_permission").get(doctype, []):
+	for method in (get_hooks("has_website_permission") or {}).get(doctype, []):
 		if not call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose):
 			return False
 
@@ -905,20 +906,31 @@ def get_print(doctype, name, print_format=None, style=None, as_pdf=False):
 	else:
 		return html
 
-def attach_print(doctype, name, file_name):
+def attach_print(doctype, name, file_name=None):
 	from frappe.utils import scrub_urls
 
+	if not file_name: file_name = name
+
 	print_settings = db.get_singles_dict("Print Settings")
+
+	local.flags.ignore_print_permissions = True
+
 	if int(print_settings.send_print_as_pdf or 0):
-		return {
+		out = {
 			"fname": file_name + ".pdf",
 			"fcontent": get_print(doctype, name, as_pdf=True)
 		}
 	else:
-		return {
+		out = {
 			"fname": file_name + ".html",
 			"fcontent": scrub_urls(get_print(doctype, name)).encode("utf-8")
 		}
+
+	print print_settings, out
+
+	local.flags.ignore_print_permissions = False
+
+	return out
 
 logging_setup_complete = False
 def get_logger(module=None):

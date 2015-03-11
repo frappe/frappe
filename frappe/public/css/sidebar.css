@@ -85,7 +85,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   display: none !important;
 }
 .layout-side-section .sidebar-menu > li > a {
-  text-decoration: underline;
   display: inline-block;
 }
 .layout-side-section .sidebar-menu {

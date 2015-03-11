@@ -902,7 +902,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		$('<div class="link-field" style="position: relative;">\
 			<input type="text" class="input-with-feedback form-control">\
 			<span class="link-btn">\
-				<a class="btn-open grey" title="' + __("Open Link") + '">\
+				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
 					<i class="icon-link"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);
