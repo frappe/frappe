@@ -19,6 +19,9 @@ class RedisWrapper(redis.Redis):
 		"""Sets cache value."""
 		key = self.make_key(key, user)
 		frappe.local.cache[key] = val
+		if frappe.local.flags.in_install:
+			return
+
 		try:
 			self.set(key, pickle.dumps(val))
 		except redis.exceptions.ConnectionError:
@@ -33,11 +36,13 @@ class RedisWrapper(redis.Redis):
 		original_key = key
 		key = self.make_key(key, user)
 		val = frappe.local.cache.get(key)
+
 		if val is None:
-			try:
-				val = self.get(key)
-			except redis.exceptions.ConnectionError:
-				pass
+			if not frappe.local.flags.in_install:
+				try:
+					val = self.get(key)
+				except redis.exceptions.ConnectionError:
+					pass
 			if val is not None:
 				val = pickle.loads(val)
 			if val is None and generator:
@@ -77,10 +82,12 @@ class RedisWrapper(redis.Redis):
 			if make_keys:
 				key = self.make_key(key)
 
-			try:
-				self.delete(key)
-			except redis.exceptions.ConnectionError:
-				pass
+
+			if not frappe.local.flags.in_install:
+				try:
+					self.delete(key)
+				except redis.exceptions.ConnectionError:
+					pass
 
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]
