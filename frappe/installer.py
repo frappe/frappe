@@ -153,6 +153,7 @@ def post_install(rebuild_website=False):
 		render.clear_cache()
 		statics.sync().start()
 
+	init_singles()
 	frappe.db.commit()
 	frappe.clear_cache()
 
@@ -165,6 +166,15 @@ def set_all_patches_as_completed(app):
 				"patch": patch
 			}).insert()
 		frappe.db.commit()
+
+def init_singles():
+	singles = [single['name'] for single in frappe.get_all("DocType", filters={'issingle': True})]
+	for single in singles:
+		if not frappe.db.get_singles_dict(single):
+			doc = frappe.new_doc(single)
+			doc.flags.ignore_mandatory=True
+			doc.flags.ignore_validate=True
+			doc.save()
 
 def make_conf(db_name=None, db_password=None, site_config=None):
 	site = frappe.local.site
@@ -226,3 +236,4 @@ def remove_missing_apps():
 			except ImportError:
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+

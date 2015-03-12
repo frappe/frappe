@@ -119,12 +119,6 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
 
-		# save singles when made
-		if self.issingle and not frappe.db.get_singles_dict(self.name):
-			doc = frappe.new_doc(self.name)
-			doc.flags.ignore_mandatory=True
-			doc.save()
-
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
 		if merge:
