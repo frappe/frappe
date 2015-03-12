@@ -115,7 +115,7 @@ class WebsiteGenerator(Document):
 						where parent_website_route like %s""".format(self.doctype),
 						(old_route, self.get_route(), now(), frappe.session.user, old_route + "%"))
 
-	def get_website_route(self):
+	def get_route_context(self):
 		route = frappe._dict()
 		route.update({
 			"doc": self,
@@ -132,16 +132,7 @@ class WebsiteGenerator(Document):
 		if not route.page_title:
 			route.page_title = self.get(self.website.page_title_field or "name")
 
-		self.update_permissions(route)
-
 		return route
-
-	def update_permissions(self, route):
-		if self.meta.get_field("public_read"):
-			route.public_read = self.public_read
-			route.public_write = self.public_write
-		else:
-			route.public_read = 1
 
 	def get_parents(self, context):
 		# already set
@@ -199,11 +190,13 @@ class WebsiteGenerator(Document):
 			return self.get(parent_website_route_field)
 
 	def get_children(self, context=None):
+		return []
+
 		children = []
 		route = self.get_route()
 		if route==get_home_page():
-			children = frappe.db.sql("""select url as name, label as page_title,
-			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'
+			children = frappe.db.sql("""select url as name, label as page_title
+				from `tabTop Bar Item` where parentfield='sidebar_items'
 			order by idx""", as_dict=True)
 			route = ""
 

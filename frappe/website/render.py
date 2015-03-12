@@ -202,6 +202,7 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
+	frappe.cache().delete_value("website_generator_routes")
 	if path:
 		delete_page_cache(path)
 	else:

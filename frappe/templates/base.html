@@ -53,16 +53,18 @@
 					{%- block navbar -%}
                         {% include "templates/includes/navbar/navbar.html" %}
                     {%- endblock -%}
-					{%- block hero -%}
-                        <div data-html-block="hero">
-                            {{ hero or "" }}
-                        </div>
-                    {%- endblock -%}
-                    {% block content %}
-                        <div class="container" data-html-block="content">
-                        {{ content }}
-                        </div>
-                    {% endblock %}
+                    <div class="hero-and-content">
+    					{%- block hero -%}
+                            <div data-html-block="hero">
+                                {{ hero or "" }}
+                            </div>
+                        {%- endblock -%}
+                        {% block content %}
+                            <div class="container" data-html-block="content">
+                            {{ content }}
+                            </div>
+                        {% endblock %}
+                    </div>
 					<footer class="page-footer">
 						<div class="container" data-html-block="footer">
 							{%- if footer is defined -%}{{ footer }}{%- endif -%}
@@ -78,11 +80,6 @@
 				{% block offcanvas_sidebar -%}
 				<div class="sidebar-navbar-items">
 					{% include "templates/includes/navbar/navbar_items.html" %}
-				</div>
-				<div class="sidebar-page-sidebar" data-html-block="sidebar">
-					{%- if sidebar is defined -%}
-						{{ sidebar }}
-					{%- endif -%}
 				</div>
 				{%- endblock %}
 			</div>

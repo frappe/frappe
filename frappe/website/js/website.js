@@ -457,6 +457,9 @@ $.extend(frappe, {
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 			!$("[data-html-block='breadcrumbs']").text().trim() ||
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
+	},
+	get_navbar_search: function() {
+		return $(".navbar .search, .sidebar .search");
 	}
 });
 
@@ -471,14 +474,7 @@ function valid_email(id) {
 var validate_email = valid_email;
 
 function get_url_arg(name) {
-	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-	var regexS = "[\\?&]"+name+"=([^&#]*)";
-	var regex = new RegExp( regexS );
-	var results = regex.exec( window.location.href );
-	if(results == null)
-		return "";
-	else
-		return decodeURIComponent(results[1]);
+	return get_query_params()[name];
 }
 
 function get_query_params() {

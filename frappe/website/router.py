@@ -52,52 +52,39 @@ def get_page_route(path):
 	return found[0] if found else None
 
 def get_generator_route(path):
-	parts = path.rsplit("/", 1)
-	if len(parts)==1:
-		page_name = path
-		parent = None
-	else:
-		parent, page_name = parts
-
-	def get_route(doctype, condition_field, order_by):
-		condition = ["page_name=%s"]
-
-		if condition_field:
-			condition.append("ifnull({0}, 0)=1".format(condition_field))
-
-		values = (page_name,)
-		if parent:
-			meta = frappe.get_meta(doctype)
-			if meta.get_field("parent_website_route"):
-				condition.append("""parent_website_route=%s""")
-				values = (page_name, parent)
-
-		g = frappe.db.sql("""select name from `tab{0}` where {1}
-			 order by {2}""".format(doctype, " and ".join(condition), order_by), values)
-
-		if g and path==frappe.get_doc(doctype, g[0][0]).get_route():
-			return frappe.get_doc(doctype, g[0][0]).get_website_route()
-
-	return process_generators(get_route)
+	generator_routes = get_generator_routes()
+	if path in generator_routes:
+		route = generator_routes[path]
+		return frappe.get_doc(route.get("doctype"), route.get("name")).get_route_context()
 
 def clear_sitemap():
 	delete_page_cache("*")
 
-def process_generators(func):
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			order_by = "name asc"
-			condition_field = None
-			controller = get_controller(doctype)
+def get_generator_routes():
+	routes = frappe.cache().get_value("website_generator_routes")
+	if not routes:
+		routes = {}
+		for app in frappe.get_installed_apps():
+			for doctype in frappe.get_hooks("website_generators", app_name = app):
+				condition = ""
+				route_column_name = "page_name"
+				controller = get_controller(doctype)
+				meta = frappe.get_meta(doctype)
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
+				if meta.get_field("parent_website_route"):
+					route_column_name = """concat(ifnull(parent_website_route, ""),
+						if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
 
-			val = func(doctype, condition_field, order_by)
-			if val:
-				return val
+				if controller.website.condition_field:
+					condition ="where ifnull({0}, 0)=1".format(controller.website.condition_field)
+
+				for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
+						{2}""".format(route_column_name, doctype, condition), as_dict=True):
+					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+
+		frappe.cache().set_value("website_generator_routes", routes)
+
+	return routes
 
 def get_pages():
 	pages = frappe.cache().get_value("_website_pages")
@@ -118,7 +105,6 @@ def get_pages():
 						route.page_or_generator = "Page"
 						route.template = os.path.relpath(os.path.join(path, fname), app_path)
 						route.name = route.page_name = route_page_name
-						route.public_read = 1
 						controller_path = os.path.join(path, page_name + ".py")
 
 						if os.path.exists(controller_path):
@@ -134,3 +120,19 @@ def get_pages():
 
 		frappe.cache().set_value("_website_pages", pages)
 	return pages
+
+def process_generators(func):
+	for app in frappe.get_installed_apps():
+		for doctype in frappe.get_hooks("website_generators", app_name = app):
+			order_by = "name asc"
+			condition_field = None
+			controller = get_controller(doctype)
+
+			if hasattr(controller, "condition_field"):
+				condition_field = controller.condition_field
+			if hasattr(controller, "order_by"):
+				order_by = controller.order_by
+
+			val = func(doctype, condition_field, order_by)
+			if val:
+				return val

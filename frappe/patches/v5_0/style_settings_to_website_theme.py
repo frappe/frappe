@@ -4,9 +4,9 @@ from frappe import _
 from frappe.utils import cint
 
 def execute():
-	frappe.reload_doctype("Website Settings")
 	frappe.reload_doc("website", "doctype", "website_theme")
 	frappe.reload_doc("website", "website_theme", "standard")
+	frappe.reload_doctype("Website Settings")
 	migrate_style_settings()
 	frappe.delete_doc("website", "doctype", "style_settings")
 

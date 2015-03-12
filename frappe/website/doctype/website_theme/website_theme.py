@@ -48,7 +48,7 @@ class WebsiteTheme(Document):
 
 	def clear_cache_if_current_theme(self):
 		website_settings = frappe.get_doc("Website Settings", "Website Settings")
-		if website_settings.website_theme == self.name:
+		if getattr(website_settings, "website_theme", None) == self.name:
 			website_settings.clear_cache()
 
 	def use_theme(self):
