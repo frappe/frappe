@@ -43,6 +43,12 @@ website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"}
 ]
 
+website_context = {
+	"hero": {
+		"blog": "templates/includes/blog/hero.html"
+	}
+}
+
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"

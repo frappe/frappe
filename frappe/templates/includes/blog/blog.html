@@ -3,27 +3,12 @@
 {% block content %}
 <!-- no-header -->
 <!-- no-breadcrumbs -->
-{% if blog_title and pathname == 'blog' and not frappe.local.form_dict.by %}
-<!-- start-hero -->
-<div class="page-hero border-bottom">
-    <div class="container">
-        <h1 class="page-title">
-            {{ blog_title }}
-        </h1>
-		{% if blog_introduction -%}
-		<p class="blog-introduction">{{ blog_introduction }}</p>
-		{%- endif %}
-    </div>
-</div>
-<!-- end-hero -->
-{% elif blog_subtitle %}
-<!-- start-hero -->
-<div class="container list-hero">
+{% if blog_subtitle %}
+<div class="list-hero">
 	<h1>
 		{{ blog_subtitle }}
 	</h1>
 </div>
-<!-- end-hero -->
 {% endif %}
 <div class="blog-list-content">
 	<div id="blog-list">

@@ -37,28 +37,35 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		# resolve additional filters from path
 		resolve_path(filters.pathname)
 		for key, val in frappe.local.form_dict.items():
-			if not (key in ("doctype", "txt", "limit_start") and key in filters):
+			if key in ("cmd", "pathname", "doctype", "txt", "limit_start"):
+				if key in filters:
+					del filters[key]
+
+			elif key not in filters:
 				filters[key] = val
 
 	controller = get_controller(doctype)
 	meta = frappe.get_meta(doctype)
 	list_context = frappe._dict(hasattr(controller, "get_list_context") and controller.get_list_context() or {})
 
+	if list_context.filters:
+		filters.update(list_context.filters)
+
 	_get_list = list_context.get_list or get_list
+
 	raw_result = _get_list(doctype=doctype, txt=txt, filters=filters,
 		limit_start=limit_start, limit_page_length=limit_page_length)
+
 	show_more = (_get_list(doctype=doctype, txt=txt, filters=filters,
-		limit_start=next_start, limit_page_length=1)
-		and True or False)
+		limit_start=next_start, limit_page_length=1) and True or False)
 
 	result = []
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
 	for item in raw_result:
 		item.doctype = doctype
-		item.update(list_context)
-		result.append(frappe.render_template(row_template,
-			{ "doc": item, "meta": meta, "pathname": frappe.local.request.path.strip("/ ") },
-			is_path=True))
+		new_context = { "doc": item, "meta": meta, "pathname": frappe.local.request.path.strip("/ ") }
+		new_context.update(list_context)
+		result.append(frappe.render_template(row_template, new_context, is_path=True))
 
 	return {
 		"result": result,

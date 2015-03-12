@@ -125,7 +125,7 @@ def get_website_settings():
 	via_hooks = frappe.get_hooks("website_context")
 	for key in via_hooks:
 		context[key] = via_hooks[key]
-		if key not in ("top_bar_items", "footer_items", "post_login"):
+		if isinstance(context[key], list) and key not in ("top_bar_items", "footer_items", "post_login"):
 			context[key] = context[key][0]
 
 	return context

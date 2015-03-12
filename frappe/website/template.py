@@ -49,6 +49,9 @@ def render_blocks(context):
 	if "title" not in out:
 		out["title"] = context.get("title")
 
+	if context.get("page_titles") and context.page_titles.get(context.pathname):
+		out["title"] = context.page_titles.get(context.pathname)[0]
+
 	# header
 	if out["no_header"]:
 		out["header"] = ""
@@ -109,5 +112,8 @@ def render_blocks(context):
 		parts2 = parts1[1].split("<!-- end-hero -->")
 		out["content"] = parts1[0] + parts2[1]
 		out["hero"] = parts2[0]
+
+	elif context.hero and context.hero.get(context.pathname):
+		out["hero"] = frappe.render_template(context.hero[context.pathname][0], context)
 
 	return out

@@ -69,7 +69,7 @@ a.text-muted:focus,
 a.text-extra-muted:hover,
 a.text-extra-muted:focus {
   color: inherit !important;
-  border-bottom: 1px solid #8d99a6;
+  text-decoration: underline;
 }
 /* the element that this class is applied to, should have a max width for this to work*/
 .text-ellipsis,
@@ -517,17 +517,17 @@ fieldset {
   border-top: 1px solid #d1d8dd;
 }
 .web-list-item:last-child {
-  margin-bottom: -1px;
+  border-bottom: none;
 }
 .blog-footer {
   padding: 5px 15px;
   border-top: 1px solid #d1d8dd;
   margin: 0px -15px -20px -15px;
 }
-.blog-text {
+.longform {
   padding: 15px 0px;
 }
-.blog-text p {
+.longform p {
   margin-bottom: 30px;
 }
 .blog-category {
@@ -538,7 +538,8 @@ fieldset {
   border-top: 1px solid #d1d8dd;
   margin: 0px -15px;
 }
-.blog-comments {
+.blog-comments,
+.help-article-comments {
   margin: 0px -15px;
   border-top: 1px solid #d1d8dd;
   padding: 5px 15px 15px;
