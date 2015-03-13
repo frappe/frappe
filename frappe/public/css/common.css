@@ -179,6 +179,7 @@ a.badge-hover:active .badge {
   z-index: 1020;
   bottom: 0px;
   opacity: 0;
+  background-color: #fafbfc;
 }
 #freeze .freeze-message-container {
   position: absolute;
@@ -195,7 +196,10 @@ a.badge-hover:active .badge {
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   text-align: center;
-  color: #fff !important;
+  color: #36414c !important;
+}
+#freeze.dark {
+  background-color: #334143;
 }
 #freeze.in {
   opacity: 0.5;

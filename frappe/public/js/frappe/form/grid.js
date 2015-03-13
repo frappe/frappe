@@ -467,7 +467,7 @@ frappe.ui.form.GridRow = Class.extend({
 		this.render_form();
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
-		frappe.dom.freeze();
+		frappe.dom.freeze("", "dark");
 		if(this.frm.doc.docstatus===0) {
 			var first = this.form_area.find(":input:first");
 			if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {

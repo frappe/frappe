@@ -79,29 +79,28 @@ class BlogPost(WebsiteGenerator):
 		category = frappe.db.get_value("Blog Category", context.doc.blog_category, ["title", "page_name"], as_dict=1)
 		context.parents = [{"title": category.title, "name": "blog/{0}".format(category.page_name)}]
 
-	@staticmethod
-	def get_list_context(context=None):
-		list_context = frappe._dict(
-			page_title = _("Blog"),
-			template = "templates/includes/blog/blog.html",
-			row_template = "templates/includes/blog/blog_row.html",
-			get_list = get_blog_list,
-			hide_filters = True,
-			children = get_children()
-		)
+def get_list_context(context=None):
+	list_context = frappe._dict(
+		page_title = _("Blog"),
+		template = "templates/includes/blog/blog.html",
+		row_template = "templates/includes/blog/blog_row.html",
+		get_list = get_blog_list,
+		hide_filters = True,
+		children = get_children()
+	)
 
-		if frappe.local.form_dict.category:
-			list_context.blog_subtitle = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.category))
+	if frappe.local.form_dict.category:
+		list_context.blog_subtitle = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.category))
 
-		elif frappe.local.form_dict.by:
-			blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.by}, "full_name")
-			list_context.blog_subtitle = _("Posts by {0}").format(blogger)
+	elif frappe.local.form_dict.by:
+		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.by}, "full_name")
+		list_context.blog_subtitle = _("Posts by {0}").format(blogger)
 
-		elif frappe.local.form_dict.txt:
-			list_context.blog_subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
+	elif frappe.local.form_dict.txt:
+		list_context.blog_subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
 
-		list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
-		return list_context
+	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
+	return list_context
 
 def get_children():
 	return frappe.db.sql("""select concat("blog/", page_name) as name,

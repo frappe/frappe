@@ -15,7 +15,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		"Cancel": __("Cancelling")
 	}[toTitle(action)];
 
-	var freeze_message = working_label ? '<p class="lead">' + __(working_label) + '</p>' : "";
+	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function() {
 		check_name();

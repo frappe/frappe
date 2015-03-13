@@ -1,36 +1,50 @@
-.indicator {
+.indicator,
+.indicator-right {
   background: none;
   font-size: 12px;
   vertical-align: middle;
   font-weight: bold;
   color: #6c7680;
 }
-.indicator::before {
-  margin: 0 4px 0 0px;
+.indicator::before,
+.indicator-right::after {
   content: '';
   display: inline-block;
   height: 8px;
   width: 8px;
   border-radius: 8px;
 }
-.indicator.grey::before {
+.indicator::before {
+  margin: 0 4px 0 0px;
+}
+.indicator-right::after {
+  margin: 0 0 0 4px;
+}
+.indicator.grey::before,
+.indicator-right.grey::after {
   background: #f0f4f7;
 }
-.indicator.blue::before {
+.indicator.blue::before,
+.indicator-right.blue::after {
   background: #5e64ff;
 }
-.indicator.red::before {
+.indicator.red::before,
+.indicator-right.red::after {
   background: #ff5858;
 }
-.indicator.green::before {
+.indicator.green::before,
+.indicator-right.green::after {
   background: #98d85b;
 }
-.indicator.orange::before {
+.indicator.orange::before,
+.indicator-right.orange::after {
   background: #ffa00a;
 }
-.indicator.purple::before {
+.indicator.purple::before,
+.indicator-right.purple::after {
   background: #743ee2;
 }
-.indicator.darkgrey::before {
+.indicator.darkgrey::before,
+.indicator-right.darkgrey::after {
   background: #b8c2cc;
 }

@@ -37,7 +37,8 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				me.page = me.parent.page;
 				me.parent.moduleview = me;
 				me.render();
-			}
+			},
+			freeze: true,
 		});
 	},
 

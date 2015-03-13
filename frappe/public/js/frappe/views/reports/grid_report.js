@@ -15,6 +15,7 @@ $.extend(frappe.report_dump, {
 				doctypes: doctypes,
 				last_modified: frappe.report_dump.last_modified
 			},
+			freeze: true,
 			callback: function(r) {
 				// creating map of data from a list
 				$.each(r.message, function(doctype, doctype_data) {

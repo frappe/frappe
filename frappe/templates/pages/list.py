@@ -22,9 +22,12 @@ def get_context(context):
 	return context
 
 def get_list_context(context, doctype):
-	controller = get_controller(doctype)
-	if hasattr(controller, "get_list_context"):
-		return controller.get_list_context(context)
+	from frappe.modules import load_doctype_module
+	module = load_doctype_module(doctype)
+	if hasattr(module, "get_list_context"):
+		return frappe._dict(module.get_list_context(context) or {})
+
+	return frappe._dict()
 
 @frappe.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, **kwargs):
@@ -44,9 +47,8 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 			elif key not in filters:
 				filters[key] = val
 
-	controller = get_controller(doctype)
 	meta = frappe.get_meta(doctype)
-	list_context = frappe._dict(hasattr(controller, "get_list_context") and controller.get_list_context() or {})
+	list_context = get_list_context({}, doctype)
 
 	if list_context.filters:
 		filters.update(list_context.filters)

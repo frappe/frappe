@@ -59,7 +59,7 @@ frappe.dom = {
 		};
 		return ele;
 	},
-	freeze: function(msg) {
+	freeze: function(msg, css_class) {
 		// blur
 		if(!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
@@ -71,13 +71,17 @@ frappe.dom = {
 				})
 				.appendTo("#body_div");
 
-			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
+			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
 				{msg: msg || ""}));
 
 			setTimeout(function() { freeze.addClass("in") }, 1);
 
 		} else {
 			$("#freeze").addClass("in");
+		}
+
+		if (css_class) {
+			freeze.addClass(css_class);
 		}
 
 		frappe.dom.freeze_count++;

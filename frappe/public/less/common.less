@@ -195,6 +195,7 @@ a.badge-hover& {
 	z-index: 1020;
 	bottom: 0px;
 	opacity: 0;
+	background-color: @light-bg;
 
 	.freeze-message-container {
 		.full-center-container;
@@ -203,8 +204,14 @@ a.badge-hover& {
 	.freeze-message {
 		.full-center;
 		text-align: center;
-		color: #fff !important;
+		// color: #fff !important;
+		color: @text-color !important;
 	}
+}
+
+#freeze.dark {
+	// same as modal backdrop;
+	background-color: #334143;
 }
 
 #freeze.in {

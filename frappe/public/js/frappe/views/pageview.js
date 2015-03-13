@@ -29,7 +29,8 @@ frappe.views.pageview = {
 				callback: function(r) {
 					localStorage["_page:" + name] = JSON.stringify(r.docs);
 					callback();
-				}
+				},
+				freeze: true,
 			});
 		}
 	},

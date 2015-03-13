@@ -35,7 +35,7 @@ frappe.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		freeze_message: opts.freeze_message,
-		show_spinner: !opts.no_spinner,
+		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
 	});
@@ -131,7 +131,7 @@ frappe.request.prepare = function(opts) {
 	if(opts.btn) $(opts.btn).prop("disabled", true);
 
 	// navbar indicator
-	if(opts.show_spinner) frappe.set_loading();
+	// if(opts.show_spinner) frappe.set_loading();
 
 	// freeze page
 	if(opts.freeze) frappe.dom.freeze(opts.freeze_message);
@@ -161,7 +161,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(opts.btn) $(opts.btn).prop("disabled", false);
 
 	// hide button indicator
-	if(opts.show_spinner) frappe.done_loading();
+	// if(opts.show_spinner) frappe.done_loading();
 
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();
