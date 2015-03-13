@@ -605,6 +605,7 @@ def console(context):
 @click.option('--doctype')
 @click.option('--test', multiple=True)
 @click.option('--driver')
+@click.option('--module')
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None):
 	"Run tests"

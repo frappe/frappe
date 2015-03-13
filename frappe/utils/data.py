@@ -93,13 +93,27 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 def now_datetime():
 	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
 
+def _get_user_time_zone():
+	user_time_zone = None
+	if frappe.session.user:
+		user_time_zone = frappe.db.get_value("User", frappe.session.user, "time_zone")
+	
+	if not user_time_zone:
+		user_time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
+			or "Asia/Kolkata")
+			
+	return user_time_zone
+
 def get_user_time_zone():
+	if frappe.local.flags.in_test:
+		return _get_user_time_zone()
+		
 	if getattr(frappe.local, "user_time_zone", None) is None:
 		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
 
-	if not frappe.local.user_time_zone:
-		frappe.local.user_time_zone = frappe.db.get_default('time_zone') or 'Asia/Calcutta'
-		frappe.cache().set_value("time_zone", frappe.local.user_time_zone)
+		if not frappe.local.user_time_zone:
+			frappe.local.user_time_zone = _get_user_time_zone()
+			frappe.cache().set_value("time_zone", frappe.local.user_time_zone, user=frappe.session.user)
 
 	return frappe.local.user_time_zone
 
