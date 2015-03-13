@@ -46,14 +46,15 @@ def build_user_permissions(user):
 	return out
 
 def get_defaults(user=None):
+	globald = get_defaults_for()
+
 	if not user:
 		user = frappe.session.user if frappe.session else "Guest"
 
-	userd = get_defaults_for(user)
-	userd.update({"user": user, "owner": user})
-
-	globald = get_defaults_for()
-	globald.update(userd)
+	if user:
+		userd = get_defaults_for(user)
+		userd.update({"user": user, "owner": user})
+		globald.update(userd)
 
 	return globald
 
