@@ -130,9 +130,6 @@ frappe.request.prepare = function(opts) {
 	// btn indicator
 	if(opts.btn) $(opts.btn).prop("disabled", true);
 
-	// navbar indicator
-	// if(opts.show_spinner) frappe.set_loading();
-
 	// freeze page
 	if(opts.freeze) frappe.dom.freeze(opts.freeze_message);
 
@@ -159,9 +156,6 @@ frappe.request.prepare = function(opts) {
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
 	if(opts.btn) $(opts.btn).prop("disabled", false);
-
-	// hide button indicator
-	// if(opts.show_spinner) frappe.done_loading();
 
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();

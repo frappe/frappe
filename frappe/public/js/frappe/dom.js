@@ -134,24 +134,6 @@ frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
-var pending_req = 0
-frappe.set_loading = function() {
-	pending_req++;
-	$('body').css('cursor', 'progress').attr("data-ajax-state", "running");
-	NProgress.start();
-	$("body");
-}
-
-frappe.done_loading = function() {
-	pending_req--;
-	if(!pending_req){
-		$('body').css('cursor', 'default').attr("data-ajax-state", "complete");
-		NProgress.done();
-	} else {
-		NProgress.inc();
-	}
-}
-
 var get_hex = function(i) {
 	i = Math.round(i);
 	if(i>255) return 'ff';
