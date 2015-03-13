@@ -259,6 +259,7 @@ def watch():
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
+	import frappe.website.render
 	from frappe.desk.notifications import clear_notifications
 	for site in context.sites:
 		try:
@@ -266,6 +267,7 @@ def clear_cache(context):
 			frappe.connect()
 			frappe.clear_cache()
 			clear_notifications()
+			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
 
