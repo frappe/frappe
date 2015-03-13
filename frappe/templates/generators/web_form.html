@@ -259,7 +259,7 @@ frappe.ready(function() {
 					$(".comments, .introduction").addClass("hide");
 					scroll(0, 0);
 					$(".form-message")
-						.html('{{ success_message or __("Thank You") }}'
+						.html('{{ success_message or _("Thank You") }}'
 							+ '<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
 						.removeClass("hide");
 				}
