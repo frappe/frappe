@@ -11,15 +11,17 @@ no_cache = 1
 no_sitemap = 1
 
 def get_context(context):
+	"""Returns context for a list standard list page.
+	Will also update `get_list_context` from the doctype module file"""
 	doctype = frappe.local.form_dict.doctype
-	context.update(get_list_context(context, doctype) or {})
+	update_list_context(context, doctype)
 
 	context.doctype = doctype
 	context.txt = frappe.local.form_dict.txt
 
 	context.update(get(**frappe.local.form_dict))
 
-	return context
+	print context
 
 def get_list_context(context, doctype):
 	from frappe.modules import load_doctype_module
@@ -31,6 +33,7 @@ def get_list_context(context, doctype):
 
 @frappe.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, **kwargs):
+	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 	limit_page_length = 20
 	next_start = limit_start + limit_page_length
@@ -63,9 +66,9 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 
 	result = []
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
-	for item in raw_result:
-		item.doctype = doctype
-		new_context = { "doc": item, "meta": meta, "pathname": frappe.local.request.path.strip("/ ") }
+	for doc in raw_result:
+		doc.doctype = doctype
+		new_context = { "doc": doc, "meta": meta, "pathname": frappe.local.request.path.strip("/ ") }
 		new_context.update(list_context)
 		result.append(frappe.render_template(row_template, new_context, is_path=True))
 
