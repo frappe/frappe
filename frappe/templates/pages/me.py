@@ -15,8 +15,14 @@ def get_context(context):
 
 	context["my_account_list"] = []
 
-	for method in frappe.get_hooks("my_account_context"):
-		frappe.get_attr(method)(context)
+	for element in frappe.get_hooks("my_account_context"):
+		print element
+		if isinstance(element, dict):
+			context["my_account_list"].append(element)
+		else:
+			frappe.get_attr(element)(context)
+
+	print context["my_account_list"]
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname

@@ -59,6 +59,6 @@ def add_comment(args=None):
 		message = message,
 		ref_doctype=comment.comment_doctype, ref_docname=comment.comment_docname)
 
-	template = frappe.get_template("templates/includes/comment.html")
+	template = frappe.get_template("templates/includes/comments/comment.html")
 
 	return template.render({"comment": comment.as_dict()})

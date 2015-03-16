@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.template import render_blocks
+from frappe.website.template import build_template
 from frappe.website.router import get_route_info
 from frappe.website.utils import can_cache
 
@@ -83,7 +83,7 @@ def build_context(context):
 		context.base_template_path = app_base[0] if app_base else "templates/base.html"
 
 	if context.get("base_template_path") != context.get("template") and not context.get("rendered"):
-		context.data = render_blocks(context)
+		context.data = build_template(context)
 
 	return context
 

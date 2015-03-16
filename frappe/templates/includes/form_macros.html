@@ -1,5 +1,5 @@
-{% macro make_select(klass=None, options=None, attributes=None) %}
-<select class="form-control{% if klass %} {{ klass }}{% endif %}" {% if attributes -%}
+{% macro make_select(css_class=None, options=None, attributes=None) %}
+<select class="form-control{% if css_class %} {{ css_class }}{% endif %}" {% if attributes -%}
 	{% for key, value in attributes.iteritems() -%}
 	{{ key }}="{{ value }}" {% endfor %}{% endif %}>
 	{% if options -%}

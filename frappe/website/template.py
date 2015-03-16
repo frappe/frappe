@@ -9,40 +9,66 @@ from frappe import _
 from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
-from markdown2 import markdown
 import re
 
-def render_blocks(context):
-	"""returns a dict of block name and its rendered content"""
+def build_template(context):
+	"""Returns a dict of block name and its rendered content"""
 
 	out = {}
+	render_blocks(context["template"], out, context)
 
+	# set_sidebar(out, context)
+	set_breadcrumbs(out, context)
+	set_title_and_header(out, context)
+
+	# meta
+	if "meta_block" not in out:
+		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
+
+	add_index(out, context)
+
+	# render
+	content_context = {}
+	content_context.update(context)
+	content_context.update(out)
+	out["content"] = frappe.get_template("templates/includes/page_content.html").render(content_context)
+
+	separate_style_and_script(out, context)
+	add_hero(out, context)
+
+	return out
+
+def render_blocks(template_path, out, context):
+	"""Build the template block by block from the main template."""
 	env = frappe.get_jenv()
+	source = frappe.local.jloader.get_source(frappe.local.jenv, template_path)[0]
+	for referenced_template_path in meta.find_referenced_templates(env.parse(source)):
+		if referenced_template_path:
+			render_blocks(referenced_template_path, out, context)
 
-	def _render_blocks(template_path):
-		source = frappe.local.jloader.get_source(frappe.local.jenv, template_path)[0]
-		for referenced_template_path in meta.find_referenced_templates(env.parse(source)):
-			if referenced_template_path:
-				_render_blocks(referenced_template_path)
+	template = frappe.get_template(template_path)
+	for block, render in template.blocks.items():
+		new_context = template.new_context(context)
+		out[block] = scrub_relative_urls(concat(render(new_context)))
 
-		template = frappe.get_template(template_path)
-		for block, render in template.blocks.items():
-			new_context = template.new_context(context)
-			out[block] = scrub_relative_urls(concat(render(new_context)))
+def separate_style_and_script(out, context):
+	"""Extract `style` and `script` tags into separate blocks"""
+	out["style"] = re.sub("</?style[^<>]*>", "", out.get("style") or "")
+	out["script"] = re.sub("</?script[^<>]*>", "", out.get("script") or "")
 
-	_render_blocks(context["template"])
-
-	out["has_sidebar"] = not (context.get("no_sidebar", 0) or ("<!-- no-sidebar -->" in out.get("content", "")))
-
-	if out.get("has_sidebar"):
-		out["sidebar"] = frappe.get_template("templates/includes/sidebar.html").render(context)
-
+def set_breadcrumbs(out, context):
+	"""Build breadcrumbs template (deprecated)"""
 	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
+
+	# breadcrumbs
+	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
+		out["breadcrumbs"] = scrub_relative_urls(
+			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
+
+def set_title_and_header(out, context):
+	"""Extract and set title and header from content or context."""
 	out["no_header"] = context.get("no_header", 0) or ("<!-- no-header -->" in out.get("content", ""))
 
-	# default blocks if not found
-
-	# title
 	if "<!-- title:" in out.get("content", ""):
 		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
 
@@ -71,15 +97,16 @@ def render_blocks(context):
 
 	out["title"] = strip_html(out.get("title") or "")
 
-	# breadcrumbs
-	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
-		out["breadcrumbs"] = scrub_relative_urls(
-			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 
-	# meta
-	if "meta_block" not in out:
-		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
+def set_sidebar(out, context):
+	"""Include sidebar (deprecated)"""
+	out["has_sidebar"] = not (context.get("no_sidebar", 0) or ("<!-- no-sidebar -->" in out.get("content", "")))
 
+	if out.get("has_sidebar"):
+		out["sidebar"] = frappe.get_template("templates/includes/sidebar.html").render(context)
+
+def add_index(out, context):
+	"""Add index, next button if `{index}`, `{next}` is present."""
 	# table of contents
 	if "{index}" in out.get("content", "") and context.get("children"):
 		html = frappe.get_template("templates/includes/static_index.html").render({
@@ -95,17 +122,10 @@ def render_blocks(context):
 			html = ('<p><br><a href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
-	# remove style and script tags from blocks
-	out["style"] = re.sub("</?style[^<>]*>", "", out.get("style") or "")
-	out["script"] = re.sub("</?script[^<>]*>", "", out.get("script") or "")
 
-	# render
-	content_context = {}
-	content_context.update(context)
-	content_context.update(out)
-	out["content"] = frappe.get_template("templates/includes/page_content.html").render(content_context)
-
-	# extract hero (if present)
+def add_hero(out, context):
+	"""Add a hero element if specified in content or hooks.
+	Hero elements get full page width."""
 	out["hero"] = ""
 	if "<!-- start-hero -->" in out["content"]:
 		parts1 = out["content"].split("<!-- start-hero -->")
@@ -115,5 +135,3 @@ def render_blocks(context):
 
 	elif context.hero and context.hero.get(context.pathname):
 		out["hero"] = frappe.render_template(context.hero[context.pathname][0], context)
-
-	return out
