@@ -9,7 +9,6 @@ import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 
-
 def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False):
 	frappe.flags.print_messages = verbose
 	frappe.flags.in_test = True
