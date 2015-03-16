@@ -33,9 +33,6 @@ frappe.search = {
 			close: function() {
 				frappe.search.autocomplete_open = false;
 			},
-			focus: function(event, ui) {
-				return false;
-			},
 			select: function(event, ui) {
 				if(ui.item.route_options) {
 					frappe.route_options = ui.item.route_options;
