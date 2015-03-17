@@ -1,0 +1,24 @@
+{% if top_bar_items -%}
+<ul class="nav navbar-nav navbar-left">
+	{%- for page in top_bar_items -%}
+	{% if not page.parent_label and not page.right -%}
+	{% include "templates/includes/navbar/navbar_link.html" %}
+	{%- endif -%}
+	{%- endfor %}
+</ul>
+{%- endif %}
+<ul class="nav navbar-nav navbar-right">
+	{%- for page in top_bar_items -%}
+	{% if not page.parent_label and page.right -%}
+	{% include "templates/includes/navbar/navbar_link.html" %}
+	{%- endif -%}
+	{%- endfor %}
+	{% include "templates/includes/navbar/navbar_login.html" %}
+</ul>
+{% if include_search %}
+<form class="navbar-form navbar-right" role="search">
+    <div class="form-group">
+        <input type="text" class="form-control search" placeholder="Search">
+    </div>
+</form>
+{% endif %}

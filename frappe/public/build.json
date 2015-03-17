@@ -1,9 +1,9 @@
 {
 	"css/frappe-web.css": [
-		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
 		"public/css/nprogress.css",
-		"website/css/website.css"
+		"public/css/website.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
@@ -13,65 +13,56 @@
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
-		"website/js/website.js",
-		"website/js/website_group.js"
-	],
-	"js/canvasResize.min.js": [
-		"website/js/jquery.exif.js",
-		"website/js/jquery.canvasResize.js"
+		"public/js/lib/highlight.pack.js",
+		"public/js/frappe/class.js",
+		"website/js/website.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/frappe/class.js",
 		"public/js/lib/beautify-html.js",
 		"public/js/frappe/ui/editor.js"
 	],
-	"css/frappe.css": [
+	"css/desk.min.css": [
 		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
-		"public/js/lib/slickgrid/slick.grid.css",
-		"public/js/lib/slickgrid/slick-default-theme.css",
-
-		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
+		"public/css/font/open-sans/open-sans.css",
 		"public/css/desk.css",
-		"public/css/appframe.css",
-		"public/css/app_icon.css",
+		"public/css/indicator.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",
-		"public/css/slickgrid.css",
-		"public/css/tree_grid.css",
+		"public/css/sidebar.css",
+		"public/css/page.css",
 		"public/css/tree.css",
-		"public/css/nprogress.css"
+		"public/css/nprogress.css",
+		"public/css/desktop.css",
+		"public/css/form.css",
+		"public/css/mobile.css"
 	],
-	"js/frappe.min.js": [
-		"public/js/lib/jquery/jquery.ui.min.js",
+	"js/desk.min.js": [
+		"public/js/lib/jquery/jquery-ui.min.js",
+		"public/js/lib/Sortable.min.js",
 		"public/js/lib/tag-it.min.js",
-		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/center_image.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
-		"public/js/lib/beautify-html.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/moment/moment-timezone.min.js",
-		"public/js/frappe/format.js",
 
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
-		"public/js/frappe/translate.js",
 		"public/js/frappe/assets.js",
+		"public/js/frappe/format.js",
+		"public/js/frappe/form/formatters.js",
+		"public/js/frappe/translate.js",
+		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
-		"public/js/frappe/ui/listing.js",
+
 		"public/js/frappe/request.js",
 		"public/js/frappe/router.js",
-		"public/js/frappe/desk.js",
 		"public/js/frappe/defaults.js",
 		"public/js/lib/microtemplate.js",
-
-		"public/html/print_template.html",
-		"public/html/list_info_template.html",
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",
@@ -79,10 +70,13 @@
 		"public/js/legacy/handler.js",
 		"public/js/legacy/loaders.js",
 
-		"public/js/frappe/ui/appframe.js",
+		"public/js/frappe/ui/page.html",
+		"public/js/frappe/ui/page.js",
 		"public/js/frappe/ui/iconbar.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
+		"public/js/frappe/form/control.js",
+		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/button.js",
 		"public/js/frappe/ui/app_icon.js",
@@ -101,63 +95,108 @@
 		"public/js/frappe/misc/datetime.js",
 		"public/js/frappe/misc/number_format.js",
 
+		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
-		"public/js/frappe/ui/filters.js",
 		"public/js/frappe/ui/tree.js",
-		"public/js/frappe/ui/tags.js",
 
 		"public/js/frappe/views/container.js",
+		"public/js/frappe/views/breadcrumbs.js",
 		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
-		"public/js/frappe/views/doclistview.js",
-		"public/js/frappe/views/sidebar_stats.js",
-		"public/js/frappe/views/moduleview.js",
-		"public/js/frappe/views/listview.js",
-		"public/js/frappe/views/formview.js",
-		"public/js/frappe/views/reportview.js",
-		"public/js/frappe/views/calendar.js",
-		"public/js/frappe/views/ganttview.js",
-		"public/js/frappe/views/query_report.js",
-		"public/js/frappe/views/grid_report.js",
-		"public/js/frappe/views/communication.js",
-		"public/js/frappe/views/test_runner.js",
-		"public/js/frappe/form/formatters.js",
 
-		"public/js/frappe/ui/toolbar/selector_dialog.js",
-		"public/js/frappe/ui/toolbar/new.js",
-		"public/js/frappe/ui/toolbar/search.js",
-		"public/js/frappe/ui/toolbar/report.js",
-		"public/js/frappe/ui/toolbar/recent.js",
-		"public/js/frappe/ui/toolbar/bookmarks.js",
+		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/about.js",
+		"public/js/frappe/ui/toolbar/navbar.html",
+		"public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
-		"public/js/frappe/ui/editor.js",
+		"public/js/frappe/views/communication.js",
 
+		"public/js/frappe/change_log.html",
+		"public/js/frappe/desk.js"
+	],
+	"css/module.min.css": [
+		"public/css/module.css"
+	],
+	"js/module.min.js": [
+		"public/js/frappe/views/module/module_title.html",
+		"public/js/frappe/views/module/module_section.html",
+		"public/js/frappe/views/module/module_sidebar.html",
+		"public/js/frappe/views/module/moduleview.js"
+	],
+	"css/form.min.css": [
+		"public/css/form_grid.css"
+	],
+	"js/form.min.js": [
+		"public/js/frappe/views/formview.js",
 		"public/js/legacy/form.js",
 		"public/js/legacy/clientscriptAPI.js",
-
 		"public/js/frappe/form/toolbar.js",
-		"public/js/frappe/form/infobar.js",
 		"public/js/frappe/form/dashboard.js",
 		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
-		"public/js/frappe/form/control.js",
-		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/grid_form.html",
+		"public/js/frappe/form/grid_body.html",
 		"public/js/frappe/form/grid.js",
-		"public/js/frappe/form/attachments.js",
-		"public/js/frappe/form/footer.js",
-		"public/js/frappe/form/comments.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
-		"public/js/frappe/form/assign_to.js",
-		"public/js/frappe/form/print.js"
+		"public/js/frappe/form/print_layout.html",
+		"public/js/frappe/form/print.js",
+		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/share.js",
+		"public/js/frappe/form/set_sharing.html",
+		"public/js/frappe/form/form_sidebar.html",
+
+		"public/js/frappe/form/footer/form_footer.html",
+		"public/js/frappe/form/footer/timeline.html",
+		"public/js/frappe/form/footer/timeline_item.html",
+		"public/js/frappe/form/footer/footer.js",
+		"public/js/frappe/form/footer/attachments.js",
+		"public/js/frappe/form/footer/timeline.js",
+		"public/js/frappe/form/footer/assign_to.js"
 	],
-	"js/print_format_v3.min.js": [
-		"public/js/legacy/layout.js",
-		"public/js/legacy/print_table.js",
-		"public/js/legacy/print_format.js"
+	"css/list.min.css": [
+		"public/css/list.css",
+		"public/css/tag-it.css",
+		"public/css/calendar.css",
+		"public/css/gantt.css"
 	],
-	"js/slickgrid.min.js": [
+	"js/list.min.js": [
+		"public/js/frappe/ui/listing.html",
+		"public/js/frappe/ui/listing.js",
+		"public/js/frappe/model/indicator.js",
+		"public/js/frappe/ui/filters/filters.js",
+		"public/js/frappe/ui/filters/edit_filter.html",
+		"public/js/frappe/ui/tags.js",
+		"public/js/frappe/ui/star.js",
+		"public/html/print_template.html",
+		"public/js/frappe/list/doclistview.js",
+		"public/js/frappe/list/list_sidebar.js",
+		"public/js/frappe/list/list_sidebar.html",
+		"public/js/frappe/list/list_sidebar_stat.html",
+		"public/js/frappe/list/list_item_main.html",
+		"public/js/frappe/list/list_item_row.html",
+		"public/js/frappe/list/list_item_main_head.html",
+		"public/js/frappe/list/list_item_row_head.html",
+		"public/js/frappe/list/list_item_subject.html",
+		"public/js/frappe/list/listview.js",
+		"public/js/frappe/views/calendar_base.js",
+		"public/js/frappe/views/calendar.js",
+		"public/js/frappe/views/ganttview.js"
+	],
+	"css/report.min.css": [
+		"public/css/report.css",
+		"public/css/tree_grid.css",
+
+		"public/js/lib/slickgrid/slick.grid.css",
+		"public/js/lib/slickgrid/slick-default-theme.css",
+		"public/css/slickgrid.css"
+	],
+	"js/report.min.js": [
+		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/query_report.js",
+		"public/js/frappe/views/reports/grid_report.js",
+		"public/js/frappe/views/reports/print_grid.html",
+
 		"public/js/lib/slickgrid/jquery.event.drag.js",
 		"public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js",
 		"public/js/lib/slickgrid/plugins/slick.cellrangeselector.js",
@@ -166,5 +205,10 @@
 		"public/js/lib/slickgrid/slick.core.js",
 		"public/js/lib/slickgrid/slick.grid.js",
 		"public/js/lib/slickgrid/slick.dataview.js"
+	],
+	"js/print_format_v3.min.js": [
+		"public/js/legacy/layout.js",
+		"public/js/legacy/print_table.js",
+		"public/js/legacy/print_format.js"
 	]
 }

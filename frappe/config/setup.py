@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 from frappe import _
-from frappe.widgets.moduleview import add_setup_section
+from frappe.desk.moduleview import add_setup_section
 
 def get_data():
 	data = [
 		{
-			"label": _("Users and Permissions"),
+			"label": _("Users"),
 			"icon": "icon-group",
 			"items": [
 				{
@@ -17,7 +17,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Role",
 					"description": _("User Roles")
-				},
+				}
+			]
+		},
+		{
+			"label": _("Permissions"),
+			"icon": "icon-lock",
+			"items": [
 				{
 					"type": "page",
 					"name": "permission-manager",
@@ -39,6 +45,13 @@ def get_data():
 					"icon": "icon-eye-open",
 					"name": "Permitted Documents For User",
 					"description": _("Check which Documents are readable by a User")
+				},
+				{
+					"type": "report",
+					"doctype": "DocShare",
+					"icon": "icon-share",
+					"name": "Document Share Report",
+					"description": _("Report of all document shares")
 				}
 			]
 		},
@@ -119,8 +132,8 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Outgoing Email Settings",
-					"description": _("Set outgoing mail server.")
+					"name": "Email Account",
+					"description": _("Add / Manage Email Accounts.")
 				},
 				{
 					"type": "doctype",
@@ -135,9 +148,15 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Printing and Branding"),
+			"label": _("Printing"),
 			"icon": "icon-print",
 			"items": [
+				{
+					"type": "page",
+					"label": "Print Format Builder",
+					"name": "print-format-builder",
+					"description": _("Drag and Drop tool to build and customize Print Formats.")
+				},
 				{
 					"type": "doctype",
 					"name": "Print Settings",
@@ -146,7 +165,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Print Format",
-					"description": _("Customized HTML Templates for printing transctions.")
+					"description": _("Customized HTML Templates for printing transactions.")
 				},
 			]
 		},
@@ -169,7 +188,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Custom Script",
 					"description": _("Add custom javascript to forms.")
+				},
+				{
+					"type": "doctype",
+					"name": "DocType",
+					"description": _("Add custom forms.")
 				}
+
 			]
 		},
 		{

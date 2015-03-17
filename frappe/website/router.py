@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -9,7 +9,7 @@ from frappe.model.document import get_controller
 
 def get_route_info(path):
 	sitemap_options = None
-	cache_key = "sitemap_options:{}".format(path)
+	cache_key = "sitemap_options:{0}:{1}".format(path, frappe.local.lang)
 
 	if can_cache():
 		sitemap_options = frappe.cache().get_value(cache_key)
@@ -26,99 +26,65 @@ def build_route(path):
 	if not context:
 		raise frappe.DoesNotExistError
 
-	if context.controller:
-		module = frappe.get_module(context.controller)
-
-		# get sitemap config fields too
-		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
-			"condition_field"):
-			if hasattr(module, prop):
-				context[prop] = getattr(module, prop)
-
 	context.doctype = context.ref_doctype
 	context.title = context.page_title
-	context.pathname = path
-
-	# determine templates to be used
-	if not context.base_template_path:
-		app_base = frappe.get_hooks("base_template")
-		context.base_template_path = app_base[0] if app_base else "templates/base.html"
+	context.pathname = frappe.local.path
 
 	return context
 
 def resolve_route(path):
-	route = get_page_route(path)
-	if route:
-		return route
+	"""Returns the page route object based on searching in pages and generators.
+	The `www` folder is also a part of generator **Web Page**.
 
-	return get_generator_route(path)
+	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
+	first before checking the standard pages."""
+	if path not in ("about", "contact"):
+		route = get_page_route(path)
+		if route: return route
+		return get_generator_route(path)
+	else:
+		route = get_generator_route(path)
+		if route: return route
+		return get_page_route(path)
 
 def get_page_route(path):
 	found = filter(lambda p: p.page_name==path, get_pages())
 	return found[0] if found else None
 
 def get_generator_route(path):
-	parts = path.rsplit("/", 1)
-	if len(parts)==1:
-		page_name = path
-		parent = None
-	else:
-		parent, page_name = parts
-
-	def get_route(doctype, condition_field, order_by):
-		condition = ["page_name=%s"]
-
-		if condition_field:
-			condition.append("ifnull({0}, 0)=1".format(condition_field))
-
-		values = (page_name,)
-		if parent:
-			meta = frappe.get_meta(doctype)
-			if meta.get_field("parent_website_route"):
-				condition.append("""parent_website_route=%s""")
-				values = (page_name, parent)
-
-		g = frappe.db.sql("""select name from `tab{0}` where {1}
-			 order by {2}""".format(doctype, " and ".join(condition), order_by), values)
-
-		if g and path==frappe.get_doc(doctype, g[0][0]).get_route():
-			return frappe.get_doc(doctype, g[0][0]).get_website_route()
-
-	return process_generators(get_route)
+	generator_routes = get_generator_routes()
+	if path in generator_routes:
+		route = generator_routes[path]
+		return frappe.get_doc(route.get("doctype"), route.get("name")).get_route_context()
 
 def clear_sitemap():
-	for p in get_pages():
-		delete_page_cache(p.name)
+	delete_page_cache("*")
 
-	def clear_generators(doctype, condition_field, order_by):
-		meta = frappe.get_meta(doctype)
+def get_generator_routes():
+	routes = frappe.cache().get_value("website_generator_routes")
+	if not routes:
+		routes = {}
+		for app in frappe.get_installed_apps():
+			for doctype in frappe.get_hooks("website_generators", app_name = app):
+				condition = ""
+				route_column_name = "page_name"
+				controller = get_controller(doctype)
+				meta = frappe.get_meta(doctype)
 
-		if meta.get_field("parent_website_route"):
-			query = "select page_name, parent_website_route from `tab{0}`"
-		else:
-			query = "select page_name, '' from `tab{0}`"
+				if meta.get_field("parent_website_route"):
+					route_column_name = """concat(ifnull(parent_website_route, ""),
+						if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
 
-		for r in frappe.db.sql(query.format(doctype)):
-			if r[0]:
-				delete_page_cache(((r[1] + "/") if r[1] else "") + r[0])
+				if controller.website.condition_field:
+					condition ="where ifnull({0}, 0)=1".format(controller.website.condition_field)
 
-	process_generators(clear_generators)
+				for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
+						{2}""".format(route_column_name, doctype, condition), as_dict=True):
+					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
-def process_generators(func):
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			order_by = "name asc"
-			condition_field = None
-			controller = get_controller(doctype)
+		frappe.cache().set_value("website_generator_routes", routes)
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
-
-			val = func(doctype, condition_field, order_by)
-			if val:
-				return val
+	return routes
 
 def get_pages():
 	pages = frappe.cache().get_value("_website_pages")
@@ -139,7 +105,6 @@ def get_pages():
 						route.page_or_generator = "Page"
 						route.template = os.path.relpath(os.path.join(path, fname), app_path)
 						route.name = route.page_name = route_page_name
-						route.public_read = 1
 						controller_path = os.path.join(path, page_name + ".py")
 
 						if os.path.exists(controller_path):
@@ -155,3 +120,19 @@ def get_pages():
 
 		frappe.cache().set_value("_website_pages", pages)
 	return pages
+
+def process_generators(func):
+	for app in frappe.get_installed_apps():
+		for doctype in frappe.get_hooks("website_generators", app_name = app):
+			order_by = "name asc"
+			condition_field = None
+			controller = get_controller(doctype)
+
+			if hasattr(controller, "condition_field"):
+				condition_field = controller.condition_field
+			if hasattr(controller, "order_by"):
+				order_by = controller.order_by
+
+			val = func(doctype, condition_field, order_by)
+			if val:
+				return val

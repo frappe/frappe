@@ -1,0 +1,57 @@
+<div class="media timeline-item" data-name="{%= data.name %}">
+	<span class="pull-left avatar avatar-medium">
+		<img class="media-object" src="{%= data.image %}">
+	</span>
+	<div class="media-body">
+		<div>
+			<div class="pull-right">
+				<span class="small text-muted">
+					{%= data.delete %}
+				</span>
+			</div>
+			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    {%= data.fullname %}
+                    <span class="text-muted" style="font-weight: normal;">
+                        &ndash; {%= data.comment_on %}</span>
+                    {% if(data.doctype=="Communication") { %} &ndash;
+                    <a href="#Form/{%= data.doctype %}/{%= data.name %}"
+                        class="text-muted">{%= __("Details") %}</a>
+                    {% } %}
+                </h6>
+				<div class="reply">
+        			<div>
+        				{%= data.comment_html %}
+        			</div>
+                </div>
+            {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                        {%= data.comment %}
+                        <span class="text-muted" style="font-weight: normal;">
+                        &ndash; {%= data.comment_on %}</span>
+                </h6>
+            {% } else { %}
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    {%= data.fullname %} {%= data.comment %}
+                        <span class="text-muted" style="font-weight: normal;">
+                        &ndash; {%= data.comment_on %}</span>
+                </h6>
+            {% } %}
+			{% if(data.attachments && data.attachments.length) { %}
+			<div style="margin: 10px 0px">
+				{% $.each(data.attachments, function(i, a) { %}
+				<div class="text-ellipsis">
+					<a href="{%= a %}" class="text-muted small" target="_blank">
+						<i class="icon-paperclip"></i>
+						{%= a.split("/").slice(-1)[0] %}
+					</a>
+				</div>
+				{% }); %}
+			</div>
+			{% } %}
+		</div>
+	</div>
+</div>

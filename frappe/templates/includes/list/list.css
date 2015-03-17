@@ -1,0 +1,31 @@
+.website-list .result {
+	border: 1px solid {{ theme.border_color or "#d1d8dd" }};
+}
+
+.website-list-row {
+	display: block;
+	border-bottom: 1px solid {{ theme.border_color or "#d1d8dd" }};
+	padding: 15px;
+}
+
+.website-list-row:last-child {
+	border-bottom: none;
+}
+
+.website-list-filters {
+	padding: 15px;
+	border: 1px solid {{ theme.border_color or "#d1d8dd" }};
+	border-bottom: none;
+}
+
+.website-list-filters .form-search .input-group {
+	width: 100%;
+}
+
+.website-list-filters .filter-message {
+	padding-top: 7px;
+}
+
+.website-list-filters .clear-filters {
+	margin-left: 15px;
+}

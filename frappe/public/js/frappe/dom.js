@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // add a new dom element
@@ -59,19 +59,41 @@ frappe.dom = {
 		};
 		return ele;
 	},
-	freeze: function() {
+	freeze: function(msg, css_class) {
 		// blur
 		if(!$('#freeze').length) {
-			$("<div id='freeze'>").appendTo("#body_div").css('opacity', 0.6);
+			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
+				.on("click", function() {
+					if (cur_frm && cur_frm.cur_grid) {
+						cur_frm.cur_grid.toggle_view();
+						return false;
+					}
+				})
+				.appendTo("#body_div");
+
+			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
+				{msg: msg || ""}));
+
+			setTimeout(function() { freeze.addClass("in") }, 1);
+
+		} else {
+			$("#freeze").addClass("in");
 		}
-		$('#freeze').toggle(true);
+
+		if (css_class) {
+			freeze.addClass(css_class);
+		}
+
 		frappe.dom.freeze_count++;
 	},
 	unfreeze: function() {
-		if(!frappe.dom.freeze_count)return; // anything open?
+		if(!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
-			$('#freeze').toggle(false);
+			var freeze = $('#freeze').removeClass("in");
+			setTimeout(function() {
+				if(!frappe.dom.freeze_count) { freeze.remove(); }
+			}, 150);
 		}
 	},
 	save_selection: function() {
@@ -102,49 +124,15 @@ frappe.dom = {
 				savedSel.select();
 			}
 		}
+	},
+	is_touchscreen: function() {
+		return ('ontouchstart' in window)
 	}
 }
 
-frappe.get_modal = function(title, body_html) {
-	var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-		<div class="modal-dialog">\
-			<div class="modal-content">\
-				<div class="modal-header">\
-					<a type="button" class="close"\
-						data-dismiss="modal" aria-hidden="true">&times;</a>\
-					<h4 class="modal-title">'+title+'</h4>\
-				</div>\
-				<div class="modal-body ui-front">'+body_html+'\
-				</div>\
-				<div class="modal-footer hide">\
-					<button type="button" class="btn btn-default" data-dismiss="modal">' + __("Close") + '</button>\
-					<button type="button" class="btn btn-primary">' + __("Confirm") + '</button>\
-				</div>\
-			</div>\
-		</div>\
-		</div>').appendTo(document.body);
-
-	return modal;
+frappe.get_modal = function(title, content) {
+	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
-
-var pending_req = 0
-frappe.set_loading = function() {
-	pending_req++;
-	//$('#spinner').css('visibility', 'visible');
-	$('body').css('cursor', 'progress').attr("data-ajax-state", "running");
-	NProgress.start();
-	$("body");
-}
-
-frappe.done_loading = function() {
-	pending_req--;
-	if(!pending_req){
-		$('body').css('cursor', 'default').attr("data-ajax-state", "complete");
-		NProgress.done();
-	} else {
-		NProgress.inc();
-	}
-}
 
 var get_hex = function(i) {
 	i = Math.round(i);
@@ -224,4 +212,51 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 	$.fn.done_working = function() {
 		this.prop('disabled', false);
 	}
+})(jQuery);
+
+(function($) {
+    function pasteIntoInput(el, text) {
+        el.focus();
+        if (typeof el.selectionStart == "number") {
+            var val = el.value;
+            var selStart = el.selectionStart;
+            el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
+            el.selectionEnd = el.selectionStart = selStart + text.length;
+        } else if (typeof document.selection != "undefined") {
+            var textRange = document.selection.createRange();
+            textRange.text = text;
+            textRange.collapse(false);
+            textRange.select();
+        }
+    }
+
+    function allowTabChar(el) {
+        $(el).keydown(function(e) {
+            if (e.which == 9) {
+                pasteIntoInput(this, "\t");
+                return false;
+            }
+        });
+
+        // For Opera, which only allows suppression of keypress events, not keydown
+        $(el).keypress(function(e) {
+            if (e.which == 9) {
+                return false;
+            }
+        });
+    }
+
+    $.fn.allowTabs = function() {
+        if (this.jquery) {
+            this.each(function() {
+                if (this.nodeType == 1) {
+                    var nodeName = this.nodeName.toLowerCase();
+                    if (nodeName == "textarea" || (nodeName == "input" && this.type == "text")) {
+                        allowTabChar(this);
+                    }
+                }
+            })
+        }
+        return this;
+    }
 })(jQuery);

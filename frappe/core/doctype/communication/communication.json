@@ -1,5 +1,5 @@
 {
-  "allow_import": 1, 
+ "allow_import": 1, 
  "autoname": "naming_series:", 
  "creation": "2013-01-29 10:47:14", 
  "description": "Keep a track of all communications", 
@@ -19,18 +19,55 @@
   {
    "fieldname": "sent_or_received", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "Sent or Received", 
    "options": "Sent\nReceived", 
    "permlevel": 0, 
    "reqd": 1
   }, 
   {
+   "fieldname": "status", 
+   "fieldtype": "Select", 
+   "label": "Status", 
+   "options": "Open\nReplied\nArchived", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "subject", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Subject", 
    "permlevel": 0, 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "column_break_5", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "reference_doctype", 
+   "fieldtype": "Link", 
+   "label": "Reference DocType", 
+   "options": "DocType", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "reference_name", 
+   "fieldtype": "Dynamic Link", 
+   "label": "Reference Name", 
+   "options": "reference_doctype", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_8", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "content", 
@@ -39,39 +76,6 @@
    "permlevel": 0, 
    "reqd": 0, 
    "width": "400"
-  }, 
-  {
-   "fieldname": "section_break1", 
-   "fieldtype": "Section Break", 
-   "options": "simple", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "category", 
-   "fieldtype": "Select", 
-   "label": "Category", 
-   "options": "\nSales\nComplaint\nHelp\nSuggestion\nMiscellaneous\nSent Mail", 
-   "permlevel": 0, 
-   "reqd": 0
-  }, 
-  {
-   "fieldname": "column_break2", 
-   "fieldtype": "Column Break", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "next_communication_date", 
-   "fieldtype": "Date", 
-   "label": "Next Communcation On", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "action", 
-   "fieldtype": "Select", 
-   "label": "Action", 
-   "options": "\nCreated Opportunity\nSent Quotation\nCreated Support Ticket\nCreated Customer Issue\nNo Action\nSent Mail", 
-   "permlevel": 0, 
-   "reqd": 0
   }, 
   {
    "fieldname": "additional_info", 
@@ -90,6 +94,13 @@
    "fieldtype": "Data", 
    "label": "Sender", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "sender_full_name", 
+   "fieldtype": "Data", 
+   "label": "Sender Full Name", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "communication_medium", 
@@ -116,6 +127,14 @@
    "fieldtype": "Column Break", 
    "label": "By", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "email_account", 
+   "fieldtype": "Link", 
+   "label": "Email Account", 
+   "options": "Email Account", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "default": "__user", 
@@ -154,7 +173,7 @@
  "idx": 1, 
  "in_dialog": 0, 
  "issingle": 0, 
- "modified": "2014-08-14 09:39:23.219125", 
+ "modified": "2015-02-05 05:11:35.650325", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -162,7 +181,7 @@
  "permissions": [
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -171,6 +190,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Support Team", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -184,12 +204,13 @@
    "read": 1, 
    "report": 1, 
    "role": "Sales Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -198,6 +219,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Sales User", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -210,6 +232,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Support Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -222,9 +245,11 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }
  ], 
+ "search_fields": "subject", 
  "title_field": "subject"
 }

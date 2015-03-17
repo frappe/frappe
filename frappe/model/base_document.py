@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,6 +7,36 @@ from frappe import _
 from frappe.utils import cint, flt, now, cstr, strip_html
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
+from frappe.modules import load_doctype_module
+
+_classes = {}
+
+def get_controller(doctype):
+	"""Returns the **class** object of the given DocType.
+	For `custom` type, returns `frappe.model.document.Document`.
+
+	:param doctype: DocType name as string."""
+	from frappe.model.document import Document
+	if not doctype in _classes:
+		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
+			or ["Core", False]
+
+		if custom:
+			_class = Document
+		else:
+			module = load_doctype_module(doctype, module_name)
+			classname = doctype.replace(" ", "").replace("-", "")
+			if hasattr(module, classname):
+				_class = getattr(module, classname)
+				if issubclass(_class, BaseDocument):
+					_class = getattr(module, classname)
+				else:
+					raise ImportError, doctype
+			else:
+				raise ImportError, doctype
+		_classes[doctype] = _class
+
+	return _classes[doctype]
 
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
@@ -14,6 +44,9 @@ class BaseDocument(object):
 	def __init__(self, d):
 		self.update(d)
 		self.dont_update_if_missing = []
+
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	@property
 	def meta(self):
@@ -76,8 +109,8 @@ class BaseDocument(object):
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
-	def set(self, key, value):
-		if isinstance(value, list):
+	def set(self, key, value, as_value=False):
+		if isinstance(value, list) and not as_value:
 			self.__dict__[key] = []
 			self.extend(key, value)
 		else:
@@ -95,9 +128,12 @@ class BaseDocument(object):
 				self.__dict__[key] = []
 			value = self._init_child(value, key)
 			self.__dict__[key].append(value)
+
+			# reference parent document
+			value.parent_doc = self
 			return value
 		else:
-			raise ValueError
+			raise ValueError, "Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
 
 	def extend(self, key, value):
 		if isinstance(value, list):
@@ -117,7 +153,7 @@ class BaseDocument(object):
 				value["doctype"] = self.get_table_field_doctype(key)
 				if not value["doctype"]:
 					raise AttributeError, key
-			value = BaseDocument(value)
+			value = get_controller(value["doctype"])(value)
 			value.init_valid_columns()
 
 		value.parent = self.name
@@ -168,19 +204,15 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
-		if self.get("_user_tags"):
-			doc["_user_tags"] = self.get("_user_tags")
+		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):
+			if self.get(key):
+				doc[key] = self.get(key)
 
-		if self.get("__islocal"):
-			doc["__islocal"] = 1
-
-		elif self.get("__onload"):
-			doc["__onload"] = self.get("__onload")
-
-		return doc
+		return frappe._dict(doc)
 
 	def as_json(self):
-		return json.dumps(self.as_dict(), indent=1, sort_keys=True)
+		from frappe.utils.response import json_handler
+		return json.dumps(self.as_dict(), indent=1, sort_keys=True, default=json_handler)
 
 	def get_table_field_doctype(self, fieldname):
 		return self.meta.get_field(fieldname).options
@@ -190,7 +222,10 @@ class BaseDocument(object):
 		return fieldname[0] if fieldname else None
 
 	def db_insert(self):
-		set_new_name(self)
+		"""INSERT the document (with valid columns) in the database."""
+		if not self.name:
+			# name will be set by document class in most cases
+			set_new_name(self)
 		d = self.get_valid_dict()
 		columns = d.keys()
 		try:
@@ -202,6 +237,10 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
+				if self.meta.autoname=="hash":
+					self.name = None
+					self.db_insert()
+					return
 				type, value, traceback = sys.exc_info()
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.NameError, (self.doctype, self.name, e), traceback
@@ -217,17 +256,27 @@ class BaseDocument(object):
 
 		d = self.get_valid_dict()
 		columns = d.keys()
-		frappe.db.sql("""update `tab{doctype}`
-			set {values} where name=%s""".format(
-				doctype = self.doctype,
-				values = ", ".join(["`"+c+"`=%s" for c in columns])
-			), d.values() + [d.get("name")])
+		try:
+			frappe.db.sql("""update `tab{doctype}`
+				set {values} where name=%s""".format(
+					doctype = self.doctype,
+					values = ", ".join(["`"+c+"`=%s" for c in columns])
+				), d.values() + [d.get("name")])
+		except Exception, e:
+			if e.args[0]==1062:
+				type, value, traceback = sys.exc_info()
+				fieldname = str(e).split("'")[-2]
+				frappe.msgprint(_("{0} must be unique".format(self.meta.get_label(fieldname))))
+				raise frappe.ValidationError, (self.doctype, self.name, e), traceback
+			else:
+				raise
 
-	def db_set(self, fieldname, value):
+	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
 		self.set("modified", now())
 		self.set("modified_by", frappe.session.user)
-		frappe.db.set_value(self.doctype, self.name, fieldname, value, self.modified, self.modified_by)
+		frappe.db.set_value(self.doctype, self.name, fieldname, value,
+			self.modified, self.modified_by, update_modified=update_modified)
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
@@ -352,10 +401,70 @@ class BaseDocument(object):
 				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 					frappe.UpdateAfterSubmitError)
 
+	def precision(self, fieldname, parentfield=None):
+		"""Returns float precision for a particular field (or get global default).
+
+		:param fieldname: Fieldname for which precision is required.
+		:param parentfield: If fieldname is in child table."""
+		from frappe.model.meta import get_field_precision
+
+		if parentfield and not isinstance(parentfield, basestring):
+			parentfield = parentfield.parentfield
+
+		cache_key = parentfield or "main"
+
+		if not hasattr(self, "_precision"):
+			self._precision = frappe._dict()
+
+		if cache_key not in self._precision:
+			self._precision[cache_key] = frappe._dict()
+
+		if fieldname not in self._precision[cache_key]:
+			self._precision[cache_key][fieldname] = None
+
+			doctype = self.meta.get_field(parentfield).options if parentfield else self.doctype
+			df = frappe.get_meta(doctype).get_field(fieldname)
+
+			if df.fieldtype in ("Currency", "Float", "Percent"):
+				self._precision[cache_key][fieldname] = get_field_precision(df, self)
+
+		return self._precision[cache_key][fieldname]
+
+
 	def get_formatted(self, fieldname, doc=None, currency=None):
 		from frappe.utils.formatters import format_value
-		return format_value(self.get(fieldname), self.meta.get_field(fieldname),
-			doc=doc or self, currency=currency)
+
+		df = self.meta.get_field(fieldname)
+		if not df and fieldname in default_fields:
+			from frappe.model.meta import get_default_df
+			df = get_default_df(fieldname)
+
+		return format_value(self.get(fieldname), df=df, doc=doc or self, currency=currency)
+
+	def is_print_hide(self, fieldname, for_print=True):
+		"""Returns true if fieldname is to be hidden for print.
+
+		Print Hide can be set via the Print Format Builder or in the controller as a list
+		of hidden fields. Example
+
+			class MyDoc(Document):
+				def __setup__(self):
+					self.print_hide = ["field1", "field2"]
+
+		:param fieldname: Fieldname to be checked if hidden.
+		"""
+		df = self.meta.get_field(fieldname)
+		return df and (df.get("__print_hide") or df.print_hide)
+
+	def in_format_data(self, fieldname):
+		"""Returns True if shown via Print Format::`format_data` property.
+			Called from within standard print format."""
+		doc = getattr(self, "parent_doc", self)
+
+		if hasattr(doc, "format_data_map"):
+			return fieldname in doc.format_data_map
+		else:
+			return True
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:

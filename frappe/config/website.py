@@ -29,16 +29,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Website Group",
-					"description": _("Web Site Forum Page."),
-				},
-				{
-					"type": "doctype",
-					"name": "Post",
-					"description": _("List of Web Site Forum's Posts."),
-				},
-				{
-					"type": "doctype",
 					"name": "Website Slideshow",
 					"description": _("Embed image slideshows in website pages."),
 				},
@@ -85,8 +75,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Website Page Permission",
-					"description": _("Define read, write, admin permissions for a Website Page."),
+					"name": "Website Theme",
+					"description": _("List of themes for Website."),
 				},
 				{
 					"type": "doctype",

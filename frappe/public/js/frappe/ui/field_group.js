@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide('frappe.ui');
@@ -19,11 +19,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, f) {
-				if(f.df["default"]) f.set_input(f.df["default"]);
+				if(f.df["default"])
+					f.set_input(f.df["default"]);
 			})
 			if(!this.no_submit_on_enter) {
-				$(this.body).find("[data-fieldtype='Button']").filter(":first")
-					.removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
 			}
 		}
@@ -33,14 +32,19 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				e.preventDefault();
-				$(me.body).find('.btn-primary:first').click();
+				if(this.has_primary_action) {
+					e.preventDefault();
+					this.get_primary_btn().trigger("click");
+				}
 			}
 		});
 	},
 	get_input: function(fieldname) {
 		var field = this.fields_dict[fieldname];
 		return $(field.txt ? field.txt : field.input);
+	},
+	get_field: function(fieldname) {
+		return this.fields_dict[fieldname];
 	},
 	get_values: function() {
 		var ret = {};
@@ -74,6 +78,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		if(f) {
 			f.set_input(val);
 		}
+	},
+	set_input: function(key, val) {
+		return this.set_value(key, val);
 	},
 	set_values: function(dict) {
 		for(var key in dict) {

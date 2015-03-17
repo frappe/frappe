@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.perm");
@@ -9,7 +9,7 @@ var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "set_user_permissions"],
+		"report", "import", "export", "print", "email", "share", "set_user_permissions"],
 
 	doctype_perm: {},
 
@@ -59,6 +59,24 @@ $.extend(frappe.perm, {
 					perm[0][ptype] = val;
 				});
 			}
+
+			// apply permissions from shared
+			if(docinfo.shared) {
+				for(var i=0; i<docinfo.shared; i++) {
+					var s = docinfo.shared[i];
+					if(s.user===user) {
+						perm[0]["read"] = s.read;
+						perm[0]["write"] = s.write;
+						perm[0]["share"] = s.share;
+
+					}
+				}
+			}
+		}
+
+		if(frappe.model.can_read(doctype) && !perm[0].read) {
+			// read via sharing
+			perm[0].read = 1;
 		}
 
 		return perm;
@@ -196,7 +214,9 @@ $.extend(frappe.perm, {
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {
-		if(!doc) return "Write";
+		if(!doc) {
+			return (df && cint(df.hidden)) ? "None": "Write";
+		}
 
 		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;

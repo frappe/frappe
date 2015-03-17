@@ -1,25 +1,24 @@
 {% if(doc) { %}
 	<div class="row" style="background-color: #{%= {
-		"Fold": "ffc",
-		"Section Break": "ddd",
-		"Column Break": "eee"
-	}[doc.fieldtype] || "fff" %}; border-radius: 5px;">
+		"Fold": "b8c2cc",
+		"Section Break": "D9F6FF",
+		"Column Break": "f5f7fa"
+	}[doc.fieldtype] || "fff" %}; padding: 10px; margin: -10px -15px;">
 		<div class="col-sm-4">
-			<p>
 			{% if (doc.fieldtype==="Section Break") { %}<strong>{% } %}
 				{% if (doc.reqd) { %}<span class="text-danger">{% } %}
 				{% if (doc.hidden) { %}
 					<span class="text-muted"><i class="icon-eye-close"></i>{% } %}
 					{% if(doc.fieldtype==="Link") { %}<i class="icon-link"></i>{% } %}
+                    {% if(doc.in_list_view) { %} <i class="icon-list"></i>{% } %}
 					{% if(doc.fieldtype==="Table") { %}<i class="icon-th"></i>{% } %}
 					{%= doc.label %}
 				{% if (doc.hidden) { %}</span>{% } %}
 				{% if (doc.reqd) { %}</span>{% } %}
 			{% if (doc.fieldtype=="Section Break") { %}</strong>{% } %}
-			</p>
 			{% if (doc.description) { %}<p class="text-muted small">{%= doc.description %}</p>{% } %}
 		</div>
-		<div class="col-sm-4">
+		<div class="col-sm-3">
 			{%= doc.fieldtype %}
 			<br><span class="small">{%= doc.fieldname %}</span>
 		</div>

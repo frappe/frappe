@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -9,7 +9,6 @@ import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 
-
 def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False):
 	frappe.flags.print_messages = verbose
 	frappe.flags.in_test = True
@@ -17,11 +16,12 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 	if not frappe.db:
 		frappe.connect()
 
-	if not frappe.conf.get("db_name").startswith("test_"):
-		raise Exception, 'db_name must start with "test_"'
+	# if not frappe.conf.get("db_name").startswith("test_"):
+	# 	raise Exception, 'db_name must start with "test_"'
 
 	# workaround! since there is no separate test db
 	frappe.clear_cache()
+	set_test_email_config()
 
 	if verbose:
 		print 'Running "before_tests" hooks'
@@ -41,6 +41,15 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 	frappe.clear_cache()
 
 	return ret
+
+def set_test_email_config():
+	frappe.conf.update({
+		"auto_email_id": "test@example.com",
+		"mail_server": "smtp.example.com",
+		"mail_login": "test@example.com",
+		"mail_password": "test",
+		"admin_password": "admin"
+	})
 
 def run_all_tests(app=None, verbose=False):
 	import os
@@ -115,8 +124,6 @@ def _add_test(path, filename, verbose, test_suite=None):
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 def make_test_records(doctype, verbose=0, force=False):
-	frappe.flags.mute_emails = True
-
 	if not frappe.db:
 		frappe.connect()
 
@@ -200,6 +207,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 			doc["doctype"] = doctype
 
 		d = frappe.copy_doc(doc)
+
 		if doc.get('name'):
 			d.name = doc.get('name')
 
@@ -215,6 +223,8 @@ def make_test_objects(doctype, test_records, verbose=None):
 		docstatus = d.docstatus
 
 		d.docstatus = 0
+		d.run_method("before_test_insert")
+
 		try:
 			d.insert()
 

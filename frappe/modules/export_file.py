@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -48,8 +48,10 @@ def get_module_name(doc):
 		module = doc.name
 	elif doc.doctype=="Workflow":
 		module = frappe.db.get_value("DocType", doc.document_type, "module")
-	else:
+	elif hasattr(doc, 'module'):
 		module = doc.module
+	else:
+		module = frappe.db.get_value("DocType", doc.doctype, "module")
 
 	return module
 

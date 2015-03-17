@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,7 +7,7 @@ Create a new document with defaults set
 """
 
 import frappe
-from frappe.utils import nowdate, nowtime, cint, flt
+from frappe.utils import nowdate, nowtime, cint, flt, now_datetime
 import frappe.defaults
 from frappe.model.db_schema import type_map
 
@@ -66,6 +66,9 @@ def get_default_value(df, defaults, user_permissions, parent_doc):
 
 		elif df.default == "Today":
 			return nowdate()
+
+		elif (df.default or "").lower() == "now":
+			return now_datetime()
 
 		elif df.default.startswith(":"):
 			# default value based on another document

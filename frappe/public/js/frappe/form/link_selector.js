@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.ui.form.LinkSelector = Class.extend({
@@ -65,7 +65,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 		}
 
 		return frappe.call({
-			method: "frappe.widgets.search.search_widget",
+			method: "frappe.desk.search.search_widget",
 			type: "GET",
 			args: args,
 			callback: function(r) {
@@ -113,17 +113,26 @@ frappe.ui.form.LinkSelector = Class.extend({
 	set_in_grid: function(value) {
 		var me = this, updated = false;
 		if(this.qty_fieldname) {
-			$.each(this.target.frm.doc[this.target.df.fieldname] || [], function(i, d) {
-				if(d[me.fieldname]===value) {
-					frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, d[me.qty_fieldname] + 1);
-					show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
-					updated = true;
-					return false;
+			frappe.prompt({fieldname:"qty", fieldtype:"Float", label:"Qty",
+				"default": 1, reqd: 1}, function(data) {
+					console.log(data);
+				$.each(me.target.frm.doc[me.target.df.fieldname] || [], function(i, d) {
+					if(d[me.fieldname]===value) {
+						frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
+						show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
+						updated = true;
+						return false;
+					}
+				});
+				if(!updated) {
+					var d = me.target.add_new_row();
+					frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
+					frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
+					show_alert(__("Added {0} ({1})", [value, data.qty]));
 				}
-			});
-		}
-		if(!updated) {
-			var d = this.target.add_new_row();
+			}, __("Set Quantity"), __("Set"));
+		} else {
+			var d = me.target.add_new_row();
 			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
 			show_alert(__("{0} added", [value]));
 		}

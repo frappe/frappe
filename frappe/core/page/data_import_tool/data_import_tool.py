@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -43,27 +43,40 @@ def export_csv(doctype, path):
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
-def export_json(doctype, name, path):
+def export_json(doctype, path, filters=None):
+	def post_process(out):
+		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+		for doc in out:
+			for key in del_keys:
+				if key in doc:
+					del doc[key]
+			for k, v in doc.items():
+				if isinstance(v, list):
+					for child in v:
+						for key in del_keys + ('docstatus', 'doctype', 'modified', 'name'):
+							if key in child:
+								del child[key]
+
 	from frappe.utils.response import json_handler
-	if not name or name=="-":
-		name = doctype
+	out = []
+	if frappe.db.get_value("DocType", doctype, "issingle"):
+		out.append(frappe.get_doc(doctype).as_dict())
+	else:
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
+			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	post_process(out)
 	with open(path, "w") as outfile:
-		doc = frappe.get_doc(doctype, name)
-		for d in doc.get_all_children():
-			d.set("parent", None)
-			d.set("name", None)
-			d.set("__islocal", 1)
-		outfile.write(json.dumps(doc, default=json_handler, indent=1, sort_keys=True))
+		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
 
 @frappe.whitelist()
-def export_fixture(doctype, name, app):
+def export_fixture(doctype, app):
 	if frappe.session.user != "Administrator":
 		raise frappe.PermissionError
 
 	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 		os.mkdir(frappe.get_app_path(app, "fixtures"))
 
-	export_json(doctype, name, frappe.get_app_path(app, "fixtures", frappe.scrub(name) + ".json"))
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
 
 
 def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False, submit=False):
@@ -75,7 +88,9 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 
 	for f in files:
 		if f.endswith(".json"):
-			frappe.modules.import_file.import_file_by_path(f)
+			frappe.flags.mute_emails = True
+			frappe.modules.import_file.import_file_by_path(f, data_import=True)
+			frappe.flags.mute_emails = False
 		elif f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
 			frappe.db.commit()

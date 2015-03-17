@@ -1,0 +1,27 @@
+frappe.ui.form.on("Print Format", "onload", function(frm) {
+	frm.add_fetch("doc_type", "module", "module");
+});
+
+frappe.ui.form.on("Print Format", "refresh", function(frm) {
+	frm.set_intro("");
+	frm.toggle_enable(["html", "doc_type", "module"], false);
+	if (user==="Administrator" || frm.doc.standard==="No") {
+		frm.toggle_enable(["html", "doc_type", "module"], true);
+		frm.enable_save();
+	}
+
+	if(frm.doc.standard==="Yes" && user !== "Administrator") {
+		frm.set_intro(__("Please duplicate this to make changes"));
+	}
+});
+
+frappe.ui.form.on("Print Format", "edit_format", function(frm) {
+	if(!frm.doc.doc_type) {
+		msgprint(__("Please select DocType first"));
+		return;
+	}
+	frappe.route_options = {
+		print_format: frm
+	};
+	frappe.set_route("print-format-builder");
+});

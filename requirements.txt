@@ -7,9 +7,9 @@ jinja2
 markdown2
 markupsafe
 mysql-python==1.2.5
-pygeoip
+python-geoip
+python-geoip-geolite2
 python-dateutil
-python-memcached
 pytz
 six
 slugify
@@ -17,11 +17,13 @@ termcolor
 werkzeug
 semantic_version
 rauth>=0.6.2
-requests==1.2.3
+requests
 celery
 redis
 selenium
 pdfkit
 babel
 ipython
+html2text
+email_reply_parser
 click

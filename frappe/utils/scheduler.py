@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
 Events:
@@ -107,7 +107,7 @@ def is_scheduler_disabled():
 def toggle_scheduler(enable):
 	ss = frappe.get_doc("System Settings")
 	ss.enable_scheduler = 1 if enable else 0
-	ss.ignore_mandatory = True
+	ss.flags.ignore_mandatory = True
 	ss.save()
 
 def enable_scheduler():

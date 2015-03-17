@@ -1,5 +1,5 @@
 {
-  "allow_import": 1, 
+ "allow_import": 1, 
  "autoname": "field:short_name", 
  "creation": "2013-03-25 16:00:51", 
  "description": "User ID of a Blogger", 
@@ -44,9 +44,9 @@
   }, 
   {
    "fieldname": "avatar", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "label": "Avatar", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -61,7 +61,7 @@
  "icon": "icon-user", 
  "idx": 1, 
  "max_attachments": 1, 
- "modified": "2014-08-05 04:55:30.570443", 
+ "modified": "2015-02-19 09:29:25.836280", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blogger", 
@@ -79,6 +79,7 @@
    "report": 1, 
    "role": "Website Manager", 
    "set_user_permissions": 1, 
+   "share": 1, 
    "write": 1
   }, 
   {
@@ -88,6 +89,7 @@
    "print": 1, 
    "read": 1, 
    "role": "Blogger", 
+   "share": 1, 
    "write": 1
   }
  ], 

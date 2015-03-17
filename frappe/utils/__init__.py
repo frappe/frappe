@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # util __init__.py
@@ -354,3 +354,18 @@ def get_html_format(print_path):
 
 	return html_format
 
+def is_markdown(text):
+	if "<!-- markdown -->" in text:
+		return True
+	elif "<!-- html -->" in text:
+		return False
+	else:
+		return not re.search("<p[\s]*>|<br[\s]*>", text)
+
+def get_sites(sites_path=None):
+	import os
+	if not sites_path:
+		sites_path = '.'
+	return [site for site in os.listdir(sites_path)
+			if os.path.isdir(os.path.join(sites_path, site))
+				and not site in ('assets',)]

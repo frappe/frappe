@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 	where patch1, patch2 is module name
 """
-import frappe, os
+import frappe, os, frappe.permissions
 
 class PatchError(Exception): pass
 
@@ -29,6 +29,8 @@ def run_all():
 def get_all_patches():
 	patches = []
 	for app in frappe.get_installed_apps():
+		if app == "shopping_cart":
+			continue
 		# 3-to-4 fix
 		if app=="webnotes":
 			app="frappe"

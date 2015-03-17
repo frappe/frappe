@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -22,7 +22,7 @@ from frappe.utils import sel
 
 	# def test_material_request(self):
 	# 	sel.new_doc("Stock", "Material Request")
-	# 	sel.add_child("indent_details")
+	# 	sel.add_child("items")
 	# 	sel.set_field("item_code", "_Test Item")
 	# 	sel.set_field("schedule_date", "10-10-2014")
 	# 	sel.primary_action()

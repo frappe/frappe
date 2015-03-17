@@ -1,0 +1,17 @@
+{% for (var i=0, l=change_log.length; i < l; i++) { var app_info = change_log[0]; %}
+	{% if (i > 0) { %} <hr> {% } %}
+	<div class="text-left app-change-log">
+		<h2 style="margin-top: 10px;">{%= app_info.title %}
+			<small>{%= __("updated to {0}", [app_info.version]) %}</small>
+			{% if (app_info.title != app_info.description) { %}
+				<br>
+				<small>{%= app_info.description %}</small>
+			{% } %}
+		</h2>
+		{% for (var x=0, y=app_info.change_log.length; x < y; x++) { var version_info = app_info.change_log[i]; %}
+			<hr>
+			<h4>{%= __("New in version {0}", [version_info[0]]) %}</h4>
+			<p>{%= frappe.markdown(version_info[1]) %}</p>
+		{% } %}
+	</div>
+{% } %}

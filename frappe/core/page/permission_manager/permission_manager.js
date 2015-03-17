@@ -1,12 +1,15 @@
-frappe.pages['permission-manager'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+frappe.pages['permission-manager'].on_page_load = function(wrapper) {
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Role Permissions Manager'),
 		icon: "icon-lock",
 		single_column: true
 	});
-	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
-		+ permissions_help);
+
+	frappe.breadcrumbs.add("Setup");
+
+	$("<div class='perm-engine' style='min-height: 200px; padding: 15px;'></div>").appendTo(page.main);
+	$(frappe.render_template("permission_manager_help", {})).appendTo(page.main);
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);
 
 }
@@ -33,21 +36,21 @@ frappe.PermissionEngine = Class.extend({
 			method: "get_roles_and_doctypes",
 			callback: function(r) {
 				me.options = r.message;
-				me.setup_appframe();
+				me.setup_page();
 			}
 		});
 
 	},
-	setup_appframe: function() {
+	setup_page: function() {
 		var me = this;
 		this.doctype_select
-			= this.wrapper.appframe.add_select(__("Document Types"),
+			= this.wrapper.page.add_select(__("Document Types"),
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select
-			= this.wrapper.appframe.add_select(__("Roles"),
+			= this.wrapper.page.add_select(__("Roles"),
 				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
@@ -102,7 +105,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		// show standard permissions
-		var $d = $(d.wrapper).find(".frappe-confirm-message").append("<hr><h4>Standard Permissions</h4>");
+		var $d = $(d.wrapper).find(".frappe-confirm-message").append("<hr><h4>Standard Permissions:</h4><br>");
 		var $wrapper = $("<p></p>").appendTo($d);
 		$.each(data.message, function(i, d) {
 			d.rights = [];
@@ -130,11 +133,11 @@ frappe.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<div class='alert alert-info'>" + __("Loading") + "...</div>");
+			this.body.html("<p class='text-muted'>" + __("Loading") + "...</div>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
-			this.body.html("<div class='alert alert-info'>"+__("Select Document Type or Role to start.")+"</div>");
+			this.body.html("<p class='text-muted'>"+__("Select Document Type or Role to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -155,8 +158,8 @@ frappe.PermissionEngine = Class.extend({
 		this.body.empty();
 		this.perm_list = perm_list || [];
 		if(!this.perm_list.length) {
-			this.body.html("<div class='alert alert-warning'>"
-				+__("No Permissions set for this criteria.")+"</div>");
+			this.body.html("<p class='text-muted'>"
+				+__("No Permissions set for this criteria.")+"</p>");
 		} else {
 			this.show_permission_table(this.perm_list);
 		}
@@ -242,8 +245,8 @@ frappe.PermissionEngine = Class.extend({
 	setup_user_permissions: function(d, role_cell) {
 		var me = this;
 		d.help = frappe.render('<ul class="user-permission-help small hidden" style="margin-left: -10px;">\
-				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes">{%= __("Select Document Types") %}</a></li>\
-				<li style="margin-top: 3px;"><a class="show-user-permissions">{%= __("Show User Permissions") %}</a></li>\
+				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes grey">{%= __("Select Document Types") %}</a></li>\
+				<li style="margin-top: 3px;"><a class="show-user-permissions grey">{%= __("Show User Permissions") %}</a></li>\
 			</ul>', {});
 
 		var checkbox = this.add_check(role_cell, d, "apply_user_permissions")
@@ -270,7 +273,7 @@ frappe.PermissionEngine = Class.extend({
 		"print", "email", "report", "import", "export", "set_user_permissions"],
 
 	set_show_users: function(cell, role) {
-		cell.html("<a href='#'>"+__(role)+"</a>")
+		cell.html("<a class='grey' href='#'>"+__(role)+"</a>")
 			.find("a")
 			.attr("data-role", role)
 			.click(function() {
@@ -295,7 +298,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-default btn-small'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-default btn-sm'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)
@@ -352,7 +355,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 	show_add_rule: function() {
 		var me = this;
-		$("<button class='btn btn-default btn-primary'><i class='icon-plus'></i> "
+		$("<button class='btn btn-default btn-primary btn-sm'><i class='icon-plus'></i> "
 			+__("Add A New Rule")+"</button>")
 			.appendTo($("<p class='permission-toolbar'>").appendTo(this.body))
 			.click(function() {
@@ -480,7 +483,7 @@ frappe.PermissionEngine = Class.extend({
 
 	make_reset_button: function() {
 		var me = this;
-		$('<button class="btn btn-default" style="margin-left: 10px;">\
+		$('<button class="btn btn-default btn-sm" style="margin-left: 10px;">\
 			<i class="icon-refresh"></i> ' + __("Restore Original Permissions") + '</button>')
 			.appendTo(this.body.find(".permission-toolbar"))
 			.on("click", function() {
@@ -504,97 +507,4 @@ frappe.PermissionEngine = Class.extend({
 		return frappe.get_children("DocType", doctype, "fields",
 			{fieldtype:"Link", options:["not in", ["User", '[Select]']]});
 	}
-})
-
-var permissions_help = ['<table class="table table-bordered" style="background-color: #f9f9f9; margin-top: 30px;">',
-	'<tr><td>',
-		'<h4><i class="icon-question-sign"></i> ',
-			__('Quick Help for Setting Permissions'),
-		':</h4>',
-		'<ol>',
-			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.'),
-			'</li>',
-			'<li>',
-				__('Permissions get applied on Users based on what Roles they are assigned.'),
-			'</li>',
-			'<li>',
-				__('Roles can be set for users from their User page.')
-				+ ' (<a href="#List/User">' + __("Setup > User") + '</a>)',
-			'</li>',
-			'<li>',
-				__('The system provides many pre-defined roles. You can add new roles to set finer permissions.')
-				+ ' (<a href="#List/Role">' + __("Add a New Role") + '</a>)',
-			'</li>',
-			'<li>',
-				__('Permissions are automatically translated to Standard Reports and Searches.'),
-			'</li>',
-			'<li>',
-				__('As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.'),
-			'</li>',
-		'</ol>',
-	'</td></tr>',
-	'<tr><td>',
-		'<h4><i class="icon-hand-right"></i> ',
-			__('Meaning of Submit, Cancel, Amend'),
-		':</h4>',
-		'<ol>',
-			'<li>',
-				__('Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.'),
-			'</li>',
-			'<li>',
-				__('You can change Submitted documents by cancelling them and then, amending them.'),
-			'</li>',
-			'<li>',
-				__('When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.'),
-			'</li>',
-			'<li>',
-				__("For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment."),
-			'</li>',
-		'</ol>',
-	'</td></tr>',
-	'<tr><td>',
-		'<h4><i class="icon-signal"></i> ',
-			__('Permission Levels'),
-		':</h4>',
-		'<ol>',
-			'<li>',
-				__("Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document."),
-			'</li>',
-			'<li>',
-				__('If a Role does not have access at Level 0, then higher levels are meaningless.'),
-			'</li>',
-			'<li>',
-				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."),
-			'</li>',
-			'<li>',
-				__('You can use Customize Form to set levels on fields.')
-				+ ' (<a href="#Form/Customize Form">Setup > Customize Form</a>)',
-			'</li>',
-		'</ol>',
-	'</td></tr>',
-	'<tr><td>',
-		'<h4><i class="icon-shield"></i> ',
-			__('User Permissions'),
-		':</h4>',
-		'<ol>',
-			'<li>',
-				__("To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.")
-				+ ' (<a href="#user-permissions">' + __('Setup > User Permissions Manager') + '</a>)',
-			'</li>',
-			'<li>',
-				__("Select Document Types to set which User Permissions are used to limit access."),
-			'</li>',
-			'<li>',
-				__("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."),
-			'</li>',
-			'<li>',
-				__("Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."),
-			'</li>',
-		'</ol>',
-	'</td></tr>',
-'</table>',
-'<p>',
-	__("If these instructions where not helpful, please add in your suggestions on GitHub Issues.")
-	+ ' (<a href="https://github.com/frappe/frappe/issues" target="_blank">' + __("Submit an Issue") + '</a>)',
-'</p>'].join("\n");
+});

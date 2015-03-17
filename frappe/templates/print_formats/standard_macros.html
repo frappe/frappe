@@ -2,7 +2,7 @@
 	{%- if df.fieldtype=="Table" -%}
 		{{ render_table(df, doc) }}
 	{%- elif df.fieldtype=="HTML" -%}
-		<div>{{ df.options or "" }}</div>
+		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
 	{%- else -%}
@@ -13,13 +13,13 @@
 {%- macro render_table(df, doc) -%}
 	{%- set table_meta = frappe.get_meta(df.options) -%}
 	{%- set data = doc.get(df.fieldname)[df.start:df.end] -%}
-	{%- if doc.table_print_templates and
-			doc.table_print_templates.get(df.fieldname) -%}
-		{% include doc.table_print_templates[df.fieldname] %}
+	{%- if doc.print_templates and
+			doc.print_templates.get(df.fieldname) -%}
+		{% include doc.print_templates[df.fieldname] %}
 	{%- else -%}
 		{%- if data -%}
 		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
-			table_meta) -%}
+			table_meta, df) -%}
 		<div>
 			<table class="table table-bordered table-condensed">
 				<thead>
@@ -36,7 +36,8 @@
 					<tr>
 						<td>{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
-							<td class="{{ get_align_class(tdf.fieldtype) }}">{{ print_value(tdf, d, doc) }}</td>
+							<td class="{{ get_align_class(tdf.fieldtype) }}">
+                                {{ print_value(tdf, d, doc) }}</td>
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -75,11 +76,16 @@
 {%- endif -%}
 {%- endmacro -%}
 
-{%- macro print_value(df, doc, parent_doc=None) -%}
-	{% if df.fieldtype=="Check" %}
+{%- macro print_value(df, doc, meta, parent_doc=None) -%}
+    {% if doc.print_templates and
+			doc.print_templates.get(df.fieldname) %}
+        {% include doc.print_templates[df.fieldname] %}
+	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" class="img-responsive">
+    {% elif df.fieldtype=="HTML" %}
+        {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
 	{% endif %}
@@ -101,19 +107,26 @@
 	{% if letter_head and not no_letterhead %}
 	<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
-	<div class="print-heading">
-		<h3>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
-			else _(doc.doctype)) }}</h3>
-		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None
-				else ("#" + doc[doc.meta.title_field or "name"]) }}</h4>
-	</div>
+    {% if doc.print_heading_template %}
+        {{ frappe.render_template(doc.print_heading_template, {"doc":doc}) }}
+    {% else %}
+    <div class="print-heading">
+		<h2>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			else _(doc.doctype)) }}
+            <small><br>{{ doc.sub_heading if doc.sub_heading != None
+				else doc.name }}</small>
+        </h2>
+    </div>
+    {% endif %}
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
-	<div class="alert alert-info text-center">
-		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4></div>
+	<div class="text-center">
+		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
+    </div>
 	{%- endif -%}
 	{%- if doc.meta.is_submittable and doc.docstatus==2-%}
-	<div class="alert alert-danger text-center">
-		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4></div>
+	<div class="text-center">
+		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
+    </div>
 	{%- endif -%}
 	{% if max_pages > 1 %}
 	<p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>

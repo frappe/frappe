@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,10 +7,10 @@ from frappe import _
 from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
+from werkzeug.routing import Map, Rule, NotFound
 
 from frappe.website.context import get_context
 from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
-from frappe.website.permissions import clear_permissions
 from frappe.website.router import clear_sitemap
 
 class PageNotFoundError(Exception): pass
@@ -42,6 +42,12 @@ def render(path, http_status_code=None):
 	except frappe.PermissionError, e:
 		data, http_status_code = render_403(e, path)
 
+	except frappe.Redirect, e:
+		return build_response(path, "", 301, {
+			"Location": frappe.flags.redirect_location,
+			"Cache-Control": "no-store, no-cache, must-revalidate"
+		})
+
 	except Exception:
 		path = "error"
 		data = render_page(path)
@@ -54,8 +60,8 @@ def render_403(e, pathname):
 	path = "message"
 	frappe.local.message = """<p><strong>{error}</strong></p>
 	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary>{login}</a>
-	</p>""".format(error=cstr(e), login=_("Login"), pathname=pathname)
+		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
+	</p>""".format(error=cstr(e), login=_("Login"), pathname=frappe.local.path)
 	frappe.local.message_title = _("Not Permitted")
 	return render_page(path), e.http_status_code
 
@@ -77,18 +83,23 @@ def get_doctype_from_path(path):
 
 	return None, None
 
-def build_response(path, data, http_status_code):
+def build_response(path, data, http_status_code, headers=None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
 	response.headers[b"X-Page-Name"] = path.encode("utf-8")
 	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
+
+	if headers:
+		for key, val in headers.iteritems():
+			response.headers[bytes(key)] = val.encode("utf-8")
+
 	return response
 
 def render_page(path):
 	"""get page html"""
-	cache_key = ("page_context:{}" if is_ajax() else "page:{}").format(path)
+	cache_key = ("page_context:{0}:{1}" if is_ajax() else "page:{0}:{1}").format(path, frappe.local.lang)
 
 	out = None
 
@@ -124,13 +135,16 @@ def build_json(path):
 	return get_context(path).data
 
 def build_page(path):
+	if not getattr(frappe.local, "path", None):
+		frappe.local.path = path
+
 	context = get_context(path)
 
 	html = frappe.get_template(context.base_template_path).render(context)
 	html = scrub_relative_urls(html)
 
 	if can_cache(context.no_cache):
-		frappe.cache().set_value("page:" + path, html)
+		frappe.cache().set_value("page:{0}:{1}".format(path, frappe.local.lang), html)
 
 	return html
 
@@ -147,6 +161,28 @@ def resolve_path(path):
 	if path == "index":
 		path = get_home_page()
 
+	frappe.local.path = path
+
+	if path != "index":
+		path = resolve_from_map(path)
+
+	return path
+
+def resolve_from_map(path):
+	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
+		for r in frappe.get_hooks("website_route_rules")])
+	urls = m.bind_to_environ(frappe.local.request.environ)
+	try:
+		endpoint, args = urls.match("/" + path)
+		path = endpoint
+		if args:
+			# don't cache when there's a query string!
+			frappe.local.no_cache = 1
+			frappe.local.form_dict.update(args)
+
+	except NotFound:
+		pass
+
 	return path
 
 def set_content_type(response, data, path):
@@ -160,19 +196,19 @@ def set_content_type(response, data, path):
 	if "." in path:
 		content_type, encoding = mimetypes.guess_type(path)
 		if not content_type:
-			raise frappe.UnsupportedMediaType("Cannot determine content type of {}".format(path))
+			content_type = "text/html; charset: utf-8"
 		response.headers[b"Content-Type"] = content_type.encode("utf-8")
 
 	return data
 
 def clear_cache(path=None):
+	frappe.cache().delete_value("website_generator_routes")
 	if path:
 		delete_page_cache(path)
 	else:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
 		frappe.cache().delete_value("_website_pages")
-		clear_permissions()
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)

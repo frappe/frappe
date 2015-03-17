@@ -1,17 +1,12 @@
 <!-- no-sidebar -->
 <div class="row">
 	<div class="col-md-8">
-		<ul class="list-group">
+		<ol>
 			{% for item in items %}
-			<li class="list-group-item">
-				<div class="row">
-					<div class="col-xs-1 text-right" style="padding-right: 0px;"><b>{{ loop.index }}.</b></div>
-					<div class="col-xs-11">
-						<a href="/{{ item.name }}">{{ item.title }}</a>
-					</div>
-				</div>
+			<li>
+				<a href="/{{ item.name }}">{{ item.title }}</a>
 			</li>
 			{% endfor %}
-		</ul>
+		</ol>
 	</div>
 </div>

@@ -1,7 +1,8 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// MIT License. See license.txt
 
 function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
+	console.warn("This function '$c' has been deprecated and will be removed soon.");
 	return frappe.request.call({
 		args: $.extend(args, {cmd: command}),
 		success: callback,
@@ -14,20 +15,22 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 
 // For calling an object
 function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
+	console.warn("This function '$c_obj' has been deprecated and will be removed soon.");
+
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
-		
+
 	args = {
 		cmd:'runserverobj',
 		args: arg,
 		method: method
 	};
-	
+
 	if(typeof doc=='string') {
-		args.doctype = doc; 
+		args.doctype = doc;
 	} else {
 		args.docs = doc
 	}
-	
+
 	return frappe.request.call({
 		args: args,
 		success: callback,
@@ -39,6 +42,7 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 
 // For call a page metho
 function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, btn) {
+	console.warn("This function '$c_page' has been deprecated and will be removed soon.");
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 	return frappe.request.call({
 		args: {
@@ -55,16 +59,17 @@ function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, bt
 
 // For calling an for output as csv
 function $c_obj_csv(doc, method, arg) {
+	console.warn("This function '$c_obj_csv' has been deprecated and will be removed soon.");
 	// single
-	
+
 	var args = {}
 	args.cmd = 'runserverobj';
 	args.as_csv = 1;
 	args.method = method;
 	args.arg = arg;
-	
+
 	if(doc.substr)
-		args.doctype = doc;		
+		args.doctype = doc;
 	else
 		args.docs = doc;
 
@@ -85,7 +90,7 @@ function open_url_post(URL, PARAMS, new_window) {
 		var opt=document.createElement("textarea");
 		opt.name=x;
 		var val = PARAMS[x];
-		if(typeof val!='string') 
+		if(typeof val!='string')
 			val = JSON.stringify(val);
 		opt.value=val;
 		temp.appendChild(opt);

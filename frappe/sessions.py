@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -15,6 +15,8 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
+import frappe.change_log
+import redis
 from urllib import unquote
 
 @frappe.whitelist()
@@ -28,47 +30,34 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = frappe.cache()
 
-	def delete_user_cache(user):
-		if user:
-			for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
-				cache.delete_value(key + ":" + user)
-
 	if user:
-		delete_user_cache(user)
-
-		if frappe.session:
-			if user==frappe.session.user and frappe.session.sid:
-				cache.delete_value("session:" + frappe.session.sid)
-			else:
-				for sid in frappe.db.sql_list("""select sid from tabSessions
-					where user=%s""", (user,)):
-						cache.delete_value("session:" + sid)
-
+		cache.delete_keys("user:" + user)
 		frappe.defaults.clear_cache(user)
 	else:
-		for sess in frappe.db.sql("""select user, sid from tabSessions""", as_dict=1):
-			delete_user_cache(sess.user)
-			cache.delete_value("session:" + sess.sid)
-
-		delete_user_cache("Guest")
+		cache.delete_keys("user:")
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
-	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "time_zone"])
+	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_app"])
+	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = frappe.session.user
+
 	for sid in frappe.db.sql("""select sid from tabSessions where user=%s""", (user,)):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
 			delete_session(sid[0])
 
-def delete_session(sid=None):
-	frappe.cache().delete_value("session:" + sid)
+def delete_session(sid=None, user=None):
+	if not user:
+		user = hasattr(frappe.local, "session") and frappe.session.user or "Guest"
+	frappe.cache().delete_value("session:" + sid, user=user)
+	frappe.cache().delete_value("last_db_session_update:" + sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
 
 def clear_all_sessions():
@@ -85,51 +74,61 @@ def clear_expired_sessions():
 
 def get():
 	"""get session boot info"""
-	from frappe.core.doctype.notification_count.notification_count import \
+	from frappe.desk.notifications import \
 		get_notification_info_for_boot, get_notifications
-	from frappe.boot import get_bootinfo, get_startup_js
+	from frappe.boot import get_bootinfo
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
 		# check if cache exists
-		bootinfo = frappe.cache().get_value('bootinfo:' + frappe.session.user)
+		bootinfo = frappe.cache().get_value("bootinfo", user=True)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 			bootinfo["notification_info"].update(get_notifications())
+			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 
 	if not bootinfo:
-		if not frappe.cache().get_stats():
-			frappe.msgprint(_("memcached is not working / stopped. Please start memcached for best results."))
-
 		# if not create it
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
-		frappe.cache().set_value('bootinfo:' + frappe.session.user, bootinfo)
+		frappe.cache().set_value("bootinfo", bootinfo, user=True)
+		try:
+			frappe.cache().ping()
+		except redis.exceptions.ConnectionError:
+			message = _("Redis cache server not running. Please contact Administrator / Tech support")
+			if 'messages' in bootinfo:
+				bootinfo['messages'].append(message)
+			else:
+				bootinfo['messages'] = [message]
+
+		# check only when clear cache is done, and don't cache this
+		if frappe.local.request:
+			bootinfo["change_log"] = frappe.change_log.get_change_log()
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
-	bootinfo["startup_js"] = get_startup_js()
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
 	return bootinfo
 
 class Session:
-	def __init__(self, user, resume=False):
+	def __init__(self, user, resume=False, full_name=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
+		self.full_name = full_name
 		self.data = frappe._dict({'data': frappe._dict({})})
 		self.time_diff = None
+
+		# set local session
+		frappe.local.session = self.data
+
 		if resume:
 			self.resume()
 		else:
 			self.start()
-
-		# set local session
-		frappe.local.session = self.data
 
 	def start(self):
 		"""start a new session"""
@@ -139,23 +138,23 @@ class Session:
 		else:
 			sid = frappe.generate_hash()
 
-		self.data['user'] = self.user
-		self.data['sid'] = sid
-		self.data['data']['user'] = self.user
-		self.data['data']['session_ip'] = frappe.get_request_header('REMOTE_ADDR')
+		self.data.user = self.user
+		self.data.sid = sid
+		self.data.data.user = self.user
+		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
-			self.data['data']['last_updated'] = frappe.utils.now()
-			self.data['data']['session_expiry'] = get_expiry_period()
-		self.data['data']['session_country'] = get_geo_ip_country(frappe.get_request_header('REMOTE_ADDR'))
+			self.data.data.last_updated = frappe.utils.now()
+			self.data.data.session_expiry = get_expiry_period()
+			self.data.data.full_name = self.full_name
+		self.data.data.session_country = get_geo_ip_country(frappe.local.request_ip)
 
 		# insert session
 		if self.user!="Guest":
-			frappe.db.begin()
 			self.insert_session_record()
 
 			# update user
 			frappe.db.sql("""UPDATE tabUser SET last_login = %s, last_ip = %s
-				where name=%s""", (frappe.utils.now(), frappe.get_request_header('REMOTE_ADDR'), self.data['user']))
+				where name=%s""", (frappe.utils.now(), frappe.local.request_ip, self.data['user']))
 			frappe.db.commit()
 
 	def insert_session_record(self):
@@ -165,15 +164,16 @@ class Session:
 				(str(self.data['data']), self.data['user'], self.data['sid']))
 
 		# also add to memcache
-		frappe.cache().set_value("session:" + self.data.sid, self.data)
+		frappe.cache().set_value("session:" + self.data.sid, self.data, user=self.user)
 
 	def resume(self):
 		"""non-login request: load a session"""
 		import frappe
+
 		data = self.get_session_record()
 		if data:
 			# set language
-			self.data = frappe._dict({'data': data, 'user':data.user, 'sid': self.sid})
+			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 		else:
 			self.start_as_guest()
 
@@ -201,7 +201,7 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe._dict(frappe.cache().get_value("session:" + self.sid) or {})
+		data = frappe._dict(frappe.cache().get_value("session:" + self.sid, user=self.user) or {})
 		if data:
 			session_data = data.get("data", {})
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
@@ -234,7 +234,7 @@ class Session:
 		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
-		delete_session(self.sid)
+		delete_session(self.sid, user=self.user)
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
@@ -266,7 +266,7 @@ class Session:
 			updated_in_db = True
 
 		# set in memcache
-		frappe.cache().set_value("session:" + self.sid, self.data)
+		frappe.cache().set_value("session:" + self.sid, self.data, user=self.user)
 
 		return updated_in_db
 
@@ -279,18 +279,14 @@ def get_expiry_period():
 
 	return exp_sec
 
-def get_geo_ip_country(ip_addr):
+def get_geo_from_ip(ip_addr):
 	try:
-		import pygeoip
+		from geoip import geolite2
+		return geolite2.lookup(ip_addr)
 	except ImportError:
 		return
 
-	import os
-
-	try:
-		geo_ip_file = os.path.join(os.path.dirname(frappe.__file__), "data", "GeoIP.dat")
-		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
-		return geo_ip.country_name_by_addr(ip_addr)
-	except Exception:
-		return
-
+def get_geo_ip_country(ip_addr):
+	match = get_geo_from_ip(ip_addr)
+	if match:
+		return match.country

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // route urls to their virtual pages
@@ -9,6 +9,7 @@ frappe.route_titles = {};
 frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
+frappe.route_options = null;
 
 frappe.route = function() {
 	if(frappe.re_route[window.location.hash]) {
@@ -33,10 +34,11 @@ frappe.route = function() {
 	route = frappe.get_route();
 	frappe.route_history.push(route);
 
-	if(route[0] && frappe.views[route[0] + "Factory"]) {
+	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
 		// has a view generator, generate!
-		if(!frappe.view_factory[route[0]])
+		if(!frappe.view_factory[route[0]]) {
 			frappe.view_factory[route[0]] = new frappe.views[route[0] + "Factory"]();
+		}
 
 		frappe.view_factory[route[0]].show();
 	} else {

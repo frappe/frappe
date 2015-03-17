@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf-8">
-	<title>Frappe Desk</title>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
 	<meta name="author" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href='https://fonts.googleapis.com/css?family=Noto+Sans:400,700' rel='stylesheet' type='text/css'>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,
+		maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="white">
+	<meta name="mobile-web-app-capable" content="yes">
+	<title>Frappe Desk</title>
 	<link rel="shortcut icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
 	<link rel="icon"
@@ -14,19 +19,39 @@
 	{%- endfor -%}
 </head>
 <body>
-	<div class="splash">{% include "public/images/frappe.svg" %}</div>
-	<header></header>
-	<div id="body_div">
+	<div class="centered splash">{% include "public/images/frappe.svg" %}</div>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<header></header>
+				<div id="body_div"></div>
+				<footer></footer>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-left visible-xs visible-sm"></div>
+			<div class="sidebar sidebar-right visible-xs visible-sm">
+				<ul class="list-unstyled sidebar-menu" id="sidebar-notification"></ul>
+			</div>
+		</div>
 	</div>
-	<footer></footer>
+
+	<!-- hack! load background image asap, before desktop is rendered -->
+	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
+
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";
 	// browser support
 	window.app = true;
+
+	if(!window.frappe) window.frappe = {};
+
+	frappe.boot = {{ boot }};
+
 	</script>
 
-	{% for include in include_js -%}
+	{% for include in include_js %}
 	<script type="text/javascript" src="{{ include }}"></script>
-	{%- endfor -%}
+	{% endfor %}
 </body>

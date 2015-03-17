@@ -18,7 +18,7 @@
    "default": "1", 
    "fieldname": "enabled", 
    "fieldtype": "Check", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Enabled", 
    "no_copy": 0, 
    "oldfieldname": "enabled", 
@@ -27,12 +27,10 @@
    "read_only": 1
   }, 
   {
-   "fieldname": "unsubscribed", 
-   "fieldtype": "Check", 
-   "hidden": 1, 
-   "label": "Unsubscribed", 
-   "no_copy": 1, 
-   "permlevel": 0
+   "fieldname": "section_break_3", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "email", 
@@ -49,7 +47,7 @@
   {
    "fieldname": "first_name", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "First Name", 
    "no_copy": 0, 
    "oldfieldname": "first_name", 
@@ -69,10 +67,18 @@
   {
    "fieldname": "last_name", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Last Name", 
    "oldfieldname": "last_name", 
    "oldfieldtype": "Data", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "unsubscribed", 
+   "fieldtype": "Check", 
+   "hidden": 1, 
+   "label": "Unsubscribed", 
+   "no_copy": 1, 
    "permlevel": 0
   }, 
   {
@@ -138,22 +144,6 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "background_image", 
-   "fieldtype": "Attach", 
-   "hidden": 0, 
-   "label": "Background Image", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "default": "Fill Screen", 
-   "fieldname": "background_style", 
-   "fieldtype": "Select", 
-   "label": "Background Style", 
-   "options": "Fill Screen\nTile", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "cb21", 
    "fieldtype": "Column Break", 
    "permlevel": 0
@@ -164,6 +154,28 @@
    "label": "user_image_show", 
    "options": "user_image", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "background", 
+   "fieldtype": "Section Break", 
+   "label": "Background", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "background_image", 
+   "fieldtype": "Attach", 
+   "label": "Background Image", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "background_style", 
+   "fieldtype": "Select", 
+   "label": "Background Style", 
+   "options": "Fill Screen\nTile", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "short_bio", 
@@ -273,6 +285,7 @@
    "description": "User Type \"System User\" can access Desktop. \"Website User\" can only be logged into the website and portal pages. ", 
    "fieldname": "user_type", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "User Type", 
    "oldfieldname": "user_type", 
    "oldfieldtype": "Select", 
@@ -337,6 +350,16 @@
    "read_only": 1
   }, 
   {
+   "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.", 
+   "fieldname": "last_known_versions", 
+   "fieldtype": "Text", 
+   "hidden": 1, 
+   "label": "Last Known Versions", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "roles_assigned_to_user", 
    "fieldtype": "Section Break", 
    "hidden": 1, 
@@ -360,7 +383,7 @@
    "fieldname": "third_party_authentication", 
    "fieldtype": "Section Break", 
    "label": "Third Party Authentication", 
-   "permlevel": 0
+   "permlevel": 1
   }, 
   {
    "fieldname": "fb_username", 
@@ -387,6 +410,12 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "column_break_49", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "github_userid", 
    "fieldtype": "Data", 
    "label": "Github User ID", 
@@ -410,7 +439,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-01-20 11:28:09.395502", 
+ "modified": "2015-03-04 02:37:27.094830", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
@@ -425,30 +454,26 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
   {
-   "apply_user_permissions": 1, 
-   "cancel": 0, 
-   "create": 0, 
-   "email": 1, 
-   "permlevel": 0, 
-   "read": 1, 
-   "role": "All", 
-   "write": 1
-  }, 
-  {
+   "amend": 0, 
    "apply_user_permissions": 0, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
    "email": 0, 
+   "export": 0, 
+   "import": 0, 
    "permlevel": 0, 
    "print": 0, 
    "read": 1, 
    "report": 0, 
    "role": "All", 
+   "set_user_permissions": 0, 
+   "share": 0, 
    "submit": 0, 
    "write": 0
   }, 

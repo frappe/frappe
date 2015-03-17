@@ -63,9 +63,6 @@ cur_frm.cscript.refresh = function(doc) {
 
 		if(user==doc.name) {
 			// update display settings
-			if(doc.background_image) {
-				frappe.ui.set_user_background(doc.background_image);
-			}
 			if(doc.user_image) {
 				frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
 			}
@@ -140,7 +137,7 @@ frappe.RoleEditor = Class.extend({
 			$(me.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role_value)s">\
 				<input type="checkbox" style="margin-top:0px;"> \
-				<a href="#">%(role_display)s</a>\
+				<a href="#" class="grey">%(role_display)s</a>\
 			</div>', {role_value: role,role_display:__(role)}));
 		});
 

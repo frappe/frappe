@@ -6,17 +6,17 @@ classes should alter those!
 */
 
 .slick-header-columns {
-  background: url('images/header-columns-bg.gif') repeat-x center bottom;
+  /*background: url('images/header-columns-bg.gif') repeat-x center bottom;*/
   border-bottom: 1px solid silver;
 }
 
 .slick-header-column {
-  background: url('images/header-columns-bg.gif') repeat-x center bottom;
+  /*background: url('images/header-columns-bg.gif') repeat-x center bottom;*/
   border-right: 1px solid silver;
 }
 
 .slick-header-column:hover, .slick-header-column-active {
-  background: white url('images/header-columns-over-bg.gif') repeat-x center bottom;
+  /*background: white url('images/header-columns-over-bg.gif') repeat-x center bottom;*/
 }
 
 .slick-headerrow {
@@ -104,7 +104,7 @@ classes should alter those!
   -moz-animation-duration: 0.2s;
   -webkit-animation-duration: 0.2s;
   -moz-animation-name: slickgrid-invalid-hilite;
-  -webkit-animation-name: slickgrid-invalid-hilite;  
+  -webkit-animation-name: slickgrid-invalid-hilite;
 }
 
 @-moz-keyframes slickgrid-invalid-hilite {

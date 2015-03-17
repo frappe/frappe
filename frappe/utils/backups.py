@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 """This module handles the On Demand Backup utility"""
@@ -30,14 +30,18 @@ class BackupGenerator:
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 
-	def get_backup(self, older_than=24, ignore_files=False):
+	def get_backup(self, older_than=24, ignore_files=False, force=False):
 		"""
 			Takes a new dump if existing file is old
 			and sends the link to the file as email
 		"""
 		#Check if file exists and is less than a day old
 		#If not Take Dump
-		last_db, last_file = self.get_recent_backup(older_than)
+		if not force:	
+			last_db, last_file = self.get_recent_backup(older_than)
+		else:
+			last_db, last_file = False, False
+
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
 		if not (last_db and last_file):
@@ -95,7 +99,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.utils.email_lib import sendmail, get_system_managers
+		from frappe.email import sendmail, get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
@@ -133,21 +137,21 @@ def get_backup():
 						  frappe.conf.db_password, db_host = frappe.db.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
-	frappe.msgprint(_("Download link for your backup will be emailed on the following email address:").format(', '.join(recipient_list)))
+	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = frappe.db.host)
-	odb.get_backup(older_than, ignore_files)
+	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
 def delete_temp_backups(older_than=24):

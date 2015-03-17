@@ -1,0 +1,219 @@
+@import "variables.less";
+@import "mixins.less";
+@import "offcanvas.less";
+
+.hide-form-sidebar {
+	.form-sidebar {
+		display: none !important;
+	}
+}
+
+body[data-route=""] .main-menu,
+body[data-route="desk"] .main-menu {
+	.desk-sidebar {
+		display: block !important;
+	}
+
+	.hide-form-sidebar;
+}
+
+body[data-route^="List"] .main-menu {
+	.list-sidebar {
+		display: block !important;
+	}
+
+	.hide-form-sidebar;
+}
+
+body[data-route^="Module"] .main-menu {
+	.module-sidebar {
+		display: block !important;
+	}
+
+	.hide-form-sidebar;
+}
+
+.layout-side-section {
+	font-size: @text-medium;
+
+	padding-right: 0px;
+
+	.divider {
+		display: none !important;
+	}
+
+	.sidebar-menu > li > a {
+		display: inline-block;
+	}
+
+	.sidebar-menu {
+		margin: 30px 0px;
+	}
+}
+
+.layout-side-section .sidebar-menu > li > a& {
+	&:hover,
+	&:focus,
+	&:active {
+		.underline-hover;
+	}
+}
+
+.sidebar-menu {
+	.badge {
+		position: absolute;
+		font-weight: normal;
+		right: 0px;
+		top: 0px;
+		padding-bottom: 4px;
+	}
+
+	.octicon {
+		font-size: 12px;
+	}
+
+	h6, .h6 {
+		text-transform: uppercase;
+		color: @text-muted;
+		font-size: @text-small;
+		margin-top: 0px;
+	}
+
+	li {
+		position: relative;
+	}
+}
+
+// form sidebar
+.form-sidebar {
+	.form-tags {
+		.tag-area {
+			margin-top: -3px;
+			margin-left: -4px;
+		}
+
+		input {
+			font-size: @text-medium !important;
+			color: @text-color !important;
+			font-style: italic;
+		}
+
+		.tagit-new {
+			clear: both;
+			margin-top: 2px;
+			margin-bottom: -1px;
+		}
+	}
+
+	a.close {
+		position: absolute;
+		right: 5px;
+	}
+
+	.attachment-row a.close {
+		margin-top: -5px;
+	}
+
+	.form-shared {
+		.share-doc-btn {
+			cursor: pointer;
+		}
+
+		.octicon-plus {
+			position: relative;
+			top: 2px;
+			left: 7px;
+		}
+	}
+}
+
+.form-sidebar .form-shared .share-doc-btn& {
+	&:hover,
+	&:focus,
+	&:active {
+		background-color: @btn-bg;
+
+		.octicon-plus {
+			color: @text-color !important;
+		}
+	}
+}
+
+.sidebar-left .form-sidebar {
+	.form-tags,
+	.assignment-row,
+	.form-shared,
+	.modified-by,
+	.created-by,
+	.tags-label,
+	.shared-with-label {
+		.sidebar-padding;
+	}
+
+	.assigned-to-label,
+	.attachments-label,
+	.tags-label,
+	.shared-with-label {
+		.sidebar-padding;
+		margin-bottom: 0px;
+	}
+
+	.assigned-to-label,
+	.tags-label,
+	.attachments-label.has-attachments,
+	.shared-with-label {
+		padding-bottom: 0px;
+	}
+
+	a.close {
+		right: 5px;
+	}
+
+	.assignment-row a.close {
+		margin-top: -12px;
+	}
+}
+
+.layout-side-section .form-sidebar {
+	.modified-by,
+	.created-by {
+		margin: 30px 0px;
+	}
+}
+
+// list sidebar
+
+.layout-side-section .list-sidebar {
+	margin-top: -15px;
+}
+
+.sidebar-left .list-sidebar {
+	.stat-label,
+	.stat-no-records {
+		.sidebar-padding;
+	}
+
+	.stat-label {
+		margin-bottom: -10px;
+	}
+}
+
+.list-sidebar .list-tag-preview {
+	padding: 5px !important;
+	margin-left: 5px;
+	display: inline !important;
+}
+
+.list-sidebar .list-tag-preview&,
+a.close {
+	&:hover,
+	&:active,
+	&:focus {
+		border-color: transparent !important;
+	}
+}
+
+// module sidebar
+.layout-side-section .module-sidebar-nav {
+	margin-top: 15px;
+}

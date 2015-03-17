@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -8,21 +8,38 @@ from frappe.utils.minify import JavascriptMinify
 Build the `public` folders and setup languages
 """
 
-import os, sys, frappe, json, shutil
-from cssmin import cssmin
+import os, frappe, json, shutil, re
+# from cssmin import cssmin
+
+
+app_paths = None
+def setup():
+	global app_paths
+	pymodules = []
+	for app in frappe.get_all_apps(True):
+		try:
+			pymodules.append(frappe.get_module(app))
+		except ImportError: pass
+	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 def bundle(no_compress, make_copy=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
+	setup()
+
 	make_asset_dirs(make_copy=make_copy)
 	build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
+	setup()
+
 	import time
+	compile_less()
 	build(no_compress=True)
 
 	while True:
+		compile_less()
 		if files_dirty():
 			build(no_compress=True)
 
@@ -61,8 +78,6 @@ def build(no_compress=False, verbose=False):
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
 	# framework js and css files
-	pymodules = [frappe.get_module(app) for app in frappe.get_all_apps(True)]
-	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 	build_maps = {}
 	for app_path in app_paths:
@@ -81,7 +96,7 @@ def get_build_maps():
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
-				except Exception, e:
+				except Exception:
 					print path
 					raise
 
@@ -118,14 +133,12 @@ def pack(target, sources, no_compress, verbose):
 					print "{0}: {1}k".format(f, int(len(minified) / 1024))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
-				content = data.replace("\n", " ").replace("'", "\'")
-				outtxt += """frappe.templates["{key}"] = '{content}';\n""".format(\
-					key=f.rsplit("/", 1)[1][:-5], content=content)
+				outtxt += html_to_js_template(f, data)
 			else:
 				outtxt += ('\n/*\n *\t%s\n */' % f)
 				outtxt += '\n' + data + '\n'
 
-		except Exception, e:
+		except Exception:
 			print "--Error in:" + f + "--"
 			print frappe.get_traceback()
 
@@ -138,6 +151,16 @@ def pack(target, sources, no_compress, verbose):
 
 	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
 
+def html_to_js_template(path, content):
+	# remove whitespace to a single space
+	content = re.sub("\s+", " ", content).replace("'", "\'")
+
+	# strip comments
+	content =  re.sub("(<!--.*?-->)", "", content)
+
+	return """frappe.templates["{key}"] = '{content}';\n""".format(\
+		key=path.rsplit("/", 1)[-1][:-5], content=content)
+
 def files_dirty():
 	for target, sources in get_build_maps().iteritems():
 		for f in sources:
@@ -149,3 +172,20 @@ def files_dirty():
 	else:
 		return False
 
+def compile_less():
+	for path in app_paths:
+		less_path = os.path.join(path, "public", "less")
+		if os.path.exists(less_path):
+			for fname in os.listdir(less_path):
+				if fname.endswith(".less") and fname != "variables.less":
+					fpath = os.path.join(less_path, fname)
+					mtime = os.path.getmtime(fpath)
+					if fpath in timestamps and mtime == timestamps[fpath]:
+						continue
+
+					timestamps[fpath] = mtime
+
+					print "compiling {0}".format(fpath)
+
+					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
+					os.system("lessc {0} > {1}".format(fpath, css_path))

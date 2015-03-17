@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -106,5 +106,16 @@ def enqueue_events_for_site(site):
 			return
 		frappe.connect(site=site)
 		enqueue_events(site)
+	finally:
+		frappe.destroy()
+
+@celery_task()
+def pull_from_email_account(site, email_account):
+	try:
+		frappe.init(site=site)
+		frappe.connect(site=site)
+		email_account = frappe.get_doc("Email Account", email_account)
+		email_account.receive()
+		frappe.db.commit()
 	finally:
 		frappe.destroy()

@@ -1,20 +1,20 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os, time
+import frappe, os
 
 def sync_statics(rebuild=False):
 	s = sync()
 	s.verbose = True
-	# s.start(rebuild)
-	# frappe.db.commit()
+	s.start(rebuild)
+	frappe.db.commit()
 
-	while True:
-		s.start(rebuild)
-		frappe.db.commit()
-		time.sleep(2)
-		rebuild = False
+	# while True:
+	# 	s.start(rebuild)
+	# 	frappe.db.commit()
+	# 	time.sleep(2)
+	# 	rebuild = False
 
 class sync(object):
 	def __init__(self, verbose=False):
@@ -28,11 +28,12 @@ class sync(object):
 			frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 
 		for app in frappe.get_installed_apps():
+			print "Syncing for {0}".format(app)
 			self.sync_for_app(app)
 		self.cleanup()
 
 	def sync_for_app(self, app):
-		self.statics_path = frappe.get_app_path(app, "templates", "statics")
+		self.statics_path = frappe.get_app_path(app, "www")
 		if os.path.exists(self.statics_path):
 			for basepath, folders, files in os.walk(self.statics_path):
 				self.sync_folder(basepath, folders, files)

@@ -1,0 +1,23 @@
+[
+	{
+		"doctype": "Event",
+		"subject":"_Test Event 1",
+		"starts_on": "2014-01-01",
+		"event_type": "Public"
+	},
+	{
+		"doctype": "Event",
+		"starts_on": "2014-01-01",
+		"subject":"_Test Event 2",
+		"event_type": "Private"
+	},
+	{
+		"doctype": "Event",
+		"starts_on": "2014-01-01",
+		"subject":"_Test Event 3",
+		"event_type": "Private",
+		"roles": [
+			{"role": "System Manager"}
+		]
+	}
+]

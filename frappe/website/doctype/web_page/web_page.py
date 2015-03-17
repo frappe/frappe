@@ -1,8 +1,8 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re, os
+import frappe, re, os, json, imp
 import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
@@ -14,10 +14,15 @@ from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
-	template = "templates/generators/web_page.html"
-	condition_field = "published"
-	page_title_field = "title"
-	parent_website_route_field = "parent_web_page"
+	website = frappe._dict(
+		template = "templates/generators/web_page.html",
+		condition_field = "published",
+		page_title_field = "title",
+		parent_website_route_field = "parent_web_page"
+	)
+
+	def get_feed(self):
+		return self.title
 
 	def validate(self):
 		if self.template_path and not getattr(self, "from_website_sync"):
@@ -32,52 +37,104 @@ class WebPage(WebsiteGenerator):
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
 
+		# for sidebar and breadcrumbs
+		context.children = self.get_children()
+		context.parents = self.get_parents(context)
+
 		if self.template_path:
 			# render dynamic context (if .py file exists)
 			context = self.get_dynamic_context(frappe._dict(context))
 
 			# load content from template
-			get_static_content(self, context)
+			self.get_static_content(context)
 		else:
 			context.update({
 				"style": self.css or "",
-				"script": self.javascript or ""
+				"script": self.javascript or "",
+				"header": self.header,
+				"title": self.title,
+				"text_align": self.text_align,
 			})
 
+			if self.description:
+				context.setdefault("metatags", {})["description"] = self.description
+
+			if not self.show_title:
+				context["no_header"] = 1
+
 		self.set_metatags(context)
-
-		if not context.header:
-			context.header = self.title
-
-		# for sidebar
-		context.children = self.get_children()
 
 		return context
 
 	def render_dynamic(self, context):
 		# dynamic
-		if context.main_section and ("<!-- render-jinja -->" in context.main_section) \
-			or ("{{" in context.main_section):
+		is_jinja = "<!-- jinja -->" in context.main_section
+		if is_jinja or ("{{" in context.main_section):
 			try:
 				context["main_section"] = render_template(context.main_section,
 					context)
-				context["no_cache"] = 1
+				if not "<!-- static -->" in context.main_section:
+					context["no_cache"] = 1
 			except TemplateSyntaxError:
-				pass
+				if is_jinja:
+					raise
+
+	def get_static_content(self, context):
+
+		with open(self.template_path, "r") as contentfile:
+			content = unicode(contentfile.read(), 'utf-8')
+
+			if self.template_path.endswith(".md"):
+				if content:
+					lines = content.splitlines()
+					first_line = lines[0].strip()
+
+					if first_line.startswith("# "):
+						context.title = first_line[2:]
+						content = "\n".join(lines[1:])
+
+					content = markdown(content)
+
+			context.main_section = unicode(content.encode("utf-8"), 'utf-8')
+
+			self.check_for_redirect(context)
+
+			if not context.title:
+				context.title = self.name.replace("-", " ").replace("_", " ").title()
+
+			self.render_dynamic(context)
+
+		for extn in ("js", "css"):
+			fpath = self.template_path.rsplit(".", 1)[0] + "." + extn
+			if os.path.exists(fpath):
+				with open(fpath, "r") as f:
+					context["css" if extn=="css" else "javascript"] = f.read()
+
+	def check_for_redirect(self, context):
+		if "<!-- redirect:" in context.main_section:
+			frappe.local.flags.redirect_location = \
+				context.main_section.split("<!-- redirect:")[1].split("-->")[0].strip()
+			raise frappe.Redirect
 
 	def get_dynamic_context(self, context):
-		template_path_base = self.template_path.rsplit(".", 1)[0]
-		template_module = os.path.dirname(os.path.relpath(self.template_path,
-			os.path.join(frappe.get_app_path("frappe"),"..", "..")))\
-			.replace(os.path.sep, ".") + "." + frappe.scrub(template_path_base.rsplit(os.path.sep, 1)[1])
+		"update context from `.py` and load sidebar from `_sidebar.json` if either exists"
+		basename = os.path.basename(self.template_path).rsplit(".", 1)[0]
+		module_path = os.path.join(os.path.dirname(self.template_path),
+			frappe.scrub(basename) + ".py")
 
-		try:
-			method = template_module.split(".", 1)[1] + ".get_context"
-			get_context = frappe.get_attr(method)
-			ret = get_context(context)
-			if ret:
-				context = ret
-		except ImportError: pass
+		if os.path.exists(module_path):
+			module = imp.load_source(basename, module_path)
+			if hasattr(module, "get_context"):
+				ret = module.get_context(context)
+				if ret:
+					context = ret
+
+		# sidebar?
+		sidebar_path = os.path.join(os.path.dirname(self.template_path), "_sidebar.json")
+		if os.path.exists(sidebar_path):
+			with open(sidebar_path, "r") as f:
+				context.children = json.loads(f.read())
+
 		return context
 
 	def set_metatags(self, context):
@@ -89,36 +146,6 @@ class WebPage(WebsiteGenerator):
 		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
-
-
-def get_static_content(doc, context):
-	with open(doc.template_path, "r") as contentfile:
-		content = unicode(contentfile.read(), 'utf-8')
-
-		if doc.template_path.endswith(".md"):
-			if content:
-				lines = content.splitlines()
-				first_line = lines[0].strip()
-
-				if first_line.startswith("# "):
-					context.title = first_line[2:]
-					content = "\n".join(lines[1:])
-
-				content = markdown(content)
-
-		context.main_section = unicode(content.encode("utf-8"), 'utf-8')
-		if not context.title:
-			context.title = doc.name.replace("-", " ").replace("_", " ").title()
-
-		doc.render_dynamic(context)
-
-	for extn in ("js", "css"):
-		fpath = doc.template_path.rsplit(".", 1)[0] + "." + extn
-		if os.path.exists(fpath):
-			with open(fpath, "r") as f:
-				context["css" if extn=="css" else "javascript"] = f.read()
-
-	return context
 
 def check_broken_links():
 	cnt = 0

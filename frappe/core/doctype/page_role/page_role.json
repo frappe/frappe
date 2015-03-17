@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
- "autoname": "PR.######", 
- "creation": "2013-02-22 01:27:34.000000", 
+ "autoname": "hash", 
+ "creation": "2013-02-22 01:27:34", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -24,10 +24,11 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2013-12-20 19:23:24.000000", 
+ "modified": "2015-02-19 01:07:00.897854", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Page Role", 
  "owner": "Administrator", 
+ "permissions": [], 
  "read_only": 0
 }

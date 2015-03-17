@@ -1,5 +1,5 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -29,7 +29,7 @@ def get_things_todo():
 
 def get_todays_events():
 	"""Returns a count of todays events in calendar"""
-	from frappe.core.doctype.event.event import get_events
+	from frappe.desk.doctype.event.event import get_events
 	from frappe.utils import nowdate
 	today = nowdate()
 	return len(get_events(today, today))

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -14,8 +14,11 @@ def make_boilerplate(dest, app_name):
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
-	for key in ("App Title (defaut: {0})".format(app_title), "App Description", "App Publisher",
-		"App Icon (e.g. 'octicon octicon-zap')", "App Color", "App Email", "App License"):
+	for key in ("App Title (defaut: {0})".format(app_title),
+		"App Description", "App Publisher", "App Email",
+		"App Icon (default 'octicon octicon-file-directory')",
+		"App Color (default 'grey')",
+		"App License (default 'MIT')"):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
@@ -23,20 +26,28 @@ def make_boilerplate(dest, app_name):
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print "App Name must be all lowercase and without spaces"
 				hook_val = ""
-			elif hook_key=="app_title" and not hook_val:
-				hook_val = app_title
+			elif not hook_val:
+				defaults = {
+					"app_title": app_title,
+					"app_icon": "octicon octicon-file-directory",
+					"app_color": "grey",
+					"app_license": "MIT"
+				}
+				if hook_key in defaults:
+					hook_val = defaults[hook_key]
 
 		hooks[hook_key] = hook_val
 
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_title),
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"statics"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"generators"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
+		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))
@@ -53,7 +64,9 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
-	touch_file(os.path.join(dest, hooks.app_name, "README.md"))
+	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
+		f.write("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
+			hooks.app_description, hooks.app_license))
 
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write("License: " + hooks.app_license)
@@ -145,11 +158,11 @@ app_version = "0.0.1"
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {{
-# 	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
+# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }}
 #
 # has_permission = {{
-# 	"Event": "frappe.core.doctype.event.event.has_permission",
+# 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }}
 
 # Document Events
@@ -194,7 +207,7 @@ app_version = "0.0.1"
 # ------------------------------
 #
 # override_whitelisted_methods = {{
-# 	"frappe.core.doctype.event.event.get_events": "{app_name}.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
 
 """

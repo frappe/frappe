@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -21,7 +21,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# extra input params
 	params = json.loads(frappe.form_dict.get("params") or '{}')
 
-	if params.get("_submit"):
+	if params.get("submit_after_import"):
 		submit_after_import = True
 	if params.get("ignore_encoding_errors"):
 		ignore_encoding_errors = True
@@ -138,6 +138,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def main_doc_empty(row):
 		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
 
+	users = frappe.db.sql_list("select name from tabUser")
+	def prepare_for_insert(doc):
+		# don't block data import if user is not set
+		# migrating from another system
+		if not doc.owner in users:
+			doc.owner = frappe.session.user
+		if not doc.modified_by in users:
+			doc.modified_by = frappe.session.user
+
 	# header
 	if not rows:
 		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
@@ -169,7 +178,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	check_data_length()
 	make_column_map()
 
-	frappe.db.begin()
 	if overwrite==None:
 		overwrite = params.get('overwrite')
 
@@ -201,15 +209,16 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				if overwrite and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original.update(doc)
-					original.ignore_links = ignore_links
+					original.flags.ignore_links = ignore_links
 					original.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
 				else:
 					doc = frappe.get_doc(doc)
-					doc.ignore_links = ignore_links
+					prepare_for_insert(doc)
+					doc.flags.ignore_links = ignore_links
 					doc.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))
 				if submit_after_import:
@@ -252,4 +261,5 @@ def get_parent_field(doctype, parenttype):
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
 	for p in list(set([r[1] for r in rows])):
-		frappe.db.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
+		if p:
+			frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)

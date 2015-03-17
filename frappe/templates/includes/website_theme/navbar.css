@@ -1,0 +1,105 @@
+.navbar {
+	background-color: {{ theme.top_bar_color }};
+	background-repeat: repeat-x;
+	background-image: none;
+	border: none;
+	border-bottom: 1px solid {{ get_shade(theme.top_bar_color, 10) }};
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+.navbar .navbar-text,
+.navbar .navbar-brand,
+.navbar .navbar-link,
+.navbar .nav > li > a {
+	color: {{ theme.top_bar_text_color }};
+	text-shadow: none;
+}
+
+/* navbar links */
+.navbar .navbar-brand:hover,
+.navbar .navbar-brand:focus,
+.navbar .navbar-brand:active,
+.navbar .nav .active > a,
+.navbar .nav .active > a:hover,
+.navbar .nav .active > a:focus,
+.navbar .nav .active > a:active,
+.navbar .navbar-link:hover,
+.navbar .navbar-link:focus,
+.navbar .navbar-link:active,
+.navbar .nav > li > a:hover,
+.navbar .nav > li > a:focus,
+.navbar .nav > li > a:active,
+.navbar .nav > .open > a,
+.navbar .nav > .open > a:hover,
+.navbar .nav > .open > a:focus,
+.navbar .nav > .open > a:active {
+	color: {{ get_shade(theme.top_bar_text_color, 15) }};
+	background-color: transparent;
+    -webkit-box-shadow: none;
+       -moz-box-shadow: none;
+            box-shadow: none;
+}
+
+.navbar-fixed-top,
+.navbar-static-top {
+  -webkit-box-shadow: none;
+     -moz-box-shadow: none;
+          box-shadow: none;
+
+}
+
+.navbar-toggle {
+	margin-top: 18px;
+	margin-bottom: 18px;
+}
+
+.navbar-collapse {
+	border-radius: 0px;
+}
+
+/* navbar brand */
+.navbar-brand {
+	padding-right: 30px;
+	max-width: 80%;
+	min-height: 20px;
+	height: auto;
+}
+
+@media (max-width: 767px) {
+	.navbar .toggle-sidebar {
+		padding: 10px 15px;
+	}
+}
+
+@media (min-width: 768px) {
+	.navbar-brand {
+		max-width: 300px;
+	}
+}
+
+/* navbar dropdowns */
+.navbar .dropdown.logged-in .avatar {
+	margin: 0px;
+}
+
+.nav .dropdown.logged-in .full-name {
+	line-height: 22px;
+}
+
+.nav .dropdown-menu > li > a {
+	padding: 14px;
+}
+
+.nav .dropdown-menu {
+	min-width: 200px;
+	padding: 0px;
+	font-size: 85%;
+
+	// only rounded bottoms
+	border-radius: 0px 0px 4px 4px;
+}
+
+.nav .dropdown-menu .divider {
+	margin: 0px;
+}

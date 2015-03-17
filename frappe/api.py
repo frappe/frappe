@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -6,25 +6,32 @@ import json
 import frappe
 import frappe.handler
 import frappe.client
-import frappe.widgets.reportview
+import frappe.desk.reportview
 from frappe.utils.response import build_response
 from frappe import _
 
 def handle():
 	"""
-	/api/method/{methodname} will call a whitelisted method
-	/api/resource/{doctype} will query a table
+	Handler for `/api` methods
+
+	### Examples:
+
+	`/api/method/{methodname}` will call a whitelisted method
+
+	`/api/resource/{doctype}` will query a table
 		examples:
-			?fields=["name", "owner"]
-			?filters=[["Task", "name", "like", "%005"]]
-			?limit_start=0
-			?limit_page_length=20
-	/api/resource/{doctype}/{name} will point to a resource
-		GET will return doclist
-		POST will insert
-		PUT will update
-		DELETE will delete
-	/api/resource/{doctype}/{name}?run_method={method} will run a whitelisted controller method
+		- `?fields=["name", "owner"]`
+		- `?filters=[["Task", "name", "like", "%005"]]`
+		- `?limit_start=0`
+		- `?limit_page_length=20`
+
+	`/api/resource/{doctype}/{name}` will point to a resource
+		`GET` will return doclist
+		`POST` will insert
+		`PUT` will update
+		`DELETE` will delete
+
+	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
@@ -71,10 +78,15 @@ def handle():
 				if frappe.local.request.method=="PUT":
 					data = json.loads(frappe.local.form_dict.data)
 					doc = frappe.get_doc(doctype, name)
+
+					if "flags" in data:
+						del data["flags"]
+
 					# Not checking permissions here because it's checked in doc.save
 					doc.update(data)
+
 					frappe.local.response.update({
-							"data": doc.save().as_dict()
+						"data": doc.save().as_dict()
 					})
 					frappe.db.commit()
 
@@ -90,8 +102,9 @@ def handle():
 				if frappe.local.request.method=="GET":
 					if frappe.local.form_dict.get('fields'):
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
+					frappe.local.form_dict.setdefault('limit_page_length', 20)
 					frappe.local.response.update({
-						"data":  frappe.call(frappe.widgets.reportview.execute,
+						"data":  frappe.call(frappe.client.get_list,
 							doctype, **frappe.local.form_dict)})
 
 				if frappe.local.request.method=="POST":

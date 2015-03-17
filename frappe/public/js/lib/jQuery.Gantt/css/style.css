@@ -2,12 +2,13 @@
     width: 100%;
     margin: 20px auto;
     border: 14px solid #ddd;
-        -webkit-border-radius: 6px;
-        -moz-border-radius: 6px;
-        border-radius: 6px;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
+    position: relative;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .gantt:after {
@@ -33,27 +34,20 @@
 
 /* === LEFT PANEL === */
 
-.fn-gantt * {
-	-webkit-box-sizing: content-box;
-	   -moz-box-sizing: content-box;
-	        box-sizing: content-box;
-}
-
 .fn-gantt .leftPanel {
     float: left;
     width: 225px;
     overflow: hidden;
     border-right: 1px solid #DDD;
     position: relative;
-    z-index: 2;
+    z-index: 20;
 }
 
-.fn-gantt .row, .row .fn-gantt .row {
+.fn-gantt .row {
     float: left;
     height: 24px;
     line-height: 24px;
-    margin-left: -24px;
-	margin-right: 0px;
+    margin-left: -1px;
 }
 
 .fn-gantt .leftPanel .fn-label {
@@ -91,7 +85,7 @@
 }
 
 .fn-gantt .spacer {
-    margin: -2px 0 1px 0 !important;
+    margin: -2px 0 1px 0;
     border-bottom: none;
     background-color: #f6f6f6;
 }
@@ -108,18 +102,19 @@
 .fn-gantt .dataPanel {
     margin-left: 0px;
     border-right: 1px solid #DDD;
-    background-image: url(assets/frappe/js/lib/jQuery.Gantt/img/grid.png);
+    background-image: url(/assets/frappe/js/lib/jQuery.Gantt/img/grid.png);
     background-repeat: repeat;
     background-position: 24px 24px;
+    position: relative;
 }
 .fn-gantt .day, .fn-gantt .date {
     overflow: visible;
     width: 24px;
-    line-height: 23px;
+    line-height: 24px;
     text-align: center;
     border-left: 1px solid #DDD;
     border-bottom: 1px solid #DDD;
-    margin: 0 0 0 -1px !important;
+    margin: -1px 0 0 -1px;
     font-size: 11px;
     color: #484a4d;
     text-shadow: 0 1px 0 rgba(255,255,255,0.75);
@@ -178,7 +173,7 @@
     padding: 10px;
     position: absolute;
     display: none;
-    z-index: 2;
+    z-index: 11;
         -webkit-border-radius: 4px;
         -moz-border-radius: 4px;
         border-radius: 4px;
@@ -187,9 +182,9 @@
 .fn-gantt .bar {
     background-color: #D0E4FD;
     height: 18px;
-    margin: 4px 3px 3px 3px;
+    margin: 0px 3px 3px 0px;
     position: absolute;
-    z-index: 1;
+    z-index: 10;
     text-align: center;
         -webkit-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
         -moz-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
@@ -294,7 +289,7 @@
 .fn-gantt .navigate .nav-slider-button {
     width: 17px;
     height: 60px;
-    background: url(assets/frappe/js/lib/jQuery.Gantt/img/slider_handle.png) center center no-repeat;
+    background: url(/assets/frappe/js/lib/jQuery.Gantt/img/slider_handle.png) center center no-repeat;
     left: 0px;
     top: 0px;
     margin: -26px 0 0 0;
@@ -325,7 +320,7 @@
     width: 20px;
     height: 20px;
     font-size: 0px;
-    background: #595959 url(assets/frappe/js/lib/jQuery.Gantt/img/icon_sprite.png) !important;
+    background: #595959 url(/assets/frappe/js/lib/jQuery.Gantt/img/icon_sprite.png) !important;
     border: 1px solid #454546;
     cursor: pointer;
     vertical-align: top;
@@ -401,21 +396,29 @@
 }
 
 .fn-gantt-loader {
-    background-image: url(assets/frappe/js/lib/jQuery.Gantt/img/loader_bg.png);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bf000000', endColorstr='#bf000000',GradientType=0 );
+    background: rgba(0,0,0,0.75);
+    cursor: wait;
     z-index: 30;
 }
-
-.fn-gantt-loader-spinner {
-    width: 100px;
-    height: 20px;
-    position: absolute;
-    margin-left: 50%;
-    margin-top: 50%;
-    text-align: center;
-}
 .fn-gantt-loader-spinner span {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    height: 1em;
+    line-height: 1em;
     color: #fff;
-    font-size: 12px;
+    font-size: 1em;
     font-weight: bold;
 }
 

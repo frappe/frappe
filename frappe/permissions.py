@@ -1,13 +1,14 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
+import frappe.share
 
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
-	"print", "email", "report", "import", "export", "set_user_permissions")
+	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user
@@ -15,27 +16,44 @@ def check_admin_or_system_manager(user=None):
 	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
+def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""check if user has permission"""
 	if not user: user = frappe.session.user
 
 	if frappe.is_table(doctype):
+		if verbose: print "Table type, always true"
 		return True
 
 	meta = frappe.get_meta(doctype)
 
 	if ptype=="submit" and not cint(meta.is_submittable):
+		if verbose: print "Not submittable"
 		return False
 
 	if ptype=="import" and not cint(meta.allow_import):
+		if verbose: print "Not importable"
 		return False
 
 	if user=="Administrator":
+		if verbose: print "Administrator"
 		return True
+
+	def false_if_not_shared():
+		if ptype in ("read", "write", "share"):
+			shared = frappe.share.get_shared(doctype, user, [ptype])
+			if doc:
+				if doc.name in shared:
+					if verbose: print "Shared"
+					return True
+			else:
+				if verbose: print "Has a shared document"
+				return True
+
+		return False
 
 	role_permissions = get_role_permissions(meta, user=user)
 	if not role_permissions.get(ptype):
-		return False
+		return false_if_not_shared()
 
 	if doc:
 		if isinstance(doc, basestring):
@@ -44,11 +62,14 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 		if role_permissions["apply_user_permissions"].get(ptype):
 			if not user_has_permission(doc, verbose=verbose, user=user,
 				user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or []):
-				return False
+					if verbose: print "No user permission"
+					return false_if_not_shared()
 
 		if not has_controller_permissions(doc, ptype, user=user):
-			return False
+			if verbose: print "No controller permission"
+			return false_if_not_shared()
 
+	if verbose: print "Has Role"
 	return True
 
 def get_doc_permissions(doc, verbose=False, user=None):
@@ -73,6 +94,11 @@ def get_doc_permissions(doc, verbose=False, user=None):
 			if role_permissions["apply_user_permissions"].get(ptype) and not user_has_permission(doc, verbose=verbose, user=user,
 		user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or []):
 				role_permissions[ptype] = 0
+
+	# update share permissions
+	role_permissions.update(frappe.db.get_value("DocShare",
+		{"share_doctype": doc.doctype, "share_name": doc.name, "user": user},
+		["read", "write", "share"], as_dict=True) or {})
 
 	return role_permissions
 
@@ -251,3 +277,12 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 					break
 
 	return user_permission_doctypes
+
+def reset_perms(doctype):
+	"""Reset permissions for given doctype."""
+	from frappe.desk.notifications import delete_notification_count_for
+	delete_notification_count_for(doctype)
+
+	frappe.db.sql("""delete from tabDocPerm where parent=%s""", doctype)
+	frappe.reload_doc(frappe.db.get_value("DocType", doctype, "module"),
+		"DocType", doctype, force=True)

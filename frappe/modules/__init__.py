@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -10,7 +10,8 @@ import frappe.utils
 from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
-	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format']
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format',
+	"Website Theme"]
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -36,17 +37,20 @@ def reload_doc(module, dt=None, dn=None, force=True):
 	return import_files(module, dt, dn, force=force)
 
 def export_doc(doctype, name, module=None):
-	"""write out a doc"""
+	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
+	print doctype, name
 
-	if not module: module = frappe.db.get_value(doctype, name, 'module')
+	if not module: module = frappe.db.get_value('DocType', name, 'module')
 	write_document_file(frappe.get_doc(doctype, name), module)
 
 def get_doctype_module(doctype):
+	"""Returns **Module Def** name of given doctype."""
 	return frappe.db.get_value('DocType', doctype, 'module') or "core"
 
 doctype_python_modules = {}
 def load_doctype_module(doctype, module=None, prefix=""):
+	"""Returns the module object for given doctype."""
 	if not module:
 		module = get_doctype_module(doctype)
 

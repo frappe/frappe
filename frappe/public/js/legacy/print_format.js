@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // default print style
@@ -84,7 +84,7 @@ $.extend(_p, {
 			);
 		});
 
-		dialog.onshow = function() {
+		dialog.on_page_show = function() {
 			var $print = dialog.fields_dict.print_format.$input;
 			$print.empty().add_options(cur_frm.print_preview.print_formats);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.ui.TagEditor = Class.extend({
@@ -14,15 +14,16 @@ frappe.ui.TagEditor = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.$w = $('<div class="tag-line">').appendTo(this.parent)
-		this.$tags = $('<ul>').prependTo(this.$w).tagit({
+		this.$tags = $('<ul>').prependTo(this.$w);
+		this.$tags.tagit({
 			animate: false,
 			allowSpaces: true,
-			placeholderText: __('Add Tag'),
+			placeholderText: __('Add a tag' + "..."),
 			onTagAdded: function(ev, tag) {
 				if(me.initialized && !me.refreshing) {
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
-						method: 'frappe.widgets.tags.add_tag',
+						method: 'frappe.desk.tags.add_tag',
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags.split(",");
@@ -37,7 +38,7 @@ frappe.ui.TagEditor = Class.extend({
 				if(!me.refreshing) {
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
-						method: 'frappe.widgets.tags.remove_tag',
+						method: 'frappe.desk.tags.remove_tag',
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags.split(",");
@@ -65,16 +66,25 @@ frappe.ui.TagEditor = Class.extend({
 	refresh: function(user_tags) {
 		var me = this;
 
+		if(!me.initialized || me.refreshing)
+			return;
+
 		me.refreshing = true;
-		me.$tags.tagit("removeAll");
+		try {
+			me.$tags.tagit("removeAll");
 
-		if(!user_tags && this.frm)
-			user_tags = frappe.model.get_value(this.frm.doctype, this.frm.docname, "_user_tags");
+			if(!user_tags && this.frm)
+				user_tags = frappe.model.get_value(this.frm.doctype, this.frm.docname, "_user_tags");
 
-		if(user_tags) {
-			$.each(user_tags.split(','), function(i, v) {
-				me.$tags.tagit("createTag", v);
-			});
+			if(user_tags) {
+				$.each(user_tags.split(','), function(i, v) {
+					me.$tags.tagit("createTag", v);
+				});
+			}
+		} catch(e) {
+			me.refreshing = false;
+			// wtf bug
+			setTimeout( function() { me.refresh(); }, 100);
 		}
 		me.refreshing = false;
 

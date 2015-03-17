@@ -1,11 +1,11 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 
 import frappe
 import os
-
+from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import SharedDataMiddleware
 from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path, cstr
 
@@ -21,6 +21,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 			if os.path.isfile(path):
 				return os.path.basename(path), self._opener(path)
 			else:
-				return None, None
+				raise NotFound
+				# return None, None
 
 		return loader

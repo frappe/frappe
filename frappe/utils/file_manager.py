@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -64,7 +64,7 @@ def save_url(file_url, dt, dn):
 		"attached_to_doctype": dt,
 		"attached_to_name": dn
 	})
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
@@ -124,7 +124,6 @@ def save_file(fname, content, dt, dn, decode=False):
 	content_hash = get_content_hash(content)
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
-
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
 		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
@@ -140,7 +139,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	})
 
 	f = frappe.get_doc(file_data)
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.defaults = {
@@ -23,9 +23,9 @@ frappe.defaults = {
 		return d;
 	},
 	set_default: function(key, value, callback) {
-		if(typeof value=="string")
+		if(typeof value!=="string")
 			value = JSON.stringify(value);
-			
+
 		frappe.boot.user.defaults[key] = value;
 		return frappe.call({
 			method: "frappe.client.set_default",
@@ -43,7 +43,7 @@ frappe.defaults = {
 				return JSON.parse(value)
 			} catch(e) {
 				return value;
-			}			
+			}
 		}
 	},
 	get_user_permissions: function() {

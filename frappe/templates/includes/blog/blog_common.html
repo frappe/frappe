@@ -1,0 +1,14 @@
+<script>
+frappe.ready(function() {
+	frappe.get_navbar_search().on("keypress", function(e) {
+	    if(e.which===13) {
+	        var txt = $(this).val();
+            if(txt) {
+                $(this).val("");
+                frappe.load_via_ajax("/blog?txt=" + encodeURIComponent(txt));
+            }
+            return false;
+	    }
+	});
+});
+</script>

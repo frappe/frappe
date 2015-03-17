@@ -1,0 +1,19 @@
+<div class="website-list" data-doctype="{{ doctype }}" data-txt="{{ txt or '[notxt]' }}">
+	{% if not hide_filters -%}
+		{% include "templates/includes/list/filters.html" %}
+	{%- endif %}
+
+	<div class="result">
+		{% for item in result %}
+			{{ item }}
+		{% endfor %}
+		{% if not result -%}
+		<div class="text-muted padding">
+			{{ no_result_message or _("Nothing to show") }}
+		</div>
+		{%- endif %}
+	</div>
+	<div class="more-block text-center {% if not show_more -%} hide {%- endif %}">
+		<button class="btn btn-default btn-more">More</button>
+	</div>
+</div>

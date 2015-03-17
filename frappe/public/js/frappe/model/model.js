@@ -1,16 +1,16 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image', 'Fold'],
+ 	'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', 'docstatus',
+		'_user_tags', '_comments', '_assign', '_starred_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
 	std_fields: [
@@ -21,6 +21,7 @@ $.extend(frappe.model, {
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
 		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
 		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
+		{fieldname:'_starred_by', fieldtype:'Data', label:__('Starred By')},
 		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
 		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
@@ -32,6 +33,10 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
+
+	is_value_type: function(fieldtype) {
+		return frappe.model.no_value_type.indexOf(fieldtype)!==-1;
+	},
 
 	get_std_field: function(fieldname) {
 		var docfield = $.map([].concat(frappe.model.std_fields).concat(frappe.model.std_fields_table),
@@ -54,13 +59,14 @@ $.extend(frappe.model, {
 				cached_timestamp = cached_doc.modified;
 			}
 			return frappe.call({
-				method:'frappe.widgets.form.load.getdoctype',
+				method:'frappe.desk.form.load.getdoctype',
 				type: "GET",
 				args: {
 					doctype: doctype,
 					with_parent: 1,
 					cached_timestamp: cached_timestamp
 				},
+				freeze: true,
 				callback: function(r) {
 					if(r.exc) {
 						msgprint(__("Unable to load: {0}", [__(doctype)]));
@@ -99,12 +105,13 @@ $.extend(frappe.model, {
 			callback(name);
 		} else {
 			return frappe.call({
-				method: 'frappe.widgets.form.load.getdoc',
+				method: 'frappe.desk.form.load.getdoc',
 				type: "GET",
 				args: {
 					doctype: doctype,
 					name: name
 				},
+				freeze: true,
 				callback: function(r) { callback(name, r); }
 			});
 		}
@@ -112,6 +119,10 @@ $.extend(frappe.model, {
 
 	get_docinfo: function(doctype, name) {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
+	},
+
+	get_shared: function(doctype, name) {
+		return frappe.model.get_docinfo(doctype, name).shared;
 	},
 
 	get_server_module_name: function(doctype) {
@@ -156,6 +167,16 @@ $.extend(frappe.model, {
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
 	},
 
+	is_table: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].istable;
+	},
+
+	is_single: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].issingle;
+	},
+
 	can_import: function(doctype, frm) {
 		// system manager can always import
 		if(user_roles.indexOf("System Manager")!==-1) return true;
@@ -180,6 +201,13 @@ $.extend(frappe.model, {
 	can_email: function(doctype, frm) {
 		if(frm) return frm.perm[0].email===1;
 		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
+	},
+
+	can_share: function(doctype, frm) {
+		if(frm) {
+			return frm.perm[0].share===1;
+		}
+		return frappe.boot.user.can_share.indexOf(doctype)!==-1;
 	},
 
 	can_set_user_permissions: function(doctype, frm) {
@@ -216,12 +244,28 @@ $.extend(frappe.model, {
 		return frappe.utils.filter_dict(docsdict, filters);
 	},
 
-	get_value: function(doctype, filters, fieldname) {
-		if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
-			return locals[doctype][filters][fieldname];
+	get_value: function(doctype, filters, fieldname, callback) {
+		if(callback) {
+			frappe.call({
+				method:"frappe.client.get_value",
+				args: {
+					doctype: doctype,
+					fieldname: fieldname,
+					filters: filters
+				},
+				callback: function(r) {
+					if(!r.exc) {
+						callback(r.message);
+					}
+				}
+			});
 		} else {
-			var l = frappe.get_list(doctype, filters);
-			return (l.length && l[0]) ? l[0][fieldname] : null;
+			if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+				return locals[doctype][filters][fieldname];
+			} else {
+				var l = frappe.get_list(doctype, filters);
+				return (l.length && l[0]) ? l[0][fieldname] : null;
+			}
 		}
 	},
 
@@ -235,8 +279,9 @@ $.extend(frappe.model, {
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link")
+			if(fieldtype=="Link") {
 				frappe.model.trigger(fieldname, value, doc);
+			}
 		}
 	},
 
@@ -378,13 +423,11 @@ $.extend(frappe.model, {
 			fields: [
 				{label:__("New Name"), fieldtype:"Data", reqd:1},
 				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
-				{label:__("Rename"), fieldtype: "Button"}
 			]
 		});
-		d.get_input("rename").on("click", function() {
+		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
-			d.get_input("rename").set_working();
 			return frappe.call({
 				method:"frappe.model.rename_doc.rename_doc",
 				args: {
@@ -393,8 +436,8 @@ $.extend(frappe.model, {
 					"new": args.new_name,
 					"merge": args.merge
 				},
+				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
-					d.get_input("rename").done_working();
 					if(!r.exc) {
 						$(document).trigger('rename', [doctype, docname,
 							r.message || args.new_name]);

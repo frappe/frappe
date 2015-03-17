@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # called from wnf.py
@@ -18,8 +18,8 @@ from frappe.website import render, statics
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
-	frappe.flags.in_install_db = True
 	make_conf(db_name, site_config=site_config)
+	frappe.flags.in_install_db = True
 	if reinstall:
 		frappe.connect(db_name=db_name)
 		dbman = DbManager(frappe.local.db)
@@ -88,17 +88,23 @@ def make_connection(root_login, root_password):
 	return frappe.database.Database(user=root_login, password=root_password)
 
 def install_app(name, verbose=False, set_as_patched=True):
-	frappe.flags.in_install_app = name
-	frappe.clear_cache()
-
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
+
+	# install pre-requisites
+	if app_hooks.required_apps:
+		for app in app_hooks.required_apps:
+			install_app(app)
+
+	print "Installing {0}...".format(name)
+	frappe.flags.in_install = name
+	frappe.clear_cache()
 
 	if name not in frappe.get_all_apps(with_frappe=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		print "App Already Installed"
+		print "Already installed"
 		frappe.msgprint("App {0} already installed".format(name))
 		return
 
@@ -121,10 +127,10 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	print "Installing Fixtures..."
+	print "Installing fixtures..."
 	sync_fixtures(name)
 
-	frappe.flags.in_install_app = False
+	frappe.flags.in_install = False
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
@@ -132,14 +138,24 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
+		post_install(rebuild_website)
 
-		if rebuild_website:
-			render.clear_cache()
-			statics.sync().start()
-
+def remove_from_installed_apps(app_name):
+	installed_apps = frappe.get_installed_apps()
+	if app_name in installed_apps:
+		installed_apps.remove(app_name)
+		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
+		post_install()
 
-		frappe.clear_cache()
+def post_install(rebuild_website=False):
+	if rebuild_website:
+		render.clear_cache()
+		statics.sync().start()
+
+	init_singles()
+	frappe.db.commit()
+	frappe.clear_cache()
 
 def set_all_patches_as_completed(app):
 	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
@@ -150,6 +166,15 @@ def set_all_patches_as_completed(app):
 				"patch": patch
 			}).insert()
 		frappe.db.commit()
+
+def init_singles():
+	singles = [single['name'] for single in frappe.get_all("DocType", filters={'issingle': True})]
+	for single in singles:
+		if not frappe.db.get_singles_dict(single):
+			doc = frappe.new_doc(single)
+			doc.flags.ignore_mandatory=True
+			doc.flags.ignore_validate=True
+			doc.save()
 
 def make_conf(db_name=None, db_password=None, site_config=None):
 	site = frappe.local.site
@@ -202,7 +227,7 @@ def add_module_defs(app):
 		d.save()
 
 def remove_missing_apps():
-	apps = ('frappe_subscription',)
+	apps = ('frappe_subscription', 'shopping_cart')
 	installed_apps = frappe.get_installed_apps()
 	for app in apps:
 		if app in installed_apps:
@@ -211,3 +236,4 @@ def remove_missing_apps():
 			except ImportError:
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+

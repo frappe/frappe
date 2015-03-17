@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -159,7 +159,20 @@ def login_via_oauth2(provider, code, decoder=None):
 
 	login_oauth_user(info, provider=provider)
 
-def login_oauth_user(data, provider=None):
+@frappe.whitelist(allow_guest=True)
+def login_oauth_user(data=None, provider=None, email_id=None, key=None):
+	if email_id and key:
+		data = json.loads(frappe.db.get_temp(key))
+		data["email"] = email_id
+
+	elif not (data.get("email") and data.get("first_name")):
+		# ask for user email
+		key = frappe.db.set_temp(json.dumps(data))
+		frappe.db.commit()
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = "/complete_signup?key=" + key
+		return
+
 	user = data["email"]
 
 	try:
@@ -196,8 +209,8 @@ def update_oauth_user(user, data, provider):
 		user = frappe.new_doc("User")
 		user.update({
 			"doctype":"User",
-			"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
-			"last_name": data.get("last_name") or data.get("family_name"),
+			"first_name": get_first_name(data),
+			"last_name": get_last_name(data),
 			"email": data["email"],
 			"gender": (data.get("gender") or "").title(),
 			"enabled": 1,
@@ -228,6 +241,12 @@ def update_oauth_user(user, data, provider):
 		user.github_username = data["login"]
 
 	if save:
-		user.ignore_permissions = True
+		user.flags.ignore_permissions = True
 		user.no_welcome_mail = True
 		user.save()
+
+def get_first_name(data):
+	return data.get("first_name") or data.get("given_name") or data.get("name")
+
+def get_last_name(data):
+	return data.get("last_name") or data.get("family_name")
