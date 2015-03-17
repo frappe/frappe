@@ -474,7 +474,7 @@ function valid_email(id) {
 var validate_email = valid_email;
 
 function get_url_arg(name) {
-	return get_query_params()[name];
+	return get_query_params()[name] || "";
 }
 
 function get_query_params() {
