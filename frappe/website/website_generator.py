@@ -190,8 +190,6 @@ class WebsiteGenerator(Document):
 			return self.get(parent_website_route_field)
 
 	def get_children(self, context=None):
-		return []
-
 		children = []
 		route = self.get_route()
 		if route==get_home_page():

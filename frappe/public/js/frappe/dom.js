@@ -81,7 +81,7 @@ frappe.dom = {
 		}
 
 		if (css_class) {
-			freeze.addClass(css_class);
+			$("#freeze").addClass(css_class);
 		}
 
 		frappe.dom.freeze_count++;

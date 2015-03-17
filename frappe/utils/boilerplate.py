@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, os
-from frappe.utils import touch_file
+from frappe.utils import touch_file, encode, cstr
 
 def make_boilerplate(dest, app_name):
 	if not os.path.exists(dest):
@@ -22,7 +22,7 @@ def make_boilerplate(dest, app_name):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
-			hook_val = raw_input(key + ": ")
+			hook_val = cstr(raw_input(key + ": "))
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print "App Name must be all lowercase and without spaces"
 				hook_val = ""
@@ -53,34 +53,34 @@ def make_boilerplate(dest, app_name):
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))
 
 	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
-		f.write(manifest_template.format(**hooks))
+		f.write(encode(manifest_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-		f.write(gitignore_template)
+		f.write(encode(gitignore_template))
 
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(setup_template.format(**hooks))
+		f.write(encode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
-			hooks.app_description, hooks.app_license))
+		f.write(encode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
+			hooks.app_description, hooks.app_license)))
 
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write("License: " + hooks.app_license)
+		f.write(encode("License: " + hooks.app_license))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(hooks.app_title)
+		f.write(encode(hooks.app_title))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
-		f.write(hooks_template.format(**hooks))
+		f.write(encode(hooks_template.format(**hooks)))
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
-		f.write(desktop_template.format(**hooks))
+		f.write(encode(desktop_template.format(**hooks)))
 
 
 
@@ -104,7 +104,10 @@ recursive-include {app_name} *.svg
 recursive-include {app_name} *.txt
 recursive-exclude {app_name} *.pyc"""
 
-hooks_template = """app_name = "{app_name}"
+hooks_template = """# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+app_name = "{app_name}"
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
@@ -212,7 +215,9 @@ app_version = "0.0.1"
 
 """
 
-desktop_template = """from frappe import _
+desktop_template = """# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+from frappe import _
 
 def get_data():
 	return {{
@@ -225,7 +230,8 @@ def get_data():
 	}}
 """
 
-setup_template = """from setuptools import setup, find_packages
+setup_template = """# -*- coding: utf-8 -*-
+from setuptools import setup, find_packages
 import os
 
 version = '0.0.1'

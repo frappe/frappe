@@ -9,7 +9,8 @@ class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username, password):
+	def __init__(self, url, username, password, verify=True):
+		self.verify = verify
 		self.session = requests.session()
 		self.url = url
 		self.login(username, password)
@@ -25,7 +26,7 @@ class FrappeClient(object):
 			'cmd': 'login',
 			'usr': username,
 			'pwd': password
-		})
+		}, verify=self.verify)
 
 		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
@@ -35,7 +36,7 @@ class FrappeClient(object):
 	def logout(self):
 		self.session.get(self.url, params={
 			'cmd': 'logout',
-		})
+		}, verify=self.verify)
 
 	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
@@ -49,17 +50,17 @@ class FrappeClient(object):
 		if limit_page_length:
 			params["limit_start"] = limit_start
 			params["limit_page_length"] = limit_page_length
-		res = self.session.get(self.url + "/api/resource/" + doctype, params=params)
+		res = self.session.get(self.url + "/api/resource/" + doctype, params=params, verify=self.verify)
 		return self.post_process(res)
 
 	def insert(self, doc):
 		res = self.session.post(self.url + "/api/resource/" + doc.get("doctype"),
-			data={"data":json.dumps(doc)})
+			data={"data":json.dumps(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def update(self, doc):
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
-		res = self.session.put(url, data={"data":json.dumps(doc)})
+		res = self.session.put(url, data={"data":json.dumps(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def bulk_update(self, docs):
@@ -113,7 +114,7 @@ class FrappeClient(object):
                         params["fields"] = json.dumps(fields)
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
-			params=params)
+			params=params, verify=self.verify)
 
 		return self.post_process(res)
 
@@ -190,21 +191,21 @@ class FrappeClient(object):
 
 	def get_api(self, method, params={}):
 		res = self.session.get(self.url + "/api/method/" + method + "/",
-			params=params)
+			params=params, verify=self.verify)
 		return self.post_process(res)
 
 	def post_api(self, method, params={}):
 		res = self.session.post(self.url + "/api/method/" + method + "/",
-			params=params)
+			params=params, verify=self.verify)
 		return self.post_process(res)
 
 	def get_request(self, params):
-		res = self.session.get(self.url, params=self.preprocess(params))
+		res = self.session.get(self.url, params=self.preprocess(params), verify=self.verify)
 		res = self.post_process(res)
 		return res
 
 	def post_request(self, data):
-		res = self.session.post(self.url, data=self.preprocess(data))
+		res = self.session.post(self.url, data=self.preprocess(data), verify=self.verify)
 		res = self.post_process(res)
 		return res
 

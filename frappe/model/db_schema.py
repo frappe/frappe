@@ -37,6 +37,7 @@ type_map = {
 	,'Select':		('varchar', '255')
 	,'Read Only':	('varchar', '255')
 	,'Attach':		('varchar', '255')
+	,'Attach Image':('varchar', '255')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
