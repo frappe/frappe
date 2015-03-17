@@ -61,9 +61,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 		if role_permissions["apply_user_permissions"].get(ptype):
 			if not user_has_permission(doc, verbose=verbose, user=user,
-				user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
-				if verbose: print "No user permission"
-				return false_if_not_shared()
+				user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or []):
+					if verbose: print "No user permission"
+					return false_if_not_shared()
 
 		if not has_controller_permissions(doc, ptype, user=user):
 			if verbose: print "No controller permission"
@@ -88,11 +88,11 @@ def get_doc_permissions(doc, verbose=False, user=None):
 	if not cint(meta.allow_import):
 		role_permissions["import"] = 0
 
-	if role_permissions.get("apply_user_permissions") and not user_has_permission(doc, verbose=verbose, user=user,
-		user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
+	if role_permissions.get("apply_user_permissions"):
 		# no user permissions, switch off all user-level permissions
 		for ptype in role_permissions:
-			if role_permissions["apply_user_permissions"].get(ptype):
+			if role_permissions["apply_user_permissions"].get(ptype) and not user_has_permission(doc, verbose=verbose, user=user,
+		user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or []):
 				role_permissions[ptype] = 0
 
 	# update share permissions
@@ -107,7 +107,7 @@ def get_role_permissions(meta, user=None):
 	cache_key = (meta.name, user)
 
 	if not frappe.local.role_permissions.get(cache_key):
-		perms = frappe._dict({ "apply_user_permissions": {} })
+		perms = frappe._dict({ "apply_user_permissions": {}, "user_permission_doctypes": {} })
 		user_roles = frappe.get_roles(user)
 
 		for p in meta.permissions:
@@ -124,9 +124,11 @@ def get_role_permissions(meta, user=None):
 					user_permission_doctypes = (json.loads(p.user_permission_doctypes)
 							if p.user_permission_doctypes else None)
 
-					if user_permission_doctypes and user_permission_doctypes not in perms.get("user_permission_doctypes", []):
-						# perms["user_permission_doctypes"] would be a list of list like [["User", "Blog Post"], ["User"]]
-						perms.setdefault("user_permission_doctypes", []).append(user_permission_doctypes)
+					if user_permission_doctypes:
+						# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
+						for ptype in rights:
+							if p.get(ptype):
+								perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
 
 		for key, value in perms.get("apply_user_permissions").items():
 			if not value:
@@ -254,7 +256,6 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 
 	else:
 		user_permission_doctypes = [user_permissions.keys()]
-
 
 	if len(user_permission_doctypes) > 1:
 		# OPTIMIZATION

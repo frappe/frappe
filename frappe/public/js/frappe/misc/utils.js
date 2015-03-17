@@ -239,6 +239,15 @@ frappe.utils = {
 		return arr;
 	},
 
+	all: function(lst) {
+		for(var i=0, l=lst.length; i<l; i++) {
+			if(!lst[i]) {
+				return false;
+			}
+		}
+		return true;
+	},
+
 	dict: function(keys,values) {
 		// make dictionaries from keys and values
 		var out = [];
