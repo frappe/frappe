@@ -96,8 +96,10 @@ class Communication(Document):
 
 	def notify(self, mail, except_sender=False):
 		for recipient in self.get_recipients():
-			if except_sender and recipient == self.sender:
+			# while pulling email, don't send email to current sender and recipients
+			if except_sender and (recipient == self.sender or recipient == self.recipients):
 				continue
+
 			mail.recipients = [recipient]
 			self.add_to_mail_queue(mail)
 

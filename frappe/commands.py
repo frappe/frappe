@@ -129,6 +129,7 @@ def reinstall(context):
 	try:
 		frappe.init(site=site)
 		frappe.connect()
+		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
 	except:
@@ -217,7 +218,7 @@ def run_patch(context, module):
 		frappe.init(site=site)
 		try:
 			frappe.connect()
-			frappe.modules.patch_handler.run_single(patch_module, force=context.force)
+			frappe.modules.patch_handler.run_single(module, force=context.force)
 		finally:
 			frappe.destroy()
 

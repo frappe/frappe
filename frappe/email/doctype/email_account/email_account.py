@@ -186,9 +186,11 @@ class EmailAccount(Document):
 				bulk=True)
 
 
-def pull():
+def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
 	import frappe.tasks
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
-		frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
-		#frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
+		if now:
+			frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
+		else:
+			frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
