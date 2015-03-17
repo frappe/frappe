@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.model.base_document import get_controller
 from frappe.utils import cint
 from frappe.website.render import resolve_path
 
@@ -14,22 +13,13 @@ def get_context(context):
 	"""Returns context for a list standard list page.
 	Will also update `get_list_context` from the doctype module file"""
 	doctype = frappe.local.form_dict.doctype
-	update_list_context(context, doctype)
+
+	context.update(get_list_context(context, doctype) or {})
 
 	context.doctype = doctype
 	context.txt = frappe.local.form_dict.txt
 
 	context.update(get(**frappe.local.form_dict))
-
-	print context
-
-def get_list_context(context, doctype):
-	from frappe.modules import load_doctype_module
-	module = load_doctype_module(doctype)
-	if hasattr(module, "get_list_context"):
-		return frappe._dict(module.get_list_context(context) or {})
-
-	return frappe._dict()
 
 @frappe.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, **kwargs):
@@ -72,11 +62,21 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		new_context.update(list_context)
 		result.append(frappe.render_template(row_template, new_context, is_path=True))
 
-	return {
+	list_context.update({
 		"result": result,
 		"show_more": show_more,
 		"next_start": next_start
-	}
+	})
+
+	return list_context
+
+def get_list_context(context, doctype):
+	from frappe.modules import load_doctype_module
+	module = load_doctype_module(doctype)
+	if hasattr(module, "get_list_context"):
+		return frappe._dict(module.get_list_context(context) or {})
+
+	return frappe._dict()
 
 def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False):
 	meta = frappe.get_meta(doctype)
@@ -90,7 +90,10 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 			for f in meta.get_search_fields():
 				or_filters.append([doctype, f.strip(), "like", "%" + txt + "%"])
 		else:
-			filters.append([doctype, "name", "like", "%" + txt + "%"])
+			if isinstance(filters, dict):
+				filters["name"] = ("like", "%" + txt + "%")
+			else:
+				filters.append([doctype, "name", "like", "%" + txt + "%"])
 
 	return frappe.get_list(doctype, fields = ["*"],
 		filters=filters, or_filters=or_filters, limit_start=limit_start,
