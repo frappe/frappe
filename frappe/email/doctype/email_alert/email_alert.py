@@ -89,9 +89,6 @@ def evaluate_alert(doc, alert, event):
 	if not recipients:
 		return
 
-	# send alert
-	print "test"
-
 	frappe.sendmail(recipients=recipients, subject=alert.subject,
 		message= frappe.render_template(alert.message, {"doc": doc, "alert":alert}),
 		bulk=True, ref_doctype = doc.doctype, ref_docname = doc.name,

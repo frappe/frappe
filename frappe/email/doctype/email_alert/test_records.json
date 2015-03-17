@@ -4,6 +4,7 @@
 		"subject":"_Test Email Alert 1",
 		"document_type": "Comment",
 		"event": "New",
+		"attach_print": 0,
 		"message": "New comment {{ doc.comment }} created",
 		"recipients": [
 			{ "email_by_document_field": "owner" }
@@ -14,6 +15,7 @@
 		"subject":"_Test Email Alert 2",
 		"document_type": "Comment",
 		"event": "Save",
+		"attach_print": 0,
 		"message": "New comment {{ doc.comment }} saved",
 		"recipients": [
 			{ "email_by_document_field": "owner" }
@@ -24,6 +26,7 @@
 		"subject":"_Test Email Alert 3",
 		"document_type": "Event",
 		"event": "Save",
+		"attach_print": 0,
 		"condition": "doc.event_type=='Public'",
 		"message": "A new public event {{ doc.subject }} on {{ doc.starts_on }} is created",
 		"recipients": [
@@ -35,6 +38,7 @@
 		"subject":"_Test Email Alert 4",
 		"document_type": "Event",
 		"event": "Value Change",
+		"attach_print": 0,
 		"value_changed": "description",
 		"message": "Description changed",
 		"recipients": [
@@ -46,6 +50,7 @@
 		"subject":"_Test Email Alert 5",
 		"document_type": "Event",
 		"event": "Date Change",
+		"attach_print": 0,
 		"date_changed": "starts_on",
 		"days_in_advance": 2,
 		"message": "Description changed",
