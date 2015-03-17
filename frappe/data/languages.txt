@@ -1,4 +1,5 @@
 ar		العربية
+ca    Catalan
 de		deutsch
 ca		català
 el		ελληνικά
