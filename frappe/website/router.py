@@ -105,16 +105,19 @@ def get_pages():
 						route.page_or_generator = "Page"
 						route.template = os.path.relpath(os.path.join(path, fname), app_path)
 						route.name = route.page_name = route_page_name
-						controller_path = os.path.join(path, page_name + ".py")
+						controller_path = os.path.join(path, page_name.replace("-", "_") + ".py")
 
 						if os.path.exists(controller_path):
 							controller = app + "." + os.path.relpath(controller_path,
 								app_path).replace(os.path.sep, ".")[:-3]
 							route.controller = controller
-							try:
-								route.page_title = frappe.get_attr(controller + "." + "page_title")
-							except AttributeError:
-								pass
+
+							for fieldname in ("page_title", "no_sitemap"):
+								try:
+									route[fieldname] = frappe.get_attr(controller + "." + fieldname)
+								except AttributeError:
+									print route_page_name, "attribute error", fieldname
+									pass
 
 						pages.append(route)
 
