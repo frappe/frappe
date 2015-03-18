@@ -100,11 +100,15 @@ class DatabaseQuery(object):
 		return args
 
 	def parse_args(self):
+		"""Convert fields and filters from strings to list, dicts"""
 		if isinstance(self.fields, basestring):
 			if self.fields == "*":
 				self.fields = ["*"]
 			else:
-				self.fields = json.loads(self.fields)
+				try:
+					self.fields = json.loads(self.fields)
+				except ValueError:
+					self.fields = [f.strip() for f in self.fields.split(",")]
 
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)

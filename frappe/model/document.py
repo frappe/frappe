@@ -161,10 +161,10 @@ class Document(BaseDocument):
 		self.set_new_name()
 		self.set_parent_in_children()
 
-		self.set("__in_insert", True)
+		self.flags.in_insert = True
 		self.run_before_save_methods()
 		self._validate()
-		self.delete_key("__in_insert")
+		self.flags.in_insert = False
 
 		# run validate, on update etc.
 
@@ -179,9 +179,9 @@ class Document(BaseDocument):
 			d.db_insert()
 
 		self.run_method("after_insert")
-		self.set("__in_insert", True)
+		self.flags.in_insert = True
 		self.run_post_save_methods()
-		self.delete_key("__in_insert")
+		self.flags.in_insert = False
 
 		return self
 

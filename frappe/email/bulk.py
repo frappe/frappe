@@ -4,23 +4,21 @@
 from __future__ import unicode_literals
 import frappe
 import HTMLParser
-import urllib
+from urllib import quote_plus
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from html2text import html2text
-from frappe.utils import cint, get_url, nowdate
+from frappe.utils import get_url, nowdate
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='User', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None,
-		ref_docname=None, add_unsubscribe_link=True, attachments=None, reply_to=None):
+		ref_docname=None, unsubscribe_url=True, attachments=None, reply_to=None):
 
-	def is_unsubscribed(rdata):
-		if not rdata:
-			return 1
-		return cint(rdata.unsubscribed)
+	if not unsubscribe_url:
+		unsubscribe_url = "/api/method/frappe.email.bulk.unsubscribe?doctype={doctype}&name={name}&email={email}"
 
 	def check_bulk_limit(new_mails):
 		this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
@@ -36,21 +34,16 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 				throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
 					BulkLimitCrossedError)
 
-	def update_message(formatted, doc, add_unsubscribe_link):
+	def update_message(formatted, unsubscribe_url, email):
 		updated = formatted
-		if add_unsubscribe_link:
-			unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa;
-				margin-top: 17px;">
-				<small><a href="%s/?%s">
-				Unsubscribe</a> from this list.</small></div>""" % (get_url(),
-				urllib.urlencode({
-					"cmd": "frappe.email.bulk.unsubscribe",
-					"email": doc.get(email_field),
-					"type": doctype,
-					"email_field": email_field
-				}))
+		my_unsubscribe_url = unsubscribe_url.format(email=quote_plus(email), doctype=quote_plus(ref_doctype),
+			name=quote_plus(ref_docname))
 
-			updated = updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
+		unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa; margin-top: 17px;">
+			<small><a href="{base_url}/{url}">{message}</a></small></div>""".format(base_url = get_url(),
+				url = my_unsubscribe_url, message = _("Unsubscribe from this list"))
+
+		updated = updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
 
 		return updated
 
@@ -64,16 +57,13 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 	check_bulk_limit(len(recipients))
 
 	formatted = get_formatted_html(subject, message)
+	unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
+		{"reference_doctype": ref_doctype, "reference_name": ref_docname})]
 
 	for r in filter(None, list(set(recipients))):
-		rdata = frappe.db.sql("""select * from `tab%s` where %s=%s""" % (doctype,
-			email_field, '%s'), (r,), as_dict=1)
-
-		doc = rdata and rdata[0] or {}
-
-		if (not add_unsubscribe_link) or (not is_unsubscribed(doc)):
+		if r not in unsubscribed:
 			# add to queue
-			updated = update_message(formatted, doc, add_unsubscribe_link)
+			updated = update_message(formatted, unsubscribe_url)
 			try:
 				text_content = html2text(updated)
 			except HTMLParser.HTMLParseError:
@@ -100,19 +90,19 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.insert(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe():
-	doctype = frappe.form_dict.get('type')
-	field = frappe.form_dict.get('email_field')
-	email = frappe.form_dict.get('email')
-
-	frappe.db.sql("""update `tab%s` set unsubscribed=1
-		where `%s`=%s""" % (doctype, field, '%s'), (email,))
+def unsubscribe(doctype, name, email):
+	# unsubsribe from comments and communications
+	frappe.g
 
 	if not frappe.form_dict.get("from_test"):
 		frappe.db.commit()
 
-	frappe.local.message_title = "Unsubscribe"
-	frappe.local.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
+	return_unsubscribed_page(email)
+
+def return_unsubscribed_page(email):
+	frappe.local.message_title = _("Unsubscribed")
+	frappe.local.message = "<h3>" + _("Unsubscribed") + "</h3><p>" \
+		+ _("{0} has been successfully unsubscribed").fomrat(email) + "</p>"
 
 	frappe.response['type'] = 'page'
 	frappe.response['page_name'] = 'message.html'

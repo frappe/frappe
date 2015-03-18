@@ -311,3 +311,6 @@ _f.Frm.prototype.open_grid_row = function() {
 	return frappe.ui.form.get_open_grid_form();
 }
 
+_f.Frm.prototype.is_new = function() {
+	return this.doc.__islocal;
+}

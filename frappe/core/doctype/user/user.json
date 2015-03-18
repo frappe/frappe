@@ -11,7 +11,7 @@
   {
    "fieldname": "sb0_5", 
    "fieldtype": "Section Break", 
-   "label": "Personal Info", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -40,6 +40,7 @@
    "no_copy": 1, 
    "oldfieldname": "email", 
    "oldfieldtype": "Data", 
+   "options": "Email", 
    "permlevel": 0, 
    "reqd": 1, 
    "search_index": 0
@@ -90,7 +91,7 @@
    "width": "50%"
   }, 
   {
-   "description": "Language preference for user interface (only if available).", 
+   "description": "", 
    "fieldname": "language", 
    "fieldtype": "Select", 
    "label": "Language", 
@@ -98,7 +99,7 @@
    "permlevel": 0
   }, 
   {
-   "description": "Default is system timezone", 
+   "description": "", 
    "fieldname": "time_zone", 
    "fieldtype": "Select", 
    "label": "Timezone", 
@@ -107,13 +108,13 @@
   {
    "fieldname": "change_password", 
    "fieldtype": "Section Break", 
-   "label": "Set Password", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
    "fieldname": "new_password", 
    "fieldtype": "Password", 
-   "label": "New Password", 
+   "label": "Set New Password", 
    "no_copy": 1, 
    "permlevel": 0
   }, 
@@ -131,7 +132,7 @@
    "depends_on": "eval:!doc.__islocal", 
    "fieldname": "display_settings", 
    "fieldtype": "Section Break", 
-   "label": "Display Settings", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -156,9 +157,30 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "incoming_email_settings", 
+   "fieldtype": "Section Break", 
+   "label": "", 
+   "permlevel": 0
+  }, 
+  {
+   "default": "1", 
+   "fieldname": "thread_notify", 
+   "fieldtype": "Check", 
+   "label": "Send Notifications for Transactions I Follow", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "email_signature", 
+   "fieldtype": "Small Text", 
+   "label": "Email Signature", 
+   "no_copy": 1, 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "background", 
    "fieldtype": "Section Break", 
-   "label": "Background", 
+   "label": "", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -180,7 +202,7 @@
   {
    "fieldname": "short_bio", 
    "fieldtype": "Section Break", 
-   "label": "Short Bio", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -236,19 +258,6 @@
    "label": "Roles HTML", 
    "permlevel": 0, 
    "read_only": 1
-  }, 
-  {
-   "fieldname": "incoming_email_settings", 
-   "fieldtype": "Section Break", 
-   "label": "Email Settings", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "email_signature", 
-   "fieldtype": "Small Text", 
-   "label": "Email Signature", 
-   "no_copy": 1, 
-   "permlevel": 0
   }, 
   {
    "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.", 
@@ -439,7 +448,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-03-04 02:37:27.094830", 
+ "modified": "2015-03-18 07:07:25.563270", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

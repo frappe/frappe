@@ -104,33 +104,38 @@ class Communication(Document):
 			self.add_to_mail_queue(mail)
 
 	def get_recipients(self):
-		# Earlier repliers
-		recipients = frappe.db.sql_list("""
+		"""Build a list of users to which this email should go to"""
+
+		recipients = self.get_earlier_participants()
+		recipients += self.get_commentors()
+		recipients += [s.strip() for s in self.recipients.split(",")]
+		recipients += self.get_assignees()
+		recipients = filter(lambda e: e and e!="Administrator", list(set(recipients)))
+
+		# remove unsubscribed recipients
+		unsubscribed = [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
+		recipients = filter(lambda e: e not in unsubscribed, recipients)
+
+		return recipients
+
+	def get_earlier_participants(self):
+		return frappe.db.sql("""
 			select distinct sender
 			from tabCommunication where
-			reference_doctype=%s and reference_name=%s""",
+			reference_doctype=%s and reference_name=%s and ifnull(unsubscribed,0)!=0""",
 				(self.reference_doctype, self.reference_name))
 
-		# Commentors
-		recipients += frappe.db.sql_list("""
+	def get_commentors(self):
+		return frappe.db.sql_list("""
 			select distinct comment_by
 			from tabComment where
 			comment_doctype=%s and comment_docname=%s and
 			ifnull(unsubscribed, 0)=0 and comment_by!='Administrator'""",
 				(self.reference_doctype, self.reference_name))
 
-		# Explicit recipients
-		recipients += [s.strip() for s in self.recipients.split(",")]
-
-		# Assigned
-		assigned = frappe.db.get_value("ToDo", {"reference_type": self.reference_doctype,
-			"reference_name": self.reference_name, "status": "Open"}, "owner")
-		if assigned:
-			recipients.append(assigned)
-
-		recipients = filter(lambda e: e and e!="Administrator", list(set(recipients)))
-
-		return recipients
+	def get_assignees(self):
+		return [d.owner for d in frappe.db.get_all("ToDo", fitlers={"reference_type": self.reference_doctype,
+			"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
 
 	def get_attach_link(self, print_format):
 		"""Returns public link for the attachment via `templates/emails/print_link.html`."""

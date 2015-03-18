@@ -721,6 +721,15 @@ class Database:
 			frappe.db.sql("""alter table `tab%s`
 				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
+	def add_unique(self, doctype, fields, constraint_name=None):
+		if isinstance(fields, basestring):
+			fields = [fields]
+		if not constraint_name:
+			constraint_name = "unique_" + "_".join(fields)
+
+		frappe.db.sql("""alter table `tab%s`
+			add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+
 	def close(self):
 		"""Close database connection."""
 		if self._conn:

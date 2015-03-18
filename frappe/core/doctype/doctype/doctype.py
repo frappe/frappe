@@ -110,14 +110,19 @@ class DocType(Document):
 			self.make_controller_template()
 
 		# update index
-		if not getattr(self, "custom", False):
-			from frappe.modules import load_doctype_module
-			module = load_doctype_module(self.name, self.module)
-			if hasattr(module, "on_doctype_update"):
-				module.on_doctype_update()
+		self.run_module_method("on_doctype_update")
+		if self.flags.in_insert:
+			self.run_module_method("after_doctype_insert")
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
+
+	def run_module_method(self, method):
+		from frappe.modules import load_doctype_module
+		module = load_doctype_module(self.name, self.module)
+		if hasattr(module, method):
+			getattr(module, method)()
+
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, now, get_gravatar, format_datetime, now_datetime
+from frappe.utils import cint, get_gravatar, format_datetime, now_datetime
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
@@ -264,8 +264,9 @@ class User(Document):
 			frappe.db.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 
 	def add_roles(self, *roles):
+		current_roles = [d.role for d in self.get("user_roles")]
 		for role in roles:
-			if role in [d.role for d in self.get("user_roles")]:
+			if role in current_roles:
 				continue
 			self.append("user_roles", {
 				"doctype": "UserRole",

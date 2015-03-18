@@ -270,7 +270,7 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False, attachments=None, content=None, doctype=None, name=None, reply_to=None):
+		unsubscribe_url=False, attachments=None, content=None, doctype=None, name=None, reply_to=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -282,7 +282,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param bulk: Send via scheduled email sender **Bulk Email**. Don't send immediately.
 	:param ref_doctype: (or `doctype`) Append as communication to this DocType.
 	:param ref_docname: (or `name`) Append as communication to this document name.
-	:param add_unsubscribe_link: Allow user to unsubscribe from these emails.
+	:param unsubscribe_url: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe?email={email}&name={name}`
 	:param attachments: List of attachments.
 	:param reply_to: Reply-To email id.
 	"""
@@ -291,7 +291,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		import frappe.email.bulk
 		frappe.email.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=content or message, ref_doctype = doctype or ref_doctype,
-			ref_docname = name or ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments,
+			ref_docname = name or ref_docname, unsubscribe_url=unsubscribe_url, attachments=attachments,
 			reply_to=reply_to)
 
 	else:

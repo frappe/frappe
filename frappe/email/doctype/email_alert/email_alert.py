@@ -40,7 +40,7 @@ def trigger_email_alerts(doc, method=None):
 				evaluate_alert(frappe.get_doc(alert.document_type, name),
 					alert, "Date Change")
 	else:
-		if method in ("on_update", "validate") and doc.get("__in_insert"):
+		if method in ("on_update", "validate") and doc.flags.in_insert:
 			# don't call email alerts multiple times for inserts
 			# on insert only "New" type alert must be called
 			return
