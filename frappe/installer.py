@@ -88,6 +88,7 @@ def make_connection(root_login, root_password):
 	return frappe.database.Database(user=root_login, password=root_password)
 
 def install_app(name, verbose=False, set_as_patched=True):
+	frappe.clear_cache()
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
 

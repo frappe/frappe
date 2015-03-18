@@ -107,6 +107,7 @@ def init(site, sites_path=None):
 
 	local.user = None
 	local.role_permissions = {}
+	local.valid_columns = {}
 
 	local.jenv = None
 	local.jloader =None

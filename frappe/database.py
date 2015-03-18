@@ -247,6 +247,8 @@ class Database:
 
 	def convert_to_simple_type(self, v, formatted=0):
 		"""Format date, time, longint values."""
+		return v
+
 		from frappe.utils import formatdate, fmt_money
 
 		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):

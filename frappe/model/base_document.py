@@ -179,15 +179,21 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-		if self.doctype in ("DocField", "DocPerm") and self.parent in ("DocType", "DocField", "DocPerm"):
-			from frappe.model.meta import get_table_columns
-			valid = get_table_columns(self.doctype)
-		else:
-			valid = self.meta.get_valid_columns()
-
-		for key in valid:
+		for key in self.get_valid_columns():
 			if key not in self.__dict__:
 				self.__dict__[key] = None
+
+	def get_valid_columns(self):
+		if self.doctype not in frappe.local.valid_columns:
+			if self.doctype in ("DocField", "DocPerm") and self.parent in ("DocType", "DocField", "DocPerm"):
+				from frappe.model.meta import get_table_columns
+				valid = get_table_columns(self.doctype)
+			else:
+				valid = self.meta.get_valid_columns()
+
+			frappe.local.valid_columns[self.doctype] = valid
+
+		return frappe.local.valid_columns[self.doctype]
 
 	def is_new(self):
 		return self.get("__islocal")

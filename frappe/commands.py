@@ -30,7 +30,8 @@ def pass_context(f):
 		if profile:
 			pr.disable()
 			s = StringIO.StringIO()
-			ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
+			ps = pstats.Stats(pr, stream=s)\
+				.sort_stats('cumtime', 'tottime', 'ncalls')
 			ps.print_stats()
 			print s.getvalue()
 
@@ -72,8 +73,12 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	import frappe.utils.scheduler
 
 	frappe.init(site=site)
-	# enable scheduler post install?
-	enable_scheduler = _is_scheduler_enabled()
+
+	try:
+		# enable scheduler post install?
+		enable_scheduler = _is_scheduler_enabled()
+	except:
+		enable_scheduler = False
 
 	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
 	make_site_dirs()
@@ -132,7 +137,7 @@ def reinstall(context):
 		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
-	except:
+	except Exception, e:
 		installed = []
 		raise
 	finally:

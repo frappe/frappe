@@ -9,4 +9,5 @@ from frappe.model.document import Document
 
 class Currency(Document):
 	def validate(self):
-		frappe.clear_cache()
+		if not frappe.flags.in_install_app:
+			frappe.clear_cache()

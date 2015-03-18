@@ -35,9 +35,9 @@ class RedisWrapper(redis.Redis):
 		:param generator: Function to be called to generate a value if `None` is returned."""
 		original_key = key
 		key = self.make_key(key, user)
-		val = frappe.local.cache.get(key)
 
-		if val is None:
+		if key not in frappe.local.cache:
+			val = None
 			if not frappe.local.flags.in_install:
 				try:
 					val = self.get(key)
@@ -50,7 +50,8 @@ class RedisWrapper(redis.Redis):
 				self.set_value(original_key, val, user=user)
 			else:
 				frappe.local.cache[key] = val
-		return val
+
+		return frappe.local.cache.get(key)
 
 	def get_all(self, key):
 		ret = {}

@@ -124,6 +124,7 @@ class Meta(Document):
 		self.add_custom_fields()
 		self.apply_property_setters()
 		self.sort_fields()
+		self.get_valid_columns()
 
 	def add_custom_fields(self):
 		try:
