@@ -137,7 +137,8 @@ frappe.search.verbs = [
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			frappe.search.options.push({
-				value: __('Find {0} in {1}', ["<b>"+txt+"</b>", "<b>" + route[1] + "</b>"]),
+				label: __('Find {0} in {1}', ["<b>"+txt+"</b>", "<b>" + route[1] + "</b>"]),
+				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
 				onclick: function() {
 					frappe.container.page.doclistview.set_route_options();
@@ -159,7 +160,8 @@ frappe.search.verbs = [
 				var values = frappe.utils.unique(keys(locals[doctype]).concat(frappe.search.recent[doctype] || []));
 				var ret = frappe.search.find(values, txt, function(match) {
 					return {
-						value: __(doctype) + " <b>" + match + "</b>",
+						label: __(doctype) + " <b>" + match + "</b>",
+						value: __(doctype) + " " + match,
 						route: ["Form", doctype, match]
 					}
 				});
@@ -173,7 +175,8 @@ frappe.search.verbs = [
 		if(txt.split(" ")[0]==="new") {
 			frappe.search.find(frappe.boot.user.can_create, txt.substr(4), function(match) {
 				return {
-					value:__("New {0}", ["<b>"+match+"</b>"]),
+					label: __("New {0}", ["<b>"+match+"</b>"]),
+					value: __("New {0}", [match]),
 					onclick: function() { new_doc(match); }
 				}
 			});
@@ -185,12 +188,14 @@ frappe.search.verbs = [
 		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
 			if(in_list(frappe.boot.single_types, match)) {
 				return {
-					value: __("{0}", ["<b>"+__(match)+"</b>"]),
+					label: __("{0}", ["<b>"+__(match)+"</b>"]),
+					value: __(match),
 					route:["Form", match, match]
 				}
 			} else {
 				return {
-					value: __("{0} List", ["<b>"+__(match)+"</b>"]),
+					label: __("{0} List", ["<b>"+__(match)+"</b>"]),
+					value: __("{0} List", [__(match)]),
 					route:["List", match]
 				}
 			}
@@ -201,7 +206,8 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
-				value: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				value: __("Open {0}", [__(match)]),
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
@@ -211,7 +217,8 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.modules), txt, function(match) {
 			ret = {
-				value: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				value: __("Open {0}", [__(match)]),
 			}
 			if(frappe.modules[match].link) {
 				ret.route = [frappe.modules[match].link];
@@ -228,7 +235,8 @@ frappe.search.verbs = [
 			parts = txt.split(" in ");
 			frappe.search.find(frappe.boot.user.can_read, parts[1], function(match) {
 				return {
-					value: __('Find {0} in {1}', ["<b>"+__(parts[0])+"</b>", "<b>"+__(match)+"</b>"]),
+					label: __('Find {0} in {1}', ["<b>"+__(parts[0])+"</b>", "<b>"+__(match)+"</b>"]),
+					value: __('Find {0} in {1}', [__(parts[0]), __(match)]),
 					route_options: {"name": ["like", "%" + parts[0] + "%"]},
 					route: ["List", match]
 				}
@@ -246,9 +254,10 @@ frappe.search.verbs = [
 
 			try {
 				var val = eval(txt);
-				var formatted_value = $.format('{0} = {1}', [txt, "<b>"+val+"</b>"]);
+				var formatted_value = __('{0} = {1}', [txt, "<b>"+val+"</b>"]);
 				frappe.search.options.push({
-					value: formatted_value,
+					label: formatted_value,
+					value: __('{0} = {1}', [txt, val]),
 					match: val,
 					onclick: function(match) {
 						msgprint(formatted_value, "Result");
