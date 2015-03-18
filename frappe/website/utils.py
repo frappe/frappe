@@ -42,13 +42,13 @@ def get_home_page():
 
 		for role in frappe.get_roles():
 			if role in role_home_page:
-				home_page = role_home_page[role][0]
+				home_page = role_home_page[role][-1]
 				break
 
 		if not home_page:
 			home_page = frappe.get_hooks("home_page")
 			if home_page:
-				home_page = home_page[0]
+				home_page = home_page[-1]
 
 		if not home_page:
 			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
