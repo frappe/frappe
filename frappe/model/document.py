@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import flt, cint, cstr, now
+from frappe.utils import flt, cint, cstr, now, get_datetime_str
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
@@ -661,4 +661,4 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(self.creation).hexdigest()
+		return hashlib.sha224(get_datetime_str(self.creation)).hexdigest()

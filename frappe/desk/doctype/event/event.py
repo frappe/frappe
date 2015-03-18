@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate
+from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate, get_datetime_str
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 
@@ -114,7 +114,11 @@ def get_events(start, end, user=None, for_reminder=False):
 
 	for e in events:
 		if e.repeat_this_event:
-			event_start, time_str = e.starts_on.split(" ")
+			e.starts_on = get_datetime_str(e.starts_on)
+			if e.ends_on:
+				e.ends_on = get_datetime_str(e.ends_on)
+
+			event_start, time_str = get_datetime_str(e.starts_on).split(" ")
 			if e.repeat_till == None or "":
 				repeat = "3000-01-01"
 			else:
