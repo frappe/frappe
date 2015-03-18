@@ -128,9 +128,11 @@ frappe.ui.Listing = Class.extend({
 		frappe.model.with_doctype(doctype, function() {
 			var doc = frappe.model.get_new_doc(doctype);
 			if(me.filter_list) {
+				frappe.route_options = {};
 				$.each(me.filter_list.get_filters(), function(i, f) {
-					if(f[0]===doctype && f[2]==="=" && f[1]!=="name")
-						doc[f[1]]=f[3];
+					if(f[0]===doctype && f[2]==="=" && !in_list(frappe.model.std_fields_list, f[1])) {
+						frappe.route_options[f[1]] = f[3];
+					}
 				})
 			}
 			frappe.set_route("Form", doctype, doc.name);

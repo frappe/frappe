@@ -496,6 +496,13 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
+		if(frappe.route_options) {
+			$.each(frappe.route_options, function(fieldname, value) {
+				me.set_value(fieldname, value);
+			})
+			
+			frappe.route_options = null;
+		}
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
 	})
 
