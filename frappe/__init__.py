@@ -926,8 +926,6 @@ def attach_print(doctype, name, file_name=None):
 			"fcontent": scrub_urls(get_print(doctype, name)).encode("utf-8")
 		}
 
-	print print_settings, out
-
 	local.flags.ignore_print_permissions = False
 
 	return out

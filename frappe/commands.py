@@ -134,9 +134,13 @@ def reinstall(context):
 		frappe.clear_cache()
 	except:
 		installed = []
+		raise
 	finally:
-		frappe.db.close()
+		if frappe.db:
+			frappe.db.close()
+		frappe.destroy()
 
+	frappe.init(site=site)
 	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True, install_apps=installed)
 
 @click.command('install-app')
