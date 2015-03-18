@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide("website");
+frappe.provide("frappe.search_path");
 
 $.extend(frappe, {
 	_assets_loaded: [],
@@ -266,7 +267,7 @@ $.extend(frappe, {
 
 	},
 	load_via_ajax: function(href) {
-		// console.log("calling ajax");
+		// console.log("calling ajax", href);
 		window.previous_href = href;
 		history.pushState(null, null, href);
 
@@ -438,10 +439,15 @@ $.extend(frappe, {
 		$(".navbar .search").on("keypress", function(e) {
 			var val = $(this).val();
 			if(e.which===13 && val) {
-				frappe.load_via_ajax(location.pathname + "?txt=" + encodeURIComponent(val));
+				$(this).val("").blur();
+				var path = (frappe.search_path && frappe.search_path[location.pathname] || location.pathname);
+				frappe.load_via_ajax(path + "?txt=" + encodeURIComponent(val));
 				return false;
 			}
 		});
+	},
+	set_search_path: function(path) {
+		frappe.search_path[location.pathname] = path;
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;
