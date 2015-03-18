@@ -55,18 +55,18 @@ class FrappeClient(object):
 
 	def insert(self, doc):
 		res = self.session.post(self.url + "/api/resource/" + doc.get("doctype"),
-			data={"data":json.dumps(doc)}, verify=self.verify)
+			data={"data":frappe.as_json(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def update(self, doc):
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
-		res = self.session.put(url, data={"data":json.dumps(doc)}, verify=self.verify)
+		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def bulk_update(self, docs):
 		return self.post_request({
 			"cmd": "frappe.client.bulk_update",
-			"docs": json.dumps(docs)
+			"docs": frappe.as_json(docs)
 		})
 
 	def delete(self, doctype, name):
@@ -79,7 +79,7 @@ class FrappeClient(object):
 	def submit(self, doclist):
 		return self.post_request({
 			"cmd": "frappe.client.submit",
-			"doclist": json.dumps(doclist)
+			"doclist": frappe.as_json(doclist)
 		})
 
 	def get_value(self, doctype, fieldname=None, filters=None):
@@ -87,7 +87,7 @@ class FrappeClient(object):
 			"cmd": "frappe.client.get_value",
 			"doctype": doctype,
 			"fieldname": fieldname or "name",
-			"filters": json.dumps(filters)
+			"filters": frappe.as_json(filters)
 		})
 
 	def set_value(self, doctype, docname, fieldname, value):
@@ -110,8 +110,8 @@ class FrappeClient(object):
 		params = {}
 		if filters:
 			params["filters"] = json.dumps(filters)
-                if fields:
-                        params["fields"] = json.dumps(fields)
+			if fields:
+				params["fields"] = json.dumps(fields)
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify)

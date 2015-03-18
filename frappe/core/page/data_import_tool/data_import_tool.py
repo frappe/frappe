@@ -66,7 +66,7 @@ def export_json(doctype, path, filters=None):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
 	with open(path, "w") as outfile:
-		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
+		outfile.write(frappe.as_json(out))
 
 @frappe.whitelist()
 def export_fixture(doctype, app):

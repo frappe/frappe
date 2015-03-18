@@ -27,6 +27,6 @@ def get_context(context):
 			"desk.min.js"))),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
-		"boot": json.dumps(boot, default=json_handler, indent=1, sort_keys=True),
+		"boot": frappe.as_json(boot),
 		"background_image": boot.user.background_image or boot.default_background_image
 	}

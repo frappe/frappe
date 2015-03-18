@@ -29,7 +29,7 @@ def getdate(string_date):
 	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
 
 def get_datetime(datetime_str):
-	if isinstance(datetime_str, datetime.datetime):
+	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
 	elif isinstance(datetime_str, datetime.date):
@@ -97,17 +97,17 @@ def _get_user_time_zone():
 	user_time_zone = None
 	if frappe.session.user:
 		user_time_zone = frappe.db.get_value("User", frappe.session.user, "time_zone")
-	
+
 	if not user_time_zone:
 		user_time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
 			or "Asia/Kolkata")
-			
+
 	return user_time_zone
 
 def get_user_time_zone():
 	if frappe.local.flags.in_test:
 		return _get_user_time_zone()
-		
+
 	if getattr(frappe.local, "user_time_zone", None) is None:
 		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
 

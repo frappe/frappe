@@ -859,13 +859,16 @@ def get_all(doctype, *args, **kwargs):
 def add_version(doc):
 	"""Insert a new **Version** of the given document.
 	A **Version** is a JSON dump of the current document state."""
-	from frappe.utils.response import json_handler
 	get_doc({
 		"doctype": "Version",
 		"ref_doctype": doc.doctype,
 		"docname": doc.name,
-		"doclist_json": json.dumps(doc.as_dict(), indent=1, sort_keys=True, default=json_handler)
+		"doclist_json": as_json(doc.as_dict())
 	}).insert(ignore_permissions=True)
+
+def as_json(obj):
+	from frappe.utils.response import json_handler
+	return json.dumps(obj, indent=1, sort_keys=True, default=json_handler)
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""

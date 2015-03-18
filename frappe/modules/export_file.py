@@ -41,7 +41,7 @@ def write_document_file(doc, record_module=None, create_init=None):
 	# write the data file
 	fname = (doc.doctype in lower_case_files_for and scrub(doc.name)) or doc.name
 	with open(os.path.join(folder, fname +".json"),'w+') as txtfile:
-		txtfile.write(json.dumps(newdoc, indent=1, sort_keys=True))
+		txtfile.write(frappe.as_json(newdoc))
 
 def get_module_name(doc):
 	if doc.doctype  == 'Module Def':
