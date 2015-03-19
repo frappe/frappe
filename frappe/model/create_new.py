@@ -74,9 +74,9 @@ def get_default_value(df, defaults, user_permissions, parent_doc):
 			# default value based on another document
 			ref_doctype =  df.default[1:]
 			ref_fieldname = ref_doctype.lower().replace(" ", "_")
-			ref_docname = parent_doc.get(ref_fieldname) if parent_doc else frappe.db.get_default(ref_fieldname)
+			reference_name = parent_doc.get(ref_fieldname) if parent_doc else frappe.db.get_default(ref_fieldname)
 
-			default_value = frappe.db.get_value(ref_doctype, ref_docname, df.fieldname)
+			default_value = frappe.db.get_value(ref_doctype, reference_name, df.fieldname)
 			is_allowed_default_value = (not user_permissions_exist or
 				(default_value in user_permissions.get(df.options, [])))
 

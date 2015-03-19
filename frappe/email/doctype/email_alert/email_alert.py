@@ -91,5 +91,5 @@ def evaluate_alert(doc, alert, event):
 
 	frappe.sendmail(recipients=recipients, subject=alert.subject,
 		message= frappe.render_template(alert.message, {"doc": doc, "alert":alert}),
-		bulk=True, ref_doctype = doc.doctype, ref_docname = doc.name,
+		bulk=True, reference_doctype = doc.doctype, reference_name = doc.name,
 		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)

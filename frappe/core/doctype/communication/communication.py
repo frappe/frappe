@@ -90,8 +90,8 @@ class Communication(Document):
 			"sender": mail.sender,
 			"recipient": mail.recipients[0],
 			"message": mail.as_string(),
-			"ref_doctype": self.reference_doctype,
-			"ref_docname": self.reference_name
+			"reference_doctype": self.reference_doctype,
+			"reference_name": self.reference_name
 		}).insert(ignore_permissions=True)
 
 	def notify(self, mail, except_sender=False):

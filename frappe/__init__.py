@@ -269,7 +269,7 @@ def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
-		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
+		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_url=False, attachments=None, content=None, doctype=None, name=None, reply_to=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -280,8 +280,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
 	:param bulk: Send via scheduled email sender **Bulk Email**. Don't send immediately.
-	:param ref_doctype: (or `doctype`) Append as communication to this DocType.
-	:param ref_docname: (or `name`) Append as communication to this document name.
+	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
+	:param reference_name: (or `name`) Append as communication to this document name.
 	:param unsubscribe_url: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe?email={email}&name={name}`
 	:param attachments: List of attachments.
 	:param reply_to: Reply-To email id.
@@ -290,8 +290,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	if bulk:
 		import frappe.email.bulk
 		frappe.email.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=content or message, ref_doctype = doctype or ref_doctype,
-			ref_docname = name or ref_docname, unsubscribe_url=unsubscribe_url, attachments=attachments,
+			subject=subject, message=content or message, reference_doctype = doctype or reference_doctype,
+			reference_name = name or reference_name, unsubscribe_url=unsubscribe_url, attachments=attachments,
 			reply_to=reply_to)
 
 	else:
@@ -861,7 +861,7 @@ def add_version(doc):
 	A **Version** is a JSON dump of the current document state."""
 	get_doc({
 		"doctype": "Version",
-		"ref_doctype": doc.doctype,
+		"reference_doctype": doc.doctype,
 		"docname": doc.name,
 		"doclist_json": as_json(doc.as_dict())
 	}).insert(ignore_permissions=True)

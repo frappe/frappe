@@ -53,11 +53,9 @@ def add_comment(args=None):
 	from frappe.email.bulk import send
 
 	send(recipients=recipients,
-		doctype='Comment',
-		email_field='comment_by',
 		subject = _("New comment on {0} {1}").format(comment.comment_doctype, comment.comment_docname),
 		message = message,
-		ref_doctype=comment.comment_doctype, ref_docname=comment.comment_docname)
+		reference_doctype=comment.comment_doctype, reference_name=comment.comment_docname)
 
 	template = frappe.get_template("templates/includes/comments/comment.html")
 
