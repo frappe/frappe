@@ -861,7 +861,7 @@ def add_version(doc):
 	A **Version** is a JSON dump of the current document state."""
 	get_doc({
 		"doctype": "Version",
-		"reference_doctype": doc.doctype,
+		"ref_doctype": doc.doctype,
 		"docname": doc.name,
 		"doclist_json": as_json(doc.as_dict())
 	}).insert(ignore_permissions=True)
