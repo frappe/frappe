@@ -138,7 +138,8 @@ def get_lang_js(fortype, name):
 def get_full_dict(lang):
 	if lang == "en":
 		return {}
-	return frappe.cache().get_value("lang:" + lang, lambda:load_lang(lang))
+	translations = load_lang(lang)
+	return frappe.cache().get_value("lang:" + lang, lambda:translations) if translations else {}
 
 def load_lang(lang, apps=None):
 	out = {}
