@@ -116,7 +116,6 @@ def get_pages():
 								try:
 									route[fieldname] = frappe.get_attr(controller + "." + fieldname)
 								except AttributeError:
-									print route_page_name, "attribute error", fieldname
 									pass
 
 						pages.append(route)

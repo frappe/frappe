@@ -49,7 +49,7 @@ frappe.search = {
 		};
 
 		var render_item = function(ul, d) {
-			var html = "<span>" + __(d.value) + "</span>";
+			var html = "<span>" + __(d.label) + "</span>";
 			if(d.description && d.value!==d.description) {
 				html += '<br><span class="text-muted">' + __(d.description) + '</span>';
 			}
