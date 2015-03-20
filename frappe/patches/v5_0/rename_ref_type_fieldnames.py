@@ -5,6 +5,15 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.db.sql("alter table `tabBulk Email` change `ref_docname` `reference_name` varchar(255)")
-	frappe.db.sql("alter table `tabBulk Email` change `reference_doctype` `reference_doctype` varchar(255)")
+	try:
+		frappe.db.sql("alter table `tabBulk Email` change `ref_docname` `reference_name` varchar(255)")
+	except Exception, e:
+		if e.args[0] != 1054:
+			raise
+			
+	try:
+		frappe.db.sql("alter table `tabBulk Email` change `ref_doctype` `reference_doctype` varchar(255)")
+	except Exception, e:
+		if e.args[0] != 1054:
+			raise
 	frappe.reload_doctype("Bulk Email")
