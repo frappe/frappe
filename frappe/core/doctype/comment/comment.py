@@ -60,6 +60,8 @@ class Comment(Document):
 				raise
 
 	def update_comments_in_parent(self, _comments):
+		if frappe.db.get_value("DocType", self.comment_doctype, "issingle"):
+			return
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.comment_docname))
