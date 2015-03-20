@@ -650,7 +650,10 @@ class Database:
 
 	def table_exists(self, tablename):
 		"""Returns True if table exists."""
-		return tablename in [d[0] for d in self.sql("show tables")]
+		return ("tab" + tablename) in self.get_tables()
+
+	def get_tables(self):
+		return [d[0] for d in self.sql("show tables")]
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""

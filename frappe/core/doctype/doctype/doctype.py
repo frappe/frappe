@@ -150,7 +150,7 @@ class DocType(Document):
 			return
 
 		# check if atleast 1 record exists
-		if not (frappe.db.table_exists("tab" + self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
+		if not (frappe.db.table_exists(self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
 			return
 
 		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.name,
