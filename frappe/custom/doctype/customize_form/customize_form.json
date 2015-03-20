@@ -16,6 +16,7 @@
    "search_index": 0
   }, 
   {
+   "depends_on": "doc_type", 
    "fieldname": "properties", 
    "fieldtype": "Section Break", 
    "label": "Properties", 
@@ -48,14 +49,15 @@
   }, 
   {
    "fieldname": "sort_field", 
-   "fieldtype": "Data", 
+   "fieldtype": "Select", 
    "label": "Sort Field", 
    "permlevel": 0
   }, 
   {
    "fieldname": "sort_order", 
-   "fieldtype": "Data", 
+   "fieldtype": "Select", 
    "label": "Sort Order", 
+   "options": "ASC\nDESC", 
    "permlevel": 0
   }, 
   {
@@ -81,6 +83,7 @@
    "search_index": 0
   }, 
   {
+   "depends_on": "doc_type", 
    "description": "Customize Label, Print Hide, Default etc.", 
    "fieldname": "fields_section_break", 
    "fieldtype": "Section Break", 
@@ -101,7 +104,7 @@
  "icon": "icon-glass", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2015-02-05 05:11:37.012932", 
+ "modified": "2015-03-20 07:13:20.652676", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form", 

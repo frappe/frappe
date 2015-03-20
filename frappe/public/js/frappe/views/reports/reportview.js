@@ -51,7 +51,11 @@ frappe.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		this.page.set_title(__(this.doctype));
 		var module = locals.DocType[this.doctype].module;
-		frappe.breadcrumbs.add(module, this.doctype)
+		frappe.breadcrumbs.add(module, this.doctype);
+
+		if(frappe.model.can_write(this.doctype)) {
+			this.page.footer.html('<p class="text-muted">'+__("Tip: Double click cell to edit")+'</p>').removeClass("hide");
+		}
 
 		this.parent.reportview = new frappe.views.ReportView({
 			doctype: this.doctype,

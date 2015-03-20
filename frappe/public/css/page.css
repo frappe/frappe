@@ -61,6 +61,12 @@
 .layout-main-section-wrapper {
   margin-bottom: 60px;
 }
+.layout-footer {
+  border: 1px solid #d1d8dd;
+  border-top: 0px;
+  padding: 3px 15px;
+  font-size: 12px;
+}
 .page-form {
   margin: 0px;
   padding-top: 15px;

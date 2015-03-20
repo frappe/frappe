@@ -60,16 +60,6 @@
 .badge-important {
   background-color: #e74c3c;
 }
-.comm-header {
-  font-weight: bold;
-  height: 20px;
-  overflow: hidden;
-}
-.comm-header > div {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
 .timeline {
   border: 1px solid #d1d8dd;
   margin: 30px 0px;

@@ -35,7 +35,8 @@ $.extend(frappe.model, {
 	events: {},
 
 	is_value_type: function(fieldtype) {
-		return frappe.model.no_value_type.indexOf(fieldtype)!==-1;
+		// not in no-value type
+		return frappe.model.no_value_type.indexOf(fieldtype)===-1;
 	},
 
 	get_std_field: function(fieldname) {

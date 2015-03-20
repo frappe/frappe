@@ -42,6 +42,7 @@ frappe.ui.Page = Class.extend({
 			this.add_view("main", '<div class="row layout-main">\
 					<div class="col-md-12 layout-main-section-wrapper">\
 						<div class="layout-main-section"></div>\
+						<div class="layout-footer hide"></div>\
 					</div>\
 				</div>');
 		} else {
@@ -49,6 +50,7 @@ frappe.ui.Page = Class.extend({
 				<div class="col-md-2 layout-side-section"></div>\
 				<div class="col-md-10 layout-main-section-wrapper">\
 					<div class="layout-main-section"></div>\
+					<div class="layout-footer hide"></div>\
 				</div>\
 			</div>');
 		}
@@ -68,6 +70,7 @@ frappe.ui.Page = Class.extend({
 
 		this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
+		this.footer = this.wrapper.find(".layout-footer");
 		this.indicator = this.wrapper.find(".indicator");
 
 		this.page_actions = this.wrapper.find(".page-actions");

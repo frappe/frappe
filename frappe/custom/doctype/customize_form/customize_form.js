@@ -61,6 +61,12 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	// 	$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
 	// }
 
+	// sort order select
+	if(frm.doc.doc_type) {
+		var fields = $.map(frm.doc.fields, function(df) { return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null; });
+		frm.set_df_property("sort_field", "options", fields);
+	}
+
 	if(frappe.route_options) {
 		setTimeout(function() {
 			frm.set_value("doc_type", frappe.route_options.doctype);
