@@ -19,7 +19,10 @@ def execute():
 			route = (opts.get("route") or "").strip("#/ ")
 
 			if route and route.startswith("Form"):
-				view, doctype, docname = opts["route"].split("/")
+				try:
+					view, doctype, docname = opts["route"].split("/")
+				except ValueError:
+					continue
 
 				if frappe.db.exists(doctype, docname):
 					_toggle_star(doctype, docname, add="Yes", user=username)
