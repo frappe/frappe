@@ -440,11 +440,14 @@ $.extend(frappe, {
 			var val = $(this).val();
 			if(e.which===13 && val) {
 				$(this).val("").blur();
-				var path = (frappe.search_path && frappe.search_path[location.pathname] || location.pathname);
-				frappe.load_via_ajax(path + "?txt=" + encodeURIComponent(val));
+				frappe.do_search(val);
 				return false;
 			}
 		});
+	},
+	do_search: function(val) {
+		var path = (frappe.search_path && frappe.search_path[location.pathname] || location.pathname);
+		frappe.load_via_ajax(path + "?txt=" + encodeURIComponent(val));
 	},
 	set_search_path: function(path) {
 		frappe.search_path[location.pathname] = path;

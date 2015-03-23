@@ -1,0 +1,12 @@
+{% macro make_item_list(item_list) %}
+    <ol>
+    {% for item in item_list %}
+        <li>
+            <a href="{{ item.url }}">{{ item.title }}</a>
+            {% if item.children %}{{ make_item_list(item.children) }}{% endif %}
+        </li>
+    {% endfor %}
+    </ol>
+{% endmacro %}
+
+{{ make_item_list(full_index) }}

@@ -200,7 +200,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2015-02-20 08:30:53.345780", 
+ "modified": "2015-03-23 17:57:49.375385", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 
@@ -221,5 +221,6 @@
    "write": 1
   }
  ], 
+ "search_fields": "title,main_section", 
  "title_field": "title"
 }

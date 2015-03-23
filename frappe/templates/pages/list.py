@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from frappe.website.render import resolve_path
+from frappe import _
 
 no_cache = 1
 no_sitemap = 1
@@ -54,6 +55,9 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	show_more = (_get_list(doctype=doctype, txt=txt, filters=filters,
 		limit_start=next_start, limit_page_length=1) and True or False)
 
+	if txt:
+		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
+
 	result = []
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
 	for doc in raw_result:
@@ -95,7 +99,7 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 			else:
 				filters.append([doctype, "name", "like", "%" + txt + "%"])
 
-	return frappe.get_list(doctype, fields = ["*"],
+	return frappe.get_list(doctype, fields = "distinct *",
 		filters=filters, or_filters=or_filters, limit_start=limit_start,
 		limit_page_length = limit_page_length, ignore_permissions=ignore_permissions)
 

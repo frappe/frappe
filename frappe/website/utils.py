@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re
+import frappe, re, os
 
 def delete_page_cache(path):
 	if not path:
@@ -162,3 +162,21 @@ def with_leading_slash(path):
 		path = "/" + path
 
 	return path
+
+def get_full_index(doctype="Web Page"):
+	"""Returns full index of the website (on Web Page) upto the n-th level"""
+	all_routes = []
+
+	def get_children(parent):
+		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title"],
+			{"parent_website_route": parent}, order_by="idx asc")
+		for d in children:
+			d.url = with_leading_slash(os.path.join(d.parent_website_route or "", d.page_name))
+			if d.url not in all_routes:
+				d.children = get_children(d.url[1:])
+				all_routes.append(d.url)
+
+		return children
+
+	return get_children("")
+

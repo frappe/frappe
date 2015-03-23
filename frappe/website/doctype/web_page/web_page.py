@@ -11,6 +11,7 @@ from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
+from frappe import _
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -146,6 +147,22 @@ class WebPage(WebsiteGenerator):
 		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
+
+# def get_list_context(context=None):
+# 	list_context = frappe._dict(
+# 		title = _("Website Search"),
+# 		template = "templates/includes/kb_list.html",
+# 		row_template = "templates/includes/kb_row.html",
+# 		get_level_class = get_level_class,
+# 		hide_filters = True,
+# 		filters = {"published": 1}
+# 	)
+#
+# 	if frappe.local.form_dict.txt:
+# 		list_context.subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
+# 	#
+# 	# list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
+# 	return list_context
 
 def check_broken_links():
 	cnt = 0

@@ -122,7 +122,6 @@ def add_index(out, context):
 			html = ('<p><br><a href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
-
 def add_hero(out, context):
 	"""Add a hero element if specified in content or hooks.
 	Hero elements get full page width."""

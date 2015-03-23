@@ -35,7 +35,7 @@
 		{%- for link in web_include_js %}
 		<script type="text/javascript" src="{{ link }}"></script>
 		{%- endfor -%}
-        {%- block head_include %}{% endblock -%}
+        {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 	{%- endblock -%}
 </head>
 <body>
@@ -97,5 +97,6 @@
 		{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
 		</script>
 	{%- endblock -%}
+    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>
 </html>
