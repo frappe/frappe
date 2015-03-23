@@ -197,6 +197,16 @@ a.badge-hover:active .badge {
 #freeze.in {
   opacity: 0.5;
 }
+a.no-decoration {
+  text-decoration: none;
+  color: inherit;
+}
+a.no-decoration:hover,
+a.no-decoration:focus,
+a.no-decoration:active {
+  text-decoration: none;
+  color: inherit;
+}
 html {
   min-height: 100%;
 }
@@ -593,16 +603,6 @@ textarea {
 }
 .post-content img {
   margin: 10px 0px;
-}
-a.no-decoration {
-  text-decoration: none;
-  color: inherit;
-}
-a.no-decoration:hover,
-a.no-decoration:focus,
-a.no-decoration:active {
-  text-decoration: none;
-  color: inherit;
 }
 a.active {
   pointer-events: none;

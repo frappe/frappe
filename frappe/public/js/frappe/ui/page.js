@@ -93,7 +93,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_action_icon: function(icon, click) {
-		return $('<a class="text-muted"><i class="'+icon+'"></i></a>')
+		return $('<a class="text-muted no-decoration"><i class="'+icon+'"></i></a>')
 			.appendTo(this.icon_group.removeClass("hide"))
 			.click(click);
 	},

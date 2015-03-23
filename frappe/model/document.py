@@ -8,7 +8,7 @@ from frappe.utils import flt, cint, cstr, now, get_datetime_str
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
-import hashlib
+import hashlib, json
 
 # once_only validation
 # methods
@@ -662,3 +662,10 @@ class Document(BaseDocument):
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation)).hexdigest()
+
+	def get_starred_by(self):
+		starred_by = getattr(self, "_starred_by", None)
+		if starred_by:
+			return json.dumps(starred_by)
+		else:
+			return []

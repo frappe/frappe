@@ -110,6 +110,7 @@ class Communication(Document):
 		recipients += self.get_commentors()
 		recipients += [s.strip() for s in self.recipients.split(",")]
 		recipients += self.get_assignees()
+		recipients += self.get_starrers()
 		recipients = filter(lambda e: e and e!="Administrator", list(set(recipients)))
 
 		# remove unsubscribed recipients
@@ -117,6 +118,10 @@ class Communication(Document):
 		recipients = filter(lambda e: e not in unsubscribed, recipients)
 
 		return recipients
+
+	def get_starrers(self):
+		"""Return list of users who have starred this document."""
+		return self.get_parent_doc().get_starred_by()
 
 	def get_earlier_participants(self):
 		return frappe.db.sql("""

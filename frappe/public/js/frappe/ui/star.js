@@ -1,6 +1,15 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.ui.is_starred = function(doc) {
+	var starred = doc._starred_by;
+	if(starred) {
+		starred = JSON.parse(starred);
+		return starred.indexOf(user)===-1 ? false : true;
+	}
+	return false;
+}
+
 frappe.ui.toggle_star = function($btn, doctype, name) {
 	var add = $btn.hasClass("not-starred") ? "Yes" : "No";
 	frappe.call({
@@ -14,7 +23,8 @@ frappe.ui.toggle_star = function($btn, doctype, name) {
 		callback: function(r) {
 			if(!r.exc) {
 				// update in all local-buttons
-				var action_buttons = $(".star-action[data-name='"+ name.replace(/"/g, '\"') +"']");
+				var action_buttons = $('.star-action[data-name="'+ name.replace(/"/g, '\"')
+					+'"][data-doctype="'+ doctype.replace(/"/g, '\"')+'"]');
 
 				if(add==="Yes") {
 					action_buttons.removeClass("not-starred").removeClass("text-extra-muted");
