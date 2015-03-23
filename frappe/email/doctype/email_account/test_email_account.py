@@ -9,6 +9,8 @@ test_records = frappe.get_test_records('Email Account')
 from frappe.core.doctype.communication.communication import make
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import delete_file_from_filesystem
+from frappe.email.doctype.email_account.email_account import notify_unreplied
+from datetime import datetime, timedelta
 
 class TestEmailAccount(unittest.TestCase):
 	def test_incoming(self):
@@ -22,6 +24,20 @@ class TestEmailAccount(unittest.TestCase):
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
+
+		# check if todo is created
+		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
+
+	def test_unread_notification(self):
+		self.test_incoming()
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
+
+		frappe.db.sql("delete from `tabBulk Email`")
+		notify_unreplied()
+		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": comm.reference_doctype,
+			"reference_name": comm.reference_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")

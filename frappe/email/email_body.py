@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import throw, _
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import get_url, scrub_urls, strip
@@ -164,24 +163,19 @@ class EMail:
 	def validate(self):
 		"""validate the email ids"""
 		from frappe.utils import validate_email_add
-		def _validate(email):
-			"""validate an email field"""
-			if email and not validate_email_add(email):
-				throw(_("{0} is not a valid email id").format(email), frappe.InvalidEmailAddressError)
-			return email
 
 		if not self.sender:
 			email_account = get_outgoing_email_account()
 			self.sender = email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
 
-		self.sender = _validate(strip(self.sender))
-		self.reply_to = _validate(strip(self.reply_to) or self.sender)
+		self.sender = validate_email_add(strip(self.sender), True)
+		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
 
 		self.recipients = [strip(r) for r in self.recipients]
 		self.cc = [strip(r) for r in self.cc]
 
 		for e in self.recipients + (self.cc or []):
-			_validate(e)
+			validate_email_add(e, True)
 
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)

@@ -65,6 +65,24 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 			add(email, sender, subject, updated, text_content, reference_doctype, reference_name, attachments, reply_to)
 
+def add(email, sender, subject, formatted, text_content=None,
+	reference_doctype=None, reference_name=None, attachments=None, reply_to=None):
+	"""add to bulk mail queue"""
+	e = frappe.new_doc('Bulk Email')
+	e.sender = sender
+	e.recipient = email
+
+	try:
+		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
+			text_content=text_content, attachments=attachments, reply_to=reply_to).as_string()
+	except frappe.InvalidEmailAddressError:
+		# bad email id - don't add to queue
+		return
+
+	e.reference_doctype = reference_doctype
+	e.reference_name = reference_name
+	e.insert(ignore_permissions=True)
+
 def check_bulk_limit(recipients):
 	this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
 		month(creation)=month(%s)""" % nowdate())[0][0]
@@ -102,24 +120,6 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 	frappe.local.flags.signed_query_string = query_string
 
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
-
-def add(email, sender, subject, formatted, text_content=None,
-	reference_doctype=None, reference_name=None, attachments=None, reply_to=None):
-	"""add to bulk mail queue"""
-	e = frappe.new_doc('Bulk Email')
-	e.sender = sender
-	e.recipient = email
-
-	try:
-		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
-			text_content=text_content, attachments=attachments, reply_to=reply_to).as_string()
-	except frappe.InvalidEmailAddressError:
-		# bad email id - don't add to queue
-		return
-
-	e.reference_doctype = reference_doctype
-	e.reference_name = reference_name
-	e.insert(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
 def unsubscribe(doctype, name, email):

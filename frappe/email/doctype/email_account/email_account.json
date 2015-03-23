@@ -12,7 +12,7 @@
   {
    "fieldname": "email_settings", 
    "fieldtype": "Section Break", 
-   "label": "Actions", 
+   "label": "", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -101,7 +101,7 @@
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 0, 
-   "label": "Incoming Mail Settings", 
+   "label": "", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
@@ -194,9 +194,40 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_incoming", 
+   "fieldname": "section_break_13", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "notify_if_unreplied", 
+   "fieldtype": "Check", 
+   "label": "Notify if unreplied", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "notify_if_unreplied", 
+   "fieldname": "unreplied_for_mins", 
+   "fieldtype": "Int", 
+   "label": "Notify if unreplied for (in mins)", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "notify_if_unreplied", 
+   "description": "Email Ids", 
+   "fieldname": "send_notification_to", 
+   "fieldtype": "Small Text", 
+   "label": "Send Notification to", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "outgoing_mail_settings", 
    "fieldtype": "Section Break", 
-   "label": "Outgoing Mail Settings", 
+   "label": "", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -252,7 +283,7 @@
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 0, 
-   "label": "Signature", 
+   "label": "", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
@@ -299,7 +330,7 @@
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 0, 
-   "label": "Auto Reply", 
+   "label": "", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
@@ -352,7 +383,7 @@
   {
    "fieldname": "set_footer", 
    "fieldtype": "Section Break", 
-   "label": "Set Footer", 
+   "label": "", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -372,7 +403,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-12 15:08:21.179683", 
+ "modified": "2015-03-23 02:09:54.864019", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

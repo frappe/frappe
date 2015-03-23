@@ -121,13 +121,16 @@ class Communication(Document):
 
 	def get_starrers(self):
 		"""Return list of users who have starred this document."""
-		return self.get_parent_doc().get_starred_by()
+		if self.reference_doctype and self.reference_name:
+			return self.get_parent_doc().get_starred_by()
+		else:
+			return []
 
 	def get_earlier_participants(self):
-		return frappe.db.sql("""
+		return frappe.db.sql_list("""
 			select distinct sender
 			from tabCommunication where
-			reference_doctype=%s and reference_name=%s and ifnull(unsubscribed,0)!=0""",
+			reference_doctype=%s and reference_name=%s""",
 				(self.reference_doctype, self.reference_name))
 
 	def get_commentors(self):
@@ -139,7 +142,7 @@ class Communication(Document):
 				(self.reference_doctype, self.reference_name))
 
 	def get_assignees(self):
-		return [d.owner for d in frappe.db.get_all("ToDo", fitlers={"reference_type": self.reference_doctype,
+		return [d.owner for d in frappe.db.get_all("ToDo", filters={"reference_type": self.reference_doctype,
 			"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
 
 	def get_attach_link(self, print_format):

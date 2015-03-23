@@ -235,10 +235,7 @@ class User(Document):
 
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_add
-
-		email = email.strip()
-		if not validate_email_add(email):
-			throw(_("{0} is not a valid email id").format(email))
+		validate_email_add(email.strip(), True)
 
 	def after_rename(self, olddn, newdn, merge=False):
 		tables = frappe.db.sql("show tables")

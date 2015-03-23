@@ -22,7 +22,6 @@ class TestEmailAlert(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Comment",
 			"reference_name": comment.name, "status":"Not Sent"}))
-
 		frappe.db.sql("""delete from `tabBulk Email`""")
 
 		comment.description = "test"

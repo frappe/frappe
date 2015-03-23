@@ -10,6 +10,7 @@ from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
 import markdown2
+from datetime import datetime, timedelta
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -25,9 +26,8 @@ class EmailAccount(Document):
 
 	def validate(self):
 		"""Validate email id and check POP3 and SMTP connections is enabled."""
-		if self.email_id and not validate_email_add(self.email_id):
-			frappe.throw(_("{0} is not a valid email id").format(self.email_id),
-				frappe.InvalidEmailAddressError)
+		if self.email_id:
+			validate_email_add(self.email_id, True)
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
@@ -38,6 +38,10 @@ class EmailAccount(Document):
 
 			if self.enable_outgoing:
 				self.check_smtp()
+
+		if self.notify_if_unreplied:
+			for e in self.get_unreplied_notification_emails():
+				validate_email_add(e, True)
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
@@ -185,6 +189,11 @@ class EmailAccount(Document):
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				bulk=True)
 
+	def get_unreplied_notification_emails(self):
+		"""Return list of emails listed"""
+		self.send_notification_to = self.send_notification_to.replace(",", "\n")
+		out = [e.strip() for e in self.send_notification_to.split("\n")]
+		return out
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
@@ -194,3 +203,30 @@ def pull(now=False):
 			frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
 		else:
 			frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
+
+def notify_unreplied():
+	"""Sends email notifications if there are unreplied Communications
+		and `notify_if_unreplied` is set as true."""
+
+	for email_account in frappe.get_all("Email Account", "name", filters={"enable_incoming": 1, "notify_if_unreplied": 1}, debug=True):
+		email_account = frappe.get_doc("Email Account", email_account.name)
+		if email_account.append_to:
+
+			# get open communications younger than x mins, for given doctype
+			for comm in frappe.get_all("Communication", "name", filters={
+					"sent_or_received": "Received",
+					"reference_doctype": email_account.append_to,
+					"unread_notification_sent": 0,
+					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
+					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
+				}, debug=True):
+				comm = frappe.get_doc("Communication", comm.name)
+
+				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
+					# if status is still open
+					frappe.sendmail(recipients= email_account.get_unreplied_notification_emails(),
+						content=comm.content, subject=comm.subject, doctype= comm.reference_doctype,
+						name=comm.reference_name, bulk = True)
+
+				# update flag
+				comm.db_set("unread_notification_sent", 1)
