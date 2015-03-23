@@ -31,7 +31,7 @@ def get_translated_dict():
 	from babel.dates import get_timezone, get_timezone_name, Locale
 
 	translated_dict = {}
-	locale = Locale(frappe.local.lang, sep="-")
+	locale = Locale.parse(frappe.local.lang, sep="-")
 
 	# timezones
 	for tz in get_all_timezones():
