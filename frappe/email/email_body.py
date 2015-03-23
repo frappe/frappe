@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip
+from frappe.utils.data import get_url, scrub_urls, strip
 import email.utils
 from markdown2 import markdown
 
