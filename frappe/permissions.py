@@ -93,10 +93,9 @@ def get_role_permissions(meta, user=None):
 						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
 							and p.get("apply_user_permissions"))
 
-				if p.apply_user_permissions:
+				if p.apply_user_permissions and p.user_permission_doctypes:
 					# set user_permission_doctypes in perms
-					user_permission_doctypes = (json.loads(p.user_permission_doctypes)
-							if p.user_permission_doctypes else None)
+					user_permission_doctypes = json.loads(p.user_permission_doctypes)
 
 					if user_permission_doctypes:
 						# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
