@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string
+from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -258,8 +258,11 @@ def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
+	# convert to unicode
+	fname = cstr(fname)
+
 	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
-	if len(n_records) > 0 or os.path.exists(get_files_path(fname).encode('utf-8')):
+	if len(n_records) > 0 or os.path.exists(encode(get_files_path(fname))):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
 			partial, extn = f[0], ""
