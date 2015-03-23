@@ -320,19 +320,23 @@ class Database:
 					* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
 			"""
 			_operator = "="
+			_rhs = " %(" + key + ")s"
 			value = filters.get(key)
 			values[key] = value
 			if isinstance(value, (list, tuple)):
+				# value is a tuble like ("!=", 0)
 				_operator = value[0]
 				values[key] = value[1]
 				if isinstance(value[1], (tuple, list)):
+					# value is a list in tuple ("in", ("A", "B"))
 					inner_list = []
 					for i, v in enumerate(value[1]):
 						inner_key = "{0}_{1}".format(key, i)
 						values[inner_key] = v
 						inner_list.append("%({0})s".format(inner_key))
 
-					values[key] = "({0})".format(", ".join(inner_list))
+					_rhs = " ({0})".format(", ".join(inner_list))
+					del values[key]
 
 			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in"]:
 				_operator = "="
@@ -340,9 +344,9 @@ class Database:
 			if "[" in key:
 				split_key = key.split("[")
 				condition = "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
-					+ _operator + " %(" + key + ")s"
+					+ _operator + _rhs
 			else:
-				condition = "`" + key + "` " + _operator + " %(" + key + ")s"
+				condition = "`" + key + "` " + _operator + _rhs
 
 			conditions.append(condition)
 
