@@ -733,7 +733,8 @@ class Database:
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)
-
+		
+		frappe.db.commit()
 		frappe.db.sql("""alter table `tab%s`
 			add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
