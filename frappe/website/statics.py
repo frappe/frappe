@@ -111,13 +111,18 @@ class sync(object):
 		if (parent_web_page, page_name) in self.synced:
 			return
 
-		title = self.get_title(template_path)
+
+		with open(template_path, "r") as f:
+			content = unicode(f.read().strip(), "utf-8")
+
+		title = self.get_title(template_path, content)
 
 		if not frappe.db.get_value("Web Page", {"template_path":template_path}):
 			web_page = frappe.new_doc("Web Page")
 			web_page.page_name = page_name
 			web_page.parent_web_page = parent_web_page
 			web_page.template_path = template_path
+			web_page.main_section = content
 			web_page.title = title
 			web_page.published = published
 			web_page.idx = idx
@@ -140,21 +145,18 @@ class sync(object):
 
 		self.synced.append((parent_web_page, page_name))
 
-	def get_title(self, fpath):
+	def get_title(self, fpath, content):
 		title = os.path.basename(fpath).rsplit(".", 1)[0]
 		if title =="index":
 			title = os.path.basename(os.path.dirname(fpath))
 
 		title = title.replace("-", " ").replace("_", " ").title()
 
-		with open(fpath, "r") as f:
-			content = unicode(f.read().strip(), "utf-8")
+		if content.startswith("# "):
+			title = content.splitlines()[0][2:]
 
-			if content.startswith("# "):
-				title = content.splitlines()[0][2:]
-
-			if "<!-- title:" in content:
-				title = content.split("<!-- title:", 1)[1].split("-->", 1)[0].strip()
+		if "<!-- title:" in content:
+			title = content.split("<!-- title:", 1)[1].split("-->", 1)[0].strip()
 
 		return title
 

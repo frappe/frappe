@@ -37,6 +37,13 @@
 		{%- endfor -%}
         {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 	{%- endblock -%}
+    {%- if js_globals is defined %}
+    <script>
+    {%- for key, value in js_globals.iteritems() %}
+    window.{{ key }} = "{{ value[0] }}";
+    {%- endfor -%}
+    </script>
+    {% endif -%}
 </head>
 <body>
 	<div class="offcanvas-container">
