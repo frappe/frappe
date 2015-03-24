@@ -734,9 +734,12 @@ class Database:
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)
 		
-		frappe.db.commit()
-		frappe.db.sql("""alter table `tab%s`
-			add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS 
+			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""", 
+			('tab' + doctype, constraint_name)):
+				frappe.db.commit()
+				frappe.db.sql("""alter table `tab%s`
+					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
 	def close(self):
 		"""Close database connection."""
