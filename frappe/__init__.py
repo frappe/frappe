@@ -868,9 +868,9 @@ def add_version(doc):
 		"doclist_json": as_json(doc.as_dict())
 	}).insert(ignore_permissions=True)
 
-def as_json(obj):
+def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
-	return json.dumps(obj, indent=1, sort_keys=True, default=json_handler)
+	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""

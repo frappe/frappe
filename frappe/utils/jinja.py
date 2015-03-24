@@ -111,11 +111,10 @@ def set_filters(jenv):
 	from frappe.utils import global_date_format, cint, cstr, flt
 	from frappe.website.utils import get_shade, with_leading_slash
 	from markdown2 import markdown
-	from json import dumps
 
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = dumps
+	jenv.filters["json"] = frappe.as_json
 	jenv.filters["get_shade"] = get_shade
 	jenv.filters["len"] = len
 	jenv.filters["int"] = cint

@@ -254,7 +254,6 @@ a.form-link {
   max-height: 200px;
   background-color: #fffce7;
   border: 1px solid #d1d8dd;
-  word-break: break-all;
   overflow-y: auto;
   position: relative;
 }

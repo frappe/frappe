@@ -141,7 +141,6 @@ def build_page(path):
 	context = get_context(path)
 
 	html = frappe.get_template(context.base_template_path).render(context)
-	html = scrub_relative_urls(html)
 
 	if can_cache(context.no_cache):
 		frappe.cache().set_value("page:{0}:{1}".format(path, frappe.local.lang), html)
