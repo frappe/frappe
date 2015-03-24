@@ -298,7 +298,7 @@ class Document(BaseDocument):
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
-		if self.flags.ignore_permissions:
+		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
 		self.get_high_permlevel_fields()
