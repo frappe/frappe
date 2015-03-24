@@ -41,6 +41,10 @@ class User:
 			self.roles = get_roles(self.name)
 		return self.roles
 
+	def get_block_modules(self):
+		"""Returns list of blocked modules"""
+		return [d.module for d in self.doc.block_modules] if self.doc.block_modules else []
+
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""
 
@@ -151,7 +155,7 @@ class User:
 
 		rdl = [new_rd] + rdl
 
-		r = frappe.cache().set_value("recent:" + self.name, rdl)
+		frappe.cache().set_value("recent:" + self.name, rdl)
 
 	def _get(self, key):
 		if not self.can_read:
@@ -175,8 +179,9 @@ class User:
 		d.name = self.name
 		d.recent = json.dumps(frappe.cache().get_value("recent:" + self.name) or [])
 
-		d['roles'] = self.get_roles()
-		d['defaults'] = self.get_defaults()
+		d.roles = self.get_roles()
+		d.defaults = self.get_defaults()
+		d.block_modules = self.get_block_modules()
 
 		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",

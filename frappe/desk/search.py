@@ -27,9 +27,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	if not searchfield:
 		searchfield = "name"
 
-	standard_queries = frappe.get_hooks().standard_queries or []
-	if standard_queries:
-		standard_queries = dict([v.split(":") for v in standard_queries])
+	standard_queries = frappe.get_hooks().standard_queries or {}
 
 	if query and query.split()[0].lower()!="select":
 		# by method
@@ -37,7 +35,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			searchfield, start, page_len, filters)
 	elif not query and doctype in standard_queries:
 		# from standard queries
-		search_widget(doctype, txt, standard_queries[doctype],
+		search_widget(doctype, txt, standard_queries[doctype][0],
 			searchfield, start, page_len, filters)
 	else:
 		if query:

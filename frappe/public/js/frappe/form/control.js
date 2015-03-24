@@ -219,7 +219,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					if(me.doctype && me.docname) {
 						me.set_input(me.value);
 					} else {
-						me.set_input();
+						me.set_input(me.value || null);
 					}
 				} else {
 					$(me.input_area).toggle(false);
@@ -767,8 +767,13 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.value = value;
 		if(this.value) {
 			this.$input.toggle(false);
+			if(this.value.indexOf(",")!==-1) {
+				var parts = this.value.split(",");
+				var filename = parts[0];
+				var dataurl = parts[1];
+			}
 			this.$value.toggle(true).find(".attached-file")
-				.html(this.value)
+				.html(filename || this.value)
 				.attr("href", dataurl || this.value);
 		} else {
 			this.$input.toggle(true);
@@ -790,7 +795,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.refresh();
 			this.frm.attachments.update_attachment(attachment);
 		} else {
-			this.set_input(this.fileobj.filename, this.dataurl);
+			this.value = this.get_value();
 			this.refresh();
 		}
 	},

@@ -8,6 +8,7 @@ from frappe.utils import flt, cint, cstr, now, get_datetime_str
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
+from frappe.model import display_fieldtypes
 import hashlib, json
 
 # once_only validation
@@ -160,6 +161,7 @@ class Document(BaseDocument):
 		self.run_method("before_insert")
 		self.set_new_name()
 		self.set_parent_in_children()
+		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
 		self.run_before_save_methods()
@@ -208,6 +210,7 @@ class Document(BaseDocument):
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.set_parent_in_children()
+		self.validate_higher_perm_levels()
 		self.run_before_save_methods()
 
 		if self._action != "cancel":
@@ -292,6 +295,55 @@ class Document(BaseDocument):
 			d._validate_constants()
 
 		self._extract_images_from_text_editor()
+
+	def validate_higher_perm_levels(self):
+		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
+		if self.flags.ignore_permissions:
+			return
+
+		self.get_high_permlevel_fields()
+		if not self.high_permlevel_fields:
+			return
+
+		has_access_to = self.get_permlevel_access()
+		to_reset = []
+		for df in self.high_permlevel_fields:
+			if df.permlevel not in has_access_to and df.fieldtype not in display_fieldtypes:
+				to_reset.append(df)
+
+		print [d.fieldname for d in to_reset]
+
+		if to_reset:
+			if self.is_new():
+				# if new, set default value
+				for df in to_reset:
+					self.set(df.fieldname, df.default or None)
+
+			else:
+				# get values from old doc
+				old = frappe.get_doc(self.doctype, self.name)
+				for df in to_reset:
+					self.set(df.fieldname, old.get(df.fieldname))
+
+	def get_high_permlevel_fields(self):
+		"""Build list of fields with high perm level and all the higher perm levels defined."""
+		self.high_permlevel_fields = []
+		self.high_permlevels = []
+		for df in self.meta.fields:
+			if df.permlevel > 0:
+				self.high_permlevel_fields.append(df)
+				if not df.permlevel in self.high_permlevels:
+					self.high_permlevels.append(df.permlevel)
+
+	def get_permlevel_access(self):
+		user_roles = frappe.get_roles()
+		has_access_to = []
+		for perm in self.meta.permissions:
+			if perm.role in user_roles and perm.permlevel > 0 and perm.write:
+				if perm.permlevel not in has_access_to:
+					has_access_to.append(perm.permlevel)
+
+		return has_access_to
 
 	def _set_defaults(self):
 		if frappe.flags.in_import:

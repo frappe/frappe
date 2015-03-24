@@ -1,6 +1,6 @@
 .user-role {
 	padding: 5px;
-	width: 45%;
+	width: 50%;
 	float: left;
 }
 
@@ -17,4 +17,12 @@ table.user-perm td, table.user-perm th {
 	text-align: center;
 	border-bottom: 1px solid #aaa;
 	min-width: 30px;
+}
+
+.module-block-list .checkbox {
+	margin-bottom: 0px;
+}
+
+.module-block-list .checkbox label {
+	width: 100%;
 }

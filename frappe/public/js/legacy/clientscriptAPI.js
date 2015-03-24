@@ -199,8 +199,12 @@ _f.Frm.prototype.clear_table = function(fieldname) {
 	frappe.model.clear_table(this.doc, fieldname);
 }
 
-_f.Frm.prototype.add_child = function(fieldname) {
-	return frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
+_f.Frm.prototype.add_child = function(fieldname, values) {
+	var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
+	if(values) {
+		$.extend(doc, values);
+	}
+	return doc;
 }
 
 _f.Frm.prototype.set_value = function(field, value, if_missing) {

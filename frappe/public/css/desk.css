@@ -259,6 +259,7 @@ a.form-link {
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
   padding: 10px 40px 10px 20px;
   max-width: 400px;
+  min-width: 200px;
   max-height: 200px;
   background-color: #fffce7;
   border: 1px solid #d1d8dd;

@@ -82,6 +82,10 @@ has_permission = {
 	"Note": "frappe.desk.doctype.note.note.has_permission"
 }
 
+standard_queries = {
+	"User": "erpnext.core.doctype.user.user.user_query"
+}
+
 doc_events = {
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",

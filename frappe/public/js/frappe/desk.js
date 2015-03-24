@@ -64,6 +64,8 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
+			// setup valid modules
+			frappe.user.get_user_desktop_items()
 		} else {
 			this.set_as_guest();
 		}

@@ -7,8 +7,8 @@ import frappe
 import json
 
 
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button',
-	'Image', 'Fold', 'Heading']
+no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image', 'Fold', 'Heading']
+display_fieldtypes = ['Section Break', 'Column Break', 'HTML', 'Button', 'Image', 'Fold', 'Heading']
 default_fields = ['doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus']
 integer_docfield_properties = ["reqd", "search_index", "in_list_view", "permlevel",

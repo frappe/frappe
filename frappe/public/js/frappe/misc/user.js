@@ -147,22 +147,37 @@ $.extend(frappe.user, {
 					ret = m;
 					break;
 				case "setup":
-					ret = m;
+					if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
+						ret = m;
 					break;
 				default:
 					ret = m;
 			}
+
 			return ret;
-		})
+		});
 
 		return modules_list;
 	},
 	get_user_desktop_items: function() {
-		var user_list = frappe.defaults.get_default("_user_desktop_items");
-		if(!user_list) {
-			user_list = frappe.user.get_desktop_items();
+		if(!frappe.user.modules) {
+			var user_list = frappe.defaults.get_default("_user_desktop_items");
+			if(!user_list) {
+				user_list = frappe.user.get_desktop_items();
+			}
+
+			// filter_blocked_modules
+			user_list = $.map(user_list, function(m) {
+				if(frappe.boot.user.block_modules && frappe.boot.user.block_modules.indexOf(m)!==-1) {
+					return null;
+				} else {
+					return m;
+				}
+			});
+
+			frappe.user.modules = user_list;
 		}
-		return user_list;
+		return frappe.user.modules;
 	},
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);

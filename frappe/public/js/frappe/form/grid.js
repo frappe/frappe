@@ -221,10 +221,20 @@ frappe.ui.form.Grid = Class.extend({
 						me.frm.clear_table(me.df.fieldname);
 						$.each(data, function(i, row) {
 							if(i > 4) {
-								var d = me.frm.add_child(me.df.fieldname);
+								var blank_row = true;
 								$.each(row, function(ci, value) {
-									d[fieldnames[ci]] = value;
+									if(value) {
+										blank_row = false;
+										return false;
+									}
 								});
+
+								if(!blank_row) {
+									var d = me.frm.add_child(me.df.fieldname);
+									$.each(row, function(ci, value) {
+										d[fieldnames[ci]] = value;
+									});
+								}
 							}
 						});
 
@@ -245,10 +255,10 @@ frappe.ui.form.Grid = Class.extend({
 			data.push([]);
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
-				if(frappe.model.is_value_type(me.df.fieldtype)) {
+				if(frappe.model.is_value_type(df.fieldtype)) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
-					data[3].push(df.description);
+					data[3].push(df.description || "");
 				}
 			});
 

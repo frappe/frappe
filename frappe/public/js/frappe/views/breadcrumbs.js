@@ -41,21 +41,29 @@ frappe.breadcrumbs = {
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
-			var module_info = frappe.get_module(breadcrumbs.module),
-				icon = module_info && module_info.icon,
-				label = module_info ? module_info.label : breadcrumbs.module;
 
-			if(module_info) {
-				$(repl('<li><a href="#Module/%(module)s">%(label)s</a></li>',
-					{ module: breadcrumbs.module, label: __(label) }))
-					.appendTo($breadcrumbs);
+			if(frappe.user.modules.indexOf(breadcrumbs.module)!==-1) {
+				// if module access exists
+				var module_info = frappe.get_module(breadcrumbs.module),
+					icon = module_info && module_info.icon,
+					label = module_info ? module_info.label : breadcrumbs.module;
+
+				if(module_info) {
+					$(repl('<li><a href="#Module/%(module)s">%(label)s</a></li>',
+						{ module: breadcrumbs.module, label: __(label) }))
+						.appendTo($breadcrumbs);
+				}
 			}
 
 		}
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
-			$(repl('<li><a href="#List/%(doctype)s">%(label)s</a></li>',
-				{doctype: breadcrumbs.doctype, label: __(breadcrumbs.doctype)}))
-				.appendTo($breadcrumbs);
+			if(breadcrumbs.doctype==="User" && frappe.user.modules.indexOf("Setup")===-1) {
+				// no user listview for non-system managers
+			} else {
+				$(repl('<li><a href="#List/%(doctype)s">%(label)s</a></li>',
+					{doctype: breadcrumbs.doctype, label: __(breadcrumbs.doctype)}))
+					.appendTo($breadcrumbs);
+			}
 		}
 
 		$("body").removeClass("no-breadcrumbs");
