@@ -84,9 +84,6 @@ kbd {
   color: inherit;
   background-color: #f0f4f7;
 }
-.padding {
-  padding: 15px;
-}
 .btn [class^="icon-"],
 .nav [class^="icon-"],
 .btn [class*=" icon-"],
@@ -206,6 +203,17 @@ a.no-decoration:focus,
 a.no-decoration:active {
   text-decoration: none;
   color: inherit;
+}
+.padding {
+  padding: 15px;
+}
+.margin {
+  margin: 15px;
+}
+@media (max-width: 767px) {
+  .text-center-xs {
+    text-align: center;
+  }
 }
 .nav-pills a,
 .nav-pills a:hover {

@@ -84,10 +84,6 @@ kbd {
 	background-color: @btn-bg;
 }
 
-.padding {
-	padding: 15px;
-}
-
 .btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
 	display: inline-block;
 }
@@ -219,5 +215,20 @@ a.no-decoration& {
 	&:active {
 		text-decoration: none;
 		color: inherit;
+
+	}
+}
+
+.padding {
+	padding: 15px;
+}
+
+.margin {
+	margin: 15px;
+}
+
+@media (max-width: 767px) {
+	.text-center-xs {
+		text-align: center;
 	}
 }
