@@ -311,8 +311,6 @@ class Document(BaseDocument):
 			if df.permlevel not in has_access_to and df.fieldtype not in display_fieldtypes:
 				to_reset.append(df)
 
-		print [d.fieldname for d in to_reset]
-
 		if to_reset:
 			if self.is_new():
 				# if new, set default value

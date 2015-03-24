@@ -271,7 +271,8 @@
    "read_only": 1
   }, 
   {
-   "default": "Uncheck modules to hide from user's desktop", 
+   "default": "", 
+   "description": "Uncheck modules to hide from user's desktop", 
    "fieldname": "modules_access", 
    "fieldtype": "Section Break", 
    "label": "Modules Access", 
@@ -463,7 +464,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-03-24 16:56:11.647441", 
+ "modified": "2015-03-24 17:56:43.743847", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

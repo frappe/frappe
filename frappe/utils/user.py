@@ -33,7 +33,11 @@ class User:
 		self.allow_modules = []
 		self.in_create = []
 		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			self.doc = frappe.get_doc("User", self.name)
+			try:
+				self.doc = frappe.get_doc("User", self.name)
+			except Exception, e:
+				# install boo-boo
+				if e.args[0] != 1146: raise
 
 	def get_roles(self):
 		"""get list of roles"""

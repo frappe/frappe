@@ -250,6 +250,9 @@ class DbColumn:
 	def get_definition(self, with_default=1):
 		column_def = get_definition(self.fieldtype, self.precision)
 
+		if not column_def:
+			return column_def
+
 		if self.default and (self.default not in default_shortcuts) \
 			and not self.default.startswith(":") and column_def not in ['text', 'longtext']:
 			column_def += ' default "' + self.default.replace('"', '\"') + '"'
