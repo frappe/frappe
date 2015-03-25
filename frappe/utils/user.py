@@ -35,6 +35,10 @@ class User:
 		if not frappe.flags.in_install_db and not frappe.flags.in_test:
 			try:
 				self.doc = frappe.get_doc("User", self.name)
+
+			except frappe.DoesNotExistError:
+				pass
+
 			except Exception, e:
 				# install boo-boo
 				if e.args[0] != 1146: raise

@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, pickle
+import redis, frappe, pickle, re
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
@@ -19,7 +19,7 @@ class RedisWrapper(redis.Redis):
 		"""Sets cache value."""
 		key = self.make_key(key, user)
 		frappe.local.cache[key] = val
-		if frappe.local.flags.in_install:
+		if frappe.local.flags.in_install or frappe.local.flags.in_install_db:
 			return
 
 		try:
@@ -38,7 +38,7 @@ class RedisWrapper(redis.Redis):
 
 		if key not in frappe.local.cache:
 			val = None
-			if not frappe.local.flags.in_install:
+			if not frappe.local.flags.in_install and not frappe.local.flags.in_install_db:
 				try:
 					val = self.get(key)
 				except redis.exceptions.ConnectionError:
@@ -63,9 +63,12 @@ class RedisWrapper(redis.Redis):
 	def get_keys(self, key):
 		"""Return keys with wildcard `*`."""
 		try:
-			return self.keys(self.make_key(key + "*"))
+			key = self.make_key(key + "*")
+			return self.keys(key)
+
 		except redis.exceptions.ConnectionError:
-			return []
+			regex = re.compile(key.replace("|", "\|").replace("*", "[\w]*"))
+			return [k for k in frappe.local.cache.keys() if regex.match(k)]
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
@@ -84,7 +87,7 @@ class RedisWrapper(redis.Redis):
 				key = self.make_key(key)
 
 
-			if not frappe.local.flags.in_install:
+			if not frappe.local.flags.in_install and not frappe.local.flags.in_install_db:
 				try:
 					self.delete(key)
 				except redis.exceptions.ConnectionError:
