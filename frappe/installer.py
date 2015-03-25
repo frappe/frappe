@@ -147,7 +147,8 @@ def remove_from_installed_apps(app_name):
 		installed_apps.remove(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
-		post_install()
+		if frappe.flags.in_install:
+			post_install()
 
 def post_install(rebuild_website=False):
 	if rebuild_website:

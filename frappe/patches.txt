@@ -13,6 +13,7 @@ execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length
 frappe.patches.v5_0.v4_to_v5
 
+frappe.patches.v5_0.remove_shopping_cart_app
 frappe.patches.v4_0.webnotes_to_frappe
 execute:frappe.permissions.reset_perms("Module Def")
 execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
