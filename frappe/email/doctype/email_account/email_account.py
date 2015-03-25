@@ -195,6 +195,10 @@ class EmailAccount(Document):
 		out = [e.strip() for e in self.send_notification_to.split("\n")]
 		return out
 
+	def on_trash(self):
+		"""Clear communications where email account is linked"""
+		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
 	import frappe.tasks

@@ -114,6 +114,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 }
 .sidebar-menu li {
   position: relative;
+  margin-bottom: 7px;
 }
 .form-sidebar .form-tags .tag-area {
   margin-top: -3px;

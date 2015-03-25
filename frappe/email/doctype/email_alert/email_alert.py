@@ -27,15 +27,20 @@ def trigger_email_alerts(doc, method=None):
 		# don't send email alerts while syncing or patching
 		return
 
-	if method=="Date Change":
+	if method in ("Days Before", "Days After"):
+
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event='Date Change' and enabled=1"""):
 
 			alert = frappe.get_doc("Email Alert", alert)
 
+			diff_days = alert.days_in_advance
+			if method=="Days After":
+				diff_days = -diff_days
+
 			for name in frappe.db.sql_list("""select name from `tab{0}` where
 				DATE({1}) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(alert.document_type, alert.date_changed),
-					(nowdate(), alert.days_in_advance or 0)):
+					(nowdate(), diff_days or 0)):
 
 				evaluate_alert(frappe.get_doc(alert.document_type, name),
 					alert, "Date Change")

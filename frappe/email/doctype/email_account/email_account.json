@@ -84,16 +84,6 @@
    "set_only_once": 0
   }, 
   {
-   "description": "Append as communication against this DocType (must have fields, \"Status\", \"Subject\")", 
-   "fieldname": "append_to", 
-   "fieldtype": "Link", 
-   "in_list_view": 1, 
-   "label": "Append To", 
-   "options": "DocType", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "allow_on_submit": 0, 
    "fieldname": "mailbox_settings", 
    "fieldtype": "Section Break", 
@@ -181,6 +171,17 @@
    "fieldname": "attachment_limit", 
    "fieldtype": "Int", 
    "label": "Attachment Limit (MB)", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "enable_incoming", 
+   "description": "Append as communication against this DocType (must have fields, \"Status\", \"Subject\")", 
+   "fieldname": "append_to", 
+   "fieldtype": "Link", 
+   "in_list_view": 1, 
+   "label": "Append To", 
+   "options": "DocType", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -403,7 +404,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-23 02:09:54.864019", 
+ "modified": "2015-03-25 05:32:14.036800", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

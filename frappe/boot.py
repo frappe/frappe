@@ -10,6 +10,7 @@ import frappe
 import frappe.defaults
 import frappe.desk.desk_page
 from frappe.utils import get_gravatar
+from frappe.desk.form.load import get_meta_bundle
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -50,6 +51,7 @@ def get_bootinfo():
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
+	doclist.append(get_meta_bundle("Page"))
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):

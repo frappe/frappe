@@ -186,13 +186,26 @@ def set_last_modified(data):
 				item["last_modified"] = get_last_modified(item["name"])
 
 def get_last_modified(doctype):
-	try:
-		last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
-	except Exception, e:
-		if e.args[0]==1146:
-			last_modified = None
-		else:
-			raise
+	def _get():
+		try:
+			last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
+		except Exception, e:
+			if e.args[0]==1146:
+				last_modified = None
+			else:
+				raise
+
+		# hack: save as -1 so that it is cached
+		if last_modified==None:
+			last_modified = -1
+
+		return last_modified
+
+	last_modified = frappe.cache().get_value("last_modified:" + doctype, _get)
+
+	if last_modified==-1:
+		last_modified = None
+
 	return last_modified
 
 def get_report_list(module, is_standard="No"):

@@ -19,12 +19,7 @@
    "depends_on": "doc_type", 
    "fieldname": "properties", 
    "fieldtype": "Section Break", 
-   "label": "Properties", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "column_break0", 
-   "fieldtype": "Column Break", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -48,22 +43,19 @@
    "search_index": 0
   }, 
   {
-   "fieldname": "sort_field", 
-   "fieldtype": "Select", 
-   "label": "Sort Field", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "sort_order", 
-   "fieldtype": "Select", 
-   "label": "Sort Order", 
-   "options": "ASC\nDESC", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "column_break1", 
+   "fieldname": "column_break_5", 
    "fieldtype": "Column Break", 
-   "permlevel": 0
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "", 
+   "fieldname": "max_attachments", 
+   "fieldtype": "Int", 
+   "label": "Max Attachments", 
+   "no_copy": 0, 
+   "permlevel": 0, 
+   "search_index": 0
   }, 
   {
    "fieldname": "allow_copy", 
@@ -74,13 +66,30 @@
    "search_index": 0
   }, 
   {
-   "depends_on": "", 
-   "fieldname": "max_attachments", 
-   "fieldtype": "Int", 
-   "label": "Max Attachments", 
-   "no_copy": 0, 
+   "depends_on": "doc_type", 
+   "fieldname": "section_break_8", 
+   "fieldtype": "Section Break", 
    "permlevel": 0, 
-   "search_index": 0
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sort_field", 
+   "fieldtype": "Select", 
+   "label": "Sort Field", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_10", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sort_order", 
+   "fieldtype": "Select", 
+   "label": "Sort Order", 
+   "options": "ASC\nDESC", 
+   "permlevel": 0
   }, 
   {
    "depends_on": "doc_type", 
@@ -104,7 +113,7 @@
  "icon": "icon-glass", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2015-03-20 07:13:20.652676", 
+ "modified": "2015-03-25 06:18:19.010091", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form", 

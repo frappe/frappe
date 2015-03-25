@@ -32,10 +32,15 @@ frappe.email_alert = {
 	}
 }
 
-frappe.ui.form.on("Email Alert", "refresh", function(frm) {
-	frappe.email_alert.setup_fieldname_select(frm);
-});
-
-frappe.ui.form.on("Email Alert", "document_type", function(frm) {
-	frappe.email_alert.setup_fieldname_select(frm);
+frappe.ui.form.on("Email Alert", {
+	refresh: function(frm) {
+		frappe.email_alert.setup_fieldname_select(frm);
+	},
+	document_type: function(frm) {
+		frappe.email_alert.setup_fieldname_select(frm);
+	},
+	view_properties: function(frm) {
+		frappe.route_options = {doc_type:frm.doc.document_type};
+		frappe.set_route("Form", "Customize Form");
+	}
 });

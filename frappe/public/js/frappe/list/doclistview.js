@@ -455,6 +455,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.set_working(true);
 				return frappe.call({
 					method: 'frappe.desk.reportview.delete_items',
+					freeze: true,
 					args: {
 						items: $.map(dl, function(d, i) { return d.name }),
 						doctype: me.doctype

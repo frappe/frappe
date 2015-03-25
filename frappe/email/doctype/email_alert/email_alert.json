@@ -41,26 +41,26 @@
    "fieldtype": "Select", 
    "in_list_view": 1, 
    "label": "Send Alert On", 
-   "options": "\nNew\nSave\nSubmit\nCancel\nDate Change\nValue Change", 
+   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nValue Change", 
    "permlevel": 0, 
    "reqd": 1, 
    "search_index": 1
   }, 
   {
-   "depends_on": "eval:doc.event==\"Date Change\"", 
+   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"", 
    "description": "Send alert if date matches this field's value", 
    "fieldname": "date_changed", 
    "fieldtype": "Select", 
-   "label": "Date Changed", 
+   "label": "Reference Date", 
    "permlevel": 0
   }, 
   {
    "default": "0", 
-   "depends_on": "eval:doc.event==\"Date Change\"", 
-   "description": "[Optional] Send the email X days in advance of the specified date. 0 equals same day.", 
+   "depends_on": "eval:doc.event==\"Days After\" || doc.event==\"Days Before\"", 
+   "description": "Send days before or after the reference date", 
    "fieldname": "days_in_advance", 
    "fieldtype": "Int", 
-   "label": "Days in Advance", 
+   "label": "Days Before or After", 
    "permlevel": 0
   }, 
   {
@@ -131,10 +131,17 @@
    "label": "Message Examples", 
    "options": "<h5>Message Example (Markdown)</h5>\n<pre>Transaction {{ doc.name }} has exceeded Due Date. Please take relevant action\n\n#### Details\n\nCustomer: {{ doc.customer }}\nAmount: {{ doc.total_amount }}</pre>", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "view_properties", 
+   "fieldtype": "Button", 
+   "label": "View Properties (via Customize Form)", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2015-03-11 16:43:51.288063", 
+ "modified": "2015-03-25 06:20:07.472953", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Alert", 

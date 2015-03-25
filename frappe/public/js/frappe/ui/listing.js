@@ -120,6 +120,8 @@ frappe.ui.Listing = Class.extend({
 		if(this.new_doctype) {
 			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
 			this.page.set_primary_action(__("New"), function() { make_new_doc(); }, "octicon octicon-plus");
+		} else {
+			this.page.clear_primary_action();
 		}
 	},
 
@@ -171,6 +173,7 @@ frappe.ui.Listing = Class.extend({
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
+			freeze: true,
 			args: this.get_call_args(),
 			callback: function(r) {
 				if(!me.opts.no_loading)
