@@ -317,7 +317,7 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	setup_field_filter: function() {
 		var me = this;
-		this.page.sidebar.find(".filter-fields").on("keypress", function() {
+		this.page.sidebar.find(".filter-fields").on("keyup", function() {
 			var text = $(this).val();
 			me.page.sidebar.find(".field-label").each(function() {
 				var show = !text || $(this).text().toLowerCase().indexOf(text.toLowerCase())!==-1;

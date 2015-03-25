@@ -39,7 +39,7 @@ frappe.breadcrumbs = {
 		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
-			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
+			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
 
 			if(frappe.user.modules.indexOf(breadcrumbs.module)!==-1) {

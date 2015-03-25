@@ -46,6 +46,9 @@ frappe.ui.form.Control = Class.extend({
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status: function(explain) {
+		if(!this.doctype && !this.docname) {
+			return "Write";
+		}
 		var status = frappe.perm.get_field_display_status(this.df,
 			frappe.model.get_doc(this.doctype, this.docname), this.perm || (this.frm && this.frm.perm), explain);
 
