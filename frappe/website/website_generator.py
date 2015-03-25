@@ -83,8 +83,11 @@ class WebsiteGenerator(Document):
 			field = self.meta.get_field(self.parent_website_route_field)
 			parent = self.get(self.parent_website_route_field)
 			if parent:
-				self.parent_website_route = frappe.get_doc(field.options,
-					parent).get_route()
+				parent_doc = frappe.get_doc(field.options, parent)
+				if parent_doc.website_published():
+					self.parent_website_route = parent_doc.get_route()
+				else:
+					self.parent_website_route = None
 
 	def update_routes_of_descendants(self, old_route = None):
 		if not self.is_new() and self.meta.get_field("parent_website_route"):
