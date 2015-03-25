@@ -17,7 +17,6 @@ install:
 
 script:
   - cd ~/frappe-bench
-  - bench set-default-site test_site
   - bench use test_site
   - bench reinstall
   - bench build
