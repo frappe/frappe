@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, cint
-from frappe.model import integer_docfield_properties, default_fields
+from frappe.model import integer_docfield_properties, default_fields, no_value_fields, optional_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
@@ -41,7 +41,7 @@ def load_doctype_from_file(doctype):
 
 class Meta(Document):
 	_metaclass = True
-	default_fields = default_fields[1:]
+	default_fields = list(default_fields)[1:]
 	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
 
 	def __init__(self, doctype):
@@ -322,3 +322,18 @@ def get_default_df(fieldname):
 				fieldname = fieldname,
 				fieldtype = "Data"
 			)
+
+def trim_tables():
+	"""Use this to remove columns that don't exist in meta"""
+	ignore_fields = default_fields + optional_fields
+
+	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
+		doctype = doctype.name
+		columns = frappe.db.get_table_columns(doctype)
+		fields = [df.fieldname for df in frappe.get_meta(doctype).fields if df.fieldtype not in no_value_fields]
+		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields]
+		if columns_to_remove:
+			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
+			query = """alter table `tab{doctype}` {columns}""".format(
+				doctype=doctype, columns=columns_to_remove)
+			frappe.db.sql_ddl(query)

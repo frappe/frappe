@@ -10,6 +10,7 @@ import frappe.share
 import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time
 from frappe import _
+from frappe.model import optional_fields
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -161,7 +162,7 @@ class DatabaseQuery(object):
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in ("_user_tags", "_comments", "_assign", "_starred_by"):
+			for f in optional_fields:
 				if f in fld and not f in columns:
 					to_remove.append(fld)
 
@@ -175,7 +176,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in ("_user_tags", "_comments", "_assign", "_starred_by") and element not in columns:
+				if element in optional_fields and element not in columns:
 					to_remove.append(each)
 
 		for each in to_remove:

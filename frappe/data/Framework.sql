@@ -51,7 +51,7 @@ CREATE TABLE `tabDocField` (
   KEY `label` (`label`),
   KEY `fieldtype` (`fieldtype`),
   KEY `fieldname` (`fieldname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -89,7 +89,7 @@ CREATE TABLE `tabDocPerm` (
   `restrict` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabDocType`
@@ -151,7 +151,7 @@ CREATE TABLE `tabDocType` (
   `custom` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabSeries`
@@ -161,7 +161,7 @@ DROP TABLE IF EXISTS `tabSeries`;
 CREATE TABLE `tabSeries` (
   `name` varchar(100) DEFAULT NULL,
   `current` int(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -177,7 +177,7 @@ CREATE TABLE `tabSessions` (
   `lastupdate` datetime(6) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
   KEY `sid` (`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -190,7 +190,7 @@ CREATE TABLE `tabSingles` (
   `field` varchar(255) DEFAULT NULL,
   `value` text,
   KEY `singles_doctype_field_index` (`doctype`, `field`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `__Auth`
@@ -201,7 +201,7 @@ CREATE TABLE `__Auth` (
   `user` VARCHAR(255) NOT NULL PRIMARY KEY,
   `password` VARCHAR(255) NOT NULL,
   KEY `user` (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabFile Data`
@@ -229,7 +229,7 @@ CREATE TABLE `tabFile Data` (
   KEY `parent` (`parent`),
   KEY `attached_to_name` (`attached_to_name`),
   KEY `attached_to_doctype` (`attached_to_doctype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabDefaultValue`
@@ -252,4 +252,4 @@ CREATE TABLE `tabDefaultValue` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

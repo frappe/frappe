@@ -112,7 +112,9 @@ class DbTable:
 			idx int(8),
 			%sindex parent(parent))
 			ENGINE=InnoDB
-			CHARACTER SET=utf8""" % (self.name, add_text))
+			ROW_FORMAT=COMPRESSED
+			CHARACTER SET=utf8mb4
+			COLLATE=utf8mb4_unicode_ci""" % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
