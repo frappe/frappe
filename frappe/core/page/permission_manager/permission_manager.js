@@ -411,7 +411,7 @@ frappe.PermissionEngine = Class.extend({
 			for (var i=0, l=d.linked_doctypes.length; i<l; i++) {
 				fields.push({
 					fieldtype: "Check",
-					label: __(d.linked_doctypes[i]),
+					label: __("If {0} is permitted", ["<b>" + __(d.linked_doctypes[i]) + "</b>"]),
 					fieldname: d.linked_doctypes[i]
 				});
 			}
@@ -423,7 +423,7 @@ frappe.PermissionEngine = Class.extend({
 			})
 
 			var dialog = new frappe.ui.Dialog({
-				title: __('Apply User Permissions of these Document Types'),
+				title: __('Apply Rule'),
 				fields: fields
 			});
 

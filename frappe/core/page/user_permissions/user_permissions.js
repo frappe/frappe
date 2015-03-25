@@ -187,14 +187,22 @@ frappe.UserPermissions = Class.extend({
 		return (user_permission === "%") ? null : user_permission;
 	},
 	render: function(prop_list) {
+		var me = this;
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list || !prop_list.length) {
-			this.add_message(__("No User Permissions found."));
+			this.add_message(__("No User Restrictions found."));
 		} else {
 			this.show_user_permissions_table();
 		}
 		this.show_add_user_permission();
+		if(this.get_user() && this.get_doctype()) {
+			$('<button class="btn btn-default btn-sm" style="margin-left: 10px;">\
+				Show Allowed Documents</button>').appendTo(this.body.find(".btn-area")).on("click", function() {
+					frappe.route_options = {doctype: me.get_doctype(), user:me.get_user() };
+					frappe.set_route("query-report/Permitted Documents For User");
+				});
+		}
 	},
 	add_message: function(txt) {
 		$('<p class="text-muted">' + txt + '</p>').appendTo(this.body);
@@ -231,7 +239,11 @@ frappe.UserPermissions = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 
-		$.each([[__("User"), 150], [__("DocType"), 150], [__("User Permission"),150], ["", 50]],
+		$('<p class="text-muted small">'
+			+__("These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.")
+			+'</p>').appendTo(this.body);
+
+		$.each([[__("Allow User If"), 150], [__("Document Type"), 150], [__("Is"),150], ["", 50]],
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -282,17 +294,17 @@ frappe.UserPermissions = Class.extend({
 
 	show_add_user_permission: function() {
 		var me = this;
-		$("<button class='btn btn-default btn-sm'>"+__("Add A User Permission")+"</button>")
-			.appendTo($("<p>").appendTo(this.body))
+		$("<button class='btn btn-default btn-sm'>"+__("Add A User Restriction")+"</button>")
+			.appendTo($('<p class="btn-area">').appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
-					title: __("Add New User Permission"),
+					title: __("Add A New Restriction"),
 					fields: [
-						{fieldtype:"Select", label:__("User"),
+						{fieldtype:"Select", label:__("Allow User If"),
 							options:me.options.users, reqd:1, fieldname:"user"},
-						{fieldtype:"Select", label: __("DocType"), fieldname:"defkey",
+						{fieldtype:"Select", label: __("Select Document Type"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
-						{fieldtype:"Link", label:__("Value"), fieldname:"defvalue",
+						{fieldtype:"Link", label:__("Is"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},
 						{fieldtype:"Button", label: __("Add"), fieldname:"add"},
 					]

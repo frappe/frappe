@@ -106,27 +106,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Workflow"),
-			"icon": "icon-random",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Workflow",
-					"description": _("Define workflows for forms.")
-				},
-				{
-					"type": "doctype",
-					"name": "Workflow State",
-					"description": _("States for workflow (e.g. Draft, Approved, Cancelled).")
-				},
-				{
-					"type": "doctype",
-					"name": "Workflow Action",
-					"description": _("Actions for workflow (e.g. Approve, Cancel).")
-				},
-			]
-		},
-		{
 			"label": _("Email"),
 			"icon": "icon-envelope",
 			"items": [
@@ -166,6 +145,27 @@ def get_data():
 					"type": "doctype",
 					"name": "Print Format",
 					"description": _("Customized HTML Templates for printing transactions.")
+				},
+			]
+		},
+		{
+			"label": _("Workflow"),
+			"icon": "icon-random",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Workflow",
+					"description": _("Define workflows for forms.")
+				},
+				{
+					"type": "doctype",
+					"name": "Workflow State",
+					"description": _("States for workflow (e.g. Draft, Approved, Cancelled).")
+				},
+				{
+					"type": "doctype",
+					"name": "Workflow Action",
+					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
 			]
 		},
