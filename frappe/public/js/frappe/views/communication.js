@@ -343,7 +343,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(last_email) {
 			fields.content.set_input(reply
-				+ "<!-- original-reply --><br>"
+				+ "<br><br><!-- original-reply -->"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
 					[frappe.datetime.global_date_format(last_email.creation) , last_email.comment_by]) + '</p>' +

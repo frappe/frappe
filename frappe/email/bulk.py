@@ -153,7 +153,7 @@ def flush(from_test=False):
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
-			status='Not Sent' limit 1 for update""", as_dict=1)
+			status='Not Sent' order by creation asc limit 1 for update""", as_dict=1)
 		if email:
 			email = email[0]
 		else:

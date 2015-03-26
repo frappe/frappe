@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import frappe
 import json
+from email.utils import formataddr
 from frappe.utils import get_url, cint, scrub_urls, get_formatted_email
 from frappe.email.email_body import get_email
 import frappe.email.smtp
@@ -58,14 +59,13 @@ class Communication(Document):
 		if print_format:
 			self.content += self.get_attach_link(print_format)
 
-		default_incoming = frappe.db.get_value("Email Account", {"default_incoming": 1}, "email_id")
-		default_outgoing = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
+		self.set_incoming_outgoing_accounts()
 
 		if not self.sender:
-			self.sender = "{0} <{1}>".format(frappe.session.data.full_name or "Notification", default_outgoing)
+			self.sender = formataddr([frappe.session.data.full_name or "Notification", self.outgoing_email_account])
 
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
-			content=self.content, reply_to=default_incoming)
+			content=self.content, reply_to=self.incoming_email_account)
 
 		mail.set_message_id(self.name)
 
@@ -83,6 +83,17 @@ class Communication(Document):
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 
 		return mail
+
+	def set_incoming_outgoing_accounts(self):
+		self.incoming_email_account = frappe.db.get_value("Email Account",
+			{"append_to": self.reference_doctype, "enable_incoming": 1}, "email_id")
+		if not self.incoming_email_account:
+			self.incoming_email_account = frappe.db.get_value("Email Account", {"incoming_email_account": 1}, "email_id")
+
+		self.outgoing_email_account = frappe.db.get_value("Email Account",
+			{"append_to": self.reference_doctype, "enable_outgoing": 1}, "email_id")
+		if not self.outgoing_email_account:
+			self.outgoing_email_account = frappe.db.get_value("Email Account", {"outgoing_email_account": 1}, "email_id")
 
 	def add_to_mail_queue(self, mail):
 		mail = frappe.get_doc({
@@ -184,11 +195,14 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
+	if not sender and frappe.session.user != "Administrator":
+		sender = get_formatted_email(frappe.session.user)
+
 	comm = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
 		"content": content,
-		"sender": sender or get_formatted_email(frappe.session.user),
+		"sender": sender,
 		"recipients": recipients,
 		"communication_medium": "Email",
 		"sent_or_received": sent_or_received,

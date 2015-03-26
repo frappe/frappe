@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import sys
 import os
 import subprocess
@@ -353,8 +353,9 @@ def setup_docs(context,app, docs_app, path):
 			frappe.destroy()
 
 @click.command('build-docs')
+@click.argument('app')
 @pass_context
-def build_docs(context):
+def build_docs(context, app):
 	"Build docs from /src to /www folder in app"
 	from frappe.utils.autodoc import build
 	frappe.destroy()
@@ -606,7 +607,6 @@ def mysql(context):
 def console(context):
 	"Start ipython console for a site"
 	site = get_single_site(context)
-	import frappe
 	frappe.init(site=site)
 	frappe.connect()
 	import IPython

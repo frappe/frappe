@@ -65,10 +65,9 @@ def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
 	email = extract_email_id(email_str)
 	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
-	if not match:
-		return False
 
-	match = match.group(0)==email.lower()
+	if match:
+		match = match.group(0)==email.lower()
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid email id").format(email),

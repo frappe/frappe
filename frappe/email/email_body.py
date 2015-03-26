@@ -160,13 +160,16 @@ class EMail:
 	def add_pdf_attachment(self, name, html, options=None):
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
+	def get_default_sender(self):
+		email_account = get_outgoing_email_account()
+		return email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
+
 	def validate(self):
 		"""validate the email ids"""
 		from frappe.utils import validate_email_add
 
 		if not self.sender:
-			email_account = get_outgoing_email_account()
-			self.sender = email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
+			self.sender = self.get_default_sender()
 
 		self.sender = validate_email_add(strip(self.sender), True)
 		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
