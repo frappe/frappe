@@ -9,7 +9,7 @@ from frappe.utils import validate_email_add, nowdate
 
 class EmailAlert(Document):
 	def validate(self):
-		if self.event=="Date Change" and not self.date_changed:
+		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
 
 		if self.event=="Value Change" and not self.value_changed:
@@ -20,22 +20,22 @@ class EmailAlert(Document):
 			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
 
 def trigger_daily_alerts():
-	trigger_email_alerts(None, "Date Change")
+	trigger_email_alerts(None, "daily")
 
 def trigger_email_alerts(doc, method=None):
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send email alerts while syncing or patching
 		return
 
-	if method in ("Days Before", "Days After"):
+	if method = "daily":
 
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
-			where event='Date Change' and enabled=1"""):
+			where event in ('Days Before', 'Days After') and enabled=1"""):
 
 			alert = frappe.get_doc("Email Alert", alert)
 
 			diff_days = alert.days_in_advance
-			if method=="Days After":
+			if alert.event=="Days After":
 				diff_days = -diff_days
 
 			for name in frappe.db.sql_list("""select name from `tab{0}` where
@@ -43,7 +43,7 @@ def trigger_email_alerts(doc, method=None):
 					(nowdate(), diff_days or 0)):
 
 				evaluate_alert(frappe.get_doc(alert.document_type, name),
-					alert, "Date Change")
+					alert, alert.event)
 	else:
 		if method in ("on_update", "validate") and doc.flags.in_insert:
 			# don't call email alerts multiple times for inserts

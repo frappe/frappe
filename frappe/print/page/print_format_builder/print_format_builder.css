@@ -64,3 +64,20 @@
 .column-selector-row .form-control {
 	margin-top: 5px;
 }
+
+.print-format-builder-sidebar {
+	display: inline-block;
+	width: 160px;
+	vertical-align: top;
+	position: fixed;
+	top: 110px;
+	bottom: 0px;
+	overflow-y: auto;
+}
+
+.print-format-builder-main {
+	display: inline-block;
+	vertical-align: top;
+	border-top: 0px;
+	margin-left: 160px;
+}

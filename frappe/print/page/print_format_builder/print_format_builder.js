@@ -34,14 +34,23 @@ frappe.PrintFormatBuilder = Class.extend({
 	make: function() {
 		this.page = frappe.ui.make_app_page({
 			parent: this.parent,
-			title: __("Print Format Builder")
+			title: __("Print Format Builder"),
+			single_column: true
 		});
+
+		this.page.main.css({"border-color": "transparent"});
+
+		this.page.sidebar = $('<div class="print-format-builder-sidebar"></div>').appendTo(this.page.main);
+		this.page.main = $('<div class="border print-format-builder-main" \
+			style="width: calc(100% - 160px);"></div>').appendTo(this.page.main);
 
 		// future-bindings for buttons on sections / fields
 		// bind only once
 		this.setup_section_settings();
 		this.setup_column_selector();
 		this.setup_edit_custom_html();
+		// $(this.page.sidebar).css({"position": 'fixed'});
+		// $(this.page.main).parent().css({"margin-left": '16.67%'});
 	},
 	show_start: function() {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
