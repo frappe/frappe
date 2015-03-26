@@ -28,12 +28,8 @@ frappe.ui.form.Comments = Class.extend({
 			});
 
 		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
-			.on("click", function() {
-				if ($(this).prop("checked")) {
-					me.button.html(__("Compose"));
-				} else {
-					me.button.html(__("Comment"));
-				}
+			.on("change", function() {
+				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
 			});
 	},
 	refresh: function(scroll_to_end) {
@@ -56,7 +52,8 @@ frappe.ui.form.Comments = Class.extend({
 				if(c.comment) me.render_comment(c);
 		});
 
-		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email");
+		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
+
 		this.frm.sidebar.refresh_comments();
 
 	},

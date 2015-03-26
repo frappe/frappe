@@ -150,10 +150,10 @@ class EmailAccount(Document):
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)
 
-				if parent.reference_name:
-					# parent same as parent of last communication
-					parent = frappe.get_doc(parent.reference_doctype,
-						parent.reference_name)
+					if parent.reference_name:
+						# parent same as parent of last communication
+						parent = frappe.get_doc(parent.reference_doctype,
+							parent.reference_name)
 
 		if not parent and self.append_to:
 			# no parent found, but must be tagged
@@ -213,7 +213,7 @@ def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
 
-	for email_account in frappe.get_all("Email Account", "name", filters={"enable_incoming": 1, "notify_if_unreplied": 1}, debug=True):
+	for email_account in frappe.get_all("Email Account", "name", filters={"enable_incoming": 1, "notify_if_unreplied": 1}):
 		email_account = frappe.get_doc("Email Account", email_account.name)
 		if email_account.append_to:
 
