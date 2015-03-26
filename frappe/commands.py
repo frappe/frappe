@@ -139,7 +139,6 @@ def reinstall(context):
 		frappe.clear_cache()
 	except Exception, e:
 		installed = []
-		raise
 	finally:
 		if frappe.db:
 			frappe.db.close()
@@ -391,6 +390,7 @@ def execute(context, method):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
+			print frappe.local.site
 			ret = frappe.get_attr(method)()
 
 			if frappe.db:
