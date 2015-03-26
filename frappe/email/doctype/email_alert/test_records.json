@@ -49,7 +49,7 @@
 		"doctype": "Email Alert",
 		"subject":"_Test Email Alert 5",
 		"document_type": "Event",
-		"event": "Date Change",
+		"event": "Days Before",
 		"attach_print": 0,
 		"date_changed": "starts_on",
 		"days_in_advance": 2,
