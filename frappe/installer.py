@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-import os, json
+import os, json, sys
 import frappe
 import frappe.database
 import getpass
@@ -33,6 +33,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
 	frappe.connect(db_name=db_name)
+	check_if_ready_for_barracuda()
 	import_db_from_sql(source_sql, verbose)
 	remove_missing_apps()
 
@@ -239,3 +240,33 @@ def remove_missing_apps():
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
+def check_if_ready_for_barracuda():
+	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+	for key, value in {
+			"innodb_file_format": "Barracuda",
+			"innodb_file_per_table": "ON",
+			"innodb_large_prefix": "ON",
+			"character_set_server": "utf8mb4",
+			"collation_server": "utf8mb4_unicode_ci"
+		}.items():
+
+		if mariadb_variables.get(key) != value:
+			print "="*80
+			print "Please add this to MariaDB's my.cnf and restart MariaDB before proceeding"
+			print
+			print expected_config_for_barracuda
+			print "="*80
+			sys.exit(1)
+			# raise Exception, "MariaDB needs to be configured!"
+
+expected_config_for_barracuda = """[mysqld]
+innodb-file-format=barracuda
+innodb-file-per-table=1
+innodb-large-prefix=1
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[mysql]
+default-character-set = utf8mb4
+"""
