@@ -193,14 +193,14 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 def make_test_objects(doctype, test_records, verbose=None):
 	records = []
 
-	if not frappe.get_meta(doctype).issingle:
-		existing = frappe.get_all(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
-		if existing:
-			return [d.name for d in existing]
-
-		existing = frappe.get_all(doctype, filters={"name":("like", "_Test " + doctype + "%")})
-		if existing:
-			return [d.name for d in existing]
+	# if not frappe.get_meta(doctype).issingle:
+	# 	existing = frappe.get_all(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
+	# 	if existing:
+	# 		return [d.name for d in existing]
+	#
+	# 	existing = frappe.get_all(doctype, filters={"name":("like", "_Test " + doctype + "%")})
+	# 	if existing:
+	# 		return [d.name for d in existing]
 
 	for doc in test_records:
 		if not doc.get("doctype"):

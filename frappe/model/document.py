@@ -8,7 +8,6 @@ from frappe.utils import flt, cint, cstr, now, get_datetime_str
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.model import display_fieldtypes
 import hashlib, json
 
 # once_only validation
@@ -84,7 +83,7 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
-		self.dont_update_if_missing = []
+		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
 	def load_from_db(self):
@@ -121,6 +120,11 @@ class Document(BaseDocument):
 				self.set(df.fieldname, children)
 			else:
 				self.set(df.fieldname, [])
+
+	def get_latest(self):
+		if not getattr(self, "latest", None):
+			self.latest = frappe.get_doc(self.doctype, self.name)
+		return self.latest
 
 	def check_permission(self, permtype, permlabel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
@@ -301,37 +305,18 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions or frappe.flags.in_install:
 			return
 
-		self.get_high_permlevel_fields()
-		if not self.high_permlevel_fields:
-			return
-
 		has_access_to = self.get_permlevel_access()
-		to_reset = []
-		for df in self.high_permlevel_fields:
-			if df.permlevel not in has_access_to and df.fieldtype not in display_fieldtypes:
-				to_reset.append(df)
+		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
-		if to_reset:
-			if self.is_new():
-				# if new, set default value
-				for df in to_reset:
-					self.set(df.fieldname, df.default or None)
+		if high_permlevel_fields:
+			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-			else:
-				# get values from old doc
-				old = frappe.get_doc(self.doctype, self.name)
-				for df in to_reset:
-					self.set(df.fieldname, old.get(df.fieldname))
-
-	def get_high_permlevel_fields(self):
-		"""Build list of fields with high perm level and all the higher perm levels defined."""
-		self.high_permlevel_fields = []
-		self.high_permlevels = []
-		for df in self.meta.fields:
-			if df.permlevel > 0:
-				self.high_permlevel_fields.append(df)
-				if not df.permlevel in self.high_permlevels:
-					self.high_permlevels.append(df.permlevel)
+		# check for child tables
+		for df in self.meta.get_table_fields():
+			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+			if high_permlevel_fields:
+				for d in self.get(df.fieldname):
+					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self):
 		user_roles = frappe.get_roles()
@@ -347,12 +332,12 @@ class Document(BaseDocument):
 		if frappe.flags.in_import:
 			return
 
-		new_doc = frappe.new_doc(self.doctype)
+		new_doc = frappe.new_doc(self.doctype, as_dict=True)
 		self.update_if_missing(new_doc)
 
 		# children
 		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options)
+			new_doc = frappe.new_doc(df.options, as_dict=True)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
@@ -578,7 +563,7 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		frappe.cache().set_value("last_modified:" + self.doctype, self.modified)
-
+		self.latest = None
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""

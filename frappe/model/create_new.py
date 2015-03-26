@@ -7,37 +7,51 @@ Create a new document with defaults set
 """
 
 import frappe
-from frappe.utils import nowdate, nowtime, cint, flt, now_datetime
+from frappe.utils import nowdate, nowtime, now_datetime
 import frappe.defaults
 from frappe.model.db_schema import type_map
+import copy
 
-def get_new_doc(doctype, parent_doc = None, parentfield = None):
-	doc = frappe.get_doc({
-		"doctype": doctype,
-		"__islocal": 1,
-		"owner": frappe.session.user,
-		"docstatus": 0
-	})
+def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
+	if not doctype in frappe.local.new_doc_templates:
+		# cache a copy of new doc as it is called
+		# frequently for inserts
+		doc = frappe.get_doc({
+			"doctype": doctype,
+			"__islocal": 1,
+			"owner": frappe.session.user,
+			"docstatus": 0
+		})
 
-	user_permissions = frappe.defaults.get_user_permissions()
+		user_permissions = frappe.defaults.get_user_permissions()
+
+		defaults = frappe.defaults.get_defaults()
+
+		for df in doc.meta.get("fields"):
+			if df.fieldtype in type_map:
+				default_value = get_default_value(df, defaults, user_permissions, parent_doc)
+				doc.set(df.fieldname, default_value)
+
+		doc._fix_numeric_types()
+		doc = doc.get_valid_dict()
+		doc["doctype"] = doctype
+		doc["__islocal"] = 1
+
+		frappe.local.new_doc_templates[doctype] = doc
+
+	doc = copy.deepcopy(frappe.local.new_doc_templates[doctype])
 
 	if parent_doc:
-		doc.parent = parent_doc.name
-		doc.parenttype = parent_doc.doctype
+		doc["parent"] = parent_doc.name
+		doc["parenttype"] = parent_doc.doctype
 
 	if parentfield:
-		doc.parentfield = parentfield
+		doc["parentfield"] = parentfield
 
-	defaults = frappe.defaults.get_defaults()
-
-	for df in doc.meta.get("fields"):
-		if df.fieldtype in type_map:
-			default_value = get_default_value(df, defaults, user_permissions, parent_doc)
-			doc.set(df.fieldname, default_value)
-
-	doc._fix_numeric_types()
-
-	return doc
+	if as_dict:
+		return doc
+	else:
+		return frappe.get_doc(doc)
 
 def get_default_value(df, defaults, user_permissions, parent_doc):
 	user_permissions_exist = (df.fieldtype=="Link"

@@ -146,4 +146,3 @@ class TestDocument(unittest.TestCase):
 		d.validate_update_after_submit()
 		d.meta.get_field("starts_on").allow_on_submit = 0
 
-

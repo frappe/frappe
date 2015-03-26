@@ -108,6 +108,7 @@ def init(site, sites_path=None):
 	local.user = None
 	local.role_permissions = {}
 	local.valid_columns = {}
+	local.new_doc_templates = {}
 
 	local.jenv = None
 	local.jloader =None
@@ -429,14 +430,14 @@ def reset_metadata_version():
 	cache().set_value("metadata_version", v)
 	return v
 
-def new_doc(doctype, parent_doc=None, parentfield=None):
+def new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 	"""Returns a new document of the given DocType with defaults set.
 
 	:param doctype: DocType of the new document.
 	:param parent_doc: [optional] add to parent document.
 	:param parentfield: [optional] add against this `parentfield`."""
 	from frappe.model.create_new import get_new_doc
-	return get_new_doc(doctype, parent_doc, parentfield)
+	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
 def set_value(doctype, docname, fieldname, value):
 	"""Set document value. Calls `frappe.client.set_value`"""

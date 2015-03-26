@@ -15,6 +15,9 @@ class TestUser(unittest.TestCase):
 		frappe.db.sql("""delete from tabUserRole where role='_Test Role 2'""")
 		delete_doc("Role","_Test Role 2")
 
+		if frappe.db.exists("User", "_test@example.com"):
+			delete_doc("User", "_test@example.com")
+
 		user = frappe.copy_doc(test_records[1])
 		user.email = "_test@example.com"
 		user.insert()
@@ -50,3 +53,21 @@ class TestUser(unittest.TestCase):
 		frappe.db.set_value("Website Settings", "Website Settings", "_test", "_test_val")
 		self.assertEquals(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
 		self.assertEquals(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
+
+	def test_high_permlevel_validations(self):
+		user = frappe.get_meta("User")
+		self.assertTrue("user_roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
+
+		frappe.set_user("testperm@example.com")
+
+		me = frappe.get_doc("User", "testperm@example.com")
+		me.add_roles("System Manager")
+
+		self.assertTrue("System Manager" not in [d.role for d in me.get("user_roles")])
+
+		frappe.set_user("Administrator")
+
+		me = frappe.get_doc("User", "testperm@example.com")
+		me.add_roles("System Manager")
+
+		self.assertTrue("System Manager" in [d.role for d in me.get("user_roles")])

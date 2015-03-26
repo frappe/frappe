@@ -2,12 +2,13 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json, sys
+import frappe, sys
 from frappe import _
 from frappe.utils import cint, flt, now, cstr, strip_html
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
+from frappe.model import display_fieldtypes
 
 _classes = {}
 
@@ -470,6 +471,29 @@ class BaseDocument(object):
 			return fieldname in doc.format_data_map
 		else:
 			return True
+
+	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields):
+		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
+		to_reset = []
+
+		for df in high_permlevel_fields:
+			if df.permlevel not in has_access_to and df.fieldtype not in display_fieldtypes:
+				to_reset.append(df)
+
+		if to_reset:
+			if self.is_new():
+				# if new, set default value
+				ref_doc = frappe.new_doc(self.doctype)
+			else:
+				# get values from old doc
+				if self.parent:
+					self.parent_doc.get_latest()
+					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
+				else:
+					ref_doc = self.get_latest()
+
+			for df in to_reset:
+				self.set(df.fieldname, ref_doc.get(df.fieldname))
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:
