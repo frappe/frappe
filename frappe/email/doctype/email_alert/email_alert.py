@@ -27,7 +27,7 @@ def trigger_email_alerts(doc, method=None):
 		# don't send email alerts while syncing or patching
 		return
 
-	if method = "daily":
+	if method == "daily":
 
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
