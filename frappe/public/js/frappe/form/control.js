@@ -1201,6 +1201,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.switcher = $('<p class="text-right small">\
 			<a href="#" class="switcher"></a></p>')
 			.appendTo(this.input_area)
+			.find("a")
 			.click(function() {
 				me.switch();
 				return false;
