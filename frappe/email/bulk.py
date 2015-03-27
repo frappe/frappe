@@ -14,8 +14,8 @@ from frappe.utils import get_url, nowdate
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
-		reference_name=None, unsubscribe_method=None, unsubscribe_params=None,
-		attachments=None, reply_to=None, footer_message=None):
+		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
+		attachments=None, reply_to=None, cc=(), message_id=None):
 	"""Add email to sending queue (Bulk Email)
 
 	:param recipients: List of recipients.
@@ -27,7 +27,9 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.bulk.unsubscribe`.
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 	:param attachments: Attachments to be sent.
-	:param reply_to: Reply to be captured here (default inbox)"""
+	:param reply_to: Reply to be captured here (default inbox)
+	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	"""
 
 
 	if not unsubscribe_method:
@@ -59,22 +61,30 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 			# add to queue
 			updated = add_unsubscribe_link(formatted, email, reference_doctype, reference_name,
-				unsubscribe_url, footer_message)
+				unsubscribe_url, unsubscribe_message)
 
 			text_content += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
 
-			add(email, sender, subject, updated, text_content, reference_doctype, reference_name, attachments, reply_to)
+			add(email, sender, subject, updated, text_content, reference_doctype, reference_name, attachments, reply_to,
+				cc, message_id)
 
 def add(email, sender, subject, formatted, text_content=None,
-	reference_doctype=None, reference_name=None, attachments=None, reply_to=None):
+	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
+	cc=(), message_id=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 
 	try:
-		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
-			text_content=text_content, attachments=attachments, reply_to=reply_to).as_string()
+		mail = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
+			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc)
+
+		if message_id:
+			mail.set_message_id(message_id)
+
+		e.message = mail.as_string()
+
 	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
 		return
@@ -94,14 +104,16 @@ def check_bulk_limit(recipients):
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
 		if (this_month + len(recipients)) > monthly_bulk_mail_limit:
-			throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
+			throw(_("Email limit {0} crossed").format(monthly_bulk_mail_limit),
 				BulkLimitCrossedError)
 
-def add_unsubscribe_link(message, email, reference_doctype, reference_name, unsubscribe_url, footer_message):
-	unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa; margin-top: 17px;">
-		<small>{footer_message}
-			<a href="{unsubscribe_url}">{unsubscribe_message}</a></small></div>""".format(unsubscribe_url = unsubscribe_url,
-			unsubscribe_message = _("Unsubscribe from this list"), footer_message= footer_message or "")
+def add_unsubscribe_link(message, email, reference_doctype, reference_name, unsubscribe_url, unsubscribe_message):
+	unsubscribe_link = """<div style="padding: 7px; margin-top: 7px; text-align: center;">
+			<a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: none; font-size: 85%;" target="_blank">
+				{unsubscribe_message}
+			</a>
+		</div>""".format(unsubscribe_url = unsubscribe_url,
+			unsubscribe_message = unsubscribe_message or _("Unsubscribe from this list"))
 
 	message = message.replace("<!--unsubscribe link here-->", unsubscribe_link)
 
@@ -136,10 +148,10 @@ def unsubscribe(doctype, name, email):
 
 	frappe.db.commit()
 
-	return_unsubscribed_page(email)
+	return_unsubscribed_page(email, doctype, name)
 
-def return_unsubscribed_page(email):
-	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has been successfully unsubscribed").format(email))
+def return_unsubscribed_page(email, doctype, name):
+	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has has left the conversation in {1} {2}").format(email, _(doctype), name))
 
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""

@@ -271,8 +271,9 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
-		unsubscribe_method=None, unsubscribe_params=None,
-		attachments=None, content=None, doctype=None, name=None, reply_to=None, as_bulk=False):
+		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
+		attachments=None, content=None, doctype=None, name=None, reply_to=None,
+		cc=(), message_id=None, as_bulk=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -288,6 +289,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
 	:param attachments: List of attachments.
 	:param reply_to: Reply-To email id.
+	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	"""
 
 	if bulk or as_bulk:
@@ -295,16 +297,18 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		frappe.email.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
-			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params,
-			attachments=attachments, reply_to=reply_to)
+			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
+			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id)
 	else:
 		import frappe.email
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to)
+				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
+				cc=cc, message_id=message_id)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to)
+				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
+				cc=cc, message_id=message_id)
 
 logger = None
 whitelisted = []
@@ -891,7 +895,7 @@ def format_value(value, df, doc=None, currency=None):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
 
-def get_print(doctype, name, print_format=None, style=None, as_pdf=False):
+def get_print(doctype, name, print_format=None, style=None, html=None, as_pdf=False):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -907,17 +911,19 @@ def get_print(doctype, name, print_format=None, style=None, as_pdf=False):
 	local.form_dict.format = print_format
 	local.form_dict.style = style
 
-	html = build_page("print")
+	if not html:
+		html = build_page("print")
 
 	if as_pdf:
 		return get_pdf(html)
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
+	file_name = file_name.replace(' ','').replace('/','-')
 
 	print_settings = db.get_singles_dict("Print Settings")
 
@@ -926,12 +932,12 @@ def attach_print(doctype, name, file_name=None):
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, as_pdf=True)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False

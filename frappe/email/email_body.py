@@ -11,10 +11,10 @@ from markdown2 import markdown
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None):
+	content=None, reply_to=None, cc=()):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)
@@ -35,7 +35,7 @@ class EMail:
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None):
+	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=()):
 		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -55,7 +55,7 @@ class EMail:
 		self.msg_root = MIMEMultipart('mixed')
 		self.msg_multipart = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_multipart)
-		self.cc = []
+		self.cc = cc or []
 		self.html_set = False
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):

@@ -682,13 +682,13 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
-	def add_comment(self, comment_type, text=None):
+	def add_comment(self, comment_type, text=None, comment_by=None):
 		"""Add a comment to this document.
 
 		:param comment_type: e.g. `Comment`. See Comment for more info."""
 		comment = frappe.get_doc({
 			"doctype":"Comment",
-			"comment_by": frappe.session.user,
+			"comment_by": comment_by or frappe.session.user,
 			"comment_type": comment_type,
 			"comment_doctype": self.doctype,
 			"comment_docname": self.name,
@@ -703,6 +703,6 @@ class Document(BaseDocument):
 	def get_starred_by(self):
 		starred_by = getattr(self, "_starred_by", None)
 		if starred_by:
-			return json.dumps(starred_by)
+			return json.loads(starred_by)
 		else:
 			return []

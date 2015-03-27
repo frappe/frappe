@@ -131,7 +131,7 @@ class EmailAccount(Document):
 				# notify all participants of this thread
 				# convert content to HTML - by default text parts of replies are used.
 				communication.content = markdown2.markdown(communication.content)
-				communication.notify(communication.get_email(), except_sender = True)
+				communication.notify(attachments=email.attachments, except_sender = True)
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
@@ -229,9 +229,9 @@ def notify_unreplied():
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
 					# if status is still open
-					frappe.sendmail(recipients= email_account.get_unreplied_notification_emails(),
+					frappe.sendmail(recipients=email_account.get_unreplied_notification_emails(),
 						content=comm.content, subject=comm.subject, doctype= comm.reference_doctype,
-						name=comm.reference_name, bulk = True)
+						name=comm.reference_name, bulk=True)
 
 				# update flag
 				comm.db_set("unread_notification_sent", 1)

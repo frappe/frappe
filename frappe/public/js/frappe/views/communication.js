@@ -342,12 +342,14 @@ frappe.views.CommunicationComposer = Class.extend({
 			+ (signature ? ("<br><br>" + signature) : "");
 
 		if(last_email) {
+			var last_email_content = frappe.markdown(last_email.original_comment || last_email.comment);
+
 			fields.content.set_input(reply
-				+ "<br><br><!-- original-reply -->"
+				+ "<br><!-- original-reply -->"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
 					[frappe.datetime.global_date_format(last_email.creation) , last_email.comment_by]) + '</p>' +
-					frappe.markdown(last_email.comment) +
+					last_email_content +
 				'<blockquote>');
 		} else {
 			fields.content.set_input(reply);
