@@ -31,6 +31,10 @@ frappe.ui.form.Comments = Class.extend({
 			.on("change", function() {
 				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
 			});
+
+		this.list.on("click", ".toggle-blockquote", function() {
+			$(this).parent().siblings("blockquote").toggleClass("hidden");
+		});
 	},
 	refresh: function(scroll_to_end) {
 		var me = this;
@@ -95,6 +99,7 @@ frappe.ui.form.Comments = Class.extend({
 				c.comment = c.comment.split("<!-- original-reply -->")[0];
 				c.comment = frappe.utils.strip_original_content(c.comment);
 				c.comment = frappe.utils.remove_script_and_style(c.comment);
+				c.comment = frappe.utils.toggle_blockquote(c.comment);
 			}
 
 			if(!frappe.utils.is_html(c.comment)) {

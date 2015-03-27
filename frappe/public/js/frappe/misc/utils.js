@@ -15,6 +15,8 @@ frappe.utils = {
 		}
 	},
 	is_html: function(txt) {
+		if (!txt) return false;
+
 		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
 			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
 			return false;
@@ -46,8 +48,20 @@ frappe.utils = {
 			|| txt.toLowerCase().substr(0,8)=='https://'
 	},
 	remove_script_and_style: function(txt) {
-		return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
-			$("<div></div>").html(txt).find("script,noscript,style,title,meta").remove().end().html();
+		if (!txt || (txt.indexOf("<script")===-1 && txt.indexOf("<style")===-1)) return txt;
+		return $("<div></div>").html(txt)
+			.find("script,noscript,style,title,meta").remove().end()
+			.html();
+	},
+	toggle_blockquote: function(txt) {
+		if (!txt) return txt;
+
+		var content = $("<div></div>").html(txt)
+		content.find("blockquote").parent("blockquote").addClass("hidden")
+			.before('<p><a class="text-muted btn btn-default toggle-blockquote" style="padding: 2px 7px 0px; line-height: 1;"> \
+					• • • \
+				</a></p>');
+		return content.html();
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
