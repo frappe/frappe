@@ -24,7 +24,7 @@ type_map = {
 	,'Check':		('int', '1')
 	,'Small Text':	('text', '')
 	,'Long Text':	('longtext', '')
-	,'Code':		('text', '')
+	,'Code':		('longtext', '')
 	,'Text Editor':	('longtext', '')
 	,'Date':		('date', '')
 	,'Datetime':	('datetime', '6')

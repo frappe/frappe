@@ -6,9 +6,10 @@ import time
 import _socket, poplib
 import frappe
 from frappe import _
-from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
+from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr
 from frappe.utils.scheduler import log
 from email_reply_parser import EmailReplyParser
+from email.header import decode_header
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -237,7 +238,7 @@ class Email:
 	def get_attachment(self, part, charset):
 		self.attachments.append({
 			'content_type': part.get_content_type(),
-			'fname': part.get_filename(),
+			'fname': cstr(decode_header(part.get_filename())[0][0]),
 			'fcontent': part.get_payload(decode=True),
 		})
 

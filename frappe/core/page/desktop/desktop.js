@@ -83,14 +83,17 @@ $.extend(frappe.desktop, {
 		}
 
 		// filter valid icons
+		var out = [];
 		for (var i=0, l=user_desktop_items.length; i < l; i++) {
 			var m = user_desktop_items[i];
 			var module = frappe.get_module(m);
 
-			module.app_icon = frappe.ui.app_icon.get_html(m);
+			if (module) {
+				module.app_icon = frappe.ui.app_icon.get_html(m);
+				out.push(m);
+			}
 		}
-
-		return user_desktop_items;
+		return out;
 	},
 
 	setup_icon_click: function() {

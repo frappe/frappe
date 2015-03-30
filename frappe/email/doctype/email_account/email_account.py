@@ -125,13 +125,13 @@ class EmailAccount(Document):
 				# save attachments
 				email.save_attachments_in_doc(communication)
 
-				if self.enable_auto_reply:
-					self.send_auto_reply(communication)
+				if self.enable_auto_reply and getattr(communication, "is_first", False):
+					self.send_auto_reply(communication, email)
 
 				# notify all participants of this thread
 				# convert content to HTML - by default text parts of replies are used.
 				communication.content = markdown2.markdown(communication.content)
-				communication.notify(attachments=email.attachments, except_sender = True)
+				communication.notify(attachments=email.attachments, except_recipient = True)
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
@@ -175,18 +175,27 @@ class EmailAccount(Document):
 			parent.flags.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
 
+			communication.is_first = True
+
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
 
-	def send_auto_reply(self, communication):
+	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
 		if self.auto_reply_message:
-			frappe.sendmail(recipients = [communication.from_email],
+			communication.set_incoming_outgoing_accounts()
+
+			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
+				reply_to = communication.incoming_email_account,
 				subject = _("Re: ") + communication.subject,
-				content = self.auto_reply_message or\
+				content = self.auto_reply_message or \
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
+				reference_doctype = communication.reference_doctype,
+				reference_name = communication.reference_name,
+				message_id = communication.name,
+				unsubscribe_message = _("Leave this conversation"),
 				bulk=True)
 
 	def get_unreplied_notification_emails(self):

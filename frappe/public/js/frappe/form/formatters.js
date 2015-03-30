@@ -158,6 +158,9 @@ frappe.form.formatters = {
 		} else {
 			return "<span class='label'>" + value + "</span>";
 		}
+	},
+	Email: function(value) {
+		return $("<div></div>").text(value).html();
 	}
 }
 

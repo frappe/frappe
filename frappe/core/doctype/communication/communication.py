@@ -66,9 +66,9 @@ class Communication(Document):
 		if not self.outgoing_email_account:
 			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
 
-	def notify(self, print_html=None, print_format=None, attachments=None, except_sender=False):
+	def notify(self, print_html=None, print_format=None, attachments=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
-		recipients = self.get_recipients(except_sender=except_sender)
+		recipients = self.get_recipients(except_recipient=except_recipient)
 
 		frappe.sendmail(
 			recipients=recipients,
@@ -109,13 +109,17 @@ class Communication(Document):
 				attachments = json.loads(attachments)
 
 			for a in attachments:
-				try:
-					file = get_file(a)
-					self.attachments.append({"fname": file[0], "fcontent": file[1]})
-				except IOError:
-					frappe.throw(_("Unable to find attachment {0}").format(a))
+				if isinstance(a, basestring):
+					# is it a filename?
+					try:
+						file = get_file(a)
+						self.attachments.append({"fname": file[0], "fcontent": file[1]})
+					except IOError:
+						frappe.throw(_("Unable to find attachment {0}").format(a))
+				else:
+					self.attachments.append(a)
 
-	def get_recipients(self, except_sender=False):
+	def get_recipients(self, except_recipient=False):
 		"""Build a list of users to which this email should go to"""
 
 		recipients = self.get_earlier_participants()
@@ -123,15 +127,15 @@ class Communication(Document):
 		recipients += [s.strip() for s in self.recipients.split(",")]
 		recipients += self.get_assignees()
 		recipients += self.get_starrers()
-		recipients = filter(lambda e: e and e!="Administrator", list(set(recipients)))
+		recipients = filter(lambda e: e and e!="Administrator" and e!=self.sender, list(set(recipients)))
 
 		# remove unsubscribed recipients
 		unsubscribed = [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		recipients = filter(lambda e: e not in unsubscribed, recipients)
 
-		if except_sender:
-			# while pulling email, don't send email to current sender and recipients
-			recipients = filter(lambda e: not (e==self.sender or e==self.recipients), recipients)
+		if except_recipient:
+			# while pulling email, don't send email to current recipient
+			recipients = filter(lambda e: e!=self.recipients, recipients)
 
 		return recipients
 
