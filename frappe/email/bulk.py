@@ -56,14 +56,15 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	for email in filter(None, list(set(recipients))):
 		if email not in unsubscribed:
-			unsubscribe_url = get_unsubcribed_url(reference_doctype, reference_name, email,
-				unsubscribe_method, unsubscribe_params)
+			if reference_doctype:
+				unsubscribe_url = get_unsubcribed_url(reference_doctype, reference_name, email,
+					unsubscribe_method, unsubscribe_params)
 
-			# add to queue
-			updated = add_unsubscribe_link(formatted, email, reference_doctype, reference_name,
-				unsubscribe_url, unsubscribe_message)
+				# add to queue
+				updated = add_unsubscribe_link(formatted, email, reference_doctype, reference_name,
+					unsubscribe_url, unsubscribe_message)
 
-			text_content += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
+				text_content += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
 
 			add(email, sender, subject, updated, text_content, reference_doctype, reference_name, attachments, reply_to,
 				cc, message_id)

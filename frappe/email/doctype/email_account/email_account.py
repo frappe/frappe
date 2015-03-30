@@ -103,35 +103,43 @@ class EmailAccount(Document):
 				pop3 = self.get_pop3()
 				incoming_mails = pop3.get_messages()
 
+			exceptions = []
 			for raw in incoming_mails:
-				email = Email(raw)
+				try:
+					email = Email(raw)
 
-				communication = frappe.get_doc({
-					"doctype": "Communication",
-					"subject": email.subject,
-					"content": email.content,
-					"sent_or_received": "Received",
-					"sender_full_name": email.from_real_name,
-					"sender": email.from_email,
-					"recipients": email.mail.get("To"),
-					"email_account": self.name,
-					"communication_medium": "Email"
-				})
+					communication = frappe.get_doc({
+						"doctype": "Communication",
+						"subject": email.subject,
+						"content": email.content,
+						"sent_or_received": "Received",
+						"sender_full_name": email.from_real_name,
+						"sender": email.from_email,
+						"recipients": email.mail.get("To"),
+						"email_account": self.name,
+						"communication_medium": "Email"
+					})
 
-				self.set_thread(communication, email)
+					self.set_thread(communication, email)
 
-				communication.insert(ignore_permissions = 1)
+					communication.insert(ignore_permissions = 1)
 
-				# save attachments
-				email.save_attachments_in_doc(communication)
+					# save attachments
+					email.save_attachments_in_doc(communication)
 
-				if self.enable_auto_reply and getattr(communication, "is_first", False):
-					self.send_auto_reply(communication, email)
+					if self.enable_auto_reply and getattr(communication, "is_first", False):
+						self.send_auto_reply(communication, email)
 
-				# notify all participants of this thread
-				# convert content to HTML - by default text parts of replies are used.
-				communication.content = markdown2.markdown(communication.content)
-				communication.notify(attachments=email.attachments, except_recipient = True)
+					# notify all participants of this thread
+					# convert content to HTML - by default text parts of replies are used.
+					communication.content = markdown2.markdown(communication.content)
+					communication.notify(attachments=email.attachments, except_recipient = True)
+
+				except Exception, e:
+					exceptions.append(frappe.get_traceback())
+
+		if exceptions:
+			raise Exception, exceptions
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
@@ -173,7 +181,18 @@ class EmailAccount(Document):
 				parent.set_sender(email.from_email)
 
 			parent.flags.ignore_mandatory = True
-			parent.insert(ignore_permissions=True)
+
+			try:
+				parent.insert(ignore_permissions=True)
+
+			except frappe.DuplicateEntryError:
+
+				if frappe.get_meta(self.append_to).get_field("email_id"):
+					# assume that duplicate entry is due to email_id field!
+					parent = frappe.get_doc(self.append_to, { "email_id": email.from_email })
+
+				else:
+					raise
 
 			communication.is_first = True
 
