@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, absolute_import
 import frappe
 import json
-from email.utils import formataddr
+from email.utils import formataddr, parseaddr
 from frappe.utils import get_url, cint, scrub_urls, get_formatted_email
 from frappe.email.email_body import get_email
 from frappe.utils.file_manager import get_file
@@ -127,17 +127,29 @@ class Communication(Document):
 		recipients += [s.strip() for s in self.recipients.split(",")]
 		recipients += self.get_assignees()
 		recipients += self.get_starrers()
-		recipients = filter(lambda e: e and e!="Administrator" and e!=self.sender, list(set(recipients)))
+		recipients = list(set(recipients))
 
 		# remove unsubscribed recipients
 		unsubscribed = [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
-		recipients = filter(lambda e: e not in unsubscribed, recipients)
+		email_accounts = [d[0] for d in frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
 
-		if except_recipient:
-			# while pulling email, don't send email to current recipient
-			recipients = filter(lambda e: e!=self.recipients, recipients)
+		filtered = []
+		for e in recipients:
+			if e=="Administrator" or e==self.sender or e in unsubscribed or e in email_accounts:
+				continue
 
-		return recipients
+			email_id = parseaddr(e)[1]
+			if email_id==self.sender or email_id in unsubscribed or email_id in email_accounts:
+				continue
+
+			if except_recipient and (e==self.recipients or email_id==self.recipients):
+				# while pulling email, don't send email to current recipient
+				continue
+
+			if e not in filtered and email_id not in filtered:
+				filtered.append(e)
+
+		return filtered
 
 	def get_starrers(self):
 		"""Return list of users who have starred this document."""
@@ -162,8 +174,12 @@ class Communication(Document):
 				(self.reference_doctype, self.reference_name))
 
 	def get_assignees(self):
-		return [d.owner for d in frappe.db.get_all("ToDo", filters={"reference_type": self.reference_doctype,
-			"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
+		if self.reference_doctype and self.reference_name:
+			return [d.owner for d in frappe.db.get_all("ToDo", filters={"reference_type": self.reference_doctype,
+				"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
+
+		else:
+			return []
 
 	def get_attach_link(self, print_format):
 		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
