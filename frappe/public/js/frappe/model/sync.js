@@ -64,7 +64,6 @@ $.extend(frappe.model, {
 		return r.docs;
 	},
 	add_to_locals: function(doc) {
-
 		if(!locals[doc.doctype])
 			locals[doc.doctype] = {};
 

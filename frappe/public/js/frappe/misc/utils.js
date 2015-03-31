@@ -241,6 +241,7 @@ frappe.utils = {
 
 		return list;
 	},
+
 	unique: function(list) {
 		var dict = {},
 			arr = [];
@@ -251,6 +252,16 @@ frappe.utils = {
 			}
 		}
 		return arr;
+	},
+
+	remove_nulls: function(list) {
+		var new_list = [];
+		for (var i=0, l=list.length; i < l; i++) {
+			if (!is_null(list[i])) {
+				new_list.push(list[i]);
+			}
+		}
+		return new_list;
 	},
 
 	all: function(lst) {

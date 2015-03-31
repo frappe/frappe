@@ -132,6 +132,7 @@ class Communication(Document):
 		# remove unsubscribed recipients
 		unsubscribed = [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		email_accounts = [d[0] for d in frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
+		sender = parseaddr(self.sender)[1]
 
 		filtered = []
 		for e in list(set(recipients)):
@@ -139,7 +140,7 @@ class Communication(Document):
 				continue
 
 			email_id = parseaddr(e)[1]
-			if email_id==self.sender or email_id in unsubscribed or email_id in email_accounts:
+			if email_id==sender or email_id in unsubscribed or email_id in email_accounts:
 				continue
 
 			if except_recipient and (e==self.recipients or email_id==self.recipients):

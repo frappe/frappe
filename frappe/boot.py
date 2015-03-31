@@ -51,7 +51,7 @@ def get_bootinfo():
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
-	doclist.append(get_meta_bundle("Page"))
+	doclist.extend(get_meta_bundle("Page"))
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):

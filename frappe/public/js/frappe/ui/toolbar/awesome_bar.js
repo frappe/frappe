@@ -49,7 +49,7 @@ frappe.search = {
 		};
 
 		var render_item = function(ul, d) {
-			var html = "<span>" + __(d.label) + "</span>";
+			var html = "<span>" + __(d.label || d.value) + "</span>";
 			if(d.description && d.value!==d.description) {
 				html += '<br><span class="text-muted">' + __(d.description) + '</span>';
 			}
@@ -108,6 +108,8 @@ frappe.search = {
 		frappe.search.recent = {};
 		for (var i=0, l=recent.length; i < l; i++) {
 			var d = recent[i];
+			if (!(d[0] && d[1])) continue;
+
 			if (!frappe.search.recent[d[0]]) {
 				frappe.search.recent[d[0]] = [];
 			}
@@ -157,7 +159,11 @@ frappe.search.verbs = [
 				&& !in_list(frappe.boot.single_types, doctype)
 				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
 					"Currency", "Page Role", "Print Format"], doctype)) {
-				var values = frappe.utils.unique(keys(locals[doctype]).concat(frappe.search.recent[doctype] || []));
+
+				var values = frappe.utils.remove_nulls(frappe.utils.unique(
+					keys(locals[doctype]).concat(frappe.search.recent[doctype] || [])
+				));
+
 				var ret = frappe.search.find(values, txt, function(match) {
 					return {
 						label: __(doctype) + " <b>" + match + "</b>",
