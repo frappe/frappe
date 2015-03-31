@@ -121,20 +121,20 @@ class Communication(Document):
 
 	def get_recipients(self, except_recipient=False):
 		"""Build a list of users to which this email should go to"""
+		recipients = [s.strip() for s in self.recipients.split(",")]
 
-		recipients = self.get_earlier_participants()
-		recipients += self.get_commentors()
-		recipients += [s.strip() for s in self.recipients.split(",")]
-		recipients += self.get_assignees()
-		recipients += self.get_starrers()
-		recipients = list(set(recipients))
+		if self.reference_doctype and self.reference_name:
+			recipients += self.get_earlier_participants()
+			recipients += self.get_commentors()
+			recipients += self.get_assignees()
+			recipients += self.get_starrers()
 
 		# remove unsubscribed recipients
 		unsubscribed = [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		email_accounts = [d[0] for d in frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
 
 		filtered = []
-		for e in recipients:
+		for e in list(set(recipients)):
 			if e=="Administrator" or e==self.sender or e in unsubscribed or e in email_accounts:
 				continue
 
@@ -174,12 +174,8 @@ class Communication(Document):
 				(self.reference_doctype, self.reference_name))
 
 	def get_assignees(self):
-		if self.reference_doctype and self.reference_name:
-			return [d.owner for d in frappe.db.get_all("ToDo", filters={"reference_type": self.reference_doctype,
-				"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
-
-		else:
-			return []
+		return [d.owner for d in frappe.db.get_all("ToDo", filters={"reference_type": self.reference_doctype,
+			"reference_name": self.reference_name, "status": "Open"}, fields=["owner"])]
 
 	def get_attach_link(self, print_format):
 		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
