@@ -22,8 +22,10 @@ rename_map = {
 }
 
 def execute():
-	for dn in rename_map:
-		frappe.reload_doc(get_doctype_module(dn), "doctype", scrub(dn))
+	frappe.reload_doc("custom", "doctype", "customize_form")
+	frappe.reload_doc("email", "doctype", "email_alert")
+	frappe.reload_doc("desk", "doctype", "event")
+	frappe.reload_doc("workflow", "doctype", "workflow")
 
 	for dt, field_list in rename_map.items():
 		for field in field_list:

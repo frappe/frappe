@@ -76,7 +76,7 @@ def delete_fields(args_dict, delete=0):
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
 
-	meta = frappe.get_meta(doctype)
+	meta = frappe.get_meta(doctype, cached=False)
 	new_field = meta.get_field(new_fieldname)
 	if not new_field:
 		print "rename_field: " + (new_fieldname) + " not found in " + doctype
