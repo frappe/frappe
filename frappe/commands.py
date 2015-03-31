@@ -638,7 +638,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 		pass
 		# sel.close()
 
-	return ret
+	sys.exit(ret)
 
 @click.command('serve')
 @click.option('--port', default=8000)

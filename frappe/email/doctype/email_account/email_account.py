@@ -252,7 +252,7 @@ def notify_unreplied():
 					"unread_notification_sent": 0,
 					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
 					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
-				}, debug=True):
+				}):
 				comm = frappe.get_doc("Communication", comm.name)
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
