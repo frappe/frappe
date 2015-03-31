@@ -86,7 +86,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 
 	if frappe.conf.get("install_apps"):
 		for app in frappe.conf.install_apps:
-			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
 	if install_apps:
 		for app in install_apps:
@@ -152,12 +152,12 @@ def reinstall(context):
 @pass_context
 def install_app(context, app):
 	"Install a new app to site"
-	from frappe.installer import install_app
+	from frappe.installer import install_app as _install_app
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		try:
-			install_app(app, verbose=context.verbose)
+			_install_app(app, verbose=context.verbose)
 		finally:
 			frappe.destroy()
 
