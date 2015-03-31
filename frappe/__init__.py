@@ -261,6 +261,7 @@ def set_user(username):
 	local.session.data = _dict()
 	local.user = User(username)
 	local.role_permissions = {}
+	local.new_doc_templates = {}
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.

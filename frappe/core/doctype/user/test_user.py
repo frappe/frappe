@@ -58,6 +58,9 @@ class TestUser(unittest.TestCase):
 		user = frappe.get_meta("User")
 		self.assertTrue("user_roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
 
+		me = frappe.get_doc("User", "testperm@example.com")
+		me.remove_roles("System Manager")
+
 		frappe.set_user("testperm@example.com")
 
 		me = frappe.get_doc("User", "testperm@example.com")
