@@ -120,7 +120,7 @@ def get_comments(dt, dn, limit=100):
 			as_dict=True)
 
 	for c in communications:
-		c.attachments = json.dumps([f.file_url for f in frappe.get_list("File Data",
+		c.attachments = json.dumps([f.file_url for f in frappe.get_all("File Data",
 			fields=["file_url"],
 			filters={"attached_to_doctype": "Communication",
 				"attached_to_name": c.name}

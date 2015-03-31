@@ -46,8 +46,11 @@ def prepare(theme):
 		.format(font.replace(" ", "+")) for font in webfonts)
 
 	# move @import from css field to the top of the css file
-	if theme.css and "@import url" in theme.css:
-		webfont_import = list(set(re.findall("@import url\([^\(\)]*\);", theme.css)))
-		theme.webfont_import += "\n" + "\n".join(webfont_import)
-		for wfimport in webfont_import:
-			theme.css = theme.css.replace(wfimport, "")
+	if theme.css:
+		if "@import url" in theme.css:
+			webfont_import = list(set(re.findall("@import url\([^\(\)]*\);", theme.css)))
+			theme.webfont_import += "\n" + "\n".join(webfont_import)
+			for wfimport in webfont_import:
+				theme.css = theme.css.replace(wfimport, "")
+
+		theme.css = frappe.get_jenv().from_string(theme.css)
