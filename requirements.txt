@@ -9,7 +9,7 @@ markupsafe
 mysql-python==1.2.5
 pygeoip
 python-dateutil
-python-memcached
+python-memcached==1.53
 pytz
 six
 slugify
