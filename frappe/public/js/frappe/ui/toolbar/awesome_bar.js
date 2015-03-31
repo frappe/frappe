@@ -78,7 +78,7 @@ frappe.search = {
 	},
 	add_help: function() {
 		frappe.search.options.push({
-			value: __("Help on Search"),
+			label: __("Help on Search"),
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
 					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+

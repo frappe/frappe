@@ -450,7 +450,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(!dl.length)
 			return;
 
-		frappe.confirm(__('This is permanent action and you cannot undo. Continue?'),
+		frappe.confirm(__('Delete permanently?'),
 			function() {
 				me.set_working(true);
 				return frappe.call({
@@ -510,5 +510,21 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 		if(!no_run)
 			this.run();
+	},
+	call_for_selected_items: function(method, args) {
+		var me = this;
+		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
+
+		frappe.call({
+			method: method,
+			args: args,
+			freeze: true,
+			callback: function(r) {
+				if(!r.exc) {
+					me.list_header.find(".list-select-all").prop("checked", false);
+					me.run();
+				}
+			}
+		});
 	}
 });
