@@ -9,7 +9,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -29,7 +29,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
-	:param send_after: Send this email after the given datetime.
+	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.bulk.unsubscribe"
@@ -39,6 +39,9 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	if isinstance(recipients, basestring):
 		recipients = recipients.split(",")
+
+	if isinstance(send_after, int):
+		send_after = add_days(nowdate(), send_after)
 
 	if not sender or sender == "Administrator":
 		email_account = get_outgoing_email_account()
@@ -175,7 +178,7 @@ def flush(from_test=False):
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
-			status='Not Sent' and ifnull(send_after, "2000-01-01") > %s
+			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
 			order by creation asc limit 1 for update""", now_datetime(), as_dict=1)
 		if email:
 			email = email[0]

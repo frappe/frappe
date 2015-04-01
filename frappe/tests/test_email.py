@@ -18,12 +18,12 @@ class TestEmail(unittest.TestCase):
 		from frappe.email import sendmail
 		sendmail('test@example.com', subject='Test Mail', msg="Test Content")
 
-	def test_bulk(self):
+	def test_bulk(self, send_after=None):
 		from frappe.email.bulk import send
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name='Administrator',
-			subject='Testing Bulk', message='This is a bulk mail!')
+			subject='Testing Bulk', message='This is a bulk mail!', send_after=send_after)
 
 		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(bulk), 2)
@@ -32,6 +32,13 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('Unsubscribe' in bulk[0]['message'])
 
 	def test_flush(self):
+		self.test_bulk(send_after = 1)
+		from frappe.email.bulk import flush
+		flush(from_test=True)
+		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Sent'""", as_dict=1)
+		self.assertEquals(len(bulk), 0)
+
+	def test_send_after(self):
 		self.test_bulk()
 		from frappe.email.bulk import flush
 		flush(from_test=True)
@@ -39,6 +46,7 @@ class TestEmail(unittest.TestCase):
 		self.assertEquals(len(bulk), 2)
 		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
+
 
 	def test_unsubscribe(self):
 		from frappe.email.bulk import unsubscribe, send
