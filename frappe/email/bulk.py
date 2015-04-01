@@ -9,13 +9,13 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode
+from frappe.utils import get_url, nowdate, encode, now_datetime
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), message_id=None):
+		attachments=None, reply_to=None, cc=(), message_id=None, send_after=None):
 	"""Add email to sending queue (Bulk Email)
 
 	:param recipients: List of recipients.
@@ -29,14 +29,16 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	:param send_after: Send this email after the given datetime.
 	"""
-
-
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.bulk.unsubscribe"
 
 	if not recipients:
 		return
+
+	if isinstance(recipients, basestring):
+		recipients = recipients.split(",")
 
 	if not sender or sender == "Administrator":
 		email_account = get_outgoing_email_account()
@@ -51,8 +53,11 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	except HTMLParser.HTMLParseError:
 		text_content = "See html attachment"
 
-	unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
-		{"reference_doctype": reference_doctype, "reference_name": reference_name})]
+	if reference_doctype and reference_name:
+		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
+			{"reference_doctype": reference_doctype, "reference_name": reference_name})]
+	else:
+		unsubscribed = []
 
 	for email in filter(None, list(set(recipients))):
 		if email not in unsubscribed:
@@ -70,11 +75,11 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 				email_text_context += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
 
 			add(email, sender, subject, email_content, email_text_context, reference_doctype, reference_name, attachments, reply_to,
-				cc, message_id)
+				cc, message_id, send_after)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None):
+	cc=(), message_id=None, send_after=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
@@ -95,6 +100,7 @@ def add(email, sender, subject, formatted, text_content=None,
 
 	e.reference_doctype = reference_doctype
 	e.reference_name = reference_name
+	e.send_after = send_after
 	e.insert(ignore_permissions=True)
 
 def check_bulk_limit(recipients):
@@ -169,7 +175,8 @@ def flush(from_test=False):
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
-			status='Not Sent' order by creation asc limit 1 for update""", as_dict=1)
+			status='Not Sent' and ifnull(send_after, "2000-01-01") > %s
+			order by creation asc limit 1 for update""", now_datetime(), as_dict=1)
 		if email:
 			email = email[0]
 		else:

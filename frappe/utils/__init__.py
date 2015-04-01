@@ -30,8 +30,11 @@ def getCSVelement(v):
 		return '"'+v+'"'
 	else: return v or ''
 
-def get_fullname(user):
+def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
+	if not user:
+		user = frappe.session.user
+
 	if not hasattr(frappe.local, "fullnames"):
 		frappe.local.fullnames = {}
 

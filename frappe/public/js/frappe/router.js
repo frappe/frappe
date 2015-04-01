@@ -103,7 +103,7 @@ frappe.set_route = function() {
 	window.location.hash = route;
 
 	// Set favicon (app.js)
-	frappe.app.set_favicon();
+	frappe.app.set_favicon && frappe.app.set_favicon();
 }
 
 frappe.set_re_route = function() {

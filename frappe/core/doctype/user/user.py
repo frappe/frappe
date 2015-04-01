@@ -161,7 +161,8 @@ class User(Document):
 		self.db_set("reset_password_key", key)
 		link = get_url("/update-password?key=" + key)
 
-		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html", {"link": link})
+		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
+			{"link": link})
 
 	def send_login_mail(self, subject, template, add_args):
 		"""send mail with login details"""
