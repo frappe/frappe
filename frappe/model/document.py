@@ -96,7 +96,7 @@ class Document(BaseDocument):
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
-			self.update(single_doc)
+			super(Document, self).__init__(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 
@@ -104,7 +104,8 @@ class Document(BaseDocument):
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
-			self.update(d)
+
+			super(Document, self).__init__(d)
 
 		if self.name=="DocType" and self.doctype=="DocType":
 			from frappe.model.meta import doctype_table_fields
@@ -120,6 +121,10 @@ class Document(BaseDocument):
 				self.set(df.fieldname, children)
 			else:
 				self.set(df.fieldname, [])
+
+		# sometimes __setup__ can depend on child values, hence calling again at the end
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
