@@ -106,40 +106,47 @@ class EmailAccount(Document):
 			exceptions = []
 			for raw in incoming_mails:
 				try:
-					email = Email(raw)
+					self.insert_communication(raw)
 
-					communication = frappe.get_doc({
-						"doctype": "Communication",
-						"subject": email.subject,
-						"content": email.content,
-						"sent_or_received": "Received",
-						"sender_full_name": email.from_real_name,
-						"sender": email.from_email,
-						"recipients": email.mail.get("To"),
-						"email_account": self.name,
-						"communication_medium": "Email"
-					})
-
-					self.set_thread(communication, email)
-
-					communication.insert(ignore_permissions = 1)
-
-					# save attachments
-					email.save_attachments_in_doc(communication)
-
-					if self.enable_auto_reply and getattr(communication, "is_first", False):
-						self.send_auto_reply(communication, email)
-
-					# notify all participants of this thread
-					# convert content to HTML - by default text parts of replies are used.
-					communication.content = markdown2.markdown(communication.content)
-					communication.notify(attachments=email.attachments, except_recipient = True)
-
-				except Exception, e:
+				except Exception:
+					frappe.db.rollback()
 					exceptions.append(frappe.get_traceback())
 
+				else:
+					frappe.db.commit()
+
 		if exceptions:
-			raise Exception, exceptions
+			raise Exception, frappe.as_json(exceptions)
+
+	def insert_communication(self, raw):
+		email = Email(raw)
+
+		communication = frappe.get_doc({
+			"doctype": "Communication",
+			"subject": email.subject,
+			"content": email.content,
+			"sent_or_received": "Received",
+			"sender_full_name": email.from_real_name,
+			"sender": email.from_email,
+			"recipients": email.mail.get("To"),
+			"email_account": self.name,
+			"communication_medium": "Email"
+		})
+
+		self.set_thread(communication, email)
+
+		communication.insert(ignore_permissions = 1)
+
+		# save attachments
+		email.save_attachments_in_doc(communication)
+
+		if self.enable_auto_reply and getattr(communication, "is_first", False):
+			self.send_auto_reply(communication, email)
+
+		# notify all participants of this thread
+		# convert content to HTML - by default text parts of replies are used.
+		communication.content = markdown2.markdown(communication.content)
+		communication.notify(attachments=email.attachments, except_recipient = True)
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
