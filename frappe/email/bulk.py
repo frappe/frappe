@@ -112,7 +112,7 @@ def check_bulk_limit(recipients):
 				BulkLimitCrossedError)
 
 def add_unsubscribe_link(message, email, reference_doctype, reference_name, unsubscribe_url, unsubscribe_message):
-	unsubscribe_link = """<div style="padding: 7px; margin-top: 7px; text-align: center;">
+	unsubscribe_link = """<div style="padding: 7px; margin-top: 7px;">
 			<a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: none; font-size: 85%;" target="_blank">
 				{unsubscribe_message}
 			</a>
