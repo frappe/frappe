@@ -81,7 +81,12 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				.appendTo(this.page.main);
 
 			$(this.sections[name]).find(".module-item").each(function(i, mi) {
-				$(mi).on("click", function() {
+				$(mi).on("click", function(event) {
+					// if clicked on open notification!
+					if (event.target.classList.contains("open-notification")) {
+						var doctype = event.target.getAttribute("data-doctype");
+						frappe.route_options = frappe.boot.notification_info.conditions[doctype];
+					}
 					frappe.set_route(me.get_route(data.items[$(mi).attr("data-item-index")]));
 				});
 			});
