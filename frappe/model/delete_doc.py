@@ -70,6 +70,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
+				delete_linked_comments(doc)
+				delete_linked_communications(doc)
 				delete_shared(doc)
 				# check if links exist
 				if not force:
@@ -171,6 +173,14 @@ def check_if_doc_is_dynamically_linked(doc):
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+
+def delete_linked_comments(doc):
+	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
+		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)))
+
+def delete_linked_communications(doc):
+	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
+		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name)))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
