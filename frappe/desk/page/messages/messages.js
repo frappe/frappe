@@ -16,10 +16,10 @@ frappe.pages.messages.on_page_load = function(parent) {
 
 	$(".navbar-center").html(__("Messages"));
 
-	frappe.desk.pages.messages = new frappe.desk.pages.messages(parent);
+	frappe.desk.pages.messages = new frappe.desk.pages.Messages(parent);
 }
 
-frappe.desk.pages.messages = Class.extend({
+frappe.desk.pages.Messages = Class.extend({
 	init: function(wrapper, page) {
 		this.wrapper = wrapper;
 		this.page = wrapper.page;
@@ -122,6 +122,7 @@ frappe.desk.pages.messages = Class.extend({
 
 		this.list = new frappe.ui.Listing({
 			parent: this.page.main.find(".message-list"),
+			page: this.page,
 			method: 'frappe.desk.page.messages.messages.get_list',
 			args: {
 				contact: contact
