@@ -165,7 +165,7 @@ def cache():
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
-		redis_server = RedisWrapper.from_url(conf.get("cache_redis_server") or "redis://localhost")
+		redis_server = RedisWrapper.from_url(conf.get("cache_redis_server") or "redis://localhost:11311")
 	return redis_server
 
 def get_traceback():
