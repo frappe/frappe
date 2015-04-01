@@ -12,7 +12,7 @@ from rename_doc import dynamic_link_queries
 from frappe.model.naming import revert_series_if_last
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None):
+	ignore_permissions=False, flags=None, ignore_on_trash=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -67,7 +67,9 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.flags.update(flags)
 
 				check_permission_and_not_submitted(doc)
-				doc.run_method("on_trash")
+
+				if not ignore_on_trash:
+					doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
 				delete_linked_comments(doc)
@@ -175,8 +177,10 @@ def delete_linked_todos(doc):
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
 
 def delete_linked_comments(doc):
+	"""Delete comments from the document"""
+
 	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
-		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)))
+		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)
 
 def delete_linked_communications(doc):
 	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`

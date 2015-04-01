@@ -11,6 +11,8 @@ from frappe.model.db_schema import add_column
 class Comment(Document):
 	"""Comments are added to Documents via forms or views like blogs etc."""
 	__doclink__ = "https://frappe.io/docs/models/core/comment"
+	no_feed_on_delete = True
+
 	def get_feed(self):
 		"""Returns feed HTML from Comment."""
 		if self.comment_doctype == "Message":

@@ -14,6 +14,8 @@ from frappe import _
 from frappe.model.document import Document
 
 class Communication(Document):
+	no_feed_on_delete = True
+
 	"""Communication represents an external communication like Email."""
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
