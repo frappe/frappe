@@ -26,6 +26,7 @@ def get_context(path):
 	if not context:
 		context = get_route_info(path)
 		context = build_context(context)
+
 		add_data_path(context)
 
 		if can_cache(context.no_cache):
@@ -50,6 +51,7 @@ def build_context(context):
 		context.update(context.doc.website)
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
+
 			if ret:
 				context.update(ret)
 

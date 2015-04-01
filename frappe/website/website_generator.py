@@ -9,7 +9,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name, get_home_page
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
-from frappe.website.router import get_page_route
+from frappe.website.router import get_page_route, get_route_info
 
 class WebsiteGenerator(Document):
 	website = frappe._dict(
@@ -77,7 +77,7 @@ class WebsiteGenerator(Document):
 		self.clear_cache()
 
 	def on_trash(self):
-		clear_cache(self.get_route())
+		self.clear_cache()
 
 	def website_published(self):
 		if self.website.condition_field:
@@ -150,8 +150,10 @@ class WebsiteGenerator(Document):
 			# if no parent and not home page, then parent is home page
 			if not _parent_val and me.get_route() != home_page:
 			 	_parent_val = home_page
+				parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
+				return parents
 
-			if _parent_val:
+			elif _parent_val:
 				df = me.meta.get_field(_parent_field)
 				if not df:
 					break

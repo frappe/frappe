@@ -103,7 +103,7 @@ def render_page(path):
 
 	out = None
 
-	# try memcache
+	# try cache
 	if can_cache():
 		out = frappe.cache().get_value(cache_key)
 		if out and is_ajax():

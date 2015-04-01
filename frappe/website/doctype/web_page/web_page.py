@@ -11,7 +11,6 @@ from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
-from frappe import _
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
