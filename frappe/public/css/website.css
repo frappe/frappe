@@ -394,6 +394,9 @@ body {
   box-shadow: none;
   border-radius: 0px;
   margin-bottom: 0px;
+  border-left: none;
+  border-right: none;
+  border-top: none;
 }
 .social-icons i {
   font-size: 120%;
