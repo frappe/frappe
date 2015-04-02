@@ -147,6 +147,10 @@ def remove_blanks(d):
 
 	return d
 
+def strip_html_tags(text):
+	"""Remove html tags from text"""
+	return re.sub("\<[^>]*\>", "", text)
+
 def pprint_dict(d, level=1, no_blanks=True):
 	"""
 		Pretty print a dictionary with indents

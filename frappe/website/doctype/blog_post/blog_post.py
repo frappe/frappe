@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 
-import frappe, re
+import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.utils import today, cint, global_date_format, get_fullname
+from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags
 from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 
@@ -29,7 +29,7 @@ class BlogPost(WebsiteGenerator):
 
 		if not self.blog_intro:
 			self.blog_intro = self.content[:140]
-			self.blog_intro = re.sub("\<[^>]*\>", "", self.blog_intro)
+			self.blog_intro = strip_html_tags(self.blog_intro)
 
 		if self.blog_intro:
 			self.blog_intro = self.blog_intro[:140]
@@ -157,7 +157,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	for post in posts:
 		post.published = global_date_format(post.creation)
-		post.content = re.sub('\<[^>]*\>', '', post.content[:140])
+		post.content = strip_html_tags(post.content[:140])
 		if not post.comments:
 			post.comment_text = _('No comments yet')
 		elif post.comments==1:

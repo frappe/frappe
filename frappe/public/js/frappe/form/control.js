@@ -961,6 +961,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			target: this,
 			txt: this.get_value()
 		});
+		return false;
 	},
 	new_doc: function() {
 		var doctype = this.get_options();
@@ -970,6 +971,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		} else {
 			new_doc(doctype, {"name_field": this.get_value()});
 		}
+		return false;
 	},
 	setup_autocomplete: function() {
 		var me = this;
