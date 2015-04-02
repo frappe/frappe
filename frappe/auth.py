@@ -199,7 +199,10 @@ class LoginManager:
 
 	def login_as_guest(self):
 		"""login as guest"""
-		self.user = 'Guest'
+		self.login_as("Guest")
+
+	def login_as(self, user):
+		self.user = user
 		self.post_login()
 
 	def logout(self, arg='', user=None):

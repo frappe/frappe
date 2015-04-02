@@ -322,25 +322,23 @@ def get_perm_info(arg=None):
 		and docstatus<2 order by parent, permlevel""", (frappe.form_dict['role'],), as_dict=1)
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, key=None, old_password=None):
+def update_password(new_password, key=None):
 	# verify old password
 	if key:
 		user = frappe.db.get_value("User", {"reset_password_key":key})
 		if not user:
 			return _("Cannot Update: Incorrect / Expired Link.")
-	elif old_password:
-		user = frappe.session.user
-		if not frappe.db.sql("""select user from __Auth where password=password(%s)
-			and user=%s""", (old_password, user)):
-			return _("Cannot Update: Incorrect Password")
 
 	_update_password(user, new_password)
 
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
-	frappe.local.login_manager.logout()
+	frappe.local.login_manager.login_as(user)
 
-	return _("Password Updated")
+	if frappe.db.get_value("User", user, "user_type")=="System User":
+		return "/desk"
+	else:
+		return "/"
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name):
