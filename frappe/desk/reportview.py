@@ -83,7 +83,7 @@ def export_query():
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
 
-	data = [['Sr'] + get_labels(db_query.fields)]
+	data = [['Sr'] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
@@ -102,13 +102,20 @@ def export_query():
 	frappe.response['type'] = 'csv'
 	frappe.response['doctype'] = doctype
 
-def get_labels(fields):
+def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
 	for key in fields:
 		key = key.split(" as ")[0]
-		doctype, fieldname = key.split(".")[0][4:-1], key.split(".")[1]
-		label = frappe.get_meta(doctype).get_label(fieldname) or fieldname.title()
+
+		if "." in key:
+			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+		else:
+			parenttype = doctype
+			fieldname = fieldname.strip("`")
+
+		df = frappe.get_meta(parenttype).get_field(fieldname)
+		label = df.label if df else fieldname.title()
 		if label in labels:
 			label = doctype + ": " + label
 		labels.append(label)
