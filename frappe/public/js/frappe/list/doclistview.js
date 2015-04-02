@@ -90,7 +90,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.$page.find('.frappe-list-area').empty(),
 		this.setup_listview();
 		this.init_list(false);
-		this.init_stats();
 		this.init_menu();
 		this.show_match_help();
 		this.init_listview();
@@ -243,6 +242,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	refresh: function() {
 		var me = this;
+		this.init_stats();
 		if(frappe.route_options) {
 			me.set_route_options();
 		} else if(me.dirty) {
