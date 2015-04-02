@@ -242,7 +242,7 @@ class BaseDocument(object):
 					values = ", ".join(["%s"] * len(columns))
 				), d.values())
 		except Exception, e:
-			if e.args[0]==1062 and "PRIMARY" in e.args[1]:
+			if e.args[0]==1062 and "PRIMARY" in cstr(e.args[1]):
 				if self.meta.autoname=="hash":
 					self.name = None
 					self.db_insert()

@@ -77,7 +77,7 @@ def application(request):
 				# 1205 = lock wait timeout
 				# 1213 = deadlock
 				# code 409 represents conflict
-				http_status_code = 409
+				http_status_code = 508
 
 		if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
 			response = frappe.utils.response.report_error(http_status_code)

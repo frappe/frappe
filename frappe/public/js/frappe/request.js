@@ -68,7 +68,7 @@ frappe.request.call = function(opts) {
 
 			msgprint(__("Not permitted"));
 		},
-		409: function(xhr) {
+		508: function(xhr) {
 			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
 		},
 		417: function(data, xhr) {
