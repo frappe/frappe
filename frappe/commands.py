@@ -272,8 +272,7 @@ def clear_cache(context):
 	from frappe.desk.notifications import clear_notifications
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			frappe.connect(site)
 			frappe.clear_cache()
 			clear_notifications()
 			frappe.website.render.clear_cache()

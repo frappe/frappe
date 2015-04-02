@@ -652,7 +652,7 @@ def setup_module_map():
 		local.app_modules = _cache.get_value("app_modules")
 		local.module_app = _cache.get_value("module_app")
 
-	if not local.app_modules:
+	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
 		for app in get_all_apps(True):
 			if app=="webnotes": app="frappe"
