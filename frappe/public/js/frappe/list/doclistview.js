@@ -364,7 +364,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}, true);
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
-					doctype: me.doctype
+					doc_type: me.doctype
 				})
 			}, true);
 		}
