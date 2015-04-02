@@ -310,9 +310,15 @@ frappe.ui.form.GridRow = Class.extend({
 			if(this.get_open_form()) {
 				this.hide_form();
 			}
+
+			this.frm.script_manager.trigger("before_" + this.grid.df.fieldname + "_remove",
+				this.doc.doctype, this.doc.name);
+
 			this.wrapper.toggle(false);
 			frappe.model.clear_doc(this.doc.doctype, this.doc.name);
-			this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove", this.doc.doctype, this.doc.name);
+
+			this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
+				this.doc.doctype, this.doc.name);
 			this.frm.dirty();
 			this.grid.refresh();
 		}
