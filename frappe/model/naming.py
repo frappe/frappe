@@ -186,3 +186,14 @@ def append_number_if_name_exists(doc):
 
 		doc.name = "{0}-{1}".format(doc.name, count)
 
+def de_duplicate(doctype, name):
+	original_name = name
+	count = 0
+	while True:
+		if frappe.db.exists(doctype, name):
+			count += 1
+			name = "{0}-{1}".format(original_name, count)
+		else:
+			break
+
+	return name

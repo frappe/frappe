@@ -11,6 +11,7 @@ from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
 import markdown2
 from datetime import datetime, timedelta
+from frappe.model.naming import de_duplicate
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -22,7 +23,8 @@ class EmailAccount(Document):
 			if self.service:
 				self.email_account_name = self.email_account_name + " " + self.service
 
-		self.name = self.email_account_name
+		# if same email address is used for different Email Account settings, append a number like account_name-1
+		self.name = de_duplicate("Email Account", self.email_account_name)
 
 	def validate(self):
 		"""Validate email id and check POP3 and SMTP connections is enabled."""
