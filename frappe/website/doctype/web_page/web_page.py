@@ -11,6 +11,7 @@ from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
+from frappe.utils import strip_html
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -140,7 +141,7 @@ class WebPage(WebsiteGenerator):
 	def set_metatags(self, context):
 		context.metatags = {
 			"name": context.title,
-			"description": context.description or (context.main_section or "")[:150]
+			"description": context.description or strip_html((context.main_section or "").replace("\n", " "))[:500]
 		}
 
 		image = find_first_image(context.main_section or "")
