@@ -10,7 +10,9 @@ import re, urllib, datetime, math
 import babel.dates
 from dateutil import parser
 
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+DATE_FORMAT = "%Y-%m-%d"
+TIME_FORMAT = "%H:%M:%S.%f"
+DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
 # datetime functions
 def getdate(string_date):
@@ -23,10 +25,7 @@ def getdate(string_date):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	if " " in string_date:
-		string_date = string_date.split(" ")[0]
-
-	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
+	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str):
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
@@ -35,37 +34,27 @@ def get_datetime(datetime_str):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	try:
-		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+	return parser.parse(datetime_str)
 
-	except ValueError:
-		if datetime_str=='0000-00-00 00:00:00.000000':
-			return None
-
-		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
-
-	# save time part
-	with_time = False
-	as_string = isinstance(date, basestring)
-	if as_string:
-		if " " in date: with_time = date.split()[1]
-	elif isinstance(date, datetime.datetime):
-		with_time = date.time().strftime(DATETIME_FORMAT.split()[1])
-
-	if date:
-		date = getdate(date)
-	else:
-		raise Exception, "Start date required"
-
 	from dateutil.relativedelta import relativedelta
-	date += relativedelta(years=years, months=months, days=days)
+
+	as_string, as_datetime = False, False
+	if not isinstance(date, basestring):
+		as_string = True
+		if " " in date:
+			as_datetime = True
+		date = parser.parse(date)
+
+	date = date + relativedelta(years=years, months=months, days=days)
 
 	if as_string:
-		date = date.strftime("%Y-%m-%d")
-		return (date + " " + with_time) if with_time else date
+		if as_datetime:
+			return date.strftime(DATETIME_FORMAT)
+		else:
+			return date.strftime(DATE_FORMAT)
 	else:
 		return date
 
@@ -128,21 +117,21 @@ def convert_utc_to_user_timezone(utc_timestamp):
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
 	if getattr(frappe.local, "current_date", None):
-		return getdate(frappe.local.current_date).strftime("%Y-%m-%d") + " " + \
-			now_datetime().strftime('%H:%M:%S.%f')
+		return getdate(frappe.local.current_date).strftime(DATE_FORMAT) + " " + \
+			now_datetime().strftime(TIME_FORMAT)
 	else:
 		return now_datetime().strftime(DATETIME_FORMAT)
 
 def nowdate():
 	"""return current date as yyyy-mm-dd"""
-	return now_datetime().strftime('%Y-%m-%d')
+	return now_datetime().strftime(DATE_FORMAT)
 
 def today():
 	return nowdate()
 
 def nowtime():
 	"""return current time in hh:mm"""
-	return now_datetime().strftime('%H:%M:%S.%f')
+	return now_datetime().strftime(TIME_FORMAT)
 
 def get_first_day(dt, d_years=0, d_months=0):
 	"""
