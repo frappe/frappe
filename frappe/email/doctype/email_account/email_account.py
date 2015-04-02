@@ -234,6 +234,11 @@ class EmailAccount(Document):
 		"""Clear communications where email account is linked"""
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
 
+@frappe.whitelist()
+def get_append_to(doctype, txt, searchfield, start, page_len, filters):
+	if not txt: txt = ""
+	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
+
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
 	import frappe.tasks

@@ -183,11 +183,10 @@ _f.Frm.prototype.get_files = function() {
 }
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
-	var func = (typeof opt1=="function") ? opt1 : opt2;
 	if(opt2) {
-		this.fields_dict[opt1].grid.get_field(fieldname).get_query = func;
+		this.fields_dict[opt1].grid.get_field(fieldname).get_query = opt2;
 	} else {
-		this.fields_dict[fieldname].get_query = func;
+		this.fields_dict[fieldname].get_query = opt1;
 	}
 }
 

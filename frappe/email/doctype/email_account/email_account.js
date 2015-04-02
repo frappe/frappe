@@ -25,19 +25,22 @@ email_defaults = {
 	},
 };
 
-frappe.ui.form.on("Email Account", "service", function(frm) {
-	if(frm.doc.service && email_defaults[frm.doc.service]) {
+frappe.ui.form.on("Email Account", {
+	service: function(frm) {
 		$.each(email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
-	}
-});
-
-frappe.ui.form.on("Email Account", "email_id", function(frm) {
-	if(!frm.doc.email_account_name) {
-		frm.set_value("email_account_name",
-			(frm.doc.service ? frm.doc.service + " " : "")
-			+ toTitle(frm.doc.email_id.split("@")[0].replace(/[._]/g, " ")));
+	},
+	email_id: function(frm) {
+		if(!frm.doc.email_account_name) {
+			frm.set_value("email_account_name",
+				(frm.doc.service ? frm.doc.service + " " : "")
+				+ toTitle(frm.doc.email_id.split("@")[0].replace(/[._]/g, " ")));
+		}
+	},
+	onload: function(frm) {
+		frm.set_df_property("append_to", "only_select", true);
+		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 	}
 });
 
