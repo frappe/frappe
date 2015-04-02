@@ -96,8 +96,7 @@ def extract_images_from_html(doc, fieldname):
 			filename = headers.split("filename=")[-1]
 		else:
 			mtype = headers.split(";")[0]
-			extn = mimetypes.guess_extension(mtype)
-			filename = random_string(7) + extn
+			filename = get_random_filename(content_type=mtype)
 
 		# TODO fix this
 		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
@@ -110,6 +109,16 @@ def extract_images_from_html(doc, fieldname):
 		content = re.sub('<img\s*src=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
+
+def get_random_filename(extn=None, content_type=None):
+	if extn:
+		if not extn.startswith("."):
+			extn = "." + extn
+
+	elif content_type:
+		extn = mimetypes.guess_extension(content_type)
+
+	return random_string(7) + (extn or "")
 
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:

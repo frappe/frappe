@@ -10,6 +10,7 @@ from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, ci
 from frappe.utils.scheduler import log
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
+from frappe.utils.file_manager import get_random_filename
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -236,11 +237,24 @@ class Email:
 			return part.get_payload()
 
 	def get_attachment(self, part, charset):
-		self.attachments.append({
-			'content_type': part.get_content_type(),
-			'fname': cstr(decode_header(part.get_filename())[0][0]),
-			'fcontent': part.get_payload(decode=True),
-		})
+		fcontent = part.get_payload(decode=True)
+
+		if fcontent:
+			content_type = part.get_content_type()
+			fname = part.get_filename()
+			if fname:
+				try:
+					fname = cstr(decode_header(fname)[0][0])
+				except:
+					fname = get_random_filename(content_type=content_type)
+			else:
+				fname = get_random_filename(content_type=content_type)
+
+			self.attachments.append({
+				'content_type': content_type,
+				'fname': fname,
+				'fcontent': fcontent,
+			})
 
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
