@@ -146,3 +146,7 @@ class TestDocument(unittest.TestCase):
 		d.validate_update_after_submit()
 		d.meta.get_field("starts_on").allow_on_submit = 0
 
+		# when comparing date(2014, 1, 1) and "2014-01-01"
+		d.load_from_db()
+		d.starts_on = "2014-01-01"
+		d.validate_update_after_submit()

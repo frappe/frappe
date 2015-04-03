@@ -639,20 +639,10 @@ class Document(BaseDocument):
 		if not doc:
 			doc = self
 
+		val1 = doc.get_value(fieldname)
+
 		df = doc.meta.get_field(fieldname)
-
-		val1 = doc.get(fieldname)
-
-		if df.fieldtype in ("Currency", "Float", "Percent"):
-			val1 = flt(val1, self.precision(df.fieldname, doc.parentfield or None))
-			val2 = flt(val2, self.precision(df.fieldname, doc.parentfield or None))
-		elif df.fieldtype in ("Int", "Check"):
-			val1 = cint(val1)
-			val2 = cint(val2)
-		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
-			"Text Editor", "Select", "Link", "Dynamic Link"):
-				val1 = cstr(val1)
-				val2 = cstr(val2)
+		val2 = doc.cast(val2, df)
 
 		if not frappe.compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
