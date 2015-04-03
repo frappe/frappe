@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, sys
 from frappe import _
-from frappe.utils import cint, flt, now, cstr, strip_html
+from frappe.utils import cint, flt, now, cstr, strip_html, getdate, get_datetime
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
@@ -401,12 +401,16 @@ class BaseDocument(object):
 					frappe.CannotChangeConstantError)
 
 	def _validate_update_after_submit(self):
-		current = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
-		for key, value in current.iteritems():
+		db_values = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
+		for key, db_value in db_values.iteritems():
 			df = self.meta.get_field(key)
-			if df and not df.allow_on_submit and (self.get(key) or value) and self.get(key) != value:
-				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
-					frappe.UpdateAfterSubmitError)
+
+			if df and not df.allow_on_submit and (self.get(key) or db_value):
+				self_value = self.get_value(key)
+
+				if self_value != db_value:
+					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
+						frappe.UpdateAfterSubmitError)
 
 	def precision(self, fieldname, parentfield=None):
 		"""Returns float precision for a particular field (or get global default).
@@ -495,6 +499,31 @@ class BaseDocument(object):
 
 			for df in to_reset:
 				self.set(df.fieldname, ref_doc.get(df.fieldname))
+
+	def get_value(self, fieldname):
+		df = self.meta.get_field(fieldname)
+		val = self.get(fieldname)
+
+		return self.cast(val, df)
+
+	def cast(self, val, df):
+		if df.fieldtype in ("Currency", "Float", "Percent"):
+			val = flt(val, self.precision(df.fieldname))
+
+		elif df.fieldtype in ("Int", "Check"):
+			val = cint(val)
+
+		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
+			"Text Editor", "Select", "Link", "Dynamic Link"):
+				val = cstr(val)
+
+		elif df.fieldtype == "Date":
+			val = getdate(val)
+
+		elif df.fieldtype == "Datetime":
+			val = get_datetime(val)
+
+		return val
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:
