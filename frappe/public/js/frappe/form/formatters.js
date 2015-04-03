@@ -66,7 +66,7 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s" data-doctype="%(doctype)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
 				label: __(options && options.label || value)

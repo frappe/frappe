@@ -10,7 +10,8 @@
   $(document).on("mousedown", function(event) {
     if(!frappe && !frappe.get_route) return;
     frappe.last_target = event;
-    var label = (event.target.innerText && event.target.innerText.trim())
+    var label = event.target.getAttribute("data-doctype")
+        || (event.target.innerText && event.target.innerText.trim())
         || (event.target.textContent && event.target.textContent.trim())
         || event.target.title;
     if(!label) return;
