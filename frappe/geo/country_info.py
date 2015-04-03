@@ -35,7 +35,7 @@ def get_translated_dict():
 
 	# timezones
 	for tz in get_all_timezones():
-		timezone_name = get_timezone_name(get_timezone(tz), locale=frappe.local.lang, width='short')
+		timezone_name = get_timezone_name(get_timezone(tz), locale=locale, width='short')
 		if timezone_name:
 			translated_dict[tz] = timezone_name + ' - ' + tz
 
