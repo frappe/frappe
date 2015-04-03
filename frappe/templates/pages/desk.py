@@ -28,5 +28,6 @@ def get_context(context):
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"boot": frappe.as_json(boot),
-		"background_image": boot.user.background_image or boot.default_background_image
+		"background_image": boot.user.background_image or boot.default_background_image,
+		"google_analytics_id": frappe.conf.get("google_analytics_id")
 	}

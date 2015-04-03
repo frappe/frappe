@@ -244,6 +244,7 @@ class BaseDocument(object):
 		except Exception, e:
 			if e.args[0]==1062 and "PRIMARY" in cstr(e.args[1]):
 				if self.meta.autoname=="hash":
+					# hash collision? try again
 					self.name = None
 					self.db_insert()
 					return

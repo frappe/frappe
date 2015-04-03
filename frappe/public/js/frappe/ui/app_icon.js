@@ -9,8 +9,9 @@ frappe.ui.app_icon = {
 			modules = frappe.modules;
 		}
 
-		var icon = modules[app].icon;
-		var color = modules[app].color;
+		var module = modules[app]
+		var icon = module.icon;
+		var color = module.color;
 		if(icon.split(".").slice(-1)[0]==="svg") {
 			$.ajax({
 				url: icon,
@@ -20,11 +21,11 @@ frappe.ui.app_icon = {
 					icon = data;
 				}
 			})
-			icon = '<object>'+icon+'</object>';
+			icon = '<object>'+ icon+'</object>';
 		} else {
-			icon = '<i class="'+icon+'"></i>';
+			icon = '<i class="'+ icon+'" title="' + module.label + '"></i>';
 		}
 		return '<div class="app-icon'+ (small ? " app-icon-small" : "")
-			+'" style="background-color: '+ color +'">'+icon+'</div>'
+			+'" style="background-color: '+ color +'" title="'+ module.label +'">'+icon+'</div>'
 	}
 }

@@ -191,17 +191,7 @@ class EmailAccount(Document):
 
 			parent.flags.ignore_mandatory = True
 
-			try:
-				parent.insert(ignore_permissions=True)
-
-			except frappe.DuplicateEntryError:
-
-				if frappe.get_meta(self.append_to).get_field("email_id"):
-					# assume that duplicate entry is due to email_id field!
-					parent = frappe.get_doc(self.append_to, { "email_id": email.from_email })
-
-				else:
-					raise
+			parent.insert(ignore_permissions=True)
 
 			communication.is_first = True
 
