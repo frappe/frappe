@@ -189,8 +189,8 @@ def flush(from_test=False):
 			(email["name"],), auto_commit=auto_commit)
 		try:
 			if not from_test:
+				smtpserver.setup_email_account(email.reference_doctype)
 				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
-
 
 			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
 				(email["name"],), auto_commit=auto_commit)
