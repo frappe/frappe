@@ -189,7 +189,7 @@ class User(Document):
 		sender = frappe.session.user not in STANDARD_USERS and frappe.session.user or None
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
-			message=frappe.get_template(template).render(args))
+			message=frappe.get_template(template).render(args), as_bulk=self.flags.delay_emails)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
@@ -261,16 +261,17 @@ class User(Document):
 		if not merge:
 			frappe.db.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 
-	def add_roles(self, *roles):
+	def append_roles(self, *roles):
+		"""Add roles to user"""
 		current_roles = [d.role for d in self.get("user_roles")]
 		for role in roles:
 			if role in current_roles:
 				continue
-			self.append("user_roles", {
-				"doctype": "UserRole",
-				"role": role
-			})
+			self.append("user_roles", {"role": role})
 
+	def add_roles(self, *roles):
+		"""Add roles to user and save"""
+		self.append_roles(*roles)
 		self.save()
 
 	def remove_roles(self, *roles):
