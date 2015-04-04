@@ -89,11 +89,6 @@ _f.Frm.prototype.setup = function() {
 	this.page = this.wrapper.page;
 	this.layout_main = this.page.main.get(0);
 
-	this.sidebar = new frappe.ui.form.Sidebar({
-		frm: this,
-		page: this.page
-	});
-
 	this.toolbar = new frappe.ui.form.Toolbar({
 		frm: this,
 		page: this.page
@@ -407,7 +402,11 @@ _f.Frm.prototype.render_form = function() {
 		// header must be refreshed before client methods
 		// because add_custom_button
 		this.refresh_header();
-		this.sidebar.refresh();
+
+		this.sidebar = new frappe.ui.form.Sidebar({
+			frm: this,
+			page: this.page
+		});
 
 		// call trigger
 		this.script_manager.trigger("refresh");
@@ -500,7 +499,7 @@ _f.Frm.prototype.setnewdoc = function() {
 			$.each(frappe.route_options, function(fieldname, value) {
 				me.set_value(fieldname, value);
 			})
-			
+
 			frappe.route_options = null;
 		}
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)

@@ -24,6 +24,8 @@ frappe.ui.form.Sidebar = Class.extend({
 
 		this.bind_events();
 
+		this.refresh();
+
 	},
 
 	bind_events: function() {
