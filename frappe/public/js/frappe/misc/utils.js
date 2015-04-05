@@ -50,7 +50,7 @@ frappe.utils = {
 	remove_script_and_style: function(txt) {
 		if (!txt || (txt.indexOf("<script")===-1 && txt.indexOf("<style")===-1)) return txt;
 		return $("<div></div>").html(txt)
-			.find("script,noscript,style,title,meta").remove().end()
+			.find("script,noscript,style,title,meta,base,head").remove().end()
 			.html();
 	},
 	toggle_blockquote: function(txt) {
