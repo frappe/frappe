@@ -19,6 +19,10 @@ def getdate(string_date):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
+	# dateutil parser does not agree with dates like 0000-00-00
+	if not string_date or string_date=="0000-00-00":
+		return None
+
 	if isinstance(string_date, datetime.datetime):
 		return string_date.date()
 
@@ -28,6 +32,10 @@ def getdate(string_date):
 	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str):
+	# dateutil parser does not agree with dates like 0000-00-00
+	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+		return None
+
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
