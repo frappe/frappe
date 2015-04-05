@@ -177,7 +177,8 @@ class Session:
 		else:
 			self.start_as_guest()
 
-		frappe.local.lang = frappe.translate.get_user_lang(self.data.user)
+		if self.sid != "Guest":
+			frappe.local.lang = frappe.translate.get_user_lang(self.data.user)
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
