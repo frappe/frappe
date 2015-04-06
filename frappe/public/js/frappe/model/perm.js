@@ -104,14 +104,20 @@ $.extend(frappe.perm, {
 
 				if (permlevel===0 && cint(p.apply_user_permissions) && p.user_permission_doctypes) {
 					// set user_permission_doctypes in perms
-					var user_permission_doctypes = p.user_permission_doctypes
-						? JSON.parse(p.user_permission_doctypes) : null;
+					var user_permission_doctypes = JSON.parse(p.user_permission_doctypes);
 
 					if (user_permission_doctypes && user_permission_doctypes.length) {
 						if (!perm[permlevel]["user_permission_doctypes"]) {
-							perm[permlevel]["user_permission_doctypes"] = [];
+							perm[permlevel]["user_permission_doctypes"] = {};
 						}
-						perm[permlevel]["user_permission_doctypes"].push(user_permission_doctypes);
+
+						$.each(frappe.perm.rights, function(i, key) {
+							if (!perm[permlevel]["user_permission_doctypes"][key]) {
+								perm[permlevel]["user_permission_doctypes"][key] = [];
+							}
+
+							perm[permlevel]["user_permission_doctypes"][key].push(user_permission_doctypes);
+						});
 					}
 				}
 			}
@@ -145,7 +151,7 @@ $.extend(frappe.perm, {
 
 		var user_permissions = frappe.defaults.get_user_permissions();
 		if(user_permissions && !$.isEmptyObject(user_permissions)) {
-			var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes,
+			var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes[ptype],
 				user_permissions);
 
 			$.each(user_permission_doctypes, function(i, doctypes) {

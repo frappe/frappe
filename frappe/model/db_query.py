@@ -293,7 +293,7 @@ class DatabaseQuery(object):
 				# get user permissions
 				user_permissions = frappe.defaults.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions,
-					user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
+					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
 				# share is an OR condition, if there is a role permission
 				if not only_if_shared and self.shared:

@@ -66,8 +66,15 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
+	if email_str and " " in email_str and "<" not in email_str:
+		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
+		return False
+
 	email = extract_email_id(email_str)
 	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
+
+	if not match:
+		return False
 
 	if match:
 		match = match.group(0)==email.lower()
