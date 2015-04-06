@@ -106,6 +106,9 @@ def enqueue_events_for_site(site):
 			return
 		frappe.connect(site=site)
 		enqueue_events(site)
+	except:
+		task_logger.error('Exception in Enqueue Events for Site {0}'.format(site))
+		raise
 	finally:
 		frappe.destroy()
 

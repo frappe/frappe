@@ -8,6 +8,7 @@ import unittest, json
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
+import frappe.utils.scheduler
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False):
 	frappe.flags.print_messages = verbose
@@ -21,6 +22,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 
 	# workaround! since there is no separate test db
 	frappe.clear_cache()
+	frappe.utils.scheduler.disable_scheduler()
 	set_test_email_config()
 
 	if verbose:

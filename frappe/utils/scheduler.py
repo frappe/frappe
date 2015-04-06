@@ -102,7 +102,7 @@ def log(method, message=None):
 	return message
 
 def is_scheduler_disabled():
-	return not frappe.utils.cint(frappe.db.get_default("enable_scheduler"))
+	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
 	ss = frappe.get_doc("System Settings")
