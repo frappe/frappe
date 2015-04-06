@@ -174,8 +174,10 @@ class BaseDocument(object):
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 
-			if d[fieldname]=="" and self.meta.get_field(fieldname).fieldtype in ("Datetime", "Date"):
-				d[fieldname] = None
+			if d[fieldname]=="":
+				df = self.meta.get_field(fieldname)
+				if df and df.fieldtype in ("Datetime", "Date"):
+					d[fieldname] = None
 
 		return d
 
