@@ -109,7 +109,8 @@ class User(Document):
 					if new_password:
 						# new password given, no email required
 						_update_password(self.name, new_password)
-					if not getattr(self, "no_welcome_mail", False):
+
+					if not self.flags.no_welcome_mail:
 						self.send_welcome_mail()
 						msgprint(_("Welcome email sent"))
 						return

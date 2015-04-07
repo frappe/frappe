@@ -242,7 +242,7 @@ def update_oauth_user(user, data, provider):
 
 	if save:
 		user.flags.ignore_permissions = True
-		user.no_welcome_mail = True
+		user.flags.no_welcome_mail = True
 		user.save()
 
 def get_first_name(data):
