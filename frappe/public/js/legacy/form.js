@@ -399,14 +399,14 @@ _f.Frm.prototype.refresh = function(docname) {
 
 _f.Frm.prototype.render_form = function() {
 	if(!this.meta.istable) {
-		// header must be refreshed before client methods
-		// because add_custom_button
-		this.refresh_header();
-
 		this.sidebar = new frappe.ui.form.Sidebar({
 			frm: this,
 			page: this.page
 		});
+
+		// header must be refreshed before client methods
+		// because add_custom_button
+		this.refresh_header();
 
 		// call trigger
 		this.script_manager.trigger("refresh");
