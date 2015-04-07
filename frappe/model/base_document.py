@@ -205,7 +205,7 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self, no_nulls=False):
+	def as_dict(self, no_nulls=False, no_default_fields=False):
 		doc = self.get_valid_dict()
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
@@ -215,6 +215,11 @@ class BaseDocument(object):
 		if no_nulls:
 			for k in doc.keys():
 				if doc[k] is None:
+					del doc[k]
+
+		if no_default_fields:
+			for k in doc.keys():
+				if k in default_fields:
 					del doc[k]
 
 		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):

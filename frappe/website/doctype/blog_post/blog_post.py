@@ -99,7 +99,7 @@ def get_list_context(context=None):
 	elif frappe.local.form_dict.txt:
 		list_context.blog_subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
 
-	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
+	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict(no_default_fields=True))
 	return list_context
 
 def get_children():

@@ -64,15 +64,14 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		doc.doctype = doctype
 		new_context = { "doc": doc, "meta": meta, "pathname": frappe.local.request.path.strip("/ ") }
 		new_context.update(list_context)
-		result.append(frappe.render_template(row_template, new_context, is_path=True))
+		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
+		result.append(rendered_row)
 
-	list_context.update({
+	return {
 		"result": result,
 		"show_more": show_more,
 		"next_start": next_start
-	})
-
-	return list_context
+	}
 
 def get_list_context(context, doctype):
 	from frappe.modules import load_doctype_module

@@ -746,3 +746,6 @@ a.active {
 .page-hero h1 {
   font-size: 32px;
 }
+.btn-next-wrapper {
+  margin-top: 60px;
+}

@@ -119,7 +119,7 @@ def add_index(out, context):
 		next_item = context.doc.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
-			html = ('<p><br><a class="btn-next" href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
+			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
 def add_hero(out, context):

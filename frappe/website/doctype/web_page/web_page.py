@@ -114,7 +114,7 @@ class WebPage(WebsiteGenerator):
 			fpath = self.template_path.rsplit(".", 1)[0] + "." + extn
 			if os.path.exists(fpath):
 				with open(fpath, "r") as f:
-					context["css" if extn=="css" else "javascript"] = f.read()
+					context["style" if extn=="css" else "script"] = f.read()
 
 	def check_for_redirect(self, context):
 		if "<!-- redirect:" in context.main_section:

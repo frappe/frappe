@@ -26,16 +26,17 @@
 		<link type="text/css" rel="stylesheet" href="{{ link|with_leading_slash }}">
 		{%- endfor -%}
 
+		{%- for link in web_include_js %}
+		<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
+		{%- endfor -%}
+
+	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
+
 		{%- block style %}
 			<style data-html-block="style">
 			{%- if style is defined -%}{{ style }}{%- endif -%}
 			</style>
 		{%- endblock -%}
-
-		{%- for link in web_include_js %}
-		<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
-		{%- endfor -%}
-        {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 	{%- endblock -%}
     {%- if js_globals is defined %}
     <script>
