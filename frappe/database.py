@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 import MySQLdb
+from MySQLdb.times import DateTimeDeltaType
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -15,6 +16,7 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
+from types import StringType, UnicodeType
 
 class Database:
 	"""
@@ -48,7 +50,8 @@ class Database:
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[unicode]
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
+		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[StringType]
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':

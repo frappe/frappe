@@ -13,14 +13,14 @@ from frappe.model.db_schema import type_map
 import copy
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
-	# if doctype not in frappe.local.new_doc_templates:
-	# 	# cache a copy of new doc as it is called
-	# 	# frequently for inserts
-	# 	frappe.local.new_doc_templates[doctype] = make_new_doc(doctype)
-	#
-	# doc = copy.deepcopy(frappe.local.new_doc_templates[doctype])
+	if doctype not in frappe.local.new_doc_templates:
+		# cache a copy of new doc as it is called
+		# frequently for inserts
+		frappe.local.new_doc_templates[doctype] = make_new_doc(doctype)
 
-	doc = make_new_doc(doctype)
+	doc = copy.deepcopy(frappe.local.new_doc_templates[doctype])
+
+	# doc = make_new_doc(doctype)
 
 	set_dynamic_default_values(doc, parent_doc, parentfield)
 
