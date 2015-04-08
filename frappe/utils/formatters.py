@@ -12,7 +12,13 @@ def format_value(value, df, doc=None, currency=None):
 	if (isinstance(df, dict)):
 		df = frappe._dict(df)
 
-	if df.get("fieldtype")=="Date":
+	if value is None:
+		value = ""
+
+	if not df:
+		return value
+
+	elif df.get("fieldtype")=="Date":
 		return formatdate(value)
 
 	elif df.get("fieldtype")=="Datetime":
@@ -37,12 +43,10 @@ def format_value(value, df, doc=None, currency=None):
 	elif df.get("fieldtype") == "Percent":
 		return "{}%".format(flt(value, 2))
 
-	if value is None:
-		value = ""
-
-	if df.get("fieldtype") in ("Text", "Small Text"):
+	elif df.get("fieldtype") in ("Text", "Small Text"):
 		if not re.search("(\<br|\<div|\<p)", value):
 			return value.replace("\n", "<br>")
 
-	return value
+	else:
+		return value
 
