@@ -6,7 +6,7 @@ import time
 import _socket, poplib
 import frappe
 from frappe import _
-from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr
+from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
 from frappe.utils.scheduler import log
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
@@ -15,6 +15,7 @@ from frappe.utils.file_manager import get_random_filename
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
 class TotalSizeExceededError(frappe.ValidationError): pass
+class LoginLimitExceeded(frappe.ValidationError): pass
 
 class POP3Server:
 	"""Wrapper for POP server to pull emails."""
@@ -83,7 +84,7 @@ class POP3Server:
 
 				try:
 					self.retrieve_message(pop_meta, i+1)
-				except (TotalSizeExceededError, EmailTimeoutError):
+				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
 
 			# WARNING: Mark as read - message number 101 onwards from the pop list
@@ -108,15 +109,21 @@ class POP3Server:
 
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
+			self.errors = True
 			raise
 
-		except:
-			# log performs rollback and logs error in scheduler log
-			log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
-			self.errors = True
-			frappe.db.rollback()
+		except Exception, e:
+			if "-ERR Exceeded the login limit" in strip(cstr(e.message)):
+				self.errors = True
+				raise LoginLimitExceeded, e
 
-			self.pop.dele(msg_num)
+			else:
+				# log performs rollback and logs error in scheduler log
+				log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
+				self.errors = True
+				frappe.db.rollback()
+
+				self.pop.dele(msg_num)
 		else:
 			self.pop.dele(msg_num)
 
