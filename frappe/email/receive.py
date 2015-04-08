@@ -93,6 +93,14 @@ class POP3Server:
 			if num > 100 and not self.errors:
 				for m in xrange(101, num+1):
 					self.pop.dele(m)
+
+		except Exception, e:
+			if self.has_login_limit_exceeded(e):
+				pass
+
+			else:
+				raise
+
 		finally:
 			# no matter the exception, pop should quit if connected
 			self.pop.quit()
@@ -113,7 +121,7 @@ class POP3Server:
 			raise
 
 		except Exception, e:
-			if "-ERR Exceeded the login limit" in strip(cstr(e.message)):
+			if self.has_login_limit_exceeded(e):
 				self.errors = True
 				raise LoginLimitExceeded, e
 
@@ -126,6 +134,9 @@ class POP3Server:
 				self.pop.dele(msg_num)
 		else:
 			self.pop.dele(msg_num)
+
+	def has_login_limit_exceeded(self, e):
+		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
 
 	def validate_pop(self, pop_meta):
 		# throttle based on email size
