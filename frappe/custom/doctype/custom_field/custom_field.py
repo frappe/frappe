@@ -59,7 +59,7 @@ class CustomField(Document):
 		dt_meta = frappe.get_meta(self.dt)
 		if not dt_meta.get_field(self.insert_after):
 			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', does not exist")
-				.format(dt_meta.get_label(self.insert_after), self.label), frappe.DoesNotExistError)
+				.format(self.insert_after, self.label), frappe.DoesNotExistError)
 
 		frappe.db.sql("""\
 			DELETE FROM `tabProperty Setter`
