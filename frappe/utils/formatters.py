@@ -47,6 +47,5 @@ def format_value(value, df, doc=None, currency=None):
 		if not re.search("(\<br|\<div|\<p)", value):
 			return value.replace("\n", "<br>")
 
-	else:
-		return value
+	return value
 
