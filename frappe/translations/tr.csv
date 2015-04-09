@@ -921,7 +921,7 @@ sites/assets/js/desk.min.js +465,Create a new {0},Yeni {0} oluşturun
 sites/assets/js/desk.min.js +788,Open {0},Open {0}
 DocType: Workflow State,ok-sign,ok-sign
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,Değer alanı kontrol edilmesi gerektiği belirtiniz
-apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Ana"" bu satırın ekleneceği üst tabloyu belirtir"
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Ana"" bu satırın ekleneceği ana tabloyu belirtir"
 DocType: Style Settings,Apply Style,Stil Uygula
 apps/frappe/frappe/templates/includes/blog.js +34,Nothing more to show.,Hiçbir şey daha göstermek için.
 ,Modules Setup,Kurulmuş Modüller
@@ -1126,7 +1126,7 @@ apps/frappe/frappe/database.py +211,Too many writes in one request. Please send 
 DocType: Workflow State,arrow-up,arrow-up
 DocType: DocField,Allow on Submit,Gönderme Onayı İzni
 apps/frappe/frappe/core/page/desktop/desktop.js +50,All Applications,Tüm Uygulamalar
-DocType: Web Page,Add code as &lt;script&gt;,<script> Gibi kod ekle
+DocType: Web Page,Add code as &lt;script&gt;,<script> gibi kod ekle
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Tipi Seçiniz
 apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,/ Kaldır yazma izniniz yok.
 DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tüm olası Akışı Devletler ve iş akışının rolleri. <br> Docstatus Seçenekleri: 0 ""Kaydedildi"" olduğunu, 1 ""Ekleyen"" ve 2 ""iptal"" edildi"
@@ -1281,7 +1281,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.
 DocType: Workflow State,bold,kalın
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +32,{0} does not exist in row {1},{0} aralıksız yoktur {1}
 DocType: Event,Event Type,Faaliyet Türü
-apps/frappe/frappe/config/setup.py +135,Add / Manage Email Accounts.,E-posta Hesapları Yönet / ekleyin.
+apps/frappe/frappe/config/setup.py +135,Add / Manage Email Accounts.,E-posta Hesaplarını Ekle / Yönet.
 DocType: Blog Category,Published,Yayınlandı
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,E-postanız için teşekkür ederiz
 DocType: DocField,Small Text,Küçük Metin

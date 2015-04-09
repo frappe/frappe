@@ -326,7 +326,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +384,Report cannot be set for
 apps/frappe/frappe/utils/data.py +394,million,million
 apps/frappe/frappe/desk/page/activity/activity.js +153,Feb,Février
 DocType: Default Home Page,Role,Rôle
-apps/frappe/frappe/utils/data.py +339,Cent,Cent
+apps/frappe/frappe/utils/data.py +339,Cent,Centime
 apps/frappe/frappe/config/setup.py +103,Manage uploaded files.,Gérer les fichiers chargés.
 apps/frappe/frappe/config/setup.py +119,"States for workflow (e.g. Draft, Approved, Cancelled).","Unis pour flux de travail (par exemple, projets , approuvé, Annulé) ."
 apps/frappe/frappe/config/setup.py +167,Customized HTML Templates for printing transctions.,Modèles HTML personnalisés pour imprimés de transactions.
@@ -689,7 +689,7 @@ DocType: Workflow State,fast-backward,Retour rapide
 DocType: DocShare,DocShare,DocShare
 DocType: Report,Add Total Row,Ajouter une ligne totale
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Par exemple, si vous annulez et de modifier INV004 il deviendra un nouveau document INV004-1. Cela vous aide à garder une trace de chaque amendement."
-DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Projet; 1 - Soumis; 2 - Annulé
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Brouillon; 1 - Soumis; 2 - Annulé
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,Afficher ou masquer Modules
 DocType: File Data,Attached To DocType,Joint au document
 apps/frappe/frappe/desk/page/activity/activity.js +154,Aug,Août
@@ -1072,7 +1072,7 @@ apps/frappe/frappe/config/website.py +63,Categorize blog posts.,Catégoriser les
 DocType: DocField,Attach,Joindre
 DocType: DocType,Permission Rules,Règles d&#39;autorisation
 apps/frappe/frappe/model/base_document.py +301,Value missing for,Valeur manquante pour
-apps/frappe/frappe/model/delete_doc.py +131,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Record Soumis ne peut pas être supprimé.
+apps/frappe/frappe/model/delete_doc.py +131,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Enregistrement soumis ne peut pas être supprimé.
 DocType: DocPerm,Read,Lire
 apps/frappe/frappe/templates/pages/update-password.html +17,Old Password,Ancien Mot De Passe
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Pour formater colonnes, donner des étiquettes de colonne dans la requête."
@@ -1272,7 +1272,7 @@ DocType: DocField,Small Text,Petit texte
 apps/frappe/frappe/core/doctype/doctype/doctype.py +259,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"De Dynamic Link 'le type de champ Options doit pointer vers un autre champ Lien avec des options comme ""Doctype"""
 DocType: About Us Settings,Team Members Heading,Membres de l&#39;équipe Cap
 DocType: DocField,Do not allow user to change after set the first time,Ne pas permettre à l'utilisateur de changer après avoir mis la première fois
-DocType: User,Third Party Authentication,Third Party Authentication
+DocType: User,Third Party Authentication,Autres identifiants
 DocType: Website Settings,Banner is above the Top Menu Bar.,La Bannière est au-dessus de la barre de menu en haut.
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Remplir les champs de valeur par défaut (touches) et les valeurs. Si vous ajoutez plusieurs valeurs d'un champ, le premier sera choisi. Ces valeurs par défaut sont également utilisés pour définir ""Match"" règles d'autorisation. Pour voir la liste des champs, aller à <a href=""#Form/Customize Form/Customize Form""> Personnaliser le formulaire </a>."
 DocType: Outgoing Email Settings,Port,port
