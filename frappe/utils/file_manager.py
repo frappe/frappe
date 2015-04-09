@@ -228,10 +228,14 @@ def delete_file_data_content(doc):
 
 def delete_file_from_filesystem(doc):
 	path = doc.file_name
+
 	if path.startswith("files/"):
 		path = frappe.utils.get_site_path("public", doc.file_name)
 	else:
 		path = frappe.utils.get_site_path("public", "files", doc.file_name)
+
+	path = encode(path)
+
 	if os.path.exists(path):
 		os.remove(path)
 

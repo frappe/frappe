@@ -96,16 +96,15 @@ class WebsiteGenerator(Document):
 
 			if old_route and old_route != self.get_route():
 				# clear cache of old routes
-				old_routes = frappe.get_all(self.doctype, fields=["parent_website_route", "page_name"],
-					filters={"parent_website_route": ("like", old_route + "%")})
+				old_routes = frappe.get_all(self.doctype, filters={"parent_website_route": ("like", old_route + "%")})
 
 				if old_routes:
-					for old_route in old_routes:
-						clear_cache(make_route(old_route))
+					for like_old_route in old_routes:
+						clear_cache(frappe.get_doc(self.doctype, like_old_route.name).get_route())
 
 					frappe.db.sql("""update `tab{0}` set
 						parent_website_route = replace(parent_website_route, %s, %s),
-						modified = %s
+						modified = %s,
 						modified_by = %s
 						where parent_website_route like %s""".format(self.doctype),
 						(old_route, self.get_route(), now(), frappe.session.user, old_route + "%"))
