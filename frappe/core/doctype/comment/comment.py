@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -9,50 +9,16 @@ from frappe.model.document import Document
 from frappe.model.db_schema import add_column
 
 class Comment(Document):
-	"""Comments are added to Documents via forms or views like blogs etc."""
-	__doclink__ = "https://frappe.io/docs/models/core/comment"
-	no_feed_on_delete = True
-
-	def get_feed(self):
-		"""Returns feed HTML from Comment."""
-		if self.comment_doctype == "Message":
-			return
-
-		if self.comment_type in ("Created", "Submitted", "Cancelled", "Label"):
-			comment_type = "Label"
-		elif self.comment_type == "Comment":
-			comment_type = "Comment"
-		else:
-			comment_type = "Info"
-
-		return {
-			"subject": self.comment,
-			"doctype": self.comment_doctype,
-			"name": self.comment_docname,
-			"feed_type": comment_type
-		}
 
 	def validate(self):
-		"""Raise exception for more than 50 comments."""
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s
 			and comment_docname=%s""", (self.doctype, self.name))[0][0] >= 50:
 			frappe.throw(_("Cannot add more than 50 comments"))
 
 	def on_update(self):
-		"""Updates `_comments` property in parent Document."""
 		self.update_comment_in_doc()
 
 	def update_comment_in_doc(self):
-		"""Updates `_comments` (JSON) property in parent Document.
-		Creates a column `_comments` if property does not exist.
-
-		`_comments` format
-
-			{
-				"comment": [String],
-				"by": [user],
-				"name": [Comment Document name]
-			}"""
 		if self.comment_doctype and self.comment_docname and self.comment and self.comment_type=="Comment":
 			_comments = self.get_comments_from_parent()
 			updated = False
@@ -94,12 +60,6 @@ class Comment(Document):
 				raise
 
 	def update_comments_in_parent(self, _comments):
-		"""Updates `_comments` property in parent Document with given dict.
-
-		:param _comments: Dict of comments."""
-		if frappe.db.get_value("DocType", self.comment_doctype, "issingle"):
-			return
-
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.comment_docname))
@@ -109,10 +69,6 @@ class Comment(Document):
 			clear_cache(comment_doc.get_route())
 
 	def on_trash(self):
-		"""Removes from `_comments` in parent Document"""
-		if self.comment_doctype == "Message":
-			return
-
 		if (self.comment_type or "Comment") != "Comment":
 			frappe.only_for("System Manager")
 
@@ -124,7 +80,6 @@ class Comment(Document):
 		self.update_comments_in_parent(_comments)
 
 def on_doctype_update():
-	"""Add index to `tabComment` `(comment_doctype, comment_name)`"""
 	if not frappe.db.sql("""show index from `tabComment`
 		where Key_name="comment_doctype_docname_index" """):
 		frappe.db.commit()

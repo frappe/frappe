@@ -1,6 +1,5 @@
 {
- "allow_copy": 0, 
- "allow_rename": 1, 
+  "allow_copy": 0, 
  "autoname": "Prompt", 
  "creation": "2013-02-18 13:36:19", 
  "custom": 0, 
@@ -12,7 +11,7 @@
    "fieldname": "sb0", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
-   "label": "", 
+   "label": "DocType Details", 
    "oldfieldtype": "Section Break", 
    "permlevel": 0, 
    "reqd": 0, 
@@ -337,7 +336,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-03 10:40:45.768116", 
+ "modified": "2014-08-22 05:33:03.067964", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
@@ -345,7 +344,6 @@
  "permissions": [
   {
    "cancel": 0, 
-   "create": 1, 
    "delete": 0, 
    "email": 1, 
    "permlevel": 0, 
@@ -353,8 +351,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
-   "submit": 0, 
-   "write": 1
+   "submit": 0
   }, 
   {
    "cancel": 0, 
@@ -366,7 +363,6 @@
    "read": 1, 
    "report": 1, 
    "role": "Administrator", 
-   "share": 1, 
    "submit": 0, 
    "write": 1
   }

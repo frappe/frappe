@@ -1,10 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.build import html_to_js_template
 
 class Page(Document):
 	def autoname(self):
@@ -48,8 +47,8 @@ class Page(Document):
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
-					f.write("""frappe.pages['%s'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
+					f.write("""frappe.pages['%s'].onload = function(wrapper) {
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: '%s',
 		single_column: true
@@ -80,12 +79,11 @@ class Page(Document):
 			with open(fpath, 'r') as f:
 				self.style = unicode(f.read(), "utf-8")
 
-		# html as js template
-		for fname in os.listdir(path):
-			if fname.endswith(".html"):
-				with open(os.path.join(path, fname), 'r') as f:
-					template = unicode(f.read(), "utf-8")
-					self.script = html_to_js_template(fname, template) + self.script
+		# html
+		fpath = os.path.join(path, scrub(self.name) + '.html')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				self.content = unicode(f.read(), "utf-8")
 
 		if frappe.lang != 'en':
 			from frappe.translate import get_lang_js
