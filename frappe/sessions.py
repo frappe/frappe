@@ -112,6 +112,8 @@ def get():
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
+	bootinfo["lang"] = frappe.translate.get_user_lang()
+
 	return bootinfo
 
 class Session:

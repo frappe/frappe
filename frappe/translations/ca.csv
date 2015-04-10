@@ -908,7 +908,7 @@ sites/assets/js/desk.min.js +465,Create a new {0},Crear un nou {0}
 sites/assets/js/desk.min.js +788,Open {0},Obrir {0}
 DocType: Workflow State,ok-sign,ok-sign
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,Si us plau especificar quin valor del camp ha de ser verificat
-apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Pare"" significa la taula principal en la qual cal afegir aquesta fila"
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""Progenitor"" es refereix a la taula principal en la qual cal afegir aquesta fila"
 DocType: Style Settings,Apply Style,Aplicar Estil
 apps/frappe/frappe/templates/includes/blog.js +34,Nothing more to show.,Res més que mostrar.
 ,Modules Setup,Mòduls d'instal·lació

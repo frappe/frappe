@@ -613,7 +613,7 @@ DocType: Website Settings,Disable Signup,पंजीकरण अक्षम
 DocType: Style Settings,Heading Text As,जैसा कि पाठ शीर्षक
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,भूमिकाएँ उनके सदस्य पृष्ठ से उपयोगकर्ताओं के लिए निर्धारित किया जा सकता है .
 DocType: DocField,Mandatory,अनिवार्य
-apps/frappe/frappe/core/doctype/doctype/doctype.py +341,{0}: No basic permissions set,{0} : कोई बुनियादी अनुमति सेट
+apps/frappe/frappe/core/doctype/doctype/doctype.py +341,{0}: No basic permissions set,{0} : कोई बुनियादी अनुमति सेट नहीं है
 apps/frappe/frappe/utils/backups.py +136,Download link for your backup will be emailed on the following email address: {0},आपके बैकअप के लिए डाउनलोड लिंक निम्न ईमेल पते पर ईमेल किया जाएगा: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","अर्थ की सबमिट रद्द, संशोधन"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,क्या करने के लिए
@@ -802,6 +802,7 @@ sites/assets/js/desk.min.js +148,Enter Value,मान दर्ज
 DocType: Workflow State,tint,टिंट
 DocType: Outgoing Email Settings,System generated mails will be sent from this email id.,सिस्टम उत्पन्न मेल इस ईमेल आईडी से भेजा जाएगा.
 DocType: Workflow State,Style,शैली
+apps/frappe/frappe/templates/pages/blog.py +55,{0} comments,{0} टिप्पणियां
 DocType: DocField,Label and Type,लेबल और प्रकार
 DocType: Workflow State,forward,आगे
 DocType: Web Page,Custom Javascript,कस्टम जावास्क्रिप्ट

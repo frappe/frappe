@@ -711,7 +711,7 @@ DocType: DocPerm,Write,Napisz
 apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,
 DocType: Outgoing Email Settings,Outgoing Email Settings,
 sites/assets/js/desk.min.js +822,Select Attachments,Wybierz Załączniki
-apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Nowe konto zostało stworzone dla Ciebie
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Nowe konto zostało utworzone dla Ciebie
 apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Hasło Aktualizacja Powiadomienie
 DocType: DocPerm,User Permission DocTypes,DocTypes Permission użytkownika
 sites/assets/js/desk.min.js +527,New Name,Nowa nazwa
@@ -982,7 +982,7 @@ DocType: DocField,Table,
 DocType: File Data,File Size,Rozmiar pliku
 apps/frappe/frappe/website/doctype/web_form/web_form.py +85,You must login to submit this form,"Musisz się zalogować, aby przesłać ten formularz"
 DocType: User,Background Image,
-DocType: DocPerm,Create,Stwórz
+DocType: DocPerm,Create,Utwórz
 DocType: About Us Settings,Org History,
 DocType: Workflow,Workflow Name,
 DocType: Web Form,Allow Edit,Pozwól Edycja
