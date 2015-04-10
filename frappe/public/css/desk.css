@@ -481,3 +481,7 @@ ul.linked-with-list li {
 .file-upload .uploaded-filename-display {
   max-width: 194px;
 }
+.frappe-rtl input,
+.frappe-rtl textarea {
+  direction: rtl;
+}

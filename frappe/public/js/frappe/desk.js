@@ -20,6 +20,7 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_keyboard_shortcuts();
+		this.set_rtl();
 
 		if(frappe.boot) {
 			if(localStorage.getItem("session_lost_route")) {
@@ -257,6 +258,12 @@ frappe.Application = Class.extend({
 				frappe.ui.toolbar.clear_cache();
 			});
 
+	},
+
+	set_rtl: function () {
+		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
+			$('body').addClass('frappe-rtl')
+		}
 	},
 
 	show_change_log: function() {
