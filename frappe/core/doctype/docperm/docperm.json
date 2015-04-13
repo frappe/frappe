@@ -1,6 +1,6 @@
 {
  "allow_copy": 0, 
- "autoname": "hash", 
+ "autoname": "PERM.#####", 
  "creation": "2013-02-22 01:27:33", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -69,7 +69,6 @@
    "permlevel": 0
   }, 
   {
-   "default": "1", 
    "fieldname": "read", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -84,7 +83,6 @@
    "width": "32px"
   }, 
   {
-   "default": "1", 
    "fieldname": "write", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -99,7 +97,6 @@
    "width": "32px"
   }, 
   {
-   "default": "1", 
    "fieldname": "create", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -114,7 +111,6 @@
    "width": "32px"
   }, 
   {
-   "default": "1", 
    "fieldname": "delete", 
    "fieldtype": "Check", 
    "in_list_view": 1, 
@@ -171,7 +167,6 @@
    "permlevel": 0
   }, 
   {
-   "default": "1", 
    "fieldname": "report", 
    "fieldtype": "Check", 
    "label": "Report", 
@@ -180,7 +175,6 @@
    "width": "32px"
   }, 
   {
-   "default": "1", 
    "fieldname": "export", 
    "fieldtype": "Check", 
    "label": "Export", 
@@ -205,22 +199,12 @@
    "permlevel": 0
   }, 
   {
-   "default": "1", 
-   "fieldname": "share", 
-   "fieldtype": "Check", 
-   "label": "Share", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "default": "1", 
    "fieldname": "print", 
    "fieldtype": "Check", 
    "label": "Print", 
    "permlevel": 0
   }, 
   {
-   "default": "1", 
    "fieldname": "email", 
    "fieldtype": "Check", 
    "label": "Email", 
@@ -232,7 +216,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-03-18 06:09:58.928014", 
+ "modified": "2014-08-26 01:43:31.499363", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

@@ -1,0 +1,1 @@
+User (user) with whom the parent Event is shared.
