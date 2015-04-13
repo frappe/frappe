@@ -54,7 +54,7 @@ frappe.utils = {
 			var elements = div.getElementsByTagName('script');
 			var i = elements.length;
 			while (i--) {
-				elements[i].parentNode.removeChild(scripts[i]);
+				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
 		return div.innerHTML;
