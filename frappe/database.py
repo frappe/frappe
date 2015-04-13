@@ -533,6 +533,18 @@ class Database:
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
 
+	def set_values(self, dt, dn, val):
+		"""Sets multiple values in the database
+		
+		**Warning:** this function will not call Document events and should be avoided in normal cases.
+		
+		:param dt: DocType name.
+		:param dn: Document name.
+		:param value: Dict of Values to be updated.
+		"""
+		for field in val:
+			self.set_value(dt, dn, field, val.get(field))
+
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None,
 		update_modified=True, debug=False):
 		"""Set a single value in the database, do not call the ORM triggers
