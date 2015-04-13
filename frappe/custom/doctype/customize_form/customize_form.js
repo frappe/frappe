@@ -88,6 +88,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 		if(frm.doc.doc_type) {
 			return frm.call({
 				doc: frm.doc,
+				freeze: true,
 				method: "save_customization",
 				callback: function(r) {
 					if(!r.exc) {
