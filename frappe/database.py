@@ -540,7 +540,7 @@ class Database:
 		
 		:param dt: DocType name.
 		:param dn: Document name.
-		:param value: Dict of Values to be updated.
+		:param val: Dict of Values to be updated.
 		"""
 		for field in val:
 			self.set_value(dt, dn, field, val.get(field))
@@ -555,7 +555,7 @@ class Database:
 		:param dt: DocType name.
 		:param dn: Document name.
 		:param field: Property / field name.
-		:param value: Value to be updated.
+		:param val: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
 		:param modified_by: Set this user as `modified_by`.
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
