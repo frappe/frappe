@@ -48,10 +48,16 @@ frappe.utils = {
 			|| txt.toLowerCase().substr(0,8)=='https://'
 	},
 	remove_script_and_style: function(txt) {
-		if (!txt || (txt.indexOf("<script")===-1 && txt.indexOf("<style")===-1)) return txt;
-		return $("<div></div>").html(txt)
-			.find("script,noscript,style,title,meta,base,head").remove().end()
-			.html();
+		var div = document.createElement('div');
+		div.innerHTML = s;
+		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
+			var elements = div.getElementsByTagName('script');
+			var i = elements.length;
+			while (i--) {
+				scripts[i].parentNode.removeChild(scripts[i]);
+			}
+		});
+		return div.innerHTML;
 	},
 	toggle_blockquote: function(txt) {
 		if (!txt) return txt;
