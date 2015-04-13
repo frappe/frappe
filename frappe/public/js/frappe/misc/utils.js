@@ -51,7 +51,7 @@ frappe.utils = {
 		var div = document.createElement('div');
 		div.innerHTML = txt;
 		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
-			var elements = div.getElementsByTagName('script');
+			var elements = div.getElementsByTagName(e);
 			var i = elements.length;
 			while (i--) {
 				elements[i].parentNode.removeChild(elements[i]);
