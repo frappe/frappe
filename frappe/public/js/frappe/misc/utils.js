@@ -49,7 +49,7 @@ frappe.utils = {
 	},
 	remove_script_and_style: function(txt) {
 		var div = document.createElement('div');
-		div.innerHTML = s;
+		div.innerHTML = txt;
 		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
 			var elements = div.getElementsByTagName('script');
 			var i = elements.length;
