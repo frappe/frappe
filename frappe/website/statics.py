@@ -131,7 +131,7 @@ class sync(object):
 			if self.verbose: print "Inserted: " + web_page.name
 
 		else:
-			web_page = frappe.get_doc("Web Page", {"template_path":template_path})
+			web_page = frappe.get_doc("Web Page", {"template_path":relative_template_path})
 			dirty = False
 			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
 				if web_page.get(key) != locals().get(key):
