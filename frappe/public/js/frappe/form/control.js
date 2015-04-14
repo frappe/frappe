@@ -966,10 +966,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	new_doc: function() {
 		var doctype = this.get_options();
 		if(!doctype) return;
+		var new_options = { "name_field": this.get_value() };
+
+		if(this.df.get_route_options_for_new_doc) {
+			frappe.route_options = this.df.get_route_options_for_new_doc(this);
+		}
+
 		if(this.frm) {
-			this.frm.new_doc(doctype, this, {"name_field": this.get_value()});
+			this.frm.new_doc(doctype, this, new_options);
 		} else {
-			new_doc(doctype, {"name_field": this.get_value()});
+			new_doc(doctype, new_options);
 		}
 		return false;
 	},
