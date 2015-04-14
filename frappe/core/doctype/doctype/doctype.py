@@ -109,10 +109,10 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 
-		# update index
-		self.run_module_method("on_doctype_update")
-		if self.flags.in_insert:
-			self.run_module_method("after_doctype_insert")
+			# update index
+			self.run_module_method("on_doctype_update")
+			if self.flags.in_insert:
+				self.run_module_method("after_doctype_insert")
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
