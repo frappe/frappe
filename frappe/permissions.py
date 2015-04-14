@@ -119,15 +119,19 @@ def get_role_permissions(meta, user=None):
 						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
 							and p.get("apply_user_permissions"))
 
-				if p.apply_user_permissions and p.user_permission_doctypes:
-					# set user_permission_doctypes in perms
-					user_permission_doctypes = json.loads(p.user_permission_doctypes)
+				if p.apply_user_permissions:
+					if p.user_permission_doctypes:
+						# set user_permission_doctypes in perms
+						user_permission_doctypes = json.loads(p.user_permission_doctypes)
 
-					if user_permission_doctypes:
-						# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
-						for ptype in rights:
-							if p.get(ptype):
-								perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
+						if user_permission_doctypes:
+							# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
+							for ptype in rights:
+								if p.get(ptype):
+									perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
+					else:
+						user_permission_doctypes = get_linked_doctypes(meta.name)
+
 
 		for key, value in perms.get("apply_user_permissions").items():
 			if not value:
@@ -285,3 +289,12 @@ def reset_perms(doctype):
 	frappe.db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 	frappe.reload_doc(frappe.db.get_value("DocType", doctype, "module"),
 		"DocType", doctype, force=True)
+
+def get_linked_doctypes(dt):
+	return list(set([dt] + [d.options for d in
+		frappe.get_meta(dt).get("fields", {
+			"fieldtype":"Link",
+			"ignore_user_permissions":("!=", 1),
+			"options": ("!=", "[Select]")
+		})
+	]))

@@ -68,6 +68,11 @@ $.extend(frappe.meta, {
 		return docfields;
 	},
 
+	get_linked_fields: function(doctype) {
+		return $.map(frappe.get_meta(doctype).fields,
+			function(d) { return d.fieldtype=="Link" ? d.options : null; });
+	},
+
 	get_fields_to_check_permissions: function(doctype, name, user_permission_doctypes) {
 		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
 			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1 &&

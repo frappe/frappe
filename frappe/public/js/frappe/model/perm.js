@@ -151,14 +151,19 @@ $.extend(frappe.perm, {
 
 		var user_permissions = frappe.defaults.get_user_permissions();
 		if(user_permissions && !$.isEmptyObject(user_permissions)) {
-			var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes[ptype],
-				user_permissions);
+			if(perm[0].user_permission_doctypes) {
+				var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes[ptype],
+					user_permissions);
+			} else {
+				// json is not set, so give list of all doctypes
+				var user_permission_doctypes = [[doctype].concat(frappe.meta.get_linked_fields(doctype))];
+			}
 
 			$.each(user_permission_doctypes, function(i, doctypes) {
 				var rules = {};
 				var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, null, doctypes);
 				$.each(fields_to_check, function(i, df) {
-					rules[df.label] = user_permissions[df.options];
+					rules[df.label] = user_permissions[df.options] || [];
 				});
 				if (!$.isEmptyObject(rules)) {
 					match_rules.push(rules);
