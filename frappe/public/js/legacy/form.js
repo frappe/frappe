@@ -496,9 +496,13 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.opendocs[me.docname] = true;
 		me.render_form();
 		if(frappe.route_options) {
-			$.each(frappe.route_options, function(fieldname, value) {
-				me.set_value(fieldname, value);
-			})
+				$.each(frappe.route_options, function(fieldname, value) {
+					try {
+						me.set_value(fieldname, value);
+					} catch (e) {
+						// pass - see error log
+					}
+				});
 
 			frappe.route_options = null;
 		}

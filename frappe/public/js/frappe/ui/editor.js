@@ -30,11 +30,13 @@ bsEditor = Class.extend({
 			}
 		}).on("mouseup keyup mouseout", function() {
 			var html = me.clean_html();
-			if(me.editing && html != me.last_html) {
+			if(me.editing) {
 				me.toolbar.save_selection();
 				me.toolbar.update();
-				me.options.change && me.options.change(html);
-				me.last_html = html;
+				if(html != me.last_html) {
+					me.options.change && me.options.change(html);
+					me.last_html = html;
+				}
 			}
 		}).data("object", this);
 
@@ -113,11 +115,13 @@ bsEditor = Class.extend({
 					e.preventDefault();
 					e.stopPropagation();
 					me.toolbar.execCommand(command);
+					return false;
 				}
 			}).keyup(hotkey, function (e) {
 				if (me.editor.attr('contenteditable') && me.editor.is(':visible')) {
 					e.preventDefault();
 					e.stopPropagation();
+					return false;
 				}
 			});
 		});
@@ -249,7 +253,7 @@ bsEditorToolbar = Class.extend({
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small" data-edit="bold" title="' + __("Bold (Ctrl/Cmd+B)") + '">\
-						B</a>\
+						<b>B</b></a>\
 					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="' + __("Bullet list") + '">\
 						<i class="octicon octicon-list-unordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
@@ -337,7 +341,7 @@ bsEditorToolbar = Class.extend({
 		var me = this;
 
 		// standard button events
-		this.toolbar.find('a[data-' + me.options.command_role + ']').click(function () {
+		this.toolbar.find('a[data-' + me.options.command_role + ']').click(function (e) {
 			me.restore_selection();
 			me.editor.focus();
 			me.execCommand($(this).data(me.options.command_role));
@@ -345,6 +349,8 @@ bsEditorToolbar = Class.extend({
 			// close dropdown
 			if(me.toolbar.find("ul.dropdown-menu:visible").length)
 				me.toolbar.find('[data-toggle="dropdown"]').dropdown("toggle");
+			e.stopPropagation();
+			e.preventDefault();
 			return false;
 		});
 		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restore_selection() });
