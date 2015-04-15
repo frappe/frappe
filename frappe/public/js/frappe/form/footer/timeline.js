@@ -63,6 +63,49 @@ frappe.ui.form.Comments = Class.extend({
 	},
 	render_comment: function(c) {
 		var me = this;
+		this.prepare_comment(c);
+
+		var $timeline_item = $(frappe.render_template("timeline_item", {data:c}))
+			.appendTo(me.list)
+			.on("click", ".close", function() {
+				var name = $(this).parents(".timeline-item:first").attr("data-name");
+				me.delete_comment(name);
+				return false;
+			});
+
+
+		if(c.comment_type==="Email") {
+			this.last_type = c.comment_type;
+			this.add_reply_btn_event($timeline_item, c);
+		}
+
+	},
+
+	add_reply_btn_event: function($timeline_item, c) {
+		var me = this;
+		$timeline_item.find(".reply-link").on("click", function() {
+			var name = $(this).attr("data-name");
+			var last_email = null;
+
+			// find the email tor reply to
+			me.get_comments().forEach(function(c) {
+				if(c.name==name) {
+					last_email = c;
+					return false;
+				}
+			});
+
+			// make the composer
+			new frappe.views.CommunicationComposer({
+				doc: me.frm.doc,
+				txt: "",
+				frm: me.frm,
+				last_email: last_email
+			});
+		});
+	},
+
+	prepare_comment: function(c) {
 		if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
 			c["delete"] = '<a class="close" href="#">&times;</a>';
 		} else {
@@ -111,28 +154,6 @@ frappe.ui.form.Comments = Class.extend({
 				c.comment_html = frappe.utils.strip_whitespace(c.comment_html);
 			}
 		}
-
-		// icon centering -- pixed perfect
-		if(in_list(["Comment", "Email", "Assignment Completed"], c.comment_type)) {
-			c.padding = "padding-left: 8px;";
-		} else if(in_list(["Created"], c.comment_type)) {
-			c.padding = "padding-left: 9px;";
-		} else {
-			c.padding = "";
-		}
-
-		$(frappe.render_template("timeline_item", {data:c}))
-			.appendTo(me.list)
-			.on("click", ".close", function() {
-				var name = $(this).parents(".timeline-item:first").attr("data-name");
-				me.delete_comment(name);
-				return false;
-			});
-
-		if(c.comment_type==="Email") {
-			this.last_type = c.comment_type;
-		}
-
 	},
 	set_icon_and_color: function(c) {
 		c.icon = {

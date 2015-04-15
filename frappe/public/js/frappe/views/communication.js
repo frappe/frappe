@@ -143,29 +143,44 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		this.dialog.onhide = function() {
 			if(cur_frm && cur_frm.docname) {
-				if (!frappe.last_edited_communication[cur_frm.doctype]) {
-					frappe.last_edited_communication[cur_frm.doctype] = {};
-				}
-				frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname] = {
+				var last_edited_communication = me.get_last_edited_communication();
+				$.extend(last_edited_communication, {
 					recipients: me.dialog.get_value("recipients"),
 					subject: me.dialog.get_value("subject"),
 					content: me.dialog.get_value("content"),
-				}
+				});
 			}
 		}
 
 		this.dialog.on_page_show = function() {
-			if (cur_frm && cur_frm.docname && !me.txt &&
-				(frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
-
-				c = frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
-				me.dialog.set_value("subject", c.subject || "");
-				me.dialog.set_value("recipients", c.recipients || "");
-				me.dialog.set_value("content", c.content || "");
+			if (cur_frm && cur_frm.docname && !me.txt) {
+				var last_edited_communication = me.get_last_edited_communication();
+				if(last_edited_communication.content) {
+					me.dialog.set_value("subject", last_edited_communication.subject || "");
+					me.dialog.set_value("recipients", last_edited_communication.recipients || "");
+					me.dialog.set_value("content", last_edited_communication.content || "");
+				}
 			}
 		}
 
 	},
+
+	get_last_edited_communication: function() {
+		var key = cur_frm.docname;
+		if(this.last_email) {
+			key = key + ":" + this.last_email.name;
+		}
+		if (!frappe.last_edited_communication[cur_frm.doctype]) {
+			frappe.last_edited_communication[cur_frm.doctype] = {};
+		}
+
+		if(!frappe.last_edited_communication[cur_frm.doctype][key]) {
+			frappe.last_edited_communication[cur_frm.doctype][key] = {};
+		}
+
+		return frappe.last_edited_communication[cur_frm.doctype][key];
+	},
+
 	setup_print: function() {
 		// print formats
 		var fields = this.dialog.fields_dict;
@@ -323,7 +338,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict,
 			signature = frappe.boot.user.email_signature || "",
+			last_email = this.last_email;
+
+		if(!last_email) {
 			last_email = this.frm && this.frm.comments.get_last_email(true);
+		}
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");

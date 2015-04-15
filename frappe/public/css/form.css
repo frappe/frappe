@@ -67,9 +67,13 @@
 .timeline-item {
   margin-top: 0px;
   padding: 15px 30px 7px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .timeline-item .icon-fixed-width {
   text-align: center;
+}
+.timeline-item:last-child {
+  border-bottom: 0px;
 }
 .timeline-item .reply {
   margin-top: 5px;

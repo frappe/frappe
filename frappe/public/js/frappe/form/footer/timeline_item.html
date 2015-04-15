@@ -15,9 +15,12 @@
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
                     <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
-                    {% if(data.doctype=="Communication") { %} &ndash;
-                    <a href="#Form/{%= data.doctype %}/{%= data.name %}"
-                        class="text-muted">{%= __("Details") %}</a>
+                    {% if(data.doctype=="Communication") { %}
+                        <span class="text-muted">&ndash;</span>
+                        <a href="#Form/{%= data.doctype %}/{%= data.name %}"
+                            class="text-muted">{%= __("Details") %}</a>
+                        <a class="text-muted reply-link pull-right"
+                            data-name="{%= data.name %}">{%= __("Reply") %}</a>
                     {% } %}
                 </h6>
 				<div class="reply">
