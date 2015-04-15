@@ -745,6 +745,51 @@ def remove_from_installed_apps(context, app):
 		finally:
 			frappe.destroy()
 
+def move(dest_dir, site):
+	import os
+	if not os.path.isdir(dest_dir):
+		raise Exception, "destination is not a directory or does not exist"
+
+	frappe.init(site)
+	old_path = frappe.utils.get_site_path()
+	new_path = os.path.join(dest_dir, site)
+
+	# check if site dump of same name already exists
+	site_dump_exists = True
+	count = 0
+	while site_dump_exists:
+		final_new_path = new_path + (count and str(count) or "")
+		site_dump_exists = os.path.exists(final_new_path)
+		count = int(count or 0) + 1
+
+	os.rename(old_path, final_new_path)
+	frappe.destroy()
+	return final_new_path
+
+@click.command('drop-site')
+@click.argument('site')
+@click.option('--root-login', default='root')
+@click.option('--root-password')
+def drop_site(site, root_login='root', root_password=None):
+	from frappe.installer import get_current_host, make_connection
+	from frappe.model.db_schema import DbManager
+	from frappe.utils.backups import scheduled_backup
+
+	frappe.init(site=site)
+	frappe.connect()
+	scheduled_backup(ignore_files=False, force=True)
+
+	db_name = frappe.local.conf.db_name
+	frappe.local.db = make_connection(root_login, root_password)
+	dbman = DbManager(frappe.local.db)
+	dbman.delete_user(db_name, get_current_host())
+	dbman.drop_database(db_name)
+
+	archived_sites_dir = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
+	if not os.path.exists(archived_sites_dir):
+		os.mkdir(archived_sites_dir)
+	move(archived_sites_dir, site)
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -799,4 +844,5 @@ commands = [
 	_use,
 	backup,
 	remove_from_installed_apps,
+	drop_site,
 ]
