@@ -46,7 +46,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
-			this.frm.tags && this.frm.tags.refresh();
+			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
 				"<br>" + comment_when(this.frm.doc.modified)]));
@@ -64,6 +64,7 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	make_tags: function() {
+		var me = this;
 		if (this.frm.meta.issingle) {
 			this.sidebar.find(".form-tags").toggle(false);
 			return;
@@ -71,7 +72,10 @@ frappe.ui.form.Sidebar = Class.extend({
 
 		this.frm.tags = new frappe.ui.TagEditor({
 			parent: this.sidebar.find(".tag-area"),
-			frm: this.frm
+			frm: this.frm,
+			on_change: function(user_tags) {
+				me.frm.doc._user_tags = user_tags;
+			}
 		});
 	},
 	make_attachments: function() {
