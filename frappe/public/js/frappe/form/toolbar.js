@@ -22,11 +22,11 @@ frappe.ui.form.Toolbar = Class.extend({
 			if(this.frm.doc.__islocal) {
 				this.page.hide_menu();
 				this.print_icon && this.print_icon.addClass("hide");
-				this.star_icon.addClass("hide");
+				this.star_icon && this.star_icon.addClass("hide");
 			} else {
 				this.page.show_menu();
 				this.print_icon && this.print_icon.removeClass("hide");
-				this.star_icon.removeClass("hide");
+				this.star_icon && this.star_icon.removeClass("hide");
 			}
 		}
 	},
@@ -60,8 +60,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 	},
 	refresh_star: function() {
-		this.star_icon.toggleClass("text-extra-muted not-starred", !frappe.ui.is_starred(this.frm.doc))
-			.attr("data-doctype", this.frm.doctype).attr("data-name", this.frm.doc.name);
+		this.star_icon &&
+			this.star_icon.toggleClass("text-extra-muted not-starred",
+				!frappe.ui.is_starred(this.frm.doc))
+			.attr("data-doctype", this.frm.doctype)
+			.attr("data-name", this.frm.doc.name);
 	},
 	make_menu: function() {
 		var me = this;
@@ -77,9 +80,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// star
-		this.star_icon = this.page.add_action_icon("icon-star", function() {
-			frappe.ui.toggle_star(me.star_icon, me.frm.doctype, me.frm.doc.name);
-		}).removeClass("text-muted").find(".icon-star").addClass("star-action");
+		if(!this.frm.meta.issingle) {
+			this.star_icon = this.page.add_action_icon("icon-star", function() {
+				frappe.ui.toggle_star(me.star_icon, me.frm.doctype, me.frm.doc.name);
+			}).removeClass("text-muted").find(".icon-star").addClass("star-action");
+		}
 
 		// email
 		if(frappe.model.can_email(null, me.frm)) {
