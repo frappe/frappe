@@ -424,6 +424,11 @@ def is_table(doctype):
 		cache().set_value("is_table", tables)
 	return doctype in tables
 
+def get_precision(doctype, fieldname, currency=None, doc=None):
+	"""Get precision for a given field"""
+	from frappe.model.meta import get_field_precision
+	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
+
 def generate_hash(txt=None):
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib, time
