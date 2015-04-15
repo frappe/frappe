@@ -109,7 +109,7 @@ frappe.Application = Class.extend({
 						me.update_notification_count_in_modules();
 					}
 				},
-				no_spinner: true
+				freeze: false
 			});
 		}
 	},

@@ -72,3 +72,4 @@ frappe.patches.v5_0.rename_ref_type_fieldnames
 frappe.patches.v5_0.fix_email_alert
 frappe.patches.v5_0.fix_null_date_datetime
 frappe.patches.v5_0.force_sync_website
+execute:frappe.delete_doc("DocType", "Tag")
