@@ -108,13 +108,15 @@ frappe.Application = Class.extend({
 						// update in module views
 						me.update_notification_count_in_modules();
 
-						$.each(r.message.new_messages, function(i, m) {
-					        if (Notify.needsPermission) {
-					            Notify.requestPermission(function() { me.browser_notify(m); });
-					        } else {
-								me.browser_notify(m);
-					        }
-						});
+						if(frappe.get_route()[0] != "messages") {
+							$.each(r.message.new_messages, function(i, m) {
+						        if (Notify.needsPermission) {
+						            Notify.requestPermission(function() { me.browser_notify(m); });
+						        } else {
+									me.browser_notify(m);
+						        }
+							});
+						}
 					}
 				},
 				freeze: false
