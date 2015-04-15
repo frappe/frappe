@@ -107,11 +107,29 @@ frappe.Application = Class.extend({
 
 						// update in module views
 						me.update_notification_count_in_modules();
+
+						$.each(r.message.new_messages, function(i, m) {
+					        if (Notify.needsPermission) {
+					            Notify.requestPermission(function() { me.browser_notify(m); });
+					        } else {
+								me.browser_notify(m);
+					        }
+						});
 					}
 				},
 				freeze: false
 			});
 		}
+	},
+
+	browser_notify: function(m) {
+		var notify = new Notify(__("Message from {0}", [m.comment_by_fullname]), {
+		    body: m.comment,
+		    notifyClick: function() {
+		    	frappe.set_route("messages");
+		    }
+		});
+		notify.show();
 	},
 
 	update_notification_count_in_modules: function() {

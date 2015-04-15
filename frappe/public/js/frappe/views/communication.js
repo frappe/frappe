@@ -92,7 +92,14 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_subject_and_recipients: function() {
 		this.subject = this.subject || "";
-		this.recipients = this.frm && this.frm.comments.get_recipient();
+
+		if(this.last_email) {
+			this.recipients = this.last_email.comment_by;
+		}
+
+		if(!this.recipients) {
+			this.recipients = this.frm && this.frm.comments.get_recipient();
+		}
 
 		if(!this.subject && this.frm) {
 			// get subject from last communication

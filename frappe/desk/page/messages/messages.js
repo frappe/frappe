@@ -128,7 +128,7 @@ frappe.desk.pages.Messages = Class.extend({
 				contact: contact
 			},
 			hide_refresh: true,
-			no_loading: true,
+			freeze: false,
 			render_row: function(wrapper, data) {
 				var row = $(frappe.render_template("messages_row", {
 					data: data
@@ -154,8 +154,15 @@ frappe.desk.pages.Messages = Class.extend({
 		// check for updates every 5 seconds if page is active
 		this.set_next_refresh();
 
-		if(!frappe.session_alive)
+		if(!frappe.session_alive) {
+			// not in session
 			return;
+		}
+
+		if(frappe.get_route()[0]!="messages") {
+			// not on messages page
+			return;
+		}
 
 		if (this.list) {
 			this.list.run();

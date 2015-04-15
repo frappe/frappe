@@ -6,7 +6,7 @@ import frappe
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils.user import get_enabled_system_users
-from frappe.utils import cint
+from frappe.utils import cint, get_fullname
 
 @frappe.whitelist()
 def get_list(arg=None):
@@ -78,6 +78,7 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 	d.comment = txt
 	d.comment_docname = contact
 	d.comment_doctype = 'Message'
+	d.comment_by_fullname = get_fullname(frappe.session.user)
 	d.insert(ignore_permissions=True)
 
 	delete_notification_count_for("Messages")

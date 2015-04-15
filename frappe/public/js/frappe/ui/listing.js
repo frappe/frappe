@@ -173,7 +173,7 @@ frappe.ui.Listing = Class.extend({
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
-			freeze: true,
+			freeze: this.opts.freeze || true,
 			args: this.get_call_args(),
 			callback: function(r) {
 				if(!me.opts.no_loading)

@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
+from dateutil.relativedelta import relativedelta
 
 @frappe.whitelist()
 def get_notifications():
@@ -10,14 +12,53 @@ def get_notifications():
 		return
 
 	config = get_notification_config()
-	can_read = frappe.user.get_can_read()
-	open_count_doctype = {}
-	open_count_module = {}
-	cache = frappe.cache()
 
-	notification_count = cache.get_all("notification_count:" \
+	notification_count = frappe.cache().get_all("notification_count:" \
 		+ frappe.session.user + ":").iteritems()
 	notification_count = dict([(d.rsplit(":", 1)[1], v) for d, v in notification_count])
+
+	return {
+		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
+		"open_count_module": get_notifications_for_modules(config, notification_count),
+		"new_messages": get_new_messages()
+	}
+
+def get_new_messages():
+	cache_key = "notifications_last_update:" + frappe.session.user
+	last_update = frappe.cache().get_value(cache_key)
+	now_timestamp = now()
+	frappe.cache().set_value(cache_key, now_timestamp)
+
+	if not last_update:
+		return []
+
+	if last_update and time_diff_in_seconds(now_timestamp, last_update) > 1800:
+		# no update for 30 mins, consider only the last 30 mins
+		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
+
+	return frappe.db.sql("""select comment_by_fullname, comment
+		from tabComment
+			where comment_doctype='Message'
+			and comment_docname = %s
+			and ifnull(creation, "2000-01-01") > %s
+			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
+
+def get_notifications_for_modules(config, notification_count):
+	open_count_module = {}
+	for m in config.for_module:
+		if m in notification_count:
+			open_count_module[m] = notification_count[m]
+		else:
+			open_count_module[m] = frappe.get_attr(config.for_module[m])()
+
+			frappe.cache().set_value("notification_count:" + frappe.session.user + ":" + m,
+				open_count_module[m])
+
+	return open_count_module
+
+def get_notifications_for_doctypes(config, notification_count):
+	can_read = frappe.user.get_can_read()
+	open_count_doctype = {}
 
 	for d in config.for_doctype:
 		if d in can_read:
@@ -41,22 +82,10 @@ def get_notifications():
 				else:
 					open_count_doctype[d] = result
 
-					cache.set_value("notification_count:" + frappe.session.user + ":" + d,
+					frappe.cache().set_value("notification_count:" + frappe.session.user + ":" + d,
 						result)
 
-	for m in config.for_module:
-		if m in notification_count:
-			open_count_module[m] = notification_count[m]
-		else:
-			open_count_module[m] = frappe.get_attr(config.for_module[m])()
-
-			cache.set_value("notification_count:" + frappe.session.user + ":" + m,
-				open_count_module[m])
-
-	return {
-		"open_count_doctype": open_count_doctype,
-		"open_count_module": open_count_module
-	}
+	return open_count_doctype
 
 def clear_notifications(user="*"):
 	frappe.cache().delete_keys("notification_count:" + (user or frappe.session.user) + ":")
