@@ -453,7 +453,7 @@ frappe.utils = {
 		if (Notify.needsPermission) {
 			Notify.requestPermission(callback);
 		} else {
-			callback();
+			callback && callback();
 		}
 	},
 

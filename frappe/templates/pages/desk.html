@@ -19,7 +19,9 @@
 	{%- endfor -%}
 </head>
 <body>
-	<div class="centered splash">{% include "public/images/frappe.svg" %}</div>
+	<div class="centered splash">
+        <img src="{{ splash_image or "public/images/splash.png" }}">
+    </div>
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
