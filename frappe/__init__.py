@@ -87,7 +87,18 @@ def init(site, sites_path=None):
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
-	local.flags = _dict({})
+	local.flags = _dict({
+		"ran_schedulers": [],
+		"redirect_location": "",
+		"in_install_db": False,
+		"in_install_app": False,
+		"in_import": False,
+		"in_test": False,
+		"mute_messages": False,
+		"ignore_links": False,
+		"mute_emails": False,
+		"has_dataurl": False,
+	})
 	local.rollback_observers = []
 	local.test_objects = {}
 

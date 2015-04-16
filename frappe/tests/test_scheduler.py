@@ -11,11 +11,10 @@ import json
 class TestScheduler(TestCase):
 
 	def setUp(self):
-		frappe.flags.ran_schedulers = []
 		frappe.db.set_global('enabled_scheduler_events', "")
 
 	def test_all_events(self):
-		last = get_datetime(frappe.db.get_global('scheduler_last_event'))
+		last = now_datetime() - relativedelta(hours=2)
 		enqueue_applicable_events(frappe.local.site, now_datetime(), last)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 
@@ -40,3 +39,7 @@ class TestScheduler(TestCase):
 		enqueue_applicable_events(frappe.local.site, now_datetime(), last)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
+
+	def tearDown(self):
+		frappe.flags.ran_schedulers = []
+		
