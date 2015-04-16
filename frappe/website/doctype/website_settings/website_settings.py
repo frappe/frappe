@@ -98,9 +98,6 @@ def get_website_settings():
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
-	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/favicon.ico"
-
 	if settings.address:
 		context["footer_address"] = settings.address
 
@@ -125,8 +122,12 @@ def get_website_settings():
 	via_hooks = frappe.get_hooks("website_context")
 	for key in via_hooks:
 		context[key] = via_hooks[key]
-		if key not in ("top_bar_items", "footer_items", "post_login") and isinstance(context[key], (list, tuple)):
+		if key not in ("top_bar_items", "footer_items", "post_login") \
+			and isinstance(context[key], (list, tuple)):
 			context[key] = context[key][0]
+
+	if not context.get("favicon"):
+		context["favicon"] = "/assets/frappe/images/favicon.png"
 
 	return context
 

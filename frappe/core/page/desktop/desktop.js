@@ -18,7 +18,7 @@ $.extend(frappe.desktop, {
 
 	render: function() {
 		var me = this;
-		document.title = "Desktop";
+		frappe.utils.set_title("Desktop");
 
 		this.wrapper.html(frappe.render_template("desktop_icon_grid", {
 			// all visible icons

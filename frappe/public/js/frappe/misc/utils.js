@@ -448,4 +448,42 @@ frappe.utils = {
 	warn_page_name_change: function(frm) {
 		frappe.msgprint("Note: Changing the Page Name will break previous URL to this page.");
 	},
+
+	if_notify_permitted: function(callback) {
+		if (Notify.needsPermission) {
+			Notify.requestPermission(callback);
+		} else {
+			callback();
+		}
+	},
+
+	notify: function(subject, body, route, onclick) {
+		if(!route) route = "messages";
+		if(!onclick) onclick = function() {
+			frappe.set_route(route);
+		}
+
+		frappe.utils.if_notify_permitted(function() {
+			var notify = new Notify(subject, {
+			    body: body,
+			    notifyClick: onclick
+			});
+			notify.show();
+		});
+	},
+
+	set_title: function(title) {
+		frappe._original_title = title;
+		if(frappe._title_prefix) {
+			title = frappe._title_prefix + " " + title;
+		}
+		document.title = title;
+	},
+
+	set_title_prefix: function(prefix) {
+		frappe._title_prefix = prefix;
+
+		// reset the original title
+		frappe.utils.set_title(frappe._original_title);
+	}
 };

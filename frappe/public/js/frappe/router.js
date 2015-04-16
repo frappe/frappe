@@ -47,7 +47,7 @@ frappe.route = function() {
 	}
 
 	if(frappe.route_titles[window.location.hash]) {
-		document.title = frappe.route_titles[window.location.hash];
+		frappe.utils.set_title(frappe.route_titles[window.location.hash]);
 	}
 }
 
@@ -117,7 +117,7 @@ frappe._cur_route = null;
 
 $(window).on('hashchange', function() {
 	// save the title
-	frappe.route_titles[frappe._cur_route] = document.title;
+	frappe.route_titles[frappe._cur_route] = frappe._original_title || document.title;
 
 	if(window.location.hash==frappe._cur_route)
 		return;

@@ -19,6 +19,11 @@ frappe.pages.messages.on_page_load = function(parent) {
 	frappe.desk.pages.messages = new frappe.desk.pages.Messages(parent);
 }
 
+frappe.pages.messages.on_page_show = function() {
+	// clear title prefix
+	frappe.utils.set_title_prefix("");
+}
+
 frappe.desk.pages.Messages = Class.extend({
 	init: function(wrapper, page) {
 		this.wrapper = wrapper;

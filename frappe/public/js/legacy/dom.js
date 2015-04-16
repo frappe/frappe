@@ -42,9 +42,6 @@ function add_sel_options(s, list, sel_val, o_style) {
 }
 
 var $n = '\n';
-function set_title(t) {
-	document.title = (frappe.title_prefix ? (frappe.title_prefix + ' - ') : '') + t;
-}
 
 function $a(parent, newtag, className, cs, innerHTML, onclick) {
 	if(parent && parent.substr)parent = $i(parent);

@@ -239,7 +239,7 @@ frappe.ui.Page = Class.extend({
 	set_title: function(txt, icon) {
 		// strip icon
 		this.title = txt;
-		document.title = txt.replace(/<[^>]*>/g, "");
+		frappe.utils.set_title(txt.replace(/<[^>]*>/g, ""));
 		if(icon) {
 			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}

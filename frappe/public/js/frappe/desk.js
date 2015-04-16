@@ -109,13 +109,13 @@ frappe.Application = Class.extend({
 						me.update_notification_count_in_modules();
 
 						if(frappe.get_route()[0] != "messages") {
-							$.each(r.message.new_messages, function(i, m) {
-						        if (Notify.needsPermission) {
-						            Notify.requestPermission(function() { me.browser_notify(m); });
-						        } else {
-									me.browser_notify(m);
-						        }
-							});
+							if(r.message.new_messages.length) {
+								$.each(r.message.new_messages, function(i, m) {
+									frappe.utils.notify(__("Message from {0}", [m.comment_by_fullname]),
+										m.comment);
+								});
+								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
+							}
 						}
 					}
 				},
@@ -124,14 +124,8 @@ frappe.Application = Class.extend({
 		}
 	},
 
-	browser_notify: function(m) {
-		var notify = new Notify(__("Message from {0}", [m.comment_by_fullname]), {
-		    body: m.comment,
-		    notifyClick: function() {
-		    	frappe.set_route("messages");
-		    }
-		});
-		notify.show();
+	set_unread_messages: function() {
+
 	},
 
 	update_notification_count_in_modules: function() {

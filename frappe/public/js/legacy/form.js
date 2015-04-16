@@ -302,7 +302,7 @@ _f.Frm.prototype.refresh_header = function() {
 	// set title
 	// main title
 	if(!this.meta.in_dialog || this.in_form) {
-		set_title(this.meta.issingle ? this.doctype : this.docname);
+		frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 	}
 
 	if(frappe.ui.toolbar.recent)

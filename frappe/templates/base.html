@@ -11,10 +11,10 @@
 
     {% block favicon %}
 	<link rel="shortcut icon"
-		href="{{ (favicon or "/assets/frappe/images/favicon.ico") | with_leading_slash }}"
+		href="{{ (favicon or "/assets/frappe/images/favicon.png") | with_leading_slash }}"
 		type="image/x-icon">
 	<link rel="icon"
-		href="{{ (favicon or "/assets/frappe/images/favicon.ico") | with_leading_slash }}"
+		href="{{ (favicon or "/assets/frappe/images/favicon.png") | with_leading_slash }}"
 		type="image/x-icon">
     {% endblock %}
 	{%- block head -%}
