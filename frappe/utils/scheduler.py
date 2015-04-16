@@ -48,29 +48,39 @@ def enqueue_applicable_events(site, nowtime, last):
 	nowtime_str = nowtime.strftime(DATETIME_FORMAT)
 	out = []
 
+	enabled_events = get_enabled_scheduler_events()
+
+	def trigger_if_enabled(site, event, now=False):
+		if event in enabled_events:
+			trigger(site, event, now=now)
+			_log(event)
+
 	def _log(event):
 		out.append("{time} - {event} - queued".format(time=nowtime_str, event=event))
 
 	if nowtime.day != last.day:
 		# if first task of the day execute daily tasks
-		trigger_if_enabled(site, "daily") and _log("daily")
-		trigger_if_enabled(site, "daily_long") and _log("daily_long")
+		trigger_if_enabled(site, "daily")
+		trigger_if_enabled(site, "daily_long")
 
 		if nowtime.month != last.month:
-			trigger_if_enabled(site, "monthly") and _log("monthly")
-			trigger_if_enabled(site, "monthly_long") and _log("monthly_long")
+			trigger_if_enabled(site, "monthly")
+			trigger_if_enabled(site, "monthly_long")
 
 		if nowtime.weekday()==0:
-			trigger_if_enabled(site, "weekly") and _log("weekly")
-			trigger_if_enabled(site, "weekly_long") and _log("weekly_long")
+			trigger_if_enabled(site, "weekly")
+			trigger_if_enabled(site, "weekly_long")
 
-		if "all" not in get_enabled_scheduler_events():
-			trigger(site, "all") and _log("all")
+		if "all" not in enabled_events:
+			trigger(site, "all")
+
+		if "hourly" not in enabled_events:
+			trigger(site, "hourly")
 
 	if nowtime.hour != last.hour:
-		trigger_if_enabled(site, "hourly") and _log("hourly")
+		trigger_if_enabled(site, "hourly")
 
-	trigger_if_enabled(site, "all") and _log("all")
+	trigger_if_enabled(site, "all")
 
 	return out
 
