@@ -64,6 +64,9 @@ def enqueue_applicable_events(site, nowtime, last):
 			trigger_if_enabled(site, "weekly") and _log("weekly")
 			trigger_if_enabled(site, "weekly_long") and _log("weekly_long")
 
+		if "all" not in get_enabled_scheduler_events():
+			trigger(site, "all") and _log("all")
+
 	if nowtime.hour != last.hour:
 		trigger_if_enabled(site, "hourly") and _log("hourly")
 
