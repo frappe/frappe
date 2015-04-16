@@ -4,7 +4,7 @@ frappe.ui.misc.about = function() {
 		var d = new frappe.ui.Dialog({title: __('Frappe Framework')})
 
 		$(d.body).html(repl("<div>\
-		<p>"+__("Open Source Web Applications for the Web")+"</p>  \
+		<p>"+__("Open Source Applications for the Web")+"</p>  \
 		<p><i class='icon-globe icon-fixed-width'></i>\
 			 Website: <a href='https://frappe.io' target='_blank'>https://frappe.io</a></p>\
 	 	<p><i class='icon-github icon-fixed-width'></i>\

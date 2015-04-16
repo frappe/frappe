@@ -50,6 +50,9 @@ frappe.Application = Class.extend({
 		if (frappe.boot.change_log && frappe.boot.change_log.length) {
 			this.show_change_log();
 		}
+
+		// ask to allow notifications
+		frappe.utils.if_notify_permitted();
 	},
 
 	load_bootinfo: function() {
