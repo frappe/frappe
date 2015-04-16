@@ -127,10 +127,6 @@ frappe.Application = Class.extend({
 		}
 	},
 
-	set_unread_messages: function() {
-
-	},
-
 	update_notification_count_in_modules: function() {
 		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
 			if(count) {
