@@ -85,9 +85,8 @@ def trigger(site, event, now=False):
 			else:
 				scheduler_task(site=site, event=event, handler=handler, now=True)
 
-def trigger_if_enabled(site, event, now=False):
-	if event in get_enabled_scheduler_events():
-		trigger(site, event, now=now)
+	if frappe.flags.in_test:
+		frappe.flags.ran_schedulers.append(event)
 
 def log(method, message=None):
 	"""log error in patch_log"""
