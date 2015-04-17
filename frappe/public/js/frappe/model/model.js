@@ -322,6 +322,7 @@ $.extend(frappe.model, {
 	},
 
 	get_doc: function(doctype, name) {
+		if(!name) name = doctype;
 		if($.isPlainObject(name)) {
 			var doc = frappe.get_list(doctype, name);
 			return doc && doc.length ? doc[0] : null;
@@ -384,6 +385,9 @@ $.extend(frappe.model, {
 				parent_doc[parentfield] = newlist;
 			});
 		}
+
+		if(frappe.ui.toolbar.recent)
+			frappe.ui.toolbar.recent.remove(doctype, docname);
 	},
 
 	get_no_copy_list: function(doctype) {
@@ -409,8 +413,6 @@ $.extend(frappe.model, {
 				callback: function(r, rt) {
 					if(!r.exc) {
 						frappe.model.clear_doc(doctype, docname);
-						if(frappe.ui.toolbar.recent)
-							frappe.ui.toolbar.recent.remove(doctype, docname);
 						if(callback) callback(r,rt);
 					}
 				}
