@@ -174,12 +174,15 @@ function get_number_format_info(format) {
 }
 
 function _round(num, precision) {
+	var is_negative = num < 0 ? true : false;
     var d = cint(precision);
     var m = Math.pow(10, d);
-    var n = +(d ? num * m : num).toFixed(8); // Avoid rounding errors
+    var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
     var i = Math.floor(n), f = n - i;
-    var r = (!precision && f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n);
-    return d ? r / m : r;
+    var r = ((!precision && f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n));
+    r = d ? r / m : r;
+    return is_negative ? -r : r;
+
 }
 
 function roundNumber(num, precision) {

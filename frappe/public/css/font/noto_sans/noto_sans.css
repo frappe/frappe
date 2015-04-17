@@ -4,9 +4,9 @@
     src: local('Noto Sans'),
          local('NotoSans'),
 		 url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.eot?#iefix") }}') format('embedded-opentype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.woff") }}') format('woff'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.ttf") }}') format('truetype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.svg#noto_sansregular") }}') format('svg');
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.woff") }}') format('woff'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.ttf") }}') format('truetype'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Regular-webfont.svg#noto_sansregular") }}') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -17,9 +17,9 @@
     src: local('Noto Sans Bold'),
          local('NotoSans-Bold'),
 		 url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.eot?#iefix") }}') format('embedded-opentype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.woff") }}') format('woff'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.ttf") }}') format('truetype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.svg#noto_sansbold") }}') format('svg');
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.woff") }}') format('woff'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.ttf") }}') format('truetype'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Bold-webfont.svg#noto_sansbold") }}') format('svg');
     font-weight: bold;
     font-style: normal;
 }
@@ -30,9 +30,9 @@
     src: local('Noto Sans Bold'),
          local('NotoSans-Bold'),
 		 url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.eot?#iefix") }}') format('embedded-opentype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.woff") }}') format('woff'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.ttf") }}') format('truetype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.svg#noto_sansitalic") }}') format('svg');
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.woff") }}') format('woff'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.ttf") }}') format('truetype'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-Italic-webfont.svg#noto_sansitalic") }}') format('svg');
     font-weight: normal;
     font-style: italic;
 }
@@ -43,9 +43,9 @@
     src: local('Noto Sans Bold'),
          local('NotoSans-Bold'),
 		 url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.eot?#iefix") }}') format('embedded-opentype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.woff") }}') format('woff'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.ttf") }}') format('truetype'),
-         url('frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.svg#noto_sansbold_italic") }}') format('svg');
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.woff") }}') format('woff'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.ttf") }}') format('truetype'),
+         url('{{ frappe.get_url("/assets/frappe/css/font/noto_sans/NotoSans-BoldItalic-webfont.svg#noto_sansbold_italic") }}') format('svg');
     font-weight: bold;
     font-style: italic;
 }
