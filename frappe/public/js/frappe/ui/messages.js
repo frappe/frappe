@@ -49,6 +49,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 		callback(values);
 	})
 	d.show();
+	return d;
 }
 
 var msg_dialog=null;
