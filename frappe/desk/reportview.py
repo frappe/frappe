@@ -144,7 +144,7 @@ def get_stats(stats, doctype):
 	for tag in tags:
 		if not tag in columns: continue
 		tagcount = execute(doctype, fields=[tag, "count(*)"],
-			filters=["ifnull(%s,'')!=''" % tag], group_by=tag, as_list=True)
+			filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)

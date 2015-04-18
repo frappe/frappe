@@ -35,6 +35,9 @@ def get_datetime(datetime_str):
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
+	elif isinstance(datetime_str, (list, tuple)):
+		return datetime.datetime(datetime_str)
+
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
