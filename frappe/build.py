@@ -188,4 +188,4 @@ def compile_less():
 					print "compiling {0}".format(fpath)
 
 					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
-					os.system("lessc {0} > {1}".format(fpath, css_path))
+					os.system("which lessc && lessc {0} > {1}".format(fpath, css_path))
