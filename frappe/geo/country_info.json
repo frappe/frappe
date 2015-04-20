@@ -591,6 +591,7 @@
   "number_format": "#,###.##"
  },
  "Congo, The Democratic Republic of the": {
+  "code": "cd",
   "number_format": "#,###.##"
  },
  "Cook Islands": {
@@ -1191,6 +1192,7 @@
   ]
  },
  "Ivory Coast": {
+  "code": "ci",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
   "currency_symbol": "Fr",
@@ -1283,6 +1285,7 @@
   ]
  },
  "Korea, Democratic Peoples Republic of": {
+  "code": "kp",
   "currency": "KPW",
   "currency_name": "North Korean Won",
   "number_format": "#,###.##"
@@ -1318,6 +1321,7 @@
   ]
  },
  "Lao Peoples Democratic Republic": {
+  "code": "la",
   "currency": "LAK",
   "currency_name": "Kip",
   "number_format": "#,###.##"
@@ -1423,6 +1427,7 @@
   "number_format": "#,###.##"
  },
  "Macedonia, Republic of": {
+  "code": "mk",
   "currency": "MKD",
   "currency_fraction": "Deni",
   "currency_fraction_units": 100,
@@ -1833,6 +1838,7 @@
   ]
  },
  "Palestinian Territory, Occupied": {
+  "code": "ps",
   "number_format": "#,###.##"
  },
  "Panama": {
