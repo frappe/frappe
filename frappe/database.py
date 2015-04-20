@@ -675,7 +675,7 @@ class Database:
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
-				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), (dn,))
+				return self.get_value(dt, dn, "name")
 			except:
 				return None
 		elif isinstance(dt, dict) and dt.get('doctype'):
