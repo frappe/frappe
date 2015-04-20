@@ -1138,6 +1138,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 	get_options: function() {
+		if(this.df.get_options) {
+			return this.df.get_options();
+		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		if(!options) {
 			msgprint(__("Please set {0} first",
