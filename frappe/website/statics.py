@@ -133,10 +133,14 @@ class sync(object):
 		else:
 			web_page = frappe.get_doc("Web Page", {"template_path":relative_template_path})
 			dirty = False
-			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
+			for key in ("parent_web_page", "title", "published", "idx"):
 				if web_page.get(key) != locals().get(key):
 					web_page.set(key, locals().get(key))
 					dirty = True
+
+			if web_page.template_path != relative_template_path:
+				web_page.template_path = relative_template_path
+				dirty = True
 
 			if dirty:
 				web_page.from_website_sync = True
