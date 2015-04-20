@@ -171,7 +171,7 @@ class EMail:
 		if not self.sender:
 			self.sender = self.get_default_sender()
 
-		self.sender = validate_email_add(strip(self.sender), True)
+		validate_email_add(strip(self.sender), True)
 		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
 
 		self.recipients = [strip(r) for r in self.recipients]
