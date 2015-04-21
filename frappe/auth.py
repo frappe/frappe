@@ -22,8 +22,14 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
-		frappe.local.request_ip = (frappe.request.remote_addr
-				or frappe.get_request_header('X-Forwarded-For') or '127.0.0.1')
+		if frappe.get_request_header('X-Forwarded-For'):
+			frappe.local.request_ip = frappe.get_request_header('X-Forwarded-For')
+
+		elif frappe.request.remote_addr:
+			frappe.local.request_ip = frappe.request.remote_addr
+
+		else:
+			frappe.local.request_ip = '127.0.0.1'
 
 		# language
 		self.set_lang(frappe.request.accept_languages.values())
