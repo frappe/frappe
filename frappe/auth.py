@@ -25,8 +25,8 @@ class HTTPRequest:
 		if frappe.get_request_header('X-Forwarded-For'):
 			frappe.local.request_ip = frappe.get_request_header('X-Forwarded-For')
 
-		elif frappe.request.remote_addr:
-			frappe.local.request_ip = frappe.request.remote_addr
+		elif frappe.get_request_header('REMOTE_ADDR'):
+			frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR')
 
 		else:
 			frappe.local.request_ip = '127.0.0.1'
