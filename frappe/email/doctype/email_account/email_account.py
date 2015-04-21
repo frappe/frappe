@@ -115,8 +115,8 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 
-		if exceptions:
-			raise Exception, frappe.as_json(exceptions)
+			if exceptions:
+				raise Exception, frappe.as_json(exceptions)
 
 	def insert_communication(self, raw):
 		email = Email(raw)
