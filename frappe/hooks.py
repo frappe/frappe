@@ -6,6 +6,7 @@ app_description = "Full Stack Web Application Framework in Python"
 app_icon = "octicon octicon-circuit-board"
 app_version = "5.0.0-beta"
 app_color = "orange"
+
 app_email = "support@frappe.io"
 
 before_install = "frappe.utils.install.before_install"

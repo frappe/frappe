@@ -15,7 +15,7 @@ def delete_page_cache(path):
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
 	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|mailto|/|#|%|{)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)
-	html = re.sub("""url\((?!http|ftp|/|#|%|{)([^\(\)]+)\)""", 'url(/\g<1>)', html)
+	html = re.sub("""url\((?!(['"]?)(http|ftp|/|#|%|{))(['"]?)([^\(\)]+)\)""", 'url(\g<3>/\g<4>)', html)
 	return html
 
 def find_first_image(html):
