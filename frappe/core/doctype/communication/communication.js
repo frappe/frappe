@@ -1,4 +1,4 @@
-frappe.ui.form.on("setup", "Communication", function(frm) {
+frappe.ui.form.on("Communication", "setup", function(frm) {
 	frappe.call({
 		method:"frappe.core.doctype.doctype.communication.get_convert_to",
 		callback: function(r) {
@@ -22,12 +22,20 @@ frappe.ui.form.on("setup", "Communication", function(frm) {
 	};
 });
 
-frappe.ui.form.on("refresh", "Communication", function(frm) {
+frappe.ui.form.on("Communication", "refresh", function(frm) {
 	frm.convert_to_click && frm.set_convert_button();
 });
 
-frappe.ui.form.on("onload", "Communication", function(frm) {
-	if(doc.content) {
-		doc.content = frappe.utils.remove_script_and_style(doc.content);
+frappe.ui.form.on("Communication", "onload", function(frm) {
+	if(frm.doc.content) {
+		frm.doc.content = frappe.utils.remove_script_and_style(frm.doc.content);
 	}
+	frm.set_query("reference_doctype", function() {
+		return {
+			filters: {
+				"issingle": 0,
+				"istable": 0
+			}
+		}
+	})
 });
