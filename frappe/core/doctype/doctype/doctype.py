@@ -109,7 +109,8 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 
-			# update index
+		# update index
+		if not self.custom:
 			self.run_module_method("on_doctype_update")
 			if self.flags.in_insert:
 				self.run_module_method("after_doctype_insert")
