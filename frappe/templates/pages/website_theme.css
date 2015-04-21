@@ -74,6 +74,6 @@ a:active {
 	border-color: {{ theme.border_color }};
 }
 
-{% if theme.css -%} {% include theme.css %} {%- endif %}
+{% if theme.css -%} {{ theme.css }} {%- endif %}
 
 {%- endif -%}

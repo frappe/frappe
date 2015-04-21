@@ -52,5 +52,3 @@ def prepare(theme):
 			theme.webfont_import += "\n" + "\n".join(webfont_import)
 			for wfimport in webfont_import:
 				theme.css = theme.css.replace(wfimport, "")
-
-		theme.css = frappe.get_jenv().from_string(theme.css)
