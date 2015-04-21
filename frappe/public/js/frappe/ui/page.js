@@ -237,6 +237,8 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_title: function(txt, icon) {
+		if(!txt) txt = "";
+
 		// strip icon
 		this.title = txt;
 		frappe.utils.set_title(txt.replace(/<[^>]*>/g, ""));

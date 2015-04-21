@@ -1,5 +1,6 @@
 frappe.pages['print-format-builder'].on_page_load = function(wrapper) {
 	frappe.print_format_builder = new frappe.PrintFormatBuilder(wrapper);
+	frappe.breadcrumbs.add("Setup", "Print Format");
 }
 
 frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
@@ -10,7 +11,7 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 			frappe.route_options = null;
 			frappe.print_format_builder.setup_new_print_format(doctype, name);
 		} else {
-			frappe.print_format_builder.print_format = frappe.route_options;
+			frappe.print_format_builder.print_format = frappe.route_options.print_format.doc;
 			frappe.route_options = null;
 			frappe.print_format_builder.refresh();
 		}
@@ -206,9 +207,16 @@ frappe.PrintFormatBuilder = Class.extend({
 		// create a new placeholder for column and set
 		// it as "column"
 		var set_column = function() {
+			if(!section) set_section();
 			column = me.get_new_column();
 			section.columns.push(column);
 			section.no_of_columns += 1;
+		}
+
+		var set_section = function() {
+			section = me.get_new_section();
+			column = null;
+			me.layout_data.push(section);
 		}
 
 		// break the layout into sections and columns
@@ -227,9 +235,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			}
 
 			if(f.fieldtype==="Section Break") {
-				section = me.get_new_section();
-				column = null;
-				me.layout_data.push(section);
+				set_section();
 
 			} else if(f.fieldtype==="Column Break") {
 				set_column();
