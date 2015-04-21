@@ -288,6 +288,8 @@ def get_geo_from_ip(ip_addr):
 		return geolite2.lookup(ip_addr)
 	except ImportError:
 		return
+	except ValueError:
+		return
 
 def get_geo_ip_country(ip_addr):
 	match = get_geo_from_ip(ip_addr)
