@@ -250,6 +250,8 @@ frappe.request.report_error = function(xhr, request_opts) {
 					'<div style="min-height: 100px; border: 1px solid #bbb; \
 						border-radius: 5px; padding: 15px; margin-bottom: 15px;"></div>',
 					'<hr>',
+					'<h5>App Versions</h5>',
+					'<pre>' + JSON.stringify(frappe.boot.versions, null, "\t") + '</pre>',
 					'<h5>Route</h5>',
 					'<pre>' + frappe.get_route_str() + '</pre>',
 					'<hr>',

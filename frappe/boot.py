@@ -11,6 +11,7 @@ import frappe.defaults
 import frappe.desk.desk_page
 from frappe.utils import get_gravatar
 from frappe.desk.form.load import get_meta_bundle
+from frappe.change_log import get_versions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -65,6 +66,7 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
+	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.default_background_image = "/assets/frappe/images/ui/into-the-dawn.jpg"
