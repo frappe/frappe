@@ -12,10 +12,10 @@ frappe.template.compile = function(str, name) {
 	str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
 
 	if(!frappe.template.compiled[key]) {
-		fn_str = "var p=[],print=function(){p.push.apply(p,arguments)};" +
+		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
-	        "with(obj){\np.push('" +
+	        "with(obj){\n_p.push('" +
 
 	        // Convert the template into pure JavaScript
 	        str
@@ -24,9 +24,9 @@ frappe.template.compile = function(str, name) {
 	          .replace(/((^|%})[^\t]*)'/g, "$1\r")
 	          .replace(/\t=(.*?)%}/g, "',$1,'")
 	          .split("\t").join("');\n")
-	          .split("%}").join("\np.push('")
+	          .split("%}").join("\n_p.push('")
 	          .split("\r").join("\\'")
-	      + "');}return p.join('');";
+	      + "');}return _p.join('');";
 
   		frappe.template.debug[str] = fn_str;
 		try {
