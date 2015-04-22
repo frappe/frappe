@@ -972,7 +972,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		if(this.df.get_route_options_for_new_doc) {
 			frappe.route_options = this.df.get_route_options_for_new_doc(this);
-		}ust
+		}
 
 		if(this.frm) {
 			this.frm.new_doc(doctype, this, new_options);
