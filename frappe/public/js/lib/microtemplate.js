@@ -7,11 +7,15 @@ frappe.template.compile = function(str, name) {
 	if(str.indexOf("'")!==-1) {
 		console.warn("Warning: Single quotes (') may not work in templates");
 	}
+
+	// repace jinja style tags
+	str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
+
 	if(!frappe.template.compiled[key]) {
 		fn_str = "var p=[],print=function(){p.push.apply(p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
-	        "with(obj){p.push('" +
+	        "with(obj){\np.push('" +
 
 	        // Convert the template into pure JavaScript
 	        str
@@ -19,7 +23,7 @@ frappe.template.compile = function(str, name) {
 	          .split("{%").join("\t")
 	          .replace(/((^|%})[^\t]*)'/g, "$1\r")
 	          .replace(/\t=(.*?)%}/g, "',$1,'")
-	          .split("\t").join("');")
+	          .split("\t").join("');\n")
 	          .split("%}").join("\np.push('")
 	          .split("\r").join("\\'")
 	      + "');}return p.join('');";

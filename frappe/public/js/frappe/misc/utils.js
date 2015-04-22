@@ -465,7 +465,7 @@ frappe.utils = {
 
 		frappe.utils.if_notify_permitted(function() {
 			var notify = new Notify(subject, {
-			    body: body,
+			    body: body.replace(/<[^>]*>/g, ""),
 			    notifyClick: onclick
 			});
 			notify.show();
@@ -475,7 +475,7 @@ frappe.utils = {
 	set_title: function(title) {
 		frappe._original_title = title;
 		if(frappe._title_prefix) {
-			title = frappe._title_prefix + " " + title;
+			title = frappe._title_prefix + " " + title.replace(/<[^>]*>/g, "");
 		}
 		document.title = title;
 	},

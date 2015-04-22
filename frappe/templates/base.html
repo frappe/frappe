@@ -89,6 +89,10 @@
 			</div>
 		</div>
 	</div>
+	<!-- js should be loaded in body! -->
+	{%- for link in web_include_js %}
+	<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
+	{%- endfor -%}
 
 	{%- block script %}
 		<script data-html-block="script">
@@ -102,10 +106,5 @@
 		</script>
 	{%- endblock -%}
     {%- block body_include %}{{ body_include or "" }}{% endblock -%}
-
-	<!-- js should be loaded in body! -->
-	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
-	{%- endfor -%}
 </body>
 </html>
