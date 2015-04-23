@@ -3,6 +3,8 @@ frappe.ready(function() {
 	var result_wrapper = $(".website-list .result");
 
 	$(".website-list .btn-more").on("click", function() {
+		var btn = $(this);
+
 		var data = $.extend(get_query_params(), {
 			doctype: "{{ doctype }}",
 			txt: "{{ txt or '' }}",
@@ -10,6 +12,7 @@ frappe.ready(function() {
 			pathname: location.pathname
 		});
 
+		btn.prop("disabled", true);
 		return $.ajax({
 			url:"/api/method/frappe.templates.pages.list.get",
 			data: data,
@@ -23,6 +26,8 @@ frappe.ready(function() {
 					toggle_more(data.show_more);
 				}
 			}
+		}).always(function() {
+			btn.prop("disabled", false);
 		});
 	});
 
