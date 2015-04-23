@@ -94,11 +94,6 @@
 	<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
 	{%- endfor -%}
 
-	<!-- js should be loaded in body! -->
-	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link|with_leading_slash }}"></script>
-	{%- endfor -%}
-
 	{%- block script %}
 		<script data-html-block="script">
 		{%- if script is defined -%}{{ script }}{%- endif -%}
