@@ -6,7 +6,6 @@ import frappe
 
 from frappe.utils import strip_html
 from frappe import _
-from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
 import re
@@ -49,7 +48,7 @@ def render_blocks(template_path, out, context):
 	template = frappe.get_template(template_path)
 	for block, render in template.blocks.items():
 		new_context = template.new_context(context)
-		out[block] = scrub_relative_urls(concat(render(new_context)))
+		out[block] = concat(render(new_context))
 
 def separate_style_and_script(out, context):
 	"""Extract `style` and `script` tags into separate blocks"""
@@ -62,8 +61,7 @@ def set_breadcrumbs(out, context):
 
 	# breadcrumbs
 	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
-		out["breadcrumbs"] = scrub_relative_urls(
-			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
+		out["breadcrumbs"] = frappe.get_template("templates/includes/breadcrumbs.html").render(context)
 
 def set_title_and_header(out, context):
 	"""Extract and set title and header from content or context."""

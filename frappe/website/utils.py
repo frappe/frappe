@@ -12,12 +12,6 @@ def delete_page_cache(path):
 	cache.delete_keys("page_context:" + path)
 	cache.delete_keys("sitemap_options:" + path)
 
-def scrub_relative_urls(html):
-	"""prepend a slash before a relative url"""
-	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|mailto|/|#|%|{)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)
-	html = re.sub("""url\((?!(['"]?)(http|ftp|/|#|%|{))(['"]?)([^\(\)]+)\)""", 'url(\g<3>/\g<4>)', html)
-	return html
-
 def find_first_image(html):
 	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:

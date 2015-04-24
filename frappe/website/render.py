@@ -10,7 +10,7 @@ from werkzeug.wrappers import Response
 from werkzeug.routing import Map, Rule, NotFound
 
 from frappe.website.context import get_context
-from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
+from frappe.website.utils import get_home_page, can_cache, delete_page_cache
 from frappe.website.router import clear_sitemap
 
 class PageNotFoundError(Exception): pass
