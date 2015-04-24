@@ -13,17 +13,19 @@
     {% endif %}
 </div>
 {% if login_required and frappe.user=="Guest" %}
-<div class="text-muted">
-	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+<div class="login-required">
+	<div class="text-muted">
+		{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+	</div>
+	<p>
+		<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
+			{{ _("Login") }}
+		</a>
+	</p>
 </div>
-<p>
-	<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
-		{{ _("Login") }}
-	</a>
-</p>
 {% elif (login_required and allow_multiple and not params.name and not params.new) %}
 <p>
-	<a href="{{ pathname }}?new=1" class="btn btn-primary">
+	<a href="{{ pathname }}?new=1" class="btn btn-primary btn-new">
 		{{ _("New {0}").format(_(doc_type)) }}
 	</a>
 </p>

@@ -30,7 +30,6 @@ app_include_css = [
 ]
 
 web_include_js = [
-	"assets/js/frappe-web.min.js",
 	"website_script.js"
 ]
 

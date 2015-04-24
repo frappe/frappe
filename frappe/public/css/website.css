@@ -584,8 +584,8 @@ fieldset {
   padding: 15px;
   border-bottom: 1px solid #d1d8dd;
 }
-.add-comment-section {
-  padding-top: 15px;
+.blog-comment-row:last-child {
+  margin-bottom: 30px;
 }
 textarea {
   resize: vertical;
