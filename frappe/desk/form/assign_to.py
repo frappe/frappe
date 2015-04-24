@@ -67,11 +67,13 @@ def add(args=None):
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
 	try:
-		todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
-		todo.status = "Closed"
-		todo.save(ignore_permissions=True)
+		todo = frappe.db.get_value("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		if todo:
+			todo = frappe.get_doc("ToDo", todo)
+			todo.status = "Closed"
+			todo.save(ignore_permissions=True)
 
-		notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
+			notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
 	except frappe.DoesNotExistError:
 		pass
 

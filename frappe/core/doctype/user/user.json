@@ -75,6 +75,15 @@
    "permlevel": 0
   }, 
   {
+   "default": "1", 
+   "depends_on": "eval:doc.__islocal", 
+   "fieldname": "send_welcome_email", 
+   "fieldtype": "Check", 
+   "label": "Send Welcome Email", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "unsubscribed", 
    "fieldtype": "Check", 
    "hidden": 1, 
@@ -464,7 +473,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-03-24 17:56:43.743847", 
+ "modified": "2015-04-24 14:37:26.430454", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
