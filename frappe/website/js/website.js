@@ -436,11 +436,12 @@ $.extend(frappe, {
 		});
 	},
 	bind_navbar_search: function() {
-		$(".navbar .search").on("keypress", function(e) {
+		frappe.get_navbar_search().on("keypress", function(e) {
 			var val = $(this).val();
 			if(e.which===13 && val) {
 				$(this).val("").blur();
 				frappe.do_search(val);
+				$(".offcanvas").removeClass("active-left active-right");
 				return false;
 			}
 		});
