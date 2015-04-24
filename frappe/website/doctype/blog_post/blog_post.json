@@ -80,11 +80,11 @@
   {
    "fieldname": "page_name", 
    "fieldtype": "Data", 
-   "hidden": 1, 
+   "hidden": 0, 
    "label": "Page Name", 
    "no_copy": 1, 
    "permlevel": 0, 
-   "read_only": 1
+   "read_only": 0
   }, 
   {
    "fieldname": "email_sent", 
@@ -97,7 +97,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2015-02-05 05:11:34.931739", 
+ "modified": "2015-04-24 11:05:27.742524", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 

@@ -130,7 +130,7 @@ class Meta(Document):
 		try:
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
-				update={"is_custom_field": True}))
+				update={"is_custom_field": 1}))
 		except Exception, e:
 			if e.args[0]==1146:
 				return

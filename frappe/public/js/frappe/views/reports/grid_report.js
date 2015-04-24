@@ -904,10 +904,10 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 						// add row
 						for(var i=0; i<item.indent; i++) row[0] = "   " + row[0];
 					}
-					if(with_groups && (item.group_or_ledger == "Group" || item.is_group)) {
+					if(with_groups && (item.is_group == 1 || item.is_group)) {
 						return true;
 					}
-					if(with_ledgers && (item.group_or_ledger != "Group" && !item.is_group)) {
+					if(with_ledgers && (item.is_group != 1 && !item.is_group)) {
 						return true;
 					}
 

@@ -48,7 +48,7 @@ class FormMeta(Meta):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
-			for k in ("link_doctype", "search_fields"):
+			for k in ("link_doctype", "search_fields", "is_custom_field"):
 				df[k] = self.get("fields")[i].get(k)
 
 		return d

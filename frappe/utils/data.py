@@ -31,7 +31,10 @@ def getdate(string_date):
 
 	return parser.parse(string_date).date()
 
-def get_datetime(datetime_str):
+def get_datetime(datetime_str=None):
+	if not datetime_str:
+		return datetime.datetime.now()
+
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
