@@ -20,7 +20,7 @@ def get_context(context):
 
 	hooks = frappe.get_hooks()
 	boot = frappe.sessions.get()
-	boot_json = json.dumps(boot)
+	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
