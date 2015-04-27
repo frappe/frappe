@@ -262,7 +262,7 @@ def get_roles(user=None, with_standard=True):
 	roles = frappe.cache().get_value("roles", user=user)
 	if not roles:
 		roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole
-			where parent=%s and role!='All'""", (user,))] + ['All']
+			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
 		frappe.cache().set_value("roles", roles, user=user)
 
 	# filter standard if required
