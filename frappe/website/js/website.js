@@ -480,6 +480,9 @@ $.extend(frappe, {
 	},
 	get_navbar_search: function() {
 		return $(".navbar .search, .sidebar .search");
+	},
+	is_user_logged_in: function() {
+		return window.full_name ? true : false;
 	}
 });
 
@@ -612,7 +615,7 @@ function is_html(txt) {
 }
 
 function ask_to_login() {
-	if(!window.full_name) {
+	if(!frappe.is_user_logged_in()) {
 		if(localStorage) {
 			localStorage.setItem("last_visited",
 				window.location.href.replace(window.location.origin, ""));
