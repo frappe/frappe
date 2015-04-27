@@ -285,11 +285,13 @@ class Document(BaseDocument):
 				if cstr(modified) and cstr(modified) != cstr(self._original_modified):
 					conflict = True
 			else:
-				tmp = frappe.db.get_value(self.doctype, self.name,
-					["modified", "docstatus"], as_dict=True)
+				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
+					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
 
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
+				else:
+					tmp = tmp[0]
 
 				modified = cstr(tmp.modified)
 
