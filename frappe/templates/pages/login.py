@@ -165,7 +165,7 @@ def login_oauth_user(data=None, provider=None, email_id=None, key=None):
 		data = json.loads(frappe.db.get_temp(key))
 		data["email"] = email_id
 
-	elif not (data.get("email") and data.get("first_name")) and not frappe.db.exists("User", data.get("email")):
+	elif not (data.get("email") and get_first_name(data)) and not frappe.db.exists("User", data.get("email")):
 		# ask for user email
 		key = frappe.db.set_temp(json.dumps(data))
 		frappe.db.commit()
