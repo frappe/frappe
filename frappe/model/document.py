@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import flt, cint, cstr, now, get_datetime_str
+from frappe.utils import flt, cstr, now, get_datetime_str
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
@@ -364,11 +364,13 @@ class Document(BaseDocument):
 				if cstr(modified) and cstr(modified) != cstr(self._original_modified):
 					conflict = True
 			else:
-				tmp = frappe.db.get_value(self.doctype, self.name,
-					["modified", "docstatus"], as_dict=True)
+				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
+					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
 
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
+				else:
+					tmp = tmp[0]
 
 				modified = cstr(tmp.modified)
 

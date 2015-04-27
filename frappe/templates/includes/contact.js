@@ -3,7 +3,7 @@
 
 frappe.ready(function() {
 
-	$('.btn-send').click(function() {
+	$('.btn-send').off("click").on("click", function() {
 		var email = $('[name="email"]').val();
 		var message = $('[name="message"]').val();
 

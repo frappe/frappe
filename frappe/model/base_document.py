@@ -357,7 +357,7 @@ class BaseDocument(object):
 						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
-				value = frappe.db.get_value(doctype, docname)
+				value = frappe.db.get_value(doctype, docname, "name", cache=True)
 				setattr(self, df.fieldname, value)
 
 				if not value:

@@ -282,7 +282,7 @@ def get_field_precision(df, doc=None, currency=None):
 			currency = frappe.db.get_default("currency")
 
 		if currency:
-			number_format = frappe.db.get_value("Currency", currency, "number_format")
+			number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
 
 		if not number_format:
 			number_format = frappe.db.get_default("number_format") or "#,###.##"

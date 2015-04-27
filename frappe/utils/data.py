@@ -301,7 +301,7 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	number_format = None
 	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format")
+		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
 
 	if not number_format:
 		number_format = frappe.db.get_default("number_format") or "#,###.##"
@@ -387,7 +387,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if len(fraction)==1: fraction += '0'
 
 
-	number_format = frappe.db.get_value("Currency", main_currency, "number_format") or \
+	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
 
 	in_million = True

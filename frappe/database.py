@@ -39,6 +39,7 @@ class Database:
 		self.auto_commit_on_many_writes = 0
 
 		self.password = password or frappe.conf.db_password
+		self.value_cache = {}
 
 	def get_db_login(self, ac_name):
 		return ac_name
@@ -128,7 +129,6 @@ class Database:
 					frappe.log("with values:")
 					frappe.log(values)
 					frappe.log(">>>>")
-
 				self._cursor.execute(query, values)
 
 			else:
@@ -361,11 +361,11 @@ class Database:
 
 		return " and ".join(conditions), values
 
-	def get(self, doctype, filters=None, as_dict=True):
+	def get(self, doctype, filters=None, as_dict=True, cache=False):
 		"""Returns `get_value` with fieldname='*'"""
-		return self.get_value(doctype, filters, "*", as_dict=as_dict)
+		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -390,11 +390,12 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
-	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, order_by=None, update=None):
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
+		debug=False, order_by=None, update=None, cache=False):
 		"""Returns multiple document properties.
 
 		:param doctype: DocType name.
@@ -412,31 +413,41 @@ class Database:
 			# return last login of **User** `test@example.com`
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
+		out = None
+		if cache and isinstance(filters, basestring) and \
+			(doctype, filters, fieldname) in self.value_cache:
+			return self.value_cache[(doctype, filters, fieldname)]
 
 		if isinstance(filters, list):
-			return self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
+			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 
-		fields = fieldname
-		if fieldname!="*":
-			if isinstance(fieldname, basestring):
-				fields = [fieldname]
-			else:
-				fields = fieldname
-
-		if (filters is not None) and (filters!=doctype or doctype=="DocType"):
-			try:
-				return self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
-			except Exception, e:
-				if ignore and e.args[0] in (1146, 1054):
-					# table or column not found, return None
-					return None
-				elif (not ignore) and e.args[0]==1146:
-					# table not found, look in singles
-					pass
+		else:
+			fields = fieldname
+			if fieldname!="*":
+				if isinstance(fieldname, basestring):
+					fields = [fieldname]
 				else:
-					raise
+					fields = fieldname
 
-		return self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
+			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
+				try:
+					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
+				except Exception, e:
+					if ignore and e.args[0] in (1146, 1054):
+						# table or column not found, return None
+						out = None
+					elif (not ignore) and e.args[0]==1146:
+						# table not found, look in singles
+						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
+					else:
+						raise
+			else:
+				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
+
+		if cache and isinstance(filters, basestring):
+			self.value_cache[(doctype, filters, fieldname)] = out
+
+		return out
 
 	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
 		"""Get values from `tabSingles` (Single DocTypes) (internal).
