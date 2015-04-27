@@ -703,3 +703,6 @@ class Document(BaseDocument):
 			return json.loads(starred_by)
 		else:
 			return []
+
+	def set_onload(self, key, value):
+		self.get("__onload")[key] = value

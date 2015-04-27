@@ -25,7 +25,7 @@
 </div>
 {% elif (login_required and allow_multiple and not params.name and not params.new) %}
 <p>
-	<a href="{{ pathname }}?new=1" class="btn btn-primary btn-new">
+	<a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new">
 		{{ _("New {0}").format(_(doc_type)) }}
 	</a>
 </p>
