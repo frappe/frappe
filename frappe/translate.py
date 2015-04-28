@@ -107,9 +107,9 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
-			messages += frappe.db.sql_list("select name from tabDocType")
-			messages += frappe.db.sql_list("select name from tabRole")
-			messages += frappe.db.sql_list("select name from `tabModule Def`")
+			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
+			messages += frappe.db.sql("select 'Role:', name from tabRole")
+			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
 
 		translation_assets[asset_key] = make_dict_from_messages(messages)
 		translation_assets[asset_key].update(get_dict_from_hooks(fortype, name))
