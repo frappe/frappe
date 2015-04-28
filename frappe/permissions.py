@@ -42,7 +42,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 		if ptype in ("read", "write", "share"):
 			shared = frappe.share.get_shared(doctype, user, [ptype])
 			if doc:
-				if doc.name in shared:
+				doc_name = doc if isinstance(doc, basestring) else doc.name
+				if doc_name in shared:
 					if verbose: print "Shared"
 					return True
 			else:
@@ -52,6 +53,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 		return False
 
 	role_permissions = get_role_permissions(meta, user=user)
+
 	if not role_permissions.get(ptype):
 		return false_if_not_shared()
 
