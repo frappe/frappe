@@ -1,4 +1,6 @@
 <div class="print-format-builder-field"
+    {% if(field.print_hide) { %}style="background-color: #F7FAFC; color: #8D99A6;"
+        title="{{ __("Hidden") }}"{% } %}
     data-fieldname="{%= field.fieldname %}"
     data-label="{%= field.label %}"
     data-fieldtype="{%= field.fieldtype %}"

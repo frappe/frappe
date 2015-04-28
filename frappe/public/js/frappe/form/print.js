@@ -70,7 +70,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			var print_format = me.get_print_format();
 			if(print_format && print_format.name) {
 				if(print_format.print_format_builder) {
-					frappe.route_options = print_format;
+					frappe.route_options = {"doc": print_format, "make_new": false};
 					frappe.set_route("print-format-builder");
 				} else {
 					frappe.set_route("Form", "Print Format", print_format.name);

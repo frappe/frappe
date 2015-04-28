@@ -11,7 +11,7 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 			frappe.route_options = null;
 			frappe.print_format_builder.setup_new_print_format(doctype, name);
 		} else {
-			frappe.print_format_builder.print_format = frappe.route_options.print_format.doc;
+			frappe.print_format_builder.print_format = frappe.route_options.doc;
 			frappe.route_options = null;
 			frappe.print_format_builder.refresh();
 		}
@@ -241,7 +241,7 @@ frappe.PrintFormatBuilder = Class.extend({
 				set_column();
 
 			} else if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)
-				&& !f.print_hide && f.label) {
+			 	&& f.label) {
 				if(!column) set_column();
 
 				if(f.fieldtype==="Table") {
