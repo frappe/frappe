@@ -17,6 +17,17 @@ test_records = frappe.get_test_records('Blog Post')
 test_dependencies = ["User"]
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
+		frappe.clear_cache(doctype="Blog Post")
+
+		user = frappe.get_doc("User", "test1@example.com")
+		user.add_roles("Website Manager")
+
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Blogger")
+
+		frappe.set_user("test1@example.com")
+
+	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.set_value("Blogger", "_Test Blogger 1", "user", None)
 
@@ -27,16 +38,6 @@ class TestBlogPost(unittest.TestCase):
 		frappe.db.sql("""update `tabDocPerm` set user_permission_doctypes=null
 			where parent='Blog Post' and permlevel=0 and apply_user_permissions=1
 			and `read`=1""")
-
-		frappe.clear_cache(doctype="Blog Post")
-
-		user = frappe.get_doc("User", "test1@example.com")
-		user.add_roles("Website Manager")
-
-		user = frappe.get_doc("User", "test2@example.com")
-		user.add_roles("Blogger")
-
-		frappe.set_user("test1@example.com")
 
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
