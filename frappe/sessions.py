@@ -32,9 +32,11 @@ def clear_cache(user=None):
 
 	if user:
 		cache.delete_keys("user:" + user)
+		cache.delete_keys("user_doc:" + user)
 		frappe.defaults.clear_cache(user)
 	else:
 		cache.delete_keys("user:")
+		cache.delete_keys("user_doc:")
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 

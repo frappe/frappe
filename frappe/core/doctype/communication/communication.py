@@ -5,8 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, cint, scrub_urls, get_formatted_email
-from frappe.email.email_body import get_email
+from frappe.utils import get_url, get_formatted_email
 from frappe.utils.file_manager import get_file
 import frappe.email.smtp
 from frappe import _
@@ -123,7 +122,8 @@ class Communication(Document):
 
 	def get_recipients(self, except_recipient=False):
 		"""Build a list of users to which this email should go to"""
-		recipients = [s.strip() for s in self.recipients.split(",")]
+		original_recipients = [s.strip() for s in self.recipients.split(",")]
+		recipients = original_recipients[:]
 
 		if self.reference_doctype and self.reference_name:
 			recipients += self.get_earlier_participants()
@@ -138,7 +138,8 @@ class Communication(Document):
 
 		filtered = []
 		for e in list(set(recipients)):
-			if e=="Administrator" or e==self.sender or e in unsubscribed or e in email_accounts:
+			if (e=="Administrator") or ((e==self.sender) and (e not in original_recipients)) or \
+				(e in unsubscribed) or (e in email_accounts):
 				continue
 
 			email_id = parseaddr(e)[1]

@@ -97,7 +97,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2015-04-24 11:05:27.742524", 
+ "modified": "2015-04-29 01:46:16.190210", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 
@@ -130,17 +130,6 @@
    "share": 1, 
    "submit": 0, 
    "write": 1
-  }, 
-  {
-   "delete": 0, 
-   "email": 1, 
-   "permlevel": 0, 
-   "print": 1, 
-   "read": 1, 
-   "report": 1, 
-   "role": "Guest", 
-   "submit": 0, 
-   "write": 0
   }
  ], 
  "title_field": "title"

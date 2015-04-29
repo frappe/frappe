@@ -199,7 +199,7 @@ bsEditor = Class.extend({
 	set_input: function(value) {
 		if(this.options.field && this.options.field.inside_change_event)
 			return;
-		value = value==null ? "" : value;
+		if(value==null) value = "";
 		this.last_html = value;
 		this.editor.html(value);
 	}

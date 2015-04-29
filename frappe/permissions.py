@@ -52,7 +52,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 		return False
 
-	role_permissions = get_role_permissions(meta, user=user)
+	role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
 
 	if not role_permissions.get(ptype):
 		return false_if_not_shared()
@@ -71,7 +71,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 			if verbose: print "No controller permission"
 			return false_if_not_shared()
 
-	if verbose: print "Has Role"
+	if verbose:
+		print "Has Role"
 	return True
 
 def get_doc_permissions(doc, verbose=False, user=None):
@@ -82,7 +83,7 @@ def get_doc_permissions(doc, verbose=False, user=None):
 
 	meta = frappe.get_meta(doc.doctype)
 
-	role_permissions = copy.deepcopy(get_role_permissions(meta, user=user))
+	role_permissions = copy.deepcopy(get_role_permissions(meta, user=user, verbose=verbose))
 
 	if not cint(meta.is_submittable):
 		role_permissions["submit"] = 0
@@ -104,7 +105,7 @@ def get_doc_permissions(doc, verbose=False, user=None):
 
 	return role_permissions
 
-def get_role_permissions(meta, user=None):
+def get_role_permissions(meta, user=None, verbose=False):
 	if not user: user = frappe.session.user
 	cache_key = (meta.name, user)
 

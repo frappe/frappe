@@ -368,7 +368,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			+ (signature ? ("<br>" + signature) : "");
 
 		if(last_email) {
-			var last_email_content = frappe.markdown(last_email.original_comment || last_email.comment);
+			var last_email_content = last_email.original_comment || last_email.comment;
 
 			fields.content.set_input(reply
 				+ "<br><!-- original-reply --><br>"

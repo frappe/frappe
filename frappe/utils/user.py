@@ -32,16 +32,25 @@ class User:
 		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
-		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			try:
-				self.doc = frappe.get_doc("User", self.name)
+		self.setup_user()
 
+	def setup_user(self):
+		def get_user_doc():
+			user = None
+			try:
+				user = frappe.get_doc("User", self.name).as_dict()
 			except frappe.DoesNotExistError:
 				pass
-
 			except Exception, e:
 				# install boo-boo
 				if e.args[0] != 1146: raise
+
+			return user
+
+		if not frappe.flags.in_install_db and not frappe.flags.in_test:
+			user_doc = frappe.cache().get_value("user_doc:" + self.name, get_user_doc)
+			if user_doc:
+				self.doc = frappe.get_doc(user_doc)
 
 	def get_roles(self):
 		"""get list of roles"""

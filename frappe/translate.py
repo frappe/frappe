@@ -190,8 +190,8 @@ def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
 	cache = frappe.cache()
 	cache.delete_value("langinfo")
-	cache.delete_keys("lang:*")
-	cache.delete_keys("translation_assets:*")
+	cache.delete_keys("lang:")
+	cache.delete_keys("translation_assets:")
 
 def get_messages_for_app(app):
 	"""Returns all messages (list) for a specified `app`"""

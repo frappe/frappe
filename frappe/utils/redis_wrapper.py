@@ -61,7 +61,7 @@ class RedisWrapper(redis.Redis):
 		return ret
 
 	def get_keys(self, key):
-		"""Return keys with wildcard `*`."""
+		"""Return keys starting with `key`."""
 		try:
 			key = self.make_key(key + "*")
 			return self.keys(key)
