@@ -7,6 +7,9 @@ from __future__ import unicode_literals
 from werkzeug.test import Client
 import os, sys, re, urllib
 import frappe
+import requests
+from requests.packages.urllib3.util import Retry
+
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -388,3 +391,10 @@ def get_sites(sites_path=None):
 	return [site for site in os.listdir(sites_path)
 			if os.path.isdir(os.path.join(sites_path, site))
 				and not site in ('assets',)]
+
+
+def get_request_session(max_retries=3):
+	session = requests.Session()
+	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	return session
