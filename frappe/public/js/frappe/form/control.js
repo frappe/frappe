@@ -1275,7 +1275,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 	},
 	_set_input: function(value) {
-		console.log(value);
 		if(value == null) value = "";
 		value = frappe.utils.remove_script_and_style(value);
 		this.editor.set_input(value);
