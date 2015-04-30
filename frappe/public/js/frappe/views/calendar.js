@@ -72,7 +72,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var me = this;
 		this.$wrapper = this.page.main;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
+		footnote = frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
+		footnote.css({"border-top": "0px"});
 		//
 		// $('<div class="help"></div>')
 		// 	.html(__("Select dates to create a new ") + __(me.doctype))

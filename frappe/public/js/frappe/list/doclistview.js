@@ -174,36 +174,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var perm = frappe.perm.get_perm(this.doctype);
 
 		if(match_rules_list.length) {
-			var or_match_text = [];
-
-			$.each(match_rules_list, function(i, match_rules) {
-				var match_text = []
-				$.each(match_rules, function(key, values) {
-					if(values.length==0) {
-						match_text.push(__(key) + __(" is not set"));
-					} else if(values.length) {
-						match_text.push(__(key) + " = " + frappe.utils.comma_or(values));
-					}
-				});
-
-				if (match_text.length) {
-					var txt = "<ul>" + $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("") + "</ul>";
-					or_match_text.push(txt);
-				}
-			});
-
-			if (or_match_text.length) {
-				frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
-					'<p>'
-						+ __("Additional filters based on User Permissions:") + "</p>"
-					+ or_match_text.join("<p class=\"strong\" \
-						style=\"margin-left: 40px; margin-top: 7px; margin-bottom: 7px;\">"
-						+ __("or") + "</p>")
-					+ "<p class=\"text-muted\" style=\"margin-top: 15px; margin-bottom: 0px;\">"
-					+ __("Note: fields having empty value for above criteria are not filtered out.")
-					+ "</p>");
-				$(this.footnote_area).css({"margin-top":"0px"});
-			}
+			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
+				frappe.render_template("list_permission_footer", {condition_list: match_rules_list}));
+			$(this.footnote_area).css({"margin-top":"0px"});
 		}
 	},
 	setup_listview: function() {

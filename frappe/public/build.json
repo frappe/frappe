@@ -179,6 +179,7 @@
 		"public/js/frappe/list/list_item_main_head.html",
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
+		"public/js/frappe/list/list_permission_footer.html",
 		"public/js/frappe/list/listview.js",
 		"public/js/frappe/views/calendar_base.js",
 		"public/js/frappe/views/calendar.js",

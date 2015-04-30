@@ -96,7 +96,7 @@ def get_user_permissions(meta):
 	out = {}
 	all_user_permissions = frappe.defaults.get_user_permissions()
 	for df in meta.get_fields_to_check_permissions(all_user_permissions):
-		out[df.options] = all_user_permissions[df.options]
+		out[df.options] = list(set(all_user_permissions[df.options]))
 	return out
 
 def get_attachments(dt, dn):

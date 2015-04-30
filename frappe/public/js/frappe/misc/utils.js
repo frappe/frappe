@@ -140,7 +140,7 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="text-muted footnote-area small">')
+			me.footnote_area = $('<div class="text-muted footnote-area">')
 				.appendTo(wrapper);
 		}
 
@@ -151,6 +151,7 @@ frappe.utils = {
 			me.footnote_area.remove();
 			me.footnote_area = null;
 		}
+		return me.footnote_area;
 	},
 	get_args_dict_from_url: function(txt) {
 		var args = {};
