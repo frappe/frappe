@@ -146,7 +146,7 @@ class WebPage(WebsiteGenerator):
 	def set_metatags(self, context):
 		context.metatags = {
 			"name": context.title,
-			"description": context.description or strip_html((context.main_section or "").replace("\n", " "))[:500]
+			"description": (context.description or context.main_section or "").replace("\n", " ")[:500]
 		}
 
 		image = find_first_image(context.main_section or "")
