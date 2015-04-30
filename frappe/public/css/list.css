@@ -1,6 +1,9 @@
 .no-result {
   padding: 15px;
 }
+.result-list {
+  min-height: 200px;
+}
 .show_filters {
   padding: 15px 15px 0px;
   border-bottom: 1px solid #d1d8dd;
