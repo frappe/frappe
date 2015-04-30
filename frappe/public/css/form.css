@@ -78,6 +78,9 @@
 .timeline-item .reply {
   margin-top: 5px;
 }
+.timeline-item .reply-link {
+  padding: 0px 7px;
+}
 .timeline-item h6,
 .timeline-head h6 {
   margin-top: 6px;
