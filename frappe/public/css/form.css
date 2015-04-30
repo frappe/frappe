@@ -72,6 +72,9 @@
 .timeline-item .icon-fixed-width {
   text-align: center;
 }
+.timeline-item blockquote {
+  font-size: inherit;
+}
 .timeline-item:last-child {
   border-bottom: 0px;
 }
