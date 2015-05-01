@@ -263,7 +263,6 @@ def set_user(username):
 	"""Set current user.
 
 	:param username: **User** name to set as current user."""
-	from frappe.utils.user import User
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
@@ -275,6 +274,7 @@ def set_user(username):
 	local.new_doc_templates = {}
 
 def get_user():
+	from frappe.utils.user import User
 	if not local.user_obj:
 		local.user_obj = User(local.session.user)
 	return local.user_obj
@@ -284,7 +284,11 @@ def get_roles(username=None):
 	if not local.session:
 		return ["Guest"]
 
-	return get_user(username).get_roles()
+	if username:
+		import frappe.utils.user
+		return frappe.utils.user.get_roles(username)
+	else:
+		return get_user().get_roles()
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
