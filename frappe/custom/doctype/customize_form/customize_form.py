@@ -101,7 +101,7 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
 		for property in self.doctype_properties:
-			if self.get(property) != meta.get(property):
+			if property != "idx" and self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=self.doctype_properties[property])
 

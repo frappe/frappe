@@ -73,3 +73,4 @@ frappe.patches.v5_0.fix_email_alert
 frappe.patches.v5_0.fix_null_date_datetime
 frappe.patches.v5_0.force_sync_website
 execute:frappe.delete_doc("DocType", "Tag")
+execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('idx', '_idx')")
