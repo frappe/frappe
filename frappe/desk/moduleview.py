@@ -120,7 +120,7 @@ def combine_common_sections(data):
 def apply_permissions(data):
 	default_country = frappe.db.get_default("country")
 
-	user = frappe.get_user(frappe.session.user)
+	user = frappe.get_user()
 	user.build_permissions()
 
 	allowed_pages = get_allowed_pages()
