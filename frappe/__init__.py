@@ -277,7 +277,7 @@ def set_user(username):
 def get_user():
 	if not local.user_obj:
 		local.user_obj = User(local.session.user)
-	return return local.user_obj
+	return local.user_obj
 
 def get_roles(username=None):
 	"""Returns roles of current user."""
