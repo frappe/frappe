@@ -117,6 +117,7 @@ def init(site, sites_path=None):
 	local.app_modules = None
 
 	local.user = None
+	local.user_obj = None
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
@@ -268,7 +269,6 @@ def set_user(username):
 	local.cache = {}
 	local.form_dict = _dict()
 	local.jenv = None
-	local.user_obj = None
 	local.session.data = _dict()
 	local.role_permissions = {}
 	local.new_doc_templates = {}
