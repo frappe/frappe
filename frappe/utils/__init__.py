@@ -8,7 +8,6 @@ from werkzeug.test import Client
 import os, sys, re, urllib
 import frappe
 import requests
-from requests.packages.urllib3.util import Retry
 
 
 # utility functions like cint, int, flt, etc.
@@ -394,6 +393,7 @@ def get_sites(sites_path=None):
 
 
 def get_request_session(max_retries=3):
+	from requests.packages.urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
