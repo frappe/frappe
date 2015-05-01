@@ -50,7 +50,7 @@ def add(args=None):
 			"priority": args.get("priority", "Medium"),
 			"status": "Open",
 			"date": args.get('date', nowdate()),
-			"assigned_by": args.get('assigned_by', frappe.user.name),
+			"assigned_by": args.get('assigned_by', frappe.session.user),
 		}).insert(ignore_permissions=True)
 
 		# set assigned_to if field exists

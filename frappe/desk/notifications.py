@@ -57,7 +57,7 @@ def get_notifications_for_modules(config, notification_count):
 	return open_count_module
 
 def get_notifications_for_doctypes(config, notification_count):
-	can_read = frappe.user.get_can_read()
+	can_read = frappe.get_user().get_can_read()
 	open_count_doctype = {}
 
 	for d in config.for_doctype:
@@ -107,7 +107,7 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 def get_notification_info_for_boot():
 	out = get_notifications()
 	config = get_notification_config()
-	can_read = frappe.user.get_can_read()
+	can_read = frappe.get_user().get_can_read()
 	conditions = {}
 	module_doctypes = {}
 	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))

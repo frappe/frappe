@@ -67,7 +67,7 @@ class Database:
 	def validate_query(self, q):
 		"""Throw exception for dangerous queries: `ALTER`, `DROP`, `TRUNCATE` if not `Administrator`."""
 		cmd = q.strip().lower().split()[0]
-		if cmd in ['alter', 'drop', 'truncate'] and frappe.user.name != 'Administrator':
+		if cmd in ['alter', 'drop', 'truncate'] and frappe.session.user != 'Administrator':
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,

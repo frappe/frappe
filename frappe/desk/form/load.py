@@ -43,7 +43,7 @@ def getdoc(doctype, name, user=None):
 		raise
 
 	if doc and not name.startswith('_'):
-		frappe.user.update_recent(doctype, name)
+		frappe.get_user().update_recent(doctype, name)
 
 	frappe.response.docs.append(doc)
 
