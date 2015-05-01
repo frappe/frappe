@@ -269,10 +269,22 @@ def set_user(username):
 	local.cache = {}
 	local.form_dict = _dict()
 	local.jenv = None
+	local.user_obj = None
 	local.session.data = _dict()
-	local.user = User(username)
 	local.role_permissions = {}
 	local.new_doc_templates = {}
+
+def get_user():
+	if not local.user_obj:
+		local.user_obj = User(local.session.user)
+	return return local.user_obj
+
+def get_roles(username=None):
+	"""Returns roles of current user."""
+	if not local.session:
+		return ["Guest"]
+
+	return get_user(username).get_roles()
 
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
@@ -384,21 +396,6 @@ def clear_cache(user=None, doctype=None):
 			get_attr(fn)()
 
 	frappe.local.role_permissions = {}
-
-def get_roles(username=None):
-	"""Returns roles of current user."""
-	if not local.session:
-		return ["Guest"]
-
-	return get_user(username).get_roles()
-
-def get_user(username):
-	"""Returns `frappe.utils.user.User` instance of given user."""
-	from frappe.utils.user import User
-	if not username or username == local.session.user:
-		return local.user
-	else:
-		return User(username)
 
 def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.

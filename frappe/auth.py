@@ -74,9 +74,6 @@ class HTTPRequest:
 		from frappe.translate import guess_language
 		frappe.local.lang = guess_language(lang_codes)
 
-	def setup_user(self):
-		frappe.local.user = frappe.utils.user.User()
-
 	def get_db_name(self):
 		"""get database name from conf"""
 		return conf.db_name

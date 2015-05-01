@@ -20,7 +20,7 @@ def get_list(arg=None):
 	frappe.db.sql("""UPDATE `tabComment`
 	set docstatus = 1 where comment_doctype in ('My Company', 'Message')
 	and comment_docname = %s
-	""", frappe.user.name)
+	""", frappe.session.user)
 
 	delete_notification_count_for("Messages")
 
@@ -102,9 +102,9 @@ def _notify(contact, txt, subject=None):
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject=subject or "New Message from " + get_fullname(frappe.user.name),
+			subject=subject or "New Message from " + get_fullname(frappe.session.user),
 			message=frappe.get_template("templates/emails/new_message.html").render({
-				"from": get_fullname(frappe.user.name),
+				"from": get_fullname(frappe.session.user),
 				"message": txt,
 				"link": get_url()
 			}),

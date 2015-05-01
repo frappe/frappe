@@ -23,7 +23,7 @@ def savedocs():
 
 		# update recent documents
 		run_onload(doc)
-		frappe.user.update_recent(doc.doctype, doc.name)
+		frappe.get_user().update_recent(doc.doctype, doc.name)
 		send_updated_docs(doc)
 
 	except Exception:

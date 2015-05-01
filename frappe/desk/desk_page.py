@@ -34,7 +34,7 @@ def getpage():
 	frappe.response.docs.append(doc)
 
 def has_permission(page):
-	if frappe.user.name == "Administrator" or "System Manager" in frappe.user.get_roles():
+	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
 		return True
 
 	page_roles = [d.role for d in page.get("roles")]

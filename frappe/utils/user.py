@@ -9,8 +9,7 @@ import frappe.share
 
 class User:
 	"""
-	A user object is created at the beginning of every request with details of the use.
-	The global user object is `frappe.user`
+	A user permission object can be accessed as `frappe.get_user()`
 	"""
 	def __init__(self, name=''):
 		self.defaults = None
