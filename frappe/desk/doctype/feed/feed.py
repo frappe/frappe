@@ -26,7 +26,7 @@ def get_permission_query_conditions(user):
 		return ""
 
 	user_permissions = frappe.defaults.get_user_permissions(user)
-	can_read = frappe.get_user(user).get_can_read()
+	can_read = frappe.get_user().get_can_read()
 
 	can_read_doctypes = ['"{}"'.format(doctype) for doctype in
 		list(set(can_read) - set(user_permissions.keys()))]

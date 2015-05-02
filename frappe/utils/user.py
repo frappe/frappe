@@ -283,5 +283,5 @@ def get_enabled_system_users():
 	return frappe.db.sql("""select * from tabUser where
 		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
 
-def is_website_user(user):
-	return frappe.get_user(user).doc.user_type == "Website User"
+def is_website_user():
+	return frappe.get_user().doc.user_type == "Website User"
