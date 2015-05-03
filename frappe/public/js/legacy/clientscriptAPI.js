@@ -147,8 +147,15 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 	}
 }
 
-_f.Frm.prototype.get_docfield = function(fieldname) {
-	return frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
+_f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
+	if(fieldname2) {
+		// for child
+		var doctype = this.get_docfield(fieldname1).options;
+		return frappe.meta.get_docfield(doctype, fieldname2, this.docname);
+	} else {
+		// for parent
+		return frappe.meta.get_docfield(this.doctype, fieldname1, this.docname);
+	}
 }
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
