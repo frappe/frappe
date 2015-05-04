@@ -272,6 +272,7 @@ def set_user(username):
 	local.session.data = _dict()
 	local.role_permissions = {}
 	local.new_doc_templates = {}
+	local.user_obj = None
 
 def get_user():
 	from frappe.utils.user import User
