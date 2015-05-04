@@ -215,6 +215,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					original.flags.ignore_links = ignore_links
 					original.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
+					doc = original
 				else:
 					doc = frappe.get_doc(doc)
 					prepare_for_insert(doc)
