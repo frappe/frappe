@@ -10,6 +10,7 @@ import frappe, json
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
+from frappe.model import no_value_fields
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 class CustomizeForm(Document):
@@ -124,6 +125,11 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
 							.format(df.idx))
 						continue
+					elif property == "in_list_view" and df.get(property) \
+						and df.fieldtype!="Image" and df.fieldtype in no_value_fields:
+								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
+									.format(df.fieldtype, df.idx))
+								continue
 
 					elif property == "precision" and cint(df.get("precision")) > 6 \
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
