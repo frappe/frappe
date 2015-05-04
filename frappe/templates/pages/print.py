@@ -218,6 +218,7 @@ def make_layout(doc, meta, format_data=None):
 
 	# filter empty sections
 	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), pg) for pg in layout]
+
 	return layout
 
 def is_visible(df, doc):
@@ -229,7 +230,7 @@ def is_visible(df, doc):
 		if df.fieldname in doc.hide_in_print_layout:
 			return False
 
-	return not doc.is_print_hide(df.fieldname)
+	return not doc.is_print_hide(df.fieldname, df)
 
 def has_value(df, doc):
 	value = doc.get(df.fieldname)

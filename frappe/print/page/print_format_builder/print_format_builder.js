@@ -152,10 +152,13 @@ frappe.PrintFormatBuilder = Class.extend({
 			me.page.set_primary_action(__("Save"), function() {
 				me.save_print_format();
 			});
-			me.page.set_secondary_action(__("Close"), function() {
+			me.page.add_menu_item(__("Start new Format"), function() {
 				me.print_format = null;
 				me.refresh();
-			});
+			}, true);
+			me.page.add_menu_item(__("Edit Properties"), function() {
+				frappe.set_route("Form", "Print Format", me.print_format.name);
+			}, true);
 		});
 	},
 	setup_sidebar: function() {
@@ -275,7 +278,8 @@ frappe.PrintFormatBuilder = Class.extend({
 					!_f.print_hide && f.label) {
 
 					// column names set as fieldname|width
-					f.visible_columns.push({fieldname: _f.fieldname, print_width: (_f.width || "")});
+					f.visible_columns.push({fieldname: _f.fieldname,
+						print_width: (_f.width || ""), print_hide:0});
 				}
 			});
 		}
@@ -572,7 +576,8 @@ frappe.PrintFormatBuilder = Class.extend({
 					var $this = $(this),
 						fieldtype = $this.attr("data-fieldtype"),
 						df = {
-							fieldname: $this.attr("data-fieldname")
+							fieldname: $this.attr("data-fieldname"),
+							print_hide: 0
 						};
 					if(fieldtype==="Table") {
 						// append the user selected columns to visible_columns
@@ -580,8 +585,11 @@ frappe.PrintFormatBuilder = Class.extend({
 						df.visible_columns = [];
 						$.each(columns, function(i, c) {
 							var parts = c.split("|");
-							df.visible_columns.push({fieldname:parts[0],
-								print_width:parts[1]});
+							df.visible_columns.push({
+								fieldname:parts[0],
+								print_width:parts[1],
+								print_hide:0
+							});
 						});
 					}
 					if(fieldtype==="Custom HTML") {

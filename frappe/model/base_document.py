@@ -463,7 +463,7 @@ class BaseDocument(object):
 
 		return format_value(self.get(fieldname), df=df, doc=doc or self, currency=currency)
 
-	def is_print_hide(self, fieldname, for_print=True):
+	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
 
 		Print Hide can be set via the Print Format Builder or in the controller as a list
@@ -475,8 +475,13 @@ class BaseDocument(object):
 
 		:param fieldname: Fieldname to be checked if hidden.
 		"""
-		df = self.meta.get_field(fieldname)
-		return df and (df.get("__print_hide") or df.print_hide)
+		meta_df = self.meta.get_field(fieldname)
+		if meta_df and meta_df.get("__print_hide"):
+			return True
+		if df:
+			return df.print_hide
+		if meta_df:
+			return meta_df.print_hide
 
 	def in_format_data(self, fieldname):
 		"""Returns True if shown via Print Format::`format_data` property.
