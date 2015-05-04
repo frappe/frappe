@@ -538,6 +538,14 @@ frappe.PrintFormatBuilder = Class.extend({
 						fieldname: "content",
 						fieldtype: "Text Editor",
 						label: label
+					},
+					{
+						fieldname: "help",
+						fieldtype: "HTML",
+						options: '<p>'
+							+ __("You can add dynamic properties from the document by using Jinja templating.")
+							+ __("For example: If you want to include the document ID, use {0}", ["<code>{{ doc.name }}</code>"])
+						+ '</p>'
 					}
 				]
 			});
