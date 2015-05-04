@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate, get_datetime_str
+from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate, get_datetime_str, cstr
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 
@@ -119,7 +119,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				e.ends_on = get_datetime_str(e.ends_on)
 
 			event_start, time_str = get_datetime_str(e.starts_on).split(" ")
-			if e.repeat_till == None or "":
+			if cstr(e.repeat_till) == "":
 				repeat = "3000-01-01"
 			else:
 				repeat = e.repeat_till
@@ -148,7 +148,7 @@ def get_events(start, end, user=None, for_reminder=False):
 
 				start_from = date
 				for i in xrange(int(date_diff(end, start) / 30) + 3):
-					if date >= start and date <= end and date <= repeat and date >= event_start:
+					if date >= start and date <= end and getdate(date) <= repeat and date >= event_start:
 						add_event(e, date)
 					date = add_months(start_from, i+1)
 
@@ -163,7 +163,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				date = add_days(start, weekday - start_weekday)
 
 				for cnt in xrange(int(date_diff(end, start) / 7) + 3):
-					if date >= start and date <= end and date <= repeat and date >= event_start:
+					if date >= start and date <= end and getdate(date) <= repeat and date >= event_start:
 						add_event(e, date)
 
 					date = add_days(date, 7)
@@ -173,7 +173,7 @@ def get_events(start, end, user=None, for_reminder=False):
 			if e.repeat_on=="Every Day":
 				for cnt in xrange(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
-					if date >= event_start and date <= end and date <= repeat \
+					if date >= event_start and date <= end and getdate(date) <= repeat \
 						and e[weekdays[getdate(date).weekday()]]:
 						add_event(e, date)
 				remove_events.append(e)
