@@ -28,11 +28,11 @@ def enqueue_events(site):
 		return
 
 	nowtime = frappe.utils.now_datetime()
-	last = frappe.db.get_global('scheduler_last_event')
+	last = frappe.db.get_value('System Settings', 'System Settings', 'scheduler_last_event')
 
 	# set scheduler last event
 	frappe.db.begin()
-	frappe.db.set_global('scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
+	frappe.db.set_value('System Settings', 'System Settings', 'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
 	frappe.db.commit()
 
 	out = []

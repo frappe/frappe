@@ -78,11 +78,20 @@
    "in_list_view": 0, 
    "label": "Enable Scheduled Jobs", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "scheduler_last_event", 
+   "fieldtype": "Data", 
+   "hidden": 1, 
+   "label": "Scheduler Last Event", 
+   "permlevel": 0, 
+   "precision": "", 
+   "report_hide": 1
   }
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2015-02-05 05:11:47.880614", 
+ "modified": "2015-05-03 10:35:04.415621", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "System Settings", 

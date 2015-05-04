@@ -74,3 +74,4 @@ frappe.patches.v5_0.fix_null_date_datetime
 frappe.patches.v5_0.force_sync_website
 execute:frappe.delete_doc("DocType", "Tag")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('idx', '_idx')")
+frappe.patches.v5_0.move_scheduler_last_event_to_system_settings
