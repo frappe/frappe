@@ -8,11 +8,10 @@ import json
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 
-class ToDo(Document):
-	def set_subject(self, subject):
-		"""Set description (called via incoming email)"""
-		self.description = subject
+subject_field = "description"
+sender_field = "sender"
 
+class ToDo(Document):
 	def validate(self):
 		if self.is_new():
 			self.add_assign_comment(frappe._("Assigned to {0}").format(get_fullname(self.owner)), "Assigned")

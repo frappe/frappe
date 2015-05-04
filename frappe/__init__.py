@@ -503,6 +503,10 @@ def get_meta(doctype, cached=True):
 	import frappe.model.meta
 	return frappe.model.meta.get_meta(doctype, cached=cached)
 
+def get_meta_module(doctype):
+	import frappe.modules
+	return frappe.modules.load_doctype_module(doctype)
+
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
