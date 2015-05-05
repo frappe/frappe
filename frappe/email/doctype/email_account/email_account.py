@@ -183,7 +183,7 @@ class EmailAccount(Document):
 						parent = frappe.get_doc(parent.reference_doctype,
 							parent.reference_name)
 
-		elif self.append_to and subject_field and sender_field:
+		if not parent and self.append_to and subject_field and sender_field:
 			# try and match by subject and sender
 			# if sent by same sender with same subject,
 			# append it to old coversation
