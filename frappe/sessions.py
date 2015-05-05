@@ -42,7 +42,7 @@ def clear_cache(user=None):
 
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
-	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_app"])
+	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_app", "time_zone"])
 	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False):
