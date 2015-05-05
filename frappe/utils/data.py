@@ -9,6 +9,7 @@ import operator
 import re, urllib, datetime, math
 import babel.dates
 from dateutil import parser
+from num2words import num2words
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -406,60 +407,13 @@ def in_words(integer, in_million=True):
 	"""
 	Returns string in words for the given integer.
 	"""
-	_ = frappe._
-
-	n=int(integer)
-	known = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
-		11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
-		19: 'nineteen', 20: 'twenty', 30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty', 70: 'seventy', 80: 'eighty', 90: 'ninety'}
-
-	def psn(n, known, xpsn):
-		import sys;
-		if n in known: return known[n]
-		bestguess, remainder = str(n), 0
-
-		if n<=20:
-			frappe.errprint(sys.stderr)
-			frappe.errprint(n)
-			frappe.errprint("How did this happen?")
-			assert 0
-		elif n < 100:
-			bestguess= xpsn((n//10)*10, known, xpsn) + '-' + xpsn(n%10, known, xpsn)
-			return bestguess
-		elif n < 1000:
-			bestguess= xpsn(n//100, known, xpsn) + ' ' + _('hundred')
-			remainder = n%100
-		else:
-			if in_million:
-				if n < 1000000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + _('thousand')
-					remainder = n%1000
-				elif n < 1000000000:
-					bestguess= xpsn(n//1000000, known, xpsn) + ' ' + _('million')
-					remainder = n%1000000
-				else:
-					bestguess= xpsn(n//1000000000, known, xpsn) + ' ' + _('billion')
-					remainder = n%1000000000
-			else:
-				if n < 100000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + _('thousand')
-					remainder = n%1000
-				elif n < 10000000:
-					bestguess= xpsn(n//100000, known, xpsn) + ' ' + _('lakh')
-					remainder = n%100000
-				else:
-					bestguess= xpsn(n//10000000, known, xpsn) + ' ' + _('crore')
-					remainder = n%10000000
-		if remainder:
-			if remainder >= 100:
-				comma = ','
-			else:
-				comma = ''
-			return bestguess + comma + ' ' + xpsn(remainder, known, xpsn)
-		else:
-			return bestguess
-
-	return psn(n, known, psn)
+	locale = 'en_IN' if not in_million else frappe.local.lang
+	integer = int(integer)
+	try:
+		ret = num2words(integer, lang=locale)
+	except NotImplementedError:
+		ret = num2words(integer, lang='en')
+	return ret.replace('-', ' ')
 
 def is_html(text):
 	out = False
