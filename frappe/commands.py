@@ -46,6 +46,9 @@ def get_single_site(context):
 	site = context.sites[0]
 	return site
 
+def call_command(cmd, context):
+	return click.Context(cmd, obj=context).forward(cmd)
+
 @click.command('new-site')
 @click.argument('site')
 @click.option('--db-name', help='Database name')
@@ -206,11 +209,13 @@ def migrate(context, rebuild_website=False):
 			sync_fixtures()
 
 			clear_notifications()
-
-			if rebuild_website:
-				build_website()
 		finally:
 			frappe.destroy()
+
+	if rebuild_website:
+		call_command(build_website, context)
+	else:
+		call_command(sync_www, context)
 
 def prepare_for_update():
 	from frappe.sessions import clear_global_cache

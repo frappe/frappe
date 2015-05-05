@@ -227,11 +227,14 @@ class WebsiteGenerator(Document):
 	def get_next(self):
 		if self.meta.get_field("parent_website_route") and self.parent_website_route:
 			route = self.get_route()
-			siblings = frappe.get_doc(self.doctype, self.get_parent()).get_children()
+			parent = frappe.get_doc(self.doctype, self.get_parent())
+			siblings = parent.get_children()
 			for i, r in enumerate(siblings):
 				if i < len(siblings) - 1:
 					if route==r.name:
 						return siblings[i+1]
+
+			return parent.get_next()
 		else:
 			return frappe._dict()
 
