@@ -118,7 +118,10 @@ def add_index(out, context):
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
 			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
-			out["content"] = out["content"].replace("{next}", html)
+		else:
+			html = ""
+
+		out["content"] = out["content"].replace("{next}", html)
 
 def add_hero(out, context):
 	"""Add a hero element if specified in content or hooks.

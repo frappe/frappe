@@ -18,7 +18,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
 
 .hljs,
 .hljs-subst,
-.hljs-tag .hljs-title,
+/*.hljs-tag .hljs-title,*/
 .nginx .hljs-title {
   color: black;
 }
