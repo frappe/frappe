@@ -9,13 +9,16 @@ def execute():
 	frappe.db.sql("""update tabDocPerm set `share`=1 where ifnull(`write`,0)=1 and ifnull(`permlevel`,0)=0""")
 
 	# every user must have access to his / her own detail
-	for user in frappe.get_all("User", filters={"user_type": "System User"}):
-		frappe.share.add("User", user.name, user.name, share=1)
+	users = frappe.get_all("User", filters={"user_type": "System User"})
+	usernames = [user.name for user in users]
+	for user in usernames:
+		frappe.share.add("User", user, user, share=1)
 
 	# move event user to shared
 	if frappe.db.exists("DocType", "Event User"):
 		for event in frappe.get_all("Event User", fields=["parent", "person"]):
-			frappe.share.add("Event", event.parent, event.person, write=1)
+			if event.person in usernames:
+				frappe.share.add("Event", event.parent, event.person, write=1)
 
 		frappe.delete_doc("DocType", "Event User")
 
@@ -23,6 +26,7 @@ def execute():
 	if frappe.db.exists("DocType", "Note User"):
 		for note in frappe.get_all("Note User", fields=["parent", "user", "permission"]):
 			perm = {"read": 1} if note.permission=="Read" else {"write": 1}
-			frappe.share.add("Note", note.parent, note.user, **perm)
+			if note.user in usernames:
+				frappe.share.add("Note", note.parent, note.user, **perm)
 
 		frappe.delete_doc("DocType", "Note User")
