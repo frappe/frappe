@@ -5,11 +5,12 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint
+from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
 import markdown2
+from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 
 class EmailAccount(Document):
@@ -157,6 +158,18 @@ class EmailAccount(Document):
 		it will create a new parent transaction (e.g. Issue)"""
 		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 		parent = None
+
+		if self.append_to:
+			# set subject_field and sender_field
+			meta_module = frappe.get_meta_module(self.append_to)
+			meta = frappe.get_meta(self.append_to)
+			subject_field = getattr(meta_module, "subject_field", "subject")
+			if not meta.get_field(subject_field):
+				subject_field = None
+			sender_field = getattr(meta_module, "sender_field", "sender")
+			if not meta.get_field(sender_field):
+				sender_field = None
+
 		if in_reply_to:
 			if "@" in in_reply_to:
 
@@ -170,22 +183,30 @@ class EmailAccount(Document):
 						parent = frappe.get_doc(parent.reference_doctype,
 							parent.reference_name)
 
+		elif self.append_to and subject_field and sender_field:
+			# try and match by subject and sender
+			# if sent by same sender with same subject,
+			# append it to old coversation
+
+			parent = frappe.db.get_all(self.append_to, filters={
+				sender_field: email.from_email,
+				subject_field: ("like", "%{0}%".format(email.subject)),
+				"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+			}, fields="name")
+
+			if parent:
+				parent = frappe.get_doc(self.append_to, parent[0].name)
+
 		if not parent and self.append_to:
 			# no parent found, but must be tagged
 			# insert parent type doc
 			parent = frappe.new_doc(self.append_to)
 
-			if parent.meta.get_field("subject"):
-				parent.subject = email.subject
+			if subject_field:
+				parent.set(subject_field, email.subject)
 
-			if parent.meta.get_field("sender"):
-				parent.sender = email.from_email
-
-			if hasattr(parent, "set_subject"):
-				parent.set_subject(email.subject)
-
-			if hasattr(parent, "set_sender"):
-				parent.set_sender(email.from_email)
+			if sender_field:
+				parent.set(sender_field, email.from_email)
 
 			parent.flags.ignore_mandatory = True
 

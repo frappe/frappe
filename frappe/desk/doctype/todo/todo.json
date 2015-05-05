@@ -160,6 +160,14 @@
    "label": "Assigned By", 
    "options": "User", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "sender", 
+   "fieldtype": "Data", 
+   "hidden": 1, 
+   "label": "Sender", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -170,7 +178,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2015-02-05 05:11:48.421852", 
+ "modified": "2015-05-04 07:44:46.567785", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 

@@ -108,7 +108,26 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertEquals(comm.reference_doctype, sent.doctype)
 		self.assertEquals(comm.reference_name, sent.name)
 
+	def test_threading_by_subject(self):
+		frappe.db.sql("""delete from tabCommunication
+			where sender in ('test_sender@example.com', 'test@example.com')""")
 
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-2.raw"), "r") as f:
+			test_mails = [f.read()]
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-3.raw"), "r") as f:
+			test_mails.append(f.read())
+
+		# parse reply
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
+			fields=["name", "reference_doctype", "reference_name"])
+
+		# both communications attached to the same reference
+		self.assertEquals(comm_list[0].reference_doctype, comm_list[1].reference_doctype)
+		self.assertEquals(comm_list[0].reference_name, comm_list[1].reference_name)
 
 
 
