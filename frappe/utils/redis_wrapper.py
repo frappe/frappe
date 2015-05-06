@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import redis, frappe, pickle, re
+from frappe.utils import cstr
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
@@ -67,7 +68,7 @@ class RedisWrapper(redis.Redis):
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
-			regex = re.compile(key.replace("|", "\|").replace("*", "[\w]*"))
+			regex = re.compile(cstr(key).replace("|", "\|").replace("*", "[\w]*"))
 			return [k for k in frappe.local.cache.keys() if regex.match(k)]
 
 	def delete_keys(self, key):
