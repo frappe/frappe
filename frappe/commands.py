@@ -692,6 +692,7 @@ def doctor():
 @click.command('purge-all-tasks')
 def purge_all_tasks():
 	"Purge any pending periodic tasks of 'all' event. Doesn't purge hourly, daily and weekly"
+	frappe.init('')
 	from frappe.utils.doctor import purge_pending_tasks
 	count = purge_pending_tasks()
 	print "Purged {} tasks".format(count)
@@ -699,6 +700,7 @@ def purge_all_tasks():
 @click.command('dump-queue-status')
 def dump_queue_status():
 	"Dump detailed diagnostic infomation for task queues in JSON format"
+	frappe.init('')
 	from frappe.utils.doctor import dump_queue_status as _dump_queue_status
 	print json.dumps(_dump_queue_status(), indent=1)
 
