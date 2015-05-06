@@ -188,8 +188,20 @@ def get_link_fields(doctype):
 	return link_fields
 
 def update_options_for_fieldtype(fieldtype, old, new):
-	frappe.db.sql("""update `tabDocField` set options=%s
-		where fieldtype=%s and options=%s""", (new, fieldtype, old))
+	if frappe.conf.developer_mode:
+		for name in frappe.db.sql_list("""select parent from
+			tabDocField where options=%s""", old):
+			doctype = frappe.get_doc("DocType", name)
+			save = False
+			for f in doctype.fields:
+				if f.options == old:
+					f.options = new
+					save = True
+			if save:
+				doctype.save()
+	else:
+		frappe.db.sql("""update `tabDocField` set options=%s
+			where fieldtype=%s and options=%s""", (new, fieldtype, old))
 
 	frappe.db.sql("""update `tabCustom Field` set options=%s
 		where fieldtype=%s and options=%s""", (new, fieldtype, old))
