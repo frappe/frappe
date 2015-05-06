@@ -9,7 +9,7 @@ from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
-import markdown2
+import markdown2, re
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 
@@ -188,9 +188,11 @@ class EmailAccount(Document):
 			# if sent by same sender with same subject,
 			# append it to old coversation
 
+			subject = re.sub("Re[^:]*:\s*", "", email.subject)
+
 			parent = frappe.db.get_all(self.append_to, filters={
 				sender_field: email.from_email,
-				subject_field: ("like", "%{0}%".format(email.subject)),
+				subject_field: ("like", "%{0}%".format(subject)),
 				"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 			}, fields="name")
 
