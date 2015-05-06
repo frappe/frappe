@@ -127,6 +127,8 @@ frappe.request.call = function(opts) {
 
 // call execute serverside request
 frappe.request.prepare = function(opts) {
+	$("body").attr("data-ajax-state", "triggered");
+
 	// btn indicator
 	if(opts.btn) $(opts.btn).prop("disabled", true);
 
@@ -156,6 +158,8 @@ frappe.request.prepare = function(opts) {
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
 	if(opts.btn) $(opts.btn).prop("disabled", false);
+
+	$("body").attr("data-ajax-state", "complete");
 
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();

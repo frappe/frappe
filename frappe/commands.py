@@ -630,17 +630,19 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 	tests = test
 
 	site = get_single_site(context)
+	frappe.init(site=site)
 
-	# sel.start(verbose, driver)
+	if frappe.conf.run_selenium_tests:
+		sel.start(context.verbose, driver)
 
 	try:
-		frappe.init(site=site)
 		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests, force=context.force)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:
 		pass
-		# sel.close()
+		if frappe.conf.run_selenium_tests:
+			sel.close()
 
 	sys.exit(ret)
 

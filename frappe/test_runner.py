@@ -112,6 +112,11 @@ def _add_test(path, filename, verbose, test_suite=None):
 		# in /doctype/doctype/boilerplate/
 		return
 
+	module = imp.load_source(filename[:-3], os.path.join(path, filename))
+
+	if getattr(module, "selenium_tests", False) and not frappe.conf.run_selenium_tests:
+		return
+
 	if not test_suite:
 		test_suite = unittest.TestSuite()
 
@@ -122,7 +127,6 @@ def _add_test(path, filename, verbose, test_suite=None):
 		doctype = doc["name"]
 		make_test_records(doctype, verbose)
 
-	module = imp.load_source(filename[:-3], os.path.join(path, filename))
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 def make_test_records(doctype, verbose=0, force=False):
