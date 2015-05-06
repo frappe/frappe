@@ -16,6 +16,7 @@ STANDARD_USERS = ("Guest", "Administrator")
 from frappe.model.document import Document
 
 class User(Document):
+	__new_password = None
 	def autoname(self):
 		"""set name as email id"""
 		if self.name not in STANDARD_USERS:
@@ -24,6 +25,11 @@ class User(Document):
 
 	def validate(self):
 		self.in_insert = self.get("__islocal")
+
+		# clear new password
+		self.__new_password = self.new_password
+		self.new_password = ""
+
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 		self.add_system_manager_role()
@@ -76,10 +82,9 @@ class User(Document):
 	def on_update(self):
 		# clear new password
 		self.share_with_self()
-		new_password = self.clear_new_password()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		self.send_password_notifcation(new_password)
+		self.send_password_notifcation(self.__new_password)
 
 	def share_with_self(self):
 		if self.user_type=="System User":
@@ -96,11 +101,6 @@ class User(Document):
 					frappe.throw(_("Sorry! User should have complete access to their own record."))
 			else:
 				frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
-
-	def clear_new_password(self):
-		new_password = self.new_password
-		self.db_set("new_password", "")
-		return new_password
 
 	def send_password_notifcation(self, new_password):
 		try:
