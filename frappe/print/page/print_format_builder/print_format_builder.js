@@ -251,8 +251,10 @@ frappe.PrintFormatBuilder = Class.extend({
 					me.add_table_properties(f);
 				}
 
-				column.fields.push(f);
-				section.has_fields = true;
+				if(!f.print_hide) {
+					column.fields.push(f);
+					section.has_fields = true;
+				}
 			}
 		});
 
