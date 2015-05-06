@@ -168,8 +168,15 @@ def get_full_dict(lang):
 	"""
 	if lang == "en":
 		return {}
-	translations = load_lang(lang)
-	return frappe.cache().get_value("lang:" + lang, lambda:translations) if translations else {}
+
+	if not frappe.local.lang_full_dict:
+		frappe.local.lang_full_dict = frappe.cache().get_value("lang:" + lang)
+		if not frappe.local.lang_full_dict:
+			# cache lang
+			frappe.cache().set_value("lang:" + lang, frappe.local.lang_full_dict)
+			frappe.local.lang_full_dict = load_lang(lang)
+
+	return frappe.local.lang_full_dict
 
 def load_lang(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`"""
