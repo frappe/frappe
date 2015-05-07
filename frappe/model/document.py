@@ -299,11 +299,15 @@ class Document(BaseDocument):
 		self._validate_links()
 		self._validate_selects()
 		self._validate_constants()
-		self._extract_images_from_text_editor()
 
-		for d in self.get_all_children():
+		children = self.get_all_children()
+		for d in children:
 			d._validate_selects()
 			d._validate_constants()
+
+		# extract images after validations to save processing if some validation error is raised
+		self._extract_images_from_text_editor()
+		for d in children:
 			d._extract_images_from_text_editor()
 
 	def validate_higher_perm_levels(self):
@@ -487,12 +491,6 @@ class Document(BaseDocument):
 			if isinstance(value, list):
 				ret.extend(value)
 		return ret
-
-	def _extract_images_from_text_editor(self):
-		from frappe.utils.file_manager import extract_images_from_html
-		if self.doctype != "DocType":
-			for df in self.meta.get("fields", {"fieldtype":"Text Editor"}):
-				extract_images_from_html(self, df.fieldname)
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""

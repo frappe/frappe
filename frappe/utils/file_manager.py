@@ -98,15 +98,18 @@ def extract_images_from_html(doc, fieldname):
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
 
+		doctype = doc.parenttype if doc.parent else doc.doctype
+		name = doc.parent or doc.name
+
 		# TODO fix this
-		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
+		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
 	if content:
-		content = re.sub('<img\s*src=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
 
