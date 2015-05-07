@@ -61,6 +61,10 @@ def validate_link():
 def add_comment(doc):
 	"""allow any logged user to post a comment"""
 	doc = frappe.get_doc(json.loads(doc))
+
+	if doc.doctype != "Comment":
+		frappe.throw(_("This method can only be used to create a Comment"), frappe.PermissionError)
+
 	doc.insert(ignore_permissions = True)
 
 	return doc.as_dict()

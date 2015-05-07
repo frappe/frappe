@@ -32,6 +32,7 @@ def add_comment(args=None):
 		del args["cmd"]
 
 	comment = frappe.get_doc(args)
+	comment.comment_type = "Comment"
 	comment.flags.ignore_permissions = True
 	comment.insert()
 
