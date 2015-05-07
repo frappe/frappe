@@ -21,6 +21,8 @@ script:
   - bench reinstall
   - bench build
   - bench build-website
+  - bench serve &
+  - sleep 10
   - bench --verbose run-tests
 
 before_script:
