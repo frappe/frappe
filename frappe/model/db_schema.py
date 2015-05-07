@@ -286,10 +286,10 @@ class DbColumn:
 			if (current_def['index'] and not self.set_index):
 				self.table.drop_index.append(self)
 
-			if (current_def['unique'] and not self.unique):
+			if (current_def['unique'] and not self.unique) and not (column_def in ('text', 'longtext')):
 				self.table.drop_index.append(self)
 
-			if (not current_def['index'] and self.set_index and not (column_def in ['text', 'longtext'])):
+			if (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
 				self.table.add_index.append(self)
 
 			# default
