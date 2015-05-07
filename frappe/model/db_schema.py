@@ -278,7 +278,8 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or (self.unique and not current_def['unique']):
+		if (current_def['type'] != column_def) or (self.unique and not current_def['unique'] \
+			and column_def in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
 		else:
