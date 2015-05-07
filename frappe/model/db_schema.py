@@ -256,10 +256,10 @@ class DbColumn:
 			return column_def
 
 		if self.default and (self.default not in default_shortcuts) \
-			and not self.default.startswith(":") and column_def not in ['text', 'longtext']:
+			and not self.default.startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += ' default "' + self.default.replace('"', '\"') + '"'
 
-		if self.unique:
+		if self.unique and column_def not in ('text', 'longtext'):
 			column_def += ' unique'
 
 		return column_def
