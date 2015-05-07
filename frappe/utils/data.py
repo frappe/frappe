@@ -16,10 +16,13 @@ TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
 # datetime functions
-def getdate(string_date):
+def getdate(string_date=None):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
+	if not string_date:
+		return get_datetime().date()
+
 	if isinstance(string_date, datetime.datetime):
 		return string_date.date()
 
