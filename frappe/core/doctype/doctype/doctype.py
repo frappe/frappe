@@ -272,6 +272,13 @@ def validate_fields(meta):
 		if d.fieldtype in ("Currency", "Float", "Percent") and d.precision is not None and not (1 <= cint(d.precision) <= 6):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
+	def check_unique_and_text(d):
+		if d.unique and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
+			frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
+
+		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
+			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
+
 	def check_fold(fields):
 		fold_exists = False
 		for i, f in enumerate(fields):
@@ -296,6 +303,8 @@ def validate_fields(meta):
 			if fieldname not in fieldname_list:
 				frappe.throw(_("Search Fields should contain valid fieldnames"))
 
+
+
 	fields = meta.get("fields")
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
@@ -309,6 +318,7 @@ def validate_fields(meta):
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
 		check_illegal_default(d)
+		check_unique_and_text(d)
 
 	check_fold(fields)
 	check_search_fields(meta)
