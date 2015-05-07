@@ -300,12 +300,14 @@ class DbColumn:
 				and not (column_def in ['text','longtext'])):
 				self.table.set_default.append(self)
 
-
-
 	def default_changed(self, current_def):
 		if "decimal" in current_def['type']:
 			try:
-				return float(current_def['default'])!=float(self.default)
+				if current_def['default'] in ("", None) and self.default in ("", None):
+					# both none, empty
+					return False
+				else:
+					return float(current_def['default'])!=float(self.default)
 			except TypeError:
 				return True
 		else:
