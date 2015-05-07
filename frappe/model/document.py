@@ -299,11 +299,12 @@ class Document(BaseDocument):
 		self._validate_links()
 		self._validate_selects()
 		self._validate_constants()
+		self._extract_images_from_text_editor()
+
 		for d in self.get_all_children():
 			d._validate_selects()
 			d._validate_constants()
-
-		self._extract_images_from_text_editor()
+			d._extract_images_from_text_editor()
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
