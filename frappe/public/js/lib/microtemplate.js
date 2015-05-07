@@ -4,14 +4,15 @@
 frappe.template = {compiled: {}, debug:{}};
 frappe.template.compile = function(str, name) {
 	var key = name || str;
-	if(str.indexOf("'")!==-1) {
-		console.warn("Warning: Single quotes (') may not work in templates");
-	}
-
-	// repace jinja style tags
-	str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
 
 	if(!frappe.template.compiled[key]) {
+		if(str.indexOf("'")!==-1) {
+			console.warn("Warning: Single quotes (') may not work in templates");
+		}
+
+		// repace jinja style tags
+		str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
+
 		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
