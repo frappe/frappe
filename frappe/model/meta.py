@@ -11,16 +11,15 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
 
-######
-
 def get_meta(doctype, cached=True):
 	if cached:
-		return frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))
+		return frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
 	else:
 		return Meta(doctype)
 
 def get_table_columns(doctype):
-	return frappe.cache().get_value("table_columns:" + doctype, lambda: frappe.db.get_table_columns(doctype))
+	return frappe.cache().hget("table_columns", doctype,
+		lambda: frappe.db.get_table_columns(doctype))
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
@@ -294,30 +293,6 @@ def get_field_precision(df, doc=None, currency=None):
 
 	return precision
 
-def clear_cache(doctype=None):
-	prefixes = ["meta", "form_meta", "table_columns"]
-	def clear_single(dt):
-		for p in prefixes:
-			frappe.cache().delete_value(p + ":" + dt)
-
-	if doctype:
-		clear_single(doctype)
-
-		# clear all parent doctypes
-		for dt in frappe.db.sql("""select parent from tabDocField
-			where fieldtype="Table" and options=%s""", (doctype,)):
-			clear_single(dt[0])
-
-		# clear all notifications
-		from frappe.desk.notifications import delete_notification_count_for
-		delete_notification_count_for(doctype)
-
-	else:
-		# clear all
-		for p in prefixes:
-			frappe.cache().delete_keys(p + ":")
-
-	frappe.cache().delete_value("is_table")
 
 def get_default_df(fieldname):
 	if fieldname in default_fields:
@@ -347,3 +322,31 @@ def trim_tables():
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)
+
+def clear_cache(doctype=None):
+	frappe.cache().delete_value("is_table")
+	frappe.cache().delete_value("doctype_modules")
+
+	groups = ["meta", "form_meta", "table_columns"]
+
+	def clear_single(dt):
+		for name in groups:
+			frappe.cache().hdel(name, dt)
+
+	if doctype:
+		clear_single(doctype)
+
+		# clear all parent doctypes
+		for dt in frappe.db.sql("""select parent from tabDocField
+			where fieldtype="Table" and options=%s""", (doctype,)):
+			clear_single(dt[0])
+
+		# clear all notifications
+		from frappe.desk.notifications import delete_notification_count_for
+		delete_notification_count_for(doctype)
+
+	else:
+		# clear all
+		for name in groups:
+			frappe.cache().delete_value(name)
+

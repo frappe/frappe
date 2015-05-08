@@ -46,7 +46,9 @@ def export_doc(doctype, name, module=None):
 
 def get_doctype_module(doctype):
 	"""Returns **Module Def** name of given doctype."""
-	return frappe.db.get_value('DocType', doctype, 'module') or "core"
+	def make_modules_dict(doctype):
+		return dict(frappe.db.sql("select name, module from tabDocType"))
+	frappe.cache().get_value("doctype_modules", make_modules_dict)[doctype]
 
 doctype_python_modules = {}
 def load_doctype_module(doctype, module=None, prefix=""):
