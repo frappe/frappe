@@ -47,7 +47,7 @@ class User:
 			return user
 
 		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			user_doc = frappe.cache().get_value("user_doc:" + self.name, get_user_doc)
+			user_doc = frappe.cache().hget("user_doc", self.name, get_user_doc)
 			if user_doc:
 				self.doc = frappe.get_doc(user_doc)
 
@@ -156,7 +156,7 @@ class User:
 
 	# update recent documents
 	def update_recent(self, dt, dn):
-		rdl = frappe.cache().get_value("recent:" + self.name) or []
+		rdl = frappe.cache().hget("user_recent", self.name) or []
 		new_rd = [dt, dn]
 
 		# clear if exists
@@ -171,7 +171,7 @@ class User:
 
 		rdl = [new_rd] + rdl
 
-		frappe.cache().set_value("recent:" + self.name, rdl)
+		frappe.cache().hset("user_recent", self.name, rdl)
 
 	def _get(self, key):
 		if not self.can_read:
@@ -193,7 +193,7 @@ class User:
 			self.build_permissions()
 
 		d.name = self.name
-		d.recent = json.dumps(frappe.cache().get_value("recent:" + self.name) or [])
+		d.recent = json.dumps(frappe.cache().hget("user_recent", self.name) or [])
 
 		d.roles = self.get_roles()
 		d.defaults = self.get_defaults()
@@ -267,11 +267,11 @@ def get_roles(user=None, with_standard=True):
 	if user=='Guest':
 		return ['Guest']
 
-	roles = frappe.cache().get_value("roles", user=user)
-	if not roles:
-		roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole
+	def get():
+		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
 			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
-		frappe.cache().set_value("roles", roles, user=user)
+
+	roles = frappe.cache().hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:

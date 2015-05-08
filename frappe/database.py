@@ -602,14 +602,12 @@ class Database:
 	def set_temp(self, value):
 		"""Set a temperory value and return a key."""
 		key = frappe.generate_hash()
-		frappe.cache().set_value(key, value)
+		frappe.cache().hset("temp", value)
 		return key
 
 	def get_temp(self, key):
 		"""Return the temperory value and delete it."""
-		value = frappe.cache().get_value(key)
-		frappe.cache().delete_value(key)
-		return value
+		return frappe.cache().hget("temp", key)
 
 	def set_global(self, key, val, user='__global'):
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""

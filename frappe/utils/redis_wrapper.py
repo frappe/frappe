@@ -75,6 +75,9 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
+	def delete_key(self, *args, **kwargs):
+		self.delete_value(*args, **kwargs)
+
 	def delete_value(self, keys, user=None, make_keys=True):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):

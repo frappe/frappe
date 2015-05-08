@@ -31,7 +31,7 @@ def get_user_permissions(user=None):
 	return build_user_permissions(user)
 
 def build_user_permissions(user):
-	out = frappe.cache().get_value("user_permissions", user=user)
+	out = frappe.cache().hget("user_permissions", user)
 	if out==None:
 		out = {}
 		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
@@ -42,7 +42,7 @@ def build_user_permissions(user):
 		if user not in out.get("User", []):
 			out.setdefault("User", []).append(user)
 
-		frappe.cache().set_value("user_permissions", out, user=user)
+		frappe.cache().hset("user_permissions", user, out)
 	return out
 
 def get_defaults(user=None):
@@ -147,7 +147,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 
 def get_defaults_for(parent="__default"):
 	"""get all defaults"""
-	defaults = frappe.cache().get_value("__defaults:" + parent)
+	defaults = frappe.cache().hget("defaults", parent)
 	if defaults==None:
 		# sort descending because first default must get preceedence
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
@@ -166,7 +166,7 @@ def get_defaults_for(parent="__default"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 
-		frappe.cache().set_value("__defaults:" + parent, defaults)
+		frappe.cache().hset("default", parent, defaults)
 
 	return defaults
 
@@ -181,12 +181,7 @@ def clear_cache(user=None):
 	to_clear = []
 	if user:
 		to_clear = [user]
+		for p in (to_clear + common_keys):
+			frappe.cache().hdel("default", p)
 	elif frappe.flags.in_install!="frappe":
-		try:
-			to_clear = frappe.db.sql_list("select name from tabUser")
-		except Exception, e:
-			if e.args[0]!=1146:
-				# special case, in rename patch
-				raise
-	for p in (to_clear + common_keys):
-		frappe.cache().delete_value("__defaults:" + p)
+		frappe.cache().delete_key("default")
