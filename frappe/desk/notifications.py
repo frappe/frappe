@@ -17,7 +17,9 @@ def get_notifications():
 
 	notification_count = {}
 	for name in groups:
-		notification_count[name] = cache.hget("notification_count:" + name, frappe.session.user)
+		count = cache.hget("notification_count:" + name, frappe.session.user)
+		if count is not None:
+			notification_count[name] = count
 
 	return {
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
@@ -81,7 +83,6 @@ def get_notifications_for_doctypes(config, notification_count):
 
 				else:
 					open_count_doctype[d] = result
-
 					frappe.cache().hset("notification_count:" + d, frappe.session.user, result)
 
 	return open_count_doctype

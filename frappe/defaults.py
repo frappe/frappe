@@ -166,7 +166,7 @@ def get_defaults_for(parent="__default"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 
-		frappe.cache().hset("default", parent, defaults)
+		frappe.cache().hset("defaults", parent, defaults)
 
 	return defaults
 

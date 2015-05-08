@@ -109,6 +109,7 @@ class RedisWrapper(redis.Redis):
 		value = super(redis.Redis, self).hget(self.make_key(name), key)
 		if value:
 			value = pickle.loads(value)
+			frappe.local.cache[name][key] = value
 		elif generator:
 			value = generator()
 			self.hset(name, key, value)
