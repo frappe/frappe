@@ -2,7 +2,8 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, pickle, re
+import redis, frappe, re
+import cPickle as pickle
 from frappe.utils import cstr
 
 class RedisWrapper(redis.Redis):
@@ -92,16 +93,28 @@ class RedisWrapper(redis.Redis):
 				del frappe.local.cache[key]
 
 	def hset(self, name, key, value):
+		if not name in frappe.local.cache:
+			frappe.local.cache[name] = {}
+		frappe.local.cache[name][key] = value
 		super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
 
 	def hget(self, name, key, generator=None):
+		if not name in frappe.local.cache:
+			frappe.local.cache[name] = {}
+		if key in frappe.local.cache[name]:
+			return frappe.local.cache[name][key]
 		value = super(redis.Redis, self).hget(self.make_key(name), key)
 		if value:
 			value = pickle.loads(value)
 		elif generator:
-			value = generator
+			value = generator()
 			self.hset(name, key, value)
 		return value
 
 	def hdel(self, name, keys):
+		if name in frappe.local.cache:
+			del frappe.local.cache[name]
 		return super(redis.Redis, self).hget(self.make_key(name), keys)
+
+	def hkeys(self, name):
+		return super(redis.Redis, self).hkeys(self.make_key(name))
