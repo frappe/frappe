@@ -150,7 +150,7 @@ def wait(selector, everywhere=False):
 	return elem
 
 def get_wait():
-	return WebDriverWait(_driver, 10)
+	return WebDriverWait(_driver, 20)
 
 def set_input(selector, text):
 	elem = find(selector)[0]
