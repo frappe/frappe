@@ -127,11 +127,12 @@ class RedisWrapper(redis.Redis):
 				pass
 		return value
 
-	def hdel(self, name, keys):
+	def hdel(self, name, key):
 		if name in frappe.local.cache:
-			del frappe.local.cache[name]
+			if key in frappe.local.cache[name]:
+				del frappe.local.cache[name][key]
 		try:
-			return super(redis.Redis, self).hget(self.make_key(name), keys)
+			super(redis.Redis, self).hdel(self.make_key(name), key)
 		except redis.exceptions.ConnectionError:
 			pass
 
