@@ -115,14 +115,7 @@ def get_user_time_zone():
 	if frappe.local.flags.in_test:
 		return _get_user_time_zone()
 
-	if getattr(frappe.local, "user_time_zone", None) is None:
-		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
-
-		if not frappe.local.user_time_zone:
-			frappe.local.user_time_zone = _get_user_time_zone()
-			frappe.cache().set_value("time_zone", frappe.local.user_time_zone, user=frappe.session.user)
-
-	return frappe.local.user_time_zone
+	return frappe.cache().hget("time_zone", frappe.session.user, _get_user_time_zone)
 
 def convert_utc_to_user_timezone(utc_timestamp):
 	from pytz import timezone, UnknownTimeZoneError

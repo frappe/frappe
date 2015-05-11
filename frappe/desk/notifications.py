@@ -12,10 +12,14 @@ def get_notifications():
 		return
 
 	config = get_notification_config()
+	groups = config.get("for_doctype").keys() + config.get("for_module").keys()
+	cache = frappe.cache()
 
-	notification_count = frappe.cache().get_all("notification_count:" \
-		+ frappe.session.user + ":").iteritems()
-	notification_count = dict([(d.rsplit(":", 1)[1], v) for d, v in notification_count])
+	notification_count = {}
+	for name in groups:
+		count = cache.hget("notification_count:" + name, frappe.session.user)
+		if count is not None:
+			notification_count[name] = count
 
 	return {
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
@@ -24,10 +28,9 @@ def get_notifications():
 	}
 
 def get_new_messages():
-	cache_key = "notifications_last_update:" + frappe.session.user
-	last_update = frappe.cache().get_value(cache_key)
+	last_update = frappe.cache().hget("notifications_last_update", frappe.session.user)
 	now_timestamp = now()
-	frappe.cache().set_value(cache_key, now_timestamp)
+	frappe.cache().hset("notifications_last_update", frappe.session.user, now_timestamp)
 
 	if not last_update:
 		return []
@@ -51,8 +54,7 @@ def get_notifications_for_modules(config, notification_count):
 		else:
 			open_count_module[m] = frappe.get_attr(config.for_module[m])()
 
-			frappe.cache().set_value("notification_count:" + frappe.session.user + ":" + m,
-				open_count_module[m])
+			frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count_module[m])
 
 	return open_count_module
 
@@ -81,17 +83,20 @@ def get_notifications_for_doctypes(config, notification_count):
 
 				else:
 					open_count_doctype[d] = result
-
-					frappe.cache().set_value("notification_count:" + frappe.session.user + ":" + d,
-						result)
+					frappe.cache().hset("notification_count:" + d, frappe.session.user, result)
 
 	return open_count_doctype
 
 def clear_notifications(user="*"):
-	frappe.cache().delete_keys("notification_count:" + (user or frappe.session.user) + ":")
+	if user=="*":
+		frappe.cache().delete_keys("notification_count:")
+	else:
+		# delete count for user
+		for key in frappe.cache().get_keys("notification_count:"):
+			frappe.cache().hdel(key, user)
 
 def delete_notification_count_for(doctype):
-	frappe.cache().delete_keys("notification_count:*:" + doctype)
+	frappe.cache().delete_key("notification_count:" + doctype)
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
@@ -127,10 +132,13 @@ def get_notification_info_for_boot():
 	return out
 
 def get_notification_config():
-	config = frappe._dict()
-	for notification_config in frappe.get_hooks().notification_config:
-		nc = frappe.get_attr(notification_config)()
-		for key in ("for_doctype", "for_module", "for_module_doctypes"):
-			config.setdefault(key, {})
-			config[key].update(nc.get(key, {}))
-	return config
+	def _get():
+		config = frappe._dict()
+		for notification_config in frappe.get_hooks().notification_config:
+			nc = frappe.get_attr(notification_config)()
+			for key in ("for_doctype", "for_module", "for_module_doctypes"):
+				config.setdefault(key, {})
+				config[key].update(nc.get(key, {}))
+		return config
+
+	return frappe.cache().get_value("notification_config", _get)

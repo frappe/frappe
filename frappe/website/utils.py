@@ -5,12 +5,14 @@ from __future__ import unicode_literals
 import frappe, re, os
 
 def delete_page_cache(path):
-	if not path:
-		path = ""
 	cache = frappe.cache()
-	cache.delete_keys("page:" + path)
-	cache.delete_keys("page_context:" + path)
-	cache.delete_keys("sitemap_options:" + path)
+	groups = ("page_context", "website_page", "sitemap_options")
+	if path:
+		for name in groups:
+			cache.hdel(name, path)
+	else:
+		for name in groups:
+			cache.delete_key(name)
 
 def find_first_image(html):
 	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
@@ -49,7 +51,7 @@ def get_home_page():
 
 		return home_page
 
-	return frappe.cache().get_value("home_page", _get_home_page, user=True)
+	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
 
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:

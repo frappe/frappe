@@ -568,7 +568,8 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		frappe.cache().set_value("last_modified:" + self.doctype, self.modified)
+		frappe.cache().hdel("last_modified", self.doctype)
+
 		self.latest = None
 
 	def check_no_back_links_exist(self):

@@ -30,19 +30,23 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = frappe.cache()
 
+	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang", "time_zone")
+
 	if user:
+		for name in groups:
+			cache.hdel(name, user)
 		cache.delete_keys("user:" + user)
-		cache.delete_keys("user_doc:" + user)
 		frappe.defaults.clear_cache(user)
 	else:
-		cache.delete_keys("user:")
-		cache.delete_keys("user_doc:")
+		for name in groups:
+			cache.delete_key(name, user)
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
-	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_app", "time_zone"])
+	frappe.cache().delete_value(["app_hooks", "installed_apps",
+		"app_modules", "module_app", "time_zone", "notification_config"])
 	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False):
@@ -58,8 +62,8 @@ def clear_sessions(user=None, keep_current=False):
 def delete_session(sid=None, user=None):
 	if not user:
 		user = hasattr(frappe.local, "session") and frappe.session.user or "Guest"
-	frappe.cache().delete_value("session:" + sid, user=user)
-	frappe.cache().delete_value("last_db_session_update:" + sid)
+	frappe.cache().hdel("session", sid)
+	frappe.cache().hdel("last_db_session_update", sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
 
 def clear_all_sessions():
@@ -83,17 +87,18 @@ def get():
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
 		# check if cache exists
-		bootinfo = frappe.cache().get_value("bootinfo", user=True)
+		bootinfo = frappe.cache().hget("bootinfo", frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
 			bootinfo["notification_info"].update(get_notifications())
-			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
+			bootinfo["user"]["recent"] = json.dumps(\
+				frappe.cache().hget("user_recent", frappe.session.user))
 
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
-		frappe.cache().set_value("bootinfo", bootinfo, user=True)
+		frappe.cache().hset("bootinfo", frappe.session.user, bootinfo)
 		try:
 			frappe.cache().ping()
 		except redis.exceptions.ConnectionError:
@@ -168,7 +173,7 @@ class Session:
 				(str(self.data['data']), self.data['user'], self.data['sid']))
 
 		# also add to memcache
-		frappe.cache().set_value("session:" + self.data.sid, self.data, user=self.user)
+		frappe.cache().hset("session", self.data.sid, self.data)
 
 	def resume(self):
 		"""non-login request: load a session"""
@@ -206,7 +211,7 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe._dict(frappe.cache().get_value("session:" + self.sid, user=self.user) or {})
+		data = frappe._dict(frappe.cache().hget("session", self.sid) or {})
 		if data:
 			session_data = data.get("data", {})
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
@@ -257,7 +262,7 @@ class Session:
 		self.data['data']['lang'] = unicode(frappe.lang)
 
 		# update session in db
-		last_updated = frappe.cache().get_value("last_db_session_update:" + self.sid)
+		last_updated = frappe.cache().hget("last_db_session_update", self.sid)
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
@@ -267,11 +272,11 @@ class Session:
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
 
-			frappe.cache().set_value("last_db_session_update:" + self.sid, now)
+			frappe.cache().hset("last_db_session_update", self.sid, now)
 			updated_in_db = True
 
 		# set in memcache
-		frappe.cache().set_value("session:" + self.sid, self.data, user=self.user)
+		frappe.cache().hset("session", self.sid, self.data)
 
 		return updated_in_db
 

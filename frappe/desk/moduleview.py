@@ -201,7 +201,7 @@ def get_last_modified(doctype):
 
 		return last_modified
 
-	last_modified = frappe.cache().get_value("last_modified:" + doctype, _get)
+	last_modified = frappe.cache().hget("last_modified", doctype, _get)
 
 	if last_modified==-1:
 		last_modified = None

@@ -44,7 +44,7 @@ def get_user_lang(user=None):
 		user = frappe.session.user
 
 	# via cache
-	lang = frappe.cache().get_value("lang", user=user)
+	lang = frappe.cache().hget("lang", user)
 
 	if not lang:
 
@@ -56,7 +56,7 @@ def get_user_lang(user=None):
 			default_lang = frappe.db.get_default("lang")
 			lang = default_lang or frappe.local.lang
 
-		frappe.cache().set_value("lang", lang or "en", user=user)
+		frappe.cache().hset("lang", user, lang or "en")
 
 	return lang
 
@@ -90,9 +90,8 @@ def get_dict(fortype, name=None):
 	 """
 	fortype = fortype.lower()
 	cache = frappe.cache()
-	cache_key = "translation_assets:" + (frappe.local.lang or "en")
 	asset_key = fortype + ":" + (name or "-")
-	translation_assets = cache.get_value(cache_key) or {}
+	translation_assets = cache.hget("translation_assets", frappe.local.lang) or {}
 
 	if not asset_key in translation_assets:
 		if fortype=="doctype":
@@ -114,7 +113,7 @@ def get_dict(fortype, name=None):
 		translation_assets[asset_key] = make_dict_from_messages(messages)
 		translation_assets[asset_key].update(get_dict_from_hooks(fortype, name))
 
-		cache.set_value(cache_key, translation_assets)
+		cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
 	return translation_assets[asset_key]
 
@@ -170,10 +169,10 @@ def get_full_dict(lang):
 		return {}
 
 	if not frappe.local.lang_full_dict:
-		frappe.local.lang_full_dict = frappe.cache().get_value("lang:" + lang)
+		frappe.local.lang_full_dict = frappe.cache().hget("lang_full_dict", lang)
 		if not frappe.local.lang_full_dict:
 			# cache lang
-			frappe.cache().set_value("lang:" + lang, frappe.local.lang_full_dict)
+			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
 			frappe.local.lang_full_dict = load_lang(lang)
 
 	return frappe.local.lang_full_dict
@@ -196,9 +195,9 @@ def load_lang(lang, apps=None):
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
 	cache = frappe.cache()
-	cache.delete_value("langinfo")
-	cache.delete_keys("lang:")
-	cache.delete_keys("translation_assets:")
+	cache.delete_key("langinfo")
+	cache.delete_key("lang_full_dict")
+	cache.delete_key("translation_assets")
 
 def get_messages_for_app(app):
 	"""Returns all messages (list) for a specified `app`"""

@@ -11,7 +11,7 @@ from frappe.website.utils import can_cache
 
 def get_context(path):
 	context = None
-	cache_key = "page_context:{0}:{1}".format(path, frappe.local.lang)
+	context_cache = {}
 
 	def add_data_path(context):
 		if not context.data:
@@ -19,9 +19,10 @@ def get_context(path):
 
 		context.data["path"] = path
 
-	# try from memcache
+	# try from cache
 	if can_cache():
-		context = frappe.cache().get_value(cache_key)
+		context_cache = frappe.cache().hget("page_context", path) or {}
+		context = context_cache.get(frappe.local.lang, None)
 
 	if not context:
 		context = get_route_info(path)
@@ -30,7 +31,8 @@ def get_context(path):
 		add_data_path(context)
 
 		if can_cache(context.no_cache):
-			frappe.cache().set_value(cache_key, context)
+			context_cache[frappe.local.lang] = context
+			frappe.cache().hset("page_context", path, context_cache)
 
 	else:
 		add_data_path(context)

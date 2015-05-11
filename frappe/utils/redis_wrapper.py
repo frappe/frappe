@@ -2,7 +2,8 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, pickle, re
+import redis, frappe, re
+import cPickle as pickle
 from frappe.utils import cstr
 
 class RedisWrapper(redis.Redis):
@@ -14,15 +15,12 @@ class RedisWrapper(redis.Redis):
 
 			key = "user:{0}:{1}".format(user, key)
 
-		return (frappe.conf.db_name + "|" + key).encode('utf-8')
+		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
 
 	def set_value(self, key, val, user=None):
 		"""Sets cache value."""
 		key = self.make_key(key, user)
 		frappe.local.cache[key] = val
-		if frappe.local.flags.in_install or frappe.local.flags.in_install_db:
-			return
-
 		try:
 			self.set(key, pickle.dumps(val))
 		except redis.exceptions.ConnectionError:
@@ -39,11 +37,10 @@ class RedisWrapper(redis.Redis):
 
 		if key not in frappe.local.cache:
 			val = None
-			if not frappe.local.flags.in_install and not frappe.local.flags.in_install_db:
-				try:
-					val = self.get(key)
-				except redis.exceptions.ConnectionError:
-					pass
+			try:
+				val = self.get(key)
+			except redis.exceptions.ConnectionError:
+				pass
 			if val is not None:
 				val = pickle.loads(val)
 			if val is None and generator:
@@ -78,6 +75,9 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
+	def delete_key(self, *args, **kwargs):
+		self.delete_value(*args, **kwargs)
+
 	def delete_value(self, keys, user=None, make_keys=True):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):
@@ -87,12 +87,38 @@ class RedisWrapper(redis.Redis):
 			if make_keys:
 				key = self.make_key(key)
 
-
-			if not frappe.local.flags.in_install and not frappe.local.flags.in_install_db:
-				try:
-					self.delete(key)
-				except redis.exceptions.ConnectionError:
-					pass
+			try:
+				self.delete(key)
+			except redis.exceptions.ConnectionError:
+				pass
 
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]
+
+	def hset(self, name, key, value):
+		if not name in frappe.local.cache:
+			frappe.local.cache[name] = {}
+		frappe.local.cache[name][key] = value
+		super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
+
+	def hget(self, name, key, generator=None):
+		if not name in frappe.local.cache:
+			frappe.local.cache[name] = {}
+		if key in frappe.local.cache[name]:
+			return frappe.local.cache[name][key]
+		value = super(redis.Redis, self).hget(self.make_key(name), key)
+		if value:
+			value = pickle.loads(value)
+			frappe.local.cache[name][key] = value
+		elif generator:
+			value = generator()
+			self.hset(name, key, value)
+		return value
+
+	def hdel(self, name, keys):
+		if name in frappe.local.cache:
+			del frappe.local.cache[name]
+		return super(redis.Redis, self).hget(self.make_key(name), keys)
+
+	def hkeys(self, name):
+		return super(redis.Redis, self).hkeys(self.make_key(name))

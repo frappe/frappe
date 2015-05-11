@@ -12,12 +12,14 @@ def get_route_info(path):
 	cache_key = "sitemap_options:{0}:{1}".format(path, frappe.local.lang)
 
 	if can_cache():
-		sitemap_options = frappe.cache().get_value(cache_key)
+		sitemap_options_cache = frappe.cache().hget("sitemap_options", path) or {}
+		sitemap_options = sitemap_options_cache.get(frappe.local.lang, None)
 
 	if not sitemap_options:
 		sitemap_options = build_route(path)
 		if can_cache(sitemap_options.no_cache):
-			frappe.cache().set_value(cache_key, sitemap_options)
+			sitemap_options_cache[frappe.local.lang] = sitemap_options
+			frappe.cache().hset("sitemap_options", path, sitemap_options_cache)
 
 	return sitemap_options
 

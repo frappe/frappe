@@ -99,15 +99,19 @@ def build_response(path, data, http_status_code, headers=None):
 
 def render_page(path):
 	"""get page html"""
-	cache_key = ("page_context:{0}:{1}" if is_ajax() else "page:{0}:{1}").format(path, frappe.local.lang)
-
 	out = None
 
-	# try cache
 	if can_cache():
-		out = frappe.cache().get_value(cache_key)
-		if out and is_ajax():
-			out = out.get("data")
+		if is_ajax():
+			# ajax, send context
+			context_cache = frappe.cache().hget("page_context", path)
+			if context_cache and frappe.local.lang in context_cache:
+				out = context_cache[frappe.local.lang].get("data")
+		else:
+			# return rendered page
+			page_cache = frappe.cache().hget("website_page", path)
+			if page_cache and frappe.local.lang in page_cache:
+				out = page_cache[frappe.local.lang]
 
 	if out:
 		frappe.local.response.from_cache = True
@@ -143,7 +147,9 @@ def build_page(path):
 	html = frappe.get_template(context.base_template_path).render(context)
 
 	if can_cache(context.no_cache):
-		frappe.cache().set_value("page:{0}:{1}".format(path, frappe.local.lang), html)
+		page_cache = frappe.cache().hget("website_page", path) or {}
+		page_cache[frappe.local.lang] = html
+		frappe.cache().hset("website_page", path, page_cache)
 
 	return html
 
