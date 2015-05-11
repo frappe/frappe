@@ -99,26 +99,44 @@ class RedisWrapper(redis.Redis):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		frappe.local.cache[name][key] = value
-		super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
+		try:
+			super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def hget(self, name, key, generator=None):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		if key in frappe.local.cache[name]:
 			return frappe.local.cache[name][key]
-		value = super(redis.Redis, self).hget(self.make_key(name), key)
+
+		value = None
+		try:
+			value = super(redis.Redis, self).hget(self.make_key(name), key)
+		except redis.exceptions.ConnectionError:
+			pass
+
 		if value:
 			value = pickle.loads(value)
 			frappe.local.cache[name][key] = value
 		elif generator:
 			value = generator()
-			self.hset(name, key, value)
+			try:
+				self.hset(name, key, value)
+			except redis.exceptions.ConnectionError:
+				pass
 		return value
 
 	def hdel(self, name, keys):
 		if name in frappe.local.cache:
 			del frappe.local.cache[name]
-		return super(redis.Redis, self).hget(self.make_key(name), keys)
+		try:
+			return super(redis.Redis, self).hget(self.make_key(name), keys)
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def hkeys(self, name):
-		return super(redis.Redis, self).hkeys(self.make_key(name))
+		try:
+			return super(redis.Redis, self).hkeys(self.make_key(name))
+		except redis.exceptions.ConnectionError:
+			return []
