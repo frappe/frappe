@@ -4,7 +4,7 @@
 // route urls to their virtual pages
 
 // re-route map (for rename)
-frappe.re_route = {};
+frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_history = [];
 frappe.view_factory = {};
@@ -12,7 +12,7 @@ frappe.view_factories = [];
 frappe.route_options = null;
 
 frappe.route = function() {
-	if(frappe.re_route[window.location.hash]) {
+	if(frappe.re_route[window.location.hash] !== undefined) {
 		// after saving a doc, for example,
 		// "New DocType 1" and the renamed "TestDocType", both exist in history
 		// now if we try to go back,

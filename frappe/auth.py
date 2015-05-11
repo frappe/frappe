@@ -85,6 +85,7 @@ class LoginManager:
 		self.user = None
 		self.info = None
 		self.full_name = None
+		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
 			self.login()
@@ -101,6 +102,7 @@ class LoginManager:
 		self.info = frappe.db.get_value("User", self.user,
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
+		self.user_type = self.info.user_type
 
 		self.run_trigger('on_login')
 		self.validate_ip_address()
@@ -126,7 +128,8 @@ class LoginManager:
 
 	def make_session(self, resume=False):
 		# start session
-		frappe.local.session_obj = Session(user=self.user, resume=resume, full_name=self.full_name)
+		frappe.local.session_obj = Session(user=self.user, resume=resume,
+			full_name=self.full_name, user_type=self.user_type)
 
 		# reset user if changed to Guest
 		self.user = frappe.local.session_obj.user

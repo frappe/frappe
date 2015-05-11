@@ -12,6 +12,10 @@ class SignupDisabledError(frappe.PermissionError): pass
 no_cache = True
 
 def get_context(context):
+	if frappe.session.user != "Guest" and frappe.session.data.user_type=="System User":
+		frappe.local.flags.redirect_location = "/desk"
+		raise frappe.Redirect
+
 	# get settings from site config
 	context["title"] = "Login"
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))

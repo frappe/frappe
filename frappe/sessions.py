@@ -125,9 +125,10 @@ def get():
 	return bootinfo
 
 class Session:
-	def __init__(self, user, resume=False, full_name=None):
+	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
+		self.user_type = user_type
 		self.full_name = full_name
 		self.data = frappe._dict({'data': frappe._dict({})})
 		self.time_diff = None
@@ -156,6 +157,7 @@ class Session:
 			self.data.data.last_updated = frappe.utils.now()
 			self.data.data.session_expiry = get_expiry_period()
 			self.data.data.full_name = self.full_name
+			self.data.data.user_type = self.user_type
 		self.data.data.session_country = get_geo_ip_country(frappe.local.request_ip)
 
 		# insert session
