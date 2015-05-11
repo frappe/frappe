@@ -178,7 +178,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			this.page.clear_user_actions();
 		}
 
-		status = this.get_action_status();
+		var status = this.get_action_status();
 		if (status) {
 			if (status !== this.current_status) {
 				this.set_page_actions(status);
