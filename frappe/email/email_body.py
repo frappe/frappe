@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils.data import get_url, scrub_urls, strip
+from frappe.utils.data import get_url, scrub_urls, strip, expand_relative_urls
 import email.utils
 from markdown2 import markdown
 
@@ -67,9 +67,9 @@ class EMail:
 		# convert to text well
 		if not self.html_set:
 			if text_content:
-				self.set_text(text_content)
+				self.set_text(expand_relative_urls(text_content))
 			else:
-				self.set_html_as_text(formatted)
+				self.set_html_as_text(expand_relative_urls(formatted))
 
 		self.set_part_html(formatted)
 		self.html_set = True
