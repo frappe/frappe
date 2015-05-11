@@ -5,6 +5,12 @@ frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");
 }
 
+frappe.ui.form.close_grid_form = function() {
+	var open_form = frappe.ui.form.get_open_grid_form();
+	open_form && open_form.hide_form();
+}
+
+
 frappe.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);

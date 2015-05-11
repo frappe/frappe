@@ -348,6 +348,7 @@ _f.Frm.prototype.refresh = function(docname) {
 				scroll(0, 0);
 				this.hide_print();
 			}
+			frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}
 
@@ -565,8 +566,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	btn && $(btn).prop("disabled", true);
 	$(document.activeElement).blur();
 
-	var open_form = frappe.ui.form.get_open_grid_form();
-	open_form && open_form.hide_form();
+	frappe.ui.form.close_grid_form();
 
 	// let any pending js process finish
 	var me = this;
