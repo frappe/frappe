@@ -108,7 +108,7 @@ def add(email, sender, subject, formatted, text_content=None,
 
 def check_bulk_limit(recipients):
 	this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
-		month(creation)=month(%s)""" % nowdate())[0][0]
+		MONTH(creation)=MONTH(CURDATE())""")[0][0]
 
 	# No limit for own email settings
 	smtp_server = SMTPServer()
