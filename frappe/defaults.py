@@ -178,10 +178,8 @@ def _clear_cache(parent):
 		frappe.clear_cache(user=parent)
 
 def clear_cache(user=None):
-	to_clear = []
 	if user:
-		to_clear = [user]
-		for p in (to_clear + common_keys):
-			frappe.cache().hdel("default", p)
+		for p in ([user] + common_keys):
+			frappe.cache().hdel("defaults", p)
 	elif frappe.flags.in_install!="frappe":
-		frappe.cache().delete_key("default")
+		frappe.cache().delete_key("defaults")
