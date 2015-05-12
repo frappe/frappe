@@ -224,7 +224,7 @@ class Database:
 
 		if len(query_lower) > 1:
 			for q in query_lower[1:]:
-				if q.strip().split()[0] in (
+				if q.strip() and q.strip().split()[0] in (
 					"update",
 					"truncate",
 					"alter",
