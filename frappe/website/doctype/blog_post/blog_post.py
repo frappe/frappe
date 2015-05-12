@@ -124,9 +124,9 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	conditions = []
 	if filters:
 		if filters.by:
-			conditions.append('t1.blogger="%s"' % filters.by)
+			conditions.append('t1.blogger="%s"' % frappe.db.escape(filters.by))
 		if filters.category:
-			conditions.append('t1.blog_category="%s"' % get_blog_category(filters.category))
+			conditions.append('t1.blog_category="%s"' % frappe.db.escape(get_blog_category(filters.category)))
 
 	if txt:
 		conditions.append('t1.content like "%{0}%"'.format(frappe.db.escape(txt)))
