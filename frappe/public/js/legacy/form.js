@@ -642,7 +642,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 				}
 			}, btn, on_error);
 		});
-	});
+	}, on_error);
 };
 
 _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
@@ -668,7 +668,7 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 			}
 			frappe.ui.form.save(me, "cancel", after_cancel, btn);
 		});
-	});
+	}, on_error);
 }
 
 // delete the record

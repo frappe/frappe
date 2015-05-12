@@ -82,8 +82,6 @@ frappe.ui.form.States = Class.extend({
 					var new_state = frappe.workflow.get_document_state(me.frm.doctype, next_state);
 					var new_docstatus = cint(new_state.doc_status);
 
-					// update field and value
-					console.log(new_state);
 
 					if(new_state.update_field) {
 						me.frm.set_value(new_state.update_field, new_state.update_value);
@@ -91,6 +89,7 @@ frappe.ui.form.States = Class.extend({
 
 					// revert state on error
 					var on_error = function() {
+						console.log("here", doc_before_action);
 						// reset in locals
 						frappe.model.add_to_locals(doc_before_action);
 						me.frm.refresh();

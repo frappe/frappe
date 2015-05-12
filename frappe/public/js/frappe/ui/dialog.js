@@ -66,10 +66,14 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	set_primary_action: function(label, click) {
 		this.has_primary_action = true;
+		var me = this;
 		return this.get_primary_btn()
 			.removeClass("hide")
 			.html(label)
-			.click(click);
+			.click(function() {
+				me.primary_action_fulfilled = true;
+				click();
+			});
 	},
 	make_head: function() {
 		var me = this;
@@ -81,18 +85,25 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	show: function() {
 		// show it
 		this.$wrapper.modal("show");
+		this.primary_action_fulfilled = false;
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
 	},
+	get_close_btn: function() {
+		return this.$wrapper.find(".btn-modal-close");
+	},
 	no_cancel: function() {
-		this.$wrapper.find('.close').toggle(false);
+		this.get_close_btn().toggle(false);
+	},
+	cancel: function() {
+		this.get_close_btn().trigger("click");
 	}
 });
 
 // close open dialogs on ESC
 $(document).bind('keydown', function(e) {
 	if(cur_dialog && !cur_dialog.no_cancel_flag && e.which==27) {
-		cur_dialog.hide();
+		cur_dialog.cancel();
 	}
 });

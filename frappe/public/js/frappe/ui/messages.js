@@ -25,11 +25,20 @@ frappe.confirm = function(message, ifyes, ifno) {
 			{fieldtype:"HTML", options:"<p class='frappe-confirm-message'>" + message + "</p>"}
 		],
 		primary_action_label: __("Yes"),
-		primary_action: function() { d.hide(); ifyes(); }
+		primary_action: function() {
+			ifyes();
+			d.hide();
+		}
 	});
 	d.show();
+
+	// no if closed without primary action
 	if(ifno) {
-		d.$wrapper.find(".modal-footer .btn-default").click(ifno);
+		d.onhide = function() {
+			if(!d.primary_action_fulfilled) {
+				ifno();
+			}
+		};
 	}
 	return d;
 }
