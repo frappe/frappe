@@ -625,7 +625,7 @@ class Database:
 	def set_temp(self, value):
 		"""Set a temperory value and return a key."""
 		key = frappe.generate_hash()
-		frappe.cache().hset("temp", value)
+		frappe.cache().hset("temp", key, value)
 		return key
 
 	def get_temp(self, key):
