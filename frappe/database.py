@@ -17,6 +17,7 @@ import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
+import sqlparse
 
 class Database:
 	"""
@@ -220,21 +221,8 @@ class Database:
 		if frappe.flags.in_install_db or frappe.flags.in_install:
 			return
 
-		query_lower = query.lower().split(";")
-
-		if len(query_lower) > 1:
-			for q in query_lower[1:]:
-				if q.strip() and q.strip().split()[0] in (
-					"update",
-					"truncate",
-					"alter",
-					"drop",
-					"create",
-					"begin",
-					"start transaction",
-					"commit"
-				):
-					frappe.throw(_("Cannot have more than one SQL statement in a query."), frappe.SQLError)
+		if ";" in query and len(sqlparse.parse(query)) > 1:
+			frappe.throw(_("Cannot have more than one SQL statement in a query."), frappe.SQLError)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
