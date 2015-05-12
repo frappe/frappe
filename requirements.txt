@@ -25,3 +25,4 @@ pdfkit
 babel
 ipython
 click
+sqlparse
