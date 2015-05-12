@@ -5,7 +5,8 @@
 	{% for(var i=0, l=all_modules.length; i < l; i++) {
 		var module_name = all_modules[i];
 		var module = frappe.get_module(module_name);
-		if (desktop_items.indexOf(module_name)===-1 || module.force_show) { continue; }
+		if (desktop_items.indexOf(module_name)===-1
+            || frappe.user.is_module_blocked(module_name)) { continue; }
 	%}
 	<div class="list-group-item" data-label="{%= module.label %}" data-name="{%= module.name %}">
 		<div class="checkbox">

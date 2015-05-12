@@ -168,7 +168,7 @@ $.extend(frappe.user, {
 
 			// filter_blocked_modules
 			user_list = $.map(user_list, function(m) {
-				if(frappe.boot.user.block_modules && frappe.boot.user.block_modules.indexOf(m)!==-1) {
+				if(frappe.user.is_module_blocked(m)) {
 					return null;
 				} else {
 					return m;
@@ -178,6 +178,9 @@ $.extend(frappe.user, {
 			frappe.user.modules = user_list;
 		}
 		return frappe.user.modules;
+	},
+	is_module_blocked: function(m) {
+		return frappe.boot.user.block_modules && frappe.boot.user.block_modules.indexOf(m)!==-1;
 	},
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);

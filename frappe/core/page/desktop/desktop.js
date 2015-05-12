@@ -49,7 +49,7 @@ $.extend(frappe.desktop, {
 			_id: "all_applications",
 			color: "#4aa3df",
 			link: "",
-			//force_show: true,
+			force_show: true,
 			onclick: function() {
 				me.all_applications.show();
 			}
