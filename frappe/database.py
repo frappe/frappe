@@ -104,6 +104,9 @@ class Database:
 		# in transaction validations
 		self.check_transaction_status(query)
 
+		# prevent multiple queries in one
+		self.prevent_multiple_queries(query)
+
 		# autocommit
 		if auto_commit: self.commit()
 
@@ -199,7 +202,7 @@ class Database:
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
 		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
 			raise Exception, 'This statement can cause implicit commit'
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
@@ -212,6 +215,26 @@ class Database:
 					frappe.db.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
+
+	def prevent_multiple_queries(self, query):
+		if frappe.flags.in_install_db or frappe.flags.in_install:
+			return
+
+		query_lower = query.lower().split(";")
+
+		if len(query_lower) > 1:
+			for q in query_lower[1:]:
+				if q.strip().split()[0] in (
+					"update",
+					"truncate",
+					"alter",
+					"drop",
+					"create",
+					"begin",
+					"start transaction",
+					"commit"
+				):
+					frappe.throw(_("Cannot have more than one SQL statement in a query."), frappe.SQLError)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
