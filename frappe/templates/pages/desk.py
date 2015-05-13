@@ -7,7 +7,7 @@ no_sitemap = 1
 no_cache = 1
 base_template_path = "templates/pages/desk.html"
 
-import os, json, re
+import os, re
 import frappe
 from frappe import _
 import frappe.sessions

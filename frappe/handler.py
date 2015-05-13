@@ -15,6 +15,10 @@ def version():
 	return frappe.__version__
 
 @frappe.whitelist()
+def ping():
+	return "pong"
+
+@frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	frappe.desk.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
 
