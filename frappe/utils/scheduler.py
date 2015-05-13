@@ -79,6 +79,7 @@ def enqueue_applicable_events(site, nowtime, last):
 
 	if nowtime.hour != last.hour:
 		trigger_if_enabled(site, "hourly")
+		trigger_if_enabled(site, "hourly_long")
 
 	trigger_if_enabled(site, "all")
 
