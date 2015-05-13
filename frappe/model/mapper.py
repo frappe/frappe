@@ -59,6 +59,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
+	target_doc.set_onload("load_after_mapping", True)
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):

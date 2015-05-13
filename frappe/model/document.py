@@ -705,4 +705,6 @@ class Document(BaseDocument):
 			return []
 
 	def set_onload(self, key, value):
+		if not self.get("__onload"):
+			self.set("__onload", {})
 		self.get("__onload")[key] = value
