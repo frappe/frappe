@@ -14,7 +14,7 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime
 from frappe import _
-import sqlparse
+from types import StringType, UnicodeType
 
 class Database:
 	"""
@@ -52,6 +52,9 @@ class Database:
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[unicode]
 
+		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
+		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
 			self.use(self.user)
@@ -81,9 +84,6 @@ class Database:
 
 		# in transaction validations
 		self.check_transaction_status(query)
-
-		# prevent multiple queries in one
-		self.prevent_multiple_queries(query)
 
 		# autocommit
 		if auto_commit: self.commit()
@@ -181,13 +181,6 @@ class Database:
 					frappe.db.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
-
-	def prevent_multiple_queries(self, query):
-		if frappe.flags.in_install_db or frappe.flags.in_install:
-			return
-
-		if ";" in query and len(sqlparse.parse(query)) > 1:
-			frappe.throw(_("Cannot have more than one SQL statement in a query."), frappe.SQLError)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		result = self._cursor.fetchall()
