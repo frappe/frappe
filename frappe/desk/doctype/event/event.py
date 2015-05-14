@@ -131,7 +131,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				# repeat for all years in period
 				for year in range(start_year, end_year+1):
 					date = str(year) + "-" + event_start
-					if date >= start and date <= end and date <= repeat:
+					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) and getdate(date) <= getdate(repeat):
 						add_event(e, date)
 
 				remove_events.append(e)
@@ -148,7 +148,8 @@ def get_events(start, end, user=None, for_reminder=False):
 
 				start_from = date
 				for i in xrange(int(date_diff(end, start) / 30) + 3):
-					if date >= start and date <= end and getdate(date) <= repeat and date >= event_start:
+					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
+						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
 					date = add_months(start_from, i+1)
 
@@ -163,7 +164,8 @@ def get_events(start, end, user=None, for_reminder=False):
 				date = add_days(start, weekday - start_weekday)
 
 				for cnt in xrange(int(date_diff(end, start) / 7) + 3):
-					if date >= start and date <= end and getdate(date) <= repeat and date >= event_start:
+					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
+						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
 
 					date = add_days(date, 7)
@@ -173,8 +175,8 @@ def get_events(start, end, user=None, for_reminder=False):
 			if e.repeat_on=="Every Day":
 				for cnt in xrange(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
-					if date >= event_start and date <= end and getdate(date) <= repeat \
-						and e[weekdays[getdate(date).weekday()]]:
+					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) \
+						and getdate(date) <= getdate(repeat) and e[weekdays[getdate(date).weekday()]]:
 						add_event(e, date)
 				remove_events.append(e)
 
