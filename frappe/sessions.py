@@ -214,13 +214,16 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe._dict(frappe.cache().hget("session", self.sid) or {})
+		data = frappe.cache().hget("session", self.sid)
 		if data:
+			data = frappe._dict(data)
 			session_data = data.get("data", {})
+			frappe.session.user = session_data.get("user")
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
 				session_data.get("last_updated"))
 			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
-
+			frappe.session.user = None
+			
 			if self.time_diff > expiry:
 				self.delete_session()
 				data = None
