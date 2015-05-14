@@ -49,12 +49,15 @@ def get_new_messages():
 def get_notifications_for_modules(config, notification_count):
 	open_count_module = {}
 	for m in config.for_module:
-		if m in notification_count:
-			open_count_module[m] = notification_count[m]
-		else:
-			open_count_module[m] = frappe.get_attr(config.for_module[m])()
+		try:
+			if m in notification_count:
+				open_count_module[m] = notification_count[m]
+			else:
+				open_count_module[m] = frappe.get_attr(config.for_module[m])()
 
-			frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count_module[m])
+				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count_module[m])
+		except frappe.PermissionError, e:
+			frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
 	return open_count_module
 
