@@ -223,7 +223,7 @@ def prepare_for_update():
 
 @click.command('run-patch')
 @click.argument('module')
-@click.pass_context
+@pass_context
 def run_patch(context, module):
 	"Run a particular patch"
 	import frappe.modules.patch_handler
