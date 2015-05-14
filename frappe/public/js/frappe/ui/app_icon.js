@@ -12,9 +12,10 @@ frappe.ui.app_icon = {
 		var module = modules[app]
 		var icon = module.icon;
 		var color = module.color;
+		console.log(frappe.urllib.get_full_url(icon));
 		if(icon.split(".").slice(-1)[0]==="svg") {
 			$.ajax({
-				url: icon,
+				url: frappe.urllib.get_full_url(icon),
 				dataType: "text",
 				async: false,
 				success: function(data) {

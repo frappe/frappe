@@ -180,9 +180,19 @@ frappe.urllib = {
 
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
-		var url= window.location.href.split('#')[0].split('?')[0].split('desk')[0];
+		var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
+	},
+
+	// returns absolute url
+	get_full_url: function(url) {
+		if(url.indexOf("http://")===0 || url.indexOf("https://")===0) {
+			return url;
+		}
+		return url.substr(0,1)==="/" ?
+			(frappe.urllib.get_base_url() + url) :
+			(frappe.urllib.get_base_url() + "/" + url);
 	}
 }
 

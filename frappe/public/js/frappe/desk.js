@@ -1,10 +1,16 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-$(document).ready(function() {
+frappe.start_app = function() {
+	if(!frappe.Application)
+		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	$.extend(frappe.app, new frappe.Application());
+}
+
+$(document).ready(function() {
+	frappe.start_app();
 });
 
 frappe.Application = Class.extend({
@@ -23,9 +29,9 @@ frappe.Application = Class.extend({
 		this.set_rtl();
 
 		if(frappe.boot) {
-			if(localStorage.getItem("session_lost_route")) {
-				window.location.hash = localStorage.getItem("session_lost_route");
-				localStorage.removeItem("session_lost_route");
+			if(localStorage.getItem("session_last_route")) {
+				window.location.hash = localStorage.getItem("session_last_route");
+				localStorage.removeItem("session_last_route");
 			}
 
 		}
@@ -78,8 +84,7 @@ frappe.Application = Class.extend({
 
 	check_metadata_cache_status: function() {
 		if(frappe.boot.metadata_version != localStorage.metadata_version) {
-			localStorage.clear();
-			console.log("Cleared Cache - New Metadata");
+			frappe.assets.clear_local_storage();
 			frappe.assets.init_local_storage();
 		}
 	},

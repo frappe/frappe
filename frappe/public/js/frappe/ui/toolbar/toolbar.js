@@ -136,7 +136,7 @@ frappe.ui.toolbar.update_notifications = function() {
 }
 
 frappe.ui.toolbar.clear_cache = function() {
-	localStorage && localStorage.clear();
+	frappe.assets.clear_local_storage();
 	$c('frappe.sessions.clear',{},function(r,rt){
 		if(!r.exc) {
 			show_alert(r.message);

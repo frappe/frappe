@@ -7,11 +7,11 @@ frappe.breadcrumbs = {
 	preferred: {},
 
 	set_doctype_module: function(doctype, module) {
-		localStorage["preferred_breadcrumbs" + ":" + doctype] = module;
+		localStorage["preferred_breadcrumbs:" + doctype] = module;
 	},
 
 	get_doctype_module: function(doctype) {
-		return localStorage["preferred_breadcrumbs" + ":" + doctype];
+		return localStorage["preferred_breadcrumbs:" + doctype];
 	},
 
 	add: function(module, doctype, type) {
