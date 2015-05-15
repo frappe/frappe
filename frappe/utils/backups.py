@@ -37,7 +37,7 @@ class BackupGenerator:
 		"""
 		#Check if file exists and is less than a day old
 		#If not Take Dump
-		if not force:	
+		if not force:
 			last_db, last_file = self.get_recent_backup(older_than)
 		else:
 			last_db, last_file = False, False
@@ -147,7 +147,7 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 	return odb
 
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False):
-	delete_temp_backups(older_than=168)
+	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 48)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = frappe.db.host)
