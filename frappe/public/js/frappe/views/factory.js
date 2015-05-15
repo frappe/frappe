@@ -13,6 +13,7 @@ frappe.views.Factory = Class.extend({
 			me = this;
 		if(frappe.pages[page_name] && page_name.indexOf("Form/")===-1) {
 			frappe.container.change_to(frappe.pages[page_name]);
+			if(me.on_show) me.on_show();
 		} else {
 			var route = frappe.get_route();
 			if(route[1]) {

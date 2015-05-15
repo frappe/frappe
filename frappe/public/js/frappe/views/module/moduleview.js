@@ -9,7 +9,11 @@ frappe.views.ModuleFactory = frappe.views.Factory.extend({
 		var module = route[1];
 		frappe.views.moduleview[module] = parent;
 		new frappe.views.moduleview.ModuleView(module);
+		this.on_show();
 	},
+	on_show: function() {
+		frappe.breadcrumbs.last_module = frappe.get_route()[1];
+	}
 });
 
 frappe.views.moduleview.ModuleView = Class.extend({
