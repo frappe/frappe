@@ -7,7 +7,7 @@ da	dansk
 de	deutsch
 el	ελληνικά
 es	español
-en	English
+en	english
 fa	پارسی
 fr	français
 he	עברית
