@@ -131,9 +131,9 @@
 			box-shadow: none;
 		}
 
-		select.form-control {
-			text-indent: -2px;
-		}
+		// select.form-control {
+		// 	text-indent: -2px;
+		// }
 	}
 
 	// timeline
@@ -197,7 +197,15 @@
 			width: 100%;
 
 			.list-row-indicator {
-				top: 0;
+				top: 5;
+
+				// bigger indicators for list
+				.indicator::before, .indicator::after {
+					height: 14px;
+					width: 14px;
+					border-radius: 13px;
+				}
+
 			}
 		}
 	}

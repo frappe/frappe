@@ -152,9 +152,6 @@ body {
   .form-page .form-control:focus {
     box-shadow: none;
   }
-  .form-page select.form-control {
-    text-indent: -2px;
-  }
   .timeline {
     border-left: none !important;
     border-right: none !important;
@@ -203,7 +200,13 @@ body {
     width: 100%;
   }
   .doclist-row .list-row-right.no-right-column .list-row-indicator {
-    top: 0;
+    top: 5;
+  }
+  .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::before,
+  .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::after {
+    height: 14px;
+    width: 14px;
+    border-radius: 13px;
   }
   body[data-route^="messages"] .navbar-center {
     display: block !important;
