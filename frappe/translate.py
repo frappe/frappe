@@ -25,7 +25,7 @@ def guess_language(lang_codes):
 
 	for l in lang_codes:
 		code = l.strip()
-		if code in lang_list:
+		if code in lang_list or code == "en":
 			guess = code
 			break
 
