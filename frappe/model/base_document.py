@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, sys
 from frappe import _
-from frappe.utils import cint, flt, now, cstr, strip_html, getdate, get_datetime
+from frappe.utils import cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
@@ -538,6 +538,9 @@ class BaseDocument(object):
 
 		elif df.fieldtype == "Datetime":
 			val = get_datetime(val)
+
+		elif df.fieldtype == "Time":
+			val = to_timedelta(val)
 
 		return val
 
