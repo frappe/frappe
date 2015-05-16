@@ -123,7 +123,7 @@ def get_enabled_scheduler_events():
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
 		return json.loads(enabled_events)
-	return ["all", "hourly", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
+	return ["all", "hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
 
 def is_scheduler_disabled():
 	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
