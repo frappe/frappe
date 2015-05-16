@@ -54,6 +54,13 @@ def get_datetime(datetime_str=None):
 
 	return parser.parse(datetime_str)
 
+def to_timedelta(time_str):
+	if isinstance(time_str, basestring):
+		t = parser.parse(time_str)
+		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+
+	else:
+		return time_str
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
