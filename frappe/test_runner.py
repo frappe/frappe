@@ -138,6 +138,8 @@ def make_test_records(doctype, verbose=0, force=False):
 			continue
 
 		if not frappe.local.test_objects.get(options):
+			if options in frappe.local.test_objects:
+				frappe.throw("Circular Reference for {0}".format(options))
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
