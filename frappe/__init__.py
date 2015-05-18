@@ -119,6 +119,7 @@ def init(site, sites_path=None):
 
 	local.user = None
 	local.user_obj = None
+	local.session = None
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
