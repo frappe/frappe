@@ -104,13 +104,15 @@ def time_diff_in_seconds(string_ed_date, string_st_date):
 def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
-def now_datetime():
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
+def now_datetime(user=None):
+	return convert_utc_to_user_timezone(datetime.datetime.utcnow(), user=None)
 
-def _get_user_time_zone():
+def _get_user_time_zone(user=None):
 	user_time_zone = None
-	if frappe.session.user:
-		user_time_zone = frappe.db.get_value("User", frappe.session.user, "time_zone")
+	if not user:
+		user = frappe.session and frappe.session.user
+	if user:
+		user_time_zone = frappe.db.get_value("User", user, "time_zone")
 
 	if not user_time_zone:
 		user_time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
@@ -118,17 +120,20 @@ def _get_user_time_zone():
 
 	return user_time_zone
 
-def get_user_time_zone():
+def get_user_time_zone(user=None):
+	if not user:
+		user = frappe.session and frappe.session.user
+
 	if frappe.local.flags.in_test:
-		return _get_user_time_zone()
+		return _get_user_time_zone(user)
 
-	return frappe.cache().hget("time_zone", frappe.session.user, _get_user_time_zone)
+	return frappe.cache().hget("time_zone", user, _get_user_time_zone)
 
-def convert_utc_to_user_timezone(utc_timestamp):
+def convert_utc_to_user_timezone(utc_timestamp, user=None):
 	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(get_user_time_zone()))
+		return utcnow.astimezone(timezone(get_user_time_zone(user)))
 	except UnknownTimeZoneError:
 		return utcnow
 
