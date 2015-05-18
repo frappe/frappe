@@ -200,13 +200,13 @@ body {
     width: 100%;
   }
   .doclist-row .list-row-right.no-right-column .list-row-indicator {
-    top: 5;
+    top: 5px;
   }
   .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::before,
   .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::after {
     height: 14px;
     width: 14px;
-    border-radius: 13px;
+    border-radius: 14px;
   }
   body[data-route^="messages"] .navbar-center {
     display: block !important;
