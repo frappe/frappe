@@ -137,7 +137,7 @@ def make_test_records(doctype, verbose=0, force=False):
 		if options == "[Select]":
 			continue
 
-		if options not in frappe.local.test_objects:
+		if not frappe.local.test_objects.get(options):
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
