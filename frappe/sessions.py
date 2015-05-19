@@ -158,7 +158,7 @@ class Session:
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
-			self.data.update({
+			self.data.data.update({
 				"last_updated": frappe.utils.now(),
 				"session_expiry": get_expiry_period(self.device),
 				"full_name": self.full_name,
