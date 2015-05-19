@@ -57,9 +57,6 @@ class Database:
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
 
-		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
-
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
 			self.use(self.user)
