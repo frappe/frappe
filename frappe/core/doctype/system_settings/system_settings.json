@@ -72,6 +72,15 @@
    "permlevel": 0
   }, 
   {
+   "default": "720:00", 
+   "description": "In Hours", 
+   "fieldname": "session_expiry_mobile", 
+   "fieldtype": "Data", 
+   "label": "Session Expiry Mobile", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "description": "Run scheduled jobs only if checked", 
    "fieldname": "enable_scheduler", 
    "fieldtype": "Check", 
@@ -91,7 +100,7 @@
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2015-05-03 10:35:04.415621", 
+ "modified": "2015-05-18 05:11:38.759688", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "System Settings", 

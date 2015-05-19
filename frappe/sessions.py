@@ -54,7 +54,8 @@ def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = frappe.session.user
 
-	for sid in frappe.db.sql("""select sid from tabSessions where user=%s""", (user,)):
+	for sid in frappe.db.sql("""select sid from tabSessions where user=%s and device=%s""",
+		(user, frappe.session.device or "desktop")):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
@@ -75,9 +76,11 @@ def clear_all_sessions():
 
 def clear_expired_sessions():
 	"""This function is meant to be called from scheduler"""
-	for sid in frappe.db.sql_list("""select sid
-		from tabSessions where TIMEDIFF(NOW(), lastupdate) > TIME(%s)""", get_expiry_period()):
-		delete_session(sid)
+	for device in ("desktop", "mobile"):
+		for sid in frappe.db.sql_list("""select sid from tabSessions
+				where TIMEDIFF(NOW(), lastupdate) > TIME(%s)
+				and device = %s""", (device, get_expiry_period(device))):
+			delete_session(sid)
 
 def get():
 	"""get session boot info"""
@@ -128,6 +131,7 @@ class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
+		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
 		self.full_name = full_name
 		self.data = frappe._dict({'data': frappe._dict({})})
@@ -154,11 +158,14 @@ class Session:
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
-			self.data.data.last_updated = frappe.utils.now()
-			self.data.data.session_expiry = get_expiry_period()
-			self.data.data.full_name = self.full_name
-			self.data.data.user_type = self.user_type
-		self.data.data.session_country = get_geo_ip_country(frappe.local.request_ip)
+			self.data.update({
+				"last_updated": frappe.utils.now(),
+				"session_expiry": get_expiry_period(self.device),
+				"full_name": self.full_name,
+				"user_type": self.user_type,
+				"device": self.device,
+				"session_country": get_geo_ip_country(frappe.local.request_ip)
+			})
 
 		# insert session
 		if self.user!="Guest":
@@ -171,9 +178,9 @@ class Session:
 
 	def insert_session_record(self):
 		frappe.db.sql("""insert into tabSessions
-			(sessiondata, user, lastupdate, sid, status)
-			values (%s , %s, NOW(), %s, 'Active')""",
-				(str(self.data['data']), self.data['user'], self.data['sid']))
+			(sessiondata, user, lastupdate, sid, status, device)
+			values (%s , %s, NOW(), %s, 'Active', %s)""",
+				(str(self.data['data']), self.data['user'], self.data['sid'], self.device))
 
 		# also add to memcache
 		frappe.cache().hset("session", self.data.sid, self.data)
@@ -218,6 +225,8 @@ class Session:
 		if data:
 			data = frappe._dict(data)
 			session_data = data.get("data", {})
+
+			# set user for correct timezone
 			frappe.session.user = session_data.get("user")
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
 				session_data.get("last_updated"))
@@ -234,7 +243,7 @@ class Session:
 		rec = frappe.db.sql("""select user, sessiondata
 			from tabSessions where sid=%s and
 			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
-				get_expiry_period()))
+				get_expiry_period(self.device)))
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
@@ -286,8 +295,14 @@ class Session:
 
 		return updated_in_db
 
-def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
+def get_expiry_period(device="desktop"):
+	if device=="desktop":
+		key = "session_expiry"
+		default = "06:00:00"
+	else:
+		key = "session_expiry_mobile"
+		default = "720:00:00"
+	exp_sec = frappe.defaults.get_global_default(key) or default
 
 	# incase seconds is missing
 	if len(exp_sec.split(':')) == 2:
