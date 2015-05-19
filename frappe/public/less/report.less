@@ -1,0 +1,59 @@
+@import "variables.less";
+
+// grid report
+.grid-report .plot {
+	margin: 15px;
+	display: none;
+	height: 300px !important;
+	width: 97% !important;
+}
+
+.grid-report .ui-widget {
+	border: none !important;
+	outline: none !important;
+	border-top: 1px solid @border-color !important;
+	background-color: @light-bg !important;
+}
+
+.grid-report .show-zero {
+	margin: 10px;
+	display: none
+}
+
+// column picker
+.column-picker-dialog {
+	.column-list {
+		margin: 15px -15px;
+		border-top: 1px solid @border-color;
+		border-bottom: 1px solid @border-color;
+
+		.column-list-item {
+			padding: 10px;
+			cursor: move;
+			border-bottom: 1px solid @border-color;
+		}
+
+		.column-list-item:last-child {
+			border-bottom: none;
+		}
+
+		.drag-handle {
+			margin: 0px 7px;
+			position: relative;
+			top: -1px;
+		}
+
+		.form-control {
+			display: inline-block;
+			width: 89%;
+		}
+
+		.close {
+			margin: 2px 7px 0px;
+		}
+	}
+
+	.add-btn {
+		margin-bottom: 2px;
+	}
+}

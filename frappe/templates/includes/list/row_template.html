@@ -1,0 +1,7 @@
+{% set doc = frappe.get_doc(doc) %}
+{% set subject = doc.get(meta.title_field or "name") %}
+<div class="web-list-item">
+    <a class="no-decoration" href="/{{ doc.get_route() }}" no-pjax>
+        <p>{{ subject }}</p>
+    </a>
+</div>

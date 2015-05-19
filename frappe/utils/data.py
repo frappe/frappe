@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -8,36 +8,78 @@ import frappe
 import operator
 import re, urllib, datetime, math
 import babel.dates
+from dateutil import parser
+from num2words import num2words
+
+DATE_FORMAT = "%Y-%m-%d"
+TIME_FORMAT = "%H:%M:%S.%f"
+DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
 # datetime functions
-def getdate(string_date):
+def getdate(string_date=None):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
-	if isinstance(string_date, datetime.date):
-		return string_date
+	if not string_date:
+		return get_datetime().date()
 
-	elif isinstance(string_date, datetime.datetime):
+	if isinstance(string_date, datetime.datetime):
 		return string_date.date()
 
-	if " " in string_date:
-		string_date = string_date.split(" ")[0]
+	elif isinstance(string_date, datetime.date):
+		return string_date
 
-	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
+	# dateutil parser does not agree with dates like 0000-00-00
+	if not string_date or string_date=="0000-00-00":
+		return None
+
+	return parser.parse(string_date).date()
+
+def get_datetime(datetime_str=None):
+	if not datetime_str:
+		return datetime.datetime.now()
+
+	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
+		return datetime_str
+
+	elif isinstance(datetime_str, (list, tuple)):
+		return datetime.datetime(datetime_str)
+
+	elif isinstance(datetime_str, datetime.date):
+		return datetime.datetime.combine(datetime_str, datetime.time())
+
+	# dateutil parser does not agree with dates like 0000-00-00
+	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+		return None
+
+	return parser.parse(datetime_str)
+
+def to_timedelta(time_str):
+	if isinstance(time_str, basestring):
+		t = parser.parse(time_str)
+		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+
+	else:
+		return time_str
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
-	format = isinstance(date, basestring)
-	if date:
-		date = getdate(date)
-	else:
-		raise Exception, "Start date required"
-
 	from dateutil.relativedelta import relativedelta
-	date += relativedelta(years=years, months=months, days=days)
 
-	if format:
-		return date.strftime("%Y-%m-%d")
+	as_string, as_datetime = False, False
+	if isinstance(date, basestring):
+		as_string = True
+		if " " in date:
+			as_datetime = True
+		date = parser.parse(date)
+
+	date = date + relativedelta(years=years, months=months, days=days)
+
+	if as_string:
+		if as_datetime:
+			return date.strftime(DATETIME_FORMAT)
+		else:
+			return date.strftime(DATE_FORMAT)
 	else:
 		return date
 
@@ -62,45 +104,57 @@ def time_diff_in_seconds(string_ed_date, string_st_date):
 def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
-def now_datetime():
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
+def now_datetime(user=None):
+	return convert_utc_to_user_timezone(datetime.datetime.utcnow(), user=None)
 
-def get_user_time_zone():
-	if getattr(frappe.local, "user_time_zone", None) is None:
-		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
+def _get_user_time_zone(user=None):
+	user_time_zone = None
+	if not user:
+		user = frappe.session and frappe.session.user
+	if user:
+		user_time_zone = frappe.db.get_value("User", user, "time_zone")
 
-	if not frappe.local.user_time_zone:
-		frappe.local.user_time_zone = frappe.db.get_default('time_zone') or 'Asia/Calcutta'
-		frappe.cache().set_value("time_zone", frappe.local.user_time_zone)
+	if not user_time_zone:
+		user_time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
+			or "Asia/Kolkata")
 
-	return frappe.local.user_time_zone
+	return user_time_zone
 
-def convert_utc_to_user_timezone(utc_timestamp):
+def get_user_time_zone(user=None):
+	if not user:
+		user = frappe.session and frappe.session.user
+
+	if frappe.local.flags.in_test:
+		return _get_user_time_zone(user)
+
+	return frappe.cache().hget("time_zone", user, _get_user_time_zone)
+
+def convert_utc_to_user_timezone(utc_timestamp, user=None):
 	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(get_user_time_zone()))
+		return utcnow.astimezone(timezone(get_user_time_zone(user)))
 	except UnknownTimeZoneError:
 		return utcnow
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
 	if getattr(frappe.local, "current_date", None):
-		return getdate(frappe.local.current_date).strftime("%Y-%m-%d") + " " + \
-			now_datetime().strftime('%H:%M:%S.%f')
+		return getdate(frappe.local.current_date).strftime(DATE_FORMAT) + " " + \
+			now_datetime().strftime(TIME_FORMAT)
 	else:
-		return now_datetime().strftime('%Y-%m-%d %H:%M:%S.%f')
+		return now_datetime().strftime(DATETIME_FORMAT)
 
 def nowdate():
 	"""return current date as yyyy-mm-dd"""
-	return now_datetime().strftime('%Y-%m-%d')
+	return now_datetime().strftime(DATE_FORMAT)
 
 def today():
 	return nowdate()
 
 def nowtime():
 	"""return current time in hh:mm"""
-	return now_datetime().strftime('%H:%M:%S.%f')
+	return now_datetime().strftime(TIME_FORMAT)
 
 def get_first_day(dt, d_years=0, d_months=0):
 	"""
@@ -122,27 +176,25 @@ def get_last_day(dt):
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
-def get_datetime(datetime_str):
-	try:
-		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
 
-	except TypeError:
-		if isinstance(datetime_str, datetime.datetime):
-			return datetime_str.replace(tzinfo=None)
-		else:
-			raise
-
-	except ValueError:
-		if datetime_str=='0000-00-00 00:00:00.000000':
-			return None
-
-		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+def get_time(time_str):
+	if isinstance(time_str, datetime.datetime):
+		return time_str.time()
+	elif isinstance(time_str, datetime.time):
+		return time_str
+	return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
 		datetime_obj = get_datetime(datetime_obj)
 
-	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S.%f')
+	return datetime_obj.strftime(DATETIME_FORMAT)
+
+def get_user_format():
+	if getattr(frappe.local, "user_format", None) is None:
+		frappe.local.user_format = frappe.db.get_default("date_format")
+
+	return frappe.local.user_format or "yyyy-mm-dd"
 
 def formatdate(string_date=None, format_string=None):
 	"""
@@ -156,21 +208,20 @@ def formatdate(string_date=None, format_string=None):
 		 * dd/mm/yyyy
 	"""
 	date = getdate(string_date) if string_date else now_datetime().date()
+	if not format_string:
+		format_string = get_user_format().replace("mm", "MM")
 
-	if format_string:
-		return babel.dates.format_date(date, format_string or "medium", locale=(frappe.local.lang or "").replace("-", "_"))
-	else:
-		if getattr(frappe.local, "user_format", None) is None:
-			frappe.local.user_format = frappe.db.get_default("date_format")
+	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
-		out = frappe.local.user_format or "yyyy-mm-dd"
+def format_datetime(datetime_string, format_string=None):
+	if not datetime_string:
+		return
 
-		try:
-			return out.replace("dd", date.strftime("%d"))\
-				.replace("mm", date.strftime("%m"))\
-				.replace("yyyy", date.strftime("%Y"))
-		except ValueError, e:
-			raise frappe.ValidationError, str(e)
+	datetime = get_datetime(datetime_string)
+	if not format_string:
+		format_string = get_user_format().replace("mm", "MM") + " hh:mm:ss"
+
+	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
@@ -259,7 +310,7 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	number_format = None
 	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format")
+		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
 
 	if not number_format:
 		number_format = frappe.db.get_default("number_format") or "#,###.##"
@@ -329,6 +380,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	Returns string in words with currency and fraction currency.
 	"""
 	from frappe.utils import get_defaults
+	_ = frappe._
 
 	if not number or flt(number) < 0:
 		return ""
@@ -337,14 +389,14 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or "Cent"
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
 
 	n = "%.2f" % flt(number)
 	main, fraction = n.split('.')
 	if len(fraction)==1: fraction += '0'
 
 
-	number_format = frappe.db.get_value("Currency", main_currency, "number_format") or \
+	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
 
 	in_million = True
@@ -352,9 +404,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 
 	out = main_currency + ' ' + in_words(main, in_million).title()
 	if cint(fraction):
-		out = out + ' and ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
 
-	return out + ' only.'
+	return out + ' ' + _('only.')
 
 #
 # convert number to words
@@ -363,58 +415,13 @@ def in_words(integer, in_million=True):
 	"""
 	Returns string in words for the given integer.
 	"""
-	n=int(integer)
-	known = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
-		11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
-		19: 'nineteen', 20: 'twenty', 30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty', 70: 'seventy', 80: 'eighty', 90: 'ninety'}
-
-	def psn(n, known, xpsn):
-		import sys;
-		if n in known: return known[n]
-		bestguess, remainder = str(n), 0
-
-		if n<=20:
-			frappe.errprint(sys.stderr)
-			frappe.errprint(n)
-			frappe.errprint("How did this happen?")
-			assert 0
-		elif n < 100:
-			bestguess= xpsn((n//10)*10, known, xpsn) + '-' + xpsn(n%10, known, xpsn)
-			return bestguess
-		elif n < 1000:
-			bestguess= xpsn(n//100, known, xpsn) + ' ' + 'hundred'
-			remainder = n%100
-		else:
-			if in_million:
-				if n < 1000000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + 'thousand'
-					remainder = n%1000
-				elif n < 1000000000:
-					bestguess= xpsn(n//1000000, known, xpsn) + ' ' + 'million'
-					remainder = n%1000000
-				else:
-					bestguess= xpsn(n//1000000000, known, xpsn) + ' ' + 'billion'
-					remainder = n%1000000000
-			else:
-				if n < 100000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + 'thousand'
-					remainder = n%1000
-				elif n < 10000000:
-					bestguess= xpsn(n//100000, known, xpsn) + ' ' + 'lakh'
-					remainder = n%100000
-				else:
-					bestguess= xpsn(n//10000000, known, xpsn) + ' ' + 'crore'
-					remainder = n%10000000
-		if remainder:
-			if remainder >= 100:
-				comma = ','
-			else:
-				comma = ''
-			return bestguess + comma + ' ' + xpsn(remainder, known, xpsn)
-		else:
-			return bestguess
-
-	return psn(n, known, psn)
+	locale = 'en_IN' if not in_million else frappe.local.lang
+	integer = int(integer)
+	try:
+		ret = num2words(integer, lang=locale)
+	except NotImplementedError:
+		ret = num2words(integer, lang='en')
+	return ret.replace('-', ' ')
 
 def is_html(text):
 	out = False
@@ -452,8 +459,8 @@ def pretty_date(iso_datetime):
 	import math
 
 	if isinstance(iso_datetime, basestring):
-		iso_datetime = datetime.datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S.%f')
-	now_dt = datetime.datetime.strptime(now(), '%Y-%m-%d %H:%M:%S.%f')
+		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
+	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
 	dt_diff = now_dt - iso_datetime
 
 	# available only in python 2.7+
@@ -534,6 +541,9 @@ def get_url(uri=None, full_address=False):
 	url = urllib.basejoin(host_name, uri) if uri else host_name
 
 	return url
+
+def get_host_name():
+	return get_url().rsplit("//", 1)[-1]
 
 def get_url_to_form(doctype, name, label=None):
 	if not label: label = name

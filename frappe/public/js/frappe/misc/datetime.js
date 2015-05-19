@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide('frappe.datetime');
@@ -9,7 +9,8 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	str_to_obj: function(d) {
-		return moment(d, "YYYY-MM-DD HH:mm:ss")._d;
+		// zone hack to remove timezone diff added by momentjs
+		return moment(d, moment.defaultDatetimeFormat).zone(moment().zone())._d;
 	},
 
 	obj_to_str: function(d) {
@@ -88,11 +89,20 @@ $.extend(frappe.datetime, {
 	},
 
 	global_date_format: function(d) {
-		return moment(d).format('Do MMMM YYYY');
+		var m = moment(d);
+		if(m._f && m._f.indexOf("HH")!== -1) {
+			return m.format("Do MMMM YYYY, h:mma")
+		} else {
+			return m.format('Do MMMM YYYY');
+		}
 	},
 
 	get_today: function() {
 		return moment().format();
+	},
+
+	nowdate: function() {
+		return frappe.datetime.get_today();
 	},
 
 	now_time: function() {

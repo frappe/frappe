@@ -27,8 +27,8 @@
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('../frappe/css/font/fontawesome-webfont.eot?v=3.2.1');
-  src: url('../frappe/css/font/fontawesome-webfont.eot?#iefix&v=3.2.1') format('embedded-opentype'), url('../frappe/css/font/fontawesome-webfont.woff?v=3.2.1') format('woff'), url('../frappe/css/font/fontawesome-webfont.ttf?v=3.2.1') format('truetype'), url('../frappe/css/font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');
+  src: url('/assets/frappe/css/font/fontawesome-webfont.eot?v=3.2.1');
+  src: url('/assets/frappe/css/font/fontawesome-webfont.eot?#iefix&v=3.2.1') format('embedded-opentype'), url('/assets/frappe/css/font/fontawesome-webfont.woff?v=3.2.1') format('woff'), url('/assets/frappe/css/font/fontawesome-webfont.ttf?v=3.2.1') format('truetype'), url('/assets/frappe/css/font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -36,7 +36,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'FontAwesome';
-    src: url('../frappe/css/font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');
+    src: url('/assets/frappe/css/font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');
   }
 }
 

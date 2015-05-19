@@ -1,5 +1,7 @@
-.float-column {
-	width: 40%;
-	float: left;
-	margin-right: 9%;
+.data-import-tool {
+	padding: 15px;
+}
+
+.data-import-tool hr {
+	margin: 10px -15px;
 }

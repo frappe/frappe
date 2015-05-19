@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -8,6 +8,7 @@ from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
 from urllib import quote
 from frappe.website.router import resolve_route
+from frappe.website.doctype.website_theme.website_theme import add_website_theme
 
 class WebsiteSettings(Document):
 	def validate(self):
@@ -16,10 +17,11 @@ class WebsiteSettings(Document):
 		self.validate_home_page()
 
 	def validate_home_page(self):
-		if frappe.flags.in_install_app:
+		if frappe.flags.in_install:
 			return
 		if self.home_page and not resolve_route(self.home_page):
-			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+			self.home_page = ''
 
 	def validate_top_bar_items(self):
 		"""validate url in top bar items"""
@@ -42,14 +44,20 @@ class WebsiteSettings(Document):
 			footer_item.parent_label = None
 
 	def on_update(self):
+		self.clear_cache()
+
+	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
+		from frappe.sessions import clear_cache
+		clear_cache('Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()
 
 		# clears role based home pages
 		frappe.clear_cache()
+
 
 def get_website_settings():
 	hooks = frappe.get_hooks()
@@ -78,20 +86,18 @@ def get_website_settings():
 			where parent='Website Settings' and parentfield='footer_items'
 			order by idx asc""", as_dict=1),
 		"post_login": [
-			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "My Account", "url": "/me"},
+			{"class": "divider"},
+			{"label": "Logout", "url": "/?cmd=web_logout"}
 		]
 	})
 
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup", "no_sidebar"]:
+		"disable_signup"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
-
-	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/favicon.ico"
 
 	if settings.address:
 		context["footer_address"] = settings.address
@@ -112,4 +118,17 @@ def get_website_settings():
 
 	context.web_include_css = hooks.web_include_css or []
 
+	add_website_theme(context)
+
+	via_hooks = frappe.get_hooks("website_context")
+	for key in via_hooks:
+		context[key] = via_hooks[key]
+		if key not in ("top_bar_items", "footer_items", "post_login") \
+			and isinstance(context[key], (list, tuple)):
+			context[key] = context[key][0]
+
+	if not context.get("favicon"):
+		context["favicon"] = "/assets/frappe/images/favicon.png"
+
 	return context
+

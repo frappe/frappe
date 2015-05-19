@@ -1,17 +1,18 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // route urls to their virtual pages
 
 // re-route map (for rename)
-frappe.re_route = {};
+frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
+frappe.route_options = null;
 
 frappe.route = function() {
-	if(frappe.re_route[window.location.hash]) {
+	if(frappe.re_route[window.location.hash] !== undefined) {
 		// after saving a doc, for example,
 		// "New DocType 1" and the renamed "TestDocType", both exist in history
 		// now if we try to go back,
@@ -33,10 +34,11 @@ frappe.route = function() {
 	route = frappe.get_route();
 	frappe.route_history.push(route);
 
-	if(route[0] && frappe.views[route[0] + "Factory"]) {
+	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
 		// has a view generator, generate!
-		if(!frappe.view_factory[route[0]])
+		if(!frappe.view_factory[route[0]]) {
 			frappe.view_factory[route[0]] = new frappe.views[route[0] + "Factory"]();
+		}
 
 		frappe.view_factory[route[0]].show();
 	} else {
@@ -45,7 +47,7 @@ frappe.route = function() {
 	}
 
 	if(frappe.route_titles[window.location.hash]) {
-		document.title = frappe.route_titles[window.location.hash];
+		frappe.utils.set_title(frappe.route_titles[window.location.hash]);
 	}
 }
 
@@ -101,7 +103,7 @@ frappe.set_route = function() {
 	window.location.hash = route;
 
 	// Set favicon (app.js)
-	frappe.app.set_favicon();
+	frappe.app.set_favicon && frappe.app.set_favicon();
 }
 
 frappe.set_re_route = function() {
@@ -115,7 +117,7 @@ frappe._cur_route = null;
 
 $(window).on('hashchange', function() {
 	// save the title
-	frappe.route_titles[frappe._cur_route] = document.title;
+	frappe.route_titles[frappe._cur_route] = frappe._original_title || document.title;
 
 	if(window.location.hash==frappe._cur_route)
 		return;

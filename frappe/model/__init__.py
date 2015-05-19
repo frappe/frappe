@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # model __init__.py
@@ -7,24 +7,14 @@ import frappe
 import json
 
 
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image', 'Fold']
-default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
-integer_docfield_properties = ["reqd", "search_index", "in_list_view", "permlevel", "hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide", "in_filter", "no_copy", "print_hide"]
-
-def insert(doclist):
-	if not isinstance(doclist, list):
-		doclist = [doclist]
-
-	for d in doclist:
-		if isinstance(d, dict):
-			d["__islocal"] = 1
-		else:
-			d.set("__islocal", 1)
-
-	wrapper = frappe.get_doc(doclist)
-	wrapper.save()
-
-	return wrapper
+no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image', 'Fold', 'Heading')
+display_fieldtypes = ('Section Break', 'Column Break', 'HTML', 'Button', 'Image', 'Fold', 'Heading')
+default_fields = ('doctype','name','owner','creation','modified','modified_by',
+	'parent','parentfield','parenttype','idx','docstatus')
+integer_docfield_properties = ("reqd", "search_index", "in_list_view", "permlevel",
+	"hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide",
+	"in_filter", "no_copy", "print_hide", "unique")
+optional_fields = ("_user_tags", "_comments", "_assign", "_starred_by")
 
 def rename(doctype, old, new, debug=False):
 	import frappe.model.rename_doc
@@ -46,7 +36,6 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 	return l
 
 def db_exists(dt, dn):
-	import frappe
 	return frappe.db.exists(dt, dn)
 
 def delete_fields(args_dict, delete=0):
@@ -87,7 +76,7 @@ def delete_fields(args_dict, delete=0):
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
 
-	meta = frappe.get_meta(doctype)
+	meta = frappe.get_meta(doctype, cached=False)
 	new_field = meta.get_field(new_fieldname)
 	if not new_field:
 		print "rename_field: " + (new_fieldname) + " not found in " + doctype
@@ -108,12 +97,12 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 			frappe.db.sql("""update `tab%s` set `%s`=`%s`""" % \
 				(doctype, new_fieldname, old_fieldname))
 
+		update_reports(doctype, old_fieldname, new_fieldname)
+		update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
+
 	# update in property setter
 	frappe.db.sql("""update `tabProperty Setter` set field_name = %s
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
-
-	update_reports(doctype, old_fieldname, new_fieldname)
-	update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):

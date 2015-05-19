@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -64,7 +64,7 @@ def save_url(file_url, dt, dn):
 		"attached_to_doctype": dt,
 		"attached_to_name": dn
 	})
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
@@ -96,20 +96,32 @@ def extract_images_from_html(doc, fieldname):
 			filename = headers.split("filename=")[-1]
 		else:
 			mtype = headers.split(";")[0]
-			extn = mimetypes.guess_extension(mtype)
-			filename = random_string(7) + extn
+			filename = get_random_filename(content_type=mtype)
+
+		doctype = doc.parenttype if doc.parent else doc.doctype
+		name = doc.parent or doc.name
 
 		# TODO fix this
-		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
+		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
 	if content:
-		content = re.sub('<img\s*src=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
+
+def get_random_filename(extn=None, content_type=None):
+	if extn:
+		if not extn.startswith("."):
+			extn = "." + extn
+
+	elif content_type:
+		extn = mimetypes.guess_extension(content_type)
+
+	return random_string(7) + (extn or "")
 
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
@@ -124,7 +136,6 @@ def save_file(fname, content, dt, dn, decode=False):
 	content_hash = get_content_hash(content)
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
-
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
 		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
@@ -140,7 +151,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	})
 
 	f = frappe.get_doc(file_data)
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:

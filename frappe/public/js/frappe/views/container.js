@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // page container
@@ -14,18 +14,23 @@ frappe.views.Container = Class.extend({
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;
 
-		$(document).on("page-change", this.set_full_width);
+		var me = this;
+
+		$(document).on("page-change", function() {
+			// set data-route in body
+			$("body").attr("data-route", frappe.get_route_str());
+		});
+
+		$(document).bind('rename', function(event, dt, old_name, new_name) {
+			frappe.breadcrumbs.rename(dt, old_name, new_name);
+		});
 	},
-	add_page: function(label, onshow, onhide) {
+	add_page: function(label) {
 		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
 			.toggle(false)
 			.appendTo(this.container).get(0);
-		if(onshow)
-			$(page).bind('show', onshow);
-		if(onshow)
-			$(page).bind('hide', onhide);
 		page.label = label;
 		frappe.pages[label] = page;
 
@@ -63,7 +68,7 @@ frappe.views.Container = Class.extend({
 		// show new
 		if(!this.page || this.page != page) {
 			this.page = page;
-			//$(this.page).fadeIn();
+			// $(this.page).fadeIn(300);
 			$(this.page).toggle(true);
 		}
 
@@ -72,12 +77,10 @@ frappe.views.Container = Class.extend({
 		this.page._route = window.location.hash;
 		$(this.page).trigger('show');
 		scroll(0,0);
+		frappe.breadcrumbs.update();
+
 		return this.page;
 	},
-	set_full_width: function() {
-		// limit max-width to 970px for most pages
-		$("body").toggleClass("limit-container-width", !$(frappe.container.page).find(".app-page.full-width").length);
-	}
 });
 
 

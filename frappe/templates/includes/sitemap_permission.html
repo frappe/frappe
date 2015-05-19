@@ -1,8 +1,0 @@
-<tr class="sitemap-permission" data-user="{{ user.name }}">
-	<td>
-		{% include "templates/includes/user_display.html" %}
-	</td>
-	<td><input type="checkbox" data-perm="read" {% if user.read %}checked{% endif %}></td>
-	<td><input type="checkbox" data-perm="write" {% if user.write %}checked{% endif %}></td>
-	<td><input type="checkbox" data-perm="admin" {% if user.admin %}checked{% endif %}></td>
-</tr>

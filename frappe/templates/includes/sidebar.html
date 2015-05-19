@@ -1,12 +1,23 @@
-<div class="sidebar-exists"></div>
 {% if children -%}
 <div class="sidebar-items">
+{% if parents -%}
+<ul class="list-unstyled sidebar-menu sidebar-item">
+	<li>
+		<a href="{{ parents[-1].name | with_leading_slash }}" class="no-decoration">
+			<i class="icon-angle-left"></i> {{ _("Back") }}
+		</a>
+	</li>
+</ul>
+{%- endif %}
 {%- for child in children -%}
-<div class="sidebar-item">
-	<a href="{{ child.name }}" class="no-decoration {% if (pathname or "")==(child.name or "") %}active{% endif %}">
-		{{  child.title or child.page_title or (child.name or "").replace("_", " ").title() }}
-	</a>
-</div>
+<ul class="list-unstyled sidebar-menu sidebar-item">
+	<li>
+		<a href="{{ child.name | with_leading_slash }}" class="no-decoration
+			{% if (pathname or "")==(child.name or "") or (pathname and child.name and (pathname.startswith(child.name.lstrip("/")))) -%} active {%- endif %}">
+			{{  child.title or child.page_title or (child.name or "") }}
+		</a>
+	</li>
+</ul>
 {%- endfor -%}
 </div>
 {%- endif %}

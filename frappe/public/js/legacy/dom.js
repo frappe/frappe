@@ -1,8 +1,8 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 function $btn(parent, label, onclick, style, css_class, is_ajax) {
-	if(css_class==='green') css_class='btn-info';
+	if(css_class==='green') css_class='btn-primary';
 	return new frappe.ui.Button(
 		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
 	).btn;
@@ -42,9 +42,6 @@ function add_sel_options(s, list, sel_val, o_style) {
 }
 
 var $n = '\n';
-function set_title(t) {
-	document.title = (frappe.title_prefix ? (frappe.title_prefix + ' - ') : '') + t;
-}
 
 function $a(parent, newtag, className, cs, innerHTML, onclick) {
 	if(parent && parent.substr)parent = $i(parent);
@@ -183,9 +180,19 @@ frappe.urllib = {
 
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
-		var url= window.location.href.split('#')[0].split('?')[0].split('desk')[0];
+		var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
+	},
+
+	// returns absolute url
+	get_full_url: function(url) {
+		if(url.indexOf("http://")===0 || url.indexOf("https://")===0) {
+			return url;
+		}
+		return url.substr(0,1)==="/" ?
+			(frappe.urllib.get_base_url() + url) :
+			(frappe.urllib.get_base_url() + "/" + url);
 	}
 }
 

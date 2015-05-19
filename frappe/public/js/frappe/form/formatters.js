@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // for license information please see license.txt
@@ -54,7 +54,7 @@ frappe.form.formatters = {
 			? "" : format_currency(value, currency, docfield.precision || null), options);
 	},
 	Check: function(value) {
-		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";
+		return value ? "<i class='icon-ok'></i>" : "<i class='icon-remove'></i>";
 	},
 	Link: function(value, docfield, options) {
 		var doctype = docfield._options || docfield.options;
@@ -66,18 +66,19 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s" data-doctype="%(doctype)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
-				label: value,
-				icon: (options && options.no_icon) ? "" :
-					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
+				label: __(options && options.label || value)
 			});
 		} else {
 			return value;
 		}
 	},
 	Date: function(value) {
+		return value ? dateutil.str_to_user(value) : "";
+	},
+	Datetime: function(value) {
 		return value ? dateutil.str_to_user(value) : "";
 	},
 	Text: function(value) {
@@ -93,11 +94,19 @@ frappe.form.formatters = {
 			}
 
 			if(!match) {
-				return replace_newlines(value);
+				value = replace_newlines(value);
 			}
 		}
 
 		return frappe.form.formatters.Data(value);
+	},
+	StarredBy: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="avatar avatar-small" \
+				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'" alt="'+ frappe.user_info(v).abbr +'"></span>';
+		});
+		return html;
 	},
 	Tag: function(value) {
 		var html = "";
@@ -130,7 +139,7 @@ frappe.form.formatters = {
 		return frappe.form.formatters.Text(value);
 	},
 	TextEditor: function(value) {
-		return frappe.form.formatters.Text(frappe.utils.remove_script_and_style(value));
+		return frappe.form.formatters.Text(value);
 	},
 	Code: function(value) {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
@@ -149,6 +158,9 @@ frappe.form.formatters = {
 		} else {
 			return "<span class='label'>" + value + "</span>";
 		}
+	},
+	Email: function(value) {
+		return $("<div></div>").text(value).html();
 	}
 }
 
@@ -170,7 +182,12 @@ frappe.format = function(value, df, options, doc) {
 
 	formatter = df.formatter || frappe.form.get_formatter(fieldtype);
 
-	return formatter(value, df, options, doc);
+	var formatted = formatter(value, df, options, doc);
+
+	if (typeof formatted == "string")
+		formatted = frappe.utils.remove_script_and_style(formatted);
+
+	return formatted;
 }
 
 frappe.get_format_helper = function(doc) {

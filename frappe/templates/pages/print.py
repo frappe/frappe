@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -54,9 +54,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if isinstance(doc, basestring):
 		doc = frappe.get_doc(json.loads(doc))
 
-	doc.in_print = True
+	doc.flags.in_print = True
 
-	validate_print_permission(doc)
+	if not frappe.flags.ignore_print_permissions:
+		validate_print_permission(doc)
 
 	if hasattr(doc, "before_print"):
 		doc.before_print()
@@ -68,16 +69,36 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		meta = frappe.get_meta(doc.doctype)
 
 	jenv = frappe.get_jenv()
+	format_data, format_data_map = [], {}
+
+	# determine template
 	if print_format in ("Standard", standard_format):
-		template = jenv.get_template("templates/print_formats/standard.html")
+		template = "standard"
 	else:
-		template = jenv.from_string(get_print_format(doc.doctype,
-			print_format))
+		print_format = frappe.get_doc("Print Format", print_format)
+		if print_format.format_data:
+			# set format data
+			format_data = json.loads(print_format.format_data)
+			for df in format_data:
+				format_data_map[df.get("fieldname")] = df
+				if "visible_columns" in df:
+					for _df in df.get("visible_columns"):
+						format_data_map[_df.get("fieldname")] = _df
+
+			doc.format_data_map = format_data_map
+
+			template = "standard"
+		else:
+			template = jenv.from_string(get_print_format(doc.doctype,
+				print_format))
+
+	if template == "standard":
+		template = jenv.get_template("templates/print_formats/standard.html")
 
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
-		"layout": make_layout(doc, meta),
+		"layout": make_layout(doc, meta, format_data),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
 		"letter_head": get_letter_head(doc, no_letterhead)
@@ -89,14 +110,20 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 @frappe.whitelist()
 def download_pdf(doctype, name, format=None):
-	html = frappe.get_print_format(doctype, name, format)
+	html = frappe.get_print(doctype, name, format)
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = get_pdf(html)
 	frappe.local.response.type = "download"
 
 def validate_print_permission(doc):
+	if frappe.form_dict.get("key"):
+		if frappe.form_dict.key == doc.get_signature():
+			return
+
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(doc.doctype, ptype, doc):
+		if (not frappe.has_permission(doc.doctype, ptype, doc)
+			and not frappe.has_website_permission(doc.doctype, ptype, doc)):
+
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
 def get_letter_head(doc, no_letterhead):
@@ -107,35 +134,55 @@ def get_letter_head(doc, no_letterhead):
 	else:
 		return frappe.db.get_value("Letter Head", {"is_default": 1}, "content") or ""
 
-def get_print_format(doctype, format_name):
-	if format_name==standard_format:
-		return format_name
-
-	opts = frappe.db.get_value("Print Format", format_name, "disabled", as_dict=True)
-	if not opts:
-		frappe.throw(_("Print Format {0} does not exist").format(format_name), frappe.DoesNotExistError)
-	elif opts.disabled:
-		frappe.throw(_("Print Format {0} is disabled").format(format_name), frappe.DoesNotExistError)
+def get_print_format(doctype, print_format):
+	if print_format.disabled:
+		frappe.throw(_("Print Format {0} is disabled").format(print_format.name),
+			frappe.DoesNotExistError)
 
 	# server, find template
 	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
-		"Print Format", format_name), frappe.scrub(format_name) + ".html")
+		"Print Format", print_format.name), frappe.scrub(print_format.name) + ".html")
 
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		html = frappe.db.get_value("Print Format", format_name, "html")
-		if html:
-			return html
+		if print_format.html:
+			return print_format.html
 		else:
 			frappe.throw(_("No template found at path: {0}").format(path),
 				frappe.TemplateNotFoundError)
 
-def make_layout(doc, meta):
+def make_layout(doc, meta, format_data=None):
+	"""Builds a hierarchical layout object from the fields list to be rendered
+	by `standard.html`
+
+	:param doc: Document to be rendered.
+	:param meta: Document meta object (doctype).
+	:param format_data: Fields sequence and properties defined by Print Format Builder."""
 	layout, page = [], []
 	layout.append(page)
-	for df in meta.fields:
+
+	if format_data:
+		# extract print_heading_template from the first field
+		# and remove the field
+		if format_data[0].get("fieldname") == "print_heading_template":
+			doc.print_heading_template = format_data[0].get("options")
+			format_data = format_data[1:]
+
+	for df in format_data or meta.fields:
+		if format_data:
+			# embellish df with original properties
+			df = frappe._dict(df)
+			if df.fieldname:
+				original = meta.get_field(df.fieldname)
+				if original:
+					newdf = original.as_dict()
+					newdf.update(df)
+					df = newdf
+
+			df.print_hide = 0
+
 		if df.fieldtype=="Section Break" or page==[]:
 			page.append([])
 
@@ -145,7 +192,7 @@ def make_layout(doc, meta):
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
 
-		if is_visible(df) and has_value(df, doc):
+		if is_visible(df, doc) and has_value(df, doc):
 			page[-1][-1].append(df)
 
 			# if table, add the row info in the field
@@ -170,12 +217,20 @@ def make_layout(doc, meta):
 						page[-1][-1].append(df)
 
 	# filter empty sections
-	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), page) for page in layout]
+	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), pg) for pg in layout]
+
 	return layout
 
-def is_visible(df):
-	no_display = ("Section Break", "Column Break", "Button")
-	return (df.fieldtype not in no_display) and not df.get("__print_hide") and not df.print_hide
+def is_visible(df, doc):
+	"""Returns True if docfield is visible in print layout and does not have print_hide set."""
+	if df.fieldtype in ("Section Break", "Column Break", "Button"):
+		return False
+
+	if hasattr(doc, "hide_in_print_layout"):
+		if df.fieldname in doc.hide_in_print_layout:
+			return False
+
+	return not doc.is_print_hide(df.fieldname, df)
 
 def has_value(df, doc):
 	value = doc.get(df.fieldname)
@@ -198,26 +253,39 @@ def get_print_style(style=None):
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
 	try:
-		additional_css = frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
-
-		# move @import to top
-		for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", additional_css))):
-			additional_css = additional_css.replace(at_import, "")
-
-			# prepend css with at_import
-			css = at_import + css
-
-		css += "\n" + additional_css
+		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
 	except TemplateNotFound:
 		pass
 
+	# move @import to top
+	for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", css))):
+		css = css.replace(at_import, "")
+
+		# prepend css with at_import
+		css = at_import + css
+
 	return css
 
-def get_visible_columns(data, table_meta):
+def get_visible_columns(data, table_meta, df):
+	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
-	for tdf in table_meta.fields:
-		if is_visible(tdf) and column_has_value(data, tdf.fieldname):
-			columns.append(tdf)
+	doc = data[0] or frappe.new_doc(df.options)
+	def add_column(col_df):
+		return is_visible(col_df, doc) \
+			and column_has_value(data, col_df.get("fieldname"))
+
+	if df.get("visible_columns"):
+		# columns specified by column builder
+		for col_df in df.get("visible_columns"):
+			# load default docfield properties
+			newdf = table_meta.get_field(col_df.get("fieldname")).as_dict().copy()
+			newdf.update(col_df)
+			if add_column(newdf):
+				columns.append(newdf)
+	else:
+		for col_df in table_meta.fields:
+			if add_column(col_df):
+				columns.append(col_df)
 
 	return columns
 

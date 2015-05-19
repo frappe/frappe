@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -34,7 +34,9 @@ def after_install():
 			"icon": "remove", "style": "Danger"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
-		{'doctype': "Workflow Action", "workflow_action_name": "Review"}
+		{'doctype': "Workflow Action", "workflow_action_name": "Review"},
+		{'doctype': "Email Account", "email_id": "notifications@example.com", "default_outgoing": 1},
+		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
 	for d in install_docs:
@@ -43,12 +45,19 @@ def after_install():
 		except frappe.NameError:
 			pass
 
+	import_country_and_currency()
+
+	# save default print setting
+	print_settings = frappe.get_doc("Print Settings")
+	print_settings.save()
+
 	# all roles to admin
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
 
 	# update admin password
 	from frappe.auth import _update_password
 	_update_password("Administrator", get_admin_password())
+
 
 	frappe.db.commit()
 
@@ -72,3 +81,41 @@ def before_tests():
 	frappe.db.sql("delete from `tabEvent`")
 	frappe.db.commit()
 	frappe.clear_cache()
+
+def import_country_and_currency():
+	from frappe.geo.country_info import get_all
+	from frappe.utils import update_progress_bar
+
+	data = get_all()
+
+	for i, name in enumerate(data):
+		update_progress_bar("Updating country info", i, len(data))
+		country = frappe._dict(data[name])
+		add_country_and_currency(name, country)
+
+	print
+
+	# enable frequently used currencies
+	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
+		frappe.db.set_value("Currency", currency, "enabled", 1)
+
+def add_country_and_currency(name, country):
+	if not frappe.db.exists("Country", name):
+		frappe.get_doc({
+			"doctype": "Country",
+			"country_name": name,
+			"code": country.code,
+			"date_format": country.date_format or "dd-mm-yyyy",
+			"time_zones": "\n".join(country.timezones or [])
+		}).db_insert()
+
+	if country.currency and not frappe.db.exists("Currency", country.currency):
+		frappe.get_doc({
+			"doctype": "Currency",
+			"currency_name": country.currency,
+			"fraction": country.currency_fraction,
+			"symbol": country.currency_symbol,
+			"fraction_units": country.currency_fraction_units,
+			"number_format": country.number_format
+		}).db_insert()
+

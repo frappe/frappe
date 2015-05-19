@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.perm");
@@ -9,7 +9,7 @@ var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "set_user_permissions"],
+		"report", "import", "export", "print", "email", "share", "set_user_permissions"],
 
 	doctype_perm: {},
 
@@ -59,6 +59,24 @@ $.extend(frappe.perm, {
 					perm[0][ptype] = val;
 				});
 			}
+
+			// apply permissions from shared
+			if(docinfo.shared) {
+				for(var i=0; i<docinfo.shared; i++) {
+					var s = docinfo.shared[i];
+					if(s.user===user) {
+						perm[0]["read"] = s.read;
+						perm[0]["write"] = s.write;
+						perm[0]["share"] = s.share;
+
+					}
+				}
+			}
+		}
+
+		if(frappe.model.can_read(doctype) && !perm[0].read) {
+			// read via sharing
+			perm[0].read = 1;
 		}
 
 		return perm;
@@ -133,14 +151,19 @@ $.extend(frappe.perm, {
 
 		var user_permissions = frappe.defaults.get_user_permissions();
 		if(user_permissions && !$.isEmptyObject(user_permissions)) {
-			var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes[ptype],
-				user_permissions);
+			if(perm[0].user_permission_doctypes) {
+				var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes[ptype],
+					user_permissions);
+			} else {
+				// json is not set, so give list of all doctypes
+				var user_permission_doctypes = [[doctype].concat(frappe.meta.get_linked_fields(doctype))];
+			}
 
 			$.each(user_permission_doctypes, function(i, doctypes) {
 				var rules = {};
 				var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, null, doctypes);
 				$.each(fields_to_check, function(i, df) {
-					rules[df.label] = user_permissions[df.options];
+					rules[df.label] = user_permissions[df.options] || [];
 				});
 				if (!$.isEmptyObject(rules)) {
 					match_rules.push(rules);
@@ -202,7 +225,9 @@ $.extend(frappe.perm, {
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {
-		if(!doc) return "Write";
+		if(!doc) {
+			return (df && cint(df.hidden)) ? "None": "Write";
+		}
 
 		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;

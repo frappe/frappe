@@ -1,14 +1,15 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 
 import frappe, json
+from frappe import _dict
+import frappe.share
 
 class User:
 	"""
-	A user object is created at the beginning of every request with details of the use.
-	The global user object is `frappe.user`
+	A user permission object can be accessed as `frappe.get_user()`
 	"""
 	def __init__(self, name=''):
 		self.defaults = None
@@ -30,12 +31,35 @@ class User:
 		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
+		self.setup_user()
+
+	def setup_user(self):
+		def get_user_doc():
+			user = None
+			try:
+				user = frappe.get_doc("User", self.name).as_dict()
+			except frappe.DoesNotExistError:
+				pass
+			except Exception, e:
+				# install boo-boo
+				if e.args[0] != 1146: raise
+
+			return user
+
+		if not frappe.flags.in_install_db and not frappe.flags.in_test:
+			user_doc = frappe.cache().hget("user_doc", self.name, get_user_doc)
+			if user_doc:
+				self.doc = frappe.get_doc(user_doc)
 
 	def get_roles(self):
 		"""get list of roles"""
 		if not self.roles:
 			self.roles = get_roles(self.name)
 		return self.roles
+
+	def get_block_modules(self):
+		"""Returns list of blocked modules"""
+		return [d.module for d in self.doc.block_modules] if self.doc.block_modules else []
 
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""
@@ -69,10 +93,14 @@ class User:
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
+		user_shared = frappe.share.get_shared_doctypes()
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
+
+			if not p.get("read") and (dt in user_shared):
+				p["read"] = 1
 
 			if not dtp.get('istable'):
 				if p.get('create') and not dtp.get('issingle'):
@@ -110,7 +138,16 @@ class User:
 		self.can_write += self.can_create
 		self.can_write += self.in_create
 		self.can_read += self.can_write
+
+		self.shared = frappe.db.sql_list("""select distinct share_doctype from `tabDocShare`
+			where `user`=%s and `read`=1""", self.name)
+		self.can_read = list(set(self.can_read + self.shared))
+
 		self.all_read += self.can_read
+
+		if "System Manager" in self.roles:
+			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
+				where allow_import = 1""")
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -119,7 +156,7 @@ class User:
 
 	# update recent documents
 	def update_recent(self, dt, dn):
-		rdl = frappe.cache().get_value("recent:" + self.name) or []
+		rdl = frappe.cache().hget("user_recent", self.name) or []
 		new_rd = [dt, dn]
 
 		# clear if exists
@@ -133,7 +170,8 @@ class User:
 			rdl = rdl[:19]
 
 		rdl = [new_rd] + rdl
-		r = frappe.cache().set_value("recent:" + self.name, rdl)
+
+		frappe.cache().hset("user_recent", self.name, rdl)
 
 	def _get(self, key):
 		if not self.can_read:
@@ -148,17 +186,18 @@ class User:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, time_zone,
-			email_signature, background_image, background_style, user_type, language
+			email_signature, user_type, language, background_image, background_style
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
 
 		d.name = self.name
-		d.recent = json.dumps(frappe.cache().get_value("recent:" + self.name) or [])
+		d.recent = json.dumps(frappe.cache().hget("user_recent", self.name) or [])
 
-		d['roles'] = self.get_roles()
-		d['defaults'] = self.get_defaults()
+		d.roles = self.get_roles()
+		d.defaults = self.get_defaults()
+		d.block_modules = self.get_block_modules()
 
 		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",
@@ -176,10 +215,10 @@ def get_user_fullname(user):
 def get_fullname_and_avatar(user):
 	first_name, last_name, avatar = frappe.db.get_value("User",
 		user, ["first_name", "last_name", "user_image"])
-	return {
+	return _dict({
 		"fullname": " ".join(filter(None, [first_name, last_name])),
 		"avatar": avatar
-	}
+	})
 
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
@@ -200,7 +239,7 @@ def get_system_managers(only_name=False):
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 
 def add_role(user, role):
-	user_wrapper = frappe.get_doc("User", user).add_roles(role)
+	frappe.get_doc("User", user).add_roles(role)
 
 def add_system_manager(email, first_name=None, last_name=None):
 	# add user
@@ -220,22 +259,29 @@ def add_system_manager(email, first_name=None, last_name=None):
 		where name not in ("Administrator", "Guest", "All")""")
 	user.add_roles(*roles)
 
-def get_roles(username=None, with_standard=True):
+def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
-	if not username:
-		username = frappe.session.user
+	if not user:
+		user = frappe.session.user
 
-	if username=='Guest':
+	if user=='Guest':
 		return ['Guest']
 
-	roles = frappe.cache().get_value("roles:" + username)
-	if not roles:
-		roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole
-			where parent=%s and role!='All'""", (username,))] + ['All']
-		frappe.cache().set_value("roles:" + username, roles)
+	def get():
+		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
+			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+
+	roles = frappe.cache().hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:
 		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
 
 	return roles
+
+def get_enabled_system_users():
+	return frappe.db.sql("""select * from tabUser where
+		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
+
+def is_website_user():
+	return frappe.get_user().doc.user_type == "Website User"

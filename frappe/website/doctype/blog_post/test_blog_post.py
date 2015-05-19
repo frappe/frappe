@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -30,9 +30,11 @@ class TestBlogPost(unittest.TestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.set_value("Blogger", "_Test Blogger 1", "user", None)
+
 		clear_user_permissions_for_doctype("Blog Category")
 		clear_user_permissions_for_doctype("Blog Post")
 		clear_user_permissions_for_doctype("Blogger")
+
 		frappe.db.sql("""update `tabDocPerm` set user_permission_doctypes=null
 			where parent='Blog Post' and permlevel=0 and apply_user_permissions=1
 			and `read`=1""")

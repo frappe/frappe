@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -80,8 +80,8 @@ class TestDataImport(unittest.TestCase):
 		content[-1][2] = "__Test Event"
 		content[-1][3] = "Private"
 		content[-1][4] = "2014-01-01 10:00:00.000000"
-		content[-1][content[15].index("person")] = "Administrator"
+		content[-1][content[15].index("role")] = "System Manager"
 		importer.upload(content)
 
 		ev = frappe.get_doc("Event", {"subject":"__Test Event"})
-		self.assertTrue("Administrator" in [d.person for d in ev.event_individuals])
+		self.assertTrue("System Manager" in [d.role for d in ev.roles])

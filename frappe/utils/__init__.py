@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # util __init__.py
@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 from werkzeug.test import Client
 import os, sys, re, urllib
 import frappe
+import requests
+
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -30,8 +32,11 @@ def getCSVelement(v):
 		return '"'+v+'"'
 	else: return v or ''
 
-def get_fullname(user):
+def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
+	if not user:
+		user = frappe.session.user
+
 	if not hasattr(frappe.local, "fullnames"):
 		frappe.local.fullnames = {}
 
@@ -61,7 +66,7 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_email_add(email_str):
+def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
 	if email_str and " " in email_str and "<" not in email_str:
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
@@ -73,7 +78,14 @@ def validate_email_add(email_str):
 	if not match:
 		return False
 
-	return match.group(0)==email.lower()
+	if match:
+		match = match.group(0)==email.lower()
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid email id").format(email),
+			frappe.InvalidEmailAddressError)
+
+	return email.lower()
 
 def random_string(length):
 	"""generate a random string"""
@@ -143,6 +155,10 @@ def remove_blanks(d):
 		del d[key]
 
 	return d
+
+def strip_html_tags(text):
+	"""Remove html tags from text"""
+	return re.sub("\<[^>]*\>", "", text)
 
 def pprint_dict(d, level=1, no_blanks=True):
 	"""
@@ -359,3 +375,26 @@ def get_html_format(print_path):
 
 	return html_format
 
+def is_markdown(text):
+	if "<!-- markdown -->" in text:
+		return True
+	elif "<!-- html -->" in text:
+		return False
+	else:
+		return not re.search("<p[\s]*>|<br[\s]*>", text)
+
+def get_sites(sites_path=None):
+	import os
+	if not sites_path:
+		sites_path = '.'
+	return [site for site in os.listdir(sites_path)
+			if os.path.isdir(os.path.join(sites_path, site))
+				and not site in ('assets',)]
+
+
+def get_request_session(max_retries=3):
+	from requests.packages.urllib3.util import Retry
+	session = requests.Session()
+	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
+	return session

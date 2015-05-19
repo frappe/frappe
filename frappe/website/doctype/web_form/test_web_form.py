@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 from __future__ import unicode_literals
 
@@ -13,9 +13,11 @@ test_records = frappe.get_test_records('Web Form')
 class TestWebForm(unittest.TestCase):
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
+		frappe.local.path = None
 
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
+		frappe.local.path = None
 
 	def test_basic(self):
 		frappe.set_user("Guest")

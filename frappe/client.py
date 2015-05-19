@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,6 +7,12 @@ from frappe import _
 import frappe.model
 import frappe.utils
 import json, os
+
+@frappe.whitelist()
+def get_list(doctype, fields=None, filters=None, order_by=None,
+	limit_start=None, limit_page_length=20):
+	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
+		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None):
@@ -26,9 +32,19 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	if fieldname and fieldname.startswith("["):
+	try:
+		filters = json.loads(filters)
+	except ValueError:
+		# name passed, not json
+		pass
+
+	try:
 		fieldname = json.loads(fieldname)
-	return frappe.db.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
+	except ValueError:
+		# name passed, not json
+		pass
+
+	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value):
@@ -36,7 +52,7 @@ def set_value(doctype, name, fieldname, value):
 		frappe.throw(_("Cannot edit standard fields"))
 
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-	if doc and doc.parent:
+	if doc and doc.parent and doc.parenttype:
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
 		child.set(fieldname, value)
@@ -53,30 +69,26 @@ def set_value(doctype, name, fieldname, value):
 	return doc.as_dict()
 
 @frappe.whitelist()
-def insert(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def insert(doc=None):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	if isinstance(doclist, dict):
-		doclist = [doclist]
-
-	if doclist[0].get("parent") and doclist[0].get("parenttype"):
+	if doc.get("parent") and doc.get("parenttype"):
 		# inserting a child record
-		d = doclist[0]
-		doc = frappe.get_doc(d["parenttype"], d["parent"])
-		doc.append(d)
-		doc.save()
-		return [d]
+		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent.append(doc)
+		parent.save()
+		return parent.as_dict()
 	else:
-		doc = frappe.get_doc(doclist).insert()
+		doc = frappe.get_doc(doc).insert()
 		return doc.as_dict()
 
 @frappe.whitelist()
-def save(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def save(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doclist).save()
+	doc = frappe.get_doc(doc).save()
 	return doc.as_dict()
 
 @frappe.whitelist()
@@ -85,14 +97,14 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 	return new_name
 
 @frappe.whitelist()
-def submit(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def submit(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	doclistobj = frappe.get_doc(doclist)
-	doclistobj.submit()
+	doc = frappe.get_doc(doc)
+	doc.submit()
 
-	return doclistobj.as_dict()
+	return doc.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):

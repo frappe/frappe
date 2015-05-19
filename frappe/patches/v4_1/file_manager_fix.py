@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -39,7 +39,7 @@ def execute():
 		except IOError:
 			print 'Warning: Error processing ', name
 			b.content_hash = None
-		b.ignore_duplicate_entry_error = True
+		b.flags.ignore_duplicate_entry_error = True
 		b.save()
 	frappe.db.auto_commit_on_many_writes = False
 

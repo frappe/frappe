@@ -1,0 +1,154 @@
+.no-result {
+  padding: 15px;
+}
+.result-list {
+  min-height: 200px;
+}
+.show_filters {
+  padding: 15px 15px 0px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.set-filters {
+  padding-bottom: 4px;
+}
+.set-filters .btn {
+  margin-bottom: 10px;
+}
+.set-filters .btn-group {
+  margin-right: 10px;
+}
+.set-filters .btn-group .btn-default {
+  background-color: transparent;
+  border: 1px solid #d1d8dd;
+  color: #8d99a6;
+}
+.filter-box {
+  border-top: 1px solid #d1d8dd;
+  margin: 0px -15px;
+  padding: 10px 15px 3px;
+}
+.filter-box .remove-filter {
+  margin-top: 6px;
+  margin-left: 15px;
+}
+.filter-box .filter_field {
+  padding-right: 15px;
+  width: calc(64%);
+}
+.ui-autocomplete .filter-field-select {
+  cursor: pointer;
+}
+.ui-autocomplete .filter-field-select p {
+  margin: 5px;
+}
+@media (min-width: 768px) {
+  .filter-box .row > div[class*="col-sm-"] {
+    padding-right: 0px;
+  }
+  .filter_field {
+    width: 65% !important;
+  }
+}
+.list-row {
+  padding: 9px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+  transition: color 0.2s;
+  -webkit-transition: color 0.2s;
+}
+.list-row .h6 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.list-row-head {
+  background-color: #f7fafc;
+  border-bottom: 1px solid #d1d8dd !important;
+}
+.list-row:hover,
+.grid-row:hover {
+  background: #f7fafc;
+}
+.list-row:last-child {
+  border-bottom: 0px;
+}
+.list-row-head {
+  background-color: #f7fafc;
+  border-bottom: 1px solid #d1d8dd !important;
+}
+.list-row .h6 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.list-item-col {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  height: 30px;
+  padding-top: 3px;
+}
+.list-paging-area {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+}
+.list-value {
+  vertical-align: middle;
+}
+.progress {
+  height: 10px;
+}
+.doclist-row {
+  font-size: 12px;
+}
+.doclist-row .docstatus .octicon {
+  font-size: 12px;
+}
+.doclist-row .progress {
+  margin-top: 12px;
+}
+.filterable {
+  cursor: pointer;
+}
+.doclist-row .label {
+  margin-right: 8px;
+}
+.list-info-row {
+  float: left;
+  margin-top: 1px;
+}
+.list-row-right .modified {
+  margin-top: 3px;
+}
+.list-row-right .list-row-modified {
+  margin-right: 9px;
+  margin-top: 3px;
+}
+.list-row-right {
+  margin-top: -2px;
+  margin-bottom: -4px;
+}
+.list-row-right .indicator {
+  margin-left: 10px;
+  margin-right: -5px;
+}
+.side-panel {
+  border-bottom: 1px solid #d1d8dd;
+  margin: 0px -15px;
+  padding: 5px 15px;
+}
+.listview-main-section .icon-star {
+  cursor: pointer;
+}
+.list-row-head .icon-star {
+  vertical-align: middle;
+}
+.star-action.icon-star {
+  color: #ffdb4c;
+}
+.list-id {
+  font-weight: bold;
+}
+.list-col {
+  height: 20px;
+}
+.list-value {
+  vertical-align: middle;
+}

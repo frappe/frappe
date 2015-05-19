@@ -1,10 +1,16 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-$(document).ready(function() {
+frappe.start_app = function() {
+	if(!frappe.Application)
+		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	$.extend(frappe.app, new frappe.Application());
+}
+
+$(document).ready(function() {
+	frappe.start_app();
 });
 
 frappe.Application = Class.extend({
@@ -13,46 +19,19 @@ frappe.Application = Class.extend({
 	},
 
 	load_startup: function() {
-		var me = this;
-		if(window.app) {
-			return frappe.call({
-				method: 'startup',
-				callback: function(r, rt) {
-					frappe.provide('frappe.boot');
-					frappe.boot = r;
-					if(frappe.boot.user.name==='Guest' || frappe.boot.user.user_type==="Website User") {
-						window.location = 'index';
-						return;
-					}
-					me.startup();
-				}
-			});
-		} else {
-			this.startup();
-		}
+		this.startup();
 	},
 	startup: function() {
-		// load boot info
 		this.load_bootinfo();
-
-		if(user!="Guest") this.set_user_display_settings();
-
-		// navbar
 		this.make_nav_bar();
-
-		// favicon
 		this.set_favicon();
-
 		this.setup_keyboard_shortcuts();
-
-		// control panel startup code
-		this.run_startup_js();
-
+		this.set_rtl();
 
 		if(frappe.boot) {
-			if(localStorage.getItem("session_lost_route")) {
-				window.location.hash = localStorage.getItem("session_lost_route");
-				localStorage.removeItem("session_lost_route");
+			if(localStorage.getItem("session_last_route")) {
+				window.location.hash = localStorage.getItem("session_last_route");
+				localStorage.removeItem("session_last_route");
 			}
 
 		}
@@ -69,16 +48,24 @@ frappe.Application = Class.extend({
 		this.start_notification_updates();
 
 		$(document).trigger('app_ready');
-	},
 
-	set_user_display_settings: function() {
-		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
-			frappe.boot.user.background_style);
+		if (frappe.boot.messages) {
+			frappe.msgprint(frappe.boot.messages);
+		}
+
+		if (frappe.boot.change_log && frappe.boot.change_log.length) {
+			this.show_change_log();
+		}
+
+		// ask to allow notifications
+		frappe.utils.if_notify_permitted();
 	},
 
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = frappe.boot.modules;
+			frappe.model.sync(frappe.boot.docs);
+			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
@@ -88,6 +75,8 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
+			// setup valid modules
+			frappe.user.get_user_desktop_items()
 		} else {
 			this.set_as_guest();
 		}
@@ -95,8 +84,7 @@ frappe.Application = Class.extend({
 
 	check_metadata_cache_status: function() {
 		if(frappe.boot.metadata_version != localStorage.metadata_version) {
-			localStorage.clear();
-			console.log("Cleared Cache - New Metadata");
+			frappe.assets.clear_local_storage();
 			frappe.assets.init_local_storage();
 		}
 	},
@@ -117,18 +105,44 @@ frappe.Application = Class.extend({
 	},
 
 	refresh_notifications: function() {
+		var me = this;
 		if(frappe.session_alive) {
 			return frappe.call({
-				method: "frappe.core.doctype.notification_count.notification_count.get_notifications",
+				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
 					if(r.message) {
 						$.extend(frappe.boot.notification_info, r.message);
 						$(document).trigger("notification-update");
+
+						// update in module views
+						me.update_notification_count_in_modules();
+
+						if(frappe.get_route()[0] != "messages") {
+							if(r.message.new_messages.length) {
+								$.each(r.message.new_messages, function(i, m) {
+									frappe.utils.notify(__("Message from {0}", [m.comment_by_fullname]),
+										m.comment);
+								});
+								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
+							}
+						}
 					}
 				},
-				no_spinner: true
+				freeze: false
 			});
 		}
+	},
+
+	update_notification_count_in_modules: function() {
+		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
+			if(count) {
+				$('.open-notification[data-doctype="'+ doctype +'"]')
+					.removeClass("hide").html(count);
+			} else {
+				$('.open-notification[data-doctype="'+ doctype +'"]')
+					.addClass("hide");
+			}
+		});
 	},
 
 	set_globals: function() {
@@ -179,6 +193,15 @@ frappe.Application = Class.extend({
 		if(frappe.boot) {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
+
+		// collapse offcanvas sidebars!
+		$(".offcanvas .sidebar").on("click", "a", function() {
+			$(".offcanvas").removeClass("active-left active-right");
+		});
+
+		$(".offcanvas-main-section-overlay").on("click", function() {
+			$(".offcanvas").removeClass("active-left active-right");
+		});
 	},
 	logout: function() {
 		var me = this;
@@ -206,7 +229,7 @@ frappe.Application = Class.extend({
 	setup_keyboard_shortcuts: function() {
 		$(document)
 			.keydown("meta+g ctrl+g", function(e) {
-				frappe.ui.toolbar.search.show();
+				$("#navbar-search").focus()
 				return false;
 			})
 			.keydown("meta+s ctrl+s", function(e) {
@@ -250,11 +273,58 @@ frappe.Application = Class.extend({
 					return false;
 				}
 			})
+			.keydown("ctrl+shift+r meta+shift+r", function(e) {
+				frappe.ui.toolbar.clear_cache();
+			});
 
 	},
 
-	run_startup_js: function() {
-		if(frappe.boot.startup_js)
-			eval(frappe.boot.startup_js);
+	set_rtl: function () {
+		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
+			$('body').addClass('frappe-rtl')
+		}
+	},
+
+	show_change_log: function() {
+		var d = frappe.msgprint(
+			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
+			__("Updated To New Version")
+		);
+		d.keep_open = true;
+		d.custom_onhide = function() {
+			frappe.call({
+				"method": "frappe.change_log.update_last_known_versions"
+			});
+		};
 	}
-})
+});
+
+frappe.get_module = function(m) {
+	var module = frappe.modules[m];
+	if (!module) {
+		return;
+	}
+
+	module.name = m;
+
+	if(module.type==="module" && !module.link) {
+		module.link = "Module/" + m;
+	}
+
+	if (!module.link) module.link = "";
+
+	if (!module._id) {
+		module._id = module.link.toLowerCase().replace("/", "-");
+	}
+
+
+	if(!module.label) {
+		module.label = m;
+	}
+
+	if(!module._label) {
+		module._label = __(module.label || module.name);
+	}
+
+	return module;
+};

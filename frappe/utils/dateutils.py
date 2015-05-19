@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -35,6 +35,10 @@ def user_to_str(date, date_format=None):
 def parse_date(date):
 	"""tries to parse given date to system's format i.e. yyyy-mm-dd. returns a string"""
 	parsed_date = None
+
+	if " " in date:
+		# as date-timestamp, remove the time part
+		date = date.split(" ")[0]
 
 	# why the sorting? checking should be done in a predictable order
 	check_formats = [None] + sorted(dateformats.keys(),

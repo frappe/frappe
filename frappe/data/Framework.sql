@@ -30,6 +30,7 @@ CREATE TABLE `tabDocField` (
   `print_hide` int(1) DEFAULT NULL,
   `report_hide` int(1) DEFAULT NULL,
   `reqd` int(1) DEFAULT NULL,
+  `unique` int(1) DEFAULT NULL,
   `no_copy` int(1) DEFAULT NULL,
   `allow_on_submit` int(1) DEFAULT NULL,
   `trigger` varchar(255) DEFAULT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE `tabDocField` (
   KEY `label` (`label`),
   KEY `fieldtype` (`fieldtype`),
   KEY `fieldname` (`fieldname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -72,22 +73,23 @@ CREATE TABLE `tabDocPerm` (
   `permlevel` int(11) DEFAULT '0',
   `role` varchar(255) DEFAULT NULL,
   `match` varchar(255) DEFAULT NULL,
-  `read` int(1) DEFAULT NULL,
-  `write` int(1) DEFAULT NULL,
-  `create` int(1) DEFAULT NULL,
+  `read` int(1) DEFAULT '1' NULL,
+  `write` int(1) DEFAULT '1' NULL,
+  `create` int(1) DEFAULT '1' NULL,
   `submit` int(1) DEFAULT NULL,
   `cancel` int(1) DEFAULT NULL,
-  `delete` int(1) DEFAULT NULL,
+  `delete` int(1) DEFAULT '1' NULL,
   `amend` int(1) DEFAULT NULL,
-  `report` int(1) DEFAULT NULL,
-  `export` int(1) DEFAULT NULL,
+  `report` int(1) DEFAULT '1' NULL,
+  `export` int(1) DEFAULT '1' NULL,
   `import` int(1) DEFAULT NULL,
-  `print` int(1) DEFAULT NULL,
-  `email` int(1) DEFAULT NULL,
+  `share` int(1) DEFAULT '1' NULL,
+  `print` int(1) DEFAULT '1' NULL,
+  `email` int(1) DEFAULT '1' NULL,
   `restrict` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabDocType`
@@ -149,7 +151,7 @@ CREATE TABLE `tabDocType` (
   `custom` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabSeries`
@@ -159,7 +161,7 @@ DROP TABLE IF EXISTS `tabSeries`;
 CREATE TABLE `tabSeries` (
   `name` varchar(100) DEFAULT NULL,
   `current` int(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -173,9 +175,10 @@ CREATE TABLE `tabSessions` (
   `sessiondata` longtext,
   `ipaddress` varchar(16) DEFAULT NULL,
   `lastupdate` datetime(6) DEFAULT NULL,
+  `device` varchar(255) DEFAULT 'desktop',
   `status` varchar(20) DEFAULT NULL,
   KEY `sid` (`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 --
@@ -188,7 +191,7 @@ CREATE TABLE `tabSingles` (
   `field` varchar(255) DEFAULT NULL,
   `value` text,
   KEY `singles_doctype_field_index` (`doctype`, `field`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `__Auth`
@@ -199,7 +202,7 @@ CREATE TABLE `__Auth` (
   `user` VARCHAR(255) NOT NULL PRIMARY KEY,
   `password` VARCHAR(255) NOT NULL,
   KEY `user` (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabFile Data`
@@ -227,7 +230,7 @@ CREATE TABLE `tabFile Data` (
   KEY `parent` (`parent`),
   KEY `attached_to_name` (`attached_to_name`),
   KEY `attached_to_doctype` (`attached_to_doctype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Table structure for table `tabDefaultValue`
@@ -250,4 +253,4 @@ CREATE TABLE `tabDefaultValue` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

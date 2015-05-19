@@ -2,15 +2,21 @@
 // Adapted from John Resig - http://ejohn.org/ - MIT Licensed
 
 frappe.template = {compiled: {}, debug:{}};
-frappe.template.compile = function(str) {
-	if(str.indexOf("'")!==-1) {
-		console.log("Warning: Single quotes (') may not work in templates");
-	}
-	if(!frappe.template.compiled[str]) {
-		fn_str = "var p=[],print=function(){p.push.apply(p,arguments)};" +
+frappe.template.compile = function(str, name) {
+	var key = name || str;
+
+	if(!frappe.template.compiled[key]) {
+		if(str.indexOf("'")!==-1) {
+			console.warn("Warning: Single quotes (') may not work in templates");
+		}
+
+		// repace jinja style tags
+		str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
+
+		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
-	        "with(obj){p.push('" +
+	        "with(obj){\n_p.push('" +
 
 	        // Convert the template into pure JavaScript
 	        str
@@ -18,14 +24,14 @@ frappe.template.compile = function(str) {
 	          .split("{%").join("\t")
 	          .replace(/((^|%})[^\t]*)'/g, "$1\r")
 	          .replace(/\t=(.*?)%}/g, "',$1,'")
-	          .split("\t").join("');")
-	          .split("%}").join("\np.push('")
+	          .split("\t").join("');\n")
+	          .split("%}").join("\n_p.push('")
 	          .split("\r").join("\\'")
-	      + "');}return p.join('');";
+	      + "');}return _p.join('');";
 
   		frappe.template.debug[str] = fn_str;
 		try {
-			frappe.template.compiled[str] = new Function("obj", fn_str);
+			frappe.template.compiled[key] = new Function("obj", fn_str);
 		} catch (e) {
 			console.log("Error in Template:");
 			console.log(fn_str);
@@ -36,8 +42,30 @@ frappe.template.compile = function(str) {
 		}
     }
 
-	return frappe.template.compiled[str];
+	return frappe.template.compiled[key];
 };
-frappe.render = function(str, data) {
-	return frappe.template.compile(str)(data);
+frappe.render = function(str, data, name) {
+	return frappe.template.compile(str, name)(data);
 };
+frappe.render_template = function(name, data) {
+	return frappe.render(frappe.templates[name], data, name);
+}
+frappe.render_grid = function(opts) {
+	// build context
+	if(opts.grid) {
+		opts.columns = opts.grid.getColumns();
+		opts.data = opts.grid.getData().getItems();
+	}
+
+	// render content
+	if(!opts.content) {
+		opts.content = frappe.render_template("print_grid", opts);
+	}
+
+	// render HTML wrapper page
+	var html = frappe.render_template("print_template", opts);
+
+	var w = window.open();
+	w.document.write(html);
+	w.document.close();
+}

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -31,6 +31,9 @@ class SessionStopped(Exception):
 
 class UnsupportedMediaType(Exception):
 	http_status_code = 415
+
+class Redirect(Exception):
+	http_status_code = 301
 
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass

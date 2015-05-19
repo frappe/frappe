@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -15,7 +15,7 @@ import frappe.translate
 # 		if not messages:
 # 			messages = frappe.translate.get_messages_from_page("finder")
 # 		self.assertTrue("Finder" in messages)
-# 		
+#
 # 	def test_report(self, messages=None):
 # 		if not messages:
 # 			messages = frappe.translate.get_messages_from_report("ToDo")
@@ -25,13 +25,13 @@ import frappe.translate
 # 		if not messages:
 # 			messages = frappe.translate.get_messages_from_include_files("frappe")
 # 		self.assertTrue("History" in messages)
-# 		
+#
 # 	def test_server(self, messages=None):
 # 		if not messages:
 # 			messages = frappe.translate.get_server_messages("frappe")
 # 		self.assertTrue("Login" in messages)
 # 		self.assertTrue("Did not save" in messages)
-# 		
+#
 # 	def test_all_app(self):
 # 		messages = frappe.translate.get_messages_for_app("frappe")
 # 		self.test_doctype(messages)
@@ -39,14 +39,14 @@ import frappe.translate
 # 		self.test_report(messages)
 # 		self.test_include_js(messages)
 # 		self.test_server(messages)
-# 		
+#
 # 	def test_load_translations(self):
 # 		frappe.translate.clear_cache()
-# 		self.assertFalse(frappe.cache().get_value("lang:de"))
-# 		
+# 		self.assertFalse(frappe.cache().hget("lang_full_dict", "de"))
+#
 # 		langdict = frappe.translate.get_full_dict("de")
 # 		self.assertEquals(langdict['Row'], 'Reihe')
-# 		
+#
 # 	def test_write_csv(self):
 # 		tpath = frappe.get_pymodule_path("frappe", "translations", "de.csv")
 # 		if os.path.exists(tpath):
@@ -54,7 +54,7 @@ import frappe.translate
 # 		frappe.translate.write_translations_file("frappe", "de")
 # 		self.assertTrue(os.path.exists(tpath))
 # 		self.assertEquals(dict(frappe.translate.read_csv_file(tpath)).get("Row"), "Reihe")
-# 		
+#
 # 	def test_get_dict(self):
 # 		frappe.local.lang = "de"
 # 		self.assertEquals(frappe.get_lang_dict("doctype", "Role").get("Role"), "Rolle")

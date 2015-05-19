@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide('frappe.views.pageview');
@@ -24,12 +24,13 @@ frappe.views.pageview = {
 		} else {
 			// get fresh
 			return frappe.call({
-				method: 'frappe.widgets.page.getpage',
+				method: 'frappe.desk.desk_page.getpage',
 				args: {'name':name },
 				callback: function(r) {
 					localStorage["_page:" + name] = JSON.stringify(r.docs);
 					callback();
-				}
+				},
+				freeze: true,
 			});
 		}
 	},
@@ -78,44 +79,66 @@ frappe.views.Page = Class.extend({
 			frappe.dom.set_style(this.pagedoc.style || '');
 		}
 
-		this.trigger('onload');
+		this.trigger_page_event('on_page_load');
 
 		// set events
-		$(this.wrapper).bind('show', function() {
+		$(this.wrapper).on('show', function() {
 			cur_frm = null;
-			me.trigger('onshow');
-			me.trigger('refresh');
+			me.trigger_page_event('on_page_show');
+			me.trigger_page_event('refresh');
 		});
 	},
-	trigger: function(eventname) {
+	trigger_page_event: function(eventname) {
 		var me = this;
-		if(pscript[eventname+'_'+this.name]) {
-			pscript[eventname+'_'+this.name](me.wrapper);
-		} else if(me.wrapper[eventname]) {
+		if(me.wrapper[eventname]) {
 			me.wrapper[eventname](me.wrapper);
 		}
 	}
 })
 
 frappe.show_not_found = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + __("Not Found"),
-		__("Sorry we were unable to find what you were looking for."));
+	frappe.show_message_page({
+		page_name: page_name,
+		message: __("Sorry! I could not find what you were looking for."),
+		img: "/assets/frappe/images/ui/bubble-tea-sorry.svg"
+	});
 }
 
 frappe.show_not_permitted = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +__("Not Permitted"),
-		__("Sorry you are not permitted to view this page."));
+	frappe.show_message_page({
+		page_name: page_name,
+		message: __("Sorry! You are not permitted to view this page."),
+		img: "/assets/frappe/images/ui/bubble-tea-sorry.svg",
+		// icon: "octicon octicon-circle-slash"
+	});
 }
 
-frappe.show_message_page = function(page_name, title, message) {
-	if(!page_name) page_name = frappe.get_route_str();
-	var page = frappe.pages[page_name] || frappe.container.add_page(page_name);
-	$(page).html('<div class="appframe">\
-		<div style="margin: 50px; text-align:center;">\
-			<h3>'+title+'</h3><br>\
-			<p>'+message+'</p><br>\
-			<p><a href="#">Home <i class="icon-home"></i></a></p>\
-		</div>\
-		</div>');
-	frappe.container.change_to(page_name);
+frappe.show_message_page = function(opts) {
+	// opts can include `page_name`, `message`, `icon` or `img`
+	if(!opts.page_name) {
+		opts.page_name = frappe.get_route_str();
+	}
+
+	if(opts.icon) {
+		opts.img = repl('<span class="%(icon)s message-page-icon"></span> ', opts);
+	} else if (opts.img) {
+		opts.img = repl('<img src="%(img)s" class="message-page-image">', opts);
+	}
+
+	var page = frappe.pages[opts.page_name] || frappe.container.add_page(opts.page_name);
+	$(page).html(
+		repl('<div class="page message-page">\
+			<div class="text-center message-page-content">\
+				%(img)s\
+				<p class="lead">%(message)s</p>\
+				<a class="btn btn-default btn-sm btn-home" href="#">%(home)s</a>\
+			</div>\
+		</div>', {
+			img: opts.img || "",
+			message: opts.message || "",
+			home: __("Home")
+		})
+	);
+
+	frappe.container.change_to(opts.page_name);
 }

@@ -5,31 +5,27 @@
 {% endblock %}
 
 {% block content %}
-{% if introduction_text %}
-<p class="lead">{{ introduction_text }}</p>
-<hr>
-{% endif %}
+<!-- no-sidebar -->
+<div class="introduction">
+    {% if introduction_text %}
+    <p class="lead">{{ introduction_text }}</p>
+    <hr>
+    {% endif %}
+</div>
 {% if login_required and frappe.user=="Guest" %}
-<div class="alert alert-info">
-	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+<div class="login-required">
+	<div class="text-muted">
+		{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+	</div>
+	<p>
+		<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
+			{{ _("Login") }}
+		</a>
+	</p>
 </div>
-<p>
-	<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
-		{{ _("Login") }}
-	</a>
-</p>
-{% elif (login_required and doc_name and not params.name) %}
-<div class="alert alert-info">
-	{{ _("{0} already exists").format(_(doc_type)) }}
-</div>
-<p>
-	<a href="{{ pathname }}?name={{ doc_name }}" class="btn btn-primary">
-		{{ _("Edit your record") }}
-	</a>
-</p>
 {% elif (login_required and allow_multiple and not params.name and not params.new) %}
 <p>
-	<a href="{{ pathname }}?new=1" class="btn btn-primary">
+	<a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new">
 		{{ _("New {0}").format(_(doc_type)) }}
 	</a>
 </p>
@@ -50,9 +46,9 @@
 </div>
 {% else %}
 
-{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ field.reqd and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
+{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
 
-{%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or "" }}{% endif %}{%- endmacro -%}
+{%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or field.default or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
 {% if field.description -%}
@@ -63,13 +59,13 @@
 {% macro label(field) %}<label for="{{ field.fieldname }}" class="col-sm-3 control-label">{{ field.label }}</label>{% endmacro %}
 
 
-<div class="form-message alert alert-info hide"></div>
+<div class="form-message text-muted hide"></div>
 <form class="form-horizontal" role="form"
 	data-web-form="{{ name }}">
 	{% if params.name and web_page_link_text %}
 	<div class="row">
 		<div class="col-sm-offset-3 col-sm-9">
-			<div class="alert alert-info">
+			<div class="text-muted">
 				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''  }}/{{ doc.page_name }}">
 					{{ web_page_link_text }}</a>
 			</div>
@@ -170,7 +166,7 @@
 	<div class="col-sm-offset-3 col-sm-9">
 		<hr>
 		<h3>{{ _("Comments") }}</h3>
-		{% include 'templates/includes/comments.html' %}
+		{% include 'templates/includes/comments/comments.html' %}
 	</div>
 </div>
 {%- endif %}
@@ -262,11 +258,11 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					$form.addClass("hide");
-					$(".comments").addClass("hide");
+					$(".comments, .introduction").addClass("hide");
 					scroll(0, 0);
 					$(".form-message")
-						.html("{{ success_message or 'Thank You!' }}"
-							+ '<p><a href="{{ success_url }}">Continue</a></p>')
+						.html('{{ success_message or _("Thank You") }}'
+							+ '<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
 						.removeClass("hide");
 				}
 				window.saving = false;
@@ -298,7 +294,7 @@ frappe.ready(function() {
 
 	// import date picker / timepicker if required
 	{% if "Date" in types %}
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery-ui.min.js");
 	frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
 	$form.find("[data-fieldtype='Date']").datepicker({
 		altFormat:'yy-mm-dd',

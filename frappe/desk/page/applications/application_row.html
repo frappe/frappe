@@ -1,0 +1,19 @@
+<div class="app-listing padding" data-title="{%= app.app_title %}">
+	<div class="media">
+		<div class="pull-right app-buttons">
+			{% if (app.installed) { %}
+			<button class="btn btn-default" disabled=disabled>{%= __("Installed") %}</button>
+			{% } else { %}
+			<button class="btn btn-primary install" data-app="{%= app.app_name %}">{%= __("Install") %}</button>
+			{% } %}
+		</div>
+		<div class="pull-left app-icon-wrapper">{%= app.app_icon %}</div>
+		<div class="media-body">
+			<h5 class="media-heading">{%= app.app_title %}</h5>
+			<div class="text-muted">
+				{%= app.app_description %}<br>
+				{%= __("Publisher") %}: {%= app.app_publisher %} | {%= __("Version") %}: {%= app.app_version %}
+			</div>
+		</div>
+	</div>
+</div>

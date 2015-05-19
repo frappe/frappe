@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -7,59 +7,61 @@ from frappe import _
 from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
-	if doc.name:
-		return
+	"""Sets the `name`` property for the document based on various rules.
 
-	# amendments
-	if getattr(doc, "amended_from", None):
-		return _get_amended_name(doc)
+	1. If amened doc, set suffix.
+	3. If `autoname` method is declared, then call it.
+	4. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
+	2. If `name` is already defined, use that name
+	5. If no rule defined, use hash.
 
-	elif hasattr(doc, "run_method"):
-		doc.run_method("autoname")
-		if doc.name:
-			return
+	#### Note:
+
+	:param doc: Document to be named."""
+
+	doc.run_method("before_naming")
 
 	autoname = frappe.get_meta(doc.doctype).autoname
+	if getattr(doc, "amended_from", None):
+		_set_amended_name(doc)
+		return
 
-	# based on a field
-	if autoname:
+	elif getattr(doc.meta, "issingle", False):
+		doc.name = doc.doctype
+
+	elif hasattr(doc, "autoname"):
+		doc.run_method("autoname")
+
+	elif autoname:
 		if autoname.startswith('field:'):
-			n = doc.get(autoname[6:])
-			if not n:
+			fieldname = autoname[6:]
+			doc.name = (doc.get(fieldname) or "").strip()
+			if not doc.name:
+				frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 				raise Exception, 'Name is required'
-			doc.name = n.strip()
-
-		elif autoname.startswith("naming_series:"):
-			if not doc.naming_series:
-				doc.naming_series = get_default_naming_series(doc.doctype)
-
-			if not doc.naming_series:
-				frappe.msgprint(frappe._("Naming Series mandatory"), raise_exception=True)
-			doc.name = make_autoname(doc.naming_series+'.#####')
-
-		# call the method!
+		if autoname.startswith("naming_series:"):
+			set_name_by_naming_series(doc)
+		elif "#" in autoname:
+			doc.name = make_autoname(autoname)
 		elif autoname=='Prompt':
 			# set from __newname in save.py
 			if not doc.name:
-				frappe.throw(frappe._("Name not set via Prompt"))
+				frappe.throw(_("Name not set via Prompt"))
 
-		else:
-			doc.name = make_autoname(autoname, doc.doctype)
-
-	# default name for table
-	elif doc.meta.istable:
-		doc.name = make_autoname('hash', doc.doctype)
-
-	elif doc.meta.issingle:
-		doc.name = doc.doctype
-
-	# unable to determine a name, use global series
 	if not doc.name:
 		doc.name = make_autoname('hash', doc.doctype)
 
-	doc.name = doc.name.strip()
+	doc.name = validate_name(doc.doctype, doc.name)
 
-	validate_name(doc.doctype, doc.name)
+def set_name_by_naming_series(doc):
+	"""Sets name by the `naming_series` property"""
+	if not doc.naming_series:
+		doc.naming_series = get_default_naming_series(doc.doctype)
+
+	if not doc.naming_series:
+		frappe.throw(frappe._("Naming Series mandatory"))
+
+	doc.name = make_autoname(doc.naming_series+'.#####')
 
 def make_autoname(key, doctype=''):
 	"""
@@ -80,7 +82,7 @@ def make_autoname(key, doctype=''):
            DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key=="hash":
-		return frappe.generate_hash(doctype)
+		return frappe.generate_hash(doctype)[:10]
 
 	if not "#" in key:
 		key = key + ".#####"
@@ -156,12 +158,12 @@ def validate_name(doctype, name, case=None, merge=False):
 	if case=='UPPER CASE': name = name.upper()
 	name = name.strip()
 
-	if not frappe.get_meta(doctype).get("issingle") and doctype == name:
+	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name!="DocType"):
 		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
 
 	return name
 
-def _get_amended_name(doc):
+def _set_amended_name(doc):
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
@@ -184,3 +186,14 @@ def append_number_if_name_exists(doc):
 
 		doc.name = "{0}-{1}".format(doc.name, count)
 
+def de_duplicate(doctype, name):
+	original_name = name
+	count = 0
+	while True:
+		if frappe.db.exists(doctype, name):
+			count += 1
+			name = "{0}-{1}".format(original_name, count)
+		else:
+			break
+
+	return name

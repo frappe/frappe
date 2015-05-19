@@ -1,0 +1,38 @@
+@import "variables.less";
+
+.gantt, .gantt2 {
+	border: none !important;
+	border-radius: none !important;
+	margin: 0px auto !important;
+
+	* {
+	    -webkit-box-sizing: content-box;
+	       -moz-box-sizing: content-box;
+	            box-sizing: content-box;
+	}
+}
+
+.fn-gantt .leftPanel,
+.fn-gantt .leftPanel .row0,
+.fn-gantt .leftPanel .name, .fn-gantt .leftPanel .desc,
+.fn-gantt .dataPanel,
+.fn-gantt .day, .fn-gantt .date,
+.fn-gantt .rightPanel .month, .fn-gantt .rightPanel .year {
+	border-color: @border-color !important;
+}
+
+.fn-gantt .navigate {
+	border: none !important;
+}
+
+.fn-gantt .leftPanel .name, .fn-gantt .leftPanel .desc,
+.fn-gantt .spacer,
+.fn-gantt .wd,
+.fn-gantt .rightPanel .month, .fn-gantt .rightPanel .year,
+.fn-gantt .bottom {
+	background-color: @panel-bg !important;
+}
+
+.fn-gantt .today {
+	background-color: #D9F6FF !important;
+}

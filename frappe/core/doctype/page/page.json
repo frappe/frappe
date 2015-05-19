@@ -87,7 +87,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-09-18 02:25:57.031810", 
+ "modified": "2015-02-05 05:11:41.982758", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Page", 
@@ -100,6 +100,7 @@
    "print": 1, 
    "read": 1, 
    "role": "Administrator", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -118,6 +119,7 @@
    "report": 0, 
    "role": "System Manager", 
    "set_user_permissions": 0, 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

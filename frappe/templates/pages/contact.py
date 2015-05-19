@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -47,7 +47,6 @@ def send_message(subject="Website Query", message="", sender=""):
 	# send email
 	forward_to_email = frappe.db.get_value("Contact Us Settings", None, "forward_to_email")
 	if forward_to_email:
-		from frappe.utils.email_lib import sendmail
-		sendmail(forward_to_email, sender, message, subject)
+		frappe.sendmail(recipients=forward_to_email, sender=sender, content=message, subject=subject)
 
 	return "okay"

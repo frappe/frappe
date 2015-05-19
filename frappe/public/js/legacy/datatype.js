@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.utils.full_name = function(fn, ln) {
@@ -143,4 +143,11 @@ function add_lists(l1, l2) {
 
 function docstring(obj)  {
 	return JSON.stringify(obj);
+}
+
+function remove_from_list(list, val) {
+	if(list.indexOf(val)!==-1) {
+		list.splice(list.indexOf(val), 1);
+	}
+	return list
 }

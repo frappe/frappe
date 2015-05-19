@@ -1,5 +1,5 @@
 {%- if metatags -%}
 {%- for name in metatags %}
-<meta name="{{ name }}" content="{{ metatags[name]|striptags }}" data-html-block="meta_block">
+<meta name="{{ name }}" content="{{ metatags[name]|striptags|escape }}" data-html-block="meta_block">
 {%- endfor -%}
 {%- endif -%}

@@ -1,18 +1,22 @@
 
-frappe.pages['modules_setup'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+frappe.pages['modules_setup'].on_page_load = function(wrapper) {
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Show or Hide Modules'),
 		single_column: true
 	});
 
-	wrapper.appframe.set_title_right(__("Update"), function() {
-		frappe.modules_setup.update(this);
-	})
+	frappe.breadcrumbs.add("Setup");
 
-	$('<div class="alert alert-info">'
-		+__("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</div>').appendTo($(wrapper).find(".layout-main"));
-	$('<div id="modules-list">').appendTo($(wrapper).find(".layout-main"));
+	wrapper.page.set_primary_action(__("Update"), function() {
+		frappe.modules_setup.update(this);
+	});
+
+	page.main.css({"padding":"15px"});
+
+	$('<p>'
+		+__("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</p>').appendTo($(wrapper).find(".layout-main"));
+	$('<div id="modules-list">').appendTo(page.main);
 
 	frappe.modules_setup.refresh_page();
 }
@@ -27,8 +31,7 @@ frappe.modules_setup = {
 			if(m!="Setup") {
 				var row = $('<div class="list-group-item">\
 					<span class="check-area" style="margin-right: 10px;"></span> '
-						+frappe.ui.app_icon.get_html(m, true)
-						+ " <span> " + __(m) +'</span></div>').appendTo("#modules-list");
+				+ " <span> " + __(m) +'</span></div>').appendTo("#modules-list");
 				var $chk = $("<input type='checkbox' data-module='"+m+"' style='margin-top: -2px'>")
 					.appendTo(row.find(".check-area"));
 				if(!frappe.boot.hidden_modules || frappe.boot.hidden_modules.indexOf(m)==-1) {

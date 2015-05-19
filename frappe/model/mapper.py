@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -59,6 +59,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
+	target_doc.set_onload("load_after_mapping", True)
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
@@ -77,8 +78,8 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 def map_fields(source_doc, target_doc, table_map, source_parent):
 	no_copy_fields = set([d.fieldname for d in source_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype=="Table")]
 		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype=="Table")]
-		+ default_fields
-		+ table_map.get("field_no_map", []))
+		+ list(default_fields)
+		+ list(table_map.get("field_no_map", [])))
 
 	for df in target_doc.meta.get("fields"):
 		if df.fieldname not in no_copy_fields:

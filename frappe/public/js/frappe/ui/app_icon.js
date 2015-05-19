@@ -1,26 +1,31 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 
 frappe.provide("frappe.ui")
 frappe.ui.app_icon = {
-	get_html: function(app, small) {
-		var icon = frappe.modules[app].icon;
-		var color = frappe.modules[app].color;
+	get_html: function(app, small, modules) {
+		if(!modules) {
+			modules = frappe.modules;
+		}
+
+		var module = modules[app]
+		var icon = module.icon;
+		var color = module.color;
 		if(icon.split(".").slice(-1)[0]==="svg") {
 			$.ajax({
-				url: icon,
+				url: frappe.urllib.get_full_url(icon),
 				dataType: "text",
 				async: false,
 				success: function(data) {
 					icon = data;
 				}
 			})
-			icon = '<object>'+icon+'</object>';
+			icon = '<object>'+ icon+'</object>';
 		} else {
-			icon = '<i class="'+icon+'"></i>'
+			icon = '<i class="'+ icon+'" title="' + module.label + '"></i>';
 		}
 		return '<div class="app-icon'+ (small ? " app-icon-small" : "")
-			+'" style="background-color:'+color+'">'+icon+'</div>'
+			+'" style="background-color: '+ color +'" title="'+ module.label +'">'+icon+'</div>'
 	}
 }

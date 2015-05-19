@@ -1,0 +1,25 @@
+<div class="row activity-row" data-creation="{%= creation.split(" ")[0] + " 00:00:00" %}">
+	<div class="col-xs-3 text-right activity-date"><span class="{%= date_class %}">
+		{%= date_sep || "" %}</span></div>
+	<div class="col-xs-9 activity-message" data-doctype="{%= doc_type %}" data-docname="{%= doc_name %}"
+		title="{%= by %} / {%= dateutil.str_to_user(creation) %}">
+		<span class="avatar avatar-small">
+			<img src="{%= imgsrc %}">
+		</span>
+		<span class="small">
+		{% if (feed_type==="Login") { %}
+			{%= __("Logged in") %}
+		{% } else if (feed_type==="Label") { %}
+			{%= __("{0} {1}", ["<strong>" + subject + "</strong>", link]) %}
+		{% } else if (doc_type && feed_type==="Comment") { %}
+			{%= __("Commented on {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else if (doc_type && !feed_type) { %}
+			{%= __("Updated {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else if (doc_type) { %}
+			{%= __("{0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else { %}
+			{%= subject %}
+		{% } %}
+	</span>
+	</div>
+</div>

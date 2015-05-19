@@ -1,17 +1,22 @@
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
+frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2014-03-01
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-05-15
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-04
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
 execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
-execute:frappe.reload_doc('core', 'doctype', 'email_alert') #2014-07-15
+execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
+execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
+execute:frappe.reload_doc('custom', 'doctype', 'property_setter') #2014-12-31-1
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length
+frappe.patches.v5_0.v4_to_v5
 
+frappe.patches.v5_0.remove_shopping_cart_app
 frappe.patches.v4_0.webnotes_to_frappe
-execute:frappe.reset_perms("Module Def")
+execute:frappe.permissions.reset_perms("Module Def")
 execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
 frappe.patches.v4_0.rename_profile_to_user
 frappe.patches.v4_0.deprecate_control_panel
@@ -37,7 +42,7 @@ execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-
 frappe.patches.v4_0.replace_deprecated_timezones
 execute:import frappe.website.render; frappe.website.render.clear_cache("login"); #2014-06-10
 frappe.patches.v4_0.fix_attach_field_file_url
-execute:frappe.reset_perms("User") #2014-06-13
+execute:frappe.permissions.reset_perms("User") #2015-03-24
 execute:frappe.db.sql("""delete from `tabUserRole` where ifnull(parentfield, '')='' or ifnull(`role`, '')=''""") #2014-08-18
 frappe.patches.v4_0.remove_user_owner_custom_field
 execute:frappe.delete_doc("DocType", "Website Template")
@@ -55,3 +60,22 @@ execute:frappe.reload_doc('website', 'doctype', 'web_form_field') #2014-09-04
 frappe.patches.v4_2.refactor_website_routing
 frappe.patches.v4_2.set_assign_in_doc
 frappe.patches.v4_3.remove_allow_on_submit_customization
+frappe.patches.v5_0.rename_table_fieldnames
+frappe.patches.v5_0.communication_parent
+frappe.patches.v5_0.clear_website_group_and_notifications
+execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
+frappe.patches.v5_0.fix_feed
+frappe.patches.v5_0.update_shared
+frappe.patches.v5_0.bookmarks_to_stars
+frappe.patches.v5_0.style_settings_to_website_theme
+frappe.patches.v5_0.rename_ref_type_fieldnames
+frappe.patches.v5_0.fix_email_alert
+frappe.patches.v5_0.fix_null_date_datetime
+frappe.patches.v5_0.force_sync_website
+execute:frappe.delete_doc("DocType", "Tag")
+execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('idx', '_idx')")
+frappe.patches.v5_0.move_scheduler_last_event_to_system_settings
+execute:frappe.db.sql("update tabUser set new_password='' where ifnull(new_password, '')!=''")
+frappe.patches.v5_0.fix_text_editor_file_urls
+execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
+frappe.patches.v5_0.modify_session

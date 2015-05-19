@@ -1,9 +1,12 @@
 {% block title %}{{ title }}{% endblock %}
 
-{% block header %}{{ title }}{% endblock %}
+{% block header %}{{ header }}{% endblock %}
 
 {% block content %}
+<!-- no-sidebar -->
 <div class="message-content">
-	<p>{{ message }}</p>
+	<div>
+		{{ message }}
+	</div>
 </div>
 {% endblock %}

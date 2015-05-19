@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -41,15 +41,17 @@ def write_document_file(doc, record_module=None, create_init=None):
 	# write the data file
 	fname = (doc.doctype in lower_case_files_for and scrub(doc.name)) or doc.name
 	with open(os.path.join(folder, fname +".json"),'w+') as txtfile:
-		txtfile.write(json.dumps(newdoc, indent=1, sort_keys=True))
+		txtfile.write(frappe.as_json(newdoc))
 
 def get_module_name(doc):
 	if doc.doctype  == 'Module Def':
 		module = doc.name
 	elif doc.doctype=="Workflow":
 		module = frappe.db.get_value("DocType", doc.document_type, "module")
-	else:
+	elif hasattr(doc, 'module'):
 		module = doc.module
+	else:
+		module = frappe.db.get_value("DocType", doc.doctype, "module")
 
 	return module
 

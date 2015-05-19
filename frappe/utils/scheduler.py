@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 """
 Events:
@@ -11,6 +11,7 @@ Events:
 from __future__ import unicode_literals
 
 import frappe
+import json
 import frappe.utils
 from frappe.utils.file_lock import create_lock, check_lock, delete_lock
 from datetime import datetime
@@ -27,11 +28,11 @@ def enqueue_events(site):
 		return
 
 	nowtime = frappe.utils.now_datetime()
-	last = frappe.db.get_global('scheduler_last_event')
+	last = frappe.db.get_value('System Settings', 'System Settings', 'scheduler_last_event')
 
 	# set scheduler last event
 	frappe.db.begin()
-	frappe.db.set_global('scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
+	frappe.db.set_value('System Settings', 'System Settings', 'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
 	frappe.db.commit()
 
 	out = []
@@ -47,26 +48,40 @@ def enqueue_applicable_events(site, nowtime, last):
 	nowtime_str = nowtime.strftime(DATETIME_FORMAT)
 	out = []
 
+	enabled_events = get_enabled_scheduler_events()
+
+	def trigger_if_enabled(site, event, now=False):
+		if event in enabled_events:
+			trigger(site, event, now=now)
+			_log(event)
+
 	def _log(event):
 		out.append("{time} - {event} - queued".format(time=nowtime_str, event=event))
 
 	if nowtime.day != last.day:
 		# if first task of the day execute daily tasks
-		trigger(site, "daily") and _log("daily")
-		trigger(site, "daily_long") and _log("daily_long")
+		trigger_if_enabled(site, "daily")
+		trigger_if_enabled(site, "daily_long")
 
 		if nowtime.month != last.month:
-			trigger(site, "monthly") and _log("monthly")
-			trigger(site, "monthly_long") and _log("monthly_long")
+			trigger_if_enabled(site, "monthly")
+			trigger_if_enabled(site, "monthly_long")
 
 		if nowtime.weekday()==0:
-			trigger(site, "weekly") and _log("weekly")
-			trigger(site, "weekly_long") and _log("weekly_long")
+			trigger_if_enabled(site, "weekly")
+			trigger_if_enabled(site, "weekly_long")
+
+		if "all" not in enabled_events:
+			trigger(site, "all")
+
+		if "hourly" not in enabled_events:
+			trigger(site, "hourly")
 
 	if nowtime.hour != last.hour:
-		trigger(site, "hourly") and _log("hourly")
+		trigger_if_enabled(site, "hourly")
+		trigger_if_enabled(site, "hourly_long")
 
-	trigger(site, "all") and _log("all")
+	trigger_if_enabled(site, "all")
 
 	return out
 
@@ -80,6 +95,9 @@ def trigger(site, event, now=False):
 				scheduler_task.delay(site=site, event=event, handler=handler)
 			else:
 				scheduler_task(site=site, event=event, handler=handler, now=True)
+
+	if frappe.flags.in_test:
+		frappe.flags.ran_schedulers.append(event)
 
 def log(method, message=None):
 	"""log error in patch_log"""
@@ -101,13 +119,19 @@ def log(method, message=None):
 
 	return message
 
+def get_enabled_scheduler_events():
+	enabled_events = frappe.db.get_global("enabled_scheduler_events")
+	if enabled_events:
+		return json.loads(enabled_events)
+	return ["all", "hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
+
 def is_scheduler_disabled():
-	return not frappe.utils.cint(frappe.db.get_default("enable_scheduler"))
+	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
 	ss = frappe.get_doc("System Settings")
 	ss.enable_scheduler = 1 if enable else 0
-	ss.ignore_mandatory = True
+	ss.flags.ignore_mandatory = True
 	ss.save()
 
 def enable_scheduler():
@@ -140,3 +164,4 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 			limit=limit, url=get_url(), errors="<hr>".join(errors))
 	else:
 		return 0, "<p>Scheduler didn't encounter any problems.</p>"
+

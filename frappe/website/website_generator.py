@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -9,27 +9,34 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name, get_home_page
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
-from frappe.website.router import get_page_route
+from frappe.website.router import get_page_route, get_route_info
 
 class WebsiteGenerator(Document):
-	page_title_field = "name"
+	website = frappe._dict(
+		page_title_field = "name"
+	)
+
 	def autoname(self):
 		if self.meta.autoname != "hash":
 			self.name = self.get_page_name()
 			append_number_if_name_exists(self)
 
 	def onload(self):
-		self.get("__onload").website_route = self.get_route()
+		self.get("__onload").update({
+			"is_website_generator": True,
+			"website_route": self.get_route(),
+			"published": self.website_published()
+		})
 
 	def validate(self):
 		self.set_parent_website_route()
 
+		if not self.page_name:
+			self.page_name = self.make_page_name()
+
 		if self.meta.get_field("page_name") and not self.get("__islocal"):
 			current_route = self.get_route()
 			current_page_name = self.page_name
-
-			self.page_name = self.make_page_name()
-
 			# page name changed, rename everything
 			if current_page_name and current_page_name != self.page_name:
 				self.update_routes_of_descendants(current_route)
@@ -58,7 +65,7 @@ class WebsiteGenerator(Document):
 		return page_name
 
 	def make_page_name(self):
-		return cleanup_page_name(self.get(self.page_title_field))
+		return cleanup_page_name(self.get(self.website.page_title_field or "name"))
 
 	def before_rename(self, oldname, name, merge):
 		self._local = self.get_route()
@@ -70,18 +77,19 @@ class WebsiteGenerator(Document):
 		self.clear_cache()
 
 	def on_trash(self):
-		clear_cache(self.get_route())
+		self.clear_cache()
 
 	def website_published(self):
-		if hasattr(self, "condition_field"):
-			return self.get(self.condition_field) and True or False
+		if self.website.condition_field:
+			return self.get(self.website.condition_field) and True or False
 		else:
 			return True
 
 	def set_parent_website_route(self):
-		if hasattr(self, "parent_website_route_field"):
-			field = self.meta.get_field(self.parent_website_route_field)
-			parent = self.get(self.parent_website_route_field)
+		parent_website_route_field = self.website.parent_website_route_field
+		if parent_website_route_field:
+			field = self.meta.get_field(parent_website_route_field)
+			parent = self.get(parent_website_route_field)
 			if parent:
 				parent_doc = frappe.get_doc(field.options, parent)
 				if parent_doc.website_published():
@@ -109,7 +117,7 @@ class WebsiteGenerator(Document):
 						where parent_website_route like %s""".format(self.doctype),
 						(old_route, self.get_route(), now(), frappe.session.user, old_route + "%"))
 
-	def get_website_route(self):
+	def get_route_context(self):
 		route = frappe._dict()
 		route.update({
 			"doc": self,
@@ -119,30 +127,37 @@ class WebsiteGenerator(Document):
 			"docname": self.name,
 			"page_name": self.get_page_name(),
 			"controller": get_module_name(self.doctype, self.meta.module),
-			"template": self.template,
-			"parent_website_route": self.get("parent_website_route", ""),
-			"page_title": getattr(self, "page_title", None) or self.get(self.page_title_field)
 		})
 
-		self.update_permissions(route)
+		route.update(self.website)
+
+		if not route.page_title:
+			route.page_title = self.get(self.website.page_title_field or "name")
 
 		return route
 
-	def update_permissions(self, route):
-		if self.meta.get_field("public_read"):
-			route.public_read = self.public_read
-			route.public_write = self.public_write
-		else:
-			route.public_read = 1
-
 	def get_parents(self, context):
+		# already set
+		if context.parents:
+			return context.parents
+
+		home_page = get_home_page()
+
 		parents = []
-		parent = self
-		while parent:
-			_parent_field = getattr(parent, "parent_website_route_field", None)
-			_parent_val = parent.get(_parent_field) if _parent_field else None
-			if _parent_val:
-				df = parent.meta.get_field(_parent_field)
+		me = self
+		while me:
+			_parent_field = me.website.parent_website_route_field
+			_parent_val = me.get(_parent_field) if _parent_field else None
+
+			# if no parent and not home page, then parent is home page
+			if not _parent_val and me.get_route() != home_page:
+				parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
+				break
+
+			elif _parent_val:
+				df = me.meta.get_field(_parent_field)
+				if not df:
+					break
 				parent_doc = frappe.get_doc(df.options, _parent_val)
 
 				if not parent_doc.website_published():
@@ -150,7 +165,7 @@ class WebsiteGenerator(Document):
 
 				if parent_doc:
 					parent_info = frappe._dict(name = parent_doc.get_route(),
-						title= parent_doc.get(getattr(parent_doc, "page_title_field", "name")))
+						title= parent_doc.get(parent_doc.website.page_title_field or "name"))
 				else:
 					parent_info = frappe._dict(name=self.parent_website_route,
 						title=self.parent_website_route.replace("_", " ").title())
@@ -159,38 +174,40 @@ class WebsiteGenerator(Document):
 					raise frappe.ValidationError, "Recursion in parent link"
 
 				parents.append(parent_info)
-				parent = parent_doc
+				me = parent_doc
 			else:
 				# parent route is a page e.g. "blog"
-				if parent.get("parent_website_route"):
-					page_route = get_page_route(parent.parent_website_route)
+				if me.get("parent_website_route"):
+					page_route = get_page_route(me.parent_website_route)
 					if page_route:
 						parents.append(frappe._dict(name = page_route.name,
 							title=page_route.page_title))
-				parent = None
+				me = None
 
 		parents.reverse()
 		return parents
 
 	def get_parent(self):
-		if hasattr(self, "parent_website_route_field"):
-			return self.get(self.parent_website_route_field)
+		parent_website_route_field = self.website.parent_website_route_field
+		if parent_website_route_field:
+			return self.get(parent_website_route_field)
 
-	def get_children(self):
-		if self.get_route()==get_home_page():
-			return frappe.db.sql("""select url as name, label as page_title,
-			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'
+	def get_children(self, context=None):
+		children = []
+		route = self.get_route()
+		if route==get_home_page():
+			children = frappe.db.sql("""select url as name, label as page_title
+				from `tabTop Bar Item` where parentfield='sidebar_items'
 			order by idx""", as_dict=True)
+			route = ""
 
-		if self.meta.get_field("parent_website_route"):
-			children = self.get_children_of(self.get_route())
+		if not children and self.meta.get_field("parent_website_route"):
+			children = self.get_children_of(route)
 
 			if not children and self.parent_website_route:
 				children = self.get_children_of(self.parent_website_route)
 
-			return children
-		else:
-			return []
+		return children
 
 	def get_children_of(self, route):
 		children = frappe.db.sql("""select name, page_name,
@@ -198,9 +215,9 @@ class WebsiteGenerator(Document):
 			where ifnull(parent_website_route,'')=%s
 			order by {order_by}""".format(
 				doctype = self.doctype,
-				title_field = getattr(self, "page_title_field", "name"),
-				order_by = getattr(self, "order_by", "idx asc")),
-				route, as_dict=True)
+				title_field = self.website.page_title_field or "name",
+				order_by = self.website.order_by or "idx asc"
+			), route, as_dict=True)
 
 		for c in children:
 			c.name = make_route(c)
@@ -210,11 +227,14 @@ class WebsiteGenerator(Document):
 	def get_next(self):
 		if self.meta.get_field("parent_website_route") and self.parent_website_route:
 			route = self.get_route()
-			siblings = frappe.get_doc(self.doctype, self.get_parent()).get_children()
+			parent = frappe.get_doc(self.doctype, self.get_parent())
+			siblings = parent.get_children()
 			for i, r in enumerate(siblings):
 				if i < len(siblings) - 1:
 					if route==r.name:
 						return siblings[i+1]
+
+			return parent.get_next()
 		else:
 			return frappe._dict()
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide('frappe.meta.docfield_map');
@@ -6,6 +6,10 @@ frappe.provide('frappe.meta.docfield_copy');
 frappe.provide('frappe.meta.docfield_list');
 frappe.provide('frappe.meta.doctypes');
 frappe.provide("frappe.meta.precision_map");
+
+frappe.get_meta = function(doctype) {
+	return locals["DocType"][doctype];
+}
 
 $.extend(frappe.meta, {
 	sync: function(doc) {
@@ -62,6 +66,11 @@ $.extend(frappe.meta, {
 		}
 
 		return docfields;
+	},
+
+	get_linked_fields: function(doctype) {
+		return $.map(frappe.get_meta(doctype).fields,
+			function(d) { return d.fieldtype=="Link" ? d.options : null; });
 	},
 
 	get_fields_to_check_permissions: function(doctype, name, user_permission_doctypes) {

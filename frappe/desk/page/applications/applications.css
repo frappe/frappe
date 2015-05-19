@@ -1,0 +1,20 @@
+.app-listing {
+	border-top: 1px solid #d1d8dd;
+}
+
+#page-applications .media-body {
+	margin-top: 3px;
+}
+
+#page-applications .app-icon-wrapper {
+	padding-right: 15px;
+}
+
+#page-applications .form-group {
+	margin-bottom: 0px;
+}
+
+#page-applications .app-buttons .btn {
+	width: 84px;
+	text-align: center;
+}

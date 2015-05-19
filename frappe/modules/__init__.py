@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -10,7 +10,8 @@ import frappe.utils
 from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
-	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format']
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format',
+	"Website Theme"]
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -36,17 +37,22 @@ def reload_doc(module, dt=None, dn=None, force=True):
 	return import_files(module, dt, dn, force=force)
 
 def export_doc(doctype, name, module=None):
-	"""write out a doc"""
+	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
+	print doctype, name
 
-	if not module: module = frappe.db.get_value(doctype, name, 'module')
+	if not module: module = frappe.db.get_value('DocType', name, 'module')
 	write_document_file(frappe.get_doc(doctype, name), module)
 
 def get_doctype_module(doctype):
-	return frappe.db.get_value('DocType', doctype, 'module') or "core"
+	"""Returns **Module Def** name of given doctype."""
+	def make_modules_dict():
+		return dict(frappe.db.sql("select name, module from tabDocType"))
+	return frappe.cache().get_value("doctype_modules", make_modules_dict)[doctype]
 
 doctype_python_modules = {}
 def load_doctype_module(doctype, module=None, prefix=""):
+	"""Returns the module object for given doctype."""
 	if not module:
 		module = get_doctype_module(doctype)
 
@@ -90,5 +96,7 @@ def make_boilerplate(template, doc, opts=None):
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
-				target.write(source.read().format(app_publisher=app_publisher,
-					classname=doc.name.replace(" ", ""), doctype=doc.name, **opts))
+				target.write(frappe.utils.encode(
+					frappe.utils.cstr(source.read()).format(app_publisher=app_publisher,
+						classname=doc.name.replace(" ", ""), doctype=doc.name, **opts)
+				))

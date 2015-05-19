@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -20,6 +20,7 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 def read_csv_content_from_attached_file(doc):
 	fileid = frappe.db.get_value("File Data", {"attached_to_doctype": doc.doctype,
 		"attached_to_name":doc.name}, "name")
+
 	if not fileid:
 		msgprint(_("File not attached"))
 		raise Exception
@@ -118,10 +119,7 @@ def check_record(d):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:
-				if docfield.options == "attach_files:":
-					pass
-
-				elif val not in docfield.options.split('\n'):
+				if val not in docfield.options.split('\n'):
 					frappe.throw(_("{0} must be one of {1}").format(_(docfield.label), comma_or(docfield.options.split("\n"))))
 
 			if val and docfield.fieldtype=='Date':
@@ -136,7 +134,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
 			doc = frappe.get_doc(doctype, d['name'])
-			doc.ignore_links = ignore_links
+			doc.flags.ignore_links = ignore_links
 			doc.update(d)
 			if d.get("docstatus") == 1:
 				doc.update_after_submit()
@@ -148,7 +146,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 				getlink(doctype, d['name']))
 	else:
 		doc = frappe.get_doc(d)
-		doc.ignore_links = ignore_links
+		doc.flags.ignore_links = ignore_links
 		doc.insert()
 
 		if submit:

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -11,7 +11,7 @@ def execute():
 	ss = frappe.get_doc("System Settings", "System Settings")
 	if ss.time_zone in momentjs_data.get("links"):
 		ss.time_zone = momentjs_data["links"][ss.time_zone]
-		ss.ignore_mandatory = True
+		ss.flags.ignore_mandatory = True
 		ss.save()
 
 	for user, time_zone in frappe.db.sql("select name, time_zone from `tabUser` where ifnull(time_zone, '')!=''"):

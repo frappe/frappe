@@ -1,4 +1,5 @@
-function prettyDate(time){
+function prettyDate(time, mini){
+
 	if(moment) {
 		if(frappe.boot) {
 			var user_timezone = frappe.boot.user.time_zone;
@@ -7,10 +8,22 @@ function prettyDate(time){
 		}
 		if (frappe.boot && user_timezone && (user_timezone != system_timezone)
 			&& zones[user_timezone] && zones[system_timezone]) {
-			return moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow();
+			var ret = moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow(mini);
 		} else {
-			return moment(time).fromNow();
+			var ret = moment(time).fromNow(mini);
 		}
+		if(mini) {
+			if(ret === "a few seconds") {
+				ret = "now";
+			} else {
+				var parts = ret.split(" ");
+				if(parts[0]==="a" || parts[0]==="an") {
+					parts[0] = 1;
+				}
+				ret = parts[0] + " " + parts[1].substr(0, 1);
+			}
+		}
+		return ret;
 	} else {
 		if(!time) return ''
 		var date = time;
@@ -38,21 +51,21 @@ function prettyDate(time){
 }
 
 
-var comment_when = function(datetime) {
+var comment_when = function(datetime, mini) {
 	var timestamp = frappe.datetime.str_to_user ?
 		frappe.datetime.str_to_user(datetime) : datetime;
-	return '<span class="frappe-timestamp" data-timestamp="'+datetime
+	return '<span class="frappe-timestamp '
+			+(mini ? " mini" : "" ) + '" data-timestamp="'+datetime
 		+'" title="'+timestamp+'">'
-		+ prettyDate(datetime) + '</span>';
+		+ prettyDate(datetime, mini) + '</span>';
 };
 
 frappe.provide("frappe.datetime");
-frappe.datetime.comment_when = prettyDate;
 frappe.datetime.refresh_when = function() {
 	if(jQuery) {
 		$(".frappe-timestamp").each(function() {
-			$(this).html(prettyDate($(this).attr("data-timestamp")));
-		})
+			$(this).html(prettyDate($(this).attr("data-timestamp"), $(this).hasClass("mini")));
+		});
 	}
 }
 

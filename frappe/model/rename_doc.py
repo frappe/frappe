@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -25,7 +25,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	old_doc = frappe.get_doc(doctype, old)
 	out = old_doc.run_method("before_rename", old, new, merge) or {}
 	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
-	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+
+	if doctype != "DocType":
+		new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
@@ -138,13 +140,15 @@ def update_link_field_values(link_fields, old, new, doctype):
 				where doctype=%s and field=%s and value=%s""",
 				(new, field['parent'], field['fieldname'], old))
 		else:
-			if field['parent']!=new:
-				frappe.db.sql("""\
-					update `tab%s` set `%s`=%s
-					where `%s`=%s""" \
-					% (field['parent'], field['fieldname'], '%s',
-						field['fieldname'], '%s'),
-					(new, old))
+			# because the table hasn't been renamed yet!
+			parent = field['parent'] if field['parent']!=new else old
+
+			frappe.db.sql("""\
+				update `tab%s` set `%s`=%s
+				where `%s`=%s""" \
+				% (parent, field['fieldname'], '%s',
+					field['fieldname'], '%s'),
+				(new, old))
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
@@ -184,8 +188,20 @@ def get_link_fields(doctype):
 	return link_fields
 
 def update_options_for_fieldtype(fieldtype, old, new):
-	frappe.db.sql("""update `tabDocField` set options=%s
-		where fieldtype=%s and options=%s""", (new, fieldtype, old))
+	if frappe.conf.developer_mode:
+		for name in frappe.db.sql_list("""select parent from
+			tabDocField where options=%s""", old):
+			doctype = frappe.get_doc("DocType", name)
+			save = False
+			for f in doctype.fields:
+				if f.options == old:
+					f.options = new
+					save = True
+			if save:
+				doctype.save()
+	else:
+		frappe.db.sql("""update `tabDocField` set options=%s
+			where fieldtype=%s and options=%s""", (new, fieldtype, old))
 
 	frappe.db.sql("""update `tabCustom Field` set options=%s
 		where fieldtype=%s and options=%s""", (new, fieldtype, old))
@@ -307,9 +323,13 @@ def rename_dynamic_links(doctype, old, new):
 					frappe.db.sql("""update tabSingles set value=%s where
 						field=%s and value=%s and doctype=%s""", (new, df.fieldname, old, df.parent))
 			else:
+				# because the table hasn't been renamed yet!
+				parent = df.parent if df.parent != new else old
+
 				# replace for each value where renamed
 				for to_change in frappe.db.sql_list("""select name from `tab{parent}` where
-					{options}=%s and {fieldname}=%s""".format(**df), (doctype, old)):
+					{options}=%s and {fieldname}=%s""".format(parent=parent, options=df.options,
+					fieldname=df.fieldname), (doctype, old)):
 
 					frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
 						where name=%s""".format(**df), (new, to_change))

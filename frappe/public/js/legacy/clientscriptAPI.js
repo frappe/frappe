@@ -1,7 +1,8 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
+	console.warn("This function 'get_server_fields' has been deprecated and will be removed soon.");
 	frappe.dom.freeze();
 	if($.isPlainObject(arg)) arg = JSON.stringify(arg);
 	return $c('runserverobj',
@@ -114,7 +115,12 @@ set_missing_values = function(doc, dict) {
 	// dict contains fieldname as key and "default value" as value
 	var fields_to_set = {};
 
-	$.each(dict, function(i, v) { if (!doc[i]) { fields_to_set[i] = v; } });
+	for (var i in dict) {
+		var v = dict[i];
+		if (!doc[i]) {
+			fields_to_set[i] = v;
+		}
+	}
 
 	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
 }
@@ -131,22 +137,32 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 			fnames = [fnames];
 		}
 	}
-	$.each(fnames, function(i,fieldname) {
-		//var field = cur_frm.fields_dict[f]; - much better design
+	for (var i=0, l=fnames.length; i<l; i++) {
+		var fieldname = fnames[i];
 		var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname);
 		if(field) {
 			fn(field);
 			cur_frm.refresh_field(fieldname);
 		};
-	})
+	}
+}
 
+_f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
+	if(fieldname2) {
+		// for child
+		var doctype = this.get_docfield(fieldname1).options;
+		return frappe.meta.get_docfield(doctype, fieldname2, this.docname);
+	} else {
+		// for parent
+		return frappe.meta.get_docfield(this.doctype, fieldname1, this.docname);
+	}
 }
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
-	var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname)
+	var field = this.get_docfield(fieldname);
 	if(field) {
 		field[property] = value;
-		cur_frm.refresh_field(fieldname);
+		this.refresh_field(fieldname);
 	};
 }
 
@@ -174,16 +190,27 @@ _f.Frm.prototype.get_files = function() {
 }
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
-	var func = (typeof opt1=="function") ? opt1 : opt2;
 	if(opt2) {
-		this.fields_dict[opt1].grid.get_field(fieldname).get_query = func;
+		this.fields_dict[opt1].grid.get_field(fieldname).get_query = opt2;
 	} else {
-		this.fields_dict[fieldname].get_query = func;
+		this.fields_dict[fieldname].get_query = opt1;
 	}
 }
 
 _f.Frm.prototype.set_value_if_missing = function(field, value) {
 	this.set_value(field, value, true);
+}
+
+_f.Frm.prototype.clear_table = function(fieldname) {
+	frappe.model.clear_table(this.doc, fieldname);
+}
+
+_f.Frm.prototype.add_child = function(fieldname, values) {
+	var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
+	if(values) {
+		$.extend(doc, values);
+	}
+	return doc;
 }
 
 _f.Frm.prototype.set_value = function(field, value, if_missing) {
@@ -196,26 +223,34 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 
 					frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
-					$.each(v, function(i, d) {
+					for (var i=0, j=v.length; i < j; i++) {
+						var d = v[i];
 						var child = frappe.model.add_child(me.doc, fieldobj.df.options,
 							fieldobj.df.fieldname, i+1);
 						$.extend(child, d);
-					});
+					}
 
 					me.refresh_field(f);
+
 				} else {
 					frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}
 			}
+		} else {
+			msgprint("Field " + f + " not found.");
+			throw "frm.set_value";
 		}
 	}
 
 	if(typeof field=="string") {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {
-		$.each(field, function(f, v) {
-			_set(f, v);
-		})
+		for (var f in field) {
+			var v = field[f];
+			if(me.get_field(f)) {
+				_set(f, v);
+			}
+		}
 	}
 }
 
@@ -255,22 +290,37 @@ _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
 };
 
-_f.Frm.prototype.new_doc = function(doctype, field) {
-	frappe._from_link = field; frappe._from_link_scrollY = scrollY;
-	new_doc(doctype);
+_f.Frm.prototype.new_doc = function(doctype, field, opts) {
+	frappe._from_link = field;
+	frappe._from_link_scrollY = scrollY;
+	new_doc(doctype, opts);
 }
 
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
-	$.each(frappe.perm.get_perm(cur_frm.doc.doctype), function(i, p) {
+	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
+	for (var i=0, l=docperms.length; i<l; i++) {
+		var p = docperms[i];
 		perm[p.permlevel || 0] = {read:1};
-	});
+	}
 	cur_frm.perm = perm;
 }
+
+_f.Frm.prototype.trigger = function(event) {
+	this.script_manager.trigger(event);
+};
 
 _f.Frm.prototype.get_formatted = function(fieldname) {
 	return frappe.format(this.doc[fieldname],
 			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
 			{no_icon:true}, this.doc);
+}
+
+_f.Frm.prototype.open_grid_row = function() {
+	return frappe.ui.form.get_open_grid_form();
+}
+
+_f.Frm.prototype.is_new = function() {
+	return this.doc.__islocal;
 }

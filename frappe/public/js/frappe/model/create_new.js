@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.model");
@@ -100,11 +100,17 @@ $.extend(frappe.model, {
 		// 3 - look in default of docfield
 		if (df['default']) {
 
-			if (df["default"] == "__user") {
+			if (df["default"] == "__user" || df["default"] == "user") {
 				return user;
+
+			} else if (df["default"] == "user_fullname") {
+				return user_fullname;
 
 			} else if (df["default"] == "Today") {
 				return dateutil.get_today();
+
+			} else if ((df["default"] || "").toLowerCase() === "now") {
+				return dateutil.now_datetime();
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
@@ -123,9 +129,6 @@ $.extend(frappe.model, {
 
 		} else if (df.fieldtype=="Time") {
 			return dateutil.now_time();
-
-		} else if(df.fieldtype=="Datetime") {
-			return dateutil.now_datetime()
 
 		}
 	},

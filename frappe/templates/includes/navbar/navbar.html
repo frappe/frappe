@@ -1,0 +1,20 @@
+<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="{{ home_page or "/" }}">
+					<span>{{ brand_html or (frappe.get_hooks("brand_html") or ["Home"])[0] }}</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				{% block navbar_items %}
+				{% include "templates/includes/navbar/navbar_items.html" %}
+				{% endblock %}
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script>

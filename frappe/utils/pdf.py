@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -18,6 +18,7 @@ def get_pdf(html, options=None):
 		'margin-bottom': '15mm',
 		'margin-left': '15mm',
 		'encoding': "UTF-8",
+		'quiet': None,
 		'no-outline': None
 	})
 

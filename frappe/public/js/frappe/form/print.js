@@ -7,32 +7,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.bind_events();
 	},
 	make: function() {
-		this.wrapper = $('<div class="form-print-wrapper">\
-			<div class="print-toolbar row" style="padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
-				margin-bottom: 15px; padding-left: 15px; position:relative;">\
-				<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
-				<div class="col-xs-3">\
-					<select class="print-preview-select form-control"></select></div>\
-				<div class="col-xs-3">\
-					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" /> Letterhead</label></div></div>\
-				<div class="col-xs-6 text-right" style="padding-top: 7px;">\
-					<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
-					<a style="margin-right: 7px;" class="btn-download-pdf text-muted small">\
-						<span class="octicon octicon-file-pdf"></span> Download PDF</a>\
-					<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
-					<a class="close">×</a>\
-				</div>\
-			</div>\
-			<div class="print-preview">\
-				<div class="print-format"></div>\
-			</div>\
-		</div>')
-			.appendTo(this.frm.layout_main)
-			.toggle(false);
+		this.wrapper = this.frm.page.add_view("print", frappe.render_template("print_layout", {}));
+
+		// only system manager can edit
+		this.wrapper.find(".btn-print-edit").toggle(frappe.user.has_role("System Manager"));
 	},
 	bind_events: function() {
 		var me = this;
-		this.wrapper.find(".close").click(function() {
+		this.wrapper.find(".btn-print-close").click(function() {
 			me.frm.hide_print();
 		});
 
@@ -81,6 +63,29 @@ frappe.ui.form.PrintPreview = Class.extend({
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
+			}
+		});
+
+		this.wrapper.find(".btn-print-edit").on("click", function() {
+			var print_format = me.get_print_format();
+			if(print_format && print_format.name) {
+				if(print_format.print_format_builder) {
+					frappe.route_options = {"doc": print_format, "make_new": false};
+					frappe.set_route("print-format-builder");
+				} else {
+					frappe.set_route("Form", "Print Format", print_format.name);
+				}
+			} else {
+				// start a new print format
+				frappe.prompt({fieldname:"print_format_name", fieldtype:"Data", reqd: 1,
+					label:"New Print Format Name"}, function(data) {
+						frappe.route_options = {
+							make_new: true,
+							doctype: me.frm.doctype,
+							name: data.print_format_name
+						};
+						frappe.set_route("print-format-builder");
+				}, __("New Custom Print Format"), __("Start"));
 			}
 		});
 	},
@@ -136,6 +141,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 			only_body: true,
 			no_heading: true
 		});
+	},
+	refresh_print_options: function() {
+		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
+		return this.print_sel
+			.empty().add_options(this.print_formats);
 	},
 	with_old_style: function(opts) {
 		var me = this;

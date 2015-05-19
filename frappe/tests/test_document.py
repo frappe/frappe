@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -46,9 +46,9 @@ class TestDocument(unittest.TestCase):
 			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
 			"event_type": "Public",
-			"event_individuals": [
+			"roles": [
 				{
-					"person": "Administrator"
+					"role": "System Manager"
 				}
 			]
 		})
@@ -58,7 +58,7 @@ class TestDocument(unittest.TestCase):
 			"test-doc-test-event 2")
 
 		d1 = frappe.get_doc("Event", d.name)
-		self.assertTrue(d1.event_individuals[0].person, "Administrator")
+		self.assertEquals(d1.roles[0].role, "System Manager")
 
 	def test_update(self):
 		d = self.test_insert()
@@ -88,7 +88,11 @@ class TestDocument(unittest.TestCase):
 
 	def test_confict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
+		d1.home_page = "test-web-page-1"
+
 		d2 = frappe.get_doc("Website Settings", "Website Settings")
+		d2.home_page = "test-web-page-1"
+
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
@@ -142,4 +146,7 @@ class TestDocument(unittest.TestCase):
 		d.validate_update_after_submit()
 		d.meta.get_field("starts_on").allow_on_submit = 0
 
-
+		# when comparing date(2014, 1, 1) and "2014-01-01"
+		d.load_from_db()
+		d.starts_on = "2014-01-01"
+		d.validate_update_after_submit()

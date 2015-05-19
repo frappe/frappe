@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -77,9 +77,9 @@ def application(request):
 				# 1205 = lock wait timeout
 				# 1213 = deadlock
 				# code 409 represents conflict
-				http_status_code = 409
+				http_status_code = 508
 
-		if frappe.local.is_ajax:
+		if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
 			response = frappe.utils.response.report_error(http_status_code)
 		else:
 			frappe.respond_as_web_page("Server Error",
@@ -128,6 +128,10 @@ def init_site(request):
 def make_form_dict(request):
 	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 		for k, v in (request.form or request.args).iteritems() })
+
+	if "_" in frappe.local.form_dict:
+		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
+		frappe.local.form_dict.pop("_")
 
 application = local_manager.make_middleware(application)
 

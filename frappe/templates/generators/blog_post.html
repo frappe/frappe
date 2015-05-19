@@ -1,38 +1,44 @@
 {% block header %}
-<h2 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
+<h1 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
 	{{ title }}
-</h2>
+</h1>
 {% endblock %}
 
 {% block content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
-	<div class="help" style="color: #aaa">
+	<p class="small text-muted blog-info">
 		<span itemprop="author">{{ blogger_info and blogger_info.full_name or full_name }}</span>,
-		<span itemprop="dateCreated">{{ updated }}</span></div>
-	<br>
-	<div itemprop="articleBody">
+		<span itemprop="dateCreated">{{ updated }}</span>
+    </p>
+	<div itemprop="articleBody" class="longform blog-text">
 	{{ content }}
 	</div>
+    <p class="text-muted blog-category">
+        <a href="/{{ parent_website_route }}" class="no-decoration">
+            {{ _("This post is filed under {0}").format(blog_category) }}</a>
+    </p>
 	<!-- end blog content -->
 </article>
 {% if blogger_info %}
-<hr />
-{% include "templates/includes/blogger.html" %}
+{% include "templates/includes/blog/blogger.html" %}
 {% endif %}
-<hr>
-<h3>Comments</h3>
-{% include 'templates/includes/comments.html' %}
+<div class="blog-comments">
+	<h2>Comments</h2>
+	{% include 'templates/includes/comments/comments.html' %}
+	<script>
+	$(function() {
+		if(window.logged_in && getCookie("system_user")==="yes") {
+			frappe.has_permission("Blog Post", "{{ name }}", "write", function(r) {
+				frappe.require("/assets/frappe/js/frappe/website/editable.js");
+				frappe.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
+			});
+		}
+	});
+	</script>
+</div>
+
 <script>
-$(function() {
-	if(window.logged_in && getCookie("system_user")==="yes") {
-		frappe.has_permission("Blog Post", "{{ name }}", "write", function(r) {
-			frappe.require("/assets/frappe/js/frappe/website/editable.js");
-			frappe.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
-		});
-	}
-});
+	frappe.set_search_path("/blog");
 </script>
 {% endblock %}
-
-{% block footer %}{% include 'templates/includes/blog_footer.html' %}{% endblock %}

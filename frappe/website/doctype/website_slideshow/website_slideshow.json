@@ -1,6 +1,6 @@
 {
-  "autoname": "field:slideshow_name", 
- "creation": "2013-03-07 15:53:15.000000", 
+ "autoname": "field:slideshow_name", 
+ "creation": "2013-03-07 15:53:15", 
  "description": "Slideshow like display for the website", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -19,7 +19,7 @@
    "description": "Note: For best results, images must be of the same size and width must be greater than height.", 
    "fieldname": "sb0", 
    "fieldtype": "Section Break", 
-   "label": "Slideshow Items", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -42,7 +42,7 @@
  "icon": "icon-play", 
  "idx": 1, 
  "max_attachments": 10, 
- "modified": "2014-01-20 17:49:35.000000", 
+ "modified": "2015-02-20 05:04:19.614170", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 
@@ -58,6 +58,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

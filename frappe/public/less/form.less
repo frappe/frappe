@@ -1,0 +1,202 @@
+@import "variables.less";
+
+.form-print-wrapper {
+	border: 1px solid @border-color;
+	border-top: none;
+}
+
+.print-preview-wrapper {
+	padding: 30px 0px;
+	background-color: @navbar-bg;
+}
+
+.print-toolbar {
+	margin: 0px;
+	padding: 10px 0px;
+	border-bottom: 1px solid @border-color;
+}
+
+.form-inner-toolbar {
+	padding: 10px 15px;
+	background-color: @light-bg;
+	// border-bottom: 1px dashed @border-color;
+	text-align: right;
+}
+
+.form-clickable-section {
+	border-top: 1px solid @border-color;
+	padding: 10px 15px;
+	background-color: @panel-bg;
+}
+
+.form-page.second-page {
+	border-top: 1px solid @border-color;
+}
+
+.form-dashboard {
+	display: none;
+	border-bottom: 1px solid @border-color;
+}
+
+.form-section {
+	margin: 0px;
+	padding: 15px;
+}
+
+.empty-section {
+	display: none !important;
+}
+
+.shaded-section, .timeline-item:nth-child(even) {
+	background-color: @light-bg;
+}
+
+.modal {
+	.form-layout {
+		margin: -15px;
+	}
+
+	.form-section {
+		padding: 7px;
+	}
+}
+
+.help ol {
+	padding-left: 19px;
+}
+
+.field_description_top {
+	margin-bottom: 3px;
+}
+
+.user-actions {
+	margin-bottom: 15px;
+}
+.user-actions a {
+	font-weight: bold;
+}
+
+.badge-important {
+	background-color: #e74c3c;
+}
+
+.timeline {
+	border: 1px solid @border-color;
+	margin: 30px 0px;
+}
+
+.timeline-item {
+	margin-top: 0px;
+	padding: 15px 30px 7px;
+
+	.icon-fixed-width {
+		text-align: center;
+	}
+
+	border-bottom: 1px solid @border-color;
+
+	blockquote {
+		font-size: inherit;
+	}
+}
+
+.timeline-item:last-child {
+	border-bottom: 0px;
+}
+
+.timeline-item .reply {
+	margin-top: 5px;
+	// padding-left: 24px;
+	// border-left: 8px solid #d8dfe6;
+}
+
+.timeline-item .reply-link {
+	padding: 0px 7px;
+}
+
+.timeline-item h6, .timeline-head h6 {
+	margin-top: 6px;
+}
+
+.timeline-head {
+	background-color: @light-bg;
+	padding: 15px 30px;
+	border-bottom: 1px solid @border-color;
+}
+
+.form-footer h5 {
+	margin: 15px 0px;
+	font-weight: bold;
+}
+
+.control-label, .grid-heading-row {
+	color: @text-muted;
+	font-size: 85%;
+}
+
+.control-label {
+	margin-bottom: 5px;
+}
+
+.like-disabled-input {
+	margin-bottom: 7px;
+	border-radius: 3px;
+	min-height: 30px;
+	font-weight: bold;
+}
+
+.like-disabled-input.for-description {
+	font-weight: normal;
+}
+
+.frappe-control {
+	margin-bottom: 10px;
+
+	.help-box {
+		margin-top: 3px;
+	}
+}
+
+.hide-control {
+	display: none !important;
+}
+
+.shared-user {
+	margin-bottom: 10px;
+}
+
+.linked-with-dialog {
+	width: 75%;
+
+	.panel-body {
+		padding: 0px;
+	}
+
+	.form-section {
+		padding-top: 15px;
+	}
+}
+
+.attach-missing-image,
+.attach-image-display {
+	cursor: pointer;
+}
+
+@media (min-width: 768px) {
+	.layout-main .form-column.col-sm-12 > form > .input-max-width {
+		max-width: 50%;
+		padding-right: 15px;
+	}
+
+	// don't max-width when in form-grid with half width
+	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
+		max-width: none;
+		padding-right: 0px;
+	}
+}
+
+select.form-control {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}

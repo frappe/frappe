@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -8,8 +8,10 @@ bootstrap client session
 
 import frappe
 import frappe.defaults
-import frappe.widgets.page
-from frappe.utils import get_gravatar
+import frappe.desk.desk_page
+from frappe.utils import get_gravatar, get_url
+from frappe.desk.form.load import get_meta_bundle
+from frappe.change_log import get_versions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -43,15 +45,14 @@ def get_bootinfo():
 	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from
 		tabDocType where ifnull(icon,'')!=''"""))
-	bootinfo.doctype_icons.update(dict(frappe.db.sql("""select name, icon from
-		tabPage where ifnull(icon,'')!=''""")))
-
+	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where ifnull(issingle,0)=1""")
 	add_home_page(bootinfo, doclist)
-	add_allowed_pages(bootinfo)
+	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
+	doclist.extend(get_meta_bundle("Page"))
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):
@@ -65,8 +66,10 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
+	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
+	bootinfo.default_background_image = get_url("/assets/frappe/images/ui/into-the-dawn.jpg")
 
 	return bootinfo
 
@@ -75,9 +78,10 @@ def load_conf_settings(bootinfo):
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
 
-def add_allowed_pages(bootinfo):
+def get_allowed_pages():
 	roles = frappe.get_roles()
-	bootinfo.page_info = {}
+	page_info = {}
+
 	for p in frappe.db.sql("""select distinct
 		tabPage.name, tabPage.modified, tabPage.title
 		from `tabPage Role`, `tabPage`
@@ -85,7 +89,7 @@ def add_allowed_pages(bootinfo):
 			and `tabPage Role`.parent = `tabPage`.name""" % ', '.join(['%s']*len(roles)),
 				roles, as_dict=True):
 
-		bootinfo.page_info[p.name] = {"modified":p.modified, "title":p.title}
+		page_info[p.name] = {"modified":p.modified, "title":p.title}
 
 	# pages where role is not set are also allowed
 	for p in frappe.db.sql("""select name, modified, title
@@ -93,7 +97,9 @@ def add_allowed_pages(bootinfo):
 			(select count(*) from `tabPage Role`
 				where `tabPage Role`.parent=tabPage.name) = 0""", as_dict=1):
 
-		bootinfo.page_info[p.name] = {"modified":p.modified, "title":p.title}
+		page_info[p.name] = {"modified":p.modified, "title":p.title}
+
+	return page_info
 
 def load_translations(bootinfo):
 	if frappe.local.lang != 'en':
@@ -106,7 +112,7 @@ def get_fullnames():
 		concat(ifnull(first_name, ''),
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
 			user_image as image, gender, email
-		from tabUser where ifnull(enabled, 0)=1""", as_dict=1)
+		from tabUser where ifnull(enabled, 0)=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:
@@ -116,15 +122,9 @@ def get_fullnames():
 
 	return d
 
-def get_startup_js():
-	startup_js = []
-	for method in frappe.get_hooks().startup_js or []:
-		startup_js.append(frappe.get_attr(method)() or "")
-	return "\n".join(startup_js)
-
 def get_user(bootinfo):
 	"""get user info"""
-	bootinfo.user = frappe.user.load_user()
+	bootinfo.user = frappe.get_user().load_user()
 
 def add_home_page(bootinfo, docs):
 	"""load home page"""
@@ -132,10 +132,10 @@ def add_home_page(bootinfo, docs):
 		return
 	home_page = frappe.db.get_default("desktop:home_page")
 	try:
-		page = frappe.widgets.page.get(home_page)
+		page = frappe.desk.desk_page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		frappe.message_log.pop()
-		page = frappe.widgets.page.get('desktop')
+		page = frappe.desk.desk_page.get('desktop')
 
 	bootinfo['home_page'] = page.name
 	docs.append(page)

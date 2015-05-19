@@ -1,11 +1,11 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
 from frappe.utils.scheduler import enqueue_events
 from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX
-from frappe.cli import get_sites
+from frappe.utils import get_sites
 from frappe.utils.file_lock import create_lock, delete_lock
 
 @celery_task()
@@ -106,5 +106,19 @@ def enqueue_events_for_site(site):
 			return
 		frappe.connect(site=site)
 		enqueue_events(site)
+	except:
+		task_logger.error('Exception in Enqueue Events for Site {0}'.format(site))
+		raise
+	finally:
+		frappe.destroy()
+
+@celery_task()
+def pull_from_email_account(site, email_account):
+	try:
+		frappe.init(site=site)
+		frappe.connect(site=site)
+		email_account = frappe.get_doc("Email Account", email_account)
+		email_account.receive()
+		frappe.db.commit()
 	finally:
 		frappe.destroy()

@@ -1,20 +1,19 @@
-frappe.pages['user-permissions'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+frappe.pages['user-permissions'].on_page_load = function(wrapper) {
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("User Permissions Manager"),
 		icon: "icon-shield",
 		single_column: true
 	});
 
-	$(wrapper).find(".layout-main").html("<div class='user-settings' \
-		style='min-height: 200px;'></div>\
-	<p style='margin-top: 15px;'>\
-		<a class='view-role-permissions'><i class='icon-chevron-right'></i> " + __("Edit Role Permissions") + "</a>\
-	</p>\
-	<table class='table table-bordered' \
-		style='background-color: #f9f9f9; margin-top: 15px;'>\
-	<tr><td>\
-		<h4><i class='icon-question-sign'></i> "+__("Quick Help for User Permissions")+":</h4>\
+	frappe.breadcrumbs.add("Setup");
+
+	$("<div class='user-settings' \
+		style='min-height: 200px; padding: 15px;'></div>\
+	<p style='padding: 15px; padding-bottom: 0px;'>\
+		<a class='view-role-permissions grey'>" + __("Edit Role Permissions") + "</a>\
+	</p><hr><div style='padding: 0px 15px;'>\
+		<h4>"+__("Help for User Permissions")+":</h4>\
 		<ol>\
 			<li>"
 			+ __("Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.")
@@ -31,9 +30,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 			+ "<li>"
 			+ __("A user can be permitted to multiple records of the same DocType.")
 			+ "</li>\
-		</ol>\
-	</tr></td>\
-	</table>");
+		</ol></div>").appendTo(page.main);
 	wrapper.user_permissions = new frappe.UserPermissions(wrapper);
 }
 
@@ -64,21 +61,21 @@ frappe.UserPermissions = Class.extend({
 			callback: function(r) {
 				me.options = r.message;
 
-				me.filters.user = me.wrapper.appframe.add_field({
+				me.filters.user = me.wrapper.page.add_field({
 					fieldname: "user",
 					label: __("User"),
 					fieldtype: "Select",
 					options: ([__("Select User") + "..."].concat(r.message.users)).join("\n")
 				});
 
-				me.filters.doctype = me.wrapper.appframe.add_field({
+				me.filters.doctype = me.wrapper.page.add_field({
 					fieldname: "doctype",
 					label: __("DocType"),
 					fieldtype: "Select",
 					options: ([__("Select DocType") + "..."].concat(me.get_link_names())).join("\n")
 				});
 
-				me.filters.user_permission = me.wrapper.appframe.add_field({
+				me.filters.user_permission = me.wrapper.page.add_field({
 					fieldname: "user_permission",
 					label: __("Name"),
 					fieldtype: "Link",
@@ -86,14 +83,14 @@ frappe.UserPermissions = Class.extend({
 				});
 
 				if(user_roles.indexOf("System Manager")!==-1) {
-					me.download = me.wrapper.appframe.add_field({
+					me.download = me.wrapper.page.add_field({
 						fieldname: "download",
 						label: __("Download"),
 						fieldtype: "Button",
 						icon: "icon-download"
 					});
 
-					me.upload = me.wrapper.appframe.add_field({
+					me.upload = me.wrapper.page.add_field({
 						fieldname: "upload",
 						label: __("Upload"),
 						fieldtype: "Button",
@@ -131,10 +128,10 @@ frappe.UserPermissions = Class.extend({
 				fields: [
 					{
 						fieldtype:"HTML",
-						options: '<div class="alert alert-warning"><ol>'+
+						options: '<p class="text-muted"><ol>'+
 							"<li>"+__("Upload CSV file containing all user permissions in the same format as Download.")+"</li>"+
 							"<li><strong>"+__("Any existing permission will be deleted / overwritten.")+"</strong></li>"+
-						'</div>'
+						'</p>'
 					},
 					{
 						fieldtype:"Attach", fieldname:"attach",
@@ -190,26 +187,34 @@ frappe.UserPermissions = Class.extend({
 		return (user_permission === "%") ? null : user_permission;
 	},
 	render: function(prop_list) {
+		var me = this;
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list || !prop_list.length) {
-			this.add_message(__("No User Permissions found."));
+			this.add_message(__("No User Restrictions found."));
 		} else {
 			this.show_user_permissions_table();
 		}
 		this.show_add_user_permission();
+		if(this.get_user() && this.get_doctype()) {
+			$('<button class="btn btn-default btn-sm" style="margin-left: 10px;">\
+				Show Allowed Documents</button>').appendTo(this.body.find(".btn-area")).on("click", function() {
+					frappe.route_options = {doctype: me.get_doctype(), user:me.get_user() };
+					frappe.set_route("query-report/Permitted Documents For User");
+				});
+		}
 	},
 	add_message: function(txt) {
-		$('<div class="alert alert-info">' + txt + '</div>').appendTo(this.body);
+		$('<p class="text-muted">' + txt + '</p>').appendTo(this.body);
 	},
 	refresh: function() {
 		var me = this;
 		if(!me.filters.user) {
-			this.body.html("<div class='alert alert-info'>"+__("Loading")+"...</div>");
+			this.body.html("<p class='text-muted'>"+__("Loading")+"...</p>");
 			return;
 		}
 		if(!me.get_user() && !me.get_doctype()) {
-			this.body.html("<div class='alert alert-warning'>"+__("Select User or DocType to start.")+"</div>");
+			this.body.html("<p class='text-muted'>"+__("Select User or DocType to start.")+"</p>");
 			return;
 		}
 		// get permissions
@@ -234,7 +239,11 @@ frappe.UserPermissions = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 
-		$.each([[__("User"), 150], [__("DocType"), 150], [__("User Permission"),150], ["", 50]],
+		$('<p class="text-muted small">'
+			+__("These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.")
+			+'</p>').appendTo(this.body);
+
+		$.each([[__("Allow User If"), 150], [__("Document Type"), 150], [__("Is"),150], ["", 50]],
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -244,7 +253,7 @@ frappe.UserPermissions = Class.extend({
 		$.each(this.prop_list, function(i, d) {
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 
-			$("<td>").html('<a href="#Form/User/'+encodeURIComponent(d.parent)+'">'
+			$("<td>").html('<a class="grey" href="#Form/User/'+encodeURIComponent(d.parent)+'">'
 				+d.parent+'</a>').appendTo(row);
 			$("<td>").html(d.defkey).appendTo(row);
 			$("<td>").html(d.defvalue).appendTo(row);
@@ -255,7 +264,7 @@ frappe.UserPermissions = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-small btn-default'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-sm btn-default'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
@@ -285,17 +294,17 @@ frappe.UserPermissions = Class.extend({
 
 	show_add_user_permission: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+__("Add A User Permission")+"</button>")
-			.appendTo($("<p>").appendTo(this.body))
+		$("<button class='btn btn-default btn-sm'>"+__("Add A User Restriction")+"</button>")
+			.appendTo($('<p class="btn-area">').appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
-					title: __("Add New User Permission"),
+					title: __("Add A New Restriction"),
 					fields: [
-						{fieldtype:"Select", label:__("User"),
+						{fieldtype:"Select", label:__("Allow User If"),
 							options:me.options.users, reqd:1, fieldname:"user"},
-						{fieldtype:"Select", label: __("DocType"), fieldname:"defkey",
+						{fieldtype:"Select", label: __("Select Document Type"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
-						{fieldtype:"Link", label:__("Value"), fieldname:"defvalue",
+						{fieldtype:"Link", label:__("Is"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},
 						{fieldtype:"Button", label: __("Add"), fieldname:"add"},
 					]

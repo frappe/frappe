@@ -1,0 +1,19 @@
+<ul class="list-unstyled sidebar-menu sidebar-stat">
+	<li class="divider"></li>
+	<li class="h6 stat-label">{%= label %}</li>
+	{% if(!stat.length) { %}
+	<li class="stat-no-records text-muted">{%= __("No records tagged.") %}</li>
+	{% } else {
+		for (var i=0, l=stat.length; i < l; i++) {
+			var stat_label = stat[i][0];
+			var stat_count = stat[i][1];
+	%}
+			<li>
+				<a class="stat-link badge-hover" data-label="{%= stat_label %}" data-field="{%= field %}">
+					<span class="badge">{%= stat_count %}</span>
+					<span>{%= __(stat_label) %}</span>
+				</a>
+			</li>
+		{% }
+	} %}
+</ul>

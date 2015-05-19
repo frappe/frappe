@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -11,7 +11,8 @@ from frappe import _
 from rename_doc import dynamic_link_queries
 from frappe.model.naming import revert_series_if_last
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
+	ignore_permissions=False, flags=None, ignore_on_trash=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -35,6 +36,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		# delete attachments
 		remove_all(doctype, name)
 
+		doc = None
 		if doctype=="DocType":
 			if for_reload:
 
@@ -57,10 +59,22 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			doc = frappe.get_doc(doctype, name)
 
 			if not for_reload:
-				check_permission_and_not_submitted(doc, ignore_permissions)
-				doc.run_method("on_trash")
+				if ignore_permissions:
+					if not flags: flags = {}
+					flags["ignore_permissions"] = ignore_permissions
+
+				if flags:
+					doc.flags.update(flags)
+
+				check_permission_and_not_submitted(doc)
+
+				if not ignore_on_trash:
+					doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
+				delete_linked_comments(doc)
+				delete_linked_communications(doc)
+				delete_shared(doc)
 				# check if links exist
 				if not force:
 					check_if_doc_is_linked(doc)
@@ -69,10 +83,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 
+		if doc:
+			try:
+				insert_feed(doc)
+			except ImportError:
+				pass
+
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
-
-	return 'okay'
 
 def update_naming_series(doc):
 	if doc.meta.autoname:
@@ -98,16 +116,18 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 			return frappe.db.sql_list("""select options from `tab{}` where fieldtype='Table'
 				and parent=%s""".format(field_doctype), doctype)
 
-		tables = get_table_fields("DocField") + get_table_fields("Custom Field")
+		tables = get_table_fields("DocField")
+		if not frappe.flags.in_install=="frappe":
+			tables += get_table_fields("Custom Field")
 
 	# delete from child tables
 	for t in list(set(tables)):
 		if t not in ignore_doctypes:
 			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
 
-def check_permission_and_not_submitted(doc, ignore_permissions=False):
+def check_permission_and_not_submitted(doc):
 	# permission
-	if not ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("delete"):
+	if frappe.session.user!="Administrator" and not doc.has_permission("delete"):
 		frappe.msgprint(_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name), raise_exception=True)
 
 	# check if submitted
@@ -131,7 +151,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
-					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
+					doc.name, item.parenttype if item.parent else link_dt, item.parent or item.name),
 					frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc):
@@ -155,3 +175,32 @@ def check_if_doc_is_dynamically_linked(doc):
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+
+def delete_linked_comments(doc):
+	"""Delete comments from the document"""
+
+	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
+		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)
+
+def delete_linked_communications(doc):
+	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
+		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name)))
+
+def insert_feed(doc):
+	from frappe.utils import get_fullname
+
+	if frappe.flags.in_install or frappe.flags.in_import or getattr(doc, "no_feed_on_delete", False):
+		return
+
+	frappe.get_doc({
+		"doctype": "Feed",
+		"feed_type": "Label",
+		"doc_type": doc.doctype,
+		"doc_name": doc.name,
+		"subject": _("Deleted"),
+		"full_name": get_fullname(doc.owner)
+	}).insert(ignore_permissions=True)
+
+def delete_shared(doc):
+	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)))

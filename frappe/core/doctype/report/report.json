@@ -34,6 +34,13 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "module", 
+   "fieldtype": "Link", 
+   "label": "Module", 
+   "options": "Module Def", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "add_total_row", 
    "fieldtype": "Check", 
    "label": "Add Total Row", 
@@ -85,10 +92,11 @@
    "read_only": 0
   }, 
   {
-   "depends_on": "eval:doc.report_type==\"Query Report\"", 
+   "depends_on": "", 
    "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}", 
    "fieldname": "javascript", 
    "fieldtype": "Code", 
+   "hidden": 1, 
    "label": "Javascript", 
    "permlevel": 0
   }, 
@@ -99,18 +107,11 @@
    "label": "JSON", 
    "permlevel": 0, 
    "read_only": 1
-  }, 
-  {
-   "fieldname": "module", 
-   "fieldtype": "Link", 
-   "label": "Module", 
-   "options": "Module Def", 
-   "permlevel": 0
   }
  ], 
  "icon": "icon-table", 
  "idx": 1, 
- "modified": "2014-06-03 07:25:41.509885", 
+ "modified": "2015-02-05 05:11:44.753200", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Report", 
@@ -125,6 +126,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Administrator", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -137,6 +139,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -149,6 +152,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Report Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

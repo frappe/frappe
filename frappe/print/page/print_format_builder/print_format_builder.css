@@ -1,0 +1,83 @@
+.print-format-builder-section, .print-format-builder-add-section {
+	border: 1px solid #d1d8dd;
+	margin: 0px;
+	margin-bottom: 15px;
+}
+.print-format-builder-add-section, .print-format-builder-header {
+	border: 1px dashed #d1d8dd;
+	padding: 15px;
+	cursor: pointer;
+}
+
+.print-format-builder-header {
+	margin-bottom: 15px;
+}
+
+.print-format-builder-column {
+	padding: 15px;
+	margin: 0px -15px 0 -16px;
+	background-color: white;
+	min-height: 64px;
+	border-left: 1px solid #d1d8dd;
+	border-right: 1px solid #d1d8dd;
+}
+
+.section-column:last-child .print-format-builder-column {
+	margin-right: -16px;
+}
+
+.print-format-builder-field {
+	padding: 5px;
+	border: 1px solid #d1d8dd;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	min-height: 34px;
+}
+
+.print-format-builder-field:last-child {
+	margin-bottom: 0px;
+}
+
+.print-format-builder-field-placeholder {
+	margin-bottom: 10px;
+}
+
+.print-format-builder-field-placeholder:last-child {
+	margin-bottom: 0px;
+}
+
+.print-format-builder-column .print-format-builder-field {
+	cursor: move;
+}
+
+
+.print-format-builder-section-head {
+	cursor: move;
+	padding: 10px 15px;
+	border-bottom: 1px solid #d1d8dd;
+}
+
+.column-selector-row:hover {
+	background-color: #fafbfc;
+}
+
+.column-selector-row .form-control {
+	margin-top: 5px;
+}
+
+.print-format-builder-sidebar {
+	display: inline-block;
+	width: 160px;
+	vertical-align: top;
+	position: fixed;
+	top: 110px;
+	bottom: 0px;
+	overflow-y: auto;
+}
+
+.print-format-builder-main {
+	display: inline-block;
+	vertical-align: top;
+	border-top: 0px;
+	margin-left: 160px;
+}

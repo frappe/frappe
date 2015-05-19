@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -8,10 +8,12 @@ from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 
 class WebForm(WebsiteGenerator):
-	template = "templates/generators/web_form.html"
-	condition_field = "published"
-	page_title_field = "title"
-	no_cache = 1
+	website = frappe._dict(
+		template = "templates/generators/web_form.html",
+		condition_field = "published",
+		page_title_field = "title",
+		no_cache = 1
+	)
 
 	def get_context(self, context):
 		context.params = frappe.form_dict
@@ -29,7 +31,7 @@ class WebForm(WebsiteGenerator):
 					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user},
 						"name")
 					if name:
-						context.doc_name = name
+						frappe.form_dict.name = name
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)

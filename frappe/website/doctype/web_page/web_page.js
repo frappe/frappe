@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 $.extend(cur_frm.cscript, {
@@ -18,13 +18,8 @@ $.extend(cur_frm.cscript, {
 	},
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
-		cur_frm.set_intro("");
 		if(cur_frm.doc.template_path) {
 			cur_frm.set_read_only();
-		}
-		if (!doc.__islocal && doc.published) {
-			cur_frm.set_intro(__("Published on website at: {0}",
-				[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>', doc.__onload)]));
 		}
 	},
 	insert_style: function(doc) {
