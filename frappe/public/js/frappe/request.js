@@ -71,6 +71,10 @@ frappe.request.call = function(opts) {
 		508: function(xhr) {
 			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
 		},
+		413: function(data, xhr) {
+			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
+				[(frappe.boot.max_file_size || 3145728) / 1048576]))
+		},
 		417: function(data, xhr) {
 			if(typeof data === "string") data = JSON.parse(data);
 			opts.error_callback && opts.error_callback(data, xhr.responseText);
