@@ -18,7 +18,10 @@ def execute():
 	if frappe.db.exists("DocType", "Event User"):
 		for event in frappe.get_all("Event User", fields=["parent", "person"]):
 			if event.person in usernames:
-				frappe.share.add("Event", event.parent, event.person, write=1)
+				if not frappe.db.exists("Event", event.parent):
+					frappe.db.sql("delete from `tabEvent User` where parent = %s",event.parent)
+				else:
+					frappe.share.add("Event", event.parent, event.person, write=1)
 
 		frappe.delete_doc("DocType", "Event User")
 
