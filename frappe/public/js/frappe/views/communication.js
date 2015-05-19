@@ -222,6 +222,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				+__("Add Attachments")+"</h6>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				if (!f.file_name) return;
+				f.file_url = frappe.urllib.get_full_url(f.file_url);
 
 				$(repl('<p class="checkbox">'
 					+	'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>'

@@ -69,7 +69,7 @@ frappe.ui.form.Attachments = Class.extend({
 					<span>%(file_name)s</span></a>\
 			</li>', {
 				file_name: file_name,
-				file_url: file_url
+				file_url: frappe.urllib.get_full_url(file_url)
 			}))
 			.insertAfter(this.attachments_label.addClass("has-attachments"));
 

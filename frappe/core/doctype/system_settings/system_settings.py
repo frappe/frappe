@@ -11,10 +11,11 @@ from frappe.utils.momentjs import get_all_timezones
 
 class SystemSettings(Document):
 	def validate(self):
-		if self.session_expiry:
-			parts = self.session_expiry.split(":")
-			if len(parts)!=2 or not (cint(parts[0]) or cint(parts[1])):
-				frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
+		for key in ("session_expiry", "session_expiry_mobile"):
+			if self.get(key):
+				parts = self.get(key).split(":")
+				if len(parts)!=2 or not (cint(parts[0]) or cint(parts[1])):
+					frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
 
 	def on_update(self):
 		for df in self.meta.get("fields"):
