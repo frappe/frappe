@@ -129,7 +129,7 @@ frappe.ui.form.States = Class.extend({
 	},
 
 	set_default_state: function() {
-		var default_state = frappe.workflow.get_default_state(this.frm.doctype);
+		var default_state = frappe.workflow.get_default_state(this.frm.doctype, this.frm.doc.docstatus);
 		if(default_state) {
 			this.frm.set_value(this.state_fieldname, default_state);
 		}
