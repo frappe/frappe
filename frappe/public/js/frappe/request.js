@@ -73,7 +73,7 @@ frappe.request.call = function(opts) {
 		},
 		413: function(data, xhr) {
 			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
-				[(frappe.boot.max_file_size || 3145728) / 1048576]))
+				[(frappe.boot.max_file_size || 5242880) / 1048576]))
 		},
 		417: function(data, xhr) {
 			if(typeof data === "string") data = JSON.parse(data);
