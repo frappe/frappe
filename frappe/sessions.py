@@ -15,7 +15,7 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
-import frappe.change_log
+from frappe.utils.change_log import get_change_log
 import redis
 from urllib import unquote
 
@@ -114,7 +114,7 @@ def get():
 
 		# check only when clear cache is done, and don't cache this
 		if frappe.local.request:
-			bootinfo["change_log"] = frappe.change_log.get_change_log()
+			bootinfo["change_log"] = get_change_log()
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
@@ -124,7 +124,6 @@ def get():
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
-
 	return bootinfo
 
 class Session:
