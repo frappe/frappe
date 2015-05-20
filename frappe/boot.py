@@ -11,7 +11,7 @@ import frappe.defaults
 import frappe.desk.desk_page
 from frappe.utils import get_gravatar, get_url
 from frappe.desk.form.load import get_meta_bundle
-from frappe.change_log import get_versions
+from frappe.utils.change_log import get_versions
 
 def get_bootinfo():
 	"""build and return boot info"""

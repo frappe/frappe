@@ -21,6 +21,8 @@ def get_context(context):
 	boot = frappe.sessions.get()
 	boot_json = frappe.as_json(boot)
 
+	frappe.db.commit()
+
 	# remove script tags from boot
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
 
