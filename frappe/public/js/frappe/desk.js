@@ -293,7 +293,7 @@ frappe.Application = Class.extend({
 		d.keep_open = true;
 		d.custom_onhide = function() {
 			frappe.call({
-				"method": "frappe.change_log.update_last_known_versions"
+				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
 		};
 	}

@@ -11,7 +11,7 @@ import frappe.defaults
 import frappe.desk.desk_page
 from frappe.utils import get_gravatar, get_url
 from frappe.desk.form.load import get_meta_bundle
-from frappe.change_log import get_versions
+from frappe.utils.change_log import get_versions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -75,6 +75,7 @@ def get_bootinfo():
 
 def load_conf_settings(bootinfo):
 	from frappe import conf
+	bootinfo.max_file_size = conf.get('max_file_size') or 3145728
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
 
