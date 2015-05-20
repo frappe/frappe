@@ -58,10 +58,15 @@ frappe.form.formatters = {
 	},
 	Link: function(value, docfield, options) {
 		var doctype = docfield._options || docfield.options;
-		if(options && options.for_print)
+		if(value && value.match(/^['"].*['"]$/)) {
+			return value.replace(/^.(.*).$/, "$1");
+		}
+		if(options && options.for_print) {
 			return value;
-		if(!value)
+		}
+		if(!value) {
 			return "";
+		}
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
