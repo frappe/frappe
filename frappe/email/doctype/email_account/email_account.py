@@ -179,9 +179,15 @@ class EmailAccount(Document):
 					parent = frappe.get_doc("Communication", in_reply_to)
 
 					if parent.reference_name:
-						# parent same as parent of last communication
-						parent = frappe.get_doc(parent.reference_doctype,
-							parent.reference_name)
+						if self.append_to:
+							# parent must reference only if name matches
+							if parent.reference_doctype==self.append_to:
+								# parent same as parent of last communication
+								parent = frappe.get_doc(parent.reference_doctype,
+									parent.reference_name)
+						else:
+							parent = frappe.get_doc(parent.reference_doctype,
+								parent.reference_name)
 
 		if not parent and self.append_to and subject_field and sender_field:
 			# try and match by subject and sender
