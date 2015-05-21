@@ -54,14 +54,23 @@ frappe.form.formatters = {
 			? "" : format_currency(value, currency, docfield.precision || null), options);
 	},
 	Check: function(value) {
-		return value ? "<i class='icon-ok'></i>" : "<i class='icon-remove'></i>";
+		if(value) {
+			return '<i class="octicon octicon-check" style="margin-right: 8px;"></i>';
+		} else {
+			return '<i class="icon-check-empty text-extra-muted" style="margin-right: 8px;"></i>';
+		}
 	},
 	Link: function(value, docfield, options) {
 		var doctype = docfield._options || docfield.options;
-		if(options && options.for_print)
+		if(value && value.match(/^['"].*['"]$/)) {
+			return value.replace(/^.(.*).$/, "$1");
+		}
+		if(options && options.for_print) {
 			return value;
-		if(!value)
+		}
+		if(!value) {
 			return "";
+		}
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});

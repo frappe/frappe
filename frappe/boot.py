@@ -75,7 +75,7 @@ def get_bootinfo():
 
 def load_conf_settings(bootinfo):
 	from frappe import conf
-	bootinfo.max_file_size = conf.get('max_file_size') or 3145728
+	bootinfo.max_file_size = conf.get('max_file_size') or 5242880
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
 

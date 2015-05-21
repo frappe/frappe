@@ -126,12 +126,15 @@ def add_total_row(result, columns):
 	if isinstance(columns[0], basestring):
 		first_col = columns[0].split(":")
 		if len(first_col) > 1:
-			first_col_fieldtype = first_col[1]
+			first_col_fieldtype = first_col[1].split("/")[0]
 	else:
 		first_col_fieldtype = columns[0].get("fieldtype")
 
 	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
-		total_row[0] = "Total"
+		if first_col_fieldtype == "Link":
+			total_row[0] = "'" + _("Total") + "'"
+		else:
+			total_row[0] = _("Total")
 
 	result.append(total_row)
 	return result
