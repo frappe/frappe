@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
+import json
 from jinja2 import TemplateSyntaxError
 
 from frappe.model.document import Document
@@ -20,6 +21,8 @@ class PrintFormat(Document):
 		self.old_doc_type = frappe.db.get_value('Print Format',
 				self.name, 'doc_type')
 
+		self.extract_images()
+
 		if self.html:
 			jenv = frappe.get_jenv()
 			try:
@@ -27,6 +30,15 @@ class PrintFormat(Document):
 			except TemplateSyntaxError, e:
 				frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 				frappe.throw(frappe._("Syntax error in Jinja template"))
+
+	def extract_images(self):
+		from frappe.utils.file_manager import extract_images_from_html
+		if self.format_data:
+			data = json.loads(self.format_data)
+			for df in data:
+				if df.get('fieldtype') and df['fieldtype'] in ('HTML', 'Custom HTML') and df.get('options'):
+					df['options'] = extract_images_from_html(self, df['options'])
+			self.format_data = json.dumps(data)
 
 	def on_update(self):
 		if hasattr(self, 'old_doc_type') and self.old_doc_type:
