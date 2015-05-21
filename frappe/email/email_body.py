@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils.data import get_url, scrub_urls, strip, expand_relative_urls
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint
 import email.utils
 from markdown2 import markdown
 
@@ -232,10 +232,11 @@ def get_footer(footer=None):
 
 	if email_account and email_account.footer:
 		footer += email_account.footer
-	else:
-		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
-			footer += default_mail_footer
 
 	footer += "<!--unsubscribe link here-->"
+
+	if not cint(frappe.db.get_default("disable_standard_email_footer")):
+		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
+			footer += default_mail_footer
 
 	return footer
