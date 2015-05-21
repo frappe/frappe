@@ -12,24 +12,26 @@ frappe.get_indicator = function(doc, doctype) {
 		is_submittable = frappe.model.is_submittable(doctype),
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
+	// workflow
+	if(workflow_fieldname) {
+		var value = doc[workflow_fieldname];
+		if(value) {
+			var colour = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			}[locals["Workflow State"][value].style] || "darkgrey";
+			return [__(value), colour, workflow_fieldname + ',=,' + value];
+		}
+	}
+
 	if(is_submittable && doc.docstatus==0) {
 		return [__("Draft"), "red", "docstatus,=,0"];
 	}
 
 	if(is_submittable && doc.docstatus==2) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
-	}
-
-	// workflow
-	if(workflow_fieldname) {
-		var value = doc[workflow_fieldname];
-		var colour = {
-			"Success": "green",
-			"Warning": "orange",
-			"Danger": "red",
-			"Primary": "blue",
-		}[locals["Workflow State"][value].style] || "darkgrey";
-		return [__(value), colour, workflow_fieldname + ',=,' + value];
 	}
 
 	if(_get_indicator) {
