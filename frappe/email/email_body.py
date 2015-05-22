@@ -235,6 +235,11 @@ def get_footer(footer=None):
 
 	footer += "<!--unsubscribe link here-->"
 
+	company_address = frappe.db.get_default("email_footer_address")
+
+	if company_address:
+		footer += '<div>{0}</div>'.format(company_address)
+
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
 			footer += default_mail_footer
