@@ -203,4 +203,4 @@ def insert_feed(doc):
 
 def delete_shared(doc):
 	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)))
+		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)

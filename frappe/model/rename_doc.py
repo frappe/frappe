@@ -78,9 +78,8 @@ def rename_versions(doctype, old, new):
 
 def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
-	frappe.db.sql("update `tab%s` set name=%s where name=%s" \
-		% (doctype, '%s', '%s'), (new, old))
-
+	frappe.db.sql("update `tab%s` set name=%s where name=%s" % (doctype, '%s', '%s'),
+		(new, old))
 	update_child_docs(old, new, meta)
 
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):

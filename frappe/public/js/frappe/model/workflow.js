@@ -1,5 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide("frappe.workflow");
 
@@ -13,7 +13,7 @@ frappe.workflow = {
 			frappe.workflow.state_fields[doctype] = wf[0].workflow_state_field;
 		} else {
 			frappe.workflow.state_fields[doctype] = null;
-		}		
+		}
 	},
 	get_state_fieldname: function(doctype) {
 		if(frappe.workflow.state_fields[doctype]===undefined) {
@@ -21,9 +21,16 @@ frappe.workflow = {
 		}
 		return frappe.workflow.state_fields[doctype];
 	},
-	get_default_state: function(doctype) {
+	get_default_state: function(doctype, docstatus) {
 		frappe.workflow.setup(doctype);
-		return frappe.workflow.workflows[doctype].states[0].state;
+		var value = null;
+		$.each(frappe.workflow.workflows[doctype].states, function(i, workflow_state) {
+			if(cint(workflow_state.doc_status)===cint(docstatus)) {
+				value = workflow_state.state;
+				return false;
+			}
+		});
+		return value;
 	},
 	get_transitions: function(doctype, state) {
 		frappe.workflow.setup(doctype);
@@ -40,13 +47,14 @@ frappe.workflow = {
  	is_read_only: function(doctype, name) {
 		var state_fieldname = frappe.workflow.get_state_fieldname(doctype);
 		if(state_fieldname) {
-			if(!locals[doctype][name])
+			var doc = locals[doctype][name];
+			if(!doc)
 				return false;
-			if(locals[doctype][name].__islocal)
+			if(doc.__islocal)
 				return false;
-				
-			var state = locals[doctype][name][state_fieldname] || 
-				frappe.workflow.get_default_state(doctype);
+
+			var state = doc[state_fieldname] ||
+				frappe.workflow.get_default_state(doctype, doc.docstatus);
 
 			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state).allow_edit : null;
 
@@ -57,7 +65,7 @@ frappe.workflow = {
 		return false;
 	},
 	get_update_fields: function(doctype) {
-		var update_fields = $.unique($.map(frappe.workflow.workflows[doctype].states || [], 
+		var update_fields = $.unique($.map(frappe.workflow.workflows[doctype].states || [],
 			function(d) {
 				return d.update_field;
 			}));

@@ -83,8 +83,13 @@ def get_uploaded_content():
 		frappe.msgprint(_('No file attached'))
 		return None, None
 
-def extract_images_from_html(doc, fieldname):
+def extract_images_from_doc(doc, fieldname):
 	content = doc.get(fieldname)
+	content = extract_images_from_html(doc, content)
+	if frappe.flags.has_dataurl:
+		doc.set(fieldname, content)
+
+def extract_images_from_html(doc, content):
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
@@ -110,8 +115,8 @@ def extract_images_from_html(doc, fieldname):
 
 	if content:
 		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
-		if frappe.flags.has_dataurl:
-			doc.set(fieldname, content)
+
+	return content
 
 def get_random_filename(extn=None, content_type=None):
 	if extn:
