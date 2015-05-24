@@ -16,8 +16,6 @@ def get_signed_params(params):
 	if not isinstance(params, basestring):
 		params = urllib.urlencode(params)
 
-	print params
-
 	signature = hmac.new(params)
 	signature.update(get_secret())
 	return params + "&_signature=" + signature.hexdigest()
@@ -33,8 +31,6 @@ def verify_request():
 	params, signature = query_string.split("&_signature=")
 
 	given_signature = hmac.new(params.encode("utf-8"))
-
-	print params
 
 	given_signature.update(get_secret())
 	valid = signature == given_signature.hexdigest()
