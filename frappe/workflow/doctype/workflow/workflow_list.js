@@ -8,3 +8,5 @@ frappe.listview_settings['Workflow'] = {
 		}
 	}
 };
+
+frappe.help.youtube_id["Workflow"] = "yObJUg9FxFs";

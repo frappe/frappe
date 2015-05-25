@@ -132,7 +132,7 @@ $.extend(frappe.user, {
 			var ret = null;
 			switch(type) {
 				case "module":
-					if(frappe.boot.user.allow_modules.indexOf(m)!=-1)
+					if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
 						ret = m;
 					break;
 				case "page":

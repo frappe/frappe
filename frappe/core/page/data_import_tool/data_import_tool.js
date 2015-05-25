@@ -7,6 +7,9 @@ frappe.DataImportTool = Class.extend({
 			title: __("Data Import Tool"),
 			single_column: true
 		});
+		this.page.add_inner_button(__("Help"), function() {
+			frappe.help.show_video("6wiriRKPhmg");
+		});
 		this.make();
 		this.make_upload();
 	},
