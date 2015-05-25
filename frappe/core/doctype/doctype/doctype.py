@@ -240,8 +240,13 @@ def validate_fields(meta):
 				frappe.throw(_("Options requried for Link or Table type field {0} in row {1}").format(d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
 				return
-			if d.options != d.parent and not frappe.db.exists("DocType", d.options):
-				frappe.throw(_("Options must be a valid DocType for field {0} in row {1}").format(d.label, d.idx))
+			if d.options != d.parent:
+				options = frappe.db.get_value("DocType", d.options, "name")
+				if not options:
+					frappe.throw(_("Options must be a valid DocType for field {0} in row {1}").format(d.label, d.idx))
+				else:
+					# fix case
+					d.options = options
 
 	def check_hidden_and_mandatory(d):
 		if d.hidden and d.reqd and not d.default:
