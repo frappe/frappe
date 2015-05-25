@@ -342,6 +342,10 @@ def update_password(new_password, key=None):
 	else:
 		return "/"
 
+@frappe.whitelist()
+def verify_password(password):
+	frappe.local.login_manager.check_password(frappe.session.user, password)
+
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name):
 	user = frappe.db.get("User", {"email": email})
