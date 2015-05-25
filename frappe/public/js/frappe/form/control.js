@@ -1052,9 +1052,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				});
 			},
 			open: function(event, ui) {
+				me.$wrapper.css({"z-index": 101});
 				me.autocomplete_open = true;
 			},
 			close: function(event, ui) {
+				me.$wrapper.css({"z-index": 1});
 				me.autocomplete_open = false;
 			},
 			focus: function( event, ui ) {
