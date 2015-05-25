@@ -362,12 +362,6 @@ ul.linked-with-list li {
   font-size: 12px;
 }
 /* z-index hack */
-.ui-datepicker {
-  z-index: 9999999 !important;
-}
-.ui-autocomplete {
-  z-index: 9999999 !important;
-}
 @media (min-width: 768px) {
   .hidden-xs-inline {
     display: inline;

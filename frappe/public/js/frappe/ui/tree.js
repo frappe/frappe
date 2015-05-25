@@ -18,6 +18,7 @@ frappe.ui.Tree = Class.extend({
 			root: true,
 			data: {
 				value: this.label,
+				parent: this.label,
 				expandable: true
 			}
 		});
@@ -81,12 +82,18 @@ frappe.ui.TreeNode = Class.extend({
 		if(this.expandable) {
 			icon_html = '<i class="icon-fixed-width icon-folder-close text-muted"></i>';
 		}
-		$(icon_html + ' <a class="tree-label grey h6">' + __(this.label) + "</a>").
+		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
 			appendTo(this.$a);
 
 		this.$a.find('i').click(function() {
 			setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
 		});
+	},
+	get_label: function() {
+		if(this.tree.get_label) {
+			return this.tree.get_label(this);
+		}
+		return __(this.label);
 	},
 	toggle: function(callback) {
 		if(this.expandable && this.tree.method && !this.loaded) {
@@ -194,7 +201,7 @@ frappe.ui.TreeNode = Class.extend({
 	load: function(callback) {
 		var me = this;
 		args = $.extend(this.tree.args || {}, {
-			parent: this.data ? this.data.value : null
+			parent: this.data ? (this.data.parent || this.data.value) : null
 		});
 
 		return frappe.call({
