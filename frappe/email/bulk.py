@@ -72,13 +72,13 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 					unsubscribe_method, unsubscribe_params)
 
 				# add to queue
-				email_content = add_unsubscribe_link(email_content, email, reference_doctype, reference_name,
-					unsubscribe_url, unsubscribe_message)
+				email_content = add_unsubscribe_link(email_content, email, reference_doctype,
+					reference_name, unsubscribe_url, unsubscribe_message)
 
-				email_text_context += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
+				email_text_context += "\n" + _("This email was sent to {0}. To unsubscribe click on this link: {1}").format(email, unsubscribe_url)
 
-			add(email, sender, subject, email_content, email_text_context, reference_doctype, reference_name, attachments, reply_to,
-				cc, message_id, send_after)
+			add(email, sender, subject, email_content, email_text_context, reference_doctype,
+				reference_name, attachments, reply_to, cc, message_id, send_after)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
@@ -121,11 +121,12 @@ def check_bulk_limit(recipients):
 				BulkLimitCrossedError)
 
 def add_unsubscribe_link(message, email, reference_doctype, reference_name, unsubscribe_url, unsubscribe_message):
-	unsubscribe_link = """<div style="padding: 7px; margin-top: 7px;">
-			<a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: none; font-size: 85%;" target="_blank">
-				{unsubscribe_message}
+	unsubscribe_link = """<div style="padding: 7px; text-align: center; color: #8D99A6;">
+			{email}. <a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: underline;
+				target="_blank">{unsubscribe_message}.
 			</a>
 		</div>""".format(unsubscribe_url = unsubscribe_url,
+			email= _("This email was sent to {0}").format(email),
 			unsubscribe_message = unsubscribe_message or _("Unsubscribe from this list"))
 
 	message = message.replace("<!--unsubscribe link here-->", unsubscribe_link)
