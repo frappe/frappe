@@ -133,7 +133,7 @@ def get_backup():
 						  frappe.conf.db_password, db_host = frappe.db.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
-	frappe.msgprint(_("Download link for your backup will be emailed on the following email address:").format(', '.join(recipient_list)))
+	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
 def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	"""this function is called from scheduler
