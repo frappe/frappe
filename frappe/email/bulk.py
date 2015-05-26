@@ -165,7 +165,7 @@ def unsubscribe(doctype, name, email):
 	return_unsubscribed_page(email, doctype, name)
 
 def return_unsubscribed_page(email, doctype, name):
-	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has has left the conversation in {1} {2}").format(email, _(doctype), name))
+	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has left the conversation in {1} {2}").format(email, _(doctype), name))
 
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
