@@ -18,8 +18,9 @@
 				</div>
 				<div class="col-sm-4 text-right">
 					{% if facebook_share or google_plus_one or twitter_share or linked_in_share %}
-					<div class="social-icons">
-						<span>{{ share_text or "Share this page on: "}}</span>
+					<div class="social-icons text-muted small" style="margin-bottom: 15px;">
+						<span>
+                            {{ share_text or "Share this page on: "}}</span>
 						{% if google_plus_one %}
 							<a href="https://plus.google.com/share?url={{ url }}"
 							 	target="_blank"><i class="icon-google-plus"></i></a>
@@ -38,13 +39,13 @@
 						{% endif %}
 					</div>
 					{% endif %}
-					
+
 					{# powered #}
-					<p class="text-right footer-powered">
+					<div class="text-right footer-powered">
 					{% block powered %}
 						{% include "templates/includes/footer/footer_powered.html" %}
 					{% endblock %}
-					</p>
+                    </div>
 				</div>
 			</div>
 		</div>

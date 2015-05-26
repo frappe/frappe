@@ -116,6 +116,7 @@ def init(site, sites_path=None):
 
 	local.module_app = None
 	local.app_modules = None
+	local.system_settings = None
 
 	local.user = None
 	local.user_obj = None

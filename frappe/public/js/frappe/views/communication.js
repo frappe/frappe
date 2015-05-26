@@ -395,6 +395,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(this.dialog.fields_dict.recipients.input)
 			.bind( "keydown", function(event) {
 				if (event.keyCode === $.ui.keyCode.TAB &&
+						$(this).data( "autocomplete" ) &&
 						$(this).data( "autocomplete" ).menu.active ) {
 					event.preventDefault();
 				}

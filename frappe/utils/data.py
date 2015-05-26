@@ -578,7 +578,8 @@ def compare(val1, condition, val2):
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
-	html = quote_urls(html)
+	# encoding should be responsibility of the composer
+	# html = quote_urls(html)
 	return html
 
 def expand_relative_urls(html):

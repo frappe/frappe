@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model import no_value_fields
 from frappe.translate import get_lang_dict, set_default_language
 from frappe.utils import cint
 from frappe.utils.momentjs import get_all_timezones
@@ -19,7 +20,7 @@ class SystemSettings(Document):
 
 	def on_update(self):
 		for df in self.meta.get("fields"):
-			if df.fieldtype in ("Select", "Data", "Check"):
+			if df.fieldtype not in no_value_fields:
 				frappe.db.set_default(df.fieldname, self.get(df.fieldname))
 
 		if self.language:
