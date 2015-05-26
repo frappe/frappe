@@ -211,15 +211,6 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Backup Manager",
-					"label": _("Download Backup"),
-					"onclick": "frappe.ui.toolbar.download_backup",
-					"icon": "icon-download-alt",
-					"description": _("Send download link of a recent backup to System Managers"),
-					"hide_count": True
-				},
-				{
-					"type": "doctype",
-					"name": "Backup Manager",
 					"description": _("Manage cloud backups on Dropbox"),
 					"hide_count": True
 				},
