@@ -33,6 +33,9 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
+		if self.enable_incoming and not self.append_to:
+			frappe.throw(_("Append To is mandatory for incoming mails"))
+
 		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
 				self.get_pop3()
