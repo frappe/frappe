@@ -20,9 +20,16 @@ frappe.help.show = function(doctype) {
 }
 
 frappe.help.show_video = function(youtube_id, title) {
-	frappe.msgprint('<iframe width="560" height="315" \
+	if($("body").width() > 768) {
+		var size = [670, 377];
+	} else {
+		var size = [560, 315];
+	}
+	var dialog = frappe.msgprint('<iframe width="'+size[0]+'" height="'+size[1]+'" \
 		src="https://www.youtube.com/embed/'+ youtube_id +'" \
 		frameborder="0" allowfullscreen></iframe>', title || __("Help"));
+
+	dialog.$wrapper.find(".modal-content").addClass("video-modal");
 }
 
 $("body").on("click", "a.help-link", function() {

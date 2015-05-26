@@ -361,6 +361,11 @@ ul.linked-with-list li {
   padding: 7px;
   font-size: 12px;
 }
+@media (min-width: 768px) {
+  .video-modal {
+    width: 700px;
+  }
+}
 /* z-index hack */
 @media (min-width: 768px) {
   .hidden-xs-inline {
