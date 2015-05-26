@@ -426,11 +426,19 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
-	for method in (get_hooks("has_website_permission") or {}).get(doctype, []):
-		if not call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose):
-			return False
+	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
+	if hooks:
+		for method in hooks:
+			result = call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose)
+			# if even a single permission check is Falsy
+			if not result:
+				return False
 
-	return True
+		# else it is Truthy
+		return True
+
+	else:
+		return False
 
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
