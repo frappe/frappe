@@ -9,7 +9,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, time_diff_in_seconds
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -186,19 +186,24 @@ def flush(from_test=False):
 		else:
 			break
 
-		frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""",
-			(email["name"],), auto_commit=auto_commit)
-		try:
-			if not from_test:
-				smtpserver.setup_email_account(email.reference_doctype)
-				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
-
-			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
+		if time_diff_in_seconds(None, email["creation"]) > 259200:
+			# expire mails older than 3 days
+			frappe.db.sql("""update `tabBulk Email` set status='Expired' where name=%s""",
 				(email["name"],), auto_commit=auto_commit)
+		else:
+			frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""",
+				(email["name"],), auto_commit=auto_commit)
+			try:
+				if not from_test:
+					smtpserver.setup_email_account(email.reference_doctype)
+					smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
 
-		except Exception, e:
-			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
-				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
+				frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
+					(email["name"],), auto_commit=auto_commit)
+
+			except Exception, e:
+				frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
+					where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
 def clear_outbox():
 	"""remove mails older than 30 days in Outbox"""
