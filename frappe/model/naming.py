@@ -24,10 +24,11 @@ def set_new_name(doc):
 	# based on a field
 	if autoname:
 		if autoname.startswith('field:'):
-			n = doc.get(autoname[6:])
-			if not n:
+			fieldname = autoname[6:]
+			doc.name = (doc.get(fieldname) or "").strip()
+			if not doc.name:
+				frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 				raise Exception, 'Name is required'
-			doc.name = n.strip()
 
 		elif autoname.startswith("naming_series:"):
 			if not doc.naming_series:
