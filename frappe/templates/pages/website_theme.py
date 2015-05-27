@@ -42,7 +42,7 @@ def prepare(theme):
 	webfonts = list(set(theme.get(key)
 		for key in ("heading_webfont", 'text_webfont') if theme.get(key)))
 
-	theme.webfont_import = "\n".join('@import url(@import url(http://fonts.googleapis.com/css?family={0}:400,300,400italic,700&subset=latin,latin-ext);)'\
+	theme.webfont_import = "\n".join('@import url(http://fonts.googleapis.com/css?family={0}:400,300,400italic,700&subset=latin,latin-ext);'\
 		.format(font.replace(" ", "+")) for font in webfonts)
 
 	# move @import from css field to the top of the css file
