@@ -133,7 +133,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 		# update filters
 		new_filters = []
 		for f in report_dict.get("filters"):
-			if f[0] == doctype and f[1] == old_fieldname:
+			if f and len(f) > 1 and f[0] == doctype and f[1] == old_fieldname:
 				new_filters.append([doctype, new_fieldname, f[2], f[3]])
 				report_dict["updated"] = True
 			else:
@@ -142,7 +142,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 		# update columns
 		new_columns = []
 		for c in report_dict.get("columns"):
-			if c[0] == old_fieldname and c[1] == doctype:
+			if c and len(c) > 1 and c[0] == old_fieldname and c[1] == doctype:
 				new_columns.append([new_fieldname, doctype])
 				report_dict["updated"] = True
 			else:
