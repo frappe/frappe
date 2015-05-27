@@ -1,7 +1,6 @@
 function prettyDate(time, mini){
 
 	if(moment) {
-		console.log(time, sys_defaults.time_zone, moment.tz(time, sys_defaults.time_zone).fromNow(mini));
 		var ret = moment.tz(time, sys_defaults.time_zone).fromNow(mini);
 		if(mini) {
 			if(ret === "a few seconds") {

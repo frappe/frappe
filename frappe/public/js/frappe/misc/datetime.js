@@ -8,6 +8,14 @@ moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
+	convert_to_user_tz: function(date) {
+		return moment.tz(date, sys_defaults.time_zone).utc()
+			.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+	},
+	convert_to_system_tz: function(date) {
+		return moment(date).utc()
+			.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+	},
 	str_to_obj: function(d) {
 		return moment(d, moment.defaultDatetimeFormat)._d;
 	},

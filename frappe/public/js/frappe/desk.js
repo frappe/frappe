@@ -72,6 +72,8 @@ frappe.Application = Class.extend({
 			moment.locale(frappe.boot.lang);
 			if(frappe.boot.timezone_info) {
 				moment.tz.add(frappe.boot.timezone_info);
+				moment.system_utc_offset = moment().tz(sys_defaults.time_zone).utcOffset();
+				moment.user_utc_offset = moment().utcOffset();
 			}
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
