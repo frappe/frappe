@@ -1,17 +1,8 @@
 function prettyDate(time, mini){
 
 	if(moment) {
-		if(frappe.boot) {
-			var user_timezone = frappe.boot.user.time_zone;
-			var system_timezone = sys_defaults.time_zone;
-			var zones = (frappe.boot.timezone_info || {}).zones || {};
-		}
-		if (frappe.boot && user_timezone && (user_timezone != system_timezone)
-			&& zones[user_timezone] && zones[system_timezone]) {
-			var ret = moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow(mini);
-		} else {
-			var ret = moment(time).fromNow(mini);
-		}
+		console.log(time, sys_defaults.time_zone, moment.tz(time, sys_defaults.time_zone).fromNow(mini));
+		var ret = moment.tz(time, sys_defaults.time_zone).fromNow(mini);
 		if(mini) {
 			if(ret === "a few seconds") {
 				ret = "now";

@@ -31,7 +31,7 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
-		"time_zone", "defaults", "user_permissions", "roles")
+		"defaults", "user_permissions", "roles")
 
 	if user:
 		for name in groups:
@@ -226,11 +226,9 @@ class Session:
 			session_data = data.get("data", {})
 
 			# set user for correct timezone
-			frappe.session.user = session_data.get("user")
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
 				session_data.get("last_updated"))
 			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
-			frappe.session.user = None
 
 			if self.time_diff > expiry:
 				self.delete_session()
