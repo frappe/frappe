@@ -47,6 +47,15 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
 
+	def test_expired(self):
+		self.test_bulk()
+		frappe.db.sql("update `tabBulk Email` set creation='2010-01-01 12:00:00'")
+		from frappe.email.bulk import flush
+		flush(from_test=True)
+		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Expired'""", as_dict=1)
+		self.assertEquals(len(bulk), 2)
+		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
+		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
 
 	def test_unsubscribe(self):
 		from frappe.email.bulk import unsubscribe, send
