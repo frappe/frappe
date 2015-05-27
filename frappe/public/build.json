@@ -94,6 +94,7 @@
 		"public/js/frappe/misc/tools.js",
 		"public/js/frappe/misc/datetime.js",
 		"public/js/frappe/misc/number_format.js",
+		"public/js/frappe/misc/help.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",

@@ -153,13 +153,13 @@ def pack(target, sources, no_compress, verbose):
 
 def html_to_js_template(path, content):
 	# remove whitespace to a single space
-	content = re.sub("\s+", " ", content).replace("'", "\'")
+	content = re.sub("\s+", " ", content)
 
 	# strip comments
 	content =  re.sub("(<!--.*?-->)", "", content)
 
 	return """frappe.templates["{key}"] = '{content}';\n""".format(\
-		key=path.rsplit("/", 1)[-1][:-5], content=content)
+		key=path.rsplit("/", 1)[-1][:-5], content=content.replace("'", "\'"))
 
 def files_dirty():
 	for target, sources in get_build_maps().iteritems():
