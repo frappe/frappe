@@ -69,6 +69,7 @@ frappe.Application = Class.extend({
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
+			moment.locale(frappe.boot.lang);
 			if(frappe.boot.timezone_info) {
 				moment.tz.add(frappe.boot.timezone_info);
 			}

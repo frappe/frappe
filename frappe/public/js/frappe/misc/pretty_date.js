@@ -17,10 +17,12 @@ function prettyDate(time, mini){
 				ret = "now";
 			} else {
 				var parts = ret.split(" ");
-				if(parts[0]==="a" || parts[0]==="an") {
-					parts[0] = 1;
+				if(parts.length > 1) {
+					if(parts[0]==="a" || parts[0]==="an") {
+						parts[0] = 1;
+					}
+					ret = parts[0] + " " + parts[1].substr(0, 1);
 				}
-				ret = parts[0] + " " + parts[1].substr(0, 1);
 			}
 		}
 		return ret;
