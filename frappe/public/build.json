@@ -47,8 +47,7 @@
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
-		"public/js/lib/moment/moment.min.js",
-		"public/js/lib/moment/moment-timezone.min.js",
+		"public/js/lib/moment/moment-with-locales.min.js",
 
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
