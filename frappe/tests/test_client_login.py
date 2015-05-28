@@ -9,6 +9,7 @@ selenium_tests = True
 
 class TestLogin(unittest.TestCase):
 	def setUp(self):
+		return
 		sel.login()
 
 	def test_login(self):
