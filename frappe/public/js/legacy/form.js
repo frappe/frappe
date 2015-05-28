@@ -174,8 +174,8 @@ _f.Frm.prototype.print_doc = function() {
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done && this.page.current_view_name==="print") {
-		this.page.set_view(this.page.previous_view_name == "print" ?
-			"main" : this.page.previous_view_name);
+		this.page.set_view(this.page.previous_view_name==="print" ?
+			"main" : (this.page.previous_view_name || "main"));
 	}
 }
 

@@ -192,7 +192,7 @@ class LoginManager:
 			return
 
 		from frappe.utils import now_datetime
-		current_hour = int(now_datetime(user=frappe.form_dict.get('usr')).strftime('%H'))
+		current_hour = int(now_datetime().strftime('%H'))
 
 		if login_before and current_hour > login_before:
 			frappe.throw(_("Login not allowed at this time"), frappe.AuthenticationError)
