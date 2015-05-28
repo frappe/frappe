@@ -126,6 +126,8 @@ def get_enabled_scheduler_events():
 	return ["all", "hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
 
 def is_scheduler_disabled():
+	if frappe.conf.disable_scheduler:
+		return True
 	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
