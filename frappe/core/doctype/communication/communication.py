@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email
+from frappe.utils import get_url, get_formatted_email, cstr
 from frappe.utils.file_manager import get_file
 import frappe.email.smtp
 from frappe import _
@@ -122,7 +122,8 @@ class Communication(Document):
 
 	def get_recipients(self, except_recipient=False):
 		"""Build a list of users to which this email should go to"""
-		original_recipients = [s.strip() for s in self.recipients.split(",")]
+		# [EDGE CASE] self.recipients can be None when an email is sent as BCC
+		original_recipients = [s.strip() for s in cstr(self.recipients).split(",")]
 		recipients = original_recipients[:]
 
 		if self.reference_doctype and self.reference_name:
