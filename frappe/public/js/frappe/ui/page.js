@@ -365,6 +365,8 @@ frappe.ui.Page = Class.extend({
 		return this.views[name];
 	},
 	set_view: function(name) {
+		if(this.current_view_name===name)
+			return;
 		this.current_view && this.current_view.toggle(false);
 		this.current_view = this.views[name];
 
