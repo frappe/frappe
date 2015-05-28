@@ -12,10 +12,16 @@ $.extend(frappe.datetime, {
 		return moment.tz(date, sys_defaults.time_zone).utc()
 			.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
 	},
+
 	convert_to_system_tz: function(date) {
 		return moment(date).utc()
 			.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
 	},
+
+	is_timezone_same: function() {
+		return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+	},
+
 	str_to_obj: function(d) {
 		return moment(d, moment.defaultDatetimeFormat)._d;
 	},
