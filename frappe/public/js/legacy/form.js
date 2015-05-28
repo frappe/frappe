@@ -173,8 +173,9 @@ _f.Frm.prototype.print_doc = function() {
 }
 
 _f.Frm.prototype.hide_print = function() {
-	if(this.setup_done) {
-		this.page.set_view(this.page.previous_view_name != "print" && this.page.previous_view_name || "main");
+	if(this.setup_done && this.page.current_view_name==="print") {
+		this.page.set_view(this.page.previous_view_name == "print" ?
+			"main" : this.page.previous_view_name);
 	}
 }
 
@@ -212,7 +213,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 
 _f.Frm.prototype.setup_std_layout = function() {
 	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-	this.inner_toolbar	= $('<div class="form-inner-toolbar hide"></div>').appendTo(this.form_wrapper);
 	this.body 			= $('<div></div>').appendTo(this.form_wrapper);
 
 	// only tray
@@ -763,13 +763,11 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-		.on("click", fn).appendTo(this.inner_toolbar.removeClass("hide"))
-	//return this.page.add_menu_item(label, fn);
+	this.page.add_inner_button(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.inner_toolbar.empty().addClass("hide");
+	this.page.inner_toolbar.empty().addClass("hide");
 	this.page.clear_user_actions();
 }
 

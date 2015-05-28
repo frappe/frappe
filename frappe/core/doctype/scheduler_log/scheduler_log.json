@@ -7,6 +7,15 @@
  "document_type": "System", 
  "fields": [
   {
+   "default": "0", 
+   "fieldname": "seen", 
+   "fieldtype": "Check", 
+   "hidden": 1, 
+   "label": "Seen", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "method", 
    "fieldtype": "Data", 
    "in_list_view": 1, 
@@ -22,7 +31,7 @@
  ], 
  "icon": "icon-warning-sign", 
  "idx": 1, 
- "modified": "2015-02-05 05:11:46.339879", 
+ "modified": "2015-05-28 02:49:12.819934", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Scheduler Log", 

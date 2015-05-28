@@ -505,10 +505,16 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {
-		return value ? dateutil.user_to_str(value) : value;
+		if(value) {
+			value = dateutil.user_to_str(value);
+		}
+		return value;
 	},
 	format_for_input: function(value) {
-		return value ? dateutil.str_to_user(value) : "";
+		if(value) {
+			value = dateutil.str_to_user(value);
+		}
+		return value || "";
 	},
 	validate: function(value, callback) {
 		if(!dateutil.validate(value)) {
@@ -550,6 +556,21 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	make_input: function() {
 		import_timepicker();
 		this._super();
+	},
+	parse: function(value) {
+		if(value) {
+			// parse and convert
+			value = dateutil.convert_to_system_tz(dateutil.user_to_str(value));
+		}
+		return value;
+	},
+	format_for_input: function(value) {
+		if(value) {
+			// convert and format
+			value = dateutil.str_to_user(dateutil.convert_to_user_tz(value));
+
+		}
+		return value || "";
 	},
 
 });

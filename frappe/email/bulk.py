@@ -177,6 +177,9 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
+	frappe.db.sql("""update `tabBulk Email` set status='Expired'
+		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
+
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s

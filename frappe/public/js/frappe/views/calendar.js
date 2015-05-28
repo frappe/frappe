@@ -124,6 +124,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			"color": "#D9F6FF"
 		}
 	},
+	get_system_datetime: function(date) {
+		date._offset = moment.user_utc_offset;
+		return frappe.datetime.convert_to_system_tz(date);
+	},
 	setup_options: function() {
 		var me = this;
 		this.cal_options = {
@@ -169,10 +173,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 				var event = frappe.model.get_new_doc(me.doctype);
 
-				event[me.field_map.start] = frappe.datetime.get_datetime_as_string(startDate);
+				event[me.field_map.start] = me.get_system_datetime(startDate);
 
 				if(me.field_map.end)
-					event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate);
+					event[me.field_map.end] = me.get_system_datetime(endDate);
 
 				if(me.field_map.allDay) {
 					var all_day = (startDate._ambigTime && endDate._ambigTime) ? 1 : 0;
@@ -180,7 +184,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 					event[me.field_map.allDay] = all_day;
 
 					if (all_day)
-						event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate.subtract(1, "s"));
+						event[me.field_map.end] = me.get_system_datetime(endDate.subtract(1, "s"));
 				}
 
 
@@ -199,8 +203,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	get_args: function(start, end) {
 		var args = {
 			doctype: this.doctype,
-			start: frappe.datetime.get_datetime_as_string(start),
-			end: frappe.datetime.get_datetime_as_string(end),
+			start: me.get_system_datetime(start),
+			end: me.get_system_datetime(end),
 			filters: this.get_filters()
 		};
 		return args;
@@ -222,6 +226,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			$.each(me.field_map, function(target, source) {
 				d[target] = d[source];
 			});
+
+			// convert to user tz
+			d.start = frappe.datetime.convert_to_user_tz(d.start);
+			d.end = frappe.datetime.convert_to_user_tz(d.end);
 
 			if(!me.field_map.allDay)
 				d.allDay = 1;
@@ -256,16 +264,16 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var args = {
 			name: event[this.field_map.id]
 		};
-		args[this.field_map.start] = frappe.datetime.get_datetime_as_string(event.start);
+		args[this.field_map.start] = me.get_system_datetime(event.start);
 
 		if(this.field_map.allDay)
 			args[this.field_map.allDay] = event.allDay ? 1 : 0;
 
 		if(this.field_map.end) {
 			if (args[this.field_map.allDay]) {
-				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.start);
+				args[this.field_map.end] = me.get_system_datetime(event.start);
 			} else if (event.end) {
-				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
+				args[this.field_map.end] = me.get_system_datetime(event.end);
 			}
 		}
 

@@ -8,9 +8,22 @@ moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
+	convert_to_user_tz: function(date) {
+		return moment.tz(date, sys_defaults.time_zone).utc()
+			.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+	},
+
+	convert_to_system_tz: function(date) {
+		return moment(date).utc()
+			.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+	},
+
+	is_timezone_same: function() {
+		return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+	},
+
 	str_to_obj: function(d) {
-		// zone hack to remove timezone diff added by momentjs
-		return moment(d, moment.defaultDatetimeFormat).zone(moment().zone())._d;
+		return moment(d, moment.defaultDatetimeFormat)._d;
 	},
 
 	obj_to_str: function(d) {

@@ -88,7 +88,7 @@ frappe.form.formatters = {
 		return value ? dateutil.str_to_user(value) : "";
 	},
 	Datetime: function(value) {
-		return value ? dateutil.str_to_user(value) : "";
+		return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
 	},
 	Text: function(value) {
 		if(value) {

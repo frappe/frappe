@@ -560,11 +560,13 @@ class Document(BaseDocument):
 		elif self._action=="submit":
 			self.run_method("on_update")
 			self.run_method("on_submit")
-			self.add_comment("Submitted")
+			if not self.flags.ignore_submit_comment:
+				self.add_comment("Submitted")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
 			self.check_no_back_links_exist()
-			self.add_comment("Cancelled")
+			if not self.flags.ignore_submit_comment:
+				self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 

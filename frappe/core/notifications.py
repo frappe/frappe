@@ -6,6 +6,9 @@ import frappe
 
 def get_notification_config():
 	return {
+		"for_doctype": {
+			"Scheduler Log": {"seen": 0},
+		},
 		"for_module_doctypes": {
 			"ToDo": "To Do",
 			"Event": "Calendar",

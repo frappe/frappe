@@ -283,7 +283,7 @@ class DatabaseQuery(object):
 		if not meta.istable and not role_permissions.get("read") and not self.flags.ignore_permissions:
 			only_if_shared = True
 			if not self.shared:
-				frappe.throw(_("No permission to read {0}").format(self.doctype))
+				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
 			else:
 				self.conditions.append(self.get_share_condition())
 

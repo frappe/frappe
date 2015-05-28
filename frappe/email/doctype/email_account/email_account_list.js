@@ -19,3 +19,5 @@ frappe.listview_settings["Email Account"] = {
 		}
 	}
 }
+
+frappe.help.youtube_id["Email Account"] = "YFYe0DrB95o";

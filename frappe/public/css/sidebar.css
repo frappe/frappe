@@ -145,6 +145,9 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   top: 2px;
   left: 7px;
 }
+.form-sidebar .form-shared .avatar {
+  margin-top: 5px;
+}
 .form-sidebar .form-shared .share-doc-btn:hover,
 .form-sidebar .form-shared .share-doc-btn:focus,
 .form-sidebar .form-shared .share-doc-btn:active {
