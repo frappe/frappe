@@ -113,6 +113,27 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
+frappe.verify_password = function(callback) {
+	frappe.prompt({
+		fieldname: "password",
+		label: __("Enter your password"),
+		fieldtype: "Password",
+		reqd: 1
+	}, function(data) {
+		frappe.call({
+			method: "frappe.core.doctype.user.user.verify_password",
+			args: {
+				password: data.password
+			},
+			callback: function(r) {
+				if(!r.exc) {
+					callback();
+				}
+			}
+		});
+	}, __("Verify Password"), __("Verify"))
+}
+
 var msgprint = frappe.msgprint;
 
 // Floating Message
