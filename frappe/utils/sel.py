@@ -109,6 +109,7 @@ def find(selector, everywhere=False):
 	return _driver.find_elements_by_css_selector(selector)
 
 def set_field(fieldname, value, fieldtype="input"):
+	_driver.switch_to.window(_driver.current_window_handle)
 	selector = '{0}[data-fieldname="{1}"]'.format(fieldtype, fieldname)
 	set_input(selector, value, key=Keys.TAB)
 	wait_for_ajax()
@@ -154,6 +155,7 @@ def wait(selector, everywhere=False):
 	if cur_route and not everywhere:
 		selector = cur_route + " " + selector
 
+	time.sleep(0.5)
 	elem = get_wait().until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
 	return elem
 
@@ -165,7 +167,7 @@ def set_input(selector, text, key=None):
 	elem.clear()
 	elem.send_keys(text)
 	if key:
-		time.sleep(1)
+		time.sleep(0.5)
 		elem.send_keys(key)
 	if input_wait:
 		time.sleep(input_wait)
