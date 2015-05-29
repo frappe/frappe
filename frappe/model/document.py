@@ -147,7 +147,9 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
+		msg = _("No permission to {0} {1} {2}".format(perm_type, self.doctype, self.name or ""))
+		frappe.msgprint(msg)
+		raise frappe.PermissionError(msg)
 
 	def insert(self, ignore_permissions=None):
 		"""Insert the document in the database (as a new document).

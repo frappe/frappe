@@ -9,17 +9,29 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date) {
-		return moment.tz(date, sys_defaults.time_zone).utc()
-			.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+		if(sys_defaults.time_zone) {
+			return moment.tz(date, sys_defaults.time_zone).utc()
+				.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+		} else {
+			return moment(date).format(moment.defaultDatetimeFormat);
+		}
 	},
 
 	convert_to_system_tz: function(date) {
-		return moment(date).utc()
-			.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+		if(sys_defaults.time_zone) {
+			return moment(date).utc()
+				.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+		} else {
+			return moment(date).format(moment.defaultDatetimeFormat);
+		}
 	},
 
 	is_timezone_same: function() {
-		return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+		if(sys_defaults.time_zone) {
+			return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+		} else {
+			return true;
+		}
 	},
 
 	str_to_obj: function(d) {
