@@ -203,8 +203,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	get_args: function(start, end) {
 		var args = {
 			doctype: this.doctype,
-			start: me.get_system_datetime(start),
-			end: me.get_system_datetime(end),
+			start: this.get_system_datetime(start),
+			end: this.get_system_datetime(end),
 			filters: this.get_filters()
 		};
 		return args;
