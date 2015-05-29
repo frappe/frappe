@@ -25,6 +25,6 @@ def execute():
 					continue
 
 				if frappe.db.exists(doctype, docname):
-					if doctype=="DocType" or frappe.get_meta(doctype).issingle:
+					if doctype=="DocType" or int(frappe.db.get_value("DocType", doctype, "issingle") or 0):
 						continue
 					_toggle_star(doctype, docname, add="Yes", user=username)
