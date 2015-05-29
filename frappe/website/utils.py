@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, re, os
+from werkzeug.urls import url_parse, url_unparse
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -153,11 +154,35 @@ def convert_to_hex(channel_value):
 
 	return h
 
-def with_leading_slash(path):
-	if path and not path.startswith("/"):
-		path = "/" + path
+def abs_url(url):
+	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
+	if not url:
+		return ""
 
-	return path
+	parsed = frappe._dict(url_parse(url).__dict__)
+
+	if (parsed.scheme and parsed.netloc) or parsed.scheme=="mailto":
+		# min requirements fulfilled!
+		return url
+
+	changed = False
+	if not parsed.netloc:
+		# i.e. no component like www.example.com
+		if parsed.scheme:
+			# but has http:, it doesn't make sense
+			changed = True
+			parsed.scheme = ""
+
+		if not url.startswith("/") and not parsed.path.startswith("www."):
+			# prepend a slash lest it become a relative url and breaks the navigation
+			changed = True
+			parsed.path = "/" + parsed.path
+
+	if changed:
+		# also fixes missing scheme by prepending // if required
+		return url_unparse((parsed.scheme, parsed.netloc, parsed.path, parsed.query, parsed.fragment))
+	else:
+		return url
 
 def get_full_index(doctype="Web Page"):
 	"""Returns full index of the website (on Web Page) upto the n-th level"""
@@ -167,7 +192,7 @@ def get_full_index(doctype="Web Page"):
 		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title"],
 			{"parent_website_route": parent}, order_by="idx asc")
 		for d in children:
-			d.url = with_leading_slash(os.path.join(d.parent_website_route or "", d.page_name))
+			d.url = abs_url(os.path.join(d.parent_website_route or "", d.page_name))
 			if d.url not in all_routes:
 				d.children = get_children(d.url[1:])
 				all_routes.append(d.url)
