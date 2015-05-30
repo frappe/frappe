@@ -11,7 +11,7 @@
 			{% if child.class %} class="{{ child.class }}" {% endif %}>
 
 			{%- if child.url -%}
-				<a href="{{ child.url }}" {{ child.target or '' }}
+				<a href="{{ child.url | abs_url }}" {{ child.target or '' }}
 					rel="nofollow">
 					{{ child.label }}
 				</a>
