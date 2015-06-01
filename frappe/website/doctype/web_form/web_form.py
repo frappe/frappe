@@ -22,7 +22,7 @@ class WebForm(WebsiteGenerator):
 		if self.login_required and frappe.session.user != "Guest":
 			if self.allow_edit:
 				if self.allow_multiple:
-					if not context.params.name:
+					if not context.params.name and not context.params.new:
 						frappe.form_dict.doctype = self.doc_type
 						get_list_context(context)
 						context.is_list = True
@@ -32,16 +32,18 @@ class WebForm(WebsiteGenerator):
 					if name:
 						frappe.form_dict.name = name
 
-		if frappe.form_dict.name:
+		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
-			context.title = context.doc.get(context.doc.meta.get_title_field())
 			context.parents = [{"name": self.get_route(), "title": self.title }]
 
-		context.comment_doctype = context.doc.doctype
-		context.comment_docname = context.doc.name
+		if frappe.form_dict.name:
+			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
+			context.title = context.doc.get(context.doc.meta.get_title_field())
 
-		if self.allow_comments:
+			context.comment_doctype = context.doc.doctype
+			context.comment_docname = context.doc.name
+
+		if self.allow_comments and frappe.form_dict.name:
 			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
 
 		context.types = [f.fieldtype for f in self.web_form_fields]

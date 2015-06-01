@@ -163,7 +163,7 @@
     </div>
     {% endfor %}
 </form>
-{% if allow_comments -%}
+{% if allow_comments and not params.new -%}
 <div class="comments">
 	<br><br>
 	<h3>{{ _("Comments") }}</h3>
