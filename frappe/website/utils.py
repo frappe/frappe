@@ -154,35 +154,13 @@ def convert_to_hex(channel_value):
 
 	return h
 
-def abs_url(url):
+def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
-	if not url:
-		return ""
-
-	parsed = frappe._dict(url_parse(url).__dict__)
-
-	if (parsed.scheme and parsed.netloc) or parsed.scheme=="mailto":
-		# min requirements fulfilled!
-		return url
-
-	changed = False
-	if not parsed.netloc:
-		# i.e. no component like www.example.com
-		if parsed.scheme:
-			# but has http:, it doesn't make sense
-			changed = True
-			parsed.scheme = ""
-
-		if not url.startswith("/") and not parsed.path.startswith("www."):
-			# prepend a slash lest it become a relative url and breaks the navigation
-			changed = True
-			parsed.path = "/" + parsed.path
-
-	if changed:
-		# also fixes missing scheme by prepending // if required
-		return url_unparse((parsed.scheme, parsed.netloc, parsed.path, parsed.query, parsed.fragment))
-	else:
-		return url
+	if path.startswith('http://') or path.startswith('https://'):
+		return path
+	if path and not path.startswith("/"):
+		path = "/" + path
+	return path
 
 def get_full_index(doctype="Web Page"):
 	"""Returns full index of the website (on Web Page) upto the n-th level"""
