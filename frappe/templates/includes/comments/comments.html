@@ -1,6 +1,7 @@
 {% if not comment_list %}
 <div class="no-comment">
 	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
+    <br>
 </div>
 {% endif %}
 
@@ -16,7 +17,7 @@
 	</div>
 
 	<div class="comment-form-wrapper">
-		<a class="add-comment">{{ _("Add Comment") }}</a>
+		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>
 		<div style="display: none;" id="comment-form">
 			<p>{{ _("Add Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
@@ -34,8 +35,10 @@
 					</div>
 					<textarea class="form-control" name="comment" rows=10
 						placeholder="{{ _("Comment") }}"></textarea>
-					<br>
-					<button class="btn btn-primary" id="submit-comment">{{ _("Submit") }}</button>
+					<p>
+                        <button class="btn btn-primary btn-sm" id="submit-comment">
+                            {{ _("Submit") }}</button>
+                    </p>
 				</fieldset>
 			</form>
 		</div>
@@ -71,8 +74,8 @@
 				comment_by_fullname: $("[name='comment_by_fullname']").val(),
 				comment_by: $("[name='comment_by']").val(),
 				comment: $("[name='comment']").val(),
-				comment_doctype: "{{ doctype }}",
-				comment_docname: "{{ name }}",
+				comment_doctype: "{{ comment_doctype or doctype }}",
+				comment_docname: "{{ comment_docname or name }}",
 				comment_type: "Comment",
 				page_name: "{{ pathname }}",
 			}

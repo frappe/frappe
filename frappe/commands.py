@@ -483,7 +483,7 @@ def export_json(context, doctype, name, path):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_json(doctype, name, path)
+			data_import_tool.export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
 

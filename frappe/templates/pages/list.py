@@ -14,12 +14,10 @@ def get_context(context):
 	"""Returns context for a list standard list page.
 	Will also update `get_list_context` from the doctype module file"""
 	doctype = frappe.local.form_dict.doctype
-
+	context.parents = [{"name":"me", "title":_("My Account")}]
 	context.update(get_list_context(context, doctype) or {})
-
 	context.doctype = doctype
 	context.txt = frappe.local.form_dict.txt
-
 	context.update(get(**frappe.local.form_dict))
 
 @frappe.whitelist(allow_guest=True)

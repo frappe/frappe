@@ -46,9 +46,7 @@ cur_frm.cscript.refresh = function(doc) {
 		window.location.reload();
 	}
 
-	cur_frm.toggle_display('change_password', !doc.__islocal);
-
-	cur_frm.toggle_display(['sb1', 'sb3'], false);
+	cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
 	if(!doc.__islocal){
 		cur_frm.add_custom_button(__("Set User Permissions"), function() {
@@ -59,7 +57,7 @@ cur_frm.cscript.refresh = function(doc) {
 		}, null, "btn-default")
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
-			cur_frm.toggle_display(['sb1', 'sb3'], true);
+			cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 		}
 		cur_frm.cscript.enabled(doc);
 
@@ -77,7 +75,7 @@ cur_frm.cscript.refresh = function(doc) {
 
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
-		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);
+		cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
 		cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'read_only', 0);
 	}
