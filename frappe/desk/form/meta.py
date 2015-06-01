@@ -55,6 +55,8 @@ class FormMeta(Meta):
 		return d
 
 	def add_code(self):
+		if self.custom:
+			return
 		path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.name))
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
