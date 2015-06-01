@@ -102,12 +102,11 @@
 	<div class="form-group">
 		{{ label(field) }}
 		{% if value(field) -%}
-		<p>
-			<i class="icon-paperclip"></i>
+		<p class="small">
 			<a href="{{ doc.get(field.fieldname) }}" target="blank">
 				{{ doc.get(field.fieldname) }}
 			</a>
-			<br><button class="btn btn-small btn-default
+			<br><button class="btn btn-small btn-default btn-xs
 				change-attach" style="margin-top: 5px;">Change</button>
 		</p>
 		{%- endif %}

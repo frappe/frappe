@@ -62,7 +62,7 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		doc.doctype = doctype
 		new_context = { "doc": doc, "meta": meta }
 		if not frappe.flags.in_test:
-			new_context.pathname = frappe.local.request.path.strip("/ ")
+			new_context["pathname"] = frappe.local.request.path.strip("/ ")
 		new_context.update(list_context)
 		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
 		result.append(rendered_row)
