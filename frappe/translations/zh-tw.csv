@@ -225,7 +225,7 @@ DocType: Email Alert,Days Before,前幾天
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,首先選擇一個橫幅圖像。
 DocType: Workflow State,volume-down,容積式
 DocType: Email Account,Send Notification to,通知發送到
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +626,Saved,保存
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +626,Saved,已儲存
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,請註明文檔類型
 DocType: Print Format,Format Data,格式數據
 DocType: Customize Form Field,Customize Form Field,自定義表單域
@@ -248,7 +248,7 @@ DocType: Workflow Transition,Defines actions on states and the next step and all
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",作為最佳實踐，不分配相同的一組權限的規則不同角色。相反，設置多個角色，以相同的用戶。
 DocType: Web Form,Message to be displayed on successful completion,郵件被成功完成顯示
 DocType: Website Settings,Footer Items,頁腳項目
-sites/assets/js/desk.min.js +328,Menu,菜單
+sites/assets/js/desk.min.js +328,Menu,選單
 DocType: DefaultValue,DefaultValue,默認值
 apps/frappe/frappe/config/setup.py +19,User Roles,用戶角色
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,物業二傳手覆蓋標準的DocType或實地房產
@@ -345,7 +345,7 @@ DocType: About Us Settings,Company Introduction,公司簡介
 DocType: DocPerm,Apply User Permissions,套用用戶權限
 DocType: User,Modules HTML,HTML模塊
 sites/assets/js/desk.min.js +403,Missing Values Required,遺漏必須值
-sites/assets/js/list.min.js +105,{0} is not set,{0}未設置
+sites/assets/js/list.min.js +105,{0} is not set,{0}未設定
 apps/frappe/frappe/permissions.py +168,Not allowed to access {0} with {1} = {2},不允許訪問{0} {1} = {2}
 apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,查看該在你的瀏覽器
 DocType: DocType,Search Fields,搜索欄位
@@ -409,7 +409,7 @@ DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" ca
 DocType: File Data,Attached To Name,單身者姓名
 apps/frappe/frappe/email/receive.py +53,Invalid User Name or Support Password. Please rectify and try again.,無效的用戶名或支持密碼。請糾正，然後再試一次。
 DocType: Email Account,Yahoo Mail,雅虎郵箱
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,得救了！
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,已經儲存了！
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},更新{0}：{1}
 DocType: DocType,Master,主
 DocType: DocType,User Cannot Create,無法建立使用者
@@ -476,7 +476,7 @@ DocType: Workflow State,align-justify,對齊對齊
 DocType: User,Middle Name (Optional),中間名（可選）
 sites/assets/js/desk.min.js +519,No Results,沒有結果
 DocType: System Settings,Security,安全
-DocType: Currency,**Currency** Master,** **貨幣碩士
+DocType: Currency,**Currency** Master,** 主要貨幣 **
 DocType: Website Settings,Address and other legal information you may want to put in the footer.,地址和其他法律信息，你可能要放在頁腳。
 sites/assets/js/list.min.js +102,Starred By Me,出演由我
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,選擇文件類型
@@ -724,7 +724,7 @@ apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Noti
 DocType: DocPerm,User Permission DocTypes,用戶權限的文檔類型
 sites/assets/js/desk.min.js +555,New Name,新名稱
 sites/assets/js/form.min.js +196,Insert Above,插入以上
-sites/assets/js/list.min.js +21,Not Saved,不保存
+sites/assets/js/list.min.js +21,Not Saved,不儲存
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,Allow User If,允許用戶如果
 DocType: Custom Field,Default Value,默認值
 DocType: Workflow Document State,Update Field,更新域
@@ -800,7 +800,7 @@ apps/frappe/frappe/utils/csvutils.py +25,File not attached,文件未附
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",如果你設置這個，這個項目會成為選定的父物件的下拉菜單中。
 apps/frappe/frappe/model/db_query.py +389,Please select atleast 1 column from {0} to sort,請從{0}中至少選擇一攔以進行排序
 apps/frappe/frappe/templates/pages/print.py +153,No template found at path: {0},沒有找到模板於路徑：{0}
-DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.",在頂欄的菜單項。對於設置頂欄的顏色，去選擇的網站主題。
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.",頂欄的選單項目。關於頂欄的顏色，請到所選擇的網站主題中設定。
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,導入後提交。
 DocType: Blogger,Avatar,頭像
 DocType: Blogger,Posts,帖子
@@ -851,7 +851,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,十二月
 DocType: Event,Leave blank to repeat always,保持空白以保持重複
 DocType: Event,Ends on,結束於
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,項目不能被添加到自己的後代
-sites/assets/js/form.min.js +270,{0} created this {1},{0}創建此{1}
+sites/assets/js/form.min.js +270,{0} created this {1},{0}新增此{1}
 apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.",任務{0}，您分配給{1}，已被關閉{2}。
 DocType: Blogger,Short Name,簡稱
 DocType: Workflow State,magnet,磁鐵
@@ -881,7 +881,7 @@ DocType: Website Slideshow,Slideshow Items,幻燈片項目
 apps/frappe/frappe/model/delete_doc.py +153,Cannot delete or cancel because {0} {1} is linked with {2} {3},不能刪除或取消，因為{0} {1}以連結到{2} {3}
 DocType: Website Settings,Twitter Share,Twitter分享
 DocType: Workflow State,Workflow State,工作流程狀態
-apps/frappe/frappe/templates/pages/me.html +1,My Account,我的賬戶
+apps/frappe/frappe/templates/pages/me.html +1,My Account,我的帳戶
 apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,請點擊以下鏈接來設置新密碼
 DocType: Email Alert,Days After,天后
 DocType: Contact Us Settings,Settings for Contact Us Page,設置聯繫我們頁面
@@ -1155,7 +1155,7 @@ DocType: Top Bar Item,Right,右邊
 DocType: User,User Type,用戶類型
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,選擇用戶
 DocType: Communication,Keep a track of all communications,保持跟踪所有通信
-apps/frappe/frappe/desk/form/save.py +30,Did not save,沒救了
+apps/frappe/frappe/desk/form/save.py +30,Did not save,尚未儲存
 DocType: Property Setter,Property,屬性
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",注意：為達到最佳效果，圖像必須具有相同的尺寸和寬度必須大於高度。
 DocType: DocType,Auto Name,自動名稱
@@ -1313,7 +1313,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Options 'Dynamic Link' t
 DocType: About Us Settings,Team Members Heading,小組成員標題
 DocType: DocField,Do not allow user to change after set the first time,在首次設定後不允許用戶更改
 DocType: User,Third Party Authentication,第三方認證
-DocType: Website Settings,Banner is above the Top Menu Bar.,旗幟位於菜單欄上方。
+DocType: Website Settings,Banner is above the Top Menu Bar.,橫幅位於選單欄上方。
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","輸入默認值的字段（鍵）和值。如果您的字段中添加多個值，第一個將有所回升。這些默認值也被用於設置“匹配”權限規則。要查看字段列表，請訪問<a href=""#Form/Customize Form/Customize Form"">自定義窗體</A>。"
 DocType: Email Account,Port,端口
 DocType: Website Slideshow,Slideshow like display for the website,幻燈片一樣顯示的網站
@@ -1374,7 +1374,7 @@ DocType: Email Alert,Optional: The alert will be sent if this expression is true
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,您可以使用自定義表格中的字段設置的水平。
 DocType: DocPerm,Report,報告
 apps/frappe/frappe/templates/generators/web_form.html +18,Please login to create a new {0},請登錄創建一個新的{0}
-apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0}被保存
+apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0}被儲存
 apps/frappe/frappe/core/doctype/user/user.py +234,User {0} cannot be renamed,用戶{0}無法重命名
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,出口
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.",用於應用用戶權限的文檔類型的JSON列表。如果為空，所有鏈接的文檔類型將用於應用的用戶權限。
@@ -1406,7 +1406,7 @@ DocType: System Settings,Number Format,數字格式
 DocType: Custom Field,Insert After,於後方插入
 DocType: Social Login Keys,GitHub Client Secret,GitHub的客戶端秘密
 DocType: Report,Report Name,報告名稱
-DocType: Email Alert,Save,節省
+DocType: Email Alert,Save,儲存
 DocType: Website Settings,Title Prefix,標題前綴
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,通知和大宗郵件將從此傳出服務器發送。
 DocType: Workflow State,cog,COG

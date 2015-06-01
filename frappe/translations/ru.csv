@@ -833,7 +833,7 @@ DocType: Bulk Email,Reference DocName,Ссылка DOCNAME
 DocType: Web Form,Success Message,Успех сообщение
 DocType: DocType,User Cannot Search,Пользователь не может искать
 apps/frappe/frappe/desk/page/activity/activity.js +47,Build Report,Создать отчет
-apps/frappe/frappe/model/rename_doc.py +92,"{0} {1} does not exist, select a new target to merge","{0} {1} не существует, выберите новую цель объединить"
+apps/frappe/frappe/model/rename_doc.py +92,"{0} {1} does not exist, select a new target to merge","{0} {1} не существует, выберите новую цель для объединения"
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Не удается установить разрешение на DocType: {0} и имя: {1}
 DocType: Comment,Comment Doctype,Комментарий DOCTYPE
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Были ошибки
@@ -1273,7 +1273,7 @@ sites/assets/js/desk.min.js +808,Sorry! You are not permitted to view this page.
 DocType: Workflow State,bell,Накладная
 sites/assets/js/form.min.js +282,Share this document with,Поделитесь этот документ с
 apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,Июнь
-apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,"{0} {1} не может быть листовой узел, как это имеет детей"
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,"{0} {1} не может быть концевым узлом, так как он имеет потомков"
 DocType: Feed,Info,Информация
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Спасибо за Ваше сообщение
 DocType: Website Settings,Home Page,Домашняя Страница
