@@ -231,11 +231,12 @@ def add_module_defs(app):
 
 def remove_missing_apps():
 	apps = ('frappe_subscription', 'shopping_cart')
-	installed_apps = frappe.get_installed_apps()
+	installed_apps = json.loads(frappe.db.get_global("installed_apps") or "[]")
 	for app in apps:
 		if app in installed_apps:
 			try:
 				importlib.import_module(app)
+
 			except ImportError:
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))

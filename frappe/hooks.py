@@ -4,7 +4,7 @@ app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Full Stack Web Application Framework in Python"
 app_icon = "octicon octicon-circuit-board"
-app_version = "5.0.15"
+app_version = "5.0.16"
 app_color = "orange"
 
 app_email = "support@frappe.io"
