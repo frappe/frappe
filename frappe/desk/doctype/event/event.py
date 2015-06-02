@@ -11,6 +11,10 @@ from frappe.utils.user import get_enabled_system_users
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 class Event(Document):
+	def get_route(self):
+		"""for test-case"""
+		return "/Event/" + self.name
+
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)

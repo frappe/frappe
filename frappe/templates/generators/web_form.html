@@ -4,6 +4,19 @@
 {{ title }}
 {% endblock %}
 
+{% block header_actions %}
+    {% if params.name or params.new %}
+	<button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+        {{ _("Submit") if params.new else _("Update") }}</button>
+	<a href="{{ pathname }}" class="btn btn-default btn-sm">
+        {{ _("Cancel") }}</a>
+    {% elif is_list %}
+	<a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
+		{{ _("New {0}").format(_(doc_type)) }}
+	</a>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 <!-- no-sidebar -->
 <div class="introduction">
@@ -23,48 +36,107 @@
 		</a>
 	</p>
 </div>
-{% elif (login_required and allow_multiple and not params.name and not params.new) %}
-<p>
-	<a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new">
-		{{ _("New {0}").format(_(doc_type)) }}
-	</a>
-</p>
-<div class="list-group">
-	{% for i in items %}
-	<div class="list-group-item">
-		{% if allow_delete %}
-			<button class="close" data-name="{{ i.name }}">&times;</button>
-		{% endif %}
-		<a href="{{ pathname }}?name={{ i.name }}">
-			{{ i.title }}
-		</a><br>
-		<div class="text-muted small">
-			{{ frappe.format_date(i.creation) }}
-		</div>
-	</div>
-	{% endfor %}
-</div>
+{% elif is_list %}
+    {% include "templates/includes/list/list.html" %}
+    <script>{% include "templates/includes/list/list.js" %}</script>
 {% else %}
 
-{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
+<br>
+
+{%- macro properties(field) %}
+    name="{{ field.fieldname }}" id="{{ field.fieldname }}"
+    {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}
+    data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}"
+    {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
+    {{ field.read_only and "disabled" or "" }}
+{% endmacro -%}
 
 {%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or field.default or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
-{% if field.description -%}
-<span class="help-block small">{{ field.description }}</span>
-{%- endif -%}
+    {% if field.description -%}
+    <span class="help-block small">{{ field.description }}</span>
+    {%- endif -%}
 {%- endmacro %}
 
-{% macro label(field) %}<label for="{{ field.fieldname }}" class="col-sm-3 control-label">{{ field.label }}</label>{% endmacro %}
+{% macro label(field) %}
+    <label for="{{ field.fieldname }}" class="control-label text-muted small">
+        {{ field.label }}</label>
+{% endmacro %}
 
+{% macro render_field(field) %}
+	{% if field.hidden %}
+	<input type="hidden"
+		name="{{ field.fieldname }}" value="{{ field.default }}">
+	{% elif field.fieldtype == "HTML" and field.options %}
+	<div class="form-group">
+		{{ field.options }}
+	</div>
+	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
+	<div class="form-group">
+		{{ label(field) }}
+		<input type="text" class="form-control" {{ properties(field) }}
+			value="{{ value(field) }}">
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Select" %}
+	<div class="form-group">
+		{{ label(field) }}
+		<select class="form-control" {{ properties(field) }}>
+			{% for option in field.options.split("\n") -%}
+			<option value="{{ option }}"
+				{{ 'selected="selected"' if value(field)==option else '' }}>
+				{{ option }}</option>
+			{%- endfor %}
+		</select>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Text" %}
+	<div class="form-group">
+		{{ label(field) }}
+		<textarea class="form-control" style="height: 200px;"
+		{{ properties(field) }}>{{ value(field) }}</textarea>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Attach" %}
+	<div class="form-group">
+		{{ label(field) }}
+		{% if value(field) -%}
+		<p class="small">
+			<a href="{{ doc.get(field.fieldname) }}" target="blank">
+				{{ doc.get(field.fieldname) }}
+			</a>
+			<br><button class="btn btn-small btn-default btn-xs
+				change-attach" style="margin-top: 5px;">Change</button>
+		</p>
+		{%- endif %}
+		<p class="{{ value(field) and 'hide' or '' }} attach-input-wrap">
+			<input type="file" style="margin-top: 7px;"
+				{{ properties(field) }}>
+		</p>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Check" %}
+	<div class="form-group">
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" id="{{ field.fieldname }}"
+					name="{{ field.fieldname }}"
+					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
+					{{ field.label }}
+			</label>
+			{{ help(field) }}
+		</div>
+	</div>
+	{% endif %}
+{% endmacro %}
 
 <div class="form-message text-muted hide"></div>
-<form class="form-horizontal" role="form"
+<form role="form"
 	data-web-form="{{ name }}">
 	{% if params.name and web_page_link_text %}
 	<div class="row">
-		<div class="col-sm-offset-3 col-sm-9">
+		<div class="col-sm-9">
 			<div class="text-muted">
 				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''  }}/{{ doc.page_name }}">
 					{{ web_page_link_text }}</a>
@@ -77,97 +149,24 @@
 	{% if params.name -%}
 	<input type="hidden" name="name" value="{{ params.name }}">
 	{%- endif %}
-{% for field in web_form_fields %}
-	{% if field.hidden %}
-	<input type="hidden"
-		name="{{ field.fieldname }}" value="{{ field.default }}">
-	{% elif field.fieldtype == "HTML" and field.options %}
-	<div class="form-group">
-		{{ field.options }}
-	</div>
-	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
-	<div class="form-group">
-		{{ label(field) }}
-		<div class="col-sm-9">
-			<input type="text" class="form-control" {{ properties(field) }}
-				value="{{ value(field) }}">
-			{{ help(field) }}
-		</div>
-	</div>
-	{% elif field.fieldtype=="Select" %}
-	<div class="form-group">
-		{{ label(field) }}
-		<div class="col-sm-9">
-			<select class="form-control" {{ properties(field) }}>
-				{% for option in field.options.split("\n") -%}
-				<option value="{{ option }}"
-					{{ 'selected="selected"' if value(field)==option else '' }}>
-					{{ option }}</option>
-				{%- endfor %}
-			</select>
-			{{ help(field) }}
-		</div>
-	</div>
-	{% elif field.fieldtype=="Text" %}
-	<div class="form-group">
-		{{ label(field) }}
-		<div class="col-sm-9">
-			<textarea class="form-control" style="height: 200px;"
-			{{ properties(field) }}>{{ value(field) }}</textarea>
-			{{ help(field) }}
-		</div>
-	</div>
-	{% elif field.fieldtype=="Attach" %}
-	<div class="form-group">
-		{{ label(field) }}
-		<div class="col-sm-9">
-			{% if value(field) -%}
-			<p>
-				<i class="icon-paperclip"></i>
-				<a href="{{ doc.get(field.fieldname) }}" target="blank">
-					{{ doc.get(field.fieldname) }}
-				</a>
-				<br><button class="btn btn-small btn-default
-					change-attach" style="margin-top: 5px;">Change</button>
-			</p>
-			{%- endif %}
-			<p class="{{ value(field) and 'hide' or '' }} attach-input-wrap">
-				<input type="file" style="margin-top: 7px;"
-					{{ properties(field) }}>
-			</p>
-			{{ help(field) }}
-		</div>
-	</div>
-	{% elif field.fieldtype=="Check" %}
-	<div class="form-group">
-		<div class="col-sm-offset-3 col-sm-9">
-			<div class="checkbox">
-				<label>
-					<input type="checkbox" id="{{ field.fieldname }}"
-						name="{{ field.fieldname }}"
-						{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
-						{{ field.label }}
-				</label>
-				{{ help(field) }}
-			</div>
-		</div>
-	</div>
-	{% endif %}
-{% endfor %}
-<div class="form-group">
-	<div class="col-sm-offset-3 col-sm-9">
-		<button type="submit" class="btn btn-primary">Submit</button>
-		<a href="{{ pathname }}" class="btn btn-default">Cancel</a>
-	</div>
-</div>
+
+    {% for section in layout %}
+    <div class="row">
+        {% for column in section %}
+        <div class="col-sm-{{ (12 / (section|len))|int }}">
+            {% for field in column %}
+                {{ render_field(field) }}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
 </form>
-{% if allow_comments -%}
-<div class="row comments">
-	<div class="col-sm-offset-3 col-sm-9">
-		<hr>
-		<h3>{{ _("Comments") }}</h3>
-		{% include 'templates/includes/comments/comments.html' %}
-	</div>
+{% if allow_comments and not params.new -%}
+<div class="comments">
+	<br><br>
+	<h3>{{ _("Comments") }}</h3>
+	{% include 'templates/includes/comments/comments.html' %}
 </div>
 {%- endif %}
 {% endif %}
@@ -177,6 +176,7 @@
 <script>
 frappe.ready(function() {
 	window.file_reading = false;
+    window.success_message = "{{ success_message or "" }}";
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	var $form = $("form[data-web-form='{{ name }}']");
 
@@ -214,7 +214,7 @@ frappe.ready(function() {
 	});
 
 	// submit
-	$("form[data-web-form='{{ name }}']").on("submit", function() {
+	$(".btn-form-submit").on("click", function() {
 		var args = {};
 		if(window.saving)
 			return;
@@ -257,15 +257,19 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-					$form.addClass("hide");
-					$(".comments, .introduction").addClass("hide");
-					scroll(0, 0);
-					$(".form-message")
-						.html('{{ success_message or _("Thank You") }}'
-							+ '<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
-						.removeClass("hide");
+    				window.saving = false;
+                    if(window.success_message) {
+    					$form.addClass("hide");
+    					$(".comments, .introduction").addClass("hide");
+    					scroll(0, 0);
+    					$(".form-message")
+    						.html('{{ success_message }}<p><a href="{{ success_url }}">\
+                                {{ _("Continue") }}</a></p>')
+    						.removeClass("hide");
+                    } else {
+                        window.location.href = "{{ success_url }}";
+                    }
 				}
-				window.saving = false;
 			}
 		});
 

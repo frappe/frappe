@@ -1,20 +1,21 @@
+{% if not result -%}
+    <div class="text-muted" style="min-height: 200px;">
+    	{{ no_result_message or _("Nothing to show") }}
+    </div>
+{% else %}
+    <div class="website-list" data-doctype="{{ doctype }}"
+        data-txt="{{ txt or '[notxt]' }}">
+        <!-- {% if not hide_filters -%}
+            {% include "templates/includes/list/filters.html" %}
+        {%- endif %} -->
 
-<div class="website-list" data-doctype="{{ doctype }}" data-txt="{{ txt or '[notxt]' }}">
-    <!-- {% if not hide_filters -%}
-        {% include "templates/includes/list/filters.html" %}
-    {%- endif %} -->
-
-	<div class="result">
-		{% for item in result %}
-			{{ item }}
-		{% endfor %}
-		{% if not result -%}
-		<div class="text-muted padding">
-			{{ no_result_message or _("Nothing to show") }}
-		</div>
-		{%- endif %}
-	</div>
-	<div class="more-block border-top {% if not show_more -%} hide {%- endif %}">
-		<button class="btn btn-default btn-more">More</button>
-	</div>
-</div>
+    	<div class="result">
+    		{% for item in result %}
+    			{{ item }}
+    		{% endfor %}
+    	</div>
+    	<div class="more-block {% if not show_more -%} hide {%- endif %}">
+    		<button class="btn btn-default btn-more btn-sm">More</button>
+    	</div>
+    </div>
+{%- endif %}

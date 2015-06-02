@@ -115,6 +115,7 @@
    "permlevel": 0
   }, 
   {
+   "depends_on": "eval:!doc.__islocal", 
    "fieldname": "change_password", 
    "fieldtype": "Section Break", 
    "label": "", 
@@ -126,6 +127,14 @@
    "label": "Set New Password", 
    "no_copy": 1, 
    "permlevel": 0
+  }, 
+  {
+   "depends_on": "", 
+   "fieldname": "send_password_update_notification", 
+   "fieldtype": "Check", 
+   "label": "Send Password Update Notification", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "reset_password_key", 
@@ -473,7 +482,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-04-24 14:37:26.430454", 
+ "modified": "2015-06-01 01:00:32.901851", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
