@@ -43,12 +43,14 @@ class Communication(Document):
 			if to_status in status_field.options.splitlines():
 				frappe.db.set_value(parent.doctype, parent.name, "status", to_status)
 
-	def send(self, print_html=None, print_format=None, attachments=None):
+	def send(self, print_html=None, print_format=None, attachments=None,
+		send_me_a_copy=False):
 		"""Send communication via Email.
 
 		:param print_html: Send given value as HTML attachment.
 		:param print_format: Attach print format of parent document."""
 
+		self.send_me_a_copy = send_me_a_copy
 		self.notify(print_html, print_format, attachments)
 
 	def set_incoming_outgoing_accounts(self):
@@ -154,6 +156,9 @@ class Communication(Document):
 			if e not in filtered and email_id not in filtered:
 				filtered.append(e)
 
+		if getattr(self, "send_me_a_copy", False):
+			filtered.append(self.sender)
+
 		return filtered
 
 	def get_starrers(self):
@@ -199,7 +204,8 @@ def on_doctype_update():
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False):
+	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False,
+	send_me_a_copy=False):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -213,7 +219,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param send_mail: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
-	:param attachments: List of attachments as list of files or JSON string."""
+	:param attachments: List of attachments as list of files or JSON string.
+	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 
@@ -238,7 +246,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	comm.insert(ignore_permissions=True)
 
 	if send_email:
-		comm.send(print_html, print_format, attachments)
+		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
 	return comm.name
 
