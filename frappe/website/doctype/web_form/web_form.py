@@ -6,6 +6,8 @@ import frappe, json
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
+from frappe.website.utils import get_comment_list
+from frappe.templates.pages.list import get_context as get_list_context
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -20,27 +22,51 @@ class WebForm(WebsiteGenerator):
 		if self.login_required and frappe.session.user != "Guest":
 			if self.allow_edit:
 				if self.allow_multiple:
-					meta = frappe.get_meta(self.doc_type)
-					context.items = frappe.db.sql("""select name,
-						{0} as title, creation
-						from `tab{1}`
-						where owner=%s and docstatus = 0
-						order by creation desc""".format(meta.title_field or "name",
-						self.doc_type), frappe.session.user, as_dict=True)
+					if not context.params.name and not context.params.new:
+						frappe.form_dict.doctype = self.doc_type
+						get_list_context(context)
+						context.is_list = True
 				else:
 					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user},
 						"name")
 					if name:
 						frappe.form_dict.name = name
 
+		if frappe.form_dict.name or frappe.form_dict.new:
+			context.layout = self.get_layout()
+			context.parents = [{"name": self.get_route(), "title": self.title }]
+
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
+			context.title = context.doc.get(context.doc.meta.get_title_field())
+
+			context.comment_doctype = context.doc.doctype
+			context.comment_docname = context.doc.name
+
+		if self.allow_comments and frappe.form_dict.name:
+			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
 
 		context.types = [f.fieldtype for f in self.web_form_fields]
 		return context
 
+	def get_layout(self):
+		layout = []
+		for df in self.web_form_fields:
+			if df.fieldtype=="Section Break" or not layout:
+				layout.append([])
+
+			if df.fieldtype=="Column Break" or not layout[-1]:
+				layout[-1].append([])
+
+			if df.fieldtype not in ("Section Break", "Column Break"):
+				layout[-1][-1].append(df)
+
+		return layout
+
 	def get_parents(self, context):
-		if self.breadcrumbs:
+		if context.parents:
+			return context.parents
+		elif self.breadcrumbs:
 			return json.loads(self.breadcrumbs)
 
 @frappe.whitelist(allow_guest=True)

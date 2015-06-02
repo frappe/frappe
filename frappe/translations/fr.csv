@@ -151,7 +151,7 @@ sites/assets/js/desk.min.js +183,Another transaction is blocking this one. Pleas
 DocType: Property Setter,Field Name,Nom de domaine
 sites/assets/js/desk.min.js +684,or,ou
 apps/frappe/frappe/templates/generators/web_form.html +265,Continue,Continuer
-DocType: Custom Field,Fieldname,Fieldname
+DocType: Custom Field,Fieldname,Nom du champs
 DocType: Workflow State,certificate,certificat
 DocType: User,Tile,Mosaïque
 DocType: User,"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Téléchargez votre avatar mondialement reconnu de <a href=""https://gravatar.com/""> Gravatar.com </ a>"
@@ -178,7 +178,7 @@ apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Grou
 apps/frappe/frappe/utils/file_manager.py +40,Added {0},Ajouté {0}
 DocType: Currency,Fraction Units,Unités fraction
 DocType: Web Page,Parent Web Page,Parent page Web
-apps/frappe/frappe/model/base_document.py +357,{0} must be set first,{0} doit être réglé en premier
+apps/frappe/frappe/model/base_document.py +357,{0} must be set first,{0} doit être paramétré en premier
 DocType: Workflow State,plane,plan
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Si vous téléchargez de nouveaux records, ""Nommer Series"" devient obligatoire, se il est présent."
 apps/frappe/frappe/core/doctype/doctype/doctype.py +294,Fold can not be at the end of the form,Fold ne peut pas être à la fin de la forme
@@ -226,7 +226,7 @@ DocType: Email Alert,Days Before,Jours Avant
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,Choisissez une bannière image première.
 DocType: Workflow State,volume-down,volume-bas
 DocType: Email Account,Send Notification to,Envoyer une notification à
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +626,Saved,Saved
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +626,Saved,Enregistré
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,S'il vous plaît indiquer doctype
 DocType: Print Format,Format Data,Format des données
 DocType: Customize Form Field,Customize Form Field,Personnaliser un champ de formulaire
@@ -410,7 +410,7 @@ DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" ca
 DocType: File Data,Attached To Name,Joint au nom
 apps/frappe/frappe/email/receive.py +53,Invalid User Name or Support Password. Please rectify and try again.,Numéro de référence et date de référence est nécessaire pour {0}
 DocType: Email Account,Yahoo Mail,Yahoo Mail
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,Saved!
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,Enregistré!
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},Mise à jour {0}: {1}
 DocType: DocType,Master,Maître
 DocType: DocType,User Cannot Create,L&#39;utilisateur ne peut pas créer
@@ -611,7 +611,7 @@ DocType: Social Login Keys,Facebook Client ID,Facebook identification client
 DocType: Workflow State,Inbox,Boîte de réception
 DocType: Workflow State,Tag,Balise
 DocType: Custom Script,Script,Scénario
-sites/assets/js/desk.min.js +852,My Settings,Mes réglages
+sites/assets/js/desk.min.js +852,My Settings,Mes paramètres
 DocType: Website Theme,Text Color,Couleur du texte
 apps/frappe/frappe/website/doctype/web_form/web_form.py +53,Invalid Request,Invalid Request
 sites/assets/js/desk.min.js +366,This form does not have any input,Ce formulaire ne dispose pas d'entrée
@@ -656,14 +656,14 @@ DocType: Event,Repeat this Event,Répétez cette événement
 DocType: DocPerm,Amend,Modifier
 apps/frappe/frappe/templates/includes/login/login.js +43,Valid Login id required.,Valable Connexion Identifiant nécessaire.
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,réouvrir
-apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} un-shared this document with {1},{0} non partagé ce document {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} un-shared this document with {1},{0} ne pas partager ce document avec {1}
 apps/frappe/frappe/templates/emails/auto_reply.html +4,This is an automatically generated reply,Ce est une réponse générée automatiquement
 apps/frappe/frappe/model/document.py +376,Record does not exist,N'existe pas d'enregistrement
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Page manquante ou déplacé
 sites/assets/js/desk.min.js +479,Open Link,Open Link
 apps/frappe/frappe/desk/form/load.py +42,Did not load,N'a pas été chargé
 apps/frappe/frappe/desk/query_report.py +79,Query must be a SELECT,Requête doit être un SELECT
-DocType: Website Settings,Facebook Share,Facebook Partager
+DocType: Website Settings,Facebook Share,Partager avec Facebook
 apps/frappe/frappe/utils/file_manager.py +181,File size exceeded the maximum allowed size of {0} MB,La taille du fichier a dépassé la taille maximale autorisée de {0} Mo
 apps/frappe/frappe/core/doctype/doctype/doctype.py +344,Enter at least one permission row,Entrez au moins une rangée d'autorisation
 sites/assets/js/desk.min.js +536,Created On,Créé le
@@ -818,7 +818,7 @@ DocType: Workflow State,Style,Style
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +166,{0} comments,{0} commentaires
 DocType: Customize Form Field,Label and Type,Étiquette et le type
 DocType: Workflow State,forward,avant
-sites/assets/js/form.min.js +270,{0} edited this {1},{0} édité cette {1}
+sites/assets/js/form.min.js +270,{0} edited this {1},{0} a édité {1}
 DocType: Web Page,Custom Javascript,Javascript personnalisé
 DocType: DocPerm,Submit,Soumettre
 DocType: Website Settings,Sub-domain provided by erpnext.com,Sous-domaine fourni par erpnext.com
@@ -852,7 +852,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,Décembre
 DocType: Event,Leave blank to repeat always,Laissez vide pour répéter toujours
 DocType: Event,Ends on,Se termine le
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Article ne peut être ajouté à ses propres descendants
-sites/assets/js/form.min.js +270,{0} created this {1},{0} créé cette {1}
+sites/assets/js/form.min.js +270,{0} created this {1},{0} a créé {1}
 apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.","La tâche {0}, que vous avez attribué au {1}, a été fermée par {2}."
 DocType: Blogger,Short Name,Nom court
 DocType: Workflow State,magnet,aimant
@@ -948,7 +948,7 @@ apps/frappe/frappe/model/document.py +425,Cannot edit cancelled document,Vous ne
 apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Niché erreur de réglage . S'il vous plaît contacter l'administrateur .
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<Span class = text-coupé de données sans contenu = 1>
 DocType: Workflow State,envelope,enveloppe
-apps/frappe/frappe/core/doctype/docshare/docshare.py +37,{0} shared this document with {1},{0} partagé ce document {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +37,{0} shared this document with {1},{0} partagé ce document avec {1}
 DocType: Website Settings,Google Plus One,Google Plus One
 apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,Juillet
 DocType: Communication,Additional Info,Informations supplémentaires
@@ -1007,7 +1007,7 @@ sites/assets/js/form.min.js +261,New Custom Print Format,New Custom Format d&#39
 DocType: DocPerm,Create,Créer
 DocType: About Us Settings,Org History,Org Histoire
 DocType: Workflow,Workflow Name,Nom du workflow
-DocType: Web Form,Allow Edit,Autoriser Modifier
+DocType: Web Form,Allow Edit,Autoriser la modification
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},Vous ne pouvez pas changer l'état du document annulé .
 DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Règles pour la manière dont les États sont des transitions, comme état suivant et dont le rôle est autorisé à changer d&#39;état, etc"
 apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} existe déjà
@@ -1057,7 +1057,7 @@ DocType: Workflow,"If checked, all other workflows become inactive.","Si elle es
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Étiquette]: [Type de champ] / [Options]: [Largeur]
 DocType: Workflow State,folder-close,dossier de près
 DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,Facultatif: Alerte ne sera envoyé si la valeur est une id e-mail valide.
-apps/frappe/frappe/model/rename_doc.py +101,{0} not allowed to be renamed,{0} ne peuvent pas être renommé
+apps/frappe/frappe/model/rename_doc.py +101,{0} not allowed to be renamed,{0} n'est pas permi à être renommé
 DocType: Custom Script,Custom Script,Script personnalisé
 DocType: ToDo,Assigned To,assignée à
 apps/frappe/frappe/core/doctype/user/user.py +165,Verify Your Account,Vérifiez votre compte
@@ -1068,7 +1068,7 @@ DocType: User,Send Notifications for Transactions I Follow,Envoyer des notificat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +388,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Vous ne pouvez pas mettre sur Envoyer, annuler, de modifier sans écriture"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Configuration> utilisateur
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Merci
-sites/assets/js/form.min.js +180,Saving,Économie
+sites/assets/js/form.min.js +180,Saving,En cours d'enregistrement
 DocType: Print Settings,Print Style Preview,Style d'impression Aperçu
 DocType: About Us Settings,About Us Settings,Paramètrages À propos
 DocType: Website Settings,Website Theme,Site Thème
@@ -1089,7 +1089,7 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84,Blog,Blog
 apps/frappe/frappe/email/bulk.py +167,{0} has has left the conversation in {1} {2},{0} a a quitté la conversation dans {1} {2}
 DocType: Workflow State,hand-right,la main droite
 DocType: Website Settings,Subdomain,Sous-domaine
-DocType: Web Form,Allow Delete,Autoriser Supprimer
+DocType: Web Form,Allow Delete,Autoriser la suppression
 DocType: Email Alert,Message Examples,Exemples de messages
 DocType: Web Form,Login Required,Connexion requise
 apps/frappe/frappe/config/website.py +59,Write titles and introductions to your blog.,Écrire des titres et des introductions sur votre blog.
@@ -1216,7 +1216,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} pa
 apps/frappe/frappe/core/doctype/comment/comment.py +39,Cannot add more than 50 comments,Vous ne pouvez pas ajouter plus de 50 commentaires
 DocType: Website Settings,Top Bar Items,Articles Top Bar
 DocType: Print Settings,Print Settings,Paramètres d'impression
-DocType: DocType,Max Attachments,Attachments Max
+DocType: DocType,Max Attachments,Maximum pièces jointes
 DocType: Page,Page,Page
 DocType: Workflow State,briefcase,Malette
 apps/frappe/frappe/model/base_document.py +411,Value cannot be changed for {0},Valeur ne peut pas être changé pour {0}
@@ -1236,7 +1236,7 @@ DocType: Print Format,Print Format,Format d&#39;impression
 apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,ID de l'utilisateur d'un écrivain blog.
 apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,Définir les autorisations des rôles sur les types de documents .
 sites/assets/js/desk.min.js +904,New in version {0},Nouveau dans la version {0}
-DocType: About Us Settings,"""Company History""",&quot;Histoire de la société&quot;
+DocType: About Us Settings,"""Company History""","""L'historique de la société"""
 apps/frappe/frappe/permissions.py +226,Permission already set,Permission déjà défini
 apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},Commenté sur {0}: {1}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +243,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,Ces restrictions seront appliquées pour les types de documents où «Appliquer les autorisations des utilisateurs» est cochée pour la règle de l&#39;autorisation et un champ avec cette valeur est présente.
@@ -1350,7 +1350,7 @@ DocType: User,Timezone,Fuseau horaire
 sites/assets/js/desk.min.js +538,Unable to load: {0},Vous n'êtes pas autorisé à imprimer ce document
 DocType: DocField,Read Only,Lecture seule
 DocType: Print Settings,Send Print as PDF,Envoyer Imprimer en PDF
-DocType: Workflow Transition,Allowed,Permis
+DocType: Workflow Transition,Allowed,Authorisé
 apps/frappe/frappe/core/doctype/doctype/doctype.py +287,There can be only one Fold in a form,Il ne peut y avoir qu'un seul pli sous une forme
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Invalid Page d'accueil
 apps/frappe/frappe/core/doctype/doctype/doctype.py +378,{0}: Permission at level 0 must be set before higher levels are set,{0} : autorisation au niveau 0 doit être réglé avant que les niveaux plus élevés sont fixés
@@ -1375,7 +1375,7 @@ DocType: Email Alert,Optional: The alert will be sent if this expression is true
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,Vous pouvez utiliser le formulaire pour définir les niveaux de champs .
 DocType: DocPerm,Report,Rapport
 apps/frappe/frappe/templates/generators/web_form.html +18,Please login to create a new {0},Se il vous plaît vous identifier pour créer un nouveau {0}
-apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} est sauvé
+apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} est enregistré
 apps/frappe/frappe/core/doctype/user/user.py +234,User {0} cannot be renamed,Utilisateur {0} ne peut pas être renommé
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,exporté
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON liste des DocTypes utilisés pour appliquer les autorisations des utilisateurs. Se il est vide, tous liés DocTypes seront utilisés pour appliquer les autorisations des utilisateurs."

@@ -19,6 +19,7 @@ login.bind_events = function() {
 			return false;
 		}
 		login.call(args);
+		return false;
 	});
 
 	$(".form-signup").on("submit", function(event) {
@@ -32,6 +33,7 @@ login.bind_events = function() {
 			return false;
 		}
 		login.call(args);
+		return false;
 	});
 
 	$(".form-forgot").on("submit", function(event) {
@@ -44,6 +46,7 @@ login.bind_events = function() {
 			return false;
 		}
 		login.call(args);
+		return false;
 	});
 }
 
@@ -72,7 +75,7 @@ login.signup = function() {
 
 // Login
 login.call = function(args) {
-	$('.btn-primary').prop("disabled", true);
+	frappe.freeze();
 
 	$.ajax({
 		type: "POST",
@@ -81,8 +84,8 @@ login.call = function(args) {
 		dataType: "json",
 		statusCode: login.login_handlers
 	}).always(function(){
-		$('.btn-primary').prop("disabled", false);
-	})
+		frappe.unfreeze();
+	});
 }
 
 login.login_handlers = (function() {
@@ -105,12 +108,14 @@ login.login_handlers = (function() {
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
-							|| get_url_arg("redirect-to")
-							|| "/index";
+						|| get_url_arg("redirect-to");
 					localStorage.removeItem("last_visited");
+				}
+
+				if(last_visited && last_visited != "/login") {
 					window.location.href = last_visited;
 				} else {
-					window.location.href = "/index";
+					window.location.href = "/me";
 				}
 			} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
 				frappe.msgprint(data.message);

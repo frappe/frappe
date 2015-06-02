@@ -12,8 +12,16 @@
     {% endif %}
 {% endblock %}
 
+{% block header_actions %}
+{% if create_new %}
+<div class="pull-right">
+    <a href="{{ create_new | abs_url }}" class="btn btn-primary btn-sm">
+        {{ _("New") }}
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}{% include "templates/includes/list/list.html" %}{% endblock %}
 
 {% block script %}{% include "templates/includes/list/list.js" %}{% endblock %}
-
-{% block style %}{% include "templates/includes/list/list.css" %}{% endblock %}

@@ -459,6 +459,10 @@ body {
 .panel-body {
   padding-left: 15px;
 }
+.page-header-actions-block {
+  padding-top: 20px;
+  text-align: right;
+}
 fieldset {
   margin-bottom: 20px;
 }
@@ -529,8 +533,18 @@ fieldset {
   border-top: 1px solid #d1d8dd;
 }
 /* post and post list */
+.list-group-item {
+  border-radius: 0px !important;
+}
+.website-list {
+  min-height: 200px;
+  padding-bottom: 15px;
+}
+.website-list .result {
+  border: 1px solid #d1d8dd;
+}
 .web-list-item {
-  padding: 5px 0px;
+  padding: 10px;
   border-bottom: 1px solid #d1d8dd;
 }
 .web-list-item h1,
@@ -547,9 +561,8 @@ fieldset {
   color: inherit !important;
   text-decoration: none;
 }
-.web-list-item:first-child {
-  margin-top: -1px;
-  border-top: 1px solid #d1d8dd;
+.web-list-item:hover {
+  background: #f7fafc;
 }
 .web-list-item:last-child {
   border-bottom: none;
@@ -559,8 +572,20 @@ fieldset {
   border-top: 1px solid #d1d8dd;
   margin: 0px -15px -20px -15px;
 }
+.blog-list-content .website-list .result {
+  border: 0px;
+}
+.blog-list-content .web-list-item {
+  padding: 0px;
+}
+.blog-list-content .web-list-item:hover {
+  background: transparent;
+}
 .longform {
   padding: 15px 0px;
+  line-height: 1.5;
+  font-size: 1.1em;
+  max-width: 700px;
 }
 .longform p {
   margin-bottom: 30px;
@@ -586,6 +611,7 @@ fieldset {
 }
 .blog-comment-row:last-child {
   margin-bottom: 30px;
+  border-bottom: 0px;
 }
 textarea {
   resize: vertical;
