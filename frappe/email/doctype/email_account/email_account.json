@@ -45,6 +45,21 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "login_id_is_different", 
+   "fieldtype": "Check", 
+   "label": "Login Id is Different", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "login_id_is_different", 
+   "fieldname": "login_id", 
+   "fieldtype": "Data", 
+   "label": "Login Id", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "password", 
    "fieldtype": "Password", 
@@ -404,7 +419,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-21 15:31:02.269145", 
+ "modified": "2015-06-02 07:27:15.596220", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
