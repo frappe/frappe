@@ -114,7 +114,8 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = self.email_account.email_id
+			self.login = getattr(self.email_account, "login_id", None) \
+				or self.email_account.email_id
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls

@@ -30,6 +30,12 @@ class EmailAccount(Document):
 		if self.email_id:
 			validate_email_add(self.email_id, True)
 
+		if self.login_id_is_different:
+			if not self.login_id:
+				frappe.throw(_("Login Id is required"))
+		else:
+			self.login_id = None
+
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
@@ -70,7 +76,8 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			server = SMTPServer(login = self.email_id,
+			server = SMTPServer(login = getattr(self, "login_id", None) \
+					or self.email_id,
 				password = self.password,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
@@ -83,7 +90,7 @@ class EmailAccount(Document):
 		args = {
 			"host": self.pop3_server,
 			"use_ssl": self.use_ssl,
-			"username": self.email_id,
+			"username": getattr(self, "login_id", None) or self.email_id,
 			"password": self.password
 		}
 
