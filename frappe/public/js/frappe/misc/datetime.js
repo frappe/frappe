@@ -124,7 +124,7 @@ $.extend(frappe.datetime, {
 	},
 
 	get_today: function() {
-		return moment().format();
+		return moment().locale("en").format();
 	},
 
 	nowdate: function() {
@@ -132,7 +132,7 @@ $.extend(frappe.datetime, {
 	},
 
 	now_time: function() {
-		return moment().format("HH:mm:ss");
+		return moment().locale("en").format("HH:mm:ss");
 	},
 
 	validate: function(d) {
