@@ -156,9 +156,11 @@ def convert_to_hex(channel_value):
 
 def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
+	if not path:
+		return
 	if path.startswith('http://') or path.startswith('https://'):
 		return path
-	if path and not path.startswith("/"):
+	if not path.startswith("/"):
 		path = "/" + path
 	return path
 
