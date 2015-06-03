@@ -1,0 +1,1 @@
+- Ability to send yourself a copy of the outgoing email added back.
