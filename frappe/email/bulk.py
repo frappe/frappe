@@ -112,7 +112,8 @@ def check_bulk_limit(recipients):
 
 	# No limit for own email settings
 	smtp_server = SMTPServer()
-	if smtp_server.email_account and not getattr(smtp_server.email_account,
+
+	if smtp_server.email_account and getattr(smtp_server.email_account,
 		"from_site_config", False) or frappe.flags.in_test:
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
