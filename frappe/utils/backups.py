@@ -85,6 +85,7 @@ class BackupGenerator:
 		files_path = frappe.get_site_path("public", "files")
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = frappe.utils.execute_in_shell(cmd_string)
+		print 'Backed up files', os.path.abspath(self.backup_path_files)
 
 	def take_dump(self):
 		import frappe.utils
@@ -94,6 +95,7 @@ class BackupGenerator:
 			for item in self.__dict__.copy().items())
 		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s | gzip -c > %(backup_path_db)s""" % args
 		err, out = frappe.utils.execute_in_shell(cmd_string)
+		print 'Database backed up', os.path.abspath(self.backup_path_db)
 
 	def send_email(self):
 		"""
