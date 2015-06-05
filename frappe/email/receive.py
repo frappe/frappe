@@ -148,7 +148,14 @@ class POP3Server:
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
 
 	def is_temporary_system_problem(self, e):
-		return "-ERR [SYS/TEMP] Temporary system problem. Please try again later." in strip(cstr(e.message))
+		messages = (
+			"-ERR [SYS/TEMP] Temporary system problem. Please try again later.",
+			"Connection timed out",
+		)
+		for message in messages:
+			if message in strip(cstr(e.message)):
+				return True
+		return False
 
 	def validate_pop(self, pop_meta):
 		# throttle based on email size
