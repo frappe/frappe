@@ -14,7 +14,7 @@ sender_field = "sender"
 class ToDo(Document):
 	def validate(self):
 		if self.is_new():
-			self.add_assign_comment(frappe._("Assigned to {0}").format(get_fullname(self.owner)), "Assigned")
+			self.add_assign_comment(frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description), "Assigned")
 		else:
 			cur_status = frappe.db.get_value("ToDo", self.name, "status")
 			if cur_status != self.status:
