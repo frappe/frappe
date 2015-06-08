@@ -28,7 +28,6 @@ frappe.ui.form.Control = Class.extend({
 	make: function() {
 		this.make_wrapper();
 		this.$wrapper
-			.addClass("ui-front")
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname);
 		this.wrapper = this.$wrapper.get(0);
@@ -934,7 +933,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="link-field" style="position: relative;">\
+		$('<div class="link-field ui-front" style="position: relative;">\
 			<input type="text" class="input-with-feedback form-control">\
 			<span class="link-btn">\
 				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
