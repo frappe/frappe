@@ -394,6 +394,10 @@ ul.linked-with-list li {
 .modal-title {
   margin-top: 5px;
 }
+.modal .form-control {
+  position: relative;
+  z-index: 1140;
+}
 .form-group {
   margin-bottom: 7px;
 }

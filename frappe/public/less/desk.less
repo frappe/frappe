@@ -224,6 +224,13 @@ ul.linked-with-list li {
 	margin-top: 5px;
 }
 
+// fixes datepicker z-index issue
+// datepicker takes zindex of input + 1 when input's position is relative
+.modal .form-control {
+	position: relative;
+	z-index: 1140;
+}
+
 .form-group {
 	margin-bottom: 7px;
 }
