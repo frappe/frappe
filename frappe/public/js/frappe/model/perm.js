@@ -69,7 +69,7 @@ $.extend(frappe.perm, {
 						perm[0]["write"] = s.write;
 						perm[0]["share"] = s.share;
 
-						if(s.write) {
+						if(s.read) {
 							// also give print, email permissions if read
 							// and these permissions exist at level [0]
 							perm[0].email = meta.permissions[0].email;
