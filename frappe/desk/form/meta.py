@@ -55,8 +55,6 @@ class FormMeta(Meta):
 		return d
 
 	def add_code(self):
-		if self.custom:
-			return
 		path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.name))
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
@@ -81,6 +79,8 @@ class FormMeta(Meta):
 			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_include(js))
 
 	def add_html_templates(self, path):
+		if self.custom:
+			return
 		js = ""
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
