@@ -105,7 +105,8 @@ def get_attachments(dt, dn):
 
 def get_comments(dt, dn, limit=100):
 	comments = frappe.db.sql("""select name, comment, comment_by, creation,
-		comment_type, "Comment" as doctype from `tabComment`
+			reference_doctype, reference_name, comment_type, "Comment" as doctype
+		from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
 		order by creation desc limit %s""" % ('%s','%s', limit),
 			(dt, dn), as_dict=1)

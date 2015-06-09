@@ -31,7 +31,13 @@
             {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
                 <h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
-                        {%= data.comment %}
+						{% if(data.reference_doctype && data.reference_name) { %}
+						<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+						{% } %}
+	                        {%= data.comment %}
+						{% if(data.reference_doctype && data.reference_name) { %}
+						</a>
+						{% } %}
                         <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
                 </h6>

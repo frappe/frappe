@@ -394,9 +394,17 @@ ul.linked-with-list li {
 .modal-title {
   margin-top: 5px;
 }
-.modal .form-control {
+.form-control {
   position: relative;
+}
+.link-field.ui-front {
+  z-index: inherit;
+}
+.modal .hasDatepicker {
   z-index: 1140;
+}
+.modal .link-field .ui-autocomplete {
+  z-index: 1141;
 }
 .form-group {
   margin-bottom: 7px;

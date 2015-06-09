@@ -225,10 +225,21 @@ ul.linked-with-list li {
 }
 
 // fixes datepicker z-index issue
-// datepicker takes zindex of input + 1 when input's position is relative
-.modal .form-control {
+.form-control {
 	position: relative;
+}
+
+.link-field.ui-front {
+	z-index: inherit;
+}
+
+.modal .hasDatepicker {
 	z-index: 1140;
+}
+
+.modal .link-field .ui-autocomplete {
+	// so that it appears over the datepicker field
+	z-index: 1141;
 }
 
 .form-group {

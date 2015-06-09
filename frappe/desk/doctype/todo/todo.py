@@ -16,8 +16,8 @@ class ToDo(Document):
 		if self.is_new():
 			self.add_assign_comment(frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description), "Assigned")
 		else:
-			cur_status = frappe.db.get_value("ToDo", self.name, "status")
-			if cur_status != self.status:
+			# NOTE the previous value is only available in validate method
+			if self.get_db_value("status") != self.status:
 				self.add_assign_comment(frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
 					"Assignment Completed")
 
@@ -31,14 +31,19 @@ class ToDo(Document):
 		if not self.reference_type and self.reference_name:
 			return
 
-		frappe.get_doc({
+		comment = frappe.get_doc({
 			"doctype":"Comment",
 			"comment_by": frappe.session.user,
 			"comment_type": comment_type,
 			"comment_doctype": self.reference_type,
 			"comment_docname": self.reference_name,
-			"comment": """{text}""".format(text=text)
-		}).insert(ignore_permissions=True)
+			"comment": """{text}""".format(text=text),
+			"reference_doctype": self.doctype,
+			"reference_name": self.name
+		})
+		comment.flags.ignore_permissions = True
+		comment.flags.ignore_links = True
+		comment.insert()
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):
