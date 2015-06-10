@@ -7,7 +7,6 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
-from frappe.templates.pages.list import get_context as get_list_context
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -18,8 +17,20 @@ class WebForm(WebsiteGenerator):
 	)
 
 	def get_context(self, context):
+		from frappe.templates.pages.list import get_context as get_list_context
+
+		frappe.local.form_dict.is_web_form = 1
 		context.params = frappe.form_dict
-		if self.login_required and frappe.session.user != "Guest":
+		logged_in = frappe.session.user != "Guest"
+
+		# check permissions
+		if not logged_in and frappe.form_dict.name:
+			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
+
+		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
+			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
+
+		if self.login_required and logged_in:
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not context.params.name and not context.params.new:
@@ -27,10 +38,13 @@ class WebForm(WebsiteGenerator):
 						get_list_context(context)
 						context.is_list = True
 				else:
-					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user},
-						"name")
+					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 					if name:
 						frappe.form_dict.name = name
+
+		# always render new form if login is not required or doesn't allow editing existing ones
+		if not self.login_required or not self.allow_edit:
+			frappe.form_dict.new = 1
 
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
@@ -78,6 +92,9 @@ def accept():
 	if args.doctype != web_form.doc_type:
 		frappe.throw(_("Invalid Request"))
 
+	elif args.name and not web_form.allow_edit:
+		frappe.throw(_("You are not allowed to update this Web Form Document"))
+
 	if args.name:
 		# update
 		doc = frappe.get_doc(args.doctype, args.name)
@@ -101,7 +118,7 @@ def accept():
 			doc.set(fieldname, value)
 
 	if args.name:
-		if doc.owner==frappe.session.user:
+		if has_web_form_permission(doc.doctype, doc.name, "write"):
 			doc.save(ignore_permissions=True)
 		else:
 			# only if permissions are present
@@ -141,3 +158,26 @@ def delete(web_form, name):
 		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
 	else:
 		raise frappe.PermissionError, "Not Allowed"
+
+def has_web_form_permission(doctype, name, ptype='read'):
+	if frappe.session.user=="Guest":
+		return False
+
+	# owner matches
+	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
+		return True
+
+	elif frappe.has_website_permission(doctype, ptype=ptype, doc=name):
+		return True
+
+	else:
+		return False
+
+def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
+	from frappe.templates.pages.list import get_list
+	if not filters:
+		filters = {}
+
+	filters["owner"] = frappe.session.user
+
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)

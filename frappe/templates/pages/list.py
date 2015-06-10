@@ -27,18 +27,7 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	limit_page_length = 20
 	next_start = limit_start + limit_page_length
 
-	filters = frappe._dict(kwargs)
-	if filters.pathname:
-		# resolve additional filters from path
-		resolve_path(filters.pathname)
-		for key, val in frappe.local.form_dict.items():
-			if key in ("cmd", "pathname", "doctype", "txt", "limit_start"):
-				if key in filters:
-					del filters[key]
-
-			elif key not in filters:
-				filters[key] = val
-
+	filters = prepare_filters(kwargs)
 	meta = frappe.get_meta(doctype)
 	list_context = get_list_context({}, doctype)
 
@@ -73,13 +62,41 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		"next_start": next_start
 	}
 
+def prepare_filters(kwargs):
+	filters = frappe._dict(kwargs)
+
+	if filters.pathname:
+		# resolve additional filters from path
+		resolve_path(filters.pathname)
+		for key, val in frappe.local.form_dict.items():
+			if key in ("cmd", "pathname", "doctype", "txt", "limit_start"):
+				if key in filters:
+					del filters[key]
+
+			elif key not in filters:
+				filters[key] = val
+
+	if "is_web_form" in filters:
+		del filters["is_web_form"]
+
+	return filters
+
 def get_list_context(context, doctype):
 	from frappe.modules import load_doctype_module
+	from frappe.website.doctype.web_form.web_form import get_web_form_list
+
+	list_context = frappe._dict()
 	module = load_doctype_module(doctype)
 	if hasattr(module, "get_list_context"):
-		return frappe._dict(module.get_list_context(context) or {})
+		list_context = frappe._dict(module.get_list_context(context) or {})
 
-	return frappe._dict()
+	# is web form
+	if cint(frappe.local.form_dict.is_web_form):
+		list_context.is_web_form = 1
+		if not list_context.get("get_list"):
+			list_context.get_list = get_web_form_list
+
+	return list_context
 
 def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False):
 	meta = frappe.get_meta(doctype)
