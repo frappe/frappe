@@ -7,6 +7,7 @@ from frappe import _
 from frappe.website.render import clear_cache
 from frappe.model.document import Document
 from frappe.model.db_schema import add_column
+from frappe.utils import get_fullname
 
 class Comment(Document):
 	"""Comments are added to Documents via forms or views like blogs etc."""
@@ -37,6 +38,9 @@ class Comment(Document):
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s
 			and comment_docname=%s""", (self.doctype, self.name))[0][0] >= 50:
 			frappe.throw(_("Cannot add more than 50 comments"))
+
+		if not self.comment_by_fullname and self.comment_by:
+			self.comment_by_fullname = get_fullname(self.comment_by)
 
 	def on_update(self):
 		"""Updates `_comments` property in parent Document."""

@@ -21,8 +21,8 @@ def send(email, append_to=None):
 
 	try:
 		smtpserver = SMTPServer(append_to=append_to)
-		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
-			cint(smtpserver.always_use_login_id_as_sender) and smtpserver.login:
+		if hasattr(smtpserver, "always_use_account_email_id_as_sender") and \
+			cint(smtpserver.always_use_account_email_id_as_sender) and smtpserver.login:
 			if not email.reply_to:
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
@@ -120,6 +120,7 @@ class SMTPServer:
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls
 			self.sender = self.email_account.email_id
+			self.always_use_account_email_id_as_sender = self.email_account.get("always_use_account_email_id_as_sender")
 
 	@property
 	def sess(self):

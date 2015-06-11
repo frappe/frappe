@@ -25,6 +25,10 @@ class ToDo(Document):
 		self.update_in_reference()
 
 	def on_trash(self):
+		# unlink assignment comment
+		frappe.db.sql("""update `tabComment` set reference_doctype=null and reference_name=null
+			where reference_doctype='ToDo' and reference_name=%s""", self.name)
+
 		self.update_in_reference()
 
 	def add_assign_comment(self, text, comment_type):
