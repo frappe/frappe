@@ -9,7 +9,8 @@ frappe.ready(function() {
 			doctype: "{{ doctype }}",
 			txt: "{{ txt or '' }}",
 			limit_start: next_start,
-			pathname: location.pathname
+			pathname: location.pathname,
+			is_web_form: "{{ is_web_form }}"
 		});
 
 		btn.prop("disabled", true);
