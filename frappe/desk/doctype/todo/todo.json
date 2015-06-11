@@ -86,7 +86,7 @@
    "fieldtype": "Link", 
    "ignore_user_permissions": 1, 
    "in_list_view": 0, 
-   "label": "Assigned To", 
+   "label": "Allocated To", 
    "options": "User", 
    "permlevel": 0, 
    "reqd": 1
@@ -178,7 +178,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2015-05-04 07:44:46.567785", 
+ "modified": "2015-06-11 16:06:34.561469", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 
