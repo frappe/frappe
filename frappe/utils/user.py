@@ -285,3 +285,6 @@ def get_enabled_system_users():
 
 def is_website_user():
 	return frappe.get_user().doc.user_type == "Website User"
+
+def is_system_user(username):
+	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})

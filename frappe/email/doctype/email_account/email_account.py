@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT
+from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip
+from frappe.utils.user import is_system_user
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
@@ -204,14 +205,22 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-
-				subject = re.sub("(Re|RE)[^:]*:\s*", "", email.subject)
+				subject = strip(re.sub("^\s*(Re|RE)[^:]*:\s*", "", email.subject))
 
 				parent = frappe.db.get_all(self.append_to, filters={
 					sender_field: email.from_email,
 					subject_field: ("like", "%{0}%".format(subject)),
 					"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 				}, fields="name")
+
+				# match only subject field
+				# when the from_email is of a user in the system
+				# and subject is atleast 10 chars long
+				if not parent and len(subject) > 10 and is_system_user(email.from_email):
+					parent = frappe.db.get_all(self.append_to, filters={
+						subject_field: ("like", "%{0}%".format(subject)),
+						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+					}, fields="name")
 
 			else:
 				# try and match by sender only
