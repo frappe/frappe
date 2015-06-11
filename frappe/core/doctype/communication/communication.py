@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cstr
+from frappe.utils import get_url, get_formatted_email, cstr, cint
 from frappe.utils.file_manager import get_file
 import frappe.email.smtp
 from frappe import _
@@ -61,13 +61,15 @@ class Communication(Document):
 				{"append_to": self.reference_doctype, "enable_incoming": 1}, "email_id")
 
 			self.outgoing_email_account = frappe.db.get_value("Email Account",
-				{"append_to": self.reference_doctype, "enable_outgoing": 1}, "email_id")
+				{"append_to": self.reference_doctype, "enable_outgoing": 1},
+				["email_id", "always_use_account_email_id_as_sender"], as_dict=True)
 
 		if not self.incoming_email_account:
 			self.incoming_email_account = frappe.db.get_value("Email Account", {"default_incoming": 1}, "email_id")
 
 		if not self.outgoing_email_account:
-			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
+			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1},
+				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
 	def notify(self, print_html=None, print_format=None, attachments=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
@@ -98,8 +100,8 @@ class Communication(Document):
 
 		self.set_incoming_outgoing_accounts()
 
-		if not self.sender:
-			self.sender = formataddr([frappe.session.data.full_name or "Notification", self.outgoing_email_account])
+		if not self.sender or cint(self.outgoing_email_account.always_use_account_email_id_as_sender):
+			self.sender = formataddr([frappe.session.data.full_name or "Notification", self.outgoing_email_account.email_id])
 
 		self.attachments = []
 

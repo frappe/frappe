@@ -292,6 +292,15 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_outgoing", 
+   "description": "Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ", 
+   "fieldname": "always_use_account_email_id_as_sender", 
+   "fieldtype": "Check", 
+   "label": "Always use Account's Email ID as Sender", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "signature_section", 
    "fieldtype": "Section Break", 
@@ -419,7 +428,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-06-02 07:27:15.596220", 
+ "modified": "2015-06-11 00:16:24.026081", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
