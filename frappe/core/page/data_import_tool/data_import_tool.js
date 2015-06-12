@@ -23,8 +23,9 @@ frappe.DataImportTool = Class.extend({
 
 		if(in_list(frappe.boot.user.can_import, doctype)) {
 				this.select.val(doctype).change();
-				frappe.route_options = null;
 		}
+
+		frappe.route_options = null;
 	},
 	make: function() {
 		var me = this;
