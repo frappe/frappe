@@ -8,7 +8,7 @@ from frappe import _
 import frappe.permissions
 import re
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, cint, flt
+from frappe.utils import cstr, cint, flt, formatdate, format_datetime
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 reflags = {
@@ -31,7 +31,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		if len(doctype) > 1:
 			docs_to_export = doctype[1]
 		doctype = doctype[0]
-		
+
 	if not parent_doctype:
 		parent_doctype = doctype
 
@@ -46,7 +46,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 
 	def get_data_keys_definition():
 		return get_data_keys()
-	
+
 	def add_main_header():
 		w.writerow([_('Data Import Template')])
 		w.writerow([get_data_keys_definition().main_table, doctype])
@@ -155,6 +155,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	def add_data():
 		def add_data_row(row_group, dt, doc, rowidx):
 			d = doc.copy()
+			meta = frappe.get_meta(dt)
 			if all_doctypes:
 				d.name = '"'+ d.name+'"'
 
@@ -162,7 +163,16 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
 			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
-				row[column_start_end[dt].start + i + 1] = d.get(c, "")
+				df = meta.get_field(c)
+				fieldtype = df.fieldtype if df else "Data"
+				value = d.get(c, "")
+				if value:
+					if fieldtype == "Date":
+						value = formatdate(value)
+					elif fieldtype == "Datetime":
+						value = format_datetime(value)
+
+				row[column_start_end[dt].start + i + 1] = value
 
 		if with_data=='Yes':
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
@@ -172,7 +182,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			for doc in data:
 				op = docs_to_export.get("op")
 				names = docs_to_export.get("name")
-				
+
 				if names and op:
 					if op == '=' and doc.name not in names:
 						continue
@@ -184,7 +194,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 						flags = 0
 						for a in re.split('\W+',sflags):
 							flags = flags | reflags.get(a,0)
-						
+
 						c = re.compile(names, flags)
 						m = c.match(doc.name)
 						if not m:
