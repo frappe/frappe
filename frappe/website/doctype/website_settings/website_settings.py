@@ -94,7 +94,7 @@ def get_website_settings():
 
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
-		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
@@ -129,6 +129,9 @@ def get_website_settings():
 
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.png"
+
+	if settings.favicon:
+		context["favicon"] = settings.favicon
 
 	return context
 
