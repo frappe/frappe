@@ -57,7 +57,7 @@ def get_datetime(datetime_str=None):
 def to_timedelta(time_str):
 	if isinstance(time_str, basestring):
 		t = parser.parse(time_str)
-		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
 
 	else:
 		return time_str
