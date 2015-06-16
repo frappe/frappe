@@ -89,7 +89,7 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
-			frappe.modules.import_file.import_file_by_path(f, data_import=True)
+			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True)
 			frappe.flags.mute_emails = False
 		elif f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
