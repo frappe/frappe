@@ -254,7 +254,10 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		recipients = comm.get_recipients()
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy, recipients=recipients)
 
-	return ", ".join(recipients) if recipients else None
+	return {
+		"name": comm.name,
+		"recipients": ", ".join(recipients) if recipients else None
+	}
 
 @frappe.whitelist()
 def get_convert_to():
