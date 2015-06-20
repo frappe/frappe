@@ -147,6 +147,7 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
+		"frappe.async.remove_old_task_logs",
 	]
 }
 

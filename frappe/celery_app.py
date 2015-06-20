@@ -17,7 +17,7 @@ SITES_PATH = os.environ.get('SITES_PATH', '.')
 
 # defaults
 DEFAULT_CELERY_BROKER = "redis://localhost"
-DEFAULT_CELERY_BACKEND = None
+DEFAULT_CELERY_BACKEND = "redis://localhost"
 DEFAULT_SCHEDULER_INTERVAL = 300
 LONGJOBS_PREFIX = "longjobs@"
 
@@ -41,6 +41,7 @@ def setup_celery(app, conf):
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
 	app.conf.CELERY_ACCEPT_CONTENT = ['json']
 	app.conf.CELERY_TIMEZONE = 'UTC'
+	app.conf.CELERY_RESULT_SERIALIZER = 'json'
 	
 	if conf.celery_queue_per_site:
 		app.conf.CELERY_ROUTES = (SiteRouter(),)

@@ -127,7 +127,8 @@ def pack(target, sources, no_compress, verbose):
 				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
-				outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+				if minified:
+					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
 					print "{0}: {1}k".format(f, int(len(minified) / 1024))

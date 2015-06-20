@@ -163,7 +163,7 @@ class Session:
 				"full_name": self.full_name,
 				"user_type": self.user_type,
 				"device": self.device,
-				"session_country": get_geo_ip_country(frappe.local.request_ip)
+				"session_country": get_geo_ip_country(frappe.local.request_ip) if frappe.local.request_ip else None
 			})
 
 		# insert session

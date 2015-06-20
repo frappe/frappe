@@ -28,10 +28,21 @@ frappe.call = function(opts) {
 		args.cmd = opts.method;
 	}
 
+	var callback = function(data, xhr) {
+		if(data.task_id) {
+			// async call, subscribe
+			frappe.socket.subscribe(data.task_id, opts);
+		}
+		else {
+			// ajax
+			return opts.callback(data, xhr);
+		}
+	}
+
 	return frappe.request.call({
 		type: opts.type || "POST",
 		args: args,
-		success: opts.callback,
+		success: callback,
 		error: opts.error,
 		always: opts.always,
 		btn: opts.btn,

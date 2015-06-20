@@ -70,7 +70,7 @@ def handle():
 
 	return build_response("json")
 
-def execute_cmd(cmd):
+def execute_cmd(cmd, async=False):
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
 		# override using the first hook
@@ -78,6 +78,8 @@ def execute_cmd(cmd):
 		break
 
 	method = get_attr(cmd)
+	if async:
+		method = method._f
 
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':
@@ -103,3 +105,15 @@ def get_attr(cmd):
 		method = globals()[cmd]
 	frappe.log("method:" + cmd)
 	return method
+
+
+@frappe.whitelist()
+def get_async_task_status(task_id):
+	from frappe.celery_app import get_celery
+	c = get_celery()
+	a = c.AsyncResult(task_id)
+	frappe.local.response['response'] = a.result
+	return {
+		"state": a.state,
+		"progress": 0
+	}
