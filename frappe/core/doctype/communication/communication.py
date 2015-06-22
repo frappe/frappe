@@ -71,7 +71,7 @@ class Communication(Document):
 			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1},
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
-	def notify(self, print_html=None, print_format=None, attachments=None, except_recipient=False, recipients=None):
+	def notify(self, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
 		if not recipients:
 			recipients = self.get_recipients(except_recipient=except_recipient)
