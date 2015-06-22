@@ -101,7 +101,7 @@ class Comment(Document):
 		"""Updates `_comments` property in parent Document with given dict.
 
 		:param _comments: Dict of comments."""
-		if frappe.db.get_value("DocType", self.comment_doctype, "issingle"):
+		if not self.comment_doctype or frappe.db.get_value("DocType", self.comment_doctype, "issingle"):
 			return
 
 		# use sql, so that we do not mess with the timestamp
