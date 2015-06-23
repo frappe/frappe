@@ -67,7 +67,7 @@ frappe.ui.TagEditor = Class.extend({
 					method:"frappe.desk.tags.get_tags",
 					args:{
 						doctype: me.frm.doctype,
-						txt: request.term
+						txt: request.term.toLowerCase()
 					},
 					callback: function(r) {
 						response(r.message);

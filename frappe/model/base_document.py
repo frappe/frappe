@@ -524,7 +524,7 @@ class BaseDocument(object):
 
 	def cast(self, val, df):
 		if df.fieldtype in ("Currency", "Float", "Percent"):
-			val = flt(val, self.precision(df.fieldname))
+			val = flt(val)
 
 		elif df.fieldtype in ("Int", "Check"):
 			val = cint(val)

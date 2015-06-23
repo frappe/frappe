@@ -400,6 +400,9 @@ _f.Frm.prototype.refresh = function(docname) {
 
 _f.Frm.prototype.render_form = function() {
 	if(!this.meta.istable) {
+		this.layout.doc = this.doc;
+		this.layout.attach_doc_and_docfields()
+
 		this.sidebar = new frappe.ui.form.Sidebar({
 			frm: this,
 			page: this.page

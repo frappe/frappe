@@ -44,14 +44,14 @@ class Communication(Document):
 				frappe.db.set_value(parent.doctype, parent.name, "status", to_status)
 
 	def send(self, print_html=None, print_format=None, attachments=None,
-		send_me_a_copy=False):
+		send_me_a_copy=False, recipients=None):
 		"""Send communication via Email.
 
 		:param print_html: Send given value as HTML attachment.
 		:param print_format: Attach print format of parent document."""
 
 		self.send_me_a_copy = send_me_a_copy
-		self.notify(print_html, print_format, attachments)
+		self.notify(print_html, print_format, attachments, recipients)
 
 	def set_incoming_outgoing_accounts(self):
 		self.incoming_email_account = self.outgoing_email_account = None
@@ -71,9 +71,10 @@ class Communication(Document):
 			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1},
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
-	def notify(self, print_html=None, print_format=None, attachments=None, except_recipient=False):
+	def notify(self, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
-		recipients = self.get_recipients(except_recipient=except_recipient)
+		if not recipients:
+			recipients = self.get_recipients(except_recipient=except_recipient)
 
 		frappe.sendmail(
 			recipients=recipients,
@@ -246,11 +247,17 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
-
+	
+	recipients = None
 	if send_email:
-		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
+		comm.send_me_a_copy = send_me_a_copy
+		recipients = comm.get_recipients()
+		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy, recipients=recipients)
 
-	return comm.name
+	return {
+		"name": comm.name,
+		"recipients": ", ".join(recipients) if recipients else None
+	}
 
 @frappe.whitelist()
 def get_convert_to():
