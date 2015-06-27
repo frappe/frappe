@@ -118,6 +118,10 @@ frappe.views.CommunicationComposer = Class.extend({
 					this.subject = "Re: " + this.subject;
 				}
 			}
+
+			if (!this.subject) {
+				this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
+			}
 		}
 	},
 
