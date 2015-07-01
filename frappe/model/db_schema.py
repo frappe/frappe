@@ -234,7 +234,14 @@ class DbTable:
 			query.append('alter column `{}` set default {}'.format(col.fieldname, col_default))
 
 		if query:
-			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			try:
+				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			except Exception, e:
+				# sanitize
+				if e.args[0]==1060:
+					frappe.throw(str(e))
+				else:
+					raise e
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default,
@@ -469,4 +476,3 @@ def add_column(doctype, column_name, fieldtype, precision=None):
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
-
