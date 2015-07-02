@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import pdfkit, os, frappe
 from frappe.utils import scrub_urls
+from frappe import _
 
 def get_pdf(html, options=None):
 	if not options:
@@ -27,7 +28,13 @@ def get_pdf(html, options=None):
 
 	html = scrub_urls(html)
 	fname = os.path.join("/tmp", frappe.generate_hash() + ".pdf")
-	pdfkit.from_string(html, fname, options=options or {})
+	try:
+		pdfkit.from_string(html, fname, options=options or {})
+	except IOError, e:
+		if "ContentNotFoundError" in e.message:
+			frappe.throw(_("PDF generation failed because of broken image links"))
+		else:
+			raise
 
 	with open(fname, "rb") as fileobj:
 		filedata = fileobj.read()

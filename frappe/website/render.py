@@ -18,6 +18,7 @@ class PageNotFoundError(Exception): pass
 def render(path, http_status_code=None):
 	"""render html page"""
 	path = resolve_path(path.strip("/ "))
+	frappe.local.lang = frappe.db.get_default("lang")
 
 	try:
 		data = render_page(path)
@@ -216,4 +217,3 @@ def clear_cache(path=None):
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
-
