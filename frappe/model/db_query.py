@@ -297,7 +297,7 @@ class DatabaseQuery(object):
 
 				# share is an OR condition, if there is a role permission
 				if not only_if_shared and self.shared:
-					self.match_conditions.append(" or {0}".format(self.get_share_condition()))
+					self.match_conditions.append(self.get_share_condition())
 
 		if as_condition:
 			conditions = ""
