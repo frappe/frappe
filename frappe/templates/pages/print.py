@@ -277,7 +277,10 @@ def get_visible_columns(data, table_meta, df):
 		# columns specified by column builder
 		for col_df in df.get("visible_columns"):
 			# load default docfield properties
-			newdf = table_meta.get_field(col_df.get("fieldname")).as_dict().copy()
+			docfield = table_meta.get_field(col_df.get("fieldname"))
+			if not docfield:
+				continue
+			newdf = docfield.as_dict().copy()
 			newdf.update(col_df)
 			if add_column(newdf):
 				columns.append(newdf)

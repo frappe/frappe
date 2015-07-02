@@ -315,6 +315,7 @@ def validate_fields(meta):
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
+		d.fieldname = d.fieldname.lower()
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
