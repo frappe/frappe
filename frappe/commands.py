@@ -613,6 +613,7 @@ def console(context):
 	site = get_single_site(context)
 	frappe.init(site=site)
 	frappe.connect()
+	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
 	IPython.embed()
 
