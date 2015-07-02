@@ -331,7 +331,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					if(form_values.send_email)
+					if(form_values.send_email && r.message["recipients"])
 						msgprint(__("Email sent to {0}", [r.message["recipients"]]));
 					me.dialog.hide();
 
