@@ -226,8 +226,8 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
-				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
-				value: __("Open {0}", [__(match)]),
+				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
+				value: __("Report {0}", [__(match)]),
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
