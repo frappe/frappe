@@ -149,6 +149,9 @@ class User:
 			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
 				where allow_import = 1""")
 
+		self.all_reports = frappe.db.sql("""select name, report_type from tabReport
+			where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)))
+
 	def get_defaults(self):
 		import frappe.defaults
 		self.defaults = frappe.defaults.get_defaults(self.name)
@@ -206,6 +209,7 @@ class User:
 
 			d[key] = list(set(getattr(self, key)))
 
+		d.all_reports = dict(self.all_reports)
 		return d
 
 def get_user_fullname(user):
