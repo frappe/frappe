@@ -547,9 +547,13 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_datepicker: function() {
-		this.datepicker_options.timeFormat = "HH:mm:ss";
-		this.datepicker_options.dateFormat =
-			(frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
+		var now = new Date();
+		$.extend(this.datepicker_options, {
+			"timeFormat": "HH:mm:ss",
+			"dateFormat": (frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy'),
+			"hour": now.getHours(),
+			"minute": now.getMinutes()
+		});
 
 		this.$input.datetimepicker(this.datepicker_options);
 	},
