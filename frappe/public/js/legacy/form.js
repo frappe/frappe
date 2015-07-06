@@ -618,8 +618,10 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				// done is called after all ajaxes in validate & before_save are completed :)
 
 				if(!validated) {
-					if(on_error)
+					btn && $(btn).prop("disabled", false);
+					if(on_error) {
 						on_error();
+					}
 					return;
 				}
 
