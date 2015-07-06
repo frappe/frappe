@@ -215,14 +215,6 @@ class EmailAccount(Document):
 						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 					}, fields="name")
 
-			else:
-				# try and match by sender only
-				# as there is no subject field, it implies that threading isn't by subject, but by sender only
-
-				parent = frappe.db.get_all(self.append_to, filters={
-					sender_field: email.from_email,
-				}, fields="name")
-
 			if parent:
 				parent = frappe.get_doc(self.append_to, parent[0].name)
 
