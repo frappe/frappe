@@ -102,11 +102,15 @@ frappe.views.ListView = Class.extend({
 	set_columns: function() {
 		var me = this;
 		this.columns = [];
-		this.columns.push({
+		var name_column = {
 			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
 			type: "Subject",
-			title: "Title"
-		});
+			title: "Name"
+		};
+		if (this.meta.title_field) {
+			name_column.title = frappe.meta.get_docfield(this.doctype, this.meta.title_field).label;
+		}
+		this.columns.push(name_column);
 		this.total_colspans = this.columns[0].colspan;
 
 		if(frappe.model.is_submittable(this.doctype)
