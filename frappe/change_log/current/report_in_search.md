@@ -1,0 +1,1 @@
+- Report can now be selected from search bar (Awesome bar)

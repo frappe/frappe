@@ -382,26 +382,28 @@ frappe.ui.Filter = Class.extend({
 frappe.ui.FieldSelect = Class.extend({
 	// opts parent, doctype, filter_fields, with_blank, select
 	init: function(opts) {
+		var me = this;
 		$.extend(this, opts);
 		this.fields_by_name = {};
 		this.options = [];
-		this.$select = $('<input class="form-control">').appendTo(this.parent);
-		var me = this;
-		this.$select.autocomplete({
-			source: me.options,
-			minLength: 0,
-			focus: function(event, ui) {
-				ui.item && me.$select.val(ui.item.label);
-				return false;
-			},
-			select: function(event, ui) {
-				me.selected_doctype = ui.item.doctype;
-				me.selected_fieldname = ui.item.fieldname;
-				me.$select.val(ui.item.label);
-				if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
-				return false;
-			}
-		});
+		this.$select = $('<input class="form-control">')
+			.appendTo(this.parent)
+			.on("click", function () { $(this).select(); })
+			.autocomplete({
+				source: me.options,
+				minLength: 0,
+				focus: function(event, ui) {
+					ui.item && me.$select.val(ui.item.label);
+					return false;
+				},
+				select: function(event, ui) {
+					me.selected_doctype = ui.item.doctype;
+					me.selected_fieldname = ui.item.fieldname;
+					me.$select.val(ui.item.label);
+					if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
+					return false;
+				}
+			});
 
 		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
 			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
