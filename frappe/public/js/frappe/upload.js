@@ -137,6 +137,7 @@ frappe.upload = {
 			var a = parts[1];
 		}
 
-		return atob(a);
+		return decodeURIComponent(escape(atob(a)));
+
 	}
 }
