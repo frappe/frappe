@@ -22,7 +22,7 @@
    "permlevel": 0
   }, 
   {
-   "description": "Link to the page you want to open", 
+   "description": "Link to the page you want to open. Leave blank if you want to make it a group parent.", 
    "fieldname": "url", 
    "fieldtype": "Data", 
    "in_list_view": 1, 
@@ -51,7 +51,7 @@
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2015-02-19 13:07:34.558311", 
+ "modified": "2015-07-07 07:06:26.632888", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Top Bar Item", 

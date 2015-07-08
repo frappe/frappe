@@ -65,7 +65,17 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			frappe.set_route("Form", me.doctype, doc.name);
 		});
 
-		var me = this;
+		// add links to other calendars
+		$.each(frappe.boot.calendars, function(i, doctype) {
+			if(frappe.model.can_read(doctype)) {
+				me.page.add_menu_item(__(doctype), function() {
+					frappe.set_route("Calendar", doctype);
+				});
+			}
+		});
+
+		this.page.page_actions.find(".menu-btn-group-label").text(__("Type"));
+
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		})
