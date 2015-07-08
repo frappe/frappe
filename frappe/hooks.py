@@ -59,6 +59,8 @@ website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
+calendars = ["Event"]
+
 # login
 
 on_session_creation = [
