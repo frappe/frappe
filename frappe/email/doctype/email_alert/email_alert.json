@@ -129,7 +129,7 @@
    "fieldname": "message_examples", 
    "fieldtype": "HTML", 
    "label": "Message Examples", 
-   "options": "<h5>Message Example (Markdown)</h5>\n<pre>Transaction {{ doc.name }} has exceeded Due Date. Please take relevant action\n\n#### Details\n\nCustomer: {{ doc.customer }}\nAmount: {{ doc.total_amount }}</pre>", 
+   "options": "<h5>Message Example</h5>\n\n<pre>\n<h3>Order Overdue</h3>\n\n<p>Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.</p>\n\n<h4>Details</h4>\n\n<ul>\n<li>Customer: {{ doc.customer }}\n<li>Amount: {{ doc.total_amount }}\n</ul>\n</pre>", 
    "permlevel": 0
   }, 
   {
@@ -141,7 +141,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2015-03-25 06:20:07.472953", 
+ "modified": "2015-07-09 00:27:00.169741", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Alert", 
