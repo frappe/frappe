@@ -283,7 +283,7 @@ DocType: User,Last Login,Letzte Anmeldung
 apps/frappe/frappe/core/doctype/doctype/doctype.py +312,Fieldname is required in row {0},Feldname wird in der Zeile erforderlich {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Spalte
 DocType: Custom Field,Adds a custom field to a DocType,Fügt einem Dokumententyp ein benutzerdefiniertes Feld hinzu
-sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),Bold (Strg / Cmd + B)
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),Fett (Strg / Cmd + B)
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,Upload und Sync
 sites/assets/js/form.min.js +274,Shared with {0},Mit Gemeinschaftsbad {0}
 DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,Einzelne Arten haben nur ein Datensatz keine Tabellen verbunden. Die Werte werden in tabSingles gespeichert
@@ -702,7 +702,7 @@ For e.g. 1 USD = 100 Cent","1 Währungs = [?] Fraktion
  Für zB 1 USD = 100 Cent"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363,Add New Permission Rule,Zusätzliche Berechtigungsregel hinzufügen
 sites/assets/js/desk.min.js +512,You can use wildcard %,"Sie können den Platzhalter ""%"" verwenden"
-apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,Beschädigen
+apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,März
 sites/assets/js/desk.min.js +768,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","Nur image Erweiterungen (.gif, .jpg, .jpeg, .tiff, .png, .svg) erlaubt"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,Bitte Duplizieren dieser Website Thema zu gestalten.
 DocType: DocField,Text Editor,Texteditor
@@ -911,9 +911,9 @@ sites/assets/js/desk.min.js +522,Added {0} ({1}),{0} ({1}) hinzugefügt
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253,Fieldtype cannot be changed from {0} to {1} in row {2},Feldtyp kann nicht von {0} geändert werden {1} in Zeile {2}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +304,Search Fields should contain valid fieldnames,"Suche Felder müssen gültige Feldnamen enthalten,"
 apps/frappe/frappe/core/doctype/user/user.js +323,Role Permissions,Rollenberechtigungen
-sites/assets/js/form.min.js +282,Can Read,Lesen können
+sites/assets/js/form.min.js +282,Can Read,Kann Lesen
 DocType: Standard Reply,Response,Antwort
-sites/assets/js/form.min.js +282,Can Share,Können Teile
+sites/assets/js/form.min.js +282,Can Share,Kann Teilen
 apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,Ungültige Empfängeradresse
 DocType: Workflow State,step-forward,Schritt nach vorn
 apps/frappe/frappe/core/doctype/user/user.js +45,Refreshing...,Aktualisiere...

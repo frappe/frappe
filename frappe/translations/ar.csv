@@ -19,7 +19,7 @@ DocType: Workflow,Document States,الولايات ثيقة
 sites/assets/js/desk.min.js +807,Sorry! I could not find what you were looking for.,آسف! أنا لا يمكن أن تجد ما تبحث عنه.
 DocType: DocPerm,This role update User Permissions for a user,هذا الدور ضوابط التحديث العضو لمستخدم
 sites/assets/js/desk.min.js +555,Rename {0},إعادة تسمية {0}
-DocType: Workflow State,zoom-out,تكبير المغادرة
+DocType: Workflow State,zoom-out,تصغير
 apps/frappe/frappe/model/document.py +664,Table {0} cannot be empty,الجدول {0} لا يمكن أن تكون فارغة
 DocType: Social Login Keys,GitHub,جيثب
 apps/frappe/frappe/model/document.py +638,Beginning with,بدءا
@@ -220,7 +220,7 @@ apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplica
 DocType: Print Settings,Font Size,حجم الخط
 sites/assets/js/desk.min.js +852,Unread Messages,رسائل غير مقروءة
 DocType: Workflow State,facetime-video,فيس تايم عن طريق الفيديو
-apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,واحد تعليق
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,تعليق واحد
 DocType: Email Alert,Days Before,أيام قبل
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,تحديد صورة بانر الأول.
 DocType: Workflow State,volume-down,حجم إلى أسفل
