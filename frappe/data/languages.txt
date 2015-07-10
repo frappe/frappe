@@ -2,7 +2,7 @@ ar	العربية
 bg	bǎlgarski
 bs	bosanski
 ca	català
-cz	česky
+cs	česky
 da	dansk
 de	deutsch
 el	ελληνικά
