@@ -1468,12 +1468,3 @@ DocType: System Settings,mm-dd-yyyy,月-日-年
 apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,{0}已登录
 apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,您的登录ID是
 DocType: DocField,Ignore User Permissions,忽略用户权限
-apps/frappe/frappe/templates/pages/login.html +29,Email address,登入电子邮件
-apps/frappe/frappe/templates/pages/login.html +40,Password,密码
-apps/frappe/frappe/templates/pages/login.html +36,Sign in,登入
-apps/frappe/frappe/templates/pages/login.html +40,Not a user yet? Sign up,不是用户吗？注册吧
-apps/frappe/frappe/templates/pages/login.html +44,Forgot Password?,忘记密码了？
-apps/frappe/frappe/templates/pages/login.html +54,Sign up,注册
-apps/frappe/frappe/templates/pages/login.html +56,Have an account? Login,已经有账号了？登入吧
-apps/frappe/frappe/templates/pages/login.html +67,Send Password,发密码到邮箱
-apps/frappe/frappe/templates/pages/login.html +69,Back to Login,返回登入
