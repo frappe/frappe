@@ -1024,6 +1024,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.cache = {};
 		this.$input.autocomplete({
 			minLength: 0,
+			autoFocus: true,
 			source: function(request, response) {
 				var doctype = me.get_options();
 				if(!doctype) return;

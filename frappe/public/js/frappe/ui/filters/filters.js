@@ -272,7 +272,8 @@ frappe.ui.Filter = Class.extend({
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link', 'Read Only'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
+			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
@@ -306,13 +307,20 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		if(this.get_condition()==='like') {
-			// add % only if not there at the end
-			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
-				val = (val || "") + '%';
+			// automatically append wildcards
+			if(val) {
+				if(val.slice(0,1) !== "%") {
+					val = "%" + val;
+				}
+				if(val.slice(-1) !== "%") {
+					val = val + "%";
+				}
 			}
 		} else if(in_list(["in", "not in"], this.get_condition())) {
 			val = $.map(val.split(","), function(v) { return strip(v); });
-		} if(val === '%') val = "";
+		} if(val === '%') {
+			val = "";
+		}
 
 		return val;
 	},
@@ -368,6 +376,8 @@ frappe.ui.Filter = Class.extend({
 			value = this.field.get_value();
 		}
 
+		console.log(value);
+
 		this.$btn_group.find(".toggle-filter")
 			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
@@ -392,6 +402,7 @@ frappe.ui.FieldSelect = Class.extend({
 			.autocomplete({
 				source: me.options,
 				minLength: 0,
+				autoFocus: true,
 				focus: function(event, ui) {
 					ui.item && me.$select.val(ui.item.label);
 					return false;
