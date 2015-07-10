@@ -376,8 +376,6 @@ frappe.ui.Filter = Class.extend({
 			value = this.field.get_value();
 		}
 
-		console.log(value);
-
 		this.$btn_group.find(".toggle-filter")
 			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
