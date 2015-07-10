@@ -80,3 +80,4 @@ frappe.patches.v5_0.fix_text_editor_file_urls
 execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
+execute:frappe.permissions.reset_perms("DocType")
