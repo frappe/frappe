@@ -102,7 +102,7 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
 		for property in self.doctype_properties:
-			if property != "idx" and self.get(property) != meta.get(property):
+			if self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=self.doctype_properties[property])
 
@@ -117,7 +117,7 @@ class CustomizeForm(Document):
 				continue
 
 			for property in self.docfield_properties:
-				if df.get(property) != meta_df[0].get(property):
+				if property != "idx" and df.get(property) != meta_df[0].get(property):
 					if property == "fieldtype":
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
@@ -260,4 +260,3 @@ class CustomizeForm(Document):
 			and ifnull(field_name, '')!='naming_series'""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
-

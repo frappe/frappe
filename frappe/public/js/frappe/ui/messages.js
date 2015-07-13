@@ -48,7 +48,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	var d = new frappe.ui.Dialog({
 		fields: fields,
 		title: title || __("Enter Value"),
-	})
+	});
 	d.set_primary_action(primary_label || __("Submit"), function() {
 		var values = d.get_values();
 		if(!values) {
@@ -56,7 +56,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 		}
 		d.hide();
 		callback(values);
-	})
+	});
 	d.show();
 	return d;
 }

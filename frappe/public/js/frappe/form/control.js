@@ -964,6 +964,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var me = this;
 		this.setup_buttons();
 		this.setup_autocomplete();
+		if(this.df.change) {
+			this.$input.on("change", function() {
+				me.df.change.apply(this);
+			});
+		}
 	},
 	get_options: function() {
 		return this.df.options;
@@ -1024,6 +1029,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.cache = {};
 		this.$input.autocomplete({
 			minLength: 0,
+			autoFocus: true,
 			source: function(request, response) {
 				var doctype = me.get_options();
 				if(!doctype) return;

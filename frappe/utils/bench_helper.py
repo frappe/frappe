@@ -15,7 +15,7 @@ def main():
 
 def get_app_groups():
 	ret = {}
-	for app in ["frappe"]: #get_apps():
+	for app in get_apps():
 		app_group = get_app_group(app)
 		if app_group:
 			ret[app] = app_group
@@ -31,7 +31,7 @@ def get_app_group(app):
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', is_flag=True, default=False, help='Force')
 @click.pass_context
-def app_group(ctx, site, force, verbose, profile):
+def app_group(ctx, site=False, force=False, verbose=False, profile=False):
 	ctx.obj = {
 		'sites': get_sites(site),
 		'force': force,

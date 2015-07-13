@@ -324,7 +324,7 @@ apps/frappe/frappe/website/doctype/web_page/web_page.py +30,Cannot edit template
 apps/frappe/frappe/model/document.py +637,none of,هیچکدام از
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,آپلود مجوز کاربر
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,آیتم های چک خواهد شد بر روی دسکتاپ نشان داده شده است
-apps/frappe/frappe/core/doctype/doctype/doctype.py +409,{0} cannot be set for Single types,{0} می تواند برای انواع تنها نمی تواند تنظیم شود
+apps/frappe/frappe/core/doctype/doctype/doctype.py +409,{0} cannot be set for Single types,{0} نمی تواند برای انوع تکی یا مجردی تنظیم شود
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} بروز شد
 apps/frappe/frappe/core/doctype/doctype/doctype.py +399,Report cannot be set for Single types,گزارش می تواند برای انواع تنها نمی تواند تنظیم شود
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,فوریه
@@ -386,7 +386,7 @@ DocType: DocField,Section Break,شکستن بخش
 DocType: Communication,Sender Full Name,نام و نام خانوادگی فرستنده
 ,Messages,پیام
 apps/frappe/frappe/desk/query_report.py +75,Must specify a Query to run,باید یک پرس و جو مشخص برای اجرای
-apps/frappe/frappe/config/setup.py +66,"Language, Date and Time settings",زبان، تاریخ و زمان تنظیمات
+apps/frappe/frappe/config/setup.py +66,"Language, Date and Time settings",تنظیمات زبان، تاریخ و زمان 
 DocType: User,Represents a User in the system.,نشان دهنده یک کاربر در سیستم.
 apps/frappe/frappe/desk/form/assign_to.py +114,"The task {0}, that you assigned to {1}, has been closed.",وظیفه {0}، که شما را به {1}، بسته شده است اختصاص داده است.
 DocType: User,Modules Access,ماژول دسترسی
@@ -482,7 +482,7 @@ apps/frappe/frappe/templates/includes/list/filters.html +19,clear,واضح
 apps/frappe/frappe/desk/doctype/event/event.py +24,Every day events should finish on the same day.,هر روز باید وقایع در همان روز به پایان برسد.
 DocType: Communication,User Tags,کاربر برچسب ها
 DocType: Workflow State,download-alt,دانلود-ALT
-DocType: Web Page,Main Section,بخش های اصلی
+DocType: Web Page,Main Section,بخش اصلی
 apps/frappe/frappe/core/doctype/doctype/doctype.py +226,{0} not allowed in fieldname {1},{0} در fieldname مجاز نیست {1}
 DocType: Page,Icon,شمایل
 DocType: Web Page,Content in markdown format that appears on the main side of your page,محتوا در قالب markdown که در سمت اصلی صفحه شما ظاهر می شود
@@ -840,7 +840,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +159,
 DocType: Patch Log,List of patches executed,فهرست تکه اعدام
 DocType: Communication,Communication Medium,ارتباطات متوسط
 DocType: Website Settings,Banner HTML,بنر HTML
-apps/frappe/frappe/model/base_document.py +398,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} نمی تواند &quot;{2}&quot;. آن را باید یکی از است &quot;{3}&quot;
+apps/frappe/frappe/model/base_document.py +398,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} نمی تواند  ""{2}"" باشد. ولی میتواند یکی از  ""{3}"" باشد"
 apps/frappe/frappe/core/doctype/user/user.py +156,Password Update,به روز رسانی رمز عبور
 DocType: Workflow State,trash,نخاله
 apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,دسامبر
@@ -1094,7 +1094,7 @@ DocType: DocField,Attach,ضمیمه کردن
 DocType: DocType,Permission Rules,مشاهده قوانین اجازه
 sites/assets/js/form.min.js +157,Links,لینک
 apps/frappe/frappe/model/base_document.py +322,Value missing for,ارزش از دست رفته برای
-apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: ضبط فرستاده نمی توان حذف کرد.
+apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: رکورد ثبت شده نمی تواند حذف شود.
 DocType: DocPerm,Read,خواندن
 apps/frappe/frappe/templates/pages/update-password.html +18,Old Password,رمز عبور
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},پست های {0}
@@ -1149,7 +1149,7 @@ sites/assets/js/editor.min.js +128,Horizontal Line Break,خط افقی
 DocType: Top Bar Item,Right,راست
 DocType: User,User Type,نوع کاربر
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,انتخاب کاربر
-DocType: Communication,Keep a track of all communications,حفظ مسیر از تمام ارتباطات
+DocType: Communication,Keep a track of all communications,حفظ سابقه از تمام ارتباطات
 apps/frappe/frappe/desk/form/save.py +30,Did not save,نجات نداد
 DocType: Property Setter,Property,خاصیت
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",توجه: برای بهترین نتایج، تصاویر باید از همان اندازه است و عرض باید بیشتر از ارتفاع باشد.
@@ -1169,7 +1169,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +549,
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +478,Select Table Columns for {0},انتخاب ستون های جدول برای {0}
 DocType: Custom Field,Options Help,گزینه های راهنما
 DocType: DocField,Report Hide,گزارش مخفی
-DocType: Custom Field,Label Help,برچسب راهنما
+DocType: Custom Field,Label Help,راهنما برچسب 
 DocType: Workflow State,star-empty,ستاره خالی
 DocType: Workflow State,ok,خوب
 DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,این مقادیر به طور خودکار در معاملات روز رسانی و نیز برای محدود کردن دسترسی این کاربر در معاملات حاوی این مقادیر مفید باشد.
@@ -1266,7 +1266,7 @@ sites/assets/js/desk.min.js +808,Sorry! You are not permitted to view this page.
 DocType: Workflow State,bell,ناقوس
 sites/assets/js/form.min.js +282,Share this document with,به اشتراک گذاشتن این سند با
 apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,ژوئن
-apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} می تواند یک گره برگ نه به عنوان کودکان آن است
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} نمی تواند یک پیام بگذارد چون ایشان بچه دارند
 DocType: Feed,Info,اطلاعات
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,تشکر از شما برای پیام خود را
 DocType: Website Settings,Home Page,صفحه اصلی وب سایت

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.model import rename_field
+from frappe.model.utils import rename_field
 
 def execute():
 	tables = frappe.db.sql_list("show tables")

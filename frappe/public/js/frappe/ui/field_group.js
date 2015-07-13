@@ -32,9 +32,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				if(this.has_primary_action) {
+				if(me.has_primary_action) {
 					e.preventDefault();
-					this.get_primary_btn().trigger("click");
+					me.get_primary_btn().trigger("click");
 				}
 			}
 		});
