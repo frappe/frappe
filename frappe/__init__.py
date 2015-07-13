@@ -538,9 +538,9 @@ def delete_doc_if_exists(doctype, name):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name)
 
-def reload_doctype(doctype):
+def reload_doctype(doctype, force=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype))
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), force=force)
 
 def reload_doc(module, dt=None, dn=None, force=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.
