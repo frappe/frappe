@@ -1,0 +1,1 @@
+- Print and full-page print preview in user's language
