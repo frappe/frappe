@@ -192,6 +192,7 @@ class Session:
 		if data:
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
+			self.user = data.user
 		else:
 			self.start_as_guest()
 
