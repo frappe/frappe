@@ -83,6 +83,7 @@ class LoginManager:
 			self.login()
 		else:
 			self.make_session(resume=True)
+			self.set_user_info()
 
 	def login(self):
 		# clear cache
@@ -91,11 +92,6 @@ class LoginManager:
 		self.post_login()
 
 	def post_login(self):
-		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
-		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
-		self.user_type = self.info.user_type
-
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
@@ -105,6 +101,11 @@ class LoginManager:
 	def set_user_info(self):
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
+
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
+		self.user_type = self.info.user_type
 
 		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
