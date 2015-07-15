@@ -92,7 +92,8 @@ frappe.upload = {
 						var attachment = r.message;
 						opts.callback(attachment, r);
 						$(document).trigger("upload_complete", attachment);
-					}
+					},
+					btn: opts.btn
 				});
 			}
 		}
