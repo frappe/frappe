@@ -24,6 +24,11 @@
 	.page-break:last-child {
 		border-bottom: 0px;
 	}
+
+	/* mozilla hack for images in table */
+	body:last-child .print-format td img {
+		width: 100% !important;
+	}
 }
 
 @media print {
