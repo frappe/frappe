@@ -173,3 +173,9 @@ def can_subscribe_doc(doctype, docname, sid):
 	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
 		raise PermissionError()
 	return True
+
+def new_comment(doc, event):
+	emit_via_redis('new_comment', doc.as_dict(), room=get_doc_room(doc.comment_doctype, doc.comment_docname))
+
+def get_doc_room(doctype, docname):
+	return ''.join(['doc:', doctype, '/', docname])

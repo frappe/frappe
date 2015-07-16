@@ -43,6 +43,12 @@ frappe.socket = {
     frappe.socket.socket.on('task_progress', function(data) {
       frappe.socket.process_response(data, "progress");
     });
+    frappe.socket.socket.on('new_comment', function(comment) {
+		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
+			cur_frm.get_docinfo().comments = cur_frm.comments.get_comments().concat([comment]);
+			cur_frm.comments.refresh();
+		}
+    });
 
   },
   setup_reconnect: function() {
