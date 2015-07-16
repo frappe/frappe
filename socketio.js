@@ -37,10 +37,15 @@ io.on('connection', function(socket){
 			})
 			.end(function(err, res) {
 				if(res.status == 200) {
-					socket.join('doc:'+ doctype + '/' + docname);
+					var room = get_doc_room(doctype, docname);
+					socket.join(room);
 				}
 			})
-	})
+	});
+	socket.on('doc_unsubscribe', function(doctype, docname) {
+		var room = get_doc_room(doctype, docname);
+		socket.leave(room);
+	});
 });
 
 function send_existing_lines(task_id, socket) {
@@ -65,3 +70,7 @@ subscriber.subscribe("events");
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
+
+function get_doc_room(doctype, docname) {
+	return 'doc:'+ doctype + '/' + docname;
+}

@@ -391,8 +391,13 @@ _f.Frm.prototype.refresh = function(docname) {
 		// load the record for the first time, if not loaded (call 'onload')
 		cur_frm.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) {
+			var me = this;
 			cur_frm.cscript.is_onload = true;
 			this.setnewdoc();
+			$(document).trigger("form-load", [this]);
+			$(this.page.wrapper).on('hide',  function(e) {
+				$(document).trigger("form-unload", [me]);
+			})
 		} else {
 			this.render_form(is_a_different_doc);
 		}
@@ -815,3 +820,4 @@ _f.Frm.prototype.validate_form_action = function(action) {
 _f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
 	return this.script_manager.get_handlers(fieldname, doctype || this.doctype, docname || this.docname)
 }
+
