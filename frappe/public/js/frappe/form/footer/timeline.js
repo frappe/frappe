@@ -227,8 +227,6 @@ frappe.ui.form.Comments = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					me.frm.get_docinfo().comments =
-						me.get_comments().concat([r.message]);
 					me.input.val("");
 					me.refresh(true);
 				}
