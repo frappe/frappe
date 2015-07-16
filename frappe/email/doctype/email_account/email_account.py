@@ -7,6 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip
 from frappe.utils.user import is_system_user
+from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
@@ -252,14 +253,14 @@ class EmailAccount(Document):
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
-		if self.auto_reply_message:
+		if self.enable_auto_reply:
 			communication.set_incoming_outgoing_accounts()
 
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
 				reply_to = communication.incoming_email_account,
 				subject = _("Re: ") + communication.subject,
-				content = self.auto_reply_message or \
+				content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
