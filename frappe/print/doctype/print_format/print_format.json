@@ -19,12 +19,10 @@
    "search_index": 0
   }, 
   {
-   "depends_on": "eval:!doc.custom_format", 
-   "fieldname": "edit_format", 
-   "fieldtype": "Button", 
-   "label": "Edit Format", 
-   "permlevel": 0, 
-   "precision": ""
+   "fieldname": "disabled", 
+   "fieldtype": "Check", 
+   "label": "Disabled", 
+   "permlevel": 0
   }, 
   {
    "fieldname": "column_break_3", 
@@ -52,22 +50,17 @@
    "search_index": 1
   }, 
   {
-   "fieldname": "disabled", 
-   "fieldtype": "Check", 
-   "label": "Disabled", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "section_break_6", 
-   "fieldtype": "Section Break", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "custom_format", 
    "fieldtype": "Check", 
    "label": "Custom Format", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "depends_on": "custom_format", 
+   "fieldname": "section_break_6", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0
   }, 
   {
    "default": "Server", 
@@ -98,6 +91,44 @@
    "report_hide": 0, 
    "reqd": 0, 
    "search_index": 0
+  }, 
+  {
+   "depends_on": "eval:!doc.custom_format", 
+   "fieldname": "section_break_9", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "eval:!doc.custom_format", 
+   "fieldname": "edit_format", 
+   "fieldtype": "Button", 
+   "label": "Edit Format", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_11", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "Default", 
+   "depends_on": "eval:!doc.custom_format", 
+   "fieldname": "font", 
+   "fieldtype": "Select", 
+   "label": "Font", 
+   "options": "Default\nArial\nHelvetica\nVerdana\nMonospace", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "custom_format", 
+   "fieldname": "section_break_13", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "depends_on": "custom_format", 
@@ -134,7 +165,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2015-02-05 05:11:42.667447", 
+ "modified": "2015-07-15 08:01:06.284031", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Print Format", 

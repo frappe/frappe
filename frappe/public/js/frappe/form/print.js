@@ -30,6 +30,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			.on("change", function() {
 				if(me.is_old_style()) {
 					me.wrapper.find(".btn-download-pdf").toggle(false);
+					me.set_style();
 					me.preview_old_style();
 				} else {
 					me.wrapper.find(".btn-download-pdf").toggle(true);
@@ -91,8 +92,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	preview: function() {
 		var me = this;
-		this.get_print_html(function(html) {
-			me.wrapper.find(".print-format").html(html);
+		this.get_print_html(function(out) {
+			me.wrapper.find(".print-format").html(out.html);
+			me.set_style(out.style);
 		});
 	},
 	printit: function() {
@@ -100,21 +102,19 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	new_page_preview: function(printit) {
 		var me = this;
-		this.get_print_html(function(html) {
-			var w = window.open("/print?"
-				+"doctype="+encodeURIComponent(me.frm.doc.doctype)
-				+"&name="+encodeURIComponent(me.frm.doc.name)
-				+(printit ? "&trigger_print=1" : "")
-				+"&format="+me.selected_format()
-				+"&no_letterhead="+(me.with_letterhead() ? "0" : "1"));
-			if(!w) {
-				msgprint(__("Please enable pop-ups")); return;
-			}
-		});
+		var w = window.open("/print?"
+			+"doctype="+encodeURIComponent(me.frm.doc.doctype)
+			+"&name="+encodeURIComponent(me.frm.doc.name)
+			+(printit ? "&trigger_print=1" : "")
+			+"&format="+me.selected_format()
+			+"&no_letterhead="+(me.with_letterhead() ? "0" : "1"));
+		if(!w) {
+			msgprint(__("Please enable pop-ups")); return;
+		}
 	},
 	get_print_html: function(callback) {
 		frappe.call({
-			method: "frappe.templates.pages.print.get_html",
+			method: "frappe.templates.pages.print.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
@@ -181,5 +181,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	with_letterhead: function() {
 		return this.print_letterhead.is(":checked") ? 1 : 0;
+	},
+	set_style: function(style) {
+		frappe.dom.set_style(style || frappe.boot.print_css, "print-style");
 	}
 })

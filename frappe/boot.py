@@ -162,4 +162,4 @@ def load_print(bootinfo, doclist):
 	load_print_css(bootinfo, print_settings)
 
 def load_print_css(bootinfo, print_settings):
-	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern")
+	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)

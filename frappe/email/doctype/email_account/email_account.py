@@ -231,7 +231,15 @@ class EmailAccount(Document):
 
 			parent.flags.ignore_mandatory = True
 
-			parent.insert(ignore_permissions=True)
+			try:
+				parent.insert(ignore_permissions=True)
+			except frappe.DuplicateEntryError:
+				# try and find matching parent
+				parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
+				if parent_name:
+					parent.name = parent_name
+				else:
+					parent = None
 
 			communication.is_first = True
 

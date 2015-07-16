@@ -66,6 +66,21 @@ class Page(Document):
 			d[key] = self.get(key)
 		return d
 
+	def is_permitted(self):
+		"""Returns true if Page Role is not set or the user is allowed."""
+		from frappe.utils import has_common
+
+		allowed = [d.role for d in frappe.get_all("Page Role", fields=["role"],
+			filters={"parent": self.name})]
+		
+		if not allowed:
+			return True
+
+		roles = frappe.get_roles()
+
+		if has_common(roles, allowed):
+			return True
+
 	def load_assets(self):
 		from frappe.modules import get_module_path, scrub
 		import os
