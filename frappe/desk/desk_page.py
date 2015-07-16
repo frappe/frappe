@@ -12,7 +12,6 @@ def get(name):
 	"""
 	page = frappe.get_doc('Page', name)
 	if page.is_permitted():
-		print "here"
 		page.load_assets()
 		return page
 	else:

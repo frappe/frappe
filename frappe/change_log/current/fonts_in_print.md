@@ -1,0 +1,1 @@
+- Change print font from Setup > Print Settings or set it for each Print Format. Font options are "Default", "Arial", "Helvetica", "Verdana", "Monospace".

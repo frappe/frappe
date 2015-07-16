@@ -24,10 +24,20 @@ frappe.dom = {
 		// execute the script globally
 		document.getElementsByTagName('head')[0].appendChild(el);
 	},
-	set_style: function(txt) {
+	set_style: function(txt, id) {
 		if(!txt) return;
+
 		var se = document.createElement('style');
 		se.type = "text/css";
+
+		if (id) {
+			var element = document.getElementById(id);
+			if (element) {
+				element.parentNode.removeChild(element);
+			}
+			se.id = id;
+		}
+
 		if (se.styleSheet) {
 			se.styleSheet.cssText = txt;
 		} else {
