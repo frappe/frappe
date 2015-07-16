@@ -426,8 +426,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				},
 				appendTo: this.dialog.$wrapper,
 				focus: function() {
-					// prevent value inserted on focus
-					return false;
+					event.preventDefault();
 				},
 				select: function( event, ui ) {
 					var terms = split( this.value );
@@ -443,4 +442,3 @@ frappe.views.CommunicationComposer = Class.extend({
 			});
 	}
 });
-
