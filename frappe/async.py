@@ -9,7 +9,7 @@ import frappe
 import os
 import time
 from functools import wraps
-from frappe.utils import get_site_path
+from frappe.utils import get_site_path, get_url
 import json
 from frappe import conf
 
@@ -174,8 +174,27 @@ def can_subscribe_doc(doctype, docname, sid):
 		raise PermissionError()
 	return True
 
+@frappe.whitelist(allow_guest=True)
+def get_user_info(sid):
+	from frappe.sessions import Session
+	session = Session(None).get_session_data()
+	return {
+		'user': session.user,
+	}
+
 def new_comment(doc, event):
-	emit_via_redis('new_comment', doc.as_dict(), room=get_doc_room(doc.comment_doctype, doc.comment_docname))
+	if doc.comment_doctype == 'Message':
+		if doc.comment_docname == frappe.session.user:
+			message = doc.as_dict()
+			message['broadcast'] = True
+			emit_via_redis('new_message', message, room=get_url())
+		else:
+			emit_via_redis('new_message', doc.as_dict(), room=get_user_room(doc.comment_docname))
+	else:
+		emit_via_redis('new_comment', doc.as_dict(), room=get_doc_room(doc.comment_doctype, doc.comment_docname))
 
 def get_doc_room(doctype, docname):
 	return ''.join(['doc:', doctype, '/', docname])
+
+def get_user_room(user):
+	return ''.join(['user:', user])

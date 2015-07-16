@@ -49,6 +49,22 @@ frappe.socket = {
 			cur_frm.comments.refresh();
 		}
     });
+    frappe.socket.socket.on('new_message', function(comment) {
+		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
+		if ($(cur_page.page).data('page-route') === 'messages') {
+			console.log('messages page open');
+			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
+			var on_broadcast_page = current_contact === user;
+			if (current_contact == comment.owner || (on_broadcast_page && comment.broadcast)) {
+				var $row = $('<div class="list-row"/>');
+				frappe.desk.pages.messages.list.data.unshift(comment);
+				frappe.desk.pages.messages.list.render_row($row, comment);
+				frappe.desk.pages.messages.list.parent.prepend($row);
+			}
+		}
+		else {
+		}
+    });
 
   },
   setup_reconnect: function() {

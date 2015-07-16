@@ -14,6 +14,22 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
+	socket.join(socket.request.headers.origin);
+	var sid = cookie.parse(socket.request.headers.cookie).sid
+	if(!sid) {
+		return;
+	}
+	request.post('http://localhost:8000/api/method/frappe.async.get_user_info')
+		.type('form')
+		.send({
+			sid: sid
+		})
+		.end(function(err, res) {
+			if(res.status == 200) {
+				var room = get_user_room(res.body.message.user);
+				socket.join(room);
+			}
+		})
 	socket.on('task_subscribe', function(task_id) {
 		var room = 'task:' + task_id;
 		socket.join(room);
@@ -24,10 +40,6 @@ io.on('connection', function(socket){
 		send_existing_lines(task_id, socket);
 	})
 	socket.on('doc_subscribe', function(doctype, docname) {
-		var sid = cookie.parse(socket.request.headers.cookie).sid
-		if(!sid) {
-			return;
-		}
 		request.post('http://localhost:8000/api/method/frappe.async.can_subscribe_doc')
 			.type('form')
 			.send({
@@ -63,6 +75,7 @@ function send_existing_lines(task_id, socket) {
 subscriber.on("message", function(channel, message) {
 	message = JSON.parse(message);
 	io.to(message.room).emit(message.event, message.message);
+	console.log(message.room, message.event, message.message)
 });
 
 subscriber.subscribe("events");
@@ -73,4 +86,8 @@ http.listen(3000, function(){
 
 function get_doc_room(doctype, docname) {
 	return 'doc:'+ doctype + '/' + docname;
+}
+
+function get_user_room(user) {
+	return 'user:' + user;
 }
