@@ -39,8 +39,8 @@
 }
 
 .print-format {
-	font-size: 9pt;
-	font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
+	font-size: {{ print_settings.font_size|flt or 9 }}pt;
+	font-family: {{ font }};
 	-webkit-print-color-adjust:exact;
 }
 
@@ -84,8 +84,4 @@ table.no-border, table.no-border td {
 
 .print-format p {
 	margin: 3px 0px 3px;
-}
-
-.print-format {
-	font-size: {{ print_settings.font_size|flt or 9 }}pt;
 }
