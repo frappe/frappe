@@ -78,14 +78,16 @@ def validate_email_add(email_str, throw=False):
 	if not match:
 		return False
 
+	matched = match.group(0)
+
 	if match:
-		match = match.group(0)==email.lower()
+		match = matched==email.lower()
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid email id").format(email),
 			frappe.InvalidEmailAddressError)
 
-	return email.lower()
+	return matched
 
 def random_string(length):
 	"""generate a random string"""
