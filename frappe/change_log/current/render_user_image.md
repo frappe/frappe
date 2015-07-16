@@ -1,1 +1,0 @@
-- Fixed inconsistent visibility of a logged-in user's image in website
