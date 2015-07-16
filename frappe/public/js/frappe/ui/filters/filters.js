@@ -402,8 +402,7 @@ frappe.ui.FieldSelect = Class.extend({
 				minLength: 0,
 				autoFocus: true,
 				focus: function(event, ui) {
-					ui.item && me.$select.val(ui.item.label);
-					return false;
+					event.preventDefault();
 				},
 				select: function(event, ui) {
 					me.selected_doctype = ui.item.doctype;
