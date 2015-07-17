@@ -183,10 +183,11 @@ class EmailAccount(Document):
 				sender_field = None
 
 		if in_reply_to:
-			if "@" in in_reply_to:
+			if "@{0}".format(frappe.local.site) in in_reply_to:
 
 				# reply to a communication sent from the system
-				in_reply_to = in_reply_to.split("@", 1)[0]
+				in_reply_to, domain = in_reply_to.split("@", 1)
+
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)
 
@@ -242,6 +243,7 @@ class EmailAccount(Document):
 				else:
 					parent = None
 
+			# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
 			communication.is_first = True
 
 		if parent:
