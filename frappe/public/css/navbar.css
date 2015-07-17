@@ -77,7 +77,7 @@
   position: relative;
   top: 3px;
   content: "\f105";
-  margin-right: 15px;
+  margin-right: 10px;
   color: #c0c9d2;
 }
 #navbar-breadcrumbs > li > a:hover:before,
@@ -90,5 +90,8 @@
 }
 .toolbar-user-fullname {
   max-width: 200px;
+  display: inline-block;
+}
+.navbar-brand > img {
   display: inline-block;
 }
