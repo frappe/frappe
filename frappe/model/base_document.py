@@ -261,7 +261,7 @@ class BaseDocument(object):
 					return
 				type, value, traceback = sys.exc_info()
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-				raise frappe.NameError, (self.doctype, self.name, e), traceback
+				raise frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback
 			else:
 				raise
 
