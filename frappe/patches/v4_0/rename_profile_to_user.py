@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.model.utils import rename_field
+from frappe.model.utils.rename_field import rename_field
 from frappe.model.meta import get_table_columns
 
 def execute():
