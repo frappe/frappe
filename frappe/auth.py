@@ -82,8 +82,13 @@ class LoginManager:
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
 			self.login()
 		else:
-			self.make_session(resume=True)
-			self.set_user_info(resume=True)
+			try:
+				self.make_session(resume=True)
+				self.set_user_info(resume=True)
+			except AttributeError:
+				self.user = "Guest"
+				self.make_session()
+				self.set_user_info()
 
 	def login(self):
 		# clear cache
@@ -104,7 +109,8 @@ class LoginManager:
 
 		self.info = frappe.db.get_value("User", self.user,
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
-		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
+		self.full_name = " ".join(filter(None, [self.info.first_name,
+			self.info.last_name]))
 		self.user_type = self.info.user_type
 
 		if self.info.user_type=="Website User":

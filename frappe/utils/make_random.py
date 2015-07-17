@@ -1,12 +1,16 @@
 import frappe, random
 
-from erpnext_demo import settings
+settings = frappe._dict(
+	prob = {
+		"default": { "make": 0.6, "qty": (1,5) },
+	}
+)
 
 def add_random_children(doc, fieldname, rows, randomize, unique=None):
 	nrows = rows
 	if rows > 1:
 		nrows = random.randrange(1, rows)
-	
+
 	for i in xrange(nrows):
 		d = {}
 		for key, val in randomize.items():
