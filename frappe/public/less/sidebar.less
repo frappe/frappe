@@ -120,7 +120,7 @@ body[data-route^="Module"] .main-menu {
 			cursor: pointer;
 		}
 
-		.octicon-plus {
+		.octicon {
 			position: relative;
 			top: 2px;
 			left: 7px;
@@ -128,6 +128,16 @@ body[data-route^="Module"] .main-menu {
 
 		.avatar {
 			margin-top: 5px;
+		}
+
+		.shared-with-everyone {
+			border-style: solid;
+			border-color: @btn-bg;
+			background-color: @btn-bg;
+
+			.octicon {
+				color: @text-color !important;
+			}
 		}
 	}
 }

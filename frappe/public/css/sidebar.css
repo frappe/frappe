@@ -140,13 +140,21 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .form-sidebar .form-shared .share-doc-btn {
   cursor: pointer;
 }
-.form-sidebar .form-shared .octicon-plus {
+.form-sidebar .form-shared .octicon {
   position: relative;
   top: 2px;
   left: 7px;
 }
 .form-sidebar .form-shared .avatar {
   margin-top: 5px;
+}
+.form-sidebar .form-shared .shared-with-everyone {
+  border-style: solid;
+  border-color: #f0f4f7;
+  background-color: #f0f4f7;
+}
+.form-sidebar .form-shared .shared-with-everyone .octicon {
+  color: #36414c !important;
 }
 .form-sidebar .form-shared .share-doc-btn:hover,
 .form-sidebar .form-shared .share-doc-btn:focus,
