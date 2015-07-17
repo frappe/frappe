@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import json
+from frappe.model import no_value_fields
 
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
