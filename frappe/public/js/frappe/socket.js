@@ -85,13 +85,13 @@ frappe.socket = {
     }
     if(data) {
       var opts = frappe.socket.open_tasks[data.task_id];
-      if(opts[method]) opts[method](data.message);
+      if(opts[method]) opts[method](data);
     }
     if(opts.always) {
-      opts.always(data.message);
+      opts.always(data);
     }
     if(data.status_code && status_code > 400 && opts.error) {
-      opts.error(data.message);
+      opts.error(data);
       return;
     }
 

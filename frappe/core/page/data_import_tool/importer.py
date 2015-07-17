@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.permissions
+import frappe.async
 
 from frappe import _
 
@@ -14,7 +15,7 @@ from frappe.utils.dateutils import parse_date
 from frappe.utils import cint, cstr, flt
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
-@frappe.whitelist()
+@frappe.async.handler
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
 	ignore_links=False, pre_process=None):
 	"""upload data"""
