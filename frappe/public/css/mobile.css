@@ -315,7 +315,7 @@ body {
   }
   #navbar-breadcrumbs > li > a:before {
     content: "\f104";
-    margin-right: 5px;
+    margin-right: 10px;
     color: #6c7680;
   }
   #navbar-breadcrumbs li:not(:nth-last-child(-n+1)) {
@@ -448,7 +448,7 @@ body {
     position: relative;
     top: 3px;
     content: "\f104";
-    margin-right: 5px;
+    margin-right: 10px;
     color: #6c7680;
   }
   body.no-breadcrumbs .navbar .navbar-home:hover:before,
