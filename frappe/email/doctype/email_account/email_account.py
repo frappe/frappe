@@ -234,16 +234,13 @@ class EmailAccount(Document):
 
 			try:
 				parent.insert(ignore_permissions=True)
-			except frappe.NameError, e:
-				if e.args and e.args[0]==self.append_to:
-					# try and find matching parent
-					parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
-					if parent_name:
-						parent.name = parent_name
-					else:
-						parent = None
+			except frappe.DuplicateEntryError:
+				# try and find matching parent
+				parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
+				if parent_name:
+					parent.name = parent_name
 				else:
-					raise
+					parent = None
 
 			communication.is_first = True
 
