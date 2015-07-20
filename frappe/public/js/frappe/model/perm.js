@@ -65,9 +65,9 @@ $.extend(frappe.perm, {
 				for(var i=0; i<docinfo.shared; i++) {
 					var s = docinfo.shared[i];
 					if(s.user===user) {
-						perm[0]["read"] = s.read;
-						perm[0]["write"] = s.write;
-						perm[0]["share"] = s.share;
+						perm[0]["read"] = perm[0]["read"] || s.read;
+						perm[0]["write"] = perm[0]["write"] || s.write;
+						perm[0]["share"] = perm[0]["share"] || s.share;
 
 						if(s.read) {
 							// also give print, email permissions if read
