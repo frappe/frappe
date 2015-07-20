@@ -78,3 +78,15 @@ class TestDocShare(unittest.TestCase):
 		frappe.set_user(self.user)
 		self.assertFalse(self.event.has_permission("share"))
 
+	def test_share_with_everyone(self):
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))
+
+		frappe.share.set_permission("Event", self.event.name, None, "read", everyone=1)
+		self.assertTrue(self.event.name in frappe.share.get_shared("Event", self.user))
+		self.assertTrue(self.event.name in frappe.share.get_shared("Event", "test1@example.com"))
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", "Guest"))
+
+		frappe.share.set_permission("Event", self.event.name, None, "read", value=0, everyone=1)
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", "test1@example.com"))
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", "Guest"))

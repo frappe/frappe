@@ -89,7 +89,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name,
-			fields=["user", "read", "write", "share"])
+			fields=["user", "read", "write", "share", "everyone"])
 	}
 
 def get_user_permissions(meta):

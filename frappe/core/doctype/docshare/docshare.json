@@ -26,7 +26,7 @@
    "print_hide": 0, 
    "read_only": 0, 
    "report_hide": 0, 
-   "reqd": 1, 
+   "reqd": 0, 
    "search_index": 1, 
    "set_only_once": 0
   }, 
@@ -129,6 +129,13 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "everyone", 
+   "fieldtype": "Check", 
+   "label": "Everyone", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -138,7 +145,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-12 11:30:52.968078", 
+ "modified": "2015-07-17 07:02:10.632582", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocShare", 

@@ -388,6 +388,7 @@
   {
    "allow_on_submit": 0, 
    "depends_on": "enable_auto_reply", 
+   "description": "ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference", 
    "fieldname": "auto_reply_message", 
    "fieldtype": "Text Editor", 
    "hidden": 0, 
@@ -428,7 +429,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-06-11 00:16:24.026081", 
+ "modified": "2015-07-16 10:11:06.466258", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

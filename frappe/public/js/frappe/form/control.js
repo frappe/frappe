@@ -1091,6 +1091,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			focus: function( event, ui ) {
+				event.preventDefault();
 				if(ui.item.action) {
 					return false;
 				}

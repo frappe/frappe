@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip
+from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip, comma_or
 from frappe.utils.user import is_system_user
+from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
@@ -53,6 +54,11 @@ class EmailAccount(Document):
 		if self.notify_if_unreplied:
 			for e in self.get_unreplied_notification_emails():
 				validate_email_add(e, True)
+
+		if self.enable_incoming and self.append_to:
+			valid_doctypes = [d[0] for d in get_append_to()]
+			if self.append_to not in valid_doctypes:
+				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
@@ -182,10 +188,11 @@ class EmailAccount(Document):
 				sender_field = None
 
 		if in_reply_to:
-			if "@" in in_reply_to:
+			if "@{0}".format(frappe.local.site) in in_reply_to:
 
 				# reply to a communication sent from the system
-				in_reply_to = in_reply_to.split("@", 1)[0]
+				in_reply_to, domain = in_reply_to.split("@", 1)
+
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)
 
@@ -241,6 +248,7 @@ class EmailAccount(Document):
 				else:
 					parent = None
 
+			# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
 			communication.is_first = True
 
 		if parent:
@@ -249,14 +257,14 @@ class EmailAccount(Document):
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
-		if self.auto_reply_message:
+		if self.enable_auto_reply:
 			communication.set_incoming_outgoing_accounts()
 
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
 				reply_to = communication.incoming_email_account,
 				subject = _("Re: ") + communication.subject,
-				content = self.auto_reply_message or \
+				content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
@@ -275,7 +283,7 @@ class EmailAccount(Document):
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
 
 @frappe.whitelist()
-def get_append_to(doctype, txt, searchfield, start, page_len, filters):
+def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
