@@ -305,12 +305,9 @@ class DatabaseQuery(object):
 				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
 
 			# share is an OR condition, if there is a role permission
-			if not only_if_shared and self.shared:
-				if conditions:
-					conditions =  "({conditions}) or ({shared_condition})".format(
-						conditions=conditions, shared_condition=self.get_share_condition())
-				else:
-					conditions = "{shared_condition}".format(shared_condition=self.get_share_condition())
+			if not only_if_shared and self.shared and conditions:
+				conditions =  "({conditions}) or ({shared_condition})".format(
+					conditions=conditions, shared_condition=self.get_share_condition())
 
 			return conditions
 
