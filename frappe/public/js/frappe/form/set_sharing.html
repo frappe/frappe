@@ -1,29 +1,35 @@
 <div class="padding">
 
-    {% if(!shared.length) { %}
-        <p class="text-muted">{%= __("Not shared with anyone yet.") %}</p>
-    {% } else { %}
-        <div class="row">
-            <div class="col-xs-6"><h6>{%= __("User") %}</h6></div>
-            <div class="col-xs-2"><h6>{%= __("Can Read") %}</h6></div>
-            <div class="col-xs-2"><h6>{%= __("Can Write") %}</h6></div>
-            <div class="col-xs-2"><h6>{%= __("Can Share") %}</h6></div>
-        </div>
+    <div class="row">
+        <div class="col-xs-6"><h6>{%= __("User") %}</h6></div>
+        <div class="col-xs-2"><h6>{%= __("Can Read") %}</h6></div>
+        <div class="col-xs-2"><h6>{%= __("Can Write") %}</h6></div>
+        <div class="col-xs-2"><h6>{%= __("Can Share") %}</h6></div>
+    </div>
 
-        {% for (var i=0, l=shared.length; i < l; i++) {
-            var s = shared[i]; %}
-        {% if(s) { %}
-        <div class="row shared-user" data-user="{%= s.user %}" data-name="{%= s.name %}">
-            <div class="col-xs-6">{%= s.user %}</div>
-            <div class="col-xs-2"><input type="checkbox" name="read"
-                {% if(cint(s.read)) { %}checked{% } %} class="edit-share"></div>
-            <div class="col-xs-2"><input type="checkbox" name="write"
-                {% if(cint(s.write)) { %}checked{% } %} class="edit-share"></div>
-            <div class="col-xs-2"><input type="checkbox" name="share"
-                {% if(cint(s.share)) { %}checked{% } %} class="edit-share"></div>
-        </div>
-        {% } %}
-        {% } %}
+	<div class="row shared-user" data-everyone=1>
+        <div class="col-xs-6 share-all" style="height: 30px;"><b>{{ __("Everyone") }}</b></div>
+        <div class="col-xs-2"><input type="checkbox" name="read"
+            {% if(cint(everyone.read)) { %}checked{% } %} class="edit-share"></div>
+        <div class="col-xs-2"><input type="checkbox" name="write"
+            {% if(cint(everyone.write)) { %}checked{% } %} class="edit-share"></div>
+        <div class="col-xs-2"><input type="checkbox" name="share"
+            {% if(cint(everyone.share)) { %}checked{% } %} class="edit-share"></div>
+	</div>
+
+    {% for (var i=0, l=shared.length; i < l; i++) {
+        var s = shared[i]; %}
+	    {% if(s && !s.everyone) { %}
+	    <div class="row shared-user" data-user="{%= s.user %}" data-name="{%= s.name %}">
+	        <div class="col-xs-6">{%= s.user %}</div>
+	        <div class="col-xs-2"><input type="checkbox" name="read"
+	            {% if(cint(s.read)) { %}checked{% } %} class="edit-share"></div>
+	        <div class="col-xs-2"><input type="checkbox" name="write"
+	            {% if(cint(s.write)) { %}checked{% } %} class="edit-share"></div>
+	        <div class="col-xs-2"><input type="checkbox" name="share"
+	            {% if(cint(s.share)) { %}checked{% } %} class="edit-share"></div>
+	    </div>
+	    {% } %}
     {% } %}
 
     {% if(frappe.model.can_share(null, frm)) { %}
