@@ -1,0 +1,11 @@
+<!-- title: Module {{ name }} -->
+
+{% from "templates/autodoc/macros.html" import github_link, version %}
+<p>
+{{ version(app.name) }}
+{{ github_link(app, app.name + "/" + scrub(name), True) }}
+</p>
+
+<h3>DocTypes for {{ name }}</h3>
+
+{index}

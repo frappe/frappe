@@ -4,7 +4,6 @@
 from __future__ import unicode_literals, absolute_import
 import sys
 import os
-import subprocess
 import json
 import click
 import hashlib
@@ -140,7 +139,7 @@ def reinstall(context):
 		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
-	except Exception, e:
+	except Exception:
 		installed = []
 	finally:
 		if frappe.db:
@@ -190,8 +189,6 @@ def migrate(context, rebuild_website=False):
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
 	from frappe.desk.notifications import clear_notifications
-
-	verbose = context.verbose
 
 	for site in context.sites:
 		print 'Migrating', site
@@ -312,15 +309,16 @@ def destroy_all_sessions(context):
 			frappe.destroy()
 
 @click.command('sync-www')
+@click.option('--force', help='Rebuild all pages', is_flag=True, default=False)
 @pass_context
-def sync_www(context):
+def sync_www(context, force=False):
 	"Sync files from static pages from www directory to Web Pages"
 	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			statics.sync_statics(rebuild=context.force)
+			statics.sync_statics(rebuild=force)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -341,32 +339,17 @@ def build_website(context):
 			frappe.destroy()
 
 @click.command('setup-docs')
-@click.argument('app')
-@click.argument('docs-app')
-@click.argument('path')
 @pass_context
-def setup_docs(context,app, docs_app, path):
+def setup_docs(context):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
+	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			setup_docs(app, docs_app, path)
-		finally:
-			frappe.destroy()
-
-@click.command('build-docs')
-@click.argument('app')
-@pass_context
-def build_docs(context, app):
-	"Build docs from /src to /www folder in app"
-	from frappe.utils.autodoc import build
-	frappe.destroy()
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			build(app)
+			setup_docs()
+			statics.sync_statics(rebuild=True)
 		finally:
 			frappe.destroy()
 
@@ -826,7 +809,6 @@ commands = [
 	sync_www,
 	build_website,
 	setup_docs,
-	build_docs,
 	reset_perms,
 	execute,
 	celery,

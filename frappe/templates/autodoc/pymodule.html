@@ -1,0 +1,12 @@
+<!-- title: {{ name }} -->
+
+{%- from "templates/autodoc/macros.html" import automodule, github_link,
+	version, discuss_link -%}
+<p>
+{{ version(app.name) }}
+{{ github_link(app, name.replace(".", "/") + ".py") }}
+</p>
+
+{{ automodule(name) }}
+
+{{ discuss_link() }}

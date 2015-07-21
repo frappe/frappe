@@ -6,20 +6,50 @@ Call from command line:
 
 """
 
-import os, json, frappe
+import os, json, frappe, markdown2, shutil
 
 class setup_docs(object):
-	def __init__(self, app, docs_app, path):
-		"""Generate source templates for models reference and module API.
-
-		Must set globals `self.models_base_path`, `self.api_base_path` and `self.app_path`.
+	def __init__(self):
+		"""Generate source templates for models reference and module API
+			and templates at `templates/autodoc`
 		"""
-		self.app = app
-		self.app_path = frappe.get_app_path(app)
-		if path[0]=="/": path = path[1:]
-		path = frappe.get_app_path(docs_app, path)
+		self.app = frappe.get_hooks("autodoc").get("for_app")[0]
+		docs_app = frappe.get_hooks("autodoc").get("docs_app")[0]
+
+		hooks = frappe.get_hooks(app_name = self.app)
+		self.app_title = hooks.get("app_title")[0]
+
+		self.app_path = frappe.get_app_path(self.app)
+		path = frappe.get_app_path(docs_app, "www", "current")
+
+		print "Deleting current..."
+		shutil.rmtree(path, ignore_errors = True)
+		os.makedirs(path)
+
+		self.app_context =  {
+			"app": {
+				"name": self.app,
+				"title": self.app_title,
+				"description": markdown2.markdown(hooks.get("app_description")[0]),
+				"version": hooks.get("app_version")[0],
+				"publisher": hooks.get("app_publisher")[0],
+				"github_link": hooks.get("github_link")[0],
+			}
+		}
+
+		# make home page
+		with open(os.path.join(path, "index.html"), "w") as home:
+			home.write(frappe.render_template("templates/autodoc/docs_home.html",
+			self.app_context))
+
+		# make folders
 		self.models_base_path = os.path.join(path, "models")
+		self.make_folder(self.models_base_path,
+			template = "templates/autodoc/models_home.html")
+
 		self.api_base_path = os.path.join(path, "api")
+		self.make_folder(self.api_base_path,
+			template = "templates/autodoc/api_home.html")
 
 		for basepath, folders, files in os.walk(self.app_path):
 			if "doctype" not in basepath:
@@ -28,7 +58,9 @@ class setup_docs(object):
 
 					module_folder = os.path.join(self.models_base_path, module)
 
-					self.make_folder(module_folder)
+					self.make_folder(module_folder,
+						template = "templates/autodoc/module_home.html",
+						context = {"name": module})
 					self.update_index_txt(module_folder)
 
 			if "doctype" in basepath:
@@ -70,35 +102,37 @@ class setup_docs(object):
 				if not os.path.exists(module_doc_path):
 					print "Writing " + module_doc_path
 					with open(module_doc_path, "w") as f:
-						f.write("""<h1>%(name)s</h1>
-
-	<!-- title: %(name)s -->
-	{%%- from "templates/autodoc/macros.html" import automodule -%%}
-
-	{{ automodule("%(name)s") }}""" % {"name": self.app + "." + module_name})
+						context = {"name": self.app + "." + module_name}
+						context.update(self.app_context)
+						f.write(frappe.render_template("templates/autodoc/pymodule.html",
+							context))
 
 		self.update_index_txt(module_folder)
 
-	def make_folder(self, path):
+	def make_folder(self, path, template=None, context=None):
+		if not template:
+			template = "templates/autodoc/package_index.html"
+
 		if not os.path.exists(path):
 			os.makedirs(path)
 
-		index_txt_path = os.path.join(path, "index.txt")
-		if not os.path.exists(index_txt_path):
+			index_txt_path = os.path.join(path, "index.txt")
 			print "Writing " + index_txt_path
 			with open(index_txt_path, "w") as f:
 				f.write("")
 
-		index_md_path = os.path.join(path, "index.html")
-		if not os.path.exists(index_md_path):
-			name = os.path.basename(path)
-			if name==".":
-				name = self.app
-			print "Writing " + index_md_path
-			with open(index_md_path, "w") as f:
-				f.write("""<h1>{0}</h1>
-<!-- title: {0} -->
-{{index}}""".format(name))
+			index_html_path = os.path.join(path, "index.html")
+			if not context:
+				name = os.path.basename(path)
+				if name==".":
+					name = self.app
+				context = {
+					"title": name
+				}
+			context.update(self.app_context)
+			print "Writing " + index_html_path
+			with open(index_html_path, "w") as f:
+				f.write(frappe.render_template(template, context))
 
 	def update_index_txt(self, path):
 		index_txt_path = os.path.join(path, "index.txt")
@@ -126,12 +160,7 @@ class setup_docs(object):
 				print "Writing " + model_path
 
 				with open(model_path, "w") as f:
-					f.write("""<h1>%(doctype)s</h1>
-
-	<!-- title: %(doctype)s -->
-	{%% from "templates/autodoc/doctype.html" import render_doctype %%}
-
-	{{ render_doctype("%(doctype)s") }}
-
-	<!-- jinja --><!-- static -->
-	""" % {"doctype": doctype_real_name})
+					context = {"doctype": doctype_real_name}
+					context.update(self.app_context)
+					f.write(frappe.render_template("templates/autodoc/doctype.html",
+						context).encode("utf-8"))

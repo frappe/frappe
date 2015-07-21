@@ -1,0 +1,55 @@
+<!-- title: {{ app.title }} Documentation -->
+<!-- no-breadcrumbs -->
+
+{% from "templates/autodoc/macros.html" import github_link, version, discuss_link %}
+<p>
+{{ version(app.name) }}
+{{ github_link(app, app.name, True) }}
+</p>
+
+<table class="table table-bordered" style="max-width: 500px;">
+	<tr>
+		<td style="width: 40%">
+			App Name
+		</td>
+		<td>
+			<code>{{ app.name }}</code>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Publisher
+		</td>
+		<td>
+			<code>{{ app.publisher }}</code>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Version
+		</td>
+		<td>
+			<code>{{ app.version }}</code>
+		</td>
+	</tr>
+</table>
+
+<hr>
+
+{{ app.description }}
+
+<hr>
+
+<h3>Contents</h3>
+<ul>
+	<li>
+		<a href="{{ '{{ pathname }}' }}/models">Models (DocTypes)</a>
+	</li>
+	<li>
+		<a href="{{ '{{ pathname }}' }}/api">Server-side API</a>
+	</li>
+</ul>
+
+{{ discuss_link() }}
+
+<!-- jinja --><!-- static -->
