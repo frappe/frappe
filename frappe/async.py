@@ -118,10 +118,20 @@ def emit_via_redis(event, message, room=None):
 	r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
 
 
-def put_log(task_id, line_no, line):
+def put_log(line_no, line, task_id=None):
 	r = get_redis_server()
-	print "task_log:" + task_id
-	r.hset("task_log:" + task_id, line_no, line)
+	if not task_id:
+		task_id = frappe.local.task_id
+	task_progress_room = "task_progress:" + frappe.local.task_id
+	task_log_key = "task_log:" + task_id
+	emit_via_redis('task_progress', {
+		"message": {
+			"lines": {line_no: line}
+		},
+		"task_id": task_id
+	}, room=task_progress_room)
+	r.hset(task_log_key, line_no, line)
+	r.expire(task_log_key, 3600)
 
 
 def get_redis_server():
@@ -129,7 +139,7 @@ def get_redis_server():
 	global redis_server
 	if not redis_server:
 		from redis import Redis
-		redis_server = Redis.from_url(conf.get("cache_redis_server") or "redis://localhost:12311")
+		redis_server = Redis.from_url(conf.get("async_redis_server") or "redis://localhost:12311")
 	return redis_server
 
 
