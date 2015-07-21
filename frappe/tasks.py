@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils.scheduler import enqueue_events
-from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX
+from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX, ASYNC_TASKS_PREFIX
 from frappe.utils import get_sites
 from frappe.utils.file_lock import create_lock, delete_lock
 from frappe.handler import execute_cmd
@@ -16,7 +16,7 @@ import sys
 def sync_queues():
 	"""notifies workers to monitor newly added sites"""
 	app = get_celery()
-	shortjob_workers, longjob_workers = get_workers(app)
+	shortjob_workers, longjob_workers, async_tasks_workers = get_workers(app)
 
 	if shortjob_workers:
 		for worker in shortjob_workers:
@@ -26,18 +26,25 @@ def sync_queues():
 		for worker in longjob_workers:
 			sync_worker(app, worker, prefix=LONGJOBS_PREFIX)
 
+	if async_tasks_workers:
+		for worker in async_tasks_workers:
+			sync_worker(app, worker, prefix=ASYNC_TASKS_PREFIX)
+
 def get_workers(app):
 	longjob_workers = []
 	shortjob_workers = []
+	async_tasks_workers = []
 
 	active_queues = app.control.inspect().active_queues()
 	for worker in active_queues:
 		if worker.startswith(LONGJOBS_PREFIX):
 			longjob_workers.append(worker)
+		elif worker.startswith(ASYNC_TASKS_PREFIX):
+			async_tasks_workers.append(worker)
 		else:
 			shortjob_workers.append(worker)
 
-	return shortjob_workers, longjob_workers
+	return shortjob_workers, longjob_workers, async_tasks_workers
 
 def sync_worker(app, worker, prefix=''):
 	active_queues = set(get_active_queues(app, worker))
