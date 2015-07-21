@@ -208,7 +208,7 @@ class Database:
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
 
-		if query[:6].lower() in ['update', 'insert']:
+		if query[:6].lower() in ('update', 'insert', 'delete'):
 			self.transaction_writes += 1
 			if self.transaction_writes > 200000:
 				if self.auto_commit_on_many_writes:

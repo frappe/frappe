@@ -2,18 +2,15 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import sys, os
-import json
-import logging
+import os
 import MySQLdb
 
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.wsgi import SharedDataMiddleware
 
-import mimetypes
 import frappe
 import frappe.handler
 import frappe.auth
@@ -97,8 +94,9 @@ def application(request):
 
 	else:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
-			frappe.db.commit()
-			rollback = False
+			if frappe.db.transaction_writes:
+				frappe.db.commit()
+				rollback = False
 
 		# update session
 		if getattr(frappe.local, "session_obj", None):

@@ -2,7 +2,7 @@
 
 Call from command line:
 
-	bench frappe --setup_docs app docs_app path
+	bench setup-docs app docs_app path
 
 """
 
