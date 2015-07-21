@@ -66,6 +66,7 @@ frappe.patches.v5_0.clear_website_group_and_notifications
 execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
 frappe.patches.v5_0.fix_feed
 frappe.patches.v5_0.update_shared
+execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
 frappe.patches.v5_0.bookmarks_to_stars
 frappe.patches.v5_0.style_settings_to_website_theme
 frappe.patches.v5_0.rename_ref_type_fieldnames
