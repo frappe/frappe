@@ -7,19 +7,19 @@ import frappe, os, json
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
 
-def import_files(module, dt=None, dn=None, force=False):
+def import_files(module, dt=None, dn=None, force=False, pre_process=None):
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(import_file(m[0], m[1], m[2], force=force))
+			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process))
 		return out
 	else:
-		return import_file(module, dt, dn, force=force)
+		return import_file(module, dt, dn, force=force, pre_process=pre_process)
 
-def import_file(module, dt, dn, force=False):
+def import_file(module, dt, dn, force=False, pre_process=None):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	path = get_file_path(module, dt, dn)
-	ret = import_file_by_path(path, force)
+	ret = import_file_by_path(path, force, pre_process=pre_process)
 	return ret
 
 def get_file_path(module, dt, dn):
@@ -30,7 +30,7 @@ def get_file_path(module, dt, dn):
 
 	return path
 
-def import_file_by_path(path, force=False, data_import=False):
+def import_file_by_path(path, force=False, data_import=False, pre_process=None):
 	frappe.flags.in_import = True
 	try:
 		docs = read_doc_from_file(path)
@@ -51,7 +51,7 @@ def import_file_by_path(path, force=False, data_import=False):
 
 			original_modified = doc.get("modified")
 
-			import_doc(doc, force=force, data_import=data_import)
+			import_doc(doc, force=force, data_import=data_import, pre_process=pre_process)
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
@@ -87,10 +87,12 @@ ignore_values = {
 
 ignore_doctypes = ["Page Role", "DocPerm"]
 
-def import_doc(docdict, force=False, data_import=False):
+def import_doc(docdict, force=False, data_import=False, pre_process=None):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
+	if pre_process:
+		pre_process(doc)
 
 	ignore = []
 
