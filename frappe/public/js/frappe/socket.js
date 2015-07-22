@@ -1,7 +1,8 @@
 frappe.socket = {
   open_tasks: {},
-  init: function() {
-    frappe.socket.socket = io.connect('http://' + document.domain + ':' + 3000);
+	init: function() {
+	var socketio_server = frappe.boot.dev_server? '//' + document.domain + ':3000' : '//' + document.domain + ':' + window.location.port;
+    frappe.socket.socket = io.connect(socketio_server);
     frappe.socket.socket.on('msgprint', function(message) {
       frappe.msgprint(message)
     });
