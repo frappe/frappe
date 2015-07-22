@@ -32,9 +32,10 @@ def get_allowed_functions_for_jenv():
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
-	from frappe.utils.autodoc import automodule, get_doclink, get_version
+	from frappe.utils.autodoc import automodule, get_version
 	from frappe.model.document import get_controller
 	from frappe.website.utils import get_shade
+	from frappe.modules import scrub
 
 	datautils = {}
 	for key, obj in frappe.utils.data.__dict__.items():
@@ -76,14 +77,14 @@ def get_allowed_functions_for_jenv():
 		},
 		"autodoc": {
 			"get_version": get_version,
-			"get_doclink": get_doclink,
 			"automodule": automodule,
 			"get_controller": get_controller
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
 		"_": frappe._,
-		"get_shade": get_shade
+		"get_shade": get_shade,
+		"scrub": scrub
 	}
 
 def get_jloader():
