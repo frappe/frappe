@@ -35,8 +35,7 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/css/frappe-web.css",
-	"website_theme.css"
+	"assets/css/frappe-web.css"
 ]
 website_route_rules = [
 	{"from_route": "/blog", "to_route": "Blog Post"},
