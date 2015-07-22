@@ -23,6 +23,9 @@ def handler(f):
 
 	def _run(args, set_in_response=True):
 		from frappe.tasks import run_async_task
+		from frappe.handler import execute_cmd
+		if frappe.conf.no_async:
+			return execute_cmd(cmd, async=True)
 		args = frappe._dict(args)
 		task = run_async_task.delay(frappe.local.site,
 			(frappe.session and frappe.session.user) or 'Administrator', cmd, args)
@@ -33,6 +36,9 @@ def handler(f):
 	@wraps(f)
 	def _f(*args, **kwargs):
 		from frappe.tasks import run_async_task
+		from frappe.handler import execute_cmd
+		if frappe.conf.no_async:
+			return execute_cmd(cmd, async=True)
 		task = run_async_task.delay(frappe.local.site,
 			(frappe.session and frappe.session.user) or 'Administrator', cmd,
 				frappe.local.form_dict)
