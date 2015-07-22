@@ -196,14 +196,18 @@ def new_comment(doc, event):
 		if doc.comment_docname == frappe.session.user:
 			message = doc.as_dict()
 			message['broadcast'] = True
-			emit_via_redis('new_message', message, room=get_url())
+			emit_via_redis('new_message', message, room=get_site_room())
 		else:
 			emit_via_redis('new_message', doc.as_dict(), room=get_user_room(doc.comment_docname))
 	else:
 		emit_via_redis('new_comment', doc.as_dict(), room=get_doc_room(doc.comment_doctype, doc.comment_docname))
 
 def get_doc_room(doctype, docname):
-	return ''.join(['doc:', doctype, '/', docname])
+	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])
 
 def get_user_room(user):
-	return ''.join(['user:', user])
+	return ''.join([frappe.local.site, ':user:', user])
+
+def get_site_room():
+	return ''.join([frappe.local.site, ':all'])
+	
