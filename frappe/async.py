@@ -152,14 +152,7 @@ class FileAndRedisStream(file):
 	def write(self, data):
 		ret = super(FileAndRedisStream, self).write(data)
 		if frappe.local.task_id:
-			emit_via_redis('task_progress', {
-				"message": {
-					"lines": {self.count: data}
-				},
-				"task_id": frappe.local.task_id
-			}, room="task_progress:" + frappe.local.task_id)
-
-			put_log(frappe.local.task_id, self.count, data)
+			put_log(self.count, data, task_id=frappe.local.task_id)
 			self.count += 1
 		return ret
 
