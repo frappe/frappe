@@ -55,7 +55,7 @@ def clear_sessions(user=None, keep_current=False):
 		user = frappe.session.user
 
 	for sid in frappe.db.sql("""select sid from tabSessions where user=%s and device=%s""",
-		(user, frappe.session.device or "desktop")):
+		(user, frappe.session.data.device or "desktop")):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
