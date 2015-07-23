@@ -110,7 +110,7 @@
    "precision": ""
   }, 
   {
-   "description": "Add the name of a <a href=\"https://www.google.com/fonts/\" target=\"_blank\">Google Web Font</a> e.g. \"Open Sans\"", 
+   "description": "Add the name of a \"Google Web Font\" e.g. \"Open Sans\"", 
    "fieldname": "text_webfont", 
    "fieldtype": "Data", 
    "label": "Google Font (Text)", 
@@ -118,7 +118,7 @@
    "precision": ""
   }, 
   {
-   "description": "Add the name of a <a href=\"https://www.google.com/fonts/\" target=\"_blank\">Google Web Font</a> e.g. \"Open Sans\"", 
+   "description": "Add the name of a \"Google Web Font\" e.g. \"Open Sans\"", 
    "fieldname": "heading_webfont", 
    "fieldtype": "Data", 
    "label": "Google Font (Heading)", 

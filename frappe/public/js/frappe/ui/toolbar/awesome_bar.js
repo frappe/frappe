@@ -84,15 +84,15 @@ frappe.search = {
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
 					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
-						__("<b>new</b> <i>type of document</i>")+'</td></tr>\
+						__("new type of document")+'</td></tr>\
 					<tr><td>'+__("List a document type")+'</td><td>'+
-						__("<i>document type...</i>, e.g. <b>customer</b>")+'</td></tr>\
+						__("document type..., e.g. customer")+'</td></tr>\
 					<tr><td>'+__("Search in a document type")+'</td><td>'+
-						__("<i>text</i> <b>in</b> <i>document type</i>")+'</td></tr>\
+						__("text in document type")+'</td></tr>\
 					<tr><td>'+__("Open a module or tool")+'</td><td>'+
-						__("<i>module name...</i>")+'</td></tr>\
+						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
-						__("<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>")+'</td></tr>\
+						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
 				</table>'
 				msgprint(txt, "Search Help");
 			}
