@@ -55,7 +55,8 @@ io.on('connection', function(socket){
 		send_existing_lines(task_id, socket);
 	})
 	socket.on('doc_subscribe', function(doctype, docname) {
-		request.post('http://localhost:8000/api/method/frappe.async.can_subscribe_doc')
+		// console.log('trying to subscribe', doctype, docname)
+		request.post(get_url(socket, '/api/method/frappe.async.can_subscribe_doc'))
 			.type('form')
 			.send({
 				sid: sid,
@@ -63,8 +64,10 @@ io.on('connection', function(socket){
 				docname: docname
 			})
 			.end(function(err, res) {
+				console.log(err)
 				if(res.status == 200) {
-					var room = get_doc_room(doctype, docname);
+					var room = get_doc_room(socket, doctype, docname);
+					// console.log('joining', room)
 					socket.join(room);
 				}
 			})
@@ -100,7 +103,7 @@ http.listen(3000, function(){
 });
 
 function get_doc_room(socket, doctype, docname) {
-	return get_site_room(socket) + ':doc:'+ doctype + '/' + docname;
+	return get_site_name(socket) + ':doc:'+ doctype + '/' + docname;
 }
 
 function get_user_room(socket, user) {
