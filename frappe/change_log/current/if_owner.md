@@ -1,0 +1,1 @@
+- Ability to set permissions based on owner by checking **If Owner** in Role Permissions Manager

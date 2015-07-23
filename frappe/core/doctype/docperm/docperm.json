@@ -34,6 +34,14 @@
    "permlevel": 0
   }, 
   {
+   "description": "Apply this rule if the User is the Owner", 
+   "fieldname": "if_owner", 
+   "fieldtype": "Check", 
+   "label": "If user is the owner", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "column_break_2", 
    "fieldtype": "Column Break", 
    "permlevel": 0
@@ -232,7 +240,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-03-18 06:09:58.928014", 
+ "modified": "2015-07-22 07:39:40.471092", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

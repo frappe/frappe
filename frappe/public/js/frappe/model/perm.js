@@ -89,6 +89,9 @@ $.extend(frappe.perm, {
 	},
 
 	build_role_permissions: function(perm, meta) {
+		// Returns a `dict` of evaluated Role Permissions
+		// Apply User Permission and its DocTypes are used to display match rules in list view
+
 		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
 			if(user_roles.indexOf(p.role)!==-1) {
@@ -100,6 +103,7 @@ $.extend(frappe.perm, {
 				$.each(frappe.perm.rights, function(i, key) {
 					perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
 
+					// NOTE: this data is required for displaying match rules in list view
 					if (permlevel===0) {
 						var apply_user_permissions = perm[permlevel].apply_user_permissions;
 						var current_value = (apply_user_permissions[key]===undefined ?
@@ -108,6 +112,7 @@ $.extend(frappe.perm, {
 					}
 				});
 
+				// NOTE: this data is required for displaying match rules in list view
 				if (permlevel===0 && cint(p.apply_user_permissions) && p.user_permission_doctypes) {
 					// set user_permission_doctypes in perms
 					var user_permission_doctypes = JSON.parse(p.user_permission_doctypes);
@@ -125,6 +130,10 @@ $.extend(frappe.perm, {
 							perm[permlevel]["user_permission_doctypes"][key].push(user_permission_doctypes);
 						});
 					}
+				}
+
+				if (permlevel===0 && p["if_owner"]) {
+					perm[0]["if_owner"] = 1;
 				}
 			}
 		});
@@ -175,6 +184,10 @@ $.extend(frappe.perm, {
 					match_rules.push(rules);
 				}
 			});
+		}
+
+		if (perm[0].if_owner && perm[0].read) {
+			match_rules.push({"Owner": user});
 		}
 
 		return match_rules;
