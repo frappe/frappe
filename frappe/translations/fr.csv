@@ -276,7 +276,7 @@ DocType: Website Theme,Google Font (Text),Google police (texte)
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +316,Did not remove,N'a pas été supprimer
 DocType: Report,Query,Requête
 DocType: DocType,Sort Order,Ordre
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},« Vu en liste » n'est pas permis pour le type {0} à la ligne {1}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},« Dans la vu en liste » n'est pas permis pour le type {0} à la ligne {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,Sélectionnez l&#39;étiquette après lequel vous voulez insérer un nouveau champ.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet sera partagée via votre compte utilisateur (si spécifié)
 ,Document Share Report,Partager document Rapport
@@ -700,7 +700,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +153,Aug,Août
 DocType: DocField,Int,Int
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent","Une devise = [?] Fraction 
- Pour exemple 1 USD = 100 Cent"
+ par exemple 1 USD = 100 sous"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363,Add New Permission Rule,Ajouter une nouvelle règle d&#39;autorisation
 sites/assets/js/desk.min.js +512,You can use wildcard %,Vous pouvez utiliser joker%
 apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,Mar
@@ -834,7 +834,7 @@ DocType: Bulk Email,Reference DocName,Référence DocName
 DocType: Web Form,Success Message,Succès message
 DocType: DocType,User Cannot Search,L&#39;utilisateur ne peut pas effectuer de recherche
 apps/frappe/frappe/desk/page/activity/activity.js +47,Build Report,Créer un rapport
-apps/frappe/frappe/model/rename_doc.py +92,"{0} {1} does not exist, select a new target to merge","{0} {1} n'existe pas , sélectionnez un nouvel objectif de fusionner"
+apps/frappe/frappe/model/rename_doc.py +92,"{0} {1} does not exist, select a new target to merge","{0} {1} n'existe pas , sélectionnez un nouvel objectif pour fusionner"
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Vous ne pouvez pas définir des autorisations pour DocType : {0} et Nom : {1}
 DocType: Comment,Comment Doctype,Commentaire Doctype
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Poster existe déjà . Vous ne pouvez pas ajouter de nouveau !

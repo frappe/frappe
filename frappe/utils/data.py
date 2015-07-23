@@ -483,12 +483,12 @@ def pretty_date(iso_datetime):
 		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
 
 def comma_or(some_list):
-	return comma_sep(some_list, " or ")
+	return comma_sep(some_list, frappe._("{0} or {1}"))
 
 def comma_and(some_list):
-	return comma_sep(some_list, " and ")
+	return comma_sep(some_list, frappe._("{0} and {1}"))
 
-def comma_sep(some_list, sep):
+def comma_sep(some_list, pattern):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [unicode(s) for s in list(some_list)]
@@ -498,7 +498,7 @@ def comma_sep(some_list, sep):
 			return some_list[0]
 		else:
 			some_list = ["'%s'" % s for s in some_list]
-			return ", ".join(some_list[:-1]) + sep + some_list[-1]
+			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
 

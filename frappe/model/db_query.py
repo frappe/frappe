@@ -270,7 +270,6 @@ class DatabaseQuery(object):
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []
-
 		only_if_shared = False
 
 		if not self.tables: self.extract_tables()
@@ -295,10 +294,6 @@ class DatabaseQuery(object):
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
-				# share is an OR condition, if there is a role permission
-				if not only_if_shared and self.shared:
-					self.match_conditions.append(self.get_share_condition())
-
 		if as_condition:
 			conditions = ""
 			if self.match_conditions:
@@ -308,6 +303,11 @@ class DatabaseQuery(object):
 			doctype_conditions = self.get_permission_query_conditions()
 			if doctype_conditions:
 				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
+
+			# share is an OR condition, if there is a role permission
+			if not only_if_shared and self.shared and conditions:
+				conditions =  "({conditions}) or ({shared_condition})".format(
+					conditions=conditions, shared_condition=self.get_share_condition())
 
 			return conditions
 

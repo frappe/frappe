@@ -152,6 +152,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			me.page.set_primary_action(__("Save"), function() {
 				me.save_print_format();
 			});
+			me.page.clear_menu();
 			me.page.add_menu_item(__("Start new Format"), function() {
 				me.print_format = null;
 				me.refresh();

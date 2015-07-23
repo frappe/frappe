@@ -18,7 +18,6 @@ form_grid_templates = {
 }
 
 class DocType(Document):
-	__doclink__ = "https://frappe.io/docs/models/core/doctype"
 	def get_feed(self):
 		return self.name
 
@@ -467,4 +466,3 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
-

@@ -30,12 +30,13 @@ def get_doctype_options():
 	doctype = frappe.form_dict['doctype']
 	return [doctype] + [d.options for d in frappe.get_meta(doctype).get_table_fields()]
 
-def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False):
+def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None):
 	from frappe.utils.csvutils import read_csv_content
 	from frappe.core.page.data_import_tool.importer import upload
 	print "Importing " + path
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite, submit_after_import=submit)
+		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite,
+            submit_after_import=submit, pre_process=pre_process)
 
 def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool.exporter import get_template
@@ -80,7 +81,8 @@ def export_fixture(doctype, app):
 	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
 
 
-def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False, submit=False):
+def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
+    insert=False, submit=False, pre_process=None):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:
@@ -89,8 +91,8 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
-			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True)
+			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True, pre_process=pre_process)
 			frappe.flags.mute_emails = False
 		elif f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
+			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit, pre_process=pre_process)
 			frappe.db.commit()

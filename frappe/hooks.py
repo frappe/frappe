@@ -2,12 +2,35 @@ from __future__ import unicode_literals
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies Pvt. Ltd."
-app_description = "Full Stack Web Application Framework in Python"
-app_icon = "octicon octicon-circuit-board"
-app_version = "5.0.31"
-app_color = "orange"
+app_description = """## Frappe Framework
 
-app_email = "support@frappe.io"
+Frappe is a full stack web application framework written in Python,
+Javascript, HTML/CSS with MySQL as the backend. It was built for ERPNext
+but is pretty generic and can be used to build database driven apps.
+
+The key differece in Frappe compared to other frameworks is that Frappe
+is that meta-data is also treated as data and is used to build front-ends
+very easily. Frappe comes with a full blown admin UI called the **Desk**
+that handles forms, navigation, lists, menus, permissions, file attachment
+and much more out of the box.
+
+Frappe also has a plug-in architecture that can be used to build plugins
+to ERPNext.
+
+### Links:
+
+- Project Home: [https://frappe.io](https://frappe.io)
+- Tutorial: [https://frappe.io/tutorial](https://frappe.io/tutorial)
+- GitHub: [https://github.com/frappe/frappe](https://github.com/frappe/frappe)
+- Forum: [https://discuss.erpnext.com](https://discuss.erpnext.com)
+"""
+
+app_icon = "octicon octicon-circuit-board"
+app_version = "5.1.3"
+app_color = "orange"
+github_link = "https://github.com/frappe/frappe"
+
+app_email = "info@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -35,8 +58,7 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/css/frappe-web.css",
-	"website_theme.css"
+	"assets/css/frappe-web.css"
 ]
 website_route_rules = [
 	{"from_route": "/blog", "to_route": "Blog Post"},
@@ -58,6 +80,8 @@ before_tests = "frappe.utils.install.before_tests"
 website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
 
 email_append_to = ["Event", "ToDo", "Communication"]
+
+calendars = ["Event"]
 
 # login
 

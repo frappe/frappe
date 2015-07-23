@@ -1067,7 +1067,7 @@ DocType: User,Send Notifications for Transactions I Follow,Stuur Meldingen voor 
 apps/frappe/frappe/core/doctype/doctype/doctype.py +388,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Kan niet Indienen, Annuleren, Wijzigen zonder te Schrijven"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Instellingen > Gebruiker
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Dankjewel
-sites/assets/js/form.min.js +180,Saving,Besparing
+sites/assets/js/form.min.js +180,Saving,Opslaan
 DocType: Print Settings,Print Style Preview,Print Stijl Voorbeeld
 DocType: About Us Settings,About Us Settings,Over Ons Instellingen
 DocType: Website Settings,Website Theme,Website Theme

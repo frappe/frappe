@@ -547,9 +547,13 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_datepicker: function() {
-		this.datepicker_options.timeFormat = "HH:mm:ss";
-		this.datepicker_options.dateFormat =
-			(frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
+		var now = new Date();
+		$.extend(this.datepicker_options, {
+			"timeFormat": "HH:mm:ss",
+			"dateFormat": (frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy'),
+			"hour": now.getHours(),
+			"minute": now.getMinutes()
+		});
 
 		this.$input.datetimepicker(this.datepicker_options);
 	},
@@ -960,6 +964,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var me = this;
 		this.setup_buttons();
 		this.setup_autocomplete();
+		if(this.df.change) {
+			this.$input.on("change", function() {
+				me.df.change.apply(this);
+			});
+		}
 	},
 	get_options: function() {
 		return this.df.options;
@@ -1020,6 +1029,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.cache = {};
 		this.$input.autocomplete({
 			minLength: 0,
+			autoFocus: true,
 			source: function(request, response) {
 				var doctype = me.get_options();
 				if(!doctype) return;
@@ -1081,6 +1091,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			focus: function( event, ui ) {
+				event.preventDefault();
 				if(ui.item.action) {
 					return false;
 				}

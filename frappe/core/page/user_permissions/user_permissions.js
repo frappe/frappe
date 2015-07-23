@@ -243,7 +243,7 @@ frappe.UserPermissions = Class.extend({
 			+__("These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.")
 			+'</p>').appendTo(this.body);
 
-		$.each([[__("Allow User If"), 150], [__("Document Type"), 150], [__("Is"),150], ["", 50]],
+		$.each([[__("Allow User"), 150], [__("If Document Type"), 150], [__("Is"),150], ["", 50]],
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -300,9 +300,9 @@ frappe.UserPermissions = Class.extend({
 				var d = new frappe.ui.Dialog({
 					title: __("Add A New Restriction"),
 					fields: [
-						{fieldtype:"Select", label:__("Allow User If"),
+						{fieldtype:"Select", label:__("Allow User"),
 							options:me.options.users, reqd:1, fieldname:"user"},
-						{fieldtype:"Select", label: __("Select Document Type"), fieldname:"defkey",
+						{fieldtype:"Select", label: __("If Document Type"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
 						{fieldtype:"Link", label:__("Is"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},

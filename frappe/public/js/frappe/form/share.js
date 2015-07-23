@@ -10,26 +10,42 @@ frappe.ui.form.Share = Class.extend({
 	refresh: function() {
 		var me = this;
 		this.parent.empty();
+
+		var everyone = null;
 		var shared = $.map(this.shared || this.frm.get_docinfo().shared, function(s) {
+			if (s.everyone) {
+				everyone = s;
+			}
+
 			return s ? s.user : null;
 		});
 
+		if (everyone) {
+			$(repl('<span><a class="avatar avatar-small avatar-empty share-doc-btn shared-with-everyone" title="%(title)s">\
+				<i class="octicon octicon-megaphone text-muted"></i></a></span>', {title: __("Shared with everyone")}))
+				.appendTo(this.parent)
+				.on("click", function() { me.frm.share_doc(); });
+		}
+
 		for(var i=0; i<shared.length; i++) {
-			var user_info = frappe.user_info(shared[i])
+			var user_info = frappe.user_info(shared[i]);
 			$(repl('<span class="avatar avatar-small" title="'
 				+__("Shared with {0}", [user_info.fullname])+'">\
 				<img class="media-object" src="%(image)s" alt="%(fullname)s"></span>',
 				{image: user_info.image, fullname: user_info.fullname}))
 				.appendTo(this.parent)
-				.on("click", function() { me.frm.share_doc(); });;
+				.on("click", function() { me.frm.share_doc(); });
 		}
+
 		// share
 		if(!me.frm.doc.__islocal) {
 			$(repl('<span><a class="avatar avatar-small avatar-empty share-doc-btn" title="%(title)s">\
 				<i class="octicon octicon-plus text-muted"></i></a></span>', {title: __("Share")}))
 				.appendTo(this.parent)
 				.on("click", function() { me.frm.share_doc(); });
+
 		}
+
 	},
 	show: function() {
 		var me = this;
@@ -65,7 +81,16 @@ frappe.ui.form.Share = Class.extend({
 			this.shared = shared;
 		var d = this.dialog;
 		$(d.body).empty();
-		$(frappe.render_template("set_sharing", {frm: this.frm, shared: this.shared}))
+
+		var everyone = {};
+		$.each(this.shared, function(i, s) {
+			// pullout everyone record from shared list
+			if (s && s.everyone) {
+				everyone = s;
+			}
+		});
+
+		$(frappe.render_template("set_sharing", {frm: this.frm, shared: this.shared, everyone: everyone}))
 			.appendTo(d.body);
 
 		if(frappe.model.can_share(null, this.frm)) {
@@ -113,6 +138,7 @@ frappe.ui.form.Share = Class.extend({
 					write: $(d.body).find(".add-share-write").prop("checked") ? 1 : 0,
 					share: $(d.body).find(".add-share-share").prop("checked") ? 1 : 0
 				},
+				btn: this,
 				callback: function(r) {
 					$.each(me.shared, function(i, s) {
 						if(s && s.user===r.message.user) {
@@ -131,9 +157,10 @@ frappe.ui.form.Share = Class.extend({
 	set_edit_share_events: function() {
 		var me = this, d = this.dialog;
 		$(d.body).find(".edit-share").on("click", function() {
-			var user = $(this).parents(".shared-user:first").attr("data-user"),
+			var user = $(this).parents(".shared-user:first").attr("data-user") || "",
 				value = $(this).prop("checked") ? 1 : 0,
-				property = $(this).attr("name");
+				property = $(this).attr("name")
+				everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
 
 			frappe.call({
 				method: "frappe.share.set_permission",
@@ -142,20 +169,28 @@ frappe.ui.form.Share = Class.extend({
 					name: me.frm.doc.name,
 					user: user,
 					permission_to: property,
-					value: value
+					value: value,
+					everyone: everyone
 				},
 				callback: function(r) {
+					var found = null;
 					$.each(me.shared, function(i, s) {
 						// update shared object
-						if(s && s.user===user) {
+						if(s && (s.user===user || (everyone && s.everyone===1))) {
 							if(!r.message) {
 								delete me.shared[i];
 							} else {
 								me.shared[i] = $.extend(s, r.message);
 							}
+							found = true;
 							return false;
 						}
 					});
+
+					if (!found) {
+						me.shared.push(r.message);
+					}
+
 					me.dirty = true;
 					me.render_shared();
 					me.frm.shared.refresh();

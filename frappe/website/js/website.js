@@ -340,6 +340,9 @@ $.extend(frappe, {
 		// change id of current page
 		$(".page-container").attr("id", "page-" + data.path);
 
+		// set data-path value in body
+		$("body").attr("data-path", data.path);
+
 		// clear page-header-right
 		$(".page-header-right").html("");
 

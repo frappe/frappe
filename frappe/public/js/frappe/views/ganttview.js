@@ -53,7 +53,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 			fieldname:"end", "default": frappe.datetime.month_end(), input_css: {"z-index": 3}});
 
 		this.add_filters();
-		this.wrapper = $("<div></div>").appendTo(this.page.main);
+		this.wrapper = $("<div style='position:relative;z-index:1;'></div>").appendTo(this.page.main);
 
 	},
 	refresh: function() {

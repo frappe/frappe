@@ -92,7 +92,8 @@ frappe.upload = {
 						var attachment = r.message;
 						opts.callback(attachment, r);
 						$(document).trigger("upload_complete", attachment);
-					}
+					},
+					btn: opts.btn
 				});
 			}
 		}
@@ -137,6 +138,7 @@ frappe.upload = {
 			var a = parts[1];
 		}
 
-		return atob(a);
+		return decodeURIComponent(escape(atob(a)));
+
 	}
 }

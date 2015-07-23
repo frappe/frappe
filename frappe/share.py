@@ -6,13 +6,12 @@ import frappe
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, flags=None):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
 
-	share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name,
-		"share_doctype": doctype})
+	share_name = get_share_name(doctype, name, user, everyone)
 
 	if share_name:
 		doc = frappe.get_doc("DocShare", share_name)
@@ -21,7 +20,8 @@ def add(doctype, name, user=None, read=1, write=0, share=0, flags=None):
 		doc.update({
 			"user": user,
 			"share_doctype": doctype,
-			"share_name": name
+			"share_name": name,
+			"everyone": cint(everyone)
 		})
 
 	if flags:
@@ -46,14 +46,14 @@ def remove(doctype, name, user, flags=None):
 		frappe.delete_doc("DocShare", share_name)
 
 @frappe.whitelist()
-def set_permission(doctype, name, user, permission_to, value=1):
+def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	"""Set share permission."""
-	share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name,
-		"share_doctype": doctype})
+	share_name = get_share_name(doctype, name, user, everyone)
 	value = int(value)
+
 	if not share_name:
 		if value:
-			share = add(doctype, name, user, **{permission_to: 1})
+			share = add(doctype, name, user, everyone=everyone, **{permission_to: 1})
 		else:
 			# no share found, nothing to remove
 			share = {}
@@ -102,7 +102,9 @@ def get_shared(doctype, user=None, rights=None):
 
 	condition = " and ".join(["`{0}`=1".format(right) for right in rights])
 
-	return frappe.db.sql_list("select share_name from tabDocShare where user=%s and share_doctype=%s and {0}".format(condition),
+	return frappe.db.sql_list("""select share_name from tabDocShare
+		where (user=%s {everyone}) and share_doctype=%s and {condition}""".format(
+			condition=condition, everyone="or everyone=1" if user!="Guest" else ""),
 		(user, doctype))
 
 def get_shared_doctypes(user=None):
@@ -110,4 +112,15 @@ def get_shared_doctypes(user=None):
 	if not user:
 		user = frappe.session.user
 
-	return frappe.db.sql_list("select distinct share_doctype from tabDocShare where user=%s", user)
+	return frappe.db.sql_list("select distinct share_doctype from tabDocShare where (user=%s or everyone=1)", user)
+
+def get_share_name(doctype, name, user, everyone):
+	if cint(everyone):
+		share_name = frappe.db.get_value("DocShare", {"everyone": 1, "share_name": name,
+			"share_doctype": doctype})
+	else:
+		share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name,
+			"share_doctype": doctype})
+
+	return share_name
+

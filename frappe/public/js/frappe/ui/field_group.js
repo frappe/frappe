@@ -32,9 +32,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				if(this.has_primary_action) {
+				if(me.has_primary_action) {
 					e.preventDefault();
-					this.get_primary_btn().trigger("click");
+					me.get_primary_btn().trigger("click");
 				}
 			}
 		});
@@ -55,16 +55,14 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				var v = f.get_parsed_value();
 
 				if(f.df.reqd && !v)
-					errors.push('- ' + __(f.df.label) + "<br>");
+					errors.push(__(f.df.label));
 
 				if(v) ret[f.df.fieldname] = v;
 			}
 		}
 		if(errors.length) {
-			msgprint($.format('<i class="icon-warning-sign"></i>\
-						<b>{0}</b>:\
-						<br/><br/>\
-						{1}', [__('Missing Values Required'), errors.join('\n')]));
+			msgprint('<b>' + __('Missing Values Required') + "</b><br>"
+				+ errors.join('<br>'));
 			return null;
 		}
 		return ret;

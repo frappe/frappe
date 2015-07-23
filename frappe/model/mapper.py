@@ -33,6 +33,17 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	for df in source_doc.meta.get_table_fields():
 		source_child_doctype = df.options
 		table_map = table_maps.get(source_child_doctype)
+
+		# if table_map isn't explicitly specified check if both source and target have the same fieldname and same table options and both of them don't have no_copy
+		if not table_map:
+			target_df = target_doc.meta.get_field(df.fieldname)
+			if target_df:
+				target_child_doctype = target_df.options
+				if target_df and target_child_doctype==source_child_doctype and not df.no_copy and not target_df.no_copy:
+					table_map = {
+						"doctype": target_child_doctype
+					}
+		
 		if table_map:
 			for source_d in source_doc.get(df.fieldname):
 				if "condition" in table_map:
