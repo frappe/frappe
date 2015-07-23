@@ -33,7 +33,7 @@
    "search_index": 0
   }, 
   {
-   "description": "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box", 
+   "description": "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box", 
    "fieldname": "search_fields", 
    "fieldtype": "Data", 
    "in_list_view": 1, 
