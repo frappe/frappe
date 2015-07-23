@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
+from frappe import conf
 
 class Page(Document):
 	def autoname(self):
@@ -36,7 +37,6 @@ class Page(Document):
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		from frappe import conf
 		from frappe.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self, "roles")
 
