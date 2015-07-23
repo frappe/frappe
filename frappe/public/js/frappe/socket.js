@@ -45,15 +45,20 @@ frappe.socket = {
       frappe.socket.process_response(data, "progress");
     });
     frappe.socket.socket.on('new_comment', function(comment) {
+		if (frappe.model.docinfo[comment.comment_doctype] && frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
+			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments
+			var comment_exists = !!$.map(comments, function(x) { return x.name == comment.name? true : undefined}).length
+			if (!comment_exists) {
+				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
+			}
+		}
 		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
-			cur_frm.get_docinfo().comments = cur_frm.comments.get_comments().concat([comment]);
-			cur_frm.comments.refresh();
+				cur_frm.comments.refresh();
 		}
     });
     frappe.socket.socket.on('new_message', function(comment) {
 		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
 		if ($(cur_page.page).data('page-route') === 'messages') {
-			console.log('messages page open');
 			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
 			var on_broadcast_page = current_contact === user;
 			if (current_contact == comment.owner || (on_broadcast_page && comment.broadcast)) {
