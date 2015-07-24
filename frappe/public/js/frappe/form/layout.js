@@ -106,12 +106,19 @@ frappe.ui.form.Layout = Class.extend({
 
 	},
 	make_column: function(df) {
+		if(!df) df = {};
+
 		this.column = $('<div class="form-column">\
 			<form>\
 			</form>\
 		</div>').appendTo(this.section.body)
 			.find("form")
 			.on("submit", function() { return false; })
+
+		if(df.label) {
+			$('<label class="control-label">'+ __(df.label)
+				+'</label>').appendTo(this.column);
+		}
 
 		// distribute all columns equally
 		var colspan = cint(12 / this.section.find(".form-column").length);
@@ -181,7 +188,7 @@ frappe.ui.form.Layout = Class.extend({
 		section.df = df;
 		if(df) {
 			if(df.label) {
-				$('<div class="col-sm-12 text-muted"><h4>' + __(df.label) + '</h4></div>')
+				$('<div class="col-sm-12"><h4 class="form-section-heading">' + __(df.label) + '</h4></div>')
 				.appendTo(this.section);
 			}
 			if(df.description) {
