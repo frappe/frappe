@@ -169,8 +169,15 @@ _f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
 	}
 }
 
-_f.Frm.prototype.set_df_property = function(fieldname, property, value, table_field) {
-	var field = this.get_docfield(fieldname);
+_f.Frm.prototype.set_df_property = function(fieldname, property, value, docname, table_field) {
+	if (!docname && !table_field){
+		var field = this.get_docfield(fieldname);
+	} else {
+		var grid = cur_frm.fields_dict[table_field].grid,
+		fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+		if (fname && fname.length)
+			var field = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+	}
 	if(field) {
 		field[property] = value;
 		refresh_field(fieldname, table_field);
