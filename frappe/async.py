@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import frappe
 import os
 import time
+import redis
 from functools import wraps
 from frappe.utils import get_site_path, get_url
 import json
@@ -121,7 +122,10 @@ def is_file_old(file_path):
 
 def emit_via_redis(event, message, room=None):
 	r = get_redis_server()
-	r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
+	try:
+		r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
+	except redis.exceptions.ConnectionError:
+		pass
 
 
 def put_log(line_no, line, task_id=None):
