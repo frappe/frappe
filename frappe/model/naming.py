@@ -177,7 +177,7 @@ def append_number_if_name_exists(doc):
 	if frappe.db.exists(doc.doctype, doc.name):
 		last = frappe.db.sql("""select name from `tab{}`
 			where name regexp '{}-[[:digit:]]+'
-			order by name desc limit 1""".format(doc.doctype, doc.name))
+			order by length(name) desc, name desc limit 1""".format(doc.doctype, doc.name))
 
 		if last:
 			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)

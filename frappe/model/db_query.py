@@ -294,6 +294,10 @@ class DatabaseQuery(object):
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
+			if role_permissions.get("if_owner", {}).get("read"):
+				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
+					frappe.db.escape(frappe.session.user)))
+
 		if as_condition:
 			conditions = ""
 			if self.match_conditions:
