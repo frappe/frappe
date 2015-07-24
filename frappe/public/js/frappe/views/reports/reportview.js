@@ -187,17 +187,21 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	},
 
 	get_order_by: function() {
+		var order_by = [];
+
 		// first
-		var order_by = this.get_selected_table_and_column(this.sort_by_select)
-			+ ' ' + this.sort_order_select.val();
+		var sort_by_select = this.get_selected_table_and_column(this.sort_by_select);
+		if (sort_by_select) {
+			order_by.push(sort_by_select + " " + this.sort_order_select.val());
+		}
 
 		// second
 		if(this.sort_by_next_select.val()) {
-			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select)
-				+ ' ' + this.sort_order_next_select.val();
+			order_by.push(this.get_selected_table_and_column(this.sort_by_next_select)
+				+ ' ' + this.sort_order_next_select.val());
 		}
 
-		return order_by;
+		return order_by.join(", ");
 	},
 
 	get_selected_table_and_column: function(select) {
