@@ -94,8 +94,8 @@ def get_website_settings():
 
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
-		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup"]:
+		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"disable_signup", "hide_footer_signup"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -118,8 +118,6 @@ def get_website_settings():
 
 	context.web_include_css = hooks.web_include_css or []
 
-	add_website_theme(context)
-
 	via_hooks = frappe.get_hooks("website_context")
 	for key in via_hooks:
 		context[key] = via_hooks[key]
@@ -127,8 +125,13 @@ def get_website_settings():
 			and isinstance(context[key], (list, tuple)):
 			context[key] = context[key][0]
 
+	add_website_theme(context)
+
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.png"
+
+	if settings.favicon and settings.favicon != "attach_files:":
+		context["favicon"] = settings.favicon
 
 	return context
 

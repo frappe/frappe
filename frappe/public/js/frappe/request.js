@@ -55,6 +55,10 @@ frappe.request.call = function(opts) {
 			if(typeof data === "string") data = JSON.parse(data);
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
+		401: function(xhr) {
+			msgprint(__("You have been logged out"));
+			frappe.app.logout();
+		},
 		404: function(xhr) {
 			msgprint(__("Not found"));
 		},
@@ -77,9 +81,16 @@ frappe.request.call = function(opts) {
 			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
 				[(frappe.boot.max_file_size || 5242880) / 1048576]))
 		},
-		417: function(data, xhr) {
-			if(typeof data === "string") data = JSON.parse(data);
-			opts.error_callback && opts.error_callback(data, xhr.responseText);
+		417: function(xhr) {
+			var r = xhr.responseJSON;
+			if (!r) {
+				try {
+					r = JSON.parse(xhr.responseText);
+				} catch (e) {
+					r = xhr.responseText;
+				}
+			}
+			opts.error_callback && opts.error_callback(r);
 		},
 		501: function(data, xhr) {
 			if(typeof data === "string") data = JSON.parse(data);
@@ -136,7 +147,7 @@ frappe.request.call = function(opts) {
 // call execute serverside request
 frappe.request.prepare = function(opts) {
 	frappe.request.ajax_count++;
-	
+
 	$("body").attr("data-ajax-state", "triggered");
 
 	// btn indicator
@@ -226,7 +237,7 @@ frappe.request.cleanup = function(opts, r) {
 	}
 
 	frappe.last_response = r;
-	
+
 	frappe.request.ajax_count--;
 	if(!frappe.request.ajax_count) {
 		$.each(frappe.request.waiting_for_ajax || [], function(i, fn) {

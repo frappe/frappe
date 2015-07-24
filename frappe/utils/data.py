@@ -37,7 +37,7 @@ def getdate(string_date=None):
 
 def get_datetime(datetime_str=None):
 	if not datetime_str:
-		return datetime.datetime.now()
+		return now_datetime()
 
 	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
@@ -57,7 +57,7 @@ def get_datetime(datetime_str=None):
 def to_timedelta(time_str):
 	if isinstance(time_str, basestring):
 		t = parser.parse(time_str)
-		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
 
 	else:
 		return time_str
@@ -104,36 +104,26 @@ def time_diff_in_seconds(string_ed_date, string_st_date):
 def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
-def now_datetime(user=None):
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow(), user=None)
+def now_datetime():
+	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
 
-def _get_user_time_zone(user=None):
-	user_time_zone = None
-	if not user:
-		user = frappe.session and frappe.session.user
-	if user:
-		user_time_zone = frappe.db.get_value("User", user, "time_zone")
+def _get_time_zone():
+	time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
+		or "Asia/Kolkata")
 
-	if not user_time_zone:
-		user_time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
-			or "Asia/Kolkata")
+	return time_zone
 
-	return user_time_zone
-
-def get_user_time_zone(user=None):
-	if not user:
-		user = frappe.session and frappe.session.user
-
+def get_time_zone():
 	if frappe.local.flags.in_test:
-		return _get_user_time_zone(user)
+		return _get_time_zone()
 
-	return frappe.cache().hget("time_zone", user, _get_user_time_zone)
+	return frappe.cache().get_value("time_zone", _get_time_zone)
 
-def convert_utc_to_user_timezone(utc_timestamp, user=None):
+def convert_utc_to_user_timezone(utc_timestamp):
 	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(get_user_time_zone(user)))
+		return utcnow.astimezone(timezone(get_time_zone()))
 	except UnknownTimeZoneError:
 		return utcnow
 
@@ -493,12 +483,12 @@ def pretty_date(iso_datetime):
 		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
 
 def comma_or(some_list):
-	return comma_sep(some_list, " or ")
+	return comma_sep(some_list, frappe._("{0} or {1}"))
 
 def comma_and(some_list):
-	return comma_sep(some_list, " and ")
+	return comma_sep(some_list, frappe._("{0} and {1}"))
 
-def comma_sep(some_list, sep):
+def comma_sep(some_list, pattern):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [unicode(s) for s in list(some_list)]
@@ -508,7 +498,7 @@ def comma_sep(some_list, sep):
 			return some_list[0]
 		else:
 			some_list = ["'%s'" % s for s in some_list]
-			return ", ".join(some_list[:-1]) + sep + some_list[-1]
+			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
 
@@ -578,7 +568,8 @@ def compare(val1, condition, val2):
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
-	html = quote_urls(html)
+	# encoding should be responsibility of the composer
+	# html = quote_urls(html)
 	return html
 
 def expand_relative_urls(html):

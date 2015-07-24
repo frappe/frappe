@@ -90,7 +90,7 @@ class TestEmailAccount(unittest.TestCase):
 		# send
 		sent_name = make(subject = "Test", content="test content",
 			recipients="test_receiver@example.com", sender="test@example.com",
-			send_email=True)
+			send_email=True)["name"]
 
 		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:

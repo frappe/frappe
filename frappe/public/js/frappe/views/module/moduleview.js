@@ -85,14 +85,23 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				.appendTo(this.page.main);
 
 			$(this.sections[name]).find(".module-item").each(function(i, mi) {
-				$(mi).on("click", function(event) {
-					// if clicked on open notification!
-					if (event.target.classList.contains("open-notification")) {
-						var doctype = event.target.getAttribute("data-doctype");
-						frappe.route_options = frappe.boot.notification_info.conditions[doctype];
-					}
-					frappe.set_route(me.get_route(data.items[$(mi).attr("data-item-index")]));
-				});
+				var item = data.items[$(mi).attr("data-item-index")];
+				$(mi)
+					.attr("data-route", me.get_route(item).join("/"))
+					.attr("data-label", item.name)
+					.on("click", function(event) {
+						// if clicked on open notification!
+						if (event.target.classList.contains("open-notification")) {
+							var doctype = event.target.getAttribute("data-doctype");
+							frappe.route_options = frappe.boot.notification_info.conditions[doctype];
+						}
+						if(item.type==="help") {
+							frappe.help.show_video(item.youtube_id);
+							return false;
+						} else {
+							frappe.set_route(me.get_route(item));
+						}
+					});
 			});
 		}
 

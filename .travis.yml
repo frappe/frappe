@@ -6,10 +6,15 @@ python:
 services:
   - mysql
 
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+
 install:
   - sudo apt-get purge -y mysql-common
   - wget https://raw.githubusercontent.com/frappe/bench/master/install_scripts/setup_frappe.sh
   - sudo bash setup_frappe.sh --skip-setup-bench --mysql-root-password travis
+  - sudo pip install --upgrade pip
   - sudo service redis-server start
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
@@ -23,7 +28,7 @@ script:
   - bench build-website
   - bench serve &
   - sleep 10
-  - bench --verbose run-tests
+  - bench --verbose run-tests --driver Firefox
 
 before_script:
   - mysql -e 'create database test_frappe'

@@ -116,6 +116,7 @@ def init(site, sites_path=None):
 
 	local.module_app = None
 	local.app_modules = None
+	local.system_settings = None
 
 	local.user = None
 	local.user_obj = None
@@ -425,11 +426,19 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
-	for method in (get_hooks("has_website_permission") or {}).get(doctype, []):
-		if not call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose):
-			return False
+	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
+	if hooks:
+		for method in hooks:
+			result = call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose)
+			# if even a single permission check is Falsy
+			if not result:
+				return False
 
-	return True
+		# else it is Truthy
+		return True
+
+	else:
+		return False
 
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
@@ -529,9 +538,9 @@ def delete_doc_if_exists(doctype, name):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name)
 
-def reload_doctype(doctype):
+def reload_doctype(doctype, force=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype))
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), force=force)
 
 def reload_doc(module, dt=None, dn=None, force=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.

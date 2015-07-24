@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, re, os
+from werkzeug.urls import url_parse, url_unparse
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -153,10 +154,14 @@ def convert_to_hex(channel_value):
 
 	return h
 
-def with_leading_slash(path):
-	if path and not path.startswith("/"):
+def abs_url(path):
+	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
+	if not path:
+		return
+	if path.startswith('http://') or path.startswith('https://'):
+		return path
+	if not path.startswith("/"):
 		path = "/" + path
-
 	return path
 
 def get_full_index(doctype="Web Page"):
@@ -167,7 +172,7 @@ def get_full_index(doctype="Web Page"):
 		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title"],
 			{"parent_website_route": parent}, order_by="idx asc")
 		for d in children:
-			d.url = with_leading_slash(os.path.join(d.parent_website_route or "", d.page_name))
+			d.url = abs_url(os.path.join(d.parent_website_route or "", d.page_name))
 			if d.url not in all_routes:
 				d.children = get_children(d.url[1:])
 				all_routes.append(d.url)

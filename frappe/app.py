@@ -70,6 +70,7 @@ def application(request):
 
 	except Exception, e:
 		http_status_code = getattr(e, "http_status_code", 500)
+		#print frappe.get_traceback()
 
 		if (http_status_code==500
 			and isinstance(e, MySQLdb.OperationalError)

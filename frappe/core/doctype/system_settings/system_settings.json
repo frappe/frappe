@@ -7,7 +7,7 @@
   {
    "fieldname": "localization", 
    "fieldtype": "Section Break", 
-   "label": "Localization", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -21,6 +21,12 @@
    "search_index": 0
   }, 
   {
+   "fieldname": "column_break_3", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "time_zone", 
    "fieldtype": "Select", 
    "label": "Time Zone", 
@@ -30,7 +36,7 @@
   {
    "fieldname": "date_and_number_format", 
    "fieldtype": "Section Break", 
-   "label": "Date and Number Format", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -40,6 +46,12 @@
    "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy", 
    "permlevel": 0, 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "column_break_7", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "number_format", 
@@ -81,6 +93,12 @@
    "precision": ""
   }, 
   {
+   "fieldname": "column_break_13", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "description": "Run scheduled jobs only if checked", 
    "fieldname": "enable_scheduler", 
    "fieldtype": "Check", 
@@ -96,11 +114,39 @@
    "permlevel": 0, 
    "precision": "", 
    "report_hide": 1
+  }, 
+  {
+   "fieldname": "email", 
+   "fieldtype": "Section Break", 
+   "label": "EMail", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "Your organization name and address for the email footer.", 
+   "fieldname": "email_footer_address", 
+   "fieldtype": "Small Text", 
+   "label": "Email Footer Address", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_18", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "disable_standard_email_footer", 
+   "fieldtype": "Check", 
+   "label": "Disable Standard Email Footer", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2015-05-18 05:11:38.759688", 
+ "modified": "2015-05-21 07:15:55.682132", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "System Settings", 

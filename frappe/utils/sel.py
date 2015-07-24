@@ -59,7 +59,7 @@ def login(wait_for_id="#page-desktop"):
 	get(get_localhost() + "/login")
 	wait("#login_email")
 	set_input("#login_email", "Administrator")
-	set_input("#login_password", "admin" + Keys.RETURN)
+	set_input("#login_password", "admin", key=Keys.RETURN)
 	wait(wait_for_id)
 	logged_in = True
 
@@ -86,7 +86,7 @@ def go_to_module(module_name, item=None):
 	if item:
 		elem = find('[data-label="{0}"]'.format(item))[0]
 		elem.click()
-		page = unquote(elem.get_attribute("href").split("#", 1)[1])
+		page = elem.get_attribute("data-route")
 		wait_for_page(page)
 
 def new_doc(module, doctype):
@@ -98,13 +98,20 @@ def add_child(fieldname):
 	find('[data-fieldname="{0}"] .grid-add-row'.format(fieldname))[0].click()
 	wait('[data-fieldname="{0}"] .form-grid'.format(fieldname))
 
+def done_add_child(fieldname):
+	selector = '[data-fieldname="{0}"] .grid-row-open .btn-success'.format(fieldname)
+	scroll_to(selector)
+	wait_till_clickable(selector).click()
+
 def find(selector, everywhere=False):
 	if cur_route and not everywhere:
 		selector = cur_route + " " + selector
 	return _driver.find_elements_by_css_selector(selector)
 
 def set_field(fieldname, value, fieldtype="input"):
-	set_input('{0}[data-fieldname="{1}"]'.format(fieldtype, fieldname), value + Keys.TAB)
+	_driver.switch_to.window(_driver.current_window_handle)
+	selector = '{0}[data-fieldname="{1}"]'.format(fieldtype, fieldname)
+	set_input(selector, value, key=Keys.TAB)
 	wait_for_ajax()
 
 def set_select(fieldname, value):
@@ -113,7 +120,9 @@ def set_select(fieldname, value):
 	wait_for_ajax()
 
 def primary_action():
-	wait_till_visible(".page-actions .primary-action").click()
+	selector = ".page-actions .primary-action"
+	scroll_to(selector)
+	wait_till_clickable(selector).click()
 	wait_for_ajax()
 
 def wait_for_page(name):
@@ -146,18 +155,28 @@ def wait(selector, everywhere=False):
 	if cur_route and not everywhere:
 		selector = cur_route + " " + selector
 
+	time.sleep(0.5)
 	elem = get_wait().until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
 	return elem
 
 def get_wait():
 	return WebDriverWait(_driver, 20)
 
-def set_input(selector, text):
+def set_input(selector, text, key=None):
 	elem = find(selector)[0]
 	elem.clear()
 	elem.send_keys(text)
+	if key:
+		time.sleep(0.5)
+		elem.send_keys(key)
 	if input_wait:
 		time.sleep(input_wait)
+
+def scroll_to(selector):
+	execute_script("frappe.ui.scroll('{0}')".format(selector))
+
+def execute_script(js):
+	_driver.execute_script(js)
 
 def close():
 	global _driver, pipe

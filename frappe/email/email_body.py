@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils.data import get_url, scrub_urls, strip, expand_relative_urls
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint
 import email.utils
 from markdown2 import markdown
 
@@ -211,9 +211,11 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 	# imported here to avoid cyclic import
 
 	message = scrub_urls(message)
+	email_account = get_outgoing_email_account(False)
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"content": message,
-		"footer": get_footer(footer),
+		"signature": get_signature(email_account),
+		"footer": get_footer(email_account, footer),
 		"title": subject,
 		"print_html": print_html,
 		"subject": subject
@@ -221,21 +223,29 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 
 	return rendered_email
 
-def get_footer(footer=None):
+def get_signature(email_account):
+	if email_account and email_account.add_signature and email_account.signature:
+		return "<br><br>" + email_account.signature
+	else:
+		return ""
+
+def get_footer(email_account, footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	email_account = get_outgoing_email_account(False)
-
-	if email_account and email_account.add_signature and email_account.signature:
-		footer += email_account.signature
-
 	if email_account and email_account.footer:
 		footer += email_account.footer
-	else:
-		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
-			footer += default_mail_footer
 
 	footer += "<!--unsubscribe link here-->"
+
+	company_address = frappe.db.get_default("email_footer_address")
+
+	if company_address:
+		footer += '<div style="text-align: center; color: #8d99a6">{0}</div>'\
+			.format(company_address.replace("\n", "<br>"))
+
+	if not cint(frappe.db.get_default("disable_standard_email_footer")):
+		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
+			footer += default_mail_footer
 
 	return footer

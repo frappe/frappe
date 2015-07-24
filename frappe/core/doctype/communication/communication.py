@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email
+from frappe.utils import get_url, get_formatted_email, cstr, cint
 from frappe.utils.file_manager import get_file
 import frappe.email.smtp
 from frappe import _
@@ -43,13 +43,15 @@ class Communication(Document):
 			if to_status in status_field.options.splitlines():
 				frappe.db.set_value(parent.doctype, parent.name, "status", to_status)
 
-	def send(self, print_html=None, print_format=None, attachments=None):
+	def send(self, print_html=None, print_format=None, attachments=None,
+		send_me_a_copy=False, recipients=None):
 		"""Send communication via Email.
 
 		:param print_html: Send given value as HTML attachment.
 		:param print_format: Attach print format of parent document."""
 
-		self.notify(print_html, print_format, attachments)
+		self.send_me_a_copy = send_me_a_copy
+		self.notify(print_html, print_format, attachments, recipients)
 
 	def set_incoming_outgoing_accounts(self):
 		self.incoming_email_account = self.outgoing_email_account = None
@@ -59,17 +61,20 @@ class Communication(Document):
 				{"append_to": self.reference_doctype, "enable_incoming": 1}, "email_id")
 
 			self.outgoing_email_account = frappe.db.get_value("Email Account",
-				{"append_to": self.reference_doctype, "enable_outgoing": 1}, "email_id")
+				{"append_to": self.reference_doctype, "enable_outgoing": 1},
+				["email_id", "always_use_account_email_id_as_sender"], as_dict=True)
 
 		if not self.incoming_email_account:
 			self.incoming_email_account = frappe.db.get_value("Email Account", {"default_incoming": 1}, "email_id")
 
 		if not self.outgoing_email_account:
-			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
+			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1},
+				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
-	def notify(self, print_html=None, print_format=None, attachments=None, except_recipient=False):
+	def notify(self, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
-		recipients = self.get_recipients(except_recipient=except_recipient)
+		if not recipients:
+			recipients = self.get_recipients(except_recipient=except_recipient)
 
 		frappe.sendmail(
 			recipients=recipients,
@@ -96,8 +101,8 @@ class Communication(Document):
 
 		self.set_incoming_outgoing_accounts()
 
-		if not self.sender:
-			self.sender = formataddr([frappe.session.data.full_name or "Notification", self.outgoing_email_account])
+		if not self.sender or cint(self.outgoing_email_account.always_use_account_email_id_as_sender):
+			self.sender = formataddr([frappe.session.data.full_name or "Notification", self.outgoing_email_account.email_id])
 
 		self.attachments = []
 
@@ -122,7 +127,8 @@ class Communication(Document):
 
 	def get_recipients(self, except_recipient=False):
 		"""Build a list of users to which this email should go to"""
-		original_recipients = [s.strip() for s in self.recipients.split(",")]
+		# [EDGE CASE] self.recipients can be None when an email is sent as BCC
+		original_recipients = [s.strip() for s in cstr(self.recipients).split(",")]
 		recipients = original_recipients[:]
 
 		if self.reference_doctype and self.reference_name:
@@ -152,6 +158,9 @@ class Communication(Document):
 
 			if e not in filtered and email_id not in filtered:
 				filtered.append(e)
+
+		if getattr(self, "send_me_a_copy", False):
+			filtered.append(self.sender)
 
 		return filtered
 
@@ -198,7 +207,8 @@ def on_doctype_update():
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False):
+	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False,
+	send_me_a_copy=False):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -212,7 +222,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param send_mail: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
-	:param attachments: List of attachments as list of files or JSON string."""
+	:param attachments: List of attachments as list of files or JSON string.
+	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 
@@ -235,11 +247,17 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
-
+	
+	recipients = None
 	if send_email:
-		comm.send(print_html, print_format, attachments)
+		comm.send_me_a_copy = send_me_a_copy
+		recipients = comm.get_recipients()
+		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy, recipients=recipients)
 
-	return comm.name
+	return {
+		"name": comm.name,
+		"recipients": ", ".join(recipients) if recipients else None
+	}
 
 @frappe.whitelist()
 def get_convert_to():

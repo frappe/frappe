@@ -15,7 +15,8 @@ from frappe.utils import cint, cstr, flt
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None, ignore_links=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
+	ignore_links=False, pre_process=None):
 	"""upload data"""
 	frappe.flags.mute_emails = True
 	# extra input params
@@ -200,6 +201,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doc = None
 
 		doc = get_doc(row_idx)
+		if pre_process:
+			pre_process(doc)
+
 		try:
 			frappe.local.message_log = []
 			if parentfield:

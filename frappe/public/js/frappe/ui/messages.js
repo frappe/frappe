@@ -48,7 +48,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	var d = new frappe.ui.Dialog({
 		fields: fields,
 		title: title || __("Enter Value"),
-	})
+	});
 	d.set_primary_action(primary_label || __("Submit"), function() {
 		var values = d.get_values();
 		if(!values) {
@@ -56,7 +56,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 		}
 		d.hide();
 		callback(values);
-	})
+	});
 	d.show();
 	return d;
 }
@@ -111,6 +111,27 @@ frappe.msgprint = function(msg, title) {
 	msg_dialog.show();
 
 	return msg_dialog;
+}
+
+frappe.verify_password = function(callback) {
+	frappe.prompt({
+		fieldname: "password",
+		label: __("Enter your password"),
+		fieldtype: "Password",
+		reqd: 1
+	}, function(data) {
+		frappe.call({
+			method: "frappe.core.doctype.user.user.verify_password",
+			args: {
+				password: data.password
+			},
+			callback: function(r) {
+				if(!r.exc) {
+					callback();
+				}
+			}
+		});
+	}, __("Verify Password"), __("Verify"))
 }
 
 var msgprint = frappe.msgprint;

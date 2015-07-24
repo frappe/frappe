@@ -1,7 +1,6 @@
 {% block title %}{{ _("My Account") }}{% endblock %}
 
 {% block content %}
-<!-- no-header -->
 <!-- no-sidebar -->
 <!-- no-cache -->
 <div class="row">
@@ -12,17 +11,22 @@
 			</div>
 			<div>
 				<h4><a href="/me">{{ fullname }}</a></h4>
-				<ul class="list-unstyled small user-options">
-					<li><a href="/update-password">{{ _("Reset Password") }}</a></li>
-					<li><a href="/?cmd=web_logout">{{ _("Logout") }}</a></li>
+				<ul class="list-unstyled">
+					<li><a href="/update-password">
+                        <h6 class="text-muted">{{ _("Reset Password") }}</h6>
+                    </a></li>
+					<li><a href="/?cmd=web_logout">
+                        <h6 class="text-muted">{{ _("Logout") }}</h6>
+                    </a></li>
 				</ul>
 			</div>
 		</div>
 	</div>
 	<div class="col-sm-9">
-		<ul class="list-unstyled my-account-list">
+		<ul class="list-group" style="margin: 15px 0px;">
 			{% for opts in my_account_list -%}
-			<li><a href="{{ opts.url }}">{{ opts.label }}</a></li>
+			<li class="list-group-item"><a href="{{ opts.url }}">
+                <h4>{{ opts.label }}</h4></a></li>
 			{%- endfor %}
 		</ul>
 	</div>

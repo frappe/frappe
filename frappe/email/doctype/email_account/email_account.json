@@ -45,6 +45,21 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "login_id_is_different", 
+   "fieldtype": "Check", 
+   "label": "Login Id is Different", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "login_id_is_different", 
+   "fieldname": "login_id", 
+   "fieldtype": "Data", 
+   "label": "Login Id", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "password", 
    "fieldtype": "Password", 
@@ -277,6 +292,15 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_outgoing", 
+   "description": "Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ", 
+   "fieldname": "always_use_account_email_id_as_sender", 
+   "fieldtype": "Check", 
+   "label": "Always use Account's Email ID as Sender", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "signature_section", 
    "fieldtype": "Section Break", 
@@ -364,6 +388,7 @@
   {
    "allow_on_submit": 0, 
    "depends_on": "enable_auto_reply", 
+   "description": "ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference", 
    "fieldname": "auto_reply_message", 
    "fieldtype": "Text Editor", 
    "hidden": 0, 
@@ -404,7 +429,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-21 15:31:02.269145", 
+ "modified": "2015-07-16 10:11:06.466258", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

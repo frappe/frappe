@@ -38,9 +38,15 @@ frappe.ui.form.on("Email Account", {
 				+ toTitle(frm.doc.email_id.split("@")[0].replace(/[._]/g, " ")));
 		}
 	},
+	enable_incoming: function(frm) {
+		frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
+	},
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
+	},
+	refresh: function(frm) {
+		frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	}
 });
 

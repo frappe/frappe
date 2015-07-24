@@ -147,7 +147,9 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
+		msg = _("No permission to {0} {1} {2}".format(perm_type, self.doctype, self.name or ""))
+		frappe.msgprint(msg)
+		raise frappe.PermissionError(msg)
 
 	def insert(self, ignore_permissions=None):
 		"""Insert the document in the database (as a new document).
@@ -560,11 +562,13 @@ class Document(BaseDocument):
 		elif self._action=="submit":
 			self.run_method("on_update")
 			self.run_method("on_submit")
-			self.add_comment("Submitted")
+			if not self.flags.ignore_submit_comment:
+				self.add_comment("Submitted")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
 			self.check_no_back_links_exist()
-			self.add_comment("Cancelled")
+			if not self.flags.ignore_submit_comment:
+				self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 

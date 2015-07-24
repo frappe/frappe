@@ -234,7 +234,14 @@ class DbTable:
 			query.append('alter column `{}` set default {}'.format(col.fieldname, col_default))
 
 		if query:
-			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			try:
+				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			except Exception, e:
+				# sanitize
+				if e.args[0]==1060:
+					frappe.throw(str(e))
+				else:
+					raise e
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default,
@@ -302,16 +309,33 @@ class DbColumn:
 
 	def default_changed(self, current_def):
 		if "decimal" in current_def['type']:
-			try:
-				if current_def['default'] in ("", None) and self.default in ("", None):
-					# both none, empty
-					return False
-				else:
-					return float(current_def['default'])!=float(self.default)
-			except TypeError:
-				return True
+			return self.default_changed_for_decimal(current_def)
 		else:
 			return current_def['default'] != self.default
+
+	def default_changed_for_decimal(self, current_def):
+		try:
+			if current_def['default'] in ("", None) and self.default in ("", None):
+				# both none, empty
+				return False
+
+			elif current_def['default'] in ("", None):
+				try:
+					# check if new default value is valid
+					float(self.default)
+					return True
+				except ValueError:
+					return False
+
+			elif self.default in ("", None):
+				# new default value is empty
+				return True
+
+			else:
+				# NOTE float() raise ValueError when "" or None is passed
+				return float(current_def['default'])!=float(self.default)
+		except TypeError:
+			return True
 
 class DbManager:
 	"""
@@ -452,4 +476,3 @@ def add_column(doctype, column_name, fieldtype, precision=None):
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
-

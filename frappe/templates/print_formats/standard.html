@@ -21,6 +21,11 @@
 {%- if trigger_print -%}
 <script>
 window.print();
-window.close();
+
+// close the window after print
+// NOTE: doesn't close if print is cancelled in Chrome
+window.onfocus = function() {
+	window.close();
+}
 </script>
 {%- endif -%}

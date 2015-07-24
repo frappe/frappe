@@ -72,13 +72,13 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 					unsubscribe_method, unsubscribe_params)
 
 				# add to queue
-				email_content = add_unsubscribe_link(email_content, email, reference_doctype, reference_name,
-					unsubscribe_url, unsubscribe_message)
+				email_content = add_unsubscribe_link(email_content, email, reference_doctype,
+					reference_name, unsubscribe_url, unsubscribe_message)
 
-				email_text_context += "\n" + _("Unsubscribe link: {0}").format(unsubscribe_url)
+				email_text_context += "\n" + _("This email was sent to {0}. To unsubscribe click on this link: {1}").format(email, unsubscribe_url)
 
-			add(email, sender, subject, email_content, email_text_context, reference_doctype, reference_name, attachments, reply_to,
-				cc, message_id, send_after)
+			add(email, sender, subject, email_content, email_text_context, reference_doctype,
+				reference_name, attachments, reply_to, cc, message_id, send_after)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
@@ -112,7 +112,8 @@ def check_bulk_limit(recipients):
 
 	# No limit for own email settings
 	smtp_server = SMTPServer()
-	if smtp_server.email_account and not getattr(smtp_server.email_account,
+
+	if smtp_server.email_account and getattr(smtp_server.email_account,
 		"from_site_config", False) or frappe.flags.in_test:
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
@@ -121,11 +122,12 @@ def check_bulk_limit(recipients):
 				BulkLimitCrossedError)
 
 def add_unsubscribe_link(message, email, reference_doctype, reference_name, unsubscribe_url, unsubscribe_message):
-	unsubscribe_link = """<div style="padding: 7px; margin-top: 7px;">
-			<a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: none; font-size: 85%;" target="_blank">
-				{unsubscribe_message}
+	unsubscribe_link = """<div style="padding: 7px; text-align: center; color: #8D99A6;">
+			{email}. <a href="{unsubscribe_url}" style="color: #8D99A6; text-decoration: underline;
+				target="_blank">{unsubscribe_message}.
 			</a>
 		</div>""".format(unsubscribe_url = unsubscribe_url,
+			email= _("This email was sent to {0}").format(email),
 			unsubscribe_message = unsubscribe_message or _("Unsubscribe from this list"))
 
 	message = message.replace("<!--unsubscribe link here-->", unsubscribe_link)
@@ -164,7 +166,7 @@ def unsubscribe(doctype, name, email):
 	return_unsubscribed_page(email, doctype, name)
 
 def return_unsubscribed_page(email, doctype, name):
-	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has has left the conversation in {1} {2}").format(email, _(doctype), name))
+	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has left the conversation in {1} {2}").format(email, _(doctype), name))
 
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
@@ -175,6 +177,9 @@ def flush(from_test=False):
 	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
 		msgprint(_("Emails are muted"))
 		from_test = True
+
+	frappe.db.sql("""update `tabBulk Email` set status='Expired'
+		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where

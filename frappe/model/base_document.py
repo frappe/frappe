@@ -261,7 +261,7 @@ class BaseDocument(object):
 					return
 				type, value, traceback = sys.exc_info()
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-				raise frappe.NameError, (self.doctype, self.name, e), traceback
+				raise frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback
 			else:
 				raise
 
@@ -453,7 +453,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -461,7 +461,10 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		return format_value(self.get(fieldname), df=df, doc=doc or self, currency=currency)
+		val = self.get(fieldname)
+		if absolute_value and isinstance(val, (int, float)):
+			val = abs(self.get(fieldname))
+		return format_value(val, df=df, doc=doc or self, currency=currency)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
@@ -524,7 +527,7 @@ class BaseDocument(object):
 
 	def cast(self, val, df):
 		if df.fieldtype in ("Currency", "Float", "Percent"):
-			val = flt(val, self.precision(df.fieldname))
+			val = flt(val)
 
 		elif df.fieldtype in ("Int", "Check"):
 			val = cint(val)

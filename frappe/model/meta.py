@@ -114,6 +114,9 @@ class Meta(Document):
 			list_fields.append(self.title_field)
 		return list_fields
 
+	def get_title_field(self):
+		return self.title_field or "name"
+
 	def process(self):
 		# don't process for special doctypes
 		# prevent's circular dependency

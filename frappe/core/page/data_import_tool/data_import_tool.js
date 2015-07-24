@@ -7,16 +7,25 @@ frappe.DataImportTool = Class.extend({
 			title: __("Data Import Tool"),
 			single_column: true
 		});
+		this.page.add_inner_button(__("Help"), function() {
+			frappe.help.show_video("6wiriRKPhmg");
+		});
 		this.make();
 		this.make_upload();
 	},
 	set_route_options: function() {
-		if(frappe.route_options
-			&& frappe.route_options.doctype
-			&& in_list(frappe.boot.user.can_import, frappe.route_options.doctype)) {
-				this.select.val(frappe.route_options.doctype).change();
-				frappe.route_options = null;
+		var doctype = null;
+		if(frappe.get_route()[1]) {
+			doctype = frappe.get_route()[1];
+		} else if(frappe.route_options && frappe.route_options.doctype) {
+			doctype = frappe.route_options.doctype;
 		}
+
+		if(in_list(frappe.boot.user.can_import, doctype)) {
+				this.select.val(doctype).change();
+		}
+
+		frappe.route_options = null;
 	},
 	make: function() {
 		var me = this;

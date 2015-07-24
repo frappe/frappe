@@ -146,7 +146,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.ht
 DocType: Website Settings,Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners geralmente são melhores)
 DocType: Website Settings,Set Banner from Image,Jogo da bandeira da Imagem
 apps/frappe/frappe/core/doctype/user/user.py +202,User {0} cannot be deleted,O usuário {0} não pode ser excluído
-sites/assets/js/desk.min.js +183,Another transaction is blocking this one. Please try again in a few seconds.,"Outra transação está bloqueando este. Por favor, tente novamente em alguns segundos."
+sites/assets/js/desk.min.js +183,Another transaction is blocking this one. Please try again in a few seconds.,"Bloqueado por outra transação. Por favor, tente novamente em alguns segundos."
 DocType: Property Setter,Field Name,Nome do Campo
 sites/assets/js/desk.min.js +684,or,ou
 apps/frappe/frappe/templates/generators/web_form.html +265,Continue,Continuar
@@ -725,7 +725,7 @@ DocType: DocPerm,User Permission DocTypes,Doctypes permissão de usuário
 sites/assets/js/desk.min.js +555,New Name,Novo Nome
 sites/assets/js/form.min.js +196,Insert Above,Inserir Acima
 sites/assets/js/list.min.js +21,Not Saved,Não Salvo
-apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,Allow User If,Permitir que o usuário Se
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,Allow User If,Permitir usuário se
 DocType: Custom Field,Default Value,Valor padrão
 DocType: Workflow Document State,Update Field,Atualizar Campo
 apps/frappe/frappe/email/doctype/email_account/email_account.py +237,Leave this conversation,Deixar essa conversa

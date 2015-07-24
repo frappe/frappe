@@ -31,7 +31,7 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
-		"time_zone", "defaults", "user_permissions", "roles")
+		"defaults", "user_permissions", "roles")
 
 	if user:
 		for name in groups:
@@ -55,7 +55,7 @@ def clear_sessions(user=None, keep_current=False):
 		user = frappe.session.user
 
 	for sid in frappe.db.sql("""select sid from tabSessions where user=%s and device=%s""",
-		(user, frappe.session.device or "desktop")):
+		(user, frappe.session.data.device or "desktop")):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
@@ -192,11 +192,13 @@ class Session:
 		if data:
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
+			self.user = data.user
 		else:
 			self.start_as_guest()
 
 		if self.sid != "Guest":
-			frappe.local.lang = frappe.translate.get_user_lang(self.data.user)
+			frappe.local.user_lang = frappe.translate.get_user_lang(self.data.user)
+			frappe.local.lang = frappe.local.user_lang
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
@@ -226,11 +228,9 @@ class Session:
 			session_data = data.get("data", {})
 
 			# set user for correct timezone
-			frappe.session.user = session_data.get("user")
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
 				session_data.get("last_updated"))
 			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
-			frappe.session.user = None
 
 			if self.time_diff > expiry:
 				self.delete_session()

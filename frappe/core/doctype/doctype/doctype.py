@@ -18,7 +18,6 @@ form_grid_templates = {
 }
 
 class DocType(Document):
-	__doclink__ = "https://frappe.io/docs/models/core/doctype"
 	def get_feed(self):
 		return self.name
 
@@ -315,6 +314,7 @@ def validate_fields(meta):
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
+		d.fieldname = d.fieldname.lower()
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
@@ -362,14 +362,21 @@ def validate_permissions(doctype, for_remove=False):
 
 	def check_double(d):
 		has_similar = False
+		similar_because_of = ""
 		for p in permissions:
-			if (p.role==d.role and p.permlevel==d.permlevel
-				and p.apply_user_permissions==d.apply_user_permissions and p!=d):
-				has_similar = True
-				break
+			if p.role==d.role and p.permlevel==d.permlevel and p!=d:
+				if p.apply_user_permissions==d.apply_user_permissions:
+					has_similar = True
+					similar_because_of = _("Apply User Permissions")
+					break
+				elif p.if_owner==d.if_owner:
+					similar_because_of = _("If Owner")
+					has_similar = True
+					break
 
 		if has_similar:
-			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and Apply User Permissions").format(get_txt(d)))
+			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and {1}")\
+				.format(get_txt(d),	similar_because_of))
 
 	def check_level_zero_is_set(d):
 		if cint(d.permlevel) > 0 and d.role != 'All':
@@ -382,8 +389,8 @@ def validate_permissions(doctype, for_remove=False):
 			if not has_zero_perm:
 				frappe.throw(_("{0}: Permission at level 0 must be set before higher levels are set").format(get_txt(d)))
 
-			if d.create or d.submit or d.cancel or d.amend:
-				frappe.throw(_("{0}: Create, Submit, Cancel and Amend only valid at level 0").format(get_txt(d)))
+			for invalid in ("create", "submit", "cancel", "amend"):
+				if d.get(invalid): d.set(invalid, 0)
 
 	def check_permission_dependency(d):
 		if d.cancel and not d.submit:
@@ -466,4 +473,3 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
-

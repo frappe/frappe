@@ -11,7 +11,6 @@ from frappe import _
 import frappe.model.document
 import frappe.utils
 import frappe.sessions
-import frappe.model.utils
 import werkzeug.utils
 from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file

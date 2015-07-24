@@ -270,7 +270,6 @@ class DatabaseQuery(object):
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []
-
 		only_if_shared = False
 
 		if not self.tables: self.extract_tables()
@@ -283,7 +282,7 @@ class DatabaseQuery(object):
 		if not meta.istable and not role_permissions.get("read") and not self.flags.ignore_permissions:
 			only_if_shared = True
 			if not self.shared:
-				frappe.throw(_("No permission to read {0}").format(self.doctype))
+				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
 			else:
 				self.conditions.append(self.get_share_condition())
 
@@ -295,9 +294,9 @@ class DatabaseQuery(object):
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
-				# share is an OR condition, if there is a role permission
-				if not only_if_shared and self.shared:
-					self.or_conditions.append(self.get_share_condition())
+			if role_permissions.get("if_owner", {}).get("read"):
+				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
+					frappe.db.escape(frappe.session.user)))
 
 		if as_condition:
 			conditions = ""
@@ -308,6 +307,11 @@ class DatabaseQuery(object):
 			doctype_conditions = self.get_permission_query_conditions()
 			if doctype_conditions:
 				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
+
+			# share is an OR condition, if there is a role permission
+			if not only_if_shared and self.shared and conditions:
+				conditions =  "({conditions}) or ({shared_condition})".format(
+					conditions=conditions, shared_condition=self.get_share_condition())
 
 			return conditions
 

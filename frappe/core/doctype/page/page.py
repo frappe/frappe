@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
+from frappe import conf
 
 class Page(Document):
 	def autoname(self):
@@ -26,13 +27,16 @@ class Page(Document):
 					cnt = 1
 				self.name += '-' + str(cnt)
 
+	def validate(self):
+		if not getattr(conf,'developer_mode', 0):
+			frappe.throw(_("Not in Developer Mode"))
+
 	# export
 	def on_update(self):
 		"""
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		from frappe import conf
 		from frappe.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self, "roles")
 
@@ -61,6 +65,21 @@ class Page(Document):
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 		return d
+
+	def is_permitted(self):
+		"""Returns true if Page Role is not set or the user is allowed."""
+		from frappe.utils import has_common
+
+		allowed = [d.role for d in frappe.get_all("Page Role", fields=["role"],
+			filters={"parent": self.name})]
+		
+		if not allowed:
+			return True
+
+		roles = frappe.get_roles()
+
+		if has_common(roles, allowed):
+			return True
 
 	def load_assets(self):
 		from frappe.modules import get_module_path, scrub

@@ -15,7 +15,8 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 
 		// add last handler to events so it can be called as
 		// frm.events.handler(frm)
-		cur_frm.events[fieldname] = handler;
+		if(cur_frm && cur_frm.doctype===doctype)
+			cur_frm.events[fieldname] = handler;
 	}
 
 	if (!handler && $.isPlainObject(fieldname)) {

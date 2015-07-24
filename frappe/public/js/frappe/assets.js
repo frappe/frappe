@@ -92,6 +92,7 @@ frappe.assets = {
 		// *without* the template
 
 		frappe.call({
+			type: "GET",
 			method:"frappe.client.get_js",
 			args: {
 				"src": src

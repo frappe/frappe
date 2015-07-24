@@ -11,6 +11,7 @@ class DocShare(Document):
 	no_feed_on_delete = True
 
 	def validate(self):
+		self.validate_user()
 		self.check_share_permission()
 		self.cascade_permissions_downwards()
 		self.get_doc().run_method("validate_share", self)
@@ -25,6 +26,12 @@ class DocShare(Document):
 		if not getattr(self, "_doc", None):
 			self._doc = frappe.get_doc(self.share_doctype, self.share_name)
 		return self._doc
+
+	def validate_user(self):
+		if self.everyone:
+			self.user = None
+		elif not self.user:
+			frappe.throw(_("User is mandatory for Share"), frappe.MandatoryError)
 
 	def check_share_permission(self):
 		if (not self.flags.ignore_share_permission and

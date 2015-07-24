@@ -511,6 +511,10 @@ class Database:
 			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
 		return val[0][0] if val else None
 
+	def get_singles_value(self, *args, **kwargs):
+		"""Alias for get_single_value"""
+		return self.get_single_value(*args, **kwargs)
+
 	def _get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):

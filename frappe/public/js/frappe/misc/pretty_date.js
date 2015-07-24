@@ -1,14 +1,8 @@
 function prettyDate(time, mini){
 
 	if(moment) {
-		if(frappe.boot) {
-			var user_timezone = frappe.boot.user.time_zone;
-			var system_timezone = sys_defaults.time_zone;
-			var zones = (frappe.boot.timezone_info || {}).zones || {};
-		}
-		if (frappe.boot && user_timezone && (user_timezone != system_timezone)
-			&& zones[user_timezone] && zones[system_timezone]) {
-			var ret = moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow(mini);
+		if(window.sys_defaults && sys_defaults.time_zone) {
+			var ret = moment.tz(time, sys_defaults.time_zone).fromNow(mini);
 		} else {
 			var ret = moment(time).fromNow(mini);
 		}
@@ -17,10 +11,12 @@ function prettyDate(time, mini){
 				ret = "now";
 			} else {
 				var parts = ret.split(" ");
-				if(parts[0]==="a" || parts[0]==="an") {
-					parts[0] = 1;
+				if(parts.length > 1) {
+					if(parts[0]==="a" || parts[0]==="an") {
+						parts[0] = 1;
+					}
+					ret = parts[0] + " " + parts[1].substr(0, 1);
 				}
-				ret = parts[0] + " " + parts[1].substr(0, 1);
 			}
 		}
 		return ret;

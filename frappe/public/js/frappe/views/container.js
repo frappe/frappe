@@ -5,6 +5,7 @@
 frappe.provide('frappe.pages');
 frappe.provide('frappe.views');
 
+var cur_page = null;
 frappe.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
 			page creation, switching",
@@ -37,6 +38,7 @@ frappe.views.Container = Class.extend({
 		return page;
 	},
 	change_to: function(label) {
+		cur_page = this;
 		if(this.page && this.page.label === label) {
 			$(this.page).trigger('show');
 			return;

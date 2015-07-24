@@ -34,12 +34,11 @@ def get_context(context):
 	return {
 		"body": get_html(doc, print_format = frappe.form_dict.format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print, no_letterhead=frappe.form_dict.no_letterhead),
-		"css": get_print_style(frappe.form_dict.style),
+		"css": get_print_style(frappe.form_dict.style, frappe.form_dict.format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name
 	}
 
-@frappe.whitelist()
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
 
@@ -109,6 +108,15 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	return html
 
 @frappe.whitelist()
+def get_html_and_style(doc, name=None, print_format=None, meta=None,
+	no_letterhead=None, trigger_print=False):
+	return {
+		"html": get_html(doc, name=name, print_format=print_format, meta=meta,
+	no_letterhead=no_letterhead, trigger_print=trigger_print),
+		"style": get_print_style(print_format=print_format)
+	}
+
+@frappe.whitelist()
 def download_pdf(doctype, name, format=None):
 	html = frappe.get_print(doctype, name, format)
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -121,7 +129,8 @@ def validate_print_permission(doc):
 			return
 
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(doc.doctype, ptype, doc):
+		if (not frappe.has_permission(doc.doctype, ptype, doc)
+			and not frappe.has_website_permission(doc.doctype, ptype, doc)):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
 def get_letter_head(doc, no_letterhead):
@@ -240,13 +249,17 @@ def has_value(df, doc):
 
 	return True
 
-def get_print_style(style=None):
+def get_print_style(style=None, print_format=None, for_legacy=False):
 	print_settings = frappe.get_doc("Print Settings")
 
 	if not style:
 		style = print_settings.print_style or "Standard"
 
-	context = {"print_settings": print_settings, "print_style": style}
+	context = {
+		"print_settings": print_settings,
+		"print_style": style,
+		"font": get_font(print_settings, print_format, for_legacy)
+	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
@@ -264,6 +277,26 @@ def get_print_style(style=None):
 
 	return css
 
+def get_font(print_settings, print_format=None, for_legacy=False):
+	default = '"Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
+	if for_legacy:
+		return default
+
+	font = None
+	if print_format and print_format not in ("Standard", standard_format):
+		print_format = frappe.get_doc("Print Format", print_format)
+		if print_format.font and print_format.font!="Default":
+			font = '{0}, sans-serif'.format(print_format.font)
+
+	if not font:
+		if print_settings.font and print_settings.font!="Default":
+			font = '{0}, sans-serif'.format(print_settings.font)
+
+		else:
+			font = default
+
+	return font
+
 def get_visible_columns(data, table_meta, df):
 	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
@@ -276,7 +309,10 @@ def get_visible_columns(data, table_meta, df):
 		# columns specified by column builder
 		for col_df in df.get("visible_columns"):
 			# load default docfield properties
-			newdf = table_meta.get_field(col_df.get("fieldname")).as_dict().copy()
+			docfield = table_meta.get_field(col_df.get("fieldname"))
+			if not docfield:
+				continue
+			newdf = docfield.as_dict().copy()
 			newdf.update(col_df)
 			if add_column(newdf):
 				columns.append(newdf)

@@ -21,8 +21,8 @@ def send(email, append_to=None):
 
 	try:
 		smtpserver = SMTPServer(append_to=append_to)
-		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
-			cint(smtpserver.always_use_login_id_as_sender) and smtpserver.login:
+		if hasattr(smtpserver, "always_use_account_email_id_as_sender") and \
+			cint(smtpserver.always_use_account_email_id_as_sender) and smtpserver.login:
 			if not email.reply_to:
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
@@ -55,7 +55,8 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
 
 		if not email_account and raise_exception_not_set:
-			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"))
+			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
+				frappe.OutgoingEmailError)
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 
@@ -114,11 +115,13 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = self.email_account.email_id
+			self.login = getattr(self.email_account, "login_id", None) \
+				or self.email_account.email_id
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls
 			self.sender = self.email_account.email_id
+			self.always_use_account_email_id_as_sender = self.email_account.get("always_use_account_email_id_as_sender")
 
 	@property
 	def sess(self):

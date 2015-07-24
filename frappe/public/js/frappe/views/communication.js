@@ -33,6 +33,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				{fieldtype: "Column Break"},
 				{label:__("Send As Email"), fieldtype:"Check",
 					fieldname:"send_email"},
+				{label:__("Send me a copy"), fieldtype:"Check",
+					fieldname:"send_me_a_copy"},
 				{label:__("Communication Medium"), fieldtype:"Select",
 					options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
 					fieldname:"communication_medium"},
@@ -115,6 +117,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
 					this.subject = "Re: " + this.subject;
 				}
+			}
+
+			if (!this.subject) {
+				this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
 			}
 		}
 	},
@@ -316,6 +322,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				name: me.doc.name,
 				send_email: form_values.send_email,
 				print_html: print_html,
+				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
@@ -324,8 +331,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					if(form_values.send_email)
-						msgprint(__("Email sent to {0}", [form_values.recipients]));
+					if(form_values.send_email && r.message["recipients"])
+						msgprint(__("Email sent to {0}", [r.message["recipients"]]));
 					me.dialog.hide();
 
 					if (cur_frm) {
@@ -395,6 +402,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(this.dialog.fields_dict.recipients.input)
 			.bind( "keydown", function(event) {
 				if (event.keyCode === $.ui.keyCode.TAB &&
+						$(this).data( "autocomplete" ) &&
 						$(this).data( "autocomplete" ).menu.active ) {
 					event.preventDefault();
 				}
@@ -418,8 +426,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				},
 				appendTo: this.dialog.$wrapper,
 				focus: function() {
-					// prevent value inserted on focus
-					return false;
+					event.preventDefault();
 				},
 				select: function( event, ui ) {
 					var terms = split( this.value );
@@ -435,4 +442,3 @@ frappe.views.CommunicationComposer = Class.extend({
 			});
 	}
 });
-

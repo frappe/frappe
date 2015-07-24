@@ -48,4 +48,3 @@ def format_value(value, df, doc=None, currency=None):
 			return value.replace("\n", "<br>")
 
 	return value
-

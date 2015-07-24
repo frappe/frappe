@@ -67,6 +67,11 @@ frappe.ui.form.States = Class.extend({
 
 		this.frm.page.clear_actions_menu();
 
+		// if the loaded doc is dirty, don't show workflow buttons
+		if (this.frm.doc.__unsaved===1) {
+			return;
+		}
+
 		$.each(frappe.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
 			if(in_list(user_roles, d.allowed)) {
 				added = true;
@@ -89,7 +94,6 @@ frappe.ui.form.States = Class.extend({
 
 					// revert state on error
 					var on_error = function() {
-						console.log("here", doc_before_action);
 						// reset in locals
 						frappe.model.add_to_locals(doc_before_action);
 						me.frm.refresh();

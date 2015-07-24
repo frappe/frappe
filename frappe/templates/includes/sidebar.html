@@ -3,7 +3,7 @@
 {% if parents -%}
 <ul class="list-unstyled sidebar-menu sidebar-item">
 	<li>
-		<a href="{{ parents[-1].name | with_leading_slash }}" class="no-decoration">
+		<a href="{{ parents[-1].name | abs_url }}" class="no-decoration">
 			<i class="icon-angle-left"></i> {{ _("Back") }}
 		</a>
 	</li>
@@ -12,7 +12,7 @@
 {%- for child in children -%}
 <ul class="list-unstyled sidebar-menu sidebar-item">
 	<li>
-		<a href="{{ child.name | with_leading_slash }}" class="no-decoration
+		<a href="{{ child.name | abs_url }}" class="no-decoration
 			{% if (pathname or "")==(child.name or "") or (pathname and child.name and (pathname.startswith(child.name.lstrip("/")))) -%} active {%- endif %}">
 			{{  child.title or child.page_title or (child.name or "") }}
 		</a>

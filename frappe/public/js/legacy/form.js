@@ -173,8 +173,9 @@ _f.Frm.prototype.print_doc = function() {
 }
 
 _f.Frm.prototype.hide_print = function() {
-	if(this.setup_done) {
-		this.page.set_view(this.page.previous_view_name != "print" && this.page.previous_view_name || "main");
+	if(this.setup_done && this.page.current_view_name==="print") {
+		this.page.set_view(this.page.previous_view_name==="print" ?
+			"main" : (this.page.previous_view_name || "main"));
 	}
 }
 
@@ -212,7 +213,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 
 _f.Frm.prototype.setup_std_layout = function() {
 	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-	this.inner_toolbar	= $('<div class="form-inner-toolbar hide"></div>').appendTo(this.form_wrapper);
 	this.body 			= $('<div></div>').appendTo(this.form_wrapper);
 
 	// only tray
@@ -298,7 +298,7 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
 }
 
-_f.Frm.prototype.refresh_header = function() {
+_f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 	// set title
 	// main title
 	if(!this.meta.in_dialog || this.in_form) {
@@ -310,6 +310,10 @@ _f.Frm.prototype.refresh_header = function() {
 
 	// show / hide buttons
 	if(this.toolbar) {
+		if (is_a_different_doc) {
+			this.toolbar.current_status = undefined;
+		}
+
 		this.toolbar.refresh();
 	}
 
@@ -341,8 +345,10 @@ _f.Frm.prototype.check_doc_perm = function() {
 }
 
 _f.Frm.prototype.refresh = function(docname) {
-	// record switch
+	var is_a_different_doc = docname ? true : false;
+
 	if(docname) {
+		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) &&
 			!this.meta.istable) {
 				scroll(0, 0);
@@ -388,7 +394,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			cur_frm.cscript.is_onload = true;
 			this.setnewdoc();
 		} else {
-			this.render_form();
+			this.render_form(is_a_different_doc);
 		}
 
 		// if print format is shown, refresh the format
@@ -398,8 +404,11 @@ _f.Frm.prototype.refresh = function(docname) {
 	}
 }
 
-_f.Frm.prototype.render_form = function() {
+_f.Frm.prototype.render_form = function(is_a_different_doc) {
 	if(!this.meta.istable) {
+		this.layout.doc = this.doc;
+		this.layout.attach_doc_and_docfields()
+
 		this.sidebar = new frappe.ui.form.Sidebar({
 			frm: this,
 			page: this.page
@@ -407,7 +416,7 @@ _f.Frm.prototype.render_form = function() {
 
 		// header must be refreshed before client methods
 		// because add_custom_button
-		this.refresh_header();
+		this.refresh_header(is_a_different_doc);
 
 		// call trigger
 		this.script_manager.trigger("refresh");
@@ -435,7 +444,7 @@ _f.Frm.prototype.render_form = function() {
 		}
 
 	} else {
-		this.refresh_header();
+		this.refresh_header(is_a_different_doc);
 	}
 
 	$(cur_frm.wrapper).trigger('render_complete');
@@ -609,8 +618,10 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				// done is called after all ajaxes in validate & before_save are completed :)
 
 				if(!validated) {
-					if(on_error)
+					btn && $(btn).prop("disabled", false);
+					if(on_error) {
 						on_error();
+					}
 					return;
 				}
 
@@ -763,13 +774,11 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-		.on("click", fn).appendTo(this.inner_toolbar.removeClass("hide"))
-	//return this.page.add_menu_item(label, fn);
+	this.page.add_inner_button(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.inner_toolbar.empty().addClass("hide");
+	this.page.inner_toolbar.empty().addClass("hide");
 	this.page.clear_user_actions();
 }
 

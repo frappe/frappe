@@ -9,6 +9,9 @@
 			<span class="badge n-comments">0</span>
 		</a>
 	</li>
+    {% if(frappe.help.has_help(doctype)) { %}
+    <li><a class="strong help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
+    {% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
 	<li class="divider"></li>

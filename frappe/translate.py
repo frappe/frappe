@@ -165,7 +165,7 @@ def get_full_dict(lang):
 
 	:param lang: Language Code, e.g. `hi`
 	"""
-	if lang == "en":
+	if not lang or lang == "en":
 		return {}
 
 	if not frappe.local.lang_full_dict:

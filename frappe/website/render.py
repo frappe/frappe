@@ -18,6 +18,7 @@ class PageNotFoundError(Exception): pass
 def render(path, http_status_code=None):
 	"""render html page"""
 	path = resolve_path(path.strip("/ "))
+	set_lang()
 
 	try:
 		data = render_page(path)
@@ -55,6 +56,9 @@ def render(path, http_status_code=None):
 
 	return build_response(path, data, http_status_code or 200)
 
+def set_lang():
+	"""Set user's lang if not Guest or use default lang"""
+	frappe.local.lang = getattr(frappe.local, "user_lang", None) or frappe.db.get_default("lang")
 
 def render_403(e, pathname):
 	path = "message"
@@ -216,4 +220,3 @@ def clear_cache(path=None):
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
-

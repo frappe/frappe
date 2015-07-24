@@ -85,7 +85,9 @@ frappe.ui.Page = Class.extend({
 		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
+		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
 		this.icon_group = this.page_actions.find(".page-icon-group");
+
 	},
 
 	set_indicator: function(label, color) {
@@ -225,6 +227,11 @@ frappe.ui.Page = Class.extend({
 		return $('<li class="divider"></li>').appendTo(this.menu);
 	},
 
+	add_inner_button: function(label, action) {
+		return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
+			.on("click", action).appendTo(this.inner_toolbar.removeClass("hide"))
+	},
+
 	//---//
 
 	clear_user_actions: function() {
@@ -358,6 +365,8 @@ frappe.ui.Page = Class.extend({
 		return this.views[name];
 	},
 	set_view: function(name) {
+		if(this.current_view_name===name)
+			return;
 		this.current_view && this.current_view.toggle(false);
 		this.current_view = this.views[name];
 

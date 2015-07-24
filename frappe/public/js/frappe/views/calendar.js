@@ -8,8 +8,8 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this;
 
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.css');
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.js');
+		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.min.css');
+		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.min.js');
 
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
@@ -53,7 +53,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			"default": frappe.datetime.month_start(),
 			input_css: {"z-index": 1},
 			change: function() {
-				me.$cal.fullCalendar("gotoDate", $(this).val());
+				var selected = $(this).val();
+				if (selected) {
+					me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
+				}
 			}
 		});
 
@@ -62,7 +65,17 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			frappe.set_route("Form", me.doctype, doc.name);
 		});
 
-		var me = this;
+		// add links to other calendars
+		$.each(frappe.boot.calendars, function(i, doctype) {
+			if(frappe.model.can_read(doctype)) {
+				me.page.add_menu_item(__(doctype), function() {
+					frappe.set_route("Calendar", doctype);
+				});
+			}
+		});
+
+		this.page.page_actions.find(".menu-btn-group-label").text(__("Type"));
+
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		})
@@ -124,6 +137,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			"color": "#D9F6FF"
 		}
 	},
+	get_system_datetime: function(date) {
+		date._offset = moment.user_utc_offset;
+		return frappe.datetime.convert_to_system_tz(date);
+	},
 	setup_options: function() {
 		var me = this;
 		this.cal_options = {
@@ -135,6 +152,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			editable: true,
 			selectable: true,
 			selectHelper: true,
+			forceEventDuration: true,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
@@ -154,10 +172,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 					frappe.set_route("Form", doctype, event.name);
 				}
 			},
-			eventDrop: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
+			eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
 				me.update_event(event, revertFunc);
 			},
-			eventResize: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
+			eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
 				me.update_event(event, revertFunc);
 			},
 			select: function(startDate, endDate, jsEvent, view) {
@@ -169,10 +187,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 				var event = frappe.model.get_new_doc(me.doctype);
 
-				event[me.field_map.start] = frappe.datetime.get_datetime_as_string(startDate);
+				event[me.field_map.start] = me.get_system_datetime(startDate);
 
 				if(me.field_map.end)
-					event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate);
+					event[me.field_map.end] = me.get_system_datetime(endDate);
 
 				if(me.field_map.allDay) {
 					var all_day = (startDate._ambigTime && endDate._ambigTime) ? 1 : 0;
@@ -180,9 +198,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 					event[me.field_map.allDay] = all_day;
 
 					if (all_day)
-						event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate.subtract(1, "s"));
+						event[me.field_map.end] = me.get_system_datetime(moment(endDate).subtract(1, "s"));
 				}
-
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},
@@ -199,8 +216,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	get_args: function(start, end) {
 		var args = {
 			doctype: this.doctype,
-			start: frappe.datetime.get_datetime_as_string(start),
-			end: frappe.datetime.get_datetime_as_string(end),
+			start: this.get_system_datetime(start),
+			end: this.get_system_datetime(end),
 			filters: this.get_filters()
 		};
 		return args;
@@ -226,6 +243,12 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			if(!me.field_map.allDay)
 				d.allDay = 1;
 
+			// convert to user tz
+			d.start = frappe.datetime.convert_to_user_tz(d.start);
+			d.end = frappe.datetime.convert_to_user_tz(d.end);
+
+			me.fix_end_date_for_event_render(d);
+
 			if(d.status) {
 				if(me.style_map) {
 					$.extend(d, me.styles[me.style_map[d.status]] || {});
@@ -246,31 +269,46 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			args: me.get_update_args(event),
 			callback: function(r) {
 				if(r.exc) {
-					show_alert("Unable to update event.")
+					show_alert(__("Unable to update event"));
 					revertFunc();
 				}
+			},
+			error: function() {
+				revertFunc();
 			}
 		});
 	},
 	get_update_args: function(event) {
+		var me = this;
 		var args = {
 			name: event[this.field_map.id]
 		};
-		args[this.field_map.start] = frappe.datetime.get_datetime_as_string(event.start);
+
+		args[this.field_map.start] = me.get_system_datetime(event.start);
 
 		if(this.field_map.allDay)
-			args[this.field_map.allDay] = event.allDay ? 1 : 0;
+			args[this.field_map.allDay] = (event.start._ambigTime && event.end._ambigTime) ? 1 : 0;
 
 		if(this.field_map.end) {
+			if (!event.end) {
+				event.end = event.start.add(1, "hour");
+			}
+
 			if (args[this.field_map.allDay]) {
-				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.start);
-			} else if (event.end) {
-				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
+				args[this.field_map.end] = me.get_system_datetime(moment(event.end).subtract(1, "s"));
 			}
 		}
 
 		args.doctype = event.doctype || this.doctype;
 
 		return { args: args, field_map: this.field_map };
+	},
+
+	fix_end_date_for_event_render: function(event) {
+		if (event.allDay) {
+			// We use inclusive end dates. This workaround fixes the rendering of events
+			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
+			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
+		}
 	}
 })

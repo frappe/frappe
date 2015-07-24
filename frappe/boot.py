@@ -70,6 +70,7 @@ def get_bootinfo():
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.default_background_image = get_url("/assets/frappe/images/ui/into-the-dawn.jpg")
+	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 
 	return bootinfo
 
@@ -104,8 +105,15 @@ def get_allowed_pages():
 
 def load_translations(bootinfo):
 	if frappe.local.lang != 'en':
-		bootinfo["__messages"] = frappe.get_lang_dict("boot")
+		messages = frappe.get_lang_dict("boot")
+
 		bootinfo["lang"] = frappe.lang
+
+		# load translated report names
+		for name in bootinfo.user.all_reports:
+			messages[name] = frappe._(name)
+
+		bootinfo["__messages"] = messages
 
 def get_fullnames():
 	"""map of user fullnames"""
@@ -142,14 +150,10 @@ def add_home_page(bootinfo, docs):
 	docs.append(page)
 
 def add_timezone_info(bootinfo):
-	user = bootinfo.user.get("time_zone")
 	system = bootinfo.sysdefaults.get("time_zone")
-	if user and user != system:
-		import frappe.utils.momentjs
-		bootinfo.timezone_info = {"zones":{}, "rules":{}, "links":{}}
-
-		frappe.utils.momentjs.update(user, bootinfo.timezone_info)
-		frappe.utils.momentjs.update(system, bootinfo.timezone_info)
+	import frappe.utils.momentjs
+	bootinfo.timezone_info = {"zones":{}, "rules":{}, "links":{}}
+	frappe.utils.momentjs.update(system, bootinfo.timezone_info)
 
 def load_print(bootinfo, doclist):
 	print_settings = frappe.db.get_singles_dict("Print Settings")
@@ -158,4 +162,4 @@ def load_print(bootinfo, doclist):
 	load_print_css(bootinfo, print_settings)
 
 def load_print_css(bootinfo, print_settings):
-	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern")
+	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)

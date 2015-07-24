@@ -76,8 +76,9 @@ class User(Document):
 		if new_password and not self.in_insert:
 			_update_password(self.name, new_password)
 
-			self.password_update_mail(new_password)
-			frappe.msgprint(_("New password emailed"))
+			if self.send_password_update_notification:
+				self.password_update_mail(new_password)
+				frappe.msgprint(_("New password emailed"))
 
 	def on_update(self):
 		# clear new password
@@ -324,12 +325,16 @@ def get_perm_info(arg=None):
 		and docstatus<2 order by parent, permlevel""", (frappe.form_dict['role'],), as_dict=1)
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, key=None):
+def update_password(new_password, key=None, old_password=None):
 	# verify old password
 	if key:
 		user = frappe.db.get_value("User", {"reset_password_key":key})
 		if not user:
 			return _("Cannot Update: Incorrect / Expired Link.")
+	elif old_password:
+		# verify old password
+		frappe.local.login_manager.check_password(frappe.session.user, old_password)
+		user = frappe.session.user
 
 	_update_password(user, new_password)
 
@@ -341,6 +346,10 @@ def update_password(new_password, key=None):
 		return "/desk"
 	else:
 		return "/"
+
+@frappe.whitelist()
+def verify_password(password):
+	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name):

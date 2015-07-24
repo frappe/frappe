@@ -8,13 +8,38 @@ moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
+	convert_to_user_tz: function(date) {
+		if(sys_defaults.time_zone) {
+			return moment.tz(date, sys_defaults.time_zone).utc()
+				.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+		} else {
+			return moment(date).format(moment.defaultDatetimeFormat);
+		}
+	},
+
+	convert_to_system_tz: function(date) {
+		if(sys_defaults.time_zone) {
+			return moment(date).utc()
+				.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+		} else {
+			return moment(date).format(moment.defaultDatetimeFormat);
+		}
+	},
+
+	is_timezone_same: function() {
+		if(sys_defaults.time_zone) {
+			return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+		} else {
+			return true;
+		}
+	},
+
 	str_to_obj: function(d) {
-		// zone hack to remove timezone diff added by momentjs
-		return moment(d, moment.defaultDatetimeFormat).zone(moment().zone())._d;
+		return moment(d, moment.defaultDatetimeFormat)._d;
 	},
 
 	obj_to_str: function(d) {
-		return moment(d).format();
+		return moment(d).locale("en").format();
 	},
 
 	obj_to_user: function(d) {
@@ -81,7 +106,8 @@ $.extend(frappe.datetime, {
 		}
 
 		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
-		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt]).format(system_fmt);
+		return moment(val, [user_fmt.replace("YYYY", "YY"),
+			user_fmt]).locale("en").format(system_fmt);
 	},
 
 	user_to_obj: function(d) {
@@ -98,7 +124,7 @@ $.extend(frappe.datetime, {
 	},
 
 	get_today: function() {
-		return moment().format();
+		return moment().locale("en").format();
 	},
 
 	nowdate: function() {
@@ -106,7 +132,7 @@ $.extend(frappe.datetime, {
 	},
 
 	now_time: function() {
-		return moment().format("HH:mm:ss");
+		return moment().locale("en").format("HH:mm:ss");
 	},
 
 	validate: function(d) {

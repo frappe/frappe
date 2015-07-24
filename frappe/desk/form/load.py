@@ -89,7 +89,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name,
-			fields=["user", "read", "write", "share"])
+			fields=["user", "read", "write", "share", "everyone"])
 	}
 
 def get_user_permissions(meta):
@@ -105,7 +105,8 @@ def get_attachments(dt, dn):
 
 def get_comments(dt, dn, limit=100):
 	comments = frappe.db.sql("""select name, comment, comment_by, creation,
-		comment_type, "Comment" as doctype from `tabComment`
+			reference_doctype, reference_name, comment_type, "Comment" as doctype
+		from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
 		order by creation desc limit %s""" % ('%s','%s', limit),
 			(dt, dn), as_dict=1)

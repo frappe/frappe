@@ -103,12 +103,31 @@
    "fieldtype": "Check", 
    "label": "Unsubscribed", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "reference_doctype", 
+   "fieldtype": "Link", 
+   "label": "Reference DocType", 
+   "options": "DocType", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "description": "Reference DocType and Reference Name are used to render a comment as a link (href) to a Doc.", 
+   "fieldname": "reference_name", 
+   "fieldtype": "Dynamic Link", 
+   "label": "Reference Name", 
+   "options": "reference_doctype", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2015-02-11 15:32:45.807458", 
+ "modified": "2015-06-08 12:31:15.122312", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 

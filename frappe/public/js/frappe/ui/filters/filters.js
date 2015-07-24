@@ -272,7 +272,8 @@ frappe.ui.Filter = Class.extend({
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link', 'Read Only'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
+			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
@@ -306,13 +307,20 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		if(this.get_condition()==='like') {
-			// add % only if not there at the end
-			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
-				val = (val || "") + '%';
+			// automatically append wildcards
+			if(val) {
+				if(val.slice(0,1) !== "%") {
+					val = "%" + val;
+				}
+				if(val.slice(-1) !== "%") {
+					val = val + "%";
+				}
 			}
 		} else if(in_list(["in", "not in"], this.get_condition())) {
 			val = $.map(val.split(","), function(v) { return strip(v); });
-		} if(val === '%') val = "";
+		} if(val === '%') {
+			val = "";
+		}
 
 		return val;
 	},
@@ -382,26 +390,28 @@ frappe.ui.Filter = Class.extend({
 frappe.ui.FieldSelect = Class.extend({
 	// opts parent, doctype, filter_fields, with_blank, select
 	init: function(opts) {
+		var me = this;
 		$.extend(this, opts);
 		this.fields_by_name = {};
 		this.options = [];
-		this.$select = $('<input class="form-control">').appendTo(this.parent);
-		var me = this;
-		this.$select.autocomplete({
-			source: me.options,
-			minLength: 0,
-			focus: function(event, ui) {
-				ui.item && me.$select.val(ui.item.label);
-				return false;
-			},
-			select: function(event, ui) {
-				me.selected_doctype = ui.item.doctype;
-				me.selected_fieldname = ui.item.fieldname;
-				me.$select.val(ui.item.label);
-				if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
-				return false;
-			}
-		});
+		this.$select = $('<input class="form-control">')
+			.appendTo(this.parent)
+			.on("click", function () { $(this).select(); })
+			.autocomplete({
+				source: me.options,
+				minLength: 0,
+				autoFocus: true,
+				focus: function(event, ui) {
+					event.preventDefault();
+				},
+				select: function(event, ui) {
+					me.selected_doctype = ui.item.doctype;
+					me.selected_fieldname = ui.item.fieldname;
+					me.$select.val(ui.item.label);
+					if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
+					return false;
+				}
+			});
 
 		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
 			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))

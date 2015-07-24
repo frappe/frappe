@@ -27,10 +27,10 @@ frappe.search = {
 
 				response(frappe.search.options);
 			},
-			open: function() {
-				frappe.search.autocomplete_open = true;
+			open: function(event, ui) {
+				frappe.search.autocomplete_open = event.target;
 			},
-			close: function() {
+			close: function(event, ui) {
 				frappe.search.autocomplete_open = false;
 			},
 			select: function(event, ui) {
@@ -48,16 +48,6 @@ frappe.search = {
 			}
 		};
 
-		var render_item = function(ul, d) {
-			var html = "<span>" + __(d.label || d.value) + "</span>";
-			if(d.description && d.value!==d.description) {
-				html += '<br><span class="text-muted">' + __(d.description) + '</span>';
-			}
-			return $('<li></li>')
-				.data('item.autocomplete', d)
-				.html('<a><p>' + html + '</p></a>')
-				.appendTo(ul);
-		};
 
 		var open_recent = function() {
 			if (!frappe.search.autocomplete_open) {
@@ -67,14 +57,26 @@ frappe.search = {
 
 		$("#navbar-search")
 			.on("focus", open_recent)
-			.autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
+			.autocomplete(opts).data('ui-autocomplete')._renderItem =
+				frappe.search.render_item;
 
 		$("#sidebar-search")
 			.on("focus", open_recent)
-			.autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
+			.autocomplete(opts).data('ui-autocomplete')._renderItem =
+				frappe.search.render_item;
 
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
+	},
+	render_item: function(ul, d) {
+		var html = "<span>" + __(d.label || d.value) + "</span>";
+		if(d.description && d.value!==d.description) {
+			html += '<br><span class="text-muted">' + __(d.description) + '</span>';
+		}
+		return $('<li></li>')
+			.data('item.autocomplete', d)
+			.html('<a><p>' + html + '</p></a>')
+			.appendTo(ul);
 	},
 	add_help: function() {
 		frappe.search.options.push({
@@ -208,12 +210,24 @@ frappe.search.verbs = [
 		});
 	},
 
+	// reports
+	function(txt) {
+		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
+			var report_type = frappe.boot.user.all_reports[match];
+			return {
+				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				value: __("Open {0}", [__(match)]),
+				route: [report_type=="Report Builder" ? "Report" : "query-report", match]
+			}
+		});
+	},
+
 	// pages
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
-				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
-				value: __("Open {0}", [__(match)]),
+				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
+				value: __("Report {0}", [__(match)]),
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
@@ -274,5 +288,5 @@ frappe.search.verbs = [
 			}
 
 		};
-	},
+	}
 ];

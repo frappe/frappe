@@ -149,6 +149,9 @@ class User:
 			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
 				where allow_import = 1""")
 
+		self.all_reports = frappe.db.sql("""select name, report_type from tabReport
+			where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)))
+
 	def get_defaults(self):
 		import frappe.defaults
 		self.defaults = frappe.defaults.get_defaults(self.name)
@@ -185,7 +188,7 @@ class User:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.sql("""select email, first_name, last_name, time_zone,
+		d = frappe.db.sql("""select email, first_name, last_name,
 			email_signature, user_type, language, background_image, background_style
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
@@ -206,6 +209,7 @@ class User:
 
 			d[key] = list(set(getattr(self, key)))
 
+		d.all_reports = dict(self.all_reports)
 		return d
 
 def get_user_fullname(user):
@@ -285,3 +289,6 @@ def get_enabled_system_users():
 
 def is_website_user():
 	return frappe.get_user().doc.user_type == "Website User"
+
+def is_system_user(username):
+	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})

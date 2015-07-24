@@ -179,6 +179,13 @@ ul.linked-with-list li {
 	font-size: @text-medium;
 }
 
+
+@media (min-width: 768px) {
+	.video-modal {
+		width: 700px;
+	}
+}
+
 /* z-index hack */
 // .ui-datepicker { z-index: 9999999 !important; }
 // .ui-autocomplete { z-index: 9999999 !important; }
@@ -215,6 +222,24 @@ ul.linked-with-list li {
 
 .modal-title {
 	margin-top: 5px;
+}
+
+// fixes datepicker z-index issue
+.form-control {
+	position: relative;
+}
+
+.link-field.ui-front {
+	z-index: inherit;
+}
+
+.modal .hasDatepicker {
+	z-index: 1140;
+}
+
+.modal .link-field .ui-autocomplete {
+	// so that it appears over the datepicker field
+	z-index: 1141;
 }
 
 .form-group {

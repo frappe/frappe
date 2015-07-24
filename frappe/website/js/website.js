@@ -340,6 +340,9 @@ $.extend(frappe, {
 		// change id of current page
 		$(".page-container").attr("id", "page-" + data.path);
 
+		// set data-path value in body
+		$("body").attr("data-path", data.path);
+
 		// clear page-header-right
 		$(".page-header-right").html("");
 
@@ -467,9 +470,6 @@ $.extend(frappe, {
 	},
 	toggle_template_blocks: function() {
 		// this assumes frappe base template
-		$(".page-header").toggleClass("hidden",
-			!!!$("[data-html-block='header']").text().trim());
-
 		$(".page-footer").toggleClass("hidden",
 			!!!$(".page-footer").text().trim());
 
@@ -477,6 +477,17 @@ $.extend(frappe, {
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 			!$("[data-html-block='breadcrumbs']").text().trim() ||
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
+
+		// adjust page header block
+		var page_header_actions = $(".page-header-actions-block");
+		if(page_header_actions.text().trim()) {
+			page_header_actions.parent().removeClass("hidden");
+			$(".page-header-block").parent().removeClass("col-sm-12").addClass("col-sm-8");
+		} else {
+			page_header_actions.parent().addClass("hidden");
+			$(".page-header-block").parent().removeClass("col-sm-8").addClass("col-sm-12");
+		}
+
 	},
 	get_navbar_search: function() {
 		return $(".navbar .search, .sidebar .search");

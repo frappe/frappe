@@ -11,6 +11,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
 from frappe.translate import make_dict_from_messages, extract_messages_from_code
 from frappe.utils.jinja import render_include
+from frappe.build import html_to_js_template
 
 ######
 
@@ -70,11 +71,24 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_code_via_hook("doctype_list_js", "__list_js")
 		self.add_custom_script()
+		self.add_html_templates(path)
 
 	def _add_code(self, path, fieldname):
 		js = frappe.read_file(path)
 		if js:
 			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_include(js))
+
+	def add_html_templates(self, path):
+		if self.custom:
+			return
+		js = ""
+		for fname in os.listdir(path):
+			if fname.endswith(".html"):
+				with open(os.path.join(path, fname), 'r') as f:
+					template = unicode(f.read(), "utf-8")
+					js += html_to_js_template(fname, template)
+
+		self.set("__js", (self.get("__js") or "") + js)
 
 	def add_code_via_hook(self, hook, fieldname):
 		for app_name in frappe.get_installed_apps():

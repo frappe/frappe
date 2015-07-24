@@ -44,28 +44,37 @@ class POP3Server:
 
 			self.pop.user(self.settings.username)
 			self.pop.pass_(self.settings.password)
+
+			# connection established!
+			return True
+
 		except _socket.error:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
+
 		except poplib.error_proto, e:
-			if not "SYS/TEMP" in str(e):
+			if self.is_temporary_system_problem(e):
+				return False
+
+			else:
 				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
-			raise
+				raise
 
 	def get_messages(self):
 		"""Returns new email messages in a list."""
 		if not self.check_mails():
 			return # nothing to do
 
-		self.latest_messages = []
-
 		frappe.db.commit()
-		self.connect()
+
+		if not self.connect():
+			return []
 
 		try:
 			# track if errors arised
 			self.errors = False
+			self.latest_messages = []
 			pop_list = self.pop.list()[1]
 			num = num_copy = len(pop_list)
 
@@ -137,6 +146,16 @@ class POP3Server:
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
+
+	def is_temporary_system_problem(self, e):
+		messages = (
+			"-ERR [SYS/TEMP] Temporary system problem. Please try again later.",
+			"Connection timed out",
+		)
+		for message in messages:
+			if message in strip(cstr(e.message)):
+				return True
+		return False
 
 	def validate_pop(self, pop_meta):
 		# throttle based on email size
