@@ -64,18 +64,21 @@ def as_json():
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
 	return response
 
-def make_logs():
+def make_logs(response = None):
 	"""make strings for msgprint and errprint"""
+	if not response:
+		response = frappe.local.response
+
 	if frappe.error_log:
 		# frappe.response['exc'] = json.dumps("\n".join([cstr(d) for d in frappe.error_log]))
-		frappe.response['exc'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.error_log])
+		response['exc'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
-		frappe.response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
+		response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
 			d in frappe.local.message_log])
 
 	if frappe.debug_log and frappe.conf.get("logging") or False:
-		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
+		response['_debug_messages'] = json.dumps(frappe.local.debug_log)
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""

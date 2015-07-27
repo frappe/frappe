@@ -83,3 +83,5 @@ frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'")
+
+frappe.patches.v6_0.make_task_log_folder

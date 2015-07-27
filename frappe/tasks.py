@@ -154,14 +154,15 @@ def run_async_task(self, site, user, cmd, form_dict):
 		ret = frappe.local.response
 	except Exception, e:
 		frappe.db.rollback()
-		set_task_status(self.request.id, "Failed")
 		if not frappe.flags.in_test:
 			frappe.db.commit()
 
 		ret = frappe.local.response
 		http_status_code = getattr(e, "http_status_code", 500)
 		ret['status_code'] = http_status_code
-		ret['exc'] = frappe.get_traceback()
+		frappe.errprint(frappe.get_traceback())
+		frappe.utils.response.make_logs()
+		set_task_status(self.request.id, "Failed", response=ret)
 		task_logger.error('Exception in running {}: {}'.format(cmd, ret['exc']))
 	else:
 		set_task_status(self.request.id, "Finished", response=ret)
