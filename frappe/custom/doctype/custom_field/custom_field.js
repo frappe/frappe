@@ -52,7 +52,7 @@ cur_frm.cscript.fieldtype = function(doc, dt, dn) {
 		  __('Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer');
 	} else if(doc.fieldtype == 'Select') {
 		cur_frm.fields_dict['options_help'].disp_area.innerHTML =
-			__('Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>');
+			__('Options for select. Each option on a new line.')+' '+__('e.g.:')+'<br>'+__('Option 1')+'<br>'+__('Option 2')+'<br>'+__('Option 3')+'<br>';
 	} else if(doc.fieldtype == 'Dynamic Link') {
 		cur_frm.fields_dict['options_help'].disp_area.innerHTML =
 			__('Fieldname which will be the DocType for this link field.');

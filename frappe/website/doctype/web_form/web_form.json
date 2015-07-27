@@ -214,7 +214,7 @@
    "precision": ""
   }, 
   {
-   "description": "In JSON as <pre>[{\"title\":\"Jobs\", \"name\":\"jobs\"}]</pre>", 
+   "description": "In JSON as [{\"title\":\"Jobs\", \"name\":\"jobs\"}]", 
    "fieldname": "breadcrumbs", 
    "fieldtype": "Small Text", 
    "label": "Breadcrumbs", 

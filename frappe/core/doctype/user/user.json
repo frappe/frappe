@@ -154,7 +154,7 @@
    "permlevel": 0
   }, 
   {
-   "description": "Get your globally recognized avatar from <a href=\"https://gravatar.com/\">Gravatar.com</a>", 
+   "description": "Get your globally recognized avatar from Gravatar.com", 
    "fieldname": "user_image", 
    "fieldtype": "Attach", 
    "hidden": 0, 
@@ -326,7 +326,7 @@
    "width": "50%"
   }, 
   {
-   "description": "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to <a href=\"#Form/Customize Form/Customize Form\">Customize Form</a>.", 
+   "description": "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to \"Customize Form\".", 
    "fieldname": "defaults", 
    "fieldtype": "Table", 
    "hidden": 1, 
