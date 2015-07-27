@@ -32,6 +32,9 @@
   margin: 0px;
   padding: 15px;
 }
+.form-section .form-section-heading {
+  margin: 25px 0px 15px 0px;
+}
 .empty-section {
   display: none !important;
 }

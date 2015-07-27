@@ -11,7 +11,6 @@ from frappe.utils import get_fullname
 
 class Comment(Document):
 	"""Comments are added to Documents via forms or views like blogs etc."""
-	__doclink__ = "https://frappe.io/docs/models/core/comment"
 	no_feed_on_delete = True
 
 	def get_feed(self):
@@ -134,4 +133,3 @@ def on_doctype_update():
 		frappe.db.commit()
 		frappe.db.sql("""alter table `tabComment`
 			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")
-

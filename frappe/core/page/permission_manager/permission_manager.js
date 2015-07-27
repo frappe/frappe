@@ -191,6 +191,7 @@ frappe.PermissionEngine = Class.extend({
 
 			if (d.permlevel===0) {
 				me.setup_user_permissions(d, role_cell);
+				me.setup_if_owner(d, role_cell);
 			}
 
 			var cell = me.add_cell(row, d, "permlevel");
@@ -267,6 +268,12 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		d.help = "";
+	},
+
+	setup_if_owner: function(d, role_cell) {
+		var checkbox = this.add_check(role_cell, d, "if_owner")
+			.removeClass("col-md-4")
+			.css({"margin-top": "15px"});
 	},
 
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
