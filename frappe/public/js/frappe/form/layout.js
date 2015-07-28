@@ -85,7 +85,7 @@ frappe.ui.form.Layout = Class.extend({
 
 		this.section = null;
 		this.column = null;
-		if(this.fields[0] && this.fields[0].fieldtype!="Section Break") {
+		if((this.fields[0] && this.fields[0].fieldtype!="Section Break") || !this.fields.length) {
 			this.make_section();
 		}
 		$.each(this.fields, function(i, df) {

@@ -85,3 +85,4 @@ execute:frappe.permissions.reset_perms("DocType")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'")
 
 frappe.patches.v6_0.make_task_log_folder
+frappe.patches.v6_0.document_type_rename

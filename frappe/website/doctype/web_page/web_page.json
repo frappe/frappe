@@ -3,7 +3,7 @@
  "description": "Page to show on the website\n", 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Transaction", 
+ "document_type": "Document", 
  "fields": [
   {
    "fieldname": "section_title", 
@@ -200,7 +200,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2015-07-22 12:38:08.696692", 
+ "modified": "2015-07-28 16:18:12.887565", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 

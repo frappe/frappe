@@ -5,7 +5,7 @@
  "creation": "2013-01-19 10:23:30", 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Master", 
+ "document_type": "Setup", 
  "fields": [
   {
    "fieldname": "country_name", 
@@ -42,7 +42,7 @@
  "icon": "icon-globe", 
  "idx": 1, 
  "in_create": 0, 
- "modified": "2015-02-05 05:11:36.234753", 
+ "modified": "2015-07-28 16:18:11.855617", 
  "modified_by": "Administrator", 
  "module": "Geo", 
  "name": "Country", 

@@ -87,7 +87,7 @@ class DocType(Document):
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
-			and (not autoname in ('Prompt', 'hash')) \
+			and (not autoname.lower() in ('prompt', 'hash')) \
 			and (not autoname.startswith('naming_series:')):
 
 			prefix = autoname.split('.')[0]

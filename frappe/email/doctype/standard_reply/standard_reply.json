@@ -4,7 +4,7 @@
  "creation": "2014-06-19 05:20:26.331041", 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Transaction", 
+ "document_type": "Document", 
  "fields": [
   {
    "fieldname": "subject", 
@@ -33,18 +33,13 @@
   }
  ], 
  "icon": "icon-comment", 
- "modified": "2015-02-05 05:11:46.922356", 
+ "modified": "2015-07-28 16:18:12.432775", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Standard Reply", 
  "name_case": "", 
  "owner": "Administrator", 
  "permissions": [
-  {
-   "permlevel": 0, 
-   "read": 1, 
-   "role": "All"
-  }, 
   {
    "apply_user_permissions": 1, 
    "create": 1, 

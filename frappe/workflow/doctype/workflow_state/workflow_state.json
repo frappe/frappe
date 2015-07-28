@@ -5,7 +5,7 @@
  "description": "Workflow state represents the current state of a document.", 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Master", 
+ "document_type": "Setup", 
  "fields": [
   {
    "fieldname": "workflow_state_name", 
@@ -36,7 +36,7 @@
  ], 
  "icon": "icon-flag", 
  "idx": 1, 
- "modified": "2015-05-27 02:51:01.978973", 
+ "modified": "2015-07-28 16:18:13.320514", 
  "modified_by": "Administrator", 
  "module": "Workflow", 
  "name": "Workflow State", 

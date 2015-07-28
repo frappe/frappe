@@ -273,7 +273,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 		return;
 
 	// cleanup
-	if(this && this.opendocs[old]) {
+	if(this && this.opendocs[old] && frappe.meta.docfield_copy[dt]) {
 		// delete docfield copy
 		frappe.meta.docfield_copy[dt][name] = frappe.meta.docfield_copy[dt][old];
 		delete frappe.meta.docfield_copy[dt][old];
@@ -820,4 +820,3 @@ _f.Frm.prototype.validate_form_action = function(action) {
 _f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
 	return this.script_manager.get_handlers(fieldname, doctype || this.doctype, docname || this.docname)
 }
-

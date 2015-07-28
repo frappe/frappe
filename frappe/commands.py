@@ -759,6 +759,18 @@ def move(dest_dir, site):
 	frappe.destroy()
 	return final_new_path
 
+
+@click.command('set-config')
+@click.argument('key')
+@click.argument('value')
+@pass_context
+def set_config(context, key, value):
+	from frappe.installer import update_site_config
+	for site in context.sites:
+		frappe.init(site=site)
+		update_site_config(key, value)
+		frappe.destroy()
+
 @click.command('drop-site')
 @click.argument('site')
 @click.option('--root-login', default='root')
@@ -837,4 +849,5 @@ commands = [
 	backup,
 	remove_from_installed_apps,
 	drop_site,
+	set_config,
 ]

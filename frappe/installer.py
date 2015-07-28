@@ -188,7 +188,7 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 
 def make_site_config(db_name=None, db_password=None, site_config=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
-	site_file = os.path.join(frappe.local.site_path, "site_config.json")
+	site_file = get_site_config_path()
 
 	if not os.path.exists(site_file):
 		if not (site_config and isinstance(site_config, dict)):
@@ -196,6 +196,34 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+def update_site_config(key, value):
+	"""Update a value in site_config"""
+	with open(get_site_config_path(), "r") as f:
+		site_config = json.loads(f.read())
+
+	# int
+	try:
+		value = int(value)
+	except ValueError:
+		pass
+
+	# boolean
+	if value in ("False", "True"):
+		value = eval(value)
+
+	# remove key if value is None
+	if value == "None":
+		if key in site_config:
+			del site_config[key]
+	else:
+		site_config[key] = value
+
+	with open(get_site_config_path(), "w") as f:
+		f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+def get_site_config_path():
+	return os.path.join(frappe.local.site_path, "site_config.json")
 
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
@@ -215,7 +243,7 @@ def make_site_dirs():
 	for dir_path in (
 			os.path.join(site_private_path, 'backups'),
 			os.path.join(site_public_path, 'files'),
-			os.path.join(site_public_path, 'task-logs')):
+			os.path.join(frappe.local.site_path, 'task-logs')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 	locks_dir = frappe.get_site_path('locks')

@@ -48,18 +48,20 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				me.display = true;
 				cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
-				var first = $(me.body).find('.modal-content :input:first');
-				if(first.length && first.attr("data-fieldtype")!="Date") {
-					try {
-						first.get(0).focus();
-					} catch(e) {
-						console.log("Dialog: unable to focus on first input: " + e);
-					}
-				}
+				me.focus_on_first_input();
 				me.on_page_show && me.on_page_show();
-			})
+			});
 
-
+	},
+	focus_on_first_input: function() {
+		var first = $(this.body).find(':input:first');
+		if(first.length && first.attr("data-fieldtype")!="Date") {
+			try {
+				first.get(0).focus();
+			} catch(e) {
+				console.log("Dialog: unable to focus on first input: " + e);
+			}
+		}
 	},
 	get_primary_btn: function() {
 		return this.$wrapper.find(".modal-header .btn-primary");

@@ -7,7 +7,7 @@
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Transaction", 
+ "document_type": "Document", 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -230,7 +230,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-05 05:11:48.897157", 
+ "modified": "2015-07-28 16:18:12.772231", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 
