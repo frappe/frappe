@@ -497,12 +497,14 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		this._super();
+		import_datepicker_locale();
 		this.set_datepicker();
 	},
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
+		// this.$input.datepicker($.datepicker.regional[frappe.boot.lang]);
 	},
 	parse: function(value) {
 		if(value) {
@@ -526,7 +528,14 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 		return callback(value);
 	}
-})
+});
+
+import_datepicker_locale = function() {
+	if (frappe.boot.lang=="en") {
+		return;
+	}
+	frappe.require("assets/frappe/js/lib/jquery/datepicker-i18n/datepicker-" + frappe.boot.lang + ".js");
+}
 
 import_timepicker = function() {
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
