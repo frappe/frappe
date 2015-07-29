@@ -134,6 +134,9 @@ frappe.desk.pages.Messages = Class.extend({
 			hide_refresh: true,
 			freeze: false,
 			render_row: function(wrapper, data) {
+				if(data.parenttype==="Assignment" || data.comment_type==="Shared") {
+					data.is_system_message = 1;
+				}
 				var row = $(frappe.render_template("messages_row", {
 					data: data
 				})).appendTo(wrapper);
@@ -170,5 +173,3 @@ frappe.desk.pages.Messages = Class.extend({
 
 
 });
-
-
