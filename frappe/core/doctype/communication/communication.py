@@ -149,6 +149,10 @@ class Communication(Document):
 				continue
 
 			email_id = parseaddr(e)[1]
+
+			if not email_id:
+				continue
+
 			if email_id==sender or email_id in unsubscribed or email_id in email_accounts:
 				continue
 
@@ -247,7 +251,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
-	
+
 	recipients = None
 	if send_email:
 		comm.send_me_a_copy = send_me_a_copy
