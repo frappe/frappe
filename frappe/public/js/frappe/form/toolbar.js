@@ -220,7 +220,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else {
 			var click = {
 				"Save": function() {
-					if(!frappe.dom.is_touchscreen()) {
+					if(!frappe.dom.is_touchscreen() && Math.random() < 0.30) {
 						show_alert(__("You can also use Ctrl+S to Save"));
 					}
 					me.frm.save('Save', null, this);
