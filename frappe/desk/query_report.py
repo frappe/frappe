@@ -152,7 +152,8 @@ def get_filtered_data(ref_doctype, columns, data):
 
 	if match_filters_per_doctype:
 		for row in data:
-			if shared and row[linked_doctypes[ref_doctype]] in shared:
+			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
+			if linked_doctypes.get(ref_doctype) and shared and row[linked_doctypes[ref_doctype]] in shared:
 				result.append(row)
 
 			elif has_match(row, linked_doctypes, match_filters_per_doctype, ref_doctype, if_owner, columns_dict):
