@@ -191,11 +191,11 @@ class Database:
 		"""
 		return [r[0] for r in self.sql(query, values, debug=debug)]
 
-	def sql_ddl(self, query, values=()):
+	def sql_ddl(self, query, values=(), debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
 		self.commit()
-		self.sql(query)
+		self.sql(query, debug=debug)
 
 	def check_transaction_status(self, query):
 		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are

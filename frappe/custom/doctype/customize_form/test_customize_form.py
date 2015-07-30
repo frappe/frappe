@@ -109,7 +109,7 @@ class TestCustomizeForm(unittest.TestCase):
 		location_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), '0')
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("User")
@@ -156,7 +156,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.doc_type = "User"
 		d.run_method('reset_to_defaults')
 
-		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, None)
+		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, 0)
 
 		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
