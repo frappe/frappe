@@ -75,7 +75,6 @@ class DbTable:
 
 		self.add_index = []
 		self.drop_index = []
-
 		self.set_default = []
 
 		# load
@@ -240,6 +239,9 @@ class DbTable:
 				# sanitize
 				if e.args[0]==1060:
 					frappe.throw(str(e))
+				elif e.args[0]==1062:
+					fieldname = str(e).split("'")[-2]
+					frappe.throw(_("{0} field cannot be set as unique, as there are non-unique existing values".format(fieldname)))
 				else:
 					raise e
 
@@ -286,17 +288,14 @@ class DbColumn:
 
 		# type
 		if (current_def['type'] != column_def) or (self.unique and not current_def['unique'] \
-			and column_def in ('text', 'longtext')):
+			and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
 		else:
 			# index
-			if (current_def['index'] and not self.set_index):
-				self.table.drop_index.append(self)
-
-			if (current_def['unique'] and not self.unique) and not (column_def in ('text', 'longtext')):
-				self.table.drop_index.append(self)
-
+			if current_def['index'] and not self.set_index and not self.unique:
+				self.table.drop_index.append(self)		
+		
 			if (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
 				self.table.add_index.append(self)
 
