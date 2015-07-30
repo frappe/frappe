@@ -174,6 +174,14 @@ class BaseDocument(object):
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 
+			df = self.meta.get_field(fieldname)
+			if df:
+				if df.fieldtype=="Check" and not isinstance(d[fieldname], int):
+					d[fieldname] = cint(d[fieldname])
+
+				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
+					d[fieldname] = None
+
 			if d[fieldname]=="":
 				df = self.meta.get_field(fieldname)
 				if df and df.fieldtype in ("Datetime", "Date"):

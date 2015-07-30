@@ -75,7 +75,6 @@ class DbTable:
 
 		self.add_index = []
 		self.drop_index = []
-
 		self.set_default = []
 
 		# load
@@ -226,7 +225,10 @@ class DbTable:
 			if col.fieldname=="name":
 				continue
 
-			if not col.default:
+			if col.fieldtype=="Check":
+				col_default = cint(col.default)
+
+			elif not col.default:
 				col_default = "null"
 			else:
 				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
@@ -240,6 +242,9 @@ class DbTable:
 				# sanitize
 				if e.args[0]==1060:
 					frappe.throw(str(e))
+				elif e.args[0]==1062:
+					fieldname = str(e).split("'")[-2]
+					frappe.throw(_("{0} field cannot be set as unique, as there are non-unique existing values".format(fieldname)))
 				else:
 					raise e
 
@@ -262,7 +267,11 @@ class DbColumn:
 		if not column_def:
 			return column_def
 
-		if self.default and (self.default not in default_shortcuts) \
+		if self.fieldtype=="Check":
+			default_value = cint(self.default) or 0
+			column_def += ' not null default {0}'.format(default_value)
+
+		elif self.default and (self.default not in default_shortcuts) \
 			and not self.default.startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += ' default "' + self.default.replace('"', '\"') + '"'
 
@@ -286,17 +295,14 @@ class DbColumn:
 
 		# type
 		if (current_def['type'] != column_def) or (self.unique and not current_def['unique'] \
-			and column_def in ('text', 'longtext')):
+			and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
 		else:
 			# index
-			if (current_def['index'] and not self.set_index):
-				self.table.drop_index.append(self)
-
-			if (current_def['unique'] and not self.unique) and not (column_def in ('text', 'longtext')):
-				self.table.drop_index.append(self)
-
+			if current_def['index'] and not self.set_index and not self.unique:
+				self.table.drop_index.append(self)		
+		
 			if (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
 				self.table.add_index.append(self)
 
