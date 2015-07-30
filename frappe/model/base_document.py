@@ -132,6 +132,7 @@ class BaseDocument(object):
 
 			# reference parent document
 			value.parent_doc = self
+			value.docstatus = 0
 			return value
 		else:
 			raise ValueError, "Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
