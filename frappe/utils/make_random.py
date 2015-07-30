@@ -29,7 +29,7 @@ def get_random(doctype, filters=None):
 	condition = []
 	if filters:
 		for key, val in filters.items():
-			condition.append("%s='%s'" % (key, val.replace("'", "\'")))
+			condition.append("%s='%s'" % (key, str(val).replace("'", "\'")))
 	if condition:
 		condition = " where " + " and ".join(condition)
 	else:
