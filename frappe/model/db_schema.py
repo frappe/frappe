@@ -225,7 +225,10 @@ class DbTable:
 			if col.fieldname=="name":
 				continue
 
-			if not col.default:
+			if col.fieldtype=="Check":
+				col_default = cint(col.default)
+
+			elif not col.default:
 				col_default = "null"
 			else:
 				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
@@ -264,7 +267,11 @@ class DbColumn:
 		if not column_def:
 			return column_def
 
-		if self.default and (self.default not in default_shortcuts) \
+		if self.fieldtype=="Check":
+			default_value = cint(self.default) or 0
+			column_def += ' not null default {0}'.format(default_value)
+
+		elif self.default and (self.default not in default_shortcuts) \
 			and not self.default.startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += ' default "' + self.default.replace('"', '\"') + '"'
 
