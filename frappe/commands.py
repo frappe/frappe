@@ -163,6 +163,16 @@ def install_app(context, app):
 		finally:
 			frappe.destroy()
 
+@click.command('list-apps')
+@pass_context
+def list_apps(context):
+	"Reinstall site ie. wipe all data and start over"
+	site = get_single_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+	print "\n".join(frappe.get_installed_apps())
+	frappe.destroy()
+
 @click.command('add-system-manager')
 @click.argument('email')
 @click.option('--first-name')
@@ -738,6 +748,20 @@ def remove_from_installed_apps(context, app):
 		finally:
 			frappe.destroy()
 
+@click.command('uninstall-app')
+@click.argument('app')
+@click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
+@pass_context
+def uninstall(context, app, dry_run=False):
+	from frappe.installer import remove_app
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			remove_app(app, dry_run)
+		finally:
+			frappe.destroy()
+
 def move(dest_dir, site):
 	import os
 	if not os.path.isdir(dest_dir):
@@ -809,6 +833,7 @@ commands = [
 	restore,
 	reinstall,
 	install_app,
+	list_apps,
 	add_system_manager,
 	migrate,
 	run_patch,
@@ -848,6 +873,7 @@ commands = [
 	_use,
 	backup,
 	remove_from_installed_apps,
+	uninstall,
 	drop_site,
 	set_config,
 ]
