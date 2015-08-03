@@ -160,7 +160,9 @@ class BaseDocument(object):
 		value.parent = self.name
 		value.parenttype = self.doctype
 		value.parentfield = key
-		value.docstatus = 0
+
+		if value.docstatus is None:
+			value.docstatus = 0
 
 		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
