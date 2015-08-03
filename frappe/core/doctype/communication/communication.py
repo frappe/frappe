@@ -72,6 +72,26 @@ class Communication(Document):
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
 	def notify(self, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
+		"""Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue
+
+		:param print_html: Send given value as HTML attachment
+		:param print_format: Attach print format of parent document
+		:param attachments: A list of filenames that should be attached when sending this email
+		:param recipients: Email recipients
+		:param except_recipient: True when pulling email, the notification shouldn't go to the main recipient
+
+		"""
+		if frappe.flags.in_test:
+			# for test cases, run synchronously
+			self._notify(print_html=print_html, print_format=print_format, attachments=attachments,
+				recipients=recipients, except_recipient=except_recipient)
+		else:
+			from frappe.tasks import sendmail
+			sendmail.delay(frappe.local.site, self.name,
+				print_html=print_html, print_format=print_format, attachments=attachments,
+				recipients=recipients, except_recipient=except_recipient)
+
+	def _notify(self, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
 		self.prepare_to_notify(print_html, print_format, attachments)
 		if not recipients:
 			recipients = self.get_recipients(except_recipient=except_recipient)
@@ -255,6 +275,10 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
+
+	# needed for communication.notify which uses celery delay
+	# if not committed, delayed task doesn't find the communication
+	frappe.db.commit()
 
 	recipients = None
 	if send_email:

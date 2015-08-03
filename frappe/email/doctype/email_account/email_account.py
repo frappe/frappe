@@ -124,7 +124,7 @@ class EmailAccount(Document):
 			exceptions = []
 			for raw in incoming_mails:
 				try:
-					self.insert_communication(raw)
+					communication = self.insert_communication(raw)
 
 				except Exception:
 					frappe.db.rollback()
@@ -132,6 +132,7 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
+					communication.notify(attachments=communication._attachments, except_recipient=True)
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
@@ -156,7 +157,7 @@ class EmailAccount(Document):
 		communication.insert(ignore_permissions = 1)
 
 		# save attachments
-		email.save_attachments_in_doc(communication)
+		communication._attachments = email.save_attachments_in_doc(communication)
 
 		if self.enable_auto_reply and getattr(communication, "is_first", False):
 			self.send_auto_reply(communication, email)
@@ -164,7 +165,8 @@ class EmailAccount(Document):
 		# notify all participants of this thread
 		# convert content to HTML - by default text parts of replies are used.
 		communication.content = markdown2.markdown(communication.content)
-		communication.notify(attachments=email.attachments, except_recipient = True)
+
+		return communication
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
