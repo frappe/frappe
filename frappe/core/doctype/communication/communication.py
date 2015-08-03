@@ -143,6 +143,7 @@ class Communication(Document):
 		sender = parseaddr(self.sender)[1]
 
 		filtered = []
+		email_addresses = []
 		for e in list(set(recipients)):
 			if (e=="Administrator") or ((e==self.sender) and (e not in original_recipients)) or \
 				(e in unsubscribed) or (e in email_accounts):
@@ -160,8 +161,11 @@ class Communication(Document):
 				# while pulling email, don't send email to current recipient
 				continue
 
-			if e not in filtered and email_id not in filtered:
+			# make sure of case-insensitive uniqueness of email address
+			if email_id.lower() not in email_addresses:
+				# append the full email i.e. "Human <human@example.com>"
 				filtered.append(e)
+				email_addresses.append(email_id.lower())
 
 		if getattr(self, "send_me_a_copy", False):
 			filtered.append(self.sender)
