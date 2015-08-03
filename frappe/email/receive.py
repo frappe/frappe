@@ -153,7 +153,7 @@ class POP3Server:
 			"Connection timed out",
 		)
 		for message in messages:
-			if message in strip(cstr(e.message)):
+			if message in strip(cstr(e.message)) or message in strip(cstr(getattr(e, 'strerror', ''))):
 				return True
 		return False
 

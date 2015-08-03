@@ -107,14 +107,18 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.insert(ignore_permissions=True)
 
 def check_bulk_limit(recipients):
+	# get count of mails sent this month
 	this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
-		MONTH(creation)=MONTH(CURDATE())""")[0][0]
+		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
 
+	# if using settings from site_config.json, check bulk limit
 	# No limit for own email settings
 	smtp_server = SMTPServer()
 
-	if smtp_server.email_account and getattr(smtp_server.email_account,
-		"from_site_config", False) or frappe.flags.in_test:
+	if (smtp_server.email_account
+		and getattr(smtp_server.email_account, "from_site_config", False)
+		or frappe.flags.in_test):
+
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
 		if (this_month + len(recipients)) > monthly_bulk_mail_limit:
@@ -174,6 +178,9 @@ def flush(from_test=False):
 
 	auto_commit = not from_test
 
+	# additional check
+	check_bulk_limit([])
+
 	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
 		msgprint(_("Emails are muted"))
 		from_test = True
@@ -205,6 +212,6 @@ def flush(from_test=False):
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
 def clear_outbox():
-	"""remove mails older than 30 days in Outbox"""
+	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabBulk Email` where
-		datediff(now(), creation) > 30""")
+		datediff(now(), creation) > 31""")
