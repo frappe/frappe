@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -10,6 +11,8 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
+
+	check_share_permission(doctype, name)
 
 	share_name = get_share_name(doctype, name, user, everyone)
 
@@ -48,6 +51,8 @@ def remove(doctype, name, user, flags=None):
 @frappe.whitelist()
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	"""Set share permission."""
+	check_share_permission(doctype, name)
+
 	share_name = get_share_name(doctype, name, user, everyone)
 	value = int(value)
 
@@ -124,3 +129,7 @@ def get_share_name(doctype, name, user, everyone):
 
 	return share_name
 
+def check_share_permission(doctype, name):
+	"""Check if the user can share with other users"""
+	if not frappe.has_permission(doctype, ptype="share", doc=name):
+		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
