@@ -258,11 +258,13 @@ def get_columns_dict(columns):
 				else:
 					col_dict["fieldtype"] = col[1]
 
-			col_dict["fieldname"] = col[0].lower()
+			col_dict["fieldname"] = frappe.scrub(col[0])
 
 		# dict
 		else:
 			col_dict.update(col)
+			if "fieldname" not in col_dict:
+				col_dict["fieldname"] = frappe.scrub(col_dict["label"])
 
 		columns_dict[idx] = col_dict
 		columns_dict[col_dict["fieldname"]] = col_dict
