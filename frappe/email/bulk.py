@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import HTMLParser
+import smtplib
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
@@ -198,6 +199,11 @@ def flush(from_test=False):
 				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
 
 			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
+				(email["name"],), auto_commit=auto_commit)
+
+		except smtplib.SMTPException:
+			# bad connection, retry later
+			frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
 				(email["name"],), auto_commit=auto_commit)
 
 		except Exception, e:
