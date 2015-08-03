@@ -10,7 +10,7 @@ import os
 import time
 import redis
 from functools import wraps
-from frappe.utils import get_site_path, get_url
+from frappe.utils import get_site_path
 import json
 from frappe import conf
 
@@ -196,6 +196,8 @@ def get_user_info(sid):
 	}
 
 def new_comment(doc, event):
+	if not doc.comment_doctype:
+		return
 	if doc.comment_doctype == 'Message':
 		if doc.comment_docname == frappe.session.user:
 			message = doc.as_dict()
@@ -214,4 +216,4 @@ def get_user_room(user):
 
 def get_site_room():
 	return ''.join([frappe.local.site, ':all'])
-	
+
