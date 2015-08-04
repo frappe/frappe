@@ -277,7 +277,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"print", "email", "report", "import", "export", "set_user_permissions"],
+		"print", "email", "report", "import", "export", "set_user_permissions", "share"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a class='grey' href='#'>"+__(role)+"</a>")
