@@ -1,0 +1,1509 @@
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,Shtypni ESC për ta mbyllur
+apps/frappe/frappe/desk/form/assign_to.py +127,"A new task, {0}, has been assigned to you by {1}. {2}","Një detyrë e re, {0}, ka qenë e caktuar për ju nga {1}. {2}"
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Post
+apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv file.,Rename shumë artikuj nga ngarkimi një skedar CSV.
+DocType: Workflow State,pause,pushim
+apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Ju nuk jeni i lejuar për të hyrë në këtë faqe.
+DocType: User,Facebook Username,Facebook Emri i përdoruesit
+DocType: Workflow State,eye-open,sy-hapur
+DocType: Bulk Email,Send After,Dërgo Pas
+apps/frappe/frappe/utils/file_manager.py +28,Please select a file or url,Ju lutem zgjidhni një file apo url
+DocType: DocField,DocField,DocField
+DocType: Comment,Comment By Fullname,Komentin e bërë nga fullname
+DocType: DocField,Options,Options
+sites/assets/js/report.min.js +17,Cannot edit standard fields,Nuk mund të modifikoni fushat standarde
+DocType: Print Format,Print Format Builder,Format Printo Builder
+DocType: Report,Report Manager,Raporti Menaxher
+DocType: Workflow,Document States,Dokumenti Shtetet
+sites/assets/js/desk.min.js +902,Sorry! I could not find what you were looking for.,Na vjen keq! Unë nuk mund të gjeni atë që ju po kërkoni.
+DocType: DocPerm,This role update User Permissions for a user,Ky rol përditësimin Drejtat e përdoruesit për një përdorues
+sites/assets/js/desk.min.js +641,Rename {0},Rename {0}
+DocType: Workflow State,zoom-out,zoom-out
+DocType: Comment,Reference DocType and Reference Name are used to render a comment as a link (href) to a Doc.,Referenca DOCTYPE dhe Referenca Emri përdoren që të merr një koment si një lidhje (href) në një Doc.
+apps/frappe/frappe/model/document.py +668,Table {0} cannot be empty,Tabela {0} nuk mund të jetë bosh
+DocType: Social Login Keys,GitHub,Github
+apps/frappe/frappe/model/document.py +642,Beginning with,Duke filluar me
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,Të dhënat Import Template
+sites/assets/js/desk.min.js +622,Parent,Prind
+apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,Gabim sintakse në Jinja template
+DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;Anëtarët e ekipit&quot; ose &quot;Menaxhimi&quot;
+apps/frappe/frappe/core/doctype/doctype/doctype.py +271,Default for 'Check' type of field must be either '0' or '1',Parazgjedhur për &#39;Kontrollo&#39; lloji i fushës duhet të jetë ose &#39;0&#39; ose &#39;1&#39;
+DocType: Email Account,Enable Incoming,Aktivizo hyrëse
+DocType: Workflow State,Danger,Rrezik
+DocType: Workflow State,th-large,-të-mëdha
+DocType: Communication,Unread Notification Sent,Njoftimi palexuar dërguar
+sites/assets/js/desk.min.js +795,Export not allowed. You need {0} role to export.,Eksporti nuk lejohet. Ju duhet {0} rol për eksport.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +154,Set the display label for the field,Vendosni etiketën ekranit për fushën
+apps/frappe/frappe/model/document.py +659,Incorrect value: {0} must be {1} {2},Vlera e pasaktë: {0} duhet të jetë {1} {2}
+apps/frappe/frappe/config/setup.py +179,"Change field properties (hide, readonly, permission etc.)","Pronat ndryshim në terren (të fshehur, Readonly, leje, etj)"
+DocType: Workflow State,lock,bllokohet
+apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,Cilësimet për Na Kontaktoni Page.
+apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,Administratori i loguar
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opsionet e kontaktit, si &quot;Sales Query, Mbështetje Query&quot; etj secili në një linjë të re ose të ndara me presje."
+sites/assets/js/editor.min.js +155,Insert,Fut
+sites/assets/js/desk.min.js +598,Select {0},Zgjidh {0}
+DocType: Feed,Color,Ngjyrë
+DocType: Workflow State,indent-right,indent djathtë
+sites/assets/js/desk.min.js +846,Web Link,Web Lidhje
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.","Recommended dhënat pjesa më e madhe redaktimi nëpërmjet importit, apo të kuptuar format e importit."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Përveç Sistemit Menaxher, rolet me grup Drejtat User drejtë mund të rregulloni lejet për përdoruesit e tjerë për këtë Document Type."
+DocType: Company History,Company History,Historia e kompanisë
+DocType: Workflow State,volume-up,Volumi-up
+apps/frappe/frappe/core/page/data_import_tool/importer.py +43,Only allowed {0} rows in one import,Vetëm lejohet {0} rreshtave në një import
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To import or update records, you must first download the template for importing.","Të importit ose update të dhënat, ju duhet së pari të shkarkoni template për importimin."
+DocType: DocType,Default Print Format,Gabim Format Print
+DocType: Workflow State,Tags,Tags
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,Llojet dokument
+DocType: Workflow,Workflow State Field,Fusha Workflow Shteti
+DocType: DocType,Title Field,Titulli Fusha
+apps/frappe/frappe/core/doctype/user/user.py +487,"If you think this is unauthorized, please change the Administrator password.","Nëse ju mendoni se kjo është e pa autorizuar, ju lutem ndryshoni Administrator fjalëkalimin."
+DocType: Workflow State,eject,nxjerr
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,Ndihmë për Drejtat User
+DocType: Communication,Visit,Vizitë
+apps/frappe/frappe/desk/page/applications/application_row.html +7,Install,Instaloj
+DocType: Website Settings,Twitter Share via,Twitter Share via
+apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,Slideshows Embed imazhin në faqet e internetit.
+DocType: Workflow Action,Workflow Action Name,Emri Workflow Veprimit
+apps/frappe/frappe/core/doctype/doctype/doctype.py +130,DocType can not be merged,DOCTYPE nuk mund të bashkohen
+DocType: Web Form Field,Fieldtype,Fieldtype
+apps/frappe/frappe/desk/form/save.py +44,Did not cancel,A nuk anuloj
+DocType: Workflow State,plus,plus
+DocType: Scheduler Log,Scheduler Log,Scheduler Identifikohu
+sites/assets/js/desk.min.js +737,You,Ju
+DocType: Website Theme,lowercase,vogle
+DocType: Print Format,Helvetica,Helvetica
+DocType: Note,Everyone can read,Gjithkush mund të lexoni
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +25,Please specify user,Ju lutem specifikoni përdorues
+DocType: Email Unsubscribe,Email Unsubscribe,Email Unsubscribe
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Zgjidh një imazh të gjerësi përafërsisht 150px me një sfond transparente për rezultatet më të mira.
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Fut Pas fushën e &#39;{0}&#39; të përmendur në Custom Field &#39;{1}&#39;, nuk ekziston"
+DocType: Workflow State,circle-arrow-up,rrethi-shigjetë-up
+sites/assets/js/desk.min.js +859,Uploading...,Ngarkimi ...
+DocType: Workflow State,italic,kursiv
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set Import without Create,{0}: Nuk mund të vënë Import pa Krijo
+DocType: Comment,Post Topic,Posto temë
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,Widths mund të vendosen në px ose%.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Drejtat merrni aplikuar për përdoruesit bazuar në atë që Rolet ata janë të caktuar.
+sites/assets/js/desk.min.js +986,You are not allowed to send emails related to this document,Ju nuk jeni i lejuar për të dërguar email në lidhje me këtë dokument
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Ju nuk jeni i lejuar për të fshirë një standard Website Theme
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Example,Shembull
+DocType: Workflow State,gift,dhuratë
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +180,Reqd,Reqd
+apps/frappe/frappe/core/doctype/communication/communication.py +124,Unable to find attachment {0},Në pamundësi për të gjetur shtojcën {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,Assign a permission level to the field.,Cakto një nivel leje për këtë fushë.
+apps/frappe/frappe/config/setup.py +72,Show / Hide Modules,Modulet Trego / Fshih
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Disable Raport
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formati: frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+DocType: Version,Doclist JSON,Doclist JSON
+DocType: Workflow State,chevron-up,Chevron-up
+sites/assets/js/desk.min.js +947,Documentation,Dokumentim
+DocType: DocShare,Internal record of document shares,Rekord i brendshëm i aksioneve dokument
+DocType: Workflow State,Comment,Koment
+apps/frappe/frappe/email/bulk.py +121,Email limit {0} crossed,Email kufi {0} kaluar
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","Ju mund ta ndryshoni dokumenteve të paraqitura nga anulimi tyre dhe pastaj, ndryshimin e tyre."
+DocType: DocField,Display,Ekran
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Nëse një Roli nuk ka qasje në nivelin 0, nivelet më të larta atëherë janë të pakuptimta."
+DocType: Scheduler Log,Seen,Parë
+sites/assets/js/desk.min.js +449,Show more details,Trego më shumë detaje
+DocType: System Settings,Run scheduled jobs only if checked,Run punë të planifikuar vetëm nëse kontrollohen
+DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".","Shkruani fushat vlerë e parazgjedhur (çelësat) dhe vlera. Në qoftë se ju të shtoni vlera të shumëfishta për një fushë, e para do të merren. Këto standarte janë përdorur edhe për të vendosur &quot;ndeshje&quot; rregullat leje. Për të parë listën e fushave, të shkojnë në &quot;Customize Formular&quot;."
+DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table","Printuar gjerësia e fushës, nëse fushë është një kolonë në një tabelë"
+DocType: Workflow State,headphones,kufje
+DocType: Bulk Email,Bulk Email records.,Të dhënat e Bulk Email.
+DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,p.sh. replies@yourcomany.com. Të gjitha përgjigjet do të vijnë në këtë postë.
+apps/frappe/frappe/templates/includes/login/login.js +32,Valid email and name required,Mail të vlefshme dhe emrin e nevojshme
+DocType: DocType,Hide Heading,Hide Kreu
+DocType: Workflow State,remove-circle,hiqni-rrethi
+apps/frappe/frappe/config/website.py +54,Javascript to append to the head section of the page.,Javascript për të append në seksionin kokë të faqes.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53,Reset to defaults,Reset për standarte
+DocType: Workflow,Transition Rules,Rregullat e tranzicionit
+apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Shembull:
+DocType: Workflow,Defines workflow states and rules for a document.,Përcakton shtetet workflow dhe rregullat për një dokument.
+DocType: DocType,Show this field as title,Trego këtë fushë si titull
+apps/frappe/frappe/model/db_schema.py +447,Fieldname {0} cannot have special characters like {1},Fieldname {0} nuk mund të ketë karaktere të veçanta si {1}
+apps/frappe/frappe/model/document.py +390,Error: Document has been modified after you have opened it,Gabim: Dokumenti është ndryshuar pasi që e keni hapur atë
+apps/frappe/frappe/core/doctype/doctype/doctype.py +425,{0}: Cannot set Assign Submit if not Submittable,{0}: Nuk mund të vënë Cakto Submit nëse nuk Submittable
+DocType: Social Login Keys,Facebook,Facebook
+apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",Filtruar nga &quot;{0}&quot;
+sites/assets/js/desk.min.js +1009,Message from {0},Mesazh nga {0}
+DocType: Blog Settings,Blog Title,Blog Titulli
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,Ndrysho për të vendosur të nisej
+DocType: About Us Settings,Team Members,Anëtarët e ekipit
+sites/assets/js/desk.min.js +553,Please attach a file or set a URL,Ju lutemi bashkangjitni një fotografi ose të vendosur një URL
+DocType: DocField,Permissions,Permissions
+DocType: User,Get your globally recognized avatar from Gravatar.com,Get avatar tuaj të njohur globalisht nga Gravatar.com
+DocType: Workflow State,plus-sign,plus-shenjë
+DocType: Event,Public,Publik
+apps/frappe/frappe/email/smtp.py +134,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,Email nuk Llogaria Setup. Ju lutem krijoni një Email Llogari re nga Setup&gt; PE&gt; Email Llogaria
+DocType: Block Module,Block Module,Block Moduli
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,Eksporti Template
+DocType: Block Module,Module,Modul
+DocType: Email Alert,Send Alert On,Dërgo tregua
+DocType: Web Form,Website URL,Website URL
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Customize Label, Print Hide, Default etj"
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,Krijo një format i ri
+DocType: Website Settings,Add a banner to the site. (small banners are usually good),Shto një flamur në vend. (Parulla e vogla zakonisht janë të mira)
+DocType: Website Settings,Set Banner from Image,Banner vendosur nga Image
+DocType: Print Format,Verdana,Verdana
+apps/frappe/frappe/core/doctype/user/user.py +203,User {0} cannot be deleted,Përdoruesi {0} nuk mund të fshihet
+sites/assets/js/desk.min.js +265,Another transaction is blocking this one. Please try again in a few seconds.,Një transaksion është bllokuar këtë. Ju lutemi të provoni përsëri në disa sekonda.
+DocType: Property Setter,Field Name,Emri Fusha
+sites/assets/js/desk.min.js +771,or,ose
+sites/assets/js/desk.min.js +925,module name...,Emri modul ...
+apps/frappe/frappe/templates/generators/web_form.html +267,Continue,Vazhdoj
+DocType: Custom Field,Fieldname,Fieldname
+DocType: Workflow State,certificate,certifikatë
+DocType: User,Tile,Tjegull
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,Kolona të dhënat e parë duhet të jetë bosh.
+DocType: Workflow State,Print,Shtyp
+DocType: User,Restrict IP,Kufizo IP
+apps/frappe/frappe/email/smtp.py +172,Unable to send emails at this time,Në pamundësi për të dërguar postë elektronike në këtë kohë
+sites/assets/js/desk.min.js +947,Search or type a command,Kërko ose shkruani një komandë
+DocType: Email Account,e.g. smtp.gmail.com,p.sh. smtp.gmail.com
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +366,Add A New Rule,Shto një rregull të ri
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Emri i dokumentit Type (DOCTYPE) ju doni këtë fushë të jetë i lidhur për të. p.sh. Klientit
+DocType: User,Roles Assigned,Rolet Assigned
+DocType: Top Bar Item,Parent Label,Prind Label
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Query juaj është pranuar. Ne do të përgjigjeni përsëri së shpejti. Nëse keni ndonjë informacion shtesë, ju lutem përgjigje për këtë postë."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,Drejtat janë përkthyer automatikisht të raporteve standarde dhe Searches.
+DocType: Event,Repeat Till,Përsëriteni Deri
+DocType: Blogger,Will be used in url (usually first name).,Do të përdoret në url (emër zakonisht të parë).
+apps/frappe/frappe/client.py +63,Can not edit Read Only fields,Nuk mund të modifikoni lexojnë vetëm fushat
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +460,Edit Heading,Ndrysho Kreu
+DocType: File Data,File URL,Fotografi URL
+apps/frappe/frappe/desk/doctype/event/event.py +68,Upcoming Events for Today,Ngjarjet e ardhshme për Sot
+DocType: Email Alert Recipient,Email By Document Field,Email me dokument Field
+DocType: File Data,File Data,Fotografi të dhënave
+apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Shkrirja është e mundur vetëm në mes Group-për-grupit ose fletë Nyja-për-fletë Nyja
+apps/frappe/frappe/utils/file_manager.py +40,Added {0},Shtuar {0}
+DocType: Currency,Fraction Units,Njësitë pjesë
+DocType: Web Page,Parent Web Page,Prind Web Page
+apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,Përdoruesi është i detyrueshëm për Share
+apps/frappe/frappe/model/base_document.py +366,{0} must be set first,{0} duhet të jetë i vendosur për herë të parë
+DocType: Workflow State,plane,aeroplan
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Nëse ju jeni ngarkimi rekorde të reja, &quot;Emërtimi Seria&quot; bëhet e detyrueshme, nëse i pranishëm."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Fold can not be at the end of the form,Fish nuk mund të jetë në fund të formularit
+apps/frappe/frappe/config/setup.py +14,System and Website Users,Sistemit dhe Website Përdoruesit
+DocType: Workflow Document State,Doc Status,Doc Statusi
+sites/assets/js/desk.min.js +962,"Your download is being built, this may take a few moments...","Shkarko juaj është duke u ndërtuar, kjo mund të marrë disa momente ..."
+DocType: Web Page,Begin this page with a slideshow of images,Filloni këtë faqe me një Slideshow e imazheve
+apps/frappe/frappe/utils/data.py +489,{0} and {1},{0} dhe {1}
+DocType: Version,Docname,Docname
+apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,Version restauruar
+DocType: Event Role,Event Role,Roli ngjarje
+sites/assets/js/editor.min.js +125,Indent (Tab),Largoj (Tab)
+DocType: Workflow State,List,Listë
+DocType: Page Role,Page Role,Faqe Roli
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,Field {0} in row {1} cannot be hidden and mandatory without default,Fusha {0} në rresht {1} nuk mund të fshihet dhe i detyrueshëm pa parazgjedhje
+DocType: System Settings,mm/dd/yyyy,mm / dd / yyyy
+apps/frappe/frappe/email/doctype/email_account/email_account.py +266,Re:,Re:
+DocType: Currency,"Sub-currency. For e.g. ""Cent""",Nën-monedhës. Për shembull &quot;Cent&quot;
+DocType: Letter Head,Check this to make this the default letter head in all prints,Kontrolloni këtë për të bërë këtë kokën letër parazgjedhur në të gjitha shtyp
+DocType: Print Format,Server,Server
+DocType: DocField,Link,Lidhje
+apps/frappe/frappe/utils/file_manager.py +83,No file attached,Nuk ka fotografi bashkangjitur
+DocType: Version,Version,Version
+DocType: User,Fill Screen,Plotësoni Screen
+apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Ndrysho Permissions
+sites/assets/js/form.min.js +213,Edit via Upload,Ndrysho nëpërmjet Ngarko
+sites/assets/js/desk.min.js +921,"document type..., e.g. customer","Lloji i dokumentit ..., p.sh. konsumatorëve"
+DocType: Country,Country Name,Vendi Emri
+DocType: About Us Team Member,About Us Team Member,Rreth Nesh Ekipi Anëtar
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Drejtat janë të vendosur mbi Rolet dhe llojet e dokumenteve (të quajtura DocTypes) me vendosjen e të drejtave si lexojnë, shkruajnë, Krijo, Fshij, Paraqit, Cancel Ndreqni, Raporti, importit, eksportit, Print, Email dhe Set User Permissions."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Përveç rolit Rregullat Leje Ndërtimi të bazuar, ju mund të aplikoni Drejtat përdorues të bazuar në DocTypes."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Këto leje do të zbatohet për të gjitha transaksionet ku rekordin e lejuar është e lidhur. Për shembull, në qoftë se Kompania C është shtuar për të Drejtat përdorues i përdoruesit X, X përdoruesi do të jetë në gjendje për të parë transaksionet që ka kompani C si një vlerë të lidhura vetëm."
+DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (emri) i subjektit prona e të cilave është që të vendosen
+DocType: Website Settings,Website Theme Image Link,Website Theme Image Link
+DocType: Website Settings,Sidebar Items,Items Sidebar
+DocType: Workflow State,exclamation-sign,thirrje-shenjë
+DocType: Website Theme,Hide Sidebar,Hide Sidebar
+sites/assets/js/list.min.js +100,Gantt,Gantt
+DocType: About Us Settings,Introduce your company to the website visitor.,Futur kompaninë tuaj në vizitor faqen e internetit.
+apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,Ju lutemi të kopjuar këtë për të bërë ndryshime
+apps/frappe/frappe/utils/pdf.py +35,PDF generation failed because of broken image links,Gjenerata PDF dështuar për shkak të thyer lidhjet e imazhit
+DocType: Print Settings,Font Size,Font Size
+sites/assets/js/desk.min.js +947,Unread Messages,Mesazhe të palexuara
+DocType: System Settings,Disable Standard Email Footer,Disable standard Email Footer
+DocType: Workflow State,facetime-video,FaceTime-Video
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,1 koment
+DocType: Email Alert,Days Before,Ditët e Para
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,Zgjidh një Image Banner parë.
+DocType: Workflow State,volume-down,vëllimit-down
+DocType: Email Account,Send Notification to,Dërgo Njoftimi për
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +627,Saved,Saved
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,Mundësitë e zgjedhjes për të zgjedhur. Çdo opsion në një linjë të re.
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,Ju lutem specifikoni DOCTYPE
+DocType: Print Format,Format Data,Format e të dhënave
+DocType: Customize Form Field,Customize Form Field,Customize Form Field
+apps/frappe/frappe/config/setup.py +47,Check which Documents are readable by a User,Kontrolloni cilat Dokumentet janë të lexueshme për anëtarët
+DocType: User,Reset Password Key,Fjalëkalimi Key Reset
+DocType: Email Account,Enable Auto Reply,Aktivizo Auto Përgjigje
+apps/frappe/frappe/core/doctype/scheduler_log/scheduler_log_list.js +7,Not Seen,Nuk shihet
+DocType: Workflow State,zoom-in,zoom-në
+apps/frappe/frappe/email/bulk.py +131,Unsubscribe from this list,Unsubscribe nga kjo listë
+apps/frappe/frappe/desk/page/activity/activity.js +153,Sep,Shtator
+DocType: DocField,Width,Gjerësi
+DocType: Email Account,Notify if unreplied,Të njoftojë nëse unreplied
+DocType: DocType,Fields,Fushat
+DocType: System Settings,Your organization name and address for the email footer.,Emri juaj organizimi dhe adresa për futboll email.
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,Prind Tabela
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} në rresht {1} nuk mund të ketë dy URL dhe fëmijë artikuj
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Root {0} nuk mund të fshihet
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162,No comments yet,Nuk ka komente ende
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +120,Both DocType and Name required,Dy DOCTYPE dhe Emri nevojshme
+apps/frappe/frappe/model/document.py +424,Cannot change docstatus from 1 to 0,Nuk mund të ndryshojë docstatus prej 1 ne 0.
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,Përcakton veprimet në shtetet dhe hapin e ardhshëm dhe rolet e lejuara.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Si praktika më e mirë, nuk e caktojnë të njëjtin grup të sundimit leje për role të ndryshme. Në vend të kësaj, të vendosur role të shumëfishta në të njëjtën Përdoruesi."
+DocType: Web Form,Message to be displayed on successful completion,Mesazhi që do të shfaqet në përfundimin me sukses
+DocType: Website Settings,Footer Items,Items Footer
+sites/assets/js/desk.min.js +407,Menu,Menu
+DocType: DefaultValue,DefaultValue,DefaultValue
+apps/frappe/frappe/config/setup.py +19,User Roles,Rolet User
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Pronës Setter refuzon një DOCTYPE standarde ose pronë Field
+apps/frappe/frappe/core/doctype/user/user.py +333,Cannot Update: Incorrect / Expired Link.,Nuk mund Update: Keni gabuar / Link skaduar.
+DocType: DocField,Set Only Once,Set Vetëm Pasi
+apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Cannot set import as {1} is not importable,{0}: Nuk mund të vënë importin si {1} nuk është i importuar
+DocType: Top Bar Item,"target = ""_blank""",target = &quot;_blank&quot;
+DocType: Workflow State,hdd,HDD
+apps/frappe/frappe/desk/query_report.py +19,You don't have access to Report: {0},Ju nuk keni qasje në Raport: {0}
+DocType: User,Send Welcome Email,Dërgo Mirë se vini Email
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,Ngarko CSV fotografi që përmban të gjitha lejet e përdoruesit në të njëjtin format si shkarkim.
+DocType: Feed,Doc Name,Doc Emri
+DocType: DocField,Heading,Krye
+DocType: Workflow State,resize-vertical,resize-vertikal
+DocType: Contact Us Settings,Introductory information for the Contact Us Page,Informacioni hyrës për Na Kontaktoni Page
+DocType: Workflow State,thumbs-down,thumbs-poshtë
+apps/frappe/frappe/core/doctype/page/page.py +32,Not in Developer Mode,Jo në modë Zhvilluesish
+DocType: Comment,Comment Time,Koment Koha
+DocType: Workflow State,indent-left,indent-majtë
+DocType: Currency,Currency Name,Valuta Emri
+DocType: Report,Javascript,Javascript
+DocType: File Data,Content Hash,Përmbajtja Hash
+DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Dyqane JSON e versionet e fundit të njohur të Apps të ndryshme instaluar. Ajo është përdorur për të treguar shënime lëshimi.
+DocType: Website Theme,Google Font (Text),Google Font (Tekst)
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,A nuk heqë
+DocType: Report,Query,Pyetje
+DocType: DocType,Sort Order,Rendit
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},&quot;Në Lista View&quot; nuk lejohet për llojin {0} në rresht {1}
+DocType: Custom Field,Select the label after which you want to insert new field.,Zgjidhni etiketën pasi që ju doni të futur fushë të re.
+DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet do të ndahet nëpërmjet llogarinë tuaj të përdoruesit (nëse specifikohet)
+,Document Share Report,Dokumenti Shpërndaj Raporto
+DocType: User,Last Login,Kycja e fundit
+apps/frappe/frappe/core/doctype/doctype/doctype.py +316,Fieldname is required in row {0},Fieldname është e nevojshme në rresht {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Kolonë
+DocType: Custom Field,Adds a custom field to a DocType,Shton një fushë me porosi për një DOCTYPE
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),Bold (Ctrl / Cmd + B)
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,Upload dhe Sync
+sites/assets/js/form.min.js +280,Shared with {0},Ndahen me {0}
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,Llojet e vetme të ketë vetëm një rekord nuk ka tavolina të lidhur. Vlerat janë ruajtur në tabSingles
+DocType: Bulk Email,Bulk Email,Bulk Email
+DocType: Workflow,Rules defining transition of state in the workflow.,Rregullat përcaktojnë kalimin e shtetit në workflow.
+DocType: DocField,Index,Indeks
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 1,Opsioni 1
+sites/assets/js/editor.min.js +107,Number list,Lista Numri
+DocType: DocShare,Everyone,Gjithkush
+DocType: Workflow State,backward,prapa
+apps/frappe/frappe/core/doctype/doctype/doctype.py +378,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Vetem nje rregull lejohet me të njëjtin rol, nivelin dhe {1}"
+apps/frappe/frappe/config/setup.py +79,Set numbering series for transactions.,Set numëron seri për transaksione.
+DocType: Email Account,POP3 Server,POP3 Server
+DocType: User,Last IP,IP e fundit
+apps/frappe/frappe/core/doctype/communication/communication.js +17,Add To,Shtoj
+DocType: DocPerm,Filter records based on User Permissions defined for a user,Filter dhënat në bazë të Drejtat përdorues përcaktuar për një përdorues
+sites/assets/js/editor.min.js +111,Insert picture (or just drag & drop),Fut foto (ose vetëm drag &amp; drop)
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,Fieldname nuk është caktuar për Custom Field
+sites/assets/js/desk.min.js +622,Last Updated By,Përditësimi i fundit Nga
+DocType: Website Theme,Background Color,Ngjyra Historiku
+sites/assets/js/desk.min.js +989,There were errors while sending email. Please try again.,Ka pasur gabime ndërsa dërguar një email. Ju lutemi provoni përsëri.
+DocType: Web Page,0 is highest,0 është më i lartë
+apps/frappe/frappe/website/doctype/web_form/web_form.py +31,You don't have the permissions to access this document,Ju nuk keni leje për të hyrë në këtë dokument
+DocType: Email Alert,Value Changed,Vlera Ndryshuar
+apps/frappe/frappe/model/base_document.py +272,Duplicate name {0} {1},Duplicate Emri {0} {1}
+DocType: Web Form Field,Web Form Field,Web Form Field
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197,Hide field in Report Builder,Fushë Hide në Raportin Builder
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,Edit HTML
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,Rikthe Permissions origjinale
+DocType: DocField,Button,Buton
+DocType: Email Account,Default Outgoing,Gabim largohet
+DocType: Workflow State,play,luaj
+apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,Klikoni në linkun e mëposhtëm për të përfunduar regjistrimin tuaj dhe të vendosur një fjalëkalim të ri
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +403,Did not add,A nuk e shtuar
+DocType: Contact Us Settings,Contact Us Settings,Na Kontaktoni Settings
+DocType: Workflow State,text-width,text-width
+DocType: Email Alert,View Properties (via Customize Form),Shiko Prona (nëpërmjet Customize Form)
+DocType: Website Settings,Sidebar,Sidebar
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Raporti raportet Builder menaxhohen drejtpërdrejt nga raporti ndërtues. Asgjë për të bërë.
+apps/frappe/frappe/website/doctype/web_page/web_page.py +30,Cannot edit templated page,Nuk mund të modifikoni faqe templated
+apps/frappe/frappe/model/document.py +641,none of,asnjë nga
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,Ngarko lejet e përdoruesit
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,Artikuj kontrolluar do të shfaqet në tavolinën e punës
+apps/frappe/frappe/core/doctype/doctype/doctype.py +421,{0} cannot be set for Single types,{0} nuk mund të vendosen për lloje Beqar
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} përditësuar
+apps/frappe/frappe/core/doctype/doctype/doctype.py +411,Report cannot be set for Single types,Raporti nuk mund të vendosen për lloje Beqar
+apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,Shkurt
+DocType: DocPerm,Role,Rol
+apps/frappe/frappe/utils/data.py +382,Cent,Cent
+apps/frappe/frappe/config/setup.py +104,Manage uploaded files.,Manage skedarët e ngarkuar.
+apps/frappe/frappe/config/setup.py +163,"States for workflow (e.g. Draft, Approved, Cancelled).","Shtetet për workflow (p.sh. Draft, Miratuar, anuluar)."
+sites/assets/js/desk.min.js +608,Set Quantity,Sasia e përcaktuar
+,Data Import Tool,Të dhënat Import Tool
+apps/frappe/frappe/core/doctype/user/user.py +378,Registration Details Emailed.,Detajet Regjistrimi postuar.
+DocType: Top Bar Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Lidhje me faqe që dëshironi të hapni. Lini bosh në qoftë se ju doni të bëni atë një prind grup.
+DocType: DocType,Is Single,Është Single
+apps/frappe/frappe/email/bulk.py +169,{0} has left the conversation in {1} {2},{0} ka lënë bisedën në {1} {2}
+DocType: Blogger,User ID of a Blogger,ID përdoruesi i një Blogger
+apps/frappe/frappe/core/doctype/user/user.py +198,There should remain at least one System Manager,Nuk duhet të mbeten të paktën një Menaxher i Sistemit
+DocType: Workflow State,circle-arrow-right,rrethi-shigjetë djathtë
+DocType: Scheduler Log,Method,Metodë
+DocType: Report,Script Report,Script Raport
+DocType: About Us Settings,Company Introduction,Kompania Hyrje
+DocType: DocPerm,Apply User Permissions,Aplikoni lejet e përdoruesit
+DocType: User,Modules HTML,Modulet HTML
+sites/assets/js/desk.min.js +484,Missing Values Required,Vlerave të zhdukur kërkuar
+sites/assets/js/list.min.js +107,{0} is not set,{0} nuk është caktuar
+apps/frappe/frappe/model/document.py +150,No permission to {0} {1} {2},Nuk ka leje për {0} {1} {2}
+apps/frappe/frappe/permissions.py +225,Not allowed to access {0} with {1} = {2},Nuk lejohet për të hyrë {0} me {1} = {2}
+apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,Shiko këtë në shfletuesin tënd
+DocType: DocType,Search Fields,Fushat Kërko
+sites/assets/js/desk.min.js +988,Email sent to {0},Email dërguar për {0}
+DocType: Event,Event,Ngjarje
+sites/assets/js/desk.min.js +997,"On {0}, {1} wrote:","Në {0}, {1} shkroi:"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80,Cannot delete standard field. You can hide it if you want,Nuk mund të fshini fushë standarde. Ju mund të fshehin atë në qoftë se ju doni
+DocType: Top Bar Item,For top bar,Për bar të lartë
+DocType: Print Settings,In points. Default is 9.,Në pikë. Default është 9.
+sites/assets/js/editor.min.js +123,Reduce indent (Shift+Tab),Ulja porosit (Shift + Tab)
+DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular Document","Print me letër me kokë, nëse nuk pakontrolluar në një dokument të veçantë"
+DocType: Workflow State,heart,zemër
+DocType: Workflow State,minus,minus
+sites/assets/js/desk.min.js +266,Server Error: Please check your server logs or contact tech support.,Server Gabim: Ju lutem kontrolloni shkrimet serverit tuaj ose kontaktoni mbështetjen e teknologjisë.
+apps/frappe/frappe/core/doctype/user/user.py +116,Welcome email sent,Mirë se vini email dërguar
+apps/frappe/frappe/core/doctype/user/user.py +361,Already Registered,I regjistruar
+DocType: System Settings,Float Precision,Precision Float
+DocType: Property Setter,Property Setter,Pronës Setter
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select User or DocType to start.,Përzgjidh Përdoruesi ose DOCTYPE për të filluar.
+apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,Nuk Apps instaluar
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Mark the field as Mandatory,Mark fushën kur i detyrueshëm
+DocType: User,Google User ID,Google ID i përdoruesit
+apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,Kjo metodë mund të përdoret vetëm për të krijuar një koment
+apps/frappe/frappe/config/setup.py +195,Add custom forms.,Shto forma doganore.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistemi ofron shumë para-përcaktuar rolet. Ju mund të shtoni role të reja për të vendosur lejet finer.
+DocType: Country,Geo,Geo
+DocType: Blog Category,Blog Category,Blog Kategoria
+DocType: User,Roles HTML,Rolet HTML
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +109,All customizations will be removed. Please confirm.,Të gjitha Përshtatje do të hiqet. Ju lutem konfirmoni.
+DocType: Page,Page HTML,Faqe HTML
+DocType: Web Page,Header,Arkitra
+sites/assets/js/desk.min.js +622,Unknown Column: {0},Kolona Panjohur: {0}
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Fakultativ: Gjithmonë dërgoni në këto kartat e identitetit. Çdo id email në një rresht të ri
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Përdoruesit me rolin {0}:
+DocType: Print Format,Custom Format,Format Custom
+DocType: Website Settings,Integrations,Integrimet
+DocType: DocField,Section Break,Seksioni Pushim
+DocType: Communication,Sender Full Name,Sender Emri i plotë
+,Messages,Mesazhet
+apps/frappe/frappe/desk/query_report.py +76,Must specify a Query to run,Duhet të specifikojë një Query për të drejtuar
+apps/frappe/frappe/config/setup.py +66,"Language, Date and Time settings","Gjuha, datën dhe orën settings"
+DocType: User,Represents a User in the system.,Përfaqëson një përdoruesin në sistemin.
+apps/frappe/frappe/desk/form/assign_to.py +114,"The task {0}, that you assigned to {1}, has been closed.","Detyra {0}, që ju caktuar për {1}, ka qenë e mbyllur."
+DocType: User,Modules Access,Modulet Qasja
+DocType: Print Format,Print Format Type,Printo Format Type
+sites/assets/js/desk.min.js +936,Open Source Applications for the Web,Aplikacionet me burim të hapur për Web
+DocType: Website Theme,"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",Shtoni emrin e një &quot;Google Web Font&quot; p.sh. &quot;Open Sans&quot;
+DocType: DocType,Hide Toolbar,Fshih Toolbar
+DocType: Email Account,SMTP Settings for outgoing emails,SMTP Parametrat për emailet dalëse
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +125,Import Failed,Import Deshtoi
+apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,Fjalëkalimi juaj është përditësuar. Këtu është fjalëkalimin tuaj të re
+DocType: Email Account,Auto Reply Message,Auto Përgjigju Mesazh
+DocType: Email Alert,Condition,Kusht
+sites/assets/js/desk.min.js +924,Open a module or tool,Hap një modul apo mjet
+DocType: Module Def,App Name,Emri app
+DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Fusha që përfaqëson Shtetin punës së transaksionit (në qoftë se fusha nuk është i pranishëm, një fushë e re Custom fshehur do të krijohet)"
+apps/frappe/frappe/templates/pages/login.py +162,Email not verified with {1},Email pa verifikuar me {1}
+DocType: Email Account,e.g. pop.gmail.com,p.sh. pop.gmail.com
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +527,Edit to add content,Edit për të shtuar përmbajtje
+DocType: Web Form,Advanced,I përparuar
+apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Referenca: {0} {1}
+DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages.",Përdoruesi Lloji &quot;Përdoruesi i Sistemit&quot; mund të hyni Desktop. &quot;Faqja Përdoruesi&quot; mund të regjistrohet vetëm në faqen e internetit dhe faqet e portalit.
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+myfield
+eval:doc.myfield=='My Value'
+eval:doc.age>18",Kjo fushë do të shfaqet vetëm në qoftë se fieldname definuar këtu ka vlerë OSE rregullat janë të vërteta (shembuj): myfield eval: doc.myfield == &#39;Vlera ime&#39; eval: doc.age&gt; 18
+DocType: File Data,Attached To Name,Bashkangjitur Të Emri
+apps/frappe/frappe/email/receive.py +61,Invalid User Name or Support Password. Please rectify and try again.,Invalid Emri ose Mbështetje Fjalëkalimi. Ju lutemi të ndrequr dhe provoni përsëri.
+DocType: Email Account,Login Id is Different,Identifikohu Id është e ndryshme
+DocType: Email Account,Yahoo Mail,Yahoo Mail
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,Ruajtur!
+apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},Përditësuar {0}: {1}
+DocType: DocType,Master,Mjeshtër
+DocType: DocType,User Cannot Create,Përdoruesi nuk mund të krijoni
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","Këto do të vendosen edhe si vlera e paracaktuar për këto lidhje, në qoftë se vetëm një regjistrim i tillë leje është përcaktuar."
+apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} në {1}
+DocType: Customize Form,Enter Form Type,Shkruani Form Lloji
+DocType: User,Send Password Update Notification,Dërgo Password Update Njoftim
+apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values","{0} fushë nuk mund të caktohet si unike, pasi ka vlera jo-unike ekzistuese"
+sites/assets/js/desk.min.js +1016,Updated To New Version,Përditësuar për versionin e ri
+DocType: DocField,Depends On,Varet nga
+DocType: DocPerm,Additional Permissions,Lejet shtesë
+sites/assets/js/form.min.js +310,Compose,Kompozoj
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Filloni hedhjen e të dhënave nën këtë linjë
+DocType: Workflow State,retweet,retweet
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,Update template dhe për të shpëtuar në CSV (Comma Vlerat Individuale) format para se të bashkëngjitur.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Specify the value of the field,Specifikoni vlerën e fushës
+apps/frappe/frappe/desk/page/activity/activity.js +152,May,Mund
+apps/frappe/frappe/desk/page/activity/activity.js +152,Jan,Jan
+DocType: Email Account,Always use Account's Email ID as Sender,Gjithmonë përdorni llogarinë e Email ID si Dërguesit
+DocType: Workflow State,eye-close,sy-ngushtë
+,Applications,Aplikime
+sites/assets/js/desk.min.js +289,Report this issue,Raportoje këtë çështje
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,Shton një dorëshkrim porosi (klient ose server) për një DOCTYPE
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20,Cannot set Email Alert on Document Type {0},Nuk mund të vendosni Email Alert mbi Document Type {0}
+apps/frappe/frappe/config/website.py +49,Setup of fonts and background.,Setup e fonts dhe sfond.
+DocType: Workflow Action,Workflow Action Master,Workflow Veprimi Master
+DocType: Custom Field,Field Type,Fusha Type
+apps/frappe/frappe/utils/data.py +399,only.,vetëm.
+DocType: Feed,Doc Type,Doc Type
+apps/frappe/frappe/email/receive.py +53,Invalid Mail Server. Please rectify and try again.,Invalid Mail Server. Ju lutemi të ndrequr dhe provoni përsëri.
+DocType: DocField,"For Links, enter the DocType as range.
+For Select, enter list of Options, each on a new line.","Për lidhje, shkruani DOCTYPE si varg. Për të zgjedhur, të hyjë në listën e opsioneve, secili në një linjë të re."
+DocType: Workflow State,film,film
+apps/frappe/frappe/model/db_query.py +285,No permission to read {0},Nuk ka leje për të lexuar {0}
+apps/frappe/frappe/utils/nestedset.py +221,Multiple root nodes not allowed.,Nyje të shumta rrënjë nuk lejohet.
+sites/assets/js/desk.min.js +689,Get,Shkoj
+sites/assets/js/desk.min.js +206,Confirm,Konfirmoj
+DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
+apps/frappe/frappe/email/doctype/email_account/email_account.py +37,Login Id is required,Identifikohu Id është e nevojshme
+DocType: Website Slideshow,Website Slideshow,Website Slideshow
+DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Lidhje që është faqja e internetit në shtëpi. Lidhjet standarde (indeksi, login, produktet, blog, lidhje, kontakt)"
+sites/assets/js/editor.min.js +105,Bullet list,Lista Bullet
+DocType: Website Settings,Banner Image,Banner Image
+DocType: Custom Field,Custom Field,Custom Field
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13,Please specify which date field must be checked,Ju lutem specifikoni cilat data fushë duhet të kontrollohet
+DocType: DocPerm,Set User Permissions,Set Drejtat User
+DocType: Email Account,Email Account Name,Email Emri i llogarisë
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249,Select Document Types,Zgjidhni Dokumenti Llojet
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","p.sh. &quot;Mbështetje&quot;, &quot;Sales&quot;, &quot;Jerry Yang&quot;"
+DocType: User,Facebook User ID,Facebook ID i përdoruesit
+DocType: Workflow State,fast-forward,të shpejtë përpara
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.","Kontrolloni kolona për të zgjedhur, terhiq për të vendosur rendin."
+DocType: Event,Every Day,Çdo ditë
+apps/frappe/frappe/email/smtp.py +58,Please setup default Email Account from Setup > Email > Email Account,Ju lutemi të parazgjedhur të setup Email Llogarisë nga Setup&gt; PE&gt; Email Llogaria
+DocType: Workflow State,move,veprim
+DocType: Web Form,Actions,Veprimet
+DocType: Workflow State,align-justify,lidhur-justifikojnë
+DocType: User,Middle Name (Optional),Emri e Mesme (Fakultativ)
+sites/assets/js/desk.min.js +605,No Results,Nuk Rezultatet
+DocType: System Settings,Security,Siguri
+DocType: Currency,**Currency** Master,** Valuta ** Master
+DocType: Website Settings,Address and other legal information you may want to put in the footer.,Adresën dhe informata tjera ligjore ju mund të dëshironi për të vënë në futboll.
+sites/assets/js/list.min.js +104,Starred By Me,Luajti nga mua
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,Zgjidh Document Type
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,Nuk mund të fshini {0} si ajo ka nyje fëmijë
+apps/frappe/frappe/templates/includes/list/filters.html +19,clear,qartë
+apps/frappe/frappe/desk/doctype/event/event.py +28,Every day events should finish on the same day.,Çdo ngjarje ditë duhet të përfundojë në të njëjtën ditë.
+DocType: Communication,User Tags,User Tags
+DocType: Workflow State,download-alt,Shkarko-alt
+DocType: Web Page,Main Section,Pjesa kryesore
+apps/frappe/frappe/core/doctype/doctype/doctype.py +225,{0} not allowed in fieldname {1},{0} nuk lejohen në fieldname {1}
+DocType: Page,Icon,Ikonë
+DocType: Web Page,Content in markdown format that appears on the main side of your page,Përmbajtja në formatin Markdown që shfaqet në anën kryesore e faqes tuaj
+DocType: System Settings,dd/mm/yyyy,dd / mm / vvvv
+DocType: Website Settings,"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Një ikonë fotografi me .ico extension. Duhet të jetë 16 x 16 px. Prodhuar duke përdorur një gjenerator favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
+DocType: Blog Settings,Blog Settings,Blog Cilësimet
+apps/frappe/frappe/templates/emails/new_user.html +8,You can also copy-paste this link in your browser,Ju gjithashtu mund të kopjoni-ngjisni këtë lidhje në shfletuesin tuaj
+DocType: Workflow State,bullhorn,bullhorn
+DocType: Social Login Keys,Facebook Client Secret,Facebook Klienti Sekret
+DocType: Website Settings,Copyright,Copyright
+DocType: Social Login Keys,Google Client Secret,Google Klienti Sekret
+DocType: Website Settings,Hide Footer Signup,Fshih Footer Regjistrohu
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Shkruani një fotografi Python në të njëjtën dosje ku kjo është e ruajtur dhe kolonë dhe rezultat të kthehen.
+DocType: DocType,Sort Field,Rendit Fusha
+apps/frappe/frappe/templates/pages/404.html +10,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","Ne jemi shumë keq për këtë, por faqja e ju po kërkoni është e humbur (kjo mund të jetë për shkak të një typo në adresën) ose lëvizur."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +234,Field {0} of type {1} cannot be mandatory,Fusha {0} nga lloji {1} nuk mund të jetë i detyrueshëm
+DocType: System Settings,Session Expiry Mobile,Sesioni Expiry Mobile
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,If {0} is permitted,Nëse {0} është e lejuar
+DocType: DocPerm,If user is the owner,Nëse përdoruesi është pronar
+,Activity,Aktivitet
+DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Ndihmë: Për të lidhur me një tjetër rekord në sistem, përdorni &quot;# Forma / Shënim / [Shënim Emri]&quot; si Link URL. (Nuk e përdorin &quot;http: //&quot;)"
+apps/frappe/frappe/config/setup.py +185,Add fields to forms.,Shtoni fushat e formave.
+apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,Ju duhet të keni hyrë brenda për të hyrë në këtë faqe.
+DocType: Workflow State,leaf,fletë
+apps/frappe/frappe/config/desktop.py +60,Installer,Installer
+sites/assets/js/editor.min.js +113,Insert Link,Fut Link
+DocType: Contact Us Settings,Query Options,Query Options
+DocType: Patch Log,Patch Log,Patch Identifikohu
+DocType: Communication,Sent or Received,Dërguar apo pranuar
+DocType: DefaultValue,Key,Kyç
+apps/frappe/frappe/config/setup.py +54,Report of all document shares,Raporti i të gjitha aksioneve dokument
+sites/assets/js/desk.min.js +622,Starred By,Luajti Nga
+apps/frappe/frappe/templates/pages/update-password.html +14,New Password,New Fjalëkalimi
+DocType: Website Theme,Style using CSS,Stil duke përdorur CSS
+DocType: Comment,Reference DocType,DOCTYPE Referenca
+DocType: User,System User,Sistemi i përdoruesit
+DocType: Report,Is Standard,Është standard
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Specify a default value,Specifikoni një vlerë të paracaktuar
+DocType: Website Settings,FavIcon,Favicon
+DocType: Workflow State,minus-sign,minus-shenjë
+sites/assets/js/desk.min.js +264,Not Found,Not Found
+apps/frappe/frappe/templates/pages/print.py +134,No {0} permission,Asnjë {0} leje
+DocType: Feed,Login,Hyrje
+DocType: System Settings,Enable Scheduled Jobs,Aktivizo Jobs Scheduled
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Shënime:
+sites/assets/js/desk.min.js +593,Markdown,Markdown
+DocType: DocShare,Document Name,Dokumenti Emri
+DocType: Comment,Comment By,Koment Duke
+DocType: Customize Form,Customize Form,Customize Form
+DocType: Currency,A symbol for this currency. For e.g. $,Një simbol për këtë monedhë. Për shembull $
+sites/assets/js/desk.min.js +934,Frappe Framework,Korniza frape
+apps/frappe/frappe/model/naming.py +162,Name of {0} cannot be {1},Emri i {0} nuk mund të jetë i {1}
+apps/frappe/frappe/config/setup.py +74,Show or hide modules globally.,Shfaq ose fshih module globalisht.
+DocType: Workflow State,Success,Sukses
+DocType: Website Settings,Sidebar Links for Home Page only,Lidhjet Sidebar për shtëpi vetëm Page
+apps/frappe/frappe/templates/includes/login/login.js +124,Invalid Login,Identifikohu pavlefshme
+DocType: Communication,Phone No.,Telefon Nr
+DocType: Workflow State,fire,zjarr
+DocType: Workflow State,picture,foto
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +301,Add A New Restriction,Shto një kufizim i ri
+DocType: Workflow Transition,Next State,Shteti tjetër
+sites/assets/js/editor.min.js +119,Align Left (Ctrl/Cmd+L),Align Left (Ctrl / Cmd + L)
+DocType: User,Block Modules,Modulet Blloku
+DocType: Web Page,Custom CSS,Custom CSS
+sites/assets/js/form.min.js +293,Add a comment,Shto një koment
+apps/frappe/frappe/config/setup.py +220,Log of error on automated events (scheduler).,Identifikohu i gabimit të ngjarjeve të automatizuar (scheduler).
+apps/frappe/frappe/utils/csvutils.py +74,Not a valid Comma Separated Value (CSV File),Jo të ndara me presje Vlera e vlefshme (CSV File)
+DocType: Email Account,Default Incoming,Gabim hyrëse
+DocType: Workflow State,repeat,përsëritje
+DocType: Website Settings,Banner,Flamur
+sites/assets/js/desk.min.js +917,Help on Search,Të ndihmojë në Kërko
+DocType: User,Uncheck modules to hide from user's desktop,Modulet zgjidhni për të fshehur nga desktop përdoruesit
+DocType: DocType,Hide Copy,Fshih Copy
+apps/frappe/frappe/core/doctype/user/user.js +166,Clear all roles,Qartë të gjitha rolet
+apps/frappe/frappe/model/base_document.py +296,{0} must be unique,{0} duhet të jetë unik
+apps/frappe/frappe/permissions.py +228,Row,Rresht
+DocType: Workflow State,Check,Kontrollo
+apps/frappe/frappe/desk/page/activity/activity.js +152,Apr,Prill
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,Fieldname i cili do të jetë DOCTYPE për këtë fushë link.
+DocType: User,Email Signature,Email Nënshkrimi
+DocType: Website Settings,Google Analytics ID,Google Analytics ID
+DocType: Website Theme,Link to your Bootstrap theme,Lidhje të bootstrap theme tuaj
+sites/assets/js/desk.min.js +593,Edit as {0},Edit si {0}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +194,No User Restrictions found.,Nuk Kufizimet User gjetur.
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,Gabim Inbox
+sites/assets/js/desk.min.js +607,Make a new,Të bëjë një të ri
+DocType: Print Settings,PDF Page Size,PDF Faqja Madhësi
+sites/assets/js/desk.min.js +947,About,Për
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.","Për përditësimin, ju mund update kolona vetëm selektive."
+sites/assets/js/desk.min.js +965,Attach Document Print,Bashkangjit Document Print
+DocType: Social Login Keys,Google Client ID,Google Klienti ID
+apps/frappe/frappe/core/doctype/user/user.py +63,Adding System Manager to this User as there must be atleast one System Manager,Shtimi i Sistemit Soccer këtij përdoruesi si nuk duhet të jetë atleast një Sistemi Menaxher
+DocType: Workflow State,list-alt,list-alt
+apps/frappe/frappe/templates/pages/update-password.html +63,Password Updated,Fjalëkalimi Përditësuar
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Zgjidhni module që të tregohet (në bazë të lejes). Nëse fshehur, ata do të fshihen për të gjithë përdoruesit."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149,Permissions Updated,Lejet Përditësuar
+apps/frappe/frappe/email/doctype/email_account/email_account.py +45,Append To is mandatory for incoming mails,Append Për të është e detyrueshme për mesazhet hyrëse
+apps/frappe/frappe/core/doctype/doctype/doctype.py +239,Options requried for Link or Table type field {0} in row {1},Opsionet requried për Link apo fushë Tabela tipit {0} në rresht {1}
+DocType: Report,Query Report,Query Raport
+DocType: Communication,On,Në
+DocType: User,Set New Password,Set fjalëkalim të ri
+DocType: User,Github User ID,Github ID i përdoruesit
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,If Document Type,Nëse Document Type
+DocType: Communication,Chat,Bisedë
+apps/frappe/frappe/core/doctype/doctype/doctype.py +230,Fieldname {0} appears multiple times in rows {1},Fieldname {0} shfaqet herë të shumta në rreshta {1}
+DocType: Workflow State,arrow-down,shigjetë-down
+sites/assets/js/desk.min.js +874,Collapse,Shembje
+apps/frappe/frappe/model/delete_doc.py +131,User not allowed to delete {0}: {1},Përdoruesi nuk lejohet të fshini {0}: {1}
+DocType: Website Settings,Linked In Share,Linked Në Share
+sites/assets/js/desk.min.js +622,Last Updated On,Përditësuar Së Fundmi Në
+DocType: Website Settings,Top Bar,Më Bar
+sites/assets/js/desk.min.js +549,Please save the document before uploading.,Ju lutemi ruani dokumentin para se ngarkimi.
+sites/assets/js/desk.min.js +257,Enter your password,Fusni fjalëkalimin tuaj
+apps/frappe/frappe/core/doctype/doctype/doctype.py +296,Fold must come before a Section Break,Dele duhet të vijë para një seksion Pushim
+apps/frappe/frappe/core/doctype/user/user.py +383,Not allowed to reset the password of {0},Nuk lejohet për të rivendosur fjalëkalimin e {0}
+DocType: Workflow State,hand-down,dorë poshtë
+apps/frappe/frappe/core/doctype/doctype/doctype.py +397,{0}: Cannot set Cancel without Submit,{0}: Nuk mund të vënë Cancel pa Submit
+DocType: Website Theme,Theme,Temë
+DocType: DocType,Is Submittable,Është Submittable
+apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,Vlerë të një fushë kontroll mund të jetë 0 ose 1
+apps/frappe/frappe/model/document.py +477,Could not find {0},Nuk mund të gjeni {0}
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +227,Column Labels:,Etiketa kolonë:
+apps/frappe/frappe/model/naming.py +62,Naming Series mandatory,Emërtimi Seria detyrueshme
+DocType: Social Login Keys,Facebook Client ID,Facebook Klienti ID
+DocType: Workflow State,Inbox,Inbox
+DocType: Workflow State,Tag,Etiketë
+DocType: Custom Script,Script,Dorëshkrim
+sites/assets/js/desk.min.js +947,My Settings,Cilësimet e mia
+DocType: Website Theme,Text Color,Tekst Color
+apps/frappe/frappe/website/doctype/web_form/web_form.py +93,Invalid Request,Kërkesë e pavlefshme
+sites/assets/js/desk.min.js +446,This form does not have any input,Kjo formë nuk ka asnjë kontribut
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Session Expiry must be in format {0},Sesioni Expiry duhet të jetë në formatin {0}
+DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.",Zgjidh target = &quot;_blank&quot; për të hapur në një faqe të re.
+sites/assets/js/desk.min.js +641,Permanently delete {0}?,Përgjithmonë fshini {0}?
+apps/frappe/frappe/core/doctype/file_data/file_data.py +33,Same file has already been attached to the record,Same skeda është tashmë i lidhur me rekord
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +59,Ignore encoding errors.,Ignore encoding gabime.
+DocType: Workflow State,wrench,pikëllim
+DocType: Website Settings,Disable Signup,Disable Regjistrohu
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Rolet mund të vendosen për përdoruesit nga faqja e tyre të përdoruesit.
+apps/frappe/frappe/website/doctype/web_page/web_page.py +158,Website Search,Website Kërko
+DocType: DocField,Mandatory,I detyrueshëm
+apps/frappe/frappe/core/doctype/doctype/doctype.py +361,{0}: No basic permissions set,{0}: Jo lejet themelore set
+apps/frappe/frappe/utils/backups.py +142,Download link for your backup will be emailed on the following email address: {0},Download link për backup tuaj do të dërgohet në adresën e mëposhtme email: {0}
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Kuptimi i Submit, Cancel Ndreqni"
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Për të bërë
+sites/assets/js/editor.min.js +94,Paragraph,Paragraf
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,Çdo leje ekzistuese do të fshihet / overwritten.
+apps/frappe/frappe/desk/doctype/todo/todo.py +17,Assigned to {0}: {1},Caktuar për {0}: {1}
+DocType: DocField,Percent,Përqind
+DocType: Workflow State,book,libër
+DocType: Website Settings,Landing Page,Landing Faqja
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,Nuk ka leje të vendosur për këtë kriter.
+apps/frappe/frappe/config/setup.py +120,Setup Email Alert based on various criteria.,Setup Email Alert bazuar në kritere të ndryshme.
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93,Posts filed under {0},Postimet e ngritur nën {0}
+DocType: Email Alert,Send alert if date matches this field's value,Dërgo alarm në qoftë se data ndeshjet vlerën e kësaj fushe për
+DocType: Workflow,Transitions,Transitions
+DocType: User,Login After,Identifikohu Pas
+DocType: Print Format,Monospace,Monospace
+DocType: Workflow State,thumbs-up,thumbs-up
+sites/assets/js/desk.min.js +965,Add Reply,Shto Përgjigju
+DocType: DocPerm,DocPerm,DocPerm
+apps/frappe/frappe/core/doctype/doctype/doctype.py +277,Precision should be between 1 and 6,Precision duhet të jetë midis 1 dhe 6
+DocType: About Us Team Member,Image Link,Image Link
+DocType: Workflow State,step-backward,hap prapa
+apps/frappe/frappe/utils/boilerplate.py +228,{app_title},{App_title}
+DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Përdor Email ID e përmendur në këtë llogari sa Dërguesit për të gjitha emailet e dërguara përdorur këtë llogari.
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Vetëm Fushat e detyrueshme janë të nevojshme për të dhënat e reja. Ju mund të fshini kolona jo-detyrueshme në qoftë se ju dëshironi.
+sites/assets/js/list.min.js +160,Unable to update event,Në pamundësi për të rinovuar ngjarje
+DocType: Workflow State,text-height,text-height
+DocType: Workflow State,map-marker,harta-shënues
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Submit një çështje
+DocType: Event,Repeat this Event,Përsëriteni këtë ngjarje
+DocType: DocPerm,Amend,Ndryshoj
+apps/frappe/frappe/templates/includes/login/login.js +45,Valid Login id required.,Valid Identifikohu id nevojshme.
+apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Ri-hapur
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} un-ndarë këtë dokument me {1}
+apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Kjo është një përgjigje gjeneruar automatikisht
+apps/frappe/frappe/model/document.py +378,Record does not exist,Rekordi nuk ekziston
+apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Faqe zhdukur ose lëvizur
+sites/assets/js/desk.min.js +565,Open Link,Lidhje të hapur
+apps/frappe/frappe/desk/form/load.py +42,Did not load,A nuk e ngarkesës
+apps/frappe/frappe/desk/query_report.py +80,Query must be a SELECT,Query duhet të jetë një SELECT
+DocType: Website Settings,Facebook Share,Facebook Share
+sites/assets/js/desk.min.js +265,File size exceeded the maximum allowed size of {0} MB,Madhësia skedës tejkaluar madhësinë maksimale të lejuar prej {0} MB
+apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Enter at least one permission row,Shkruani të paktën një rresht leje
+sites/assets/js/desk.min.js +622,Created On,Krijuar Nga
+DocType: Workflow State,align-center,lidhur-Qendra
+sites/assets/js/form.min.js +290,Can Write,Mund të shkruani
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Disa dokumente, si një faturë, nuk duhet të ndryshohet herë përfundimtar. Shteti i fundit për dokumente të tilla quhet Dërguar. Ju mund të kufizojnë të cilat role mund Submit."
+DocType: Communication,Sender,Dërgues
+DocType: Web Page,Description for search engine optimization.,Përshkrim për search engine optimization.
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Shkarko template bosh
+DocType: DocField,In Filter,Në Filter
+DocType: Website Theme,Footer Color,Footer Color
+DocType: Web Page,"Page to show on the website
+",Faqe për të treguar në faqen e internetit
+sites/assets/js/desk.min.js +264,You have been logged out,Ju keni qenë në Anglisht nga
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},Nuk mund të hiqni leje për DOCTYPE: {0} dhe Emri: {1}
+sites/assets/js/editor.min.js +115,Remove Link,Hiq Link
+apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,Regjistruar
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,Gabim Dërgimi dhe Inbox
+DocType: Print Settings,Letter,Letër
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Lejet reset për {0}?
+apps/frappe/frappe/permissions.py +279,{0} {1} not found,{0} {1} nuk u gjet
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Show a description below the field,Tregojnë një përshkrim më poshtë fushës
+DocType: Workflow State,align-left,lidhur-la
+DocType: User,Defaults,Defaults
+sites/assets/js/desk.min.js +641,Merge with existing,Përziej me ekzistuese
+DocType: User,Birth Date,Data e lindjes
+DocType: Workflow State,fast-backward,fast-prapambetur
+DocType: DocShare,DocShare,DocShare
+DocType: Report,Add Total Row,Shto Total Row
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Për shembull, nëse ju anuloni dhe të ndryshojë INV004 ajo do të bëhet një INV004-1 ri dokument. Kjo ju ndihmon të mbajnë gjurmët e çdo amendament."
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Dërguar; 2 - Anullohen
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,Shfaq ose fshih Modulet
+DocType: File Data,Attached To DocType,Bashkangjitur me DOCTYPE
+apps/frappe/frappe/desk/page/activity/activity.js +153,Aug,Gusht
+DocType: DocField,Int,Int
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent",1 Valuta = [?] Pjesa Për shembull 1 USD = 100 Cent
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +370,Add New Permission Rule,Shto rregull i ri Leje
+sites/assets/js/desk.min.js +598,You can use wildcard %,Ju mund të përdorni wildcard%
+apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,Shëmtim
+sites/assets/js/desk.min.js +862,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","Vetëm extensions image (Gif, Jpg, .jpeg, .tiff, .png, .svg) lejohen"
+DocType: Customize Form,"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box","Fushat ndara nga presje (,) do të përfshihen në &quot;Kërko Në&quot; listën e Kërko dialog box"
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,Ju lutem Duplicate këtë website Theme për të rregulloje.
+DocType: DocField,Text Editor,Text Editor
+apps/frappe/frappe/config/website.py +69,Settings for About Us Page.,Cilësimet për Rreth Nesh Page.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +532,Edit Custom HTML,Ndrysho Custom HTML
+DocType: Email Alert,Value Change,Vlera Ndryshimi
+DocType: Standard Reply,Standard Reply,Standard Përgjigje
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175,Width of the input box,Gjerësia e kuti input
+DocType: UserRole,UserRole,UserRole
+DocType: Print Settings,With Letterhead,Me letër me kokë
+apps/frappe/frappe/email/smtp.py +168,Invalid Outgoing Mail Server or Port,Invalid Mail Server po largohet ose Port
+DocType: DocPerm,Write,Shkruaj
+apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,Vetëm Administrator lejuar për të krijuar Query / script Raportet
+sites/assets/js/form.min.js +182,Updating,Përditësimi
+sites/assets/js/desk.min.js +965,Select Attachments,Zgjidhni Attachments
+sites/assets/js/form.min.js +291,Attach File,Bashkangjit Skeda
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Një llogari e re është krijuar për ju
+apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Fjalëkalimi Update Njoftim
+DocType: DocPerm,User Permission DocTypes,DocTypes Përdoruesi Leje
+sites/assets/js/desk.min.js +641,New Name,Emri i ri
+sites/assets/js/form.min.js +199,Insert Above,Fut Mbi
+sites/assets/js/list.min.js +21,Not Saved,Jo Saved
+DocType: Custom Field,Default Value,Vlera e albumit
+sites/assets/js/desk.min.js +257,Verify,Verifikoj
+DocType: Workflow Document State,Update Field,Update Fusha
+apps/frappe/frappe/email/doctype/email_account/email_account.py +272,Leave this conversation,Lënë këtë bisedë
+apps/frappe/frappe/model/base_document.py +362,Options not set for link field {0},Opsione nuk është caktuar për fushën Lidhje {0}
+DocType: Workflow State,asterisk,yll
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,Ju lutem mos ndryshuar titujt template.
+DocType: Workflow State,shopping-cart,pazar-cart
+DocType: Social Login Keys,Google,Google
+DocType: Workflow State,Inverse,I anasjellë
+DocType: DocField,User permissions should not apply for this Link,Lejet e përdoruesit nuk duhet të zbatohet për këtë Link
+apps/frappe/frappe/model/naming.py +90,Invalid naming series (. missing),Seri pavlefshme emërtimin (. Mungon)
+DocType: System Settings,Language,Gjuhë
+DocType: DocPerm,Cancel,Anuloj
+DocType: Web Page,Page content,Faqe Përmbajtja
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,Lini bosh për të dhënat e reja
+apps/frappe/frappe/config/website.py +79,List of themes for Website.,Lista e temave për web faqen.
+sites/assets/js/desk.min.js +947,Logout,Logout
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Lejet në nivele më të larta janë lejet Niveli terren. Të gjitha fushat kanë një grup të Nivelit Leja kundër tyre dhe rregullat e përcaktuara në lejet që aplikojnë për këtë fushë. Kjo është e dobishme në rast se ju doni të fshehur ose të bëjë fushë të caktuar read-only për rolet e caktuara.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Nëse këto udhëzime, ku jo të dobishme, ju lutem të shtoni në sugjerimet tuaja mbi Çështjet Github."
+DocType: Workflow State,bookmark,bookmark
+DocType: Currency,Symbol,Simbol
+apps/frappe/frappe/model/base_document.py +403,Row #{0}:,Row # {0}:
+apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,Fjalëkalimi i ri me email
+apps/frappe/frappe/auth.py +209,Login not allowed at this time,Hyr nuk lejohet në këtë kohë
+DocType: DocType,Permissions Settings,Lejet Cilësimet
+sites/assets/js/desk.min.js +931,{0} List,{0} Lista
+apps/frappe/frappe/desk/form/assign_to.py +39,Already in user's To Do list,Tashmë në përdorues të duhet të bëni listë
+DocType: Email Account,Enable Outgoing,Aktivizo largohet
+DocType: System Settings,Email Footer Address,Email Footer Adresa
+DocType: DocField,Text,Tekst
+apps/frappe/frappe/config/setup.py +125,Standard replies to common queries.,Standard përgjigjet pyetjeve të zakonshme.
+sites/assets/js/desk.min.js +947,Report an Issue,Raportoni një çështje
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,Gabim Dërgimi
+DocType: Workflow State,volume-off,Volumi-off
+DocType: Custom Field,Properties,Prona të paluajtshme
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47,"Do not update, but insert new records.","Mos të rinovuar, por të futur të dhënat e reja."
+DocType: DocField,Dynamic Link,Link Dinamik
+DocType: Property Setter,DocType or Field,DOCTYPE apo Fusha
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,Ndihmë e shpejtë për vendosjen e lejeve
+DocType: Report,Report Builder,Raporti Builder
+DocType: Workflow,Workflow,Workflow
+DocType: Workflow State,Upload,Ngarko
+DocType: System Settings,Date Format,Data Format
+apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,Jo Publikuar
+apps/frappe/frappe/config/setup.py +168,"Actions for workflow (e.g. Approve, Cancel).","Veprimet për workflow (p.sh. miratojë, Cancel)."
+DocType: Workflow State,flag,flamur
+DocType: Web Page,Text Align,Tekst Align
+DocType: Contact Us Settings,Forward To Email Address,Forward Për Email Adresa
+apps/frappe/frappe/core/doctype/doctype/doctype.py +78,Title field must be a valid fieldname,Titulli fushë duhet të jetë një fieldname vlefshme
+DocType: Communication,Archived,Arkivuar
+DocType: System Settings,Session Expiry in Hours e.g. 06:00,Sesioni Expiry në orët p.sh. 06:00
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Pasi të keni vendosur këtë, përdoruesit do të jetë vetëm dokumente në gjendje qasje (p.sh.. Blog post), ku ekziston lidhja (p.sh.. Blogger)."
+apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,Në pamundësi për të hapur dosjen e bashkangjitur. Ju lutemi provoni përsëri.
+DocType: Scheduler Log,Log of Scheduler Errors,Identifikohu i Gabimet scheduler
+sites/assets/js/form.min.js +182,Submitting,Dorëzimi
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +182,Custom HTML,Custom HTML
+DocType: Comment,Comment Docname,Koment Docname
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,Zgjidh Roli
+apps/frappe/frappe/model/delete_doc.py +200,Deleted,Deleted
+DocType: Workflow State,adjust,përshtat
+DocType: Website Settings,Disable Customer Signup link in Login page,Disable lidhje Regjistrohu Customer në faqen Login
+apps/frappe/frappe/core/report/todo/todo.py +21,Assigned To/Owner,Caktuar në / pronarit
+DocType: Workflow State,arrow-left,shigjetë majtë
+apps/frappe/frappe/desk/page/applications/application_row.html +5,Installed,Instaluar
+DocType: Workflow State,fullscreen,fullscreen
+DocType: Event,Ref Name,Emri ref
+DocType: Web Page,Center,Qendër
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,Setup&gt; Permissions User Menaxher
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Përfaqëson shtetet të lejuara në një dokument dhe rolin e caktuar për të ndryshuar gjendjen.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh Form,Refresh Form
+DocType: DocField,Select,Përzgjedh
+apps/frappe/frappe/utils/csvutils.py +25,File not attached,Paraqesë jo bashkangjitur
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Nëse keni vendosur këtë, këtë artikull do të vijë në një drop-down nën prind zgjedhur."
+apps/frappe/frappe/model/db_query.py +393,Please select atleast 1 column from {0} to sort,"Ju lutem, përzgjidhni atleast 1 kolonë nga {0} për të zgjidhur"
+apps/frappe/frappe/templates/pages/print.py +160,No template found at path: {0},Nuk template gjendet në rrugën: {0}
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","Menu items në Top Bar. Për vendosjen ngjyra e Top Bar, shkoni tek zgjedhur Website Theme."
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,Submit pas importimit.
+DocType: Blogger,Avatar,Avatar
+DocType: Blogger,Posts,Posts
+sites/assets/js/desk.min.js +992,Dear,I dashur
+sites/assets/js/report.min.js +2,Tip: Double click cell to edit,Këshillë: Kliko qelizë dyfishtë për të redaktuar
+DocType: ToDo,Description and Status,Përshkrim dhe Statusi
+DocType: Web Page,HTML for header section. Optional,HTML për header seksion. Fakultativ
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,Roli ekziston
+sites/assets/js/desk.min.js +965,Select Print Format,Zgjidh Printo Format
+DocType: DocField,Print Hide,Printo Hide
+sites/assets/js/desk.min.js +246,Enter Value,Shkruani Vlera
+DocType: Workflow State,tint,ngjyrë
+DocType: Workflow State,Style,Stil
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,e.g.:,psh:
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +166,{0} comments,{0} komente
+DocType: Customize Form Field,Label and Type,Etiketë dhe Type
+DocType: Workflow State,forward,përpara
+sites/assets/js/form.min.js +274,{0} edited this {1},{0} redaktuar ky {1}
+DocType: Web Page,Custom Javascript,Custom Javascript
+DocType: DocPerm,Submit,Paraqes
+DocType: Website Settings,Sub-domain provided by erpnext.com,Nën-domain dhënë nga erpnext.com
+DocType: System Settings,dd-mm-yyyy,dd-mm-vvvv
+apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,Duhet të kenë raport leje për të hyrë në këtë raport.
+apps/frappe/frappe/desk/doctype/event/event.py +66,Daily Event Digest is sent for Calendar Events where reminders are set.,Event Daily Digest është dërguar për Ngjarje Kalendari ku përkujtesa janë të përcaktuara.
+sites/assets/js/desk.min.js +947,View Website,Shikoni faqen e internetit
+DocType: Workflow State,remove,largoj
+DocType: Email Account,If non standard port (e.g. 587),Nëse port jo standarde (p.sh. 587)
+sites/assets/js/desk.min.js +947,Reload,Rifresko
+DocType: Event,Participants,Pjesëmarrësit
+DocType: Bulk Email,Reference DocName,Referenca DocName
+DocType: Web Form,Success Message,Suksesi Mesazh
+DocType: DocType,User Cannot Search,Përdoruesi nuk mund të kërkoni
+DocType: DocPerm,Apply this rule if the User is the Owner,Aplikoni këtë rregull në qoftë se përdoruesi është pronar
+apps/frappe/frappe/desk/page/activity/activity.js +47,Build Report,Të ndërtuar raportin
+apps/frappe/frappe/model/rename_doc.py +91,"{0} {1} does not exist, select a new target to merge","{0} {1} nuk ekziston, zgjidhni një objektiv të ri për të bashkojë"
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Nuk mund të vendosni leje për DOCTYPE: {0} dhe Emri: {1}
+DocType: Comment,Comment Doctype,Koment DOCTYPE
+sites/assets/js/desk.min.js +257,Verify Password,Verifikoni fjalëkalimin
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Ka pasur gabime
+apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,Afër
+apps/frappe/frappe/model/document.py +414,Cannot change docstatus from 0 to 2,Nuk mund të ndryshojë docstatus nga 0 në 2
+apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Options must be a valid DocType for field {0} in row {1},Mundësitë e zgjedhjes duhet të jetë një DOCTYPE e vlefshme për fushën e {0} në rresht {1}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Ndrysho Prona
+DocType: Patch Log,List of patches executed,Lista e arna të ekzekutohet
+DocType: Communication,Communication Medium,Komunikimi Medium
+DocType: Website Settings,Banner HTML,Banner HTML
+apps/frappe/frappe/model/base_document.py +407,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} nuk mund të jetë &quot;{2}&quot;. Ajo duhet të jetë një nga &quot;{3}&quot;
+apps/frappe/frappe/utils/data.py +486,{0} or {1},{0} ose {1}
+apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,Fjalëkalimi Update
+DocType: Workflow State,trash,plehra
+apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,Dhjetor
+DocType: Event,Leave blank to repeat always,Lini bosh të përsëris gjithmonë
+DocType: Event,Ends on,Përfundon më
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Item nuk mund të shtohet për të pasardhësve të vet
+sites/assets/js/form.min.js +274,{0} created this {1},{0} krijuar ky {1}
+apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.","Detyra {0}, që ju caktuar për {1}, është mbyllur nga {2}."
+DocType: Blogger,Short Name,Emri i shkurtër
+DocType: Workflow State,magnet,magnet
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,Kjo Valuta është me aftësi të kufizuara. Aktivizo për të përdorur në transaksionet
+DocType: Contact Us Settings,"Default: ""Contact Us""",Gabim: &quot;Na Kontaktoni&quot;
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +378,"Level 0 is for document level permissions, higher levels for field level permissions.","Niveli 0 është për leje nivelit dokument, nivelet më të larta për lejet e nivelit fushë."
+DocType: Custom Script,Sample,Mostër
+DocType: Event,Every Week,Çdo javë
+DocType: Custom Field,Is Mandatory Field,Është terren i detyrueshëm
+DocType: User,Website User,Website i përdoruesit
+DocType: Website Script,Script to attach to all web pages.,Script për të bashkëngjitni për të gjitha faqet e Internetit.
+DocType: Web Form,Allow Multiple,Lejo Multiple
+sites/assets/js/form.min.js +291,Assign,Caktoj
+apps/frappe/frappe/config/setup.py +93,Import / Export Data from .csv files.,Import / Export të dhënave nga fotografi CSV.
+DocType: Workflow State,Icon will appear on the button,Icon do të shfaqet në butonin
+DocType: Web Page,Page url name (auto-generated),Faqja Emri url (auto-generated)
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,Ju lutem ngarkoni duke përdorur të njëjtën template si shkarkim.
+DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip: Shto <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> për të dërguar referencë dokument
+apps/frappe/frappe/modules/__init__.py +81,App not found,App nuk u gjet
+DocType: Workflow State,pencil,laps
+sites/assets/js/form.min.js +283,Share {0} with,Share {0} me
+DocType: Workflow State,hand-up,dorë-up
+DocType: Blog Settings,Writers Introduction,Shkrimtarëve Hyrje
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Zgjidh Dokumenti Lloji ose Roli për të filluar.
+sites/assets/js/desk.min.js +883,Page not found,Faqja nuk u gjet
+DocType: DocField,Precision,Saktësi
+DocType: Website Slideshow,Slideshow Items,Items Slideshow
+apps/frappe/frappe/model/delete_doc.py +153,Cannot delete or cancel because {0} {1} is linked with {2} {3},"Nuk mund të fshini ose të anulojë, sepse {0} {1} është e lidhur me {2} {3}"
+DocType: Website Settings,Twitter Share,Twitter Share
+DocType: Workflow State,Workflow State,Workflow Shteti
+apps/frappe/frappe/templates/pages/me.html +1,My Account,Llogaria ime
+DocType: ToDo,Allocated To,Ndarë për
+apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,Ju lutem klikoni në linkun e mëposhtëm për të vendosur fjalëkalimin tuaj të ri
+DocType: Email Alert,Days After,Ditë pas
+DocType: Contact Us Settings,Settings for Contact Us Page,Cilësimet për Na Kontaktoni Page
+DocType: Custom Script,Script Type,Script Type
+DocType: Email Account,Footer,Futboll
+apps/frappe/frappe/utils/verified_command.py +39,Invalid Link,Link pavlefshme
+DocType: Web Page,Show Title,Shfaq Titulli
+DocType: Property Setter,Property Type,Lloji i Pronës
+DocType: Workflow State,screenshot,screenshot
+apps/frappe/frappe/core/doctype/report/report.py +24,Only Administrator can save a standard report. Please rename and save.,Vetëm Administratori mund të ruaj një raport standarde. Ju lutemi të riemërtoni dhe për të shpëtuar.
+DocType: DocField,Data,Të dhëna
+sites/assets/js/desk.min.js +622,Document Status,Dokumenti Statusi
+DocType: Email Account,Login Id,Identifikohu Id
+apps/frappe/frappe/core/page/data_import_tool/importer.py +176,Not allowed to Import,Nuk lejohet që të importojë
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Nivelet leje
+DocType: Workflow State,Warning,Paralajmërim
+DocType: DocType,In Dialog,Në Dialog
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +142,Help,Ndihmë
+DocType: User,Login Before,Identifikohu Para
+DocType: Web Page,Insert Style,Fut Style
+apps/frappe/frappe/desk/page/applications/applications.js +94,Application Installer,Installer Aplikimi
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,Is,Është
+DocType: Workflow State,info-sign,info-shenjë
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Si duhet të jetë i formatuar këtë monedhë? Nëse nuk është caktuar, do të përdorë standarte të sistemit"
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,Lejet Shfaq User
+apps/frappe/frappe/utils/response.py +107,You need to be logged in and have System Manager Role to be able to access backups.,Ju duhet të keni hyrë brenda dhe kanë Sistemit Menaxher rol për të të jetë në gjendje për të hyrë në backups.
+apps/frappe/frappe/email/bulk.py +78,This email was sent to {0}. To unsubscribe click on this link: {1},Ky email është dërguar për {0}. Për të unsubscribe klikoni në këtë link: {1}
+sites/assets/js/desk.min.js +608,Added {0} ({1}),Shtuar {0} ({1})
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype nuk mund të ndryshohet nga {0} në {1} në rresht {2}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Search Fields should contain valid fieldnames,Fushat e kërkimit duhet të përmbajë Emër të vlefshme
+apps/frappe/frappe/core/doctype/user/user.js +321,Role Permissions,Lejet Roli
+sites/assets/js/form.min.js +290,Can Read,Mund të Lexuar
+DocType: Standard Reply,Response,Përgjigje
+sites/assets/js/form.min.js +290,Can Share,Mund Share
+apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,Adresa e marrësit pavlefshme
+DocType: Workflow State,step-forward,hap përpara
+apps/frappe/frappe/core/doctype/user/user.js +45,Refreshing...,Freskuese ...
+DocType: Event,Starts on,Fillon më
+DocType: Workflow State,th,-të
+sites/assets/js/desk.min.js +576,Create a new {0},Krijo një të ri {0}
+sites/assets/js/desk.min.js +931,Report {0},Raporti {0}
+sites/assets/js/desk.min.js +931,Open {0},Hapur {0}
+DocType: Workflow State,ok-sign,ok-shenjë
+sites/assets/js/form.min.js +160,Duplicate,I kopjuar
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,Ju lutem specifikoni cilat vlera fushë duhet të kontrollohet
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","&quot;Prind&quot; nënkupton tabelën prind, në të cilën ky rresht duhet të shtohet"
+DocType: Website Theme,Apply Style,Aplikoni Style
+sites/assets/js/form.min.js +291,Shared With,Ndahen me
+,Modules Setup,Modulet Setup
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +230,Type:,Lloji:
+apps/frappe/frappe/desk/moduleview.py +57,Module Not Found,Moduli Not Found
+DocType: User,Location,Vend
+,Permitted Documents For User,Dokumentet e lejuar për anëtarët
+apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission",Ju duhet të keni &quot;Share&quot; leje
+sites/assets/js/form.min.js +213,Bulk Edit {0},Bulk Ndrysho {0}
+DocType: Email Alert Recipient,Email Alert Recipient,Email Marrësi Alert
+DocType: About Us Settings,Settings for the About Us Page,Cilësimet për ne në lidhje me Page
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,Zgjidh Lloji i Dokumentit të Shkarko
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Use the field to filter records,Përdorni fushë për të filtruar të dhënat
+DocType: Email Account,Outlook.com,Outlook.com
+DocType: System Settings,Scheduler Last Event,Scheduler Event Fundit
+DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Shtoje Google Analytics ID: psh. UA-89XXX57-1. Ju lutemi të kërkoni ndihmë në Google Analytics për më shumë informacion.
+DocType: Email Alert Recipient,"Expression, Optional","Shprehje, Fakultativ"
+apps/frappe/frappe/email/bulk.py +130,This email was sent to {0},Ky email është dërguar për {0}
+DocType: Email Account,Check this to pull emails from your mailbox,Kontrolloni këtë për të tërhequr email nga kutinë tuaj postare
+apps/frappe/frappe/model/document.py +427,Cannot edit cancelled document,Nuk mund të modifikoni dokumentin anuluar
+apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Gabim mbivendosur caktuar. Ju lutem kontaktoni Administratorin.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<span class=text-muted data-no-content=1>
+DocType: Workflow State,envelope,zarf
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,Opsioni 2
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} ndarë këtë dokument me {1}
+DocType: Website Settings,Google Plus One,Google Plus One
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,Korrik
+DocType: Communication,Additional Info,Të dhëna shtesë
+apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer and logo.","Setup e navigimit të lartë bar, futboll dhe logo."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +357,For {0} at level {1} in {2} in row {3},Për {0} në nivelin {1} në {2} në rresht {3}
+DocType: Bulk Email,Recipient,Marrës
+apps/frappe/frappe/config/setup.py +137,Drag and Drop tool to build and customize Print Formats.,Drag and Drop mjet për ndërtimin dhe përshtatjen e formate të shtypura.
+sites/assets/js/desk.min.js +874,Expand,Zgjeroj
+DocType: Workflow State,align-right,lidhur djathtë
+DocType: Page,Roles,Rolet
+DocType: System Settings,Session Expiry,Sesioni Expiry
+DocType: Workflow State,ban-circle,ndalim-rrethi
+DocType: Event,Desk,Tavolinë
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Shkruani një pyetje SELECT. Rezultati shënimi nuk është faqosur (të gjitha të dhënave është dërguar në një të shkojnë).
+DocType: Email Account,Attachment Limit (MB),Limit Attachment (MB)
+sites/assets/js/form.min.js +199,Ctrl + Down,Ctrl + Poshte
+DocType: User,User Defaults,Defaults User
+DocType: Workflow State,chevron-down,Chevron-poshtë
+DocType: Workflow State,th-list,TH-lista
+DocType: Web Page,Enable Comments,Aktivizo Komente
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Kufizojë përdoruesit nga kjo adresë IP vetëm. IP adresat të shumta mund të shtohet duke ndarë me presje. Gjithashtu pranon adresat IP të pjesshme si (111.111.111)
+DocType: Website Theme,Google Font (Heading),Google Font (kreu)
+sites/assets/js/desk.min.js +931,Find {0} in {1},Gjej {0} në {1}
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Append si komunikim kundër këtij DOCTYPE (duhet të ketë fusha, &quot;Statusi&quot;, &quot;Subjekti&quot;)"
+DocType: DocType,Allow Import via Data Import Tool,Lejo Import nëpërmjet të dhënave të import Tool
+apps/frappe/frappe/model/base_document.py +432,Not allowed to change {0} after submission,Nuk lejohet të ndryshojë {0} pas dorëzimit
+DocType: Comment,Comment Type,Koment Type
+apps/frappe/frappe/config/setup.py +8,Users,Përdoruesit
+DocType: Email Account,Signature,Nënshkrim
+apps/frappe/frappe/config/website.py +84,"Enter keys to enable login via Facebook, Google, GitHub.","Shkruani çelësat për të mundësuar hyrje nëpërmjet Facebook, Google, Github."
+sites/assets/js/list.min.js +69,Add a tag,Shto një tag
+sites/assets/js/desk.min.js +561,Please attach a file first.,Ju lutemi bashkangjitni një fotografi të parë.
+apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","Ka pasur disa gabime vendosja emrin, ju lutem kontaktoni administratorin"
+DocType: Website Slideshow Item,Website Slideshow Item,Website Slideshow Item
+DocType: DocType,Title Case,Titulli Rasti
+DocType: Blog Post,Email Sent,Email dërguar
+sites/assets/js/desk.min.js +965,Send As Email,Dërgo me E-mail
+DocType: Website Theme,Link Color,Link Color
+apps/frappe/frappe/core/doctype/user/user.py +47,User {0} cannot be disabled,Përdoruesi {0} nuk mund te me aftësi të kufizuara
+apps/frappe/frappe/core/doctype/user/user.py +479,"Dear System Manager,","Sistemi Menaxheri i nderuar,"
+sites/assets/js/form.min.js +182,Amending,Ndryshimin
+sites/assets/js/desk.min.js +598,Dialog box to select a Link Value,Dialog box për të zgjedhur një Vlera Link
+DocType: Contact Us Settings,Send enquiries to this email address,Dërgoni pyetjet në këtë adresë e-mail
+DocType: Letter Head,Letter Head Name,Emri Letër Shef
+apps/frappe/frappe/config/website.py +23,User editable form on Website.,Përdoruesi formë editable në Website.
+DocType: Workflow State,file,skedar
+apps/frappe/frappe/model/rename_doc.py +97,You need write permission to rename,Ju duhet të shkruani leje për të riemërtoni
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +433,Apply Rule,Aplikoni Rregulla
+DocType: User,Karma,Karma
+DocType: DocField,Table,Tryezë
+DocType: File Data,File Size,Madhësia e dokumentit
+apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You must login to submit this form,Ju duhet të identifikoheni për të paraqitur këtë formular
+DocType: User,Background Image,Historiku Image
+sites/assets/js/form.min.js +265,New Custom Print Format,Re Format Custom Print
+DocType: DocPerm,Create,Krijoj
+DocType: About Us Settings,Org History,Historia org
+DocType: Workflow,Workflow Name,Workflow Emri
+DocType: Web Form,Allow Edit,Lejo Edit
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},Nuk mund të ndryshojë gjendjen e Dokumentit Anullohen. Rresht Tranzicioni {0}
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Rregullat për mënyrën se si shtetet janë të tranzicionit, si shtet tjetër dhe të cilat roli i lejohet të ndryshojë gjendjen, etj"
+apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} tashmë ekziston
+apps/frappe/frappe/email/doctype/email_account/email_account.py +61,Append To can be one of {0},Append Për të mund të jetë një nga {0}
+DocType: User,Github Username,Github Emri i përdoruesit
+DocType: Web Page,Title / headline of your page,Titulli / titulli i faqes tuaj
+DocType: DocType,Plugin,Plugin
+sites/assets/js/desk.min.js +977,Add Attachments,Shto Attachments
+DocType: Workflow State,signal,sinjal
+DocType: DocType,Show Print First,Shfaq Printo pari
+DocType: Print Settings,Monochrome,Pikturë njëngjyrëshe
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Ndryshëm &quot;Shtetet&quot; ky dokument mund të ekzistojë në. Ashtu si &quot;Open&quot;, &quot;në pritje të miratimit&quot;, etj"
+apps/frappe/frappe/utils/verified_command.py +40,This link is invalid or expired. Please make sure you have pasted correctly.,Kjo lidhje është i pavlefshëm ose ka skaduar. Ju lutem sigurohuni që ju keni ngjit saktë.
+DocType: Web Form,Web Form Fields,Fushat Forma Web
+DocType: Website Theme,Top Bar Text Color,Më Bar Text Color
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +367,Remove Section,Hiq Neni
+sites/assets/js/desk.min.js +521,Invalid Email: {0},Email pavlefshme: {0}
+apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start,Fundi ngjarje duhet të jetë pas fillimit
+apps/frappe/frappe/templates/includes/sidebar.html +7,Back,Përsëri
+apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},Ju nuk keni leje për të marrë një raport mbi: {0}
+sites/assets/js/desk.min.js +579,Advanced Search,Kërkim i Avancuar
+apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,Udhëzime Password Reset janë dërguar në email-it tuaj
+apps/frappe/frappe/config/setup.py +214,Manage cloud backups on Dropbox,Menaxhuar backups cloud në Dropbox
+DocType: Workflow,States,Shtetet
+DocType: Email Alert,Attach Print,Bashkangjit Print
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Kur ju të ndryshojë një dokument pasi Cancel dhe për të shpëtuar atë, ajo do të merrni një numër të ri që është një version i numrit të vjetër."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +36,{0} not allowed in name,{0} nuk lejohen në emër
+DocType: Workflow State,circle-arrow-left,rrethi-shigjetë majtë
+apps/frappe/frappe/sessions.py +109,Redis cache server not running. Please contact Administrator / Tech support,Redis cache server nuk running. Ju lutemi te kontaktoni Administrator / mbështetjen e teknologjisë
+sites/assets/js/desk.min.js +918,Make a new record,Bëni një rekord të ri
+DocType: Currency,Fraction,Fraksion
+sites/assets/js/desk.min.js +550,Select from existing attachments,Zgjidh nga attachments ekzistuese
+DocType: Custom Field,Field Description,Fusha Përshkrim
+apps/frappe/frappe/model/naming.py +49,Name not set via Prompt,Emri nuk është caktuar nëpërmjet Prompt
+DocType: Note,Note is a free page where users can share documents / notes,"Shënim është një faqe e lirë, ku përdoruesit mund të ndajnë dokumentet / shënime"
+DocType: Website Theme,Top Bar Color,Më Bar Color
+DocType: DocType,Allow Import,Lejo Import
+apps/frappe/frappe/templates/includes/comments/comments.py +57,New comment on {0} {1},Komenti i ri për {0} {1}
+DocType: Workflow State,glass,gotë
+DocType: Country,Time Zones,Zonat Koha
+DocType: Workflow State,remove-sign,hiqni-shenjë
+apps/frappe/frappe/config/setup.py +158,Define workflows for forms.,Definimi menu për forma.
+DocType: Website Settings,Misc,Të ndryshme
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +156,Start new Format,Filloni format i ri
+DocType: Workflow State,font,burim
+DocType: Customize Form Field,Is Custom Field,Është Custom Field
+DocType: Workflow,"If checked, all other workflows become inactive.","Nëse kontrollohen, të gjitha menu tjera bëhen joaktive."
+apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Label]: [Fusha Type] / [Opsione]: [Gjerësia]
+DocType: Workflow State,folder-close,dosje të ngushtë
+DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,Fakultativ: Alert do të dërgohet vetëm nëse vlera është një ID e vlefshme email.
+apps/frappe/frappe/model/rename_doc.py +100,{0} not allowed to be renamed,{0} nuk lejohen të riemëruar
+DocType: Custom Script,Custom Script,Custom Script
+sites/assets/js/desk.min.js +622,Assigned To,Caktuar për
+apps/frappe/frappe/core/doctype/user/user.py +166,Verify Your Account,Verifikoni Llogaria juaj
+DocType: Workflow Transition,Action,Veprim
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,Info:
+DocType: Custom Field,Permission Level,Niveli leje
+DocType: User,Send Notifications for Transactions I Follow,Dërgo Lajmërimet për transaksionet Unë ndjek
+apps/frappe/frappe/core/doctype/doctype/doctype.py +400,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nuk mund të vënë Submit, Cancel Ndreqni pa Shkruani"
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Setup&gt; User
+apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Faleminderit
+sites/assets/js/form.min.js +182,Saving,Kursim
+DocType: Print Settings,Print Style Preview,Print Preview Style
+apps/frappe/frappe/website/doctype/web_form/web_form.py +96,You are not allowed to update this Web Form Document,Ju nuk jeni i lejuar për të rinovuar këtë formular Web dokument
+DocType: About Us Settings,About Us Settings,Rreth Nesh Settings
+DocType: Website Settings,Website Theme,Website Theme
+DocType: DocField,In List View,Në Shiko listen
+DocType: Email Account,Use TLS,Përdorimi TLS
+apps/frappe/frappe/email/smtp.py +34,Invalid login or password,Login pavlefshme apo fjalëkalimin
+apps/frappe/frappe/config/setup.py +190,Add custom javascript to forms.,Shtoje porosi javascript në forma.
+,Role Permissions Manager,Lejet Roli Menaxher
+DocType: Website Theme,This must be checked if the below style settings are applicable,Kjo duhet të kontrollohet nëse cilësimet stil më poshtë janë të zbatueshme
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +111,Name of the new Print Format,Emri i formatit të ri Shtyp
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +229,Mandatory:,E detyrueshme:
+,User Permissions Manager,Lejet User Menaxher
+DocType: Property Setter,New value to be set,Vlera e re të jetë vendosur
+DocType: Email Alert,Days Before or After,Ditë para ose pas
+DocType: Email Alert,Email Alert,Email Alert
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,Zgjidhni Dokumenti Llojet për të cilat Përdoruesi Drejtat janë përdorur për të kufizuar qasjen.
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84,Blog,Blog
+DocType: Workflow State,hand-right,dora e djathtë
+DocType: Website Settings,Subdomain,Subdomain
+DocType: Web Form,Allow Delete,Lejo Fshij
+DocType: Email Alert,Message Examples,Mesazh Shembuj
+DocType: Web Form,Login Required,Identifikohu Kerkohet
+apps/frappe/frappe/config/website.py +59,Write titles and introductions to your blog.,Shkruani tituj dhe Paraqitjet në blogun tuaj.
+DocType: Email Account,Notify if unreplied for (in mins),Të njoftojë nëse unreplied për (në minuta)
+apps/frappe/frappe/config/website.py +64,Categorize blog posts.,Kategorizojnë blog posts.
+DocType: DocField,Attach,Bashkangjit
+DocType: DocType,Permission Rules,Rregullat leje
+sites/assets/js/form.min.js +159,Links,Lidhjet
+apps/frappe/frappe/model/base_document.py +331,Value missing for,Vlera e humbur për
+apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Rekordi i Dërguar nuk mund të fshihet.
+sites/assets/js/desk.min.js +919,new type of document,lloj i ri i dokumentit
+DocType: DocPerm,Read,Lexoj
+apps/frappe/frappe/templates/pages/update-password.html +10,Old Password,Vjetër Fjalëkalimi
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},Postime nga {0}
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Për kolona format, japin etiketat kolonë në pyetje."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +427,{0}: Cannot set Assign Amend if not Submittable,{0}: Nuk mund të vënë Cakto Ndryshojë nëse nuk Submittable
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Lejet Ndrysho Roli
+DocType: Social Login Keys,Social Login Keys,Sociale Identifikohu Keys
+DocType: Comment,Comment Date,Koment Data
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +54,Remove all customizations?,Hiq të gjitha Përshtatje?
+DocType: Website Slideshow,Slideshow Name,Emri Slideshow
+sites/assets/js/form.min.js +182,Cancelling,Anulimi
+DocType: DocType,Allow Rename,Lejo Rename
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Fëmijë Tabelat janë treguar si një rrjet në DocTypes tjera.
+DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.","Nëse kontrolluar, Home page do të jetë Grupi i parazgjedhur Item për faqen e internetit."
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Përshkrim për listim faqe, në tekst të thjeshtë, vetëm një çift të linjave. (max 140 karaktere)"
+sites/assets/js/desk.min.js +947,Forums,Forum
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +297,Add A User Restriction,Shto një përdorues kufizim
+DocType: DocType,Name Case,Emri Rasti
+sites/assets/js/form.min.js +278,Shared with everyone,Ndarë me të gjithë
+apps/frappe/frappe/model/base_document.py +327,Data missing in table,Të dhënat mungojnë në tryezë
+DocType: Web Form,Success URL,Suksesi URL
+DocType: Email Account,Append To,Append Për
+DocType: Workflow Document State,Only Allow Edit For,Vetëm Lejo Edit për
+DocType: DocType,DocType,DOCTYPE
+apps/frappe/frappe/core/doctype/user/user.py +393,User {0} does not exist,Përdoruesi {0} nuk ekziston
+DocType: Website Theme,"If image is selected, color will be ignored.","Nëse imazhi është zgjedhur, ngjyra do të injorohen."
+DocType: Top Bar Item,Top Bar Item,Më Bar Item
+apps/frappe/frappe/utils/csvutils.py +50,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Unknown fotografi encoding. Provoi utf-8, dritaret-1250, dritaret-1252."
+apps/frappe/frappe/core/doctype/user/user.py +104,Sorry! Sharing with Website User is prohibited.,Na vjen keq! Ndarja me Website Përdoruesi është i ndaluar.
+apps/frappe/frappe/core/doctype/user/user.js +156,Add all roles,Shto të gjitha rolet
+apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Ju lutem, jepini të dyja email tuaj dhe mesazhin në mënyrë që ne \ mund të kthehet tek ju. Faleminderit!"
+apps/frappe/frappe/email/smtp.py +146,Could not connect to outgoing email server,Nuk mund të lidheni me serverin largohet email
+sites/assets/js/desk.min.js +593,Rich Text,Rich Text
+DocType: Workflow State,resize-full,resize-plotë
+DocType: Workflow State,off,nga
+apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,Raporti {0} është me aftësi të kufizuara
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,Rekomandohet për të futur të dhënat e reja.
+DocType: Block Module,Core,Bërthamë
+DocType: DocField,Set non-standard precision for a Float or Currency field,Set saktësi jo-standarde për një noton ose Valuta fushë
+DocType: Email Account,Ignore attachments over this size,Ignore të bashkëngjitni skedarë mbi këtë madhësi
+apps/frappe/frappe/database.py +217,Too many writes in one request. Please send smaller requests,Shumë shkruan në një kërkesë. Ju lutem dërgoni kërkesa më të vogla
+DocType: Workflow State,arrow-up,shigjetë-up
+DocType: DocField,Allow on Submit,Lejo në Submit
+apps/frappe/frappe/core/page/desktop/desktop.js +48,All Applications,Të gjitha Aplikacionet
+DocType: Web Page,Add code as &lt;script&gt;,Shto kodin si &lt;script&gt;
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Zgjidh Lloji
+apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,Nuk ka leje për të shkruar / Largo.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,Elementet Drag nga sidebar për të shtuar. Terhiq e tyre përsëri në plehra.
+DocType: Workflow State,resize-small,resize-vogël
+sites/assets/js/editor.min.js +128,Horizontal Line Break,Pushim Line Horizontal
+DocType: Top Bar Item,Right,E drejtë
+DocType: User,User Type,Përdoruesi Lloji
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,Zgjidh Përdoruesi
+DocType: Communication,Keep a track of all communications,Mbani një udhë të gjitha komunikimeve
+apps/frappe/frappe/desk/form/save.py +30,Did not save,A nuk të shpëtuar
+DocType: Property Setter,Property,Pronë
+DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Shënim: Për rezultate më të mira, imazhet duhet të jenë të së njëjtës madhësi dhe gjerësia duhet të jetë më e madhe se lartësia."
+DocType: DocType,Auto Name,Emri Auto
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 3,Opsioni 3
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup &gt; Role Permissions Manager,Lejet mund të menaxhohet nëpërmjet Setup&gt; Lejet Roli Menaxher
+apps/frappe/frappe/core/page/data_import_tool/importer.py +68,Please make sure that there are no empty columns in the file.,Ju lutem sigurohuni që nuk ka kolona bosh në dosjen.
+sites/assets/js/desk.min.js +686,You have unsaved changes in this form. Please save before you continue.,Ju keni ndryshime të paruajtura në këtë formë. Ju lutem kurseni para se të vazhdoni.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +273,Default for {0} must be an option,Parazgjedhur për {0} duhet të jetë një opsion
+DocType: User,User Image,User Image
+apps/frappe/frappe/email/bulk.py +178,Emails are muted,Emails janë mbytur
+sites/assets/js/form.min.js +199,Ctrl + Up,Ctrl + Up
+DocType: Website Theme,Heading Style,Kreu Style
+apps/frappe/frappe/desk/page/applications/applications.py +34,You cannot install this app,Ju nuk mund të instaloni këtë app
+DocType: Scheduler Log,Error,Gabim
+apps/frappe/frappe/model/document.py +482,Cannot link cancelled document: {0},Nuk mund të lidhni dokumentin anuluar: {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +550,"For example: If you want to include the document ID, use {0}","Për shembull: Nëse ju doni të përfshijë ID dokument, përdorni {0}"
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +479,Select Table Columns for {0},Zgjidhni Tabela Kolumne për {0}
+DocType: Custom Field,Options Help,Options Ndihmë
+DocType: DocField,Report Hide,Raporti Hide
+DocType: Custom Field,Label Help,Label Ndihmë
+DocType: Workflow State,star-empty,yll-bosh
+DocType: Workflow State,ok,në rregull
+DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Këto vlera do të rifreskohet automatikisht në transaksione dhe gjithashtu do të jenë të dobishme për të kufizuar lejet për këtë përdorues për transaksionet që përmbajnë këto vlera.
+apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,Botues
+sites/assets/js/desk.min.js +846,Browse,Shfletoj
+apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your browser,Shiko atë në shfletuesin tënd
+apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,Reset Password
+DocType: Workflow State,hand-left,dorës së majtë
+apps/frappe/frappe/core/doctype/doctype/doctype.py +281,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} për {1} nuk mund të jetë unike
+DocType: Email Account,Use SSL,Përdorimi SSL
+DocType: Workflow State,play-circle,play-rrethi
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,Zgjidh format të printuar për Edit
+DocType: Workflow State,circle-arrow-down,rrethi-shigjetë-down
+DocType: DocField,Datetime,Datetime
+DocType: Workflow State,arrow-right,Shigjeta e djathtë
+DocType: Workflow State,Workflow state represents the current state of a document.,Shteti Workflow përfaqëson gjendjen aktuale të një dokumenti.
+sites/assets/js/editor.min.js +152,Open Link in a new Window,Link hapet në një dritare të re
+apps/frappe/frappe/utils/file_manager.py +235,Removed {0},Removed {0}
+DocType: Company History,Highlight,Nxjerr në pah
+apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,Standard Format Print nuk mund të rifreskohet
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +146,Help: Field Properties,Ndihmë: Field paluajtshme
+apps/frappe/frappe/model/document.py +657,Incorrect value in row {0}: {1} must be {2} {3},Vlera e pasaktë në rresht {0}: {1} duhet të jetë {2} {3}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Dokumenti i paraqitur nuk mund të kthehet përsëri për të hartuar. Rresht Tranzicioni {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,Zgjidh një format ekzistuese të redaktojnë filluar një format të ri.
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Fusha krijuar Custom {0} në {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,Një përdorues mund të lejohet për të dhënat e shumëfishta të të njëjtit DOCTYPE.
+DocType: Workflow State,Home,Shtëpi
+DocType: Workflow State,question-sign,pyetje-shenjë
+DocType: Email Account,Add Signature,Shto Nënshkrimi
+apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +13,Left this conversation,Lënë këtë bisedë
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +474,Did not set,A nuk është caktuar
+DocType: ToDo,ToDo,Todo
+DocType: DocField,No Copy,Nuk Copy
+DocType: Workflow State,qrcode,qrcode
+DocType: Web Form,Breadcrumbs,Breadcrumbs
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,If Owner,Nëse pronari
+apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be logged in to access this {0}.,Ju duhet të keni hyrë brenda për të hyrë në këtë {0}.
+apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} nga {1}
+apps/frappe/frappe/core/doctype/comment/comment.py +39,Cannot add more than 50 comments,Nuk mund të shtoj më shumë se 50 komente
+DocType: Website Settings,Top Bar Items,Items top Bar
+DocType: Print Settings,Print Settings,Print Cilësimet
+DocType: DocType,Max Attachments,Attachments Max
+DocType: Page,Page,Faqe
+DocType: Workflow State,briefcase,çantë
+apps/frappe/frappe/model/base_document.py +420,Value cannot be changed for {0},Vlera nuk mund të ndryshohet për {0}
+apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.",Ju duket se kanë shkruar emrin tuaj në vend të email-it tuaj. \ Ju lutem shkruani një adresë e vlefshme email në mënyrë që ne të mund të kthehemi.
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Style përfaqëson ngjyrën button: Suksesi - Green, Danger - Red, inversi e - Zi, primar - blu të errët, Info - Light Blue, duke paralajmëruar - Orange"
+DocType: Workflow Transition,Workflow Transition,Rrjedha e Tranzicionit
+DocType: Workflow State,resize-horizontal,resize-horizontal
+DocType: Communication,Content,I kënaqur
+DocType: Web Form,Go to this url after completing the form.,Shkoni në këtë url pas përfundimit formularin.
+DocType: Custom Field,Document,Dokument
+DocType: DocField,Code,Kod
+DocType: Website Theme,Footer Text Color,Footer Text Color
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Lejet në nivel 0 janë lejet Dokumenti nivel, pra ata janë primare për qasje në dokument."
+DocType: Print Format,Print Format,Format Print
+apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,ID përdoruesi i një shkrimtar blog.
+apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,Drejtat vendosur në llojet e dokumenteve dhe Rolet
+DocType: About Us Settings,"""Company History""",&quot;Historia e kompanisë&quot;
+apps/frappe/frappe/permissions.py +283,Permission already set,Leja vendosur tashmë
+apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},Komentoi mbi {0}: {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +243,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,Këto kufizime do të zbatohen për llojet e dokumenteve ku &#39;Zbato lejet e përdoruesit&#39; është kontrolluar për sundimin leje dhe një fushë me këtë vlerë është e pranishme.
+DocType: Email Alert,Send alert if this field's value changes,Dërgo vigjilent në qoftë se ndryshimet e vlerës së kësaj fushe-së
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +102,Select a DocType to make a new format,Zgjidh një DOCTYPE për të bërë një format të ri
+DocType: Module Def,Module Def,Moduli Def
+sites/assets/js/form.min.js +199,Done,E bërë
+sites/assets/js/form.min.js +294,Reply,Përgjigje
+DocType: Communication,By,Nga
+DocType: Email Account,SMTP Server,SMTP Server
+DocType: Print Format,Print Format Help,Format Shtyp Ndihmë
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Nëse jeni të informuar, ju lutem zgjidhni &quot;Mbishkruaj&quot; rreshtave tjetër ekzistuese nuk do të fshihen."
+DocType: Event,Every Month,Çdo muaj
+DocType: Letter Head,Letter Head in HTML,Shef Letër në HTML
+DocType: Web Form,Web Form,Forma Web
+DocType: About Us Settings,Org History Heading,Org Historia Kreu
+DocType: Web Form,Web Page Link Text,Web Page link teksti
+apps/frappe/frappe/config/setup.py +142,"Set default format, page size, print style etc.","Formati Set parazgjedhur, faqe madhësia, stili shtypura etj"
+DocType: DocType,Naming,Emërtimi
+DocType: Event,Every Year,Çdo vit
+apps/frappe/frappe/core/doctype/user/user.py +359,Registered but disabled.,Regjistruar por me aftësi të kufizuara.
+sites/assets/js/list.min.js +95,Delete permanently?,Fshini përgjithmonë?
+sites/assets/js/desk.min.js +922,Search in a document type,Kërko në një lloj dokument
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201,Allow field to remain editable even after submission,Lejojnë fushë të mbetet editable edhe pas dorëzimit
+DocType: DocPerm,Role and Level,Roli dhe Niveli
+apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Raportet Custom
+DocType: Website Script,Website Script,Website Script
+apps/frappe/frappe/config/setup.py +147,Customized HTML Templates for printing transactions.,Templates HTML përshtatur për transaksionet printim.
+apps/frappe/frappe/desk/form/utils.py +103,No further records,Ka të dhëna të mëtejshme
+DocType: DocField,Long Text,Gjatë Tekst
+apps/frappe/frappe/core/page/data_import_tool/importer.py +36,Please do not change the rows above {0},Ju lutem mos ndryshuar rreshtat e mësipërme {0}
+sites/assets/js/desk.min.js +947,(Ctrl + G),(Ctrl + G)
+sites/assets/js/desk.min.js +903,Sorry! You are not permitted to view this page.,Na vjen keq! Ju nuk jeni i lejuar për të parë këtë faqe.
+DocType: Workflow State,bell,zile
+sites/assets/js/form.min.js +290,Share this document with,Share këtë dokument me
+apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,Qershor
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} nuk mund të jetë një nyje gjethe si ajo ka fëmijë
+DocType: Feed,Info,Info
+apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Faleminderit për mesazhin tuaj
+DocType: Website Settings,Home Page,Faqja Kryesore Internet
+DocType: Email Alert,Filters,Filtra
+DocType: Workflow State,share-alt,pjesa-alt
+DocType: Role,Role Name,Roli Emri
+DocType: Workflow Document State,Workflow Document State,Workflow Dokumenti i Shtetit
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","Për të dhënë acess për një rol të vetëm të dhënat specifike, kontrolloni Aplikoni lejet e përdoruesit. Drejtat User janë përdorur për të kufizuar përdoruesit me rol të tillë në të dhënat specifike."
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Nuk mund të anulojë para paraqitjes. Shih Tranzicioni {0}
+apps/frappe/frappe/templates/pages/print.py +146,Print Format {0} is disabled,Printo Format {0} është me aftësi të kufizuara
+DocType: Email Alert,Send days before or after the reference date,Dërgoje ditë para ose pas datës së referimit
+DocType: User,Allow user to login only after this hour (0-24),Lejo përdoruesit të identifikoheni vetëm pas kësaj ore (0-24)
+apps/frappe/frappe/core/doctype/doctype/doctype.py +33,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Jo në modë Zhvilluesish! Vendosur në site_config.json ose të bëjë DOCTYPE &#39;Doganës&#39;.
+DocType: Workflow State,globe,botë
+DocType: System Settings,dd.mm.yyyy,DD.MM.VVVV
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193,Hide field in Standard Print Format,Fushë Hide në standard format të printuar
+DocType: DocField,Float,Nxjerr në shitje
+DocType: Module Def,Module Name,Moduli Emri
+DocType: DocType,DocType is a Table / Form in the application.,DOCTYPE është një Tabela / Formulari në kërkesë.
+DocType: Feed,Feed Type,Feed Type
+DocType: Email Account,GMail,GMail
+DocType: Web Page,Template Path,Rruga Template
+DocType: User,user_image_show,user_image_show
+DocType: DocField,Print Width,Printo Gjerësia
+DocType: User,Allow user to login only before this hour (0-24),Lejo përdoruesit të identifikoheni vetëm para në këtë orë (0-24)
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,Filter ...
+DocType: Workflow State,bold,guximtar
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} nuk ekziston në rresht {1}
+DocType: Event,Event Type,Lloji ngjarje
+DocType: User,Last Known Versions,Versionet e fundit të njohur
+apps/frappe/frappe/config/setup.py +115,Add / Manage Email Accounts.,Add / Manage llogaritë e-mail.
+DocType: Blog Category,Published,Publikuar
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,Faleminderit për email-it tuaj
+DocType: DocField,Small Text,Tekst i vogël
+apps/frappe/frappe/core/doctype/user/user.py +481,Administrator accessed {0} on {1} via IP Address {2}.,Administratori arrihen {0} në {1} nëpërmjet IP Address {2}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Lloj Options &#39;Dynamic Link&#39; e fushës duhet të vënë në një tjetër terren Link me opsione si &quot;DOCTYPE &#39;
+DocType: About Us Settings,Team Members Heading,Anëtarët e ekipit Kreu
+DocType: DocField,Do not allow user to change after set the first time,Nuk lejojnë përdoruesin të ndryshojë pasi të vendosur për herë të parë
+DocType: User,Third Party Authentication,Partia e tretë Authentication
+DocType: Website Settings,Banner is above the Top Menu Bar.,Banner është mbi Top Menu Bar.
+DocType: Email Account,Port,Port
+DocType: Print Format,Arial,Arial
+DocType: Website Slideshow,Slideshow like display for the website,Slideshow si shfaqje për faqen
+sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),Qendra (Ctrl / Cmd + E)
+apps/frappe/frappe/sessions.py +28,Cache Cleared,Cache pastruar
+apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,Përdoruesi me Sistemin Menaxher Roli duhet gjithmonë të kemi ndonjë anëtarë Lloji: Përdoruesi i Sistemit
+DocType: DocPerm,Export,Eksport
+DocType: About Us Settings,More content for the bottom of the page.,Më shumë përmbajtjen për pjesën e poshtme të faqes.
+sites/assets/js/desk.min.js +274,Session Expired. Logging you out,Sesioni Skaduar. Logging ju nga
+DocType: Workflow,DocType on which this Workflow is applicable.,DOCTYPE në të cilën kjo Workflow është i zbatueshëm.
+DocType: Blog Category,Category Name,Kategoria Emri
+DocType: Print Settings,PDF Settings,PDF Settings
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,Kolona Emri
+DocType: Web Form,"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","Në JSON si <pre> [{&quot;Title&quot;: &quot;Jobs&quot;, &quot;emri&quot;: &quot;Punë&quot;}] </pre>"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +284,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} për {1} nuk mund të indeksuar
+DocType: Communication,Email Account,Email Llogaria
+DocType: Workflow State,Download,Shkarko
+DocType: Blog Post,Blog Intro,Blog Intro
+apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Aktivizo Raportin
+DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Kontrolloni / rolet zgjidhni caktuar të përdoruesit. Klikoni mbi Rolin për të gjetur se çfarë lejet që Roli ka.
+DocType: Web Page,Insert Code,Fut Kodi
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +549,You can add dynamic properties from the document by using Jinja templating.,Ju mund të shtoni pronat dinamike nga dokumenti duke përdorur Jinja templating.
+sites/assets/js/desk.min.js +920,List a document type,Lista një lloj dokument
+DocType: Event,Ref Type,Ref Type
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.","Nëse ju jeni ngarkimi rekorde të reja, të lënë bosh &quot;Emri&quot; (ID) kolonë."
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +361,No of Columns,Nuk i Shtyllave
+DocType: Workflow State,Calendar,Kalendar
+apps/frappe/frappe/model/rename_doc.py +94,"Another {0} with name {1} exists, select another name","Një tjetër {0} me {1} ekziston emri, zgjidhni një emër tjetër"
+DocType: DocType,Custom?,Custom?
+DocType: Website Settings,Website Theme Image,Website Image Theme
+DocType: Workflow State,road,rrugë
+DocType: User,Timezone,Brezin orar
+sites/assets/js/desk.min.js +624,Unable to load: {0},Në pamundësi për të ngarkuar: {0}
+DocType: DocField,Read Only,Lexoni Vetëm
+DocType: Print Settings,Send Print as PDF,Dërgo Printo si PDF
+DocType: Workflow Transition,Allowed,I lejuar
+apps/frappe/frappe/core/doctype/doctype/doctype.py +291,There can be only one Fold in a form,Nuk mund të jetë vetëm një FOLD në një formë
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Invalid Faqja Kryesore
+apps/frappe/frappe/core/doctype/doctype/doctype.py +390,{0}: Permission at level 0 must be set before higher levels are set,{0}: Leja në nivel 0 duhet të vendosen para se nivelet më të larta janë vendosur
+DocType: Website Settings,Home Page is Products,Faqja Kryesore është Produkte
+apps/frappe/frappe/desk/doctype/todo/todo.py +21,Assignment closed by {0},Caktimi mbyllur nga {0}
+sites/assets/js/desk.min.js +926,Calculate,Llogarit
+apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,Ju lutemi zgjidhni DOCTYPE parë
+sites/assets/js/desk.min.js +927,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,p.sh. (55 + 434) / 4 ose = Math.sin (Math.PI / 2) ...
+DocType: Social Login Keys,GitHub Client ID,Github Klienti ID
+DocType: DocField,Perm Level,Niveli Perm
+apps/frappe/frappe/desk/doctype/event/event.py +59,Events In Today's Calendar,Ngjarje në kalendarin e sotme
+DocType: Web Page,Web Page,Faqe interneti
+DocType: Blog Category,Blogger,Blogger
+sites/assets/js/desk.min.js +528,Date must be in format: {0},Data duhet të jetë në format: {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +22,Select Columns,Zgjidhni Kolumne
+DocType: Workflow State,folder-open,folder-hapur
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,Kërko Aplikimi
+apps/frappe/frappe/config/website.py +18,Single Post (article).,Post Single (neni).
+DocType: Property Setter,Set Value,Vlera Set
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Hide field in form,Fshih fushë në formë
+DocType: Email Alert,Optional: The alert will be sent if this expression is true,Fakultativ: vigjilent do të dërgohet në qoftë se kjo shprehje është e vërtetë
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,Ju mund të përdorni Customize Forma për të vendosur nivelet në fushat.
+DocType: DocPerm,Report,Raport
+apps/frappe/frappe/templates/generators/web_form.html +31,Please login to create a new {0},Ju lutem identifikohuni për të krijuar një të ri {0}
+apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} është ruajtur
+apps/frappe/frappe/core/doctype/user/user.py +235,User {0} cannot be renamed,Përdoruesi {0} nuk mund të riemërohet
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,Eksportohen
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","Lista JSON e DocTypes përdoren për të aplikuar lejet e përdoruesit. Nëse bosh, të gjitha DocTypes lidhura do të përdoren për të aplikuar lejet e përdoruesit."
+DocType: Report,Ref DocType,Ref DOCTYPE
+apps/frappe/frappe/core/doctype/doctype/doctype.py +402,{0}: Cannot set Amend without Cancel,{0}: Nuk mund të vendosur të ndryshojë pa Anulo
+sites/assets/js/form.min.js +260,Full Page,Full Faqe
+DocType: DocType,Is Child Table,Është Tabela e Fëmijëve
+apps/frappe/frappe/utils/csvutils.py +123,{0} must be one of {1},{0} duhet të jetë një nga {1}
+apps/frappe/frappe/templates/emails/password_reset.html +1,Password Reset,Password Reset
+DocType: Workflow State,chevron-left,Chevron-la
+DocType: Bulk Email,Sending,Dërgim
+apps/frappe/frappe/auth.py +195,Not allowed from this IP Address,Nuk lejohet nga kjo IP Adresa
+DocType: Website Slideshow,This goes above the slideshow.,Kjo shkon mbi Slideshow.
+apps/frappe/frappe/config/setup.py +208,Install Applications.,Install Aplikacione.
+DocType: Event,Private,Privat
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Dërgo email attachments Printo si PDF (Recommended)
+DocType: Workflow Action,Workflow Action,Veprimi Workflow
+DocType: Event,Send an email reminder in the morning,Dërgo një kujtim email në mëngjes
+DocType: Blog Post,Published On,Publikuar On
+DocType: Feed,Feed,Ushqim
+DocType: ToDo,Reference Type,Referenca Type
+DocType: Event,Repeat On,Përsëriteni Në
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,Drejtat e përdoruesit
+apps/frappe/frappe/desk/page/activity/activity.js +153,Oct,Tetor
+DocType: Workflow State,warning-sign,paralajmërim-shenjë
+DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Shfaq Titulli në dritare të shfletuesit si &quot;Parashtesa - Titulli&quot;
+sites/assets/js/desk.min.js +923,text in document type,Teksti në llojin e dokumentit
+DocType: Workflow Document State,Update Value,Vlera Update
+DocType: System Settings,Number Format,Format numrin
+DocType: Custom Field,Insert After,Fut Pas
+DocType: Social Login Keys,GitHub Client Secret,Github Klienti Sekret
+DocType: Report,Report Name,Raporti Emri
+DocType: Email Alert,Save,Ruaj
+DocType: Website Settings,Title Prefix,Titulli Prefiksi
+DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,Njoftime dhe mail pjesa më e madhe do të dërgohen nga ky server po largohet.
+DocType: Workflow State,cog,hallkë
+sites/assets/js/desk.min.js +608,{0} added,{0} shtuar
+sites/assets/js/list.min.js +67,Not In,Jo Në
+DocType: Workflow State,star,yll
+apps/frappe/frappe/desk/page/activity/activity.js +153,Nov,Nëntor
+apps/frappe/frappe/core/doctype/doctype/doctype.py +256,Max width for type Currency is 100px in row {0},Max width për tip monedhe është 100px në rresht {0}
+apps/frappe/frappe/config/website.py +13,Content web page.,Përmbajtja web faqe.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Shto një rol të ri
+apps/frappe/frappe/templates/includes/login/login.js +125,Oops! Something went wrong,Oops! Diçka shkoi keq
+DocType: Blog Settings,Blog Introduction,Blog Hyrje
+DocType: User,Email Settings,Email Cilësimet
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} nuk është një shtet i vlefshëm
+DocType: Workflow State,ok-circle,ok-rrethi
+apps/frappe/frappe/core/doctype/user/user.py +102,Sorry! User should have complete access to their own record.,Na vjen keq! Përdoruesi duhet të kenë qasje të plotë në të dhënat e tyre.
+DocType: Custom Field,In Report Filter,Në raportin Filter
+DocType: DocType,Hide Actions,Fshih Veprimet
+DocType: DocType,"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Emërtimi Options</a>"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,Label është i detyrueshëm
+DocType: DocField,Unique,Unik
+DocType: File Data,File Name,File Name
+apps/frappe/frappe/core/page/data_import_tool/importer.py +261,Did not find {0} for {0} ({1}),A nuk gjeni {0} për {0} ({1})
+apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Set Lejet për përdoruesit
+DocType: Print Format,Edit Format,Ndrysho Format
+apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,Complete Regjistrimi
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Më Bar Color dhe Text Color janë të njëjta. Ata duhet të kenë kontrast të mirë që të jetë i lexueshëm.
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),Ju vetëm mund të ngarkoni upto 5000 të dhënat në një të shkojnë. (Mund të jetë më pak në disa raste)
+DocType: Print Settings,Print Style,Style Print
+DocType: DocPerm,Import,Import
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +125,Row {0}: Not allowed to enable Allow on Submit for standard fields,Row {0}: Nuk lejohet për të mundësuar Lejo në Paraqit për fushat standarde
+apps/frappe/frappe/config/setup.py +91,Import / Export Data,Import / Export dhënave
+sites/assets/js/desk.min.js +1000,updated to {0},përditësuar për {0}
+DocType: Workflow State,chevron-right,Chevron djathtë
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')","Ndryshoni llojin e fushës. (Aktualisht, Lloji ndryshimi \ lejohet në mesin e &#39;Valuta dhe noton&#39;)"
+DocType: Website Theme,Link to Bootstrap CSS,Link për bootstrap CSS
+DocType: Workflow State,camera,aparat fotografik
+DocType: Website Settings,Brand HTML,Markë HTML
+apps/frappe/frappe/templates/includes/login/login.js +18,Both login and password required,Dy login dhe fjalëkalimin e nevojshme
+apps/frappe/frappe/model/document.py +392,Please refresh to get the latest document.,Ju lutemi të rifreskoni të marrë dokumentin e fundit.
+DocType: User,Security Settings,Cilësimet e sigurisë
+,Desktop,Desktop
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,"Tekst për t&#39;u shfaqur për Link në web faqe, nëse kjo formë ka një faqe web. Rrugë Link do të jetë e gjeneruar automatikisht bazuar në `page_name` dhe` parent_website_route`"
+sites/assets/js/desk.min.js +588,Please set {0} first,Ju lutemi të vendosur {0} parë
+DocType: Patch Log,Patch,Copë toke
+apps/frappe/frappe/core/page/data_import_tool/importer.py +41,No data found,Nuk ka të dhëna gjetur
+DocType: Web Form,Allow Comments,Lejo Komente
+DocType: User,Background Style,Style Historiku
+DocType: System Settings,mm-dd-yyyy,MM-DD-vvvv
+apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,{0} regjistrohet në
+DocType: Workflow,"All possible Workflow States and roles of the workflow. 
+Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Të gjitha të jetë e mundur Workflow Shtetet dhe rolet e punës. Docstatus Opsione: 0 është &quot;Saved&quot;, 1 është &quot;Dërguar&quot; dhe 2 është &quot;Anullohen&quot;"
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,Login id juaj është
+DocType: DocField,Ignore User Permissions,Ignore lejet e përdoruesit
