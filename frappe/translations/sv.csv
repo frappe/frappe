@@ -1,0 +1,1509 @@
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,Tryck på Esc för att stänga
+apps/frappe/frappe/desk/form/assign_to.py +127,"A new task, {0}, has been assigned to you by {1}. {2}","En ny uppgift, {0}, har tilldelats till dig av {1}. {2}"
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Inlägg
+apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv file.,Döp många objekt genom att ladda upp en CSV-fil.
+DocType: Workflow State,pause,paus
+apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Det är inte tillåtet att sjunga den här sidan.
+DocType: User,Facebook Username,Facebook Användarnamn
+DocType: Workflow State,eye-open,ögon öppen
+DocType: Bulk Email,Send After,Skicka Efter
+apps/frappe/frappe/utils/file_manager.py +28,Please select a file or url,Välj en fil eller webbadress
+DocType: DocField,DocField,DocField
+DocType: Comment,Comment By Fullname,Kommentar Av Fullname
+DocType: DocField,Options,Val
+sites/assets/js/report.min.js +17,Cannot edit standard fields,Det går inte att ändra standardfält
+DocType: Print Format,Print Format Builder,Utskriftsformat Builder
+DocType: Report,Report Manager,Report Manager
+DocType: Workflow,Document States,Dokument States
+sites/assets/js/desk.min.js +902,Sorry! I could not find what you were looking for.,Förlåt! Jag kunde inte hitta det du söker efter.
+DocType: DocPerm,This role update User Permissions for a user,Denna roll uppdatera användarbehörigheter för en användare
+sites/assets/js/desk.min.js +641,Rename {0},Ändra namn {0}
+DocType: Workflow State,zoom-out,zooma ut
+DocType: Comment,Reference DocType and Reference Name are used to render a comment as a link (href) to a Doc.,Referens DocType och referens namn används för att göra en kommentar som en länk (href) till en Doc.
+apps/frappe/frappe/model/document.py +668,Table {0} cannot be empty,Tabell {0} kan inte vara tomt
+DocType: Social Login Keys,GitHub,GitHub
+apps/frappe/frappe/model/document.py +642,Beginning with,Utgå
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,Data Import Mall
+sites/assets/js/desk.min.js +622,Parent,Förälder
+apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,Syntax error i Jinja mall
+DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;Team Members&quot; eller &quot;Management&quot;
+apps/frappe/frappe/core/doctype/doctype/doctype.py +271,Default for 'Check' type of field must be either '0' or '1',Standard för på Kontrollera typ av fält måste vara antingen &quot;0&quot; eller &quot;1&quot;
+DocType: Email Account,Enable Incoming,Aktivera inkommande
+DocType: Workflow State,Danger,Fara
+DocType: Workflow State,th-large,th-large
+DocType: Communication,Unread Notification Sent,Olästa Anmälan Skickade
+sites/assets/js/desk.min.js +795,Export not allowed. You need {0} role to export.,Export tillåts inte. Du behöver {0} roll att exportera.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +154,Set the display label for the field,Ställ in visningsetiketten för fältet
+apps/frappe/frappe/model/document.py +659,Incorrect value: {0} must be {1} {2},Felaktigt värde: {0} måste vara {1} {2}
+apps/frappe/frappe/config/setup.py +179,"Change field properties (hide, readonly, permission etc.)","Ändra fältegenskaper (dölja, skrivskyddad, tillstånd etc.)"
+DocType: Workflow State,lock,låsa
+apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,Inställningar för Kontakta oss.
+apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,Administratör inloggad
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Kontaktalternativ, som &quot;Försäljnings Query, Support Query&quot; etc var på en ny rad eller separerade med kommatecken."
+sites/assets/js/editor.min.js +155,Insert,Infoga
+sites/assets/js/desk.min.js +598,Select {0},Välj {0}
+DocType: Feed,Color,Färg
+DocType: Workflow State,indent-right,indent-höger
+sites/assets/js/desk.min.js +846,Web Link,Webblänk
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.","Rekommenderas bulk redigering poster via import, eller förstå importformat."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Bortsett från System Manager, roller med Set användarbehörigheter rätt kan ställa in behörigheter för andra användare för att Document Type."
+DocType: Company History,Company History,Företagets historia
+DocType: Workflow State,volume-up,volym upp
+apps/frappe/frappe/core/page/data_import_tool/importer.py +43,Only allowed {0} rows in one import,Endast tillåtet {0} rader i en import
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To import or update records, you must first download the template for importing.","Om du vill importera eller uppdatera poster, måste du först ladda ner mallen för import."
+DocType: DocType,Default Print Format,Standardutskriftsformat
+DocType: Workflow State,Tags,Tags
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,Dokumenttyper
+DocType: Workflow,Workflow State Field,Workflow State Field
+DocType: DocType,Title Field,Titel Field
+apps/frappe/frappe/core/doctype/user/user.py +487,"If you think this is unauthorized, please change the Administrator password.",Om du tror att detta är obehörig kan du ändra administratörslösenordet.
+DocType: Workflow State,eject,mata ut
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,Hjälp för användarbehörigheter
+DocType: Communication,Visit,Besök
+apps/frappe/frappe/desk/page/applications/application_row.html +7,Install,Installera
+DocType: Website Settings,Twitter Share via,Twitter Tipsa en vän med
+apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,Bädda in bild bildspel i webbsidor.
+DocType: Workflow Action,Workflow Action Name,Workflow Action Namn
+apps/frappe/frappe/core/doctype/doctype/doctype.py +130,DocType can not be merged,DocType kan inte slås samman
+DocType: Web Form Field,Fieldtype,Fieldtype
+apps/frappe/frappe/desk/form/save.py +44,Did not cancel,Inte avbryta
+DocType: Workflow State,plus,plus
+DocType: Scheduler Log,Scheduler Log,Scheduler logg
+sites/assets/js/desk.min.js +737,You,Du
+DocType: Website Theme,lowercase,gemener
+DocType: Print Format,Helvetica,Helvetica
+DocType: Note,Everyone can read,Alla kan läsa
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +25,Please specify user,Ange användare
+DocType: Email Unsubscribe,Email Unsubscribe,E-post Avsluta
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Välj en bild på ca bredd 150px med en transparent bakgrund för bästa resultat.
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",Sätt Efter fältet &quot;{0}&quot; som nämns i Custom Field &quot;{1}&quot; existerar inte
+DocType: Workflow State,circle-arrow-up,cirkel-pil-up
+sites/assets/js/desk.min.js +859,Uploading...,Uppladdning ...
+DocType: Workflow State,italic,kursiv
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set Import without Create,{0}: Kan inte ställa Import utan Skapa
+DocType: Comment,Post Topic,Inlägg Ämne
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,Bredder kan ställas in i px eller%.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Behörigheter får tillämpas på användare baserat på vilka roller de tilldelats.
+sites/assets/js/desk.min.js +986,You are not allowed to send emails related to this document,Du får inte skicka e-post i samband med detta dokument
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Du får inte ta bort en standard webbplats tema
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Example,Exempel
+DocType: Workflow State,gift,present
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +180,Reqd,Reqd
+apps/frappe/frappe/core/doctype/communication/communication.py +124,Unable to find attachment {0},Det går inte att hitta fäste {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,Assign a permission level to the field.,Tilldela en behörighetsnivå till fältet.
+apps/frappe/frappe/config/setup.py +72,Show / Hide Modules,Show / Hide Moduler
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Inaktivera rapport
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports [&#39;rapportnamn&#39;] = {}
+DocType: Version,Doclist JSON,Doclist JSON
+DocType: Workflow State,chevron-up,Chevron-up
+sites/assets/js/desk.min.js +947,Documentation,Dokumentation
+DocType: DocShare,Internal record of document shares,Intern dokumentation av dokument aktier
+DocType: Workflow State,Comment,Kommentar
+apps/frappe/frappe/email/bulk.py +121,Email limit {0} crossed,E-post gräns {0} korsade
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.",Du kan ändra lämnat in handlingar genom att avbryta dem och sedan ändra dem.
+DocType: DocField,Display,Display
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Om en roll inte har tillgång på nivå 0, då högre nivåer är meningslös."
+DocType: Scheduler Log,Seen,Sett
+sites/assets/js/desk.min.js +449,Show more details,Visa fler detaljer
+DocType: System Settings,Run scheduled jobs only if checked,Kör schemalagda jobb endast om markerad
+DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".","Ange fält standardvärde (nycklar) och värderingar. Om du lägger till flera värden för ett fält, kommer den första att plockas. Dessa standardvärden används också för att ställa in &quot;match&quot; behörighetsregler. För att se en lista över områden, gå till &quot;Anpassa Form&quot;."
+DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table","Print Bredd på fältet, om fältet är en kolumn i en tabell"
+DocType: Workflow State,headphones,hörlurar
+DocType: Bulk Email,Bulk Email records.,Bulk e dokument.
+DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,t.ex. replies@yourcomany.com. Alla svar kommer till den här inkorgen.
+apps/frappe/frappe/templates/includes/login/login.js +32,Valid email and name required,Giltig e-post och namn krävs
+DocType: DocType,Hide Heading,Dölj Rubrik
+DocType: Workflow State,remove-circle,remove-cirkel
+apps/frappe/frappe/config/website.py +54,Javascript to append to the head section of the page.,Javascript för att lägga till avsnittet huvudet på sidan.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53,Reset to defaults,Återställ standard
+DocType: Workflow,Transition Rules,Övergångsbestämmelser
+apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Exempel:
+DocType: Workflow,Defines workflow states and rules for a document.,Definierar arbetsflödes stater och regler för ett dokument.
+DocType: DocType,Show this field as title,Visa det här fältet som titel
+apps/frappe/frappe/model/db_schema.py +447,Fieldname {0} cannot have special characters like {1},Fältnamn {0} kan inte ha specialtecken som {1}
+apps/frappe/frappe/model/document.py +390,Error: Document has been modified after you have opened it,Fel: Dokument har ändrats efter det att du har öppnat det
+apps/frappe/frappe/core/doctype/doctype/doctype.py +425,{0}: Cannot set Assign Submit if not Submittable,{0}: Kan inte ställa Tilldela in om inte Submittable
+DocType: Social Login Keys,Facebook,Facebook
+apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",Filtrerat på &quot;{0}&quot;
+sites/assets/js/desk.min.js +1009,Message from {0},Meddelande från {0}
+DocType: Blog Settings,Blog Title,Bloggrubrik
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,Redigera för att ställa rubrik
+DocType: About Us Settings,Team Members,Lagmedlemmar
+sites/assets/js/desk.min.js +553,Please attach a file or set a URL,Bifoga en fil eller ange en webbadress
+DocType: DocField,Permissions,Behörigheter
+DocType: User,Get your globally recognized avatar from Gravatar.com,Få en globalt erkänd avatar från Gravatar.com
+DocType: Workflow State,plus-sign,plustecknet
+DocType: Event,Public,Offentlig
+apps/frappe/frappe/email/smtp.py +134,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,E-postkonto inte installationen. Skapa ett nytt e-postkonto från Inställningar&gt; E-post&gt; e-postkonto
+DocType: Block Module,Block Module,Block Modul
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,Exportmall
+DocType: Block Module,Module,Modul
+DocType: Email Alert,Send Alert On,Skicka Alert On
+DocType: Web Form,Website URL,Webbadress
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Anpassa etikett, Print Hide, Standard etc."
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,Skapa ett nytt format
+DocType: Website Settings,Add a banner to the site. (small banners are usually good),Lägg till en banner till platsen. (Små banners är oftast bra)
+DocType: Website Settings,Set Banner from Image,Ställ Banner från Image
+DocType: Print Format,Verdana,Verdana
+apps/frappe/frappe/core/doctype/user/user.py +203,User {0} cannot be deleted,Användare {0} kan inte tas bort
+sites/assets/js/desk.min.js +265,Another transaction is blocking this one. Please try again in a few seconds.,En annan transaktion blockerar detta. Försök igen om några sekunder.
+DocType: Property Setter,Field Name,Fältnamn
+sites/assets/js/desk.min.js +771,or,eller
+sites/assets/js/desk.min.js +925,module name...,modulnamn ...
+apps/frappe/frappe/templates/generators/web_form.html +267,Continue,Fortsätta
+DocType: Custom Field,Fieldname,Fältnamn
+DocType: Workflow State,certificate,certifikat
+DocType: User,Tile,Tile
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,Första datakolumn måste vara tom.
+DocType: Workflow State,Print,Skriv ut
+DocType: User,Restrict IP,Begränsa IP
+apps/frappe/frappe/email/smtp.py +172,Unable to send emails at this time,Det går inte att skicka e-post vid denna tidpunkt
+sites/assets/js/desk.min.js +947,Search or type a command,Sök eller skriver ett kommando
+DocType: Email Account,e.g. smtp.gmail.com,t.ex. smtp.gmail.com
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +366,Add A New Rule,Lägg till en ny regel
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Namn på Dokumenttyp (DocType) du vill att området ska kopplas till. t.ex. Kund
+DocType: User,Roles Assigned,Roller avsatta
+DocType: Top Bar Item,Parent Label,Förälder Etikett
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Din förfrågan har tagits emot. Vi kommer att svara tillbaka inom kort. Om du har någon ytterligare information, vänligen svara på detta mail."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,Behörigheter automatiskt översättas till standardrapporter och sökningar.
+DocType: Event,Repeat Till,Upprepa Till
+DocType: Blogger,Will be used in url (usually first name).,Kommer att användas i url (vanligtvis förnamn).
+apps/frappe/frappe/client.py +63,Can not edit Read Only fields,Det går inte att redigera Läs Endast fält
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +460,Edit Heading,Redigera rubrik
+DocType: File Data,File URL,Fil URL
+apps/frappe/frappe/desk/doctype/event/event.py +68,Upcoming Events for Today,Kommande händelser idag
+DocType: Email Alert Recipient,Email By Document Field,E-post Av dokument Field
+DocType: File Data,File Data,Fildata
+apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Sammanslagning är endast möjlig mellan koncern till gruppen eller lövnoden till lövnod
+apps/frappe/frappe/utils/file_manager.py +40,Added {0},Added {0}
+DocType: Currency,Fraction Units,Bråk Enheter
+DocType: Web Page,Parent Web Page,Moderbolaget webbsida
+apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,Användaren är obligatoriskt för Share
+apps/frappe/frappe/model/base_document.py +366,{0} must be set first,{0} måste ställas in först
+DocType: Workflow State,plane,plan
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Om du laddar upp nya rekord, &quot;Namnge Series&quot; blir obligatoriskt, om det finns."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Fold can not be at the end of the form,Fold kan inte vara i slutet av formen
+apps/frappe/frappe/config/setup.py +14,System and Website Users,System- och webbplatsens användare
+DocType: Workflow Document State,Doc Status,Doc Status
+sites/assets/js/desk.min.js +962,"Your download is being built, this may take a few moments...","Hämtningen byggs, kan det ta en stund ..."
+DocType: Web Page,Begin this page with a slideshow of images,Börja här sidan med ett bildspel med bilder
+apps/frappe/frappe/utils/data.py +489,{0} and {1},{0} och {1}
+DocType: Version,Docname,Doknamn
+apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,Version återställd
+DocType: Event Role,Event Role,Händelse Roll
+sites/assets/js/editor.min.js +125,Indent (Tab),Indrag (Tab)
+DocType: Workflow State,List,Lista
+DocType: Page Role,Page Role,Sida Roll
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,Field {0} in row {1} cannot be hidden and mandatory without default,Fältet {0} i rad {1} kan inte döljas och obligatorisk utan standard
+DocType: System Settings,mm/dd/yyyy,mm / dd / åååå
+apps/frappe/frappe/email/doctype/email_account/email_account.py +266,Re:,Re:
+DocType: Currency,"Sub-currency. For e.g. ""Cent""",Under valuta. För t.ex. &quot;Cent&quot;
+DocType: Letter Head,Check this to make this the default letter head in all prints,Markera detta för att göra detta standardbrevhuvud i alla utskrifter
+DocType: Print Format,Server,Server
+DocType: DocField,Link,Länk
+apps/frappe/frappe/utils/file_manager.py +83,No file attached,Ingen fil bifogad
+DocType: Version,Version,Version
+DocType: User,Fill Screen,Fyll skärmen
+apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Redigera behörigheter
+sites/assets/js/form.min.js +213,Edit via Upload,Redigera via Överför
+sites/assets/js/desk.min.js +921,"document type..., e.g. customer","dokumenttyp ..., t.ex. kund"
+DocType: Country,Country Name,Land Namn
+DocType: About Us Team Member,About Us Team Member,Om oss Team Member
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Behörigheter sätts på Roller och dokumenttyper (som kallas DOCTYPE) genom att ställa in rättigheter som läsa, skriva, skapa, ta bort, in, Avbryt, Ändra, Rapport, import, export, utskrift, e-post och ställa in användarbehörigheter."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Bortsett från Rollbaserade Behörighets regler, kan du ansöka användarbehörigheter som bygger på DOCTYPE."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Dessa behörigheter gäller för alla transaktioner där den tillåtna posten är kopplad. Till exempel, om bolaget C sätts till användarbehörigheter för användare X, användar X kommer bara att kunna se transaktioner som har företag C som en länkad värde."
+DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (namn) på den enhet vars egendom ska ställas in
+DocType: Website Settings,Website Theme Image Link,Webbplatsen Tema bildlänk
+DocType: Website Settings,Sidebar Items,Sidebar artiklar
+DocType: Workflow State,exclamation-sign,utropstecknet
+DocType: Website Theme,Hide Sidebar,Dölj Sidebar
+sites/assets/js/list.min.js +100,Gantt,Gantt
+DocType: About Us Settings,Introduce your company to the website visitor.,Presentera ditt företag till webbplatsbesökare.
+apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,Vänligen kopiera detta för att göra ändringar
+apps/frappe/frappe/utils/pdf.py +35,PDF generation failed because of broken image links,PDF-generering misslyckades på grund av trasiga bildlänkar
+DocType: Print Settings,Font Size,Textstorlek
+sites/assets/js/desk.min.js +947,Unread Messages,Olästa meddelanden
+DocType: System Settings,Disable Standard Email Footer,Inaktivera Standard E Sidfot
+DocType: Workflow State,facetime-video,facetime-video
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,1 kommentar
+DocType: Email Alert,Days Before,Dagar innan
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,Välj en Banner Image först.
+DocType: Workflow State,volume-down,Sänk volymen
+DocType: Email Account,Send Notification to,Skicka Anmälan till
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +627,Saved,Sparad
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,Alternativ för att välja. Varje option på en ny rad.
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,Ange doctype
+DocType: Print Format,Format Data,Format Data
+DocType: Customize Form Field,Customize Form Field,Anpassa formulärfält
+apps/frappe/frappe/config/setup.py +47,Check which Documents are readable by a User,Kolla vilka dokument som kan läsas av en användare
+DocType: User,Reset Password Key,Återställ lösenord Nyckel
+DocType: Email Account,Enable Auto Reply,Aktivera autosvar
+apps/frappe/frappe/core/doctype/scheduler_log/scheduler_log_list.js +7,Not Seen,Inte Sett
+DocType: Workflow State,zoom-in,zooma in
+apps/frappe/frappe/email/bulk.py +131,Unsubscribe from this list,Bra för den här listan
+apps/frappe/frappe/desk/page/activity/activity.js +153,Sep,September
+DocType: DocField,Width,Bredd
+DocType: Email Account,Notify if unreplied,Meddela om obesvarade
+DocType: DocType,Fields,Fält
+DocType: System Settings,Your organization name and address for the email footer.,Din organisation namn och adress för e-post sidfoten.
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,Förälder Tabell
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} i rad {1} inte kan ha både URL och underordnade artiklar
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Root {0} kan inte tas bort
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162,No comments yet,Inga kommentarer
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +120,Both DocType and Name required,Både DocType och Namn krävs
+apps/frappe/frappe/model/document.py +424,Cannot change docstatus from 1 to 0,Det går inte att ändra docstatus 1-0
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,Definierar åtgärder för stater och nästa steg och tillåtna roller.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Som en bästa praxis, inte tilldelar samma uppsättning tillstånd regel i olika roller. I stället ställa in flera roller till samma användare."
+DocType: Web Form,Message to be displayed on successful completion,Meddelande som ska visas på ett framgångsrikt slutförande
+DocType: Website Settings,Footer Items,Footer artiklar
+sites/assets/js/desk.min.js +407,Menu,Meny
+DocType: DefaultValue,DefaultValue,Standardvärde
+apps/frappe/frappe/config/setup.py +19,User Roles,Användarroller
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Fastighetsförmedling Setter åsidosätter en vanlig DocType eller fält egendom
+apps/frappe/frappe/core/doctype/user/user.py +333,Cannot Update: Incorrect / Expired Link.,Det går inte att uppdatera: Fel / Expired Link.
+DocType: DocField,Set Only Once,Ställ bara en gång
+apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Cannot set import as {1} is not importable,{0}: Kan inte ställa import som {1} är inte importeras
+DocType: Top Bar Item,"target = ""_blank""",target = &quot;_blank&quot;
+DocType: Workflow State,hdd,HDD
+apps/frappe/frappe/desk/query_report.py +19,You don't have access to Report: {0},Du har inte tillgång till Rapport: {0}
+DocType: User,Send Welcome Email,Skicka Välkommen Email
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,Ladda upp CSV-fil som innehåller alla användarbehörigheter i samma format som nedladdning.
+DocType: Feed,Doc Name,Doc Namn
+DocType: DocField,Heading,Rubrik
+DocType: Workflow State,resize-vertical,ändra storlek vertikal
+DocType: Contact Us Settings,Introductory information for the Contact Us Page,Inledande information för Kontakta oss Page
+DocType: Workflow State,thumbs-down,tummen ner
+apps/frappe/frappe/core/doctype/page/page.py +32,Not in Developer Mode,Inte i utvecklarläge
+DocType: Comment,Comment Time,Kommentar Tid
+DocType: Workflow State,indent-left,indent-vänster
+DocType: Currency,Currency Name,Valuta Namn
+DocType: Report,Javascript,Javascript
+DocType: File Data,Content Hash,Innehålls Hash
+DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Lagrar JSON senast kända versioner av olika installerade appar. Det används för att visa versionsinformation.
+DocType: Website Theme,Google Font (Text),Google Font (Text)
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,Inte bort
+DocType: Report,Query,Query
+DocType: DocType,Sort Order,Sorteringsordning
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},&quot;I List View&quot; inte tillåtet för typ {0} i rad {1}
+DocType: Custom Field,Select the label after which you want to insert new field.,Välj etiketten efter vilken du vill infoga nya fält.
+DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet delas via ditt användarkonto (om det anges)
+,Document Share Report,Dokument Dela Anmäl
+DocType: User,Last Login,Senaste inloggning
+apps/frappe/frappe/core/doctype/doctype/doctype.py +316,Fieldname is required in row {0},Fältnamn krävs i rad {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Kolonn
+DocType: Custom Field,Adds a custom field to a DocType,Lägger till ett anpassat fält till en DocType
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),Bold (Ctrl / Cmd + B)
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,Ladda upp och synkronisera
+sites/assets/js/form.min.js +280,Shared with {0},Delad med {0}
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,Enstaka typer har endast en rekord inga tabeller associerade. Värden lagras i tabSingles
+DocType: Bulk Email,Bulk Email,Bulk Email
+DocType: Workflow,Rules defining transition of state in the workflow.,Regler som definierar övergången stats i arbetsflödet.
+DocType: DocField,Index,Index
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 1,Alternativ 1
+sites/assets/js/editor.min.js +107,Number list,Nummerlista
+DocType: DocShare,Everyone,Alla
+DocType: Workflow State,backward,bakåt
+apps/frappe/frappe/core/doctype/doctype/doctype.py +378,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Endast en regel tillåtet med samma roll, nivå och {1}"
+apps/frappe/frappe/config/setup.py +79,Set numbering series for transactions.,Ställ nummerserie för transaktioner.
+DocType: Email Account,POP3 Server,POP3-server
+DocType: User,Last IP,Senast IP
+apps/frappe/frappe/core/doctype/communication/communication.js +17,Add To,Lägg Till
+DocType: DocPerm,Filter records based on User Permissions defined for a user,Filter poster baserat på användarbehörigheter som definierats för en användare
+sites/assets/js/editor.min.js +111,Insert picture (or just drag & drop),Infoga bild (eller bara dra och släppa)
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,Fältnamn inte satt på anpassad skanning
+sites/assets/js/desk.min.js +622,Last Updated By,Senast uppdaterad av
+DocType: Website Theme,Background Color,Bakgrundsfärg
+sites/assets/js/desk.min.js +989,There were errors while sending email. Please try again.,Det fanns fel när du skickar e-post. Var god försök igen.
+DocType: Web Page,0 is highest,0 är högst
+apps/frappe/frappe/website/doctype/web_form/web_form.py +31,You don't have the permissions to access this document,Du har inte behörighet att få tillgång till det här dokumentet
+DocType: Email Alert,Value Changed,Värde Ändrad
+apps/frappe/frappe/model/base_document.py +272,Duplicate name {0} {1},Duplicera namn {0} {1}
+DocType: Web Form Field,Web Form Field,Web Form Field
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197,Hide field in Report Builder,Dölj fält i Report Builder
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,Redigera HTML
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,Återställ grund Behörigheter
+DocType: DocField,Button,Knapp
+DocType: Email Account,Default Outgoing,Standardutgående
+DocType: Workflow State,play,spela
+apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,Klicka på länken nedan för att slutföra din registrering och ange ett nytt lösenord
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +403,Did not add,Inte lägga
+DocType: Contact Us Settings,Contact Us Settings,Kontakta oss inställningar
+DocType: Workflow State,text-width,text-bredd
+DocType: Email Alert,View Properties (via Customize Form),Se Egenskaper (via Anpassa Form)
+DocType: Website Settings,Sidebar,Sidebar
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Rapportera Builder rapporter hanteras direkt av Report Builder. Inget att göra.
+apps/frappe/frappe/website/doctype/web_page/web_page.py +30,Cannot edit templated page,Det går inte att ändra mallade sida
+apps/frappe/frappe/model/document.py +641,none of,ingen av
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,Ladda användarbehörigheter
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,Markerade objekt kommer att visas på skrivbordet
+apps/frappe/frappe/core/doctype/doctype/doctype.py +421,{0} cannot be set for Single types,{0} kan inte ställas in för ensamstående typer
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} uppdaterade
+apps/frappe/frappe/core/doctype/doctype/doctype.py +411,Report cannot be set for Single types,Rapporten kan inte ställas in för ensamstående typer
+apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,Februari
+DocType: DocPerm,Role,Roll
+apps/frappe/frappe/utils/data.py +382,Cent,Cent
+apps/frappe/frappe/config/setup.py +104,Manage uploaded files.,Hantera uppladdade filer.
+apps/frappe/frappe/config/setup.py +163,"States for workflow (e.g. Draft, Approved, Cancelled).","Stater för arbetsflöde (t.ex. Utkast, Godkänd, Inställd)."
+sites/assets/js/desk.min.js +608,Set Quantity,Bestämd kvantitet
+,Data Import Tool,Data Import Tool
+apps/frappe/frappe/core/doctype/user/user.py +378,Registration Details Emailed.,Registrering Detaljer Mailade.
+DocType: Top Bar Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Länk till den sida du vill öppna. Lämna tomt om du vill göra det till en koncernmoder.
+DocType: DocType,Is Single,Singel
+apps/frappe/frappe/email/bulk.py +169,{0} has left the conversation in {1} {2},{0} har lämnat konversationen i {1} {2}
+DocType: Blogger,User ID of a Blogger,Användar-ID för en Blogger
+apps/frappe/frappe/core/doctype/user/user.py +198,There should remain at least one System Manager,Det bör vara minst en System Manager
+DocType: Workflow State,circle-arrow-right,cirkel-pil-höger
+DocType: Scheduler Log,Method,Metod
+DocType: Report,Script Report,Skript Rapportera
+DocType: About Us Settings,Company Introduction,Företaget Inledning
+DocType: DocPerm,Apply User Permissions,Ansök användarbehörigheter
+DocType: User,Modules HTML,Moduler HTML
+sites/assets/js/desk.min.js +484,Missing Values Required,Saknade värden Krävs
+sites/assets/js/list.min.js +107,{0} is not set,{0} är inte satt
+apps/frappe/frappe/model/document.py +150,No permission to {0} {1} {2},Ingen behörighet att {0} {1} {2}
+apps/frappe/frappe/permissions.py +225,Not allowed to access {0} with {1} = {2},Inte tillåtet att komma åt {0} med {1} = {2}
+apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,Visa detta i din webbläsare
+DocType: DocType,Search Fields,Sökfält
+sites/assets/js/desk.min.js +988,Email sent to {0},E-post skickas till {0}
+DocType: Event,Event,Händelse
+sites/assets/js/desk.min.js +997,"On {0}, {1} wrote:",Den {0} {1} skrev:
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80,Cannot delete standard field. You can hide it if you want,Det går inte att ta bort standard fält. Du kan dölja den om du vill
+DocType: Top Bar Item,For top bar,För översta fältet
+DocType: Print Settings,In points. Default is 9.,I punkterna. Standard är 9.
+sites/assets/js/editor.min.js +123,Reduce indent (Shift+Tab),Minska strecksatsen (Shift + Tab)
+DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular Document","Skriv ut med brev, såvida inte okontrollerat i ett visst dokument"
+DocType: Workflow State,heart,hjärta
+DocType: Workflow State,minus,minus
+sites/assets/js/desk.min.js +266,Server Error: Please check your server logs or contact tech support.,Server Error: Kontrollera dina serverloggar eller kontakta teknisk support.
+apps/frappe/frappe/core/doctype/user/user.py +116,Welcome email sent,Välkommen e-postmeddelandet
+apps/frappe/frappe/core/doctype/user/user.py +361,Already Registered,Redan Registrerad
+DocType: System Settings,Float Precision,Float Precision
+DocType: Property Setter,Property Setter,Fastighetsförmedling Setter
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select User or DocType to start.,Välj användare eller DocType att starta.
+apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,Inga appar Installerad
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Mark the field as Mandatory,Markera fältet som Obligatorisk
+DocType: User,Google User ID,Google användar-ID
+apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,Denna metod kan endast användas för att skapa en kommentar
+apps/frappe/frappe/config/setup.py +195,Add custom forms.,Lägg till anpassade formulär.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Systemet erbjuder många fördefinierade roller. Du kan lägga till nya roller för att ställa finare behörigheter.
+DocType: Country,Geo,Geo
+DocType: Blog Category,Blog Category,Blogg Kategori
+DocType: User,Roles HTML,Roller HTML
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +109,All customizations will be removed. Please confirm.,Alla anpassningar kommer att tas bort. Vänligen bekräfta.
+DocType: Page,Page HTML,Page HTML
+DocType: Web Page,Header,Header
+sites/assets/js/desk.min.js +622,Unknown Column: {0},Okänd Kolumn: {0}
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Tillval: Skicka alltid dessa ids. Varje e-id på en ny rad
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Användare med rollen {0}:
+DocType: Print Format,Custom Format,Anpassad Format
+DocType: Website Settings,Integrations,Integrationer
+DocType: DocField,Section Break,Avsnitt Break
+DocType: Communication,Sender Full Name,Avsändare Fullständigt namn
+,Messages,Meddelanden
+apps/frappe/frappe/desk/query_report.py +76,Must specify a Query to run,Du måste ange en fråga att köra
+apps/frappe/frappe/config/setup.py +66,"Language, Date and Time settings","Språk, datum och tid"
+DocType: User,Represents a User in the system.,Representerar en användare i systemet.
+apps/frappe/frappe/desk/form/assign_to.py +114,"The task {0}, that you assigned to {1}, has been closed.","Uppgiften {0}, som du tilldelat {1}, har stängts."
+DocType: User,Modules Access,Moduler Åtkomst
+DocType: Print Format,Print Format Type,Utskriftsformat Typ
+sites/assets/js/desk.min.js +936,Open Source Applications for the Web,Open Source Applications för webben
+DocType: Website Theme,"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",Lägg namnet på en &quot;Google Web Font&quot; t.ex. &quot;Öppna Sans&quot;
+DocType: DocType,Hide Toolbar,Hide Toolbar
+DocType: Email Account,SMTP Settings for outgoing emails,SMTP Inställningar för utgående e-post
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +125,Import Failed,Import misslyckades
+apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,Ditt lösenord har uppdaterats. Här är ditt nya lösenord
+DocType: Email Account,Auto Reply Message,Autosvar Meddelande
+DocType: Email Alert,Condition,Tillstånd
+sites/assets/js/desk.min.js +924,Open a module or tool,Öppna en modul eller ett verktyg
+DocType: Module Def,App Name,App Namn
+DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Fältet som representerar Workflow staten transaktionen (om fältet inte finns, en ny dolda Vanligt Fält kommer att skapas)"
+apps/frappe/frappe/templates/pages/login.py +162,Email not verified with {1},E-post inte verifieras med {1}
+DocType: Email Account,e.g. pop.gmail.com,t.ex. pop.gmail.com
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +527,Edit to add content,Redigera för att lägga till innehåll
+DocType: Web Form,Advanced,Avancerad
+apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Referens: {0} {1}
+DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages.",Användartyp &quot;systemanvändare&quot; kan komma åt skrivbordet. &quot;Hemsida Användare&quot; kan endast loggas in på webbplatsen och portalsidor.
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+myfield
+eval:doc.myfield=='My Value'
+eval:doc.age>18",Detta fält kommer att visas endast om fältnamn definieras här har värde eller reglerna är sanna (exempel): myfield eval: doc.myfield == &quot;Min värde&quot; eval: doc.age&gt; 18
+DocType: File Data,Attached To Name,Bifogad till Namn
+apps/frappe/frappe/email/receive.py +61,Invalid User Name or Support Password. Please rectify and try again.,Ogiltigt användarnamn eller support lösenord. Vänligen rätta och försök igen.
+DocType: Email Account,Login Id is Different,Logga Id är annorlunda
+DocType: Email Account,Yahoo Mail,Yahoo Mail
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,Sparad!
+apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},Uppdaterad {0}: {1}
+DocType: DocType,Master,Ledar-
+DocType: DocType,User Cannot Create,Användaren kan inte skapa
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","Dessa kommer också ställas in som standardvärden för dessa band, om endast ett sådant tillstånd post definieras."
+apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} på {1}
+DocType: Customize Form,Enter Form Type,Ange Formulärtyp
+DocType: User,Send Password Update Notification,Skicka lösenord Update Anmälan
+apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values","{0} fält kan inte ställas in som unik, eftersom det är icke-unika befintliga värden"
+sites/assets/js/desk.min.js +1016,Updated To New Version,Uppdaterad Till ny version
+DocType: DocField,Depends On,Beror På
+DocType: DocPerm,Additional Permissions,Ytterligare behörigheter
+sites/assets/js/form.min.js +310,Compose,Komponera
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Börja mata in data under denna linje
+DocType: Workflow State,retweet,retweet
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,Uppdatera mallen och spara i CSV (Comma separata värden) format innan monteringen.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Specify the value of the field,Ange värdet av fältet
+apps/frappe/frappe/desk/page/activity/activity.js +152,May,Maj
+apps/frappe/frappe/desk/page/activity/activity.js +152,Jan,Jan
+DocType: Email Account,Always use Account's Email ID as Sender,Använd alltid konto Email ID som avsändare
+DocType: Workflow State,eye-close,eye-close
+,Applications,Tillämpningar
+sites/assets/js/desk.min.js +289,Report this issue,Rapportera den här frågan
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,Lägger till en anpassat skript (klient eller server) till en DocType
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20,Cannot set Email Alert on Document Type {0},Det går inte att ställa in bevakning på Dokumenttyp {0}
+apps/frappe/frappe/config/website.py +49,Setup of fonts and background.,Inställning av typsnitt och bakgrund.
+DocType: Workflow Action,Workflow Action Master,Workflow Åtgärd ledar-
+DocType: Custom Field,Field Type,Fält Typ
+apps/frappe/frappe/utils/data.py +399,only.,bara.
+DocType: Feed,Doc Type,Doc Typ
+apps/frappe/frappe/email/receive.py +53,Invalid Mail Server. Please rectify and try again.,Ogiltig e-postserver. Vänligen rätta och försök igen.
+DocType: DocField,"For Links, enter the DocType as range.
+For Select, enter list of Options, each on a new line.","För Links anger DocType som intervallet. För Välj Ange lista med alternativ, var och en på en ny rad."
+DocType: Workflow State,film,film
+apps/frappe/frappe/model/db_query.py +285,No permission to read {0},Ingen behörighet att läsa {0}
+apps/frappe/frappe/utils/nestedset.py +221,Multiple root nodes not allowed.,Flera rotnoder inte tillåtet.
+sites/assets/js/desk.min.js +689,Get,Få
+sites/assets/js/desk.min.js +206,Confirm,Bekräfta
+DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
+apps/frappe/frappe/email/doctype/email_account/email_account.py +37,Login Id is required,Inloggnings-ID krävs
+DocType: Website Slideshow,Website Slideshow,Webbplats Bildspel
+DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link som är webbplatsen startsida. Standard Länkar (index, inloggning, produkter, blogg, om, kontakt)"
+sites/assets/js/editor.min.js +105,Bullet list,Bullet listan
+DocType: Website Settings,Banner Image,Banér
+DocType: Custom Field,Custom Field,Anpassat fält
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13,Please specify which date field must be checked,Ange vilken datumfält måste kontrolleras
+DocType: DocPerm,Set User Permissions,Ange användarbehörigheter
+DocType: Email Account,Email Account Name,E-postkonto Namn
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249,Select Document Types,Välj dokumenttyper
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","t.ex. &quot;Hjälp&quot;, &quot;Försäljning&quot;, &quot;Jerry Yang&quot;"
+DocType: User,Facebook User ID,Facebook användar-ID
+DocType: Workflow State,fast-forward,snabbspola
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.","Kolla kolumner för att välja, dra för att ställa ordning."
+DocType: Event,Every Day,Varje Dag
+apps/frappe/frappe/email/smtp.py +58,Please setup default Email Account from Setup > Email > Email Account,Vänligen installations standard e-postkonto från Inställningar&gt; E-post&gt; e-postkonto
+DocType: Workflow State,move,drag
+DocType: Web Form,Actions,Åtgärder
+DocType: Workflow State,align-justify,rikta-justify
+DocType: User,Middle Name (Optional),Mellannamn (valfritt)
+sites/assets/js/desk.min.js +605,No Results,Inga Resultat
+DocType: System Settings,Security,Säkerhet
+DocType: Currency,**Currency** Master,** Valuta ** ledar-
+DocType: Website Settings,Address and other legal information you may want to put in the footer.,Adress och annan juridisk information du kanske vill sätta i sidfoten.
+sites/assets/js/list.min.js +104,Starred By Me,Medverkade By Me
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,Välj dokumenttyp
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,Det går inte att ta bort {0} eftersom det har underordnade noder
+apps/frappe/frappe/templates/includes/list/filters.html +19,clear,klar
+apps/frappe/frappe/desk/doctype/event/event.py +28,Every day events should finish on the same day.,Varje dag händelser bör avslutas på samma dag.
+DocType: Communication,User Tags,Användarnas nyckelord
+DocType: Workflow State,download-alt,download-alt
+DocType: Web Page,Main Section,Huvud Avsnitt
+apps/frappe/frappe/core/doctype/doctype/doctype.py +225,{0} not allowed in fieldname {1},{0} inte tillåtna i fältnamn {1}
+DocType: Page,Icon,Ikon
+DocType: Web Page,Content in markdown format that appears on the main side of your page,Innehållet i markdown format som visas på huvudsidan på din sida
+DocType: System Settings,dd/mm/yyyy,åååå / mm / dd
+DocType: Website Settings,"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","En ikon fil med Ico förlängning. Bör vara 16 x 16 px. Alstras med användning av en favicon generator. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
+DocType: Blog Settings,Blog Settings,Blogginställningar
+apps/frappe/frappe/templates/emails/new_user.html +8,You can also copy-paste this link in your browser,Du kan också kopiera och klistra in den här länken i din webbläsare
+DocType: Workflow State,bullhorn,bullhorn
+DocType: Social Login Keys,Facebook Client Secret,Facebook klienthemligheten
+DocType: Website Settings,Copyright,Copyright
+DocType: Social Login Keys,Google Client Secret,Google klienthemligheten
+DocType: Website Settings,Hide Footer Signup,Göm Sidfot Registrera
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Skriv ett Python-fil i samma mapp där det sparas och åter kolumn och resultat.
+DocType: DocType,Sort Field,Sorteringsfältet
+apps/frappe/frappe/templates/pages/404.html +10,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","Vi är mycket ledsna för detta, men sidan du söker saknas (detta kan bero på ett stavfel i adressen) eller flyttas."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +234,Field {0} of type {1} cannot be mandatory,Fältet {0} av typen {1} inte kan vara obligatoriskt
+DocType: System Settings,Session Expiry Mobile,Sessions Upphörande Mobil
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,If {0} is permitted,Om {0} är tillåten
+DocType: DocPerm,If user is the owner,Om användaren är ägare
+,Activity,Aktivitet
+DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Hjälp: För att länka till en annan post i systemet, använd &quot;# Form / noterar / [OBS namn]&quot; som Länkadress. (Använd inte &quot;http: //&quot;)"
+apps/frappe/frappe/config/setup.py +185,Add fields to forms.,Lägg till fält till formulär.
+apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,Du måste vara inloggad för att se denna sida.
+DocType: Workflow State,leaf,blad
+apps/frappe/frappe/config/desktop.py +60,Installer,Installer
+sites/assets/js/editor.min.js +113,Insert Link,Infoga länk
+DocType: Contact Us Settings,Query Options,Fråge Alternativ
+DocType: Patch Log,Patch Log,Patch logg
+DocType: Communication,Sent or Received,Skickas eller tas emot
+DocType: DefaultValue,Key,Nyckel
+apps/frappe/frappe/config/setup.py +54,Report of all document shares,Rapport från alla dokument aktier
+sites/assets/js/desk.min.js +622,Starred By,Medverkade av
+apps/frappe/frappe/templates/pages/update-password.html +14,New Password,Nytt Lösenord
+DocType: Website Theme,Style using CSS,Style med CSS
+DocType: Comment,Reference DocType,Referens DocType
+DocType: User,System User,Systemanvändare
+DocType: Report,Is Standard,Är Standard
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Specify a default value,Ange ett standardvärde
+DocType: Website Settings,FavIcon,FavIcon
+DocType: Workflow State,minus-sign,minustecken
+sites/assets/js/desk.min.js +264,Not Found,Hittades Inte
+apps/frappe/frappe/templates/pages/print.py +134,No {0} permission,Nr {0} tillstånd
+DocType: Feed,Login,Logga In
+DocType: System Settings,Enable Scheduled Jobs,Aktivera schemalagda jobb
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Anmärkningar:
+sites/assets/js/desk.min.js +593,Markdown,Markdown
+DocType: DocShare,Document Name,Dokumentnamn
+DocType: Comment,Comment By,Kommentar av
+DocType: Customize Form,Customize Form,Anpassa Form
+DocType: Currency,A symbol for this currency. For e.g. $,En symbol för denna valuta. För t.ex. $
+sites/assets/js/desk.min.js +934,Frappe Framework,Frappe Framework
+apps/frappe/frappe/model/naming.py +162,Name of {0} cannot be {1},Namn på {0} inte kan vara {1}
+apps/frappe/frappe/config/setup.py +74,Show or hide modules globally.,Visa eller dölja moduler globalt.
+DocType: Workflow State,Success,Framgång
+DocType: Website Settings,Sidebar Links for Home Page only,Sidebar Länkar för endast Hemsida
+apps/frappe/frappe/templates/includes/login/login.js +124,Invalid Login,Ogiltig Inloggning
+DocType: Communication,Phone No.,Telefonnr.
+DocType: Workflow State,fire,brasa
+DocType: Workflow State,picture,bild
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +301,Add A New Restriction,Lägg till en ny begränsning
+DocType: Workflow Transition,Next State,Nästa stat
+sites/assets/js/editor.min.js +119,Align Left (Ctrl/Cmd+L),Justera vänster (Ctrl / Cmd + L)
+DocType: User,Block Modules,Blockmoduler
+DocType: Web Page,Custom CSS,Anpassad CSS
+sites/assets/js/form.min.js +293,Add a comment,Lägg till en kommentar
+apps/frappe/frappe/config/setup.py +220,Log of error on automated events (scheduler).,Logga av fel på automatiserade händelser (schemaläggare).
+apps/frappe/frappe/utils/csvutils.py +74,Not a valid Comma Separated Value (CSV File),Inte ett giltigt Comma Separated Value (CSV-fil)
+DocType: Email Account,Default Incoming,Standard Inkommande
+DocType: Workflow State,repeat,upprepning
+DocType: Website Settings,Banner,Banner
+sites/assets/js/desk.min.js +917,Help on Search,Hjälp på Sök
+DocType: User,Uncheck modules to hide from user's desktop,Avmarkera moduler för att gömma sig från användarens skrivbord
+DocType: DocType,Hide Copy,Göm Kopiera
+apps/frappe/frappe/core/doctype/user/user.js +166,Clear all roles,Rensa alla roller
+apps/frappe/frappe/model/base_document.py +296,{0} must be unique,{0} måste vara unikt
+apps/frappe/frappe/permissions.py +228,Row,Rad
+DocType: Workflow State,Check,Kontrollera
+apps/frappe/frappe/desk/page/activity/activity.js +152,Apr,April
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,Fältnamn som kommer att vara DocType för den här länken fältet.
+DocType: User,Email Signature,E-post Underskrift
+DocType: Website Settings,Google Analytics ID,Google Analytics-ID
+DocType: Website Theme,Link to your Bootstrap theme,Länk till Bootstrap tema
+sites/assets/js/desk.min.js +593,Edit as {0},Redigera som {0}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +194,No User Restrictions found.,Ingen användare Begränsningar hittades.
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,Standard inkorg
+sites/assets/js/desk.min.js +607,Make a new,Gör en ny
+DocType: Print Settings,PDF Page Size,PDF-sidstorlek
+sites/assets/js/desk.min.js +947,About,Om
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.",För uppdatering kan du uppdatera bara selektiva kolumner.
+sites/assets/js/desk.min.js +965,Attach Document Print,Fäst dokumentTryck
+DocType: Social Login Keys,Google Client ID,Google Kund-ID
+apps/frappe/frappe/core/doctype/user/user.py +63,Adding System Manager to this User as there must be atleast one System Manager,Lägga System Manager till denna användare eftersom det måste finnas minst en System Manager
+DocType: Workflow State,list-alt,list-alt
+apps/frappe/frappe/templates/pages/update-password.html +63,Password Updated,Lösenord Uppdaterad
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Välj moduler som ska visas (baserat på tillstånd). Om dolda, kommer de att döljas för alla användare."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149,Permissions Updated,Behörigheter Uppdaterad
+apps/frappe/frappe/email/doctype/email_account/email_account.py +45,Append To is mandatory for incoming mails,Bifoga till är obligatoriskt för inkommande e-post
+apps/frappe/frappe/core/doctype/doctype/doctype.py +239,Options requried for Link or Table type field {0} in row {1},Alternativ requried för Link eller tabell typfält {0} i rad {1}
+DocType: Report,Query Report,Query Rapportera
+DocType: Communication,On,På
+DocType: User,Set New Password,Ange nytt lösenord
+DocType: User,Github User ID,Github användar-ID
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,If Document Type,Om Document Type
+DocType: Communication,Chat,Chatta
+apps/frappe/frappe/core/doctype/doctype/doctype.py +230,Fieldname {0} appears multiple times in rows {1},Fältnamn {0} visas flera gånger i rader {1}
+DocType: Workflow State,arrow-down,pil ner
+sites/assets/js/desk.min.js +874,Collapse,Kollaps
+apps/frappe/frappe/model/delete_doc.py +131,User not allowed to delete {0}: {1},Användaren får inte ta bort {0}: {1}
+DocType: Website Settings,Linked In Share,Linked In Dela
+sites/assets/js/desk.min.js +622,Last Updated On,Senast uppdaterad
+DocType: Website Settings,Top Bar,Top Bar
+sites/assets/js/desk.min.js +549,Please save the document before uploading.,Vänligen spara dokumentet innan du laddar upp.
+sites/assets/js/desk.min.js +257,Enter your password,Ange ditt lösenord
+apps/frappe/frappe/core/doctype/doctype/doctype.py +296,Fold must come before a Section Break,Vik måste komma före en avsnittsbrytning
+apps/frappe/frappe/core/doctype/user/user.py +383,Not allowed to reset the password of {0},Ej tillåtet att återställa lösenordet för {0}
+DocType: Workflow State,hand-down,hand ner
+apps/frappe/frappe/core/doctype/doctype/doctype.py +397,{0}: Cannot set Cancel without Submit,{0}: Kan inte ställa avbryta utan Skicka
+DocType: Website Theme,Theme,Tema
+DocType: DocType,Is Submittable,Är Submittable
+apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,Värde för ett kontrollfält kan vara antingen 0 eller 1
+apps/frappe/frappe/model/document.py +477,Could not find {0},Kunde inte hitta {0}
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +227,Column Labels:,Kolumn Etiketter:
+apps/frappe/frappe/model/naming.py +62,Naming Series mandatory,Naming Serie obligatorisk
+DocType: Social Login Keys,Facebook Client ID,Facebook Kund-ID
+DocType: Workflow State,Inbox,Inkorg
+DocType: Workflow State,Tag,Etikett
+DocType: Custom Script,Script,Script
+sites/assets/js/desk.min.js +947,My Settings,Mina inställningar
+DocType: Website Theme,Text Color,TEXTFÄRG
+apps/frappe/frappe/website/doctype/web_form/web_form.py +93,Invalid Request,Ogiltig Förfrågan
+sites/assets/js/desk.min.js +446,This form does not have any input,Denna form har inte någon ingång
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Session Expiry must be in format {0},Sessions Upphörande måste vara i formatet {0}
+DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.",Välj target = &quot;_blank&quot; för att öppna en ny sida.
+sites/assets/js/desk.min.js +641,Permanently delete {0}?,Permanent radera {0}?
+apps/frappe/frappe/core/doctype/file_data/file_data.py +33,Same file has already been attached to the record,Samma fil har redan varit knuten till posten
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +59,Ignore encoding errors.,Ignorera kodar fel.
+DocType: Workflow State,wrench,skiftnyckel
+DocType: Website Settings,Disable Signup,Inaktivera Registrera
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Roller kan ställas in för användare från sin användarsida.
+apps/frappe/frappe/website/doctype/web_page/web_page.py +158,Website Search,Webbplats Sök
+DocType: DocField,Mandatory,Obligatorisk
+apps/frappe/frappe/core/doctype/doctype/doctype.py +361,{0}: No basic permissions set,{0}: Nej grundläggande behörighet set
+apps/frappe/frappe/utils/backups.py +142,Download link for your backup will be emailed on the following email address: {0},Hämta länken för din säkerhetskopia kommer att skickas på följande e-postadress: {0}
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Innebörden av in, Avbryt, Ändra"
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Att Göra
+sites/assets/js/editor.min.js +94,Paragraph,Punkt
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,Alla befintliga tillstånd kommer att raderas / skrivas över.
+apps/frappe/frappe/desk/doctype/todo/todo.py +17,Assigned to {0}: {1},Tilldelat till {0}: {1}
+DocType: DocField,Percent,Procent
+DocType: Workflow State,book,bok
+DocType: Website Settings,Landing Page,Landningssida
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,Inga Behörigheter fastställts för dessa kriterier.
+apps/frappe/frappe/config/setup.py +120,Setup Email Alert based on various criteria.,Setup bevakning utifrån olika kriterier.
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93,Posts filed under {0},Inlägg arkiverat {0}
+DocType: Email Alert,Send alert if date matches this field's value,Skicka varning om dagen matchar detta område värde
+DocType: Workflow,Transitions,Övergångar
+DocType: User,Login After,Inloggning Efter
+DocType: Print Format,Monospace,Monospace
+DocType: Workflow State,thumbs-up,tummen upp
+sites/assets/js/desk.min.js +965,Add Reply,Svara
+DocType: DocPerm,DocPerm,DocPerm
+apps/frappe/frappe/core/doctype/doctype/doctype.py +277,Precision should be between 1 and 6,Precision bör vara mellan 1 och 6
+DocType: About Us Team Member,Image Link,Bildlänk
+DocType: Workflow State,step-backward,steg bakåt
+apps/frappe/frappe/utils/boilerplate.py +228,{app_title},{App_title}
+DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Använder e-ID som nämns i detta konto som avsändare för all epost som skickas med det här kontot.
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Endast obligatoriska fält är nödvändiga för nya rekord. Du kan ta bort icke-obligatoriska kolumner om du vill.
+sites/assets/js/list.min.js +160,Unable to update event,Det går inte att uppdatera händelse
+DocType: Workflow State,text-height,text-höjd
+DocType: Workflow State,map-marker,map-markör
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Skicka en händelse
+DocType: Event,Repeat this Event,Upprepa detta evenemang
+DocType: DocPerm,Amend,Ändra
+apps/frappe/frappe/templates/includes/login/login.js +45,Valid Login id required.,Gäller inloggnings-ID krävs.
+apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Re-open
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} un-delade detta dokument med {1}
+apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Detta är ett automatiskt genererat svar
+apps/frappe/frappe/model/document.py +378,Record does not exist,Spela inte existerar
+apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Page saknas eller flyttas
+sites/assets/js/desk.min.js +565,Open Link,Öppna länk
+apps/frappe/frappe/desk/form/load.py +42,Did not load,Inte ladda
+apps/frappe/frappe/desk/query_report.py +80,Query must be a SELECT,Query måste vara en SELECT
+DocType: Website Settings,Facebook Share,Facebook Share
+sites/assets/js/desk.min.js +265,File size exceeded the maximum allowed size of {0} MB,Filstorleken överskred den högsta tillåtna storleken på {0} MB
+apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Enter at least one permission row,Ange åtminstone ett tillstånd rad
+sites/assets/js/desk.min.js +622,Created On,Skapad den
+DocType: Workflow State,align-center,rikta centrum
+sites/assets/js/form.min.js +290,Can Write,Kan Skriv
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Vissa dokument, som en faktura, bör inte ändras när finalen. Den slutliga tillståndet för sådana handlingar kallas in. Du kan begränsa vilka roller kan lämna."
+DocType: Communication,Sender,Avsändare
+DocType: Web Page,Description for search engine optimization.,Beskrivning för sökmotoroptimering.
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Hämta Tom mall
+DocType: DocField,In Filter,I Filtrera
+DocType: Website Theme,Footer Color,Footer Färg
+DocType: Web Page,"Page to show on the website
+",Sida som ska visas på hemsidan
+sites/assets/js/desk.min.js +264,You have been logged out,Du har loggats ut
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},Det går inte att ta bort tillstånd för DocType: {0} och Namn: {1}
+sites/assets/js/editor.min.js +115,Remove Link,Ta bort länk
+apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,Inloggad
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,Standard Skicka och Inkorgen
+DocType: Print Settings,Letter,Brev
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Återställ behörigheter för {0}?
+apps/frappe/frappe/permissions.py +279,{0} {1} not found,{0} {1} hittades inte
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Show a description below the field,Visa en beskrivning under fältet
+DocType: Workflow State,align-left,rikta vänster
+DocType: User,Defaults,Inställningar
+sites/assets/js/desk.min.js +641,Merge with existing,Sammanfoga med befintlig
+DocType: User,Birth Date,Födelsedag
+DocType: Workflow State,fast-backward,snabbt bakåt
+DocType: DocShare,DocShare,DocShare
+DocType: Report,Add Total Row,Lägg Totalt Rad
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,Till exempel om du avbryta och ändra INV004 det kommer att bli ett nytt dokument INV004-1. Detta hjälper dig att hålla koll på varje ändring.
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Utkast; 1 - som överlämnas; 2 - Inställd
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,Visa eller dölja moduler
+DocType: File Data,Attached To DocType,Bifogad till DocType
+apps/frappe/frappe/desk/page/activity/activity.js +153,Aug,Augusti
+DocType: DocField,Int,Int
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent",1 Valuta = [?] Fraktion För t.ex. 1 USD = 100 Cent
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +370,Add New Permission Rule,Lägg till ny Tillstånd regel
+sites/assets/js/desk.min.js +598,You can use wildcard %,Du kan använda jokertecken%
+apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,Mar
+sites/assets/js/desk.min.js +862,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","Endast bildtillägg (.gif, .jpg, .jpeg, TIFF, PNG, .svg) tillåtna"
+DocType: Customize Form,"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box","Fält separerade med kommatecken (,) kommer att ingå i &quot;Sök efter&quot; lista över dialogrutan Sök"
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,Vänligen Duplicera denna webbplats tema för att anpassa.
+DocType: DocField,Text Editor,Textredigeraren
+apps/frappe/frappe/config/website.py +69,Settings for About Us Page.,Inställningar för Om oss Page.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +532,Edit Custom HTML,Redigera anpassad HTML
+DocType: Email Alert,Value Change,Värde Förändring
+DocType: Standard Reply,Standard Reply,Standard Svara
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175,Width of the input box,Bredd på inmatningsrutan
+DocType: UserRole,UserRole,UserRole
+DocType: Print Settings,With Letterhead,Med Brev
+apps/frappe/frappe/email/smtp.py +168,Invalid Outgoing Mail Server or Port,Ogiltig utgående e-postserver eller Port
+DocType: DocPerm,Write,Skriva
+apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,Endast administratör får skapa Query / Script rapporter
+sites/assets/js/form.min.js +182,Updating,Uppdatering
+sites/assets/js/desk.min.js +965,Select Attachments,Välj tillbehör
+sites/assets/js/form.min.js +291,Attach File,Bifoga Fil
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Ett nytt konto har skapats för dig
+apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Lösenord Update Anmälan
+DocType: DocPerm,User Permission DocTypes,Användarbehörighets DOCTYPE
+sites/assets/js/desk.min.js +641,New Name,Nytt namn
+sites/assets/js/form.min.js +199,Insert Above,Infoga över
+sites/assets/js/list.min.js +21,Not Saved,Sparas inte
+DocType: Custom Field,Default Value,Standardvärde
+sites/assets/js/desk.min.js +257,Verify,Verifiera
+DocType: Workflow Document State,Update Field,Uppdatera fält
+apps/frappe/frappe/email/doctype/email_account/email_account.py +272,Leave this conversation,Låt denna konversation
+apps/frappe/frappe/model/base_document.py +362,Options not set for link field {0},Alternativ inte satt för länk fältet {0}
+DocType: Workflow State,asterisk,asterisk
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,Ändra inte mall rubriker.
+DocType: Workflow State,shopping-cart,kundvagn
+DocType: Social Login Keys,Google,Google
+DocType: Workflow State,Inverse,Invers
+DocType: DocField,User permissions should not apply for this Link,Användar behörigheter bör inte gälla för den här länken
+apps/frappe/frappe/model/naming.py +90,Invalid naming series (. missing),Ogiltig namngivning serien (. Saknas)
+DocType: System Settings,Language,Språk
+DocType: DocPerm,Cancel,Avbryt
+DocType: Web Page,Page content,Sidinnehåll
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,Lämna tomt för nya rekord
+apps/frappe/frappe/config/website.py +79,List of themes for Website.,Lista över teman för webbplatsen.
+sites/assets/js/desk.min.js +947,Logout,Logga Ut
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Behörigheter på högre nivåer är fältet behörigheter. Alla fält har en Behörighetsnivå set mot dem och de regler som fastställts på att behörigheter tillämpas i fråga. Detta är användbart om du vill dölja eller göra vissa fält skrivskyddad för vissa roller.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Om dessa instruktioner där inte bra, lägg i dina förslag på github frågor."
+DocType: Workflow State,bookmark,bokmärke
+DocType: Currency,Symbol,Symbol
+apps/frappe/frappe/model/base_document.py +403,Row #{0}:,Rad # {0}:
+apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,Nytt lösenord mailade
+apps/frappe/frappe/auth.py +209,Login not allowed at this time,Logga inte tillåtna på den här gången
+DocType: DocType,Permissions Settings,Behörigheter Inställningar
+sites/assets/js/desk.min.js +931,{0} List,{0} Lista
+apps/frappe/frappe/desk/form/assign_to.py +39,Already in user's To Do list,Redan i användarens att göra-lista
+DocType: Email Account,Enable Outgoing,Aktivera Utgående
+DocType: System Settings,Email Footer Address,Email Sidfot Adress
+DocType: DocField,Text,Text
+apps/frappe/frappe/config/setup.py +125,Standard replies to common queries.,Standard svar på vanliga frågor.
+sites/assets/js/desk.min.js +947,Report an Issue,Rapportera ett problem
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,Standardsändnings
+DocType: Workflow State,volume-off,volym-off
+DocType: Custom Field,Properties,Egenskaper
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47,"Do not update, but insert new records.","Uppdatera inte, men sätter nya rekord."
+DocType: DocField,Dynamic Link,Dynamisk Länk
+DocType: Property Setter,DocType or Field,DocType eller Fält
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,Snabb hjälp för att ange behörigheter
+DocType: Report,Report Builder,Report Builder
+DocType: Workflow,Workflow,Workflow
+DocType: Workflow State,Upload,Överför
+DocType: System Settings,Date Format,Datumformat
+apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,Inte Publicerad
+apps/frappe/frappe/config/setup.py +168,"Actions for workflow (e.g. Approve, Cancel).",Aktiviteter för arbetsflöde (t.ex. godkänna Avbryt).
+DocType: Workflow State,flag,flagga
+DocType: Web Page,Text Align,Text Justera
+DocType: Contact Us Settings,Forward To Email Address,Framåt Till e-postadress
+apps/frappe/frappe/core/doctype/doctype/doctype.py +78,Title field must be a valid fieldname,Fältet Titel måste vara en giltig fältnamn
+DocType: Communication,Archived,Arkiveras
+DocType: System Settings,Session Expiry in Hours e.g. 06:00,Session Utgångs i timmar t.ex. 06:00
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",När du har ställt detta kommer användarna bara att kunna komma åt dokument (t.ex.. Blogginlägg) där länken finns (t.ex.. Blogger).
+apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,Det går inte att öppna bifogade filen. Var god försök igen.
+DocType: Scheduler Log,Log of Scheduler Errors,Logga av Scheduler fel
+sites/assets/js/form.min.js +182,Submitting,Lämna in
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +182,Custom HTML,Anpassad HTML
+DocType: Comment,Comment Docname,Kommentar doknamn
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,Välj roll
+apps/frappe/frappe/model/delete_doc.py +200,Deleted,Utgår
+DocType: Workflow State,adjust,justera
+DocType: Website Settings,Disable Customer Signup link in Login page,Inaktivera kund Registrera länk i inloggningssidan
+apps/frappe/frappe/core/report/todo/todo.py +21,Assigned To/Owner,Tilldelad till / ägare
+DocType: Workflow State,arrow-left,pil vänster
+apps/frappe/frappe/desk/page/applications/application_row.html +5,Installed,Installerad
+DocType: Workflow State,fullscreen,fullskärm
+DocType: Event,Ref Name,Ref Namn
+DocType: Web Page,Center,Centrum
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,Inställningar&gt; användarbehörigheter Chef
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Representerar staterna tillåts i ett dokument och roll som att ändra tillståndet.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh Form,Uppdatera Form
+DocType: DocField,Select,Välj
+apps/frappe/frappe/utils/csvutils.py +25,File not attached,Fil inte fäst
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Om du ställer in detta, kommer denna produkt kommer i en drop-down under den valda föräldern."
+apps/frappe/frappe/model/db_query.py +393,Please select atleast 1 column from {0} to sort,Välj minst 1 kolumn från {0} för att sortera
+apps/frappe/frappe/templates/pages/print.py +160,No template found at path: {0},Ingen mall finns på sökväg: {0}
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","Menyalternativ i det översta fältet. För att ställa in färgen på Top Bar, gå till vald webbplats tema."
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,Skicka efter import.
+DocType: Blogger,Avatar,Avatar
+DocType: Blogger,Posts,Inlägg
+sites/assets/js/desk.min.js +992,Dear,Kära
+sites/assets/js/report.min.js +2,Tip: Double click cell to edit,Tips: Dubbelklicka cell för att redigera
+DocType: ToDo,Description and Status,Beskrivning och status
+DocType: Web Page,HTML for header section. Optional,HTML för huvudsektionen. Valfritt
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,Roll existerar
+sites/assets/js/desk.min.js +965,Select Print Format,Välj Utskriftsformat
+DocType: DocField,Print Hide,Utskrifts Göm
+sites/assets/js/desk.min.js +246,Enter Value,Ange värde
+DocType: Workflow State,tint,nyans
+DocType: Workflow State,Style,Stil
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,e.g.:,t.ex:
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +166,{0} comments,{0} kommentarer
+DocType: Customize Form Field,Label and Type,Etikett och typ
+DocType: Workflow State,forward,framåt
+sites/assets/js/form.min.js +274,{0} edited this {1},{0} redigerat detta {1}
+DocType: Web Page,Custom Javascript,Anpassad Javascript
+DocType: DocPerm,Submit,Skicka
+DocType: Website Settings,Sub-domain provided by erpnext.com,Subdomän tillhandahålls av erpnext.com
+DocType: System Settings,dd-mm-yyyy,dd-mm-dd
+apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,Måste ha rapport behörighet till den här rapporten.
+apps/frappe/frappe/desk/doctype/event/event.py +66,Daily Event Digest is sent for Calendar Events where reminders are set.,Daglig Händelse Digest skickas för kalenderhändelser där påminnelser ställs.
+sites/assets/js/desk.min.js +947,View Website,Visa webbplats
+DocType: Workflow State,remove,avlägsna
+DocType: Email Account,If non standard port (e.g. 587),Om icke standard port (t.ex. 587)
+sites/assets/js/desk.min.js +947,Reload,Ladda
+DocType: Event,Participants,Deltagare
+DocType: Bulk Email,Reference DocName,Referens doknamn
+DocType: Web Form,Success Message,Framgång Meddelande
+DocType: DocType,User Cannot Search,Användaren kan inte söka
+DocType: DocPerm,Apply this rule if the User is the Owner,Tillämpa denna regel om användaren är ägare
+apps/frappe/frappe/desk/page/activity/activity.js +47,Build Report,Build Rapportera
+apps/frappe/frappe/model/rename_doc.py +91,"{0} {1} does not exist, select a new target to merge","{0} {1} existerar inte, välj ett nytt mål att slå samman"
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Det går inte att ställa in tillstånd för DocType: {0} och Namn: {1}
+DocType: Comment,Comment Doctype,Kommentar Doctype
+sites/assets/js/desk.min.js +257,Verify Password,Verifiera Lösenord
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Det fanns fel
+apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,Stänga
+apps/frappe/frappe/model/document.py +414,Cannot change docstatus from 0 to 2,Det går inte att ändra docstatus från 0 till 2
+apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Options must be a valid DocType for field {0} in row {1},Alternativ måste vara en giltig DocType för fältet {0} i v {1}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Redigera Egenskaper
+DocType: Patch Log,List of patches executed,Lista över patchar verk
+DocType: Communication,Communication Medium,Kommunikationsmedium
+DocType: Website Settings,Banner HTML,Banner HTML
+apps/frappe/frappe/model/base_document.py +407,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} kan inte vara &quot;{2}&quot;. Det bör vara en av &quot;{3}&quot;
+apps/frappe/frappe/utils/data.py +486,{0} or {1},{0} eller {1}
+apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,Lösenord Uppdatering
+DocType: Workflow State,trash,skräp
+apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,December
+DocType: Event,Leave blank to repeat always,Lämna tomt för att upprepa alltid
+DocType: Event,Ends on,Slutar om
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Punkt kan inte läggas till sina egna ättlingar
+sites/assets/js/form.min.js +274,{0} created this {1},{0} skapade denna {1}
+apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.","Uppgiften {0}, som du tilldelat {1}, har stängts av {2}."
+DocType: Blogger,Short Name,Kort Namn
+DocType: Workflow State,magnet,magnet
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,Denna valuta är inaktiverad. Aktivera för att använda i transaktioner
+DocType: Contact Us Settings,"Default: ""Contact Us""",Standard: &quot;Kontakta oss&quot;
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +378,"Level 0 is for document level permissions, higher levels for field level permissions.","Nivå 0 är för dokument nivå behörigheter, högre nivåer för fältnivå behörigheter."
+DocType: Custom Script,Sample,Prov
+DocType: Event,Every Week,Varje Vecka
+DocType: Custom Field,Is Mandatory Field,Är Obligatoriskt fält
+DocType: User,Website User,Hemsida Användare
+DocType: Website Script,Script to attach to all web pages.,Script att fästa alla webbsidor.
+DocType: Web Form,Allow Multiple,Tillåt Multipel
+sites/assets/js/form.min.js +291,Assign,Tilldela
+apps/frappe/frappe/config/setup.py +93,Import / Export Data from .csv files.,Import / Export data från CSV-filer.
+DocType: Workflow State,Icon will appear on the button,Ikon visas på knappen
+DocType: Web Page,Page url name (auto-generated),Page url namn (automatiskt genererade)
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,Lägg upp att använda samma mall som nedladdning.
+DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,Protip: Lägg <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> för att skicka dokument referens
+apps/frappe/frappe/modules/__init__.py +81,App not found,App inte hittas
+DocType: Workflow State,pencil,blyertspenna
+sites/assets/js/form.min.js +283,Share {0} with,Dela {0} med
+DocType: Workflow State,hand-up,hand upp
+DocType: Blog Settings,Writers Introduction,Författarna Inledning
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Välj dokumenttyp eller roll att starta.
+sites/assets/js/desk.min.js +883,Page not found,Sidan hittas inte
+DocType: DocField,Precision,Precision
+DocType: Website Slideshow,Slideshow Items,Spelet artiklar
+apps/frappe/frappe/model/delete_doc.py +153,Cannot delete or cancel because {0} {1} is linked with {2} {3},Det går inte att ta bort eller avbryta eftersom {0} {1} är kopplad med {2} {3}
+DocType: Website Settings,Twitter Share,Twitter Dela
+DocType: Workflow State,Workflow State,Arbetsflöde stat
+apps/frappe/frappe/templates/pages/me.html +1,My Account,Mitt Konto
+DocType: ToDo,Allocated To,Fördelas till
+apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,Klicka på följande länk för att ställa in ditt nya lösenord
+DocType: Email Alert,Days After,Dagar Efter
+DocType: Contact Us Settings,Settings for Contact Us Page,Inställningar för Kontakta oss Page
+DocType: Custom Script,Script Type,Script type
+DocType: Email Account,Footer,Footer
+apps/frappe/frappe/utils/verified_command.py +39,Invalid Link,Ogiltig länk
+DocType: Web Page,Show Title,Visa Titel
+DocType: Property Setter,Property Type,Fastighets typ
+DocType: Workflow State,screenshot,skärmdump
+apps/frappe/frappe/core/doctype/report/report.py +24,Only Administrator can save a standard report. Please rename and save.,Endast Administratören kan spara en standardrapport. Byt namn och spara.
+DocType: DocField,Data,Data
+sites/assets/js/desk.min.js +622,Document Status,Dokumentstatus
+DocType: Email Account,Login Id,Login Id
+apps/frappe/frappe/core/page/data_import_tool/importer.py +176,Not allowed to Import,Ej tillåtet att importera
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Behörighetsnivåer
+DocType: Workflow State,Warning,Varning
+DocType: DocType,In Dialog,I Dialog
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +142,Help,Hjälp
+DocType: User,Login Before,Logga in Innan
+DocType: Web Page,Insert Style,Skärtyp
+apps/frappe/frappe/desk/page/applications/applications.js +94,Application Installer,Application Installer
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,Is,Är
+DocType: Workflow State,info-sign,info-skylt
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Hur ska denna valuta formateras? Om inte satt, kommer att använda systemet som standard"
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,Visa användarbehörigheter
+apps/frappe/frappe/utils/response.py +107,You need to be logged in and have System Manager Role to be able to access backups.,Du måste vara inloggad och ha System Manager roll för att kunna få tillgång till säkerhetskopior.
+apps/frappe/frappe/email/bulk.py +78,This email was sent to {0}. To unsubscribe click on this link: {1},Denna email skickades till {0}. För att avsluta prenumerationen klicka på den här länken: {1}
+sites/assets/js/desk.min.js +608,Added {0} ({1}),Added {0} ({1})
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype kan inte ändras från {0} till {1} ​​i rad {2}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Search Fields should contain valid fieldnames,Sökfält bör innehålla giltiga fältnamn
+apps/frappe/frappe/core/doctype/user/user.js +321,Role Permissions,Roll Behörigheter
+sites/assets/js/form.min.js +290,Can Read,Kan Läs
+DocType: Standard Reply,Response,Svar
+sites/assets/js/form.min.js +290,Can Share,Kan dela
+apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,Ogiltig mottagaradress
+DocType: Workflow State,step-forward,Stig fram
+apps/frappe/frappe/core/doctype/user/user.js +45,Refreshing...,Uppfriskande ...
+DocType: Event,Starts on,Startar på
+DocType: Workflow State,th,e
+sites/assets/js/desk.min.js +576,Create a new {0},Skapa en ny {0}
+sites/assets/js/desk.min.js +931,Report {0},Rapportera {0}
+sites/assets/js/desk.min.js +931,Open {0},Öppna {0}
+DocType: Workflow State,ok-sign,OK-tecken
+sites/assets/js/form.min.js +160,Duplicate,Duplicate
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,Ange vilken värdefältet måste kontrolleras
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added",&quot;Förälder&quot; betyder den överordnade tabellen där denna rad skall läggas
+DocType: Website Theme,Apply Style,Applicera Style
+sites/assets/js/form.min.js +291,Shared With,Delad Med
+,Modules Setup,Moduler Inställning
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +230,Type:,Typ:
+apps/frappe/frappe/desk/moduleview.py +57,Module Not Found,Modul hittades inte
+DocType: User,Location,Läge
+,Permitted Documents For User,Tillåtna dokument för användar
+apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission",Du måste ha &quot;Share&quot; tillstånd
+sites/assets/js/form.min.js +213,Bulk Edit {0},Bulk Redigera {0}
+DocType: Email Alert Recipient,Email Alert Recipient,Bevakning Mottagare
+DocType: About Us Settings,Settings for the About Us Page,Inställningar för oss Page
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,Välj typ av dokument att ladda ner
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Use the field to filter records,Använd fältet för att filtrera poster
+DocType: Email Account,Outlook.com,Outlook.com
+DocType: System Settings,Scheduler Last Event,Scheduler Senaste Race
+DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Lägg till Google Analytics-ID: t ex. UA-89XXX57-1. Vänligen söka hjälp på Google Analytics för mer information.
+DocType: Email Alert Recipient,"Expression, Optional","Expression, Valfri"
+apps/frappe/frappe/email/bulk.py +130,This email was sent to {0},Denna email skickades till {0}
+DocType: Email Account,Check this to pull emails from your mailbox,Markera att dra e-post från din brevlåda
+apps/frappe/frappe/model/document.py +427,Cannot edit cancelled document,Det går inte att ändra annulleras dokument
+apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Kapslade uppsättning fel. Vänligen kontakta administratören.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<span class=text-muted data-no-content=1>
+DocType: Workflow State,envelope,kuvert
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,Alternativ 2
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} delade detta dokument med {1}
+DocType: Website Settings,Google Plus One,Google Plus One
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,Juli
+DocType: Communication,Additional Info,Ytterligare Info
+apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer and logo.","Inställning av övre navigationsfältet, sidfot och logotyp."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +357,For {0} at level {1} in {2} in row {3},För {0} på nivå {1} i {2} i rad {3}
+DocType: Bulk Email,Recipient,Mottagare
+apps/frappe/frappe/config/setup.py +137,Drag and Drop tool to build and customize Print Formats.,Dra och släpp verktyg för att bygga och anpassa utskriftsformat.
+sites/assets/js/desk.min.js +874,Expand,Expand
+DocType: Workflow State,align-right,anpassa högra
+DocType: Page,Roles,Roller
+DocType: System Settings,Session Expiry,Sessions Upphörande
+DocType: Workflow State,ban-circle,ban-cirkel
+DocType: Event,Desk,Skrivbord
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Skriv en SELECT-fråga. Obs resultatet inte söks (all data skickas på en gång).
+DocType: Email Account,Attachment Limit (MB),Attachment Limit (MB)
+sites/assets/js/form.min.js +199,Ctrl + Down,Ctrl + Ner
+DocType: User,User Defaults,Användarinställningar
+DocType: Workflow State,chevron-down,Chevron-ner
+DocType: Workflow State,th-list,th-listan
+DocType: Web Page,Enable Comments,Aktivera Kommentarer
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Begränsa användaren från denna IP endast adress. Flera IP-adresser kan läggas till genom att separera med kommatecken. Dessutom accepterar delvis IP-adresser som (111.111.111)
+DocType: Website Theme,Google Font (Heading),Google Font (rubrik)
+sites/assets/js/desk.min.js +931,Find {0} in {1},Hitta {0} i {1}
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Bifoga som kommunikation mot denna DocType (måste ha fält, &quot;Status&quot;, &quot;Ämne&quot;)"
+DocType: DocType,Allow Import via Data Import Tool,Tillåt Importera via Data Import Tool
+apps/frappe/frappe/model/base_document.py +432,Not allowed to change {0} after submission,Ej tillåtet att ändra {0} efter inlämnandet
+DocType: Comment,Comment Type,Kommentar Typ
+apps/frappe/frappe/config/setup.py +8,Users,Användare
+DocType: Email Account,Signature,Namnteckning
+apps/frappe/frappe/config/website.py +84,"Enter keys to enable login via Facebook, Google, GitHub.","Ange nycklar för att möjliggöra inloggning via Facebook, Google, GitHub."
+sites/assets/js/list.min.js +69,Add a tag,Lägg till en tagg
+sites/assets/js/desk.min.js +561,Please attach a file first.,Bifoga en fil först.
+apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","Det fanns några fel inställning namn, kontakta administratören"
+DocType: Website Slideshow Item,Website Slideshow Item,Hemsida bildspel Punkt
+DocType: DocType,Title Case,Titel Case
+DocType: Blog Post,Email Sent,Email Skickat
+sites/assets/js/desk.min.js +965,Send As Email,Skicka som e-post
+DocType: Website Theme,Link Color,Länkfärg
+apps/frappe/frappe/core/doctype/user/user.py +47,User {0} cannot be disabled,Användare {0} kan inte inaktiveras
+apps/frappe/frappe/core/doctype/user/user.py +479,"Dear System Manager,","Kära System Manager,"
+sites/assets/js/form.min.js +182,Amending,Ändrings
+sites/assets/js/desk.min.js +598,Dialog box to select a Link Value,Dialogruta för att välja en länk Värde
+DocType: Contact Us Settings,Send enquiries to this email address,Skicka förfrågningar till denna e-postadress
+DocType: Letter Head,Letter Head Name,Brev Namn
+apps/frappe/frappe/config/website.py +23,User editable form on Website.,Användar redigerbara form på webbplatsen.
+DocType: Workflow State,file,fil
+apps/frappe/frappe/model/rename_doc.py +97,You need write permission to rename,Du måste skriva tillåtelse att byta namn
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +433,Apply Rule,Ansök Regel
+DocType: User,Karma,Karma
+DocType: DocField,Table,Bord
+DocType: File Data,File Size,FIL-STORLEK
+apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You must login to submit this form,Du måste logga in för att skicka in detta formulär
+DocType: User,Background Image,Bakgrundsbild
+sites/assets/js/form.min.js +265,New Custom Print Format,Ny anpassad Utskriftsformat
+DocType: DocPerm,Create,Skapa
+DocType: About Us Settings,Org History,Org Historik
+DocType: Workflow,Workflow Name,Arbetsflöde Namn
+DocType: Web Form,Allow Edit,Tillåt Redigera
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},Det går inte att ändra tillstånd av Inställd dokument. Övergångs raden {0}
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Regler för hur stater är övergångar, som nästa tillstånd och som roll tillåts ändra tillstånd etc."
+apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} finns redan
+apps/frappe/frappe/email/doctype/email_account/email_account.py +61,Append To can be one of {0},Append Till kan vara en av {0}
+DocType: User,Github Username,Github Användarnamn
+DocType: Web Page,Title / headline of your page,Titel / rubrik på din sida
+DocType: DocType,Plugin,Plugin
+sites/assets/js/desk.min.js +977,Add Attachments,Lägg till bilagor
+DocType: Workflow State,signal,signalen
+DocType: DocType,Show Print First,Show Print Första
+DocType: Print Settings,Monochrome,Monokrom
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Olika &quot;stater&quot; det här dokumentet kan existera i. Liksom &quot;Open&quot;, &quot;I väntan på godkännande&quot; etc."
+apps/frappe/frappe/utils/verified_command.py +40,This link is invalid or expired. Please make sure you have pasted correctly.,Denna länk är ogiltig eller löpt ut. Se till att du har klistrat på rätt sätt.
+DocType: Web Form,Web Form Fields,Web formulärfält
+DocType: Website Theme,Top Bar Text Color,Top Bar Textfärg
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +367,Remove Section,Avlägsna Avsnitt
+sites/assets/js/desk.min.js +521,Invalid Email: {0},Ogiltig E-post: {0}
+apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start,Händelse slut måste vara efter start
+apps/frappe/frappe/templates/includes/sidebar.html +7,Back,Tillbaka
+apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},Du har inte behörighet att få en rapport om {0}
+sites/assets/js/desk.min.js +579,Advanced Search,Avancerad Sökning
+apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,Lösenordsåterställning instruktioner har skickats till din e-post
+apps/frappe/frappe/config/setup.py +214,Manage cloud backups on Dropbox,Hantera molnsäkerhetskopior på Dropbox
+DocType: Workflow,States,Stater
+DocType: Email Alert,Attach Print,Fäst ut
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","När du Ändra ett dokument efter Avbryt och spara den, kommer det att bli ett nytt nummer som är en version av det gamla numret."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +36,{0} not allowed in name,{0} inte tillåtet i namn
+DocType: Workflow State,circle-arrow-left,cirkel-pil vänster
+apps/frappe/frappe/sessions.py +109,Redis cache server not running. Please contact Administrator / Tech support,Redis cache-server inte kör. Vänligen kontakta administratör / Teknisk support
+sites/assets/js/desk.min.js +918,Make a new record,Gör ett nytt rekord
+DocType: Currency,Fraction,Fraktion
+sites/assets/js/desk.min.js +550,Select from existing attachments,Välj bland befintliga bilagor
+DocType: Custom Field,Field Description,Fält Beskrivning
+apps/frappe/frappe/model/naming.py +49,Name not set via Prompt,Namnet inte in via Prompt
+DocType: Note,Note is a free page where users can share documents / notes,Obs är en gratis sida där användarna kan dela dokument / anmärkningar
+DocType: Website Theme,Top Bar Color,Top Bar Färg
+DocType: DocType,Allow Import,Tillåt Import
+apps/frappe/frappe/templates/includes/comments/comments.py +57,New comment on {0} {1},Ny kommentar på {0} {1}
+DocType: Workflow State,glass,glas
+DocType: Country,Time Zones,Tidszoner
+DocType: Workflow State,remove-sign,remove-tecken
+apps/frappe/frappe/config/setup.py +158,Define workflows for forms.,Definiera arbetsflöden för formulär.
+DocType: Website Settings,Misc,Misc
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +156,Start new Format,Starta nytt format
+DocType: Workflow State,font,font
+DocType: Customize Form Field,Is Custom Field,Är Custom Field
+DocType: Workflow,"If checked, all other workflows become inactive.","Om markerad, alla andra arbetsflöden inaktiveras."
+apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Etikett]: [Fälttyp] / [Alternativ]: [Bredd]
+DocType: Workflow State,folder-close,mapp-close
+DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,Tillval: Alert skickas endast om värdet är ett giltigt e-id.
+apps/frappe/frappe/model/rename_doc.py +100,{0} not allowed to be renamed,{0} inte tillåtet att döpas
+DocType: Custom Script,Custom Script,Custom Script
+sites/assets/js/desk.min.js +622,Assigned To,Tilldelats
+apps/frappe/frappe/core/doctype/user/user.py +166,Verify Your Account,Verifiera Ditt Konto
+DocType: Workflow Transition,Action,Åtgärd
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,Info:
+DocType: Custom Field,Permission Level,Behörighetsnivå
+DocType: User,Send Notifications for Transactions I Follow,Skicka meddelanden för Transaktioner Jag Följ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +400,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Kan inte ställa in, Avbryt, Ändra utan Skriv"
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Inställningar&gt; Användar
+apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Tack
+sites/assets/js/form.min.js +182,Saving,Spara
+DocType: Print Settings,Print Style Preview,Skriv Style Preview
+apps/frappe/frappe/website/doctype/web_form/web_form.py +96,You are not allowed to update this Web Form Document,Du är inte tillåtet att uppdatera denna webbformulär Dokument
+DocType: About Us Settings,About Us Settings,Om oss Inställningar
+DocType: Website Settings,Website Theme,Website Tema
+DocType: DocField,In List View,I lista
+DocType: Email Account,Use TLS,Använd TLS
+apps/frappe/frappe/email/smtp.py +34,Invalid login or password,Ogiltigt användarnamn eller lösenord
+apps/frappe/frappe/config/setup.py +190,Add custom javascript to forms.,Lägg till anpassade javascript former.
+,Role Permissions Manager,Roll Behörigheter chef
+DocType: Website Theme,This must be checked if the below style settings are applicable,Detta måste kontrolleras om nedanstående stilinställningar är tillämpliga
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +111,Name of the new Print Format,Namn på den nya utskriftsformat
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +229,Mandatory:,Obligatorisk:
+,User Permissions Manager,Användarbehörigheter Chef
+DocType: Property Setter,New value to be set,Nytt värde som ska ställas in
+DocType: Email Alert,Days Before or After,Dagar före eller efter
+DocType: Email Alert,Email Alert,Bevakning
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,Välj dokumenttyper för att ställa in vilken användarbehörighet används för att begränsa åtkomsten.
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84,Blog,Blogg
+DocType: Workflow State,hand-right,hand höger
+DocType: Website Settings,Subdomain,Subdomän
+DocType: Web Form,Allow Delete,Tillåt Radera
+DocType: Email Alert,Message Examples,Meddelande Exempel
+DocType: Web Form,Login Required,Inloggning krävs
+apps/frappe/frappe/config/website.py +59,Write titles and introductions to your blog.,Skriv titlar och introduktioner till din blogg.
+DocType: Email Account,Notify if unreplied for (in mins),Meddela om Obesvarade för (i minuter)
+apps/frappe/frappe/config/website.py +64,Categorize blog posts.,Kategori blogginlägg.
+DocType: DocField,Attach,Fäst
+DocType: DocType,Permission Rules,Behörighetsregler
+sites/assets/js/form.min.js +159,Links,Länkar
+apps/frappe/frappe/model/base_document.py +331,Value missing for,Värde saknas för
+apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Inskickat Record kan inte tas bort.
+sites/assets/js/desk.min.js +919,new type of document,ny typ av dokument
+DocType: DocPerm,Read,Läs
+apps/frappe/frappe/templates/pages/update-password.html +10,Old Password,Gammalt Lösenord
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},Inlägg av {0}
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Till formatera kolumner, ge kolumnetiketter i frågan."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +427,{0}: Cannot set Assign Amend if not Submittable,{0}: Kan inte ställa Tilldela Ändra om inte Submittable
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Redigera roll Behörigheter
+DocType: Social Login Keys,Social Login Keys,Sociala Login Nycklar
+DocType: Comment,Comment Date,Kommentar Datum
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +54,Remove all customizations?,Ta bort alla anpassningar?
+DocType: Website Slideshow,Slideshow Name,Bildspel Namn
+sites/assets/js/form.min.js +182,Cancelling,AVFÖRING
+DocType: DocType,Allow Rename,Tillåt Ändra namn
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Barn Tabeller visas som ett rutnät i andra DOCTYPE.
+DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.","Om markerad, kommer hemsidan att vara standardProduktGruppen för webbplatsen."
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Beskrivning för notering sida, i klartext, bara ett par rader. (max 140 tecken)"
+sites/assets/js/desk.min.js +947,Forums,Forum
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +297,Add A User Restriction,Lägg till en användare begränsning
+DocType: DocType,Name Case,Namn Fall
+sites/assets/js/form.min.js +278,Shared with everyone,Delas med alla
+apps/frappe/frappe/model/base_document.py +327,Data missing in table,Uppgift saknas i tabellen
+DocType: Web Form,Success URL,Framgång webbadress
+DocType: Email Account,Append To,Bifoga Till
+DocType: Workflow Document State,Only Allow Edit For,Endast Tillåt Redigera för
+DocType: DocType,DocType,DocType
+apps/frappe/frappe/core/doctype/user/user.py +393,User {0} does not exist,Användare {0} inte existerar
+DocType: Website Theme,"If image is selected, color will be ignored.","Om bilden är vald, kommer färgen att ignoreras."
+DocType: Top Bar Item,Top Bar Item,Top Bar Punkt
+apps/frappe/frappe/utils/csvutils.py +50,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Okänd filkodningen. Försökte utf-8, Windows-1250, windows-1252."
+apps/frappe/frappe/core/doctype/user/user.py +104,Sorry! Sharing with Website User is prohibited.,Förlåt! Dela med hemsida Användare är förbjuden.
+apps/frappe/frappe/core/doctype/user/user.js +156,Add all roles,Lägg till alla roller
+apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
+				can get back to you. Thanks!",Ange både din e-post och meddelande så att vi \ kan komma tillbaka till dig. Tack!
+apps/frappe/frappe/email/smtp.py +146,Could not connect to outgoing email server,Det gick inte att ansluta till utgående e-postserver
+sites/assets/js/desk.min.js +593,Rich Text,Rich Text
+DocType: Workflow State,resize-full,ändra storlek full
+DocType: Workflow State,off,av
+apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,Rapportera {0} är inaktiverad
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,Rekommenderas för att infoga nya rekord.
+DocType: Block Module,Core,Kärna
+DocType: DocField,Set non-standard precision for a Float or Currency field,Ställ icke-standard precision för en Float eller valutafält
+DocType: Email Account,Ignore attachments over this size,Ignorera bifogade filer över denna storlek
+apps/frappe/frappe/database.py +217,Too many writes in one request. Please send smaller requests,Alltför många skriver i en begäran. Vänligen skicka mindre förfrågningar
+DocType: Workflow State,arrow-up,pil-up
+DocType: DocField,Allow on Submit,Tillåt på Skicka
+apps/frappe/frappe/core/page/desktop/desktop.js +48,All Applications,Alla program
+DocType: Web Page,Add code as &lt;script&gt;,Lägg till koden som &lt;script&gt;
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Välj typ
+apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,Ingen behörighet att skriva / ta bort.
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,Dra element från sidofältet för att lägga till. Dra dem tillbaka till papperskorgen.
+DocType: Workflow State,resize-small,ändra storlek-small
+sites/assets/js/editor.min.js +128,Horizontal Line Break,Horisontell radbrytning
+DocType: Top Bar Item,Right,Höger
+DocType: User,User Type,Användartyp
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,Välj användare
+DocType: Communication,Keep a track of all communications,Håll koll på all kommunikation
+apps/frappe/frappe/desk/form/save.py +30,Did not save,Inte spara
+DocType: Property Setter,Property,Fastighetsförmedling
+DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Obs: För bästa resultat, måste bilderna vara av samma storlek och bredd måste vara större än höjden."
+DocType: DocType,Auto Name,Auto Namn
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 3,Alternativ 3
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup &gt; Role Permissions Manager,Behörigheter kan hanteras via Inställningar&gt; Roll Behörigheter chef
+apps/frappe/frappe/core/page/data_import_tool/importer.py +68,Please make sure that there are no empty columns in the file.,Se till att det inte finns några tomma kolumner i filen.
+sites/assets/js/desk.min.js +686,You have unsaved changes in this form. Please save before you continue.,Du har osparade ändringar i detta formulär. Spara innan du fortsätter.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +273,Default for {0} must be an option,Standard för {0} måste vara ett alternativ
+DocType: User,User Image,Användarbild
+apps/frappe/frappe/email/bulk.py +178,Emails are muted,E-post är avstängt
+sites/assets/js/form.min.js +199,Ctrl + Up,Ctrl + Up
+DocType: Website Theme,Heading Style,Rubrik stil
+apps/frappe/frappe/desk/page/applications/applications.py +34,You cannot install this app,Du kan inte installera den här appen
+DocType: Scheduler Log,Error,Fel
+apps/frappe/frappe/model/document.py +482,Cannot link cancelled document: {0},Det går inte att länka annulleras dokument: {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +550,"For example: If you want to include the document ID, use {0}","Till exempel: Om du vill inkludera dokument-ID, använd {0}"
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +479,Select Table Columns for {0},Välj tabellkolumner för {0}
+DocType: Custom Field,Options Help,Alternativ Hjälp
+DocType: DocField,Report Hide,Rapportera Göm
+DocType: Custom Field,Label Help,Etikett Hjälp
+DocType: Workflow State,star-empty,star-tom
+DocType: Workflow State,ok,OK
+DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Dessa värden kommer att uppdateras automatiskt i transaktioner och också kommer att vara till nytta för att begränsa behörigheter för användare på transaktioner som innehåller dessa värden.
+apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,Utgivare
+sites/assets/js/desk.min.js +846,Browse,Bläddra
+apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your browser,Visa det i din webbläsare
+apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,Återställ Lösenord
+DocType: Workflow State,hand-left,hand vänster
+apps/frappe/frappe/core/doctype/doctype/doctype.py +281,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} för {1} kan inte vara unikt
+DocType: Email Account,Use SSL,Använd SSL
+DocType: Workflow State,play-circle,play-cirkel
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,Välj Utskriftsformat att redigera
+DocType: Workflow State,circle-arrow-down,cirkel-pil ner
+DocType: DocField,Datetime,Datum Tid
+DocType: Workflow State,arrow-right,pil-höger
+DocType: Workflow State,Workflow state represents the current state of a document.,Workflow staten representerar det nuvarande läget i ett dokument.
+sites/assets/js/editor.min.js +152,Open Link in a new Window,Öppna länk i ett nytt fönster
+apps/frappe/frappe/utils/file_manager.py +235,Removed {0},Tog bort {0}
+DocType: Company History,Highlight,Markera
+apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,Standardutskriftsformat kan inte uppdateras
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +146,Help: Field Properties,Hjälp: Fältegenskaper
+apps/frappe/frappe/model/document.py +657,Incorrect value in row {0}: {1} must be {2} {3},Felaktigt värde i rad {0}: {1} måste vara {2} {3}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Inskickat dokument kan inte konverteras tillbaka till utkast. Övergångs raden {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,Välj ett befintligt format för att redigera eller starta ett nytt format.
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Skapad Anpassat fält {0} i {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,En användare kan vara tillåtet att flera poster av samma DocType.
+DocType: Workflow State,Home,Hem
+DocType: Workflow State,question-sign,fråga-sign
+DocType: Email Account,Add Signature,Lägg Signatur
+apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +13,Left this conversation,Lämnade denna konversation
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +474,Did not set,Inte satt
+DocType: ToDo,ToDo,Att göra
+DocType: DocField,No Copy,Ingen Kopiera
+DocType: Workflow State,qrcode,qrcode
+DocType: Web Form,Breadcrumbs,Ströbröd
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,If Owner,Om ägaren
+apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be logged in to access this {0}.,Du måste vara inloggad för att sjunga den här {0}.
+apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} av {1}
+apps/frappe/frappe/core/doctype/comment/comment.py +39,Cannot add more than 50 comments,Det går inte att lägga till mer än 50 kommentarer
+DocType: Website Settings,Top Bar Items,Top Bar Items
+DocType: Print Settings,Print Settings,Utskriftsinställningar
+DocType: DocType,Max Attachments,Max Bilagor
+DocType: Page,Page,Sida
+DocType: Workflow State,briefcase,portfölj
+apps/frappe/frappe/model/base_document.py +420,Value cannot be changed for {0},Värde kan inte ändras för {0}
+apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.",Du verkar ha skrivit ditt namn istället för din e-postadress. \ Ange en giltig e-postadress så att vi kan komma tillbaka.
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Stil representerar färgknappen: Framgång - Grön, Fara - röd, Inverse - Svart, Primär - Mörkblå, Info - Ljusblå, Varning - Orange"
+DocType: Workflow Transition,Workflow Transition,Arbetsflöde Övergång
+DocType: Workflow State,resize-horizontal,ändra storlek horisontell
+DocType: Communication,Content,Innehåll
+DocType: Web Form,Go to this url after completing the form.,Gå till denna URL efter fyller i blanketten.
+DocType: Custom Field,Document,Dokument
+DocType: DocField,Code,Kod
+DocType: Website Theme,Footer Text Color,Sidfot Textfärg
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Behörigheter på nivå 0 är dokumentnivå behörigheter, det vill säga de är primärt för att få tillgång till dokumentet."
+DocType: Print Format,Print Format,Utskriftsformat
+apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,Användar-ID på en blogg författare.
+apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,Ange behörigheter på dokumenttyper och roller
+DocType: About Us Settings,"""Company History""",&quot;Företagets historia&quot;
+apps/frappe/frappe/permissions.py +283,Permission already set,Tillstånd redan inställd
+apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},Kommenterade {0}: {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +243,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,Dessa restriktioner kommer att gälla för dokumenttyper där &quot;Verkställ användarbehörigheter&quot; kontrolleras för tillstånd regeln och ett fält med detta värde är närvarande.
+DocType: Email Alert,Send alert if this field's value changes,Skicka varning om detta fältets värdeförändringar
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +102,Select a DocType to make a new format,Välj ett DocType att göra ett nytt format
+DocType: Module Def,Module Def,Modul Def
+sites/assets/js/form.min.js +199,Done,Klar
+sites/assets/js/form.min.js +294,Reply,Svar
+DocType: Communication,By,Av
+DocType: Email Account,SMTP Server,SMTP-server
+DocType: Print Format,Print Format Help,Utskriftsformat Hjälp
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Om du uppdaterar, välj &quot;Skriv över&quot; kommer annars befintliga rader inte tas bort."
+DocType: Event,Every Month,Varje Månad
+DocType: Letter Head,Letter Head in HTML,Brev i HTML
+DocType: Web Form,Web Form,Web Form
+DocType: About Us Settings,Org History Heading,Org Historik Rubrik
+DocType: Web Form,Web Page Link Text,Webbsida Link Text
+apps/frappe/frappe/config/setup.py +142,"Set default format, page size, print style etc.","Ange standardformat, sidstorlek, utskriftsformat mm"
+DocType: DocType,Naming,Naming
+DocType: Event,Every Year,Varje År
+apps/frappe/frappe/core/doctype/user/user.py +359,Registered but disabled.,Registrerad men inaktiveras.
+sites/assets/js/list.min.js +95,Delete permanently?,Ta bort permanent?
+sites/assets/js/desk.min.js +922,Search in a document type,Sök i en dokumenttyp
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201,Allow field to remain editable even after submission,Låt fältet att förbli redigerbara även efter inlämnandet
+DocType: DocPerm,Role and Level,Roll och nivå
+apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Anpassade rapporter
+DocType: Website Script,Website Script,Webbplats Script
+apps/frappe/frappe/config/setup.py +147,Customized HTML Templates for printing transactions.,Anpassade HTML-mallar för utskrift transaktioner.
+apps/frappe/frappe/desk/form/utils.py +103,No further records,Inga ytterligare poster
+DocType: DocField,Long Text,Längre text
+apps/frappe/frappe/core/page/data_import_tool/importer.py +36,Please do not change the rows above {0},Ändra inte raderna ovan {0}
+sites/assets/js/desk.min.js +947,(Ctrl + G),(Ctrl + G)
+sites/assets/js/desk.min.js +903,Sorry! You are not permitted to view this page.,Förlåt! Det är inte tillåtet att visa den här sidan.
+DocType: Workflow State,bell,klocka
+sites/assets/js/form.min.js +290,Share this document with,Dela med dig av dokument med
+apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,Juni
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} inte kan vara en lövnod som den har undersidor
+DocType: Feed,Info,Info
+apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Tack för ditt meddelande
+DocType: Website Settings,Home Page,Hemsida
+DocType: Email Alert,Filters,Filter
+DocType: Workflow State,share-alt,aktie alt
+DocType: Role,Role Name,Rollnamn
+DocType: Workflow Document State,Workflow Document State,Workflow Dokument Status
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","För att ge åtkomst till en roll för endast specifika poster, kontrollera Apply användarbehörigheter. Användarbehörigheter används för att begränsa användarna med sådan roll specifika poster."
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Det går inte att avbryta innan du skickar. Se Transition {0}
+apps/frappe/frappe/templates/pages/print.py +146,Print Format {0} is disabled,Utskriftsformat {0} är inaktiverad
+DocType: Email Alert,Send days before or after the reference date,Skicka dagar före eller efter referensdagen
+DocType: User,Allow user to login only after this hour (0-24),Tillåt användare att logga in först efter denna timme (0-24)
+apps/frappe/frappe/core/doctype/doctype/doctype.py +33,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Inte i utvecklarläge! Beläget i site_config.json eller göra &quot;Custom&quot; DocType.
+DocType: Workflow State,globe,klot
+DocType: System Settings,dd.mm.yyyy,dd.mm.åååå
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193,Hide field in Standard Print Format,Dölj fält i standardutskriftsformat
+DocType: DocField,Float,Float
+DocType: Module Def,Module Name,Modul Namn
+DocType: DocType,DocType is a Table / Form in the application.,DocType är en tabell / Form i ansökan.
+DocType: Feed,Feed Type,Matning
+DocType: Email Account,GMail,GMail
+DocType: Web Page,Template Path,Mall Path
+DocType: User,user_image_show,user_image_show
+DocType: DocField,Print Width,Utskriftsbredd
+DocType: User,Allow user to login only before this hour (0-24),Tillåt användare att logga in endast innan denna timme (0-24)
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,Filter ...
+DocType: Workflow State,bold,djärvt
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} finns inte i rad {1}
+DocType: Event,Event Type,Händelsetyp
+DocType: User,Last Known Versions,Sista kända versioner
+apps/frappe/frappe/config/setup.py +115,Add / Manage Email Accounts.,Lägg till / Hantera e-postkonton.
+DocType: Blog Category,Published,Publicerad
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,Tack för ditt email
+DocType: DocField,Small Text,Liten text
+apps/frappe/frappe/core/doctype/user/user.py +481,Administrator accessed {0} on {1} via IP Address {2}.,Administratör nås {0} på {1} via IP-adress {2}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Alternativ &quot;Dynamic Link&quot; typ av område måste peka på en annan länk Fält med alternativ som &quot;DocType&quot;
+DocType: About Us Settings,Team Members Heading,Teammedlemmar Rubrik
+DocType: DocField,Do not allow user to change after set the first time,Låt inte användaren ändra efter ställa in första gången
+DocType: User,Third Party Authentication,Tredjeparts autentisering
+DocType: Website Settings,Banner is above the Top Menu Bar.,Banner är ovanför den övre menyraden.
+DocType: Email Account,Port,Port
+DocType: Print Format,Arial,Arial
+DocType: Website Slideshow,Slideshow like display for the website,Bildspel liknande display för webbplatsen
+sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),Center (Ctrl / Cmd + E)
+apps/frappe/frappe/sessions.py +28,Cache Cleared,Cache Cleared
+apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,Användaren med System Manager roll bör alltid ha Användartyp: Systemanvändar
+DocType: DocPerm,Export,Export
+DocType: About Us Settings,More content for the bottom of the page.,Mer innehåll för botten av sidan.
+sites/assets/js/desk.min.js +274,Session Expired. Logging you out,Sessionen Löpte. Logga ut dig
+DocType: Workflow,DocType on which this Workflow is applicable.,DocType som denna Workflow är tillämplig.
+DocType: Blog Category,Category Name,Kategorinamn
+DocType: Print Settings,PDF Settings,PDF-inställningar
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,Kolumnnamn
+DocType: Web Form,"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","I JSON som <pre> [{&quot;Titeln&quot;: &quot;Jobs&quot;, &quot;namn&quot;: &quot;jobb&quot;}] </pre>"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +284,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} för kan inte indexeras {1}
+DocType: Communication,Email Account,Email Konto
+DocType: Workflow State,Download,Hämta
+DocType: Blog Post,Blog Intro,Blogg Intro
+apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Aktivera rapport
+DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Kontrollera / Avmarkera roller som tilldelats användaren. Klicka på Roll att ta reda på vilka rättigheter den rollen har.
+DocType: Web Page,Insert Code,Infoga kod
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +549,You can add dynamic properties from the document by using Jinja templating.,Du kan lägga till dynamiska egenskaper från dokumentet med Jinja mall.
+sites/assets/js/desk.min.js +920,List a document type,Lista en dokumenttyp
+DocType: Event,Ref Type,Referens Beskrivning
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.","Om du laddar upp nya poster, lämna kolumnen &quot;namn&quot; (ID) tomt."
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +361,No of Columns,Nr kolumner
+DocType: Workflow State,Calendar,Kalender
+apps/frappe/frappe/model/rename_doc.py +94,"Another {0} with name {1} exists, select another name","En annan {0} med namn {1} existerar, välj ett annat namn"
+DocType: DocType,Custom?,Anpassad?
+DocType: Website Settings,Website Theme Image,Hemsida tema bild
+DocType: Workflow State,road,väg
+DocType: User,Timezone,Tidszon
+sites/assets/js/desk.min.js +624,Unable to load: {0},Det gick inte att läsa in: {0}
+DocType: DocField,Read Only,Read Only
+DocType: Print Settings,Send Print as PDF,Skicka Skriv ut som PDF
+DocType: Workflow Transition,Allowed,Tillåten
+apps/frappe/frappe/core/doctype/doctype/doctype.py +291,There can be only one Fold in a form,Det kan bara finnas en Vik i en form
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Ogiltig Hemsida
+apps/frappe/frappe/core/doctype/doctype/doctype.py +390,{0}: Permission at level 0 must be set before higher levels are set,{0}: Tillstånd på nivå 0 måste ställas in innan högre nivåer ställs in
+DocType: Website Settings,Home Page is Products,Hemsida är produkter
+apps/frappe/frappe/desk/doctype/todo/todo.py +21,Assignment closed by {0},Uppdrag sluten av {0}
+sites/assets/js/desk.min.js +926,Calculate,Beräkna
+apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,Välj DocType först
+sites/assets/js/desk.min.js +927,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,t.ex. (55 + 434) / 4 eller = Math.sin (Math.PI / 2) ...
+DocType: Social Login Keys,GitHub Client ID,GitHub Kund-ID
+DocType: DocField,Perm Level,Perm Nivå
+apps/frappe/frappe/desk/doctype/event/event.py +59,Events In Today's Calendar,Händelser I Dagens kalender
+DocType: Web Page,Web Page,Webbsida
+DocType: Blog Category,Blogger,Blogger
+sites/assets/js/desk.min.js +528,Date must be in format: {0},Datum måste vara i formatet: {0}
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +22,Select Columns,Välj kolumner
+DocType: Workflow State,folder-open,mapp öppen
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,Sök Tillämpning
+apps/frappe/frappe/config/website.py +18,Single Post (article).,Ett inlägg (artikel).
+DocType: Property Setter,Set Value,Ställ Valuta
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Hide field in form,Dölj fält i formuläret
+DocType: Email Alert,Optional: The alert will be sent if this expression is true,Tillval: Larmet kommer att skickas om detta uttryck är sant
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,Du kan använda Anpassa formulär för att ställa in nivåer på fälten.
+DocType: DocPerm,Report,Rapport
+apps/frappe/frappe/templates/generators/web_form.html +31,Please login to create a new {0},Logga in för att skapa en ny {0}
+apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} sparas
+apps/frappe/frappe/core/doctype/user/user.py +235,User {0} cannot be renamed,Användare {0} kan inte döpas om
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,Exporteras
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON lista över DOCTYPE som används för att tillämpa användarbehörigheter. Om den är tom, kommer alla länkade DOCTYPE användas för att applicera användarbehörigheter."
+DocType: Report,Ref DocType,Ref DocType
+apps/frappe/frappe/core/doctype/doctype/doctype.py +402,{0}: Cannot set Amend without Cancel,{0}: Kan inte ställa Amend utan Avbryt
+sites/assets/js/form.min.js +260,Full Page,Hela sidan
+DocType: DocType,Is Child Table,Är barn Tabell
+apps/frappe/frappe/utils/csvutils.py +123,{0} must be one of {1},{0} måste vara ett av {1}
+apps/frappe/frappe/templates/emails/password_reset.html +1,Password Reset,Lösenordsåterställning
+DocType: Workflow State,chevron-left,Chevron-vänster
+DocType: Bulk Email,Sending,Sända
+apps/frappe/frappe/auth.py +195,Not allowed from this IP Address,Inte tillåtet från denna IP-adress
+DocType: Website Slideshow,This goes above the slideshow.,Detta går över spelet.
+apps/frappe/frappe/config/setup.py +208,Install Applications.,Installera program.
+DocType: Event,Private,Privat
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Skicka Email Print Tillbehör som PDF (rekommenderas)
+DocType: Workflow Action,Workflow Action,Workflow Action
+DocType: Event,Send an email reminder in the morning,Skicka ett mail påminnelse på morgonen
+DocType: Blog Post,Published On,Publicerad den
+DocType: Feed,Feed,Foder
+DocType: ToDo,Reference Type,Referens Typ
+DocType: Event,Repeat On,Repeat On
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,Användarbehörigheter
+apps/frappe/frappe/desk/page/activity/activity.js +153,Oct,Oktober
+DocType: Workflow State,warning-sign,varningstecken
+DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Visa titel i webbläsarfönstret som &quot;Prefix - titeln&quot;
+sites/assets/js/desk.min.js +923,text in document type,text i dokument typ
+DocType: Workflow Document State,Update Value,Uppdatera Värde
+DocType: System Settings,Number Format,Antal Format
+DocType: Custom Field,Insert After,Infoga Efter
+DocType: Social Login Keys,GitHub Client Secret,GitHub klienthemligheten
+DocType: Report,Report Name,Rapportera Namn
+DocType: Email Alert,Save,Spara
+DocType: Website Settings,Title Prefix,Titel Prefix
+DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,Meddelanden och bulk post kommer att sändas från denna utgående server.
+DocType: Workflow State,cog,KUGGE
+sites/assets/js/desk.min.js +608,{0} added,{0} sattes
+sites/assets/js/list.min.js +67,Not In,Inte I
+DocType: Workflow State,star,stjärna
+apps/frappe/frappe/desk/page/activity/activity.js +153,Nov,November
+apps/frappe/frappe/core/doctype/doctype/doctype.py +256,Max width for type Currency is 100px in row {0},Max bredd för typ Valuta är 100px i rad {0}
+apps/frappe/frappe/config/website.py +13,Content web page.,Innehåll webbsida.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Lägg till en ny roll
+apps/frappe/frappe/templates/includes/login/login.js +125,Oops! Something went wrong,Hoppsan! Något gick snett
+DocType: Blog Settings,Blog Introduction,Blogg Inledning
+DocType: User,Email Settings,E-postinställningar
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} inte en giltig stat
+DocType: Workflow State,ok-circle,OK-cirkel
+apps/frappe/frappe/core/doctype/user/user.py +102,Sorry! User should have complete access to their own record.,Förlåt! Användaren ska ha fullständig tillgång till sin egen post.
+DocType: Custom Field,In Report Filter,I Report Filter
+DocType: DocType,Hide Actions,Göm Aktiviteter
+DocType: DocType,"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Namnge Alternativ</a>"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,Etikett är obligatorisk
+DocType: DocField,Unique,Unik
+DocType: File Data,File Name,Filnamn
+apps/frappe/frappe/core/page/data_import_tool/importer.py +261,Did not find {0} for {0} ({1}),Har du inte hittat {0} för {0} ({1})
+apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Ange behörigheter per användare
+DocType: Print Format,Edit Format,Redigera Format
+apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,Komplett Registrering
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar Färg och textfärg är densamma. De bör ha god kontrast till vara läsbar.
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),Du kan bara ladda upp 5000 skivor på en gång. (Kan vara mindre i vissa fall)
+DocType: Print Settings,Print Style,Utskriftsformat
+DocType: DocPerm,Import,Import
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +125,Row {0}: Not allowed to enable Allow on Submit for standard fields,Rad {0}: Inte tillåtet för att tillåta in för standardfält
+apps/frappe/frappe/config/setup.py +91,Import / Export Data,Import / Export Data
+sites/assets/js/desk.min.js +1000,updated to {0},uppdateras till {0}
+DocType: Workflow State,chevron-right,Chevron-höger
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')",Ändra typ av fält. (För närvarande är typ förändring \ tillåtet bland &quot;Valuta och Float&quot;)
+DocType: Website Theme,Link to Bootstrap CSS,Länk till Bootstrap CSS
+DocType: Workflow State,camera,kamera
+DocType: Website Settings,Brand HTML,Märke HTML
+apps/frappe/frappe/templates/includes/login/login.js +18,Both login and password required,Både användarnamn och lösenord krävs
+apps/frappe/frappe/model/document.py +392,Please refresh to get the latest document.,Vänligen uppdatera för att få det senaste dokumentet.
+DocType: User,Security Settings,Säkerhetsinställningar
+,Desktop,Desktop
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Text som ska visas för Länk till webbsida om denna form har en webbsida. Länken kommer att genereras automatiskt baserat på `page_name` och` parent_website_route`
+sites/assets/js/desk.min.js +588,Please set {0} first,Ställ {0} först
+DocType: Patch Log,Patch,Patch
+apps/frappe/frappe/core/page/data_import_tool/importer.py +41,No data found,Inga uppgifter funna
+DocType: Web Form,Allow Comments,Tillåt kommentarer
+DocType: User,Background Style,Bakgrundsformat
+DocType: System Settings,mm-dd-yyyy,mm-dd-åååå
+apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,{0} inloggad
+DocType: Workflow,"All possible Workflow States and roles of the workflow. 
+Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Alla möjliga Workflow staterna och roller i arbetsflödet. Docstatus Alternativ: 0 är &quot;sparad&quot;, 1 &quot;Inlagd&quot; och 2 &quot;Inställt&quot;"
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,Din inloggning id är
+DocType: DocField,Ignore User Permissions,Ignorera användarbehörigheter

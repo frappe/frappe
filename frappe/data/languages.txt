@@ -1,5 +1,6 @@
 ar	العربية
 bg	bǎlgarski
+bo  ལྷ་སའི་སྐད་
 bs	bosanski
 ca	català
 cs	česky
@@ -9,6 +10,7 @@ el	ελληνικά
 es	español
 en	english
 fa	پارسی
+fi  suomalainen
 fr	français
 he	עברית
 hi	हिंदी
@@ -17,21 +19,27 @@ hu	magyar
 id	Indonesia
 it	italiano
 ja	日本語
+km  ភាសាខ្មែរ
 kn	ಕನ್ನಡ
 ko	한국의
 lv	latviešu valoda
 mr	मराठी
+mk  македонски
+my  Melayu
 nl	nederlands
+no  norsk
 pl	polski
 pt	português
 pt-BR	português brasileiro
 ro	român
 ru	русский
+sv  svenska
 sk	slovenčina
+sq  shqiptar
 sr	српски
 ta	தமிழ்
 th	ไทย
 tr	Türk
 vi	việt
-zh-cn	中国（简体）
-zh-tw	中國（繁體）
+zh-cn	簡體中文
+zh-tw	正體中文
