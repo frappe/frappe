@@ -296,16 +296,21 @@ class Email:
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
 		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
+		saved_attachments = []
+
 		for attachment in self.attachments:
 			try:
-				save_file(attachment['fname'], attachment['fcontent'],
+				file_data = save_file(attachment['fname'], attachment['fcontent'],
 					doc.doctype, doc.name)
+				saved_attachments.append(file_data.file_name)
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass
+
+		return saved_attachments
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
