@@ -119,6 +119,16 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	},
 	html: function(html) {
 		this.$wrapper.html(html || this.get_content());
+	},
+	set_value: function(html) {
+		if(html.appendTo) {
+			// jquery object
+			html.appendTo(this.$wrapper.empty());
+		} else {
+			// html
+			this.df.options = html;
+			this.html(html);
+		}
 	}
 });
 
