@@ -28,3 +28,5 @@ html2text
 email_reply_parser
 click
 num2words
+watchdog
+pyopenssl

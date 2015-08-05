@@ -24,7 +24,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 	set_headline_alert: function(text, alert_class, icon) {
 		this.set_headline(repl('<div class="alert %(alert_class)s">%(icon)s%(text)s</div>', {
-			"alert_class": alert_class || "alert-info",
+			"alert_class": alert_class || "",
 			"icon": icon ? '<i class="'+icon+'" /> ' : "",
 			"text": text
 		}));

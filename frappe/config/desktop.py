@@ -72,4 +72,10 @@ def get_data():
 			"type": "module",
 			"system_manager": 1
 		},
+		"Integrations": {
+			"color": "#36414C",
+			"icon": "octicon octicon-plug",
+			"type": "module",
+			"system_manager": 1
+		}
 	}
