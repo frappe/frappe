@@ -157,6 +157,10 @@
 	}
 
 	// listviews
+	.list-row {
+		padding: 13px 15px !important;
+	}
+
 	.doclist-row& {
 		position: relative;
 		padding-right: 10px;
@@ -187,6 +191,19 @@
 
 		.list-row-right {
 			float: right;
+
+			.list-row-indicator {
+				top: 4px;
+
+				// bigger indicators for list
+				.indicator::before, .indicator::after {
+					height: 12px;
+					width: 12px;
+					border-radius: 12px;
+				}
+
+			}
+
 		}
 
 		.list-row-right.no-right-column {
@@ -196,17 +213,6 @@
 			left: -10px;
 			width: 100%;
 
-			.list-row-indicator {
-				top: 5px;
-
-				// bigger indicators for list
-				.indicator::before, .indicator::after {
-					height: 14px;
-					width: 14px;
-					border-radius: 14px;
-				}
-
-			}
 		}
 	}
 
@@ -273,6 +279,29 @@
 }
 
 @media(max-width: 991px) {
+	input[type='checkbox'] {
+	    -webkit-appearance:none;
+	    width: 18px;
+	    height: 18px;
+	    background: white;
+	    border-radius: 9px;
+		margin-top: -2px;
+		margin-bottom: -5px;
+	    border: 1px solid @border-color;
+		display: inline-block;
+	}
+	input[type='checkbox']:checked {
+	    background: @checkbox-color;
+		border-color: @checkbox-color;
+	}
+	input.list-select-all {
+		margin-top: 0px;
+	}
+	.input-area input[type='checkbox'] {
+		margin-top: 2px;
+		margin-left: -23px;
+	}
+
 	.intro-area,
 	.footnote-area {
 		padding: 15px 0px;
@@ -288,7 +317,7 @@
 
 	.page-head {
 		.page-title h1 {
-			font-size: 18px;
+			font-size: 22px;
 			margin-top: 22px;
 		}
 	}

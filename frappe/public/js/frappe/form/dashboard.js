@@ -42,7 +42,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		var badge = $(repl('<div class="col-md-4">\
 			<div class="alert-badge">\
 				<a class="badge-link grey">%(label)s</a>\
-				<span class="badge">-</span>\
+				<span class="badge" style="margin-left: 10px;">-</span>\
 			</div></div>', {label:label, icon: frappe.boot.doctype_icons[doctype]}))
 				.appendTo(this.body)
 
