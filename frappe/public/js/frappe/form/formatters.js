@@ -92,7 +92,7 @@ frappe.form.formatters = {
 	},
 	Text: function(value) {
 		if(value) {
-			var tags = ["<p", "<div", "<br"];
+			var tags = ["<p", "<div", "<br", "<table"];
 			var match = false;
 
 			for(var i=0; i<tags.length; i++) {
