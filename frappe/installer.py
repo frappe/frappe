@@ -286,7 +286,7 @@ def add_module_defs(app):
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
-		d.save()
+		d.save(ignore_permissions=True)
 
 def remove_missing_apps():
 	apps = ('frappe_subscription', 'shopping_cart')
