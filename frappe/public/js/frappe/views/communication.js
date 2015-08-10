@@ -130,6 +130,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
 			var prepend_reply = function() {
+				if(me.reply_added===standard_reply) {
+					return;
+				}
 				var content_field = me.dialog.fields_dict.content;
 				var content = content_field.get_value() || "";
 
@@ -144,6 +147,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 
 				content_field.set_input(content.join(''));
+
+				me.reply_added = standard_reply;
 			}
 			if(frappe.standard_replies[standard_reply]) {
 				prepend_reply();
