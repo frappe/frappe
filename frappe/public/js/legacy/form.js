@@ -779,7 +779,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	this.page.add_inner_button(label, fn);
+	return this.page.add_inner_button(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
