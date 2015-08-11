@@ -578,9 +578,10 @@ class Document(BaseDocument):
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
-		from frappe.model.delete_doc import check_if_doc_is_linked
+		from frappe.model.delete_doc import check_if_doc_is_linked, check_if_doc_is_dynamically_linked
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
+			check_if_doc_is_dynamically_linked(self)
 
 	@staticmethod
 	def whitelist(f):
