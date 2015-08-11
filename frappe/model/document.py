@@ -457,7 +457,7 @@ class Document(BaseDocument):
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
-			print self.as_dict()
+			print self.as_json().encode("utf-8")
 
 		raise frappe.MandatoryError(", ".join((each[0] for each in missing)))
 

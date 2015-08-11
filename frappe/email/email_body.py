@@ -192,7 +192,7 @@ class EMail:
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to.encode("utf-8") if self.reply_to else None,
 			"CC":             ', '.join(self.cc).encode("utf-8") if self.cc else None,
-			b'X-Frappe-Site': get_url().encode('utf-8')
+			b'X-Frappe-Site': get_url().encode('utf-8'),
 		}
 
 		# reset headers as values may be changed.
@@ -200,6 +200,10 @@ class EMail:
 			if self.msg_root.has_key(key):
 				del self.msg_root[key]
 			self.msg_root[key] = val
+
+		# call hook to enable apps to modify msg_root before sending
+		for hook in frappe.get_hooks("make_email_body_message"):
+			frappe.get_attr(hook)(self)
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
