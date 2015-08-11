@@ -144,7 +144,9 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 						filters=[[dt, link.get("fieldname"), '=', name]])
 
 			except frappe.PermissionError:
-				frappe.local.message_log.pop()
+				if frappe.local.message_log:
+					frappe.local.message_log.pop()
+
 				continue
 
 			if ret:

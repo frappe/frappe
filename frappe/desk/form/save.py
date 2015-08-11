@@ -32,10 +32,12 @@ def savedocs():
 		raise
 
 @frappe.whitelist()
-def cancel(doctype=None, name=None):
+def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
 	try:
 		doc = frappe.get_doc(doctype, name)
+		if workflow_state_fieldname and workflow_state:
+			doc.set(workflow_state_fieldname, workflow_state)
 		doc.cancel()
 		send_updated_docs(doc)
 

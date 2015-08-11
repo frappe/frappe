@@ -11,6 +11,8 @@ from frappe.handler import execute_cmd
 from frappe.async import set_task_status, END_LINE, get_std_streams
 import frappe.utils.response
 import sys
+import time
+import MySQLdb
 
 @celery_task()
 def sync_queues():
@@ -134,7 +136,6 @@ def pull_from_email_account(site, email_account):
 	finally:
 		frappe.destroy()
 
-
 @celery_task(bind=True)
 def run_async_task(self, site, user, cmd, form_dict):
 	ret = {}
@@ -177,3 +178,34 @@ def run_async_task(self, site, user, cmd, form_dict):
 		sys.stderr.close()
 		sys.stdout, sys.stderr = 1, 0
 	return ret
+
+
+@celery_task()
+def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
+	try:
+		frappe.connect(site=site)
+
+		# upto 3 retries
+		for i in xrange(3):
+			try:
+				communication = frappe.get_doc("Communication", communication_name)
+				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments, recipients=recipients, except_recipient=except_recipient)
+			except MySQLdb.OperationalError, e:
+				# deadlock, try again
+				if e.args[0]==1213:
+					frappe.db.rollback()
+					time.sleep(1)
+					continue
+				else:
+					raise
+			else:
+				break
+
+	except:
+		frappe.db.rollback()
+
+	else:
+		frappe.db.commit()
+
+	finally:
+		frappe.destroy()
