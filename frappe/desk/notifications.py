@@ -95,8 +95,7 @@ def clear_notifications(user="*"):
 		frappe.cache().delete_keys("notification_count:")
 	else:
 		# delete count for user
-		for key in frappe.cache().get_keys("notification_count:"):
-			frappe.cache().hdel(key, user)
+		frappe.cache().hdel_keys("notification_count:", user)
 
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)
