@@ -135,6 +135,9 @@ class CustomizeForm(Document):
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
 						update_db = True
 
+					elif property == "unique":
+						update_db = True
+
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
 
