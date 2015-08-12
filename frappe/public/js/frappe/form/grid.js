@@ -53,6 +53,14 @@ frappe.ui.form.Grid = Class.extend({
 		var me = this,
 			$rows = $(me.parent).find(".rows"),
 			data = this.get_data();
+			
+		if (this.frm && this.frm.docname) {
+			// use doc specific docfield object
+			this.df = frappe.meta.get_docfield(this.frm.doctype, this.df.fieldname, this.frm.docname);
+		} else {
+			// use non-doc specific docfield
+			this.df = frappe.meta.get_docfield(this.df.options, this.df.fieldname);
+		}
 
 		this.docfields = frappe.meta.get_docfields(this.doctype, this.frm.docname);
 		this.display_status = frappe.perm.get_field_display_status(this.df, this.frm.doc,
