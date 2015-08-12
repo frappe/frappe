@@ -428,6 +428,9 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
+		if isinstance(doc, basestring):
+			doc = get_doc(doctype, doc)
+
 		for method in hooks:
 			result = call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy
