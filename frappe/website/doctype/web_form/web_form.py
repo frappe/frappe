@@ -41,6 +41,9 @@ class WebForm(WebsiteGenerator):
 					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 					if name:
 						frappe.form_dict.name = name
+					else:
+						# only a single doc allowed and no existing doc, hence new
+						frappe.form_dict.new = 1
 
 		# always render new form if login is not required or doesn't allow editing existing ones
 		if not self.login_required or not self.allow_edit:
