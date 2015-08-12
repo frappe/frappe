@@ -140,6 +140,7 @@ class DbTable:
 		"""
 		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
 		precisions = {}
+		uniques = {}
 
 		if not frappe.flags.in_install:
 			custom_fl = frappe.db.sql("""\
@@ -152,10 +153,15 @@ class DbTable:
 				filters={"doc_type": self.doctype, "doctype_or_field": "DocField", "property": "precision"}):
 					precisions[ps.field_name] = ps.value
 
+			# apply unique from property setters
+			for ps in frappe.get_all("Property Setter", fields=["field_name", "value"],
+				filters={"doc_type": self.doctype, "doctype_or_field": "DocField", "property": "unique"}):
+					uniques[ps.field_name] = cint(ps.value)
+
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
 				f['fieldtype'], f.get('length'), f.get('default'), f.get('search_index'),
-				f.get('options'), f.get('unique'), precisions.get(f['fieldname']) or f.get('precision'))
+				f.get('options'), uniques.get(f["fieldname"], f.get('unique')), precisions.get(f['fieldname']) or f.get('precision'))
 
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
@@ -294,24 +300,26 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or (self.unique and not current_def['unique'] \
-			and column_def not in ('text', 'longtext')):
+		if (current_def['type'] != column_def) or \
+			((self.unique and not current_def['unique']) and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
 		else:
-			# index
-			if current_def['index'] and not self.set_index and not self.unique:
-				self.table.drop_index.append(self)		
-		
-			if (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
-				self.table.add_index.append(self)
-
 			# default
 			if (self.default_changed(current_def) \
 				and (self.default not in default_shortcuts) \
 				and not cstr(self.default).startswith(":") \
 				and not (column_def in ['text','longtext'])):
 				self.table.set_default.append(self)
+
+		# index should be applied or dropped irrespective of type change
+		if ( (current_def['index'] and not self.set_index and not self.unique)
+			or (current_def['unique'] and not self.unique) ):
+			# to drop unique you have to drop index
+			self.table.drop_index.append(self)
+
+		elif (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
+			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):
 		if "decimal" in current_def['type']:
