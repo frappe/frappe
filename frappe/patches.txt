@@ -88,3 +88,4 @@ frappe.patches.v5_3.rename_chinese_languages
 
 frappe.patches.v6_0.make_task_log_folder
 frappe.patches.v6_0.document_type_rename
+frappe.patches.v6_0.fix_ghana_currency

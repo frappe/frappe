@@ -106,7 +106,8 @@ def add_country_and_currency(name, country):
 			"country_name": name,
 			"code": country.code,
 			"date_format": country.date_format or "dd-mm-yyyy",
-			"time_zones": "\n".join(country.timezones or [])
+			"time_zones": "\n".join(country.timezones or []),
+			"docstatus": 0
 		}).db_insert()
 
 	if country.currency and not frappe.db.exists("Currency", country.currency):
@@ -116,6 +117,7 @@ def add_country_and_currency(name, country):
 			"fraction": country.currency_fraction,
 			"symbol": country.currency_symbol,
 			"fraction_units": country.currency_fraction_units,
-			"number_format": country.number_format
+			"number_format": country.number_format,
+			"docstatus": 0
 		}).db_insert()
 
