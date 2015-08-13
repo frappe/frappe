@@ -69,7 +69,7 @@ def get_bootinfo():
 	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
-	bootinfo.default_background_image = get_url("/assets/frappe/images/ui/into-the-dawn.jpg")
+	bootinfo.default_background_image = "/assets/frappe/images/ui/into-the-dawn.jpg"
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 
 	return bootinfo

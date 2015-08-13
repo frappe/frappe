@@ -447,13 +447,13 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 				first.focus();
 			}
 		}
-
 	} else {
 		this.refresh_header(is_a_different_doc);
 	}
 
 	$(cur_frm.wrapper).trigger('render_complete');
 
+	this.layout.show_empty_form_message();
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {

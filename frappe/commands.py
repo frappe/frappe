@@ -626,7 +626,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 	site = get_single_site(context)
 	frappe.init(site=site)
 
-	if frappe.conf.run_selenium_tests:
+	if frappe.conf.run_selenium_tests and False:
 		sel.start(context.verbose, driver)
 
 	try:

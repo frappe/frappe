@@ -62,7 +62,7 @@ frappe.get_gravatar = function(email_id) {
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
-	if(!src) src = frappe.boot.default_background_image;
+	if(!src) src = frappe.urllib.get_full_url(frappe.boot.default_background_image);
 
 	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center;\
