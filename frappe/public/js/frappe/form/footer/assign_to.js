@@ -92,6 +92,7 @@ frappe.ui.form.AssignTo = Class.extend({
 			me.dialog = new frappe.ui.Dialog({
 				title: __('Add to To Do'),
 				fields: [
+					{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
 					{fieldtype:'Link', fieldname:'assign_to', options:'User',
 						label:__("Assign To"),
 						description:__("Add to To Do List Of"), reqd:true},
@@ -115,6 +116,14 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.dialog.show();
+
+		me.dialog.get_input("myself").on("click", function() {
+			if($(this).prop("checked")) {
+				me.dialog.set_value("assign_to", user);
+			} else {
+				me.dialog.set_value("assign_to", "");
+			}
+		});
 	},
 	add_assignment: function() {
 		var me = this;
