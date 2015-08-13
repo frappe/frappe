@@ -6,3 +6,4 @@ Custom
 Geo
 Desk
 Print
+Integrations

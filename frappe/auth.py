@@ -23,7 +23,7 @@ class HTTPRequest:
 			self.domain = self.domain[4:]
 
 		if frappe.get_request_header('X-Forwarded-For'):
-			frappe.local.request_ip = frappe.get_request_header('X-Forwarded-For')
+			frappe.local.request_ip = (frappe.get_request_header('X-Forwarded-For').split(",")[0]).strip()
 
 		elif frappe.get_request_header('REMOTE_ADDR'):
 			frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR')

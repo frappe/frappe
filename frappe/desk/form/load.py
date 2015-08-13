@@ -113,7 +113,7 @@ def get_comments(dt, dn, limit=100):
 
 	communications = frappe.db.sql("""select name,
 			content as comment, sender as comment_by, creation,
-			communication_medium as comment_type, subject,
+			communication_medium as comment_type, subject, delivery_status,
 			"Communication" as doctype
 		from tabCommunication
 		where reference_doctype=%s and reference_name=%s

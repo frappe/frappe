@@ -60,6 +60,9 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	if reference_doctype and reference_name:
 		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
 			{"reference_doctype": reference_doctype, "reference_name": reference_name})]
+
+		unsubscribed += [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
+			{"global_unsubscribe": 1})]
 	else:
 		unsubscribed = []
 
@@ -159,14 +162,19 @@ def unsubscribe(doctype, name, email):
 	if not verify_request():
 		return
 
-	frappe.get_doc({
-		"doctype": "Email Unsubscribe",
-		"email": email,
-		"reference_doctype": doctype,
-		"reference_name": name
-	}).insert(ignore_permissions=True)
+	try:
+		frappe.get_doc({
+			"doctype": "Email Unsubscribe",
+			"email": email,
+			"reference_doctype": doctype,
+			"reference_name": name
+		}).insert(ignore_permissions=True)
 
-	frappe.db.commit()
+	except frappe.DuplicateEntryError:
+		frappe.db.rollback()
+
+	else:
+		frappe.db.commit()
 
 	return_unsubscribed_page(email, doctype, name)
 

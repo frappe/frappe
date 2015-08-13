@@ -217,6 +217,7 @@ def clear_cache(path=None):
 		clear_sitemap()
 		frappe.clear_cache("Guest")
 		frappe.cache().delete_value("_website_pages")
+		frappe.cache().delete_value("home_page")
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)

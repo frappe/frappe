@@ -157,3 +157,15 @@ select.form-control {
   -moz-appearance: none;
   appearance: none;
 }
+.form-headline .alert {
+  font-size: 12px;
+  border-color: #d1d8dd;
+  margin-bottom: 0px;
+}
+.delivery-status-indicator {
+  display: inline-block;
+  margin-top: -3px;
+  margin-left: 1px;
+  font-weight: 500;
+  color: #8d99a6;
+}
