@@ -252,7 +252,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
 					return frappe.format(value, docfield, {for_print: for_print}, dataContext);
