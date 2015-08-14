@@ -35,7 +35,7 @@ def handler(f):
 		return task.id
 
 	@wraps(f)
-	def _f(*args, **kwargs):
+	def queue(*args, **kwargs):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.no_async:
@@ -48,12 +48,12 @@ def handler(f):
 			"status": "queued",
 			"task_id": task.id
 		}
-	_f.async = True
-	_f._f = f
-	_f.run = _run
+	queue.async = True
+	queue.queue = f
+	queue.run = _run
 	frappe.whitelisted.append(f)
-	frappe.whitelisted.append(_f)
-	return _f
+	frappe.whitelisted.append(queue)
+	return queue
 
 
 def run_async_task(method, args, reference_doctype=None, reference_name=None, set_in_response=True):

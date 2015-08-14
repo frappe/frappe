@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.utils
+import frappe.async
 import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
@@ -16,6 +17,10 @@ def version():
 
 @frappe.whitelist()
 def ping():
+	return "pong"
+
+@frappe.async.handler
+def async_ping():
 	return "pong"
 
 @frappe.whitelist()
@@ -79,7 +84,7 @@ def execute_cmd(cmd, async=False):
 
 	method = get_attr(cmd)
 	if async:
-		method = method._f
+		method = method.queue
 
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':

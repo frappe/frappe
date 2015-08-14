@@ -10,7 +10,8 @@ import frappe
 from frappe.tasks import run_async_task
 
 class TestAsync(unittest.TestCase):
-
 	def test_response(self):
-		result = run_async_task(frappe.local.site, 'Administrator', 'async_ping', frappe._dict())
-		self.assertEquals(result.message, "pong")
+		result = run_async_task.delay(frappe.local.site, 'Administrator', 'async_ping',
+			frappe._dict())
+		result = result.get()
+		self.assertEquals(result.get("message"), "pong")
