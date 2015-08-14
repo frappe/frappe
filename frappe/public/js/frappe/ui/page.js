@@ -232,6 +232,21 @@ frappe.ui.Page = Class.extend({
 			.on("click", action).appendTo(this.inner_toolbar.removeClass("hide"))
 	},
 
+	//-- Sidebar --//
+
+	add_sidebar_item: function(label, action, insert_after) {
+		var parent = this.sidebar.find(".sidebar-menu.standard-actions");
+		var li = $('<li>');
+		var link = $('<a>').html(label).on("click", action).appendTo(li);
+
+		if(insert_after) {
+			li.insertAfter(parent.find(insert_after));
+		} else {
+			li.appendTo(parent);
+		}
+		return link;
+	},
+
 	//---//
 
 	clear_user_actions: function() {

@@ -120,8 +120,10 @@ frappe.ui.form.AssignTo = Class.extend({
 		me.dialog.get_input("myself").on("click", function() {
 			if($(this).prop("checked")) {
 				me.dialog.set_value("assign_to", user);
+				me.dialog.set_value("notify", 0);
 			} else {
 				me.dialog.set_value("assign_to", "");
+				me.dialog.set_value("notify", 1);
 			}
 		});
 	},

@@ -6,7 +6,9 @@
     <li><a href="#Report/{%= doctype %}">{%= __("Report") %}</a></li>
     <li class="hide calendar-link"><a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
     <li class="hide gantt-link"><a href="#Gantt/{%= doctype %}">{%= __("Gantt") %}</a></li>
-    <li><a onclick="cur_list.assigned_to_me()">{%= __("Assigned To Me") %}</a></li>
+    <li class="assigned-to-me">
+        <a>{%= __("Assigned To Me") %}</a>
+    </li>
     {% if(frappe.help.has_help(doctype)) { %}
     <li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
     {% } %}
