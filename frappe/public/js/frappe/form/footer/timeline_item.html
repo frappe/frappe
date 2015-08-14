@@ -16,9 +16,11 @@
                     <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
                     {% if(data.doctype=="Communication") { %}
-						<span class="text-muted">&ndash;</span>
+						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
                             class="text-muted">
+						{% } %}
+
 							{% if (data.delivery_status) {
 								if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
 									var indicator_class = "green";
@@ -26,13 +28,23 @@
 									var indicator_class = "red";
 								}
 							%}
+							<span class="text-muted">&ndash;</span>
 							<span class="indicator-right {%= indicator_class %} delivery-status-indicator"
 								title="{%= data.delivery_status %}">
 								{%= data.delivery_status %}</span>
 
-							{% } else { %} {%= __("Details") %} {% } %}
+							{% } else { %}
+								{% if (frappe.model.can_read(\'Communication\')) { %}
+								<span class="text-muted">&ndash;</span>
+								{%= __("Details") %}
+								{% } %}
+							{% } %}
+
+						{% if (frappe.model.can_read(\'Communication\')) { %}
 						</a>
-                        <a class="text-muted reply-link pull-right"
+						{% } %}
+
+						<a class="text-muted reply-link pull-right"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
                     {% } %}
                 </h6>

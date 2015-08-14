@@ -16,6 +16,7 @@ class Communication(Document):
 	no_feed_on_delete = True
 
 	"""Communication represents an external communication like Email."""
+
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
 		if not hasattr(self, "parent_doc"):
@@ -24,6 +25,14 @@ class Communication(Document):
 			else:
 				self.parent_doc = None
 		return self.parent_doc
+
+	def validate(self):
+		if not self.status:
+			if self.reference_doctype and self.reference_name:
+				self.status = "Linked"
+
+			else:
+				self.status = "Open"
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""

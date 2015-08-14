@@ -115,12 +115,16 @@ frappe.views.CommunicationComposer = Class.extend({
 
 				// prepend "Re:"
 				if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
-					this.subject = "Re: " + this.subject;
+					this.subject = __("Re: {0}", [this.subject]);
 				}
 			}
 
 			if (!this.subject) {
-				this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
+				if (this.frm.subject_field && this.frm.doc[this.frm.subject_field]) {
+					this.subject = __("Re: {0}", [this.frm.doc[this.frm.subject_field]]);
+				} else {
+					this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
+				}
 			}
 		}
 	},
