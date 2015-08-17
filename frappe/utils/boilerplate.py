@@ -82,7 +82,7 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
 		f.write(encode(desktop_template.format(**hooks)))
 
-
+	print "'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name))
 
 
 manifest_template = """include MANIFEST.in

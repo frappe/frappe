@@ -241,7 +241,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
 	if flags.print_messages:
-		print "Message: " + repr(msg)
+		print "Message: " + repr(msg).encode("utf-8")
 
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
 	_raise_exception()
@@ -430,6 +430,9 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
+		if isinstance(doc, basestring):
+			doc = get_doc(doctype, doc)
+
 		for method in hooks:
 			result = call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy

@@ -29,3 +29,4 @@ email_reply_parser
 click
 num2words
 gevent-socketio
+watchdog==0.8.0

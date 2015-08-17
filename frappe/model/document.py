@@ -457,7 +457,7 @@ class Document(BaseDocument):
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
-			print self.as_dict()
+			print self.as_json().encode("utf-8")
 
 		raise frappe.MandatoryError(", ".join((each[0] for each in missing)))
 
@@ -581,7 +581,7 @@ class Document(BaseDocument):
 		from frappe.model.delete_doc import check_if_doc_is_linked, check_if_doc_is_dynamically_linked
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
-			check_if_doc_is_dynamically_linked(self)
+			check_if_doc_is_dynamically_linked(self, method="Cancel")
 
 	@staticmethod
 	def whitelist(f):

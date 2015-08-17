@@ -59,8 +59,10 @@ def set_breadcrumbs(out, context):
 	"""Build breadcrumbs template (deprecated)"""
 	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
 
-	# breadcrumbs
-	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
+	if out["no_breadcrumbs"]:
+		out["breadcrumbs"] = ""
+
+	elif "breadcrumbs" not in out:
 		out["breadcrumbs"] = frappe.get_template("templates/includes/breadcrumbs.html").render(context)
 
 def set_title_and_header(out, context):

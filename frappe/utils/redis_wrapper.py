@@ -136,8 +136,15 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
+	def hdel_keys(self, name_starts_with, key):
+		"""Delete hash names with wildcard `*` and key"""
+		for name in frappe.cache().get_keys(name_starts_with):
+			name = name.split("|", 1)[1]
+			self.hdel(name, key)
+
 	def hkeys(self, name):
 		try:
 			return super(redis.Redis, self).hkeys(self.make_key(name))
 		except redis.exceptions.ConnectionError:
 			return []
+

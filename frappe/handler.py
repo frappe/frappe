@@ -90,11 +90,11 @@ def execute_cmd(cmd, async=False):
 	if frappe.session['user'] == 'Guest':
 		if (method not in frappe.guest_methods):
 			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, %s' % str(method))
+			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 	else:
 		if not method in frappe.whitelisted:
 			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, %s' % str(method))
+			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 
 	ret = frappe.call(method, **frappe.form_dict)
 

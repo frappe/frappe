@@ -210,12 +210,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Backup Manager",
-					"description": _("Manage cloud backups on Dropbox"),
-					"hide_count": True
-				},
-				{
-					"type": "doctype",
 					"name": "Scheduler Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},

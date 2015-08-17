@@ -10,15 +10,28 @@
 				</span>
 			</div>
 			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
-                <h6>
+				<h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
                     <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
                     {% if(data.doctype=="Communication") { %}
-                        <span class="text-muted">&ndash;</span>
-                        <a href="#Form/{%= data.doctype %}/{%= data.name %}"
-                            class="text-muted">{%= __("Details") %}</a>
+						<span class="text-muted">&ndash;</span>
+						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
+                            class="text-muted">
+							{% if (data.delivery_status) {
+								if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
+									var indicator_class = "green";
+								} else {
+									var indicator_class = "red";
+								}
+							%}
+							<span class="indicator-right {%= indicator_class %} delivery-status-indicator"
+								title="{%= data.delivery_status %}">
+								{%= data.delivery_status %}</span>
+
+							{% } else { %} {%= __("Details") %} {% } %}
+						</a>
                         <a class="text-muted reply-link pull-right"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
                     {% } %}
