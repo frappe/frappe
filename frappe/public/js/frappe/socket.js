@@ -1,7 +1,7 @@
 frappe.socket = {
     open_tasks: {},
 	init: function() {
-		if (frappe.boot.no_async) {
+		if (frappe.boot.disable_async) {
 			return;
 		}
     	var socketio_server = frappe.boot.dev_server? '//' + document.domain + ':3000' : '//' + document.domain + ':' + window.location.port;

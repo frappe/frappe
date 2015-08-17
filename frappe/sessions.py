@@ -126,7 +126,7 @@ def get():
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["dev_server"] = os.environ.get('DEV_SERVER', False)
-	bootinfo["no_async"] = frappe.conf.no_async
+	bootinfo["disable_async"] = frappe.conf.disable_async
 	return bootinfo
 
 class Session:
