@@ -16,6 +16,8 @@ from frappe.utils import cint
 from distutils.spawn import find_executable
 from functools import wraps
 
+click.disable_unicode_literals_warning = True
+
 def pass_context(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
