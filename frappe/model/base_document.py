@@ -184,7 +184,7 @@ class BaseDocument(object):
 
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
 					d[fieldname] = None
-					
+
 				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
 					# unique empty field should be set to None
 					d[fieldname] = None
@@ -270,11 +270,11 @@ class BaseDocument(object):
 						self.name = None
 						self.db_insert()
 						return
-						
+
 					type, value, traceback = sys.exc_info()
 					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 					raise frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback
-				
+
 				elif "Duplicate" in cstr(e.args[1]):
 					# unique constraint
 					self.show_unique_validation_message(e)
@@ -303,7 +303,7 @@ class BaseDocument(object):
 				self.show_unique_validation_message(e)
 			else:
 				raise
-				
+
 	def show_unique_validation_message(self, e):
 		type, value, traceback = sys.exc_info()
 		fieldname = str(e).split("'")[-2]

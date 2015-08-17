@@ -121,7 +121,14 @@ class FormMeta(Meta):
 					df.search_fields = map(lambda sf: sf.strip(), search_fields.split(","))
 
 	def add_linked_with(self):
-		"""add list of doctypes this doctype is 'linked' with"""
+		"""add list of doctypes this doctype is 'linked' with.
+
+		Example, for Customer:
+
+			{"Address": {"fieldname": "customer"}..}
+		"""
+
+		# find fields where this doctype is linked
 		links = frappe.db.sql("""select parent, fieldname from tabDocField
 			where (fieldtype="Link" and options=%s)
 			or (fieldtype="Select" and options=%s)""", (self.name, "link:"+ self.name))
@@ -137,15 +144,17 @@ class FormMeta(Meta):
 			ret[dt] = { "fieldname": links[dt] }
 
 		if links:
-			for grand_parent, options in frappe.db.sql("""select parent, options from tabDocField
+			# find out if linked in a child table
+			for parent, options in frappe.db.sql("""select parent, options from tabDocField
 				where fieldtype="Table"
 					and options in (select name from tabDocType
 						where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
 
-				ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
+				ret[parent] = {"child_doctype": options, "fieldname": links[options] }
 				if options in ret:
 					del ret[options]
 
+		# find links of parents
 		links = frappe.db.sql("""select dt from `tabCustom Field`
 			where (fieldtype="Table" and options=%s)""", (self.name))
 		links += frappe.db.sql("""select parent from tabDocField

@@ -15,7 +15,8 @@
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
 		"public/js/frappe/class.js",
-		"website/js/website.js"
+		"website/js/website.js",
+		"public/js/lib/socket.io.min.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
@@ -49,6 +50,7 @@
 		"public/js/lib/nprogress.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
+		"public/js/lib/socket.io.min.js",
 
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
@@ -61,6 +63,7 @@
 		"public/js/frappe/ui/messages.js",
 
 		"public/js/frappe/request.js",
+		"public/js/frappe/socket.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/defaults.js",
 		"public/js/lib/microtemplate.js",

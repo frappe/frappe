@@ -238,7 +238,7 @@ class DatabaseQuery(object):
 
 					elif f[2] == "like" or (isinstance(f[3], basestring) and
 						(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-							if f[2] == "like":
+							if f[2] == "like" and isinstance(f[3], basestring):
 								# because "like" uses backslash (\) for escaping
 								f[3] = f[3].replace("\\", "\\\\")
 

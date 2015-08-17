@@ -5,7 +5,7 @@
  "description": "Keep a track of all communications",
  "docstatus": 0,
  "doctype": "DocType",
- "document_type": "Master",
+ "document_type": "Setup",
  "fields": [
   {
    "default": "COMM-",
@@ -198,7 +198,7 @@
  "idx": 1,
  "in_dialog": 0,
  "issingle": 0,
- "modified": "2015-07-28 07:28:11.457131",
+ "modified": "2015-07-28 17:18:11.664740",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

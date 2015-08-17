@@ -37,7 +37,6 @@ frappe.desk.pages.Messages = Class.extend({
 
 	make: function() {
 		this.make_sidebar();
-		this.set_next_refresh();
 	},
 
 	make_sidebar: function() {
@@ -135,6 +134,9 @@ frappe.desk.pages.Messages = Class.extend({
 			hide_refresh: true,
 			freeze: false,
 			render_row: function(wrapper, data) {
+				if(data.parenttype==="Assignment" || data.comment_type==="Shared") {
+					data.is_system_message = 1;
+				}
 				var row = $(frappe.render_template("messages_row", {
 					data: data
 				})).appendTo(wrapper);
@@ -155,31 +157,7 @@ frappe.desk.pages.Messages = Class.extend({
 		});
 	},
 
-	refresh: function() {
-		// check for updates every 5 seconds if page is active
-		this.set_next_refresh();
-
-		if(!frappe.session_alive) {
-			// not in session
-			return;
-		}
-
-		if(frappe.get_route()[0]!="messages") {
-			// not on messages page
-			return;
-		}
-
-		if (this.list) {
-			this.list.run();
-		}
-	},
-
-	set_next_refresh: function() {
-		// 30 seconds
-		setTimeout("frappe.desk.pages.messages.refresh()", 30000);
-	},
-
-	////
+	refresh: function() {},
 
 	get_contact: function() {
 		var route = location.hash;
@@ -195,5 +173,3 @@ frappe.desk.pages.Messages = Class.extend({
 
 
 });
-
-

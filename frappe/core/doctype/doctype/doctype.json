@@ -7,6 +7,7 @@
  "description": "DocType is a Table / Form in the application.", 
  "docstatus": 0, 
  "doctype": "DocType", 
+ "document_type": "Document", 
  "fields": [
   {
    "fieldname": "sb0", 
@@ -65,7 +66,7 @@
    "label": "Document Type", 
    "oldfieldname": "document_type", 
    "oldfieldtype": "Select", 
-   "options": "\nMaster\nTransaction\nSystem\nOther", 
+   "options": "\nDocument\nSetup\nSystem\nOther", 
    "permlevel": 0
   }, 
   {
@@ -108,7 +109,7 @@
    "oldfieldtype": "Table", 
    "options": "DocField", 
    "permlevel": 0, 
-   "reqd": 1, 
+   "reqd": 0, 
    "search_index": 0
   }, 
   {
@@ -337,7 +338,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-03 10:40:45.768116", 
+ "modified": "2015-07-28 16:18:11.925264", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 

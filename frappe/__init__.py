@@ -7,12 +7,14 @@ globals attached to frappe module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
+from functools import wraps
 import os, importlib, inspect, logging, json
 
 # public
 from frappe.__version__ import __version__
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
+
 
 local = Local()
 

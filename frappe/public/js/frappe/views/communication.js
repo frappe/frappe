@@ -130,11 +130,25 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
 			var prepend_reply = function() {
+				if(me.reply_added===standard_reply) {
+					return;
+				}
 				var content_field = me.dialog.fields_dict.content;
 				var content = content_field.get_value() || "";
-				content_field.set_input(
-					frappe.standard_replies[standard_reply]
-						+ "<br><br>" + content);
+
+				parts = content.split('<!-- salutation-ends -->');
+
+				if(parts.length===2) {
+					content = [parts[0], frappe.standard_replies[standard_reply],
+						"<br>", parts[1]];
+				} else {
+					content = [frappe.standard_replies[standard_reply],
+						"<br>", content];
+				}
+
+				content_field.set_input(content.join(''));
+
+				me.reply_added = standard_reply;
 			}
 			if(frappe.standard_replies[standard_reply]) {
 				prepend_reply();
@@ -369,7 +383,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(this.real_name) {
 			this.message = '<p>'+__('Dear') +' '
-				+ this.real_name + ",</p>" + (this.message || "");
+				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
 		var reply = (this.message || "")

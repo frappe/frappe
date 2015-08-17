@@ -1,0 +1,1 @@
+- You can now quickly assign a document to yourself by clicking on "Assign to me"

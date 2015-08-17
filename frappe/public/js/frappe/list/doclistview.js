@@ -216,6 +216,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	refresh: function() {
 		var me = this;
 		this.init_stats();
+
+		if(this.listview.settings.refresh) {
+			this.listview.settings.refresh(this);
+		}
+
 		if(frappe.route_options) {
 			me.set_route_options();
 		} else if(me.dirty) {

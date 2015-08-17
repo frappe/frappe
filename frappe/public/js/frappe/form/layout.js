@@ -44,23 +44,19 @@ frappe.ui.form.Layout = Class.extend({
 			$(this.frm.wrapper).trigger("refresh-fields");
 		}
 
-		if (this.frm) {
-			// show empty form notification
-			setTimeout(function() {
-				me.page.find(".empty-form-alert").remove();
-				if(!(me.page.find(".frappe-control:visible").length)) {
-					$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
-						+__("This form does not have any input")+'</div>')
-					.appendTo(me.page);
-				}
-			}, 100);
-		}
-
 		// dependent fields
 		this.refresh_dependency();
 
 		// refresh sections
 		this.refresh_sections();
+	},
+	show_empty_form_message: function() {
+		this.wrapper.find(".empty-form-alert").remove();
+		if(!(this.wrapper.find(".frappe-control:visible").length)) {
+			$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
+				+__("This form does not have any input")+'</div>')
+			.appendTo(this.page);
+		}
 	},
 	attach_doc_and_docfields: function(refresh) {
 		var me = this;
@@ -85,7 +81,7 @@ frappe.ui.form.Layout = Class.extend({
 
 		this.section = null;
 		this.column = null;
-		if(this.fields[0] && this.fields[0].fieldtype!="Section Break") {
+		if((this.fields[0] && this.fields[0].fieldtype!="Section Break") || !this.fields.length) {
 			this.make_section();
 		}
 		$.each(this.fields, function(i, df) {

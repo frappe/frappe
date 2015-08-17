@@ -911,6 +911,7 @@
  },
  "Ghana": {
   "code": "gh",
+  "currency": "GHS",
   "currency_fraction": "Pesewa",
   "currency_fraction_units": 100,
   "currency_symbol": "\u20b5",

@@ -151,6 +151,36 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
+def remove_app(app_name, dry_run=False):
+	"""Delete app and all linked to the app's module with the app."""
+
+	if not dry_run:
+		confirm = raw_input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
+		if confirm!="y":
+			return
+
+	from frappe.utils.backups import scheduled_backup
+	print "Backing up..."
+	scheduled_backup(ignore_files=True)
+
+	# remove modules, doctypes, roles
+	for module_name in frappe.get_module_list(app_name):
+		for doctype in frappe.get_list("DocType", filters={"module": module_name},
+			fields=["name", "issingle"]):
+			print "removing {0}...".format(doctype.name)
+			# drop table
+
+			if not dry_run:
+				if not doctype.issingle:
+					frappe.db.sql("drop table `tab{0}`".format(doctype.name))
+				frappe.delete_doc("DocType", doctype.name)
+
+		print "removing Module {0}...".format(module_name)
+		if not dry_run:
+			frappe.delete_doc("Module Def", module_name)
+
+	remove_from_installed_apps(app_name)
+
 def post_install(rebuild_website=False):
 	if rebuild_website:
 		render.clear_cache()
@@ -188,7 +218,7 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 
 def make_site_config(db_name=None, db_password=None, site_config=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
-	site_file = os.path.join(frappe.local.site_path, "site_config.json")
+	site_file = get_site_config_path()
 
 	if not os.path.exists(site_file):
 		if not (site_config and isinstance(site_config, dict)):
@@ -196,6 +226,34 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+def update_site_config(key, value):
+	"""Update a value in site_config"""
+	with open(get_site_config_path(), "r") as f:
+		site_config = json.loads(f.read())
+
+	# int
+	try:
+		value = int(value)
+	except ValueError:
+		pass
+
+	# boolean
+	if value in ("False", "True"):
+		value = eval(value)
+
+	# remove key if value is None
+	if value == "None":
+		if key in site_config:
+			del site_config[key]
+	else:
+		site_config[key] = value
+
+	with open(get_site_config_path(), "w") as f:
+		f.write(json.dumps(site_config, indent=1, sort_keys=True))
+
+def get_site_config_path():
+	return os.path.join(frappe.local.site_path, "site_config.json")
 
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
@@ -214,7 +272,8 @@ def make_site_dirs():
 	site_private_path = os.path.join(frappe.local.site_path, 'private')
 	for dir_path in (
 			os.path.join(site_private_path, 'backups'),
-			os.path.join(site_public_path, 'files')):
+			os.path.join(site_public_path, 'files'),
+			os.path.join(frappe.local.site_path, 'task-logs')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 	locks_dir = frappe.get_site_path('locks')
@@ -227,7 +286,7 @@ def add_module_defs(app):
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
-		d.save()
+		d.save(ignore_permissions=True)
 
 def remove_missing_apps():
 	apps = ('frappe_subscription', 'shopping_cart')

@@ -33,8 +33,8 @@ frappe.ui.misc.about = function() {
 			var $wrap = $("#about-app-versions").empty();
 			$.each(keys(versions).sort(), function(i, key) {
 				var v = versions[key];
-				$($.format('<p><b>{0}:</b> v{1}<br><span class="text-muted">{2}</span></p>',
-						   [v.title, v.version, v.description])).appendTo($wrap);
+				$($.format('<p><b>{0}:</b> v{1}<br></p>',
+						   [v.title, v.version])).appendTo($wrap);
 			});
 
 			frappe.versions = versions;
