@@ -33,10 +33,27 @@ frappe.desk.pages.Messages = Class.extend({
 		this.page.wrapper.find(".layout-main-section-wrapper").addClass("col-sm-9");
 		this.page.wrapper.find(".page-title").removeClass("col-xs-6").addClass("col-xs-12");
 		this.page.wrapper.find(".page-actions").removeClass("col-xs-6").addClass("hidden-xs");
+		this.setup_realtime();
 	},
 
 	make: function() {
 		this.make_sidebar();
+	},
+
+	setup_realtime: function() {
+    	frappe.realtime.on('new_message', function(comment) {
+    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
+    		if (frappe.get_route()[0] === 'messages') {
+    			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
+    			var on_broadcast_page = current_contact === user;
+    			if (current_contact == comment.owner || (on_broadcast_page && comment.broadcast)) {
+    				var $row = $('<div class="list-row"/>');
+    				frappe.desk.pages.messages.list.data.unshift(comment);
+    				frappe.desk.pages.messages.list.render_row($row, comment);
+    				frappe.desk.pages.messages.list.parent.prepend($row);
+    			}
+    		}
+    	});
 	},
 
 	make_sidebar: function() {

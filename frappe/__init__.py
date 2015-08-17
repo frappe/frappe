@@ -994,3 +994,13 @@ def get_logger(module=None):
 		logging_setup_complete = True
 
 	return logging.getLogger(module or "frappe")
+
+def publish_realtime(*args, **kwargs):
+	"""Publish real-time updates
+
+	:param event: Event name, like `task_progress` etc.
+	:param message: JSON message object. For async must contain `task_id`
+	:param room: Room in which to publish update (default entire site)"""
+	import frappe.async
+
+	frappe.async.publish_realtime(*args, **kwargs)

@@ -101,7 +101,7 @@ def set_task_status(task_id, status, response=None):
 		"status": status,
 		"task_id": task_id
 	})
-	emit_via_redis("task_status_change", response, room="task:" + task_id)
+	publish_realtime("task_status_change", response, room="task:" + task_id)
 
 
 def remove_old_task_logs():
@@ -120,13 +120,37 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
+def publish_realtime(event, message, room=None, user=None, doctype=None, docname=None):
+	"""Publish real-time updates
+
+	:param event: Event name, like `task_progress` etc.
+	:param message: JSON message object. For async must contain `task_id`
+	:param room: Room in which to publish update (default entire site)
+	:param user: Transmit to user
+	:param doctype: Transmit to doctype, docname
+	:param doctype: Transmit to doctype, docname"""
+	if not room:
+		if user:
+			get_user_room(user)
+		if doctype and docname:
+			get_doc_room(doctype, docname)
+		else:
+			room = get_site_room()
+
+	emit_via_redis(event, message, room)
+
 def emit_via_redis(event, message, room=None):
+	"""Publish real-time updates via redis
+
+	:param event: Event name, like `task_progress` etc.
+	:param message: JSON message object. For async must contain `task_id`
+	:param room: name of the room"""
 	r = get_redis_server()
+
 	try:
 		r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
 		pass
-
 
 def put_log(line_no, line, task_id=None):
 	r = get_redis_server()
@@ -134,7 +158,7 @@ def put_log(line_no, line, task_id=None):
 		task_id = frappe.local.task_id
 	task_progress_room = "task_progress:" + frappe.local.task_id
 	task_log_key = "task_log:" + task_id
-	emit_via_redis('task_progress', {
+	publish_realtime('task_progress', {
 		"message": {
 			"lines": {line_no: line}
 		},
@@ -194,19 +218,6 @@ def get_user_info(sid):
 	return {
 		'user': session.user,
 	}
-
-def new_comment(doc, event):
-	if not doc.comment_doctype:
-		return
-	if doc.comment_doctype == 'Message':
-		if doc.comment_docname == frappe.session.user:
-			message = doc.as_dict()
-			message['broadcast'] = True
-			emit_via_redis('new_message', message, room=get_site_room())
-		else:
-			emit_via_redis('new_message', doc.as_dict(), room=get_user_room(doc.comment_docname))
-	else:
-		emit_via_redis('new_comment', doc.as_dict(), room=get_doc_room(doc.comment_doctype, doc.comment_docname))
 
 def get_doc_room(doctype, docname):
 	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])

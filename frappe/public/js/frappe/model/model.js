@@ -122,6 +122,21 @@ $.extend(frappe.model, {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
 	},
 
+	new_comment: function(comment) {
+		if (frappe.model.docinfo[comment.comment_doctype]
+				&& frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
+			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments;
+			var comment_exists = !!$.map(comments,
+					function(x) { return x.name == comment.name? true : undefined}).length
+			if (!comment_exists) {
+				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
+			}
+		}
+		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
+				cur_frm.comments.refresh();
+		}
+	},
+
 	get_shared: function(doctype, name) {
 		return frappe.model.get_docinfo(doctype, name).shared;
 	},

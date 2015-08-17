@@ -47,33 +47,7 @@ frappe.socket = {
     	frappe.socket.socket.on('task_progress', function(data) {
     	  frappe.socket.process_response(data, "progress");
     	});
-    	frappe.socket.socket.on('new_comment', function(comment) {
-    		if (frappe.model.docinfo[comment.comment_doctype] && frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
-    			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments
-    			var comment_exists = !!$.map(comments, function(x) { return x.name == comment.name? true : undefined}).length
-    			if (!comment_exists) {
-    				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
-    			}
-    		}
-    		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
-    				cur_frm.comments.refresh();
-    		}
-    	});
-    	frappe.socket.socket.on('new_message', function(comment) {
-    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
-    		if ($(cur_page.page).data('page-route') === 'messages') {
-    			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
-    			var on_broadcast_page = current_contact === user;
-    			if (current_contact == comment.owner || (on_broadcast_page && comment.broadcast)) {
-    				var $row = $('<div class="list-row"/>');
-    				frappe.desk.pages.messages.list.data.unshift(comment);
-    				frappe.desk.pages.messages.list.render_row($row, comment);
-    				frappe.desk.pages.messages.list.parent.prepend($row);
-    			}
-    		}
-    		else {
-    		}
-    	});
+
     },
     setup_reconnect: function() {
     	// subscribe again to open_tasks
@@ -112,3 +86,8 @@ frappe.socket = {
 }
 
 $(frappe.socket.init);
+
+frappe.require("frappe.realtime");
+frappe.realtime.on = function(event, callback) {
+	frappe.socket.socket.on(event, callback);
+}
