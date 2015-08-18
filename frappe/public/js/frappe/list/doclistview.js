@@ -38,12 +38,16 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 });
 
 $(document).on("save", function(event, doc) {
-	var list_page = "List/" + doc.doctype;
+	frappe.views.set_list_as_dirty(doc.doctype);
+});
+
+frappe.views.set_list_as_dirty = function(doctype) {
+	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
 		if(frappe.pages[list_page].doclistview)
 			frappe.pages[list_page].doclistview.dirty = true;
 	}
-})
+}
 
 frappe.views.DocListView = frappe.ui.Listing.extend({
 	init: function(opts) {

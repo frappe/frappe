@@ -163,7 +163,7 @@ select.form-control {
 }
 .form-headline .alert {
   font-size: 12px;
-  border-color: #d1d8dd;
+  background-color: #fffce7;
   margin-bottom: 0px;
 }
 .delivery-status-indicator {

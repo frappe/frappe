@@ -574,6 +574,9 @@ class Document(BaseDocument):
 
 		frappe.cache().hdel("last_modified", self.doctype)
 
+		frappe.publish_realtime("doc_update", {"modified_by": frappe.session.user},
+			doctype=self.doctype, docname=self.name)
+
 		self.latest = None
 
 	def check_no_back_links_exist(self):

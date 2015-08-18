@@ -43,6 +43,7 @@ io.on('connection', function(socket){
 				var room = get_user_room(socket, res.body.message.user);
 				// console.log('joining', room);
 				socket.join(room);
+				socket.join(get_site_room(socket));
 			}
 		})
 	socket.on('task_subscribe', function(task_id) {
@@ -64,7 +65,7 @@ io.on('connection', function(socket){
 				docname: docname
 			})
 			.end(function(err, res) {
-				console.log(err)
+				if(err) console.log(err);
 				if(res.status == 200) {
 					var room = get_doc_room(socket, doctype, docname);
 					// console.log('joining', room)
@@ -89,7 +90,7 @@ function send_existing_lines(task_id, socket) {
 	})
 }
 
- 
+
 subscriber.on("message", function(channel, message) {
 	message = JSON.parse(message);
 	io.to(message.room).emit(message.event, message.message);
@@ -97,7 +98,7 @@ subscriber.on("message", function(channel, message) {
 });
 
 subscriber.subscribe("events");
- 
+
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });

@@ -42,7 +42,9 @@ frappe.desk.pages.Messages = Class.extend({
 
 	setup_realtime: function() {
     	frappe.realtime.on('new_message', function(comment) {
-    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
+			if(comment.modified_by !== user) {
+	    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
+			}
     		if (frappe.get_route()[0] === 'messages') {
     			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
     			var on_broadcast_page = current_contact === user;

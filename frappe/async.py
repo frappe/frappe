@@ -120,7 +120,7 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event, message, room=None, user=None, doctype=None, docname=None):
+def publish_realtime(event, message=None, room=None, user=None, doctype=None, docname=None):
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc.
@@ -128,18 +128,23 @@ def publish_realtime(event, message, room=None, user=None, doctype=None, docname
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
 	:param doctype: Transmit to doctype, docname
-	:param doctype: Transmit to doctype, docname"""
+	:param docname: Transmit to doctype, docname"""
+	if message is None:
+		message = {}
+
 	if not room:
 		if user:
-			get_user_room(user)
-		if doctype and docname:
-			get_doc_room(doctype, docname)
+			room = get_user_room(user)
+		elif doctype and docname:
+			room = get_doc_room(doctype, docname)
+			message["doctype"] = doctype
+			message["name"] = docname
 		else:
 			room = get_site_room()
 
 	emit_via_redis(event, message, room)
 
-def emit_via_redis(event, message, room=None):
+def emit_via_redis(event, message, room):
 	"""Publish real-time updates via redis
 
 	:param event: Event name, like `task_progress` etc.

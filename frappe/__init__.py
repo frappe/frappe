@@ -1000,7 +1000,10 @@ def publish_realtime(*args, **kwargs):
 
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
-	:param room: Room in which to publish update (default entire site)"""
+	:param room: Room in which to publish update (default entire site)
+	:param user: Transmit to user
+	:param doctype: Transmit to doctype, docname
+	:param docname: Transmit to doctype, docname"""
 	import frappe.async
 
-	frappe.async.publish_realtime(*args, **kwargs)
+	return frappe.async.publish_realtime(*args, **kwargs)
