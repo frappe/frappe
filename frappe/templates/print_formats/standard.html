@@ -17,15 +17,3 @@
     {% endfor %}
 </div>
 {% endfor %}
-
-{%- if trigger_print -%}
-<script>
-window.print();
-
-// close the window after print
-// NOTE: doesn't close if print is cancelled in Chrome
-window.onfocus = function() {
-	window.close();
-}
-</script>
-{%- endif -%}

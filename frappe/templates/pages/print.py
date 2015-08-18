@@ -110,6 +110,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	html = template.render(args, filters={"len": len})
 
+	if cint(trigger_print):
+		html += trigger_print_script
+
 	return html
 
 @frappe.whitelist()
@@ -345,3 +348,14 @@ def column_has_value(data, fieldname):
 
 	return has_value
 
+trigger_print_script = """
+<script>
+window.print();
+
+// close the window after print
+// NOTE: doesn't close if print is cancelled in Chrome
+setTimeout(function() {
+	window.close();
+}, 1000);
+</script>
+"""
