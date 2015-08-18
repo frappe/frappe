@@ -294,4 +294,4 @@ frappe.ui.form.Comments = Class.extend({
 
 		return last_email;
 	}
-})
+});

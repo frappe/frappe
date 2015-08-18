@@ -32,6 +32,21 @@ class Comment(Document):
 			"feed_type": comment_type
 		}
 
+	def after_insert(self):
+		"""Send realtime updates"""
+		if not self.comment_doctype:
+			return
+		if self.comment_doctype == 'Message':
+			if self.comment_docname == frappe.session.user:
+				message = self.as_dict()
+				message['broadcast'] = True
+				frappe.publish_realtime('new_message', message)
+			else:
+				frappe.publish_realtime('new_message', self.as_dict(), user=frappe.session.user)
+		else:
+			frappe.publish_realtime('new_comment', self.as_dict(), doctype= self.comment_doctype,
+				docname = self.comment_docname)
+
 	def validate(self):
 		"""Raise exception for more than 50 comments."""
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s

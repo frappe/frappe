@@ -131,9 +131,6 @@ doc_events = {
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
-	},
-	"Comment": {
-		"after_insert": "frappe.async.new_comment"
 	}
 }
 

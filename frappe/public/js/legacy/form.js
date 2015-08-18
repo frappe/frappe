@@ -406,6 +406,16 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(this.print_preview.wrapper.is(":visible")) {
 			this.print_preview.preview();
 		}
+
+		this.show_if_needs_refresh();
+	}
+}
+
+_f.Frm.prototype.show_if_needs_refresh = function() {
+	if(this.doc.__needs_refresh) {
+		this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
+			+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
+			+ __("Refresh") + '</a>', "alert-warning");
 	}
 }
 
