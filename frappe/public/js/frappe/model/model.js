@@ -58,6 +58,11 @@ $.extend(frappe.model, {
 				}
 			}
 		});
+
+		frappe.realtime.on("list_update", function(data) {
+			frappe.views.set_list_as_dirty(data.doctype);
+		});
+
 	},
 
 	is_value_type: function(fieldtype) {

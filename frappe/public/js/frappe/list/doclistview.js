@@ -47,6 +47,12 @@ frappe.views.set_list_as_dirty = function(doctype) {
 		if(frappe.pages[list_page].doclistview)
 			frappe.pages[list_page].doclistview.dirty = true;
 	}
+	var route = frappe.get_route();
+	if(route[0]==="List" && route[1]===doctype) {
+		setTimeout(function() {
+			frappe.pages[list_page].doclistview.run();
+		}, 100);
+	}
 }
 
 frappe.views.DocListView = frappe.ui.Listing.extend({
