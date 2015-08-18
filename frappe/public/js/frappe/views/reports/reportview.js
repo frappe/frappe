@@ -255,7 +255,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
-					return frappe.format(value, docfield, {for_print: for_print}, dataContext);
+					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
 				}
 			}
 			return coldef;

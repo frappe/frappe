@@ -338,7 +338,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	get_formatter: function() {
 		var formatter = function(row, cell, value, columnDef, dataContext, for_print) {
-			var value = frappe.format(value, columnDef.df, {for_print: for_print}, dataContext);
+			var value = frappe.format(value, columnDef.df, {for_print: for_print, always_show_decimals: true}, dataContext);
 
 			if (columnDef.df.is_tree) {
 				value = frappe.query_report.tree_formatter(row, cell, value, columnDef, dataContext);
