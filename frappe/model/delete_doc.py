@@ -188,17 +188,20 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
-		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)),
+		ignore_permissions=True)
 
 def delete_linked_comments(doc):
 	"""Delete comments from the document"""
-
 	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
-		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)
+		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True,
+		ignore_permissions=True)
 
 def delete_linked_communications(doc):
-	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
-		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name)))
+	# make communications orphans
+	frappe.db.sql("""update `tabCommunication`
+		set reference_doctype=null, reference_name=null
+		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
