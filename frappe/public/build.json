@@ -21,6 +21,7 @@
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/beautify-html.js",
+		"public/js/frappe/ui/editor.html",
 		"public/js/frappe/ui/editor.js"
 	],
 	"css/desk.min.css": [
