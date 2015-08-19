@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "7.0.0"
+version = "5.4.2"
 
 with open("requirements.txt", "r") as f:
 	install_requires = f.readlines()
