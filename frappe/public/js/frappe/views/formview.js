@@ -19,9 +19,20 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 			me.show_doc(route);
 		}
 
-		$(document).on("page-change", function() {
-			frappe.ui.form.close_grid_form();
-		});
+
+		if(!this.initialized) {
+			$(document).on("page-change", function() {
+				frappe.ui.form.close_grid_form();
+			});
+
+			frappe.realtime.on("new_comment", function(data) {
+				frappe.model.new_comment(data);
+			});
+
+		}
+
+
+		this.initialized = true;
 	},
 	show_doc: function(route) {
 		var dt = route[1],

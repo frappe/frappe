@@ -5,7 +5,7 @@
  "description": "User ID of a Blogger", 
  "docstatus": 0, 
  "doctype": "DocType", 
- "document_type": "Master", 
+ "document_type": "Setup", 
  "fields": [
   {
    "fieldname": "disabled", 
@@ -61,7 +61,7 @@
  "icon": "icon-user", 
  "idx": 1, 
  "max_attachments": 1, 
- "modified": "2015-02-19 09:29:25.836280", 
+ "modified": "2015-07-28 16:18:11.567110", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blogger", 

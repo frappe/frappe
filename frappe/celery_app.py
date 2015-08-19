@@ -17,9 +17,10 @@ SITES_PATH = os.environ.get('SITES_PATH', '.')
 
 # defaults
 DEFAULT_CELERY_BROKER = "redis://localhost"
-DEFAULT_CELERY_BACKEND = None
+DEFAULT_CELERY_BACKEND = "redis://localhost"
 DEFAULT_SCHEDULER_INTERVAL = 300
 LONGJOBS_PREFIX = "longjobs@"
+ASYNC_TASKS_PREFIX = "async@"
 
 _app = None
 def get_celery():
@@ -29,7 +30,7 @@ def get_celery():
 	
 		_app = Celery('frappe', 
 			broker=conf.celery_broker or DEFAULT_CELERY_BROKER, 
-			backend=conf.celery_result_backend or DEFAULT_CELERY_BACKEND)
+			backend=conf.async_redis_server or DEFAULT_CELERY_BACKEND)
 	
 		setup_celery(_app, conf)
 		
@@ -41,9 +42,11 @@ def setup_celery(app, conf):
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
 	app.conf.CELERY_ACCEPT_CONTENT = ['json']
 	app.conf.CELERY_TIMEZONE = 'UTC'
+	app.conf.CELERY_RESULT_SERIALIZER = 'json'
+	app.CELERY_TASK_RESULT_EXPIRES = timedelta(0, 3600)
 	
 	if conf.celery_queue_per_site:
-		app.conf.CELERY_ROUTES = (SiteRouter(),)
+		app.conf.CELERY_ROUTES = (SiteRouter(), AsyncTaskRouter())
 	
 	app.conf.CELERYBEAT_SCHEDULE = get_beat_schedule(conf)
 
@@ -61,6 +64,11 @@ class SiteRouter(object):
 				return get_queue(frappe.local.site)
 		
 		return None
+
+class AsyncTaskRouter(object):
+	def route_for_task(self, task, args=None, kwargs=None):
+		if task == "frappe.tasks.run_async_task" and hasattr(frappe.local, 'site'):
+			return get_queue(frappe.local.site, ASYNC_TASKS_PREFIX)
 		
 def get_queue(site, prefix=None):
 	return {'queue': "{}{}".format(prefix or "", site)}

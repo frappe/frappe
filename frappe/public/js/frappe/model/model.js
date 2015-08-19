@@ -34,6 +34,37 @@ $.extend(frappe.model, {
 	new_names: {},
 	events: {},
 
+	init: function() {
+		// setup refresh if the document is updated somewhere else
+		frappe.realtime.on("doc_update", function(data) {
+			// set list dirty
+			frappe.views.set_list_as_dirty(data.doctype);
+			var doc = locals[data.doctype] && locals[data.doctype][data.name];
+			if(doc) {
+				// current document is dirty, show message if its not me
+				if(cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
+					if(data.modified_by!==user) {
+						doc.__needs_refresh = true;
+						cur_frm.show_if_needs_refresh();
+					}
+				} else {
+					if(!doc.__unsaved) {
+						// no local changes, remove from locals
+						frappe.model.remove_from_locals(doc.doctype, doc.name);
+					} else {
+						// show message when user navigates back
+						doc.__needs_refresh = true;
+					}
+				}
+			}
+		});
+
+		frappe.realtime.on("list_update", function(data) {
+			frappe.views.set_list_as_dirty(data.doctype);
+		});
+
+	},
+
 	is_value_type: function(fieldtype) {
 		// not in no-value type
 		return frappe.model.no_value_type.indexOf(fieldtype)===-1;
@@ -120,6 +151,27 @@ $.extend(frappe.model, {
 
 	get_docinfo: function(doctype, name) {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
+	},
+
+	new_comment: function(comment) {
+		if (frappe.model.docinfo[comment.comment_doctype]
+				&& frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
+			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments;
+
+			var comment_exists = false;
+			for (var i=0, l=comments.length; i<l; i++) {
+				if (comments[i].name==comment.name) {
+					comment_exists = true;
+					break;
+				}
+			}
+			if (!comment_exists) {
+				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
+			}
+		}
+		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
+				cur_frm.comments.refresh();
+		}
 	},
 
 	get_shared: function(doctype, name) {

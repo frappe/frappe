@@ -163,7 +163,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			!this.with_letterhead());
 	},
 	selected_format: function() {
-		return this.print_sel.val();
+		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";
 	},
 	is_old_style: function(format) {
 		return this.get_print_format(format).print_format_type==="Client";

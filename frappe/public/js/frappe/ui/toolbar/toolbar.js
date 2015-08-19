@@ -126,7 +126,6 @@ frappe.ui.toolbar.update_notifications = function() {
 				frappe.views.show_open_count_list(this);
 			}
 		}
-		return false;
 	});
 
 	$(".navbar-new-comments")

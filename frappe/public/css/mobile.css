@@ -166,6 +166,9 @@ body {
   .timeline .timeline-item:last-child {
     border-bottom: none;
   }
+  .list-row {
+    padding: 13px 15px !important;
+  }
   .doclist-row {
     position: relative;
     padding-right: 10px;
@@ -192,21 +195,21 @@ body {
   .doclist-row .list-row-right {
     float: right;
   }
+  .doclist-row .list-row-right .list-row-indicator {
+    top: 4px;
+  }
+  .doclist-row .list-row-right .list-row-indicator .indicator::before,
+  .doclist-row .list-row-right .list-row-indicator .indicator::after {
+    height: 12px;
+    width: 12px;
+    border-radius: 12px;
+  }
   .doclist-row .list-row-right.no-right-column {
     position: absolute;
     top: 0;
     right: 10px;
     left: -10px;
     width: 100%;
-  }
-  .doclist-row .list-row-right.no-right-column .list-row-indicator {
-    top: 5px;
-  }
-  .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::before,
-  .doclist-row .list-row-right.no-right-column .list-row-indicator .indicator::after {
-    height: 14px;
-    width: 14px;
-    border-radius: 14px;
   }
   body[data-route^="messages"] .navbar-center {
     display: block !important;
@@ -258,6 +261,26 @@ body {
   }
 }
 @media (max-width: 991px) {
+  input[type='checkbox'] {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #d1d8dd;
+    display: inline-block;
+  }
+  input[type='checkbox']:checked {
+    background: #3b99fc;
+    border-color: #3b99fc;
+  }
+  input.list-select-all {
+    margin-top: 0px;
+  }
+  .input-area input[type='checkbox'] {
+    margin-top: 2px;
+    margin-left: -23px;
+  }
   .intro-area,
   .footnote-area {
     padding: 15px 0px;
@@ -269,7 +292,7 @@ body {
     position: relative;
   }
   .page-head .page-title h1 {
-    font-size: 18px;
+    font-size: 22px;
     margin-top: 22px;
   }
   body[data-route^="Form"] .page-title h1 {
@@ -303,6 +326,9 @@ body {
   }
   .module-item {
     padding: 7px 0px !important;
+  }
+  .module-item h4 {
+    font-weight: normal;
   }
   #navbar-breadcrumbs {
     margin: 0px;

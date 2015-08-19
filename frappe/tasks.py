@@ -4,9 +4,13 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils.scheduler import enqueue_events
-from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX
+from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX, ASYNC_TASKS_PREFIX
 from frappe.utils import get_sites
 from frappe.utils.file_lock import create_lock, delete_lock
+from frappe.handler import execute_cmd
+from frappe.async import set_task_status, END_LINE, get_std_streams
+import frappe.utils.response
+import sys
 import time
 import MySQLdb
 
@@ -14,7 +18,7 @@ import MySQLdb
 def sync_queues():
 	"""notifies workers to monitor newly added sites"""
 	app = get_celery()
-	shortjob_workers, longjob_workers = get_workers(app)
+	shortjob_workers, longjob_workers, async_tasks_workers = get_workers(app)
 
 	if shortjob_workers:
 		for worker in shortjob_workers:
@@ -24,18 +28,25 @@ def sync_queues():
 		for worker in longjob_workers:
 			sync_worker(app, worker, prefix=LONGJOBS_PREFIX)
 
+	if async_tasks_workers:
+		for worker in async_tasks_workers:
+			sync_worker(app, worker, prefix=ASYNC_TASKS_PREFIX)
+
 def get_workers(app):
 	longjob_workers = []
 	shortjob_workers = []
+	async_tasks_workers = []
 
 	active_queues = app.control.inspect().active_queues()
 	for worker in active_queues:
 		if worker.startswith(LONGJOBS_PREFIX):
 			longjob_workers.append(worker)
+		elif worker.startswith(ASYNC_TASKS_PREFIX):
+			async_tasks_workers.append(worker)
 		else:
 			shortjob_workers.append(worker)
 
-	return shortjob_workers, longjob_workers
+	return shortjob_workers, longjob_workers, async_tasks_workers
 
 def sync_worker(app, worker, prefix=''):
 	active_queues = set(get_active_queues(app, worker))
@@ -124,6 +135,50 @@ def pull_from_email_account(site, email_account):
 		frappe.db.commit()
 	finally:
 		frappe.destroy()
+
+@celery_task(bind=True)
+def run_async_task(self, site, user, cmd, form_dict):
+	ret = {}
+	frappe.init(site)
+	frappe.connect()
+	sys.stdout, sys.stderr = get_std_streams(self.request.id)
+	frappe.local.stdout, frappe.local.stderr = sys.stdout, sys.stderr
+	frappe.local.task_id = self.request.id
+	frappe.cache()
+	try:
+		set_task_status(self.request.id, "Running")
+		frappe.db.commit()
+		frappe.set_user(user)
+		# sleep(60)
+		frappe.local.form_dict = frappe._dict(form_dict)
+		execute_cmd(cmd, async=True)
+		ret = frappe.local.response
+	except Exception, e:
+		frappe.db.rollback()
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+
+		ret = frappe.local.response
+		http_status_code = getattr(e, "http_status_code", 500)
+		ret['status_code'] = http_status_code
+		frappe.errprint(frappe.get_traceback())
+		frappe.utils.response.make_logs()
+		set_task_status(self.request.id, "Failed", response=ret)
+		task_logger.error('Exception in running {}: {}'.format(cmd, ret['exc']))
+	else:
+		set_task_status(self.request.id, "Finished", response=ret)
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+	finally:
+		sys.stdout.write('\n' + END_LINE)
+		sys.stderr.write('\n' + END_LINE)
+		if not frappe.flags.in_test:
+			frappe.destroy()
+		sys.stdout.close()
+		sys.stderr.close()
+		sys.stdout, sys.stderr = 1, 0
+	return ret
+
 
 @celery_task()
 def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):

@@ -22,6 +22,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
+		frappe.model.init();
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -126,10 +127,6 @@ frappe.Application = Class.extend({
 
 						if(frappe.get_route()[0] != "messages") {
 							if(r.message.new_messages.length) {
-								$.each(r.message.new_messages, function(i, m) {
-									frappe.utils.notify(__("Message from {0}", [m.comment_by_fullname]),
-										m.comment);
-								});
 								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
 							}
 						}

@@ -2,8 +2,16 @@ frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].on_page_load = function(wrapper) {
 	// load desktop
-	frappe.desktop.set_background();
+	if(!frappe.list_desktop) {
+		frappe.desktop.set_background();
+	}
 	frappe.desktop.refresh(wrapper);
+};
+
+frappe.pages['desktop'].on_page_show = function(wrapper) {
+	if(frappe.list_desktop) {
+		$("body").attr("data-route", "list-desktop");
+	}
 };
 
 $.extend(frappe.desktop, {
@@ -20,7 +28,10 @@ $.extend(frappe.desktop, {
 		var me = this;
 		frappe.utils.set_title("Desktop");
 
-		this.wrapper.html(frappe.render_template("desktop_icon_grid", {
+		var template = frappe.list_desktop ? "desktop_list_view" : "desktop_icon_grid";
+
+
+		this.wrapper.html(frappe.render_template(template, {
 			// all visible icons
 			desktop_items: this.get_desktop_items(),
 
@@ -28,7 +39,7 @@ $.extend(frappe.desktop, {
 			user_desktop_items: this.get_user_desktop_items(),
 		}));
 
-		this.setup_icon_click();
+		this.setup_module_click();
 
 		// notifications
 		this.show_pending_notifications();
@@ -96,29 +107,40 @@ $.extend(frappe.desktop, {
 		return out;
 	},
 
-	setup_icon_click: function() {
-		this.wrapper.on("click", ".app-icon", function() {
-			var parent = $(this).parent();
-			var link = parent.attr("data-link");
-			if(link) {
-				if(link.substr(0, 1)==="/" || link.substr(0, 4)==="http") {
-					window.open(link, "_blank");
-				} else {
-					frappe.set_route(link);
-				}
-				return false;
+	setup_module_click: function() {
+		var me = this;
+
+		if(frappe.list_desktop) {
+			this.wrapper.on("click", ".desktop-list-item", function() {
+				me.open_module($(this));
+			});
+		} else {
+			this.wrapper.on("click", ".app-icon", function() {
+				me.open_module($(this).parent());
+			});
+		}
+	},
+
+	open_module: function(parent) {
+		var link = parent.attr("data-link");
+		if(link) {
+			if(link.substr(0, 1)==="/" || link.substr(0, 4)==="http") {
+				window.open(link, "_blank");
 			} else {
-				module = frappe.get_module(parent.attr("data-name"));
-				if (module && module.onclick) {
-					module.onclick();
-					return false;
-				}
+				frappe.set_route(link);
 			}
-		});
+			return false;
+		} else {
+			module = frappe.get_module(parent.attr("data-name"));
+			if (module && module.onclick) {
+				module.onclick();
+				return false;
+			}
+		}
 	},
 
 	make_sortable: function() {
-		if (frappe.dom.is_touchscreen()) {
+		if (frappe.dom.is_touchscreen() || frappe.list_desktop) {
 			return;
 		}
 
@@ -215,10 +237,15 @@ $.extend(frappe.desktop, {
 				sum = frappe.boot.notification_info.open_count_module[module];
 			}
 			if (frappe.modules[module]) {
-				var notifier = $("#module-count-" + frappe.get_module(module)._id);
+				var notifier = $(".module-count-" + frappe.get_module(module)._id);
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
-					notifier.find(".circle-text").html(sum || "");
+					var circle = notifier.find(".circle-text");
+					if(circle.length) {
+						circle.html(sum || "");
+					} else {
+						notifier.html(sum);
+					}
 				}
 			}
 		}

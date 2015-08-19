@@ -93,6 +93,11 @@ frappe.upload = {
 						opts.callback(attachment, r);
 						$(document).trigger("upload_complete", attachment);
 					},
+					error: function(r) {
+						// if no onerror, assume callback will handle errors
+						opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
+						return;
+					},
 					btn: opts.btn
 				});
 			}

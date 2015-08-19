@@ -75,7 +75,11 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		template = "standard"
 	else:
 		print_format = frappe.get_doc("Print Format", print_format)
-		if print_format.format_data:
+		if print_format.custom_format:
+			template = jenv.from_string(get_print_format(doc.doctype,
+				print_format))
+
+		elif print_format.format_data:
 			# set format data
 			format_data = json.loads(print_format.format_data)
 			for df in format_data:
@@ -87,9 +91,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 			doc.format_data_map = format_data_map
 
 			template = "standard"
+
 		else:
-			template = jenv.from_string(get_print_format(doc.doctype,
-				print_format))
+			# fallback
+			template = "standard"
 
 	if template == "standard":
 		template = jenv.get_template("templates/print_formats/standard.html")
@@ -104,6 +109,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	}
 
 	html = template.render(args, filters={"len": len})
+
+	if cint(trigger_print):
+		html += trigger_print_script
 
 	return html
 
@@ -340,3 +348,14 @@ def column_has_value(data, fieldname):
 
 	return has_value
 
+trigger_print_script = """
+<script>
+window.print();
+
+// close the window after print
+// NOTE: doesn't close if print is cancelled in Chrome
+setTimeout(function() {
+	window.close();
+}, 1000);
+</script>
+"""

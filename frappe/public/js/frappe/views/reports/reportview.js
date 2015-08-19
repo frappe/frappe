@@ -97,9 +97,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			parent: this.page.main,
 			start: 0,
 			show_filters: true,
-			new_doctype: this.doctype,
 			allow_delete: true,
 		});
+		this.make_new_and_refresh();
 		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
@@ -109,8 +109,16 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_save();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
-		this.page.add_menu_item(__("Refresh"), function() {
-			me.refresh();
+	},
+
+	make_new_and_refresh: function() {
+		var me = this;
+		this.page.set_primary_action(__("Refresh"), function() {
+			me.run();
+		});
+
+		this.page.add_menu_item(__("New {0}", [this.doctype]), function() {
+			new_doc(me.doctype);
 		}, true);
 	},
 
@@ -244,10 +252,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
-					return frappe.format(value, docfield, {for_print: for_print}, dataContext);
+					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
 				}
 			}
 			return coldef;

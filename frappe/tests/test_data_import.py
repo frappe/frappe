@@ -35,7 +35,7 @@ class TestDataImport(unittest.TestCase):
 		exporter.get_template("Blog Category", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "", "test-category", "Test Cateogry"])
-		importer.upload(content)
+		importer.upload.queue(content)
 		self.assertTrue(frappe.db.get_value("Blog Category", "test-category", "title"), "Test Category")
 
 		# export with data
@@ -44,7 +44,7 @@ class TestDataImport(unittest.TestCase):
 
 		# overwrite
 		content[-1][3] = "New Title"
-		importer.upload(content, overwrite=True)
+		importer.upload.queue(content, overwrite=True)
 		self.assertTrue(frappe.db.get_value("Blog Category", "test-category", "title"), "New Title")
 
 	def test_import_only_children(self):
@@ -57,7 +57,7 @@ class TestDataImport(unittest.TestCase):
 		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Blogger"])
-		importer.upload(content)
+		importer.upload.queue(content)
 
 		user = frappe.get_doc("User", user_email)
 		self.assertEquals(len(user.get("user_roles")), 1)
@@ -67,7 +67,7 @@ class TestDataImport(unittest.TestCase):
 		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Website Manager"])
-		importer.upload(content, overwrite=True)
+		importer.upload.queue(content, overwrite=True)
 
 		user = frappe.get_doc("User", user_email)
 		self.assertEquals(len(user.get("user_roles")), 1)
@@ -81,7 +81,7 @@ class TestDataImport(unittest.TestCase):
 		content[-1][3] = "Private"
 		content[-1][4] = "2014-01-01 10:00:00.000000"
 		content[-1][content[15].index("role")] = "System Manager"
-		importer.upload(content)
+		importer.upload.queue(content)
 
 		ev = frappe.get_doc("Event", {"subject":"__Test Event"})
 		self.assertTrue("System Manager" in [d.role for d in ev.roles])

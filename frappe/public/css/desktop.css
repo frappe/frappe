@@ -161,3 +161,15 @@ body[data-route="desktop"] .navbar-default {
   margin-top: 3px;
   margin-bottom: 3px;
 }
+.desktop-list-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+}
+.desktop-list-item:hover,
+.desktop-list-item:focus {
+  background-color: #f7fafc;
+}
+.desktop-list-item h4 {
+  display: inline-block;
+}

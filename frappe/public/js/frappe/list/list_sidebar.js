@@ -12,8 +12,8 @@ frappe.provide('frappe.views');
 frappe.views.ListSidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.get_stats();
 		this.make();
+		this.get_stats();
 	},
 	make: function() {
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
@@ -25,9 +25,21 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.sidebar = this.page_sidebar.add(this.offcanvas_list_sidebar);
 
+		this.setup_assigned_to_me();
+
 		if(frappe.views.calendar[this.doctype]) {
 			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
 		}
+	},
+	setup_assigned_to_me: function() {
+		var me = this;
+		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
+			me.doclistview.assigned_to_me();
+		});
+
+		this.offcanvas_list_sidebar.find(".assigned-to-me a").on("click", function() {
+			me.doclistview.assigned_to_me();
+		});
 	},
 	get_stats: function() {
 		var me = this

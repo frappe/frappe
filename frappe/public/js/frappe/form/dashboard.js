@@ -23,6 +23,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.wrapper.toggle(true);
 	},
 	set_headline_alert: function(text, alert_class, icon) {
+		if(!alert_class) alert_class = "alert-warning";
 		this.set_headline(repl('<div class="alert %(alert_class)s">%(icon)s%(text)s</div>', {
 			"alert_class": alert_class || "",
 			"icon": icon ? '<i class="'+icon+'" /> ' : "",
@@ -42,7 +43,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		var badge = $(repl('<div class="col-md-4">\
 			<div class="alert-badge">\
 				<a class="badge-link grey">%(label)s</a>\
-				<span class="badge">-</span>\
+				<span class="badge" style="margin-left: 10px;">-</span>\
 			</div></div>', {label:label, icon: frappe.boot.doctype_icons[doctype]}))
 				.appendTo(this.body)
 

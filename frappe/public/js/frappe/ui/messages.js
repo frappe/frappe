@@ -44,6 +44,14 @@ frappe.confirm = function(message, ifyes, ifno) {
 }
 
 frappe.prompt = function(fields, callback, title, primary_label) {
+	if (typeof fields === "string") {
+		fields = [{
+			label: fields,
+			fieldname: "value",
+			fieldtype: "Data",
+			reqd: 1
+		}];
+	}
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,

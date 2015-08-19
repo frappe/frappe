@@ -41,7 +41,7 @@ class BackupGenerator:
 			last_db, last_file = self.get_recent_backup(older_than)
 		else:
 			last_db, last_file = False, False
-
+			
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
 		if not (last_db and last_file):
@@ -219,4 +219,3 @@ if __name__ == "__main__":
 
 	if cmd == "delete_temp_backups":
 		delete_temp_backups()
-

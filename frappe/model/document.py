@@ -573,8 +573,19 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		frappe.cache().hdel("last_modified", self.doctype)
+		self.notify_modified()
 
 		self.latest = None
+
+	def notify_modified(self):
+		"""Publish realtime that the current document is modified"""
+		frappe.publish_realtime("doc_update", {"modified_by": frappe.session.user},
+			doctype=self.doctype, docname=self.name)
+
+		if not self.meta.get("read_only") and not self.meta.get("issingle") and \
+			not self.meta.get("istable"):
+			frappe.publish_realtime("list_update", {"doctype": self.doctype})
+
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""

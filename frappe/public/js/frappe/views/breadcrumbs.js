@@ -72,8 +72,8 @@ frappe.breadcrumbs = {
 	rename: function(doctype, old_name, new_name) {
 		var old_route_str = ["Form", doctype, old_name].join("/");
 		var new_route_str = ["Form", doctype, new_name].join("/");
-		frappe.breadcrumbs[new_route_str] = frappe.breadcrumbs[old_route_str];
-		delete frappe.breadcrumbs[old_route_str];
+		frappe.breadcrumbs.all[new_route_str] = frappe.breadcrumbs.all[old_route_str];
+		delete frappe.breadcrumbs.all[old_route_str];
 	}
 
 }

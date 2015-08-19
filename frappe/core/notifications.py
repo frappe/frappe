@@ -8,6 +8,7 @@ def get_notification_config():
 	return {
 		"for_doctype": {
 			"Scheduler Log": {"seen": 0},
+			"Communication": {"status": "Open"}
 		},
 		"for_module_doctypes": {
 			"ToDo": "To Do",

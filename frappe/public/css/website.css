@@ -215,6 +215,10 @@ a.no-decoration:active {
     text-align: center;
   }
 }
+.grayscale {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
 html {
   min-height: 100%;
 }
