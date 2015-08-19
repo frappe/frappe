@@ -582,7 +582,8 @@ class Document(BaseDocument):
 		frappe.publish_realtime("doc_update", {"modified_by": frappe.session.user},
 			doctype=self.doctype, docname=self.name)
 
-		if not self.meta.get("read_only") and not self.meta.get("issingle"):
+		if not self.meta.get("read_only") and not self.meta.get("issingle") and \
+			not self.meta.get("istable"):
 			frappe.publish_realtime("list_update", {"doctype": self.doctype})
 
 
