@@ -17,7 +17,7 @@ bsEditor = Class.extend({
 			this.wrapper = $("<div></div>").appendTo(this.options.parent);
 			this.setup_editor($("<div class='frappe-list'></div>").appendTo(this.wrapper));
 			this.setup_inline_toolbar();
-			this.editor.css(this.options.inline_editor_style);
+			this.editor.addClass("text-editor");
 			this.set_editing();
 		}
 	},
@@ -86,19 +86,6 @@ bsEditor = Class.extend({
 			'shift+tab': 'outdent',
 			'tab': 'indent'
 	    },
-		inline_editor_style: {
-			"height": "400px",
-			"background-color": "white",
-			"border-collapse": "separate",
-			"border": "1px solid rgb(204, 204, 204)",
-			"padding": "4px",
-			"box-sizing": "content-box",
-			"-webkit-box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset",
-			"box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset",
-			"border-radius": "3px",
-			"overflow": "scroll",
-			"outline": "none"
-		},
 		toolbar_selector: '[data-role=editor-toolbar]',
 		command_role: 'edit',
 		selection_marker: 'edit-focus-marker',
@@ -222,71 +209,20 @@ bsEditorToolbar = Class.extend({
 	fixed_style: {
 		position: "fixed",
 		top: "0px",
-		padding: "5px",
+		"padding-top": "5px",
 		width: "100%",
 		height: "45px",
 		"background-color": "black",
 		display: "none"
 	},
 	inline_style: {
-		padding: "5px",
+		"padding-top": "5px",
 	},
 	make: function(parent) {
 		if(!parent)
 			parent = $("body");
 		if(!parent.find(".frappe-list-toolbar").length) {
-			this.toolbar = $('<div class="frappe-list-toolbar frappe-ignore-click">\
-			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
-				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
-						title="' + __("Font Size") + '"><i class="icon-text-height"></i> '
-						+ '<small style="margin-left: 5px;" class="hidden-xs">' + __("Font Size") + '</small>'
-						+ ' <b class="caret"></b></a>\
-					<ul class="dropdown-menu" role="menu">\
-						<li><a href="#" data-edit="formatBlock &lt;p&gt;"><p>' + __("Paragraph") + '</p></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h1&gt;"><h1>' + __("Heading") + ' 1</h1></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h2&gt;"><h2>' + __("Heading") + ' 2</h2></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h3&gt;"><h3>' + __("Heading") + ' 3</h3></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h4&gt;"><h4>' + __("Heading") + ' 4</h4></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h5&gt;"><h5>' + __("Heading") + ' 5</h5></a></li>\
-					</ul>\
-				</div>\
-				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small" data-edit="bold" title="' + __("Bold (Ctrl/Cmd+B)") + '">\
-						<b>B</b></a>\
-					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="' + __("Bullet list") + '">\
-						<i class="octicon octicon-list-unordered"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
-						<i class="octicon octicon-list-ordered"></i></a>\
-				</div>\
-				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
-						<i class="octicon octicon-file-media"></i></a>\
-					<a class="btn btn-default btn-small btn-add-link" title="' + __("Insert Link") + '">\
-						<i class="icon-link"></i></a>\
-					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
-						<i class="icon-unlink"></i></a>\
-				</div>\
-				<div class="btn-group hidden-xs form-group">\
-					<a class="btn btn-default btn-small" data-edit="justifyleft" title="' + __("Align Left (Ctrl/Cmd+L)") + '">\
-						<i class="icon-align-left"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="justifycenter" title="' + __("Center (Ctrl/Cmd+E)") + '">\
-						<i class="icon-align-center"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
-						<i class="octicon octicon-move-left"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
-						<i class="octicon octicon-move-right"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
-						title="' + __("Horizontal Line Break") + '"><i class="octicon octicon-horizontal-rule"></i></a>\
-				</div>\
-				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small btn-html hidden-xs" title="' + __("HTML") + '">\
-						<i class="octicon octicon-code"></i></a>\
-					<a class="btn btn-default btn-small btn-success" data-action="Save" title="' + __("Save") + '">\
-						<i class="octicon octicon-check"></i></a>\
-				</div>\
-				<input type="file" data-edit="insertImage" />\
-			</div>').prependTo(parent);
+			this.toolbar = $(frappe.render_template("editor")).prependTo(parent);
 
 			if(this.inline) {
 				this.toolbar.find("[data-action]").remove();

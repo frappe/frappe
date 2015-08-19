@@ -49,6 +49,9 @@ frappe.render = function(str, data, name) {
 	return frappe.template.compile(str, name)(data);
 };
 frappe.render_template = function(name, data) {
+	if(data===undefined) {
+		data = {};
+	}
 	return frappe.render(frappe.templates[name], data, name);
 }
 frappe.render_grid = function(opts) {
