@@ -14,7 +14,19 @@ frappe.socket = {
     	frappe.socket.setup_listeners();
     	frappe.socket.setup_reconnect();
     	$(document).on('form-load', function(e, frm) {
-    		frappe.socket.doc_subscribe(frm.doctype, frm.docname);
+			if (frm.is_new()) {
+				return;
+			}
+
+			for (var i=0, l=frappe.sockets.open_docs.length; i<l; i++) {
+				var d = frappe.sockets.open_docs[i];
+				if (frm.doctype==d.doctype && frm.docname==d.name) {
+					// already subscribed
+					return false;
+				}
+			}
+
+			frappe.socket.doc_subscribe(frm.doctype, frm.docname);
     	});
 
     	// $(document).on('form-unload', function(e, frm) {
