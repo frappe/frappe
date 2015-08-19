@@ -157,8 +157,14 @@ $.extend(frappe.model, {
 		if (frappe.model.docinfo[comment.comment_doctype]
 				&& frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
 			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments;
-			var comment_exists = !!$.map(comments,
-					function(x) { return x.name == comment.name? true : undefined}).length
+
+			var comment_exists = false;
+			for (var i=0, l=comments.length; i<l; i++) {
+				if (comments[i].name==comment.name) {
+					comment_exists = true;
+					break;
+				}
+			}
 			if (!comment_exists) {
 				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
 			}
