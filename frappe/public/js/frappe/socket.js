@@ -18,8 +18,8 @@ frappe.socket = {
 				return;
 			}
 
-			for (var i=0, l=frappe.sockets.open_docs.length; i<l; i++) {
-				var d = frappe.sockets.open_docs[i];
+			for (var i=0, l=frappe.socket.open_docs.length; i<l; i++) {
+				var d = frappe.socket.open_docs[i];
 				if (frm.doctype==d.doctype && frm.docname==d.name) {
 					// already subscribed
 					return false;
