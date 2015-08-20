@@ -1213,7 +1213,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	editor_name: "bsEditor",
 	horizontal: false,
 	make_input: function() {
-		$(this.input_area).css({"min-height":"360px"});
+		//$(this.input_area).css({"min-height":"360px"});
 		this.has_input = true;
 		this.make_rich_text_editor();
 		this.make_markdown_editor();
@@ -1242,10 +1242,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		var me = this;
 		this.md_editor_wrapper = $("<div class='hide'>")
 			.appendTo(this.input_area);
-		this.md_editor = $("<textarea class='form-control'>").css({
-			"height": "451px",
-			"font-family": "Monaco, \"Courier New\", monospace"
-		})
+		this.md_editor = $("<textarea class='form-control markdown-text-editor'>")
 		.appendTo(this.md_editor_wrapper)
 		.allowTabs()
 		.on("change", function() {
