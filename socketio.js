@@ -108,7 +108,7 @@ function get_doc_room(socket, doctype, docname) {
 }
 
 function get_user_room(socket, user) {
-	return get_site_room(socket) + ':user:' + user;
+	return get_site_name(socket) + ':user:' + user;
 }
 
 function get_site_room(socket) {

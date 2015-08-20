@@ -137,8 +137,6 @@ def publish_realtime(event, message=None, room=None, user=None, doctype=None, do
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
-			message["doctype"] = doctype
-			message["name"] = docname
 		else:
 			room = get_site_room()
 
