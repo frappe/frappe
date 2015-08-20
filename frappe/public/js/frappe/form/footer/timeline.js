@@ -227,14 +227,22 @@ frappe.ui.form.Comments = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					var comment_exists = !!$.map(me.get_comments(), function(x) {
-						return x.name == r.message.name? true : undefined}).length;
 					me.input.val("");
+
+					var comment = r.message;
+					var comments = me.get_comments();
+					var comment_exists = false;
+					for (var i=0, l=comments.length; i<l; i++) {
+						if (comments[i].name==comment.name) {
+							comment_exists = true;
+							break;
+						}
+					}
 					if (comment_exists) {
 						return;
 					}
-					me.frm.get_docinfo().comments =
-						me.get_comments().concat([r.message]);
+
+					me.frm.get_docinfo().comments = comments.concat([r.message]);
 					me.refresh(true);
 				}
 			}

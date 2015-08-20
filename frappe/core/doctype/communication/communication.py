@@ -27,7 +27,7 @@ class Communication(Document):
 		return self.parent_doc
 
 	def validate(self):
-		if not self.status:
+		if self.get("__islocal"):
 			if self.reference_doctype and self.reference_name:
 				self.status = "Linked"
 
