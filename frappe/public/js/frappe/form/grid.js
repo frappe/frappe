@@ -602,7 +602,7 @@ frappe.ui.form.GridRow = Class.extend({
 	refresh_field: function(fieldname) {
 		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
 		if($col.length) {
-			$col.html(frappe.format(this.doc[fieldname], this.get_docfield(fieldname),
+			$col.html(frappe.format(this.doc[fieldname], this.grid.get_docfield(fieldname),
 				null, this.frm.doc));
 		}
 
