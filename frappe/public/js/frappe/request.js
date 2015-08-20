@@ -28,14 +28,14 @@ frappe.call = function(opts) {
 		args.cmd = opts.method;
 	}
 
-	var callback = function(data, xhr) {
+	var callback = function(data, response_text) {
 		if(data.task_id) {
 			// async call, subscribe
 			frappe.socket.subscribe(data.task_id, opts);
 		}
-		else {
+		else if (opts.callback) {
 			// ajax
-			return opts.callback(data, xhr);
+			return opts.callback(data, response_text);
 		}
 	}
 
