@@ -45,6 +45,17 @@
 	.form-section-heading {
 		margin: 25px 0px 15px 0px;
 	}
+
+	.section-head {
+		margin: 0px 0px 15px 15px;
+
+		a {
+			text-decoration: underline;
+		}
+	}
+	.section-head.collapsed {
+		margin-bottom: 0px;
+	}
 }
 
 .empty-section {
@@ -206,8 +217,9 @@ select.form-control {
 }
 
 .form-control.bold {
+	color: #000;
 	font-weight: bold;
-	background-color: @light-yellow;
+	background-color: @extra-light-yellow;
 }
 
 .form-headline .alert {

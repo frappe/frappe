@@ -35,6 +35,15 @@
 .form-section .form-section-heading {
   margin: 25px 0px 15px 0px;
 }
+.form-section .section-head {
+  margin: 0px 0px 15px 15px;
+}
+.form-section .section-head a {
+  text-decoration: underline;
+}
+.form-section .section-head.collapsed {
+  margin-bottom: 0px;
+}
 .empty-section {
   display: none !important;
 }
@@ -158,8 +167,9 @@ select.form-control {
   appearance: none;
 }
 .form-control.bold {
+  color: #000;
   font-weight: bold;
-  background-color: #fffce7;
+  background-color: #fffdf4;
 }
 .form-headline .alert {
   font-size: 12px;

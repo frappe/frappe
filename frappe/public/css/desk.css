@@ -236,6 +236,13 @@ a.form-link {
   padding: 3px;
   display: none;
 }
+.link-primary {
+  color: #5e64ff;
+}
+.link-primary:hover,
+.link-primary:focus {
+  color: #5e64ff;
+}
 .ui-autocomplete .link-option {
   font-weight: normal;
 }
