@@ -13,7 +13,8 @@ frappe.socket = {
 
 		frappe.socket.setup_listeners();
 		frappe.socket.setup_reconnect();
-		$(document).on('form-load', function(e, frm) {
+
+		$(document).on('form-load form-rename', function(e, frm) {
 			if (frm.is_new()) {
 				return;
 			}
