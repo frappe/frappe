@@ -7,6 +7,12 @@ frappe.socket = {
 		}
 
 		frappe.socket.socket = io.connect(frappe.socket.get_host());
+
+		if (!frappe.socket.socket) {
+			console.log("Unable to connect to " + frappe.socket.get_host());
+			return;
+		}
+
 		frappe.socket.socket.on('msgprint', function(message) {
 			frappe.msgprint(message);
 		});
