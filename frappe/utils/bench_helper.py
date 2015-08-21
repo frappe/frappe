@@ -6,6 +6,8 @@ import json
 import importlib
 import frappe.utils
 
+click.disable_unicode_literals_warning = True
+
 def main():
 	commands = get_app_groups()
 	commands.update({'get-frappe-commands': get_frappe_commands,
