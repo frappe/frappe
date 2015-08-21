@@ -131,6 +131,7 @@ function get_site_name(socket) {
 }
 
 function get_hostname(url) {
+	if (!url) return undefined;
 	if (url.indexOf("://") > -1) {
         url = url.split('/')[2];
     }

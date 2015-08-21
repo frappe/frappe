@@ -22,8 +22,8 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.model.init();
 		frappe.socket.init();
+		frappe.model.init();
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
