@@ -579,7 +579,7 @@ class Document(BaseDocument):
 
 	def notify_modified(self):
 		"""Publish realtime that the current document is modified"""
-		frappe.publish_realtime("doc_update", {"modified_by": frappe.session.user, "doctype": self.doctype, "name": self.name},
+		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name)
 
 		if not self.meta.get("read_only") and not self.meta.get("issingle") and \

@@ -165,6 +165,7 @@ select.form-control {
   font-size: 12px;
   background-color: #fffce7;
   margin-bottom: 0px;
+  margin: 0px -15px;
 }
 .delivery-status-indicator {
   display: inline-block;

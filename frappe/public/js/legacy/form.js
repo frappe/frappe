@@ -317,6 +317,8 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		this.toolbar.refresh();
 	}
 
+	this.dashboard.reset();
+
 	this.clear_custom_buttons();
 
 	this.show_web_link();

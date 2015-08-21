@@ -120,7 +120,7 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event, message=None, room=None, user=None, doctype=None, docname=None):
+def publish_realtime(event, message=None, room=None, user=None, doctype=None, docname=None, now=False):
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc.
@@ -140,7 +140,10 @@ def publish_realtime(event, message=None, room=None, user=None, doctype=None, do
 		else:
 			room = get_site_room()
 
-	emit_via_redis(event, message, room)
+	if now:
+		emit_via_redis(event, message, room)
+	else:
+		frappe.local.realtime_log.append([event, message, room])
 
 def emit_via_redis(event, message, room):
 	"""Publish real-time updates via redis
