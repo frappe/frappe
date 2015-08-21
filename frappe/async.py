@@ -101,7 +101,7 @@ def set_task_status(task_id, status, response=None):
 		"status": status,
 		"task_id": task_id
 	})
-	publish_realtime("task_status_change", response, room="task:" + task_id)
+	emit_via_redis("task_status_change", response, room="task:" + task_id)
 
 
 def remove_old_task_logs():
