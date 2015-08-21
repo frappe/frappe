@@ -402,6 +402,11 @@ _f.Frm.prototype.refresh = function(docname) {
 			})
 		} else {
 			this.render_form(is_a_different_doc);
+			if (this.doc.localname) {
+				// trigger form-rename and remove .localname
+				delete this.doc.localname;
+				$(document).trigger("form-rename", [this]);
+			}
 		}
 
 		// if print format is shown, refresh the format
