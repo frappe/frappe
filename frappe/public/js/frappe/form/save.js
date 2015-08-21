@@ -39,20 +39,20 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 	var cancel = function() {
 		var args = {
-			doctype: frm.doc.doctype, 
+			doctype: frm.doc.doctype,
 			name: frm.doc.name
 		};
-		
+
 		// update workflow state value if workflow exists
 		var workflow_state_fieldname = frappe.workflow.get_state_fieldname(frm.doctype);
 		if(workflow_state_fieldname) {
 			$.extend(args, {
 				workflow_state_fieldname: workflow_state_fieldname,
 				workflow_state: frm.doc[workflow_state_fieldname]
-				
+
 			});
 		}
-		
+
 		_call({
 			method: "frappe.desk.form.save.cancel",
 			args: args,

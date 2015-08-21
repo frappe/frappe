@@ -89,6 +89,7 @@ def init(site, sites_path=None):
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
+	local.realtime_log = []
 	local.flags = _dict({
 		"ran_schedulers": [],
 		"redirect_location": "",

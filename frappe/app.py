@@ -17,6 +17,7 @@ import frappe
 import frappe.handler
 import frappe.auth
 import frappe.api
+import frappe.async
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name, get_site_path
@@ -121,6 +122,10 @@ def application(request):
 			updated_in_db = frappe.local.session_obj.update()
 			if updated_in_db:
 				frappe.db.commit()
+
+		# publish realtime
+		for args in frappe.local.realtime_log:
+			frappe.async.emit_via_redis(*args)
 
 	finally:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
