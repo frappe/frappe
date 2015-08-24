@@ -11,7 +11,6 @@ import time
 import redis
 from functools import wraps
 from frappe.utils import get_site_path
-import json
 from frappe import conf
 
 END_LINE = '<!-- frappe: end-file -->'
@@ -154,7 +153,7 @@ def emit_via_redis(event, message, room):
 	r = get_redis_server()
 
 	try:
-		r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
+		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
 		pass
 
