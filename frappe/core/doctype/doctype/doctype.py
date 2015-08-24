@@ -37,6 +37,7 @@ class DocType(Document):
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_title_field()
+		self.validate_document_type()
 		validate_fields(self)
 
 		if self.istable:
@@ -46,6 +47,12 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
+
+	def validate_document_type(self):
+		if self.document_type=="Transaction":
+			self.document_type = "Document"
+		if self.document_type=="Master":
+			self.document_type = "Setup"
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
