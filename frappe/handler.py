@@ -75,7 +75,7 @@ def handle():
 
 	return build_response("json")
 
-def execute_cmd(cmd, async=False):
+def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
 		# override using the first hook
@@ -83,7 +83,7 @@ def execute_cmd(cmd, async=False):
 		break
 
 	method = get_attr(cmd)
-	if async:
+	if from_async:
 		method = method.queue
 
 	# check if whitelisted

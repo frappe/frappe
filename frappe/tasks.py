@@ -151,7 +151,7 @@ def run_async_task(self, site, user, cmd, form_dict):
 		frappe.set_user(user)
 		# sleep(60)
 		frappe.local.form_dict = frappe._dict(form_dict)
-		execute_cmd(cmd, async=True)
+		execute_cmd(cmd, from_async=True)
 		ret = frappe.local.response
 	except Exception, e:
 		frappe.db.rollback()
