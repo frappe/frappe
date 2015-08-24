@@ -1144,7 +1144,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var set_nulls = function(obj) {
 			$.each(obj, function(key, value) {
 				if(value!==undefined) {
-					obj[key] = value || null;
+					obj[key] = value;
 				}
 			});
 			return obj;
@@ -1152,7 +1152,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if($.isPlainObject(get_query)) {
-				$.extend(args, set_nulls(get_query));
+				var filters = set_nulls(get_query);
+
+				// extend args for custom functions
+				$.extend(args, filters);
+
+				// add "filters" for standard query (search.py)
+				args.filters = filters;
 			} else if(typeof(get_query)==="string") {
 				args.query = get_query;
 			} else {
@@ -1164,7 +1170,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					if(q.filters) {
 						set_nulls(q.filters);
 					}
+					// extend args for custom functions
 					$.extend(args, q);
+
+					// add "filters" for standard query (search.py)
+					args.filters = q.filters;
 				}
 			}
 		}

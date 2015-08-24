@@ -216,10 +216,17 @@ def flush(from_test=False):
 			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
 				(email["name"],), auto_commit=auto_commit)
 
-		except smtplib.SMTPException:
+		except (smtplib.SMTPServerDisconnected,
+				smtplib.SMTPConnectError,
+				smtplib.SMTPHeloError,
+				smtplib.SMTPAuthenticationError):
+
 			# bad connection, retry later
 			frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
 				(email["name"],), auto_commit=auto_commit)
+
+			# no need to attempt further
+			return
 
 		except Exception, e:
 			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s

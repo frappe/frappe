@@ -56,6 +56,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				filters = []
 			or_filters = []
 
+
 			# build from doctype
 			if txt:
 				if meta.search_fields:

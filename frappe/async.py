@@ -11,7 +11,6 @@ import time
 import redis
 from functools import wraps
 from frappe.utils import get_site_path
-import json
 from frappe import conf
 
 END_LINE = '<!-- frappe: end-file -->'
@@ -26,7 +25,7 @@ def handler(f):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
-			return execute_cmd(cmd, async=True)
+			return execute_cmd(cmd, from_async=True)
 		args = frappe._dict(args)
 		task = run_async_task.delay(frappe.local.site,
 			(frappe.session and frappe.session.user) or 'Administrator', cmd, args)
@@ -39,7 +38,7 @@ def handler(f):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
-			return execute_cmd(cmd, async=True)
+			return execute_cmd(cmd, from_async=True)
 		task = run_async_task.delay(frappe.local.site,
 			(frappe.session and frappe.session.user) or 'Administrator', cmd,
 				frappe.local.form_dict)
@@ -101,7 +100,7 @@ def set_task_status(task_id, status, response=None):
 		"status": status,
 		"task_id": task_id
 	})
-	publish_realtime("task_status_change", response, room="task:" + task_id)
+	emit_via_redis("task_status_change", response, room="task:" + task_id)
 
 
 def remove_old_task_logs():
@@ -154,7 +153,7 @@ def emit_via_redis(event, message, room):
 	r = get_redis_server()
 
 	try:
-		r.publish('events', json.dumps({'event': event, 'message': message, 'room': room}))
+		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
 		pass
 
@@ -220,7 +219,7 @@ def can_subscribe_doc(doctype, docname, sid):
 @frappe.whitelist(allow_guest=True)
 def get_user_info(sid):
 	from frappe.sessions import Session
-	session = Session(None).get_session_data()
+	session = Session(None, resume=True).get_session_data()
 	return {
 		'user': session.user,
 	}
