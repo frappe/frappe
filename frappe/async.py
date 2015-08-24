@@ -220,7 +220,7 @@ def can_subscribe_doc(doctype, docname, sid):
 @frappe.whitelist(allow_guest=True)
 def get_user_info(sid):
 	from frappe.sessions import Session
-	session = Session(None).get_session_data()
+	session = Session(None, resume=True).get_session_data()
 	return {
 		'user': session.user,
 	}
