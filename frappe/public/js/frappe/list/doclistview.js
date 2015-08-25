@@ -147,8 +147,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				} else if(f[2]=="User") {
 					f[2] = user;
 				}
-				added = added || me.filter_list.add_filter(me.doctype,
-					f[0], f[1], f.slice(2).join(","));
+				var new_filter = me.filter_list.add_filter(me.doctype, f[0], f[1], f.slice(2).join(","));
+				if (new_filter) {
+					// set it to true if atleast 1 filter is added
+					added = true;
+				}
 			});
 			added && me.run();
 		});
@@ -247,10 +250,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		me.filter_list.clear_filters();
 		$.each(frappe.route_options, function(key, value) {
+			var doctype = me.doctype;
+
+			// if `Child DocType.fieldname`
+			if (key.indexOf(".")!==-1) {
+				doctype = key.split(".")[0];
+				key = key.split(".")[1];
+			}
+
 			if($.isArray(value)) {
-				me.filter_list.add_filter(me.doctype, key, value[0], value[1]);
+				me.filter_list.add_filter(doctype, key, value[0], value[1]);
 			} else {
-				me.filter_list.add_filter(me.doctype, key, "=", value);
+				me.filter_list.add_filter(doctype, key, "=", value);
 			}
 		});
 		frappe.route_options = null;
