@@ -4,8 +4,8 @@ import frappe
 
 def execute():
 	language_map = {
-		"中国（简体）": "簡體中文",
-		"中國（繁體）": "正體中文"
+		"中国（简体）": "简体中文",
+		"中國（繁體）": "繁体中文"
 	}
 
 	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
