@@ -421,12 +421,14 @@ frappe.ui.form.Section = Class.extend({
 			.appendTo(this.wrapper);
 		} else {
 			this.head = $('<div class="section-head"><a class="h6">'
-				+__(this.df.label)+'</a></div>').appendTo(this.wrapper);
+				+__(this.df.label)+'</a><span class="octicon octicon-chevron-down collapse-indicator"></span></div>').appendTo(this.wrapper);
 
 			// show / hide based on status
-			this.collapse_link = this.head.find("a").on("click", function() {
+			this.collapse_link = this.head.on("click", function() {
 				me.collapse();
 			});
+
+			this.indicator = this.head.find(".collapse-indicator");
 		}
 	},
 	refresh: function() {
@@ -441,11 +443,16 @@ frappe.ui.form.Section = Class.extend({
 			hide = true;
 		}
 
-		$(this).toggleClass("hide-control", !!hide);
+		this.wrapper.toggleClass("hide-control", !!hide);
 	},
-	collapse: function(show) {
-		this.body.toggleClass("hide", show);
-		this.head.toggleClass("collapsed", show);
+	collapse: function(hide) {
+		if(hide===undefined) {
+			hide = !this.body.hasClass("hide");
+		}
+		this.body.toggleClass("hide", hide);
+		this.head.toggleClass("collapsed", hide);
+		this.indicator.toggleClass("octicon-chevron-down", hide);
+		this.indicator.toggleClass("octicon-chevron-up", !hide);
 	}
 })
 
