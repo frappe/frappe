@@ -3,6 +3,10 @@ frappe.ui.form.on("Note", {
 		if(frm.doc.__islocal) {
 			frm.events.set_editable(frm, true);
 		} else {
+			if(!frm.doc.content) {
+				frm.doc.content = "<span></span>";
+			}
+
 			// toggle edit
 			frm.add_custom_button("Edit", function() {
 				frm.events.set_editable(frm, !frm.is_note_editable);
