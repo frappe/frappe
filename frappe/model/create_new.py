@@ -57,9 +57,10 @@ def set_user_and_static_default_values(doc):
 				doc.set(df.fieldname, user_default_value)
 
 			else:
-				static_default_value = get_static_default_value(df, user_permissions)
-				if static_default_value is not None:
-					doc.set(df.fieldname, static_default_value)
+				if df.fieldname != doc.meta.title_field:
+					static_default_value = get_static_default_value(df, user_permissions)
+					if static_default_value is not None:
+						doc.set(df.fieldname, static_default_value)
 
 def get_user_default_value(df, defaults, user_permissions):
 	# don't set defaults for "User" link field using User Permissions!
