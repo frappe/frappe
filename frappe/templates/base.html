@@ -24,6 +24,10 @@
 		{{ meta_block }}
 		{% endif %}
 
+		{% if head_html is defined %}
+		{{ head_html }}
+		{% endif %}
+
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
