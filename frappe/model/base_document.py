@@ -306,9 +306,20 @@ class BaseDocument(object):
 
 	def show_unique_validation_message(self, e):
 		type, value, traceback = sys.exc_info()
-		fieldname = str(e).split("'")[-2]
-		label = fieldname if fieldname.startswith("unique_") else self.meta.get_label(fieldname)
-		frappe.msgprint(_("{0} must be unique".format(label)))
+		fieldname, label = str(e).split("'")[-2], None
+
+		# unique_first_fieldname_second_fieldname is the constraint name
+		# created using frappe.db.add_unique
+		if "unique_" in fieldname:
+			fieldname = fieldname.split("_", 1)[1]
+
+		df = self.meta.get_field(fieldname)
+		if df:
+			label = df.label
+
+		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+
+		# this is used to preserve traceback
 		raise frappe.UniqueValidationError, (self.doctype, self.name, e), traceback
 
 	def db_set(self, fieldname, value, update_modified=True):
