@@ -278,7 +278,7 @@ class Document(BaseDocument):
 					values[key] = ""
 			return values
 
-		if self.meta.get("title_field"):
+		if self.meta.get("title_field")=="title":
 			df = self.meta.get_field(self.meta.title_field)
 			if df.options:
 				self.set(df.fieldname, df.options.format(**get_values()))
