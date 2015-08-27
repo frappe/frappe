@@ -20,13 +20,13 @@
 		type="image/x-icon">
     {% endblock %}
 	{%- block head -%}
-		{% if meta_block is defined %}
+		{% if meta_block is defined -%}
 		{{ meta_block }}
-		{% endif %}
+		{%- endif %}
 
-		{% if head_html is defined %}
-		{{ head_html }}
-		{% endif %}
+		{% if head_html is defined -%}
+		{{ head_html or "" }}
+		{%- endif %}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
