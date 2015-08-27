@@ -10,6 +10,8 @@
  "fields": [
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "sb0", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -29,6 +31,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)", 
    "fieldname": "home_page", 
    "fieldtype": "Data", 
@@ -50,6 +54,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "If checked, the Home page will be the default Item Group for the website.", 
    "fieldname": "home_page_is_products", 
    "fieldtype": "Check", 
@@ -70,6 +76,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "cb4", 
    "fieldtype": "Column Break", 
    "hidden": 0, 
@@ -88,6 +96,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Show title in browser window as \"Prefix - title\"", 
    "fieldname": "title_prefix", 
    "fieldtype": "Data", 
@@ -108,6 +118,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "section_break_6", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -127,6 +139,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "default": "Standard", 
    "fieldname": "website_theme", 
    "fieldtype": "Link", 
@@ -149,6 +163,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "website_theme_image", 
    "fieldtype": "Image", 
    "hidden": 1, 
@@ -170,6 +186,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "website_theme_image_link", 
    "fieldtype": "Small Text", 
    "hidden": 1, 
@@ -190,6 +208,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Add a banner to the site. (small banners are usually good)", 
    "fieldname": "banner", 
    "fieldtype": "Section Break", 
@@ -210,6 +230,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Select an image of approx width 150px with a transparent background for best results.", 
    "fieldname": "banner_image", 
    "fieldtype": "Attach Image", 
@@ -231,6 +253,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "set_banner_from_image", 
    "fieldtype": "Button", 
    "hidden": 0, 
@@ -250,6 +274,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "column_break_14", 
    "fieldtype": "Column Break", 
    "hidden": 0, 
@@ -269,6 +295,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Banner is above the Top Menu Bar.", 
    "fieldname": "banner_html", 
    "fieldtype": "Small Text", 
@@ -289,6 +317,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.", 
    "fieldname": "top_bar", 
    "fieldtype": "Section Break", 
@@ -309,6 +339,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\nhas a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px", 
    "fieldname": "brand_html", 
    "fieldtype": "Small Text", 
@@ -329,6 +361,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "top_bar_items", 
    "fieldtype": "Table", 
    "hidden": 0, 
@@ -349,6 +383,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Sidebar Links for Home Page only", 
    "fieldname": "sidebar", 
    "fieldtype": "Section Break", 
@@ -369,6 +405,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "sidebar_items", 
    "fieldtype": "Table", 
    "hidden": 0, 
@@ -389,6 +427,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "footer", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -408,6 +448,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "copyright", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -427,6 +469,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Address and other legal information you may want to put in the footer.", 
    "fieldname": "address", 
    "fieldtype": "Text Editor", 
@@ -447,6 +491,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "footer_items", 
    "fieldtype": "Table", 
    "hidden": 0, 
@@ -467,6 +513,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "hide_footer_signup", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -487,6 +535,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "integrations", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -506,6 +556,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.", 
    "fieldname": "google_analytics_id", 
    "fieldtype": "Data", 
@@ -526,6 +578,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "column_break_17", 
    "fieldtype": "Column Break", 
    "hidden": 0, 
@@ -544,6 +598,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "google_plus_one", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -563,6 +619,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "facebook_share", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -582,6 +640,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "linked_in_share", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -601,6 +661,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "twitter_share", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -620,6 +682,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Tweet will be shared via your user account (if specified)", 
    "fieldname": "twitter_share_via", 
    "fieldtype": "Data", 
@@ -640,13 +704,15 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "misc_section", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 0, 
-   "label": "Misc", 
+   "label": "More Information", 
    "no_copy": 0, 
    "permlevel": 0, 
    "print_hide": 0, 
@@ -659,6 +725,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]", 
    "fieldname": "favicon", 
    "fieldtype": "Attach", 
@@ -680,6 +748,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Sub-domain provided by erpnext.com", 
    "fieldname": "subdomain", 
    "fieldtype": "Text", 
@@ -700,6 +770,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "column_break_28", 
    "fieldtype": "Column Break", 
    "hidden": 0, 
@@ -718,6 +790,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Disable Customer Signup link in Login page", 
    "fieldname": "disable_signup", 
    "fieldtype": "Check", 
@@ -738,6 +812,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "section_break_38", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -758,6 +834,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "description": "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO", 
    "fieldname": "head_html", 
    "fieldtype": "Code", 
@@ -789,7 +867,7 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 10, 
- "modified": "2015-08-26 02:42:15.541353", 
+ "modified": "2015-08-27 03:40:44.227153", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 
