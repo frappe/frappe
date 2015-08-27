@@ -75,7 +75,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		template = "standard"
 	else:
 		print_format = frappe.get_doc("Print Format", print_format)
-		if print_format.custom_format:
+
+		if print_format.standard=="Yes" or print_format.custom_format:
 			template = jenv.from_string(get_print_format(doc.doctype,
 				print_format))
 
