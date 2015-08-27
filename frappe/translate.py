@@ -171,9 +171,10 @@ def get_full_dict(lang):
 	if not frappe.local.lang_full_dict:
 		frappe.local.lang_full_dict = frappe.cache().hget("lang_full_dict", lang)
 		if not frappe.local.lang_full_dict:
+			frappe.local.lang_full_dict = load_lang(lang)
+
 			# cache lang
 			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
-			frappe.local.lang_full_dict = load_lang(lang)
 
 	return frappe.local.lang_full_dict
 
@@ -184,11 +185,21 @@ def load_lang(lang, apps=None):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
 			csv_content = read_csv_file(path)
-			try:
-				# with file and line numbers
-				cleaned = dict([(item[1], item[2]) for item in csv_content if item[2]])
-			except IndexError:
-				cleaned = dict([(item[0], item[1]) for item in csv_content if item[1]])
+
+			cleaned = {}
+			for item in csv_content:
+				if len(item)==3:
+					# with file and line numbers
+					cleaned[item[1]] = item[2]
+
+				elif len(item)==2:
+					cleaned[item[0]] = item[1]
+
+				else:
+					raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
+						app=app, lang=lang, values=repr(item).encode("utf-8")
+					))
+
 			out.update(cleaned)
 	return out
 
