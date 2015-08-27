@@ -37,6 +37,12 @@
   display: inline-block;
   vertical-align: middle;
 }
+.editable-title .title-text {
+  cursor: pointer;
+}
+.editable-title .title-text:hover {
+  background-color: #fffce7;
+}
 .page-actions {
   padding-top: 17px;
   padding-bottom: 17px;

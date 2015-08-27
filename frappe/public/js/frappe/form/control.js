@@ -252,6 +252,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				me.set_description();
 				me.set_label();
 				me.set_mandatory(me.value);
+				me.set_bold();
 			}
 			return false;
 		});
@@ -339,6 +340,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
+	set_bold: function() {
+		if(this.$input) {
+			this.$input.toggleClass("bold", !!this.df.bold);
+		}
+		if(this.disp_area) {
+			$(this.disp_area).toggleClass("bold", !!this.df.bold);
+		}
+	}
 });
 
 frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({

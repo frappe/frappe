@@ -43,7 +43,26 @@
 	padding: 15px;
 
 	.form-section-heading {
-		margin: 25px 0px 15px 0px;
+		margin: 0px 0px 10px 0px;
+	}
+
+	.section-head {
+		margin: 0px 0px 15px 15px;
+		cursor: pointer;
+
+		.collapse-indicator {
+			color: @text-extra-muted;
+			margin-left: 10px;
+			position: relative;
+			bottom: -1px;
+		}
+
+		.collapse-indicator.octicon-chevron-up {
+			bottom: -2px;
+		}
+	}
+	.section-head.collapsed {
+		margin-bottom: 0px;
 	}
 }
 
@@ -135,7 +154,7 @@
 
 .control-label, .grid-heading-row {
 	color: @text-muted;
-	font-size: 85%;
+	font-size: 12px;
 }
 
 .control-label {
@@ -186,19 +205,6 @@
 	cursor: pointer;
 }
 
-@media (min-width: 768px) {
-	.layout-main .form-column.col-sm-12 > form > .input-max-width {
-		max-width: 50%;
-		padding-right: 15px;
-	}
-
-	// don't max-width when in form-grid with half width
-	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
-		max-width: none;
-		padding-right: 0px;
-	}
-}
-
 select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
@@ -206,8 +212,9 @@ select.form-control {
 }
 
 .form-control.bold {
+	color: #000;
 	font-weight: bold;
-	background-color: @light-yellow;
+	background-color: @extra-light-yellow;
 }
 
 .form-headline .alert {
@@ -223,4 +230,26 @@ select.form-control {
 	margin-left: 1px;
 	font-weight: 500;
 	color: @text-muted;
+}
+
+@media (min-width: 768px) {
+	.layout-main .form-column.col-sm-12 > form > .input-max-width {
+		max-width: 50%;
+		padding-right: 15px;
+	}
+
+	// don't max-width when in form-grid with half width
+	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
+		max-width: none;
+		padding-right: 0px;
+	}
+}
+
+@media (max-width: 768px) {
+	// padding to form section on mobile
+	.form-section {
+		.section-head {
+			padding: 15px 15px 15px 0px;
+		}
+	}
 }

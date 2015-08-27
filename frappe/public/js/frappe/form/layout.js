@@ -15,8 +15,6 @@ frappe.ui.form.Layout = Class.extend({
 		this.sections = [];
 		this.fields_list = [];
 		this.fields_dict = {};
-		this.labelled_section_count = 0;
-		this.ignore_types = frappe.model.layout_fields;
 
 		$.extend(this, opts);
 	},
@@ -29,50 +27,12 @@ frappe.ui.form.Layout = Class.extend({
 		this.setup_tabbing();
 		this.render();
 	},
-	refresh: function(doc) {
-		var me = this;
-		if(doc) this.doc = doc;
-
-		if (this.frm) {
-			this.wrapper.find(".empty-form-alert").remove();
-		}
-
-		// NOTE this might seem redundant at first, but it needs to be executed when frm.refresh_fields is called
-		me.attach_doc_and_docfields(true);
-
-		if(this.frm && this.frm.wrapper) {
-			$(this.frm.wrapper).trigger("refresh-fields");
-		}
-
-		// dependent fields
-		this.refresh_dependency();
-
-		// refresh sections
-		this.refresh_sections();
-	},
 	show_empty_form_message: function() {
 		this.wrapper.find(".empty-form-alert").remove();
 		if(!(this.wrapper.find(".frappe-control:visible").length)) {
 			$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
 				+__("This form does not have any input")+'</div>')
 			.appendTo(this.page);
-		}
-	},
-	attach_doc_and_docfields: function(refresh) {
-		var me = this;
-		for(var i=0, l=this.fields_list.length; i<l; i++) {
-			var fieldobj = this.fields_list[i];
-			if(me.doc) {
-				fieldobj.doc = me.doc;
-				fieldobj.doctype = me.doc.doctype;
-				fieldobj.docname = me.doc.name;
-				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
-					fieldobj.df.fieldname, me.frm.doc.name);
-
-				// on form change, permissions can change
-				fieldobj.perm = me.frm.perm;
-			};
-			refresh && fieldobj.refresh && fieldobj.refresh();
 		}
 	},
 	render: function() {
@@ -108,7 +68,7 @@ frappe.ui.form.Layout = Class.extend({
 		var fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
-			parent: this.column.get(0),
+			parent: this.column.wrapper.get(0),
 			frm: this.frm
 		});
 
@@ -150,81 +110,55 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	make_section: function(df) {
-		var me = this;
-		if(!this.page) {
-			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
-		}
+		this.section = new frappe.ui.form.Section(this, df);
 
-		this.section = $('<div class="row form-section">')
-			.appendTo(this.page);
-		this.sections.push(this.section);
-
-		var section = this.section[0];
-		section.df = df;
+		// append to layout fields
 		if(df) {
-			if(df.label) {
-				$('<div class="col-sm-12"><h4 class="form-section-heading">' + __(df.label) + '</h4></div>')
-				.appendTo(this.section);
-			}
-			if(df.description) {
-				$('<div class="col-sm-12 small text-muted">' + __(df.description) + '</div>')
-				.appendTo(this.section);
-			}
-			this.fields_dict[df.fieldname] = section;
-			this.fields_list.push(section);
+			this.fields_dict[df.fieldname] = this.section;
+			this.fields_list.push(this.section);
 		}
-		// for bc
-		this.section.body = $('<div>').appendTo(this.section);
-		// if(this.frm)
-		// 	this.section.body.css({"padding":"0px 3%"})
-		section.row = {
-			wrapper: section
-		};
-		section.layout = me;
-		section.refresh = function() {
-			frappe.ui.section_refresh.apply(this);
-		}
+
 		this.column = null;
-		section.refresh.call(section);
-		return this.section;
 	},
+
 	make_column: function(df) {
-		if(!df) df = {};
-
-		var column = $('<div class="form-column">\
-			<form>\
-			</form>\
-		</div>').appendTo(this.section.body)
-			.find("form")
-			.on("submit", function() { return false; })
-
-		if(df.label) {
-			$('<label class="control-label">'+ __(df.label)
-				+'</label>').appendTo(column);
+		this.column = new frappe.ui.form.Column(this.section, df);
+		if(df && df.fieldname) {
+			this.fields_list.push(this.column);
 		}
-
-		// distribute all columns equally
-		var colspan = cint(12 / this.section.find(".form-column").length);
-		this.section.find(".form-column").removeClass()
-			.addClass("form-column")
-			.addClass("col-sm-" + colspan);
-
-		column.df = df;
-		column.layout = this;
-
-		//this.fields_dict[df.fieldname] = column;
-		if(df.fieldname) {
-			this.fields_list.push(column);
-		}
-
-		column.refresh = function() {
-			frappe.ui.section_refresh.apply(this);
-		}
-
-		this.column = column;
 	},
+
+	refresh: function(doc) {
+		var me = this;
+		if(doc) this.doc = doc;
+
+		if (this.frm) {
+			this.wrapper.find(".empty-form-alert").remove();
+		}
+
+		// NOTE this might seem redundant at first, but it needs to be executed when frm.refresh_fields is called
+		me.attach_doc_and_docfields(true);
+
+		if(this.frm && this.frm.wrapper) {
+			$(this.frm.wrapper).trigger("refresh-fields");
+		}
+
+		// dependent fields
+		this.refresh_dependency();
+
+		// refresh sections
+		this.refresh_sections();
+
+		// collapse sections
+		if(this.frm) {
+			this.refresh_section_collapse();
+		}
+	},
+
 	refresh_sections: function() {
 		var cnt = 0;
+
+		// hide invisible sections and set alternate background color
 		this.wrapper.find(".form-section:not(.hide-control)").each(function() {
 			var $this = $(this).removeClass("empty-section")
 				.removeClass("visible-section")
@@ -241,6 +175,45 @@ frappe.ui.form.Layout = Class.extend({
 			}
 		});
 	},
+
+	refresh_section_collapse: function() {
+		if(!this.doc) return;
+
+		for(var i=0; i<this.sections.length; i++) {
+			var section = this.sections[i];
+			var df = section.df;
+			if(df && df.collapsible) {
+				if(df.collapsible_depends_on) {
+					var collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
+					var has_error = section.wrapper.find(".frappe-control.has-error").length;
+
+					if(collapse && has_error) {
+						collapse = false;
+					}
+					section.collapse(collapse);
+				}
+			}
+		}
+	},
+
+	attach_doc_and_docfields: function(refresh) {
+		var me = this;
+		for(var i=0, l=this.fields_list.length; i<l; i++) {
+			var fieldobj = this.fields_list[i];
+			if(me.doc) {
+				fieldobj.doc = me.doc;
+				fieldobj.doctype = me.doc.doctype;
+				fieldobj.docname = me.doc.name;
+				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
+					fieldobj.df.fieldname, me.frm.doc.name);
+
+				// on form change, permissions can change
+				fieldobj.perm = me.frm.perm;
+			};
+			refresh && fieldobj.refresh && fieldobj.refresh();
+		}
+	},
+
 	refresh_section_count: function() {
 		this.wrapper.find(".section-count-label:visible").each(function(i) {
 			$(this).html(i+1);
@@ -340,12 +313,6 @@ frappe.ui.form.Layout = Class.extend({
 		// Resolve "depends_on" and show / hide accordingly
 		var me = this;
 
-		var doc = me.doc;
-		if (!doc) return;
-
-		var parent = (doc.parent && doc.parenttype && locals[doc.parenttype]) ?
-			 locals[doc.parenttype][doc.parent] : {};
-
 		// build dependants' dictionary
 		var has_dep = false;
 
@@ -365,15 +332,8 @@ frappe.ui.form.Layout = Class.extend({
 			f.guardian_has_value = true;
 			if(f.df.depends_on) {
 				// evaluate guardian
-				if(f.df.depends_on.substr(0,5)=='eval:') {
-					f.guardian_has_value = eval(f.df.depends_on.substr(5));
-				} else if(f.df.depends_on.substr(0,3)=='fn:' && me.frm) {
-					f.guardian_has_value = me.frm.script_manager.trigger(f.df.depends_on.substr(3), me.doctype, me.docname);
-				} else {
-					if(!doc[f.df.depends_on]) {
-						f.guardian_has_value = false;
-					}
-				}
+
+				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
 
 				// show / hide
 				if(f.guardian_has_value) {
@@ -391,20 +351,149 @@ frappe.ui.form.Layout = Class.extend({
 		}
 
 		this.refresh_section_count();
+	},
+	evaluate_depends_on_value: function(expression) {
+		var out = null;
+		var doc = this.doc;
+
+		if (!doc) return;
+
+		var parent = this.frm ? this.frm.doc : null;
+
+		if(expression.substr(0,5)=='eval:') {
+			out = eval(expression.substr(5));
+		} else if(expression.substr(0,3)=='fn:' && me.frm) {
+			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
+		} else {
+			var value = doc[expression];
+			if($.isArray(value)) {
+				out = !!value.length;
+			} else {
+				out = !!value;
+			}
+		}
+
+		return out;
 	}
 });
 
-frappe.ui.section_refresh = function() {
-	if(!this.df)
-		return;
+frappe.ui.form.Section = Class.extend({
+	init: function(layout, df) {
+		var me = this;
+		this.layout = layout;
+		this.df = df || {};
 
-	// hide if explictly hidden
-	var hide = this.df.hidden || this.df.hidden_due_to_dependency;
+		this.make();
+		// if(this.frm)
+		// 	this.section.body.css({"padding":"0px 3%"})
+		this.row = {
+			wrapper: this.wrapper
+		};
 
-	// hide if no perm
-	if(!hide && this.layout && this.layout.frm && !this.layout.frm.get_perm(this.df.permlevel || 0, "read")) {
-		hide = true;
+		if(this.df.collapsible) {
+			this.collapse(true);
+		}
+
+		this.refresh();
+	},
+	make: function() {
+		if(!this.layout.page) {
+			this.layout.page = $('<div class="form-page"></div>').appendTo(this.layout.wrapper);
+		}
+
+		this.wrapper = $('<div class="row form-section">')
+			.appendTo(this.layout.page);
+		this.layout.sections.push(this);
+
+		var section = this.wrapper[0];
+
+		if(this.df) {
+			if(this.df.label) {
+				this.make_head();
+			}
+			if(this.df.description) {
+				$('<div class="col-sm-12 small text-muted">' + __(this.df.description) + '</div>')
+				.appendTo(this.wrapper);
+			}
+		}
+		// for bc
+		this.body = $('<div class="section-body">').appendTo(this.wrapper);
+	},
+	make_head: function() {
+		var me = this;
+		if(!this.df.collapsible) {
+			$('<div class="col-sm-12"><h4 class="form-section-heading">'
+				+ __(this.df.label) + '</h4></div>')
+			.appendTo(this.wrapper);
+		} else {
+			this.head = $('<div class="section-head"><a class="h6">'
+				+__(this.df.label)+'</a><span class="octicon octicon-chevron-down collapse-indicator"></span></div>').appendTo(this.wrapper);
+
+			// show / hide based on status
+			this.collapse_link = this.head.on("click", function() {
+				me.collapse();
+			});
+
+			this.indicator = this.head.find(".collapse-indicator");
+		}
+	},
+	refresh: function() {
+		if(!this.df)
+			return;
+
+		// hide if explictly hidden
+		var hide = this.df.hidden || this.df.hidden_due_to_dependency;
+
+		// hide if no perm
+		if(!hide && this.layout && this.layout.frm && !this.layout.frm.get_perm(this.df.permlevel || 0, "read")) {
+			hide = true;
+		}
+
+		this.wrapper.toggleClass("hide-control", !!hide);
+	},
+	collapse: function(hide) {
+		if(hide===undefined) {
+			hide = !this.body.hasClass("hide");
+		}
+		this.body.toggleClass("hide", hide);
+		this.head.toggleClass("collapsed", hide);
+		this.indicator.toggleClass("octicon-chevron-down", hide);
+		this.indicator.toggleClass("octicon-chevron-up", !hide);
 	}
+})
 
-	$(this).toggleClass("hide-control", !!hide);
-}
+frappe.ui.form.Column = Class.extend({
+	init: function(section, df) {
+		if(!df) df = {};
+
+		this.df = df;
+		this.section = section;
+		this.make();
+		this.resize_all_columns();
+	},
+	make: function() {
+		this.wrapper = $('<div class="form-column">\
+			<form>\
+			</form>\
+		</div>').appendTo(this.section.body)
+			.find("form")
+			.on("submit", function() { return false; })
+
+		if(this.df.label) {
+			$('<label class="control-label">'+ __(this.df.label)
+				+'</label>').appendTo(this.wrapper);
+		}
+	},
+	resize_all_columns: function() {
+		// distribute all columns equally
+		var colspan = cint(12 / this.section.wrapper.find(".form-column").length);
+
+		this.section.wrapper.find(".form-column").removeClass()
+			.addClass("form-column")
+			.addClass("col-sm-" + colspan);
+
+	},
+	refresh: function() {
+		this.section.refresh();
+	}
+})
