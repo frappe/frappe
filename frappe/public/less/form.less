@@ -19,7 +19,6 @@
 .form-inner-toolbar {
 	padding: 10px 15px;
 	background-color: @light-bg;
-	// border-bottom: 1px dashed @border-color;
 	text-align: right;
 }
 
@@ -64,6 +63,11 @@
 	.section-head.collapsed {
 		margin-bottom: 0px;
 	}
+}
+
+.form-section:not(:last-child),
+.form-inner-toolbar {
+	border-bottom: 1px solid @light-border-color;
 }
 
 .empty-section {

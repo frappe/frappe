@@ -51,6 +51,10 @@
 .form-section .section-head.collapsed {
   margin-bottom: 0px;
 }
+.form-section:not(:last-child),
+.form-inner-toolbar {
+  border-bottom: 1px solid #ebeff2;
+}
 .empty-section {
   display: none !important;
 }
