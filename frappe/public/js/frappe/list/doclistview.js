@@ -339,6 +339,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			me.run();
 		}, "octicon octicon-sync");
 
+		this.page.btn_secondary.addClass("hidden-xs");
+		this.page.add_menu_item(__("Refresh"), function() {
+			me.run();
+		}, "octicon octicon-sync").addClass("visible-xs");
+
 		if(frappe.model.can_import(this.doctype)) {
 			this.page.add_menu_item(__("Import"), function() {
 				frappe.set_route("data-import-tool", {

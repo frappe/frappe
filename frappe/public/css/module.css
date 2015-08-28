@@ -41,3 +41,14 @@
   background-color: red;
   width: 0px;
 }
+@media (max-width: 767px) {
+  body[data-route^="Module"] .page-title {
+    width: 100%;
+  }
+  body[data-route^="Module"] .page-actions {
+    display: none !important;
+  }
+  body[data-route^="Module"] .layout-main-section {
+    border-bottom: 0px;
+  }
+}

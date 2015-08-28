@@ -8,10 +8,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		var header = $('header').append(frappe.render_template("navbar", {}));
 		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
 
-		header.find(".toggle-sidebar").on("click", function() {
-			$(".offcanvas").toggleClass("active-left").removeClass("active-right");
-			return false;
-		});
+		header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);
 
 		header.find(".toggle-navbar-new-comments").on("click", function() {
 			$(".offcanvas").toggleClass("active-right").removeClass("active-left");
@@ -60,6 +57,10 @@ $.extend(frappe.ui.toolbar, {
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
 	},
+	toggle_left_sidebar: function() {
+		$(".offcanvas").toggleClass("active-left").removeClass("active-right");
+		return false;
+	}
 })
 
 frappe.ui.toolbar.update_notifications = function() {
