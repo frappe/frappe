@@ -141,10 +141,12 @@ def run_async_task(self, site, user, cmd, form_dict):
 	ret = {}
 	frappe.init(site)
 	frappe.connect()
+
+	original_stdout, original_stderr = sys.stdout, sys.stderr
 	sys.stdout, sys.stderr = get_std_streams(self.request.id)
 	frappe.local.stdout, frappe.local.stderr = sys.stdout, sys.stderr
 	frappe.local.task_id = self.request.id
-	frappe.cache()
+
 	try:
 		set_task_status(self.request.id, "Running")
 		frappe.db.commit()
@@ -153,11 +155,9 @@ def run_async_task(self, site, user, cmd, form_dict):
 		frappe.local.form_dict = frappe._dict(form_dict)
 		execute_cmd(cmd, from_async=True)
 		ret = frappe.local.response
+
 	except Exception, e:
 		frappe.db.rollback()
-		if not frappe.flags.in_test:
-			frappe.db.commit()
-
 		ret = frappe.local.response
 		http_status_code = getattr(e, "http_status_code", 500)
 		ret['status_code'] = http_status_code
@@ -176,7 +176,9 @@ def run_async_task(self, site, user, cmd, form_dict):
 			frappe.destroy()
 		sys.stdout.close()
 		sys.stderr.close()
-		sys.stdout, sys.stderr = 1, 0
+
+		sys.stdout, sys.stderr = original_stdout, original_stderr
+
 	return ret
 
 
