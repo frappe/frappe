@@ -152,3 +152,19 @@
 .list-value {
   vertical-align: middle;
 }
+@media (max-width: 991px) {
+  .doclist-row .list-id {
+    font-weight: 200;
+  }
+}
+@media (max-width: 767px) {
+  .doclist-row {
+    font-size: 14px;
+  }
+  .doclist-row [type='checkbox'] {
+    display: none;
+  }
+  .doclist-row .list-row-right .list-row-modified {
+    display: none;
+  }
+}
