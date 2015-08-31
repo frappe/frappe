@@ -104,7 +104,7 @@ select.input-sm {
 .message-page .btn-home {
   margin-top: 1rem;
 }
-@media (max-width: 768px) {
+@media (max-width: 991px) {
   .page-head .page-title h1 {
     font-size: 22px;
     margin-top: 22px;
