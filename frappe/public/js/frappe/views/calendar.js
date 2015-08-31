@@ -124,6 +124,9 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		"important": {
 			"color": "#FFDCDC"
 		},
+		"danger": {
+			"color": "#FFDCDC"
+		},
 		"warning": {
 			"color": "#FFE6BF",
 		},
@@ -135,6 +138,9 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		},
 		"inverse": {
 			"color": "#D9F6FF"
+		},
+		"": {
+			"color": "#F0F4F7"
 		}
 	},
 	get_system_datetime: function(date) {
@@ -249,14 +255,12 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 			me.fix_end_date_for_event_render(d);
 
-			if(d.status) {
-				if(me.style_map) {
-					$.extend(d, me.styles[me.style_map[d.status]] || {});
-				} else {
-					$.extend(d, me.styles[frappe.utils.guess_style(d.status, "standard")]);
-				}
+			if(me.get_css_class) {
+				$.extend(d, me.styles[me.get_css_class(d)] || {});
+			} else if(me.style_map) {
+				$.extend(d, me.styles[me.style_map[d.status]] || {});
 			} else {
-				$.extend(d, me.styles["standard"]);
+				$.extend(d, me.styles[frappe.utils.guess_style(d.status, "standard")]);
 			}
 			d["textColor"] = "#36414C";
 		})
