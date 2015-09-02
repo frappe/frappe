@@ -137,7 +137,9 @@ frappe.DataImportTool = Class.extend({
 
 			r.messages.push("Please correct and import again.");
 
-			this.write_messages(r);
+			frappe.show_progress(__("Importing"), 1, 1);
+
+			this.write_messages(r.messages);
 		}
 	}
 });
