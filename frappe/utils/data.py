@@ -209,7 +209,7 @@ def format_datetime(datetime_string, format_string=None):
 
 	datetime = get_datetime(datetime_string)
 	if not format_string:
-		format_string = get_user_format().replace("mm", "MM") + " hh:mm:ss"
+		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
 
 	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
