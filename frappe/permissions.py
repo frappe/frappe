@@ -209,6 +209,7 @@ def get_role_permissions(meta, user=None, verbose=False):
 					del perms["if_owner"][ptype]
 
 		# if one row has only "Apply User Permissions" checked and another has only "If Owner" checked,
+		# set Apply User Permissions as checked
 		for ptype in rights:
 			if perms["if_owner"].get(ptype) and perms["apply_user_permissions"].get(ptype)==0:
 				perms["apply_user_permissions"][ptype] = 1
