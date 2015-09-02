@@ -112,6 +112,7 @@ def init(site, sites_path=None):
 	local.request_method = request.method if request else None
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
+	local.task_id = None
 
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"

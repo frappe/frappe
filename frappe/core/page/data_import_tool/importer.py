@@ -193,6 +193,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	ret = []
 	error = False
+	total = len(data)
 	for i, row in enumerate(data):
 		# bypass empty rows
 		if main_doc_empty(row):
@@ -200,6 +201,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 		row_idx = i + start_row
 		doc = None
+
+		frappe.publish_realtime(message = {"progress": [i, total]})
 
 		doc = get_doc(row_idx)
 		if pre_process:
