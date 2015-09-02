@@ -78,6 +78,9 @@ frappe.upload = {
 				opts.on_attach(args, dataurl)
 			} else {
 				var msgbox = msgprint(__("Uploading..."));
+				if(opts.start) {
+					opts.start();
+				}
 				return frappe.call({
 					"method": "uploadfile",
 					args: args,
@@ -92,6 +95,16 @@ frappe.upload = {
 						var attachment = r.message;
 						opts.callback(attachment, r);
 						$(document).trigger("upload_complete", attachment);
+					},
+					progress: function(data) {
+						if(opts.progress) {
+							opts.progress(data);
+						}
+					},
+					always: function(data) {
+						if(opts.always) {
+							opts.always(data);
+						}
 					},
 					error: function(r) {
 						// if no onerror, assume callback will handle errors
