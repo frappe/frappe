@@ -18,7 +18,7 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
-	fileid = frappe.db.get_value("File Data", {"attached_to_doctype": doc.doctype,
+	fileid = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype,
 		"attached_to_name":doc.name}, "name")
 
 	if not fileid:

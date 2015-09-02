@@ -226,6 +226,9 @@ class NestedSet(Document):
 				(self.doctype, self.nsm_parent_field, '%s'), (self.name)):
 				frappe.throw(_("{0} {1} cannot be a leaf node as it has children").format(_(self.doctype), self.name))
 
+	def get_ancestors(self):
+		return get_ancestors_of(self.doctype, self.name)
+
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	return frappe.db.sql("""select t1.name from `tab{0}` t1 where

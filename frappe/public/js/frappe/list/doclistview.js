@@ -118,7 +118,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				&& !this.listview.no_delete)
 		});
 
-		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this }))
+		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this.listview }))
 			.appendTo(this.page.main.find(".list-headers"));
 	},
 
@@ -284,6 +284,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.last_updated_on = new Date();
 		this.dirty = false;
 		this._super(more);
+
+		if(this.listview.settings.post_render) {
+			this.listview.settings.post_render(this);
+		}
 	},
 
 	make_no_result: function() {

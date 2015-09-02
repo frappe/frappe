@@ -66,7 +66,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 def update_attachments(doctype, old, new):
 	try:
-		frappe.db.sql("""update `tabFile Data` set attached_to_name=%s
+		frappe.db.sql("""update `tabFile` set attached_to_name=%s
 			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
