@@ -75,27 +75,37 @@ frappe.DataImportTool = Class.extend({
 			onerror: function(r) {
 				me.onerror(r);
 			},
+			start: function() {
+				me.write_messages([__("Importing")]);
+			},
+			progress: function(data) {
+				frappe.hide_msgprint(true);
+				if(data.progress) {
+					frappe.show_progress(__("Importing"), data.progress[0], data.progress[1]);
+				}
+			},
 			callback: function(attachment, r) {
 				if(r.message.error) {
 					me.onerror(r);
 				} else {
-					// replace links if error has occured
+					frappe.show_progress(__("Importing"), 1, 1);
+
 					r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
 						concat(r.message.messages)
 
-					me.write_messages(r);
+					me.write_messages(r.messages);
 				}
 			}
 		});
 
 	},
-	write_messages: function(r) {
+	write_messages: function(data) {
 		this.page.main.find(".import-log").removeClass("hide");
 		var parent = this.page.main.find(".import-log-messages").empty();
 
 		// TODO render using template!
-		for (var i=0, l=r.messages.length; i<l; i++) {
-			var v = r.messages[i];
+		for (var i=0, l=data.length; i<l; i++) {
+			var v = data[i];
 			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(parent);
 			if(v.substr(0,5)=='Error') {
 				$p.css('color', 'red');

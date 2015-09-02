@@ -54,212 +54,6 @@ body {
 .offcanvas .sidebar .dropdown-menu > li > a:active {
   background-color: #f0f4f7;
 }
-@media (max-width: 767px) {
-  .modal .modal-dialog {
-    margin: 0px;
-    padding: 0px;
-    width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    overflow-y: auto;
-    background-color: #fff;
-  }
-  .modal .modal-content {
-    border-radius: 0px;
-    border: none;
-    box-shadow: none;
-    height: 100%;
-  }
-  .modal .modal-body .form-layout {
-    margin: -15px;
-  }
-  .modal .file-upload .input-upload {
-    width: 100%;
-    text-align: center;
-  }
-  .modal .file-upload .input-upload .btn-browse {
-    width: 100%;
-  }
-  .modal .file-upload .web-link-wrapper {
-    display: block;
-    width: 100% !important;
-    text-align: center;
-  }
-  .modal .file-upload .web-link-wrapper .file-upload-or {
-    display: block;
-    margin: 15px 24px;
-  }
-  .modal .file-upload .web-link-wrapper .input-link {
-    width: 100% !important;
-  }
-  .layout-main-section-wrapper {
-    padding: 0px;
-  }
-  .form-section {
-    padding-left: 0px !important;
-    padding-right: 0px !important;
-  }
-  .layout-main-section {
-    border-left-color: transparent !important;
-    border-right-color: transparent !important;
-  }
-  .form-grid {
-    margin-left: -17px;
-    margin-right: -17px;
-    border-left: none !important;
-    border-right: none !important;
-    border-radius: none;
-  }
-  .form-page .form-section {
-    padding: 0px 15px;
-  }
-  .form-page .frappe-control {
-    padding: 7px 15px;
-    border-bottom: 1px solid #d1d8dd;
-    margin: 0px -15px;
-  }
-  .form-page .frappe-control .link-btn {
-    top: -2px;
-  }
-  .form-page .frappe-control .like-disabled-input {
-    min-height: 0px !important;
-  }
-  .form-page .frappe-control[data-fieldtype="Table"] {
-    padding: 0px 15px;
-    margin-top: -1px;
-    border-bottom: none;
-  }
-  .form-page .frappe-control[data-fieldtype="Table"] label {
-    margin-top: 7px;
-  }
-  .form-page .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: none;
-  }
-  .form-page .form-control {
-    border: none;
-    box-shadow: none;
-    background-color: inherit;
-    height: auto;
-    padding: 0px;
-    margin-bottom: 7px;
-    border-radius: 0px;
-    text-align: left !important;
-  }
-  .form-page .form-control:focus {
-    box-shadow: none;
-  }
-  .timeline {
-    border-left: none !important;
-    border-right: none !important;
-  }
-  .timeline .timeline-head {
-    padding: 7px 15px;
-  }
-  .timeline .timeline-item {
-    padding: 15px;
-    border-bottom: 1px dashed #d1d8dd;
-  }
-  .timeline .timeline-item:last-child {
-    border-bottom: none;
-  }
-  .list-row {
-    padding: 13px 15px !important;
-  }
-  .doclist-row {
-    position: relative;
-    padding-right: 10px;
-  }
-  .doclist-row .list-row-id {
-    left: 18px;
-    text-align: left;
-    margin-top: 3px;
-  }
-  .doclist-row.has-checkbox .list-row-id {
-    left: 40px;
-  }
-  .doclist-row .list-row-indicator {
-    position: absolute;
-    right: 0px;
-    top: -20px;
-  }
-  .doclist-row .list-row-modified {
-    margin-right: -10px;
-  }
-  .doclist-row .list-row-left {
-    z-index: 1;
-  }
-  .doclist-row .list-row-right {
-    float: right;
-  }
-  .doclist-row .list-row-right .list-row-indicator {
-    top: 4px;
-  }
-  .doclist-row .list-row-right .list-row-indicator .indicator::before,
-  .doclist-row .list-row-right .list-row-indicator .indicator::after {
-    height: 12px;
-    width: 12px;
-    border-radius: 12px;
-  }
-  .doclist-row .list-row-right.no-right-column {
-    position: absolute;
-    top: 0;
-    right: 10px;
-    left: -10px;
-    width: 100%;
-  }
-  body[data-route^="messages"] .navbar-center {
-    display: block !important;
-    position: absolute;
-    top: 10px;
-    left: 25%;
-    right: 25%;
-    text-align: center;
-  }
-  #page-messages .layout-side-section {
-    position: relative;
-    left: 0px;
-    border-right: 1px solid #d1d8dd;
-    padding-left: 0px;
-    float: left;
-    width: 76px;
-  }
-  #page-messages .layout-main-section-wrapper {
-    position: absolute;
-    left: 75px;
-    right: 0px;
-    border-left: 1px solid #d1d8dd;
-    float: left;
-  }
-  #page-messages .module-sidebar-item {
-    margin: 0px;
-  }
-  #page-messages .module-sidebar-item .messages-sidebar-link {
-    padding: 15px;
-  }
-  #page-messages .timeline-head {
-    padding: 15px 15px 7px;
-  }
-  #page-messages .list-row {
-    padding: 7px 0px;
-  }
-  #page-messages .message-row-right {
-    margin-top: 10px;
-    text-align: left;
-  }
-  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
-    border-top: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .setup-wizard-slide .form {
-    border: none;
-  }
-}
 @media (max-width: 991px) {
   input[type='checkbox'] {
     -webkit-appearance: none;
@@ -283,7 +77,7 @@ body {
   }
   .intro-area,
   .footnote-area {
-    padding: 15px 0px;
+    padding: 15px;
   }
   .grid-row-open {
     top: 0;
@@ -291,16 +85,12 @@ body {
   .layout-main {
     position: relative;
   }
-  .page-head .page-title h1 {
-    font-size: 22px;
-    margin-top: 22px;
-  }
   body[data-route^="Form"] .page-title h1 {
     margin-top: 14px;
   }
   body[data-route^="Form"] .page-title .indicator {
     display: block;
-    margin-top: -5px;
+    margin-top: -9px;
     margin-bottom: 3px;
   }
   body[data-route^="Form"] .page-actions {
@@ -312,7 +102,12 @@ body {
     display: block;
     position: absolute;
     bottom: -30px;
-    right: 8px;
+    right: 5px;
+    min-width: 200px;
+  }
+  .control-label,
+  .grid-heading-row .grid-static-col {
+    font-weight: 200;
   }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;
@@ -328,7 +123,7 @@ body {
     padding: 7px 0px !important;
   }
   .module-item h4 {
-    font-weight: normal;
+    font-weight: 200;
   }
   #navbar-breadcrumbs {
     margin: 0px;
@@ -486,13 +281,191 @@ body {
   body[data-route="desktop"] .navbar .navbar-home {
     display: none !important;
   }
-  body[data-route^="Module"] .page-title {
-    width: 100%;
-  }
-  body[data-route^="Module"] .page-actions {
-    display: none !important;
-  }
   .linked-with-dialog {
     width: 100% !important;
+  }
+  body,
+  .btn,
+  .indicator {
+    font-weight: 200;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6,
+  .like-disabled-input,
+  .bold,
+  .strong,
+  strong,
+  b {
+    font-weight: 400;
+  }
+}
+@media (max-width: 767px) {
+  .modal .modal-dialog {
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow-y: auto;
+    background-color: #fff;
+  }
+  .modal .modal-content {
+    border-radius: 0px;
+    border: none;
+    box-shadow: none;
+    height: 100%;
+  }
+  .modal .modal-body .form-layout {
+    margin: -15px;
+  }
+  .modal .file-upload .input-upload {
+    width: 100%;
+    text-align: center;
+  }
+  .modal .file-upload .input-upload .btn-browse {
+    width: 100%;
+  }
+  .modal .file-upload .web-link-wrapper {
+    display: block;
+    width: 100% !important;
+    text-align: center;
+  }
+  .modal .file-upload .web-link-wrapper .file-upload-or {
+    display: block;
+    margin: 15px 24px;
+  }
+  .modal .file-upload .web-link-wrapper .input-link {
+    width: 100% !important;
+  }
+  .layout-main-section-wrapper {
+    padding: 0px;
+  }
+  .layout-main-section {
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+  }
+  .timeline {
+    border-left: none !important;
+    border-right: none !important;
+  }
+  .timeline .timeline-head {
+    padding: 7px 15px;
+  }
+  .timeline .timeline-item {
+    padding: 15px;
+    border-bottom: 1px dashed #d1d8dd;
+  }
+  .timeline .timeline-item:last-child {
+    border-bottom: none;
+  }
+  .list-row {
+    padding: 13px 15px !important;
+  }
+  .doclist-row {
+    position: relative;
+    padding-right: 10px;
+  }
+  .doclist-row .list-row-id {
+    left: 18px;
+    text-align: left;
+    margin-top: 3px;
+  }
+  .doclist-row.has-checkbox .list-row-id {
+    left: 40px;
+  }
+  .doclist-row .list-row-indicator {
+    position: absolute;
+    right: 0px;
+    top: -20px;
+  }
+  .doclist-row .list-row-modified {
+    margin-right: -10px;
+  }
+  .doclist-row .list-row-left {
+    z-index: 1;
+  }
+  .doclist-row .list-row-right {
+    float: right;
+  }
+  .doclist-row .list-row-right .list-row-indicator {
+    top: 4px;
+  }
+  .doclist-row .list-row-right .list-row-indicator .indicator::before,
+  .doclist-row .list-row-right .list-row-indicator .indicator::after {
+    height: 12px;
+    width: 12px;
+    border-radius: 12px;
+  }
+  .doclist-row .list-row-right.no-right-column {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    left: -10px;
+    width: 100%;
+  }
+  body[data-route^="messages"] .navbar-center {
+    display: block !important;
+    position: absolute;
+    top: 10px;
+    left: 25%;
+    right: 25%;
+    text-align: center;
+  }
+  #page-messages .layout-side-section {
+    position: relative;
+    left: 0px;
+    border-right: 1px solid #d1d8dd;
+    padding-left: 0px;
+    float: left;
+    width: 76px;
+  }
+  #page-messages .layout-main-section-wrapper {
+    position: absolute;
+    left: 75px;
+    right: 0px;
+    border-left: 1px solid #d1d8dd;
+    float: left;
+  }
+  #page-messages .module-sidebar-item {
+    margin: 0px;
+  }
+  #page-messages .module-sidebar-item .messages-sidebar-link {
+    padding: 15px;
+  }
+  #page-messages .timeline-head {
+    padding: 15px 15px 7px;
+  }
+  #page-messages .list-row {
+    padding: 7px 0px;
+  }
+  #page-messages .message-row-right {
+    margin-top: 10px;
+    text-align: left;
+  }
+  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
+    border-top: 1px solid #d1d8dd;
+  }
+  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
+    border-bottom: 1px solid #d1d8dd;
+  }
+  #page-setup-wizard .setup-wizard-slide .form {
+    border: none;
+  }
+  body[data-route^="Form"] .page-title .indicator {
+    margin-top: 1px;
   }
 }

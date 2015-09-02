@@ -399,7 +399,6 @@ frappe.ui.form.GridRow = Class.extend({
 				.attr("data-fieldname", df.fieldname)
 				.data("df", df)
 				.appendTo(this.row)
-			if(!this.doc) $col.css({"font-weight":"bold"})
 		}
 
 	},

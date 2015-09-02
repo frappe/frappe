@@ -252,6 +252,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				me.set_description();
 				me.set_label();
 				me.set_mandatory(me.value);
+				me.set_bold();
 			}
 			return false;
 		});
@@ -339,6 +340,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
+	set_bold: function() {
+		if(this.$input) {
+			this.$input.toggleClass("bold", !!this.df.bold);
+		}
+		if(this.disp_area) {
+			$(this.disp_area).toggleClass("bold", !!this.df.bold);
+		}
+	}
 });
 
 frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
@@ -645,7 +654,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default btn-sm">')
+		this.$input = $('<button class="btn btn-default btn-xs">')
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();

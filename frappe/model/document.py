@@ -268,6 +268,25 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			set_new_name(d)
 
+	def set_title_field(self):
+		"""Set title field based on template"""
+		def get_values():
+			values = self.as_dict()
+			# format values
+			for key, value in values.iteritems():
+				if value==None:
+					values[key] = ""
+			return values
+
+		if self.meta.get("title_field")=="title":
+			df = self.meta.get_field(self.meta.title_field)
+			if df.options:
+				self.set(df.fieldname, df.options.format(**get_values()))
+			elif self.is_new() and not self.get(df.fieldname) and df.default:
+				# set default title for new transactions (if default)
+				self.set(df.fieldname, df.default.format(**get_values()))
+
+
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
@@ -535,7 +554,11 @@ class Document(BaseDocument):
 		- `validate`, `before_save` for **Save**.
 		- `validate`, `before_submit` for **Submit**.
 		- `before_cancel` for **Cancel**
-		- `before_update_after_submit` for **Update after Submit**"""
+		- `before_update_after_submit` for **Update after Submit**
+
+		Will also update title_field if set"""
+		self.set_title_field()
+
 		if self.flags.ignore_validate:
 			return
 

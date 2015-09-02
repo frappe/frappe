@@ -236,6 +236,13 @@ a.form-link {
   padding: 3px;
   display: none;
 }
+.link-primary {
+  color: #5e64ff;
+}
+.link-primary:hover,
+.link-primary:focus {
+  color: #5e64ff;
+}
 .ui-autocomplete .link-option {
   font-weight: normal;
 }
@@ -468,11 +475,8 @@ ul.linked-with-list li {
   margin-top: 5px;
   text-align: center;
 }
-.set-filters .btn-xs {
-  padding: 0px 10px 2px;
-}
 .intro-area {
-  padding: 15px;
+  padding: 15px 30px;
 }
 .footnote-area {
   padding: 0px 15px;

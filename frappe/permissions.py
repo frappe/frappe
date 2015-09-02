@@ -165,21 +165,25 @@ def get_role_permissions(meta, user=None, verbose=False):
 	if not frappe.local.role_permissions.get(cache_key):
 		perms = frappe._dict({ "apply_user_permissions": {}, "user_permission_doctypes": {}, "if_owner": {} })
 		user_roles = frappe.get_roles(user)
+		dont_match = []
 
 		for p in meta.permissions:
 			if cint(p.permlevel)==0 and (p.role in user_roles):
 				# apply only for level 0
 
 				for ptype in rights:
+					# build if_owner dict if applicable for this right
 					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 
 					if ptype != "set_user_permissions" and p.get(ptype):
 						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
 							and p.get("apply_user_permissions"))
 
-					# build if_owner dict if applicable for this right
 					if p.if_owner and p.get(ptype):
 						perms["if_owner"][ptype] = 1
+
+					if p.get(ptype) and not p.if_owner and not p.get("apply_user_permissions"):
+						dont_match.append(ptype)
 
 				if p.apply_user_permissions:
 					if p.user_permission_doctypes:
@@ -194,7 +198,23 @@ def get_role_permissions(meta, user=None, verbose=False):
 					else:
 						user_permission_doctypes = get_linked_doctypes(meta.name)
 
+		# if atleast one record having both Apply User Permission and If Owner unchecked is found,
+		# don't match for those rights
+		for ptype in rights:
+			if ptype in dont_match:
+				if perms["apply_user_permissions"].get(ptype):
+					del perms["apply_user_permissions"][ptype]
 
+				if perms["if_owner"].get(ptype):
+					del perms["if_owner"][ptype]
+
+		# if one row has only "Apply User Permissions" checked and another has only "If Owner" checked,
+		# set Apply User Permissions as checked
+		for ptype in rights:
+			if perms["if_owner"].get(ptype) and perms["apply_user_permissions"].get(ptype)==0:
+				perms["apply_user_permissions"][ptype] = 1
+
+		# delete 0 values
 		for key, value in perms.get("apply_user_permissions").items():
 			if not value:
 				del perms["apply_user_permissions"][key]

@@ -119,10 +119,10 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event, message=None, room=None, user=None, doctype=None, docname=None, now=False):
+def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, now=False):
 	"""Publish real-time updates
 
-	:param event: Event name, like `task_progress` etc.
+	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
@@ -131,8 +131,20 @@ def publish_realtime(event, message=None, room=None, user=None, doctype=None, do
 	if message is None:
 		message = {}
 
+	if event is None:
+		if frappe.local.task_id:
+			event = "task_progress"
+		else:
+			event = "global"
+
 	if not room:
-		if user:
+		if frappe.local.task_id:
+			room = get_task_progress_room()
+			if not "task_id" in message:
+				message["task_id"] = frappe.local.task_id
+
+			now = True
+		elif user:
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
@@ -161,7 +173,7 @@ def put_log(line_no, line, task_id=None):
 	r = get_redis_server()
 	if not task_id:
 		task_id = frappe.local.task_id
-	task_progress_room = "task_progress:" + frappe.local.task_id
+	task_progress_room = get_task_progress_room()
 	task_log_key = "task_log:" + task_id
 	publish_realtime('task_progress', {
 		"message": {
@@ -233,3 +245,5 @@ def get_user_room(user):
 def get_site_room():
 	return ''.join([frappe.local.site, ':all'])
 
+def get_task_progress_room():
+	return "task_progress:" + frappe.local.task_id

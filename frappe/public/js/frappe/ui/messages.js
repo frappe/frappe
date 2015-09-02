@@ -121,6 +121,18 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
+frappe.hide_msgprint = function(instant) {
+	if(msg_dialog && msg_dialog.$wrapper.is(":visible")) {
+		if(instant) {
+			msg_dialog.$wrapper.removeClass("fade");
+		}
+		msg_dialog.hide();
+		if(instant) {
+			msg_dialog.$wrapper.addClass("fade");
+		}
+	}
+}
+
 frappe.verify_password = function(callback) {
 	frappe.prompt({
 		fieldname: "password",
@@ -143,6 +155,25 @@ frappe.verify_password = function(callback) {
 }
 
 var msgprint = frappe.msgprint;
+
+frappe.show_progress = function(title, count, total) {
+	if(frappe.cur_progress && frappe.cur_progress.title === title
+			&& frappe.cur_progress.$wrapper.is(":visible")) {
+		var dialog = frappe.cur_progress;
+	} else {
+		var dialog = new frappe.ui.Dialog({
+			title: title,
+		});
+		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
+			.appendTo(dialog.body);
+			dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
+				.find(".progress-bar");
+		dialog.$wrapper.removeClass("fade");
+		dialog.show();
+		frappe.cur_progress = dialog;
+	}
+	dialog.progress_bar.css({"width": cint(flt(count) * 100 / total) + "%" });
+}
 
 // Floating Message
 function show_alert(txt, seconds) {

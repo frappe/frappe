@@ -681,7 +681,9 @@ frappe.ui.ColumnPicker = Class.extend({
 		this.dialog.hide();
 		// selected columns as list of [column_name, table_name]
 		var columns = $.map(this.columns, function(v) {
-			return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
+			return (v && v.selected_fieldname && v.selected_doctype)
+				? [[v.selected_fieldname, v.selected_doctype]]
+				: null;
 		});
 
 		frappe.defaults.set_default("_list_settings:" + this.doctype, columns);

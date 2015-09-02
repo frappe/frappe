@@ -10,6 +10,8 @@
  "fields": [
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "facebook", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -29,6 +31,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "facebook_client_id", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -48,6 +52,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "facebook_client_secret", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -67,6 +73,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "google", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -86,6 +94,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "google_client_id", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -105,6 +115,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "google_client_secret", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -124,6 +136,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "github", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -143,6 +157,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "github_client_id", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -162,6 +178,8 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "bold": 0, 
+   "collapsible": 0, 
    "fieldname": "github_client_secret", 
    "fieldtype": "Data", 
    "hidden": 0, 

@@ -76,6 +76,7 @@ $.extend(frappe.model, {
 
 	get_default_value: function(df, doc, parent_doc) {
 		var user_permissions = frappe.defaults.get_user_permissions();
+		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
 			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
 
@@ -119,6 +120,9 @@ $.extend(frappe.model, {
 				if (is_allowed_boot_doc) {
 					return frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
 				}
+			} else if (df.fieldname===meta.title_field) {
+				// ignore defaults for title field
+				return "";
 			}
 
 			// is this default value is also allowed as per user permissions?

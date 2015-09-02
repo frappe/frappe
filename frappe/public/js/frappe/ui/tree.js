@@ -126,7 +126,7 @@ frappe.ui.TreeNode = Class.extend({
 							$(btn).html(node.expanded ? __("Collapse") : __("Expand"));
 						});
 					},
-					btnClass: "btn-expand"
+					btnClass: "btn-expand hidden-xs"
 				}
 			}
 			if(item.condition) {
