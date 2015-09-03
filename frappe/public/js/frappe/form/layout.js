@@ -452,6 +452,11 @@ frappe.ui.form.Section = Class.extend({
 		this.wrapper.toggleClass("hide-control", !!hide);
 	},
 	collapse: function(hide) {
+		// unknown edge case
+		if (!this.body) {
+			return;
+		}
+
 		if(hide===undefined) {
 			hide = !this.body.hasClass("hide");
 		}
