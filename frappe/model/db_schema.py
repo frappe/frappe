@@ -250,7 +250,7 @@ class DbTable:
 					frappe.throw(str(e))
 				elif e.args[0]==1062:
 					fieldname = str(e).split("'")[-2]
-					frappe.throw(_("{0} field cannot be set as unique, as there are non-unique existing values".format(fieldname)))
+					frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(fieldname, self.name)))
 				else:
 					raise e
 
