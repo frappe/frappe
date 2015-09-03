@@ -453,7 +453,7 @@ frappe.ui.form.Section = Class.extend({
 	},
 	collapse: function(hide) {
 		// unknown edge case
-		if (!this.body) {
+		if (!(this.head && this.body)) {
 			return;
 		}
 
