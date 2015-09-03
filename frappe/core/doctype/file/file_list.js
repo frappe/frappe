@@ -28,6 +28,24 @@ frappe.listview_settings['File'] = {
 		doclist.filter_area = doclist.wrapper.find(".show_filters");
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
+		doclist.page.add_menu_item(__("Create Folder"), function() {
+			var d = frappe.prompt(__("Name"), function(values) {
+				if((values.value.indexOf("/") > -1)){
+					frappe.throw("Folder name should not include / !!!")
+					return;
+				}
+				var data =  {
+					"file_name": values.value,
+					"folder":doclist.current_folder
+				};
+				frappe.call({
+						method:"frappe.core.doctype.file.file.create_new_folder",
+						args: data,
+						callback:function(r){
+					}
+				})
+			}, __('Enter folder name'), __("Create"));
+		});
 	},
 	before_run: function(doclist) {
 		var name_filter = doclist.filter_list.get_filter("file_name");

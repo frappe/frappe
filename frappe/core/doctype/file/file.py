@@ -183,3 +183,12 @@ def get_breadcrumbs(folder):
 	lft, rgt = frappe.db.get_value("File", folder, ["lft", "rgt"])
 	return frappe.db.sql("""select name, file_name from tabFile
 		where lft < %s and rgt > %s order by lft asc""", (lft, rgt), as_dict=1)
+
+@frappe.whitelist()
+def create_new_folder(file_name, folder):
+	""" create new folder under current parent folder """
+	file = frappe.new_doc("File")
+	file.file_name = file_name
+	file.is_folder = 1
+	file.folder = folder
+	file.insert()
