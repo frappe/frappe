@@ -7,6 +7,10 @@ def execute():
 		frappe.rename_doc("DocType", "File Data", "File")
 		frappe.reload_doctype("File")
 
+	# DELETE THIS
+	frappe.db.sql("""delete from tabFile where is_folder=1""")
+	frappe.db.sql("""update tabFile set folder=null""")
+
 	if not frappe.db.exists("File", {"is_home_folder": 1}):
 		make_home_folder()
 
@@ -14,6 +18,7 @@ def execute():
 	for file in frappe.get_all("File", filters={"is_folder": 0}):
 		file = frappe.get_doc("File", file.name)
 		file.flags.ignore_folder_validate = True
+		file.set_folder_name()
 		file.save()
 
 	from frappe.utils.nestedset import rebuild_tree
@@ -22,8 +27,6 @@ def execute():
 	# reset file size
 	for folder in frappe.db.sql("""select name from tabFile f1 where is_folder = 1 and
 		(select count(*) from tabFile f2 where f2.folder = f1.name and f2.is_folder = 1) = 0"""):
-		print folder[0]
-
 		folder = frappe.get_doc("File", folder[0])
 		folder.save()
 

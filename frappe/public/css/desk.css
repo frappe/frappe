@@ -523,5 +523,10 @@ ul.linked-with-list li {
 }
 .breadcrumb {
   font-size: 12px;
-  margin-bottom: 10px;
+  background-color: #fff;
+}
+.breadcrumb.for-file-list {
+  margin-bottom: 0px;
+  border-bottom: 1px solid #d1d8dd;
+  border-radius: 0px;
 }

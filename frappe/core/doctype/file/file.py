@@ -21,6 +21,20 @@ class File(NestedSet):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
+		self.set_name()
+
+	def set_name(self):
+		"""Set name for folder"""
+		if self.is_folder:
+			if self.folder:
+				path = get_breadcrumbs(self.folder)
+				folder_name = frappe.get_value("File", self.folder, "file_name")
+				self.name = "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+			else:
+				# home
+				self.name = self.file_name
+		else:
+			self.name = self.file_url
 
 	def after_insert(self):
 		self.update_parent_folder_size()
@@ -32,7 +46,7 @@ class File(NestedSet):
 
 	def set_folder_size(self):
 		"""Set folder size if folder"""
-		if self.is_folder:
+		if self.is_folder and not self.is_new():
 			self.fize_size = self.get_folder_size()
 
 			for folder in self.get_ancestors():
@@ -45,33 +59,33 @@ class File(NestedSet):
 		return frappe.db.sql("""select sum(ifnull(file_size,0))
 			from tabFile where folder=%s""", folder)[0][0]
 
+	def update_parent_folder_size(self):
+		"""Update size of parent folder"""
+		if self.folder and not self.is_folder: # it not home
+			frappe.get_doc("File", self.folder).save()
+
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
 		if self.attached_to_doctype and not self.folder:
 			self.folder = self.get_parent_folder_name()
 
-	def update_parent_folder_size(self):
-		"""Update size of parent folder"""
-		if self.folder: # it not home
-			frappe.get_doc("File", self.folder).save()
-
 	def get_parent_folder_name(self):
 		"""Returns parent folder name. If not exists, then make"""
+		doctype_folder_name = self.get_doctype_folder_name()
+		parent_folder_name = frappe.db.get_value("File", {"file_name": self.attached_to_name,
+			"is_folder": 1, "folder": doctype_folder_name})
+
+		return self.make_folder(parent_folder_name, doctype_folder_name,
+			self.attached_to_name)
+
+	def get_doctype_folder_name(self):
+		"""Returns doctype folder name. If not exists, then make"""
 		module_folder_name = self.get_module_folder_name()
-		parent_folder_name = frappe.db.get_value("File", {"file_name": self.attached_to_doctype,
+		doctype_folder_name = frappe.db.get_value("File", {"file_name": self.attached_to_doctype,
 			"is_folder": 1, "folder": module_folder_name})
-		if not parent_folder_name:
-			# parent folder
-			parent_folder = frappe.get_doc({
-				"doctype": "File",
-				"is_folder": 1,
-				"file_name": _(self.attached_to_doctype),
-				"folder": module_folder_name
-			}).insert()
 
-			parent_folder_name = parent_folder.name
-
-		return parent_folder_name
+		return self.make_folder(doctype_folder_name, module_folder_name,
+			_(self.attached_to_doctype, frappe.db.get_default("lang")))
 
 	def get_module_folder_name(self):
 		"""Returns module folder name. If not exists, then make"""
@@ -83,18 +97,22 @@ class File(NestedSet):
 		module_folder_name = frappe.db.get_value("File", {"file_name": module,
 			"is_folder": 1, "folder": home_folder_name})
 
-		if not module_folder_name:
-			module_folder = frappe.get_doc({
+		return self.make_folder(module_folder_name, home_folder_name, _(module,
+			frappe.db.get_default("lang")))
+
+	def make_folder(self, name, folder, file_name):
+		if not name:
+			# parent folder
+			file = frappe.get_doc({
 				"doctype": "File",
 				"is_folder": 1,
-				"file_name": _(module),
-				"folder": home_folder_name
+				"file_name": file_name,
+				"folder": folder
 			}).insert()
 
-			module_folder_name = module_folder.name
+			name = file.name
 
-		return module_folder_name
-
+		return name
 
 	def validate_folder(self):
 		if not self.is_home_folder and not self.folder and \

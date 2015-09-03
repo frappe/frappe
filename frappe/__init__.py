@@ -38,8 +38,11 @@ class _dict(dict):
 	def copy(self):
 		return _dict(dict(self).copy())
 
-def _(msg):
+def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
+	if not lang:
+		lang = local.lang
+
 	if local.lang == "en":
 		return msg
 
@@ -904,6 +907,20 @@ def get_all(doctype, *args, **kwargs):
 	if not "limit_page_length" in kwargs:
 		kwargs["limit_page_length"] = 0
 	return get_list(doctype, *args, **kwargs)
+
+def get_value(*args, **kwargs):
+	"""Returns a document property or list of properties.
+
+	Alias for `frappe.db.get_value`
+
+	:param doctype: DocType name.
+	:param filters: Filters like `{"x":"y"}` or name of the document. `None` if Single DocType.
+	:param fieldname: Column name.
+	:param ignore: Don't raise exception if table, column is missing.
+	:param as_dict: Return values as dict.
+	:param debug: Print query in error log.
+	"""
+	return db.get_value(*args, **kwargs)
 
 def add_version(doc):
 	"""Insert a new **Version** of the given document.

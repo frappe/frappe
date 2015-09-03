@@ -182,7 +182,7 @@ frappe.ui.Filter = Class.extend({
 
 		if(!dont_run) {
 			this.flist.listobj.dirty = true;
-			this.flist.listobj.run();
+			this.flist.listobj.refresh();
 		}
 	},
 

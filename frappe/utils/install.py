@@ -39,6 +39,9 @@ def after_install():
 		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
+	from frappe.core.doctype.file.file import make_home_folder
+	make_home_folder()
+
 	for d in install_docs:
 		try:
 			frappe.get_doc(d).insert()
