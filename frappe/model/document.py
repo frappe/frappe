@@ -295,6 +295,9 @@ class Document(BaseDocument):
 				frappe.db.sql("""insert into tabSingles(doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
+		if self.doctype in frappe.db.value_cache:
+			del frappe.db.value_cache[self.doctype]
+
 	def _set_docstatus_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()

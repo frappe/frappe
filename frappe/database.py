@@ -505,11 +505,23 @@ class Database:
 	def get_list(self, *args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
-	def get_single_value(self, doctype, fieldname):
-		"""Get property of Single DocType."""
+	def get_single_value(self, doctype, fieldname, cache=False):
+		"""Get property of Single DocType. Cache locally by default"""
+		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
+		if value:
+			return value
+
 		val = self.sql("""select value from
 			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
-		return val[0][0] if val else None
+		val = val[0][0] if val else None
+
+		if val=="0" or val=="1":
+			# check type
+			val = int(val)
+
+		self.value_cache[doctype][fieldname] = val
+
+		return val
 
 	def get_singles_value(self, *args, **kwargs):
 		"""Alias for get_single_value"""
