@@ -1,3 +1,4 @@
+frappe.provide("frappe.ui");
 
 frappe.listview_settings['File'] = {
 	hide_name_column: true,
@@ -26,8 +27,10 @@ frappe.listview_settings['File'] = {
 	},
 	onload: function(doclist) {
 		doclist.filter_area = doclist.wrapper.find(".show_filters");
+
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
+
 		doclist.page.add_menu_item(__("Create Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
@@ -83,6 +86,18 @@ frappe.listview_settings['File'] = {
 		doclist.dirty = true;
 
 		frappe.utils.set_title(doclist.current_folder_name);
+	},
+	set_primary_action:function(doclist){
+
+		doclist.page.clear_primary_action();
+		doclist.page.set_primary_action(__("New File"), function() {
+
+
+			dialog = frappe.ui.get_upload_dialog({
+				"data":{"folder": doclist.current_folder, "from_form": 1}
+			})
+
+		}, "octicon octicon-plus");
 	},
 	post_render_item: function(list, row, data) {
 		if(data.is_folder) {

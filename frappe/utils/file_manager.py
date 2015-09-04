@@ -21,20 +21,21 @@ def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
+	folder = frappe.form_dict.folder
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 
 	if not filename and not file_url:
 		frappe.msgprint(_("Please select a file or url"),
 			raise_exception=True)
-
+	print folder
 	# save
 	if filename:
-		filedata = save_uploaded(dt, dn)
+		filedata = save_uploaded(dt, dn, folder)
 	elif file_url:
-		filedata = save_url(file_url, dt, dn)
+		filedata = save_url(file_url, dt, dn, folder)
 
-
+	comment = {}
 	if dt and dn:
 		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
 			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
@@ -43,17 +44,17 @@ def upload():
 		"name": filedata.name,
 		"file_name": filedata.file_name,
 		"file_url": filedata.file_url,
-		"comment": comment.as_dict()
+		"comment": comment.as_dict() if comment else {}
 	}
 
-def save_uploaded(dt, dn):
+def save_uploaded(dt, dn, folder):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn);
+		return save_file(fname, content, dt, dn, folder);
 	else:
 		raise Exception
 
-def save_url(file_url, dt, dn):
+def save_url(file_url, dt, dn, folder):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
@@ -62,7 +63,8 @@ def save_url(file_url, dt, dn):
 		"doctype": "File",
 		"file_url": file_url,
 		"attached_to_doctype": dt,
-		"attached_to_name": dn
+		"attached_to_name": dn,
+		"folder": folder
 	})
 	f.flags.ignore_permissions = True
 	try:
@@ -128,7 +130,8 @@ def get_random_filename(extn=None, content_type=None):
 
 	return random_string(7) + (extn or "")
 
-def save_file(fname, content, dt, dn, decode=False):
+def save_file(fname, content, dt, dn, folder=None,decode=False):
+	print [folder]
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
@@ -151,6 +154,7 @@ def save_file(fname, content, dt, dn, decode=False):
 		"doctype": "File",
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
+		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
 	})
@@ -290,4 +294,3 @@ def get_file_name(fname, optional_suffix):
 			partial, extn = f[0], "." + f[1]
 		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
-

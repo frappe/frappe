@@ -145,28 +145,12 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	new_attachment: function(fieldname) {
 		var me = this;
-		if(!this.dialog) {
-			this.dialog = new frappe.ui.Dialog({
-				title: __('Upload Attachment'),
-			});
+		if(!this.dialog){
+			this.dialog = frappe.ui.get_upload_dialog({"data": me.get_args(),
+					"callback": me.attachment_uploaded, "curr": me,
+					"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+					"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null});
 		}
-		this.dialog.show();
-		this.fieldname = fieldname;
-
-		$(this.dialog.body).empty();
-		frappe.upload.make({
-			parent: this.dialog.body,
-			args: this.get_args(),
-			callback: function(attachment, r) {
-				me.attachment_uploaded(attachment, r);
-			},
-			onerror: function() {
-				me.dialog.hide();
-			},
-			btn: this.dialog.set_primary_action(__("Attach")),
-			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
-			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
-		});
 	},
 	get_args: function() {
 		return {
@@ -213,3 +197,34 @@ frappe.ui.form.Attachments = Class.extend({
 		this.refresh();
 	}
 });
+
+frappe.ui.get_upload_dialog = function(opts){
+	dialog = new frappe.ui.Dialog({
+		title: __('Upload Attachment'),
+	});
+
+	dialog.show();
+
+	$(dialog.body).empty();
+
+	frappe.upload.make({
+		parent: dialog.body,
+		args: opts.data,
+		callback: function(attachment, r) {
+			if(opts.callback){
+				opts.callback.call(opts.curr, attachment, r);
+			}
+			else{
+				dialog.hide();
+			}
+		},
+		onerror: function() {
+			dialog.hide();
+		},
+		btn: dialog.set_primary_action(__("Attach")),
+		max_width: opts.max_width,
+		max_height: opts.max_height,
+	});
+
+	return dialog;
+}

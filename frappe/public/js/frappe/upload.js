@@ -71,6 +71,7 @@ frappe.upload = {
 			}
 			return;
 		}
+		console.log(args)
 
 		var dataurl = null;
 		var _upload_file = function() {
