@@ -34,6 +34,10 @@ frappe.upload = {
 					$file_input.trigger("change");
 				});
 
+				if(opts.on_select) {
+					opts.on_select();
+				}
+
 			} else {
 				$upload.find(".uploaded-filename").addClass("hidden")
 				$upload.find(".web-link-wrapper").removeClass("hidden");

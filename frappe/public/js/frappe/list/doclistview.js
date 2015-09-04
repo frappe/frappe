@@ -48,13 +48,18 @@ $(document).on("save", function(event, doc) {
 frappe.views.set_list_as_dirty = function(doctype) {
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
-		if(frappe.pages[list_page].doclistview)
+		if(frappe.pages[list_page].doclistview) {
+			if(frappe.pages[list_page].doclistview.dirty) {
+				// already refreshing...
+				return;
+			}
 			frappe.pages[list_page].doclistview.dirty = true;
+		}
 	}
 	var route = frappe.get_route();
 	if(route[0]==="List" && route[1]===doctype) {
 		setTimeout(function() {
-			frappe.pages[list_page].doclistview.run();
+			frappe.pages[list_page].doclistview.refresh();
 		}, 100);
 	}
 }
@@ -158,7 +163,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					added = true;
 				}
 			});
-			added && me.run();
+			if(added) {
+				me.refresh(true);
+			}
 		});
 		this.$page.find(".result-list").on("click", ".list-row-left", function(e) {
 			// don't open in case of checkbox, star, filterable
@@ -231,8 +238,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.refresh();
 	},
 
-	refresh: function() {
-		var me = this;
+	refresh: function(dirty) {
+		if(window.ttt) throw "here";
+
+
+		if(dirty!==undefined) this.dirty = dirty;
 		this.init_stats();
 
 		if(this.listview.settings.refresh) {
@@ -240,14 +250,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 
 		if(frappe.route_options) {
-			me.set_route_options();
-			me.run();
-		} else if(me.dirty) {
-			me.run();
+			this.set_route_options();
+			this.run();
+		} else if(this.dirty) {
+			this.run();
 		} else {
-			if(new Date() - (me.last_updated_on || 0) > 30000) {
+			if(new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
-				me.run();
+				this.run();
 			}
 		}
 	},
@@ -275,6 +285,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	run: function(more) {
 		// set filter from route
+		var me = this;
+
+		if(this.fresh && !more) {
+			return;
+		}
+
 		if(this.listview.settings.before_run) {
 			this.listview.settings.before_run(this);
 		}
@@ -294,6 +310,20 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
+
+		// set a fresh so that multiple refreshes do not happen
+		// at the same time. This is true when deleting.
+		// AJAX response will try to refresh and list_update notification
+		// via async will also try to update.
+		// It is not possible to guess which will reach first
+		// (most probably async will) but this is a forced way
+		// to prevent instant refreshes on mutilple triggers
+		// in a loosly coupled way.
+		this.fresh = true;
+		setTimeout(function() {
+			me.fresh = false;
+		}, 1000);
+
 		this._super(more);
 
 		if(this.listview.settings.post_render) {
@@ -351,12 +381,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 
 		this.page.set_secondary_action(__("Refresh"), function() {
-			me.run();
+			me.dirty = true;
+			me.refresh();
 		}, "octicon octicon-sync");
 
 		this.page.btn_secondary.addClass("hidden-xs");
 		this.page.add_menu_item(__("Refresh"), function() {
-			me.run();
+			me.dirty = true;
+			me.refresh();
 		}, "octicon octicon-sync").addClass("visible-xs");
 
 		if(frappe.model.can_import(this.doctype)) {
@@ -541,7 +573,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			callback: function(r) {
 				if(!r.exc) {
 					me.list_header.find(".list-select-all").prop("checked", false);
-					me.run();
+					me.refresh();
 				}
 			}
 		});

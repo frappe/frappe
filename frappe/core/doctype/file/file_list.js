@@ -31,7 +31,11 @@ frappe.listview_settings['File'] = {
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
 
-		doclist.page.add_menu_item(__("Create Folder"), function() {
+		doclist.listview.settings.setup_new_folder(doclist);
+		doclist.listview.settings.setup_dragdrop(doclist);
+	},
+	setup_new_folder: function(doclist) {
+		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
 					frappe.throw("Folder name should not include / !!!")
@@ -39,16 +43,30 @@ frappe.listview_settings['File'] = {
 				}
 				var data =  {
 					"file_name": values.value,
-					"folder":doclist.current_folder
+					"folder": doclist.current_folder
 				};
 				frappe.call({
-						method:"frappe.core.doctype.file.file.create_new_folder",
-						args: data,
-						callback:function(r){
-					}
+					method: "frappe.core.doctype.file.file.create_new_folder",
+					args: data,
+					callback: function(r) { }
 				})
 			}, __('Enter folder name'), __("Create"));
 		});
+	},
+	setup_dragdrop: function(doclist) {
+		$(doclist.$page).on('dragenter dragover', false)
+			.on('drop', function (e) {
+				var dataTransfer = e.originalEvent.dataTransfer;
+				if (!(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0)) {
+					return;
+				}
+				e.stopPropagation();
+				e.preventDefault();
+				frappe.upload.upload_file(dataTransfer.files[0], {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				}, {});
+			});
 	},
 	before_run: function(doclist) {
 		var name_filter = doclist.filter_list.get_filter("file_name");
@@ -88,13 +106,18 @@ frappe.listview_settings['File'] = {
 		frappe.utils.set_title(doclist.current_folder_name);
 	},
 	set_primary_action:function(doclist){
-
 		doclist.page.clear_primary_action();
 		doclist.page.set_primary_action(__("New"), function() {
 			dialog = frappe.ui.get_upload_dialog({
-				"data":{"folder": doclist.current_folder, "from_form": 1}
-			})
-
+				"args": {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				},
+				callback: function() {
+					console.log('here')
+					doclist.refresh();
+				}
+			});
 		}, "octicon octicon-plus");
 	},
 	post_render_item: function(list, row, data) {
