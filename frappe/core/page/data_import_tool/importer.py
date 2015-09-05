@@ -15,7 +15,8 @@ from frappe.utils.dateutils import parse_date
 from frappe.utils import cint, cstr, flt
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
-@frappe.async.handler
+#@frappe.async.handler
+@frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
 	ignore_links=False, pre_process=None):
 	"""upload data"""
@@ -204,12 +205,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 		frappe.publish_realtime(message = {"progress": [i, total]})
 
-		doc = get_doc(row_idx)
-		if pre_process:
-			pre_process(doc)
-
 		try:
 			frappe.local.message_log = []
+
+			doc = get_doc(row_idx)
+			if pre_process:
+				pre_process(doc)
+
 			if parentfield:
 				parent = frappe.get_doc(parenttype, doc["parent"])
 				doc = parent.append(parentfield, doc)
