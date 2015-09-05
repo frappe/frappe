@@ -79,8 +79,8 @@ frappe.DataImportTool = Class.extend({
 				me.write_messages([__("Importing")]);
 			},
 			progress: function(data) {
-				frappe.hide_msgprint(true);
 				if(data.progress) {
+					frappe.hide_msgprint(true);
 					frappe.show_progress(__("Importing"), data.progress[0], data.progress[1]);
 				}
 			},
