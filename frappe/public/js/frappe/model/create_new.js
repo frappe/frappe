@@ -221,6 +221,7 @@ $.extend(frappe.model, {
 			args: {
 				"source_name": opts.source_name
 			},
+			freeze: true,
 			callback: function(r) {
 				if(!r.exc) {
 					var doc = frappe.model.sync(r.message);
