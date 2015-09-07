@@ -137,7 +137,7 @@ def pull_from_email_account(site, email_account):
 		frappe.destroy()
 
 @celery_task(bind=True)
-def run_async_task(self, site, user, cmd, form_dict):
+def run_async_task(self, site=None, user=None, cmd=None, form_dict=None):
 	ret = {}
 	frappe.init(site)
 	frappe.connect()

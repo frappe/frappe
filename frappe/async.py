@@ -17,7 +17,6 @@ END_LINE = '<!-- frappe: end-file -->'
 TASK_LOG_MAX_AGE = 86400  # 1 day in seconds
 redis_server = None
 
-
 def handler(f):
 	cmd = f.__module__ + '.' + f.__name__
 
@@ -27,8 +26,8 @@ def handler(f):
 		if frappe.conf.disable_async:
 			return execute_cmd(cmd, from_async=True)
 		args = frappe._dict(args)
-		task = run_async_task.delay(frappe.local.site,
-			(frappe.session and frappe.session.user) or 'Administrator', cmd, args)
+		task = run_async_task.delay(site=frappe.local.site,
+			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd, form_dict=args)
 		if set_in_response:
 			frappe.local.response['task_id'] = task.id
 		return task.id
@@ -39,9 +38,9 @@ def handler(f):
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
 			return execute_cmd(cmd, from_async=True)
-		task = run_async_task.delay(frappe.local.site,
-			(frappe.session and frappe.session.user) or 'Administrator', cmd,
-				frappe.local.form_dict)
+		task = run_async_task.delay(site=frappe.local.site,
+			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
+				form_dict=frappe.local.form_dict)
 		frappe.local.response['task_id'] = task.id
 		return {
 			"status": "queued",
@@ -55,19 +54,6 @@ def handler(f):
 	return queue
 
 
-def run_async_task(method, args, reference_doctype=None, reference_name=None, set_in_response=True):
-	if frappe.local.request and frappe.local.request.method == "GET":
-		frappe.throw("Cannot run task in a GET request")
-	task_id = method.run(args, set_in_response=set_in_response)
-	task = frappe.new_doc("Async Task")
-	task.celery_task_id = task_id
-	task.status = "Queued"
-	task.reference_doctype = reference_doctype
-	task.reference_name = reference_name
-	task.save()
-	return task_id
-
-
 @frappe.whitelist()
 def get_pending_tasks_for_doc(doctype, docname):
 	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype='%s' and reference_name='%s'" % (doctype, docname))
@@ -76,9 +62,8 @@ def get_pending_tasks_for_doc(doctype, docname):
 @handler
 def ping():
 	from time import sleep
-	sleep(6)
+	sleep(1)
 	return "pong"
-
 
 @frappe.whitelist()
 def get_task_status(task_id):
@@ -93,7 +78,6 @@ def get_task_status(task_id):
 
 
 def set_task_status(task_id, status, response=None):
-	frappe.db.set_value("Async Task", task_id, "status", status)
 	if not response:
 		response = {}
 	response.update({

@@ -127,5 +127,7 @@ frappe.socket = {
 
 frappe.provide("frappe.realtime");
 frappe.realtime.on = function(event, callback) {
-	frappe.socket.socket.on(event, callback);
+	if(frappe.socket.socket) {
+		frappe.socket.socket.on(event, callback);
+	}
 }
