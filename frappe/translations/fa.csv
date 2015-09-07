@@ -864,7 +864,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set
 DocType: Comment,Comment Doctype,نظر DOCTYPE
 sites/assets/js/desk.min.js +257,Verify Password,تائید رمز عبور
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,خطاهایی وجود دارد
-apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,نزدیک
+apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,ببند
 apps/frappe/frappe/model/document.py +414,Cannot change docstatus from 0 to 2,آیا می docstatus از 0 تا 2 تغییر نمی
 apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Options must be a valid DocType for field {0} in row {1},گزینه باید DOCTYPE معتبر برای درست {0} در ردیف شود {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,ویرایش ویژگیها
@@ -943,7 +943,7 @@ sites/assets/js/desk.min.js +608,Added {0} ({1}),اضافه شده {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype می تواند از عوض نمی شوند {0} به {1} در ردیف {2}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Search Fields should contain valid fieldnames,زمینه جستجو باید fieldnames معتبر
 apps/frappe/frappe/core/doctype/user/user.js +321,Role Permissions,مجوز های نقش
-sites/assets/js/form.min.js +290,Can Read,آیا می توانم به عنوان خوانده شده
+sites/assets/js/form.min.js +290,Can Read,خوانش پذیر
 DocType: Standard Reply,Response,پاسخ
 sites/assets/js/form.min.js +290,Can Share,می توانید به اشتراک بگذارید
 apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,آدرس گیرنده نامعتبر
@@ -1145,7 +1145,7 @@ DocType: Social Login Keys,Social Login Keys,اجتماعی ورود به کلی
 DocType: Comment,Comment Date,نظر تاریخ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +54,Remove all customizations?,حذف تمام سفارشی؟
 DocType: Website Slideshow,Slideshow Name,نام نمایش به صورت اسلاید
-sites/assets/js/form.min.js +182,Cancelling,لغو
+sites/assets/js/form.min.js +182,Cancelling,در حال لغو
 DocType: DocType,Allow Rename,اجازه تغییر نام
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,جداول کودک به عنوان یک شبکه در دیگر DocTypes نشان داده شده است.
 DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.",در صورت انتخاب، صفحه اصلی خواهد بود که به طور پیش فرض گروه مورد برای وب سایت.
@@ -1249,7 +1249,7 @@ DocType: Web Form,Breadcrumbs,پودرهای سوخاری
 apps/frappe/frappe/core/doctype/doctype/doctype.py +373,If Owner,اگر مالک
 apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be logged in to access this {0}.,شما باید به سیستم وارد شوید برای دسترسی به این {0}.
 apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} توسط {1}
-apps/frappe/frappe/core/doctype/comment/comment.py +39,Cannot add more than 50 comments,آیا می توانم بیش از 50 نظرات اضافه کنید
+apps/frappe/frappe/core/doctype/comment/comment.py +39,Cannot add more than 50 comments,نمی‌توان بیشتر از ۵۰ دیدگاه افزود
 DocType: Website Settings,Top Bar Items,موارد بالا نوار
 DocType: Print Settings,Print Settings,تنظیمات چاپ
 DocType: DocType,Max Attachments,حداکثر فایل های پیوست
@@ -1264,7 +1264,7 @@ DocType: Workflow State,resize-horizontal,تغییر اندازه-افقی
 DocType: Communication,Content,مقدار
 DocType: Web Form,Go to this url after completing the form.,برو به این آدرس پس از تکمیل فرم.
 DocType: Custom Field,Document,سند
-DocType: DocField,Code,رمز
+DocType: DocField,Code,کد
 DocType: Website Theme,Footer Text Color,پاورقی رنگ متن
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",مجوز در سطح 0 مجوزهای سطح سند، به عنوان مثال آنها اولیه برای دسترسی به سند می باشد.
 DocType: Print Format,Print Format,چاپ فرمت
@@ -1352,7 +1352,7 @@ DocType: Email Account,Port,بندر
 DocType: Print Format,Arial,با Arial
 DocType: Website Slideshow,Slideshow like display for the website,نمایش به صورت اسلاید مانند صفحه نمایش برای وب سایت
 sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),مرکز انجام دهید (Ctrl / کلیدهای Cmd + E)
-apps/frappe/frappe/sessions.py +28,Cache Cleared,کش پاک
+apps/frappe/frappe/sessions.py +28,Cache Cleared,حافظه کش پاک شد
 apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,کاربر با سیستم مدیریت نقش همیشه باید نوع کاربر: کاربر سیستم
 DocType: DocPerm,Export,صادرات
 DocType: About Us Settings,More content for the bottom of the page.,محتوای بیشتر برای پایین صفحه.

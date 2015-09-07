@@ -880,7 +880,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,Dec
 DocType: Event,Leave blank to repeat always,Laat leeg om altijd te herhalen
 DocType: Event,Ends on,Eindigt op
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Artikel kan niet worden toegevoegd aan zijn eigen onderliggende artikelen.
-sites/assets/js/form.min.js +274,{0} created this {1},{0} heeft dit {1}
+sites/assets/js/form.min.js +274,{0} created this {1},{0} heeft dit {1} aangemaakt
 apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.","De taak {0}, die u hebt toegewezen aan {1}, is gesloten door {2}."
 DocType: Blogger,Short Name,Korte Naam
 DocType: Workflow State,magnet,magneet
@@ -1310,7 +1310,7 @@ sites/assets/js/desk.min.js +903,Sorry! You are not permitted to view this page.
 DocType: Workflow State,bell,bel
 sites/assets/js/form.min.js +290,Share this document with,Deel dit document met
 apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,Juni
-apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} cannot be a leaf node as it has children 
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,"{0} {1} kan geen leaf node zijn, want hij is vertakt"
 DocType: Feed,Info,Info
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Dank u voor uw bericht
 DocType: Website Settings,Home Page,Home Page

@@ -1091,7 +1091,7 @@ DocType: Workflow,"If checked, all other workflows become inactive.",إذا تم
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
 DocType: Workflow State,folder-close,غلق مجلد
 DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,اختياري: سوف يتم إرسال تنبيه فقط إذا كانت القيمة هي هوية بريد إلكتروني صحيح.
-apps/frappe/frappe/model/rename_doc.py +100,{0} not allowed to be renamed,{0} غير مسموح به ويجب إعادة تسميته
+apps/frappe/frappe/model/rename_doc.py +100,{0} not allowed to be renamed,{0} غير مسموح بإعادة تسميته
 DocType: Custom Script,Custom Script,سكربت محصص
 sites/assets/js/desk.min.js +622,Assigned To,كلف إلى
 apps/frappe/frappe/core/doctype/user/user.py +166,Verify Your Account,التحقق من حسابك الخاص

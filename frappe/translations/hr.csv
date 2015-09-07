@@ -1216,7 +1216,7 @@ DocType: Workflow State,star-empty,zvijezda-prazna
 DocType: Workflow State,ok,u redu
 DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Ove vrijednosti će se automatski ažuriraju u prometu, te će također biti korisno ograničiti dozvole za ovog korisnika o transakcijama koje sadrže te vrijednosti."
 apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,Izdavač
-sites/assets/js/desk.min.js +846,Browse,Brstiti
+sites/assets/js/desk.min.js +846,Browse,Pretraži
 apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your browser,Pogledaj ga u svom pregledniku
 apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,Reset Password
 DocType: Workflow State,hand-left,ruka-lijeva

@@ -26,7 +26,7 @@ apps/frappe/frappe/model/document.py +642,Beginning with,เริ่มต้�
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,ข้อมูลนำเข้าแม่แบบ
 sites/assets/js/desk.min.js +622,Parent,ผู้ปกครอง
 apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,ไวยากรณ์ผิดพลาดในแม่แบบ Jinja
-DocType: About Us Settings,"""Team Members"" or ""Management""","“สมาชิกทีม"" หรือ ""การจัดการ"""
+DocType: About Us Settings,"""Team Members"" or ""Management""","“สมาชิกในทีม"" หรือ ""ผู้บริหาร"""
 apps/frappe/frappe/core/doctype/doctype/doctype.py +271,Default for 'Check' type of field must be either '0' or '1',เริ่มต้นสำหรับ 'ตรวจสอบ' ประเภทของข้อมูลต้องเป็น '0' หรือ '1'
 DocType: Email Account,Enable Incoming,เปิดใช้งานเข้ามา
 DocType: Workflow State,Danger,อันตราย
@@ -337,7 +337,7 @@ apps/frappe/frappe/model/document.py +641,none of,ไม่มี
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,อัปโหลดสิทธิ์ของผู้ใช้
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,รายการตรวจสอบจะแสดงบนเดสก์ทอป
 apps/frappe/frappe/core/doctype/doctype/doctype.py +421,{0} cannot be set for Single types,{0} ไม่สามารถตั้งค่า สำหรับชนิด เดี่ยว
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} การปรับปรุง
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} ได้รับการปรับปรุง
 apps/frappe/frappe/core/doctype/doctype/doctype.py +411,Report cannot be set for Single types,รายงาน ไม่สามารถตั้งค่า สำหรับชนิด เดี่ยว
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,กุมภาพันธ์
 DocType: DocPerm,Role,บทบาท
@@ -436,7 +436,7 @@ apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},Upd
 DocType: DocType,Master,เจ้านาย
 DocType: DocType,User Cannot Create,ผู้ใช้ไม่สามารถสร้าง
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.",เหล่านี้จะ ถูกกำหนดเป็น ค่าเริ่มต้น สำหรับการเชื่อมโยง เหล่านั้น ถ้า เพียงคนเดียวที่ ได้รับอนุญาต ดังกล่าว บันทึก ถูกกำหนดไว้
-apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} {1}
+apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} บน  {1}
 DocType: Customize Form,Enter Form Type,ป้อนประเภทแบบฟอร์ม
 DocType: User,Send Password Update Notification,ส่งแจ้งเตือนการปรับปรุงรหัสผ่าน
 apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values",{0} สนามไม่สามารถตั้งเป็นที่ไม่ซ้ำกันที่มีค่าที่มีอยู่ที่ไม่ซ้ำกัน
@@ -677,7 +677,7 @@ DocType: Event,Repeat this Event,ทำซ้ำเหตุการณ์น�
 DocType: DocPerm,Amend,แก้ไข
 apps/frappe/frappe/templates/includes/login/login.js +45,Valid Login id required.,เข้าสู่ระบบรหัสที่ถูกต้อง
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Re - เปิด
-apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} ยกเลิกการใช้เอกสารร่วมกับเรื่องนี้ {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} ยกเลิกการแชร์เอกสารร่วมกับ{1}
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,นี่คือการตอบกลับโดยอัตโนมัติ
 apps/frappe/frappe/model/document.py +378,Record does not exist,บันทึก ไม่อยู่
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,หน้าขาดหายไปหรือย้าย
@@ -983,7 +983,7 @@ apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the A
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<span class = ข้อความออกเสียงข้อมูลไม่มีเนื้อหา = 1>
 DocType: Workflow State,envelope,ซองจดหมาย
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,ตัวเลือกที่ 2
-apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} ที่ใช้ร่วมกันกับเอกสารนี้ {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} แชร์เอกสารนี้กับ {1}
 DocType: Website Settings,Google Plus One,Google Plus One
 apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,กรกฎาคม
 DocType: Communication,Additional Info,ข้อมูลเพิ่มเติม
