@@ -44,7 +44,7 @@ def _(msg):
 		return msg
 
 	from frappe.translate import get_full_dict
-	return get_full_dict(local.lang).get(msg, msg)
+	return get_full_dict(local.lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
