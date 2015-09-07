@@ -682,10 +682,18 @@ def request(context, args):
 
 @click.command('doctor')
 def doctor():
-	"Get untranslated strings for lang."
+	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
 	frappe.init('')
 	return _doctor()
+
+@click.command('celery-doctor')
+@click.option('--site', help='site name')
+def celery_doctor(site=None):
+	"Get diagnostic info about background workers"
+	from frappe.utils.doctor import celery_doctor as _celery_doctor
+	frappe.init('')
+	return _celery_doctor(site=site)
 
 @click.command('purge-all-tasks')
 def purge_all_tasks():
@@ -868,6 +876,7 @@ commands = [
 	serve,
 	request,
 	doctor,
+	celery_doctor,
 	purge_all_tasks,
 	dump_queue_status,
 	console,
