@@ -606,6 +606,10 @@ class Database:
 				self.set_value(dt, dn, "modified", modified)
 				self.set_value(dt, dn, "modified_by", modified_by)
 
+
+		if dt in self.value_cache:
+			del self.value_cache[dt]
+
 	def set(self, doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)

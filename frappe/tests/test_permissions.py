@@ -219,12 +219,8 @@ class TestPermissions(unittest.TestCase):
 		frappe.model.meta.clear_cache("Blog Post")
 
 	def set_user_permission_doctypes(self, user_permission_doctypes):
-		frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1,
-			user_permission_doctypes=%s
-			where parent='Blog Post' and permlevel=0
-			and `read`=1 and role='Blogger'""", json.dumps(user_permission_doctypes))
-
-		frappe.clear_cache(doctype="Blog Post")
+		set_user_permission_doctypes(doctype="Blog Post", role="Blogger",
+			apply_user_permissions=1, user_permission_doctypes=user_permission_doctypes)
 
 	def test_insert_if_owner_with_user_permissions(self):
 		"""If `If Owner` is checked for a Role, check if that document is allowed to be read, updated, submitted, etc. except be created, even if the document is restricted based on User Permissions."""
@@ -284,3 +280,17 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 		self.assertTrue(doc.has_permission("write"))
+
+def set_user_permission_doctypes(doctype, role, apply_user_permissions, user_permission_doctypes):
+	user_permission_doctypes = None if not user_permission_doctypes else json.dumps(user_permission_doctypes)
+	frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=%(apply_user_permissions)s,
+		user_permission_doctypes=%(user_permission_doctypes)s
+		where parent=%(doctype)s and permlevel=0
+		and `read`=1 and role=%(role)s""", {
+			"apply_user_permissions": apply_user_permissions,
+			"user_permission_doctypes": user_permission_doctypes,
+			"doctype": doctype,
+			"role": role
+		})
+
+	frappe.clear_cache(doctype=doctype)
