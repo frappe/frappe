@@ -17,7 +17,7 @@ DocType: Report,Report Manager,Manažer výpisů
 DocType: Workflow,Document States,Dokument státy
 sites/assets/js/desk.min.js +902,Sorry! I could not find what you were looking for.,"Je nám líto! Nemohl jsem najít to, co jste hledali."
 DocType: DocPerm,This role update User Permissions for a user,Tato role aktualizuje uživatelská oprávnění pro uživatele
-sites/assets/js/desk.min.js +641,Rename {0},Přejmenovat: {0}
+sites/assets/js/desk.min.js +641,Rename {0},Přejmenovat {0}
 DocType: Workflow State,zoom-out,Zmenšit
 DocType: Comment,Reference DocType and Reference Name are used to render a comment as a link (href) to a Doc.,Referenční DOCTYPE a referenční Name se používají k vykreslení komentář jako odkaz (href) na Doc.
 apps/frappe/frappe/model/document.py +668,Table {0} cannot be empty,Tabulka: {0} nemůže být prázdná
@@ -192,7 +192,7 @@ DocType: Version,Docname,Docname
 apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,Verze obnovena
 DocType: Event Role,Event Role,Role události
 sites/assets/js/editor.min.js +125,Indent (Tab),Odsazení (Tab)
-DocType: Workflow State,List,seznam
+DocType: Workflow State,List,Seznam
 DocType: Page Role,Page Role,Role stránky
 apps/frappe/frappe/core/doctype/doctype/doctype.py +252,Field {0} in row {1} cannot be hidden and mandatory without default,Pole {0} na řádku {1} nemůže být skryté a povinné bez výchozí hodnoty
 DocType: System Settings,mm/dd/yyyy,mm/dd/rrrr
@@ -570,7 +570,7 @@ sites/assets/js/form.min.js +293,Add a comment,Přidat komentář
 apps/frappe/frappe/config/setup.py +220,Log of error on automated events (scheduler).,Log chyb automatických událostí (plánovač).
 apps/frappe/frappe/utils/csvutils.py +74,Not a valid Comma Separated Value (CSV File),Není validní CSV soubor (hodnoty oddělené čárkami)
 DocType: Email Account,Default Incoming,Výchozí Příchozí
-DocType: Workflow State,repeat,repeat
+DocType: Workflow State,repeat,opakovat
 DocType: Website Settings,Banner,Banner
 sites/assets/js/desk.min.js +917,Help on Search,Nápověda k vyhledávání
 DocType: User,Uncheck modules to hide from user's desktop,Zrušte zaškrtnutí moduly se schovávat před desktopu uživatele
@@ -771,7 +771,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Pakliže tyto instrukce nebyly nápomocné, prosím přidejte Vaše doporučení na GitHub Issues."
 DocType: Workflow State,bookmark,záložka
 DocType: Currency,Symbol,Symbol
-apps/frappe/frappe/model/base_document.py +403,Row #{0}:,Řádek #{0}:
+apps/frappe/frappe/model/base_document.py +403,Row #{0}:,Řádek č.{0}:
 apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,Nové heslo zasláno emailem
 apps/frappe/frappe/auth.py +209,Login not allowed at this time,Přihlášení není povoleno v tuto dobu
 DocType: DocType,Permissions Settings,Nastavení oprávnění
@@ -953,7 +953,7 @@ apps/frappe/frappe/core/doctype/user/user.js +45,Refreshing...,Obnovuji...
 DocType: Event,Starts on,Začíná
 DocType: Workflow State,th,th
 sites/assets/js/desk.min.js +576,Create a new {0},Nově Vytvořit: {0}
-sites/assets/js/desk.min.js +931,Report {0},Zpráva {0}
+sites/assets/js/desk.min.js +931,Report {0},Report {0}
 sites/assets/js/desk.min.js +931,Open {0},Otevřít {0}
 DocType: Workflow State,ok-sign,ok-sign
 sites/assets/js/form.min.js +160,Duplicate,Duplikát
@@ -1173,7 +1173,7 @@ apps/frappe/frappe/email/smtp.py +146,Could not connect to outgoing email server
 sites/assets/js/desk.min.js +593,Rich Text,Rich Text
 DocType: Workflow State,resize-full,resize-full
 DocType: Workflow State,off,off
-apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,Výpis: {0} je vypnutý
+apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,Report {0} je vypnutý
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,Doporučuje se pro vkládání nových záznamů.
 DocType: Block Module,Core,Jádro
 DocType: DocField,Set non-standard precision for a Float or Currency field,Nastavit nestandardní přesnost pro desetinná čísla nebo pole měny
@@ -1287,7 +1287,7 @@ DocType: Email Account,SMTP Server,SMTP server
 DocType: Print Format,Print Format Help,Nápověda formát tisku
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Pakliže aktualizujete, zvolte prosím ""Přepsat"" jinak nebudou existující řádky vymazány."
 DocType: Event,Every Month,Měsíčně
-DocType: Letter Head,Letter Head in HTML,Letter hlavička v HTML
+DocType: Letter Head,Letter Head in HTML,Záhlaví dokumentu v HTML
 DocType: Web Form,Web Form,Webový formulář
 DocType: About Us Settings,Org History Heading,Záhlaví historie organizace
 DocType: Web Form,Web Page Link Text,Text odkazu www stránky
@@ -1443,7 +1443,7 @@ DocType: Workflow Document State,Update Value,Aktualizovat hodnotu
 DocType: System Settings,Number Format,Formát čísel
 DocType: Custom Field,Insert After,Vložit za
 DocType: Social Login Keys,GitHub Client Secret,GitHub tajný klíč klienta
-DocType: Report,Report Name,Název výpisu
+DocType: Report,Report Name,Název reportu
 DocType: Email Alert,Save,Uložit
 DocType: Website Settings,Title Prefix,Title Prefix
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,Upozornění a hromadné emaily budou zaslány z tohoto odchozího serveru.
