@@ -323,8 +323,7 @@ class DatabaseQuery(object):
 			tuple([frappe.db.escape(s) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
-		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,
-			user_permissions)
+		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes, user_permissions)
 		meta = frappe.get_meta(self.doctype)
 
 		for doctypes in user_permission_doctypes:
@@ -332,13 +331,17 @@ class DatabaseQuery(object):
 			match_conditions = []
 			# check in links
 			for df in meta.get_fields_to_check_permissions(doctypes):
-				match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")=""
-					or `tab{doctype}`.`{fieldname}` in ({values}))""".format(
-					doctype=self.doctype,
-					fieldname=df.fieldname,
-					values=", ".join([('"'+frappe.db.escape(v)+'"') for v in user_permissions[df.options]])
-				))
-				match_filters[df.options] = user_permissions[df.options]
+				user_permission_values = user_permissions.get(df.options, [])
+
+				condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
+				if user_permission_values:
+					condition += """ or `tab{doctype}`.`{fieldname}` in ({values})""".format(
+						doctype=self.doctype, fieldname=df.fieldname,
+						values=", ".join([('"'+frappe.db.escape(v)+'"') for v in user_permission_values])
+					)
+				match_conditions.append("({condition})".format(condition=condition))
+
+				match_filters[df.options] = user_permission_values
 
 			if match_conditions:
 				self.match_conditions.append(" and ".join(match_conditions))
