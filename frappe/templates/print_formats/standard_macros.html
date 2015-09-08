@@ -37,7 +37,7 @@
 						<td>{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
 							<td class="{{ get_align_class(tdf.fieldtype) }}">
-                                {{ print_value(tdf, d, doc) }}</td>
+                                <div>{{ print_value(tdf, d, doc) }}</div></td>
 						{% endfor %}
 					</tr>
 					{% endfor %}

@@ -85,3 +85,15 @@ table.no-border, table.no-border td {
 .print-format p {
 	margin: 3px 0px 3px;
 }
+
+table td div {
+	/* needed to avoid partial cutting of text between page break in wkhtmltopdf */
+	page-break-inside: avoid !important;
+}
+
+/* hack for webkit specific browser */
+@media (-webkit-min-device-pixel-ratio:0) {
+	thead, tfoot { display: table-row-group; }
+}
+
+
