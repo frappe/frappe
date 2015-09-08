@@ -68,6 +68,39 @@ frappe.listview_settings['File'] = {
 				}, {});
 			});
 	},
+	add_menu_item_copy: function(doclist){
+		if (!doclist.copy) {
+			var copy_menu = doclist.page.add_menu_item(__("Copy"), function() {
+				if(doclist.$page.find(".list-delete:checked").length){
+					doclist.selected_files = doclist.get_checked_items();
+					doclist.old_parent = doclist.current_folder;
+					doclist.listview.settings.add_menu_item_paste(doclist);
+				}
+				else{
+					frappe.throw("Please select file to copy");
+				}
+			})
+			doclist.copy = true;
+		}
+	},
+	add_menu_item_paste:function(doclist){
+		var paste_menu = doclist.page.add_menu_item(__("Paste"), function(){
+			frappe.call({
+				method:"frappe.core.doctype.file.file.move_file",
+				args: {
+					"file_list": doclist.selected_files,
+					"new_parent": doclist.current_folder,
+					"old_parent": doclist.old_parent
+				},
+				callback:function(r){
+					doclist.paste = false;
+					frappe.msgprint(__(r.message));
+					doclist.selected_files = [];
+					$(paste_menu).remove();
+				}
+			})
+		})
+	},
 	before_run: function(doclist) {
 		var name_filter = doclist.filter_list.get_filter("file_name");
 		if(name_filter) {
