@@ -599,11 +599,11 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		frappe.cache().hdel("last_modified", self.doctype)
-		self.notify_modified()
+		self.notify_update()
 
 		self.latest = None
 
-	def notify_modified(self):
+	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name)

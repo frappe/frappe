@@ -73,13 +73,7 @@ frappe.socket = {
 	},
 	setup_listeners: function() {
 		frappe.socket.socket.on('task_status_change', function(data) {
-		  if(data.status==="Running") {
-			frappe.socket.process_response(data, "running");
-		  } else {
-			// failed or finished
-			  frappe.socket.process_response(data, "callback");
-			// delete frappe.socket.open_tasks[data.task_id];
-		  }
+			frappe.socket.process_response(data, data.status.toLowerCase());
 		});
 		frappe.socket.socket.on('task_progress', function(data) {
 		  frappe.socket.process_response(data, "progress");
@@ -110,6 +104,11 @@ frappe.socket = {
 		if(data) {
 			var opts = frappe.socket.open_tasks[data.task_id];
 			if(opts[method]) opts[method](data);
+
+			// "callback" is std frappe term
+			if(method==="success") {
+				if(opts.callback) opts.callback(data);
+			}
 		}
 
 		// always

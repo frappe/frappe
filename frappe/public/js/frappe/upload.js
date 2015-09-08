@@ -81,7 +81,7 @@ frappe.upload = {
 				if(opts.start) {
 					opts.start();
 				}
-				return frappe.call({
+				ajax_args = {
 					"method": "uploadfile",
 					args: args,
 					callback: function(r) {
@@ -96,23 +96,18 @@ frappe.upload = {
 						opts.callback(attachment, r);
 						$(document).trigger("upload_complete", attachment);
 					},
-					progress: function(data) {
-						if(opts.progress) {
-							opts.progress(data);
-						}
-					},
-					always: function(data) {
-						if(opts.always) {
-							opts.always(data);
-						}
-					},
 					error: function(r) {
 						// if no onerror, assume callback will handle errors
 						opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
 						return;
-					},
-					btn: opts.btn
+					}
+				}
+
+				// copy handlers etc from opts
+				$.each(['queued', 'running', "progress", "always", "btn"], function(i, key) {
+					if(opts[key]) ajax_args[key] = opts[key];
 				});
+				return frappe.call(ajax_args);
 			}
 		}
 

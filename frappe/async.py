@@ -20,35 +20,30 @@ redis_server = None
 def handler(f):
 	cmd = f.__module__ + '.' + f.__name__
 
-	def _run(args, set_in_response=True):
+	def run(args, set_in_response=True):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
 			return execute_cmd(cmd, from_async=True)
 		args = frappe._dict(args)
 		task = run_async_task.delay(site=frappe.local.site,
-			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd, form_dict=args)
+			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
+			form_dict=args)
 		if set_in_response:
 			frappe.local.response['task_id'] = task.id
 		return task.id
 
 	@wraps(f)
 	def queue(*args, **kwargs):
-		from frappe.tasks import run_async_task
-		from frappe.handler import execute_cmd
-		if frappe.conf.disable_async:
-			return execute_cmd(cmd, from_async=True)
-		task = run_async_task.delay(site=frappe.local.site,
-			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
-				form_dict=frappe.local.form_dict)
-		frappe.local.response['task_id'] = task.id
+		task_id = run(frappe.local.form_dict, set_in_response=True)
 		return {
 			"status": "queued",
-			"task_id": task.id
+			"task_id": task_id
 		}
+
 	queue.async = True
 	queue.queue = f
-	queue.run = _run
+	queue.run = run
 	frappe.whitelisted.append(f)
 	frappe.whitelisted.append(queue)
 	return queue
@@ -75,7 +70,6 @@ def get_task_status(task_id):
 		"state": a.state,
 		"progress": 0
 	}
-
 
 def set_task_status(task_id, status, response=None):
 	if not response:

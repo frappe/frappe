@@ -30,7 +30,6 @@ class Communication(Document):
 		if self.get("__islocal"):
 			if self.reference_doctype and self.reference_name:
 				self.status = "Linked"
-
 			else:
 				self.status = "Open"
 
@@ -52,7 +51,7 @@ class Communication(Document):
 			if to_status in status_field.options.splitlines():
 				frappe.db.set_value(parent.doctype, parent.name, "status", to_status)
 
-		parent.notify_modified()
+		parent.notify_update()
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):

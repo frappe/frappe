@@ -102,6 +102,9 @@ frappe.msgprint = function(msg, title) {
 		});
 		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
+		msg_dialog.clear = function() {
+			msg_dialog.msg_area.empty();
+		}
 	}
 
 	if(msg.search(/<br>|<p>|<li>/)==-1)
@@ -173,6 +176,13 @@ frappe.show_progress = function(title, count, total) {
 		frappe.cur_progress = dialog;
 	}
 	dialog.progress_bar.css({"width": cint(flt(count) * 100 / total) + "%" });
+}
+
+frappe.hide_progress = function() {
+	if(frappe.cur_progress) {
+		frappe.cur_progress.hide();
+		frappe.cur_progress = null;
+	}
 }
 
 // Floating Message
