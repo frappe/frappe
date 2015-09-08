@@ -13,11 +13,12 @@ def get_redis_conn():
 		r = conn.default_channel.client
 	return r
 
-def get_queues():
+def get_queues(site=None):
 	"Returns the name of queues where frappe enqueues tasks as per the configuration"
 	queues = ["celery"]
 	if frappe.conf.celery_queue_per_site:
-		for site in frappe.utils.get_sites():
+		sites = [site] if site else frappe.utils.get_sites()
+		for site in sites:
 			queues.append(site)
 			queues.append('longjobs@' + site)
 	return queues
@@ -71,13 +72,13 @@ def check_if_workers_online():
 		return True
 	return False
 
-def dump_queue_status():
+def dump_queue_status(site=None):
 	"""
 	Dumps pending events and tasks per queue
 	"""
 	ret = []
 	r = get_redis_conn()
-	for queue in get_queues():
+	for queue in get_queues(site=site):
 		queue_details = {
 			'queue': queue,
 			'len': r.llen(queue),
@@ -106,6 +107,26 @@ def get_task_count_for_queue(queue):
 		'event_counts': event_counts
 	}
 
+def get_running_tasks():
+	ret = {}
+	app = get_celery()
+	inspect = app.control.inspect()
+	active = inspect.active()
+	if not active:
+		return []
+	for worker in active:
+		ret[worker] = []
+		for task in active[worker]:
+			ret[worker].append({
+				'id': task['id'],
+				'name': task['name'],
+				'routing_key': task['delivery_info']['routing_key'],
+				'args': task['args'],
+				'kwargs': task['kwargs']
+			})
+	return ret
+
+
 def doctor():
 	"""
 	Prints diagnostic information for the scheduler
@@ -121,3 +142,13 @@ def doctor():
 	if (not workers_online) or (pending_tasks > 4000) or locks:
 		return 1
 	return True
+
+def celery_doctor(site=None):
+	queues = dump_queue_status(site=site)
+	running_tasks = get_running_tasks()
+	print 'Queue Status'
+	print '------------'
+	print json.dumps(queues, indent=1)
+	print 'Running Tasks'
+	print '------------'
+	print json.dumps(running_tasks, indent=1)
