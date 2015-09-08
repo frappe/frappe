@@ -89,4 +89,4 @@ frappe.patches.v6_0.communication_status_and_permission
 frappe.patches.v6_0.make_task_log_folder
 frappe.patches.v6_0.document_type_rename
 frappe.patches.v6_0.fix_ghana_currency
-frappe.patches.v6_1.ignore_user_permissions_if_missing
+frappe.patches.v6_2.ignore_user_permissions_if_missing
