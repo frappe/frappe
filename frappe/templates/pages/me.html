@@ -25,7 +25,8 @@
 	<div class="col-sm-9">
 		<ul class="list-group" style="margin: 15px 0px;">
 			{% for opts in my_account_list -%}
-			<li class="list-group-item"><a href="{{ opts.url }}">
+			<li class="list-group-item"><a href="{{ opts.url }}"
+                    class="no-decoration">
                 <h4>{{ opts.label }}</h4></a></li>
 			{%- endfor %}
 		</ul>
