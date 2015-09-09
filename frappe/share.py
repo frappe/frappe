@@ -12,7 +12,8 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	if not user:
 		user = frappe.session.user
 
-	check_share_permission(doctype, name)
+	if not (flags or {}).get("ignore_share_permission"):
+		check_share_permission(doctype, name)
 
 	share_name = get_share_name(doctype, name, user, everyone)
 
