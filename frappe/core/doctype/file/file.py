@@ -18,7 +18,7 @@ import json
 class FolderNotEmpty(frappe.ValidationError): pass
 
 class File(NestedSet):
-	nsm_parent_field = 'folder';
+	nsm_parent_field = 'folder'
 	no_feed_on_delete = True
 
 	def before_insert(self):
@@ -60,7 +60,8 @@ class File(NestedSet):
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			self.fize_size = self.get_folder_size()
+			self.file_size = self.get_folder_size()
+			frappe.db.set_value("File", self.name, "file_size", self.file_size)
 
 			for folder in self.get_ancestors():
 				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
@@ -152,6 +153,8 @@ class File(NestedSet):
 		self.check_reference_doc_permission()
 		super(File, self).on_trash()
 		self.delete_file()
+
+	def after_delete(self):
 		self.update_parent_folder_size()
 
 	def check_folder_is_empty(self):

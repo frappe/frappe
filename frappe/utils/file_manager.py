@@ -131,7 +131,6 @@ def get_random_filename(extn=None, content_type=None):
 	return random_string(7) + (extn or "")
 
 def save_file(fname, content, dt, dn, folder=None, decode=False):
-	print [folder]
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
