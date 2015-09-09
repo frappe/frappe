@@ -190,7 +190,7 @@ def flush(from_test=False):
 	# additional check
 	check_bulk_limit([])
 
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
 		from_test = True
 
