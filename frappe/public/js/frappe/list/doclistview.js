@@ -230,9 +230,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
-		$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
-			(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
-		});
+		if(this.listview.settings.list_view_doc) {
+			this.listview.settings.list_view_doc(this);
+		}
+		else{
+			$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
+				(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
+			});
+		}
 
 		if((auto_run !== false) && (auto_run !== 0))
 			this.refresh();

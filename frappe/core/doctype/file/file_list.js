@@ -3,7 +3,7 @@ frappe.provide("frappe.ui");
 frappe.listview_settings['File'] = {
 	hide_name_column: true,
 	use_route: true,
-	add_fields: ["is_folder", "file_name", "file_url"],
+	add_fields: ["is_folder", "file_name", "file_url", "folder"],
 	formatters: {
 		file_size: function(value) {
 			// formatter for file size
@@ -22,7 +22,8 @@ frappe.listview_settings['File'] = {
 		} else if(frappe.utils.is_image_file(data.file_name)) {
 			data._title = '<i class="icon-picture icon-fixed-width"></i> ' + data.file_name;
 		} else {
-			data._title = '<i class="icon-file-alt icon-fixed-width"></i> ' + (data.file_name ? data.file_name : data.file_url);
+			data._title = '<i class="icon-file-alt icon-fixed-width"></i> \
+				' + (data.file_name ? data.file_name : data.file_url);
 		}
 	},
 	onload: function(doclist) {
@@ -33,12 +34,30 @@ frappe.listview_settings['File'] = {
 
 		doclist.listview.settings.setup_new_folder(doclist);
 		doclist.listview.settings.setup_dragdrop(doclist);
+
+		doclist.$page.on("click", ".list-delete", function(event) {
+				doclist.listview.settings.add_menu_item_copy(doclist);
+		})
+	},
+	list_view_doc:function(doclist){
+		alert("test")
+		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
+			dialog = frappe.ui.get_upload_dialog({
+				"args": {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				},
+				callback: function() {
+					doclist.refresh();
+				}
+			});
+		});
 	},
 	setup_new_folder: function(doclist) {
 		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
-					frappe.throw("Folder name should not include / !!!")
+					frappe.throw("Folder name should not include / !!!");
 					return;
 				}
 				var data =  {
