@@ -12,8 +12,10 @@ import frappe, frappe.utils
 from frappe.utils.file_manager import delete_file_data_content
 from frappe import _
 
-from frappe.utils.nestedset import NestedSet, get_successor_of
+from frappe.utils.nestedset import NestedSet
 import json
+
+class FolderNotEmpty(frappe.ValidationError): pass
 
 class File(NestedSet):
 	nsm_parent_field = 'folder';
@@ -155,7 +157,7 @@ class File(NestedSet):
 	def check_folder_is_empty(self):
 		"""Throw exception if folder is not empty"""
 		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}):
-			frappe.throw(_("Folder {0} is not empty").format(self.name))
+			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
 
 	def check_reference_doc_permission(self):
 		"""Check if permission exists for reference document"""

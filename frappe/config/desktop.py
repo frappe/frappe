@@ -45,6 +45,15 @@ def get_data():
 			"link": "List/Note",
 			"type": "list"
 		},
+		"File Manager": {
+			"color": "#95a5a6",
+			"doctype": "File",
+			"icon": "icon-folder-close",
+			"icon": "octicon octicon-file-directory",
+			"label": _("File Manager"),
+			"link": "List/File",
+			"type": "list"
+		},
 		"Website": {
 			"color": "#16a085",
 			"icon": "icon-globe",
