@@ -116,7 +116,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 3, 
- "modified": "2015-02-05 05:11:40.906941", 
+ "modified": "2015-09-07 15:51:26", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Letter Head", 
@@ -144,7 +144,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 1, 
+   "apply_user_permissions": 0, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 

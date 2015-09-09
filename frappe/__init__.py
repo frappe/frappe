@@ -44,7 +44,7 @@ def _(msg):
 		return msg
 
 	from frappe.translate import get_full_dict
-	return get_full_dict(local.lang).get(msg, msg)
+	return get_full_dict(local.lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
@@ -918,6 +918,9 @@ def add_version(doc):
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
+
+def are_emails_muted():
+	return flags.mute_emails or conf.get("mute_emails") or False
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""

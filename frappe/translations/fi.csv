@@ -150,7 +150,7 @@ sites/assets/js/desk.min.js +265,Another transaction is blocking this one. Pleas
 DocType: Property Setter,Field Name,Kentän nimi
 sites/assets/js/desk.min.js +771,or,tai
 sites/assets/js/desk.min.js +925,module name...,moduulin nimi ...
-apps/frappe/frappe/templates/generators/web_form.html +267,Continue,Jatkaa
+apps/frappe/frappe/templates/generators/web_form.html +267,Continue,Jatka
 DocType: Custom Field,Fieldname,Fieldname
 DocType: Workflow State,certificate,todistus
 DocType: User,Tile,Laatta
@@ -497,7 +497,7 @@ DocType: Website Settings,Address and other legal information you may want to pu
 sites/assets/js/list.min.js +104,Starred By Me,Tähdellä By Me
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,Valitse Document Type
 apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,"Voi poistaa {0}, koska se on lapsen solmut"
-apps/frappe/frappe/templates/includes/list/filters.html +19,clear,kirkas
+apps/frappe/frappe/templates/includes/list/filters.html +19,clear,tyhjennä
 apps/frappe/frappe/desk/doctype/event/event.py +28,Every day events should finish on the same day.,Joka päivä tapahtumia pitäisi päättyä samana päivänä.
 DocType: Communication,User Tags,Käyttäjä Tunnisteet
 DocType: Workflow State,download-alt,download-alt
@@ -589,7 +589,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +194,No User R
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,Oletus Saapuneet
 sites/assets/js/desk.min.js +607,Make a new,Tee uusi
 DocType: Print Settings,PDF Page Size,PDF Page Size
-sites/assets/js/desk.min.js +947,About,Noin
+sites/assets/js/desk.min.js +947,About,Tietoa meistä
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.","Päivitykseen, voit päivittää vain valittuja sarakkeita."
 sites/assets/js/desk.min.js +965,Attach Document Print,Liitä Document Tulosta
 DocType: Social Login Keys,Google Client ID,Google Client ID
@@ -605,7 +605,7 @@ DocType: Communication,On,Päällä
 DocType: User,Set New Password,Set New Password
 DocType: User,Github User ID,Github käyttäjätunnus
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,If Document Type,Jos Document Type
-DocType: Communication,Chat,Jutella
+DocType: Communication,Chat,Chat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +230,Fieldname {0} appears multiple times in rows {1},Fieldname {0} ilmestyy useita kertoja riveissä {1}
 DocType: Workflow State,arrow-down,arrow-down
 sites/assets/js/desk.min.js +874,Collapse,Romahdus
@@ -742,7 +742,7 @@ apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed 
 sites/assets/js/form.min.js +182,Updating,Päivittäminen
 sites/assets/js/desk.min.js +965,Select Attachments,Valitse Liitteet
 sites/assets/js/form.min.js +291,Attach File,Liitä tiedosto
-apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Uusi tili on luotu sinulle
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,Sinulle on luotu uusi käyttäjätunnus
 apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Salasana päivitysilmoitus
 DocType: DocPerm,User Permission DocTypes,Käyttäjä Käyttöoikeus doctypes
 sites/assets/js/desk.min.js +641,New Name,Uusi nimi
@@ -1048,7 +1048,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py +61,Append To ca
 DocType: User,Github Username,Github Käyttäjätunnus
 DocType: Web Page,Title / headline of your page,Otsikko / otsikko sivusi
 DocType: DocType,Plugin,Plugin
-sites/assets/js/desk.min.js +977,Add Attachments,Lisää Liitteet
+sites/assets/js/desk.min.js +977,Add Attachments,Lisää liitteitä
 DocType: Workflow State,signal,signaali
 DocType: DocType,Show Print First,Show Tulosta Ensimmäinen
 DocType: Print Settings,Monochrome,Yksivärinen
@@ -1352,7 +1352,7 @@ DocType: Email Account,Port,Portti
 DocType: Print Format,Arial,Arial
 DocType: Website Slideshow,Slideshow like display for the website,Diaesitys kuten näyttö verkkosivuilla
 sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),Centerin (Ctrl / Cmd + E)
-apps/frappe/frappe/sessions.py +28,Cache Cleared,Cache Cleared
+apps/frappe/frappe/sessions.py +28,Cache Cleared,Välimuisti tyhjennetty
 apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,Käyttäjälle System Manager Rooli pitäisi aina olla Käyttäjä Tyyppi: System User
 DocType: DocPerm,Export,Vienti
 DocType: About Us Settings,More content for the bottom of the page.,Enemmän sisältöä sivun alareunassa.

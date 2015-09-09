@@ -15,7 +15,7 @@ def send(email, append_to=None):
 		frappe.flags.sent_mail = email.as_string()
 		return
 
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
 
@@ -81,7 +81,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 	if not email_account and not raise_exception_not_set:
 		return None
 
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+	if frappe.are_emails_muted():
 		# create a stub
 		email_account = frappe.new_doc("Email Account")
 		email_account.update({

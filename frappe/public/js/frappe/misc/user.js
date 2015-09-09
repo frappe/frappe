@@ -62,13 +62,21 @@ frappe.get_gravatar = function(email_id) {
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
-	if(!src) src = frappe.urllib.get_full_url(frappe.boot.default_background_image);
+	if(src) {
+		var background = repl('background: url("%(src)s") center center;', {src: src});
+	} else {
+		var background = "background-color: #4B4C9D;";
+	}
 
 	frappe.dom.set_style(repl('%(selector)s { \
-		background: url("%(src)s") center center;\
+		%(background)s \
 		background-attachment: fixed; \
 		%(style)s \
-	}', {src:src, selector:selector, style: style==="Fill Screen" ? "background-size: cover;" : ""}));
+	}', {
+		selector:selector,
+		background:background,
+		style: style==="Fill Screen" ? "background-size: cover;" : ""
+	}));
 }
 
 frappe.provide('frappe.user');

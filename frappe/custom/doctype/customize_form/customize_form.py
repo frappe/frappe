@@ -38,6 +38,8 @@ class CustomizeForm(Document):
 		'in_filter': 'Check',
 		'in_list_view': 'Check',
 		'hidden': 'Check',
+		'collapsible': 'Check',
+		'collapsible_depends_on': 'Data',
 		'print_hide': 'Check',
 		'report_hide': 'Check',
 		'allow_on_submit': 'Check',

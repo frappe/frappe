@@ -166,6 +166,7 @@ def get_role_permissions(meta, user=None, verbose=False):
 		perms = frappe._dict({ "apply_user_permissions": {}, "user_permission_doctypes": {}, "if_owner": {} })
 		user_roles = frappe.get_roles(user)
 		dont_match = []
+		has_a_role_with_apply_user_permissions = False
 
 		for p in meta.permissions:
 			if cint(p.permlevel)==0 and (p.role in user_roles):
@@ -186,17 +187,19 @@ def get_role_permissions(meta, user=None, verbose=False):
 						dont_match.append(ptype)
 
 				if p.apply_user_permissions:
+					has_a_role_with_apply_user_permissions = True
+
 					if p.user_permission_doctypes:
 						# set user_permission_doctypes in perms
 						user_permission_doctypes = json.loads(p.user_permission_doctypes)
-
-						if user_permission_doctypes:
-							# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
-							for ptype in rights:
-								if p.get(ptype):
-									perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
 					else:
 						user_permission_doctypes = get_linked_doctypes(meta.name)
+
+					if user_permission_doctypes:
+						# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
+						for ptype in rights:
+							if p.get(ptype):
+								perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
 
 		# if atleast one record having both Apply User Permission and If Owner unchecked is found,
 		# don't match for those rights
@@ -210,9 +213,11 @@ def get_role_permissions(meta, user=None, verbose=False):
 
 		# if one row has only "Apply User Permissions" checked and another has only "If Owner" checked,
 		# set Apply User Permissions as checked
-		for ptype in rights:
-			if perms["if_owner"].get(ptype) and perms["apply_user_permissions"].get(ptype)==0:
-				perms["apply_user_permissions"][ptype] = 1
+		# i.e. the case when there is a role with apply_user_permissions as 1, but resultant apply_user_permissions is 0
+		if has_a_role_with_apply_user_permissions:
+			for ptype in rights:
+				if perms["if_owner"].get(ptype) and perms["apply_user_permissions"].get(ptype)==0:
+					perms["apply_user_permissions"][ptype] = 1
 
 		# delete 0 values
 		for key, value in perms.get("apply_user_permissions").items():
@@ -239,8 +244,8 @@ def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=N
 			result = True
 
 			for df in meta.get_fields_to_check_permissions(doctypes):
-				if (df.options in user_permissions and d.get(df.fieldname)
-					and d.get(df.fieldname) not in user_permissions[df.options]):
+				if (d.get(df.fieldname)
+					and d.get(df.fieldname) not in user_permissions.get(df.options, [])):
 					result = False
 
 					if verbose:
@@ -334,13 +339,10 @@ def apply_user_permissions(doctype, ptype, user=None):
 
 def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 	"""returns a list of list like [["User", "Blog Post"], ["User"]]"""
-	if user_permission_doctypes:
+	if cint(frappe.db.get_single_value("System Settings", "ignore_user_permissions_if_missing")):
 		# select those user permission doctypes for which user permissions exist!
 		user_permission_doctypes = [list(set(doctypes).intersection(set(user_permissions.keys())))
 			for doctypes in user_permission_doctypes]
-
-	else:
-		user_permission_doctypes = [user_permissions.keys()]
 
 	if len(user_permission_doctypes) > 1:
 		# OPTIMIZATION

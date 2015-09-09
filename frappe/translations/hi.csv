@@ -225,7 +225,7 @@ DocType: Print Settings,Font Size,फॉन्ट का आकार
 sites/assets/js/desk.min.js +947,Unread Messages,अपठित संदेशों
 DocType: System Settings,Disable Standard Email Footer,मानक ईमेल पाद अक्षम
 DocType: Workflow State,facetime-video,FaceTime वीडियो
-apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,1 टिप्पणी
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164,1 comment,१ टिप्पणी
 DocType: Email Alert,Days Before,एक दिन पहले
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Select a Banner Image first.,पहले एक बैनर छवि का चयन करें.
 DocType: Workflow State,volume-down,मात्रा नीचे
@@ -239,7 +239,7 @@ apps/frappe/frappe/config/setup.py +47,Check which Documents are readable by a U
 DocType: User,Reset Password Key,पासवर्ड को रीसेट
 DocType: Email Account,Enable Auto Reply,ऑटो जवाब सक्षम करें
 apps/frappe/frappe/core/doctype/scheduler_log/scheduler_log_list.js +7,Not Seen,नहीं देखा
-DocType: Workflow State,zoom-in,ज़ूम
+DocType: Workflow State,zoom-in,आकार वर्धन
 apps/frappe/frappe/email/bulk.py +131,Unsubscribe from this list,इस सूची से सदस्यता समाप्त
 apps/frappe/frappe/desk/page/activity/activity.js +153,Sep,सितम्बर
 DocType: DocField,Width,चौडाई
@@ -314,7 +314,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not
 sites/assets/js/desk.min.js +622,Last Updated By,अंतिम बार अद्यतित
 DocType: Website Theme,Background Color,पृष्ठभूमि रंग
 sites/assets/js/desk.min.js +989,There were errors while sending email. Please try again.,ईमेल भेजने के दौरान त्रुटि . पुन: प्रयास करें .
-DocType: Web Page,0 is highest,0 सर्वोच्च है
+DocType: Web Page,0 is highest,० सबसे ज्यादा है
 apps/frappe/frappe/website/doctype/web_form/web_form.py +31,You don't have the permissions to access this document,आप इस दस्तावेज़ का उपयोग करने की अनुमति नहीं है
 DocType: Email Alert,Value Changed,मान बदल गया
 apps/frappe/frappe/model/base_document.py +272,Duplicate name {0} {1},डुप्लिकेट नाम {0} {1}
@@ -715,14 +715,13 @@ DocType: Workflow State,fast-backward,तेजी से पिछड़े
 DocType: DocShare,DocShare,DocShare
 DocType: Report,Add Total Row,कुल पंक्ति जोड़ें
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,आप रद्द करने और INV004 में संशोधन उदाहरण के लिए यदि यह एक नया दस्तावेज़ INV004-1 बन जाएगा। यह आप प्रत्येक संशोधन का ट्रैक रखने में मदद करता है।
-DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ड्राफ्ट; 1 - प्रस्तुत; 2 - रद्द
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,० - ड्राफ्ट; १ - प्रस्तुत; २ - रद्द
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,दिखाएं या छिपाएं मॉड्यूल
 DocType: File Data,Attached To DocType,टैग से जुड़ी
 apps/frappe/frappe/desk/page/activity/activity.js +153,Aug,अगस्त
 DocType: DocField,Int,इंट
 DocType: Currency,"1 Currency = [?] Fraction
-For e.g. 1 USD = 100 Cent","एक मुद्रा = [?] उदाहरण के लिए एक डालर के लिए अंश 
- = 100 प्रतिशत"
+For e.g. 1 USD = 100 Cent","१ मुद्रा = [?] अंश, उदाहरण के लिए  १ डालर = १०० सेन्ट"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +370,Add New Permission Rule,नई अनुमति नियम जोड़ें
 sites/assets/js/desk.min.js +598,You can use wildcard %,आप वाइल्डकार्ड% का उपयोग कर सकते हैं
 apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,मार्च

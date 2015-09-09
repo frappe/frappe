@@ -142,7 +142,7 @@ class DbTable:
 		precisions = {}
 		uniques = {}
 
-		if not frappe.flags.in_install:
+		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)

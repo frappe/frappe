@@ -84,7 +84,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set Import w
 DocType: Comment,Post Topic,Message Sujet
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,Les largeurs peuvent être réglés en px ou%.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Autorisations se appliqués sur les utilisateurs en fonction de ce Rôles ils sont affectés.
-sites/assets/js/desk.min.js +986,You are not allowed to send emails related to this document,Mettez sur le site Web
+sites/assets/js/desk.min.js +986,You are not allowed to send emails related to this document,Vous n'êtes pas autorisé d'envoyer un email en relation avec ce document
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Vous n&#39;êtes pas autorisé à supprimer un site Web thème Standard
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Example,Exemple
 DocType: Workflow State,gift,cadeau
@@ -365,7 +365,7 @@ apps/frappe/frappe/model/document.py +150,No permission to {0} {1} {2},Pas de pe
 apps/frappe/frappe/permissions.py +225,Not allowed to access {0} with {1} = {2},Non autorisé à l'accès {0} avec {1} = {2}
 apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,Regardez cela dans votre navigateur
 DocType: DocType,Search Fields,Champs de recherche
-sites/assets/js/desk.min.js +988,Email sent to {0},entrer une valeur
+sites/assets/js/desk.min.js +988,Email sent to {0},Email envoyé à {0}
 DocType: Event,Event,Événement
 sites/assets/js/desk.min.js +997,"On {0}, {1} wrote:","Sur {0}, {1} a écrit:"
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80,Cannot delete standard field. You can hide it if you want,Vous ne pouvez pas supprimer champ standard. Vous pouvez cacher si vous voulez
@@ -440,7 +440,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These wil
 apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} sur {1}
 DocType: Customize Form,Enter Form Type,Entrez le type de formulaire
 DocType: User,Send Password Update Notification,Envoyer le mot de passe de mise à jour de notification
-apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values","Champ {0} ne peut pas être défini comme unique, comme il ya des valeurs existantes non-uniques"
+apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values",Champ {0} ne peut pas être défini comme unique car il ya des valeurs existantes non-uniques
 sites/assets/js/desk.min.js +1016,Updated To New Version,Mise à jour vers la nouvelle version
 DocType: DocField,Depends On,Dépend de
 DocType: DocPerm,Additional Permissions,autorisations supplémentaires
@@ -647,7 +647,7 @@ DocType: DocField,Mandatory,Obligatoire
 apps/frappe/frappe/core/doctype/doctype/doctype.py +361,{0}: No basic permissions set,{0} : Non autorisations ensemble de base
 apps/frappe/frappe/utils/backups.py +142,Download link for your backup will be emailed on the following email address: {0},Le lien de téléchargement pour votre sauvegarde sera envoyé sur l'adresse email suivante: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Signification de soumettre, annuler, de modifier"
-apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Choses à faire
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Tâche à faire
 sites/assets/js/editor.min.js +94,Paragraph,Paragraphe
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,Toute autorisation existante sera supprimée / écrasée.
 apps/frappe/frappe/desk/doctype/todo/todo.py +17,Assigned to {0}: {1},Assigné à {0}: {1}
@@ -696,7 +696,7 @@ DocType: Communication,Sender,Expéditeur
 DocType: Web Page,Description for search engine optimization.,Description pour l&#39;optimisation des moteurs de recherche.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Télécharger Blank Template
 DocType: DocField,In Filter,Dans filtre
-DocType: Website Theme,Footer Color,Pied de couleur
+DocType: Website Theme,Footer Color,Couleur de pied de page
 DocType: Web Page,"Page to show on the website
 ",Page à afficher sur le site Web
 sites/assets/js/desk.min.js +264,You have been logged out,Vous avez été déconnecté
@@ -1061,7 +1061,7 @@ DocType: Website Theme,Top Bar Text Color,Top Bar couleur du texte
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +367,Remove Section,Retirer Section
 sites/assets/js/desk.min.js +521,Invalid Email: {0},S'il vous plaît entrer le titre !
 apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start,Fin de l'événement doit être après le début
-apps/frappe/frappe/templates/includes/sidebar.html +7,Back,Arrière
+apps/frappe/frappe/templates/includes/sidebar.html +7,Back,Retour
 apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},Vous ne avez pas la permission d'obtenir un rapport sur: {0}
 sites/assets/js/desk.min.js +579,Advanced Search,Recherche avancée
 apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,Instructions de réinitialisation de mot de passe ont été envoyés à votre adresse email
@@ -1072,7 +1072,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18
 apps/frappe/frappe/core/doctype/doctype/doctype.py +36,{0} not allowed in name,{0} n'est pas autorisé dans le nom
 DocType: Workflow State,circle-arrow-left,cercle flèche gauche
 apps/frappe/frappe/sessions.py +109,Redis cache server not running. Please contact Administrator / Tech support,Redis serveur de cache ne fonctionne pas. Se il vous plaît contacter l'administrateur / support technique
-sites/assets/js/desk.min.js +918,Make a new record,Faire un nouveau record
+sites/assets/js/desk.min.js +918,Make a new record,Faire un nouveau enregistrement
 DocType: Currency,Fraction,Fraction
 sites/assets/js/desk.min.js +550,Select from existing attachments,Choisissez parmi les pièces jointes existantes
 DocType: Custom Field,Field Description,Champ Description
@@ -1269,7 +1269,7 @@ DocType: Communication,Content,Teneur
 DocType: Web Form,Go to this url after completing the form.,Aller à cette url après remplir le formulaire.
 DocType: Custom Field,Document,Document
 DocType: DocField,Code,Code
-DocType: Website Theme,Footer Text Color,Pied de la couleur du texte
+DocType: Website Theme,Footer Text Color,Couleur du texte du pied de page
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Autorisations au niveau 0 sont les autorisations de niveau document, ce est à dire qu'ils sont primaires pour l'accès au document."
 DocType: Print Format,Print Format,Format d&#39;impression
 apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,ID de l'utilisateur d'un écrivain blog.
@@ -1303,7 +1303,7 @@ DocType: DocPerm,Role and Level,Rôle et le niveau
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Rapports personnalisés
 DocType: Website Script,Website Script,Script site web
 apps/frappe/frappe/config/setup.py +147,Customized HTML Templates for printing transactions.,Modèles HTML personnalisés pour les opérations d&#39;impression.
-apps/frappe/frappe/desk/form/utils.py +103,No further records,Pas d'autres enregistrements
+apps/frappe/frappe/desk/form/utils.py +103,No further records,Pas d'autres dossier
 DocType: DocField,Long Text,Texte long
 apps/frappe/frappe/core/page/data_import_tool/importer.py +36,Please do not change the rows above {0},S'il vous plaît ne pas modifier les lignes ci-dessus {0}
 sites/assets/js/desk.min.js +947,(Ctrl + G),(Ctrl + G)
@@ -1456,7 +1456,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +153,Nov,Novembre
 apps/frappe/frappe/core/doctype/doctype/doctype.py +256,Max width for type Currency is 100px in row {0},Largeur maximale pour le type devise est 100px en ligne {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,Contenu de page Web.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Ajouter un nouveau rôle
-apps/frappe/frappe/templates/includes/login/login.js +125,Oops! Something went wrong,Oups! Oups. Quelque chose n'as pas fonctionné
+apps/frappe/frappe/templates/includes/login/login.js +125,Oops! Something went wrong,Oups! Oups. Quelque chose a mal tourné
 DocType: Blog Settings,Blog Introduction,Introduction du blog
 DocType: User,Email Settings,Paramètres de messagerie
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} pas un État valide
@@ -1483,7 +1483,7 @@ apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Définir les aut
 DocType: Print Format,Edit Format,Modifier le format
 apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,Terminer l'inscription
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar couleur et la couleur du texte sont les mêmes. Ils devraient être présentent un bon contraste pour être lisible.
-apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),Vous ne pouvez charger jusqu'à 5000 dossiers en une seule fois. (Peut-être moins dans certains cas)
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),Vous pouvez selement charger jusqu'à 5000 dossiers en une seule fois. (Peut-être moins dans certains cas)
 DocType: Print Settings,Print Style,Style d'impression
 DocType: DocPerm,Import,Importer
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +125,Row {0}: Not allowed to enable Allow on Submit for standard fields,Row {0}: Non autorisé pour permettre Autoriser sur Soumettre pour champs standard
