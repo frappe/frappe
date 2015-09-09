@@ -40,7 +40,6 @@ frappe.listview_settings['File'] = {
 		})
 	},
 	list_view_doc:function(doclist){
-		alert("test")
 		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
 			dialog = frappe.ui.get_upload_dialog({
 				"args": {
