@@ -497,7 +497,11 @@ class BaseDocument(object):
 		val = self.get(fieldname)
 		if absolute_value and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
-		return format_value(val, df=df, doc=doc or self, currency=currency)
+
+		if not doc:
+			doc = getattr(self, "parent_doc", None) or self
+
+		return format_value(val, df=df, doc=doc, currency=currency)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
