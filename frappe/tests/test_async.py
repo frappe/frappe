@@ -11,7 +11,7 @@ from frappe.tasks import run_async_task
 
 class TestAsync(unittest.TestCase):
 	def test_response(self):
-		result = run_async_task.delay(frappe.local.site, 'Administrator', 'async_ping',
-			frappe._dict())
+		result = run_async_task.delay(site=frappe.local.site, user='Administrator', cmd='async_ping',
+			form_dict=frappe._dict())
 		result = result.get()
 		self.assertEquals(result.get("message"), "pong")

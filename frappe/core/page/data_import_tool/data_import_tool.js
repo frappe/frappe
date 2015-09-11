@@ -75,20 +75,35 @@ frappe.DataImportTool = Class.extend({
 			onerror: function(r) {
 				me.onerror(r);
 			},
-			start: function() {
+			queued: function() {
+				// async, show queued
+				msg_dialog.clear();
+				msgprint(__("Import Request Queued. This may take a few moments, please be patient."));
+			},
+			running: function() {
+				// update async status as running
+				msg_dialog.clear();
+				msgprint(__("Importing..."));
 				me.write_messages([__("Importing")]);
+				me.has_progress = false;
 			},
 			progress: function(data) {
+				// show callback if async
 				if(data.progress) {
 					frappe.hide_msgprint(true);
-					frappe.show_progress(__("Importing"), data.progress[0], data.progress[1]);
+					me.has_progress = true;
+					frappe.show_progress(__("Importing"), data.progress[0],
+						data.progress[1]);
 				}
 			},
 			callback: function(attachment, r) {
 				if(r.message.error) {
 					me.onerror(r);
 				} else {
-					frappe.show_progress(__("Importing"), 1, 1);
+					if(me.has_progress) {
+						frappe.show_progress(__("Importing"), 1, 1);
+						setTimeout(frappe.hide_progress, 1000);
+					}
 
 					r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
 						concat(r.message.messages)
@@ -97,6 +112,15 @@ frappe.DataImportTool = Class.extend({
 				}
 			}
 		});
+
+		frappe.realtime.on("data_import_progress", function(data) {
+			if(data.progress) {
+				frappe.hide_msgprint(true);
+				me.has_progress = true;
+				frappe.show_progress(__("Importing"), data.progress[0],
+					data.progress[1]);
+			}
+		})
 
 	},
 	write_messages: function(data) {

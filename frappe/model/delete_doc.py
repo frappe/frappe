@@ -85,7 +85,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		if doc:
 			try:
-				doc.notify_modified()
+				doc.notify_update()
 				insert_feed(doc)
 			except ImportError:
 				pass

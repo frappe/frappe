@@ -32,6 +32,10 @@ frappe.call = function(opts) {
 		if(data.task_id) {
 			// async call, subscribe
 			frappe.socket.subscribe(data.task_id, opts);
+
+			if(opts.queued) {
+				opts.queued(data);
+			}
 		}
 		else if (opts.callback) {
 			// ajax

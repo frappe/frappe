@@ -167,7 +167,7 @@ class Document(BaseDocument):
 
 		self.check_permission("create")
 		self._set_defaults()
-		self._set_docstatus_user_and_timestamp()
+		self.set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.run_method("before_insert")
 		self.set_new_name()
@@ -218,7 +218,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		self._set_docstatus_user_and_timestamp()
+		self.set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
@@ -298,7 +298,7 @@ class Document(BaseDocument):
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
 
-	def _set_docstatus_user_and_timestamp(self):
+	def set_docstatus_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
@@ -599,11 +599,11 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		frappe.cache().hdel("last_modified", self.doctype)
-		self.notify_modified()
+		self.notify_update()
 
 		self.latest = None
 
-	def notify_modified(self):
+	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name)
