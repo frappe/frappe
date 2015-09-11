@@ -546,11 +546,11 @@ fieldset {
   padding-bottom: 15px;
 }
 .website-list .result {
-  border: 1px solid #d1d8dd;
+  margin-top: 60px;
 }
 .web-list-item {
-  padding: 10px;
-  border-bottom: 1px solid #d1d8dd;
+  padding: 15px 0px;
+  border-bottom: 1px solid #ebeff2;
 }
 .web-list-item h1,
 .web-list-item h2,
@@ -565,9 +565,6 @@ fieldset {
 .web-list-item h6 a {
   color: inherit !important;
   text-decoration: none;
-}
-.web-list-item:hover {
-  background: #f7fafc;
 }
 .web-list-item:last-child {
   border-bottom: none;
