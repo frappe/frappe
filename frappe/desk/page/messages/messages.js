@@ -41,6 +41,7 @@ frappe.desk.pages.Messages = Class.extend({
 	},
 
 	setup_realtime: function() {
+		var me = this;
     	frappe.realtime.on('new_message', function(comment) {
 			if(comment.modified_by !== user) {
 	    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
@@ -48,14 +49,18 @@ frappe.desk.pages.Messages = Class.extend({
     		if (frappe.get_route()[0] === 'messages') {
     			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
     			var on_broadcast_page = current_contact === user;
-    			if (current_contact == comment.owner || (on_broadcast_page && comment.broadcast)) {
-    				var $row = $('<div class="list-row"/>');
-    				frappe.desk.pages.messages.list.data.unshift(comment);
-    				frappe.desk.pages.messages.list.render_row($row, comment);
-    				frappe.desk.pages.messages.list.parent.prepend($row);
+    			if ((current_contact == comment.owner) || (on_broadcast_page && comment.broadcast)) {
+    				me.prepend_comment(comment);
     			}
     		}
     	});
+	},
+
+	prepend_comment: function(comment) {
+		var $row = $('<div class="list-row"/>');
+		frappe.desk.pages.messages.list.data.unshift(comment);
+		frappe.desk.pages.messages.list.render_row($row, comment);
+		frappe.desk.pages.messages.list.$w.prepend($row);
 	},
 
 	make_sidebar: function() {
@@ -124,7 +129,9 @@ frappe.desk.pages.Messages = Class.extend({
 					},
 					callback:function(r,rt) {
 						textarea.val('');
-						me.list.run();
+						if (!r.exc) {
+							me.prepend_comment(r.message);
+						}
 					},
 					btn: this
 				});

@@ -145,6 +145,7 @@ def emit_via_redis(event, message, room):
 	try:
 		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
+		# print frappe.get_traceback()
 		pass
 
 def put_log(line_no, line, task_id=None):
