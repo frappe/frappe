@@ -201,56 +201,88 @@ class DatabaseQuery(object):
 		"""build conditions from user filters"""
 		if isinstance(filters, dict):
 			filters = [filters]
+
 		for f in filters:
 			if isinstance(f, basestring):
 				conditions.append(f)
 			else:
-				f = self.get_filter_tuple(f)
+				conditions.append(self.prepare_filter_condition(f))
 
-				tname = ('`tab' + f[0] + '`')
-				if not tname in self.tables:
-					self.append_table(tname)
+	def prepare_filter_condition(self, f):
+		"""Returns a filter condition in the format:
 
-				# prepare in condition
-				if f[2] in ['in', 'not in']:
-					opts = f[3]
-					if not isinstance(opts, (list, tuple)):
-						opts = f[3].split(",")
-					opts = [frappe.db.escape(t.strip()) for t in opts]
-					f[3] = '("{0}")'.format('", "'.join(opts))
-					conditions.append('ifnull({tname}.{fname}, "") {operator} {value}'.format(
-						tname=tname, fname=f[1], operator=f[2], value=f[3]))
-				else:
-					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
-					df = df[0] if df else None
+				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
+		"""
 
-					if df and df.fieldtype=="Date":
-						value, default_val = '"{0}"'.format(frappe.db.escape(getdate(f[3]).strftime("%Y-%m-%d"))), \
-							"'0000-00-00'"
+		f = self.get_filter(f)
 
-					elif df and df.fieldtype=="Datetime":
-						value, default_val = '"{0}"'.format(frappe.db.escape(get_datetime(f[3]).strftime("%Y-%m-%d %H:%M:%S.%f"))), \
-							"'0000-00-00 00:00:00'"
+		tname = ('`tab' + f.doctype + '`')
+		if not tname in self.tables:
+			self.append_table(tname)
 
-					elif df and df.fieldtype=="Time":
-						value, default_val = '"{0}"'.format(frappe.db.escape(get_time(f[3]).strftime("%H:%M:%S.%f"))), \
-							"'00:00:00'"
+		# prepare in condition
+		if f.operator in ('in', 'not in'):
+			values = f.value
+			if not isinstance(values, (list, tuple)):
+				values = values.split(",")
 
-					elif f[2] == "like" or (isinstance(f[3], basestring) and
-						(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-							if f[2] == "like" and isinstance(f[3], basestring):
-								# because "like" uses backslash (\) for escaping
-								f[3] = f[3].replace("\\", "\\\\")
+			values = (frappe.db.escape(v.strip()) for v in values)
+			values = '("{0}")'.format('", "'.join(values))
 
-							value, default_val = '"{0}"'.format(frappe.db.escape(f[3])), '""'
-					else:
-						value, default_val = flt(f[3]), 0
+			condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
+				tname=tname, fname=f.fieldname, operator=f.operator, value=values)
 
-					conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
-						tname=tname, fname=f[1], default_val=default_val, operator=f[2],
-						value=value))
+		else:
+			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
+			df = df[0] if df else None
 
-	def get_filter_tuple(self, f):
+			if df and df.fieldtype=="Date":
+				value = getdate(f.value).strftime("%Y-%m-%d")
+				fallback = "'0000-00-00'"
+
+			elif df and df.fieldtype=="Datetime":
+				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
+				fallback = "'0000-00-00 00:00:00'"
+
+			elif df and df.fieldtype=="Time":
+				value = get_time(f.value).strftime("%H:%M:%S.%f")
+				fallback = "'00:00:00'"
+
+			elif f.operator == "like" or (isinstance(f.value, basestring) and
+				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
+					value = f.value
+					fallback = '""'
+
+					if f.operator == "like" and isinstance(value, basestring):
+						# because "like" uses backslash (\) for escaping
+						value = value.replace("\\", "\\\\")
+
+			else:
+				value = flt(f.value)
+				fallback = 0
+
+			# put it inside double quotes
+			if isinstance(value, basestring):
+				value = '"{0}"'.format(frappe.db.escape(value))
+
+			condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
+				tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
+				value=value)
+
+		# replace % with %% to prevent python format string error
+		return condition.replace("%", "%%")
+
+	def get_filter(self, f):
+		"""Returns a _dict like
+
+			{
+				"doctype": "DocType",
+				"fieldname": "fieldname",
+				"operator": "=",
+				"value": "value"
+			}
+
+		"""
 		if isinstance(f, dict):
 			key, value = f.items()[0]
 			f = self.make_filter_tuple(key, value)
@@ -262,9 +294,14 @@ class DatabaseQuery(object):
 			f = (self.doctype, f[0], f[1], f[2])
 
 		elif len(f) != 4:
-			frappe.throw("Filter must have 4 values (doctype, fieldname, condition, value): " + str(f))
+			frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): " + str(f))
 
-		return list(f)
+		return frappe._dict({
+			"doctype": f[0],
+			"fieldname": f[1],
+			"operator": f[2],
+			"value": f[3]
+		})
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
@@ -313,7 +350,8 @@ class DatabaseQuery(object):
 				conditions =  "({conditions}) or ({shared_condition})".format(
 					conditions=conditions, shared_condition=self.get_share_condition())
 
-			return conditions
+			# replace % with %% to prevent python format string error
+			return conditions.replace("%", "%%")
 
 		else:
 			return self.match_filters
