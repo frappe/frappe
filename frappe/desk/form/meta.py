@@ -124,7 +124,11 @@ class FormMeta(Meta):
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
 			if df.options:
-				df.linked_document_type = frappe.get_meta(df.options).document_type
+				try:
+					df.linked_document_type = frappe.get_meta(df.options).document_type
+				except frappe.DoesNotExistError:
+					# edge case where options="[Select]"
+					pass
 
 	def add_linked_with(self):
 		"""add list of doctypes this doctype is 'linked' with.
