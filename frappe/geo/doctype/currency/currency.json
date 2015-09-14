@@ -8,6 +8,7 @@
  "description": "**Currency** Master", 
  "docstatus": 0, 
  "doctype": "DocType", 
+ "document_type": "Setup", 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -152,7 +153,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-07 15:51:26", 
+ "modified": "2015-09-14 03:17:04.837607", 
  "modified_by": "Administrator", 
  "module": "Geo", 
  "name": "Currency", 
