@@ -313,12 +313,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		if(this.only_input || this.df.label==this._label)
 			return;
 
-		// var icon = frappe.ui.form.fieldtype_icons[this.df.fieldtype];
-		// if(this.df.fieldtype==="Link") {
-		// 	icon = frappe.boot.doctype_icons[this.df.options];
-		// } else if(this.df.link_doctype) {
-		// 	icon = frappe.boot.doctype_icons[this.df.link_doctype];
-		// }
 		var icon = "";
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") +
 			__(this.df.label)  || "&nbsp;";
