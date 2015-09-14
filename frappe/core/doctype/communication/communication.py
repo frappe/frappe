@@ -33,6 +33,16 @@ class Communication(Document):
 			else:
 				self.status = "Open"
 
+	def after_insert(self):
+		# send new comment to listening clients
+		comment = self.as_dict()
+		comment["comment"] = comment["content"]
+		comment["comment_by"] = comment["sender"]
+		comment["comment_type"] = comment["communication_medium"]
+
+		frappe.publish_realtime('new_comment', comment, doctype = self.reference_doctype,
+			docname = self.reference_name)
+
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
 		self.update_parent()
@@ -49,7 +59,7 @@ class Communication(Document):
 			to_status = "Open" if self.sent_or_received=="Received" else "Replied"
 
 			if to_status in status_field.options.splitlines():
-				frappe.db.set_value(parent.doctype, parent.name, "status", to_status)
+				parent.db_set("status", to_status)
 
 		parent.notify_update()
 

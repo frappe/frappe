@@ -72,6 +72,10 @@ io.on('connection', function(socket){
 			})
 			.end(function(err, res) {
 				if(err) console.log(err);
+				if(!res) {
+					console.log("No response for doc_subscribe");
+					return;
+				}
 				if(res.status == 200) {
 					var room = get_doc_room(socket, doctype, docname);
 					// console.log('joining', room)

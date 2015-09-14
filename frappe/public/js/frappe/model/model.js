@@ -154,10 +154,11 @@ $.extend(frappe.model, {
 	},
 
 	new_comment: function(comment) {
-		if (frappe.model.docinfo[comment.comment_doctype]
-				&& frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
-			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments;
+		var reference_doctype = comment.comment_doctype || comment.reference_doctype;
+		var reference_name = comment.comment_docname || comment.reference_name;
 
+		if (frappe.model.docinfo[reference_doctype] && frappe.model.docinfo[reference_doctype][reference_name]) {
+			var comments = frappe.model.docinfo[reference_doctype][reference_name].comments;
 			var comment_exists = false;
 			for (var i=0, l=comments.length; i<l; i++) {
 				if (comments[i].name==comment.name) {
@@ -165,12 +166,13 @@ $.extend(frappe.model, {
 					break;
 				}
 			}
+
 			if (!comment_exists) {
-				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
+				 frappe.model.docinfo[reference_doctype][reference_name].comments = comments.concat([comment]);
 			}
 		}
-		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
-				cur_frm.comments.refresh();
+		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
+			cur_frm.comments.refresh();
 		}
 	},
 
