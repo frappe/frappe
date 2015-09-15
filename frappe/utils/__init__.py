@@ -9,7 +9,6 @@ import os, sys, re, urllib
 import frappe
 import requests
 
-
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 
@@ -88,6 +87,15 @@ def validate_email_add(email_str, throw=False):
 			frappe.InvalidEmailAddressError)
 
 	return matched
+
+def split_emails(txt):
+	email_list = []
+	for email in re.split(''',(?=(?:[^"]|"[^"]*")*$)''', cstr(txt)):
+		email = strip(cstr(email))
+		if email:
+			email_list.append(email)
+
+	return email_list
 
 def random_string(length):
 	"""generate a random string"""

@@ -43,6 +43,9 @@ frappe.utils = {
 		});
 		return out.join(newline);
 	},
+	escape_html: function(txt) {
+		return $("<div></div>").text(txt || "").html();
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'

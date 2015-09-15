@@ -185,7 +185,8 @@ def run_async_task(self, site=None, user=None, cmd=None, form_dict=None, hijack_
 
 
 @celery_task()
-def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
+def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None,
+	recipients=None, cc=None):
 	try:
 		frappe.connect(site=site)
 
@@ -193,7 +194,8 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
-				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments, recipients=recipients, except_recipient=except_recipient)
+				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
+					recipients=recipients, cc=cc)
 			except MySQLdb.OperationalError, e:
 				# deadlock, try again
 				if e.args[0]==1213:
