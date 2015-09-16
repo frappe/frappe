@@ -78,12 +78,23 @@ frappe.ui.form.ScriptManager = Class.extend({
 			var tmp = eval(cs);
 		}
 
-		// setup add fetch
-		$.each(this.frm.fields, function(i, field) {
-			var df = field.df;
-			if((df.fieldtype==="Read Only" || df.read_only==1) && df.options && df.options.indexOf(".")!=-1) {
+		function setup_add_fetch(df) {
+			if(df.fieldname==="size")
+			console.log(df.fieldname);
+			if((df.fieldtype==="Read Only" || df.read_only==1)
+				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
+			}
+		}
+
+		// setup add fetch
+		$.each(this.frm.fields, function(i, field) {
+			setup_add_fetch(field.df);
+			if(field.df.fieldtype==="Table") {
+				$.each(frappe.meta.get_docfields(field.df.options, me.frm.docname), function(i, df) {
+					setup_add_fetch(df);
+				});
 			}
 		});
 
