@@ -774,7 +774,7 @@ apps/frappe/frappe/model/base_document.py +403,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,Nova zaporka poslana mailom
 apps/frappe/frappe/auth.py +209,Login not allowed at this time,Prijava nije dopuštena u ovom trenutku
 DocType: DocType,Permissions Settings,Postavke ovlasti
-sites/assets/js/desk.min.js +931,{0} List,{0} List
+sites/assets/js/desk.min.js +931,{0} List,{0} lista
 apps/frappe/frappe/desk/form/assign_to.py +39,Already in user's To Do list,Već u user -a Da li popis
 DocType: Email Account,Enable Outgoing,Omogući odlazni
 DocType: System Settings,Email Footer Address,E-mail adresa podnožje
@@ -869,7 +869,7 @@ apps/frappe/frappe/model/document.py +414,Cannot change docstatus from 0 to 2,Ne
 apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Options must be a valid DocType for field {0} in row {1},Opcije mora bitivaljana DOCTYPE za polje {0} je u redu {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Uredi Nekretnine
 DocType: Patch Log,List of patches executed,Popis izvršenih zakrpa
-DocType: Communication,Communication Medium,Komunikacija srednje
+DocType: Communication,Communication Medium,Komunikacijski medij
 DocType: Website Settings,Banner HTML,HTML baner
 apps/frappe/frappe/model/base_document.py +407,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} Ne može biti ""{2}"". To bi trebao biti jedan od ""{3}"""
 apps/frappe/frappe/utils/data.py +486,{0} or {1},{0} ili {1}
