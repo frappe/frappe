@@ -33,6 +33,7 @@ class FormMeta(Meta):
 
 	def load_assets(self):
 		self.add_search_fields()
+		self.add_linked_document_type()
 
 		if not self.istable:
 			self.add_linked_with()
@@ -49,7 +50,7 @@ class FormMeta(Meta):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
-			for k in ("link_doctype", "search_fields", "is_custom_field"):
+			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)
 
 		return d
@@ -119,6 +120,15 @@ class FormMeta(Meta):
 				search_fields = frappe.get_meta(df.options).search_fields
 				if search_fields:
 					df.search_fields = map(lambda sf: sf.strip(), search_fields.split(","))
+
+	def add_linked_document_type(self):
+		for df in self.get("fields", {"fieldtype": "Link"}):
+			if df.options:
+				try:
+					df.linked_document_type = frappe.get_meta(df.options).document_type
+				except frappe.DoesNotExistError:
+					# edge case where options="[Select]"
+					pass
 
 	def add_linked_with(self):
 		"""add list of doctypes this doctype is 'linked' with.

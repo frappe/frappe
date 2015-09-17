@@ -309,7 +309,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), message_id=None, as_bulk=False, send_after=None):
+		cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -327,6 +327,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param reply_to: Reply-To email id.
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param send_after: Send after the given datetime.
+	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	"""
 
 	if bulk or as_bulk:
@@ -335,7 +336,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, send_after=send_after)
+			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, send_after=send_after,
+			expose_recipients=expose_recipients)
 	else:
 		import frappe.email
 		if as_markdown:

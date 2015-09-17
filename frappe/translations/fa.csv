@@ -284,7 +284,7 @@ DocType: Website Theme,Google Font (Text),گوگل قلم (متن)
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,آیا حذف کنید
 DocType: Report,Query,پرس و جو
 DocType: DocType,Sort Order,ترتیب
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},'نمایش لیستی'  برای نوع {0} در ردیف مجاز {1} نیست
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130,'In List View' not allowed for type {0} in row {1},'نمایش لیستی'  برای نوع {0} در ردیف {1} مجاز نیست
 DocType: Custom Field,Select the label after which you want to insert new field.,برچسب و پس از آن شما می خواهید برای وارد کردن زمینه های جدید را انتخاب کنید.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),صدای جیر جیر از طریق حساب کاربری خود را به اشتراک گذاشته (اگر مشخص شده)
 ,Document Share Report,سند اشتراک گزارش
@@ -1189,7 +1189,7 @@ sites/assets/js/editor.min.js +128,Horizontal Line Break,خط افقی
 DocType: Top Bar Item,Right,راست
 DocType: User,User Type,نوع کاربر
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,انتخاب کاربر
-DocType: Communication,Keep a track of all communications,حفظ سابقه از تمام ارتباطات
+DocType: Communication,Keep a track of all communications,حفظ سابقه ی تمام ارتباطات
 apps/frappe/frappe/desk/form/save.py +30,Did not save,نجات نداد
 DocType: Property Setter,Property,خاصیت
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",توجه: برای بهترین نتایج، تصاویر باید از همان اندازه است و عرض باید بیشتر از ارتفاع باشد.

@@ -82,8 +82,10 @@ $.extend(frappe.model, {
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
-			// 1 - look in user permissions
-			if (has_user_permissions && user_permissions[df.options].length===1) {
+			// 1 - look in user permissions for document_type=="Setup".
+			// We don't want to include permissions of transactions to be used for defaults.
+			if (df.linked_document_type==="Setup"
+				&& has_user_permissions && user_permissions[df.options].length===1) {
 				return user_permissions[df.options][0];
 			}
 

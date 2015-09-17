@@ -137,7 +137,7 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					communication.notify(attachments=communication._attachments, except_recipient=True)
+					communication.notify(attachments=communication._attachments, fetched_from_email_account=True)
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
@@ -158,6 +158,7 @@ class EmailAccount(Document):
 			"sender_full_name": email.from_real_name,
 			"sender": email.from_email,
 			"recipients": email.mail.get("To"),
+			"cc": email.mail.get("CC"),
 			"email_account": self.name,
 			"communication_medium": "Email"
 		})
@@ -207,6 +208,9 @@ class EmailAccount(Document):
 
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)
+
+					# set in_reply_to of current communication
+					communication.in_reply_to = in_reply_to
 
 					if parent.reference_name:
 						parent = frappe.get_doc(parent.reference_doctype,

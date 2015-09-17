@@ -193,6 +193,29 @@ $.extend(frappe.user, {
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	},
+
+	get_formatted_email: function(email) {
+		var fullname = frappe.user.full_name(email);
+
+		if (!fullname) {
+			return email;
+		} else {
+			// to quote or to not
+			var quote = '';
+
+			// only if these special characters are found
+			// why? To make the output same as that in python!
+			if (fullname.search(/[\[\]\\()<>@,:;".]/) !== -1) {
+				quote = '"';
+			}
+
+			return repl('%(quote)s%(fullname)s%(quote)s <%(email)s>', {
+				fullname: fullname,
+				email: email,
+				quote: quote
+			});
+		}
+	}
 });
 
 frappe.session_alive = true;

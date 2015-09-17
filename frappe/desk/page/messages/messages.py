@@ -89,6 +89,8 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 		else:
 			_notify(contact, txt, subject)
 
+	return d
+
 @frappe.whitelist()
 def delete(arg=None):
 	frappe.get_doc("Comment", frappe.form_dict['name']).delete()

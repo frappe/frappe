@@ -62,7 +62,6 @@ def sync_worker(app, worker, prefix=''):
 				'queue': queue
 		}, reply=True, destination=[worker])
 
-
 def get_active_queues(app, worker):
 	active_queues = app.control.inspect().active_queues()
 	if not (active_queues and active_queues.get(worker)):
@@ -137,15 +136,17 @@ def pull_from_email_account(site, email_account):
 		frappe.destroy()
 
 @celery_task(bind=True)
-def run_async_task(self, site, user, cmd, form_dict):
+def run_async_task(self, site=None, user=None, cmd=None, form_dict=None, hijack_std=False):
 	ret = {}
 	frappe.init(site)
 	frappe.connect()
 
-	original_stdout, original_stderr = sys.stdout, sys.stderr
-	sys.stdout, sys.stderr = get_std_streams(self.request.id)
-	frappe.local.stdout, frappe.local.stderr = sys.stdout, sys.stderr
 	frappe.local.task_id = self.request.id
+
+	if hijack_std:
+		original_stdout, original_stderr = sys.stdout, sys.stderr
+		sys.stdout, sys.stderr = get_std_streams(self.request.id)
+		frappe.local.stdout, frappe.local.stderr = sys.stdout, sys.stderr
 
 	try:
 		set_task_status(self.request.id, "Running")
@@ -163,27 +164,29 @@ def run_async_task(self, site, user, cmd, form_dict):
 		ret['status_code'] = http_status_code
 		frappe.errprint(frappe.get_traceback())
 		frappe.utils.response.make_logs()
-		set_task_status(self.request.id, "Failed", response=ret)
+		set_task_status(self.request.id, "Error", response=ret)
 		task_logger.error('Exception in running {}: {}'.format(cmd, ret['exc']))
 	else:
-		set_task_status(self.request.id, "Finished", response=ret)
+		set_task_status(self.request.id, "Success", response=ret)
 		if not frappe.flags.in_test:
 			frappe.db.commit()
 	finally:
-		sys.stdout.write('\n' + END_LINE)
-		sys.stderr.write('\n' + END_LINE)
 		if not frappe.flags.in_test:
 			frappe.destroy()
-		sys.stdout.close()
-		sys.stderr.close()
+		if hijack_std:
+			sys.stdout.write('\n' + END_LINE)
+			sys.stderr.write('\n' + END_LINE)
+			sys.stdout.close()
+			sys.stderr.close()
 
-		sys.stdout, sys.stderr = original_stdout, original_stderr
+			sys.stdout, sys.stderr = original_stdout, original_stderr
 
 	return ret
 
 
 @celery_task()
-def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None, recipients=None, except_recipient=False):
+def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None,
+	recipients=None, cc=None):
 	try:
 		frappe.connect(site=site)
 
@@ -191,7 +194,8 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
-				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments, recipients=recipients, except_recipient=except_recipient)
+				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
+					recipients=recipients, cc=cc)
 			except MySQLdb.OperationalError, e:
 				# deadlock, try again
 				if e.args[0]==1213:

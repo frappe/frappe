@@ -2,12 +2,17 @@
 // MIT License. See license.txt
 
 frappe.ui.is_starred = function(doc) {
+	var starred = frappe.ui.get_starred_by(doc);
+	return starred.indexOf(user)===-1 ? false : true;
+}
+
+frappe.ui.get_starred_by = function(doc) {
 	var starred = doc._starred_by;
 	if(starred) {
 		starred = JSON.parse(starred);
-		return starred.indexOf(user)===-1 ? false : true;
 	}
-	return false;
+
+	return starred || [];
 }
 
 frappe.ui.toggle_star = function($btn, doctype, name) {
