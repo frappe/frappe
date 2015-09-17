@@ -608,7 +608,7 @@ DocType: User,Github User ID,Github ID utilisateur
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246,If Document Type,Si Type de document
 DocType: Communication,Chat,Chat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +230,Fieldname {0} appears multiple times in rows {1},Fieldname {0} apparaît plusieurs fois dans les lignes {1}
-DocType: Workflow State,arrow-down,arrow-down
+DocType: Workflow State,arrow-down,flèche bas
 sites/assets/js/desk.min.js +874,Collapse,Plier
 apps/frappe/frappe/model/delete_doc.py +131,User not allowed to delete {0}: {1},Utilisateur non autorisé à supprimer {0}: {1}
 DocType: Website Settings,Linked In Share,Linked In Partager
@@ -865,7 +865,7 @@ apps/frappe/frappe/model/rename_doc.py +91,"{0} {1} does not exist, select a new
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Vous ne pouvez pas définir des autorisations pour DocType : {0} et Nom : {1}
 DocType: Comment,Comment Doctype,Commentaire Doctype
 sites/assets/js/desk.min.js +257,Verify Password,Vérifier Le Mot De Passe
-apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Poster existe déjà . Vous ne pouvez pas ajouter de nouveau !
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Il y avait des erreurs
 apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,Fermer
 apps/frappe/frappe/model/document.py +414,Cannot change docstatus from 0 to 2,Vous ne pouvez pas changer docstatus 0-2
 apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Options must be a valid DocType for field {0} in row {1},Les options doivent être un DOCTYPE valide pour le champ {0} à la ligne {1}
@@ -1180,7 +1180,7 @@ DocType: Block Module,Core,Noyau
 DocType: DocField,Set non-standard precision for a Float or Currency field,Définir la précision non standard pour un champ de flotteur ou Devise
 DocType: Email Account,Ignore attachments over this size,Ignorer les pièces jointes plus de cette taille
 apps/frappe/frappe/database.py +217,Too many writes in one request. Please send smaller requests,Trop écrit en une seule requête . S'il vous plaît envoyer des demandes plus petites
-DocType: Workflow State,arrow-up,arrow-up
+DocType: Workflow State,arrow-up,flèche-haut
 DocType: DocField,Allow on Submit,Permettre de Soumettre
 apps/frappe/frappe/core/page/desktop/desktop.js +48,All Applications,Toutes les applications
 DocType: Web Page,Add code as &lt;script&gt;,Ajoutez le code en tant que &lt;script&gt;
@@ -1228,7 +1228,7 @@ DocType: Workflow State,play-circle,play-cercle
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,Sélectionnez Format d'impression à Modifier
 DocType: Workflow State,circle-arrow-down,cercle flèche vers le bas
 DocType: DocField,Datetime,Datetime
-DocType: Workflow State,arrow-right,arrow-right
+DocType: Workflow State,arrow-right,flèche-droite
 DocType: Workflow State,Workflow state represents the current state of a document.,État Workflow représente l'état actuel d'un document.
 sites/assets/js/editor.min.js +152,Open Link in a new Window,Ouvrir le lien dans une nouvelle fenêtre
 apps/frappe/frappe/utils/file_manager.py +235,Removed {0},Suppression de {0}
@@ -1384,7 +1384,7 @@ DocType: DocType,Custom?,Custom?
 DocType: Website Settings,Website Theme Image,Thème site image
 DocType: Workflow State,road,route
 DocType: User,Timezone,Fuseau horaire
-sites/assets/js/desk.min.js +624,Unable to load: {0},Vous n'êtes pas autorisé à imprimer ce document
+sites/assets/js/desk.min.js +624,Unable to load: {0},Incapable de charger: {0} 
 DocType: DocField,Read Only,Lecture seule
 DocType: Print Settings,Send Print as PDF,Envoyer Imprimer en PDF
 DocType: Workflow Transition,Allowed,Authorisé
@@ -1446,7 +1446,7 @@ DocType: Custom Field,Insert After,Insérer après
 DocType: Social Login Keys,GitHub Client Secret,GitHub client secret
 DocType: Report,Report Name,Nom du rapport
 DocType: Email Alert,Save,Enregistrer
-DocType: Website Settings,Title Prefix,Title Prefix
+DocType: Website Settings,Title Prefix,Préfixe de titre
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,Notifications et mails en vrac seront envoyés à partir de ce serveur sortant.
 DocType: Workflow State,cog,dent
 sites/assets/js/desk.min.js +608,{0} added,{0} ajoutée
