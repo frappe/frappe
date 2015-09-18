@@ -19,9 +19,13 @@ def get_context(context):
 
 	hooks = frappe.get_hooks()
 	boot = frappe.sessions.get()
-	boot_json = frappe.as_json(boot)
+
+	# this needs commit
+	boot["csrf_token"] = frappe.sessions.get_csrf_token()
 
 	frappe.db.commit()
+
+	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)

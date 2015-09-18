@@ -62,9 +62,6 @@ frappe.call = function(opts) {
 frappe.request.call = function(opts) {
 	frappe.request.prepare(opts);
 
-	// all requests will be post, set _type as POST for commit
-	opts.args._type = opts.type;
-
 	var statusCode = {
 		200: function(data, xhr) {
 			if(typeof data === "string") data = JSON.parse(data);
@@ -121,9 +118,10 @@ frappe.request.call = function(opts) {
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
-		type: 'POST',
+		type: opts.type,
 		dataType: opts.dataType || 'json',
-		async: opts.async
+		async: opts.async,
+		headers: { "X-Frappe-CSRF-Token": frappe.boot.csrf_token }
 	};
 
 	frappe.last_request = ajax_args.data;

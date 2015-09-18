@@ -66,11 +66,6 @@ $.extend(frappe, {
 
 		if(!opts.args) opts.args = {};
 
-		// get or post?
-		if(!opts.args._type) {
-			opts.args._type = opts.type || "GET";
-		}
-
 		// method
 		if(opts.method) {
 			opts.args.cmd = opts.method;

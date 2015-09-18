@@ -35,6 +35,9 @@ class UnsupportedMediaType(Exception):
 class Redirect(Exception):
 	http_status_code = 301
 
+class CSRFTokenError(Exception):
+	http_status_code = 400
+
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass

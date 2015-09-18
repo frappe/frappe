@@ -66,7 +66,6 @@ db = local("db")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
-request_method = local("request_method")
 response = local("response")
 session = local("session")
 user = local("user")
@@ -109,7 +108,6 @@ def init(site, sites_path=None):
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
 
-	local.request_method = request.method if request else None
 	local.request_ip = None
 	local.response = _dict({"docs":[]})
 	local.task_id = None

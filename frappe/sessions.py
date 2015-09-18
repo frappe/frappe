@@ -68,6 +68,7 @@ def delete_session(sid=None, user=None):
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+	frappe.db.commit()
 
 def clear_all_sessions():
 	"""This effectively logs out all users"""
@@ -127,7 +128,18 @@ def get():
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["dev_server"] = os.environ.get('DEV_SERVER', False)
 	bootinfo["disable_async"] = frappe.conf.disable_async
+
 	return bootinfo
+
+def get_csrf_token():
+	if not frappe.local.session.data.csrf_token:
+		generate_csrf_token()
+
+	return frappe.local.session.data.csrf_token
+
+def generate_csrf_token():
+	frappe.local.session.data.csrf_token = frappe.generate_hash()
+	frappe.local.session_obj.update(force=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -145,6 +157,7 @@ class Session:
 
 		if resume:
 			self.resume()
+
 		else:
 			if self.user:
 				self.start()
@@ -168,7 +181,7 @@ class Session:
 				"full_name": self.full_name,
 				"user_type": self.user_type,
 				"device": self.device,
-				"session_country": get_geo_ip_country(frappe.local.request_ip) if frappe.local.request_ip else None
+				"session_country": get_geo_ip_country(frappe.local.request_ip) if frappe.local.request_ip else None,
 			})
 
 		# insert session
@@ -178,6 +191,7 @@ class Session:
 			# update user
 			frappe.db.sql("""UPDATE tabUser SET last_login = %s, last_ip = %s
 				where name=%s""", (frappe.utils.now(), frappe.local.request_ip, self.data['user']))
+
 			frappe.db.commit()
 
 	def insert_session_record(self):
@@ -194,10 +208,12 @@ class Session:
 		import frappe
 
 		data = self.get_session_record()
+
 		if data:
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
+			self.device = data.device
 		else:
 			self.start_as_guest()
 
@@ -300,12 +316,13 @@ class Session:
 		return updated_in_db
 
 def get_expiry_period(device="desktop"):
-	if device=="desktop":
-		key = "session_expiry"
-		default = "06:00:00"
-	else:
+	if device=="mobile":
 		key = "session_expiry_mobile"
 		default = "720:00:00"
+	else:
+		key = "session_expiry"
+		default = "06:00:00"
+
 	exp_sec = frappe.defaults.get_global_default(key) or default
 
 	# incase seconds is missing
