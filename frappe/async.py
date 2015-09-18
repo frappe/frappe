@@ -202,7 +202,7 @@ def get_task_log_file_path(task_id, stream_type):
 def can_subscribe_doc(doctype, docname, sid):
 	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
-	session = Session(None).get_session_data()
+	session = Session(None, resume=True).get_session_data()
 	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
 		raise PermissionError()
 	return True

@@ -80,7 +80,7 @@ def clear_expired_sessions():
 	for device in ("desktop", "mobile"):
 		for sid in frappe.db.sql_list("""select sid from tabSessions
 				where TIMEDIFF(NOW(), lastupdate) > TIME(%s)
-				and device = %s""", (device, get_expiry_period(device))):
+				and device = %s""", (get_expiry_period(device), device)):
 			delete_session(sid)
 
 def get():
@@ -131,7 +131,8 @@ def get():
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
-		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
+		self.sid = cstr(frappe.form_dict.get('sid') or
+			unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
 		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
@@ -145,7 +146,8 @@ class Session:
 		if resume:
 			self.resume()
 		else:
-			self.start()
+			if self.user:
+				self.start()
 
 	def start(self):
 		"""start a new session"""
