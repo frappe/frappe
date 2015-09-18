@@ -32,7 +32,7 @@ frappe.listview_settings['File'] = {
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
 
-		doclist.listview.settings.setup_new_folder(doclist);
+		doclist.listview.settings.setup_menu(doclist);
 		doclist.listview.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-delete", function(event) {
@@ -52,7 +52,7 @@ frappe.listview_settings['File'] = {
 			});
 		});
 	},
-	setup_new_folder: function(doclist) {
+	setup_menu: function(doclist) {
 		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
@@ -69,6 +69,10 @@ frappe.listview_settings['File'] = {
 					callback: function(r) { }
 				})
 			}, __('Enter folder name'), __("Create"));
+		});
+
+		doclist.page.add_menu_item(__("Edit Folder"), function() {
+			frappe.set_route("Form", "File", doclist.current_folder);
 		});
 	},
 	setup_dragdrop: function(doclist) {
@@ -153,7 +157,9 @@ frappe.listview_settings['File'] = {
 
 		doclist.filter_list.add_filter("File", "folder", "=", doclist.current_folder, true);
 		doclist.dirty = true;
+		doclist.fresh = false;
 
+		doclist.page.set_title(doclist.current_folder_name);
 		frappe.utils.set_title(doclist.current_folder_name);
 	},
 	set_primary_action:function(doclist){
@@ -165,7 +171,6 @@ frappe.listview_settings['File'] = {
 					"from_form": 1
 				},
 				callback: function() {
-					console.log('here')
 					doclist.refresh();
 				}
 			});

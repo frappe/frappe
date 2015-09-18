@@ -46,7 +46,7 @@ def get_data():
 			"type": "list"
 		},
 		"File Manager": {
-			"color": "#95a5a6",
+			"color": "#905df5",
 			"doctype": "File",
 			"icon": "icon-folder-close",
 			"icon": "octicon octicon-file-directory",

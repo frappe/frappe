@@ -60,6 +60,20 @@ $.extend(frappe.perm, {
 				});
 			}
 
+			// if owner
+			if(!$.isEmptyObject(perm[0].if_owner)) {
+				if(doc.owner===user) {
+					$.extend(perm[0], perm[0].if_owner);
+				} else {
+					// not owner, remove permissions
+					$.each(perm[0].if_owner, function(ptype, value) {
+						if(perm[0].if_owner[ptype]) {
+							perm[0][ptype] = 0
+						}
+					})
+				}
+			}
+
 			// apply permissions from shared
 			if(docinfo.shared) {
 				for(var i=0; i<docinfo.shared; i++) {
@@ -78,6 +92,7 @@ $.extend(frappe.perm, {
 					}
 				}
 			}
+
 		}
 
 		if(frappe.model.can_read(doctype) && !perm[0].read) {
@@ -130,10 +145,6 @@ $.extend(frappe.perm, {
 							perm[permlevel]["user_permission_doctypes"][key].push(user_permission_doctypes);
 						});
 					}
-				}
-
-				if (permlevel===0 && p["if_owner"]) {
-					perm[0]["if_owner"] = 1;
 				}
 			}
 		});

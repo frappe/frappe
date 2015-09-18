@@ -30,7 +30,7 @@ class File(NestedSet):
 		path = get_breadcrumbs(self.folder)
 		folder_name = frappe.get_value("File", self.folder, "file_name")
 		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
-		
+
 	def set_name(self):
 		"""Set name for folder"""
 		if self.is_folder:
@@ -44,14 +44,14 @@ class File(NestedSet):
 
 	def after_insert(self):
 		self.update_parent_folder_size()
-	
+
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
 			setup_folder_path(successor, self.name)
-	
+
 	def get_successor(self):
 		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
-	
+
 	def validate(self):
 		self.validate_duplicate_entry()
 		self.validate_folder()
@@ -83,52 +83,7 @@ class File(NestedSet):
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
 		if self.attached_to_doctype and not self.folder:
-			self.folder = self.get_parent_folder_name()
-
-	def get_parent_folder_name(self):
-		"""Returns parent folder name. If not exists, then make"""
-		doctype_folder_name = self.get_doctype_folder_name()
-		parent_folder_name = frappe.db.get_value("File", {"file_name": self.attached_to_name,
-			"is_folder": 1, "folder": doctype_folder_name})
-
-		return self.make_folder(parent_folder_name, doctype_folder_name,
-			self.attached_to_name)
-
-	def get_doctype_folder_name(self):
-		"""Returns doctype folder name. If not exists, then make"""
-		module_folder_name = self.get_module_folder_name()
-		doctype_folder_name = frappe.db.get_value("File", {"file_name": self.attached_to_doctype,
-			"is_folder": 1, "folder": module_folder_name})
-
-		return self.make_folder(doctype_folder_name, module_folder_name,
-			_(self.attached_to_doctype, frappe.db.get_default("lang")))
-
-	def get_module_folder_name(self):
-		"""Returns module folder name. If not exists, then make"""
-		if self.attached_to_doctype:
-			module = frappe.db.get_value("DocType", self.attached_to_doctype, "module")
-
-		home_folder_name = frappe.db.get_value("File", {"is_home_folder": 1})
-
-		module_folder_name = frappe.db.get_value("File", {"file_name": module,
-			"is_folder": 1, "folder": home_folder_name})
-
-		return self.make_folder(module_folder_name, home_folder_name, _(module,
-			frappe.db.get_default("lang")))
-
-	def make_folder(self, name, folder, file_name):
-		if not name:
-			# parent folder
-			file = frappe.get_doc({
-				"doctype": "File",
-				"is_folder": 1,
-				"file_name": file_name,
-				"folder": folder
-			}).insert()
-
-			name = file.name
-
-		return name
+			self.folder = frappe.db.get_value("File", {"is_attachments_folder": 1})
 
 	def validate_folder(self):
 		if not self.is_home_folder and not self.folder and \
@@ -188,11 +143,19 @@ def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 def make_home_folder():
-	frappe.get_doc({
+	home = frappe.get_doc({
 		"doctype": "File",
 		"is_folder": 1,
 		"is_home_folder": 1,
 		"file_name": _("Home")
+	}).insert()
+
+	frappe.get_doc({
+		"doctype": "File",
+		"folder": home.name,
+		"is_folder": 1,
+		"is_attachments_folder": 1,
+		"file_name": _("Attachments")
 	}).insert()
 
 @frappe.whitelist()
@@ -221,11 +184,11 @@ def move_file(file_list, new_parent, old_parent):
 	frappe.get_doc("File", new_parent).save()
 
 	return "File(s) has been moved successfully!!"
-	
+
 def setup_folder_path(filename, new_parent):
 	file = frappe.get_doc("File", filename)
 	file.folder = new_parent
 	file.save()
-	
+
 	if file.is_folder:
 		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder())

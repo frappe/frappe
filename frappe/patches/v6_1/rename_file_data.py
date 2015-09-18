@@ -7,7 +7,7 @@ def execute():
 		frappe.rename_doc("DocType", "File Data", "File")
 		frappe.reload_doctype("File")
 
-	# DELETE THIS
+	# TODO: DELETE THIS
 	frappe.db.sql("""delete from tabFile where is_folder=1""")
 	frappe.db.sql("""update tabFile set folder=null""")
 

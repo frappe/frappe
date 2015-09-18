@@ -1,19 +1,21 @@
-frappe.ui.form.on("File", "onload", function(frm) {
-    if(frappe.utils.is_image_file(frm.doc.file_url)){
-        frm.doc.preview = '<div class="img_preview">\
-                <img style="max-widht:130px;max-height:130px;" \
-                    src="'+frm.doc.file_url+'"></img>\
-                </div>';
-        frm.refresh_field("preview");
-    }
-})
-
 frappe.ui.form.on("File", "refresh", function(frm) {
-    frm.add_custom_button(__('Download'), function(){
-        window.open(frm.doc.file_url);
-    }, "icon-download");
-})
+	if(!frm.doc.is_folder) {
+		frm.add_custom_button(__('Download'), function() {
+			window.open(frm.doc.file_url);
+		}, "icon-download");
+	}
 
-// frappe.ui.form.on("File", "download", function(frm) {
-//     window.open(frm.doc.file_url);
-// })
+	var wrapper = frm.get_field("preview_html").$wrapper;
+	var is_viewable = frappe.utils.is_image_file(frm.doc.file_url);
+
+	frm.toggle_display("preview", is_viewable);
+	frm.toggle_display("preview_html", is_viewable);
+
+	if(is_viewable){
+		wrapper.html('<div class="img_preview">\
+			<img class="img-responsive" src="'+frm.doc.file_url+'"></img>\
+			</div>');
+	} else {
+		wrapper.empty();
+	}
+});
