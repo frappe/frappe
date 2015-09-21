@@ -63,7 +63,10 @@ class WebForm(WebsiteGenerator):
 		if self.allow_comments and frappe.form_dict.name:
 			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
 
+		context.parents = self.get_parents(context)
+
 		context.types = [f.fieldtype for f in self.web_form_fields]
+
 		return context
 
 	def get_layout(self):
@@ -81,10 +84,17 @@ class WebForm(WebsiteGenerator):
 		return layout
 
 	def get_parents(self, context):
+		parents = None
 		if context.parents:
-			return context.parents
+			parents = context.parents
 		elif self.breadcrumbs:
-			return json.loads(self.breadcrumbs)
+			parents = json.loads(self.breadcrumbs)
+		elif context.is_list:
+			parents = [{"title": _("My Account"), "name": "me"}]
+
+		print parents
+
+		return parents
 
 @frappe.whitelist(allow_guest=True)
 def accept():

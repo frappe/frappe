@@ -118,7 +118,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 
 		this.page.add_menu_item(__("New {0}", [this.doctype]), function() {
-			new_doc(me.doctype);
+			me.make_new_doc(me.doctype);
 		}, true);
 	},
 
