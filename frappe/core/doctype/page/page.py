@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
-from frappe import conf
+from frappe import conf, _
 
 class Page(Document):
 	def autoname(self):
@@ -72,7 +72,7 @@ class Page(Document):
 
 		allowed = [d.role for d in frappe.get_all("Page Role", fields=["role"],
 			filters={"parent": self.name})]
-		
+
 		if not allowed:
 			return True
 
