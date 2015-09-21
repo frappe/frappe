@@ -244,9 +244,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	refresh: function(dirty) {
-		if(window.ttt) throw "here";
-
-
 		if(dirty!==undefined) this.dirty = dirty;
 		this.init_stats();
 

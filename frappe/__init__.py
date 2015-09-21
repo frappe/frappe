@@ -43,7 +43,7 @@ def _(msg, lang=None):
 	if not lang:
 		lang = local.lang
 
-	if local.lang == "en":
+	if lang == "en":
 		return msg
 
 	from frappe.translate import get_full_dict
