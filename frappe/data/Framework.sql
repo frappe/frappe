@@ -200,11 +200,11 @@ CREATE TABLE `__Auth` (
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Table structure for table `tabFile Data`
+-- Table structure for table `tabFile`
 --
 
-DROP TABLE IF EXISTS `tabFile Data`;
-CREATE TABLE `tabFile Data` (
+DROP TABLE IF EXISTS `tabFile`;
+CREATE TABLE `tabFile` (
   `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,

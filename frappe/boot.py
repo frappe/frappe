@@ -53,6 +53,7 @@ def get_bootinfo():
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
 	doclist.extend(get_meta_bundle("Page"))
+	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):

@@ -12,9 +12,9 @@ from frappe.utils.file_manager import get_content_hash, get_file
 def execute():
 	frappe.reload_doc('core', 'doctype', 'file_data')
 	for name, file_name, file_url in frappe.db.sql(
-			"""select name, file_name, file_url from `tabFile Data`
+			"""select name, file_name, file_url from `tabFile`
 			where file_name is not null"""):
-		b = frappe.get_doc('File Data', name)
+		b = frappe.get_doc('File', name)
 		old_file_name = b.file_name
 		b.file_name = os.path.basename(old_file_name)
 		if old_file_name.startswith('files/') or old_file_name.startswith('/files/'):

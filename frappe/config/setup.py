@@ -100,7 +100,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "File Data",
+					"name": "File",
 					"description": _("Manage uploaded files.")
 				}
 			]

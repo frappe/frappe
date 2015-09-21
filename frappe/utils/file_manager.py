@@ -14,13 +14,14 @@ from copy import copy
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
 def get_file_url(file_data_name):
-	data = frappe.db.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
+	data = frappe.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
 	return data.file_url or data.file_name
 
 def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
+	folder = frappe.form_dict.folder
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 
@@ -30,11 +31,11 @@ def upload():
 
 	# save
 	if filename:
-		filedata = save_uploaded(dt, dn)
+		filedata = save_uploaded(dt, dn, folder)
 	elif file_url:
-		filedata = save_url(file_url, dt, dn)
+		filedata = save_url(file_url, dt, dn, folder)
 
-
+	comment = {}
 	if dt and dn:
 		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
 			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
@@ -43,32 +44,33 @@ def upload():
 		"name": filedata.name,
 		"file_name": filedata.file_name,
 		"file_url": filedata.file_url,
-		"comment": comment.as_dict()
+		"comment": comment.as_dict() if comment else {}
 	}
 
-def save_uploaded(dt, dn):
+def save_uploaded(dt, dn, folder):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn);
+		return save_file(fname, content, dt, dn, folder);
 	else:
 		raise Exception
 
-def save_url(file_url, dt, dn):
+def save_url(file_url, dt, dn, folder):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
 
 	f = frappe.get_doc({
-		"doctype": "File Data",
+		"doctype": "File",
 		"file_url": file_url,
 		"attached_to_doctype": dt,
-		"attached_to_name": dn
+		"attached_to_name": dn,
+		"folder": folder
 	})
 	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File Data", f.duplicate_entry)
+		return frappe.get_doc("File", f.duplicate_entry)
 	return f
 
 def get_uploaded_content():
@@ -128,7 +130,7 @@ def get_random_filename(extn=None, content_type=None):
 
 	return random_string(7) + (extn or "")
 
-def save_file(fname, content, dt, dn, decode=False):
+def save_file(fname, content, dt, dn, folder=None, decode=False):
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
@@ -148,9 +150,10 @@ def save_file(fname, content, dt, dn, decode=False):
 		file_data = copy(file_data)
 
 	file_data.update({
-		"doctype": "File Data",
+		"doctype": "File",
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
+		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
 	})
@@ -160,12 +163,12 @@ def save_file(fname, content, dt, dn, decode=False):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File Data", f.duplicate_entry)
+		return frappe.get_doc("File", f.duplicate_entry)
 	return f
 
 def get_file_data_from_hash(content_hash):
-	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash=%s", content_hash):
-		b = frappe.get_doc('File Data', name)
+	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s", content_hash):
+		b = frappe.get_doc('File', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
 
@@ -201,7 +204,7 @@ def write_file(content, file_path, fname):
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
 	try:
-		for fid in frappe.db.sql_list("""select name from `tabFile Data` where
+		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid, dt, dn)
 	except Exception, e:
@@ -209,19 +212,19 @@ def remove_all(dt, dn):
 
 def remove_file_by_url(file_url, doctype=None, name=None):
 	if doctype and name:
-		fid = frappe.db.get_value("File Data", {"file_url": file_url,
+		fid = frappe.db.get_value("File", {"file_url": file_url,
 			"attached_to_doctype": doctype, "attached_to_name": name})
 	else:
-		fid = frappe.db.get_value("File Data", {"file_url": file_url})
+		fid = frappe.db.get_value("File", {"file_url": file_url})
 
 	if fid:
 		return remove_file(fid)
 
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
-	"""Remove file and File Data entry"""
+	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value("File Data", fid,
+		attached = frappe.db.get_value("File", fid,
 			["attached_to_doctype", "attached_to_name", "file_name"])
 		if attached:
 			attached_to_doctype, attached_to_name, file_name = attached
@@ -231,10 +234,10 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
 		if not file_name:
-			file_name = frappe.db.get_value("File Data", fid, "file_name")
+			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
 
-	frappe.delete_doc("File Data", fid, ignore_permissions=ignore_permissions)
+	frappe.delete_doc("File", fid, ignore_permissions=ignore_permissions)
 
 	return comment
 
@@ -256,7 +259,7 @@ def delete_file_from_filesystem(doc):
 		os.remove(path)
 
 def get_file(fname):
-	f = frappe.db.sql("""select file_name from `tabFile Data`
+	f = frappe.db.sql("""select file_name from `tabFile`
 		where name=%s or file_name=%s""", (fname, fname))
 	if f:
 		file_name = f[0][0]
@@ -281,7 +284,7 @@ def get_file_name(fname, optional_suffix):
 	# convert to unicode
 	fname = cstr(fname)
 
-	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
+	n_records = frappe.db.sql("select name from `tabFile` where file_name=%s", fname)
 	if len(n_records) > 0 or os.path.exists(encode(get_files_path(fname))):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
@@ -290,4 +293,3 @@ def get_file_name(fname, optional_suffix):
 			partial, extn = f[0], "." + f[1]
 		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
-

@@ -1,14 +1,20 @@
 {% if (_checkbox) { %}
-<input class="list-delete" type="checkbox" style="margin: 0 7px 0 0; vertical-align: middle;">
+<input class="list-delete" type="checkbox"
+    style="margin: 0 7px 0 0; vertical-align: middle;">
 {% } %}
-<i class="icon-star {% if (_starred_by.indexOf(_user)===-1) {
-    %}text-extra-muted not-starred{% } else { %}{% }%}
-    icon-fixed-width star-action" data-name="{%= _name %}" data-doctype="{%= doctype %}">
+<i class="icon-star
+    {% if (_starred_by.indexOf(_user)===-1) { %}
+        text-extra-muted not-starred
+    {% }%}
+    icon-fixed-width star-action"
+    data-name="{{ _name }}" data-doctype="{{ doctype }}">
 </i>
-<a class="grey list-id" style="margin-right: 7px;"
-	href="#Form/{%= _doctype_encoded %}/{%= _name_encoded %}" title="{%= _full_title %}">{%= _title %}</a>
+<a class="grey list-id"
+    style="margin-right: 7px;"
+	href="#Form/{{ _doctype_encoded }}/{{ _name_encoded }}"
+    title="{{ _full_title }}">{{ _title }}</a>
 {% if (_workflow && !_without_workflow) { %}
-<span class="label label-{%= _workflow.style %} filterable"
-    data-filter="{%= _workflow.fieldname %},=,{%= _workflow.value %}">
+<span class="label label-{{ _workflow.style }} filterable"
+    data-filter="{{ _workflow.fieldname }},=,{{ _workflow.value }}">
 	{%= _workflow.value %}</span>
 {% } %}

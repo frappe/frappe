@@ -66,8 +66,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 def update_attachments(doctype, old, new):
 	try:
-		frappe.db.sql("""update `tabFile Data` set attached_to_name=%s
-			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
+		if old != "File Data" and doctype != "DocType":
+			frappe.db.sql("""update `tabFile` set attached_to_name=%s
+				where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
 			raise
@@ -96,7 +97,7 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
 		frappe.msgprint(_("You need write permission to rename"), raise_exception=1)
 
-	if not force and not meta.allow_rename:
+	if not (force or ignore_permissions) and not meta.allow_rename:
 		frappe.msgprint(_("{0} not allowed to be renamed").format(_(doctype)), raise_exception=1)
 
 	# validate naming like it's done in doc.py

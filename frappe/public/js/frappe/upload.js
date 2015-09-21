@@ -34,6 +34,10 @@ frappe.upload = {
 					$file_input.trigger("change");
 				});
 
+				if(opts.on_select) {
+					opts.on_select();
+				}
+
 			} else {
 				$upload.find(".uploaded-filename").addClass("hidden")
 				$upload.find(".web-link-wrapper").removeClass("hidden");
@@ -119,13 +123,13 @@ frappe.upload = {
 			freader.onload = function() {
 				args.filename = fileobj.name;
 				if(opts.options && opts.options.toLowerCase()=="image") {
-					if(!(/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(args.filename)) {
+					if(!frappe.utils.is_image_file(args.filename)) {
 						msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
 						return;
 					}
 				}
 
-				if((opts.max_width || opts.max_height) && (/\.(gif|jpg|jpeg|tiff|png)$/i).test(args.filename)) {
+				if((opts.max_width || opts.max_height) && frappe.utils.is_image_file(args.filename)) {
 					frappe.utils.resize_image(freader, function(_dataurl) {
 						dataurl = _dataurl;
 						args.filedata = _dataurl.split(",")[1];

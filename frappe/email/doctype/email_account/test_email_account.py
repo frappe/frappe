@@ -41,8 +41,8 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming_with_attach(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
-		existing_file = frappe.get_doc({'doctype': 'File Data', 'file_name': 'erpnext-conf-14.png'})
-		frappe.delete_doc("File Data", existing_file.name)
+		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
+		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as f:

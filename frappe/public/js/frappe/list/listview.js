@@ -208,7 +208,7 @@ frappe.views.ListView = Class.extend({
 			data: data,
 			columns: this.columns,
 			subject: this.get_avatar_and_id(data, true),
-			me: this,
+			list: this,
 			right_column: this.settings.right_column
 		});
 
@@ -218,6 +218,10 @@ frappe.views.ListView = Class.extend({
 			list: this,
 			right_column: this.settings.right_column
 		})).appendTo(row);
+
+		if(this.settings.post_render_item) {
+			this.settings.post_render_item(this, row, data);
+		}
 
 		this.render_tags(row, data);
 

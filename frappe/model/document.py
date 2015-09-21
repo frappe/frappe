@@ -86,6 +86,10 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
+
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""

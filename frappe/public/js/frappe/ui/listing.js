@@ -118,8 +118,12 @@ frappe.ui.Listing = Class.extend({
 	set_primary_action: function() {
 		var me = this;
 		if(this.new_doctype) {
-			this.page.set_primary_action(__("New"), function() {
-				me.make_new_doc(); }, "octicon octicon-plus");
+			if(this.listview.settings.set_primary_action){
+				this.listview.settings.set_primary_action(this);
+			} else {
+				this.page.set_primary_action(__("New"), function() {
+					me.make_new_doc(me.new_doctype); }, "octicon octicon-plus");
+			}
 		} else {
 			this.page.clear_primary_action();
 		}
