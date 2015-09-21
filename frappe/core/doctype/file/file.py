@@ -183,12 +183,10 @@ def move_file(file_list, new_parent, old_parent):
 	frappe.get_doc("File", old_parent).save()
 	frappe.get_doc("File", new_parent).save()
 
-	return "File(s) has been moved successfully!!"
-
 def setup_folder_path(filename, new_parent):
 	file = frappe.get_doc("File", filename)
 	file.folder = new_parent
 	file.save()
 
 	if file.is_folder:
-		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder())
+		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
