@@ -54,6 +54,8 @@ class EmailAccount(Document):
 				self.check_smtp()
 
 		if self.notify_if_unreplied:
+			if not self.send_notification_to:
+				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
 			for e in self.get_unreplied_notification_emails():
 				validate_email_add(e, True)
 
