@@ -99,8 +99,12 @@ def application(request):
 		if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
 			response = frappe.utils.response.report_error(http_status_code)
 		else:
+			traceback = "<pre>"+frappe.get_traceback()+"</pre>"
+			if frappe.local.flags.disable_traceback:
+				traceback = ""
+
 			frappe.respond_as_web_page("Server Error",
-				"<pre>"+frappe.get_traceback()+"</pre>",
+				traceback,
 				http_status_code=http_status_code)
 			response = frappe.website.render.render("message", http_status_code=http_status_code)
 

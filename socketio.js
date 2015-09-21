@@ -32,7 +32,7 @@ io.on('connection', function(socket){
 		return;
 	}
 	// console.log("firing get_user_info");
-	request.post(get_url(socket, '/api/method/frappe.async.get_user_info'))
+	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
 		.type('form')
 		.send({
 			sid: sid
@@ -63,7 +63,7 @@ io.on('connection', function(socket){
 
 	socket.on('doc_subscribe', function(doctype, docname) {
 		// console.log('trying to subscribe', doctype, docname)
-		request.post(get_url(socket, '/api/method/frappe.async.can_subscribe_doc'))
+		request.get(get_url(socket, '/api/method/frappe.async.can_subscribe_doc'))
 			.type('form')
 			.send({
 				sid: sid,
