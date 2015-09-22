@@ -106,6 +106,18 @@ class Page(Document):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), 'r') as f:
 					template = unicode(f.read(), "utf-8")
+					if "<!-- jinja -->" in template:
+						context = {}
+						try:
+							context = frappe.get_attr("{app}.{module}.page.{page}.{page}.get_context".format(
+								app = frappe.local.module_app[scrub(self.module)],
+								module = scrub(self.module),
+								page = page_name
+							))(context)
+						except (AttributeError, ImportError):
+							pass
+
+						template = frappe.render_template(template, context)
 					self.script = html_to_js_template(fname, template) + self.script
 
 		if frappe.lang != 'en':
