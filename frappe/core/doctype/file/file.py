@@ -91,7 +91,7 @@ class File(NestedSet):
 			frappe.throw(_("Folder is mandatory"))
 
 	def validate_duplicate_entry(self):
-		if not self.flags.ignore_duplicate_entry_error:
+		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
 			# check duplicate assignement
 			n_records = frappe.db.sql("""select name from `tabFile`
 				where content_hash=%s

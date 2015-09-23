@@ -21,7 +21,7 @@ def get_context(context):
 	boot = frappe.sessions.get()
 
 	# this needs commit
-	boot["csrf_token"] = frappe.sessions.get_csrf_token()
+	csrf_token = frappe.sessions.get_csrf_token()
 
 	frappe.db.commit()
 
@@ -35,6 +35,7 @@ def get_context(context):
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"boot": boot if context.get("for_mobile") else boot_json,
+		"csrf_token": csrf_token,
 		"background_image": boot.user.background_image or boot.default_background_image,
 		"google_analytics_id": frappe.conf.get("google_analytics_id")
 	}

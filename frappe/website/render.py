@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+import frappe.sessions
 from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
@@ -54,6 +55,8 @@ def render(path, http_status_code=None):
 		data = render_page(path)
 		http_status_code = 500
 
+	data = add_csrf_token(data)
+
 	return build_response(path, data, http_status_code or 200)
 
 def set_lang():
@@ -86,6 +89,16 @@ def get_doctype_from_path(path):
 		return doctype, name
 
 	return None, None
+
+def add_csrf_token(data):
+	if is_ajax() or frappe.session.user == "Guest" or not frappe.local.session.data.csrf_token:
+		pass
+
+	else:
+		data = data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
+			frappe.local.session.data.csrf_token))
+
+	return data
 
 def build_response(path, data, http_status_code, headers=None):
 	# build response

@@ -14,6 +14,8 @@ def execute():
 	for file in frappe.get_all("File", filters={"is_folder": 0}):
 		file = frappe.get_doc("File", file.name)
 		file.flags.ignore_folder_validate = True
+		file.flags.ignore_duplicate_entry_error = True
+		file.flags.ignore_links = True
 		file.set_folder_name()
 		file.save()
 
