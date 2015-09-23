@@ -104,6 +104,8 @@ class File(NestedSet):
 				frappe.throw(frappe._("Same file has already been attached to the record"), frappe.DuplicateEntryError)
 
 	def on_trash(self):
+		if self.is_home_folder or self.is_attachments_folder:
+			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.check_folder_is_empty()
 		self.check_reference_doc_permission()
 		super(File, self).on_trash()
