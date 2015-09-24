@@ -92,3 +92,4 @@ frappe.patches.v6_0.document_type_rename
 frappe.patches.v6_0.fix_ghana_currency
 frappe.patches.v6_2.ignore_user_permissions_if_missing
 execute:frappe.db.sql("delete from tabSessions where user is null")
+frappe.patches.v6_2.rename_backup_manager
