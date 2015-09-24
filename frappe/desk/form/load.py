@@ -100,7 +100,7 @@ def get_user_permissions(meta):
 	return out
 
 def get_attachments(dt, dn):
-	return frappe.get_all("File Data", fields=["name", "file_name", "file_url"],
+	return frappe.get_all("File", fields=["name", "file_name", "file_url"],
 		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
 
 def get_comments(dt, dn, limit=100):
@@ -121,7 +121,7 @@ def get_comments(dt, dn, limit=100):
 			as_dict=True)
 
 	for c in communications:
-		c.attachments = json.dumps([f.file_url for f in frappe.get_all("File Data",
+		c.attachments = json.dumps([f.file_url for f in frappe.get_all("File",
 			fields=["file_url"],
 			filters={"attached_to_doctype": "Communication",
 				"attached_to_name": c.name}

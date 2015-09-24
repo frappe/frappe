@@ -58,6 +58,8 @@ class Document(BaseDocument):
 		all values (including child documents) from the database.
 		"""
 		self.doctype = self.name = None
+		self._default_new_docs = {}
+		self.flags = frappe._dict()
 
 		if arg1 and isinstance(arg1, basestring):
 			if not arg2:
@@ -83,8 +85,9 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
-		self._default_new_docs = {}
-		self.flags = frappe._dict()
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -460,6 +463,10 @@ class Document(BaseDocument):
 
 		self._validate_update_after_submit()
 		for d in self.get_all_children():
+			if d.is_new() and self.meta.get_field(d.parentfield).allow_on_submit:
+				# in case of a new row, don't validate allow on submit, if table is allow on submit
+				continue
+
 			d._validate_update_after_submit()
 
 		# TODO check only allowed values are updated

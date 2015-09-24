@@ -10,6 +10,7 @@ import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+import bleach
 
 @frappe.whitelist(allow_guest=True)
 def version():
@@ -91,6 +92,14 @@ def execute_cmd(cmd, from_async=False):
 		if (method not in frappe.guest_methods):
 			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+
+		# strictly sanitize form_dict
+		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		# if required, we can add more whitelisted tags like div, p, etc. (see its documentation)
+		for key, value in frappe.form_dict.items():
+			if isinstance(value, basestring):
+				frappe.form_dict[key] = bleach.clean(value)
+
 	else:
 		if not method in frappe.whitelisted:
 			frappe.msgprint(_("Not permitted"))

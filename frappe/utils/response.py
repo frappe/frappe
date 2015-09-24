@@ -18,7 +18,7 @@ from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
 
 def report_error(status_code):
-	if status_code!=404 or frappe.conf.logging:
+	if (status_code!=404 or frappe.conf.logging) and not frappe.local.flags.disable_traceback:
 		frappe.errprint(frappe.utils.get_traceback())
 
 	response = build_response("json")

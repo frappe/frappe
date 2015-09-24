@@ -18,15 +18,15 @@ from frappe.utils import get_files_path, get_site_path
 # * make missing_files.txt in site dir with files that should be recovered from
 #   a backup from a time before version 3 migration
 #
-# * Patch remaining unpatched file data records.
+# * Patch remaining unpatched File records.
 
 def execute():
 	frappe.db.auto_commit_on_many_writes = True
 	rename_replacing_files()
 	for name, file_name, file_url in frappe.db.sql(
-			"""select name, file_name, file_url from `tabFile Data`
+			"""select name, file_name, file_url from `tabFile`
 			where ifnull(file_name, '')!='' and ifnull(content_hash, '')=''"""):
-		b = frappe.get_doc('File Data', name)
+		b = frappe.get_doc('File', name)
 		old_file_name = b.file_name
 		b.file_name = os.path.basename(old_file_name)
 		if old_file_name.startswith('files/') or old_file_name.startswith('/files/'):
@@ -45,8 +45,8 @@ def execute():
 
 def get_replaced_files():
 	ret = []
-	new_files = dict(frappe.db.sql("select name, file_name from `tabFile Data` where file_name not like 'files/%'"))
-	old_files = dict(frappe.db.sql("select name, file_name from `tabFile Data` where ifnull(content_hash, '')=''"))
+	new_files = dict(frappe.db.sql("select name, file_name from `tabFile` where file_name not like 'files/%'"))
+	old_files = dict(frappe.db.sql("select name, file_name from `tabFile` where ifnull(content_hash, '')=''"))
 	invfiles = invert_dict(new_files)
 
 	for nname, nfilename in new_files.iteritems():
@@ -63,7 +63,7 @@ def rename_replacing_files():
 
 	for file_name, file_datas in replaced_files:
 		print 'processing ' + file_name
-		content_hash = frappe.db.get_value('File Data', file_datas[0], 'content_hash')
+		content_hash = frappe.db.get_value('File', file_datas[0], 'content_hash')
 		if not content_hash:
 			continue
 		new_file_name = get_file_name(file_name, content_hash)
@@ -75,7 +75,7 @@ def rename_replacing_files():
 		except OSError:
 			print 'Error renaming ', file_name
 		for name in file_datas:
-			f = frappe.get_doc('File Data', name)
+			f = frappe.get_doc('File', name)
 			f.file_name = new_file_name
 			f.file_url = '/files/' + new_file_name
 			f.save()

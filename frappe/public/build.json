@@ -15,6 +15,7 @@
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
 		"public/js/frappe/class.js",
+		"public/js/lib/microtemplate.js",
 		"website/js/website.js",
 		"public/js/lib/socket.io.min.js"
 	],

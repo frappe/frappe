@@ -444,7 +444,7 @@ frappe.views.QueryReport = Class.extend({
 		try {
 			var parent_name = item[me.parent_field];
 			while (parent_name) {
-				if (me.item_by_name[parent_name]._collapsed) {
+				if (!me.item_by_name[parent_name] || me.item_by_name[parent_name]._collapsed) {
 					return false;
 				}
 				parent_name = me.item_by_name[parent_name][me.parent_field];

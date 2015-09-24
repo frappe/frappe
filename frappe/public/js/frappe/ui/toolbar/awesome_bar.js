@@ -145,7 +145,7 @@ frappe.search.verbs = [
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
 				onclick: function() {
-					frappe.container.page.doclistview.set_route_options();
+					cur_list.refresh();
 				},
 				match: txt
 			});

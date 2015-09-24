@@ -445,12 +445,22 @@ class BaseDocument(object):
 					frappe.CannotChangeConstantError)
 
 	def _validate_update_after_submit(self):
-		db_values = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
-		for key, db_value in db_values.iteritems():
+		# get the full doc with children
+		db_values = frappe.get_doc(self.doctype, self.name).as_dict()
+
+		for key in self.as_dict():
 			df = self.meta.get_field(key)
+			db_value = db_values.get(key)
 
 			if df and not df.allow_on_submit and (self.get(key) or db_value):
-				self_value = self.get_value(key)
+				if df.fieldtype=="Table":
+					# just check if the table size has changed
+					# individual fields will be checked in the loop for children
+					self_value = len(self.get(key))
+					db_value = len(db_value)
+
+				else:
+					self_value = self.get_value(key)
 
 				if self_value != db_value:
 					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
@@ -497,7 +507,11 @@ class BaseDocument(object):
 		val = self.get(fieldname)
 		if absolute_value and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
-		return format_value(val, df=df, doc=doc or self, currency=currency)
+
+		if not doc:
+			doc = getattr(self, "parent_doc", None) or self
+
+		return format_value(val, df=df, doc=doc, currency=currency)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.

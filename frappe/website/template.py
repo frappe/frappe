@@ -57,7 +57,8 @@ def separate_style_and_script(out, context):
 
 def set_breadcrumbs(out, context):
 	"""Build breadcrumbs template (deprecated)"""
-	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
+	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) \
+		or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
 
 	if out["no_breadcrumbs"]:
 		out["breadcrumbs"] = ""

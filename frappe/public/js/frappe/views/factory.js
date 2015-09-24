@@ -13,7 +13,9 @@ frappe.views.Factory = Class.extend({
 			me = this;
 		if(frappe.pages[page_name] && page_name.indexOf("Form/")===-1) {
 			frappe.container.change_to(frappe.pages[page_name]);
-			if(me.on_show) me.on_show();
+			if(me.on_show) {
+				me.on_show();
+			}
 		} else {
 			var route = frappe.get_route();
 			if(route[1]) {
@@ -23,14 +25,16 @@ frappe.views.Factory = Class.extend({
 			}
 		}
 	},
-	make_page: function(double_column) {
-		return frappe.make_page(double_column);
+	make_page: function(double_column, page_name) {
+		return frappe.make_page(double_column, page_name);
 	}
 });
 
-frappe.make_page = function(double_column) {
-	var page_name = frappe.get_route_str(),
-		page = frappe.container.add_page(page_name);
+frappe.make_page = function(double_column, page_name) {
+	if(!page_name) {
+		var page_name = frappe.get_route_str();
+	}
+	var page = frappe.container.add_page(page_name);
 
 	frappe.ui.make_app_page({
 		parent: page,

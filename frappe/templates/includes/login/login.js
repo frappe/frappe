@@ -14,6 +14,7 @@ login.bind_events = function() {
 		args.cmd = "login";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
+		args.device = "desktop";
 		if(!args.usr || !args.pwd) {
 			frappe.msgprint(__("Both login and password required"));
 			return false;

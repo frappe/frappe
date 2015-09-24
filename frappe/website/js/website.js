@@ -35,6 +35,7 @@ $.extend(frappe, {
 			url: "/",
 			data: opts.args,
 			dataType: "json",
+			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
 			statusCode: {
 				404: function(xhr) {
 					frappe.msgprint(__("Not found"));
@@ -65,11 +66,6 @@ $.extend(frappe, {
 		}
 
 		if(!opts.args) opts.args = {};
-
-		// get or post?
-		if(!opts.args._type) {
-			opts.args._type = opts.type || "GET";
-		}
 
 		// method
 		if(opts.method) {
