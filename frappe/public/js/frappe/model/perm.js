@@ -287,7 +287,8 @@ $.extend(frappe.perm, {
 		if(explain) console.log("By Submit:" + status);
 
 		// allow on submit
-		var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		// var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		var allow_on_submit = cint(df.allow_on_submit);
 		if(status==="Read" && allow_on_submit && cint(doc.docstatus)===1 && p.write) {
 			status = "Write";
 		}
