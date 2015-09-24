@@ -93,12 +93,13 @@ def execute_cmd(cmd, from_async=False):
 			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 
-		# strictly sanitize form_dict
-		# escapes html characters like <> except for predefined tags like a, b, ul etc.
-		# if required, we can add more whitelisted tags like div, p, etc. (see its documentation)
-		for key, value in frappe.form_dict.items():
-			if isinstance(value, basestring):
-				frappe.form_dict[key] = bleach.clean(value)
+		if method not in frappe.xss_safe_methods:
+			# strictly sanitize form_dict
+			# escapes html characters like <> except for predefined tags like a, b, ul etc.
+			# if required, we can add more whitelisted tags like div, p, etc. (see its documentation)
+			for key, value in frappe.form_dict.items():
+				if isinstance(value, basestring):
+					frappe.form_dict[key] = bleach.clean(value)
 
 	else:
 		if not method in frappe.whitelisted:
