@@ -368,7 +368,7 @@ def whitelist(allow_guest=False, xss_safe=False):
 			pass
 	"""
 	def innerfn(fn):
-		global whitelisted, guest_methods
+		global whitelisted, guest_methods, xss_safe_methods
 		whitelisted.append(fn)
 
 		if allow_guest:
