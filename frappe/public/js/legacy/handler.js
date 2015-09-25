@@ -86,6 +86,7 @@ function open_url_post(URL, PARAMS, new_window) {
 	if(new_window){
 		temp.target = '_blank';
 	}
+	PARAMS["csrf_token"] = frappe.csrf_token;
 	for(var x in PARAMS) {
 		var opt=document.createElement("textarea");
 		opt.name=x;

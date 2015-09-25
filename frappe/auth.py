@@ -61,7 +61,12 @@ class HTTPRequest:
 				# not via boot
 				return
 
-			if frappe.local.session.data.csrf_token != frappe.get_request_header("X-Frappe-CSRF-Token"):
+			csrf_token = frappe.get_request_header("X-Frappe-CSRF-Token")
+			if not csrf_token and "csrf_token" in frappe.local.form_dict:
+				csrf_token = frappe.local.form_dict.csrf_token
+				del frappe.local.form_dict["csrf_token"]
+
+			if frappe.local.session.data.csrf_token != csrf_token:
 				frappe.local.flags.disable_traceback = True
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
