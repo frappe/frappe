@@ -241,7 +241,9 @@ $.extend(frappe.model, {
 		}
 		var _map = function() {
 			return frappe.call({
-				type: "GET",
+				// Sometimes we hit the limit for URL length of a GET request
+				// as we send the full target_doc. Hence this is a POST request.
+				type: "POST",
 				method: opts.method,
 				args: {
 					"source_name": opts.source_name,
