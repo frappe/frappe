@@ -159,7 +159,7 @@ def put_log(line_no, line, task_id=None):
 			"lines": {line_no: line}
 		},
 		"task_id": task_id
-	}, room=task_progress_room)
+	}, room=task_progress_room, now=True)
 	r.hset(task_log_key, line_no, line)
 	r.expire(task_log_key, 3600)
 
