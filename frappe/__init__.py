@@ -1033,3 +1033,19 @@ def publish_realtime(*args, **kwargs):
 	import frappe.async
 
 	return frappe.async.publish_realtime(*args, **kwargs)
+
+def local_cache(namespace, key, generator):
+	"""A key value store for caching within a request
+
+	:param namespace: frappe.local.cache[namespace]
+	:param key: frappe.local.cache[namespace][key] used to retrieve value
+	:param generator: method to generate a value if not found in store
+
+	"""
+	if namespace not in local.cache:
+		local.cache[namespace] = {}
+
+	if key not in local.cache[namespace]:
+		local.cache[namespace][key] = generator()
+
+	return local.cache[namespace][key]
