@@ -447,7 +447,6 @@ def execute(context, method, args=None, kwargs=None):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			print frappe.local.site
 
 			if args:
 				args = eval(args)
@@ -466,7 +465,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print ret
+			print json.dumps(ret)
 
 @click.command('celery')
 @click.argument('args')

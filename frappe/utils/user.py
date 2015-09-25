@@ -292,3 +292,16 @@ def is_website_user():
 
 def is_system_user(username):
 	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})
+
+def get_users():
+	from frappe.core.doctype.user.user import get_system_users
+	users = []
+	system_managers = frappe.utils.user.get_system_managers(only_name=True)
+	for user in get_system_users():
+		users.append({
+			"full_name": frappe.utils.user.get_user_fullname(user),
+			"email": user,
+			"is_system_manager": 1 if (user in system_managers) else 0
+		})
+
+	return users
