@@ -112,6 +112,10 @@ frappe.request.call = function(opts) {
 			msgprint(__("Server Error: Please check your server logs or contact tech support."))
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
+		},
+		504: function(xhr) {
+			msgprint(__("Request Timed Out"))
+			opts.error_callback && opts.error_callback();
 		}
 	};
 

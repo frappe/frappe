@@ -32,6 +32,7 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 	}
 
 	return frappe.request.call({
+		type: "POST",
 		args: args,
 		success: callback,
 		btn: btn,
