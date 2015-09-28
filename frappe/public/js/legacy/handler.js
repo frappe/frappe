@@ -4,6 +4,7 @@
 function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 	console.warn("This function '$c' has been deprecated and will be removed soon.");
 	return frappe.request.call({
+		type: "POST",
 		args: $.extend(args, {cmd: command}),
 		success: callback,
 		error: error,
@@ -34,23 +35,6 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 	return frappe.request.call({
 		type: "POST",
 		args: args,
-		success: callback,
-		btn: btn,
-		freeze: freeze_msg,
-		show_spinner: !no_spinner
-	});
-}
-
-// For call a page metho
-function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, btn) {
-	console.warn("This function '$c_page' has been deprecated and will be removed soon.");
-	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
-	return frappe.request.call({
-		args: {
-			cmd: module+'.page.'+page+'.'+page+'.'+method,
-			arg: arg,
-			method: method
-		},
 		success: callback,
 		btn: btn,
 		freeze: freeze_msg,
