@@ -213,6 +213,13 @@ def get_data():
 					"name": "Scheduler Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
+				{
+					"type": "page",
+					"name": "backups",
+					"label": _("Download Backups"),
+					"description": _("List of backups available for download"),
+					"icon": "icon-download"
+				},
 			]
 		}
 	]
