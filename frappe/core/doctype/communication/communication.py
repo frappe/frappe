@@ -196,10 +196,12 @@ class Communication(Document):
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True)
 
 		if not self.incoming_email_account:
-			self.incoming_email_account = frappe.db.get_value("Email Account", {"default_incoming": 1}, "email_id")
+			self.incoming_email_account = frappe.db.get_value("Email Account",
+				{"default_incoming": 1, "enable_incoming": 1},  "email_id")
 
 		if not self.outgoing_email_account:
-			self.outgoing_email_account = frappe.db.get_value("Email Account", {"default_outgoing": 1},
+			self.outgoing_email_account = frappe.db.get_value("Email Account",
+				{"default_outgoing": 1, "enable_outgoing": 1},
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
 	def get_recipients(self):
