@@ -5,5 +5,7 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
+	frappe.breadcrumbs.add("Setup");
+
 	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));
 }

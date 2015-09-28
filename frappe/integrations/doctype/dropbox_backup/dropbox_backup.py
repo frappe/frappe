@@ -38,7 +38,7 @@ def take_backups_if(freq):
 def take_backups_dropbox():
 	did_not_upload, error_log = [], []
 	try:
-		from frappe.integrations.doctype.drobox_backup.dropbox_backup import backup_to_dropbox
+		from frappe.integrations.doctype.dropbox_backup.dropbox_backup import backup_to_dropbox
 		did_not_upload, error_log = backup_to_dropbox()
 		if did_not_upload: raise Exception
 
@@ -75,7 +75,7 @@ def get_dropbox_authorize_url():
 	sess = get_dropbox_session()
 	request_token = sess.obtain_request_token()
 	return_address = get_request_site_address(True) \
-		+ "?cmd=frappe.integrations.doctype.drobox_backup.dropbox_backup.dropbox_callback"
+		+ "?cmd=frappe.integrations.doctype.dropbox_backup.dropbox_backup.dropbox_callback"
 
 	url = sess.build_authorize_url(request_token, return_address)
 
