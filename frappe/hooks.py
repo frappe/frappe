@@ -148,7 +148,14 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 		"frappe.async.remove_old_task_logs",
+	],
+	"daily_long": [
+		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
+	],
+	"weekly_long": [
+		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_weekly"
 	]
+
 }
 
 default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"
