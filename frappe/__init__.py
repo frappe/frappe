@@ -310,7 +310,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False):
+		cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
+		bulk_priority=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -320,6 +321,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
 	:param bulk: Send via scheduled email sender **Bulk Email**. Don't send immediately.
+	:param bulk_priority: Priority for bulk email, default 1.
 	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
 	:param reference_name: (or `name`) Append as communication to this document name.
 	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
@@ -338,7 +340,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, send_after=send_after,
-			expose_recipients=expose_recipients)
+			expose_recipients=expose_recipients, bulk_priority=bulk_priority)
 	else:
 		import frappe.email
 		if as_markdown:
