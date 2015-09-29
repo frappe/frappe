@@ -203,6 +203,9 @@ def formatdate(string_date=None, format_string=None):
 
 	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
+def format_time(txt):
+	return babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+
 def format_datetime(datetime_string, format_string=None):
 	if not datetime_string:
 		return
