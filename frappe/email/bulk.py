@@ -230,7 +230,7 @@ def flush(from_test=False):
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
 		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
 
-	for i in xrange(500):
+	for i in xrange(100):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
 			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)
@@ -264,6 +264,9 @@ def flush(from_test=False):
 		except Exception, e:
 			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
+
+		finally:
+			frappe.db.commit()
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
