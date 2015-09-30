@@ -17,7 +17,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=(), message_id=None, send_after=None,
-		expose_recipients=False):
+		expose_recipients=False, bulk_priority=1):
 	"""Add email to sending queue (Bulk Email)
 
 	:param recipients: List of recipients.
@@ -26,6 +26,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param message: Email message.
 	:param reference_doctype: Reference DocType of caller document.
 	:param reference_name: Reference name of caller document.
+	:param bulk_priority: Priority for bulk email, default 1.
 	:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.bulk.unsubscribe`.
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 	:param attachments: Attachments to be sent.
@@ -90,15 +91,16 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, send_after)
+			reference_name, attachments, reply_to, cc, message_id, send_after, bulk_priority)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, send_after=None):
+	cc=(), message_id=None, send_after=None, bulk_priority=1):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
+	e.priority = bulk_priority
 
 	try:
 		mail = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
@@ -228,10 +230,10 @@ def flush(from_test=False):
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
 		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
 
-	for i in xrange(500):
+	for i in xrange(100):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
-			order by creation asc limit 1 for update""", now_datetime(), as_dict=1)
+			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)
 		if email:
 			email = email[0]
 		else:
@@ -262,6 +264,9 @@ def flush(from_test=False):
 		except Exception, e:
 			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
+
+		finally:
+			frappe.db.commit()
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""

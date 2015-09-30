@@ -4,7 +4,7 @@ from frappe import _
 def get_data():
 	return [
 		{
-			"label": _("Documents"),
+			"label": _("Setup"),
 			"icon": "icon-star",
 			"items": [
 				{
@@ -14,7 +14,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Backup Manager",
+					"name": "Dropbox Backup",
 					"description": _("Manage cloud backups on Dropbox"),
 					"hide_count": True
 				}

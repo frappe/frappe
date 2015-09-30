@@ -260,6 +260,8 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
+		self.device = frappe.db.get_value("Sessions", {"sid": self.sid}, "device") or 'desktop'
+
 		rec = frappe.db.sql("""select user, sessiondata
 			from tabSessions where sid=%s and
 			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
@@ -274,7 +276,8 @@ class Session:
 		return data
 
 	def get_expiry_in_seconds(self, expiry):
-		if not expiry: return 3600
+		if not expiry:
+			return 3600
 		parts = expiry.split(":")
 		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 

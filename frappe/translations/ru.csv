@@ -1,5 +1,5 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,"Нажмите Esc, чтобы закрыть"
-apps/frappe/frappe/desk/form/assign_to.py +127,"A new task, {0}, has been assigned to you by {1}. {2}","Новая задача, {0}, был назначен вам {1}. {2}"
+apps/frappe/frappe/desk/form/assign_to.py +127,"A new task, {0}, has been assigned to you by {1}. {2}","Новая задача, {0}, была назначена вам {1}. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Опубликовать
 apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv file.,"Переименовать много пунктов, загрузив. Файл CSV."
 DocType: Workflow State,pause,пауза
@@ -247,7 +247,7 @@ DocType: Email Account,Notify if unreplied,"Сообщите, если отве�
 DocType: DocType,Fields,Поля
 DocType: System Settings,Your organization name and address for the email footer.,Ваше имя организации и адрес электронной почты для колонтитула.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,Родитель Таблица
-apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь как URL и дочерние элементы
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь и URL и дочерние элементы
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Корневая {0} не может быть удален
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162,No comments yet,Комментариев нет
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +120,Both DocType and Name required,И DocType и имя требуется
@@ -337,7 +337,7 @@ apps/frappe/frappe/model/document.py +641,none of,ни один из
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,Загрузить разрешений пользователя
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,Отмеченные элементы будут показаны на рабочем столе
 apps/frappe/frappe/core/doctype/doctype/doctype.py +421,{0} cannot be set for Single types,{0} не может быть установлена для отдельных видов
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} обновляется
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97,{0} updated,{0} обновлено
 apps/frappe/frappe/core/doctype/doctype/doctype.py +411,Report cannot be set for Single types,Сообщить не могут быть установлены для отдельных видов
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,Февраль
 DocType: DocPerm,Role,Роль
@@ -436,10 +436,10 @@ apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},О�
 DocType: DocType,Master,Мастер
 DocType: DocType,User Cannot Create,Пользователь не может создавать
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","Они также будут установлены по умолчанию для этих связей, если только одна такая запись разрешение определяется."
-apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} {1}
+apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{0} на {1}
 DocType: Customize Form,Enter Form Type,Введите Form Тип
 DocType: User,Send Password Update Notification,Отправить Пароль Update Notification
-apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values","Поле {0} не может быть установлен как уникальный, так как не являются уникальными существующие значения"
+apps/frappe/frappe/model/db_schema.py +247,"{0} field cannot be set as unique, as there are non-unique existing values","Поле {0} не может быть установлено как уникальное, так как существующие значения не являются уникальными "
 sites/assets/js/desk.min.js +1016,Updated To New Version,Обновлено до новой версии
 DocType: DocField,Depends On,Зависит от
 DocType: DocPerm,Additional Permissions,Дополнительные разрешения
@@ -677,7 +677,7 @@ DocType: Event,Repeat this Event,Повторите этот событие
 DocType: DocPerm,Amend,Изменен
 apps/frappe/frappe/templates/includes/login/login.js +45,Valid Login id required.,Требуется действительный ID логин.
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Снова откройте
-apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} не-поделилась этот документ с {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} закрыл этот документ от {1}
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Это автоматически генерируется ответ
 apps/frappe/frappe/model/document.py +378,Record does not exist,Запись не существует
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Page отсутствует или переехал
@@ -983,7 +983,7 @@ apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the A
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,не <SPAN класс = текст-приглушен данных нет-контента = 1>
 DocType: Workflow State,envelope,конверт
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,Вариант 2
-apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} поделился этот документ с {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} поделился этим документом  с {1}
 DocType: Website Settings,Google Plus One,Google Плюс один
 apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,Июль
 DocType: Communication,Additional Info,Дополнительная информация
@@ -1134,7 +1134,7 @@ DocType: DocField,Attach,Прикрепить
 DocType: DocType,Permission Rules,Правило доступа
 sites/assets/js/form.min.js +159,Links,Связи
 apps/frappe/frappe/model/base_document.py +331,Value missing for,Нет значения для
-apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Представленный Запись не может быть удалена.
+apps/frappe/frappe/model/delete_doc.py +135,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Проведенная Запись не может быть удалена.
 sites/assets/js/desk.min.js +919,new type of document,новый тип документа
 DocType: DocPerm,Read,Читать
 apps/frappe/frappe/templates/pages/update-password.html +10,Old Password,Старый Пароль

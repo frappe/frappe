@@ -173,6 +173,7 @@ $.extend(frappe, {
 	},
 	has_permission: function(doctype, docname, perm_type, callback) {
 		return frappe.call({
+			type: "GET",
 			method: "frappe.client.has_permission",
 			no_spinner: true,
 			args: {doctype: doctype, docname: docname, perm_type: perm_type},
