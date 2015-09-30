@@ -90,6 +90,10 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_cc_fields: function() {
+		if (!(this.frm && this.frm.doc)) {
+			return [];
+		}
+
 		var cc = [ [this.frm.doc.owner, 1] ];
 
 		var starred_by = frappe.ui.get_starred_by(this.frm.doc);
