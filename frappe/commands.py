@@ -524,6 +524,34 @@ def import_doc(context, path, force=False):
 		finally:
 			frappe.destroy()
 
+@click.command('import-csv')
+@click.argument('path')
+@click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
+@click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
+@click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
+@pass_context
+def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False):
+	"Import CSV using data import tool"
+	from frappe.core.page.data_import_tool import importer
+	from frappe.utils.csvutils import read_csv_content
+	site = get_single_site(context)
+
+	with open(path, 'r') as csvfile:
+		content = read_csv_content(csvfile.read())
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	try:
+		importer.upload(content, submit_after_import=submit_after_import,
+			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
+			via_console=True)
+		frappe.db.commit()
+	except Exception:
+		print frappe.get_traceback()
+
+	frappe.destroy()
+
 # translation
 @click.command('build-message-files')
 @pass_context
@@ -867,6 +895,7 @@ commands = [
 	export_csv,
 	export_fixtures,
 	import_doc,
+	import_csv,
 	build_message_files,
 	get_untranslated,
 	update_translations,
