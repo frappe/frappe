@@ -1,6 +1,6 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,Esc tuşuna basın kapatmak için
 apps/frappe/frappe/desk/form/assign_to.py +127,"A new task, {0}, has been assigned to you by {1}. {2}","Yeni bir görev, {0}, {1} tarafından size atanmıştır. {2}"
-apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Yazı
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Gönder
 apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv file.,Bir. Csv dosyası yükleyerek birçok öğe yeniden adlandırın.
 DocType: Workflow State,pause,durma
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Bu sayfaya erişmek için izin verilmez.
@@ -157,7 +157,7 @@ DocType: Custom Field,Fieldname,fieldname
 DocType: Workflow State,certificate,sertifika
 DocType: User,Tile,Kiremit
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,İlk veri sütunu boş olmalı.
-DocType: Workflow State,Print,baskı
+DocType: Workflow State,Print,Baskı
 DocType: User,Restrict IP,IP sınırla
 apps/frappe/frappe/email/smtp.py +172,Unable to send emails at this time,Şu anda e-postalar göndermek için açılamıyor
 sites/assets/js/desk.min.js +947,Search or type a command,Bir komutu ara veya yazın
@@ -597,7 +597,7 @@ DocType: Website Theme,Link to your Bootstrap theme,Senin Bootstrap tema Link
 sites/assets/js/desk.min.js +593,Edit as {0},Olarak düzenlemek {0}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +194,No User Restrictions found.,Hayır Kullanıcı Kısıtlamalar bulunamadı.
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,Standart Gelen kutusu
-sites/assets/js/desk.min.js +607,Make a new,Yeni bir yap
+sites/assets/js/desk.min.js +607,Make a new,Yeni oluştur:
 DocType: Print Settings,PDF Page Size,PDF Sayfa Boyutu
 sites/assets/js/desk.min.js +947,About,Hakkında
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.","Güncellenmesi için, sadece seçici sütunları güncelleyebilirsiniz."
@@ -699,7 +699,7 @@ sites/assets/js/desk.min.js +265,File size exceeded the maximum allowed size of 
 apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Enter at least one permission row,En az bir izin satır girmek
 sites/assets/js/desk.min.js +622,Created On,Açık düzenlendi
 DocType: Workflow State,align-center,align-center
-sites/assets/js/form.min.js +290,Can Write,Yazın Can
+sites/assets/js/form.min.js +290,Can Write,Yazılabilir
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Bazı belgeler, bir Fatura gibi, bir kez nihai değiştirilmemelidir. Bu tür belgeler için son durum gönderildi denir. Gönderilmiş/onaylanan rolleri düzeltebilirsiniz."
 DocType: Communication,Sender,Gönderici
 DocType: Web Page,Description for search engine optimization.,Arama motoru optimizasyonu için Açıklaması.
@@ -891,7 +891,7 @@ apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,Şifre Güncel
 DocType: Workflow State,trash,Çöp
 apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,Aralık
 DocType: Event,Leave blank to repeat always,Her zaman tekrarlamak için boş bırakın
-DocType: Event,Ends on,Biter
+DocType: Event,Ends on,Biteceği tarih
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,"Ürün, kendi soyundan ilave edilemez"
 sites/assets/js/form.min.js +274,{0} created this {1},{0} yarattığı bu {1}
 apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.",{1} tarafından {2} kapatıldı atanan bu görevi {0}.
@@ -907,7 +907,7 @@ DocType: User,Website User,Web Sitesi Kullanım
 DocType: Website Script,Script to attach to all web pages.,Senaryo tüm web sayfalarına eklemek için.
 DocType: Web Form,Allow Multiple,Birden izin
 sites/assets/js/form.min.js +291,Assign,Atamak
-apps/frappe/frappe/config/setup.py +93,Import / Export Data from .csv files.,İthalat / İhracat Veri den. Csv dosyaları.
+apps/frappe/frappe/config/setup.py +93,Import / Export Data from .csv files.,Veriyi  csv formatında içeri veya dışarı aktar. 
 DocType: Workflow State,Icon will appear on the button,Simge düğmesi görünecektir
 DocType: Web Page,Page url name (auto-generated),Sayfa url ismi (otomatik oluşturulmuş)
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,Indirme gibi aynı şablonu kullanarak yükleyin.
@@ -1084,11 +1084,11 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18
 apps/frappe/frappe/core/doctype/doctype/doctype.py +36,{0} not allowed in name,{0} adı izin
 DocType: Workflow State,circle-arrow-left,daire-ok-sol
 apps/frappe/frappe/sessions.py +109,Redis cache server not running. Please contact Administrator / Tech support,Redis önbellek sunucusu çalışmıyor. Yönetici / Teknik desteğe başvurun
-sites/assets/js/desk.min.js +918,Make a new record,Yeni bir kayıt yapmak
+sites/assets/js/desk.min.js +918,Make a new record,Yeni bir kayıt oluşturma
 DocType: Currency,Fraction,Kesir
 sites/assets/js/desk.min.js +550,Select from existing attachments,Mevcut ekleri seçin
 DocType: Custom Field,Field Description,Alan Açıklama
-apps/frappe/frappe/model/naming.py +49,Name not set via Prompt,İstemi yoluyla girilmedi İsim
+apps/frappe/frappe/model/naming.py +49,Name not set via Prompt,İstemci ile girilmemiş isim
 DocType: Note,Note is a free page where users can share documents / notes,Not kullanıcıları belgeler / notlar paylaşabilirsiniz ücretsiz bir sayfadır
 DocType: Website Theme,Top Bar Color,Top Bar Renk
 DocType: DocType,Allow Import,İzin Alma
@@ -1244,7 +1244,7 @@ DocType: Workflow State,circle-arrow-down,circle-arrow-down
 DocType: DocField,Datetime,Tarihzaman
 DocType: Workflow State,arrow-right,arrow-right
 DocType: Workflow State,Workflow state represents the current state of a document.,İş Akışı devlet belgenin mevcut durumunu gösterir.
-sites/assets/js/editor.min.js +152,Open Link in a new Window,Yeni Pencerede Aç link
+sites/assets/js/editor.min.js +152,Open Link in a new Window,Linki yeni pencerede aç
 apps/frappe/frappe/utils/file_manager.py +235,Removed {0},Kaldırıldı {0}
 DocType: Company History,Highlight,Vurgulayın
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,Standart Baskı Biçimi güncellenen olamaz
@@ -1375,7 +1375,7 @@ DocType: Website Slideshow,Slideshow like display for the website,Web sitesi iç
 sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),Merkez (Ctrl / Cmd + E)
 apps/frappe/frappe/sessions.py +28,Cache Cleared,Önbellek Temizlendi
 apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,Sistem Yöneticisi Rolü kullanıcı her zaman Kullanıcı Tipi olmalıdır: Sistem Kullanıcı
-DocType: DocPerm,Export,İhracat
+DocType: DocPerm,Export,Dışarı aktar
 DocType: About Us Settings,More content for the bottom of the page.,Sayfanın altında daha fazla içerik.
 sites/assets/js/desk.min.js +274,Session Expired. Logging you out,Oturum süresi doldu. Çıkış yapıyorsunuz
 DocType: Workflow,DocType on which this Workflow is applicable.,Uygulanabilir iş akışı DOCTYPE.

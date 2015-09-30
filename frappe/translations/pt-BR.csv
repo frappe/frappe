@@ -689,7 +689,7 @@ sites/assets/js/desk.min.js +265,File size exceeded the maximum allowed size of 
 apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Enter at least one permission row,Digite pelo menos uma linha permissão
 sites/assets/js/desk.min.js +622,Created On,Criado em
 DocType: Workflow State,align-center,Centralizar
-sites/assets/js/form.min.js +290,Can Write,Pode Escrever
+sites/assets/js/form.min.js +290,Can Write,Pode Atualizar
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Alguns documentos , como uma fatura , não deve ser trocada uma vez final. O estado final de tais documentos é chamado Enviado. Você pode restringir quais funções pode se submeter."
 DocType: Communication,Sender,Remetente
 DocType: Web Page,Description for search engine optimization.,Descrição para search engine optimization.
@@ -944,9 +944,9 @@ sites/assets/js/desk.min.js +608,Added {0} ({1}),Adicionado {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253,Fieldtype cannot be changed from {0} to {1} in row {2},FieldType não pode ser alterado a partir de {0} a {1} em linha {2}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Search Fields should contain valid fieldnames,Pesquisa Campos deve conter fieldnames válidos
 apps/frappe/frappe/core/doctype/user/user.js +321,Role Permissions,Permissões de função
-sites/assets/js/form.min.js +290,Can Read,Pode ler
+sites/assets/js/form.min.js +290,Can Read,Pode ver
 DocType: Standard Reply,Response,Resposta
-sites/assets/js/form.min.js +290,Can Share,Pode Compartilhe
+sites/assets/js/form.min.js +290,Can Share,Pode Compartilhar
 apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,Endereço do destinatário inválido
 DocType: Workflow State,step-forward,passo para frente
 apps/frappe/frappe/core/doctype/user/user.js +45,Refreshing...,Atualizando ...

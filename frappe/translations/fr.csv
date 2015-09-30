@@ -408,7 +408,7 @@ apps/frappe/frappe/desk/form/assign_to.py +114,"The task {0}, that you assigned 
 DocType: User,Modules Access,Access Modules
 DocType: Print Format,Print Format Type,Imprimer Type de format
 sites/assets/js/desk.min.js +936,Open Source Applications for the Web,Applications open source pour le Web
-DocType: Website Theme,"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",Ajoutez le nom d&#39;un &quot;Google Web Font&quot; par exemple &quot;Ouvrir Sans&quot;
+DocType: Website Theme,"Add the name of a ""Google Web Font"" e.g. ""Open Sans""","Ajouter le nom d'un ""Google Web Font"" par exemple ""Open Sans"""
 DocType: DocType,Hide Toolbar,Masquer la barre
 DocType: Email Account,SMTP Settings for outgoing emails,Paramètres SMTP pour les e-mails sortants
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +125,Import Failed,Échec de l'importation
@@ -678,7 +678,7 @@ DocType: Event,Repeat this Event,Répétez cette événement
 DocType: DocPerm,Amend,Modifier
 apps/frappe/frappe/templates/includes/login/login.js +45,Valid Login id required.,Valable Connexion Identifiant nécessaire.
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,réouvrir
-apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} ne pas partager ce document avec {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} un-shared this document with {1},{0} ne partage plus ce document avec {1}
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Ce est une réponse générée automatiquement
 apps/frappe/frappe/model/document.py +378,Record does not exist,N'existe pas d'enregistrement
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Page manquante ou déplacé
@@ -984,7 +984,7 @@ apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the A
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<Span class = text-coupé de données sans contenu = 1>
 DocType: Workflow State,envelope,enveloppe
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,Option 2
-apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} partagé ce document avec {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +44,{0} shared this document with {1},{0} a partagé ce document avec {1}
 DocType: Website Settings,Google Plus One,Google Plus One
 apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,Juillet
 DocType: Communication,Additional Info,Informations supplémentaires
@@ -999,7 +999,7 @@ DocType: System Settings,Session Expiry,Expiration session
 DocType: Workflow State,ban-circle,interdiction de cercle
 DocType: Event,Desk,Bureau
 apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Écrire une requête SELECT. résultat de note n&#39;est pas paginé (toutes les données sont transmises en une seule fois).
-DocType: Email Account,Attachment Limit (MB),Limite de fixation (MB)
+DocType: Email Account,Attachment Limit (MB),Taille maximale de la pièce jointe (MB)
 sites/assets/js/form.min.js +199,Ctrl + Down,Ctrl + Bas
 DocType: User,User Defaults,Par défaut le profil
 DocType: Workflow State,chevron-down,chevron vers le bas
