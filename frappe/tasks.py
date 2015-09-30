@@ -209,6 +209,7 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 
 	except:
 		frappe.db.rollback()
+		raise
 
 	else:
 		frappe.db.commit()
