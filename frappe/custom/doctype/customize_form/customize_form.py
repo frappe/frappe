@@ -46,7 +46,8 @@ class CustomizeForm(Document):
 		'depends_on': 'Data',
 		'description': 'Text',
 		'default': 'Text',
-		'precision': 'Select'
+		'precision': 'Select',
+		'read_only': 'Check'
 	}
 
 	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -139,6 +140,12 @@ class CustomizeForm(Document):
 
 					elif property == "unique":
 						update_db = True
+
+					elif (property == "read_only" and cint(df.get("read_only"))==0
+						and frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only")==1):
+						# if docfield has read_only checked and user is trying to make it editable, don't allow it
+						frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
+						continue
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
