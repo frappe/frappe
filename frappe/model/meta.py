@@ -319,8 +319,10 @@ def trim_tables():
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = [df.fieldname for df in frappe.get_meta(doctype).fields if df.fieldtype not in no_value_fields]
-		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields]
+		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields
+			and not f.startswith("_")]
 		if columns_to_remove:
+			print doctype, "columns removed:", columns_to_remove
 			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
