@@ -379,6 +379,9 @@ body {
     position: relative;
     padding-right: 10px;
   }
+  .doclist-row .list-id {
+    font-weight: normal;
+  }
   .doclist-row .list-row-id {
     left: 18px;
     text-align: left;
