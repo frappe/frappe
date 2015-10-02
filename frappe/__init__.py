@@ -243,7 +243,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
-	if flags.print_messages:
+	if flags.print_messages or not request or (not "cmd" in local.form_dict):
 		print "Message: " + repr(msg).encode("utf-8")
 
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))

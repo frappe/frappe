@@ -47,6 +47,7 @@ class MandatoryError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
+class CharacterLengthExceededError(ValidationError): pass
 class UpdateAfterSubmitError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
 class CancelledLinkError(LinkValidationError): pass

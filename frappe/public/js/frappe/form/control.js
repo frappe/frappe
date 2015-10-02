@@ -353,6 +353,11 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area)
 
+		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
+			this.df.fieldtype)) {
+				this.$input.attr("maxlength", this.df.length || 140);
+		}
+
 		this.set_input_attributes();
 		this.input = this.$input.get(0);
 		this.has_input = true;

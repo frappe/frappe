@@ -48,6 +48,7 @@ CREATE TABLE `tabDocField` (
   `in_list_view` int(1) NOT NULL DEFAULT 0,
   `read_only` int(1) NOT NULL DEFAULT 0,
   `precision` varchar(255) DEFAULT NULL,
+  `length` int(11) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `label` (`label`),

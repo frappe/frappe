@@ -337,11 +337,13 @@ class Document(BaseDocument):
 		self._validate_links()
 		self._validate_selects()
 		self._validate_constants()
+		self._validate_length()
 
 		children = self.get_all_children()
 		for d in children:
 			d._validate_selects()
 			d._validate_constants()
+			d._validate_length()
 
 		# extract images after validations to save processing if some validation error is raised
 		self._extract_images_from_text_editor()

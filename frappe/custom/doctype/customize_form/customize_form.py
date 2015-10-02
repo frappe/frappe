@@ -47,7 +47,8 @@ class CustomizeForm(Document):
 		'description': 'Text',
 		'default': 'Text',
 		'precision': 'Select',
-		'read_only': 'Check'
+		'read_only': 'Check',
+		'length': 'Int'
 	}
 
 	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
