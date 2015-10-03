@@ -41,8 +41,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		max_rows = 5000
 		if not data:
 			frappe.throw(_("No data found"))
-		elif len(data) > max_rows:
-			frappe.throw(_("Only allowed {0} rows in one import").format(max_rows))
+		elif not via_console and len(data) > max_rows:
+				frappe.throw(_("Only allowed {0} rows in one import").format(max_rows))
 
 	def get_start_row():
 		for i, row in enumerate(rows):
