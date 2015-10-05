@@ -25,12 +25,41 @@ email_defaults = {
 	},
 };
 
+email_defaults_imap = {
+	"GMail": {
+		"pop3_server": "imap.gmail.com"
+	},
+	"Outlook.com": {
+		"pop3_server": "imap.live.com"
+	},
+	"Yahoo Mail": {
+		"pop3_server": "imap.mail.yahoo.com "
+	},
+};
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
 		$.each(email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
+		if (frm.doc.use_imap) {
+			$.each(email_defaults_imap[frm.doc.service], function(key, value) {
+			frm.set_value(key, value);
+			})
+		}
 	},
+	use_imap: function(frm) {
+		if (frm.doc.use_imap) {
+			$.each(email_defaults_imap[frm.doc.service], function(key, value) {
+			frm.set_value(key, value);
+			})
+		}
+		else{
+			$.each(email_defaults[frm.doc.service], function(key, value) {
+			frm.set_value(key, value);
+			})
+		}
+	},
+
 	email_id: function(frm) {
 		if(!frm.doc.email_account_name) {
 			frm.set_value("email_account_name",
