@@ -17,6 +17,12 @@ def get_data():
 					"name": "Dropbox Backup",
 					"description": _("Manage cloud backups on Dropbox"),
 					"hide_count": True
+				},
+				{
+					"type": "doctype",
+					"name": "Shopify Settings",
+					"description": _("Connect Shopify with ERPNext"),
+					"hide_count": True
 				}
 			]
 		}
