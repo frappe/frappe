@@ -105,10 +105,6 @@ body {
     right: 5px;
     min-width: 200px;
   }
-  .control-label,
-  .grid-heading-row .grid-static-col {
-    font-weight: 300;
-  }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;
   }
@@ -283,30 +279,6 @@ body {
   }
   .linked-with-dialog {
     width: 100% !important;
-  }
-  body,
-  .btn,
-  .indicator {
-    font-weight: normal;
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  .h1,
-  .h2,
-  .h3,
-  .h4,
-  .h5,
-  .h6,
-  .like-disabled-input,
-  .bold,
-  .strong,
-  strong,
-  b {
-    font-weight: 400;
   }
 }
 @media (max-width: 767px) {
