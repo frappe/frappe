@@ -317,6 +317,9 @@ def get_site_path(*path):
 def get_files_path(*path):
 	return get_site_path("public", "files", *path)
 
+def get_bench_path():
+	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
+
 def get_backups_path():
 	return get_site_path("private", "backups")
 
