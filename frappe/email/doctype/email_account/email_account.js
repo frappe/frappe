@@ -1,6 +1,6 @@
 email_defaults = {
 	"GMail": {
-		"pop3_server": "pop.gmail.com",
+		"server": "pop.gmail.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.gmail.com",
@@ -8,7 +8,7 @@ email_defaults = {
 		"use_tls": 1
 	},
 	"Outlook.com": {
-		"pop3_server": "pop3.live.com",
+		"server": "pop3.live.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.live.com",
@@ -16,7 +16,7 @@ email_defaults = {
 		"use_tls": 1
 	},
 	"Yahoo Mail": {
-		"pop3_server": "pop.mail.yahoo.com ",
+		"server": "pop.mail.yahoo.com ",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",
@@ -27,13 +27,13 @@ email_defaults = {
 
 email_defaults_imap = {
 	"GMail": {
-		"pop3_server": "imap.gmail.com"
+		"server": "imap.gmail.com"
 	},
 	"Outlook.com": {
-		"pop3_server": "imap.live.com"
+		"server": "imap.live.com"
 	},
 	"Yahoo Mail": {
-		"pop3_server": "imap.mail.yahoo.com "
+		"server": "imap.mail.yahoo.com "
 	},
 };
 frappe.ui.form.on("Email Account", {

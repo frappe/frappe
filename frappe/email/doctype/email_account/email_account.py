@@ -101,14 +101,14 @@ class EmailAccount(Document):
 	def get_pop3(self):
 		"""Returns logged in POP3 connection object."""
 		args = {
-			"host": self.pop3_server,
+			"host": self.server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"password": self.password,
 			"use_imap":self.use_imap
 		}
 
-		if not self.pop3_server:
+		if not self.server:
 			frappe.throw(_("{0} is required").format("POP3 Server"))
 
 		pop3 = POP3Server(frappe._dict(args))
