@@ -111,6 +111,50 @@ class File(NestedSet):
 		super(File, self).on_trash()
 		self.delete_file()
 
+	def make_thumbnail(self):
+		from PIL import Image, ImageOps
+		import os
+
+		if self.file_url:
+			if self.file_url.startswith("/files"):
+				try:
+					image = Image.open(frappe.get_site_path("public", self.file_url))
+					filename, extn = self.file_url.rsplit(".", 1)
+				except IOError:
+					frappe.msgprint("Unable to read file format for {0}".format(self.file_url))
+
+			else:
+				# downlaod
+				import requests, StringIO
+				file_url = frappe.utils.get_url(self.file_url)
+				r = requests.get(file_url, stream=True)
+				r.raise_for_status()
+				image = Image.open(StringIO.StringIO(r.content))
+				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
+				filename = "/files/" + filename
+
+			thumbnail = ImageOps.fit(
+				image,
+				(300, 300),
+				Image.ANTIALIAS
+			)
+
+			thumbnail_url = filename + "_small." + extn
+
+			if thumbnail_url[0]=="/":
+				thumbnail_url = thumbnail_url[1:]
+
+			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url))
+
+			try:
+				thumbnail.save(path)
+				self.db_set("thumbnail_url", thumbnail_url)
+			except IOError:
+				frappe.msgprint("Unable to write file format for {0}".format(path))
+
+			return thumbnail_url
+
+
 	def after_delete(self):
 		self.update_parent_folder_size()
 

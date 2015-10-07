@@ -513,6 +513,9 @@ def get_url(uri=None, full_address=False):
 	"""get app url from request"""
 	host_name = frappe.local.conf.host_name
 
+	if uri and (uri.startswith("http://") or uri.startswith("https://")):
+		return uri
+
 	if not host_name:
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'

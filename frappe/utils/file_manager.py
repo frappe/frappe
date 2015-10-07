@@ -246,17 +246,19 @@ def delete_file_data_content(doc):
 	method(doc)
 
 def delete_file_from_filesystem(doc):
+	"""Delete file, thumbnail from File document"""
 	path = doc.file_name
+	delete_file(path)
+	if doc.thumbnail_url:
+		delete_file(doc.thumbnail_url)
 
+def delete_file(path):
+	"""Delete file from `public folder`"""
 	if path.startswith("files/"):
-		path = frappe.utils.get_site_path("public", doc.file_name)
-	else:
-		path = frappe.utils.get_site_path("public", "files", doc.file_name)
-
-	path = encode(path)
-
-	if os.path.exists(path):
-		os.remove(path)
+		path = frappe.utils.get_site_path("public", path)
+		path = encode(path)
+		if os.path.exists(path):
+			os.remove(path)
 
 def get_file(fname):
 	f = frappe.db.sql("""select file_name from `tabFile`
