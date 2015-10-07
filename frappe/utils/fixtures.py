@@ -51,7 +51,7 @@ def export_fixtures():
 			if isinstance(fixture, dict):
 				filters = fixture.get("filters")
 				fixture = fixture.get("doctype") or fixture.get("dt")
-			print "Exporting {0} {1} {2}".format(fixture, app, filters)
+			print "Exporting {0} {1} {2}".format(fixture, app, filters or "")
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
