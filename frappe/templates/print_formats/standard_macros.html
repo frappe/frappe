@@ -126,12 +126,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
     </div>
     {% endif %}
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
-	<div class="text-center document-status">
+	<div class="text-center" document-status="draft">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
     </div>
 	{%- endif -%}
 	{%- if doc.meta.is_submittable and doc.docstatus==2-%}
-	<div class="text-center document-status">
+	<div class="text-center" document-status="cancelled">
 		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
     </div>
 	{%- endif -%}
