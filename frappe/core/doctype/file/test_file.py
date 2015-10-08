@@ -47,9 +47,9 @@ class TestFile(unittest.TestCase):
 	def test_file_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
 
-		file = frappe.get_doc("File", "/files/file_copy.txt")
+		file = frappe.get_doc("File", {"file_name":"file_copy.txt"})
 		move_file([{"name": file.name}], folder.name, file.folder)
-		file = frappe.get_doc("File", "/files/file_copy.txt")
+		file = frappe.get_doc("File", {"file_name":"file_copy.txt"})
 
 		self.assertEqual(_("Home/Test Folder 2"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 2"), "file_size"), file.file_size)
@@ -63,8 +63,10 @@ class TestFile(unittest.TestCase):
 
 		move_file([{"name": folder.name}], 'Home/Test Folder 1', folder.folder)
 
-		file = frappe.get_doc("File", "/files/folder_copy.txt")
-		frappe.get_doc("File", "/files/file_copy.txt").delete()
+		file = frappe.get_doc("File", {"file_name":"folder_copy.txt"})
+		file_copy_txt = frappe.get_value("File", {"file_name":"file_copy.txt"})
+		if file_copy_txt:
+			frappe.get_doc("File", file_copy_txt).delete()
 
 		self.assertEqual(_("Home/Test Folder 1/Test Folder 3"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), file.file_size)
@@ -80,7 +82,7 @@ class TestFile(unittest.TestCase):
 		self.assertRaises(frappe.ValidationError, d.save)
 
 	def test_on_delete(self):
-		file = frappe.get_doc("File", {"file_url":"/files/file_copy.txt"})
+		file = frappe.get_doc("File", {"file_name":"file_copy.txt"})
 		file.delete()
 
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), None)

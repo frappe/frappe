@@ -248,12 +248,11 @@ def delete_file_data_content(doc):
 def delete_file_from_filesystem(doc):
 	"""Delete file, thumbnail from File document"""
 	delete_file(doc.file_url)
-	if doc.thumbnail_url:
-		delete_file(doc.thumbnail_url)
+	delete_file(doc.thumbnail_url)
 
 def delete_file(path):
 	"""Delete file from `public folder`"""
-	if path.startswith("/files/"):
+	if path and path.startswith("/files/"):
 		parts = os.path.split(path)
 		path = frappe.utils.get_site_path("public", "files", parts[-1])
 		path = encode(path)

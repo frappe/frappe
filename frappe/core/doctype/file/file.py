@@ -40,7 +40,7 @@ class File(NestedSet):
 				# home
 				self.name = self.file_name
 		else:
-			self.name = self.file_url
+			self.name = frappe.generate_hash("", 10)
 
 	def after_insert(self):
 		self.update_parent_folder_size()
@@ -53,7 +53,8 @@ class File(NestedSet):
 		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
 
 	def validate(self):
-		self.validate_duplicate_entry()
+		if self.is_new():
+			self.validate_duplicate_entry()
 		self.validate_folder()
 		self.set_folder_size()
 
@@ -92,6 +93,8 @@ class File(NestedSet):
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
+			# check duplicate name
+
 			# check duplicate assignement
 			n_records = frappe.db.sql("""select name from `tabFile`
 				where content_hash=%s
