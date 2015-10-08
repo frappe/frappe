@@ -222,7 +222,10 @@ def create_new_folder(file_name, folder):
 
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
-	for file_obj in json.loads(file_list):
+	if isinstance(file_list, basestring):
+		file_list = json.loads(file_list)
+
+	for file_obj in file_list:
 		setup_folder_path(file_obj.get("name"), new_parent)
 
 	# recalculate sizes

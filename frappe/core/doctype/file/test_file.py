@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.utils.file_manager import save_file, get_file, get_files_path
+from frappe.utils.file_manager import save_file, get_files_path
 from frappe import _
 from frappe.core.doctype.file.file import move_file
 import json
@@ -17,19 +17,11 @@ class TestFile(unittest.TestCase):
 		self.upload_file()
 
 	def delete_test_data(self):
-		for file_name in ["folder_copy.txt", "file_copy.txt", "Test Folder 2"]:
+		for file_name in ["folder_copy.txt", "file_copy.txt", "Test Folder 3", "Test Folder 2", "Test Folder 1"]:
 			file_name = frappe.db.get_value("File", {"file_name": file_name}, "name")
 			if file_name:
 				file = frappe.get_doc("File", file_name)
-				ancestors = file.get_ancestors()
 				file.delete()
-				self.delete_ancestors(ancestors)
-
-	def delete_ancestors(self, ancestors):
-		for folder in ancestors:
-			if folder != "Home":
-				folder = frappe.get_doc("File", folder)
-				folder.delete()
 
 	def upload_file(self):
 		self.saved_file = save_file('file_copy.txt', "Testing file copy example.",\
@@ -55,13 +47,9 @@ class TestFile(unittest.TestCase):
 	def test_file_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
 
-		file = frappe.get_doc("File", {"file_url":"/files/file_copy.txt"})
-
-		file_dict = [{"name": file.name}]
-
-		move_file(json.dumps(file_dict), folder.name, file.folder)
-
-		file = frappe.get_doc("File", {"file_url":"/files/file_copy.txt"})
+		file = frappe.get_doc("File", "/files/file_copy.txt")
+		move_file([{"name": file.name}], folder.name, file.folder)
+		file = frappe.get_doc("File", "/files/file_copy.txt")
 
 		self.assertEqual(_("Home/Test Folder 2"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 2"), "file_size"), file.file_size)
@@ -73,11 +61,10 @@ class TestFile(unittest.TestCase):
 
 		self.saved_file = save_file('folder_copy.txt', "Testing folder copy example.", "", "", folder.name)
 
-		file_dict = [{"name": folder.name}]
+		move_file([{"name": folder.name}], 'Home/Test Folder 1', folder.folder)
 
-		move_file(json.dumps(file_dict), 'Home/Test Folder 1', folder.folder)
-
-		file = frappe.get_doc("File", {"file_url":"/files/file_copy.txt"})
+		file = frappe.get_doc("File", "/files/folder_copy.txt")
+		frappe.get_doc("File", "/files/file_copy.txt").delete()
 
 		self.assertEqual(_("Home/Test Folder 1/Test Folder 3"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), file.file_size)
