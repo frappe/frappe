@@ -145,14 +145,18 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	new_attachment: function(fieldname) {
 		var me = this;
-		if(!this.dialog){
-			this.dialog = frappe.ui.get_upload_dialog({
-				"args": me.get_args(),
-				"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
-				"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-				"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
-			});
+		if (this.dialog) {
+			// remove upload dialog
+			this.dialog.$wrapper.remove();
 		}
+		
+		// make upload dialog
+		this.dialog = frappe.ui.get_upload_dialog({
+			"args": me.get_args(),
+			"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
+			"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+		});
 	},
 	get_args: function() {
 		return {
