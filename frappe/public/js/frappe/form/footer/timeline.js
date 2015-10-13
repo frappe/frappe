@@ -22,14 +22,37 @@ frappe.ui.form.Comments = Class.extend({
 						txt: frappe.markdown(me.input.val()),
 						frm: me.frm
 					})
-				} else {
+					recipients = me.frm.doc.raised_by? me.frm.doc.raised_by : me.frm.doc.contact_email? me.frm.doc.contact_email : "";
+					$("input[data-fieldname='recipients']").val(recipients);
+
+				} else if (me.wrapper.find(".is-sms").prop("checked")){
+					var _me = this;
+					_me.dialog = reder_sms_dialog(me, _me, false);
+					_me.dialog.set_value("recipients", me.frm.doc.phone? me.frm.doc.phone : me.frm.doc.contact_mobile?me.frm.doc.contact_mobile:"");
+					_me.dialog.set_value('content', me.input.val());
+					_me.dialog.show();
+				} else if (me.wrapper.find(".is-both").prop("checked")){
+					var _me = this;
+					_me.dialog = reder_sms_dialog(me, _me, true);
+					_me.dialog.set_value("recipients", me.frm.doc.phone? me.frm.doc.phone : me.frm.doc.contact_mobile?me.frm.doc.contact_mobile:"");
+					_me.dialog.set_value('content', me.input.val());
+					_me.dialog.show();
+				}else {
 					me.add_comment(this);
 				}
 			});
 
 		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
 			.on("change", function() {
-				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
+				$('.is-sms').prop('checked', false);
+				$('.is-email').prop('checked', false);
+				$('.is-comment').prop('checked', false);
+				$('.is-both').prop('checked', false);
+				$(this).prop('checked', true);
+				me.button.html(me.wrapper.find(".is-comment").prop("checked") ? __("Comment") : __("Compose"));
+				
+				// Original Code
+				// me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
 			});
 
 		this.list.on("click", ".toggle-blockquote", function() {
@@ -56,7 +79,8 @@ frappe.ui.form.Comments = Class.extend({
 				if(c.comment) me.render_comment(c);
 		});
 
-		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
+		if(['Issue','Maintenance Schedule'].indexOf(me.frm.doctype) == -1)
+			this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
 		this.frm.sidebar.refresh_comments();
 
@@ -227,22 +251,9 @@ frappe.ui.form.Comments = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
+					me.frm.get_docinfo().comments =
+						me.get_comments().concat([r.message]);
 					me.input.val("");
-
-					var comment = r.message;
-					var comments = me.get_comments();
-					var comment_exists = false;
-					for (var i=0, l=comments.length; i<l; i++) {
-						if (comments[i].name==comment.name) {
-							comment_exists = true;
-							break;
-						}
-					}
-					if (comment_exists) {
-						return;
-					}
-
-					me.frm.get_docinfo().comments = comments.concat([r.message]);
 					me.refresh(true);
 				}
 			}
@@ -302,4 +313,55 @@ frappe.ui.form.Comments = Class.extend({
 
 		return last_email;
 	}
-});
+})
+
+reder_sms_dialog = function(me, _me,email_dialog){
+	return new frappe.ui.Dialog({
+		title: __("Add Reply") + ": " + (this.subject || ""),
+		no_submit_on_enter: true,
+		fields: [
+			// fetch the customer numner
+			{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients"},
+
+			{fieldtype: "Section Break"},
+			{label:__("Message"), fieldtype:"Small Text", reqd: 1,
+				fieldname:"content"},
+		],
+		primary_action_label: "Send",
+		primary_action: function() {
+
+			to_string=$(cur_dialog.body).find("input[data-fieldname='recipients']").val()
+			to = to_string.split(",");
+ 			msg = $(cur_dialog.body).find("textarea[data-fieldname$='content']").val();
+			if (to_string==''|| to_string.length<='1' || msg.length<='1' || msg==' ' ){
+           		 alert(" 'To' and 'Message' are mandatory fields ");
+            }
+            else{
+				return frappe.call({
+					method: "erpnext.setup.doctype.sms_settings.sms_settings.send_sms",
+					args: {
+						receiver_list: to,
+						msg: msg
+					},
+					callback: function(r) {
+						_me.dialog.hide();
+						if (email_dialog){
+							new frappe.views.CommunicationComposer({
+								doc: me.frm.doc,
+								txt: frappe.markdown(me.input.val()),
+								frm: me.frm
+							})
+							recipients = me.frm.doc.raised_by? me.frm.doc.raised_by : me.frm.doc.contact_email? me.frm.doc.contact_email : "";
+							$("input[data-fieldname='recipients']").val(recipients);
+							$(".frappe-list").val(msg);
+						}
+						if(r.exc) {
+							msgprint(r.exc);
+							return;
+						}
+					}
+				});
+			}
+		}
+	});
+}

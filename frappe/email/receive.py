@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import time
-import _socket, poplib
+import _socket, poplib,imaplib
 import frappe
 from frappe import _
 from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
@@ -36,6 +36,31 @@ class POP3Server:
 
 	def connect(self):
 		"""Connect to **Email Account**."""
+		responce = self.connect_imap() if cint(self.settings.use_imap) else self.connect_pop()
+		return responce
+
+	def connect_imap(self):
+		#this method return imap connection
+		try:
+			if cint(self.settings.use_ssl):
+				self.imap = Timed_IMAP4_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+			else:
+				self.imap = Timed_IMAP4(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+			self.imap.login(self.settings.username,self.settings.password)
+			# connection established!
+			return True
+
+		except _socket.error:
+			# Invalid mail server -- due to refusing connection
+			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
+			raise
+
+		except :
+				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
+				raise
+	
+	def connect_pop(self):
+		#this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
 				self.pop = Timed_POP3_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
@@ -75,8 +100,14 @@ class POP3Server:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
-			pop_list = self.pop.list()[1]
-			num = num_copy = len(pop_list)
+			# if section code below is for imap and else part is for pop3
+			if cint(self.settings.use_imap):  
+				self.imap.select("Inbox") 
+				responce, message = self.imap.uid('search',None, "UNSEEN") # search and return Uids
+				email_list =  message[0].split()
+			else:
+				email_list = self.pop.list()[1]
+			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
 			if num > 20: num = 20
@@ -86,20 +117,24 @@ class POP3Server:
 			self.max_email_size = cint(frappe.local.conf.get("max_email_size"))
 			self.max_total_size = 5 * self.max_email_size
 
-			for i, pop_meta in enumerate(pop_list):
+			for i, email_meta in enumerate(email_list):
 				# do not pull more than NUM emails
 				if (i+1) > num:
 					break
 
 				try:
-					self.retrieve_message(pop_meta, i+1)
+					# if section code below is for imap and else part is for pop3
+					if cint(self.settings.use_imap):
+						self.retrieve_message(email_meta)
+					else:
+						self.retrieve_message(email_meta, i+1)
 				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
 
 			# WARNING: Mark as read - message number 101 onwards from the pop list
 			# This is to avoid having too many messages entering the system
 			num = num_copy
-			if num > 100 and not self.errors:
+			if num > 100 and not self.errors and not cint(self.settings.use_imap):
 				for m in xrange(101, num+1):
 					self.pop.dele(m)
 
@@ -112,17 +147,25 @@ class POP3Server:
 
 		finally:
 			# no matter the exception, pop should quit if connected
-			self.pop.quit()
+			if cint(self.settings.use_imap):
+				self.imap.logout()
+			else:
+				self.pop.quit()
 
 		return self.latest_messages
 
-	def retrieve_message(self, pop_meta, msg_num):
+	def retrieve_message(self, email_meta,msg_num=None):
 		incoming_mail = None
 		try:
-			self.validate_pop(pop_meta)
-			msg = self.pop.retr(msg_num)
+			self.validate_pop(email_meta)
+			# if section code below is for imap and else part is for pop3
+			if cint(self.settings.use_imap):
+				status,message = self.imap.uid('fetch', email_meta, '(RFC822)')
+				self.latest_messages.append(message[0][1])
+			else:
+				msg = self.pop.retr(msg_num)
 
-			self.latest_messages.append(b'\n'.join(msg[1]))
+				self.latest_messages.append(b'\n'.join(msg[1]))
 
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
@@ -140,9 +183,11 @@ class POP3Server:
 				self.errors = True
 				frappe.db.rollback()
 
-				self.pop.dele(msg_num)
+				if not cint(self.settings.use_imap):
+					self.pop.dele(msg_num)
 		else:
-			self.pop.dele(msg_num)
+			if not cint(self.settings.use_imap):
+				self.pop.dele(msg_num)
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -346,3 +391,8 @@ class Timed_POP3(TimerMixin, poplib.POP3):
 
 class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
 	_super = poplib.POP3_SSL
+class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
+	_super = imaplib.IMAP4
+
+class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
+	_super = imaplib.IMAP4_SSL

@@ -9,13 +9,15 @@ from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, st
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
-from frappe.email.receive import POP3Server, Email
+from frappe.email.receive import POP3Server,Email
 from poplib import error_proto
+import imaplib 
 import markdown2, re
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 
-class SentEmailInInbox(Exception): pass
+class SentEmailInInbox(Exception): pass  # imap
+class error(Exception): pass             # imap
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -30,7 +32,7 @@ class EmailAccount(Document):
 		self.name = self.email_account_name
 
 	def validate(self):
-		"""Validate email id and check POP3 and SMTP connections is enabled."""
+		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
 			validate_email_add(self.email_id, True)
 
@@ -99,19 +101,20 @@ class EmailAccount(Document):
 	def get_pop3(self):
 		"""Returns logged in POP3 connection object."""
 		args = {
-			"host": self.pop3_server,
+			"host": self.server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"password": self.password
+			"password": self.password,
+			"use_imap":self.use_imap
 		}
 
-		if not self.pop3_server:
+		if not self.server:
 			frappe.throw(_("{0} is required").format("POP3 Server"))
 
 		pop3 = POP3Server(frappe._dict(args))
 		try:
 			pop3.connect()
-		except error_proto, e:
+		except (error_proto,imaplib.IMAP4.error) , e:
 			frappe.throw(e.message)
 
 		return pop3
@@ -243,7 +246,7 @@ class EmailAccount(Document):
 			if parent:
 				parent = frappe.get_doc(self.append_to, parent[0].name)
 
-		if not parent and self.append_to and self.append_to!="Communication":
+		if not parent and self.append_to:
 			# no parent found, but must be tagged
 			# insert parent type doc
 			parent = frappe.new_doc(self.append_to)
