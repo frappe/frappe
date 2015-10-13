@@ -857,6 +857,13 @@ def drop_site(site, root_login='root', root_password=None):
 		os.mkdir(archived_sites_dir)
 	move(archived_sites_dir, site)
 
+@click.command('version')
+@pass_context
+def get_version(context):
+	frappe.init(site=context.sites[0])
+	for m in sorted(frappe.local.app_modules.keys()):
+		print "{0} {1}".format(m, frappe.get_module(m).__version__)
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -916,4 +923,5 @@ commands = [
 	uninstall,
 	drop_site,
 	set_config,
+	get_version,
 ]

@@ -126,16 +126,16 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
     </div>
     {% endif %}
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
-	<div class="text-center">
+	<div class="text-center" document-status="draft">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
     </div>
 	{%- endif -%}
 	{%- if doc.meta.is_submittable and doc.docstatus==2-%}
-	<div class="text-center">
+	<div class="text-center" document-status="cancelled">
 		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
     </div>
 	{%- endif -%}
 	{% if max_pages > 1 %}
-	<p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
+	<p class="text-right page-number">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
 	{% endif %}
 {%- endmacro -%}
