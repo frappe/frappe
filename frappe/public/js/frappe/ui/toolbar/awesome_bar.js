@@ -9,10 +9,7 @@ frappe.search = {
 			source: function(request, response) {
 				var txt = strip(request.term);
 				frappe.search.options = [];
-				if(!txt) {
-					// search recent
-					frappe.search.verbs[1]("");
-				} else {
+				if(txt) {
 					var lower = strip(txt.toLowerCase());
 					$.each(frappe.search.verbs, function(i, action) {
 						action(lower);
@@ -22,6 +19,8 @@ frappe.search = {
 				// sort options
 				frappe.search.options.sort(function(a, b) {
 					return (a.match || "").length - (b.match || "").length; });
+
+				frappe.search.add_recent("");
 
 				frappe.search.add_help();
 
@@ -98,6 +97,29 @@ frappe.search = {
 			}
 		});
 	},
+	add_recent: function(txt) {
+		var doctypes = frappe.utils.unique(keys(locals).concat(keys(frappe.search.recent)));
+		for(var i in doctypes) {
+			var doctype = doctypes[i];
+			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
+				&& !in_list(frappe.boot.single_types, doctype)
+				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
+					"Currency", "Page Role", "Print Format"], doctype)) {
+
+				var values = frappe.utils.remove_nulls(frappe.utils.unique(
+					keys(locals[doctype]).concat(frappe.search.recent[doctype] || [])
+				));
+
+				var ret = frappe.search.find(values, txt, function(match) {
+					return {
+						label: __(doctype) + " <b>" + match + "</b>",
+						value: __(doctype) + " " + match,
+						route: ["Form", doctype, match]
+					}
+				});
+			}
+		}
+	},
 	make_page_title_map: function() {
 		frappe.search.pages = {};
 		$.each(frappe.boot.page_info, function(name, p) {
@@ -149,31 +171,6 @@ frappe.search.verbs = [
 				},
 				match: txt
 			});
-		}
-	},
-
-	// recent
-	function(txt) {
-		var doctypes = frappe.utils.unique(keys(locals).concat(keys(frappe.search.recent)));
-		for(var i in doctypes) {
-			var doctype = doctypes[i];
-			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
-				&& !in_list(frappe.boot.single_types, doctype)
-				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
-					"Currency", "Page Role", "Print Format"], doctype)) {
-
-				var values = frappe.utils.remove_nulls(frappe.utils.unique(
-					keys(locals[doctype]).concat(frappe.search.recent[doctype] || [])
-				));
-
-				var ret = frappe.search.find(values, txt, function(match) {
-					return {
-						label: __(doctype) + " <b>" + match + "</b>",
-						value: __(doctype) + " " + match,
-						route: ["Form", doctype, match]
-					}
-				});
-			}
 		}
 	},
 
