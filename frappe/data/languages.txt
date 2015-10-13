@@ -2,12 +2,15 @@ ar	العربية
 bg	bǎlgarski
 bo  ལྷ་སའི་སྐད་
 bs	bosanski
+bn  বাঙালি
 ca	català
 cs	česky
 da	dansk
+da-DK   dansk (Danmark)
 de	deutsch
 el	ελληνικά
 es	español
+es-PE   Español (Perú)
 en	english
 fa	پارسی
 fi  suomalainen
@@ -33,6 +36,7 @@ pt	português
 pt-BR	português brasileiro
 ro	român
 ru	русский
+si  slovenščina
 sv  svenska
 sk	slovenčina
 sq  shqiptar
