@@ -435,7 +435,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			callback: function(r) {
 				if(!r.exc) {
 					if(form_values.send_email && r.message["emails_not_sent_to"]) {
-						msgprint( __("Email not sent to {0}",
+						msgprint( __("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
 
