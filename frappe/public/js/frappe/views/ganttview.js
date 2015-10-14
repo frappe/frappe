@@ -82,7 +82,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 					gantt_area.gantt({
 						source: me.get_source(r),
 						navigate: "scroll",
-						scale: "days",
+						scale: me.gantt_scale || "days",
 						minScale: "hours",
 						maxScale: "months",
 						itemsPerPage: 20,
