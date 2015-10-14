@@ -36,9 +36,8 @@ pt	português
 pt-BR	português brasileiro
 ro	român
 ru	русский
-si  slovenščina
+sk  slovenčina
 sv  svenska
-sk	slovenčina
 sq  shqiptar
 sr	српски
 ta	தமிழ்
