@@ -469,11 +469,14 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	from frappe.model.meta import get_field_precision
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
-def generate_hash(txt=None):
+def generate_hash(txt=None, length=None):
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib, time
 	from .utils import random_string
-	return hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	digest = hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	if length:
+		digest = digest[:length]
+	return digest
 
 def reset_metadata_version():
 	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
