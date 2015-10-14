@@ -9,6 +9,7 @@ from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
+from frappe.model.db_schema import type_map, varchar_len
 
 _classes = {}
 
@@ -443,6 +444,25 @@ class BaseDocument(object):
 			if self.get(fieldname) != values.get(fieldname):
 				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
+
+	def _validate_length(self):
+		if frappe.flags.in_install:
+			return
+		
+		for fieldname, value in self.get_valid_dict().iteritems():
+			df = self.meta.get_field(fieldname)
+			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
+				max_length = cint(df.get("length")) or cint(varchar_len)
+								
+				if len(cstr(value)) > max_length:
+					if self.parentfield and self.idx:
+						reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+
+					else:
+						reference = "{0} {1}".format(_(self.doctype), self.name)
+					
+					frappe.throw(_("{0}: '{1}' will get truncated, as max characters allowed is {2}")\
+						.format(reference, _(df.label), max_length), frappe.CharacterLengthExceededError)
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
