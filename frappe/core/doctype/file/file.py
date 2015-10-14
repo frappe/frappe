@@ -17,6 +17,8 @@ import json
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
+exclude_from_linked_with = True
+
 class File(NestedSet):
 	nsm_parent_field = 'folder'
 	no_feed_on_delete = True

@@ -332,7 +332,7 @@ def clear_cache(doctype=None):
 	frappe.cache().delete_value("is_table")
 	frappe.cache().delete_value("doctype_modules")
 
-	groups = ["meta", "form_meta", "table_columns", "last_modified"]
+	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
 
 	def clear_single(dt):
 		for name in groups:

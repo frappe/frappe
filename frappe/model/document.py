@@ -619,6 +619,10 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		frappe.cache().hdel("last_modified", self.doctype)
+
+		# to clear linked_with_doctypes of others
+		frappe.cache().hdel("linked_with_doctypes", self.doctype)
+
 		self.notify_update()
 
 		self.latest = None
