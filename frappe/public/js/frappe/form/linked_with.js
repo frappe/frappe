@@ -12,6 +12,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 		if(!this.dialog)
 			this.make_dialog();
 
+		this.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center">'
+			+ __("Loading") + '...</div>');
+
 		this.dialog.show();
 	},
 	make_dialog: function() {
@@ -28,9 +31,6 @@ frappe.ui.form.LinkedWith = Class.extend({
 		this.dialog.$wrapper.find(".modal-dialog").addClass("linked-with-dialog");
 
 		this.dialog.on_page_show = function() {
-			me.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center">'
-				+ __("Loading") + '...</div>');
-
 			// execute ajax calls sequentially
 			// 1. get linked doctypes
 			// 2. load all doctypes

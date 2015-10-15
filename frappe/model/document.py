@@ -618,14 +618,33 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		frappe.cache().hdel("last_modified", self.doctype)
-
-		# to clear linked_with_doctypes of others
-		frappe.cache().hdel("linked_with_doctypes", self.doctype)
-
+		self.clear_cache()
 		self.notify_update()
 
 		self.latest = None
+
+	def clear_cache(self):
+		frappe.cache().hdel("last_modified", self.doctype)
+		self.clear_linked_with_cache()
+
+	def clear_linked_with_cache(self):
+		cache = frappe.cache()
+		def _clear_cache(d):
+			for df in (d.meta.get_link_fields() + d.meta.get_dynamic_link_fields()):
+				if d.get(df.fieldname):
+					doctype = df.options if df.fieldtype=="Link" else d.get(df.options)
+					name = d.get(df.fieldname)
+
+					if df.fieldtype=="Dynamic Link":
+						# clear linked doctypes list
+						cache.hdel("linked_doctypes", doctype)
+
+					# delete linked with cache for all users
+					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
+
+		_clear_cache(self)
+		for d in self.get_all_children():
+			_clear_cache(d)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""

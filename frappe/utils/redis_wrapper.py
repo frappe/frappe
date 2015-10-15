@@ -147,4 +147,3 @@ class RedisWrapper(redis.Redis):
 			return super(redis.Redis, self).hkeys(self.make_key(name))
 		except redis.exceptions.ConnectionError:
 			return []
-
