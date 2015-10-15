@@ -186,9 +186,12 @@ def run_async_task(self, site=None, user=None, cmd=None, form_dict=None, hijack_
 
 @celery_task()
 def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None):
+	recipients=None, cc=None, lang=None):
 	try:
 		frappe.connect(site=site)
+
+		if lang:
+			frappe.local.lang = lang
 
 		# upto 3 retries
 		for i in xrange(3):
