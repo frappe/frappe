@@ -9,6 +9,8 @@ from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe import _
 
+exclude_from_linked_with = True
+
 class Feed(Document):
 	pass
 

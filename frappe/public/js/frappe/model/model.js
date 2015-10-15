@@ -83,7 +83,7 @@ $.extend(frappe.model, {
 
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {
-			callback();
+			callback && callback();
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
@@ -112,7 +112,7 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
-					callback(r);
+					callback && callback(r);
 				}
 			});
 		}
