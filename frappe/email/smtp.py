@@ -77,6 +77,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"sender": frappe.conf.get("auto_email_id", "notifications@example.com")
 		})
 		email_account.from_site_config = True
+		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
 
 	if not email_account and not raise_exception_not_set:
 		return None
