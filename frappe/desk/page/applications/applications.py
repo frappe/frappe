@@ -6,8 +6,9 @@ import frappe
 import frappe.utils
 import frappe.installer
 import frappe.sessions
-import requests
 import subprocess
+import os
+import json
 from frappe import _
 from distutils.spawn import find_executable
 
@@ -30,14 +31,23 @@ def get_app_list():
 		if app in installed:
 			out[app]["installed"] = 1
 
-	contrib = get_contrib_apps()
-	contrib = {app:contrib[app] for app in contrib if app not in installed}
-	out.update(contrib)
+	app_listing = get_app_listing()
+	app_listing = {app:app_listing[app] for app in app_listing if app not in installed}
+	out.update(app_listing)
 	return out
 
-def get_contrib_apps():
-	contrib_apps_url = 'https://raw.githubusercontent.com/frappe/bench/master/install_scripts/contrib-apps.json'
-	return requests.get(contrib_apps_url).json()
+def get_app_listing():
+	apps_listing_dir = os.path.join(os.path.dirname(frappe.__file__), 'data', 'app_listing')
+	def get_app_path(app, *path):
+		return os.path.join(apps_listing_dir, app, *path)
+	out = {}
+	apps = [app for app in os.listdir(apps_listing_dir)
+			if os.path.isdir(get_app_path(app)) and
+			os.path.exists(get_app_path(app, 'data.json'))]
+	for app in apps:
+		with open(get_app_path(app, 'data.json')) as f:
+			out[app] = json.load(f)
+	return out
 
 @frappe.whitelist()
 def install_app(name):
@@ -54,7 +64,7 @@ def install_app(name):
 	frappe.installer.install_app(name)
 
 def get_app(name):
-	contrib = get_contrib_apps()
-	if name not in contrib:
+	app_listing = get_app_listing()
+	if name not in app_listing:
 		raise frappe.ValidationError
-	subprocess.check_call([find_executable('bench'), 'get-app', name, contrib[name]['repo_url']], cwd=frappe.utils.get_bench_path())
+	subprocess.check_call([find_executable('bench'), 'get-app', name, app_listing[name]['repo_url']], cwd=frappe.utils.get_bench_path())
