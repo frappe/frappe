@@ -163,7 +163,9 @@ class File(NestedSet):
 
 	def check_folder_is_empty(self):
 		"""Throw exception if folder is not empty"""
-		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}):
+		files = frappe.get_all("File", filters={"folder": self.name}, fields=("name", "file_name"))
+
+		if self.is_folder and files:
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
 
 	def check_reference_doc_permission(self):

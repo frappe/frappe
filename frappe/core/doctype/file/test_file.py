@@ -8,7 +8,6 @@ import unittest
 from frappe.utils.file_manager import save_file, get_files_path
 from frappe import _
 from frappe.core.doctype.file.file import move_file
-import json
 # test_records = frappe.get_test_records('File')
 
 class TestFile(unittest.TestCase):
@@ -17,11 +16,9 @@ class TestFile(unittest.TestCase):
 		self.upload_file()
 
 	def delete_test_data(self):
-		for file_name in ["folder_copy.txt", "file_copy.txt", "Test Folder 3", "Test Folder 2", "Test Folder 1"]:
-			file_name = frappe.db.get_value("File", {"file_name": file_name}, "name")
-			if file_name:
-				file = frappe.get_doc("File", file_name)
-				file.delete()
+		for f in frappe.db.sql('''select name, file_name from tabFile where
+			is_home_folder = 0 and is_attachments_folder = 0 order by rgt-lft asc'''):
+			frappe.delete_doc("File", f[0])
 
 	def upload_file(self):
 		self.saved_file = save_file('file_copy.txt', "Testing file copy example.",\
