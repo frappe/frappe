@@ -738,6 +738,9 @@ def get_file_json(path):
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
 	from frappe.utils import cstr
+	if isinstance(path, unicode):
+		path = path.encode("utf-8")
+
 	if os.path.exists(path):
 		with open(path, "r") as f:
 			return cstr(f.read())
