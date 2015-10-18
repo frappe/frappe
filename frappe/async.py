@@ -20,7 +20,7 @@ redis_server = None
 def handler(f):
 	cmd = f.__module__ + '.' + f.__name__
 
-	def run(args, set_in_response=True):
+	def run(args, set_in_response=True, hijack_std=False):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
@@ -28,7 +28,7 @@ def handler(f):
 		args = frappe._dict(args)
 		task = run_async_task.delay(site=frappe.local.site,
 			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
-			form_dict=args)
+									form_dict=args, hijack_std=hijack_std)
 		if set_in_response:
 			frappe.local.response['task_id'] = task.id
 		return task.id
