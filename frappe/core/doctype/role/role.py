@@ -10,4 +10,6 @@ class Role(Document):
 	def after_insert(self):
 		# Add role to Administrator
 		if frappe.flags.in_install != "frappe":
-			frappe.get_doc("User", "Administrator").add_roles(self.name)
+			user = frappe.get_doc("User", "Administrator")
+			user.flags.ignore_permissions = True
+			user.add_roles(self.name)
