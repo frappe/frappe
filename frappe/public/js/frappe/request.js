@@ -125,7 +125,8 @@ frappe.request.call = function(opts) {
 		type: opts.type,
 		dataType: opts.dataType || 'json',
 		async: opts.async,
-		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }
+		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+		cache: false
 	};
 
 	frappe.last_request = ajax_args.data;
