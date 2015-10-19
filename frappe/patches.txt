@@ -11,6 +11,7 @@ execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
 execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
 execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter') #2014-12-31-1
+execute:frappe.reload_doctype("File") # 2015-10-19
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length

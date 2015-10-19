@@ -106,7 +106,7 @@ class DbTable:
 
 				try:
 					# check for truncation
-					max_length = frappe.db.sql("""select max(length(`{fieldname}`)) from `tab{doctype}`"""\
+					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
 				except MySQLdb.OperationalError, e:
