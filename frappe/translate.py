@@ -529,3 +529,11 @@ def deduplicate_messages(messages):
 
 def get_bench_dir():
 	return os.path.join(frappe.__file__, '..', '..', '..', '..')
+
+def rename_language(old_name, new_name):
+	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
+	if language_in_system_settings == old_name:
+		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
+
+	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
+		{ "old_name": old_name, "new_name": new_name })

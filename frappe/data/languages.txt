@@ -2,7 +2,7 @@ ar	العربية
 bg	bǎlgarski
 bo  ལྷ་སའི་སྐད་
 bs	bosanski
-bn  বাঙালি
+bn  বাংলা
 ca	català
 cs	česky
 da	dansk
