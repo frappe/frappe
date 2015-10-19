@@ -218,7 +218,7 @@ $.extend(frappe.model, {
 		}
 
 		return frappe.call({
-			type: "GET",
+			type: "POST",
 			method: opts.method,
 			args: {
 				"source_name": opts.source_name
