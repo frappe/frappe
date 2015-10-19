@@ -40,8 +40,8 @@ type_map = {
 	,'Password':	('varchar', varchar_len)
 	,'Select':		('varchar', varchar_len)
 	,'Read Only':	('varchar', varchar_len)
-	,'Attach':		('varchar', varchar_len)
-	,'Attach Image':('varchar', varchar_len)
+	,'Attach':		('text', '')
+	,'Attach Image':('text', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -108,12 +108,12 @@ class DbTable:
 					# check for truncation
 					max_length = frappe.db.sql("""select max(length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
-						
+
 				except MySQLdb.OperationalError, e:
 					if e.args[0]==1054:
 						# Unknown column 'column_name' in 'field list'
 						continue
-						
+
 					else:
 						raise
 
