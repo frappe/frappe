@@ -96,3 +96,4 @@ execute:frappe.db.sql("delete from tabSessions where user is null")
 frappe.patches.v6_2.rename_backup_manager
 execute:frappe.delete_doc("DocType", "Backup Manager")
 frappe.patches.v6_4.reduce_varchar_length
+frappe.patches.v6_4.rename_bengali_language
