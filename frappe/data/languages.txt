@@ -2,7 +2,7 @@ ar	العربية
 bg	bǎlgarski
 bo  ལྷ་སའི་སྐད་
 bs	bosanski
-bn  বাঙালি
+bn  বাংলা
 ca	català
 cs	česky
 da	dansk
@@ -36,9 +36,8 @@ pt	português
 pt-BR	português brasileiro
 ro	român
 ru	русский
-si  slovenščina
+sk  slovenčina
 sv  svenska
-sk	slovenčina
 sq  shqiptar
 sr	српски
 ta	தமிழ்

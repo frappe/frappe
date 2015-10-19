@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cstr, cint, validate_email_add, split_emails
+from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails
 from frappe.utils.file_manager import get_file
 import frappe.email.smtp
 from frappe import _
@@ -106,7 +106,7 @@ class Communication(Document):
 			from frappe.tasks import sendmail
 			sendmail.delay(frappe.local.site, self.name,
 				print_html=print_html, print_format=print_format, attachments=attachments,
-				recipients=recipients, cc=cc)
+				recipients=recipients, cc=cc, lang=frappe.local.lang)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
 		recipients=None, cc=None):
@@ -115,6 +115,7 @@ class Communication(Document):
 
 		frappe.sendmail(
 			recipients=(recipients or []) + (cc or []),
+			show_as_cc=(cc or []),
 			expose_recipients=True,
 			sender=self.sender,
 			reply_to=self.incoming_email_account,
@@ -230,8 +231,8 @@ class Communication(Document):
 		cc = split_emails(self.cc)
 
 		if self.reference_doctype and self.reference_name:
-			if not cc or fetched_from_email_account:
-				# if CC is not mentioned from the UI or is a fetched email, add follows to CC
+			if fetched_from_email_account:
+				# if it is a fetched email, add follows to CC
 				cc.append(self.get_owner_email())
 				cc += self.get_assignees()
 				cc += self.get_starrers()
@@ -261,7 +262,7 @@ class Communication(Document):
 				exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
 					{"reference_doctype": self.reference_doctype, "reference_name": self.reference_name}, as_list=True)]
 
-			cc = self.filter_email_list(cc, exclude)
+			cc = self.filter_email_list(cc, exclude, is_cc=True)
 
 		if getattr(self, "send_me_a_copy", False) and self.sender not in cc:
 			self.all_email_addresses.append(self.sender)
@@ -269,7 +270,7 @@ class Communication(Document):
 
 		return cc
 
-	def filter_email_list(self, email_list, exclude):
+	def filter_email_list(self, email_list, exclude, is_cc=False):
 		# temp variables
 		filtered = []
 		email_address_list = []
@@ -284,6 +285,12 @@ class Communication(Document):
 
 			if email_address in exclude:
 				continue
+
+			if is_cc:
+				is_user_enabled = frappe.db.get_value("User", email_address, "enabled")
+				if is_user_enabled==0:
+					# don't send to disabled users
+					continue
 
 			# make sure of case-insensitive uniqueness of email address
 			if email_address not in email_address_list:

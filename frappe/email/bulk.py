@@ -16,7 +16,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), message_id=None, send_after=None,
+		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, send_after=None,
 		expose_recipients=False, bulk_priority=1):
 	"""Add email to sending queue (Bulk Email)
 
@@ -88,6 +88,14 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 			email_content = email_content.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 			email_text_context += unsubscribe_link.text
+
+			# show as cc
+			cc_message = ""
+			if email in show_as_cc:
+				cc_message = _("This email was sent to you as CC")
+
+			email_content = email_content.replace("<!-- cc message -->", cc_message)
+			email_text_context = cc_message + "\n" + email_text_context
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
@@ -230,7 +238,7 @@ def flush(from_test=False):
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
 		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
 
-	for i in xrange(100):
+	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
 			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)

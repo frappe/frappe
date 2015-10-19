@@ -36,7 +36,6 @@ class FormMeta(Meta):
 		self.add_linked_document_type()
 
 		if not self.istable:
-			self.add_linked_with()
 			self.add_code()
 			self.load_print_formats()
 			self.load_workflows()
@@ -129,52 +128,6 @@ class FormMeta(Meta):
 				except frappe.DoesNotExistError:
 					# edge case where options="[Select]"
 					pass
-
-	def add_linked_with(self):
-		"""add list of doctypes this doctype is 'linked' with.
-
-		Example, for Customer:
-
-			{"Address": {"fieldname": "customer"}..}
-		"""
-
-		# find fields where this doctype is linked
-		links = frappe.db.sql("""select parent, fieldname from tabDocField
-			where (fieldtype="Link" and options=%s)
-			or (fieldtype="Select" and options=%s)""", (self.name, "link:"+ self.name))
-		links += frappe.db.sql("""select dt as parent, fieldname from `tabCustom Field`
-			where (fieldtype="Link" and options=%s)
-			or (fieldtype="Select" and options=%s)""", (self.name, "link:"+ self.name))
-
-		links = dict(links)
-
-		ret = {}
-
-		for dt in links:
-			ret[dt] = { "fieldname": links[dt] }
-
-		if links:
-			# find out if linked in a child table
-			for parent, options in frappe.db.sql("""select parent, options from tabDocField
-				where fieldtype="Table"
-					and options in (select name from tabDocType
-						where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
-
-				ret[parent] = {"child_doctype": options, "fieldname": links[options] }
-				if options in ret:
-					del ret[options]
-
-		# find links of parents
-		links = frappe.db.sql("""select dt from `tabCustom Field`
-			where (fieldtype="Table" and options=%s)""", (self.name))
-		links += frappe.db.sql("""select parent from tabDocField
-			where (fieldtype="Table" and options=%s)""", (self.name))
-
-		for dt, in links:
-			if not dt in ret:
-				ret[dt] = {"get_parent": True}
-
-		self.set("__linked_with", ret, as_value=True)
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql("""select * FROM `tabPrint Format`

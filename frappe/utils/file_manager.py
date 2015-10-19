@@ -10,6 +10,7 @@ from frappe.utils import get_site_path, get_hook_method, get_files_path, random_
 from frappe import _
 from frappe import conf
 from copy import copy
+import urllib
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
@@ -58,6 +59,8 @@ def save_url(file_url, dt, dn, folder):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
+
+	file_url = urllib.unquote(file_url)
 
 	f = frappe.get_doc({
 		"doctype": "File",
@@ -241,22 +244,30 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 
 	return comment
 
-def delete_file_data_content(doc):
+def delete_file_data_content(doc, only_thumbnail=False):
 	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)
-	method(doc)
+	method(doc, only_thumbnail=only_thumbnail)
 
-def delete_file_from_filesystem(doc):
-	path = doc.file_name
-
-	if path.startswith("files/"):
-		path = frappe.utils.get_site_path("public", doc.file_name)
+def delete_file_from_filesystem(doc, only_thumbnail=False):
+	"""Delete file, thumbnail from File document"""
+	if only_thumbnail:
+		delete_file(doc.thumbnail_url)
 	else:
-		path = frappe.utils.get_site_path("public", "files", doc.file_name)
+		delete_file(doc.file_url)
+		delete_file(doc.thumbnail_url)
 
-	path = encode(path)
+def delete_file(path):
+	"""Delete file from `public folder`"""
+	if path and path.startswith("/files/"):
+		parts = os.path.split(path)
+		path = frappe.utils.get_site_path("public", "files", parts[-1])
 
-	if os.path.exists(path):
-		os.remove(path)
+		if "/../" in path:
+			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+
+		path = encode(path)
+		if os.path.exists(path):
+			os.remove(path)
 
 def get_file(fname):
 	f = frappe.db.sql("""select file_name from `tabFile`

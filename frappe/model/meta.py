@@ -60,6 +60,9 @@ class Meta(Document):
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
+	def get_dynamic_link_fields(self):
+		return self.get("fields", {"fieldtype": "Dynamic Link"})
+
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
@@ -329,14 +332,19 @@ def trim_tables():
 			frappe.db.sql_ddl(query)
 
 def clear_cache(doctype=None):
-	frappe.cache().delete_value("is_table")
-	frappe.cache().delete_value("doctype_modules")
+	cache = frappe.cache()
 
-	groups = ["meta", "form_meta", "table_columns", "last_modified"]
+	cache.delete_value("is_table")
+	cache.delete_value("doctype_modules")
+
+	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
 
 	def clear_single(dt):
 		for name in groups:
-			frappe.cache().hdel(name, dt)
+			cache.hdel(name, dt)
+
+		# also clear linked_with list cache
+		cache.delete_keys("user:*:linked_with:{doctype}:".format(doctype=doctype))
 
 	if doctype:
 		clear_single(doctype)
@@ -353,5 +361,5 @@ def clear_cache(doctype=None):
 	else:
 		# clear all
 		for name in groups:
-			frappe.cache().delete_value(name)
+			cache.delete_value(name)
 

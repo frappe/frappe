@@ -13,9 +13,13 @@ from frappe.utils.file_manager import delete_file_data_content
 from frappe import _
 
 from frappe.utils.nestedset import NestedSet
+from frappe.utils import strip
 import json
+import urllib
 
 class FolderNotEmpty(frappe.ValidationError): pass
+
+exclude_from_linked_with = True
 
 class File(NestedSet):
 	nsm_parent_field = 'folder'
@@ -40,7 +44,7 @@ class File(NestedSet):
 				# home
 				self.name = self.file_name
 		else:
-			self.name = self.file_url
+			self.name = frappe.generate_hash("", 10)
 
 	def after_insert(self):
 		self.update_parent_folder_size()
@@ -53,7 +57,8 @@ class File(NestedSet):
 		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
 
 	def validate(self):
-		self.validate_duplicate_entry()
+		if self.is_new():
+			self.validate_duplicate_entry()
 		self.validate_folder()
 		self.set_folder_size()
 
@@ -92,6 +97,8 @@ class File(NestedSet):
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
+			# check duplicate name
+
 			# check duplicate assignement
 			n_records = frappe.db.sql("""select name from `tabFile`
 				where content_hash=%s
@@ -111,12 +118,55 @@ class File(NestedSet):
 		super(File, self).on_trash()
 		self.delete_file()
 
+	def make_thumbnail(self):
+		from PIL import Image, ImageOps
+		import os
+
+		if self.file_url:
+			if self.file_url.startswith("/files"):
+				try:
+					image = Image.open(frappe.get_site_path("public", self.file_url))
+					filename, extn = self.file_url.rsplit(".", 1)
+				except IOError:
+					frappe.msgprint("Unable to read file format for {0}".format(self.file_url))
+
+			else:
+				# downlaod
+				import requests, StringIO
+				file_url = frappe.utils.get_url(self.file_url)
+				r = requests.get(file_url, stream=True)
+				r.raise_for_status()
+				image = Image.open(StringIO.StringIO(r.content))
+				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
+				filename = "/files/" + strip(urllib.unquote(filename))
+
+			thumbnail = ImageOps.fit(
+				image,
+				(300, 300),
+				Image.ANTIALIAS
+			)
+
+			thumbnail_url = filename + "_small." + extn
+
+			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
+
+			try:
+				thumbnail.save(path)
+				self.db_set("thumbnail_url", thumbnail_url)
+			except IOError:
+				frappe.msgprint("Unable to write file format for {0}".format(path))
+
+			return thumbnail_url
+
+
 	def after_delete(self):
 		self.update_parent_folder_size()
 
 	def check_folder_is_empty(self):
 		"""Throw exception if folder is not empty"""
-		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}):
+		files = frappe.get_all("File", filters={"folder": self.name}, fields=("name", "file_name"))
+
+		if self.is_folder and files:
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
 
 	def check_reference_doc_permission(self):
@@ -137,6 +187,9 @@ class File(NestedSet):
 		if self.file_name and self.content_hash and (not frappe.db.count("File",
 			{"content_hash": self.content_hash, "name": ["!=", self.name]})):
 				delete_file_data_content(self)
+
+		elif self.file_url:
+			delete_file_data_content(self, only_thumbnail=True)
 
 	def on_rollback(self):
 		self.on_trash()
@@ -178,7 +231,10 @@ def create_new_folder(file_name, folder):
 
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
-	for file_obj in json.loads(file_list):
+	if isinstance(file_list, basestring):
+		file_list = json.loads(file_list)
+
+	for file_obj in file_list:
 		setup_folder_path(file_obj.get("name"), new_parent)
 
 	# recalculate sizes

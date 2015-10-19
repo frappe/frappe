@@ -57,7 +57,7 @@ frappe.ui.FilterList = Class.extend({
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
-			doctype: doctype,
+			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
@@ -168,7 +168,7 @@ frappe.ui.Filter = Class.extend({
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me.doctype, me.fieldname, me.condition, me.value);
+			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}

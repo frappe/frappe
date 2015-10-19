@@ -513,6 +513,9 @@ def get_url(uri=None, full_address=False):
 	"""get app url from request"""
 	host_name = frappe.local.conf.host_name
 
+	if uri and (uri.startswith("http://") or uri.startswith("https://")):
+		return uri
+
 	if not host_name:
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
@@ -538,10 +541,16 @@ def get_url(uri=None, full_address=False):
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]
 
-def get_url_to_form(doctype, name, label=None):
+def get_link_to_form(doctype, name, label=None):
 	if not label: label = name
 
-	return """<a href="/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
+
+def get_url_to_form(doctype, name):
+	return get_url(uri = "desk/#Form/{0}/{1}".format(doctype, name))
+
+def get_url_to_list(doctype):
+	return get_url(uri = "desk/#List/{0}".format(doctype))
 
 operator_map = {
 	# startswith

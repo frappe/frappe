@@ -310,7 +310,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
+		cc=(), show_as_cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
 		bulk_priority=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -339,7 +339,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, send_after=send_after,
+			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, send_after=send_after,
 			expose_recipients=expose_recipients, bulk_priority=bulk_priority)
 	else:
 		import frappe.email
@@ -469,11 +469,14 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	from frappe.model.meta import get_field_precision
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
-def generate_hash(txt=None):
+def generate_hash(txt=None, length=None):
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib, time
 	from .utils import random_string
-	return hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	digest = hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	if length:
+		digest = digest[:length]
+	return digest
 
 def reset_metadata_version():
 	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
@@ -735,6 +738,9 @@ def get_file_json(path):
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
 	from frappe.utils import cstr
+	if isinstance(path, unicode):
+		path = path.encode("utf-8")
+
 	if os.path.exists(path):
 		with open(path, "r") as f:
 			return cstr(f.read())

@@ -150,3 +150,9 @@ class TestDocument(unittest.TestCase):
 		d.load_from_db()
 		d.starts_on = "2014-01-01"
 		d.validate_update_after_submit()
+
+	def test_varchar_length(self):
+		d = self.test_insert()
+		d.subject = "abcde"*100
+		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
+

@@ -190,6 +190,11 @@ frappe.search.verbs = [
 
 	// doctype list
 	function(txt) {
+		if (txt.toLowerCase().indexOf(" list")) {
+			// remove list keyword
+			txt = txt.replace(/ list/ig, "").trim();
+		}
+		
 		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
 			if(in_list(frappe.boot.single_types, match)) {
 				return {
