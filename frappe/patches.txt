@@ -4,7 +4,7 @@ frappe.patches.v6_1.rename_file_data
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-10-16
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-24
-execute:frappe.reload_doc('core', 'doctype', 'custom_field') #2015-10-16
+execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
 execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
