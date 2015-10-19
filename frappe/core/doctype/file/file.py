@@ -13,7 +13,9 @@ from frappe.utils.file_manager import delete_file_data_content
 from frappe import _
 
 from frappe.utils.nestedset import NestedSet
+from frappe.utils import strip
 import json
+import urllib
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -136,7 +138,7 @@ class File(NestedSet):
 				r.raise_for_status()
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
-				filename = "/files/" + filename
+				filename = "/files/" + strip(urllib.unquote(filename))
 
 			thumbnail = ImageOps.fit(
 				image,
@@ -146,10 +148,7 @@ class File(NestedSet):
 
 			thumbnail_url = filename + "_small." + extn
 
-			if thumbnail_url[0]=="/":
-				thumbnail_url = thumbnail_url[1:]
-
-			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url))
+			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
 				thumbnail.save(path)
@@ -188,6 +187,9 @@ class File(NestedSet):
 		if self.file_name and self.content_hash and (not frappe.db.count("File",
 			{"content_hash": self.content_hash, "name": ["!=", self.name]})):
 				delete_file_data_content(self)
+
+		elif self.file_url:
+			delete_file_data_content(self, only_thumbnail=True)
 
 	def on_rollback(self):
 		self.on_trash()
