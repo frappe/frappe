@@ -12,12 +12,12 @@ def execute():
 			if not column_type.startswith("varchar"):
 				continue
 
-			max_length = frappe.db.sql("""select max(length(`{fieldname}`)) from `tab{doctype}`"""\
+			max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 				.format(fieldname=fieldname, doctype=doctype))
 
 			max_length = max_length[0][0] if max_length else None
 
-			if max_length and max_length > 140:
+			if max_length and 140 < max_length <= 255:
 				print "setting length of '{fieldname}' in '{doctype}' as {length}".format(
 					fieldname=fieldname, doctype=doctype, length=max_length)
 
