@@ -875,7 +875,9 @@ def drop_site(site, root_login='root', root_password=None):
 def get_version(context):
 	frappe.init(site=context.sites[0])
 	for m in sorted(frappe.local.app_modules.keys()):
-		print "{0} {1}".format(m, frappe.get_module(m).__version__)
+		module = frappe.get_module(m)
+		if hasattr(module, "__version__"):
+			print "{0} {1}".format(m, module.__version__)
 
 # commands = [
 # 	new_site,
