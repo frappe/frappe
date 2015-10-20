@@ -159,7 +159,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_subject_and_recipients: function() {
 		this.subject = this.subject || "";
 
-		if(this.last_email) {
+		if(!this.recipients && this.last_email) {
 			this.recipients = this.last_email.comment_by;
 		}
 
