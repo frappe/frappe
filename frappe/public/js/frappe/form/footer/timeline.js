@@ -20,7 +20,8 @@ frappe.ui.form.Comments = Class.extend({
 					new frappe.views.CommunicationComposer({
 						doc: me.frm.doc,
 						txt: frappe.markdown(me.input.val()),
-						frm: me.frm
+						frm: me.frm,
+						recipients: me.get_recipient()
 					})
 				} else {
 					me.add_comment(this);
