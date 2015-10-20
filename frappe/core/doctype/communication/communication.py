@@ -96,7 +96,7 @@ class Communication(Document):
 		recipients, cc = self.get_recipients_and_cc(recipients, cc,
 			fetched_from_email_account=fetched_from_email_account)
 
-		self.emails_not_sent_to = set(self.all_email_addresses) - set(recipients) - set(cc)
+		self.emails_not_sent_to = set(self.all_email_addresses) - set(self.sent_email_addresses)
 
 		if frappe.flags.in_test:
 			# for test cases, run synchronously
@@ -131,6 +131,7 @@ class Communication(Document):
 
 	def get_recipients_and_cc(self, recipients, cc, fetched_from_email_account=False):
 		self.all_email_addresses = []
+		self.sent_email_addresses = []
 
 		if not recipients:
 			recipients = self.get_recipients()
@@ -211,9 +212,6 @@ class Communication(Document):
 		recipients = split_emails(self.recipients)
 
 		if recipients:
-			# this will be used to eventually find email addresses that aren't sent to
-			self.all_email_addresses.extend(recipients)
-
 			# exclude email accounts
 			exclude = [d[0] for d in
 				frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
@@ -242,9 +240,6 @@ class Communication(Document):
 			cc.append(frappe.db.get_value("Communication", self.in_reply_to, "sender"))
 
 		if cc:
-			# this will be used to eventually find email addresses that aren't sent to
-			self.all_email_addresses.extend(cc)
-
 			# exclude email accounts, unfollows, recipients and unsubscribes
 			exclude = [d[0] for d in
 				frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
@@ -252,7 +247,7 @@ class Communication(Document):
 				frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
 				if d[0]]
 			exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
-			exclude += [parseaddr(email)[1] for email in recipients]
+			exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
 
 			if fetched_from_email_account:
 				# exclude sender when pulling email
@@ -265,7 +260,7 @@ class Communication(Document):
 			cc = self.filter_email_list(cc, exclude, is_cc=True)
 
 		if getattr(self, "send_me_a_copy", False) and self.sender not in cc:
-			self.all_email_addresses.append(self.sender)
+			self.all_email_addresses.append((parseaddr(self.sender)[1] or "").lower())
 			cc.append(self.sender)
 
 		return cc
@@ -276,14 +271,14 @@ class Communication(Document):
 		email_address_list = []
 
 		for email in list(set(email_list)):
-			if email in exclude:
-				continue
-
 			email_address = (parseaddr(email)[1] or "").lower()
 			if not email_address:
 				continue
 
-			if email_address in exclude:
+			# this will be used to eventually find email addresses that aren't sent to
+			self.all_email_addresses.append(email_address)
+
+			if (email in exclude) or (email_address in exclude):
 				continue
 
 			if is_cc:
@@ -297,6 +292,8 @@ class Communication(Document):
 				# append the full email i.e. "Human <human@example.com>"
 				filtered.append(email)
 				email_address_list.append(email_address)
+
+		self.sent_email_addresses.extend(email_address_list)
 
 		return filtered
 
