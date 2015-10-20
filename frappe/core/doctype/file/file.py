@@ -125,7 +125,7 @@ class File(NestedSet):
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
-					image = Image.open(frappe.get_site_path("public", self.file_url))
+					image = Image.open(frappe.get_site_path("public", self.file_url.lstrip("/")))
 					filename, extn = self.file_url.rsplit(".", 1)
 				except IOError:
 					frappe.msgprint("Unable to read file format for {0}".format(self.file_url))
