@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies Pvt. Ltd."
+app_short_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_description = """## Frappe Framework
 
 Frappe is a full stack web application framework written in Python,

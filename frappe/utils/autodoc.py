@@ -53,7 +53,7 @@ def get_version(name):
 		installed = frappe.get_installed_apps()
 
 	def _for_module(m):
-		return importlib.import_module(m.split(".")[0]).__version__
+		return getattr(importlib.import_module(m.split(".")[0]), "__version__", "0.0.0")
 
 	if "." in name or name in installed:
 		return _for_module(name)

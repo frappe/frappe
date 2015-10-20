@@ -136,7 +136,6 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-
 	html = frappe.get_template(context.base_template_path).render(context)
 
 	if can_cache(context.no_cache):

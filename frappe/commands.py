@@ -350,9 +350,11 @@ def build_website(context):
 		finally:
 			frappe.destroy()
 
-@click.command('setup-docs')
+@click.command('build-dev-docs')
 @pass_context
-def setup_docs(context):
+@click.argument('app')
+@click.argument('docs_version')
+def make_dev_docs(context, app, docs_version):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
 	from frappe.website import statics
@@ -360,7 +362,25 @@ def setup_docs(context):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			setup_docs()
+			make = setup_docs(app)
+			make.build(docs_version)
+		finally:
+			frappe.destroy()
+
+@click.command('make-docs')
+@pass_context
+@click.argument('app')
+@click.argument('target')
+def setup_docs(context, app, target):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	from frappe.website import statics
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.make_docs(target)
 			statics.sync_statics(rebuild=True)
 		finally:
 			frappe.destroy()

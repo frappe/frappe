@@ -17,10 +17,11 @@ def sync_statics(rebuild=False):
 	# 	rebuild = False
 
 class sync(object):
-	def __init__(self, verbose=False):
+	def __init__(self, verbose=False, path=None):
 		self.verbose = verbose
 
-	def start(self, rebuild=False):
+	def start(self, rebuild=False, path="www"):
+		self.path = path
 		self.synced = []
 		self.synced_paths = []
 		self.updated = 0
@@ -33,7 +34,7 @@ class sync(object):
 		self.cleanup()
 
 	def sync_for_app(self, app):
-		self.statics_path = frappe.get_app_path(app, "www")
+		self.statics_path = frappe.get_app_path(app, self.path)
 		if os.path.exists(self.statics_path):
 			for basepath, folders, files in os.walk(self.statics_path):
 				self.sync_folder(basepath, folders, files, app)

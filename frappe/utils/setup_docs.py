@@ -2,29 +2,41 @@
 
 Call from command line:
 
-	bench setup-docs app docs_app path
+	bench setup-docs app path
 
 """
 
 import os, json, frappe, markdown2, shutil
+import frappe.website.statics
+from frappe.website.context import get_context
 
 class setup_docs(object):
-	def __init__(self):
+	def __init__(self, app, docs_version, target):
 		"""Generate source templates for models reference and module API
 			and templates at `templates/autodoc`
 		"""
-		self.app = frappe.get_hooks("autodoc").get("for_app")[0]
-		docs_app = frappe.get_hooks("autodoc").get("docs_app")[0]
+		self.app = app
+		self.path = frappe.get_app_path(app, "docs", docs_version)
+		self.target = target
 
+		# build apis
+		# self.build()
+
+		# sync docs
+		sync = frappe.website.statics.sync()
+		sync.start(path="docs", rebuild=True)
+
+		# write in target path
+		self.write_files()
+
+	def build(self):
 		hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = hooks.get("app_title")[0]
-
 		self.app_path = frappe.get_app_path(self.app)
-		path = frappe.get_app_path(docs_app, "www", "current")
 
 		print "Deleting current..."
-		shutil.rmtree(path, ignore_errors = True)
-		os.makedirs(path)
+		shutil.rmtree(self.path, ignore_errors = True)
+		os.makedirs(self.path)
 
 		self.app_context =  {
 			"app": {
@@ -38,16 +50,16 @@ class setup_docs(object):
 		}
 
 		# make home page
-		with open(os.path.join(path, "index.html"), "w") as home:
+		with open(os.path.join(self.path, "index.html"), "w") as home:
 			home.write(frappe.render_template("templates/autodoc/docs_home.html",
 			self.app_context))
 
 		# make folders
-		self.models_base_path = os.path.join(path, "models")
+		self.models_base_path = os.path.join(self.path, "models")
 		self.make_folder(self.models_base_path,
 			template = "templates/autodoc/models_home.html")
 
-		self.api_base_path = os.path.join(path, "api")
+		self.api_base_path = os.path.join(self.path, "api")
 		self.make_folder(self.api_base_path,
 			template = "templates/autodoc/api_home.html")
 
@@ -164,3 +176,29 @@ class setup_docs(object):
 					context.update(self.app_context)
 					f.write(frappe.render_template("templates/autodoc/doctype.html",
 						context).encode("utf-8"))
+
+	def write_files(self):
+		frappe.local.flags.home_page = "index"
+
+		for page in frappe.db.sql("""select parent_website_route,
+			page_name from `tabWeb Page`""", as_dict=True):
+
+			if page.parent_website_route:
+				path = page.parent_website_route + "/" + page.page_name
+			else:
+				path = page.page_name
+
+			frappe.local.path = path
+
+			context = get_context(path)
+			html = frappe.get_template(context.base_template_path).render(context)
+
+			target_filename = os.path.join(self.target, context.template_path.split('/docs/')[1])
+
+			if not os.path.exists(os.path.dirname(target_filename)):
+				os.makedirs(os.path.dirname(target_filename))
+
+			with open(target_filename, "w") as htmlfile:
+				htmlfile.write(html.encode("utf-8"))
+
+			print "wrote {0}".format(target_filename)

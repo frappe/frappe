@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="/assets/css/bootstrap.css">
+	<script type="text/javascript" src="/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/assets/js/bootstrap.min.js"></script>
+
+    {% block favicon %}
+	<link rel="shortcut icon"
+		href="{{ (favicon or "/assets/img/favicon.png") | abs_url }}"
+		type="image/x-icon">
+	<link rel="icon"
+		href="{{ (favicon or "/assets/img/favicon.png") | abs_url }}"
+		type="image/x-icon">
+    {% endblock %}
+
+	{%- block head -%}
+		{% if meta_block is defined -%}
+		{{ meta_block }}
+		{%- endif %}
+
+		{% if head_html is defined -%}
+		{{ head_html or "" }}
+		{%- endif %}
+
+	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
+
+		{%- block style %}
+			<style data-html-block="style">
+			{%- if style is defined -%}{{ style }}{%- endif -%}
+			</style>
+		{%- endblock -%}
+	{%- endblock -%}
+    {%- if js_globals is defined %}
+    <script>
+    {%- for key, value in js_globals.iteritems() %}
+    window.{{ key }} = "{{ value[0] }}";
+    {%- endfor -%}
+    </script>
+    {% endif -%}
+</head>
+<body data-path="{{ path }}">
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+					{%- block banner -%}
+					{% include "templates/includes/banner_extension.html" ignore missing %}
+						{% if banner_html -%}
+						<header class="container">{{ banner_html or "" }}</header>
+						{%- endif %}
+					{%- endblock -%}
+
+					{%- block navbar -%}
+                        {% include "templates/includes/navbar/navbar.html" %}
+                    {%- endblock -%}
+                    <div class="hero-and-content">
+    					{%- block hero -%}
+                            <div data-html-block="hero">
+                                {{ hero or "" }}
+                            </div>
+                        {%- endblock -%}
+                        {% block content %}
+                            <div class="container" data-html-block="content">
+                            {{ content }}
+                            </div>
+                        {% endblock %}
+                    </div>
+					<footer class="page-footer">
+						<div class="container" data-html-block="footer">
+							{%- if footer is defined -%}{{ footer }}{%- endif -%}
+						</div>
+					</footer>
+				</div>
+				<div>
+					{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				{% block offcanvas_sidebar -%}
+				<div class="sidebar-navbar-items">
+					{% include "templates/includes/navbar/navbar_items.html" %}
+				</div>
+				{%- endblock %}
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+	{%- block script %}
+		<script data-html-block="script">
+		{%- if script is defined -%}{{ script }}{%- endif -%}
+		</script>
+	{%- endblock %}
+
+	<!-- csrf_token -->
+    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
+</body>
+</html>

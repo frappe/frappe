@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe, re, os
-from werkzeug.urls import url_parse, url_unparse
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -33,14 +32,18 @@ def get_comment_list(doctype, name):
 		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
+	if frappe.local.flags.home_page:
+		return frappe.local.flags.home_page
+
 	def _get_home_page():
 		role_home_page = frappe.get_hooks("role_home_page")
 		home_page = None
 
-		for role in frappe.get_roles():
-			if role in role_home_page:
-				home_page = role_home_page[role][-1]
-				break
+		if role_home_page:
+			for role in frappe.get_roles():
+				if role in role_home_page:
+					home_page = role_home_page[role][-1]
+					break
 
 		if not home_page:
 			home_page = frappe.get_hooks("home_page")
