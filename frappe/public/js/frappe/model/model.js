@@ -172,7 +172,7 @@ $.extend(frappe.model, {
 			}
 		}
 		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
-			cur_frm.comments.refresh();
+			cur_frm.comments && cur_frm.comments.refresh();
 		}
 	},
 
