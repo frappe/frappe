@@ -333,3 +333,38 @@ def rename_dynamic_links(doctype, old, new):
 
 					frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
 						where name=%s""".format(**df), (new, to_change))
+
+def bulk_rename(doctype, rows=None, via_console = False):
+	"""Bulk rename documents
+
+	:param doctype: DocType to be renamed
+	:param rows: list of documents as `((oldname, newname), ..)`"""
+	if not rows:
+		frappe.throw(_("Please select a valid csv file with data"))
+
+	if not via_console:
+		max_rows = 500
+		if len(rows) > max_rows:
+			frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
+
+	rename_log = []
+	for row in rows:
+		# if row has some content
+		if len(row) > 1 and row[0] and row[1]:
+			try:
+				if rename_doc(doctype, row[0], row[1]):
+					msg = _("Successful: {0} to {1}").format(row[0], row[1])
+					frappe.db.commit()
+				else:
+					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
+			except Exception, e:
+				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
+				frappe.db.rollback()
+
+			if via_console:
+				print msg
+			else:
+				rename_log.append(msg)
+
+	if not via_console:
+		return rename_log
