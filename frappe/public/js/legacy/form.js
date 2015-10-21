@@ -399,7 +399,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			$(document).trigger("form-load", [this]);
 			$(this.page.wrapper).on('hide',  function(e) {
 				$(document).trigger("form-unload", [me]);
-			})
+			});
 		} else {
 			this.render_form(is_a_different_doc);
 			if (this.doc.localname) {
@@ -538,9 +538,24 @@ _f.Frm.prototype.setnewdoc = function() {
 
 			frappe.route_options = null;
 		}
+
+		me.trigger_link_fields()
+
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
 	})
 
+}
+
+_f.Frm.prototype.trigger_link_fields = function() {
+	// trigger link fields which have default values set
+	if (this.is_new()) {
+		$.each(this.fields_dict, function(fieldname, field) {
+			if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
+				// triggers add fetch, sets value in model and runs triggers
+				field.set_value(this.doc[fieldname]);
+			}
+		});
+	}
 }
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
