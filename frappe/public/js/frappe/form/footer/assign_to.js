@@ -89,25 +89,9 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		if(!me.dialog) {
-			me.dialog = new frappe.ui.Dialog({
-				title: __('Add to To Do'),
-				fields: [
-					{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
-					{fieldtype:'Link', fieldname:'assign_to', options:'User',
-						label:__("Assign To"),
-						description:__("Add to To Do List Of"), reqd:true},
-					{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
-					{fieldtype:'Check', fieldname:'notify',
-						label:__("Notify by Email"), "default":1},
-					{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
-					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
-						options:'Low\nMedium\nHigh', 'default':'Medium'},
-				],
-				primary_action: function() { me.add_assignment(); },
-				primary_action_label: __("Add")
+			me.dialog = frappe.ui.to_do_dialog({
+				frm: me.frm
 			});
-
-			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 		}
 		me.dialog.clear();
 
@@ -172,3 +156,50 @@ frappe.ui.form.AssignTo = Class.extend({
 	}
 });
 
+
+frappe.ui.to_do_dialog = function(opts){
+	var me = this;
+	var dialog = new frappe.ui.Dialog({
+		title: __('Add to To Do'),
+		fields: [
+			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
+			{fieldtype:'Link', fieldname:'assign_to', options:'User',
+				label:__("Assign To"),
+				description:__("Add to To Do List Of"), reqd:true},
+			{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+			{fieldtype:'Check', fieldname:'notify',
+				label:__("Notify by Email"), "default":1},
+			{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
+			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
+				options:'Low\nMedium\nHigh', 'default':'Medium'},
+		],
+		primary_action: function() { frappe.ui.add_assignment(); },
+		primary_action_label: __("Add")
+	});
+
+	dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+	
+	return dialog
+}
+
+frappe.ui.add_assignment = function(opts) {
+	var assign_to = me.dialog.fields_dict.assign_to.get_value();
+	var args = me.dialog.get_values();
+	if(args && assign_to) {
+		return frappe.call({
+			method:'frappe.desk.form.assign_to.add',
+			args: $.extend(args, {
+				doctype: me.frm.doctype,
+				name: me.frm.docname,
+				assign_to: assign_to
+			}),
+			callback: function(r,rt) {
+				if(!r.exc) {
+					me.render(r.message);
+					me.frm.reload_doc();
+				}
+			},
+			btn: this
+		});
+	}
+}

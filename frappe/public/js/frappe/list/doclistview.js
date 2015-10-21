@@ -421,6 +421,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			}, true);
 		}
+		
+		this.page.add_menu_item(__("Assign To"), function(){
+			alert("this")
+		})
 	},
 
 	init_star: function() {
