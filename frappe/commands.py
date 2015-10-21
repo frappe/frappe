@@ -565,6 +565,27 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 
 	frappe.destroy()
 
+@click.command('bulk-rename')
+@click.argument('doctype')
+@click.argument('path')
+@pass_context
+def _bulk_rename(context, doctype, path):
+	"Import CSV using data import tool"
+	from frappe.model.rename_doc import bulk_rename
+	from frappe.utils.csvutils import read_csv_content
+
+	site = get_single_site(context)
+
+	with open(path, 'r') as csvfile:
+		rows = read_csv_content(csvfile.read())
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	bulk_rename(doctype, rows, via_console = True)
+
+	frappe.destroy()
+
 # translation
 @click.command('build-message-files')
 @pass_context
@@ -918,6 +939,7 @@ commands = [
 	export_fixtures,
 	import_doc,
 	import_csv,
+	_bulk_rename,
 	build_message_files,
 	get_untranslated,
 	update_translations,
