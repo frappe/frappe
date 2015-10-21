@@ -11,25 +11,16 @@ import frappe.website.statics
 from frappe.website.context import get_context
 
 class setup_docs(object):
-	def __init__(self, app, docs_version, target):
+	def __init__(self, app):
 		"""Generate source templates for models reference and module API
 			and templates at `templates/autodoc`
 		"""
 		self.app = app
-		self.path = frappe.get_app_path(app, "docs", docs_version)
-		self.target = target
 
-		# build apis
-		# self.build()
+	def build(self, docs_version):
+		"""Build templates for docs models and Python API"""
+		self.path = frappe.get_app_path(self.app, "docs", docs_version)
 
-		# sync docs
-		sync = frappe.website.statics.sync()
-		sync.start(path="docs", rebuild=True)
-
-		# write in target path
-		self.write_files()
-
-	def build(self):
 		hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
@@ -85,6 +76,18 @@ class setup_docs(object):
 
 			elif self.is_py_module(basepath, folders, files):
 				self.write_modules(basepath, folders, files)
+
+	def make_docs(self, target):
+		self.target = target
+
+		sync = frappe.website.statics.sync()
+		sync.start(path="docs", rebuild=True)
+
+		# write in target path
+		self.write_files()
+
+		# copy assets/js, assets/css, assets/img
+		self.copy_assets()
 
 	def is_py_module(self, basepath, folders, files):
 		return "__init__.py" in files \
@@ -178,6 +181,7 @@ class setup_docs(object):
 						context).encode("utf-8"))
 
 	def write_files(self):
+		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
 
 		for page in frappe.db.sql("""select parent_website_route,
@@ -191,9 +195,9 @@ class setup_docs(object):
 			frappe.local.path = path
 
 			context = get_context(path)
-			html = frappe.get_template(context.base_template_path).render(context)
+			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
 
-			target_filename = os.path.join(self.target, context.template_path.split('/docs/')[1])
+			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
 
 			if not os.path.exists(os.path.dirname(target_filename)):
 				os.makedirs(os.path.dirname(target_filename))
@@ -202,3 +206,32 @@ class setup_docs(object):
 				htmlfile.write(html.encode("utf-8"))
 
 			print "wrote {0}".format(target_filename)
+
+	def copy_assets(self):
+		"""Copy jquery, bootstrap and other assets to files"""
+
+		assets_path = os.path.join(self.target, "assets")
+
+		# copy assets from docs
+		source_assets = frappe.get_app_path(self.app, "docs", "assets")
+		if os.path.exists(source_assets):
+			shutil.copytree(source_assets, assets_path)
+
+		# make missing folders
+		for fname in ("js", "css", "img"):
+			path = os.path.join(assets_path, fname)
+			if not os.path.exists(path):
+				os.makedirs(path)
+
+		copy_files = {
+			"js/lib/jquery/jquery.min.js": "js/jquery.min.js",
+			"js/lib/bootstrap.min.js": "js/bootstrap.min.js",
+			"js/lib/highlight.pack.js": "js/highlight.pack.js",
+			"css/bootstrap.css": "css/bootstrap.css",
+			"css/hljs.css": "css/hljs.css"
+		}
+
+		for source, target in copy_files.iteritems():
+			shutil.copy(frappe.get_app_path("frappe", "public", source),
+				os.path.join(assets_path, target))
+
