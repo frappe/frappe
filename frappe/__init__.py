@@ -642,6 +642,9 @@ def get_installed_apps(sort=False):
 	if getattr(flags, "in_install_db", True):
 		return []
 
+	if not db:
+		connect()
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:

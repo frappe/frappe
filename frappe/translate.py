@@ -15,13 +15,15 @@ from frappe.utils.jinja import render_include
 from jinja2 import TemplateError
 import itertools, operator
 
-def guess_language(lang_codes):
+def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
+	lang_codes = frappe.request.accept_languages.values()
 	if not lang_codes:
 		return frappe.local.lang
 
 	guess = None
-	lang_list = get_all_languages() or []
+	if not lang_list:
+		lang_list = get_all_languages() or []
 
 	for l in lang_codes:
 		code = l.strip()
