@@ -1045,7 +1045,7 @@ def publish_realtime(*args, **kwargs):
 
 	return frappe.async.publish_realtime(*args, **kwargs)
 
-def local_cache(namespace, key, generator):
+def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request
 
 	:param namespace: frappe.local.cache[namespace]
@@ -1057,6 +1057,10 @@ def local_cache(namespace, key, generator):
 		local.cache[namespace] = {}
 
 	if key not in local.cache[namespace]:
+		local.cache[namespace][key] = generator()
+
+	elif local.cache[namespace][key]==None and regenerate_if_none:
+		# if key exists but the previous result was None
 		local.cache[namespace][key] = generator()
 
 	return local.cache[namespace][key]
