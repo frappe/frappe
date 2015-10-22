@@ -32,7 +32,7 @@ class HTTPRequest:
 			frappe.local.request_ip = '127.0.0.1'
 
 		# language
-		self.set_lang(frappe.request.accept_languages.values())
+		self.set_lang()
 
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
@@ -70,9 +70,9 @@ class HTTPRequest:
 				frappe.local.flags.disable_traceback = True
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
-	def set_lang(self, lang_codes):
+	def set_lang(self):
 		from frappe.translate import guess_language
-		frappe.local.lang = guess_language(lang_codes)
+		frappe.local.lang = guess_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
