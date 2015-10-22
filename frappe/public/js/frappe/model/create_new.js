@@ -33,6 +33,7 @@ $.extend(frappe.model, {
 		}
 
 		frappe.model.add_to_locals(doc);
+
 		return doc;
 	},
 

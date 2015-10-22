@@ -79,8 +79,6 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if(df.fieldname==="size")
-			console.log(df.fieldname);
 			if((df.fieldtype==="Read Only" || df.read_only==1)
 				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
