@@ -170,6 +170,8 @@ class CustomizeForm(Document):
 		d.dt = self.doc_type
 		for property in self.docfield_properties:
 			d.set(property, df.get(property))
+		if df.idx > 3:
+			d.set('insert_after', self.fields[df.idx - 2].fieldname)
 		d.insert()
 		df.fieldname = d.fieldname
 
@@ -181,6 +183,7 @@ class CustomizeForm(Document):
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
 		changed = False
+		
 		for property in self.docfield_properties:
 			if df.get(property) != custom_field.get(property):
 				if property == "fieldtype":
@@ -188,6 +191,9 @@ class CustomizeForm(Document):
 
 				custom_field.set(property, df.get(property))
 				changed = True
+		
+		if custom_field.idx > 3:
+			d.set('insert_after', self.fields[custom_field.idx - 2].fieldname)
 
 		if changed:
 			custom_field.flags.ignore_validate = True
