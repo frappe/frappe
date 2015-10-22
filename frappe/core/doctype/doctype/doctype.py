@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import re
 import frappe
 from frappe import _
 
@@ -12,6 +13,9 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
+from frappe.model.db_schema import validate_column_name
+
+class InvalidFieldNameError(frappe.ValidationError): pass
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
@@ -36,7 +40,6 @@ class DocType(Document):
 				frappe.throw(_("{0} not allowed in name").format(c))
 		self.validate_series()
 		self.scrub_field_names()
-		self.validate_title_field()
 		self.validate_document_type()
 		validate_fields(self)
 
@@ -76,13 +79,6 @@ class DocType(Document):
 							d.fieldname = d.fieldname + '1'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
-
-
-	def validate_title_field(self):
-		"""Throw exception if `title_field` is not a valid field."""
-		if self.title_field and \
-			self.title_field not in [d.fieldname for d in self.get("fields")]:
-			frappe.throw(_("Title field must be a valid fieldname"))
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
@@ -207,7 +203,7 @@ class DocType(Document):
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
-	validate_fields(frappe.get_meta(doctype))
+	validate_fields(frappe.get_meta(doctype, cached=False))
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):
@@ -223,13 +219,11 @@ def validate_fields(meta):
 	9. Precision is set in numeric fields and is between 1 & 6.
 	10. Fold is not at the end (if set).
 	11. `search_fields` are valid.
+	12. `title_field` and title field pattern are valid.
 
 	:param meta: `frappe.model.meta.Meta` object to check."""
 	def check_illegal_characters(fieldname):
-		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
-			'(', ')', '[', ']', '/']:
-			if c in fieldname:
-				frappe.throw(_("{0} not allowed in fieldname {1}").format(c, fieldname))
+		validate_column_name(fieldname)
 
 	def check_unique_fieldname(fieldname):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
@@ -305,6 +299,7 @@ def validate_fields(meta):
 					frappe.throw(_("Fold can not be at the end of the form"))
 
 	def check_search_fields(meta):
+		"""Throw exception if `search_fields` don't contain valid fields."""
 		if not meta.search_fields:
 			return
 
@@ -314,7 +309,32 @@ def validate_fields(meta):
 			if fieldname not in fieldname_list:
 				frappe.throw(_("Search Fields should contain valid fieldnames"))
 
+	def check_title_field(meta):
+		"""Throw exception if `title_field` isn't a valid fieldname."""
+		if not meta.title_field:
+			return
 
+		fieldname_list = [d.fieldname for d in fields]
+
+		if meta.title_field not in fieldname_list:
+			frappe.throw(_("Title field must be a valid fieldname"), InvalidFieldNameError)
+
+		def _validate_title_field_pattern(pattern):
+			if not pattern:
+				return
+
+			for fieldname in re.findall("{(.*?)}", pattern, re.UNICODE):
+				if fieldname.startswith("{"):
+					# edge case when double curlies are used for escape
+					continue
+
+				if fieldname not in fieldname_list:
+					frappe.throw(_("{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.").format(fieldname),
+						InvalidFieldNameError)
+
+		df = meta.get_field(meta.title_field)
+		_validate_title_field_pattern(df.options)
+		_validate_title_field_pattern(df.default)
 
 	fields = meta.get("fields")
 	for d in fields:
@@ -334,6 +354,7 @@ def validate_fields(meta):
 
 	check_fold(fields)
 	check_search_fields(meta)
+	check_title_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""

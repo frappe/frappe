@@ -164,9 +164,10 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 	f = frappe.get_doc(file_data)
 	f.flags.ignore_permissions = True
 	try:
-		f.insert();
+		f.insert()
 	except frappe.DuplicateEntryError:
 		return frappe.get_doc("File", f.duplicate_entry)
+
 	return f
 
 def get_file_data_from_hash(content_hash):

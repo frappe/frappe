@@ -98,3 +98,4 @@ frappe.patches.v6_2.rename_backup_manager
 execute:frappe.delete_doc("DocType", "Backup Manager")
 frappe.patches.v6_4.reduce_varchar_length
 frappe.patches.v6_4.rename_bengali_language
+execute:frappe.db.sql("""update `tabCommunication` set parenttype=null, parent=null, parentfield=null""") #2015-10-22

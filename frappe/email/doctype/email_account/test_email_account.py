@@ -58,6 +58,11 @@ class TestEmailAccount(unittest.TestCase):
 		attachments = get_attachments(comm.doctype, comm.name)
 		self.assertTrue("erpnext-conf-14.png" in [f.file_name for f in attachments])
 
+		# cleanup
+		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
+		frappe.delete_doc("File", existing_file.name)
+		delete_file_from_filesystem(existing_file)
+
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
