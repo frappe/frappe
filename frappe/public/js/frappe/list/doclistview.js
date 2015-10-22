@@ -422,8 +422,32 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}, true);
 		}
 		
-		this.page.add_menu_item(__("Assign To"), function(){
-			alert("this")
+		
+		me.page.add_menu_item(__("Assign To"), function(){
+	
+			docname = [];
+	
+			$.each(me.get_checked_items(), function(i, doc){
+				docname.push(doc.name);
+			})
+			
+			if(docname.length >= 1){
+				me.dialog = frappe.ui.to_do_dialog({
+					obj: me,
+					doctype: me.doctype,
+					docname: docname,
+					bulk_assign: true,
+					callback: function(){ 
+						me.dirty = true;
+						me.refresh();
+					}
+				});
+				me.dialog.clear();
+				me.dialog.show();
+			}
+			else{
+				frappe.msgprint(__("Select records for assignment"))
+			}
 		})
 	},
 

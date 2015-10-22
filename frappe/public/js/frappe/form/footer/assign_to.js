@@ -90,7 +90,14 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		if(!me.dialog) {
 			me.dialog = frappe.ui.to_do_dialog({
-				frm: me.frm
+				obj: me,
+				doctype: me.frm.doctype,
+				docname: me.frm.docname,
+				bulk_assign: false,
+				callback: function(r) { 
+					me.render(r.message); 
+					me.frm.reload_doc(); 
+				}
 			});
 		}
 		me.dialog.clear();
@@ -110,28 +117,6 @@ frappe.ui.form.AssignTo = Class.extend({
 				me.dialog.set_value("notify", 1);
 			}
 		});
-	},
-	add_assignment: function() {
-		var me = this;
-		var assign_to = me.dialog.fields_dict.assign_to.get_value();
-		var args = me.dialog.get_values();
-		if(args && assign_to) {
-			return frappe.call({
-				method:'frappe.desk.form.assign_to.add',
-				args: $.extend(args, {
-					doctype: me.frm.doctype,
-					name: me.frm.docname,
-					assign_to: assign_to
-				}),
-				callback: function(r,rt) {
-					if(!r.exc) {
-						me.render(r.message);
-						me.frm.reload_doc();
-					}
-				},
-				btn: this
-			});
-		}
 	},
 	remove: function(owner) {
 		var me = this;
@@ -158,7 +143,6 @@ frappe.ui.form.AssignTo = Class.extend({
 
 
 frappe.ui.to_do_dialog = function(opts){
-	var me = this;
 	var dialog = new frappe.ui.Dialog({
 		title: __('Add to To Do'),
 		fields: [
@@ -173,7 +157,7 @@ frappe.ui.to_do_dialog = function(opts){
 			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 				options:'Low\nMedium\nHigh', 'default':'Medium'},
 		],
-		primary_action: function() { frappe.ui.add_assignment(); },
+		primary_action: function() { frappe.ui.add_assignment(opts, dialog); },
 		primary_action_label: __("Add")
 	});
 
@@ -182,21 +166,24 @@ frappe.ui.to_do_dialog = function(opts){
 	return dialog
 }
 
-frappe.ui.add_assignment = function(opts) {
-	var assign_to = me.dialog.fields_dict.assign_to.get_value();
-	var args = me.dialog.get_values();
+frappe.ui.add_assignment = function(opts, dialog) {
+	var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
+	var args = opts.obj.dialog.get_values();
 	if(args && assign_to) {
 		return frappe.call({
 			method:'frappe.desk.form.assign_to.add',
 			args: $.extend(args, {
-				doctype: me.frm.doctype,
-				name: me.frm.docname,
-				assign_to: assign_to
+				doctype: opts.doctype,
+				name: opts.docname,
+				assign_to: assign_to,
+				bulk_assign: opts.bulk_assign
 			}),
 			callback: function(r,rt) {
 				if(!r.exc) {
-					me.render(r.message);
-					me.frm.reload_doc();
+					if(opts.callback){
+						opts.callback(r);
+					}
+					dialog.hide();
 				}
 			},
 			btn: this
