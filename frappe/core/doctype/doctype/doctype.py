@@ -203,7 +203,7 @@ class DocType(Document):
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
-	validate_fields(frappe.get_meta(doctype))
+	validate_fields(frappe.get_meta(doctype, cached=False))
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):

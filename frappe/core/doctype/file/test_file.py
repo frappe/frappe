@@ -15,6 +15,12 @@ class TestFile(unittest.TestCase):
 		self.delete_test_data()
 		self.upload_file()
 
+	def tearDown(self):
+		try:
+			frappe.get_doc("File", {"file_name": "file_copy.txt"}).delete()
+		except frappe.DoesNotExistError:
+			pass
+
 	def delete_test_data(self):
 		for f in frappe.db.sql('''select name, file_name from tabFile where
 			is_home_folder = 0 and is_attachments_folder = 0 order by rgt-lft asc'''):
