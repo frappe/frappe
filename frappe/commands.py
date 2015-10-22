@@ -357,7 +357,6 @@ def build_website(context):
 def make_dev_docs(context, app, docs_version):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
-	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -946,6 +945,7 @@ commands = [
 	destroy_all_sessions,
 	sync_www,
 	build_website,
+	make_dev_docs,
 	setup_docs,
 	reset_perms,
 	execute,

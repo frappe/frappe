@@ -9,7 +9,7 @@ from frappe.website.template import build_template
 from frappe.website.router import get_route_info
 from frappe.website.utils import can_cache
 
-def get_context(path):
+def get_context(path, args=None):
 	context = None
 	context_cache = {}
 
@@ -26,6 +26,7 @@ def get_context(path):
 
 	if not context:
 		context = get_route_info(path)
+		context.update(args)
 		context = build_context(context)
 
 		add_data_path(context)

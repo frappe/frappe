@@ -16,13 +16,14 @@ class setup_docs(object):
 			and templates at `templates/autodoc`
 		"""
 		self.app = app
+		self.hooks = frappe.get_hooks(app_name = self.app)
+		self.app_title = self.hooks.get("app_title")[0]
 
 	def build(self, docs_version):
 		"""Build templates for docs models and Python API"""
 		self.path = frappe.get_app_path(self.app, "docs", docs_version)
 
-		hooks = frappe.get_hooks(app_name = self.app)
-		self.app_title = hooks.get("app_title")[0]
+		self.app_title = self.hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
 
 		print "Deleting current..."
@@ -33,10 +34,12 @@ class setup_docs(object):
 			"app": {
 				"name": self.app,
 				"title": self.app_title,
-				"description": markdown2.markdown(hooks.get("app_description")[0]),
-				"version": hooks.get("app_version")[0],
-				"publisher": hooks.get("app_publisher")[0],
-				"github_link": hooks.get("github_link")[0],
+				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
+				"version": self.hooks.get("app_version")[0],
+				"publisher": self.hooks.get("app_publisher")[0],
+				"github_link": self.hooks.get("github_link")[0],
+				"github": self.hooks.get("github_pages_url")[0],
+				"docs_version": docs_version
 			}
 		}
 
@@ -80,6 +83,7 @@ class setup_docs(object):
 	def make_docs(self, target):
 		self.target = target
 
+		print "Loadings docs..."
 		sync = frappe.website.statics.sync()
 		sync.start(path="docs", rebuild=True)
 
@@ -183,6 +187,7 @@ class setup_docs(object):
 	def write_files(self):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
+		github_pages_url = self.hooks.get("github_pages_url")[0]
 
 		for page in frappe.db.sql("""select parent_website_route,
 			page_name from `tabWeb Page`""", as_dict=True):
@@ -194,7 +199,23 @@ class setup_docs(object):
 
 			frappe.local.path = path
 
-			context = get_context(path)
+			context = get_context(path, {
+				"page_links_with_extn": True,
+				"relative_links": True
+			})
+
+			context.update({
+				"brand_html": self.app_title,
+				"top_bar_items": [
+					{"label": "User", "url":"/", "right": 1},
+					{"label": "Developer", "url":"/current", "right": 1},
+					{"label": "About", "url":"/user/about", "right": 1}
+				],
+				"favicon": "/assets/img/favicon.ico",
+				"only_static": True,
+				"github_pages_url": github_pages_url,
+			})
+
 			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
 
 			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])

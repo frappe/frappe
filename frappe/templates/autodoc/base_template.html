@@ -9,16 +9,16 @@
     <link type="text/css" rel="stylesheet" href="/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="/assets/css/hljs.css">
 
-	<script type="text/javascript" src="/assets/js/jquery.min.js"></script>
-	<script type="text/javascript" src="/assets/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="{{ github }}/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="{{ github }}/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="{{ github }}/assets/js/highlight.pack.js"></script>
 
     {% block favicon %}
 	<link rel="shortcut icon"
-		href="{{ (favicon or "/assets/img/favicon.png") | abs_url }}"
+		href="{{ favicon or (github + "/assets/img/favicon.png") }}"
 		type="image/x-icon">
 	<link rel="icon"
-		href="{{ (favicon or "/assets/img/favicon.png") | abs_url }}"
+		href="{{ favicon or (github + "/assets/img/favicon.png") }}"
 		type="image/x-icon">
     {% endblock %}
 
@@ -76,12 +76,15 @@
                     </div>
 					<footer class="page-footer">
 						<div class="container" data-html-block="footer">
-							{%- if footer is defined -%}{{ footer }}{%- endif -%}
-						</div>
+						{%- if footer is defined -%}{{ footer }}{%- endif -%}
+                        <br>
+                        <div class="text-center">
+                            <b>A Frappe App</b><br>
+                            <a href="https://discuss.erpnext.com"
+                                target="_blank">Discuss this on the forum</a>
+                        </div>
+                    </div>
 					</footer>
-				</div>
-				<div>
-					{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
 				</div>
 			</div>
 			<div class="modal-backdrop offcanvas-main-section-overlay"></div>

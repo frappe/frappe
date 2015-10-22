@@ -1,7 +1,7 @@
 <!-- title: {{ app.title }} Documentation -->
 <!-- no-breadcrumbs -->
 
-{% from "templates/autodoc/macros.html" import github_link, version, discuss_link %}
+{% from "templates/autodoc/macros.html" import github_link, version %}
 <p>
 {{ version(app.name) }}
 {{ github_link(app, app.name, True) }}
@@ -43,13 +43,11 @@
 <h3>Contents</h3>
 <ul>
 	<li>
-		<a href="{{ '{{ pathname }}' }}/models">Models (DocTypes)</a>
+		<a href="models">Models (DocTypes)</a>
 	</li>
 	<li>
-		<a href="{{ '{{ pathname }}' }}/api">Server-side API</a>
+		<a href="api">Server-side API</a>
 	</li>
 </ul>
-
-{{ discuss_link() }}
 
 <!-- jinja --><!-- static -->

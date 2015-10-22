@@ -1,7 +1,7 @@
 <!-- title: {{ doctype }} -->
 
 {% from "templates/autodoc/macros.html" import automodule, version,
-  github_link, doctype_link, discuss_link %}
+  github_link, doctype_link %}
 {% set doc = frappe.get_doc("DocType", doctype) %}
 {% set controller = autodoc.get_controller(doctype) %}
 
@@ -46,7 +46,7 @@
             </td>
             <td>{% if df.options and df.fieldtype not in ("HTML") %}
                 {% if df.fieldtype in ("Table", "Link") %}
-                {{ doctype_link(df.options) }}
+                {{ doctype_link(app, df.options) }}
                 {% else %}<pre>{{ df.options }}</pre>{% endif %}
             {% endif %}</td>
         </tr>
@@ -66,7 +66,7 @@
         <h4>Linked In:</h4>
         <ul>
         {% for parent in parents %}
-            <li>{{ doctype_link(parent.parent) }}</li>
+            <li>{{ doctype_link(app, parent.parent) }}</li>
         {% endfor %}
         </ul>
     {% endif %}
@@ -77,12 +77,10 @@
     <h4>Child Table Of</h4>
     <ul>
     {% for parent in parents %}
-        <li>{{ doctype_link(parent.parent) }}</li>
+        <li>{{ doctype_link(app, parent.parent) }}</li>
     {% endfor %}
     </ul>
     {% endif %}
 {% endif %}
 
 <!-- jinja --><!-- static -->
-
-{{ discuss_link() }}
