@@ -16,6 +16,11 @@ from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip
 import json
 import urllib
+from PIL import Image, ImageOps
+import os
+import requests
+import requests.exceptions
+import StringIO
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -119,9 +124,6 @@ class File(NestedSet):
 		self.delete_file()
 
 	def make_thumbnail(self):
-		from PIL import Image, ImageOps
-		import os
-
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
@@ -132,10 +134,16 @@ class File(NestedSet):
 
 			else:
 				# downlaod
-				import requests, StringIO
 				file_url = frappe.utils.get_url(self.file_url)
 				r = requests.get(file_url, stream=True)
-				r.raise_for_status()
+				try:
+					r.raise_for_status()
+				except requests.exceptions.HTTPError, e:
+					if "404" in e.args[0]:
+						frappe.msgprint(_("File '{0}' not found").format(self.file_url))
+
+					raise
+
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
 				filename = "/files/" + strip(urllib.unquote(filename))
@@ -192,6 +200,7 @@ class File(NestedSet):
 			delete_file_data_content(self, only_thumbnail=True)
 
 	def on_rollback(self):
+		self.flags.on_rollback = True
 		self.on_trash()
 
 def on_doctype_update():
