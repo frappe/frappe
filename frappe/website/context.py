@@ -26,7 +26,8 @@ def get_context(path, args=None):
 
 	if not context:
 		context = get_route_info(path)
-		context.update(args)
+		if args:
+			context.update(args)
 		context = build_context(context)
 
 		add_data_path(context)

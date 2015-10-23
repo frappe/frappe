@@ -9,6 +9,7 @@ Call from command line:
 import os, json, frappe, markdown2, shutil
 import frappe.website.statics
 from frappe.website.context import get_context
+from markdown2 import markdown
 
 class setup_docs(object):
 	def __init__(self, app):
@@ -18,10 +19,28 @@ class setup_docs(object):
 		self.app = app
 		self.hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = self.hooks.get("app_title")[0]
+		self.setup_app_context()
+
+	def setup_app_context(self):
+		self.app_context =  {
+			"app": {
+				"name": self.app,
+				"title": self.app_title,
+				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
+				"version": self.hooks.get("app_version")[0],
+				"headline": self.hooks.get("app_headline")[0],
+				"publisher": self.hooks.get("app_publisher")[0],
+				"source_link": self.hooks.get("source_link")[0],
+				"docs_base_url": self.hooks.get("docs_base_url")[0],
+				"license": self.hooks.get("app_license")[0]
+			}
+		}
 
 	def build(self, docs_version):
 		"""Build templates for docs models and Python API"""
-		self.path = frappe.get_app_path(self.app, "docs", docs_version)
+		self.docs_path = frappe.get_app_path(self.app, "docs")
+		self.path = os.path.join(self.docs_path, docs_version)
+		self.app_context["app"]["docs_version"] = docs_version
 
 		self.app_title = self.hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
@@ -30,22 +49,14 @@ class setup_docs(object):
 		shutil.rmtree(self.path, ignore_errors = True)
 		os.makedirs(self.path)
 
-		self.app_context =  {
-			"app": {
-				"name": self.app,
-				"title": self.app_title,
-				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
-				"version": self.hooks.get("app_version")[0],
-				"publisher": self.hooks.get("app_publisher")[0],
-				"github_link": self.hooks.get("github_link")[0],
-				"github": self.hooks.get("github_pages_url")[0],
-				"docs_version": docs_version
-			}
-		}
-
-		# make home page
-		with open(os.path.join(self.path, "index.html"), "w") as home:
+		# make dev home page
+		with open(os.path.join(self.docs_path, "index.html"), "w") as home:
 			home.write(frappe.render_template("templates/autodoc/docs_home.html",
+			self.app_context))
+
+		# make dev home page
+		with open(os.path.join(self.path, "index.html"), "w") as home:
+			home.write(frappe.render_template("templates/autodoc/dev_home.html",
 			self.app_context))
 
 		# make folders
@@ -80,12 +91,33 @@ class setup_docs(object):
 			elif self.is_py_module(basepath, folders, files):
 				self.write_modules(basepath, folders, files)
 
-	def make_docs(self, target):
-		self.target = target
+		self.build_user_docs()
 
-		print "Loadings docs..."
+	def build_user_docs(self):
+		"""Build templates for user docs pages, if missing."""
+		user_docs_path = os.path.join(self.docs_path, "user")
+
+		with open(os.path.join(self.app_path, "..", "license.txt"), "r") as license_file:
+			self.app_context["license_text"] = markdown(license_file.read())
+			html = frappe.render_template("templates/autodoc/license.html",
+				context = self.app_context)
+
+		with open(os.path.join(self.docs_path, "license.html"), "w") as license_file:
+			license_file.write(html)
+
+		self.update_index_txt(self.docs_path)
+
+	def sync_docs(self):
+		"""Sync docs from /docs folder to **Web Page**.
+
+		Called as `bench --site [sitename] sync-docs [appname]`
+		"""
 		sync = frappe.website.statics.sync()
 		sync.start(path="docs", rebuild=True)
+
+	def make_docs(self, target, local = False):
+		self.target = target
+		self.local = local
 
 		# write in target path
 		self.write_files()
@@ -187,7 +219,10 @@ class setup_docs(object):
 	def write_files(self):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
-		github_pages_url = self.hooks.get("github_pages_url")[0]
+		if self.local:
+			docs_base_url = ""
+		else:
+			docs_base_url = self.hooks.get("docs_base_url")[0]
 
 		for page in frappe.db.sql("""select parent_website_route,
 			page_name from `tabWeb Page`""", as_dict=True):
@@ -204,21 +239,23 @@ class setup_docs(object):
 				"relative_links": True
 			})
 
+			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
+			print "Writing {0}".format(target_filename)
+
+			context.update(self.app_context)
 			context.update({
 				"brand_html": self.app_title,
 				"top_bar_items": [
-					{"label": "User", "url":"/", "right": 1},
-					{"label": "Developer", "url":"/current", "right": 1},
-					{"label": "About", "url":"/user/about", "right": 1}
+					{"label": "User", "url": docs_base_url + "/", "right": 1},
+					{"label": "Developer", "url": docs_base_url + "/current", "right": 1},
+					{"label": "About", "url": docs_base_url + "/user/about", "right": 1}
 				],
 				"favicon": "/assets/img/favicon.ico",
 				"only_static": True,
-				"github_pages_url": github_pages_url,
+				"docs_base_url": docs_base_url,
 			})
 
 			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
-
-			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
 
 			if not os.path.exists(os.path.dirname(target_filename)):
 				os.makedirs(os.path.dirname(target_filename))
@@ -226,11 +263,11 @@ class setup_docs(object):
 			with open(target_filename, "w") as htmlfile:
 				htmlfile.write(html.encode("utf-8"))
 
-			print "wrote {0}".format(target_filename)
 
 	def copy_assets(self):
 		"""Copy jquery, bootstrap and other assets to files"""
 
+		print "Copying assets..."
 		assets_path = os.path.join(self.target, "assets")
 
 		# copy assets from docs
@@ -249,10 +286,19 @@ class setup_docs(object):
 			"js/lib/bootstrap.min.js": "js/bootstrap.min.js",
 			"js/lib/highlight.pack.js": "js/highlight.pack.js",
 			"css/bootstrap.css": "css/bootstrap.css",
-			"css/hljs.css": "css/hljs.css"
+			"css/font-awesome.css": "css/font-awesome.css",
+			"css/docs.css": "css/docs.css",
+			"css/hljs.css": "css/hljs.css",
+			"css/font": "css/font",
+			"css/octicons": "css/octicons",
+			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg"
 		}
 
 		for source, target in copy_files.iteritems():
-			shutil.copy(frappe.get_app_path("frappe", "public", source),
-				os.path.join(assets_path, target))
+			source_path = frappe.get_app_path("frappe", "public", source)
+			if os.path.isdir(source_path):
+				if not os.path.exists(os.path.join(assets_path, target)):
+					shutil.copytree(source_path, os.path.join(assets_path, target))
+			else:
+				shutil.copy(source_path, os.path.join(assets_path, target))
 

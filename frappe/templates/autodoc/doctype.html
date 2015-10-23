@@ -1,13 +1,13 @@
 <!-- title: {{ doctype }} -->
 
 {% from "templates/autodoc/macros.html" import automodule, version,
-  github_link, doctype_link %}
+  source_link, doctype_link %}
 {% set doc = frappe.get_doc("DocType", doctype) %}
 {% set controller = autodoc.get_controller(doctype) %}
 
 <p>
 {{ version(doctype) }}
-{{ github_link(app, app.name + "/" + scrub(doc.module)
+{{ source_link(app, app.name + "/" + scrub(doc.module)
   + "/doctype/" + scrub(doctype), True) }}
 </p>
 

@@ -6,12 +6,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-    <link type="text/css" rel="stylesheet" href="/assets/css/bootstrap.css">
-    <link type="text/css" rel="stylesheet" href="/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/docs.css">
 
-	<script type="text/javascript" src="{{ github }}/assets/js/jquery.min.js"></script>
-	<script type="text/javascript" src="{{ github }}/assets/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="{{ github }}/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/highlight.pack.js"></script>
 
     {% block favicon %}
 	<link rel="shortcut icon"
@@ -63,25 +66,42 @@
                         {% include "templates/includes/navbar/navbar.html" %}
                     {%- endblock -%}
                     <div class="hero-and-content">
-    					{%- block hero -%}
-                            <div data-html-block="hero">
-                                {{ hero or "" }}
-                            </div>
-                        {%- endblock -%}
                         {% block content %}
-                            <div class="container" data-html-block="content">
+                            <div class="container">
                             {{ content }}
                             </div>
                         {% endblock %}
                     </div>
-					<footer class="page-footer">
-						<div class="container" data-html-block="footer">
+					<footer class="docs-footer">
+						<div class="container">
 						{%- if footer is defined -%}{{ footer }}{%- endif -%}
                         <br>
                         <div class="text-center">
-                            <b>A Frappe App</b><br>
-                            <a href="https://discuss.erpnext.com"
-                                target="_blank">Discuss this on the forum</a>
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="{{ app.source_link }}">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="{{ app.source_link }}/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="{{ docs_base_url }}/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="{{ docs_base_url }}/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
                         </div>
                     </div>
 					</footer>

@@ -1,53 +1,20 @@
 <!-- title: {{ app.title }} Documentation -->
 <!-- no-breadcrumbs -->
 
-{% from "templates/autodoc/macros.html" import github_link, version %}
-<p>
-{{ version(app.name) }}
-{{ github_link(app, app.name, True) }}
-</p>
+<div class="jumbotron">
+  <h1>{{ app.headline }}</h1>
+  <p>{{ app.description }}</p>
+</div>
 
-<table class="table table-bordered" style="max-width: 500px;">
-	<tr>
-		<td style="width: 40%">
-			App Name
-		</td>
-		<td>
-			<code>{{ app.name }}</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Publisher
-		</td>
-		<td>
-			<code>{{ app.publisher }}</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Version
-		</td>
-		<td>
-			<code>{{ app.version }}</code>
-		</td>
-	</tr>
-</table>
-
-<hr>
-
-{{ app.description }}
-
-<hr>
+<div class="section" style="padding-top: 0px;">
+    <div class="fake-browser-frame">
+    	<img class="img-responsive browser-image feature-image"
+            src="img/desktop.png">
+    </div>
+</div>
 
 <h3>Contents</h3>
-<ul>
-	<li>
-		<a href="models">Models (DocTypes)</a>
-	</li>
-	<li>
-		<a href="api">Server-side API</a>
-	</li>
-</ul>
 
-<!-- jinja --><!-- static -->
+{index}
+
+<!-- jinja -->
