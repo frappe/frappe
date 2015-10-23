@@ -785,7 +785,7 @@ class Database:
 			self._conn = None
 
 	def escape(self, s):
-		"""Excape quotes in given string."""
+		"""Excape quotes and percent in given string."""
 		if isinstance(s, unicode):
 			s = (s or "").encode("utf-8")
-		return unicode(MySQLdb.escape_string(s), "utf-8")
+		return unicode(MySQLdb.escape_string(s), "utf-8").replace("%","%%")
