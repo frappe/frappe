@@ -21,6 +21,7 @@ import os
 import requests
 import requests.exceptions
 import StringIO
+import mimetypes, imghdr
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -146,6 +147,12 @@ class File(NestedSet):
 
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
+
+				mimetype = mimetypes.guess_type(filename + "." + extn)[0]
+				if mimetype is None or not mimetype.startswith("image/"):
+					# detect file extension by reading image header properties
+					extn = imghdr.what(filename + "." + extn, h=r.content)
+
 				filename = "/files/" + strip(urllib.unquote(filename))
 
 			thumbnail = ImageOps.fit(
