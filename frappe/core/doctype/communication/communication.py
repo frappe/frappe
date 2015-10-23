@@ -132,9 +132,10 @@ class Communication(Document):
 	def get_recipients_and_cc(self, recipients, cc, fetched_from_email_account=False):
 		self.all_email_addresses = []
 		self.sent_email_addresses = []
+		self.previous_email_sender = None
 
 		if not recipients:
-			recipients = self.get_recipients()
+			recipients = self.get_recipients(fetched_from_email_account=fetched_from_email_account)
 
 		if not cc:
 			cc = self.get_cc(recipients, fetched_from_email_account=fetched_from_email_account)
@@ -142,6 +143,10 @@ class Communication(Document):
 		if fetched_from_email_account:
 			# email was already sent to the original recipient by the sender's email service
 			original_recipients, recipients = recipients, []
+
+			# send email to the sender of the previous email in the thread which this email is a reply to
+			if self.previous_email_sender:
+				recipients.append(self.previous_email_sender)
 
 			# cc that was received in the email
 			original_cc = split_emails(self.cc)
@@ -206,10 +211,15 @@ class Communication(Document):
 				{"default_outgoing": 1, "enable_outgoing": 1},
 				["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
 
-	def get_recipients(self):
+	def get_recipients(self, fetched_from_email_account=False):
 		"""Build a list of email addresses for To"""
 		# [EDGE CASE] self.recipients can be None when an email is sent as BCC
 		recipients = split_emails(self.recipients)
+
+		if fetched_from_email_account and self.in_reply_to:
+			# add sender of previous reply
+			self.previous_email_sender = frappe.db.get_value("Communication", self.in_reply_to, "sender")
+			recipients.append(self.previous_email_sender)
 
 		if recipients:
 			# exclude email accounts
@@ -234,10 +244,6 @@ class Communication(Document):
 				cc.append(self.get_owner_email())
 				cc += self.get_assignees()
 				cc += self.get_starrers()
-
-		if fetched_from_email_account and self.in_reply_to:
-			# add sender of previous reply
-			cc.append(frappe.db.get_value("Communication", self.in_reply_to, "sender"))
 
 		if cc:
 			# exclude email accounts, unfollows, recipients and unsubscribes
