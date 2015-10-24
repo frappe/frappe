@@ -33,13 +33,14 @@ class Communication(Document):
 			else:
 				self.status = "Open"
 
-		# validate recipients
-		for email in split_emails(self.recipients):
-			validate_email_add(email, throw=True)
+		if self.communication_medium == "Email":
+			# validate recipients
+			for email in split_emails(self.recipients):
+				validate_email_add(email, throw=True)
 
-		# validate CC
-		for email in split_emails(self.cc):
-			validate_email_add(email, throw=True)
+			# validate CC
+			for email in split_emails(self.cc):
+				validate_email_add(email, throw=True)
 
 	def after_insert(self):
 		# send new comment to listening clients
