@@ -227,7 +227,10 @@ $.extend(frappe.model, {
 			freeze: true,
 			callback: function(r) {
 				if(!r.exc) {
-					var doc = frappe.model.sync(r.message);
+					frappe.model.sync(r.message);
+					var doc = frappe.model.get_doc(r.message.doctype, r.message.name);
+					doc.__mapped = true;
+					
 					frappe.set_route("Form", r.message.doctype, r.message.name);
 				}
 			}
