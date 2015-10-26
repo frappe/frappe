@@ -99,7 +99,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.page.main.addClass("listview-main-section");
 		var module = locals.DocType[this.doctype].module;
 
-		this.page.set_title(__("{0} List", [__(this.doctype)]));
+		this.page.set_title(__(this.doctype));
 		frappe.breadcrumbs.add(module, this.doctype);
 	},
 
