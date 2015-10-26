@@ -41,6 +41,7 @@ $.extend(frappe.perm, {
 		var perm = [{ read: 0, apply_user_permissions: {} }];
 
 		var meta = frappe.get_doc("DocType", doctype);
+
 		if (!meta) {
 			return perm;
 		}
@@ -76,23 +77,21 @@ $.extend(frappe.perm, {
 
 			// apply permissions from shared
 			if(docinfo.shared) {
-				for(var i=0; i<docinfo.shared; i++) {
-					var s = docinfo.shared[i];
-					if(s.user===user) {
-						perm[0]["read"] = perm[0]["read"] || s.read;
-						perm[0]["write"] = perm[0]["write"] || s.write;
-						perm[0]["share"] = perm[0]["share"] || s.share;
+				$.each(docinfo.shared, function(i, shared_doc){
+					if(shared_doc.user===user) {
+						perm[0]["read"] = shared_doc.read;
+						perm[0]["write"] = shared_doc.write;
+						perm[0]["share"] = shared_doc.share;
 
-						if(s.read) {
+						if(shared_doc.read) {
 							// also give print, email permissions if read
 							// and these permissions exist at level [0]
 							perm[0].email = meta.permissions[0].email;
 							perm[0].print = meta.permissions[0].print;
 						}
 					}
-				}
+				})
 			}
-
 		}
 
 		if(frappe.model.can_read(doctype) && !perm[0].read) {
