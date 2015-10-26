@@ -332,9 +332,10 @@ def validate_fields(meta):
 					frappe.throw(_("{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.").format(fieldname),
 						InvalidFieldNameError)
 
-		df = meta.get_field(meta.title_field)
-		_validate_title_field_pattern(df.options)
-		_validate_title_field_pattern(df.default)
+		df = meta.get("fields", filters={"fieldname": meta.title_field})[0]	
+		if df:
+			_validate_title_field_pattern(df.options)
+			_validate_title_field_pattern(df.default)
 
 	fields = meta.get("fields")
 	for d in fields:
