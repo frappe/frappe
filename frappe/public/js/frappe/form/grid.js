@@ -513,7 +513,7 @@ frappe.ui.form.GridRow = Class.extend({
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		frappe.ui.scroll(this.wrapper, true, 15);
-		me.frm.script_manager.trigger(me.doc.parentfield + "_on_form_rendered");
+		me.frm.script_manager.trigger(me.doc.parentfield + "_on_form_rendered", me.doc.doctype, me.doc.name);
 	},
 	hide_form: function() {
 		// if(this.form_panel)
