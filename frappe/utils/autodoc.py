@@ -42,6 +42,7 @@ def automodule(name):
 
 	return {
 		"members": filter(None, attributes),
+		"docs": getattr(obj, "__doc__", "")
 	}
 
 installed = None

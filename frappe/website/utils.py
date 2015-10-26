@@ -170,7 +170,7 @@ def abs_url(path):
 		path = "/" + path
 	return path
 
-def get_full_index(doctype="Web Page"):
+def get_full_index(doctype="Web Page", base_url = None, extn = False):
 	"""Returns full index of the website (on Web Page) upto the n-th level"""
 	all_routes = []
 
@@ -180,8 +180,14 @@ def get_full_index(doctype="Web Page"):
 		for d in children:
 			d.url = abs_url(os.path.join(d.parent_website_route or "", d.page_name))
 			if d.url not in all_routes:
-				d.children = get_children(d.url[1:])
+				d.children = get_children(d.url.lstrip("/"))
 				all_routes.append(d.url)
+
+			if base_url:
+				d.url = os.path.join(base_url, d.url)
+
+			if extn and not d.children:
+				d.url = d.url + ".html"
 
 		return children
 

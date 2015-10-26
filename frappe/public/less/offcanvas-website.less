@@ -1,0 +1,31 @@
+@import "offcanvas.less";
+
+@media (max-width: 767px) {
+	.page-content {
+		min-height: 200px;
+	}
+
+	.offcanvas-mobile-mixin();
+
+	.offcanvas {
+		.navbar-form {
+			margin: 0px;
+		}
+		.sidebar ul {
+			margin: 0px;
+		}
+
+		.sidebar-page-sidebar {
+			border-top: 1px solid @border-color;
+		}
+
+		.sidebar-label {
+			text-transform: uppercase;
+			color: @text-muted;
+			font-size: 85%;
+			margin: 0px;
+			font-weight: bold;
+			padding: 10px 15px 0px;
+		}
+	}
+}

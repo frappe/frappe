@@ -1,11 +1,11 @@
-<!-- title: {{ app.title }} Developer Docs -->
+<!-- title: {{ app.title }}: Developer Docs -->
 <!-- no-breadcrumbs -->
 
 {% from "templates/autodoc/macros.html" import source_link, version %}
-<p>
+<div class="dev-header">
 {{ version(app.name) }}
 {{ source_link(app, app.name, True) }}
-</p>
+</div>
 
 <table class="table table-bordered" style="max-width: 500px;">
 	<tr>

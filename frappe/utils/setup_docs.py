@@ -22,6 +22,7 @@ class setup_docs(object):
 		self.setup_app_context()
 
 	def setup_app_context(self):
+		self.docs_config = frappe.get_module(self.app + ".config.docs")
 		self.app_context =  {
 			"app": {
 				"name": self.app,
@@ -30,8 +31,9 @@ class setup_docs(object):
 				"version": self.hooks.get("app_version")[0],
 				"headline": self.hooks.get("app_headline")[0],
 				"publisher": self.hooks.get("app_publisher")[0],
-				"source_link": self.hooks.get("source_link")[0],
-				"docs_base_url": self.hooks.get("docs_base_url")[0],
+				"email": self.hooks.get("app_email")[0],
+				"source_link": self.docs_config.source_link,
+				"docs_base_url": self.docs_config.docs_base_url,
 				"license": self.hooks.get("app_license")[0]
 			}
 		}
@@ -95,8 +97,9 @@ class setup_docs(object):
 
 	def build_user_docs(self):
 		"""Build templates for user docs pages, if missing."""
-		user_docs_path = os.path.join(self.docs_path, "user")
+		#user_docs_path = os.path.join(self.docs_path, "user")
 
+		# license
 		with open(os.path.join(self.app_path, "..", "license.txt"), "r") as license_file:
 			self.app_context["license_text"] = markdown(license_file.read())
 			html = frappe.render_template("templates/autodoc/license.html",
@@ -104,6 +107,13 @@ class setup_docs(object):
 
 		with open(os.path.join(self.docs_path, "license.html"), "w") as license_file:
 			license_file.write(html)
+
+		# contents
+		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
+			"contents.html")), os.path.join(self.docs_path, "contents.html"))
+
+		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
+			"contents.py")), os.path.join(self.docs_path, "contents.py"))
 
 		self.update_index_txt(self.docs_path)
 
@@ -118,6 +128,14 @@ class setup_docs(object):
 	def make_docs(self, target, local = False):
 		self.target = target
 		self.local = local
+
+		if self.local:
+			self.docs_base_url = ""
+		else:
+			self.docs_base_url = self.docs_config.docs_base_url
+
+		# add for processing static files (full-index)
+		frappe.local.docs_base_url = self.docs_base_url
 
 		# write in target path
 		self.write_files()
@@ -219,10 +237,6 @@ class setup_docs(object):
 	def write_files(self):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
-		if self.local:
-			docs_base_url = ""
-		else:
-			docs_base_url = self.hooks.get("docs_base_url")[0]
 
 		for page in frappe.db.sql("""select parent_website_route,
 			page_name from `tabWeb Page`""", as_dict=True):
@@ -236,24 +250,31 @@ class setup_docs(object):
 
 			context = get_context(path, {
 				"page_links_with_extn": True,
-				"relative_links": True
+				"relative_links": True,
+				"docs_base_url": self.docs_base_url
 			})
 
 			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
 			print "Writing {0}".format(target_filename)
 
 			context.update(self.app_context)
-			context.update({
-				"brand_html": self.app_title,
-				"top_bar_items": [
-					{"label": "User", "url": docs_base_url + "/", "right": 1},
-					{"label": "Developer", "url": docs_base_url + "/current", "right": 1},
-					{"label": "About", "url": docs_base_url + "/user/about", "right": 1}
-				],
-				"favicon": "/assets/img/favicon.ico",
-				"only_static": True,
-				"docs_base_url": docs_base_url,
-			})
+
+			context.update(self.docs_config.context)
+
+			if not "brand_html" in self.docs_config.context:
+				context.brand_html = self.app_title
+
+			if not "top_bar_items" in self.docs_config.context:
+				context.top_bar_items = [
+					{"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
+					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
+					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
+				]
+
+			if not "favicon" in self.docs_config.context:
+				context.favicon = "/assets/img/favicon.ico"
+
+			context.only_static = True
 
 			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
 
@@ -302,3 +323,14 @@ class setup_docs(object):
 			else:
 				shutil.copy(source_path, os.path.join(assets_path, target))
 
+		# fix path for font-files
+		files = (
+			os.path.join(assets_path, "css", "octicons", "octicons.css"),
+			os.path.join(assets_path, "css", "font-awesome.css"),
+		)
+
+		for path in files:
+			with open(path, "r") as css_file:
+				text = css_file.read()
+			with open(path, "w") as css_file:
+				css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))

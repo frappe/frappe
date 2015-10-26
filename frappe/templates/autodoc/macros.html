@@ -1,5 +1,6 @@
 {% macro automodule(name) %}
 {% set m = autodoc.automodule(name) %}
+{% if m.docs %}<h2>Introduction</h2><br>{{ m.docs|markdown }}<br><br>{% endif %}
 {% for obj in m.members %}
 	{% if obj.type=="function" %}
         {{ render_function(obj, name) }}

@@ -1,4 +1,4 @@
-<!-- title: {{ app.title }} Documentation -->
+<!-- title: {{ app.title }}: Documentation -->
 <!-- no-breadcrumbs -->
 
 <div class="jumbotron">
@@ -13,8 +13,36 @@
     </div>
 </div>
 
-<h3>Contents</h3>
+<div class="section">
+    <h2>Install</h2>
 
-{index}
+    <h4>From your site</h4>
 
+    <p>To install this app, login to your site and click on "Installer". Search for <b>{{ app.title }}</b> and click on "Install"</p>
+
+    <h4>Using Bench</h4>
+
+    <p>Go to your bench folder and setup the new app</p>
+
+    <pre><code class="sh">$ bench get-app {{app.name}} {{app.source_link}}
+$ bench new-site testsite
+$ bench --site testsite install-app {{app.name}}</code></pre>
+
+    <p>Login to your site to configure the app.</p>
+
+    <p><a href="user/install.html">Detailed Installation Steps</a></p>
+</div>
+
+<div class="section">
+    <h2>Contents</h2>
+
+    {index}
+
+</div>
+
+<div class="section">
+    <h2>Author</h2>
+
+    <p>{{ app.publisher }} ({{ app.email }})</p>
+</div>
 <!-- jinja -->

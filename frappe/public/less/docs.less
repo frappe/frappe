@@ -1,18 +1,38 @@
 @import "variables.less";
-@import "offcanvas.less";
+@import "offcanvas-website.less";
+@import "navbar.less";
+
+body {
+	font-size: 16px;
+	line-height: 1.65em;
+}
+
+.navbar a {
+	font-size: 16px;
+	font-weight: normal;
+}
 
 .breadcrumb {
   line-height: 1.5em;
-}
-.breadcrumb {
+  color: @text-muted;
   background-color: transparent;
-  padding: 10px 0px;
+  margin-bottom: 10px;
+  padding: 0px;
 }
 .breadcrumb a,
 .breadcrumb a:hover,
 .breadcrumb a:focus,
 .breadcrumb a:visited {
   color: inherit;
+  font-size: 14px;
+}
+
+a, a:hover, a:focus, a:visited {
+	color: @brand-primary;
+}
+
+h2 {
+	font-size: 24px;
 }
 
 .navbar {
@@ -25,7 +45,13 @@
 }
 
 .section {
-	padding: 30px 0px;
+	padding: 30px;
+	max-width: 800px;
+	margin: auto;
+}
+
+.dev-header {
+	margin-bottom: 30px;
 }
 
 .docs-footer {

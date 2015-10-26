@@ -42,15 +42,8 @@
 			</style>
 		{%- endblock -%}
 	{%- endblock -%}
-    {%- if js_globals is defined %}
-    <script>
-    {%- for key, value in js_globals.iteritems() %}
-    window.{{ key }} = "{{ value[0] }}";
-    {%- endfor -%}
-    </script>
-    {% endif -%}
 </head>
-<body data-path="{{ path }}">
+<body>
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -119,6 +112,9 @@
 	</div>
 
 	<!-- js should be loaded in body! -->
+    <script>
+    {% include "templates/autodoc/docs.js" %}
+    </script>
 	{%- block script %}
 		<script data-html-block="script">
 		{%- if script is defined -%}{{ script }}{%- endif -%}

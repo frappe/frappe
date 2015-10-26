@@ -5,11 +5,11 @@
 {% set doc = frappe.get_doc("DocType", doctype) %}
 {% set controller = autodoc.get_controller(doctype) %}
 
-<p>
+<div class="dev-header">
 {{ version(doctype) }}
 {{ source_link(app, app.name + "/" + scrub(doc.module)
   + "/doctype/" + scrub(doctype), True) }}
-</p>
+</div>
 
 {% if doc.issingle %}<span class="label label-info">Single</span>{% endif %}
 {% if doc.istable %}<span class="label label-info">Child Table</span>{% endif %}
