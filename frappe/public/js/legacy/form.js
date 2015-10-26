@@ -548,7 +548,7 @@ _f.Frm.prototype.setnewdoc = function() {
 
 _f.Frm.prototype.trigger_link_fields = function() {
 	// trigger link fields which have default values set
-	if (this.is_new()) {
+	if (this.is_new() && !this.doc.__mapped) {
 		$.each(this.fields_dict, function(fieldname, field) {
 			if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 				// triggers add fetch, sets value in model and runs triggers
