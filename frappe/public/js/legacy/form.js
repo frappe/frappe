@@ -474,8 +474,10 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {
-	cur_frm.fields_dict[fname] && cur_frm.fields_dict[fname].refresh
-		&& cur_frm.fields_dict[fname].refresh();
+	if(cur_frm.fields_dict[fname] && cur_frm.fields_dict[fname].refresh) {
+		cur_frm.fields_dict[fname].refresh();
+		this.layout.refresh_dependency();
+	}
 }
 
 _f.Frm.prototype.refresh_fields = function() {
