@@ -250,7 +250,7 @@ class DatabaseQuery(object):
 
 			elif f.operator == "like" or (isinstance(f.value, basestring) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-					value = f.value
+					value = "" if f.value==None else f.value
 					fallback = '""'
 
 					if f.operator == "like" and isinstance(value, basestring):
