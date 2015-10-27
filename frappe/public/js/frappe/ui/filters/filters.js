@@ -210,6 +210,12 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
+		
+		// all fields shown in filters
+		if(df.hidden) {
+			df.hidden = 0;
+		}
+		
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
