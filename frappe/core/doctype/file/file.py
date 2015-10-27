@@ -22,6 +22,7 @@ import requests
 import requests.exceptions
 import StringIO
 import mimetypes, imghdr
+from frappe.utils import get_files_path
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -66,6 +67,7 @@ class File(NestedSet):
 		if self.is_new():
 			self.validate_duplicate_entry()
 		self.validate_folder()
+		self.validate_file()
 		self.set_folder_size()
 
 	def set_folder_size(self):
@@ -100,6 +102,14 @@ class File(NestedSet):
 		if not self.is_home_folder and not self.folder and \
 			not self.flags.ignore_folder_validate:
 			frappe.throw(_("Folder is mandatory"))
+
+	def validate_file(self):
+		if (self.file_url or "").startswith("/files/"):
+			if not self.file_name:
+				self.file_name = self.file_url.split("/files/")[-1]
+
+			if not os.path.exists(get_files_path(self.file_name)):
+				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
