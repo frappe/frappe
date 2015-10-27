@@ -115,6 +115,10 @@ class setup_docs(object):
 		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
 			"contents.py")), os.path.join(self.docs_path, "contents.py"))
 
+		# install
+		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
+			"install.md")), os.path.join(self.docs_path, "install.md"))
+
 		self.update_index_txt(self.docs_path)
 
 	def sync_docs(self):
@@ -205,12 +209,14 @@ class setup_docs(object):
 
 	def update_index_txt(self, path):
 		index_txt_path = os.path.join(path, "index.txt")
-		pages = filter(lambda d: (d.endswith(".html") and d!="index.html") \
+		pages = filter(lambda d: ((d.endswith(".html") or d.endswith(".md")) and d not in ("index.html",)) \
 			or os.path.isdir(os.path.join(path, d)), os.listdir(path))
 		pages = [d.rsplit(".", 1)[0] for d in pages]
 
-		with open(index_txt_path, "r") as f:
-			index_parts = filter(None, f.read().splitlines())
+		index_parts = []
+		if os.path.exists(index_txt_path):
+			with open(index_txt_path, "r") as f:
+				index_parts = filter(None, f.read().splitlines())
 
 		if not set(pages).issubset(set(index_parts)):
 			print "Updating " + index_txt_path
@@ -248,30 +254,40 @@ class setup_docs(object):
 
 			frappe.local.path = path
 
-			context = get_context(path, {
+			context = {
 				"page_links_with_extn": True,
 				"relative_links": True,
 				"docs_base_url": self.docs_base_url
-			})
-
-			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
-			print "Writing {0}".format(target_filename)
+			}
 
 			context.update(self.app_context)
 
-			context.update(self.docs_config.context)
+			context = get_context(path, context)
 
-			if not "brand_html" in self.docs_config.context:
+			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
+
+			# rename .md files to .html
+			if target_filename.rsplit(".", 1)[1]=="md":
+				target_filename = target_filename[:-3] + ".html"
+
+			print "Writing {0}".format(target_filename)
+
+
+			context.brand_html = context.top_bar_items = context.favicon = None
+
+			self.docs_config.get_context(context)
+
+			if not context.brand_html:
 				context.brand_html = self.app_title
 
-			if not "top_bar_items" in self.docs_config.context:
+			if not context.top_bar_items:
 				context.top_bar_items = [
 					{"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
 					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
 					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
 				]
 
-			if not "favicon" in self.docs_config.context:
+			if not context.favicon:
 				context.favicon = "/assets/img/favicon.ico"
 
 			context.only_static = True

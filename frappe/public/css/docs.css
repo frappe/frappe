@@ -239,9 +239,13 @@ body {
   font-size: 16px;
   line-height: 1.65em;
 }
+.navbar {
+  background-color: #7575ff !important;
+}
 .navbar a {
   font-size: 16px;
   font-weight: normal;
+  color: #fff !important;
 }
 .breadcrumb {
   line-height: 1.5em;
@@ -262,6 +266,14 @@ a:hover,
 a:focus,
 a:visited {
   color: #5e64ff;
+}
+a.btn-primary {
+  color: #fff;
+}
+a.btn-primary:hover,
+a.btn-primary:focus,
+a.btn-primary:visited {
+  color: #fff;
 }
 h2 {
   font-size: 24px;

@@ -18,10 +18,10 @@
 
     {% block favicon %}
 	<link rel="shortcut icon"
-		href="{{ favicon or (github + "/assets/img/favicon.png") }}"
+		href="{{ favicon or (docs_base_url + "/assets/img/favicon.png") }}"
 		type="image/x-icon">
 	<link rel="icon"
-		href="{{ favicon or (github + "/assets/img/favicon.png") }}"
+		href="{{ favicon or (docs_base_url + "/assets/img/favicon.png") }}"
 		type="image/x-icon">
     {% endblock %}
 

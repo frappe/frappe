@@ -242,7 +242,7 @@ def get_messages_for_app(app):
 					raise Exception
 
 	# app_include_files
-	messages.extend(get_messages_from_include_files(app))
+	messages.extend(get_all_messages_from_js_files(app))
 
 	# server_messages
 	messages.extend(get_server_messages(app))
@@ -329,10 +329,27 @@ def get_server_messages(app):
 	return messages
 
 def get_messages_from_include_files(app_name=None):
-	"""Extracts all translatable strings from Javascript app files"""
+	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
+		print os.path.join(frappe.local.sites_path, file)
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
+
+	return messages
+
+def get_all_messages_from_js_files(app_name=None):
+	"""Extracts all translatable strings from app `.js` files"""
+	messages = []
+	for app in ([app_name] if app_name else frappe.get_installed_apps()):
+		if os.path.exists(frappe.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
+				if "frappe/public/js/lib" in basepath:
+					continue
+
+				for fname in files:
+					if fname.endswith(".js"):
+						print os.path.join(basepath, fname)
+						messages.extend(get_messages_from_file(os.path.join(basepath, fname)))
 
 	return messages
 
@@ -365,6 +382,7 @@ def extract_messages_from_code(code, is_py=False):
 	messages += [(m.start(), m.groups()[0]) for m in re.compile("_\('([^']*)'").finditer(code)]
 	if is_py:
 		messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
+
 	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
 	return pos_to_line_no(messages, code)
 

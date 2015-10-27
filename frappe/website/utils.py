@@ -189,6 +189,12 @@ def get_full_index(doctype="Web Page", base_url = None, extn = False):
 			if extn and not d.children:
 				d.url = d.url + ".html"
 
+		# no index.html for home page
+		# home should not be in table of contents
+		if not parent:
+			children = [d for d in children if d.page_name not in ("index.html", "index",
+				"", "contents")]
+
 		return children
 
 	return get_children("")

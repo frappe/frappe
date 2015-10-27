@@ -7,9 +7,13 @@ body {
 	line-height: 1.65em;
 }
 
+.navbar {
+	background-color: @erpnext-blue !important;
+}
 .navbar a {
 	font-size: 16px;
 	font-weight: normal;
+	color: #fff !important;
 }
 
 .breadcrumb {
@@ -29,6 +33,13 @@ body {
 
 a, a:hover, a:focus, a:visited {
 	color: @brand-primary;
+}
+
+a.btn-primary& {
+	color: #fff;
+	&:hover, &:focus, &:visited {
+		color: #fff;
+	}
 }
 
 h2 {
