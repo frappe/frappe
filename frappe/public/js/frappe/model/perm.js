@@ -76,7 +76,7 @@ $.extend(frappe.perm, {
 
 			// apply permissions from shared
 			if(docinfo.shared) {
-				for(var i=0; i<docinfo.shared; i++) {
+				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
 					if(s.user===user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;

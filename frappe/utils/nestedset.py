@@ -201,7 +201,15 @@ class NestedSet(Document):
 			frappe.throw(_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError)
 
 		self.set(self.nsm_parent_field, "")
-		update_nsm(self)
+
+		try:
+			update_nsm(self)
+		except frappe.DoesNotExistError:
+			if self.flags.on_rollback:
+				pass
+				frappe.message_log.pop()
+			else:
+				raise
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge:
