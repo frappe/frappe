@@ -541,7 +541,9 @@ _f.Frm.prototype.setnewdoc = function() {
 			frappe.route_options = null;
 		}
 
-		me.trigger_link_fields()
+		frappe.after_ajax(function() {
+			me.trigger_link_fields();
+		});
 
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
 	})
