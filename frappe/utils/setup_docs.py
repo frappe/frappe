@@ -24,18 +24,19 @@ class setup_docs(object):
 	def setup_app_context(self):
 		self.docs_config = frappe.get_module(self.app + ".config.docs")
 		self.app_context =  {
-			"app": {
+			"app": frappe._dict({
 				"name": self.app,
 				"title": self.app_title,
 				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
 				"version": self.hooks.get("app_version")[0],
 				"headline": self.hooks.get("app_headline")[0],
 				"publisher": self.hooks.get("app_publisher")[0],
+				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
 				"source_link": self.docs_config.source_link,
 				"docs_base_url": self.docs_config.docs_base_url,
 				"license": self.hooks.get("app_license")[0]
-			}
+			})
 		}
 
 	def build(self, docs_version):
@@ -116,8 +117,11 @@ class setup_docs(object):
 			"contents.py")), os.path.join(self.docs_path, "contents.py"))
 
 		# install
-		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
-			"install.md")), os.path.join(self.docs_path, "install.md"))
+		html = frappe.render_template("templates/autodoc/install.md",
+			context = self.app_context)
+
+		with open(os.path.join(self.docs_path, "install.md"), "w") as f:
+			f.write(html)
 
 		self.update_index_txt(self.docs_path)
 
@@ -272,13 +276,15 @@ class setup_docs(object):
 
 			print "Writing {0}".format(target_filename)
 
-
 			context.brand_html = context.top_bar_items = context.favicon = None
 
 			self.docs_config.get_context(context)
 
 			if not context.brand_html:
-				context.brand_html = self.app_title
+				if context.docs_icon:
+					context.brand_html = '<i class="{0}"></i> {1}'.format(context.docs_icon, context.app.title)
+				else:
+					context.brand_html = context.app.title
 
 			if not context.top_bar_items:
 				context.top_bar_items = [
@@ -310,7 +316,16 @@ class setup_docs(object):
 		# copy assets from docs
 		source_assets = frappe.get_app_path(self.app, "docs", "assets")
 		if os.path.exists(source_assets):
-			shutil.copytree(source_assets, assets_path)
+			for basepath, folders, files in os.walk(source_assets):
+				target_basepath = os.path.join(assets_path, os.path.relpath(basepath, source_assets))
+
+				# make the base folder
+				if not os.path.exists(target_basepath):
+					os.makedirs(target_basepath)
+
+				# copy all files in the current folder
+				for f in files:
+					shutil.copy(os.path.join(basepath, f), os.path.join(target_basepath, f))
 
 		# make missing folders
 		for fname in ("js", "css", "img"):

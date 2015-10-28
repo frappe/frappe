@@ -98,7 +98,6 @@ def install_app(name, verbose=False, set_as_patched=True):
 		for app in app_hooks.required_apps:
 			install_app(app)
 
-	print "Installing {0}...".format(name)
 	frappe.flags.in_install = name
 	frappe.clear_cache()
 
@@ -106,9 +105,10 @@ def install_app(name, verbose=False, set_as_patched=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		print "Already installed"
 		frappe.msgprint("App {0} already installed".format(name))
 		return
+
+	print "Installing {0}...".format(name)
 
 	if name != "frappe":
 		frappe.only_for("System Manager")

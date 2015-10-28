@@ -8,12 +8,14 @@ body {
 }
 
 .navbar {
-	background-color: @erpnext-blue !important;
+	//background-color: @navbar-bg !important;
+	//background-color: @text-color !important;
+	// border-bottom: 3px solid @border-color !important;
 }
 .navbar a {
 	font-size: 16px;
 	font-weight: normal;
-	color: #fff !important;
+	//color: #fff !important;
 }
 
 .breadcrumb {
@@ -49,10 +51,10 @@ h2 {
 .navbar {
 	background-color: transparent;
 	border: none;
-    padding: 10px 0px;
+    padding: 15px 0px;
 	border-radius: 0px;
-    border-bottom: 1px solid @erpnext-blue;
-
+    border-top: 5px solid @erpnext-blue;
+    border-bottom: 1px solid @border-color;
 }
 
 .section {
@@ -156,4 +158,11 @@ h2 {
 	padding: 8px 40px;
 	border: 1px solid #d1d8dd;
 	border-radius: 15px;
+}
+
+.screenshot {
+	border: 2px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 30px 0px;
+	max-width: 100%;
 }

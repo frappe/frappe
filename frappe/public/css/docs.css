@@ -239,13 +239,9 @@ body {
   font-size: 16px;
   line-height: 1.65em;
 }
-.navbar {
-  background-color: #7575ff !important;
-}
 .navbar a {
   font-size: 16px;
   font-weight: normal;
-  color: #fff !important;
 }
 .breadcrumb {
   line-height: 1.5em;
@@ -281,9 +277,10 @@ h2 {
 .navbar {
   background-color: transparent;
   border: none;
-  padding: 10px 0px;
+  padding: 15px 0px;
   border-radius: 0px;
-  border-bottom: 1px solid #7575ff;
+  border-top: 5px solid #7575ff;
+  border-bottom: 1px solid #d1d8dd;
 }
 .section {
   padding: 30px;
@@ -369,4 +366,10 @@ h2 {
   padding: 8px 40px;
   border: 1px solid #d1d8dd;
   border-radius: 15px;
+}
+.screenshot {
+  border: 2px solid #d1d8dd;
+  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
+  margin: 30px 0px;
+  max-width: 100%;
 }

@@ -175,7 +175,7 @@ def get_full_index(doctype="Web Page", base_url = None, extn = False):
 	all_routes = []
 
 	def get_children(parent):
-		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title"],
+		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title", "template_path"],
 			{"parent_website_route": parent}, order_by="idx asc")
 		for d in children:
 			d.url = abs_url(os.path.join(d.parent_website_route or "", d.page_name))
@@ -186,7 +186,7 @@ def get_full_index(doctype="Web Page", base_url = None, extn = False):
 			if base_url:
 				d.url = os.path.join(base_url, d.url)
 
-			if extn and not d.children:
+			if extn and os.path.basename(d.template_path).split(".")[0] != "index":
 				d.url = d.url + ".html"
 
 		# no index.html for home page

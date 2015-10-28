@@ -82,6 +82,9 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
 		f.write(encode(desktop_template.format(**hooks)))
 
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
+		f.write(encode(docs_template.format(**hooks)))
+
 	print "'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name))
 
 
@@ -254,3 +257,14 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags"""
+
+docs_template = '''"""
+Configuration for docs
+"""
+
+# source_link = "https://github.com/org/repo"
+# docs_base_url = "https://frappe.github.io/repo"
+
+def get_context(context):
+	context.brand_html = "{app_title}"
+'''

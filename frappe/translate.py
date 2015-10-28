@@ -332,7 +332,6 @@ def get_messages_from_include_files(app_name=None):
 	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
-		print os.path.join(frappe.local.sites_path, file)
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
 	return messages
@@ -347,8 +346,7 @@ def get_all_messages_from_js_files(app_name=None):
 					continue
 
 				for fname in files:
-					if fname.endswith(".js"):
-						print os.path.join(basepath, fname)
+					if fname.endswith(".js") or fname.endswith(".html"):
 						messages.extend(get_messages_from_file(os.path.join(basepath, fname)))
 
 	return messages

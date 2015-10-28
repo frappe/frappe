@@ -123,6 +123,10 @@ $.extend(frappe, {
 		if(opts.msg && data.message) {
 			$(opts.msg).html(data.message).toggle(true);
 		}
+
+		if(opts.always) {
+			opts.always(data);
+		}
 	},
 	show_message: function(text, icon) {
 		if(!icon) icon="icon-refresh icon-spin";
