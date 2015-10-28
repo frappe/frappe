@@ -541,7 +541,9 @@ _f.Frm.prototype.setnewdoc = function() {
 			frappe.route_options = null;
 		}
 
-		me.trigger_link_fields()
+		frappe.after_ajax(function() {
+			me.trigger_link_fields();
+		});
 
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
 	})
@@ -550,13 +552,15 @@ _f.Frm.prototype.setnewdoc = function() {
 
 _f.Frm.prototype.trigger_link_fields = function() {
 	// trigger link fields which have default values set
-	if (this.is_new() && !this.doc.__mapped) {
+	if (this.is_new() && this.doc.__run_link_triggers) {
 		$.each(this.fields_dict, function(fieldname, field) {
 			if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
 				// triggers add fetch, sets value in model and runs triggers
 				field.set_value(this.doc[fieldname]);
 			}
 		});
+
+		delete this.doc.__run_link_triggers;
 	}
 }
 

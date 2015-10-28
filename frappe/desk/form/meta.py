@@ -74,9 +74,9 @@ class FormMeta(Meta):
 		self.add_html_templates(path)
 
 	def _add_code(self, path, fieldname):
-		js = frappe.read_file(path)
+		js = get_js(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_include(js))
+			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + js)
 
 	def add_html_templates(self, path):
 		if self.custom:
@@ -91,18 +91,8 @@ class FormMeta(Meta):
 		self.set("__js", (self.get("__js") or "") + js)
 
 	def add_code_via_hook(self, hook, fieldname):
-		for app_name in frappe.get_installed_apps():
-			code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
-			if not code_hook:
-				continue
-
-			files = code_hook.get(self.name, [])
-			if not isinstance(files, list):
-				files = [files]
-
-			for file in files:
-				path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
-				self._add_code(path, fieldname)
+		for path in get_code_files_via_hooks(hook, self.name):
+			self._add_code(path, fieldname)
 
 	def add_custom_script(self):
 		"""embed all require files"""
@@ -172,4 +162,25 @@ class FormMeta(Meta):
 				messages = make_dict_from_messages(messages)
 				self.get("__messages").update(messages, as_value=True)
 
+def get_code_files_via_hooks(hook, name):
+	code_files = []
+	for app_name in frappe.get_installed_apps():
+		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
+		if not code_hook:
+			continue
+
+		files = code_hook.get(name, [])
+		if not isinstance(files, list):
+			files = [files]
+
+		for file in files:
+			path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
+			code_files.append(path)
+
+	return code_files
+
+def get_js(path):
+	js = frappe.read_file(path)
+	if js:
+		return render_include(js)
 

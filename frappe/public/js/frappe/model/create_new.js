@@ -34,6 +34,10 @@ $.extend(frappe.model, {
 
 		frappe.model.add_to_locals(doc);
 
+		if (!parent_doc) {
+			doc.__run_link_triggers = 1;
+		}
+
 		return doc;
 	},
 
@@ -228,9 +232,6 @@ $.extend(frappe.model, {
 			callback: function(r) {
 				if(!r.exc) {
 					frappe.model.sync(r.message);
-					var doc = frappe.model.get_doc(r.message.doctype, r.message.name);
-					doc.__mapped = true;
-					
 					frappe.set_route("Form", r.message.doctype, r.message.name);
 				}
 			}
