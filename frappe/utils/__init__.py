@@ -365,6 +365,10 @@ def get_hook_method(hook_name, fallback=None):
 	if fallback:
 		return fallback
 
+def call_hook_method(hook, *args, **kwargs):
+	for method_name in frappe.get_hooks(hook):
+		frappe.get_attr(method_name)(*args, **kwargs)
+
 def update_progress_bar(txt, i, l):
 	lt = len(txt)
 	if lt < 36:

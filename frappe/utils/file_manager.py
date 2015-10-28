@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr
+from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -149,6 +149,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
 		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
+		call_hook_method("before_write_file", file_size=file_size)
 		file_data = method(fname, content, content_type=content_type)
 		file_data = copy(file_data)
 
