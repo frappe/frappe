@@ -79,7 +79,15 @@ $.extend(frappe.datetime, {
 	month_end: function() {
 		return moment().endOf("month").format();
 	},
-
+	
+	year_start: function(){
+		return moment().startOf("year").format();
+	},
+	
+	year_end: function(){
+		return moment().endOf("year").format();
+	},
+	
 	get_user_fmt: function() {
 		return sys_defaults.date_format || "yyyy-mm-dd";
 	},
