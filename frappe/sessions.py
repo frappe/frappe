@@ -196,8 +196,12 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			frappe.db.sql("""UPDATE tabUser SET last_login = %s, last_ip = %s
-				where name=%s""", (frappe.utils.now(), frappe.local.request_ip, self.data['user']))
+			frappe.db.sql("""UPDATE tabUser SET last_login = %(now)s, last_ip = %(ip)s, last_active = %(now)s
+				where name=%(name)s""", {
+					"now": frappe.utils.now(),
+					"ip": frappe.local.request_ip,
+					"name": self.data['user']
+				})
 
 			frappe.db.commit()
 
@@ -313,9 +317,16 @@ class Session:
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
 		if force or (time_diff==None) or (time_diff > 600):
+			# update sessions table
 			frappe.db.sql("""update tabSessions set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
+
+			# update last active in user table
+			frappe.db.sql("""update `tabUser` set last_active=%(now)s where name=%(name)s""", {
+				"now": frappe.utils.now(),
+				"name": frappe.session.user
+			})
 
 			frappe.cache().hset("last_db_session_update", self.sid, now)
 			updated_in_db = True
