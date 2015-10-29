@@ -8,4 +8,3 @@ locale
 *.egg-info
 dist/
 build/
-docs/

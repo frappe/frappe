@@ -20,7 +20,7 @@ class sync(object):
 	def __init__(self, verbose=False, path=None):
 		self.verbose = verbose
 
-	def start(self, rebuild=False, path="www"):
+	def start(self, rebuild=False, path="www", apps=None):
 		self.path = path
 		self.synced = []
 		self.synced_paths = []
@@ -28,7 +28,7 @@ class sync(object):
 		if rebuild:
 			frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 
-		for app in frappe.get_installed_apps():
+		for app in apps or frappe.get_installed_apps():
 			# print "Syncing for {0}".format(app)
 			self.sync_for_app(app)
 		self.cleanup()

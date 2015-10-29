@@ -23,19 +23,24 @@ class setup_docs(object):
 
 	def setup_app_context(self):
 		self.docs_config = frappe.get_module(self.app + ".config.docs")
+		version = self.hooks.get("app_version")[0]
 		self.app_context =  {
 			"app": frappe._dict({
 				"name": self.app,
 				"title": self.app_title,
 				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
-				"version": self.hooks.get("app_version")[0],
-				"headline": self.hooks.get("app_headline")[0],
+				"version": version,
 				"publisher": self.hooks.get("app_publisher")[0],
 				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
+				"headline": self.docs_config.headline,
+				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
+				"hide_install": getattr(self.docs_config, "hide_install", False),
 				"docs_base_url": self.docs_config.docs_base_url,
-				"license": self.hooks.get("app_license")[0]
+				"long_description": getattr(self.docs_config, "long_description", ""),
+				"license": self.hooks.get("app_license")[0],
+				"branch": getattr(self.docs_config, "branch", None) or ("v" + version)
 			})
 		}
 
@@ -52,6 +57,39 @@ class setup_docs(object):
 		shutil.rmtree(self.path, ignore_errors = True)
 		os.makedirs(self.path)
 
+		self.make_home_pages()
+
+		for basepath, folders, files in os.walk(self.app_path):
+
+			# make module home page
+			if "/doctype/" not in basepath and "doctype" in folders:
+				module = os.path.basename(basepath)
+
+				module_folder = os.path.join(self.models_base_path, module)
+
+				self.make_folder(module_folder,
+					template = "templates/autodoc/module_home.html",
+					context = {"name": module})
+				self.update_index_txt(module_folder)
+
+			# make for model files
+			if "/doctype/" in basepath:
+				parts = basepath.split("/")
+				#print parts
+				module, doctype = parts[-3], parts[-1]
+
+				if doctype not in ("doctype", "boilerplate"):
+					self.write_model_file(basepath, module, doctype)
+
+			# standard python module
+			if self.is_py_module(basepath, folders, files):
+				self.write_modules(basepath, folders, files)
+
+		self.build_user_docs()
+
+	def make_home_pages(self):
+		"""Make standard home pages for docs, developer docs, api and models
+			from templates"""
 		# make dev home page
 		with open(os.path.join(self.docs_path, "index.html"), "w") as home:
 			home.write(frappe.render_template("templates/autodoc/docs_home.html",
@@ -70,31 +108,6 @@ class setup_docs(object):
 		self.api_base_path = os.path.join(self.path, "api")
 		self.make_folder(self.api_base_path,
 			template = "templates/autodoc/api_home.html")
-
-		for basepath, folders, files in os.walk(self.app_path):
-			if "doctype" not in basepath:
-				if "doctype" in folders:
-					module = os.path.basename(basepath)
-
-					module_folder = os.path.join(self.models_base_path, module)
-
-					self.make_folder(module_folder,
-						template = "templates/autodoc/module_home.html",
-						context = {"name": module})
-					self.update_index_txt(module_folder)
-
-			if "doctype" in basepath:
-				parts = basepath.split("/")
-				#print parts
-				module, doctype = parts[-3], parts[-1]
-
-				if doctype not in ("doctype", "boilerplate"):
-					self.write_model_file(basepath, module, doctype)
-
-			elif self.is_py_module(basepath, folders, files):
-				self.write_modules(basepath, folders, files)
-
-		self.build_user_docs()
 
 	def build_user_docs(self):
 		"""Build templates for user docs pages, if missing."""
@@ -131,7 +144,7 @@ class setup_docs(object):
 		Called as `bench --site [sitename] sync-docs [appname]`
 		"""
 		sync = frappe.website.statics.sync()
-		sync.start(path="docs", rebuild=True)
+		sync.start(path="docs", rebuild=True, apps = [self.app])
 
 	def make_docs(self, target, local = False):
 		self.target = target
@@ -160,7 +173,7 @@ class setup_docs(object):
 			and (not "/page" in basepath) \
 			and (not "/templates" in basepath) \
 			and (not "/tests" in basepath) \
-			and (not "doctype" in folders)
+			and (not "/docs" in basepath)
 
 	def write_modules(self, basepath, folders, files):
 		module_folder = os.path.join(self.api_base_path, os.path.relpath(basepath, self.app_path))
@@ -256,6 +269,9 @@ class setup_docs(object):
 			else:
 				path = page.page_name
 
+			print "Writing {0}".format(path)
+
+			# set this for get_context / website libs
 			frappe.local.path = path
 
 			context = {
@@ -269,13 +285,12 @@ class setup_docs(object):
 
 			context = get_context(path, context)
 
-			target_filename = os.path.join(self.target, context.template_path.split('/docs/', 1)[1])
+			target_path_fragment = context.template_path.split('/docs/', 1)[1]
+			target_filename = os.path.join(self.target, target_path_fragment)
 
 			# rename .md files to .html
 			if target_filename.rsplit(".", 1)[1]=="md":
 				target_filename = target_filename[:-3] + ".html"
-
-			print "Writing {0}".format(target_filename)
 
 			context.brand_html = context.top_bar_items = context.favicon = None
 
@@ -300,6 +315,14 @@ class setup_docs(object):
 			context.only_static = True
 
 			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
+
+			if not "<!-- autodoc -->" in html:
+				html = html.replace('<!-- edit-link -->',
+					'<p><br><a class="text-muted" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
+						source_link = self.docs_config.source_link,
+						app_name = self.app,
+						branch = context.app.branch,
+						target = target_path_fragment))
 
 			if not os.path.exists(os.path.dirname(target_filename)):
 				os.makedirs(os.path.dirname(target_filename))

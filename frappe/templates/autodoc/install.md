@@ -27,3 +27,4 @@ To run this locally, run
 Fire up your browser and go to http://localhost:8000 and you should see the login screen. Login as **Administrator** and **admin** (or the password you set at the time of `new-site`) and you are set.
 
 <!-- jinja -->
+<!-- autodoc -->

@@ -52,7 +52,7 @@
 {% endmacro %}
 
 {% macro source_link(app, file_path, tree=False) %}
-	<a class="btn btn-default btn-sm" href="{{ app.source_link }}/{{ "tree" if tree else "blob" }}/v{{ app.version }}/{{ file_path }}"
+	<a class="btn btn-default btn-sm" href="{{ app.source_link }}/{{ "tree" if tree else "blob" }}/{{ app.branch }}/{{ file_path }}"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 {% endmacro %}
 

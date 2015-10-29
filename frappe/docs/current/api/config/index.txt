@@ -1,0 +1,6 @@
+frappe.config.desktop
+frappe.config.docs
+frappe.config
+frappe.config.integrations
+frappe.config.setup
+frappe.config.website

@@ -3,7 +3,7 @@
 
 <div class="jumbotron">
   <h1>{{ app.headline }}</h1>
-  <p>{{ app.description }}</p>
+  <p>{{ app.sub_heading }}</p>
 </div>
 
 <div class="section" style="padding-top: 0px;">
@@ -13,10 +13,17 @@
     </div>
 </div>
 
+{% if app.long_description %}
+<div class="section">
+    {{ app.long_description|markdown }}
+</div>
+{% endif %}
+
 <div class="section text-center">
     <a href="contents.html" class="btn btn-lg btn-primary">Table of Contents</a>
 </div>
 
+{% if not app.hide_install %}
 <div class="section">
     <h2>Install</h2>
 
@@ -42,4 +49,7 @@ $ bench --site testsite install-app {{app.name}}</code></pre>
 
     <p>{{ app.publisher }} ({{ app.email }})</p>
 </div>
+{% endif %}
+
+<!-- autodoc -->
 <!-- jinja -->

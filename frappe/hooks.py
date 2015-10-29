@@ -30,6 +30,7 @@ app_icon = "octicon octicon-circuit-board"
 app_version = "6.6.1"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
+app_license = "MIT"
 
 app_email = "info@frappe.io"
 
