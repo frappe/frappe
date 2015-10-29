@@ -317,6 +317,11 @@ a.no-decoration:active {
 .navbar-brand {
   max-width: none;
 }
+.user-image-wrapper {
+  height: 30px;
+  width: 30px;
+  margin-top: -6px;
+}
 .content {
   margin-bottom: 22px;
 }

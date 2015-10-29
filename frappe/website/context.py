@@ -46,6 +46,8 @@ def get_context(path, args=None):
 def build_context(context):
 	"""get_context method of doc or module is supposed to render content templates and push it into context"""
 	context = frappe._dict(context)
+	if not "url_prefix" in context:
+		context.url_prefix = ""
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 

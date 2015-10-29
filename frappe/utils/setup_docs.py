@@ -261,7 +261,8 @@ class setup_docs(object):
 			context = {
 				"page_links_with_extn": True,
 				"relative_links": True,
-				"docs_base_url": self.docs_base_url
+				"docs_base_url": self.docs_base_url,
+				"url_prefix": self.docs_base_url
 			}
 
 			context.update(self.app_context)
@@ -343,6 +344,8 @@ class setup_docs(object):
 			"css/hljs.css": "css/hljs.css",
 			"css/font": "css/font",
 			"css/octicons": "css/octicons",
+			# always overwrite octicons.css to fix the path
+			"css/octicons/octicons.css": "css/octicons/octicons.css",
 			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg"
 		}
 
