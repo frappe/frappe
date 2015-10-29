@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Workflow State" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Version 6.6.1 Source Table Name: tabWorkflow State Workflow state repres" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Version 6.6.1 Source Table Name: tabWorkflow State Workflow state repres" data-html-block="meta_block">
+<meta name="og:title" content="Workflow State" data-html-block="meta_block">
+<meta name="twitter:title" content="Workflow State" data-html-block="meta_block">
+<meta name="description" content="Version 6.6.1 Source Table Name: tabWorkflow State Workflow state repres" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-workflow_state" data-path="current/models/workflow/workflow_state"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Workflow State</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/current/models/workflow">
+		Module workflow</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="workflow_state" style="text-align: Left">
+	<!-- title: Workflow State -->
+
+
+
+
+
+<div class="dev-header">
+
+<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+	Version 6.6.1</a>
+
+
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/v6.6.1/frappe/workflow/doctype/workflow_state"
+		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+
+</div>
+
+
+
+
+
+    <p><b>Table Name:</b> <code>tabWorkflow State</code></p>
+
+
+Workflow state represents the current state of a document.
+
+<h3>Fields</h3>
+
+<table class="table table-bordered" style="table-layout: fixed;">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>workflow_state_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                State
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>icon</code></td>
+            <td >
+                Select</td>
+            <td class="text-muted" title="Hidden">
+                Icon
+                <p class="text-muted small">
+                    Icon will appear on the button</p>
+            </td>
+            <td>
+                <pre>
+glass
+music
+search
+envelope
+heart
+star
+star-empty
+user
+film
+th-large
+th
+th-list
+ok
+remove
+zoom-in
+zoom-out
+off
+signal
+cog
+trash
+home
+file
+time
+road
+download-alt
+download
+upload
+inbox
+play-circle
+repeat
+refresh
+list-alt
+lock
+flag
+headphones
+volume-off
+volume-down
+volume-up
+qrcode
+barcode
+tag
+tags
+book
+bookmark
+print
+camera
+font
+bold
+italic
+text-height
+text-width
+align-left
+align-center
+align-right
+align-justify
+list
+indent-left
+indent-right
+facetime-video
+picture
+pencil
+map-marker
+adjust
+tint
+edit
+share
+check
+move
+step-backward
+fast-backward
+backward
+play
+pause
+stop
+forward
+fast-forward
+step-forward
+eject
+chevron-left
+chevron-right
+plus-sign
+minus-sign
+remove-sign
+ok-sign
+question-sign
+info-sign
+screenshot
+remove-circle
+ok-circle
+ban-circle
+arrow-left
+arrow-right
+arrow-up
+arrow-down
+share-alt
+resize-full
+resize-small
+plus
+minus
+asterisk
+exclamation-sign
+gift
+leaf
+fire
+eye-open
+eye-close
+warning-sign
+plane
+calendar
+random
+comment
+magnet
+chevron-up
+chevron-down
+retweet
+shopping-cart
+folder-close
+folder-open
+resize-vertical
+resize-horizontal
+hdd
+bullhorn
+bell
+certificate
+thumbs-up
+thumbs-down
+hand-right
+hand-left
+hand-up
+hand-down
+circle-arrow-right
+circle-arrow-left
+circle-arrow-up
+circle-arrow-down
+globe
+wrench
+tasks
+filter
+briefcase
+fullscreen</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>style</code></td>
+            <td >
+                Select</td>
+            <td >
+                Style
+                <p class="text-muted small">
+                    Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange</p>
+            </td>
+            <td>
+                <pre>
+Primary
+Info
+Success
+Warning
+Danger
+Inverse</pre>
+            </td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.workflow.doctype.workflow_state.workflow_state</h4>
+
+    
+
+
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>WorkflowState</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+    </div>
+    <hr>
+
+	
+
+
+    
+    
+        <h4>Linked In:</h4>
+        <ul>
+        
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/workflow/workflow_transition">Workflow Transition</a>
+
+</li>
+        
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/workflow/workflow_document_state">Workflow Document State</a>
+
+</li>
+        
+        </ul>
+    
+
+
+<!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <!-- edit-link -->
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

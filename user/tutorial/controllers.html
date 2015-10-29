@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Controllers" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="https://frappe.github.io/frappe/assets/img/lib_trans.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Next step would be adding methods and event handlers to models. In your app, we sould like to ensure that if a Library Tranasction is made, the Artilce in question must be in stock and the member loaning the Article must have a valid membership. For this, we can write a validation just before the Library Transaction object is saved. To do this, open the library_management/doctype/library_transaction/library_transaction.py template. This file is the controller for" data-html-block="meta_block">
+<meta name="twitter:image:src" content="https://frappe.github.io/frappe/assets/img/lib_trans.png" data-html-block="meta_block">
+<meta name="og:title" content="Controllers" data-html-block="meta_block">
+<meta name="twitter:title" content="Controllers" data-html-block="meta_block">
+<meta name="og:image" content="https://frappe.github.io/frappe/assets/img/lib_trans.png" data-html-block="meta_block">
+<meta name="twitter:description" content="Next step would be adding methods and event handlers to models. In your app, we sould like to ensure that if a Library Tranasction is made, the Artilce in question must be in stock and the member loaning the Article must have a valid membership. For this, we can write a validation just before the Library Transaction object is saved. To do this, open the library_management/doctype/library_transaction/library_transaction.py template. This file is the controller for" data-html-block="meta_block">
+<meta name="description" content="Next step would be adding methods and event handlers to models. In your app, we sould like to ensure that if a Library Tranasction is made, the Artilce in question must be in stock and the member loaning the Article must have a valid membership. For this, we can write a validation just before the Library Transaction object is saved. To do this, open the library_management/doctype/library_transaction/library_transaction.py template. This file is the controller for" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-controllers" data-path="user/tutorial/controllers"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Controllers</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="controllers" style="text-align: Left">
+	<p>Next step would be adding methods and event handlers to models. In your app, we sould like to ensure that if a Library Tranasction is made, the Artilce in question must be in stock and the member loaning the Article must have a valid membership.</p>
+
+<p>For this, we can write a validation just before the Library Transaction object is saved. To do this, open the <code>library_management/doctype/library_transaction/library_transaction.py</code> template.</p>
+
+<p>This file is the controller for the Library Transaction object. In this you can write methods for:</p>
+
+<ol>
+<li><code>before_insert</code></li>
+<li><code>validate</code> (before inserting or updating)</li>
+<li><code>on_update</code> (after saving)</li>
+<li><code>on_submit</code> (when document is set as submitted)</li>
+<li><code>on_cancel</code></li>
+<li><code>on_trash</code> (before it is about to be deleted)</li>
+</ol>
+
+<p>You can write methods for these events and they will be called by the framework when the document is saved etc.</p>
+
+<p>Here is the finished controller:</p>
+
+<pre><code>from __future__ import unicode_literals
+import frappe
+from frappe import _
+from frappe.model.document import Document
+
+class LibraryTransaction(Document):
+    def validate(self):
+        last_transaction = frappe.get_list("Library Transaction",
+            fields=["transaction_type", "transaction_date"],
+            filters = {
+                "article": self.article,
+                "transaction_date": ("&lt;=", self.transaction_date),
+                "name": ("!=", self.name)
+            })
+        if self.transaction_type=="Issue":
+            msg = _("Article {0} {1} has not been recorded as returned since {2}")
+            if last_transaction and last_transaction[0].transaction_type=="Issue":
+                frappe.throw(msg.format(self.article, self.article_name,
+                    last_transaction[0].transaction_date))
+        else:
+            if not last_transaction or last_transaction[0].transaction_type!="Issue":
+                frappe.throw(_("Cannot return article not issued"))
+</code></pre>
+
+<p>In this script:</p>
+
+<ol>
+<li>We get the last trasaction before the current transaction date using the query function <code>frappe.get_list</code></li>
+<li>If the last transaction is something we don't like we throw an exception using <code>frappe.throw</code></li>
+<li>We use <code>_("text")</code> method to identify translatable strings.</li>
+</ol>
+
+<p>Check if your validations work by creating new records</p>
+
+<p><img class="screenshot" alt="Transaction" src="https://frappe.github.io/frappe/assets/img/lib_trans.png"></p>
+
+<h4>Debugging</h4>
+
+<p>To Debug, always keep your JS Console open. Lookout for both Javascript and server tracebacks.</p>
+
+<p>Also check your terminal window for exceptions. Any <strong>500 Internal Server Errors</strong> will get printed in your terminal where on which your server is running.</p>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="reports.html">Next: Reports</a></p></p>
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/controllers.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

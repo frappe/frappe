@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Scheduled Tasks" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue. To add a new task handler, go to hooks.py and add a new handler. Default handlers are all, daily, weekly, monthly. The all handler is called every 3 minutes by default. # Scheduled Tasks # -------" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue. To add a new task handler, go to hooks.py and add a new handler. Default handlers are all, daily, weekly, monthly. The all handler is called every 3 minutes by default. # Scheduled Tasks # -------" data-html-block="meta_block">
+<meta name="og:title" content="Scheduled Tasks" data-html-block="meta_block">
+<meta name="twitter:title" content="Scheduled Tasks" data-html-block="meta_block">
+<meta name="description" content="Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue. To add a new task handler, go to hooks.py and add a new handler. Default handlers are all, daily, weekly, monthly. The all handler is called every 3 minutes by default. # Scheduled Tasks # -------" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-task-runner" data-path="user/tutorial/task-runner"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Scheduled Tasks</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="task-runner" style="text-align: Left">
+	<p>Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue.</p>
+
+<p>To add a new task handler, go to <code>hooks.py</code> and add a new handler. Default handlers are <code>all</code>, <code>daily</code>, <code>weekly</code>, <code>monthly</code>. The <code>all</code> handler is called every 3 minutes by default.</p>
+
+<pre><code># Scheduled Tasks
+# ---------------
+
+scheduler_events = {
+    "daily": [
+        "library_management.tasks.daily"
+    ],
+}
+</code></pre>
+
+<p>Here we can point to a Python function and that function will be executed every day. Let us look what this function looks like:</p>
+
+<pre><code># Copyright (c) 2013, Frappe
+# For license information, please see license.txt
+
+from __future__ import unicode_literals
+import frappe
+from frappe.utils import datediff, nowdate, format_date, add_days
+
+def daily():
+    loan_period = frappe.db.get_value("Library Management Settings",
+        None, "loan_period")
+
+    overdue = get_overdue(loan_period)
+
+    for member, items in overdue.iteritems():
+        content = """&lt;h2&gt;Following Items are Overdue&lt;/h2&gt;
+        &lt;p&gt;Please return them as soon as possible&lt;/p&gt;&lt;ol&gt;"""
+
+        for i in items:
+            content += "&lt;li&gt;{0} ({1}) due on {2}&lt;/li&gt;".format(i.article_name,
+                i.article,
+                format_date(add_days(i.transaction_date, loan_period)))
+
+        content += "&lt;/ol&gt;"
+
+        recipient = frappe.db.get_value("Library Member", member, "email_id")
+        frappe.sendmail(recipients=[recipient],
+            sender="test@example.com",
+            subject="Library Articles Overdue", content=content, bulk=True)
+
+def get_overdue(loan_period):
+    # check for overdue articles
+    today = nowdate()
+
+    overdue_by_member = {}
+    articles_transacted = []
+
+    for d in frappe.db.sql("""select name, article, article_name,
+        library_member, member_name
+        from `tabLibrary Transaction`
+        order by transaction_date desc, modified desc""", as_dict=1):
+
+        if d.article in articles_transacted:
+            continue
+
+        if d.transaction_type=="Issue" and \
+            datediff(today, d.transaction_date) &gt; loan_period:
+            overdue_by_member.setdefault(d.library_member, [])
+            overdue_by_member[d.library_member].append(d)
+
+        articles_transacted.append(d.article)
+</code></pre>
+
+<p>We can place the above code code in any accessible Python module. The route is defined in <code>hooks.py</code>, so for our purposes we would place this code in <code>library_management/tasks.py</code>.</p>
+
+<p>Note:</p>
+
+<ol>
+<li>We get the loan period from <strong>Library Management Settings</strong> by using <code>frappe.db.get_value</code>.</li>
+<li>We run a query in the database with <code>frappe.db.sql</code></li>
+<li>Email is sent via <code>frappe.sendmail</code></li>
+</ol>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="conclusion.html">Next: Conclusion</a></p></p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/task-runner.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

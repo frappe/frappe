@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Web Views" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="{{url_prefix}}/assets/img/guide/26-web-list.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Frappe has two main user environments, the Desk and Web. Desk is a controlled UI environment with a rich AJAX application and the web is more traditional HTML templates served for public consumption. Web views can also be generated to create more controlled views for users who may login but still do not have access to the Desk. In Frappe, Web Views are managed by templates and they are usually in the templates folder. There are 2 main types of templates. Pag" data-html-block="meta_block">
+<meta name="twitter:image:src" content="{{url_prefix}}/assets/img/guide/26-web-list.png" data-html-block="meta_block">
+<meta name="og:title" content="Web Views" data-html-block="meta_block">
+<meta name="twitter:title" content="Web Views" data-html-block="meta_block">
+<meta name="og:image" content="{{url_prefix}}/assets/img/guide/26-web-list.png" data-html-block="meta_block">
+<meta name="twitter:description" content="Frappe has two main user environments, the Desk and Web. Desk is a controlled UI environment with a rich AJAX application and the web is more traditional HTML templates served for public consumption. Web views can also be generated to create more controlled views for users who may login but still do not have access to the Desk. In Frappe, Web Views are managed by templates and they are usually in the templates folder. There are 2 main types of templates. Pag" data-html-block="meta_block">
+<meta name="description" content="Frappe has two main user environments, the Desk and Web. Desk is a controlled UI environment with a rich AJAX application and the web is more traditional HTML templates served for public consumption. Web views can also be generated to create more controlled views for users who may login but still do not have access to the Desk. In Frappe, Web Views are managed by templates and they are usually in the templates folder. There are 2 main types of templates. Pag" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-web-views" data-path="user/tutorial/web-views"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Web Views</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="web-views" style="text-align: Left">
+	<p>Frappe has two main user environments, the Desk and Web. Desk is a controlled UI environment with a rich AJAX application and the web is more traditional HTML templates served for public consumption. Web views can also be generated to create more controlled views for users who may login but still do not have access to the Desk.</p>
+
+<p>In Frappe, Web Views are managed by templates and they are usually in the <code>templates</code> folder. There are 2 main types of templates.</p>
+
+<ol>
+<li>Pages: These are Jinja templates where a single view exists for a single web route e.g. <code>/blog</code>.</li>
+<li>Generators: These are templates where each instance of a DocType has a separate web route <code>/blog/a-blog</code>, <code>blog/b-blog</code> etc.</li>
+<li>Lists and Views: These are standard lists and views with the route <code>[doctype]/[name]</code> and are rendered based on permission.</li>
+</ol>
+
+<h3>Standard Web Views</h3>
+
+<blockquote>
+  <p>This features is still under development.</p>
+</blockquote>
+
+<p>Let us look at the standard Web Views:</p>
+
+<p>If you are logged in as the test user, go to <code>/article</code> and you should see the list of articles:</p>
+
+<p><img src="{{url_prefix}}/assets/img/guide/26-web-list.png" alt="Web List" /></p>
+
+<p>Click on one article and you will see the default web view</p>
+
+<p><img src="{{url_prefix}}/assets/img/guide/26-web-view.png" alt="Web List" /></p>
+
+<p>Now if you want to make a better list view for the article, drop a file called <code>list_item.html</code> in the <code>library_management/doctype/article</code> folder. Here is an example file:</p>
+
+<pre><code>&lt;div class="row"&gt;
+    &lt;div class="col-sm-4"&gt;
+        &lt;a href="/Article/{{ doc.name }}"&gt;
+            &lt;img src="{{ doc.image }}"
+                class="img-responsive" style="max-height: 200px"&gt;
+        &lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class="col-sm-4"&gt;
+        &lt;a href="/Article/{{ doc.name }}"&gt;&lt;h4&gt;{{ doc.article_name }}&lt;/h4&gt;&lt;/a&gt;
+        &lt;p&gt;{{ doc.author }}&lt;/p&gt;
+        &lt;p&gt;{{ (doc.description[:200] + "...")
+            if doc.description|length &gt; 200 else doc.description }}&lt;/p&gt;
+        &lt;p class="text-muted"&gt;Publisher: {{ doc.publisher }}&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>Here, you will get all the properties of the article in the <code>doc</code> object.</p>
+
+<p>The updated list view looks like this!</p>
+
+<p><img src="{{url_prefix}}/assets/img/guide/27-web-view-list.png" alt="Web List" /></p>
+
+<h4>Home Page</h4>
+
+<p>Frappe also has a built-in signup workflow which also includes 3rd party signups via Google, Facebook and GitHub. When a user signs up on the web, she does not have access to the desk interface by default.</p>
+
+<blockquote>
+  <p>To allow user access into the Desk, open set the user from Setup &gt; User and set the User Type as "System User"</p>
+</blockquote>
+
+<p>Now for the non system users, we can set a home page when they login via <code>hooks.py</code> based on the role.</p>
+
+<p>To when library members sign in, they must be redirected to the <code>article</code> page, to set this open <code>library_management/hooks.py</code> and add this:</p>
+
+<pre><code>role_home_page = {
+    "Library Member": "article"
+}
+</code></pre>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="single-doctypes.html">Next: Single DocTypes</a></p></p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/web-views.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

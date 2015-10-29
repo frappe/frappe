@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="DocType Naming and Linking" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="https://frappe.github.io/frappe/assets/img/naming_doctype.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Then let us create the other DocType and save it too: Library Member (First Name, Last Name, Email ID) Naming of DocTypes DocTypes can be named in different ways: Based on a field Based on a series By controller (code) Prompt This can be set by entering the Autoname&lt;/stron" data-html-block="meta_block">
+<meta name="twitter:image:src" content="https://frappe.github.io/frappe/assets/img/naming_doctype.png" data-html-block="meta_block">
+<meta name="og:title" content="DocType Naming and Linking" data-html-block="meta_block">
+<meta name="twitter:title" content="DocType Naming and Linking" data-html-block="meta_block">
+<meta name="og:image" content="https://frappe.github.io/frappe/assets/img/naming_doctype.png" data-html-block="meta_block">
+<meta name="twitter:description" content="Then let us create the other DocType and save it too: Library Member (First Name, Last Name, Email ID) Naming of DocTypes DocTypes can be named in different ways: Based on a field Based on a series By controller (code) Prompt This can be set by entering the Autoname&lt;/stron" data-html-block="meta_block">
+<meta name="description" content="Then let us create the other DocType and save it too: Library Member (First Name, Last Name, Email ID) Naming of DocTypes DocTypes can be named in different ways: Based on a field Based on a series By controller (code) Prompt This can be set by entering the Autoname&lt;/stron" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-naming-and-linking" data-path="user/tutorial/naming-and-linking"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>DocType Naming and Linking</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="naming-and-linking" style="text-align: Left">
+	<p>Then let us create the other DocType and save it too:</p>
+
+<ol>
+<li>Library Member (First Name, Last Name, Email ID)</li>
+</ol>
+
+<p><img class="screenshot" alt="Doctype Saved" src="https://frappe.github.io/frappe/assets/img/naming_doctype.png"></p>
+
+<h4>Naming of DocTypes</h4>
+
+<p>DocTypes can be named in different ways:</p>
+
+<ol>
+<li>Based on a field</li>
+<li>Based on a series</li>
+<li>By controller (code)</li>
+<li>Prompt</li>
+</ol>
+
+<p>This can be set by entering the <strong>Autoname</strong> field. For controller, leave blank.</p>
+
+<blockquote>
+  <p><strong>Search Fields</strong>: A DocType may be named on a series but it still needs to be searched by name. In our case, the Article will be searched by the title or the author name. So this can be entered in search field.</p>
+</blockquote>
+
+<p><img class="screenshot" alt="Autonaming and Search Field" src="https://frappe.github.io/frappe/assets/img/autoname_and_search_field.png"></p>
+
+<h4>Link and Select Fields</h4>
+
+<p>Foreign keys are specified in Frappe as <strong>Link</strong> type fields. The target DocType must be mentioned in the Options table.</p>
+
+<p>In our example, in the Library Transaction DocType, we have to link both the Library Member and the Article.</p>
+
+<p><strong>Note:</strong> Remeber that Link fields are not automatically set as Foreign Keys in the MariaDB database, because that will implicitly index the column. This may not be optimum hence the Foreign Key validation is done by the Framework.</p>
+
+<p><img class="screenshot" alt="Link Field" src="https://frappe.github.io/frappe/assets/img/link_field.png"></p>
+
+<p>For select fields, as we mentioned earlier, add the various options in the <strong>Options</strong> input box, each option on a new row.</p>
+
+<p><img class="screenshot" alt="Select Field" src="https://frappe.github.io/frappe/assets/img/select_field.png"></p>
+
+<p>Similary complete making the other models.</p>
+
+<h4>Linked Values</h4>
+
+<p>A standard pattern is when you select an ID, say <strong>Library Member</strong> in <strong>Library Membership</strong>, then the Member's first and last names should be copied into relevant fields in the Library Membership Transaction.</p>
+
+<p>To do this, we can use Read Only fields and in options, we can set the the name of the link and the fieldname of the property we want to fetch. For this example in <strong>Member First Name</strong> we can set <code>library_member.first_name</code></p>
+
+<p><img class="screenshot" alt="Fetch values" src="https://frappe.github.io/frappe/assets/img/fetch.png"></p>
+
+<h3>Complete the Models</h3>
+
+<p>In the same way, you can complete all the models so that the final fields look like this:</p>
+
+<h4>Article</h4>
+
+<p><img class="screenshot" alt="Article" src="https://frappe.github.io/frappe/assets/img/doctype_article.png"></p>
+
+<h4>Library Member</h4>
+
+<p><img class="screenshot" alt="Library Member" src="https://frappe.github.io/frappe/assets/img/doctype_lib_member.png"></p>
+
+<h4>Library Membership</h4>
+
+<p><img class="screenshot" alt="Library Membership" src="https://frappe.github.io/frappe/assets/img/doctype_lib_membership.png"></p>
+
+<h4>Library Transaction</h4>
+
+<p><img class="screenshot" alt="Library Transaction" src="https://frappe.github.io/frappe/assets/img/doctype_lib_trans.png"></p>
+
+<blockquote>
+  <p>Make sure to give permissions to <strong>Librarian</strong> on each DocType</p>
+</blockquote>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="doctype-directory-structure.html">Next: DocType Directory Structure</a></p></p>
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/naming-and-linking.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

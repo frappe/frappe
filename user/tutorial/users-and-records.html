@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Making Users and Records" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="https://frappe.github.io/frappe/assets/img/add_user_roles.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Now that we have created the models, we can directly start making records using Frappe Desk UI. You do not have to create views! Views in Frappe are automatically made based on the DocType properties. 4.1 Creating User To make records, we will first create a User. To create a user, go to: Setup &gt; Users &gt; User &gt; New Create a new User and set the name and first name and new password. Also give the Librarian and Libr" data-html-block="meta_block">
+<meta name="twitter:image:src" content="https://frappe.github.io/frappe/assets/img/add_user_roles.png" data-html-block="meta_block">
+<meta name="og:title" content="Making Users and Records" data-html-block="meta_block">
+<meta name="twitter:title" content="Making Users and Records" data-html-block="meta_block">
+<meta name="og:image" content="https://frappe.github.io/frappe/assets/img/add_user_roles.png" data-html-block="meta_block">
+<meta name="twitter:description" content="Now that we have created the models, we can directly start making records using Frappe Desk UI. You do not have to create views! Views in Frappe are automatically made based on the DocType properties. 4.1 Creating User To make records, we will first create a User. To create a user, go to: Setup &gt; Users &gt; User &gt; New Create a new User and set the name and first name and new password. Also give the Librarian and Libr" data-html-block="meta_block">
+<meta name="description" content="Now that we have created the models, we can directly start making records using Frappe Desk UI. You do not have to create views! Views in Frappe are automatically made based on the DocType properties. 4.1 Creating User To make records, we will first create a User. To create a user, go to: Setup &gt; Users &gt; User &gt; New Create a new User and set the name and first name and new password. Also give the Librarian and Libr" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-users-and-records" data-path="user/tutorial/users-and-records"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Making Users and Records</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="users-and-records" style="text-align: Left">
+	<p>Now that we have created the models, we can directly start making records using Frappe Desk UI. You do not have to create views! Views in Frappe are automatically made based on the DocType properties.</p>
+
+<h3>4.1 Creating User</h3>
+
+<p>To make records, we will first create a User. To create a user, go to:</p>
+
+<blockquote>
+  <p>Setup &gt; Users &gt; User &gt; New</p>
+</blockquote>
+
+<p>Create a new User and set the name and first name and new password.</p>
+
+<p>Also give the Librarian and Library Member Roles to this user</p>
+
+<p><img class="screenshot" alt="Add User Roles" src="https://frappe.github.io/frappe/assets/img/add_user_roles.png"></p>
+
+<p>Now logout and login using the new user id and password.</p>
+
+<h3>4.2 Creating Records</h3>
+
+<p>You will now see an icon for the Library Management module. Click on that icon and you will see the Module page:</p>
+
+<p><img class="screenshot" alt="Library Management Module" src="https://frappe.github.io/frappe/assets/img/lib_management_module.png"></p>
+
+<p>Here you can see the DocTypes that we have created for the application. List us start creating a few records.</p>
+
+<p>First let us create a new Article:</p>
+
+<p><img class="screenshot" alt="New Article" src="https://frappe.github.io/frappe/assets/img/new_article_blank.png"></p>
+
+<p>Here you will see that the the DocType you had created has been rendered as a form. The validations and other rules will also apply as designed. Let us fill out one Article.</p>
+
+<p><img class="screenshot" alt="New Article" src="https://frappe.github.io/frappe/assets/img/new_article.png"></p>
+
+<p>You can also add an image.</p>
+
+<p><img class="screenshot" alt="Attach Image" src="https://frappe.github.io/frappe/assets/img/attach_image.gif"></p>
+
+<p>Now let us create a new member:</p>
+
+<p><img class="screenshot" alt="New Library Member" src="https://frappe.github.io/frappe/assets/img/new_member.png"></p>
+
+<p>After this, let us create a new membership record for the member.</p>
+
+<p>Here if you remember we had set the values of Member First Name and Member Last Name to be directly fetched from the Member records and as soon as you will select the member id, the names will be updated.</p>
+
+<p><img class="screenshot" alt="New Library Membership" src="https://frappe.github.io/frappe/assets/img/new_lib_membership.png"></p>
+
+<p>As you can see that the date is formatted as year-month-day which is a system format. To set / change date, time and number formats, go to</p>
+
+<blockquote>
+  <p>Setup &gt; System Settings</p>
+</blockquote>
+
+<p><img class="screenshot" alt="System Settings" src="https://frappe.github.io/frappe/assets/img/system_settings.png"></p>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="form-client-scripting.html">Next: Form Client Scripting</a></p></p>
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/users-and-records.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

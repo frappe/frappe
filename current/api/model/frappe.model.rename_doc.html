@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="frappe.model.rename_doc" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Version 6.6.1 Source &lt;a name=&#34;frappe.model.rename_doc.bul" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Version 6.6.1 Source &lt;a name=&#34;frappe.model.rename_doc.bul" data-html-block="meta_block">
+<meta name="og:title" content="frappe.model.rename_doc" data-html-block="meta_block">
+<meta name="twitter:title" content="frappe.model.rename_doc" data-html-block="meta_block">
+<meta name="description" content="Version 6.6.1 Source &lt;a name=&#34;frappe.model.rename_doc.bul" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-frappe.model.rename_doc" data-path="current/api/model/frappe.model.rename_doc"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>frappe.model.rename_doc</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/current/api/model">
+		model</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="frappe.model.rename_doc" style="text-align: Left">
+	<!-- title: frappe.model.rename_doc --><div class="dev-header">
+
+<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+	Version 6.6.1</a>
+
+
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/model/rename_doc.py"
+		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+
+</div>
+
+
+
+
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.bulk_rename" href="#frappe.model.rename_doc.bulk_rename" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>bulk_rename</b>
+        <i class="text-muted">(doctype, rows=None, via_console=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Bulk rename documents</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType to be renamed</li>
+<li><strong><code>rows</code></strong> -  list of documents as <code>((oldname, newname), ..)</code></li>
+</ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.get_link_fields" href="#frappe.model.rename_doc.get_link_fields" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>get_link_fields</b>
+        <i class="text-muted">(doctype)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.get_select_fields" href="#frappe.model.rename_doc.get_select_fields" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>get_select_fields</b>
+        <i class="text-muted">(old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p>get select type fields where doctype's name is hardcoded as
+new line separated list</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.model.rename_doc.rename_doc</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.rename_doc" href="#frappe.model.rename_doc.rename_doc" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>rename_doc</b>
+        <i class="text-muted">(doctype, old, new, force=False, merge=False, ignore_permissions=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Renames a doc(dt, old) to doc(dt, new) and
+updates all linked fields of type "Link"</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.rename_doctype" href="#frappe.model.rename_doc.rename_doctype" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>rename_doctype</b>
+        <i class="text-muted">(doctype, old, new, force=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.rename_dynamic_links" href="#frappe.model.rename_doc.rename_dynamic_links" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>rename_dynamic_links</b>
+        <i class="text-muted">(doctype, old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.rename_parent_and_child" href="#frappe.model.rename_doc.rename_parent_and_child" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>rename_parent_and_child</b>
+        <i class="text-muted">(doctype, old, new, meta)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.rename_versions" href="#frappe.model.rename_doc.rename_versions" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>rename_versions</b>
+        <i class="text-muted">(doctype, old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_attachments" href="#frappe.model.rename_doc.update_attachments" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_attachments</b>
+        <i class="text-muted">(doctype, old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_child_docs" href="#frappe.model.rename_doc.update_child_docs" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_child_docs</b>
+        <i class="text-muted">(old, new, meta)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_comments" href="#frappe.model.rename_doc.update_comments" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_comments</b>
+        <i class="text-muted">(doctype, old, new, force=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_link_field_values" href="#frappe.model.rename_doc.update_link_field_values" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_link_field_values</b>
+        <i class="text-muted">(link_fields, old, new, doctype)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_options_for_fieldtype" href="#frappe.model.rename_doc.update_options_for_fieldtype" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_options_for_fieldtype</b>
+        <i class="text-muted">(fieldtype, old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_parenttype_values" href="#frappe.model.rename_doc.update_parenttype_values" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_parenttype_values</b>
+        <i class="text-muted">(old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.update_select_field_values" href="#frappe.model.rename_doc.update_select_field_values" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>update_select_field_values</b>
+        <i class="text-muted">(old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.rename_doc.validate_rename" href="#frappe.model.rename_doc.validate_rename" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.rename_doc.<b>validate_rename</b>
+        <i class="text-muted">(doctype, new, meta, merge, force, ignore_permissions)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+
+
+<!-- autodoc -->
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <!-- edit-link -->
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

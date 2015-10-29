@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Dialogs Types" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="/files/show_alert.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Frappe provide a group of standard dialogs that are very usefull while coding. Alert Dialog Is helpfull for show a non-obstrutive message. This dialog have 2 parameters txtthat is the message and seconds that is the time that the message will be showed for the user, the standard is 3 seconds. Example show_alert(&#39;Hi, do you have a new message&#39;, 5);" data-html-block="meta_block">
+<meta name="twitter:image:src" content="/files/show_alert.png" data-html-block="meta_block">
+<meta name="og:title" content="Dialogs Types" data-html-block="meta_block">
+<meta name="twitter:title" content="Dialogs Types" data-html-block="meta_block">
+<meta name="og:image" content="/files/show_alert.png" data-html-block="meta_block">
+<meta name="twitter:description" content="Frappe provide a group of standard dialogs that are very usefull while coding. Alert Dialog Is helpfull for show a non-obstrutive message. This dialog have 2 parameters txtthat is the message and seconds that is the time that the message will be showed for the user, the standard is 3 seconds. Example show_alert(&#39;Hi, do you have a new message&#39;, 5);" data-html-block="meta_block">
+<meta name="description" content="Frappe provide a group of standard dialogs that are very usefull while coding. Alert Dialog Is helpfull for show a non-obstrutive message. This dialog have 2 parameters txtthat is the message and seconds that is the time that the message will be showed for the user, the standard is 3 seconds. Example show_alert(&#39;Hi, do you have a new message&#39;, 5);" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-dialogs-types" data-path="user/guides/dialogs-types"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Dialogs Types</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides">
+		Guides</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="dialogs-types" style="text-align: Left">
+	<p>Frappe provide a group of standard dialogs that are very usefull while coding.</p>
+
+<h2>Alert Dialog</h2>
+
+<p><img src="/files/show_alert.png" alt="Alert" /></p>
+
+<p>Is helpfull for show a non-obstrutive message.</p>
+
+<p>This dialog have 2 parameters <code>txt</code>that is the message and <code>seconds</code> that is the time that the message will be showed for the user, the standard is <code>3 seconds</code>.</p>
+
+<h3>Example</h3>
+
+<pre><code>show_alert('Hi, do you have a new message', 5);
+</code></pre>
+
+<hr />
+
+<h2>Prompt Dialog</h2>
+
+<p><img src="/files/promp_dialog.png" alt="Prompt" /></p>
+
+<p>Is helpful for ask a value for the user</p>
+
+<p>This dialog have 4 parameters, they are:</p>
+
+<ul>
+<li><strong>fields:</strong> a list with the fields objects</li>
+<li><strong>callback:</strong> the function that manage the received values</li>
+<li><strong>title:</strong> the title of the dialog</li>
+<li><strong>primary_label:</strong> the label of the primary button</li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>frappe.prompt([
+    {'fieldname': 'birth', 'fieldtype': 'Date', 'label': 'Birth Date', 'reqd': 1}  
+],
+function(values){
+    show_alert(values, 5);
+},
+'Age verification',
+'Subscribe me'
+)
+</code></pre>
+
+<hr />
+
+<h2>Confirm Dialog</h2>
+
+<p><img src="/files/confirm_dialog.png" alt="Confirm" /></p>
+
+<p>Usefull to get a confirmation from the user before do an action</p>
+
+<p>This dialog have 3 arguments, they are:</p>
+
+<ul>
+<li><strong>mesage:</strong>  The message content</li>
+<li><strong>onyes:</strong> The callback on positive confirmation</li>
+<li><strong>oncancel:</strong> The callback on negative confirmation</li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>frappe.confirm(
+    'Are you sure to leave this page?',
+    function(){
+        window.close();
+    },
+    function(){
+        show_alert('Thanks for continue here!')
+    }
+)
+</code></pre>
+
+<hr />
+
+<h2>Message Print</h2>
+
+<p><img src="/files/msgprint_dialog.png" alt="MSGPrint" /></p>
+
+<p>Is helpfull for show a informational dialog for the user;</p>
+
+<p>This dialog have 2 arguments, they are:</p>
+
+<ul>
+<li><strong>message:</strong> The message content, can be a HTML string too</li>
+<li><strong>title:</strong> The title of the dialog</li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>msgprint("&lt;b&gt;Server Status&lt;/b&gt;"
+    + "&lt;hr&gt;"
+    + "&lt;ul&gt;"
+            + "&lt;li&gt;&lt;b&gt;28%&lt;/b&gt; Memory&lt;/li&gt;"
+            + "&lt;li&gt;&lt;b&gt;12%&lt;/b&gt; Processor&lt;/li&gt;"
+            + "&lt;li&gt;&lt;b&gt;0.3%&lt;/b&gt; Disk&lt;/li&gt;"
+    "&lt;/ul&gt;", 'Server Info')
+</code></pre>
+
+<hr />
+
+<h3>Custom Dialog</h3>
+
+<p><img src="/files/dialog_constructor.png" alt="Class" /></p>
+
+<p>Frappé provide too a <code>Class</code> that you can extend and build your own custom dialogs</p>
+
+<p><code>frappe.ui.Dialog</code></p>
+
+<h3>Example</h3>
+
+<pre><code>var d = new frappe.ui.Dialog({
+    'fields': [
+        {'fieldname': 'ht', 'fieldtype': 'HTML'},
+        {'fieldname': 'today', 'fieldtype': 'Date', 'default': frappe.datetime.nowdate()}
+    ],
+    primary_action: function(){
+        d.hide();
+        show_alert(d.get_values());
+    }
+});
+d.fields_dict.ht.$wrapper.html('Hello World');
+d.show();
+</code></pre>
+
+<!-- markdown -->
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/guides/dialogs-types.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

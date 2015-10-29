@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType&#39;s controller module. 1. Controller Module The controller module exists in the doctype folder in the Module of the DocType. For example, the controller for ToDo exists in frappe/desk/doctype/todo/todo.py (version 5). A controller template is created when the DocType is created. whi" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType&#39;s controller module. 1. Controller Module The controller module exists in the doctype folder in the Module of the DocType. For example, the controller for ToDo exists in frappe/desk/doctype/todo/todo.py (version 5). A controller template is created when the DocType is created. whi" data-html-block="meta_block">
+<meta name="og:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="twitter:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="description" content="To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType&#39;s controller module. 1. Controller Module The controller module exists in the doctype folder in the Module of the DocType. For example, the controller for ToDo exists in frappe/desk/doctype/todo/todo.py (version 5). A controller template is created when the DocType is created. whi" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-executing-code-on-doctype-events" data-path="user/guides/executing-code-on-doctype-events"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Executing Code On Doctype Events</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides">
+		Guides</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="executing-code-on-doctype-events" style="text-align: Left">
+	<p>To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType's controller module. </p>
+
+<h4>1. Controller Module</h4>
+
+<p>The controller module exists in the <code>doctype</code> folder in the Module of the <code>DocType</code>. For example, the controller for <strong>ToDo</strong> exists in <code>frappe/desk/doctype/todo/todo.py</code> (version 5). A controller template is created when the DocType is created. which looks like</p>
+
+<pre><code>from __future__ import unicode_literals
+
+import frappe
+from frappe.model.document import Document
+
+class CustomType(Document):
+    pass
+</code></pre>
+
+<h4>2. Document Properties</h4>
+
+<p>All the fields and child tables are available to the class as attributes. For example the <strong>name</strong> property is <code>self.name</code></p>
+
+<h4>3. Adding Methods</h4>
+
+<p>In this module, you can add standard methods to the class that are called when a document of that type is created. Standard Handlers are:</p>
+
+<ol>
+<li><code>autoname</code>: Called while naming. You can set the <code>self.name</code> property in the method.</li>
+<li><code>before_insert</code>: Called before a document is inserted.</li>
+<li><code>validate</code>: Called before document is saved. You can throw an exception if you don't want the document to be saved</li>
+<li><code>on_update</code>: Called after the document is inserted or updated in the database.</li>
+<li><code>on_submit</code>: Called after submission.</li>
+<li><code>on_cancel</code>: Called after cancellation.</li>
+<li><code>on_trash</code>: Called after document is deleted.</li>
+</ol>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/guides/executing-code-on-doctype-events.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

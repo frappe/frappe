@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Form Architecture" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="td { padding:5px 10px 5px 5px; }; img { align:center; }; table, th, td { border: 1px solid black; border-collapse: collapse; } ERPNext is built on top of framework called Frappe. In this framework, each form is created as a table called &#39;Doctype&#39;. Each Doctype has fields listed as a row, with properties define for them assigned like field type, print show/hide, Mandatory e" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="td { padding:5px 10px 5px 5px; }; img { align:center; }; table, th, td { border: 1px solid black; border-collapse: collapse; } ERPNext is built on top of framework called Frappe. In this framework, each form is created as a table called &#39;Doctype&#39;. Each Doctype has fields listed as a row, with properties define for them assigned like field type, print show/hide, Mandatory e" data-html-block="meta_block">
+<meta name="og:title" content="Form Architecture" data-html-block="meta_block">
+<meta name="twitter:title" content="Form Architecture" data-html-block="meta_block">
+<meta name="description" content="td { padding:5px 10px 5px 5px; }; img { align:center; }; table, th, td { border: 1px solid black; border-collapse: collapse; } ERPNext is built on top of framework called Frappe. In this framework, each form is created as a table called &#39;Doctype&#39;. Each Doctype has fields listed as a row, with properties define for them assigned like field type, print show/hide, Mandatory e" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-form-architecture" data-path="user/guides/form-architecture"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Form Architecture</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides">
+		Guides</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="form-architecture" style="text-align: Left">
+	<p><style>
+    td { 
+    padding:5px 10px 5px 5px;
+    };
+    img {
+    align:center;
+    };
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+</style>
+ERPNext is built on top of framework called <strong>Frappe</strong>. In this framework, each form is created as a table called 'Doctype'. Each Doctype has fields listed as a row, with properties define for them assigned like <a href="https://erpnext.com/kb/setup/field-types">field type</a>, print show/hide, Mandatory etc.</p>
+
+<p>For an instance, Sales order is a table, in which sales order fields are defined as a rows.</p>
+
+<p>Doctype - Sales Order</p>
+
+<table border="1px">
+<tbody>
+<tr align="center">
+  <td><b>Field ID</b></td>
+  <td><b>Field Type</b></td>
+  <td><b>Print Hide</b></td>
+  <td><b>Mandatory</b></td>
+  <td><b>Hidden</b></td>
+</tr>
+<tr>
+  <td>Series</td>
+  <td>Select</td>
+  <td>1 (checked)</td>
+  <td>1 </td>
+  <td>0 (unchecked)</td>
+</tr>
+<tr>
+  <td>Customer</td>
+  <td>Link</td>
+  <td>0 </td>
+  <td>1 </td>
+  <td>0 </td>
+</tr>
+<tr>
+  <td>Item</td>
+  <td>Table</td>
+  <td>0 </td>
+  <td>1 </td>
+  <td>0 </td>
+</tr>
+</tbody>
+</table>
+
+<p><br>
+To capture more details of sales order, like item detail, separate table is created called "Sales Order Item" table. Likewise, taxes are the separate table in a Sales Order. So, for Sales Order form, Sales Order Doctype becomes parent, and Sales Order Item and Sales Taxes Charges and Sales Person Docytpe becomes child table.</p>
+
+<p>Following is the Doctype structure for few important transaction of ERPNext.</p>
+
+<table border="1">
+<tbody>
+<tr>
+  <td style="text-align: center;"><b>Transaction</b></td>
+  <td style="text-align: center;"><b>Table</b></td>
+  <td style="text-align: center;"><b>Doctype Name</b></td> 
+</tr>
+<tr>
+  <td>Quotation </td>
+  <td>Quotation</td>
+  <td>Quotation</td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Quotation Item table</td>
+  <td>Quotation Item</td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Quotation Taxes</td>
+  <td>Sales Taxes and Charges</td>
+</tr>
+<tr>
+  <td>Sales Order</td>
+  <td>Sales Order</td>
+  <td>Sales Order</td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Sales Order Item table</td>
+  <td>Sales Order Item </td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Sales Order Taxes</td>
+  <td>Sales Taxes and Charges</td>
+</tr>
+<tr>
+  <td>Delivery Note</td>
+  <td>Delivery note</td>
+  <td>Delivery Note</td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Delivery Note Item table</td>
+  <td>Delivery Note Item</td>
+</tr>
+<tr>
+  <td><br /></td>
+  <td>Delivery Note Taxes</td>
+  <td>Sales Taxes and Charges</td>
+</tr>
+<tr>
+  <td>Sales Invoice</td>
+  <td>sales invoice</td>
+  <td>Sales Invoice</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Sales Invoice Item table</td>
+  <td>Sales Invoice Item</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Sales Invoice Tax table</td>
+  <td>Sales Taxes and Charges</td>
+</tr>
+<tr>
+  <td>Purchase Order</td>
+  <td>Purchase Order</td>
+  <td>Purchase Order</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Purchase Order Item table</td>
+  <td>Purchase Order Item</td>
+</tr>
+<tr>
+  <td>Purchase Receipt</td>
+  <td>Purchase Receipt</td>
+  <td>Purchase Receipt</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Purchase Receipt Item table</td>
+  <td>Purchase Receipt Item</td>
+</tr>
+<tr>
+  <td>Purchase Invoice</td>
+  <td>Purchase Invoice</td>
+  <td>Purchase Invoice </td>
+</tr>
+<tr>
+  <td></td>
+  <td>Purchase Invoice Item table</td>
+  <td>Purchase Invoice Item</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Purchase Invoice Tax table</td>
+  <td>Purchase Taxes and Charges</td>
+</tr>
+<tr>
+  <td>Journal Voucher</td>
+  <td>Journal Voucher</td>
+  <td>Journal Voucher</td>
+</tr>
+<tr>
+  <td></td>
+  <td>Journal Voucher Accounts table</td>
+  <td>Journal Voucher Detail</td>
+</tr>
+</tbody>
+</table>
+
+<!-- markdown -->
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/guides/form-architecture.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

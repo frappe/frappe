@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Sites" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Sites Directory Frappe is a multitenant platform and each tenant is called a site. Sites exist in a directory called sites_dir, assumed as the current working directory when running a frappe command or other services like Celery worker or a WSGI server. You can set sites_dir with an environment variable SITES_DIR or pass --sites_dir option to the frappe command. Apart from the sites, the sites_dir shoul" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Sites Directory Frappe is a multitenant platform and each tenant is called a site. Sites exist in a directory called sites_dir, assumed as the current working directory when running a frappe command or other services like Celery worker or a WSGI server. You can set sites_dir with an environment variable SITES_DIR or pass --sites_dir option to the frappe command. Apart from the sites, the sites_dir shoul" data-html-block="meta_block">
+<meta name="og:title" content="Sites" data-html-block="meta_block">
+<meta name="twitter:title" content="Sites" data-html-block="meta_block">
+<meta name="description" content="Sites Directory Frappe is a multitenant platform and each tenant is called a site. Sites exist in a directory called sites_dir, assumed as the current working directory when running a frappe command or other services like Celery worker or a WSGI server. You can set sites_dir with an environment variable SITES_DIR or pass --sites_dir option to the frappe command. Apart from the sites, the sites_dir shoul" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-sites" data-path="user/guides/sites"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Sites</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides">
+		Guides</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="sites" style="text-align: Left">
+	<h2>Sites Directory</h2>
+
+<p>Frappe is a multitenant platform and each tenant is called a site. Sites exist
+in a directory called <code>sites_dir</code>, assumed as the current working directory when
+running a frappe command or other services like Celery worker or a WSGI server.</p>
+
+<p>You can set <code>sites_dir</code> with an environment variable <code>SITES_DIR</code> or pass
+<code>--sites_dir</code> option to the frappe command.</p>
+
+<p>Apart from the sites, the <code>sites_dir</code> should contain the following.</p>
+
+<h4>apps.txt</h4>
+
+<p><code>apps.txt</code> contain a list of Python packages to treat as Frappe apps. Every
+frappe app that you intend to use in you site should have an entry in this file.
+Also, they should be in the <code>PYTHONPATH</code>. For more information, refer
+<a href="/help/apps">Frappe Apps</a>.</p>
+
+<h4>common_site_config.json</h4>
+
+<p><code>common_site_config.json</code> is an optional file. Configuration common to all sites
+can be put in this file.</p>
+
+<h4>assets</h4>
+
+<p>Assets contain files that are required to be served for the browser client.
+These generally include *.js, *.css, *.png files. This directory is auto
+generated using the <code>bench build</code> command.</p>
+
+<h4>languages.txt</h4>
+
+<p><code>languages.txt</code> is an autogenerated file which maps every language to it's code.</p>
+
+<h2>Site</h2>
+
+<p>A site is a directory in <code>sites_dir</code> which represents a tenant in Frappe Platform.</p>
+
+<h3>Directory Structure</h3>
+
+<pre><code>site
+├── locks
+├── private
+│   └── backups
+├── public
+│   └── files
+│       └── testfile.txt
+└── site_config.json
+</code></pre>
+
+<ul>
+<li><p><code>locks</code> directory is used by the scheduler to synchronize various jobs using
+the <a href="http://en.wikipedia.org/wiki/File_locking">file locking concept</a>.</p></li>
+<li><p><code>private</code> directory contains files that require authentication to access.
+Presently, it is limited only to backups.</p></li>
+<li><p><code>public</code> directory contains files that can directly served. In the above
+example, <code>testfile.txt</code> can be accessed by the URL,
+ http://site/files/testfile.txt</p></li>
+<li><p><code>site_config.json</code> contains site specific configuration</p></li>
+</ul>
+
+<h3>Site Config</h3>
+
+<p><a href="/docs/user-guide/site_config.md">See configuration options for <code>site_config.json</code></a></p>
+
+<h3>Site Resolution</h3>
+
+<p>While responding to an HTTP request, a site is automatically selected based on,</p>
+
+<ul>
+<li><code>Host</code> header in the HTTP request matches a site</li>
+<li><code>X-Frappe-Site-Name</code> header in the HTTP request matches a site</li>
+</ul>
+
+<p>It is also possible to force the development server to serve a specific site by
+starting it with the following command.
+    <code>bench --site SITENAME serve</code></p>
+
+<h3>Adding a new site</h3>
+
+<p><code>frappe new-site SITENAME</code></p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/guides/sites.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

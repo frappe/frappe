@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Make a New App" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="After the bench is installed, there are two main folders, apps and sites. All the applications will be installed in apps. To make a new application, go to your bench folder and run, bench new-app {app_name} and fill in details about the application. This will create a boilerplate application for your. $ bench new-app library_management App Title (defaut: Lib Mgt): Liblary Management App Description: App for managing Articles, Mem" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="After the bench is installed, there are two main folders, apps and sites. All the applications will be installed in apps. To make a new application, go to your bench folder and run, bench new-app {app_name} and fill in details about the application. This will create a boilerplate application for your. $ bench new-app library_management App Title (defaut: Lib Mgt): Liblary Management App Description: App for managing Articles, Mem" data-html-block="meta_block">
+<meta name="og:title" content="Make a New App" data-html-block="meta_block">
+<meta name="twitter:title" content="Make a New App" data-html-block="meta_block">
+<meta name="description" content="After the bench is installed, there are two main folders, apps and sites. All the applications will be installed in apps. To make a new application, go to your bench folder and run, bench new-app {app_name} and fill in details about the application. This will create a boilerplate application for your. $ bench new-app library_management App Title (defaut: Lib Mgt): Liblary Management App Description: App for managing Articles, Mem" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-new-app" data-path="user/tutorial/new-app"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Make a New App</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="new-app" style="text-align: Left">
+	<p>After the bench is installed, there are two main folders, <code>apps</code> and <code>sites</code>. All the applications will be installed in apps.</p>
+
+<p>To make a new application, go to your bench folder and run, <code>bench new-app {app_name}</code> and fill in details about the application. This will create a boilerplate application for your.</p>
+
+<pre><code>$ bench new-app library_management
+App Title (defaut: Lib Mgt): Liblary Management
+App Description:  App for managing Articles, Members, Memberships and Transactions for Libraries
+App Publisher: Frappe
+App Email: info@frappe.io
+App Icon (default 'octicon octicon-file-directory'): octicon octicon-book
+App Color (default 'grey'): #589494
+App License (default 'MIT'): GNU General Public License
+</code></pre>
+
+<h3>App Structure</h3>
+
+<p>The application will be created in a folder called <code>library_management</code> and will have the following structure:</p>
+
+<pre><code>.
+├── MANIFEST.in
+├── README.md
+├── library_management
+│   ├── __init__.py
+│   ├── config
+│   │   ├── __init__.py
+│   │   └── desktop.py
+│   ├── hooks.py
+│   ├── library_management
+│   │   └── __init__.py
+│   ├── modules.txt
+│   ├── patches.txt
+│   └── templates
+│       ├── __init__.py
+│       ├── generators
+│       │   └── __init__.py
+│       ├── pages
+│       │   └── __init__.py
+│       └── statics
+├── license.txt
+├── requirements.txt
+└── setup.py
+</code></pre>
+
+<ol>
+<li><code>config</code> folder contains application configuration info</li>
+<li><code>desktop.py</code> is where desktop icons can be added to the Desk</li>
+<li><code>hooks.py</code> is where integrations with the environment and other applications is mentioned.</li>
+<li><code>library_management</code> (inner) is a <strong>module</strong> that is bootstrapped. In Frappe, a <strong>module</strong> is where model and controller files reside.</li>
+<li><code>modules.txt</code> contains list of <strong>modules</strong> in the app. When you create a new module, it is required that you update it in this file.</li>
+<li><code>patches.txt</code> is where migration patches are written. They are python module references using the dot notation.</li>
+<li><code>templates</code> is the folder where web view templates are maintained. Templates for <strong>Login</strong> and other standard pages are bootstrapped in frappe.</li>
+<li><code>generators</code> are where templates for models are maintained, where each model instance has a separte web route, for example a <strong>Blog Post</strong> where each post has its unique web url. In Frappe, the templating engine used is Jinja2</li>
+<li><code>pages</code> is where single route templates are maintained. For example for a "/blog" type of page.</li>
+</ol>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="setting-up-the-site.html">Next: Setting up the Site</a></p></p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/new-app.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

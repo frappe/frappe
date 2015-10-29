@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="DocType" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="image" content="https://frappe.github.io/frappe/assets/img/doctype_new.png" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="After creating the Roles, let us create the DocTypes To create a new DocType, go to: Core &gt; Documents &gt; Doctype &gt; New In the DocType, first the Module, which in our case is Library Managment Adding Fields In the Fields Table, you can add the fields (" data-html-block="meta_block">
+<meta name="twitter:image:src" content="https://frappe.github.io/frappe/assets/img/doctype_new.png" data-html-block="meta_block">
+<meta name="og:title" content="DocType" data-html-block="meta_block">
+<meta name="twitter:title" content="DocType" data-html-block="meta_block">
+<meta name="og:image" content="https://frappe.github.io/frappe/assets/img/doctype_new.png" data-html-block="meta_block">
+<meta name="twitter:description" content="After creating the Roles, let us create the DocTypes To create a new DocType, go to: Core &gt; Documents &gt; Doctype &gt; New In the DocType, first the Module, which in our case is Library Managment Adding Fields In the Fields Table, you can add the fields (" data-html-block="meta_block">
+<meta name="description" content="After creating the Roles, let us create the DocTypes To create a new DocType, go to: Core &gt; Documents &gt; Doctype &gt; New In the DocType, first the Module, which in our case is Library Managment Adding Fields In the Fields Table, you can add the fields (" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-doctypes" data-path="user/tutorial/doctypes"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>DocType</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="doctypes" style="text-align: Left">
+	<p>After creating the Roles, let us create the <strong>DocTypes</strong></p>
+
+<p>To create a new <strong>DocType</strong>, go to:</p>
+
+<blockquote>
+  <p>Core &gt; Documents &gt; Doctype &gt; New</p>
+</blockquote>
+
+<p><img class="screenshot" alt="New Doctype" src="https://frappe.github.io/frappe/assets/img/doctype_new.png"></p>
+
+<p>In the DocType, first the Module, which in our case is <strong>Library Managment</strong></p>
+
+<h4>Adding Fields</h4>
+
+<p>In the Fields Table, you can add the fields (properties) of the DocType (Article).</p>
+
+<p>Fields are much more than database columns, they can be:</p>
+
+<ol>
+<li>Columns in the database</li>
+<li>For Layout (section / column breaks)</li>
+<li>Child tables (Table type field)</li>
+<li>HTML</li>
+<li>Actions (button)</li>
+<li>Attachments or Images</li>
+</ol>
+
+<p>Let us add the fields of the Article.</p>
+
+<p><img class="screenshot" alt="Adding Fields" src="https://frappe.github.io/frappe/assets/img/doctype_adding_field.png"></p>
+
+<p>When you add fields, you need to enter the <strong>Type</strong>. <strong>Label</strong> is optional for Section Break and Column Break. <strong>Name</strong> (<code>fieldname</code>) is the name of the database table column and also the property of the controller. This has to be <em>code friendly</em>, i.e. it has to have small cases are _ instead of " ". If you leave the Fieldname blank, it will be automatically set when you save it.</p>
+
+<p>You can also set other properties of the field like whether it is mandatory, read only etc.</p>
+
+<p>We can add the following fields:</p>
+
+<ol>
+<li>Article Name (Data)</li>
+<li>Author (Data)</li>
+<li>Status (Select): For Select fields, you will enter the Options. Enter <strong>Issued</strong> and <strong>Available</strong> each on a new line in the Options box. See diagram below</li>
+<li>Publisher (Data)</li>
+<li>Language (Data)</li>
+<li>Image (Attach)</li>
+<li>Image View (Image)</li>
+</ol>
+
+<h4>Add Permissions</h4>
+
+<p>After adding the fields, add Permissions. For now, let us give Read, Write, Create, Delete and Report access to <strong>Librarian</strong>. Frappe has a finely grained Role based permission model. You can also change permissions later using the <strong>Role Permissions Manager</strong> from <strong>Setup</strong>.</p>
+
+<p><img class="screenshot" alt="Adding Permissions" src="https://frappe.github.io/frappe/assets/img/doctype_adding_permission.png"></p>
+
+<h4>Saving</h4>
+
+<p>Click on the <strong>Save</strong> button. When the button is clicked, a popup will ask you for the name. Enter it and save the DocType.</p>
+
+<p>Now login into mysql and check the database table created:</p>
+
+<pre><code>$ bench mysql
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 3931
+Server version: 5.5.36-MariaDB-log Homebrew
+
+Copyright (c) 2000, 2014, Oracle, Monty Program Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [library]&gt; desc `tabArticle`;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| name         | varchar(255) | NO   | PRI | NULL    |       |
+| creation     | datetime(6)  | YES  |     | NULL    |       |
+| modified     | datetime(6)  | YES  |     | NULL    |       |
+| modified_by  | varchar(40)  | YES  |     | NULL    |       |
+| owner        | varchar(60)  | YES  |     | NULL    |       |
+| docstatus    | int(1)       | YES  |     | 0       |       |
+| parent       | varchar(255) | YES  | MUL | NULL    |       |
+| parentfield  | varchar(255) | YES  |     | NULL    |       |
+| parenttype   | varchar(255) | YES  |     | NULL    |       |
+| idx          | int(8)       | YES  |     | NULL    |       |
+| article_name | varchar(255) | YES  |     | NULL    |       |
+| status       | varchar(255) | YES  |     | NULL    |       |
+| description  | text         | YES  |     | NULL    |       |
+| image        | varchar(255) | YES  |     | NULL    |       |
+| publisher    | varchar(255) | YES  |     | NULL    |       |
+| isbn         | varchar(255) | YES  |     | NULL    |       |
+| language     | varchar(255) | YES  |     | NULL    |       |
+| author       | varchar(255) | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+18 rows in set (0.00 sec)
+</code></pre>
+
+<p>As you can see, along with the DocFields, a bunch of standard columns have also been added to the table. Important to note here are, the primary key, <code>name</code>, <code>onwer</code> is the user who has created the record, <code>creation</code> and <code>modified</code> are timestamps for creation and last modification.</p>
+
+<p><p class="btn-next-wrapper"><a class="btn-next" href="naming-and-linking.html">Next: DocType Naming and Linking</a></p></p>
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/v6.6.1/frappe/docs/user/tutorial/doctypes.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>
