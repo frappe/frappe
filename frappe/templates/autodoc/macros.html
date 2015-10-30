@@ -1,5 +1,6 @@
 {% macro automodule(name) %}
 {% set m = autodoc.automodule(name) %}
+{% if m.docs %}<h2>Introduction</h2><br>{{ m.docs|markdown }}<br><br>{% endif %}
 {% for obj in m.members %}
 	{% if obj.type=="function" %}
         {{ render_function(obj, name) }}
@@ -50,20 +51,15 @@
 	Version {{ autodoc.get_version(name) }}</a>
 {% endmacro %}
 
-{% macro github_link(app, file_path, tree=False) %}
-	<a class="btn btn-default btn-sm" href="{{ app.github_link }}/{{ "tree" if tree else "blob" }}/v{{ app.version }}/{{ file_path }}"
+{% macro source_link(app, file_path, tree=False) %}
+	<a class="btn btn-default btn-sm" href="{{ app.source_link }}/{{ "tree" if tree else "blob" }}/{{ app.branch }}/{{ file_path }}"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 {% endmacro %}
 
-{% macro discuss_link() %}
-<br>
-<a href="https://discuss.erpnext.com" target="_blank">Discuss this on the forum</a>
-{% endmacro %}
-
-{% macro doctype_link(doctype) %}
+{% macro doctype_link(app, doctype) %}
 {% set module = frappe.db.get_value("DocType", doctype, "module") %}
 {% if doctype and module %}
-<a href="/{{'{{ pathname.split("/")[0] }}'}}/models/{{
+<a href="{{ app.docs_base_url }}/{{ app.docs_version }}/models/{{
 		scrub(module) }}/{{ scrub(doctype) }}">{{ doctype }}</a>
 {% endif %}
 {% endmacro %}

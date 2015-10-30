@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/docs.css">
+
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/highlight.pack.js"></script>
+
+    {% block favicon %}
+	<link rel="shortcut icon"
+		href="{{ favicon or (docs_base_url + "/assets/img/favicon.png") }}"
+		type="image/x-icon">
+	<link rel="icon"
+		href="{{ favicon or (docs_base_url + "/assets/img/favicon.png") }}"
+		type="image/x-icon">
+    {% endblock %}
+
+	{%- block head -%}
+		{% if meta_block is defined -%}
+		{{ meta_block }}
+		{%- endif %}
+
+		{% if head_html is defined -%}
+		{{ head_html or "" }}
+		{%- endif %}
+
+	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
+
+		{%- block style %}
+			<style data-html-block="style">
+			{%- if style is defined -%}{{ style }}{%- endif -%}
+			</style>
+		{%- endblock -%}
+	{%- endblock -%}
+</head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+					{%- block banner -%}
+					{% include "templates/includes/banner_extension.html" ignore missing %}
+						{% if banner_html -%}
+						<header class="container">{{ banner_html or "" }}</header>
+						{%- endif %}
+					{%- endblock -%}
+
+					{%- block navbar -%}
+                        {% include "templates/includes/navbar/navbar.html" %}
+                    {%- endblock -%}
+                    <div class="hero-and-content">
+                        {% block content %}
+                            <div class="container">
+                            {{ content }}
+                            <!-- edit-link -->
+                            </div>
+                        {% endblock %}
+                    </div>
+					<footer class="docs-footer">
+						<div class="container">
+						{%- if footer is defined -%}{{ footer }}{%- endif -%}
+                        <br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="{{ app.source_link }}">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="{{ app.source_link }}/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="{{ docs_base_url }}/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="{{ docs_base_url }}/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				{% block offcanvas_sidebar -%}
+				<div class="sidebar-navbar-items">
+					{% include "templates/includes/navbar/navbar_items.html" %}
+				</div>
+				{%- endblock %}
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    {% include "templates/autodoc/docs.js" %}
+    </script>
+	{%- block script %}
+		<script data-html-block="script">
+		{%- if script is defined -%}{{ script }}{%- endif -%}
+		</script>
+	{%- endblock %}
+
+	<!-- csrf_token -->
+    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
+</body>
+</html>

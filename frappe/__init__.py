@@ -616,7 +616,8 @@ def get_pymodule_path(modulename, *joins):
 
 	:param modulename: Python module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	joins = [scrub(part) for part in joins]
+	if not "public" in joins:
+		joins = [scrub(part) for part in joins]
 	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__), *joins)
 
 def get_module_list(app_name):

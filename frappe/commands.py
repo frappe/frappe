@@ -350,20 +350,75 @@ def build_website(context):
 		finally:
 			frappe.destroy()
 
-@click.command('setup-docs')
+@click.command('make-docs')
 @pass_context
-def setup_docs(context):
+@click.argument('app')
+@click.argument('docs_version')
+def make_docs(context, app, docs_version):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
-	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			setup_docs()
-			statics.sync_statics(rebuild=True)
+			make = setup_docs(app)
+			make.build(docs_version)
 		finally:
 			frappe.destroy()
+
+@click.command('sync-docs')
+@pass_context
+@click.argument('app')
+def sync_docs(context, app):
+	"Sync docs from /docs folder into the database (Web Page)"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.sync_docs()
+		finally:
+			frappe.destroy()
+
+
+@click.command('write-docs')
+@pass_context
+@click.argument('app')
+@click.argument('target')
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def write_docs(context, app, target, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.make_docs(target, local)
+		finally:
+			frappe.destroy()
+
+@click.command('build-docs')
+@pass_context
+@click.argument('app')
+@click.argument('docs_version')
+@click.argument('target')
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def build_docs(context, app, docs_version, target, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.build(docs_version)
+			make.sync_docs()
+			make.make_docs(target, local)
+		finally:
+			frappe.destroy()
+
 
 @click.command('reset-perms')
 @pass_context
@@ -926,7 +981,10 @@ commands = [
 	destroy_all_sessions,
 	sync_www,
 	build_website,
-	setup_docs,
+	make_docs,
+	sync_docs,
+	write_docs,
+	build_docs,
 	reset_perms,
 	execute,
 	celery,

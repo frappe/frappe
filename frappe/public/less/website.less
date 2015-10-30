@@ -1,11 +1,16 @@
 @import "variables.less";
 @import "common.less";
-@import "offcanvas.less";
 @import "avatar.less";
 @import "indicator.less";
 
 .navbar-brand {
 	max-width: none;
+}
+
+.user-image-wrapper {
+	height: 30px;
+	width: 30px;
+	margin-top: -6px;
 }
 
 .content {
@@ -316,11 +321,6 @@ textarea {
 	display: none !important;
 }
 
-.toggle-sidebar {
-	margin-top: 8px;
-	margin-right: 15px;
-}
-
 .sidebar-navbar-items {
 	a, a:hover, a:focus, a:visited {
 		border-bottom: 0px;
@@ -384,35 +384,7 @@ a.active {
 	padding-left: 30px;
 }
 
-@media (max-width: 767px) {
-	.page-content {
-		min-height: 200px;
-	}
-
-	.offcanvas-mobile-mixin();
-
-	.offcanvas {
-		.navbar-form {
-			margin: 0px;
-		}
-		.sidebar ul {
-			margin: 0px;
-		}
-
-		.sidebar-page-sidebar {
-			border-top: 1px solid @border-color;
-		}
-
-		.sidebar-label {
-			text-transform: uppercase;
-			color: @text-muted;
-			font-size: 85%;
-			margin: 0px;
-			font-weight: bold;
-			padding: 10px 15px 0px;
-		}
-	}
-}
+@import "offcanvas-website.less";
 
 @media (min-width: 768px) {
 	.login-wrapper {

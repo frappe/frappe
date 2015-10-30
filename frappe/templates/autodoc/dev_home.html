@@ -1,0 +1,49 @@
+<!-- title: {{ app.title }}: Developer Docs -->
+<!-- no-breadcrumbs -->
+
+{% from "templates/autodoc/macros.html" import source_link, version %}
+<div class="dev-header">
+{{ version(app.name) }}
+{{ source_link(app, app.name, True) }}
+</div>
+
+<table class="table table-bordered" style="max-width: 500px;">
+	<tr>
+		<td style="width: 40%">
+			App Name
+		</td>
+		<td>
+			<code>{{ app.name }}</code>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Publisher
+		</td>
+		<td>
+			<code>{{ app.publisher }}</code>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Version
+		</td>
+		<td>
+			<code>{{ app.version }}</code>
+		</td>
+	</tr>
+</table>
+
+<h3>Contents</h3>
+<ul>
+	<li>
+		<a href="models">Models (DocTypes)</a>
+	</li>
+	<li>
+		<a href="api">Server-side API</a>
+	</li>
+</ul>
+
+<!-- autodoc -->
+<!-- jinja -->
+<!-- static -->

@@ -256,20 +256,21 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-						window.saving = false;
-										if(window.success_message) {
-							$form.addClass("hide");
-							$(".comments, .introduction").addClass("hide");
-							scroll(0, 0);
-							$(".form-message")
-								.html('{{ success_message }}<p><a href="{{ success_url }}">\
-																{{ _("Continue") }}</a></p>')
-								.removeClass("hide");
-										} else {
-												window.location.href = "{{ success_url }}";
-										}
-				}
-			}
+					if(window.success_message) {
+						$form.addClass("hide");
+						$(".comments, .introduction").addClass("hide");
+						scroll(0, 0);
+						$(".form-message")
+							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
+							.removeClass("hide");
+                    } else {
+						window.location.href = "{{ success_url }}";
+				    }
+			    }
+		    },
+            always: function() {
+                window.saving = false;
+            }
 		});
 
 		return false;

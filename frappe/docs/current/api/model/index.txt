@@ -1,0 +1,14 @@
+frappe.model.base_document
+frappe.model.create_new
+frappe.model.db_query
+frappe.model.db_schema
+frappe.model.delete_doc
+frappe.model.docfield
+frappe.model.document
+frappe.model
+frappe.model.mapper
+frappe.model.meta
+frappe.model.naming
+frappe.model.rename_doc
+frappe.model.sync
+frappe.model.workflow

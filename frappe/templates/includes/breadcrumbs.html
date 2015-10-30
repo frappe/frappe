@@ -2,7 +2,7 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="{{ parents[-1].name | abs_url }}">
+		<a href="{{ url_prefix }}{{ parents[-1].name | abs_url }}">
 		{{ parents[-1].page_title or parents[-1].title or "" }}</a>
 	</li>
 	{#

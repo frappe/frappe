@@ -1,0 +1,168 @@
+@import "variables.less";
+@import "offcanvas-website.less";
+@import "navbar.less";
+
+body {
+	font-size: 16px;
+	line-height: 1.65em;
+}
+
+.navbar {
+	//background-color: @navbar-bg !important;
+	//background-color: @text-color !important;
+	// border-bottom: 3px solid @border-color !important;
+}
+.navbar a {
+	font-size: 16px;
+	font-weight: normal;
+	//color: #fff !important;
+}
+
+.breadcrumb {
+  line-height: 1.5em;
+  color: @text-muted;
+  background-color: transparent;
+  margin-bottom: 10px;
+  padding: 0px;
+}
+.breadcrumb a,
+.breadcrumb a:hover,
+.breadcrumb a:focus,
+.breadcrumb a:visited {
+  color: inherit;
+  font-size: 14px;
+}
+
+a, a:hover, a:focus, a:visited {
+	color: @brand-primary;
+}
+
+a.btn-primary& {
+	color: #fff;
+	&:hover, &:focus, &:visited {
+		color: #fff;
+	}
+}
+
+h2 {
+	font-size: 24px;
+}
+
+.navbar {
+	background-color: transparent;
+	border: none;
+    padding: 15px 0px;
+	border-radius: 0px;
+    border-top: 5px solid @erpnext-blue;
+    border-bottom: 1px solid @border-color;
+}
+
+.section {
+	padding: 30px;
+	max-width: 800px;
+	margin: auto;
+}
+
+.dev-header {
+	margin-bottom: 30px;
+}
+
+.docs-footer {
+	margin-top: 50px;
+	padding: 30px 0px 60px 0px;
+	border-top: 1px solid @border-color;
+
+	a {
+		color: @text-muted;
+	}
+
+	li {
+		display: inline-block;
+		margin: 0 15px;
+	}
+}
+
+.jumbotron {
+	background-color: transparent;
+	padding: 80px 30px;
+	text-align: center;
+
+	h1 {
+		font-size: 32px;
+		font-weight: 400;
+	}
+
+	p {
+		font-color: @text-muted !important;
+	}
+}
+
+// fake frames
+.browser-image {
+	min-height: 300px;
+	border: 1px solid #d1d8dd;
+}
+
+.fake-browser-frame {
+	position: relative;
+	margin: 40px auto;
+	max-width: 600px;
+}
+
+.fake-browser-frame::before {
+	content: "";
+	height: 24px;
+	position: absolute;
+	top: -24px;
+	left: 0px;
+	right: 0px;
+	border: 1px solid #d1d8dd;
+	border-bottom: none;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+
+.fake-browser-frame::after {
+	content: '\f111  \f111  \f111';
+	position: absolute;
+	color: #d1d8dd;
+	top: -15px;
+	left: 8px;
+
+
+	/* octicon */
+    font: normal normal;
+	font-size: 8px;
+    font-family: 'FontAwesome';
+    line-height: 1;
+    display: inline-block;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.fake-iphone-frame {
+	position: relative;
+	padding: 40px 8px;
+	border: 1px solid #d1d8dd;
+	border-radius: 15px;
+}
+
+.fake-ipad-frame {
+	position: relative;
+	padding: 8px 40px;
+	border: 1px solid #d1d8dd;
+	border-radius: 15px;
+}
+
+.screenshot {
+	border: 2px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 30px 0px;
+	max-width: 100%;
+}
