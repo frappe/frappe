@@ -12,5 +12,6 @@ templating, admin interface, forms, reports and much more.
 Frappe Framework was designed to build [ERPNext](https://erpnext.com), open source
 ERP for managing small and medium sized businesses.
 """
+
 def get_context(context):
 	context.title = "Frappe Framework"

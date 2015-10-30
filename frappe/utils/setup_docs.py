@@ -40,7 +40,7 @@ class setup_docs(object):
 				"docs_base_url": self.docs_config.docs_base_url,
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
-				"branch": getattr(self.docs_config, "branch", None) or ("v" + version)
+				"branch": getattr(self.docs_config, "branch", None) or "develop"
 			})
 		}
 
