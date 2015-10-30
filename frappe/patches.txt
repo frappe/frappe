@@ -100,3 +100,4 @@ frappe.patches.v6_4.reduce_varchar_length
 frappe.patches.v6_4.rename_bengali_language
 execute:frappe.db.sql("""update `tabCommunication` set parenttype=null, parent=null, parentfield=null""") #2015-10-22
 execute:frappe.permissions.reset_perms("Web Page")
+frappe.patches.v6_6.rename_slovak_language

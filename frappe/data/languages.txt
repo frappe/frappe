@@ -1,19 +1,19 @@
 ar	العربية
 bg	bǎlgarski
-bo  ལྷ་སའི་སྐད་
+bo	ལྷ་སའི་སྐད་
 bs	bosanski
-bn  বাংলা
+bn	বাংলা
 ca	català
 cs	česky
 da	dansk
-da-DK   dansk (Danmark)
+da-DK	 dansk (Danmark)
 de	deutsch
 el	ελληνικά
 es	español
-es-PE   Español (Perú)
+es-PE	 Español (Perú)
 en	english
 fa	پارسی
-fi  suomalainen
+fi	suomalainen
 fr	français
 he	עברית
 hi	हिंदी
@@ -22,23 +22,24 @@ hu	magyar
 id	Indonesia
 it	italiano
 ja	日本語
-km  ភាសាខ្មែរ
+km	ភាសាខ្មែរ
 kn	ಕನ್ನಡ
 ko	한국의
 lv	latviešu valoda
 mr	मराठी
-mk  македонски
-my  Melayu
+mk	македонски
+my	Melayu
 nl	nederlands
-no  norsk
+no	norsk
 pl	polski
 pt	português
 pt-BR	português brasileiro
 ro	român
 ru	русский
-sk  slovenčina
-sv  svenska
-sq  shqiptar
+sk	slovenčina (Slovak)
+sl	slovenščina (Slovene)
+sv	svenska
+sq	shqiptar
 sr	српски
 ta	தமிழ்
 th	ไทย
