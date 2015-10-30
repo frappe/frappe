@@ -437,6 +437,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					doctype: me.doctype,
 					docname: docname,
 					bulk_assign: true,
+					re_assign: true,
 					callback: function(){ 
 						me.dirty = true;
 						me.refresh();

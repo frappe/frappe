@@ -93,7 +93,6 @@ frappe.ui.form.AssignTo = Class.extend({
 				obj: me,
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
-				bulk_assign: false,
 				callback: function(r) { 
 					me.render(r.message); 
 					me.frm.reload_doc(); 
@@ -176,7 +175,8 @@ frappe.ui.add_assignment = function(opts, dialog) {
 				doctype: opts.doctype,
 				name: opts.docname,
 				assign_to: assign_to,
-				bulk_assign: opts.bulk_assign
+				bulk_assign:  opts.bulk_assign || false,
+				re_assign: opts.re_assign || false
 			}),
 			callback: function(r,rt) {
 				if(!r.exc) {

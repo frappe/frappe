@@ -45,7 +45,9 @@ def add(args=None):
 		todo_doc = []
 		
 		for docname in get_docname_list(args):
-			remove_from_todo_if_already_assign(args['doctype'], docname)
+			if args.get("re_assign"):
+				remove_from_todo_if_already_assign(args['doctype'], docname)
+			
 			d = frappe.get_doc({
 				"doctype":"ToDo",
 				"owner": args['assign_to'],
@@ -69,7 +71,7 @@ def add(args=None):
 			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 				 description=args.get("description"), notify=args.get('notify'))
 				 
-	if not args["bulk_assign"]:
+	if not args.get("bulk_assign"):
 		return get(args)
 	else:
 		return {}
