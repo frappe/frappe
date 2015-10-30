@@ -422,7 +422,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}, true);
 		}
 		
-		
+		//bulk assignment
 		me.page.add_menu_item(__("Assign To"), function(){
 	
 			docname = [];
@@ -448,7 +448,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			else{
 				frappe.msgprint(__("Select records for assignment"))
 			}
-		})
+		}, true)
 	},
 
 	init_star: function() {

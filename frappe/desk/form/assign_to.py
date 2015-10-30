@@ -45,23 +45,23 @@ def add(args=None):
 		todo_doc = []
 		
 		for docname in get_docname_list(args):
-			if not_assigned(args['doctype'], docname):
-				d = frappe.get_doc({
-					"doctype":"ToDo",
-					"owner": args['assign_to'],
-					"reference_type": args['doctype'],
-					"reference_name": docname,
-					"description": args.get('description'),
-					"priority": args.get("priority", "Medium"),
-					"status": "Open",
-					"date": args.get('date', nowdate()),
-					"assigned_by": args.get('assigned_by', frappe.session.user),
-				}).insert(ignore_permissions=True)
-			
-				todo_doc.append(d)
-				# set assigned_to if field exists
-				if frappe.get_meta(args['doctype']).get_field("assigned_to"):
-					frappe.db.set_value(args['doctype'], docname, "assigned_to", args['assign_to'])
+			remove_from_todo_if_already_assign(args['doctype'], docname)
+			d = frappe.get_doc({
+				"doctype":"ToDo",
+				"owner": args['assign_to'],
+				"reference_type": args['doctype'],
+				"reference_name": docname,
+				"description": args.get('description'),
+				"priority": args.get("priority", "Medium"),
+				"status": "Open",
+				"date": args.get('date', nowdate()),
+				"assigned_by": args.get('assigned_by', frappe.session.user),
+			}).insert(ignore_permissions=True)
+		
+			todo_doc.append(d)
+			# set assigned_to if field exists
+			if frappe.get_meta(args['doctype']).get_field("assigned_to"):
+				frappe.db.set_value(args['doctype'], docname, "assigned_to", args['assign_to'])
 
 	# notify
 	if not args.get("no_notification"):
@@ -92,13 +92,11 @@ def get_docname_list(args=None):
 	
 	return docname_list
 
-def not_assigned(doctype, docname):
+def remove_from_todo_if_already_assign(doctype, docname):
 	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status":"Open"}, "owner")
 	if owner:
-		frappe.msgprint(_("{0} is already assigned to {1}".format(docname, owner)))
-		return False
-	return True
-
+		remove(doctype, docname, owner)
+		
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
