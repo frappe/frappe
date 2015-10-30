@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Writing Tests" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Introduction Frappe provides some basic tooling to quickly write automated tests. There are some basic rules: Test can be anywhere in your repository but must begin with test_ and should be a .py file. Tests must run on a site that starts with test_. This is to prevent accidental loss of data. Test stubs are automatically generated for new DocTypes. Frappe test runner will automatically build test record" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Introduction Frappe provides some basic tooling to quickly write automated tests. There are some basic rules: Test can be anywhere in your repository but must begin with test_ and should be a .py file. Tests must run on a site that starts with test_. This is to prevent accidental loss of data. Test stubs are automatically generated for new DocTypes. Frappe test runner will automatically build test record" data-html-block="meta_block">
+<meta name="og:title" content="Writing Tests" data-html-block="meta_block">
+<meta name="twitter:title" content="Writing Tests" data-html-block="meta_block">
+<meta name="description" content="Introduction Frappe provides some basic tooling to quickly write automated tests. There are some basic rules: Test can be anywhere in your repository but must begin with test_ and should be a .py file. Tests must run on a site that starts with test_. This is to prevent accidental loss of data. Test stubs are automatically generated for new DocTypes. Frappe test runner will automatically build test record" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-writing-tests" data-path="user/guides/basics/writing-tests"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Writing Tests</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides/basics">
+		Basics</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="writing-tests" style="text-align: Left">
+	<h3>Introduction</h3>
+
+<p>Frappe provides some basic tooling to quickly write automated tests. There are some basic rules:</p>
+
+<ol>
+<li>Test can be anywhere in your repository but must begin with <code>test_</code> and should be a <code>.py</code> file.</li>
+<li>Tests must run on a site that starts with <code>test_</code>. This is to prevent accidental loss of data.</li>
+<li>Test stubs are automatically generated for new DocTypes.</li>
+<li>Frappe test runner will automatically build test records for dependant DocTypes identified by the <code>Link</code> type field (Foreign Key)</li>
+<li>Tests can be executed using <code>bench run-tests</code></li>
+<li>For non-DocType tests, you can write simple unittests and prefix your file names with <code>test_</code>.</li>
+</ol>
+
+<h3>Tests for a DocType</h3>
+
+<h4>Writing DocType Tests:</h4>
+
+<ol>
+<li>Records that are used for testing are stored in a file <code>test_records.json</code> in the doctype folder. <a href="https://github.com/frappe/frappe/blob/develop/frappe/core/doctype/event/test_records.json">For example see the Event Tests</a>.</li>
+<li>Test cases are in a file named <code>test_[doctype].py</code></li>
+<li>To provide the test records (and dependencies) call <code>test_records = frappe.get_test_records('Event')</code> in your test case file.</li>
+</ol>
+
+<h4>Example (for <code>test_records.json</code>):</h4>
+
+<pre><code>[
+    {
+        "doctype": "Event",
+        "subject":"_Test Event 1",
+        "starts_on": "2014-01-01",
+        "event_type": "Public"
+    },
+    {
+        "doctype": "Event",
+        "starts_on": "2014-01-01",
+        "subject":"_Test Event 2",
+        "event_type": "Private"
+    },
+    {
+        "doctype": "Event",
+        "starts_on": "2014-01-01",
+        "subject":"_Test Event 3",
+        "event_type": "Private",
+        "event_individuals": [{
+            "person": "test1@example.com"
+        }]
+    }
+]
+</code></pre>
+
+<h4>Example (for <code>test_event.py</code>):</h4>
+
+<pre><code># Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
+import frappe
+import frappe.defaults
+import unittest
+
+# load test records and dependencies
+test_records = frappe.get_test_records('Event')
+
+class TestEvent(unittest.TestCase):
+    def tearDown(self):
+        frappe.set_user("Administrator")
+
+    def test_allowed_public(self):
+        frappe.set_user("test1@example.com")
+        doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 1"}))
+        self.assertTrue(frappe.has_permission("Event", doc=doc))
+
+    def test_not_allowed_private(self):
+        frappe.set_user("test1@example.com")
+        doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 2"}))
+        self.assertFalse(frappe.has_permission("Event", doc=doc))
+
+    def test_allowed_private_if_in_event_user(self):
+        frappe.set_user("test1@example.com")
+        doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 3"}))
+        self.assertTrue(frappe.has_permission("Event", doc=doc))
+
+    def test_event_list(self):
+        frappe.set_user("test1@example.com")
+        res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"])
+        self.assertEquals(len(res), 2)
+        subjects = [r.subject for r in res]
+        self.assertTrue("_Test Event 1" in subjects)
+        self.assertTrue("_Test Event 3" in subjects)
+        self.assertFalse("_Test Event 2" in subjects)
+</code></pre>
+
+<h4>Running Tests</h4>
+
+<p>To run a test for a doctype</p>
+
+<pre><code>bench run-tests --doctype [doctype]
+</code></pre>
+
+<p>This function will build all the test dependencies and run your tests.</p>
+
+<h3>Running All Tests</h3>
+
+<p>To run all tests:</p>
+
+<pre><code>bench run-tests
+</code></pre>
+
+<hr />
+
+<h2>Client Side Testing (Using Selenium)</h2>
+
+<blockquote>
+  <p>This feature is still under development.</p>
+</blockquote>
+
+<p>For an example see, <a href="https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py">https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py</a></p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/basics/writing-tests.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

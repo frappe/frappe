@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Using Html Templates In Javascript" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig&#39;s Microtemplate script to render HTML templates in the Desk application. Note 1: In Frappe we use the Jinja-like {% tags to embed code rather than the standard &lt;% Note 2: Never use single quotes &#39; inside the HTML template. To render a template, Create a te" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig&#39;s Microtemplate script to render HTML templates in the Desk application. Note 1: In Frappe we use the Jinja-like {% tags to embed code rather than the standard &lt;% Note 2: Never use single quotes &#39; inside the HTML template. To render a template, Create a te" data-html-block="meta_block">
+<meta name="og:title" content="Using Html Templates In Javascript" data-html-block="meta_block">
+<meta name="twitter:title" content="Using Html Templates In Javascript" data-html-block="meta_block">
+<meta name="description" content="Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig&#39;s Microtemplate script to render HTML templates in the Desk application. Note 1: In Frappe we use the Jinja-like {% tags to embed code rather than the standard &lt;% Note 2: Never use single quotes &#39; inside the HTML template. To render a template, Create a te" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-using-html-templates-in-javascript" data-path="user/guides/app_development/using-html-templates-in-javascript"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Using Html Templates In Javascript</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		App Development</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="using-html-templates-in-javascript" style="text-align: Left">
+	<p>Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig's Microtemplate script to render HTML templates in the Desk application.</p>
+
+<blockquote>
+  <p>Note 1: In Frappe we use the Jinja-like <code>{%</code> tags to embed code rather than the standard <code>&lt;%</code></p>
+  
+  <p>Note 2: Never use single quotes <code>'</code> inside the HTML template.</p>
+</blockquote>
+
+<p>To render a template,</p>
+
+<ol>
+<li>Create a template <code>html</code> file in your app. e.g. <code>address_list.html</code></li>
+<li>Add it to <code>build.json</code> for your app (you can include it in <code>frappe.min.js</code> or your own javascript file).</li>
+<li>To render it in your app, use <code>frappe.render(frappe.templates.address_list, {[context]})</code></li>
+</ol>
+
+<h4>Example Template:</h4>
+
+<p>From <code>erpnext/public/js/templates/address_list.js</code></p>
+
+<pre><code>&lt;p&gt;&lt;button class="btn btn-sm btn-default btn-address"&gt;
+    &lt;i class="icon-plus"&gt;&lt;/i&gt; New Address&lt;/button&gt;&lt;/p&gt;
+{% for(var i=0, l=addr_list.length; i&lt;l; i++) { %}
+    &lt;hr&gt;
+    &lt;a href="#Form/Address/{%= addr_list[i].name %}" class="btn btn-sm btn-default pull-right"&gt;
+        {%= __("Edit") %}&lt;/a&gt;
+    &lt;h4&gt;{%= addr_list[i].address_type %}&lt;/h4&gt;
+    &lt;div style="padding-left: 15px;"&gt;
+        &lt;div&gt;
+            {% if(addr_list[i].is_primary_address) { %}&lt;span class="label label-info"&gt;
+                {%= __("Primary") %}&lt;/span&gt;{% } %}
+            {% if(addr_list[i].is_shipping_address) { %}&lt;span class="label label-default"&gt;
+                {%= __("Shipping") %}&lt;/span&gt;{% } %}
+        &lt;/div&gt;
+        &lt;p style="margin-top: 5px;"&gt;{%= addr_list[i].display %}&lt;/p&gt;
+    &lt;/div&gt;
+{% } %}
+{% if(!addr_list.length) { %}
+&lt;p class="text-muted"&gt;{%= __("No address added yet.") %}&lt;/p&gt;
+{% } %}
+</code></pre>
+
+<!-- markdown -->
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/using-html-templates-in-javascript.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

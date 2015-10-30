@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Migrations" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="A project often undergoes changes related to database schema during course of its life. It may also be required patch existing data. Frappe bundles tools to handle these schenarios. When you pull updates from any Frappe app (including Frappe), you should run bench migrate to apply schema changes and data migrations if any. Schema changes You can edit a DocType to add, remove or change fields. On saving a DocType, a JSON file containing the DocType data i" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="A project often undergoes changes related to database schema during course of its life. It may also be required patch existing data. Frappe bundles tools to handle these schenarios. When you pull updates from any Frappe app (including Frappe), you should run bench migrate to apply schema changes and data migrations if any. Schema changes You can edit a DocType to add, remove or change fields. On saving a DocType, a JSON file containing the DocType data i" data-html-block="meta_block">
+<meta name="og:title" content="Migrations" data-html-block="meta_block">
+<meta name="twitter:title" content="Migrations" data-html-block="meta_block">
+<meta name="description" content="A project often undergoes changes related to database schema during course of its life. It may also be required patch existing data. Frappe bundles tools to handle these schenarios. When you pull updates from any Frappe app (including Frappe), you should run bench migrate to apply schema changes and data migrations if any. Schema changes You can edit a DocType to add, remove or change fields. On saving a DocType, a JSON file containing the DocType data i" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-migrations" data-path="user/guides/deployment/migrations"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Migrations</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides/deployment">
+		Deployment</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="migrations" style="text-align: Left">
+	<p>A project often undergoes changes related to database schema during course of
+its life. It may also be required patch existing data. Frappe bundles tools to
+handle these schenarios.</p>
+
+<p>When you pull updates from any Frappe app (including Frappe), you should run
+<code>bench migrate</code> to apply schema changes and data migrations if any.</p>
+
+<h2>Schema changes</h2>
+
+<p>You can edit a DocType to add, remove or change fields. On saving a DocType,
+a JSON file containing the DocType data is added to source tree of your app.
+When you add an app to a site, the DocTypes are installed using this JSON file.
+For making schema changes, it's required to set <code>developer_mode</code> in the
+configuration.</p>
+
+<p>On running a sync (<code>bench migrate</code>), doctypes in the system are synced to
+their latest version from the JSON files in the app.</p>
+
+<p>Note: Fields are soft deleted ie. the columns are not removed from the database
+table and however, they will not be visible in the documents. This is done to
+avoid any potential data loss situations and to allow you write related data
+migrations which might need values from deleted fields.</p>
+
+<p>Note: Frappe doesn't support reverse schema migrations.</p>
+
+<h2>Data Migrations</h2>
+
+<p>On introducing data related changes, you might want to run one off scripts to
+change existing data to match expectations as per new code.</p>
+
+<p>To add a data migration to your code, you will have to write an <code>execute</code>
+function to a python module and add it to  <code>patches.txt</code> of your app.</p>
+
+<p>It is recommended to make a file with a patch number and name in its path and
+add it to a patches package (directory) in your app. You can then add a line
+with dotted path to the patch module to <code>patches.txt</code>.</p>
+
+<p>The directory structure followed in Frappe is as below</p>
+
+<pre><code>frappe
+└── patches
+    └── 4_0
+        └── my_awesome_patch.py
+</code></pre>
+
+<p>The patch can be added to <code>patches.txt</code> by adding a line like</p>
+
+<pre><code>frappe.patches.4_0.my_awesome_patch
+</code></pre>
+
+<p>The metadata ie. DocType available in the execute function will be the latest as
+per JSON files in the apps. However, you will not be able to access metadata of
+any previous states of the system.</p>
+
+<h4>One off Python statements</h4>
+
+<p>You can also add one off python statements in <code>patches.txt</code> using the syntax,
+    execute:{python statement}</p>
+
+<p>For example,
+    execute:frappe.get_doc("User", "Guest").save()</p>
+
+<p>Note: All lines in patches.txt have to be unique. If you want to run a line
+twice, you can make it unique by adding a distinct comment.</p>
+
+<p>For Example,</p>
+
+<pre><code>execute:frappe.installer.make_site_dirs() #2014-02-19
+</code></pre>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/deployment/migrations.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>

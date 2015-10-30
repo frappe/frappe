@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Frappe Framework</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+<meta name="name" content="Translations" data-html-block="meta_block">
+<meta name="twitter:card" content="summary" data-html-block="meta_block">
+<meta name="twitter:description" content="This document shows how to translations are managed in ERPNext and how to add a new language or update translations of an existing language. 1. Source Translatable text exists in 3 main sources: Javascript Code Files (both framework and application) Python Code Files DocTypes (names, labels and select options) Strings in Code Files Strings in code files are annotated using the &lt;co" data-html-block="meta_block">
+<meta name="og:type" content="article" data-html-block="meta_block">
+<meta name="og:description" content="This document shows how to translations are managed in ERPNext and how to add a new language or update translations of an existing language. 1. Source Translatable text exists in 3 main sources: Javascript Code Files (both framework and application) Python Code Files DocTypes (names, labels and select options) Strings in Code Files Strings in code files are annotated using the &lt;co" data-html-block="meta_block">
+<meta name="og:title" content="Translations" data-html-block="meta_block">
+<meta name="twitter:title" content="Translations" data-html-block="meta_block">
+<meta name="description" content="This document shows how to translations are managed in ERPNext and how to add a new language or update translations of an existing language. 1. Source Translatable text exists in 3 main sources: Javascript Code Files (both framework and application) Python Code Files DocTypes (names, labels and select options) Strings in Code Files Strings in code files are annotated using the &lt;co" data-html-block="meta_block">
+
+		
+			<style data-html-block="style"></style></head>
+<body>
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
+                        
+                            <div class="container">
+                            <div class="page-container" id="page-translations" data-path="user/guides/basics/translations"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+                <div class="col-sm-8">
+            		<div class="page-header-block" data-html-block="header"><h1>Translations</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/guides/basics">
+		Basics</a>
+	</li>
+	
+</ul>
+</div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="translations" style="text-align: Left">
+	<p><!-- jinja -->
+<!-- static --></p>
+
+<p>This document shows how to translations are managed in ERPNext and how to add
+a new language or update translations of an existing language.</p>
+
+<h3>1. Source</h3>
+
+<p>Translatable text exists in 3 main sources:</p>
+
+<ol>
+<li>Javascript Code Files (both framework and application)</li>
+<li>Python Code Files</li>
+<li>DocTypes (names, labels and select options)</li>
+</ol>
+
+<h4>Strings in Code Files</h4>
+
+<p>Strings in code files are annotated using the <code>_</code> (underscore) method</p>
+
+<ol>
+<li>In Python it is the <code>frappe._</code> method. Example:</li>
+</ol>
+
+<p><code>frappe._("String {0} must be translated".format(txt))</code></p>
+
+<ol>
+<li>In Javascript it is the <code>__</code> method. Example:</li>
+</ol>
+
+<p><code>__("String {0} must be translated", [txt])</code></p>
+
+<p><strong>Note:</strong> If you find translatable strings are not properly annotated using the <code>_</code>
+method, you can add them in the code and rebuild the translations.</p>
+
+<h3>2. How Translations Are Picked up During Execution</h3>
+
+<p>Whenever a translation is called via the _ method, the entire translation
+dictionaries from all apps are built and stored in memcache.</p>
+
+<p>Based on the user preferences or request preferences, the appropriate
+translations are loaded at the time of request on the server side. Or if
+metadata (DocType) is queried, then the appropriate translations are appended
+when the DocType data is requested.</p>
+
+<p>The underscore <code>_</code> method will replace the strings based on the available
+translations loaded at the time.</p>
+
+<h3>3. Adding New Translations</h3>
+
+<ol>
+<li>To find untranslated strings, run <code>bench get-untranslated [lang] [path]</code></li>
+<li>Add the translated strings in another file in the same order</li>
+<li>run <code>bench update-translations [lang] [path of untranslated strings] [path of translated strings]</code></li>
+</ol>
+
+<h3>4. Improving Translations:</h3>
+
+<p>For updating translations, please go to the to <a href="https://frappe.io/translator">the translation portal</a>.</p>
+
+<p>If you want to do it directly via code:</p>
+
+<p>To improve an existing translation, just edit the master translation files in
+the <code>translations</code> of each app</p>
+
+<blockquote>
+  <p>Please contribute your translations back to ERPNext by sending us a Pull
+  Request.</p>
+</blockquote>
+
+<h3>5. Bootstrapping a New Language</h3>
+
+<p>If you want to add a new language it is similar to adding new translations. You need to first export all the translations strings in one file, get them translated via Google Translate Tool or Bing Translate Tool and then import the translations into individual apps.</p>
+
+<p><strong>Step 1: Export to a file</strong></p>
+
+<pre><code>$ bench get-untranslated [lang] [path]
+</code></pre>
+
+<p><strong>Step 2: Translate</strong></p>
+
+<p>Create another file with updated translations (in the same order as the source file). For this you can use the <a href="https://translate.google.com/toolkit">Google Translator Toolkit</a> or <a href="http://www.bing.com/translator/">Bing Translator</a>.</p>
+
+<p><strong>Step 3: Import your translations</strong></p>
+
+<pre><code>$ bench update-translations [lang] [source path] [translated path]
+</code></pre>
+
+<p><strong>Step 4: Update <code>languages.txt</code></strong></p>
+
+<p>Add your language in <code>apps/languages.txt</code> and also <code>frappe/data/languages.txt</code> (fore new bench installs)</p>
+
+<p><strong>Step 5: Commit each app and push</strong></p>
+
+<p>A new file will be added to the <code>translations</code> folder in each app. You need to add that file and push to your repo. Then send us a pull-request.</p>
+
+<hr />
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+                            <p><br><a class="text-muted" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/basics/translations.md">Improve this page</a></p>
+                            </div>
+                        
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><br>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://apps.frappe.io">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="built-with-frappe text-center">
+                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
+                        </div>
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
+	<a href="https://frappe.github.io/frappe/contents.html"
+		
+		>
+	Contents</a></li><li data-label='User Guide' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	User Guide</a></li><li data-label='Developer Docs' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	Developer Docs</a></li>
+	<!-- post login tools -->
+
+</ul>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- js should be loaded in body! -->
+    <script>
+    $(function() {
+	if(hljs) {
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
+	}
+
+	$(".toggle-sidebar").on("click", function() {
+		$(".offcanvas").addClass("active-right");
+		return false;
+	});
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
+	});
+
+});
+    </script>
+		<script data-html-block="script"></script>
+
+	<!-- csrf_token --></body>
+</html>
