@@ -170,6 +170,23 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Integrations"),
+			"icon": "icon-star",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Social Login Keys",
+					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
+				},
+				{
+					"type": "doctype",
+					"name": "Dropbox Backup",
+					"description": _("Manage cloud backups on Dropbox"),
+					"hide_count": True
+				}
+			]
+		},
+		{
 			"label": _("Customize"),
 			"icon": "icon-glass",
 			"items": [

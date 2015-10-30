@@ -1,19 +1,18 @@
+$octicons-font-path: "." !default;
+$octicons-version:   "396334ee3da78f4302d25c758ae3e3ce5dc3c97d";
+
 @font-face {
   font-family: 'octicons';
-   src: url('/assets/frappe/css/octicons/octicons.eot?#iefix') format('embedded-opentype'),
-        url('/assets/frappe/css/octicons/octicons.woff') format('woff'),
-        url('/assets/frappe/css/octicons/octicons.ttf') format('truetype'),
-        url('/assets/frappe/css/octicons/octicons.svg#octicons') format('svg');
+  src: url('#{$octicons-font-path}/octicons.eot?#iefix&v=#{$octicons-version}') format('embedded-opentype'),
+       url('#{$octicons-font-path}/octicons.woff?v=#{$octicons-version}') format('woff'),
+       url('#{$octicons-font-path}/octicons.ttf?v=#{$octicons-version}') format('truetype'),
+       url('#{$octicons-font-path}/octicons.svg?v=#{$octicons-version}#octicons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 
-/*
-
-.octicon is optimized for 16px.
-.mega-octicon is optimized for 32px but can be used larger.
-
-*/
+// .octicon is optimized for 16px.
+// .mega-octicon is optimized for 32px but can be used larger.
 .octicon, .mega-octicon {
   font: normal normal normal 16px/1 octicons;
   display: inline-block;

@@ -8,18 +8,11 @@ def get_notification_config():
 	return {
 		"for_doctype": {
 			"Scheduler Log": {"seen": 0},
-			"Communication": {"status": "Open"}
+			"Communication": {"status": "Open"},
+			"ToDo": "frappe.core.notifications.get_things_todo",
+			"Event": "frappe.core.notifications.get_todays_events",
+			"Comment": "frappe.core.notifications.get_unread_messages"
 		},
-		"for_module_doctypes": {
-			"ToDo": "To Do",
-			"Event": "Calendar",
-			"Comment": "Messages"
-		},
-		"for_module": {
-			"To Do": "frappe.core.notifications.get_things_todo",
-			"Calendar": "frappe.core.notifications.get_todays_events",
-			"Messages": "frappe.core.notifications.get_unread_messages"
-		}
 	}
 
 def get_things_todo():
