@@ -116,6 +116,7 @@
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
+		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 
 		"public/js/frappe/change_log.html",
