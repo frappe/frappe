@@ -22,7 +22,7 @@
 .form-clickable-section {
   border-top: 1px solid #d1d8dd;
   padding: 10px 15px;
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
 }
 .form-page.second-page {
   border-top: 1px solid #d1d8dd;
@@ -56,7 +56,7 @@
 }
 .form-section:not(:last-child),
 .form-inner-toolbar {
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .empty-section {
   display: none !important;
@@ -125,7 +125,7 @@
 }
 .control-label,
 .grid-heading-row {
-  color: #8d99a6;
+  color: #8D99A6;
   font-size: 12px;
 }
 .control-label {
@@ -186,7 +186,7 @@ select.form-control {
   margin-top: -3px;
   margin-left: 1px;
   font-weight: 500;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 @media (min-width: 768px) {
   .layout-main .form-column.col-sm-12 > form > .input-max-width {
@@ -208,7 +208,7 @@ select.form-control {
     padding: 15px 15px 15px 0px;
   }
   .form-column {
-    border-bottom: 1px solid #ebeff2;
+    border-bottom: 1px solid #EBEFF2;
   }
   .form-column:last-child {
     border-bottom: 0px;
@@ -229,7 +229,7 @@ select.form-control {
   }
   .form-page .frappe-control {
     padding: 7px 15px;
-    border-bottom: 1px solid #ebeff2;
+    border-bottom: 1px solid #EBEFF2;
     margin: 0px -15px;
   }
   .form-page .frappe-control .link-btn {

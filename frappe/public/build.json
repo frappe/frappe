@@ -65,7 +65,7 @@
 		"public/js/frappe/ui/messages.js",
 
 		"public/js/frappe/request.js",
-		"public/js/frappe/socket.js",
+		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/defaults.js",
 		"public/js/lib/microtemplate.js",
@@ -149,8 +149,10 @@
 		"public/js/frappe/form/print_layout.html",
 		"public/js/frappe/form/print.js",
 		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/users_in_sidebar.html",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/set_sharing.html",
+		"public/js/frappe/form/form_viewers.js",
 		"public/js/frappe/form/form_sidebar.html",
 
 		"public/js/frappe/form/footer/form_footer.html",

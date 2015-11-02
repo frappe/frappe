@@ -18,10 +18,10 @@ p {
   margin: 10px 0px;
 }
 .text-color {
-  color: #36414c !important;
+  color: #36414C !important;
 }
 .text-muted {
-  color: #8d99a6 !important;
+  color: #8D99A6 !important;
 }
 .text-extra-muted {
   color: #d1d8dd !important;
@@ -82,7 +82,7 @@ a.text-extra-muted {
 }
 kbd {
   color: inherit;
-  background-color: #f0f4f7;
+  background-color: #F0F4F7;
 }
 .btn [class^="icon-"],
 .nav [class^="icon-"],
@@ -186,7 +186,7 @@ a.badge-hover:active .badge {
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   text-align: center;
-  color: #36414c !important;
+  color: #36414C !important;
 }
 #freeze.dark {
   background-color: #334143;
@@ -288,7 +288,7 @@ a.no-decoration:active {
 }
 .indicator.grey::before,
 .indicator-right.grey::after {
-  background: #f0f4f7;
+  background: #F0F4F7;
 }
 .indicator.blue::before,
 .indicator-right.blue::after {
@@ -339,7 +339,7 @@ a.no-decoration:active {
   background-color: #fafbfc;
 }
 .panel-bg {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
 }
 .navbar-bg {
   background-color: #f5f7fa;
@@ -463,7 +463,7 @@ fieldset {
   margin: 0px;
   padding: 5px 0px;
   border: none;
-  color: #8d99a6;
+  color: #8D99A6;
   font-size: 12px;
 }
 .page-sidebar .sidebar-item:first-child {
@@ -473,7 +473,7 @@ fieldset {
   padding-bottom: 10px;
 }
 .page-sidebar .sidebar-item a {
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .page-sidebar .sidebar-item a:hover {
   border-color: inherit;
@@ -499,7 +499,7 @@ fieldset {
 }
 .web-list-item {
   padding: 15px 0px;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
 .web-list-item h2,
@@ -609,7 +609,7 @@ a.active {
   color: inherit;
 }
 .breadcrumb > .active {
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .post:last-child {
   border-bottom: none;
@@ -662,7 +662,7 @@ body {
 .offcanvas .sidebar .divider {
   height: 1px;
   overflow: hidden;
-  background-color: #ebeff2;
+  background-color: #EBEFF2;
   width: 100%;
   margin: 0px;
 }
@@ -676,7 +676,7 @@ body {
 .offcanvas .sidebar .dropdown-menu > li > a:focus,
 .offcanvas .sidebar .sidebar-menu > li > a:active,
 .offcanvas .sidebar .dropdown-menu > li > a:active {
-  background-color: #f0f4f7;
+  background-color: #F0F4F7;
 }
 @media (max-width: 767px) {
   .page-content {
@@ -748,7 +748,7 @@ body {
   }
   .offcanvas .sidebar-label {
     text-transform: uppercase;
-    color: #8d99a6;
+    color: #8D99A6;
     font-size: 85%;
     margin: 0px;
     font-weight: bold;

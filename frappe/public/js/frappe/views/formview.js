@@ -29,6 +29,9 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 				frappe.model.new_comment(data);
 			});
 
+			frappe.realtime.on("doc_viewers", function(data) {
+				frappe.ui.form.set_viewers(data);
+			});
 		}
 
 

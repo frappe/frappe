@@ -42,9 +42,21 @@ frappe.socket = {
 			frappe.socket.doc_subscribe(frm.doctype, frm.docname);
 		});
 
-		// $(document).on('form-unload', function(e, frm) {
-		// 	frappe.socket.doc_unsubscribe(frm.doctype, frm.docname);
-		// });
+		$(document).on("form_refresh", function(e, frm) {
+			frappe.socket.doc_open(frm.doctype, frm.docname);
+		});
+
+		$(document).on('form-unload', function(e, frm) {
+			// frappe.socket.doc_unsubscribe(frm.doctype, frm.docname);
+			frappe.socket.doc_close(frm.doctype, frm.docname);
+		});
+
+		window.onbeforeunload = function() {
+			// if tab/window is closed, notify other users
+			if (cur_frm && cur_frm.doc) {
+				frappe.socket.doc_close(cur_frm.doctype, cur_frm.docname);
+			}
+		}
 	},
 	get_host: function() {
 		var host = frappe.urllib.get_base_url();
@@ -77,6 +89,14 @@ frappe.socket = {
 			}
 		})
 	},
+	doc_open: function(doctype, docname) {
+		// notify that the user has opened this doc
+		frappe.socket.socket.emit('doc_open', doctype, docname);
+	},
+	doc_close: function(doctype, docname) {
+		// notify that the user has closed this doc
+		frappe.socket.socket.emit('doc_close', doctype, docname);
+	},
 	setup_listeners: function() {
 		frappe.socket.socket.on('task_status_change', function(data) {
 			frappe.socket.process_response(data, data.status.toLowerCase());
@@ -88,16 +108,25 @@ frappe.socket = {
 	setup_reconnect: function() {
 		// subscribe again to open_tasks
 		frappe.socket.socket.on("connect", function() {
-			$.each(frappe.socket.open_tasks, function(task_id, opts) {
-				frappe.socket.subscribe(task_id, opts);
-			});
+			// wait for 5 seconds before subscribing again
+			// because it takes more time to start python server than nodejs server
+			// and we use validation requests to python server for subscribing
+			setTimeout(function() {
+				$.each(frappe.socket.open_tasks, function(task_id, opts) {
+					frappe.socket.subscribe(task_id, opts);
+				});
 
-			// re-connect open docs
-			$.each(frappe.socket.open_docs, function(d) {
-				if(locals[d.doctype] && locals[d.doctype][d.name]) {
-					frappe.socket.doc_subscribe(d.doctype, d.name);
+				// re-connect open docs
+				$.each(frappe.socket.open_docs, function(d) {
+					if(locals[d.doctype] && locals[d.doctype][d.name]) {
+						frappe.socket.doc_subscribe(d.doctype, d.name);
+					}
+				});
+
+				if (cur_frm && cur_frm.doc) {
+					frappe.socket.doc_open(cur_frm.doc.doctype, cur_frm.doc.name);
 				}
-			})
+			}, 5000);
 		});
 
 	},
@@ -134,5 +163,11 @@ frappe.provide("frappe.realtime");
 frappe.realtime.on = function(event, callback) {
 	if(frappe.socket.socket) {
 		frappe.socket.socket.on(event, callback);
+	}
+}
+
+frappe.realtime.publish = function(event, message) {
+	if(frappe.socket.socket) {
+		frappe.socket.socket.emit(event, message);
 	}
 }
