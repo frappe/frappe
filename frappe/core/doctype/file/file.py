@@ -151,9 +151,9 @@ class File(NestedSet):
 					r.raise_for_status()
 				except requests.exceptions.HTTPError, e:
 					if "404" in e.args[0]:
-						frappe.msgprint(_("File '{0}' not found").format(self.file_url))
-
-					raise
+						frappe.throw(_("File '{0}' not found").format(self.file_url))
+					else:
+						raise
 
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
