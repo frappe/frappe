@@ -33,8 +33,7 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
-		if not frappe.conf.get("developer_mode") and not self.custom:
-			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+		self.check_developer_mode()
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
@@ -50,6 +49,14 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
+
+	def check_developer_mode(self):
+		"""Throw exception if not developer mode or via patch"""
+		if frappe.flags.in_patch:
+			return
+
+		if not frappe.conf.get("developer_mode") and not self.custom:
+			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
 
 	def validate_document_type(self):
 		if self.document_type=="Transaction":
@@ -129,6 +136,11 @@ class DocType(Document):
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
+		if frappe.session.user != "Administrator":
+			self.throw(_("DocType can only be renamed by Administrator"))
+
+		self.check_developer_mode()
+
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
@@ -332,7 +344,7 @@ def validate_fields(meta):
 					frappe.throw(_("{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.").format(fieldname),
 						InvalidFieldNameError)
 
-		df = meta.get("fields", filters={"fieldname": meta.title_field})[0]	
+		df = meta.get("fields", filters={"fieldname": meta.title_field})[0]
 		if df:
 			_validate_title_field_pattern(df.options)
 			_validate_title_field_pattern(df.default)
