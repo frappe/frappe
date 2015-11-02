@@ -434,6 +434,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			if(docname.length >= 1){
 				me.dialog = frappe.ui.to_do_dialog({
 					obj: me,
+					method: 'frappe.desk.form.assign_to.add_multiple',
 					doctype: me.doctype,
 					docname: docname,
 					bulk_assign: true,

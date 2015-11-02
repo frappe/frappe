@@ -41,34 +41,29 @@ def add(args=None):
 		
 	else:
 		from frappe.utils import nowdate
-
-		todo_doc = []
 		
-		for docname in get_docname_list(args):
-			if args.get("re_assign"):
-				remove_from_todo_if_already_assign(args['doctype'], docname)
-			
-			d = frappe.get_doc({
-				"doctype":"ToDo",
-				"owner": args['assign_to'],
-				"reference_type": args['doctype'],
-				"reference_name": docname,
-				"description": args.get('description'),
-				"priority": args.get("priority", "Medium"),
-				"status": "Open",
-				"date": args.get('date', nowdate()),
-				"assigned_by": args.get('assigned_by', frappe.session.user),
-			}).insert(ignore_permissions=True)
+		if args.get("re_assign"):
+			remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 		
-			todo_doc.append(d)
-			# set assigned_to if field exists
-			if frappe.get_meta(args['doctype']).get_field("assigned_to"):
-				frappe.db.set_value(args['doctype'], docname, "assigned_to", args['assign_to'])
+		d = frappe.get_doc({
+			"doctype":"ToDo",
+			"owner": args['assign_to'],
+			"reference_type": args['doctype'],
+			"reference_name": args['name'],
+			"description": args.get('description'),
+			"priority": args.get("priority", "Medium"),
+			"status": "Open",
+			"date": args.get('date', nowdate()),
+			"assigned_by": args.get('assigned_by', frappe.session.user),
+		}).insert(ignore_permissions=True)
+	
+		# set assigned_to if field exists
+		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
+			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 
 	# notify
 	if not args.get("no_notification"):
-		for d in todo_doc:
-			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
+		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 				 description=args.get("description"), notify=args.get('notify'))
 				 
 	if not args.get("bulk_assign"):
@@ -76,25 +71,15 @@ def add(args=None):
 	else:
 		return {}
 
-def get_docname_list(args=None):
+def add_multiple(args=None):
 	import json
-	docname_list = []
+	docname_list = son.loads(args['name'])
 	
-	if not args:
-		args = frappe.local.form_dict
-	
-	if isinstance(args['name'], basestring):
-		try:
-			docname_list = json.loads(args['name'])
-		except:
-			docname_list = [args['name']]
-	
-	elif isinstance(args['name'], list):
-		docname_list = args['name']
-	
-	return docname_list
-
-def remove_from_todo_if_already_assign(doctype, docname):
+	for docname in docname_list:
+		args.update("name": docname)
+		add(args)
+		
+def remove_from_todo_if_already_assigned(doctype, docname):
 	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status":"Open"}, "owner")
 	if owner:
 		remove(doctype, docname, owner)
