@@ -91,7 +91,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		if(!me.dialog) {
 			me.dialog = frappe.ui.to_do_dialog({
 				obj: me,
-				method: 'frappe.desk.form.assign_to.add'
+				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
 				callback: function(r) { 

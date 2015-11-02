@@ -70,13 +70,18 @@ def add(args=None):
 		return get(args)
 	else:
 		return {}
-
+		
+@frappe.whitelist()
 def add_multiple(args=None):
 	import json
-	docname_list = son.loads(args['name'])
+	
+	if not args:
+		args = frappe.local.form_dict
+	
+	docname_list = json.loads(args['name'])
 	
 	for docname in docname_list:
-		args.update("name": docname)
+		args.update({"name": docname})
 		add(args)
 		
 def remove_from_todo_if_already_assigned(doctype, docname):
