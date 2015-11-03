@@ -126,9 +126,8 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	site = get_single_site(context)
 	frappe.init(site=site)
-	if not db_name:
-		db_name = frappe.conf.db_name
-		_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
+	db_name = db_name or frappe.conf.db_name or hashlib.sha1(site).hexdigest()[:10]
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
 
 @click.command('reinstall')
 @pass_context
@@ -447,7 +446,6 @@ def execute(context, method, args=None, kwargs=None):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			print frappe.local.site
 
 			if args:
 				args = eval(args)
@@ -466,7 +464,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print ret
+			print json.dumps(ret)
 
 @click.command('celery')
 @click.argument('args')
