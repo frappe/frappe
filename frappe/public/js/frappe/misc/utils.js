@@ -493,5 +493,22 @@ frappe.utils = {
 
 	is_image_file: function(filename) {
 		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
+	},
+
+	play_sound: function(name) {
+		try {
+			if (frappe.boot.user.mute_sounds) {
+				return;
+			}
+
+			var audio = $("#sound-" + name)[0];
+			audio.volume = audio.getAttribute("volume");
+			audio.play();
+
+		} catch(e) {
+			console.log("Cannot play sound", name, e);
+			// pass
+		}
+
 	}
 };

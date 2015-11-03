@@ -421,16 +421,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			}, true);
 		}
-		
+
 		//bulk assignment
 		me.page.add_menu_item(__("Assign To"), function(){
-	
+
 			docname = [];
-	
+
 			$.each(me.get_checked_items(), function(i, doc){
 				docname.push(doc.name);
 			})
-			
+
 			if(docname.length >= 1){
 				me.dialog = frappe.ui.to_do_dialog({
 					obj: me,
@@ -439,7 +439,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					docname: docname,
 					bulk_assign: true,
 					re_assign: true,
-					callback: function(){ 
+					callback: function(){
 						me.dirty = true;
 						me.refresh();
 					}
@@ -544,6 +544,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						doctype: me.doctype
 					},
 					callback: function() {
+						frappe.utils.play_sound("delete");
 						me.set_working(false);
 						me.dirty = true;
 						me.refresh();
