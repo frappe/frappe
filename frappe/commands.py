@@ -623,7 +623,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 @click.argument('path')
 @pass_context
 def _bulk_rename(context, doctype, path):
-	"Import CSV using data import tool"
+	"Rename multiple records via CSV file"
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
 
