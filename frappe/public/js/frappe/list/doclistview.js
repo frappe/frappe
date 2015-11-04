@@ -421,6 +421,36 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			}, true);
 		}
+
+		//bulk assignment
+		me.page.add_menu_item(__("Assign To"), function(){
+
+			docname = [];
+
+			$.each(me.get_checked_items(), function(i, doc){
+				docname.push(doc.name);
+			})
+
+			if(docname.length >= 1){
+				me.dialog = frappe.ui.to_do_dialog({
+					obj: me,
+					method: 'frappe.desk.form.assign_to.add_multiple',
+					doctype: me.doctype,
+					docname: docname,
+					bulk_assign: true,
+					re_assign: true,
+					callback: function(){
+						me.dirty = true;
+						me.refresh();
+					}
+				});
+				me.dialog.clear();
+				me.dialog.show();
+			}
+			else{
+				frappe.msgprint(__("Select records for assignment"))
+			}
+		}, true)
 	},
 
 	init_star: function() {
@@ -514,6 +544,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						doctype: me.doctype
 					},
 					callback: function() {
+						frappe.utils.play_sound("delete");
 						me.set_working(false);
 						me.dirty = true;
 						me.refresh();

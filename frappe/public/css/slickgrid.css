@@ -13,7 +13,7 @@
   border-bottom: 1px solid #d1d8dd;
 }
 .slick-headerrow-column {
-  background-color: #f7fafc !important;
+  background-color: #F7FAFC !important;
   text-overflow: clip;
 }
 .slick-headerrow-column input {
@@ -37,9 +37,9 @@
 .slick-header-columns {
   font-size: 12px;
   font-weight: bold;
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   border-color: #d1d8dd !important;
-  color: #8d99a6 !important;
+  color: #8D99A6 !important;
 }
 .slick-header-column:hover,
 .slick-header-column-active {

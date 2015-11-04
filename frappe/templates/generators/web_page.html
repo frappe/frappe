@@ -12,16 +12,6 @@
 	{% include 'templates/includes/comments/comments.html' %}
 	{%- endif %}
 </div>
-<script>
-$(function() {
-	if(window.logged_in && getCookie("system_user")==="yes") {
-		frappe.has_permission("Web Page", "{{ docname }}", "write", function(r) {
-			frappe.require("/assets/frappe/js/frappe/website/editable.js");
-			frappe.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
-		});
-	}
-});
-</script>
 {% endblock %}
 
 {% block style %}{{ style or "" }}{% endblock %}

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import strip_html
+from frappe.website.utils import get_full_index
 from frappe import _
 from jinja2.utils import concat
 from jinja2 import meta
@@ -109,18 +110,34 @@ def set_sidebar(out, context):
 def add_index(out, context):
 	"""Add index, next button if `{index}`, `{next}` is present."""
 	# table of contents
+
+	extn = ""
+	if context.page_links_with_extn:
+		extn = ".html"
+
 	if "{index}" in out.get("content", "") and context.get("children"):
-		html = frappe.get_template("templates/includes/static_index.html").render({
-				"items": context["children"]})
+		html = frappe.get_template("templates/includes/full_index.html").render({
+				"full_index": get_full_index(context.pathname, extn = extn),
+				"url_prefix": context.url_prefix
+			})
 
 		out["content"] = out["content"].replace("{index}", html)
 
 	# next and previous
 	if "{next}" in out.get("content", ""):
 		next_item = context.doc.get_next()
+		next_item.extn = "" if context.doc.has_children(next_item.name) else extn
+		if context.relative_links:
+			next_item.name = next_item.page_name or ""
+		else:
+			if next_item.name[0]!="/":
+				next_item.name = "/" + next_item.name
+
 		if next_item:
-			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
-			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
+			if not next_item.title:
+				next_item.title = ""
+			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}{extn}">'\
+				+_("Next")+': {title}</a></p>').format(**next_item)
 		else:
 			html = ""
 

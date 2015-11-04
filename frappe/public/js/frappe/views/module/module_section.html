@@ -4,8 +4,8 @@
 		{% if (item.description) { %}
 		<div class="col-xs-8">
 			<h4>{%= item.label || item.name %}</h4>
-			{% if (item.type==="doctype") { %}
-			<span class="open-notification hide" data-doctype="{%= item.name %}"></span>
+			{% if (item.type==="doctype" || item.type==="page") { %}
+			<span class="open-notification hide" data-doctype="{%= item.data_doctype || item.name %}"></span>
 			{% } %}
 			<p class="text-muted small module-item-description hidden-xs">{%= item.description %}</p>
 		</div>

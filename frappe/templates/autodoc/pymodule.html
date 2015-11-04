@@ -1,12 +1,12 @@
 <!-- title: {{ name }} -->
 
-{%- from "templates/autodoc/macros.html" import automodule, github_link,
-	version, discuss_link -%}
-<p>
+{%- from "templates/autodoc/macros.html" import automodule, source_link,
+	version -%}
+<div class="dev-header">
 {{ version(app.name) }}
-{{ github_link(app, name.replace(".", "/") + ".py") }}
-</p>
+{{ source_link(app, name.replace(".", "/") + ".py") }}
+</div>
 
 {{ automodule(name) }}
 
-{{ discuss_link() }}
+<!-- autodoc -->

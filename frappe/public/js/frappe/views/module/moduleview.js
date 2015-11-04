@@ -126,7 +126,8 @@ frappe.views.moduleview.ModuleView = Class.extend({
             if (item.type == "doctype") {
 				// save the last page from the breadcrumb was accessed
 				frappe.breadcrumbs.set_doctype_module(item.name, this.module);
-                route = ["List", item.name];
+				if(!item.view) item.view = "List"
+                route = [item.view, item.name];
             } else if (item.type == "page") {
                 route = [item.name]
             } else if (item.type == "report") {

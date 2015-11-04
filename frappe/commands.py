@@ -126,9 +126,8 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	site = get_single_site(context)
 	frappe.init(site=site)
-	if not db_name:
-		db_name = frappe.conf.db_name
-		_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
+	db_name = db_name or frappe.conf.db_name or hashlib.sha1(site).hexdigest()[:10]
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
 
 @click.command('reinstall')
 @pass_context
@@ -350,20 +349,75 @@ def build_website(context):
 		finally:
 			frappe.destroy()
 
-@click.command('setup-docs')
+@click.command('make-docs')
 @pass_context
-def setup_docs(context):
+@click.argument('app')
+@click.argument('docs_version')
+def make_docs(context, app, docs_version):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
-	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			setup_docs()
-			statics.sync_statics(rebuild=True)
+			make = setup_docs(app)
+			make.build(docs_version)
 		finally:
 			frappe.destroy()
+
+@click.command('sync-docs')
+@pass_context
+@click.argument('app')
+def sync_docs(context, app):
+	"Sync docs from /docs folder into the database (Web Page)"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.sync_docs()
+		finally:
+			frappe.destroy()
+
+
+@click.command('write-docs')
+@pass_context
+@click.argument('app')
+@click.argument('target')
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def write_docs(context, app, target, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.make_docs(target, local)
+		finally:
+			frappe.destroy()
+
+@click.command('build-docs')
+@pass_context
+@click.argument('app')
+@click.argument('docs_version')
+@click.argument('target')
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def build_docs(context, app, docs_version, target, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.build(docs_version)
+			make.sync_docs()
+			make.make_docs(target, local)
+		finally:
+			frappe.destroy()
+
 
 @click.command('reset-perms')
 @pass_context
@@ -392,7 +446,6 @@ def execute(context, method, args=None, kwargs=None):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			print frappe.local.site
 
 			if args:
 				args = eval(args)
@@ -411,7 +464,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print ret
+			print json.dumps(ret)
 
 @click.command('celery')
 @click.argument('args')
@@ -570,7 +623,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 @click.argument('path')
 @pass_context
 def _bulk_rename(context, doctype, path):
-	"Import CSV using data import tool"
+	"Rename multiple records via CSV file"
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
 
@@ -926,7 +979,10 @@ commands = [
 	destroy_all_sessions,
 	sync_www,
 	build_website,
-	setup_docs,
+	make_docs,
+	sync_docs,
+	write_docs,
+	build_docs,
 	reset_perms,
 	execute,
 	celery,

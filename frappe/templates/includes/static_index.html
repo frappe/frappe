@@ -4,7 +4,7 @@
 		<ol>
 			{% for item in items %}
 			<li>
-				<a href="/{{ item.name }}">{{ item.title }}</a>
+				<a href="{% if relative_links %}{{ item.page_name }}{% else %}/{{ item.name }}{% endif %}{{ item.extn or '' }}">{{ item.title }}</a>
 			</li>
 			{% endfor %}
 		</ol>

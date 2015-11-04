@@ -437,7 +437,7 @@ def get_active_users():
 	return frappe.db.sql("""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ({})
-		and hour(timediff(now(), last_login)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
+		and hour(timediff(now(), last_active)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_website_users():
 	"""Returns total no. of website users"""
@@ -448,7 +448,7 @@ def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
 	return frappe.db.sql("""select count(*) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'
-		and hour(timediff(now(), last_login)) < 72""")[0][0]
+		and hour(timediff(now(), last_active)) < 72""")[0][0]
 
 def get_permission_query_conditions(user):
 	if user=="Administrator":

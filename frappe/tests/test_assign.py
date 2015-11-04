@@ -9,7 +9,7 @@ class TestAssign(unittest.TestCase):
 	def test_assign(self):
 		todo = frappe.get_doc({"doctype":"ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):
-			frappe.get_doc({"doctype":"User", "email":"test@example.com", "first_name":"Test"})
+			frappe.get_doc({"doctype":"User", "email":"test@example.com", "first_name":"Test"}).insert()
 
 		added = frappe.desk.form.assign_to.add({
 			"assign_to": "test@example.com",

@@ -275,17 +275,20 @@ frappe.PrintFormatBuilder = Class.extend({
 		// visible_columns
 		var me = this;
 		if(!f.visible_columns) {
-			f.visible_columns = []
-			$.each(frappe.get_meta(f.options).fields, function(i, _f) {
-				if(!in_list(["Section Break", "Column Break"], _f.fieldtype) &&
-					!_f.print_hide && f.label) {
-
-					// column names set as fieldname|width
-					f.visible_columns.push({fieldname: _f.fieldname,
-						print_width: (_f.width || ""), print_hide:0});
-				}
-			});
+			me.init_visible_columns(f);
 		}
+	},
+	init_visible_columns: function(f) {
+		f.visible_columns = []
+		$.each(frappe.get_meta(f.options).fields, function(i, _f) {
+			if(!in_list(["Section Break", "Column Break"], _f.fieldtype) &&
+				!_f.print_hide && f.label) {
+
+				// column names set as fieldname|width
+				f.visible_columns.push({fieldname: _f.fieldname,
+					print_width: (_f.width || ""), print_hide:0});
+			}
+		});
 	},
 	setup_sortable: function() {
 		var me = this;
@@ -521,7 +524,10 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	get_visible_columns_string: function(f) {
-		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",")
+		if(!f.visible_columns) {
+			this.init_visible_columns(f);
+		}
+		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",");
 	},
 	get_no_content: function() {
 		return '<div class="text-extra-muted" data-no-content>'+__("Edit to add content")+'</div>'

@@ -9,7 +9,7 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
 import frappe, frappe.utils
-from frappe.utils.file_manager import delete_file_data_content
+from frappe.utils.file_manager import delete_file_data_content, get_content_hash
 from frappe import _
 
 from frappe.utils.nestedset import NestedSet
@@ -67,7 +67,11 @@ class File(NestedSet):
 		if self.is_new():
 			self.validate_duplicate_entry()
 		self.validate_folder()
-		self.validate_file()
+
+		if not self.flags.ignore_file_validate:
+			self.validate_file()
+			self.generate_content_hash()
+
 		self.set_folder_size()
 
 	def set_folder_size(self):
@@ -108,7 +112,7 @@ class File(NestedSet):
 			if not self.file_name:
 				self.file_name = self.file_url.split("/files/")[-1]
 
-			if not os.path.exists(get_files_path(self.file_name)):
+			if not os.path.exists(get_files_path(self.file_name.lstrip("/"))):
 				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):
@@ -125,6 +129,18 @@ class File(NestedSet):
 			if len(n_records) > 0:
 				self.duplicate_entry = n_records[0][0]
 				frappe.throw(frappe._("Same file has already been attached to the record"), frappe.DuplicateEntryError)
+
+	def generate_content_hash(self):
+		if self.content_hash or not self.file_url:
+			return
+
+		if self.file_url.startswith("/files/"):
+			try:
+				with open(get_files_path(self.file_name.lstrip("/")), "r") as f:
+					self.content_hash = get_content_hash(f.read())
+			except IOError:
+				frappe.msgprint(_("File {0} does not exist").format(self.file_url))
+				raise
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
@@ -151,9 +167,9 @@ class File(NestedSet):
 					r.raise_for_status()
 				except requests.exceptions.HTTPError, e:
 					if "404" in e.args[0]:
-						frappe.msgprint(_("File '{0}' not found").format(self.file_url))
-
-					raise
+						frappe.throw(_("File '{0}' not found").format(self.file_url))
+					else:
+						raise
 
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)

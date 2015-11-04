@@ -1,11 +1,13 @@
 <!-- title: {{ title }} -->
 
-{% from "templates/autodoc/macros.html" import github_link, version %}
-<p>
+{% from "templates/autodoc/macros.html" import source_link, version %}
+<div class="dev-header">
 {{ version(app.name) }}
-{{ github_link(app, title, True) }}
-</p>
+{{ source_link(app, title, True) }}
+</div>
 
 <h3>Package Contents</h3>
 
 {index}
+
+<!-- autodoc -->
