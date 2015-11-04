@@ -135,6 +135,8 @@ frappe.request.call = function(opts) {
 
 	frappe.last_request = ajax_args.data;
 
+	frappe.ui.form.is_saving = true;
+
 	return $.ajax(ajax_args)
 		.always(function(data, textStatus, xhr) {
 			if(typeof data==="string") {
@@ -148,6 +150,7 @@ frappe.request.call = function(opts) {
 			if(opts.always) {
 				opts.always(data);
 			}
+			frappe.ui.form.is_saving = false;
 		})
 		.done(function(data, textStatus, xhr) {
 			var status_code_handler = statusCode[xhr.statusCode().status];
