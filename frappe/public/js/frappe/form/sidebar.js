@@ -20,6 +20,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_assignments();
 		this.make_attachments();
 		this.make_shared();
+		this.make_viewers();
 		this.make_tags();
 
 		this.bind_events();
@@ -46,6 +47,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
+			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
@@ -95,6 +97,12 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.frm.shared = new frappe.ui.form.Share({
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared")
+		});
+	},
+	make_viewers: function() {
+		this.frm.viewers = new frappe.ui.form.Viewers({
+			frm: this.frm,
+			parent: this.sidebar.find(".form-viewers")
 		});
 	},
 	add_user_action: function(label, click) {

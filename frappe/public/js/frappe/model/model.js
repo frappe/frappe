@@ -153,6 +153,12 @@ $.extend(frappe.model, {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
 	},
 
+	set_docinfo: function(doctype, name, key, value) {
+		if (frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name]) {
+			frappe.model.docinfo[doctype][name][key] = value;
+		}
+	},
+
 	new_comment: function(comment) {
 		var reference_doctype = comment.comment_doctype || comment.reference_doctype;
 		var reference_name = comment.comment_docname || comment.reference_name;
