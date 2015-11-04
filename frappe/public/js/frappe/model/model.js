@@ -472,6 +472,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {
+						frappe.utils.play_sound("delete");
 						frappe.model.clear_doc(doctype, docname);
 						if(callback) callback(r,rt);
 					}

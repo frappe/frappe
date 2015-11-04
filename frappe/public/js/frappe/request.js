@@ -84,14 +84,16 @@ frappe.request.call = function(opts) {
 				}
 			}
 
+			frappe.utils.play_sound("error");
 			msgprint(__("Not permitted"));
 		},
 		508: function(xhr) {
+			frappe.utils.play_sound("error");
 			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
 		},
 		413: function(data, xhr) {
 			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
-				[(frappe.boot.max_file_size || 5242880) / 1048576]))
+				[(frappe.boot.max_file_size || 5242880) / 1048576]));
 		},
 		417: function(xhr) {
 			var r = xhr.responseJSON;
@@ -102,6 +104,7 @@ frappe.request.call = function(opts) {
 					r = xhr.responseText;
 				}
 			}
+
 			opts.error_callback && opts.error_callback(r);
 		},
 		501: function(data, xhr) {
@@ -109,6 +112,7 @@ frappe.request.call = function(opts) {
 			opts.error_callback && opts.error_callback(data, xhr.responseText);
 		},
 		500: function(xhr) {
+			frappe.utils.play_sound("error");
 			msgprint(__("Server Error: Please check your server logs or contact tech support."))
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
