@@ -10,7 +10,6 @@ Frappe version 6.7 onwards includes a full-blown documentation generator so that
 
 The first step is to setup the docs folder. For that you must create a new file in your app `config/docs.py` if it is not auto-generated. In your `docs.py` file, add the following module properties.
 
-    from __future__ import unicode_literals
 
     source_link = "https://github.com/[orgname]/[reponame]"
     docs_base_url = "https://[orgname].github.io/[reponame]"

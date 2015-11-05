@@ -120,7 +120,7 @@ class setup_docs(object):
 				context = self.app_context)
 
 		with open(os.path.join(self.docs_path, "license.html"), "w") as license_file:
-			license_file.write(html)
+			license_file.write(html.encode("utf-8"))
 
 		# contents
 		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
