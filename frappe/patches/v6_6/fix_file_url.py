@@ -11,11 +11,15 @@ def fix_file_urls():
 	for file in frappe.db.sql_list("""select name from `tabFile` where file_url like 'files/%'"""):
 		file = frappe.get_doc("File", file)
 		file.db_set("file_url", "/" + file.file_url, update_modified=False)
-		file.validate_file()
-		file.db_set("file_name", file.file_name, update_modified=False)
-		if not file.content_hash:
-			file.generate_content_hash()
-			file.db_set("content_hash", file.content_hash, update_modified=False)
+		try:
+			file.validate_file()
+			file.db_set("file_name", file.file_name, update_modified=False)
+			if not file.content_hash:
+				file.generate_content_hash()
+				file.db_set("content_hash", file.content_hash, update_modified=False)
+
+		except IOError:
+			pass
 
 def fix_attach_field_urls():
 	# taken from an old patch
