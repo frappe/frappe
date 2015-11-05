@@ -593,7 +593,10 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	var newdoc = frappe.model.copy_doc(this.doc, from_amend);
 
 	newdoc.idx = null;
-	if(onload)onload(newdoc);
+	newdoc.__run_link_triggers = false;
+	if(onload) {
+		onload(newdoc);
+	}
 	loaddoc(newdoc.doctype, newdoc.name);
 }
 
