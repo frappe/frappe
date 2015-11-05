@@ -262,7 +262,7 @@ class setup_docs(object):
 		frappe.local.flags.home_page = "index"
 
 		for page in frappe.db.sql("""select parent_website_route,
-			page_name from `tabWeb Page`""", as_dict=True):
+			page_name from `tabWeb Page` where ifnull(template_path, '')!=''""", as_dict=True):
 
 			if page.parent_website_route:
 				path = page.parent_website_route + "/" + page.page_name
