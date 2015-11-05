@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "allow_import": 1, 
- "allow_rename": 0, 
+ "allow_rename": 1, 
  "autoname": "field:subject", 
  "creation": "2014-06-19 05:20:26.331041", 
  "custom": 0, 
@@ -83,7 +83,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-10-02 07:39:13.407883", 
+ "modified": "2015-11-05 01:48:30.209422", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Standard Reply", 
