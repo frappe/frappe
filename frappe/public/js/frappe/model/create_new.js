@@ -219,7 +219,6 @@ $.extend(frappe.model, {
 
 		} else if (!opts.source_name && opts.frm) {
 			opts.source_name = opts.frm.doc.name;
-
 		}
 
 		return frappe.call({
@@ -232,6 +231,9 @@ $.extend(frappe.model, {
 			callback: function(r) {
 				if(!r.exc) {
 					frappe.model.sync(r.message);
+					if(opts.run_link_triggers) {
+						frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
+					}
 					frappe.set_route("Form", r.message.doctype, r.message.name);
 				}
 			}
