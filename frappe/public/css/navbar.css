@@ -42,7 +42,7 @@
   background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
-  color: #6C7680;
+  color: #6c7680;
   font-size: inherit;
   position: relative;
   right: 24px;
@@ -61,7 +61,7 @@
 }
 .navbar-center {
   float: left;
-  color: #6C7680;
+  color: #6c7680;
 }
 #navbar-breadcrumbs > li > a:before {
   font-family: FontAwesome;
@@ -78,12 +78,12 @@
   top: 3px;
   content: "\f105";
   margin-right: 10px;
-  color: #C0C9D2;
+  color: #c0c9d2;
 }
 #navbar-breadcrumbs > li > a:hover:before,
 #navbar-breadcrumbs > li > a:focus:before,
 #navbar-breadcrumbs > li > a:active:before {
-  color: #36414C;
+  color: #36414c;
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
@@ -99,6 +99,5 @@
   display: inline-block;
 }
 .toggle-sidebar {
-  margin-top: 8px;
   margin-right: 15px;
 }
