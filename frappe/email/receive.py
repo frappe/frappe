@@ -203,7 +203,9 @@ class Email:
 		self.text_content = ''
 		self.html_content = ''
 		self.attachments = []
+		self.cid_map = {}
 		self.parse()
+		self.file_name_map = {}
 		self.set_content_and_type()
 		self.set_subject()
 
@@ -293,6 +295,8 @@ class Email:
 				'fcontent': fcontent,
 			})
 
+			self.cid_map[fname] = part.get("Content-Id").strip("><")
+
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
 		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
@@ -303,6 +307,8 @@ class Email:
 				file_data = save_file(attachment['fname'], attachment['fcontent'],
 					doc.doctype, doc.name)
 				saved_attachments.append(file_data.file_name)
+
+				self.file_name_map[file_data.file_name] = file_data.file_url
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass

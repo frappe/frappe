@@ -143,6 +143,7 @@ class setup_docs(object):
 
 		Called as `bench --site [sitename] sync-docs [appname]`
 		"""
+		frappe.db.sql("delete from `tabWeb Page`")
 		sync = frappe.website.statics.sync()
 		sync.start(path="docs", rebuild=True, apps = [self.app])
 

@@ -326,7 +326,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 				].join("\n");
 
 				var communication_composer = new frappe.views.CommunicationComposer({
-					subject: 'Error Report',
+					subject: 'Error Report [' + frappe.datetime.nowdate() + ']',
 					recipients: error_report_email,
 					message: error_report_message,
 					doc: {
