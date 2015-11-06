@@ -130,7 +130,7 @@ def add_index(out, context):
 		if context.relative_links:
 			next_item.name = next_item.page_name or ""
 		else:
-			if next_item.name[0]!="/":
+			if next_item and next_item.name[0]!="/":
 				next_item.name = "/" + next_item.name
 
 		if next_item:
