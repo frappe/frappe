@@ -18,6 +18,7 @@ base_template_path = "templates/pages/print.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
+	"""Build context for print"""
 	if not frappe.form_dict.doctype or not frappe.form_dict.name:
 		return {
 			"body": """<h1>Error</h1>
@@ -28,7 +29,7 @@ def get_context(context):
 	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format = get_print_format_doc()
+	print_format = get_print_format_doc(None, meta = meta)
 
 	return {
 		"body": get_html(doc, print_format = print_format,
@@ -39,13 +40,11 @@ def get_context(context):
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name
 	}
 
-def get_print_format_doc(print_format_name=None):
+def get_print_format_doc(print_format_name, meta):
 	"""Returns print format document"""
 	if not print_format_name:
-		print_format_name = frappe.form_dict.format or "Standard"
-
-	if not print_format_name:
-		print_format_name = "Standard"
+		print_format_name = frappe.form_dict.format \
+			or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
@@ -59,12 +58,6 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		no_letterhead = cint(no_letterhead)
 	elif no_letterhead is None:
 		no_letterhead = not cint(frappe.db.get_single_value("Print Settings", "with_letterhead"))
-
-	if isinstance(doc, basestring) and isinstance(name, basestring):
-		doc = frappe.get_doc(doc, name)
-
-	if isinstance(doc, basestring):
-		doc = frappe.get_doc(json.loads(doc))
 
 	doc.flags.in_print = True
 
@@ -132,7 +125,15 @@ def get_html(doc, name=None, print_format=None, meta=None,
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
-	print_format = get_print_format_doc(print_format)
+	"""Returns `html` and `style` of print format, used in PDF etc"""
+
+	if isinstance(doc, basestring) and isinstance(name, basestring):
+		doc = frappe.get_doc(doc, name)
+
+	if isinstance(doc, basestring):
+		doc = frappe.get_doc(json.loads(doc))
+
+	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 	return {
 		"html": get_html(doc, name=name, print_format=print_format, meta=meta,
 	no_letterhead=no_letterhead, trigger_print=trigger_print),

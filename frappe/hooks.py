@@ -27,7 +27,7 @@ to ERPNext.
 """
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.7.6"
+app_version = "6.7.7"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
