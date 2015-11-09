@@ -136,7 +136,7 @@ class DocType(Document):
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
-		if frappe.session.user != "Administrator":
+		if not self.custom and frappe.session.user != "Administrator":
 			frappe.throw(_("DocType can only be renamed by Administrator"))
 
 		self.check_developer_mode()
