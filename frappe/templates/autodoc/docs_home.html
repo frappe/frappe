@@ -6,7 +6,7 @@
   <p>{{ app.sub_heading }}</p>
 </div>
 
-<div class="section" style="padding-top: 0px;">
+<div class="section" style="padding-top: 0px; margin-top: -30px;">
     <div class="fake-browser-frame">
     	<img class="img-responsive browser-image feature-image"
             src="assets/img/home.png">
@@ -18,10 +18,6 @@
     {{ app.long_description|markdown }}
 </div>
 {% endif %}
-
-<div class="section text-center">
-    <a href="contents.html" class="btn btn-lg btn-primary">Table of Contents</a>
-</div>
 
 {% if not app.hide_install %}
 <div class="section">
