@@ -176,3 +176,7 @@ sounds = [
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]
+
+get_translated_dict = {
+	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
+}
