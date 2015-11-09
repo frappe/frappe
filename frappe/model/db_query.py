@@ -248,7 +248,7 @@ class DatabaseQuery(object):
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
-			elif f.operator == "like" or (isinstance(f.value, basestring) and
+			elif f.operator in ("like", "not like") or (isinstance(f.value, basestring) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
 					fallback = '""'
