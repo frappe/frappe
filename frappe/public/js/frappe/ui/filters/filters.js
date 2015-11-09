@@ -150,7 +150,7 @@ frappe.ui.Filter = Class.extend({
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
 			var condition = $(this).val();
-			if(in_list(["in", "like", "not in"], condition)) {
+			if(in_list(["in", "like", "not in", "not like"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
 				if(!me.field.desc_area) {
 					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
@@ -210,12 +210,12 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
-		
+
 		// all fields shown in filters
 		if(df.hidden) {
 			df.hidden = 0;
 		}
-		
+
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
@@ -317,7 +317,7 @@ frappe.ui.Filter = Class.extend({
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(this.get_condition()==='like') {
+		if(this.get_condition().indexOf('like', 'not like')!==-1) {
 			// automatically append wildcards
 			if(val) {
 				if(val.slice(0,1) !== "%") {

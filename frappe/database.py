@@ -344,7 +344,7 @@ class Database:
 					_rhs = " ({0})".format(", ".join(inner_list))
 					del values[key]
 
-			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in"]:
+			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in", "not like"]:
 				_operator = "="
 
 			if "[" in key:
