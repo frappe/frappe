@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Frappe Framework</title>
+	<title>Generating Documentation Website for your App</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -116,9 +116,7 @@
 
 <p>The first step is to setup the docs folder. For that you must create a new file in your app <code>config/docs.py</code> if it is not auto-generated. In your <code>docs.py</code> file, add the following module properties.</p>
 
-<pre><code>from __future__ import unicode_literals
-
-source_link = "https://github.com/[orgname]/[reponame]"
+<pre><code>source_link = "https://github.com/[orgname]/[reponame]"
 docs_base_url = "https://[orgname].github.io/[reponame]"
 headline = "This is what my app does"
 sub_heading = "Slightly more details with key features"
@@ -157,13 +155,7 @@ def get_context(context):
 <ol>
 <li>Add your pages as <code>.md</code> or <code>.html</code> pages</li>
 <li>Optionally add <code>.css</code> files with the same name that will be automatically served</li>
-<li>Add index by adding <code>
-
-
-    <ol>
-    
-    </ol>
-</code></li>
+<li>Add index by adding <code>{index}</code></li>
 </ol>
 
 <h3>3. Linking</h3>
@@ -178,6 +170,20 @@ def get_context(context):
 <p>You can add images in the <code>/docs/assets</code> folder. You can add links to the images as follows:</p>
 
 <pre><code>&lt;img src="{{ docs_base_url }}/assets/img/my-img/gif" class="screenshot"&gt;
+</code></pre>
+
+<hr />
+
+<h2>Viewing Locally</h2>
+
+<p>To test your docs locally, add a <code>--local</code> option to the <code>build-docs</code> command.</p>
+
+<pre><code>bench --site [site] build-docs [appname] current /home/docs/reponame --local
+</code></pre>
+
+<p>Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer</p>
+
+<pre><code>python -m SimpleHTTPServer 8080
 </code></pre>
 
 <hr />
@@ -200,20 +206,6 @@ $ git rm -rf .
 </code></pre>
 
 <p>To check your documentation online go to: https://[orgname].github.io/[reponame]</p>
-
-<hr />
-
-<h2>Viewing Locally</h2>
-
-<p>To test your docs locally, add a <code>--local</code> option to the <code>build-docs</code> command.</p>
-
-<pre><code>bench --site [site] build-docs [appname] current /home/docs/reponame --local
-</code></pre>
-
-<p>Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer</p>
-
-<pre><code>python -m SimpleHTTPServer 8080
-</code></pre>
 	</article>
 	
 </div>
