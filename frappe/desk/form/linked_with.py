@@ -108,7 +108,11 @@ def _get_linked_doctypes(doctype):
 			ret[dt] = {"get_parent": True}
 
 	for dt in ret.keys():
-		doctype_module = load_doctype_module(dt)
+		try:
+			doctype_module = load_doctype_module(dt)
+		except ImportError:
+			# in case of Custom DocType
+			continue
 
 		if getattr(doctype_module, "exclude_from_linked_with", False):
 			del ret[dt]
