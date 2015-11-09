@@ -175,7 +175,7 @@ class EmailAccount(Document):
 		# replace inline images
 		dirty = False
 		for file_name in communication._attachments:
-			if email.cid_map[file_name]:
+			if file_name in email.cid_map and email.cid_map[file_name]:
 				dirty = True
 				communication.content = communication.content.replace("cid:{0}".format(email.cid_map[file_name]),
 					email.file_name_map[file_name])

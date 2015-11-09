@@ -295,7 +295,9 @@ class Email:
 				'fcontent': fcontent,
 			})
 
-			self.cid_map[fname] = (part.get("Content-Id") or "").strip("><")
+			cid = (part.get("Content-Id") or "").strip("><")
+			if cid:
+				self.cid_map[fname] = cid
 
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
