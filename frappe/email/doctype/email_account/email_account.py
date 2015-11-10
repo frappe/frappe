@@ -139,7 +139,8 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					communication.notify(attachments=communication._attachments, fetched_from_email_account=True)
+					attachments = [d.file_name for d in communication._attachments]
+					communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
@@ -174,11 +175,11 @@ class EmailAccount(Document):
 
 		# replace inline images
 		dirty = False
-		for file_name in communication._attachments:
-			if file_name in email.cid_map and email.cid_map[file_name]:
+		for file in communication._attachments:
+			if file.name in email.cid_map and email.cid_map[file.name]:
 				dirty = True
-				communication.content = communication.content.replace("cid:{0}".format(email.cid_map[file_name]),
-					email.file_name_map[file_name])
+				communication.content = communication.content.replace("cid:{0}".format(email.cid_map[file.name]),
+					file.file_url)
 
 		if dirty:
 			# not sure if using save() will trigger anything

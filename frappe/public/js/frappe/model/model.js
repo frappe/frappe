@@ -42,7 +42,7 @@ $.extend(frappe.model, {
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 			if(doc) {
 				// current document is dirty, show message if its not me
-				if(cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
+				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
 					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
 						doc.__needs_refresh = true;
 						cur_frm.show_if_needs_refresh();
