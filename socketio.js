@@ -199,13 +199,20 @@ function can_subscribe_doc(args) {
 			docname: args.docname
 		})
 		.end(function(err, res) {
-			if(err) console.log(err);
-			if(!res) {
+			if (!res) {
 				console.log("No response for doc_subscribe");
+				
+			} else if (res.status == 403) {
 				return;
-			}
-			if(res.status == 200) {
+				
+			} else if (err) {
+				console.log(err);
+				
+			} else if (res.status == 200) {
 				args.callback(err, res);
+				
+			} else {
+				console.log("Something went wrong", err, res);
 			}
 		});
 }
