@@ -205,7 +205,6 @@ class Email:
 		self.attachments = []
 		self.cid_map = {}
 		self.parse()
-		self.file_name_map = {}
 		self.set_content_and_type()
 		self.set_subject()
 
@@ -308,9 +307,11 @@ class Email:
 			try:
 				file_data = save_file(attachment['fname'], attachment['fcontent'],
 					doc.doctype, doc.name)
-				saved_attachments.append(file_data.file_name)
+				saved_attachments.append(file_data)
 
-				self.file_name_map[file_data.file_name] = file_data.file_url
+				if attachment['fname'] in self.cid_map:
+					self.cid_map[file_data.name] = self.cid_map[attachment['fname']]
+
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass
