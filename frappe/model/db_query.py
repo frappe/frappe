@@ -294,7 +294,15 @@ class DatabaseQuery(object):
 			f = (self.doctype, f[0], f[1], f[2])
 
 		elif len(f) != 4:
-			frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): " + str(f))
+			frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+
+		if not f[2]:
+			# if operator is missing
+			f[2] = "="
+
+		valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
+		if f[2] not in valid_operators:
+			frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
 
 		return frappe._dict({
 			"doctype": f[0],
