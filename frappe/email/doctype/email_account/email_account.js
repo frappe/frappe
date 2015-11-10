@@ -16,12 +16,20 @@ email_defaults = {
 		"use_tls": 1
 	},
 	"Yahoo Mail": {
-		"pop3_server": "pop.mail.yahoo.com ",
+		"pop3_server": "pop.mail.yahoo.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",
 		"smtp_port": 465,
 		"use_tls": 1
+	},
+	"Yandex.Mail": {
+		"pop3_server": "pop.yandex.com",
+		"use_ssl": 1,
+		"enable_outgoing": 1,
+		"smtp_server": "smtp.yandex.com",
+		"smtp_port": 465,
+		"use_tls": 0
 	},
 };
 
@@ -53,4 +61,3 @@ frappe.ui.form.on("Email Account", {
 		frm.events.notify_if_unreplied(frm);
 	}
 });
-
