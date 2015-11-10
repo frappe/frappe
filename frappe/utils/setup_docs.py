@@ -120,7 +120,7 @@ class setup_docs(object):
 				context = self.app_context)
 
 		with open(os.path.join(self.docs_path, "license.html"), "w") as license_file:
-			license_file.write(html)
+			license_file.write(html.encode("utf-8"))
 
 		# contents
 		shutil.copy(os.path.join(frappe.get_app_path("frappe", "templates", "autodoc",
@@ -143,6 +143,7 @@ class setup_docs(object):
 
 		Called as `bench --site [sitename] sync-docs [appname]`
 		"""
+		frappe.db.sql("delete from `tabWeb Page`")
 		sync = frappe.website.statics.sync()
 		sync.start(path="docs", rebuild=True, apps = [self.app])
 
@@ -262,7 +263,7 @@ class setup_docs(object):
 		frappe.local.flags.home_page = "index"
 
 		for page in frappe.db.sql("""select parent_website_route,
-			page_name from `tabWeb Page`""", as_dict=True):
+			page_name from `tabWeb Page` where ifnull(template_path, '')!=''""", as_dict=True):
 
 			if page.parent_website_route:
 				path = page.parent_website_route + "/" + page.page_name

@@ -115,13 +115,16 @@ def add_index(out, context):
 	if context.page_links_with_extn:
 		extn = ".html"
 
-	if "{index}" in out.get("content", "") and context.get("children"):
-		html = frappe.get_template("templates/includes/full_index.html").render({
-				"full_index": get_full_index(context.pathname, extn = extn),
-				"url_prefix": context.url_prefix
-			})
+	if "{index}" in out.get("content", "") and context.get("children") and len(context.children):
+		full_index = get_full_index(context.pathname, extn = extn)
 
-		out["content"] = out["content"].replace("{index}", html)
+		if full_index:
+			html = frappe.get_template("templates/includes/full_index.html").render({
+					"full_index": full_index,
+					"url_prefix": context.url_prefix
+				})
+
+			out["content"] = out["content"].replace("{index}", html)
 
 	# next and previous
 	if "{next}" in out.get("content", ""):
@@ -130,10 +133,10 @@ def add_index(out, context):
 		if context.relative_links:
 			next_item.name = next_item.page_name or ""
 		else:
-			if next_item.name[0]!="/":
+			if next_item and next_item.name and next_item.name[0]!="/":
 				next_item.name = "/" + next_item.name
 
-		if next_item:
+		if next_item and next_item.name:
 			if not next_item.title:
 				next_item.title = ""
 			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}{extn}">'\

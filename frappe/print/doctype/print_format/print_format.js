@@ -13,6 +13,17 @@ frappe.ui.form.on("Print Format", "refresh", function(frm) {
 	if(frm.doc.standard==="Yes" && user !== "Administrator") {
 		frm.set_intro(__("Please duplicate this to make changes"));
 	}
+
+	if(!frm.is_new()) {
+		frm.add_custom_button(__("Make Default"), function() {
+			frappe.call({
+				method: "frappe.print.doctype.print_format.print_format.make_default",
+				args: {
+					name: frm.doc.name
+				}
+			})
+		})
+	}
 });
 
 frappe.ui.form.on("Print Format", "edit_format", function(frm) {

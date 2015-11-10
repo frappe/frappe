@@ -272,23 +272,28 @@ def delete_file(path):
 			os.remove(path)
 
 def get_file(fname):
+	"""Returns [`file_name`, `content`] for given file name `fname`"""
+	file_path = get_file_path(fname)
+
+	# read the file
+	with open(get_site_path("public", file_path), 'r') as f:
+		content = f.read()
+
+	return [file_path.rsplit("/", 1)[-1], content]
+
+def get_file_path(file_name):
+	"""Returns file path from given file name"""
 	f = frappe.db.sql("""select file_name from `tabFile`
-		where name=%s or file_name=%s""", (fname, fname))
+		where name=%s or file_name=%s""", (file_name, file_name))
 	if f:
 		file_name = f[0][0]
-	else:
-		file_name = fname
 
 	file_path = file_name
 
 	if not "/" in file_path:
 		file_path = "files/" + file_path
 
-	# read the file
-	with open(get_site_path("public", file_path), 'r') as f:
-		content = f.read()
-
-	return [file_name, content]
+	return file_path
 
 def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()

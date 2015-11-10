@@ -10,7 +10,6 @@ Frappe version 6.7 onwards includes a full-blown documentation generator so that
 
 The first step is to setup the docs folder. For that you must create a new file in your app `config/docs.py` if it is not auto-generated. In your `docs.py` file, add the following module properties.
 
-    from __future__ import unicode_literals
 
     source_link = "https://github.com/[orgname]/[reponame]"
     docs_base_url = "https://[orgname].github.io/[reponame]"
@@ -66,6 +65,18 @@ You can add images in the `/docs/assets` folder. You can add links to the images
 
 ---
 
+## Viewing Locally
+
+To test your docs locally, add a `--local` option to the `build-docs` command.
+
+    bench --site [site] build-docs [appname] current /home/docs/reponame --local
+
+Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer
+
+    python -m SimpleHTTPServer 8080
+
+---
+
 ## Publishing to GitHub Pages
 
 To publish your docs on GitHub pages, you will have to create an empty and orphan branch in your repository called `gh-pages` and write yours there
@@ -82,15 +93,3 @@ Now go back to your bench folder and write these docs to this branch. For exampl
     bench --site [site] build-docs [appname] current /home/docs/reponame
 
 To check your documentation online go to: https://[orgname].github.io/[reponame]
-
----
-
-## Viewing Locally
-
-To test your docs locally, add a `--local` option to the `build-docs` command.
-
-    bench --site [site] build-docs [appname] current /home/docs/reponame --local
-
-Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer
-
-    python -m SimpleHTTPServer 8080

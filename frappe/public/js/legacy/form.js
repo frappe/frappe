@@ -445,7 +445,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 
 		// trigger global trigger
 		// to use this
-		$(document).trigger('form_refresh');
+		$(document).trigger('form_refresh', [this]);
 
 		// fields
 		this.refresh_fields();
@@ -593,7 +593,10 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	var newdoc = frappe.model.copy_doc(this.doc, from_amend);
 
 	newdoc.idx = null;
-	if(onload)onload(newdoc);
+	newdoc.__run_link_triggers = false;
+	if(onload) {
+		onload(newdoc);
+	}
 	loaddoc(newdoc.doctype, newdoc.name);
 }
 
@@ -635,6 +638,10 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 	var after_save = function(r) {
 		if(!r.exc) {
+			if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
+				frappe.utils.play_sound("click");
+			}
+
 			me.script_manager.trigger("after_save");
 			me.refresh();
 		} else {
@@ -691,6 +698,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 
 			me.save('Submit', function(r) {
 				if(!r.exc) {
+					frappe.utils.play_sound("submit");
 					callback && callback();
 					me.script_manager.trigger("on_submit");
 				}
@@ -713,6 +721,7 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 
 			var after_cancel = function(r) {
 				if(!r.exc) {
+					frappe.utils.play_sound("cancel");
 					me.refresh();
 					callback && callback();
 					me.script_manager.trigger("after_cancel");
@@ -746,6 +755,7 @@ _f.Frm.prototype.amend_doc = function() {
 	      newdoc.amendment_date = dateutil.obj_to_str(new Date());
     }
     this.copy_doc(fn, 1);
+	frappe.utils.play_sound("click");
 }
 
 _f.Frm.prototype.disable_save = function() {

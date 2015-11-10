@@ -1,1 +1,0 @@
-- Added language support for Slovene: **sl - slovenščina (Slovene)**

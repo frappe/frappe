@@ -99,18 +99,11 @@ organized in the following modules.
 Once you have an app, whether it's the one you just created or any other you
 downloaded, you are required to do the following things.
 
-1. Add to Python path. It is recommend to do this using a package manager called
-   [pip]. `pip install -e src/sample_app` would add the `sample_app` in editable
-   mode ie. it will be linked to the source from wherefyou install and
-   reinstalling everytime you make a change is not required. This method is
-   highly recommended if you are developing the app yourself.
+Download the app via git
 
-   If you just want to use pip can install packages in a variety of other ways.
-   TODO: add link
+    bench get-app https://github.com/org/app_name
 
-2. Add line with your app name to apps.txt (in your sites directory) as
-   explained in [sites](/help/sites)
+Install the app to your site
 
-
-TODO: Add screenshot
+    bench --site app_name install-app app_name
 

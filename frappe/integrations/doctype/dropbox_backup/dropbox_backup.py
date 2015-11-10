@@ -139,7 +139,7 @@ def backup_to_dropbox():
 	dropbox_client = client.DropboxClient(sess)
 
 	# upload database
-	backup = new_backup()
+	backup = new_backup(ignore_files=True)
 	filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 	upload_file_to_dropbox(filename, "/database", dropbox_client)
 
