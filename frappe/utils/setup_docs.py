@@ -41,7 +41,8 @@ class setup_docs(object):
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop"
-			})
+			}),
+			"get_doctype_app": frappe.get_doctype_app
 		}
 
 	def build(self, docs_version):
