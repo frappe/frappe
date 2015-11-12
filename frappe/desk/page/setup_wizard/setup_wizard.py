@@ -55,9 +55,12 @@ def load_messages(language):
 	frappe.clear_cache()
 	set_default_language(language)
 	m = get_dict("page", "setup-wizard")
+
 	for path in frappe.get_hooks("setup_wizard_requires"):
 		# common folder `assets` served from `sites/`
-		m.update(get_dict("jsfile", frappe.get_site_path("..", path)))
+		js_file_path = frappe.get_site_path("..", *path.strip("/").split("/"))
+		m.update(get_dict("jsfile", js_file_path))
+
 	m.update(get_dict("boot"))
 	send_translations(m)
 	return frappe.local.lang
