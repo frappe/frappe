@@ -31,7 +31,6 @@ def get_bootinfo():
 		bootinfo['user_info'] = get_fullnames()
 		bootinfo['sid'] = frappe.session['sid'];
 
-	# home page
 	bootinfo.modules = {}
 	for app in frappe.get_installed_apps():
 		try:
@@ -140,6 +139,10 @@ def add_home_page(bootinfo, docs):
 	if frappe.session.user=="Guest":
 		return
 	home_page = frappe.db.get_default("desktop:home_page")
+
+	if home_page == "setup-wizard":
+		bootinfo.setup_wizard_requires = frappe.get_hooks("setup_wizard_requires")
+
 	try:
 		page = frappe.desk.desk_page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError):

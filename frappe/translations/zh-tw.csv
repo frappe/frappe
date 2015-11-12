@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,暫停
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,你不允許訪問此頁面。
 DocType: User,Facebook Username,Facebook的用戶名
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,永久提交{0} ？
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,永久提交{0} ？
 DocType: Workflow State,eye-open,眼開
 DocType: Bulk Email,Send After,發送後
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,請選擇一個文件或URL
@@ -201,7 +201,7 @@ apps/frappe/frappe/utils/file_manager.py +42,Added {0},添加{0}
 DocType: Currency,Fraction Units,部分單位
 DocType: Web Page,Parent Web Page,家長網頁
 apps/frappe/frappe/core/doctype/docshare/docshare.py +36,User is mandatory for Share,用戶是強制性的分享
-DocType: DocField,Hidden,隱
+DocType: DocField,Hidden,隱藏
 apps/frappe/frappe/model/base_document.py +391,{0} must be set first,{0}必須先設定
 DocType: Workflow State,plane,飛機
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",如果您上傳新的記錄，“命名系列”變成強制性的，如果存在的話。
@@ -263,7 +263,7 @@ DocType: Email Account,Send Notification to,通知發送到
 DocType: DocField,Collapsible,可折疊
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,已儲存
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,對於選擇選項。在新的一行每個選項。
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,永久取消{0} ？
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,永久取消{0} ？
 DocType: Workflow State,music,音樂
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,請註明文檔類型
 DocType: Print Format,Format Data,格式數據
@@ -439,7 +439,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,應用程式未安裝
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,標記字段作為強制性
 DocType: Communication,Clicked,點擊
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},沒有權限“{0}” {1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},沒有權限“{0}” {1}
 DocType: User,Google User ID,Google的用戶ID
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,這種方法只能用於創建註釋
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,沒有找到{0}
@@ -534,7 +534,7 @@ For Select, enter list of Options, each on a new line.",對於鏈接，輸入文
 DocType: Workflow State,film,影片
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},沒有權限讀取{0}
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,不允許多個根節點。
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,得到
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,得到
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID字段是必須的編輯使用報表值。使用列選擇器請選擇ID字段
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,確認
 DocType: System Settings,yyyy-mm-dd,年 - 月 - 日
@@ -624,7 +624,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,網站圖標
 DocType: Workflow State,minus-sign,減號
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,未找到
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,無{0}的權限
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,無{0}的權限
 DocType: Feed,Login,登入
 DocType: System Settings,Enable Scheduled Jobs,啟用預定作業
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,注意事項：
@@ -782,7 +782,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,重新打開
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0}未共享這個文件{1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,從{0}到{1}文件狀態轉換是不允許的
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,這是一個自動生成的回复
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,得到
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,得到
 apps/frappe/frappe/model/document.py +416,Record does not exist,記錄不存在
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,頁面丟失或移動
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,打開鏈接
@@ -929,6 +929,7 @@ DocType: Workflow State,flag,旗標
 DocType: Web Page,Text Align,文本對齊
 DocType: Contact Us Settings,Forward To Email Address,轉發到郵件地址
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,標題字段必須是有效的字段名
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,編輯個人資料
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,連線過期的小時，例如06:00
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你設置這個，用戶將只能訪問有聯結的文檔（如博客文章）。
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,無法開啟附加的檔案。請重試。
@@ -954,7 +955,7 @@ DocType: DocField,Select,選擇
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,文件未附
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",如果你設置這個，這個項目會成為選定的父物件的下拉菜單中。
 apps/frappe/frappe/model/db_query.py +434,Please select atleast 1 column from {0} to sort,請從{0}中至少選擇一攔以進行排序
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},沒有找到模板於路徑：{0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},沒有找到模板於路徑：{0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.",頂欄的選單項目。關於頂欄的顏色，請到所選擇的網站主題中設定。
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,導入後提交。
 DocType: Blogger,Avatar,頭像
@@ -1507,7 +1508,7 @@ DocType: Role,Role Name,角色名稱
 DocType: Workflow Document State,Workflow Document State,工作流程文件狀態
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.",為了讓接取到了只有特定記錄的作用，檢查應用的用戶權限。用戶權限用於限制用戶這樣的角色，具體的記錄。
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},可以在提交之前不會取消。
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,列印格式{0}被禁用
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,列印格式{0}被禁用
 DocType: Email Alert,Send days before or after the reference date,之前或基準日後發送天
 DocType: User,Allow user to login only after this hour (0-24),允許用戶在幾小時後登入（0 - 24）
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,指定由我
@@ -1556,6 +1557,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,DocType文檔類
 DocType: Blog Category,Category Name,分類名稱
 DocType: Print Settings,PDF Settings,PDF設置
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,列名
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,設為默認
 apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be indexed,FIELDTYPE {0} {1}不能進行索引
 DocType: Communication,Email Account,電子郵件帳戶
 DocType: Workflow State,Download,下載
@@ -1586,7 +1588,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,首頁是產品頁
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},指派作業由 {0} 結案
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,計算
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,請首先選擇的DocType
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,請首先選擇的DocType
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,例如：（55 + 434）/ 4 =或Math.sin（Math.PI / 2）...
 DocType: Social Login Keys,GitHub Client ID,GitHub的客戶ID
 DocType: DocField,Perm Level,權限等級

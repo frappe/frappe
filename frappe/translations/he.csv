@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,הפסקה
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,אינכם מורשים לגשת לדף זה.
 DocType: User,Facebook Username,שם משתמש פייסבוק
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,באופן קבוע שלח {0}?
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,באופן קבוע שלח {0}?
 DocType: Workflow State,eye-open,עין-פתוחה
 DocType: Bulk Email,Send After,שלח אחרי
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,אנא בחר קובץ או כתובת אתר
@@ -260,7 +260,7 @@ DocType: Email Account,Send Notification to,שלח הודעה ל
 DocType: DocField,Collapsible,מתקפל
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,הציל
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,אפשרויות לבחירה. כל אפשרות בשורה חדשה.
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,באופן קבוע לבטל {0}?
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,באופן קבוע לבטל {0}?
 DocType: Workflow State,music,מוסיקה
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,נא לציין doctype
 DocType: Print Format,Format Data,נתונים בפורמט
@@ -432,7 +432,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,אין יישומים מותקנים
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,סמן את השדה מנדטורי כ
 DocType: Communication,Clicked,לחץ
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},אין הרשאות ל&#39;{0} &#39;{1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},אין הרשאות ל&#39;{0} &#39;{1}
 DocType: User,Google User ID,זיהוי משתמש Google
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,שיטה זו יכולה רק לשמש ליצירת תגובה
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,לא {0} מצא
@@ -526,7 +526,7 @@ For Select, enter list of Options, each on a new line.","לקישורים, לה�
 DocType: Workflow State,film,סרט
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},אין הרשאות לקריאת {0}
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,צמתים שורש מרובים אסורים.
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,קבל
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,קבל
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,שדה מזהה נדרש לערוך ערכים באמצעות דוח. אנא בחר את שדה זיהוי באמצעות דוגם הטור
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,אשר
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
@@ -616,7 +616,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,Favicon
 DocType: Workflow State,minus-sign,מינוס סימן
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,לא נמצא
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,לא {0} רשות
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,לא {0} רשות
 DocType: Feed,Login,כניסה
 DocType: System Settings,Enable Scheduled Jobs,אפשר משימות מתוכננות
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,הערות:
@@ -769,7 +769,7 @@ apps/frappe/frappe/templates/includes/login/login.js +46,Valid Login id required
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Re-פתוח
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},"{0} מסמך זה עם-משותף של האו""ם {1}"
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,זוהי תשובה שנוצרה באופן אוטומטי
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,קבל מ
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,קבל מ
 apps/frappe/frappe/model/document.py +416,Record does not exist,רשומה לא קיימת
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,דף חסר או עבר
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,פתח קישור
@@ -915,6 +915,7 @@ DocType: Workflow State,flag,דגל
 DocType: Web Page,Text Align,טקסט יישור
 DocType: Contact Us Settings,Forward To Email Address,"קדימה To כתובת דוא""ל"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,כותרת שדה חייב להיות תקף fieldname
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,ערוך פרופיל
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,מושב תפוגה בלמשל שעות 6:00
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","ברגע שיש לך להגדיר את זה, המשתמשים יהיו רק מסמכי גישה מסוגלים (לדוגמא. בלוג פוסט) שבו הקישור קיים (לדוגמא. Blogger)."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,אין אפשרות לפתוח את הקובץ מצורף. אנא נסה שוב.
@@ -939,7 +940,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh F
 DocType: DocField,Select,בחר
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,קובץ לא צורף
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","אם תגדיר את זה, פריט זה יבוא בנפתח תחת ההורה שנבחר."
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},אין תבנית נמצאה בנתיב: {0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},אין תבנית נמצאה בנתיב: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","פריטי תפריט בסרגל העליון. לקביעת הצבע של הסרגל העליון, ללכת לנושא אתר שנבחר."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,שלח לאחר היבוא.
 DocType: Blogger,Avatar,Avatar
@@ -1484,7 +1485,7 @@ DocType: Role,Role Name,שם תפקיד
 DocType: Workflow Document State,Workflow Document State,זרימת עבודה במסמך המדינה
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","לתת acess לתפקיד רק רשומות ספציפי, לבדוק להחיל הרשאות משתמש. הרשאות משתמש משמשות כדי להגביל את המשתמשים עם כזה תפקיד לרשומות ספציפיות."
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},לא יכול לבטל לפני הגשה. ראה מעבר {0}
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,פורמט ההדפסה {0} אינו זמין
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,פורמט ההדפסה {0} אינו זמין
 DocType: Email Alert,Send days before or after the reference date,שלח ימים לפני או אחרי תאריך ההתייחסות
 DocType: User,Allow user to login only after this hour (0-24),אפשר למשתמש להתחבר רק לאחר שעה זו (0-24)
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,שהוקצה על ידי
@@ -1533,6 +1534,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,DOCTYPE שבו �
 DocType: Blog Category,Category Name,שם קטגוריה
 DocType: Print Settings,PDF Settings,הגדרות PDF
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,שם עמודה
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,הפוך לברירת מחדל
 DocType: Communication,Email Account,"חשבון דוא""ל"
 DocType: Workflow State,Download,הורדה
 DocType: Blog Post,Blog Intro,בלוג Intro
@@ -1562,7 +1564,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,דף הבית הוא מוצרים
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},משימה נסגרה על ידי {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,לחשב
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,אנא בחר DOCTYPE ראשון
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,אנא בחר DOCTYPE ראשון
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,למשל (55 + 434) / 4 או = מתמטיקה.חטא (Math.PI / 2) ...
 DocType: Social Login Keys,GitHub Client ID,GitHub Client ID
 DocType: DocField,Perm Level,רמה פרם

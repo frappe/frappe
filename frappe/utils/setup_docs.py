@@ -41,7 +41,8 @@ class setup_docs(object):
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop"
-			})
+			}),
+			"get_doctype_app": frappe.get_doctype_app
 		}
 
 	def build(self, docs_version):
@@ -305,7 +306,7 @@ class setup_docs(object):
 
 			if not context.top_bar_items:
 				context.top_bar_items = [
-					{"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
+					# {"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
 					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
 					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
 				]

@@ -38,7 +38,7 @@ body {
 .offcanvas .sidebar .divider {
   height: 1px;
   overflow: hidden;
-  background-color: #EBEFF2;
+  background-color: #ebeff2;
   width: 100%;
   margin: 0px;
 }
@@ -52,7 +52,7 @@ body {
 .offcanvas .sidebar .dropdown-menu > li > a:focus,
 .offcanvas .sidebar .sidebar-menu > li > a:active,
 .offcanvas .sidebar .dropdown-menu > li > a:active {
-  background-color: #F0F4F7;
+  background-color: #f0f4f7;
 }
 @media (max-width: 767px) {
   .page-content {
@@ -124,7 +124,7 @@ body {
   }
   .offcanvas .sidebar-label {
     text-transform: uppercase;
-    color: #8D99A6;
+    color: #8d99a6;
     font-size: 85%;
     margin: 0px;
     font-weight: bold;
@@ -175,7 +175,7 @@ body {
   background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
-  color: #6C7680;
+  color: #6c7680;
   font-size: inherit;
   position: relative;
   right: 24px;
@@ -194,7 +194,7 @@ body {
 }
 .navbar-center {
   float: left;
-  color: #6C7680;
+  color: #6c7680;
 }
 #navbar-breadcrumbs > li > a:before {
   font-family: FontAwesome;
@@ -211,12 +211,12 @@ body {
   top: 3px;
   content: "\f105";
   margin-right: 10px;
-  color: #C0C9D2;
+  color: #c0c9d2;
 }
 #navbar-breadcrumbs > li > a:hover:before,
 #navbar-breadcrumbs > li > a:focus:before,
 #navbar-breadcrumbs > li > a:active:before {
-  color: #36414C;
+  color: #36414c;
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
@@ -232,12 +232,14 @@ body {
   display: inline-block;
 }
 .toggle-sidebar {
-  margin-top: 8px;
   margin-right: 15px;
 }
 body {
   font-size: 16px;
   line-height: 1.65em;
+}
+.container {
+  max-width: 800px;
 }
 .navbar a {
   font-size: 16px;
@@ -245,7 +247,7 @@ body {
 }
 .breadcrumb {
   line-height: 1.5em;
-  color: #8D99A6;
+  color: #8d99a6;
   background-color: transparent;
   margin-bottom: 10px;
   padding: 0px;
@@ -261,7 +263,7 @@ a,
 a:hover,
 a:focus,
 a:visited {
-  color: #5E64FF;
+  color: #5e64ff;
 }
 a.btn-primary {
   color: #fff;
@@ -296,7 +298,7 @@ h2 {
   border-top: 1px solid #d1d8dd;
 }
 .docs-footer a {
-  color: #8D99A6;
+  color: #8d99a6;
 }
 .docs-footer li {
   display: inline-block;
@@ -309,10 +311,10 @@ h2 {
 }
 .jumbotron h1 {
   font-size: 32px;
-  font-weight: 400;
+  font-weight: 700;
 }
 .jumbotron p {
-  font-color: #8D99A6 !important;
+  font-color: #8d99a6 !important;
 }
 .browser-image {
   min-height: 300px;

@@ -115,13 +115,16 @@ def add_index(out, context):
 	if context.page_links_with_extn:
 		extn = ".html"
 
-	if "{index}" in out.get("content", "") and context.get("children"):
-		html = frappe.get_template("templates/includes/full_index.html").render({
-				"full_index": get_full_index(context.pathname, extn = extn),
-				"url_prefix": context.url_prefix
-			})
+	if "{index}" in out.get("content", "") and context.get("children") and len(context.children):
+		full_index = get_full_index(context.pathname, extn = extn)
 
-		out["content"] = out["content"].replace("{index}", html)
+		if full_index:
+			html = frappe.get_template("templates/includes/full_index.html").render({
+					"full_index": full_index,
+					"url_prefix": context.url_prefix
+				})
+
+			out["content"] = out["content"].replace("{index}", html)
 
 	# next and previous
 	if "{next}" in out.get("content", ""):

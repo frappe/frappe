@@ -1,7 +1,7 @@
 
 source_link = "https://github.com/frappe/frappe"
 docs_base_url = "https://frappe.github.io/frappe"
-headline = "Full stack web framework to build complex apps"
+headline = "Superhero Web Framework"
 sub_heading = "Build extensions to ERPNext or make your own database driven app"
 hide_install = True
 long_description = """The Frappe Framework is a server side and client side
@@ -14,4 +14,4 @@ ERP for managing small and medium sized businesses.
 """
 
 def get_context(context):
-	context.title = "Frappe Framework"
+	pass

@@ -27,7 +27,7 @@ to ERPNext.
 """
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.7.11"
+app_version = "6.8.0"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
@@ -176,3 +176,7 @@ sounds = [
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]
+
+get_translated_dict = {
+	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
+}

@@ -476,7 +476,7 @@ DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.",សម្រាប់​តំណ​បញ្ចូល DOCTYPE ថា​ជា​ជួរ​។ សម្រាប់​ការ​ជ្រើស​បញ្ចូល​បញ្ជី​នៃ​ជម្រើស​នៅ​លើ​បន្ទាត់​ថ្មី​។
 DocType: Workflow State,film,ខ្សែ​ភាព​យ​ន្ដ
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,ថ្នាំង root ជា​ច្រើន​មិន​ត្រូវ​បាន​អនុញ្ញាត​។
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,ទទួល​បាន
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,ទទួល​បាន
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,វាល​លេខ​សម្គាល់​ត្រូវ​បាន​ទាមទារ​ដើម្បី​កែសម្រួល​តម្លៃ​ប្រើ​ប្រាស់​របាយការណ៍​។ សូម​ជ្រើស​វាល ID ដោយ​ប្រើ​ឧបករណ៍​ជ្រើស​ជួរឈរ
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,បញ្ជាក់​ការ
 DocType: System Settings,yyyy-mm-dd,YYYY​-MM​-DD
@@ -699,7 +699,7 @@ DocType: File,Is Attachments Folder,តើ​ការ​ថត​ឯកសា�
 apps/frappe/frappe/templates/includes/login/login.js +46,Valid Login id required.,លេខ​សម្គាល់​ការ​ចូល​មាន​សុពលភាព​បាន​ទាមទារ​។
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,បើក​ឡើងវិញ
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,នេះ​គឺ​ជា​ការ​ឆ្លើយ​តប​បាន​បង្កើត​ដោយ​ស្វ័យប្រវត្តិ
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,ទទួល​បាន​ពី
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,ទទួល​បាន​ពី
 apps/frappe/frappe/model/document.py +416,Record does not exist,មិន​មាន​កំណត់​ត្រា
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,ទំព័រ​បាត់​ឬ​បាន​ផ្លាស់​ប្តូ​រ
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,បើក​តំណ
@@ -834,6 +834,7 @@ DocType: Workflow State,flag,ទង់ជាតិ
 DocType: Web Page,Text Align,អត្ថបទ​តម្រឹម
 DocType: Contact Us Settings,Forward To Email Address,ប​ញ្ចូ​ន​បន្ត​ទៅ​អាសយដ្ឋាន​អ៊ី​ម៉ែ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,វាល​ចំណង​ជើង​ត្រូវ​តែ​ជា fieldname ដែល​មាន​សុពលភាព
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,កែ​សម្រួល​ទម្រង់
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,សម័យ​ដែល​បាន​ផុតកំណត់​នៅ​ម៉ោង​ឧ 06:00
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",នៅ​ពេល​ដែល​អ្នក​បាន​កំណត់​នេះ​អ្នក​ប្រើ​នឹង​ត្រូវ​បាន​ចូល​ដំណើរ​ការ​ឯកសារ​ដែល​អាច (ឧ​។ ប្រកាស​កំណត់​ហេតុ​បណ្ដាញ​) ដែល​ជា​កន្លែង​ដែល​តំណ​នេះ​មាន (អ្នក​សរសេរ​ប្លុក​ឧ​។ ) ។
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,មិន​អាច​បើក​ឯកសារ​ភ្ជាប់​។ សូម​ព្យាយាម​ម្តង​ទៀត​។
@@ -1389,6 +1390,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,ចង្អុ�
 DocType: Blog Category,Category Name,ប្រភេទ​ឈ្មោះ
 DocType: Print Settings,PDF Settings,ការ​កំណត់​ជា PDF
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,ឈ្មោះ​ជួរ​ឈរ
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,ធ្វើ​ឱ្យ​លំនាំដើម
 DocType: Communication,Email Account,គណនី​អ៊ី​ម៉ែ​ល
 DocType: Workflow State,Download,ទាញ​យក
 DocType: Blog Post,Blog Intro,កំណត់​ហេតុ​បណ្ដាញ​សេចក្ដី​ណែនាំ
@@ -1414,7 +1416,7 @@ apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Inva
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,តម្រង​កំណត់​ឡើង​វិញ
 DocType: Website Settings,Home Page is Products,ទំព័រ​ដើម​ទំព័រ​គឺ​ផលិតផល
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,គណនា
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,សូម​ជ្រើស​ចង្អុល​បង្ហាញ​ជា​លើក​ដំបូង
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,សូម​ជ្រើស​ចង្អុល​បង្ហាញ​ជា​លើក​ដំបូង
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,ឧ​ទា​ហរ​ណ៏ (55 + + 434​) / 4 ឬ = Math.sin (Math.PI / 2​) ...
 DocType: Social Login Keys,GitHub Client ID,GitHub លេខ​សម្គាល់​អតិថិជន
 DocType: DocField,Perm Level,កម្រិត Perm

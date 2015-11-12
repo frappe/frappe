@@ -28,17 +28,28 @@ def get_pdf(html, options=None):
 
 	html = scrub_urls(html)
 	fname = os.path.join("/tmp", frappe.generate_hash() + ".pdf")
+
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
+
+		with open(fname, "rb") as fileobj:
+			filedata = fileobj.read()
+
 	except IOError, e:
 		if "ContentNotFoundError" in e.message:
-			frappe.throw(_("PDF generation failed because of broken image links"))
+			# allow pdfs with missing images if file got created
+			if os.path.exists(fname):
+				with open(fname, "rb") as fileobj:
+					filedata = fileobj.read()
+
+			else:
+				frappe.throw(_("PDF generation failed because of broken image links"))
 		else:
 			raise
 
-	with open(fname, "rb") as fileobj:
-		filedata = fileobj.read()
-
-	os.remove(fname)
+	finally:
+		# always cleanup
+		if os.path.exists(fname):
+			os.remove(fname)
 
 	return filedata
