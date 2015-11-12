@@ -306,7 +306,7 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 
 	doc_path = frappe.get_module_path(module, doctype, name)
 
-	messages = get_messages_from_file(os.path.join(doc_path, name +".py"))
+	messages = get_messages_from_file(os.path.join(doc_path, frappe.scrub(name) +".py"))
 
 	if os.path.exists(doc_path):
 		for filename in os.listdir(doc_path):
@@ -362,6 +362,7 @@ def get_messages_from_file(path):
 			return [(os.path.relpath(" +".join([path, str(pos)]), apps_path),
 					message) for pos, message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
 	else:
+		print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
 def extract_messages_from_code(code, is_py=False):

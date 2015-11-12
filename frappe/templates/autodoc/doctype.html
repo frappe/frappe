@@ -61,18 +61,20 @@
 
     {{ automodule(controller.__module__) }}
     {% set parents = frappe.get_list("DocField",
-        filters = {"options": doctype, "fieldtype": "Link"}, fields = ["distinct parent"]) %}
+        filters = {"options": doctype, "fieldtype": "Link"}, fields = ["distinct parent"], order_by="parent asc") %}
     {% if parents %}
         <h4>Linked In:</h4>
         <ul>
         {% for parent in parents %}
+			{% if get_doctype_app(parent.parent)==app.name %}
             <li>{{ doctype_link(app, parent.parent) }}</li>
+			{% endif %}
         {% endfor %}
         </ul>
     {% endif %}
 {% else %}
     {% set parents = frappe.get_list("DocField",
-        filters = {"options": doctype, "fieldtype": "Table"}, fields = ["parent"]) %}
+        filters = {"options": doctype, "fieldtype": "Table"}, fields = ["distinct parent"], order_by="parent asc") %}
     {% if parents %}
     <h4>Child Table Of</h4>
     <ul>

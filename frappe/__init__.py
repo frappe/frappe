@@ -1065,3 +1065,10 @@ def local_cache(namespace, key, generator, regenerate_if_none=False):
 		local.cache[namespace][key] = generator()
 
 	return local.cache[namespace][key]
+
+def get_doctype_app(doctype):
+	def _get_doctype_app():
+		doctype_module = local.db.get_value("DocType", doctype, "module")
+		return local.module_app[scrub(doctype_module)]
+
+	return local_cache("doctype_app", doctype, generator=_get_doctype_app)
