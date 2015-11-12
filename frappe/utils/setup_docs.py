@@ -306,7 +306,7 @@ class setup_docs(object):
 
 			if not context.top_bar_items:
 				context.top_bar_items = [
-					{"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
+					# {"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
 					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
 					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
 				]
