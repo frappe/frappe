@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,বিরতি
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,আপনি এই পৃষ্ঠাটি অ্যাক্সেস করার অনুমতি নেই.
 DocType: User,Facebook Username,ফেসবুক ব্যবহারকারীর নাম
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,স্থায়ীভাবে {0} পাঠাবেন?
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,স্থায়ীভাবে {0} পাঠাবেন?
 DocType: Workflow State,eye-open,চোখের খোলা
 DocType: Bulk Email,Send After,পরে পাঠান
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,একটি ফাইল বা URL নির্বাচন করুন
@@ -263,7 +263,7 @@ DocType: Email Account,Send Notification to,বিজ্ঞপ্তি পা�
 DocType: DocField,Collapsible,বন্ধ হইতে সক্ষম
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,সংরক্ষিত
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,নির্বাচন করার জন্য বিকল্প. একটি নতুন লাইন প্রতিটি বিকল্প.
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,স্থায়ীভাবে বাতিল {0}?
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,স্থায়ীভাবে বাতিল {0}?
 DocType: Workflow State,music,সঙ্গীত
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,DOCTYPE উল্লেখ করুন
 DocType: Print Format,Format Data,বিন্যাসে তথ্য
@@ -439,7 +439,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,কোনো অ্যাপ্লিকেশন ইনস্টল করা
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,হিসাবে বাধ্যতামূলক ক্ষেত্র চিহ্ন
 DocType: Communication,Clicked,ক্লিক
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},কোন অনুমতি &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},কোন অনুমতি &#39;{0}&#39; {1}
 DocType: User,Google User ID,গুগল ব্যবহারকারী আইডি
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,এই পদ্ধতি শুধুমাত্র একটি মন্তব্য তৈরি করতে ব্যবহার করা যেতে পারে
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,কোন {0} পাওয়া
@@ -534,7 +534,7 @@ For Select, enter list of Options, each on a new line.","লিংক এর জ
 DocType: Workflow State,film,চলচ্চিত্র
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},কোন অনুমতি পড়তে {0}
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,একাধিক রুট নোড অনুমোদিত নয়.
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,পাওয়া
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,পাওয়া
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,আইডি ক্ষেত্রের প্রতিবেদন ব্যবহার মান সম্পাদনা করার প্রয়োজন বোধ করা হয়. কলাম বাছাইকারি ব্যবহার আইডি ক্ষেত্র নির্বাচন করুন
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,নিশ্চিত করা
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
@@ -624,7 +624,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,ফেভিকন
 DocType: Workflow State,minus-sign,মাইনাস টু সাইন
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,খুঁজে পাওয়া যাচ্ছে না
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,কোন {0} অনুমতি
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,কোন {0} অনুমতি
 DocType: Feed,Login,লগইন
 DocType: System Settings,Enable Scheduled Jobs,নির্ধারিত কাজ সক্রিয়
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,নোট:
@@ -782,7 +782,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,পুনরায় �
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0} জাতিসংঘের ভাগ সাথে এই নথি {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,{0} {1} অনুমোদিত নয় থেকে নথির অবস্থা রূপান্তর
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,এটি একটি স্বয়ংক্রিয়ভাবে উত্পন্ন উত্তর
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,থেকে পান
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,থেকে পান
 apps/frappe/frappe/model/document.py +416,Record does not exist,রেকর্ড বিদ্যমান নয়
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,অনুপস্থিত বা সরানো পৃষ্ঠা
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,খোলা সংযুক্তি
@@ -929,6 +929,7 @@ DocType: Workflow State,flag,পতাকা
 DocType: Web Page,Text Align,টেক্সট সারিবদ্ধ
 DocType: Contact Us Settings,Forward To Email Address,ফরোয়ার্ড ইমেইল ঠিকানায়
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,শিরোনাম ক্ষেত্রের একটি বৈধ FIELDNAME হতে হবে
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,জীবন বৃত্তান্ত সম্পাদনা
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,ঘন্টা যেমন 06:00 অধিবেশন মেয়াদ উত্তীর্ন
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","আপনি এই সেট করে থাকেন, শুধুমাত্র সেই ব্যবহারকারীদের ক্ষেত্রে সক্ষম এক্সেস নথি হতে হবে (যেমন. ব্লগ পোস্ট) লিংক (যেমন. ব্লগার) যেখানে বিদ্যমান."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,সংযুক্ত ফাইলটি খুলতে অক্ষম. অনুগ্রহ করে আবার চেষ্টা করুন.
@@ -954,7 +955,7 @@ DocType: DocField,Select,নির্বাচন করা
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,ফাইল সংযুক্ত করা
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","আপনি এই সেট করেন তাহলে, এই আইটেমটি নির্বাচিত ঊর্ধ্বতন অধীনে একটি ড্রপ ডাউন আসবে."
 apps/frappe/frappe/model/db_query.py +434,Please select atleast 1 column from {0} to sort,{0} সাজাতে থেকে অন্তত 1 কলাম নির্বাচন করুন
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},পাথ এ পাওয়া কোন টেমপ্লেট: {0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},পাথ এ পাওয়া কোন টেমপ্লেট: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","উপরের বারে মেনু আইটেম. শীর্ষ বারের রঙ নির্ধারণের জন্য, নির্বাচিত ওয়েবসাইট বিষয়বস্তু যান."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,ইম্পোর্ট করার পরে জমা দিন.
 DocType: Blogger,Avatar,অবতার
@@ -1506,7 +1507,7 @@ DocType: Role,Role Name,ভূমিকা নাম
 DocType: Workflow Document State,Workflow Document State,কর্মপ্রবাহ ডকুমেন্ট রাজ্য
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","ব্যবহারকারীর অনুমতি প্রয়োগ পরীক্ষা, শুধুমাত্র নির্দিষ্ট রেকর্ডের জন্য একটি ভূমিকা acess দিতে. ব্যবহারকারীর অনুমতি নির্দিষ্ট রেকর্ডে যেমন ভূমিকা ব্যবহারকারীদের সীমা ব্যবহার করা হয়."
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},জমা দেওয়ার আগে বাতিল করতে পারেন না. দেখুন ট্র্যানজিশন {0}
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,মুদ্রণ বিন্যাস {0} নিষ্ক্রিয় করা হয়
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,মুদ্রণ বিন্যাস {0} নিষ্ক্রিয় করা হয়
 DocType: Email Alert,Send days before or after the reference date,আগে বা রেফারেন্স তারিখ পরে দিন পাঠান
 DocType: User,Allow user to login only after this hour (0-24),ব্যবহারকারী শুধুমাত্র এই ঘন্টা পর লগইন করতে (0-24) অনুমতি দিন
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,আমার দ্বারা নির্ধারিত হয়
@@ -1555,6 +1556,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,DOCTYPE যা �
 DocType: Blog Category,Category Name,নামের তালিকা
 DocType: Print Settings,PDF Settings,পিডিএফ সেটিংস
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,কলামের নাম
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,ডিফল্ট করা
 apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} সূচীবদ্ধ করা যাবে না জন্য
 DocType: Communication,Email Account,ইমেইল একাউন্ট
 DocType: Workflow State,Download,ডাউনলোড
@@ -1585,7 +1587,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,হোম পেজ পণ্য
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},অ্যাসাইনমেন্ট দ্বারা বন্ধ {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,গণনা করা
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,প্রথম DOCTYPE দয়া করে নির্বাচন করুন
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,প্রথম DOCTYPE দয়া করে নির্বাচন করুন
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,যেমন (55 + + 434) / 4 বা = Math.sin (Math.PI / 2) ...
 DocType: Social Login Keys,GitHub Client ID,গিটহাব ক্লায়েন্ট আইডি
 DocType: DocField,Perm Level,স্থায়ী ঢেউ তোলা শ্রেনী

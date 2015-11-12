@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,ஓய்வு
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,நீங்கள் இந்தப் பக்கத்தை அணுக உங்களுக்கு அனுமதி இல்லை.
 DocType: User,Facebook Username,பேஸ்புக் பயனர்பெயர்
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,நிரந்தரமாக {0} சமர்ப்பிக்கவும் ?
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,நிரந்தரமாக {0} சமர்ப்பிக்கவும் ?
 DocType: Workflow State,eye-open,கண் திறக்க
 DocType: Bulk Email,Send After,பிறகு அனுப்பவும்
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,ஒரு கோப்பு அல்லது url தேர்ந்தெடுக்கவும்
@@ -263,7 +263,7 @@ DocType: Email Account,Send Notification to,அறிவிப்பு அன�
 DocType: DocField,Collapsible,மடக்கு
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,சேமித்த
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,தேர்ந்தெடுக்கப்பட்ட விருப்பங்கள். புதிய வரி ஒவ்வொரு விருப்பத்தை.
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,நிரந்தரமாக {0} ரத்து ?
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,நிரந்தரமாக {0} ரத்து ?
 DocType: Workflow State,music,இசை
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,DOCTYPE குறிப்பிடவும்
 DocType: Print Format,Format Data,தரவு வடிவமைப்பு
@@ -439,7 +439,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,எந்த பயன்பாடுகள் நிறுவப்பட்ட
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,கட்டாய துறையில் குறிக்கவும்
 DocType: Communication,Clicked,சொடுக்கும்
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},அனுமதி இல்லை ' {0}' {1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},அனுமதி இல்லை ' {0}' {1}
 DocType: User,Google User ID,கூகிள் பயனர் ஐடி
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,இந்த முறை மட்டுமே ஒரு கருத்துரையை உருவாக்க பயன்படும்
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,இல்லை {0} காணப்படும்
@@ -534,7 +534,7 @@ For Select, enter list of Options, each on a new line.","இணைப்பு�
 DocType: Workflow State,film,படம்
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},அனுமதி இல்லை படிக்க {0}
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,பல ரூட் முனைகளில் அனுமதி இல்லை .
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,கிடைக்கும்
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,கிடைக்கும்
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,ஐடி துறையில் அறிக்கை பயன்படுத்தி மதிப்புகள் திருத்த வேண்டும். வரிசை தேர்வி பயன்படுத்தி ஐடி துறையில் தேர்ந்தெடுக்கவும்
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,உறுதிப்படுத்தவும்
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
@@ -624,7 +624,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,ஃபேவிகான்
 DocType: Workflow State,minus-sign,கழித்தல்-அறிகுறி
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,காணப்படும்
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,இல்லை {0} அனுமதி
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,இல்லை {0} அனுமதி
 DocType: Feed,Login,புகுபதிகை
 DocType: System Settings,Enable Scheduled Jobs,திட்டமிட்ட வேலைகள் இயக்கு
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,குறிப்புகள்:
@@ -782,7 +782,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,மீண்டும�
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0} ஐ.நா. பகிர்வு இந்த ஆவணத்தில் {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,{1} செய்ய {0} ஆவண நிலைமை மாற்றம் அனுமதி இல்லை
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,இது தானாக உருவாக்கப்பட்ட பதில்
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,இருந்து பெற
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,இருந்து பெற
 apps/frappe/frappe/model/document.py +416,Record does not exist,பதிவு இல்லை
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,காணாமல் அல்லது சென்றார் பக்கம்
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,இணைப்பைத் திற
@@ -930,6 +930,7 @@ DocType: Workflow State,flag,கொடி
 DocType: Web Page,Text Align,உரை சீரமை
 DocType: Contact Us Settings,Forward To Email Address,முன்னோக்கி மின்னஞ்சல் முகவரியை
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,தலைப்பு துறையில் ஒரு செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,திருத்து
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,ஹவர்ஸ் அமர்வு காலாவதியாகும் 06:00 எ.கா.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","நீங்கள் இந்த அமைக்க வேண்டும் ஒருமுறை , பயனர்கள் மட்டுமே முடியும் அணுகல் ஆவணங்களை இணைப்பு உள்ளது, அங்கு (எ.கா. வலைப்பதிவு போஸ்ட் ) (எ.கா. Blogger) இருக்கும்."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,இணைக்கப்பட்ட கோப்பை திறக்க முடியவில்லை . மீண்டும் முயற்சிக்கவும்.
@@ -955,7 +956,7 @@ DocType: DocField,Select,தேர்ந்தெடு
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,கோப்பு இணைக்கப்பட்ட இல்லை
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","நீங்கள் இந்த அமைக்க என்றால், இந்த பொருள் தேர்வு பெற்றோர் கீழ் ஒரு துளி கீழே வரும் ."
 apps/frappe/frappe/model/db_query.py +434,Please select atleast 1 column from {0} to sort,{0} தீர்த்துக்கொள்ள குறைந்தது 1 நிரலை தேர்வு செய்க
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},பாதையை எதுவும் வார்ப்புரு: {0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},பாதையை எதுவும் வார்ப்புரு: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","மேல் பட்டை பட்டி பொருட்களை. மேல் பட்டி வண்ணம் அமைக்க, தேர்வு இணையதளம் தீம் செல்ல."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,இறக்குமதி பின்னர் சமர்ப்பிக்கவும்.
 DocType: Blogger,Avatar,சின்னம்
@@ -1509,7 +1510,7 @@ DocType: Role,Role Name,பங்கு பெயர்
 DocType: Workflow Document State,Workflow Document State,பணியோட்டம் ஆவண மாநிலம்
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","பயனர் அனுமதிகள் பொருந்தும் பார்க்கலாம், குறிப்பிட்ட பதிவுகள் ஒரு பங்கு அணுகலை கொடுக்க. பயனர் அனுமதிகள் குறிப்பிட்ட பதிவுகள் போன்ற பாத்திரம் பயனர்கள் குறைக்க பயன்படுகிறது."
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},சமர்ப்பிக்கும் முன் ரத்து செய்ய முடியாது .
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,அச்சு வடிவம் {0} முடக்கப்பட்டுள்ளது
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,அச்சு வடிவம் {0} முடக்கப்பட்டுள்ளது
 DocType: Email Alert,Send days before or after the reference date,முன் அல்லது குறிப்பு தேதி பின்னர் நாட்கள் அனுப்பவும்
 DocType: User,Allow user to login only after this hour (0-24),பயனர் இந்த மணி நேரத்திற்கு பிறகு மட்டுமே உள்நுழைய அனுமதி (0-24)
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,என்னைப் அளிக்கப்பட்ட
@@ -1558,6 +1559,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,இந்த ப
 DocType: Blog Category,Category Name,வகை பெயர்
 DocType: Print Settings,PDF Settings,PDF அமைப்புகள்
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,வரிசை பெயர்
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,முன்னிருப்பாக்கு
 apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be indexed,"Fieldtype {0} {1} சட்டிகளை முடியாது என்பதால்,"
 DocType: Communication,Email Account,மின்னஞ்சல் கணக்கு
 DocType: Workflow State,Download,பதிவிறக்கம்
@@ -1588,7 +1590,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,முகப்பு பக்கம் தயாரிப்புகள் ஆகும்
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},வேலையை மூலம் மூடப்பட்டது {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,கணக்கிடுங்கள்
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,முதல் DOCTYPE தேர்ந்தெடுக்கவும்
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,முதல் DOCTYPE தேர்ந்தெடுக்கவும்
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,எ.கா. (55 + 434) / 4 அல்லது = Math.sin (Math.PI / 2) ...
 DocType: Social Login Keys,GitHub Client ID,மகிழ்ச்சியா கிளையன்ட் ஐடி
 DocType: DocField,Perm Level,நிலை PERM

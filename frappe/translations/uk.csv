@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,пауза
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Вам не дозволяється доступ до цієї сторінки.
 DocType: User,Facebook Username,Ім&#39;я користувача facebook
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,Постійно Відправити {0}?
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,Постійно Відправити {0}?
 DocType: Workflow State,eye-open,очі відкритими
 DocType: Bulk Email,Send After,Відправити Після
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,"Будь ласка, виберіть файл або URL"
@@ -263,7 +263,7 @@ DocType: Email Account,Send Notification to,Відправити повідом�
 DocType: DocField,Collapsible,Складаний
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,Збережені
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,Варіанти вибору. Кожен варіант з нового рядка.
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,Постійно Скасувати {0}?
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,Постійно Скасувати {0}?
 DocType: Workflow State,music,музика
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,"Будь ласка, сформулюйте доктайпів"
 DocType: Print Format,Format Data,Формат даних
@@ -439,7 +439,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,Немає додатки не встановлений
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,Відзначити поле Обов&#39;язкове
 DocType: Communication,Clicked,Натиснув
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},Немає доступу для &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},Немає доступу для &#39;{0}&#39; {1}
 DocType: User,Google User ID,Google ID користувача
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,Цей метод може бути використаний тільки для створення коментар
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,"Немає {0}, не знайдено"
@@ -534,7 +534,7 @@ For Select, enter list of Options, each on a new line.","Для посиланн
 DocType: Workflow State,film,фільм
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},"Немає дозволу, щоб прочитати {0}"
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,Кілька кореневі вузли не допускаються.
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,Отримати
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,Отримати
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,"ID поле потрібна авторизація значення, використовуючи звіт. Будь ласка, виберіть поле ID за допомогою колонки Picker"
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,Підтвердити
 DocType: System Settings,yyyy-mm-dd,рррр-мм-дд
@@ -624,7 +624,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,FavIcon
 DocType: Workflow State,minus-sign,мінус знак
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,Не знайдено
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,Немає {0} дозвіл
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,Немає {0} дозвіл
 DocType: Feed,Login,Ввійти
 DocType: System Settings,Enable Scheduled Jobs,Включити запланованих завдань
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Примітки:
@@ -782,7 +782,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Знову відкри
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0}-поділився документ з {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,Статус документа перехід від {0} до {1} не допускається
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Це автоматично відповідь
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,Отримати від
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,Отримати від
 apps/frappe/frappe/model/document.py +416,Record does not exist,Запис не існує
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Сторінка відсутній або переїхав
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,Відкрити посилання
@@ -929,6 +929,7 @@ DocType: Workflow State,flag,прапор
 DocType: Web Page,Text Align,Text Align
 DocType: Contact Us Settings,Forward To Email Address,Вперед на адресу електронної пошти
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,Назва поля повинно бути дійсним ім&#39;я_поля
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,Редагувати профіль
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Сесія Термін в годиннику, наприклад, 6:00"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Після того як ви встановили це, користувачі зможуть тільки доступ до документів (наприклад ,. Блог Пост), де існує зв&#39;язок (наприклад, Blogger.)."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,Не вдається відкрити прикріплений файл. Будь ласка спробуйте ще раз.
@@ -954,7 +955,7 @@ DocType: DocField,Select,Вибрати
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,Файл не додається
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Якщо ви встановите це, цей предмет прийде в списку, що розкривається під обраної батька."
 apps/frappe/frappe/model/db_query.py +434,Please select atleast 1 column from {0} to sort,"Будь ласка, виберіть принаймні колону 1 від {0} для сортування"
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},Не знайдено жодного шаблону на шляху: {0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},Не знайдено жодного шаблону на шляху: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","Пункти меню у верхній панелі. Для установки кольору верхній панелі, перейдіть до вибраного сайту Тема."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,Розмістити після імпорту.
 DocType: Blogger,Avatar,Аватар
@@ -1505,7 +1506,7 @@ DocType: Role,Role Name,Ім&#39;я ролі
 DocType: Workflow Document State,Workflow Document State,Робочий процес документа державного
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","Щоб дати широкий доступ до ролі тільки для певних записів, встановіть прапорець Застосувати дозволів користувача. Дозволи користувачів використовуються для обмеження кількості користувачів, з такою роллю конкретних записів."
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Не можна скасувати перед відправкою. Див Перехід {0}
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,Друк Формат {0} відключена
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,Друк Формат {0} відключена
 DocType: Email Alert,Send days before or after the reference date,Відправити дні до або після звітної дати
 DocType: User,Allow user to login only after this hour (0-24),Дозволити користувачеві увійти в систему тільки після цього години (0-24)
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,По мені Assigned
@@ -1554,6 +1555,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,"DocType, на �
 DocType: Blog Category,Category Name,Категорія Ім&#39;я
 DocType: Print Settings,PDF Settings,Параметри PDF
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,Ім&#39;я стовпця
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,Чи не з&#39;являтися до суду
 apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be indexed,FieldType {0} для {1} не може бути проіндексований
 DocType: Communication,Email Account,E-mail аккаунт
 DocType: Workflow State,Download,Завантажити
@@ -1584,7 +1586,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,Головна сторінка є продукти
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},Призначення закритий {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,Обчислювати
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,"Будь ласка, виберіть тип документа в першу чергу"
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,"Будь ласка, виберіть тип документа в першу чергу"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,"наприклад, (55 + 434) / 4 = або Math.sin (Math.PI / 2) ..."
 DocType: Social Login Keys,GitHub Client ID,GitHub ID клієнта
 DocType: DocField,Perm Level,Перм Рівень

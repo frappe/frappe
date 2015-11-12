@@ -5,7 +5,7 @@ apps/frappe/frappe/config/setup.py +98,Rename many items by uploading a .csv fil
 DocType: Workflow State,pause,durma
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Bu sayfaya erişmek için izniniz yok.
 DocType: User,Facebook Username,Facebook Kullanıcı Adı
-apps/frappe/frappe/public/js/legacy/form.js +687,Permanently Submit {0}?,Kalıcı {0} Gönder?
+apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,Kalıcı {0} Gönder?
 DocType: Workflow State,eye-open,eye-open
 DocType: Bulk Email,Send After,Sonra Gönder
 apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,Bir dosya veya url seçiniz
@@ -266,7 +266,7 @@ DocType: Email Account,Send Notification to,Için Bildirim gönder
 DocType: DocField,Collapsible,Katlanabilir
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,Kaydedilmiş
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,Select için seçenekler. Yeni bir satırda her seçenek.
-apps/frappe/frappe/public/js/legacy/form.js +710,Permanently Cancel {0}?,Kalıcı {0} İptal?
+apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,Kalıcı {0} İptal?
 DocType: Workflow State,music,müzik
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,Doctype belirtiniz
 DocType: Print Format,Format Data,Biçim Verileri
@@ -443,7 +443,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,Hiçbir Uygulamalar Yüklü
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,Olarak Zorunlu alan işaretle
 DocType: Communication,Clicked,Tıklandı
-apps/frappe/frappe/public/js/legacy/form.js +861,No permission to '{0}' {1},Izniniz yok '{0}' {1}
+apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},Izniniz yok '{0}' {1}
 DocType: User,Google User ID,Google Kullanıcı Kimliği
 apps/frappe/frappe/desk/form/utils.py +66,This method can only be used to create a Comment,"Bu yöntem, yalnızca açıklama oluşturmak için kullanılabilir"
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,Hayır {0} bulundu
@@ -540,7 +540,7 @@ For Select, enter list of Options, each on a new line.","Linkler için, aralığ
 DocType: Workflow State,film,film
 apps/frappe/frappe/model/db_query.py +322,No permission to read {0},Hiçbir izni okumak için {0}
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,Çoklu kök düğümler izin verilmiyor.
-apps/frappe/frappe/public/js/frappe/model/create_new.js +278,Get,Al
+apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,Al
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,Kimlik alanı Raporu kullanarak değerleri düzenlemek için gereklidir. Sütun Seçici kullanarak kimlik alanını seçiniz
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,Onaylamak
 DocType: System Settings,yyyy-mm-dd,yyyy-aa-gg
@@ -632,7 +632,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify 
 DocType: Website Settings,FavIcon,Favicon
 DocType: Workflow State,minus-sign,minus-sign
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,Bulunamadı
-apps/frappe/frappe/templates/pages/print.py +157,No {0} permission,Hayır {0} izni
+apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,Hayır {0} izni
 DocType: Feed,Login,Giriş
 DocType: Feed,Login,Giriş
 DocType: System Settings,Enable Scheduled Jobs,Tarifeli İşler etkinleştirin
@@ -792,7 +792,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,Yeniden açın
 apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0} belge paylaşımını şu kişiden sildi {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,{1} {0} Belge Durum geçiş izin verilmez
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Bu otomatik olarak oluşturulmuş Cevap
-apps/frappe/frappe/public/js/frappe/model/create_new.js +267,Get From,Gönderen alın
+apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,Gönderen alın
 apps/frappe/frappe/model/document.py +416,Record does not exist,Kaydı yok
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Eksik veya taşınmış Sayfa
 apps/frappe/frappe/public/js/frappe/form/control.js +973,Open Link,Açık Bağlantı
@@ -943,6 +943,7 @@ DocType: Workflow State,flag,bayrak
 DocType: Web Page,Text Align,Metin Hizala
 DocType: Contact Us Settings,Forward To Email Address,İleri E-posta Adresi
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Title field must be a valid fieldname,Başlık alanı geçerli bir fieldname olmalı
+apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,Profili Düzenle
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,Oturum kapanacak saat sonra
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Bunu ayarladıktan sonra, kullanıcılar sadece mümkün erişim belgeler (örn. olacak Bağlantı var Blog Post) (örn. Blogger)."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,Ekli dosyası açılamıyor. Lütfen tekrar deneyin.
@@ -968,7 +969,7 @@ DocType: DocField,Select,Seç
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,Dosya bağlı değil
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Bu ayarlarsanız, bu Ürün seçilen ebeveyn altında açılan gelecektir."
 apps/frappe/frappe/model/db_query.py +434,Please select atleast 1 column from {0} to sort,{0} sıralamak den en az 1 sütun seçin
-apps/frappe/frappe/templates/pages/print.py +183,No template found at path: {0},Yolda bulunamadı şablon: {0}
+apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},Yolda bulunamadı şablon: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","En Bar&#39;da menü öğeleri. Top Bar rengini ayarlamak için, seçilen Web Sitesi Tema gidin."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,İçe aktardıktan sonra kayıta gir.
 DocType: Blogger,Avatar,Resim
@@ -1527,7 +1528,7 @@ DocType: Role,Role Name,Rol Adı
 DocType: Workflow Document State,Workflow Document State,İş Akışı Belge Durumu
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","Kullanıcı İzinlerini Uygula onay, sadece belirli kayıtlar için bir rol çağındaki vermek. Kullanıcı İzinleri belirli kayıtlara böyle role sahip kullanıcılara sınırlamak için kullanılır."
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Göndermeden önce iptal edilemiyor. Bkz Geçiş {0}
-apps/frappe/frappe/templates/pages/print.py +169,Print Format {0} is disabled,Baskı Biçimi {0} devre dışı
+apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,Baskı Biçimi {0} devre dışı
 DocType: Email Alert,Send days before or after the reference date,Önce veya referans tarihinden sonra gün Gönder
 DocType: User,Allow user to login only after this hour (0-24),Kullanıcının bu saat sonra giriş yapmasına izin ver (0-24)
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,By Me Atanan
@@ -1577,6 +1578,7 @@ DocType: Workflow,DocType on which this Workflow is applicable.,Uygulanabilir i�
 DocType: Blog Category,Category Name,Kategori Adı
 DocType: Print Settings,PDF Settings,PDF Ayarları
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,Sütun Adı
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,Varsayılan yapmak
 apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be indexed,FIELDTYPE {0} {1} endeksli olamaz için
 DocType: Communication,Email Account,E-posta Hesabı
 DocType: Workflow State,Download,indir
@@ -1608,7 +1610,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +431,{0}: Permission at level
 DocType: Website Settings,Home Page is Products,Ana Sayfa Ürünler konumundadır
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},Atama tarafından kapatıldı {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,Hesapla
-apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,İlk DOCTYPE seçiniz
+apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,İlk DOCTYPE seçiniz
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,Örneğin (55 + 434) / 4 veya = Math.sin (Math.PI / 2) ...
 DocType: Social Login Keys,GitHub Client ID,GitHub Müşteri Kimliği
 DocType: DocField,Perm Level,Seviye Perm
