@@ -11,7 +11,6 @@ from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
-from frappe.utils import strip_html
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -28,6 +27,12 @@ class WebPage(WebsiteGenerator):
 	def validate(self):
 		if self.template_path and not getattr(self, "from_website_sync"):
 			frappe.throw(frappe._("Cannot edit templated page"))
+
+		# avoid recursive parent_web_page.
+		if self.parent_web_page == self.page_name:
+			self.parent_web_page = ""
+			self.parent_website_route = ""
+
 		super(WebPage, self).validate()
 
 	def get_context(self, context):
