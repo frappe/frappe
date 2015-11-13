@@ -202,23 +202,6 @@ function show_alert(txt, seconds) {
 		return false;
 	});
 
-	// if the window is in focus, hide it in 3 seconds
-	// but if the tab/window is minimised or not in focus,
-	// hide it in 3 seconds after gaining focus
-
-	function hide_after_delay() {
-		div.delay(seconds ? seconds * 1000 : 3000).fadeOut(300);
-	}
-
-	if ('hidden' in document && document.hidden) {
-		// we use a named function to be able to unbind the event
-		$(window).on("focus", function hide_on_focus() {
-			hide_after_delay();
-			$(window).unbind("focus", hide_on_focus);
-		});
-	} else {
-		hide_after_delay();
-	}
-
+	div.delay(seconds ? seconds * 1000 : 3000).fadeOut(300);
 	return div;
 }
