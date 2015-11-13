@@ -66,6 +66,9 @@ class WebForm(WebsiteGenerator):
 		context.parents = self.get_parents(context)
 
 		context.types = [f.fieldtype for f in self.web_form_fields]
+		if context.success_message:
+			context.success_message = context.success_message.replace("\n",
+				"<br>").replace("'", "\'")
 
 		return context
 
