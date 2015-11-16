@@ -4,7 +4,7 @@
 		or (doc.get_route and doc.get_route())
 		or "{0}/{1}".format(pathname or doc.doctype, doc.name)) %}
 <div class="web-list-item">
-    <a class="no-decoration" href="/{{ route }}" no-pjax>
+    <a class="no-decoration" href="/{{ route | urlencode }}" no-pjax>
         <p>{{ subject }}</p>
     </a>
 </div>
