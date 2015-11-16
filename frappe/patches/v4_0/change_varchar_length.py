@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	for dt in frappe.db.sql_list("""select name from `tabDocType` where ifnull(issingle, 0)=0"""):
+	for dt in frappe.db.sql_list("""select name from `tabDocType` where issingle=0"""):
 		desc = dict((d["Field"], d) for d in frappe.db.sql("desc `tab{}`".format(dt), as_dict=True))
 		alter_table = []
 

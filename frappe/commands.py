@@ -429,7 +429,7 @@ def reset_perms(context):
 			frappe.init(site=site)
 			frappe.connect()
 			for d in frappe.db.sql_list("""select name from `tabDocType`
-				where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+				where istable=0 and custom=0"""):
 					frappe.clear_cache(doctype=d)
 					reset_perms(d)
 		finally:

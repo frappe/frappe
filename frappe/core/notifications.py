@@ -38,5 +38,5 @@ def get_unread_messages():
 		FROM `tabComment`
 		WHERE comment_doctype IN ('My Company', 'Message')
 		AND comment_docname = %s
-		AND ifnull(docstatus,0)=0
+		AND docstatus=0
 		""", (frappe.session.user,))[0][0]

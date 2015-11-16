@@ -53,7 +53,7 @@ def get_active_users():
 		(select count(*) from tabSessions where user=tabUser.name
 			and timediff(now(), lastupdate) < time("01:00:00")) as has_session
 	 	from tabUser
-		where ifnull(enabled,0)=1 and
+		where enabled=1 and
 		ifnull(user_type, '')!='Website User' and
 		name not in ({})
 		order by first_name""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS, as_dict=1)

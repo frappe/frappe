@@ -44,7 +44,7 @@ def get_bootinfo():
 	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from
 		tabDocType where ifnull(icon,'')!=''"""))
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where ifnull(issingle,0)=1""")
+	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -120,7 +120,7 @@ def get_fullnames():
 		concat(ifnull(first_name, ''),
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
 			user_image as image, gender, email
-		from tabUser where ifnull(enabled, 0)=1 and user_type!="Website User" """, as_dict=1)
+		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:
