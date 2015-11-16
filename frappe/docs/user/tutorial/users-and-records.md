@@ -48,7 +48,7 @@ Here if you remember we had set the values of Member First Name and Member Last 
 
 As you can see that the date is formatted as year-month-day which is a system format. To set / change date, time and number formats, go to
 
-> Setup > System Settings
+> Setup > Settings > System Settings
 
 <img class="screenshot" alt="System Settings" src="{{url_prefix}}/assets/img/system_settings.png">
 

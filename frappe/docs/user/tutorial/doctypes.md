@@ -62,7 +62,7 @@ Now login into mysql and check the database table created:
 
 	Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-	MariaDB [library]> desc `tabArticle`;
+	MariaDB [library]> DESC tabArticle;
 	+--------------+--------------+------+-----+---------+-------+
 	| Field        | Type         | Null | Key | Default | Extra |
 	+--------------+--------------+------+-----+---------+-------+
