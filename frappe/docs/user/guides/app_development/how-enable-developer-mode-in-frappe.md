@@ -10,6 +10,6 @@ Add this to the JSON object
 
 After setting developer mode, clear the cache:
 
-	$ bench frappe --clear_cache
+	$ bench clear-cache
 
 <!-- markdown -->

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import frappe, json
+import frappe, json, os
 from frappe.utils import strip
 from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
@@ -58,7 +58,7 @@ def load_messages(language):
 
 	for path in frappe.get_hooks("setup_wizard_requires"):
 		# common folder `assets` served from `sites/`
-		js_file_path = frappe.get_site_path("..", *path.strip("/").split("/"))
+		js_file_path = os.path.abspath(frappe.get_site_path("..", *path.strip("/").split("/")))
 		m.update(get_dict("jsfile", js_file_path))
 
 	m.update(get_dict("boot"))
