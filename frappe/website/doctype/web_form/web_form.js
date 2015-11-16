@@ -15,21 +15,29 @@ frappe.web_form = {
 	}
 }
 
-frappe.ui.form.on("Web Form", "refresh", function(frm) {
-	frappe.web_form.set_fieldname_select(frm);
-});
+frappe.ui.form.on("Web Form", {
+	refresh: function(frm) {
+		// show is-standard only if developer mode
+		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 
-frappe.ui.form.on("Web Form", "title", function(frm) {
-	if(frm.doc.__islocal) {
-		var page_name = frm.doc.title.toLowerCase().replace(/ /g, "-");
-		frm.set_value("page_name", page_name);
-		frm.set_value("success_url", "/" + page_name);
+		frappe.web_form.set_fieldname_select(frm);
+
+		if(frm.doc.is_standard && !frappe.boot.developer_mode) {
+			frm.set_read_only();
+		}
+	},
+	title: function(frm) {
+		if(frm.doc.__islocal) {
+			var page_name = frm.doc.title.toLowerCase().replace(/ /g, "-");
+			frm.set_value("page_name", page_name);
+			frm.set_value("success_url", "/" + page_name);
+		}
+	},
+	doc_type: function(frm) {
+		frappe.web_form.set_fieldname_select(frm);
 	}
 });
 
-frappe.ui.form.on("Web Form", "doc_type", function(frm) {
-	frappe.web_form.set_fieldname_select(frm);
-});
 
 frappe.ui.form.on("Web Form Field", "fieldname", function(frm, doctype, name) {
 	var doc = frappe.get_doc(doctype, name);
