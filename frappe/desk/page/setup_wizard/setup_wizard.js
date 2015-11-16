@@ -31,10 +31,6 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 		frappe.require(path);
 	});
 
-	// add welcome slide
-	frappe.wiz.add_slide(frappe.wiz.welcome);
-	frappe.wiz.add_slide(frappe.wiz.region);
-
 	frappe.wiz.run_event("before_load");
 
 	var wizard_settings = {
@@ -52,8 +48,6 @@ frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 	if(frappe.get_route()[1]) {
 		frappe.wiz.wizard.show(frappe.get_route()[1]);
 	}
-
-
 }
 
 frappe.wiz.Wizard = Class.extend({
@@ -238,159 +232,175 @@ frappe.wiz.WizardSlide = Class.extend({
 	}
 });
 
-// language selection
-frappe.wiz.welcome = {
-	name: "welcome",
-	title: __("Welcome"),
-	icon: "icon-world",
-	help: __("Let's prepare the system for first use."),
+function load_frappe_slides() {
+	// language selection
+	frappe.wiz.welcome = {
+		name: "welcome",
+		title: __("Welcome"),
+		icon: "icon-world",
+		help: __("Let's prepare the system for first use."),
 
-	fields: [
-		{ fieldname: "language", label: __("Select Your Language"), reqd:1,
-			fieldtype: "Select" },
-	],
+		fields: [
+			{ fieldname: "language", label: __("Select Your Language"), reqd:1,
+				fieldtype: "Select" },
+		],
 
-	onload: function(slide) {
-		if (!frappe.wiz.welcome.data) {
-			frappe.wiz.welcome.load_languages(slide);
-		} else {
-			frappe.wiz.welcome.setup_fields(slide);
-		}
-	},
-
-	css_class: "single-column",
-	load_languages: function(slide) {
-		frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
-			callback: function(r) {
-				frappe.wiz.welcome.data = r.message;
+		onload: function(slide) {
+			if (!frappe.wiz.welcome.data) {
+				frappe.wiz.welcome.load_languages(slide);
+			} else {
 				frappe.wiz.welcome.setup_fields(slide);
-
-				slide.get_field("language")
-					.set_input(frappe.wiz.welcome.data.default_language || "english");
-				moment.locale("en");
 			}
-		});
-	},
+		},
 
-	setup_fields: function(slide) {
-		var select = slide.get_field("language");
-		select.df.options = frappe.wiz.welcome.data.languages;
-		select.refresh();
-		frappe.wiz.welcome.bind_events(slide);
-	},
-
-	bind_events: function(slide) {
-		slide.get_input("language").unbind("change").on("change", function() {
-			var lang = $(this).val() || "english";
-			frappe._messages = {};
+		css_class: "single-column",
+		load_languages: function(slide) {
 			frappe.call({
-				method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
-				args: {
-					language: lang
-				},
+				method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
 				callback: function(r) {
-					// TODO save values!
+					frappe.wiz.welcome.data = r.message;
+					frappe.wiz.welcome.setup_fields(slide);
 
-					// re-render all slides
-					$.each(slide.wiz.slide_dict, function(key, s) {
-						s.make();
-					});
-
-					// select is re-made after language change
-					var select = slide.get_field("language");
-					select.set_input(lang);
+					slide.get_field("language")
+						.set_input(frappe.wiz.welcome.data.default_language || "english");
+					moment.locale("en");
 				}
 			});
-		});
-	}
-}
+		},
 
-// region selection
-frappe.wiz.region = {
-	title: __("Region"),
-	icon: "icon-flag",
-	help: __("Select your Country, Time Zone and Currency"),
-	fields: [
-		{ fieldname: "country", label: __("Country"), reqd:1,
-			fieldtype: "Select" },
-		{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
-			fieldtype: "Select" },
-		{ fieldname: "currency", label: __("Currency"), reqd:1,
-			fieldtype: "Select" },
-	],
+		setup_fields: function(slide) {
+			var select = slide.get_field("language");
+			select.df.options = frappe.wiz.welcome.data.languages;
+			select.refresh();
+			frappe.wiz.welcome.bind_events(slide);
+		},
 
-	onload: function(slide) {
-		frappe.call({
-			method:"frappe.geo.country_info.get_country_timezone_info",
-			callback: function(data) {
-				frappe.wiz.region.data = data.message;
-				frappe.wiz.region.setup_fields(slide);
-				frappe.wiz.region.bind_events(slide);
-			}
-		});
-	},
-	css_class: "single-column",
-	setup_fields: function(slide) {
-		var data = frappe.wiz.region.data;
+		bind_events: function(slide) {
+			slide.get_input("language").unbind("change").on("change", function() {
+				var lang = $(this).val() || "english";
+				frappe._messages = {};
+				frappe.call({
+					method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
+					args: {
+						language: lang
+					},
+					callback: function(r) {
+						// TODO save values!
 
-		slide.get_input("country").empty()
-			.add_options([""].concat(keys(data.country_info).sort()));
+						// reset all slides so that labels are translated
+						frappe.wiz.slides = [];
+						frappe.wiz.run_event("before_load");
+						frappe.wiz.wizard.slides = frappe.wiz.slides;
 
-		slide.get_input("currency").empty()
-			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
-				function(opts, country) { return opts.currency; }))).sort());
+						// re-render all slides
+						$.each(slide.wiz.slide_dict, function(id, s) {
+							$.extend(s, frappe.wiz.slides[id]);
+							s.make();
+						});
 
-		slide.get_input("timezone").empty()
-			.add_options([""].concat(data.all_timezones));
-
-		if (data.default_country) {
-			slide.set_input("country", data.default_country);
+						// select is re-made after language change
+						var select = slide.get_field("language");
+						select.set_input(lang);
+					}
+				});
+			});
 		}
-	},
+	}
 
-	bind_events: function(slide) {
-		slide.get_input("country").on("change", function() {
-			var country = slide.get_input("country").val();
-			var $timezone = slide.get_input("timezone");
+	// region selection
+	frappe.wiz.region = {
+		title: __("Region"),
+		icon: "icon-flag",
+		help: __("Select your Country, Time Zone and Currency"),
+		fields: [
+			{ fieldname: "country", label: __("Country"), reqd:1,
+				fieldtype: "Select" },
+			{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
+				fieldtype: "Select" },
+			{ fieldname: "currency", label: __("Currency"), reqd:1,
+				fieldtype: "Select" },
+		],
+
+		onload: function(slide) {
+			frappe.call({
+				method:"frappe.geo.country_info.get_country_timezone_info",
+				callback: function(data) {
+					frappe.wiz.region.data = data.message;
+					frappe.wiz.region.setup_fields(slide);
+					frappe.wiz.region.bind_events(slide);
+				}
+			});
+		},
+		css_class: "single-column",
+		setup_fields: function(slide) {
 			var data = frappe.wiz.region.data;
 
-			$timezone.empty();
+			slide.get_input("country").empty()
+				.add_options([""].concat(keys(data.country_info).sort()));
 
-			// add country specific timezones first
-			if(country) {
-				var timezone_list = data.country_info[country].timezones || [];
-				$timezone.add_options(timezone_list.sort());
-				slide.get_field("currency").set_input(data.country_info[country].currency);
-				slide.get_field("currency").$input.trigger("change");
+			slide.get_input("currency").empty()
+				.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
+					function(opts, country) { return opts.currency; }))).sort());
+
+			slide.get_input("timezone").empty()
+				.add_options([""].concat(data.all_timezones));
+
+			if (data.default_country) {
+				slide.set_input("country", data.default_country);
 			}
+		},
 
-			// add all timezones at the end, so that user has the option to change it to any timezone
-			$timezone.add_options([""].concat(data.all_timezones));
+		bind_events: function(slide) {
+			slide.get_input("country").on("change", function() {
+				var country = slide.get_input("country").val();
+				var $timezone = slide.get_input("timezone");
+				var data = frappe.wiz.region.data;
 
-			slide.get_field("timezone").set_input($timezone.val());
+				$timezone.empty();
 
-			// temporarily set date format
-			frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
-				|| "dd-mm-yyyy");
-		});
-
-		slide.get_input("currency").on("change", function() {
-			var currency = slide.get_input("currency").val();
-			if (!currency) return;
-			frappe.model.with_doc("Currency", currency, function() {
-				frappe.provide("locals.:Currency." + currency);
-				var currency_doc = frappe.model.get_doc("Currency", currency);
-				var number_format = currency_doc.number_format;
-				if (number_format==="#.###") {
-					number_format = "#.###,##";
-				} else if (number_format==="#,###") {
-					number_format = "#,###.##"
+				// add country specific timezones first
+				if(country) {
+					var timezone_list = data.country_info[country].timezones || [];
+					$timezone.add_options(timezone_list.sort());
+					slide.get_field("currency").set_input(data.country_info[country].currency);
+					slide.get_field("currency").$input.trigger("change");
 				}
 
-				frappe.boot.sysdefaults.number_format = number_format;
-				locals[":Currency"][currency] = $.extend({}, currency_doc);
+				// add all timezones at the end, so that user has the option to change it to any timezone
+				$timezone.add_options([""].concat(data.all_timezones));
+
+				slide.get_field("timezone").set_input($timezone.val());
+
+				// temporarily set date format
+				frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
+					|| "dd-mm-yyyy");
 			});
-		});
-	}
+
+			slide.get_input("currency").on("change", function() {
+				var currency = slide.get_input("currency").val();
+				if (!currency) return;
+				frappe.model.with_doc("Currency", currency, function() {
+					frappe.provide("locals.:Currency." + currency);
+					var currency_doc = frappe.model.get_doc("Currency", currency);
+					var number_format = currency_doc.number_format;
+					if (number_format==="#.###") {
+						number_format = "#.###,##";
+					} else if (number_format==="#,###") {
+						number_format = "#,###.##"
+					}
+
+					frappe.boot.sysdefaults.number_format = number_format;
+					locals[":Currency"][currency] = $.extend({}, currency_doc);
+				});
+			});
+		}
+	};
 };
+
+frappe.wiz.on("before_load", function() {
+	load_frappe_slides();
+
+	// add welcome slide
+	frappe.wiz.add_slide(frappe.wiz.welcome);
+	frappe.wiz.add_slide(frappe.wiz.region);
+});
