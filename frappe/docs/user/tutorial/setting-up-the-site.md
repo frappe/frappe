@@ -44,7 +44,7 @@ Example:
 
 Now let us install our app `library_management` in our site `library`
 
-1. Install library_management in library with: `bench --site [site_name] install_app [app_name]`
+1. Install library_management in library with: `bench --site [site_name] install-app [app_name]`
 
 Example:
 
