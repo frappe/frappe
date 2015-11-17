@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import smtplib
+import email.utils
 import _socket
 from frappe.utils import cint
 from frappe import _
@@ -57,6 +58,9 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 		if not email_account and raise_exception_not_set:
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
 				frappe.OutgoingEmailError)
+
+		email_account.default_sender = email.utils.formataddr((email_account.name,
+			email_account.get("sender") or email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 

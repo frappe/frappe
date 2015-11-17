@@ -48,7 +48,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	if not sender or sender == "Administrator":
 		email_account = get_outgoing_email_account()
-		sender = email_account.get("sender") or email_account.email_id
+		sender = email_account.default_sender
 
 	check_bulk_limit(recipients)
 
