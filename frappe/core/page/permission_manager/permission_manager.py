@@ -27,8 +27,8 @@ def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
 	out = frappe.db.sql("""select * from tabDocPerm
 		where %s%s order by parent, permlevel, role""" %
-		(doctype and (" parent='%s'" % doctype.replace("'", "\'")) or "",
-		role and ((doctype and " and " or "") + " role='%s'" % role.replace("'", "\'")) or ""),
+		(doctype and (" parent='%s'" % frappe.db.escape(doctype)) or "",
+		role and ((doctype and " and " or "") + " role='%s'" % frappe.db.escape(role)) or ""),
 		as_dict=True)
 
 	linked_doctypes = {}
@@ -63,7 +63,7 @@ def add(parent, role, permlevel):
 def update(name, doctype, ptype, value=None):
 	frappe.only_for("System Manager")
 	frappe.db.sql("""update tabDocPerm set `%s`=%s where name=%s"""\
-	 	% (ptype, '%s', '%s'), (value, name))
+	 	% (frappe.db.escape(ptype), '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
 
 def validate_and_reset(doctype, for_remove=False):

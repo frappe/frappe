@@ -788,4 +788,4 @@ class Database:
 		"""Excape quotes and percent in given string."""
 		if isinstance(s, unicode):
 			s = (s or "").encode("utf-8")
-		return unicode(MySQLdb.escape_string(s), "utf-8").replace("%","%%")
+		return unicode(MySQLdb.escape_string(s), "utf-8").replace("%","%%").replace("`", "\\`")

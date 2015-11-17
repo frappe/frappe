@@ -28,11 +28,11 @@ def sendmail_to_system_managers(subject, content):
 @frappe.whitelist()
 def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
-	cond = ['`%s` like "%s%%"' % (f,
-		frappe.form_dict.get('txt')) for f in frappe.form_dict.get('where').split(',')]
+	cond = ['`%s` like "%s%%"' % (frappe.db.escape(f),
+		frappe.db.escape(frappe.form_dict.get('txt'))) for f in frappe.form_dict.get('where').split(',')]
 	cl = frappe.db.sql("select `%s` from `tab%s` where %s" % (
-  			 frappe.form_dict.get('select')
-			,frappe.form_dict.get('from')
+  			 frappe.db.escape(frappe.form_dict.get('select'))
+			,frappe.db.escape(frappe.form_dict.get('from'))
 			,' OR '.join(cond)
 		)
 	)
