@@ -156,9 +156,12 @@ def has_permission(doctype, docname, perm_type="read"):
 
 @frappe.whitelist()
 def get_js(src):
-	if src[0]=="/":
-		src = src[1:]
-	contentpath = os.path.join(frappe.local.sites_path, src)
+	src = src.strip("/").split("/")
+
+	if ".." in src:
+		frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
+
+	contentpath = os.path.join(frappe.local.sites_path, *src)
 	with open(contentpath, "r") as srcfile:
 		code = frappe.utils.cstr(srcfile.read())
 

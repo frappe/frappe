@@ -264,7 +264,7 @@ def delete_file(path):
 		parts = os.path.split(path)
 		path = frappe.utils.get_site_path("public", "files", parts[-1])
 
-		if "/../" in path:
+		if ".." in path.split("/"):
 			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
 
 		path = encode(path)
