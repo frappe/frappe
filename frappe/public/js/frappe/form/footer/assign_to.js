@@ -150,7 +150,7 @@ frappe.ui.to_do_dialog = function(opts){
 			{fieldtype:'Link', fieldname:'assign_to', options:'User',
 				label:__("Assign To"),
 				description:__("Add to To Do List Of"), reqd:true},
-			{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+			{fieldtype:'Text', fieldname:'description', label:__("Comment"), reqd:true},
 			{fieldtype:'Check', fieldname:'notify',
 				label:__("Notify by Email"), "default":1},
 			{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
