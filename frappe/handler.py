@@ -60,7 +60,9 @@ def uploadfile():
 				frappe.db.rollback()
 		else:
 			if frappe.form_dict.get('method'):
-				ret = frappe.get_attr(frappe.form_dict.method)()
+				method = frappe.get_attr(frappe.form_dict.method)
+				is_whitelisted(method)
+				ret = method()
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		ret = None
@@ -87,6 +89,15 @@ def execute_cmd(cmd, from_async=False):
 	if from_async:
 		method = method.queue
 
+	is_whitelisted(method)
+
+	ret = frappe.call(method, **frappe.form_dict)
+
+	# returns with a message
+	if ret:
+		frappe.response['message'] = ret
+
+def is_whitelisted(method):
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':
 		if (method not in frappe.guest_methods):
@@ -105,12 +116,6 @@ def execute_cmd(cmd, from_async=False):
 		if not method in frappe.whitelisted:
 			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
-
-	ret = frappe.call(method, **frappe.form_dict)
-
-	# returns with a message
-	if ret:
-		frappe.response['message'] = ret
 
 def get_attr(cmd):
 	"""get method object from cmd"""
