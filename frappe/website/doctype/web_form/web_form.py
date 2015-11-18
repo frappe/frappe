@@ -22,7 +22,8 @@ class WebForm(WebsiteGenerator):
 			self.use_meta_fields()
 
 	def validate(self):
-		if self.is_standard and not frappe.conf.developer_mode:
+		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test)
+			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
 	def use_meta_fields(self):
