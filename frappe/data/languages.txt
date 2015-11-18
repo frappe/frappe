@@ -28,7 +28,7 @@ ko	한국의
 lv	latviešu valoda
 mr	मराठी
 mk	македонски
-my	Melayu
+my	မြန်မာ
 nl	nederlands
 no	norsk
 pl	polski
