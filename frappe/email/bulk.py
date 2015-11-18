@@ -145,7 +145,7 @@ def check_bulk_limit(recipients):
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
 		if (this_month + len(recipients)) > monthly_bulk_mail_limit:
-			throw(_("Email limit {0} crossed").format(monthly_bulk_mail_limit),
+			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_bulk_mail_limit),
 				BulkLimitCrossedError)
 
 def get_unsubscribe_link(reference_doctype, reference_name,
