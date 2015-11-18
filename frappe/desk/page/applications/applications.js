@@ -8,6 +8,7 @@ frappe.applications.Installer = Class.extend({
 	init: function(parent) {
 		this.parent = parent;
 		this.get_app_list();
+		this.setup_realtime();
 	},
 
 	get_app_list: function() {
@@ -26,29 +27,106 @@ frappe.applications.Installer = Class.extend({
 				}
 
 				me.wrapper.empty();
-				me.make_search();
+				me.make_toolbar();
 				me.make_app_list(apps);
+
+				// startup with "Featured"
+				me.toggle_category();
+				me.update_no_result();
 			}
 		});
 	},
 
-	make_search: function() {
+	make_toolbar: function() {
 		var me = this;
-		$('<div class="padding search-wrapper panel-bg"><div class="form-group">\
-			<input type="text" class="form-control app-search" placeholder="Search" name="search"/></div></div>')
-			.appendTo(this.wrapper)
-			.find(".app-search")
-				.on("keyup", function() {
-					var val = ($(this).val() || "").toLowerCase();
-					me.wrapper.find(".app-listing").each(function() {
-						$(this).toggle($(this).attr("data-title").toLowerCase().indexOf(val)!==-1);
-					});
-				});
+		this.category_select = this.page.add_select(__("Category"),
+			[
+				{"label": __("Select Category..."), value: "Featured" },
+				{"label": __("Not set"), value: "Not set" },
+				{"label": __("Domains"), value: "Domains" },
+				{"label": __("Developer Tools"), value: "Developer Tools" },
+				{"label": __("Integrations"), value: "Integrations" },
+				{"label": __("Portal"), value: "Portal" },
+				{"label": __("Regional Extensions"), value: "Regional Extensions" },
+			]);
+
+		this.category_select.on("change", function() {
+			me.search.val("");
+			me.toggle_category();
+			me.update_no_result();
+		});
+
+		this.search = this.page.add_data(__("Search"))
+		this.search.on("keyup", function() {
+			me.title.text(__("Search Results"));
+
+			var val = ($(this).val() || "").toLowerCase();
+
+			// disable other inputs when searching
+			me.category_select.val("Featured").prop("disabled", val.length ? true : false);
+			me.show_installed.$input.prop("disabled", val.length ? true : false);
+
+			// filter items
+			me.wrapper.find(".app-listing").each(function() {
+				$(this).toggle($(this).attr("data-title").toLowerCase().indexOf(val)!==-1);
+			});
+
+			me.update_no_result();
+		});
+
+		this.show_installed = this.page.add_field({fieldtype:"Check", label:__("Installed") });
+		this.show_installed.$input.on("change", function() {
+			me.category_select.val("Featured");
+			me.search.val("");
+			me.toggle_installed($(this).prop("checked"));
+
+			// disable category and search if showing installed
+			me.category_select.prop("disabled", $(this).prop("checked"));
+			me.search.val("");
+			me.search.prop("disabled", $(this).prop("checked"));
+
+			me.update_no_result();
+		});
+
+	},
+
+	toggle_installed: function(show) {
+		if(show) {
+			this.title.text(__("Installed Apps"));
+
+			this.wrapper.find(".app-listing").each(function() {
+				$(this).toggle($(this).attr("data-installed")==="1");
+			});
+		} else {
+			this.toggle_category();
+		}
+	},
+
+	toggle_category: function() {
+		var me = this;
+		var val = ($(this.category_select).val() || "Featured");
+
+		this.title.text(__(val));
+		this.wrapper.find(".app-listing").each(function() {
+			// if($(this).attr("data-installed")==="1") {
+			// 	var toggle = false;
+			// } else
+			if(val==="Featured") {
+				var toggle = $(this).attr("data-featured") == "1";
+			} else {
+				var toggle = $(this).attr("data-category") === val;
+			}
+			$(this).toggle(toggle);
+		});
+
 	},
 
 	make_app_list: function(apps) {
 		var me = this;
 		var modules = {};
+
+		me.title = $('<h3 class="text-muted" style="padding: 0px 15px; \
+			font-weight: 400;"></h3>').text(__("Featured")).appendTo(me.wrapper);
 
 		$.each(Object.keys(apps).sort(), function(i, app_key) {
 			var app = apps[app_key];
@@ -65,20 +143,28 @@ frappe.applications.Installer = Class.extend({
 			$(frappe.render_template("application_row", {app: app})).appendTo(me.wrapper);
 		});
 
+		me.no_result = $('<p class="text-muted" style="padding: 15px;">'
+			+ __('No matching apps found') + '</p>').appendTo(me.wrapper).toggle(false);
+
 		this.wrapper.find(".install").on("click", function() {
-			me.install_app($(this).attr("data-app"));
+			me.install_app($(this).attr("data-app"), this);
 		});
 
 	},
 
-	install_app: function(app_name) {
+	update_no_result: function() {
+		this.no_result.toggle(this.wrapper.find(".app-listing:visible").length ? false : true);
+	},
+
+	install_app: function(app_name, btn) {
 		frappe.call({
 			method: "frappe.desk.page.applications.applications.install_app",
 			args: { name: app_name },
+			freeze: true,
+			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					msgprint(__("Installed"));
-					msgprint(__("Refreshing..."));
+					frappe.update_msgprint(__("Refreshing..."));
 					setTimeout(function() { window.location.reload() }, 2000)
 				}
 			}
@@ -91,7 +177,7 @@ frappe.applications.Installer = Class.extend({
 
 		frappe.ui.make_app_page({
 			parent: this.parent,
-			title: __('Application Installer'),
+			title: __('App Installer'),
 			icon: "icon-download",
 			single_column: true
 		});
@@ -99,5 +185,14 @@ frappe.applications.Installer = Class.extend({
 		this.page = this.parent.page;
 		this.wrapper = $('<div></div>').appendTo(this.page.main);
 
+	},
+
+	setup_realtime: function() {
+		frappe.realtime.on("install_app_progress", function(data) {
+			if(data.status) {
+				frappe.update_msgprint(data.status);
+				msg_dialog.show_loading();
+			}
+		})
 	}
 });
