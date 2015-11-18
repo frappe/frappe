@@ -24,6 +24,7 @@ frappe.ui.form.on("Web Form", {
 
 		if(frm.doc.is_standard && !frappe.boot.developer_mode) {
 			frm.set_read_only();
+			frm.disable_save();
 		}
 	},
 	title: function(frm) {
@@ -41,7 +42,7 @@ frappe.ui.form.on("Web Form", {
 
 frappe.ui.form.on("Web Form Field", "fieldname", function(frm, doctype, name) {
 	var doc = frappe.get_doc(doctype, name);
-		df = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
+	var df = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
 			return doc.fieldname==d.fieldname ? d : null; })[0];
 
 	doc.label = df.label;
