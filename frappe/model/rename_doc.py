@@ -154,7 +154,7 @@ def get_link_fields(doctype):
 	# get link fields from tabDocField
 	link_fields = frappe.db.sql("""\
 		select parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
@@ -163,7 +163,7 @@ def get_link_fields(doctype):
 	# get link fields from tabCustom Field
 	custom_link_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
@@ -175,7 +175,7 @@ def get_link_fields(doctype):
 	# remove fields whose options have been changed using property setter
 	property_setter_link_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
 		from `tabProperty Setter` ps
 		where
@@ -217,7 +217,7 @@ def get_select_fields(old, new):
 	# get link fields from tabDocField
 	select_fields = frappe.db.sql("""\
 		select parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
@@ -228,7 +228,7 @@ def get_select_fields(old, new):
 	# get link fields from tabCustom Field
 	custom_select_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
@@ -242,7 +242,7 @@ def get_select_fields(old, new):
 	# remove fields whose options have been changed using property setter
 	property_setter_select_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
 		from `tabProperty Setter` ps
 		where

@@ -148,8 +148,9 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 	fname = get_file_name(fname, content_hash[-6:])
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
-		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 		call_hook_method("before_write_file", file_size=file_size)
+
+		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 		file_data = method(fname, content, content_type=content_type)
 		file_data = copy(file_data)
 

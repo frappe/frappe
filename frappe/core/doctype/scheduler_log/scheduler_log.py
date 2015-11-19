@@ -16,4 +16,4 @@ class SchedulerLog(Document):
 
 def set_old_logs_as_seen():
 	frappe.db.sql("""update `tabScheduler Log` set seen=1
-		where ifnull(seen, 0)=0 and datediff(curdate(), creation) > 7""")
+		where seen=0 and datediff(curdate(), creation) > 7""")

@@ -81,7 +81,7 @@ def get_events(start, end, user=None, for_reminder=False):
 			or (date(ends_on) between date(%(start)s) and date(%(end)s))
 			or (date(starts_on) <= date(%(start)s) and date(ends_on) >= date(%(end)s))
 		) or (
-			date(starts_on) <= date(%(start)s) and ifnull(repeat_this_event,0)=1 and
+			date(starts_on) <= date(%(start)s) and repeat_this_event=1 and
 			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
 		))
 		{reminder_condition}

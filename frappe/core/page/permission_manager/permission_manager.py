@@ -15,7 +15,7 @@ def get_roles_and_doctypes():
 	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
 	return {
 		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
-			ifnull(istable,0)=0 and
+			istable=0 and
 			name not in ('DocType') and
 			exists(select * from `tabDocField` where parent=dt.name)""")],
 		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where name not in
@@ -93,7 +93,7 @@ def get_users_with_role(role):
 			tabUserRole.role=%s
 			and tabUser.name != "Administrator"
 			and tabUserRole.parent = tabUser.name
-			and ifnull(tabUser.enabled,0)=1""", role)]
+			and tabUser.enabled=1""", role)]
 
 @frappe.whitelist()
 def get_standard_permissions(doctype):
