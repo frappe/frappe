@@ -365,7 +365,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
-	if not sender and frappe.session.user != "Administrator":
+	if not sender:
 		sender = get_formatted_email(frappe.session.user)
 
 	comm = frappe.get_doc({
