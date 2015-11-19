@@ -40,8 +40,9 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 		title: __("Welcome")
 	}
 
-	frappe.wiz.wizard = new frappe.wiz.Wizard(wizard_settings)
+	frappe.wiz.wizard = new frappe.wiz.Wizard(wizard_settings);
 
+	frappe.wiz.run_event("after_load");
 }
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
@@ -291,6 +292,7 @@ function load_frappe_slides() {
 						frappe.wiz.slides = [];
 						frappe.wiz.run_event("before_load");
 						frappe.wiz.wizard.slides = frappe.wiz.slides;
+						frappe.wiz.run_event("after_load");
 
 						// re-render all slides
 						$.each(slide.wiz.slide_dict, function(id, s) {
