@@ -7,6 +7,7 @@ import json
 from email.utils import formataddr, parseaddr
 from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails
 from frappe.utils.file_manager import get_file
+from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
 from frappe import _
 
@@ -103,6 +104,8 @@ class Communication(Document):
 			self._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 				recipients=recipients, cc=cc)
 		else:
+			check_bulk_limit(list(set(self.sent_email_addresses)))
+
 			from frappe.tasks import sendmail
 			sendmail.delay(frappe.local.site, self.name,
 				print_html=print_html, print_format=print_format, attachments=attachments,

@@ -7,6 +7,7 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
+from frappe.model import default_fields
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -15,6 +16,32 @@ class WebForm(WebsiteGenerator):
 		page_title_field = "title",
 		no_cache = 1
 	)
+
+	def onload(self):
+		if self.is_standard and not frappe.conf.developer_mode:
+			self.use_meta_fields()
+
+	def validate(self):
+		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test)
+			and self.is_standard and not frappe.conf.developer_mode):
+			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+
+	def use_meta_fields(self):
+		meta = frappe.get_meta(self.doc_type)
+		# original_web_form_fields = frappe.form_dict((df.fieldname, df) for df in self.web_form_fields)
+		self.web_form_fields = meta.fields
+
+		for df in self.web_form_fields:
+			df.doctype = "Web Form Field"
+			df.parentfield = "web_form_fields"
+			df.parenttype = self.doctype
+			df.parent = self.name
+
+			if df.read_only or df.fieldtype=="Read Only":
+				df.hidden = 1
+
+			elif df.fieldtype not in ("Attach", "Check", "Data", "Date", "Datetime", "HTML", "Select", "Text", "Section Break", "Column Break"):
+				df.hidden = 1
 
 	def get_context(self, context):
 		from frappe.templates.pages.list import get_context as get_list_context
@@ -29,6 +56,9 @@ class WebForm(WebsiteGenerator):
 
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
+
+		if self.is_standard:
+			self.use_meta_fields()
 
 		if self.login_required and logged_in:
 			if self.allow_edit:

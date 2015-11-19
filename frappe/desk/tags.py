@@ -62,7 +62,7 @@ def get_tags(doctype, txt):
 		for _user_tags in frappe.db.sql_list("""select `_user_tags`
 			from `tab{0}`
 			where _user_tags like '%{1}%'
-			limit 1""".format(doctype, frappe.db.escape(txt))):
+			limit 1""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
 			tags.extend(_user_tags.split(","))
 	except Exception, e:
 		if e.args[0]!=1054: raise

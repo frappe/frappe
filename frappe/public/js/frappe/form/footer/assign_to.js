@@ -94,9 +94,9 @@ frappe.ui.form.AssignTo = Class.extend({
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
-				callback: function(r) { 
-					me.render(r.message); 
-					me.frm.reload_doc(); 
+				callback: function(r) {
+					me.render(r.message);
+					me.frm.reload_doc();
 				}
 			});
 		}
@@ -108,16 +108,27 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		me.dialog.show();
 
-		me.dialog.get_input("myself").on("click", function() {
-			if($(this).prop("checked")) {
-				me.dialog.set_value("assign_to", user);
-				me.dialog.set_value("notify", 0);
-			} else {
-				me.dialog.set_value("assign_to", "");
-				me.dialog.set_value("notify", 1);
-			}
+		var myself = me.dialog.get_input("myself").on("click", function() {
+			me.toggle_myself(this);
 		});
+		me.toggle_myself(myself);
 	},
+
+	toggle_myself: function(myself) {
+		var me = this;
+		if($(myself).prop("checked")) {
+			me.dialog.set_value("assign_to", user);
+			me.dialog.set_value("notify", 0);
+			me.dialog.get_field("notify").$wrapper.toggle(false);
+			me.dialog.get_field("assign_to").$wrapper.toggle(false);
+		} else {
+			me.dialog.set_value("assign_to", "");
+			me.dialog.set_value("notify", 1);
+			me.dialog.get_field("notify").$wrapper.toggle(true);
+			me.dialog.get_field("assign_to").$wrapper.toggle(true);
+		}
+	},
+
 	remove: function(owner) {
 		var me = this;
 
@@ -147,13 +158,16 @@ frappe.ui.to_do_dialog = function(opts){
 		title: __('Add to To Do'),
 		fields: [
 			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
-			{fieldtype:'Link', fieldname:'assign_to', options:'User',
-				label:__("Assign To"),
-				description:__("Add to To Do List Of"), reqd:true},
-			{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+			{fieldtype: 'Section Break'},
+			{fieldtype: 'Link', fieldname:'assign_to', options:'User',
+				label:__("Assign To"), reqd:true},
+			{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
+			{fieldtype: 'Section Break'},
+			{fieldtype: 'Column Break'},
+			{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
 			{fieldtype:'Check', fieldname:'notify',
 				label:__("Notify by Email"), "default":1},
-			{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
+			{fieldtype: 'Column Break'},
 			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 				options:'Low\nMedium\nHigh', 'default':'Medium'},
 		],
@@ -162,7 +176,7 @@ frappe.ui.to_do_dialog = function(opts){
 	});
 
 	dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
-	
+
 	return dialog
 }
 

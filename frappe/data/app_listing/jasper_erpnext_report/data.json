@@ -1,0 +1,11 @@
+{
+	"app_url": "http://localhost",
+	"app_name": "jasper_erpnext_report",
+	"app_icon": "icon-file-text",
+	"app_color": "black",
+	"app_description": "Make your own reports in jasper and print them in pdf, docx, xlsx and other formats.",
+	"app_publisher": "Luis Fernandes",
+	"repo_url": "https://github.com/saguas/jasper_erpnext_report.git",
+	"app_title": "Jasper Erpnext Report",
+	"app_version": "0.1.0"
+}

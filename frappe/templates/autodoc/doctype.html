@@ -6,7 +6,7 @@
 {% set controller = autodoc.get_controller(doctype) %}
 
 <div class="dev-header">
-{{ version(doctype) }}
+{{ app.version or version(doctype) }}
 {{ source_link(app, app.name + "/" + scrub(doc.module)
   + "/doctype/" + scrub(doctype), True) }}
 </div>

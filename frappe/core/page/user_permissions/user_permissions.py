@@ -79,7 +79,7 @@ def get_doctypes_for_user_permissions():
 		values = user_roles
 
 	return frappe.db.sql_list("""select name from tabDocType
-		where ifnull(issingle,0)=0 and ifnull(istable,0)=0 {condition}""".format(condition=condition),
+		where issingle=0 and istable=0 {condition}""".format(condition=condition),
 		tuple(values))
 
 @frappe.whitelist()

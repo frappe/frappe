@@ -16,22 +16,6 @@ def remove_attach():
 	return frappe.utils.file_manager.remove_file(fid)
 
 @frappe.whitelist()
-def get_fields():
-	"""get fields"""
-	r = {}
-	args = {
-		'select':frappe.form_dict.get('select')
-		,'from':frappe.form_dict.get('from')
-		,'where':frappe.form_dict.get('where')
-	}
-	ret = frappe.db.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
-	if ret:
-		fl, i = frappe.form_dict.get('fields').split(','), 0
-		for f in fl:
-			r[f], i = ret[0][i], i+1
-	frappe.response['message']=r
-
-@frappe.whitelist()
 def validate_link():
 	"""validate link when updated by user"""
 	import frappe
@@ -44,16 +28,16 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	if frappe.db.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
+	if frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options), '%s'), (value,)):
 
 		# get fetch values
 		if fetch:
 			# escape with "`"
-			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
+			fetch = ", ".join(("`{0}`".format(frappe.db.escape(f.strip())) for f in fetch.split(",")))
 
 			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
 				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
-					% (fetch, options, '%s'), (value,))[0]]
+					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]]
 
 		frappe.response['message'] = 'Ok'
 

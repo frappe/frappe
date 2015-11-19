@@ -1,0 +1,11 @@
+{
+	"app_url": "http://localhost",
+	"app_name": "base_vat",
+	"app_icon": "icon-credit-card",
+	"app_color": "#C0C0C0",
+	"app_description": "Check the VAT number depending of the country.",
+	"app_publisher": "Luis Fernandes",
+	"repo_url": "https://github.com/saguas/frappe_base_vat.git",
+	"app_title": "Base VAT",
+	"app_version": "0.0.1"
+}

@@ -876,15 +876,20 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		this.img.on("click", function() { me.$input.click(); });
 
 		this.$wrapper.on("refresh", function() {
-			if(me.get_value()) {
-				$(me.input_area).find(".missing-image").toggle(false);
-				me.img.attr("src", me.dataurl ? me.dataurl : me.value).toggle(true);
-			} else {
-				$(me.input_area).find(".missing-image").toggle(true);
-				me.img.toggle(false);
-			}
+			me.set_image();
 		});
+		
+		this.set_image();
 	},
+	set_image: function() {
+		if(this.get_value()) {
+			$(this.input_area).find(".missing-image").toggle(false);
+			this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
+		} else {
+			$(this.input_area).find(".missing-image").toggle(true);
+			this.img.toggle(false);
+		}
+	}
 });
 
 

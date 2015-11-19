@@ -12,7 +12,7 @@ import re
 import os
 import frappe
 from frappe import _
-from frappe.utils import cstr, cint
+from frappe.utils import cstr, cint, flt
 import MySQLdb
 
 class InvalidColumnName(frappe.ValidationError): pass
@@ -56,7 +56,7 @@ def updatedb(dt):
 	   * updates columns
 	   * updates indices
 	"""
-	res = frappe.db.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
+	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
 	if not res:
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
 
@@ -155,11 +155,11 @@ class DbTable:
 			modified datetime(6),
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
-			docstatus int(1) default '0',
+			docstatus int(1) not null default '0',
 			parent varchar({varchar_len}),
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
-			idx int(8),
+			idx int(8) not null default '0',
 			%sindex parent(parent))
 			ENGINE=InnoDB
 			ROW_FORMAT=COMPRESSED
@@ -289,11 +289,15 @@ class DbTable:
 			if col.fieldname=="name":
 				continue
 
-			if col.fieldtype=="Check":
+			if col.fieldtype in ("Check", "Int"):
 				col_default = cint(col.default)
+
+			elif col.fieldtype in ("Currency", "Float", "Percent"):
+				col_default = flt(col.default)
 
 			elif not col.default:
 				col_default = "null"
+
 			else:
 				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
 
@@ -331,8 +335,12 @@ class DbColumn:
 		if not column_def:
 			return column_def
 
-		if self.fieldtype=="Check":
+		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
+			column_def += ' not null default {0}'.format(default_value)
+
+		elif self.fieldtype in ("Currency", "Float", "Percent"):
+			default_value = flt(self.default) or 0
 			column_def += ' not null default {0}'.format(default_value)
 
 		elif self.default and (self.default not in default_shortcuts) \
@@ -516,7 +524,7 @@ def validate_column_name(n):
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()
-	for t in frappe.db.sql("select name from tabDocType where ifnull(issingle,0)=0"):
+	for t in frappe.db.sql("select name from tabDocType where issingle=0"):
 		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()

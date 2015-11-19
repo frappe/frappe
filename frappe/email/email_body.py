@@ -161,8 +161,7 @@ class EMail:
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
 	def get_default_sender(self):
-		email_account = get_outgoing_email_account()
-		return email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
+		return  get_outgoing_email_account().default_sender
 
 	def validate(self):
 		"""validate the email ids"""
