@@ -16,7 +16,7 @@ from frappe.utils import cint, cstr, flt
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 #@frappe.async.handler
-frappe.whitelist()
+@frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
 	ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""

@@ -277,7 +277,7 @@ def get_file(fname):
 	file_path = get_file_path(fname)
 
 	# read the file
-	with open(get_site_path("public", file_path), 'r') as f:
+	with open(encode(get_site_path("public", file_path)), 'r') as f:
 		content = f.read()
 
 	return [file_path.rsplit("/", 1)[-1], content]

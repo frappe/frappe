@@ -29,6 +29,7 @@ lv	latviešu valoda
 mr	मराठी
 mk	македонски
 my	မြန်မာ
+ms	Melayu
 nl	nederlands
 no	norsk
 pl	polski

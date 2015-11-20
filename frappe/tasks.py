@@ -9,6 +9,7 @@ from frappe.utils import get_sites
 from frappe.utils.file_lock import create_lock, delete_lock
 from frappe.handler import execute_cmd
 from frappe.async import set_task_status, END_LINE, get_std_streams
+from frappe.utils.scheduler import log
 import frappe.utils.response
 import sys
 import time
@@ -77,7 +78,6 @@ def get_required_queues(app, prefix=''):
 
 @celery_task()
 def scheduler_task(site, event, handler, now=False):
-	from frappe.utils.scheduler import log
 	traceback = ""
 	task_logger.info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
@@ -199,6 +199,7 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 				communication = frappe.get_doc("Communication", communication_name)
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
+
 			except MySQLdb.OperationalError, e:
 				# deadlock, try again
 				if e.args[0]==1213:
@@ -211,7 +212,17 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 				break
 
 	except:
-		frappe.db.rollback()
+		traceback = log("frappe.tasks.sendmail", frappe.as_json({
+			"site": site,
+			"communication_name": communication_name,
+			"print_html": print_html,
+			"print_format": print_format,
+			"attachments": attachments,
+			"recipients": recipients,
+			"cc": cc,
+			"lang": lang
+		}))
+		task_logger.warn(traceback)
 		raise
 
 	else:
