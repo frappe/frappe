@@ -232,6 +232,8 @@ def validate_fields(meta):
 	10. Fold is not at the end (if set).
 	11. `search_fields` are valid.
 	12. `title_field` and title field pattern are valid.
+	13. `unique` check is only valid for Data, Link and Read Only fieldtypes.
+	14. `unique` cannot be checked if there exist non-unique values.
 
 	:param meta: `frappe.model.meta.Meta` object to check."""
 	def check_illegal_characters(fieldname):
@@ -290,8 +292,16 @@ def validate_fields(meta):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(d):
-		if getattr(d, "unique", False) and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
-			frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
+		if getattr(d, "unique", False):
+			if d.fieldtype not in ("Data", "Link", "Read Only"):
+				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
+
+			has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
+				from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+				doctype=d.parent, fieldname=d.fieldname))
+
+			if has_non_unique_values and has_non_unique_values[0][0]:
+				frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
