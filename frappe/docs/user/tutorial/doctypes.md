@@ -88,7 +88,7 @@ Now login into mysql and check the database table created:
 	18 rows in set (0.00 sec)
 
 
-As you can see, along with the DocFields, a bunch of standard columns have also been added to the table. Important to note here are, the primary key, `name`, `onwer` is the user who has created the record, `creation` and `modified` are timestamps for creation and last modification.
+As you can see, along with the DocFields, a bunch of standard columns have also been added to the table. Important to note here are, the primary key, `name`, `owner` is the user who has created the record, `creation` and `modified` are timestamps for creation and last modification.
 
 {next}
 
