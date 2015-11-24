@@ -554,10 +554,16 @@ class BaseDocument(object):
 		meta_df = self.meta.get_field(fieldname)
 		if meta_df and meta_df.get("__print_hide"):
 			return True
-		if df:
-			return df.print_hide
-		if meta_df:
-			return meta_df.print_hide
+
+		print_hide = 0
+
+		if self.get(fieldname)==0 and not self.meta.istable:
+			print_hide = ( df and df.print_hide_if_no_value ) or ( meta_df and meta_df.print_hide_if_no_value )
+
+		if not print_hide:
+			print_hide = ( df and df.print_hide ) or ( meta_df and meta_df.print_hide )
+
+		return print_hide
 
 	def in_format_data(self, fieldname):
 		"""Returns True if shown via Print Format::`format_data` property.
