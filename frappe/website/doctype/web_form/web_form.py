@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.model import default_fields
+from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -28,20 +29,34 @@ class WebForm(WebsiteGenerator):
 
 	def use_meta_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		# original_web_form_fields = frappe.form_dict((df.fieldname, df) for df in self.web_form_fields)
-		self.web_form_fields = meta.fields
 
 		for df in self.web_form_fields:
-			df.doctype = "Web Form Field"
-			df.parentfield = "web_form_fields"
-			df.parenttype = self.doctype
-			df.parent = self.name
+			meta_df = meta.get_field(df.fieldname)
 
-			if df.read_only or df.fieldtype=="Read Only":
-				df.hidden = 1
+			if not meta_df:
+				continue
 
-			elif df.fieldtype not in ("Attach", "Check", "Data", "Date", "Datetime", "HTML", "Select", "Text", "Section Break", "Column Break"):
-				df.hidden = 1
+			for prop in docfield_properties:
+				if df.fieldtype==meta_df.fieldtype and prop != "idx":
+					df.set(prop, meta_df.get(prop))
+
+			if df.fieldtype == "Link":
+				try:
+					options = [d.name for d in frappe.get_list(df.options)]
+					df.fieldtype = "Select"
+
+					if len(options)==1:
+						df.options = options[0]
+						df.default = options[0]
+						df.hidden = 1
+
+					else:
+						df.options = "\n".join([""] + options)
+
+				except frappe.PermissionError:
+					df.hidden = 1
+
+			# TODO translate options of Select fields like Country
 
 	def get_context(self, context):
 		from frappe.templates.pages.list import get_context as get_list_context

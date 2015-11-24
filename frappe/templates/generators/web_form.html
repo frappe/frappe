@@ -44,8 +44,8 @@
 
 {%- macro properties(field) %}
 		name="{{ field.fieldname }}" id="{{ field.fieldname }}"
-		{% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}
-		data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}"
+		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
+		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
@@ -54,19 +54,19 @@
 
 {%- macro help(field) -%}
 		{% if field.description -%}
-		<span class="help-block small">{{ field.description }}</span>
+		<span class="help-block small">{{ _(field.description) }}</span>
 		{%- endif -%}
 {%- endmacro %}
 
 {% macro label(field) %}
 		<label for="{{ field.fieldname }}" class="control-label text-muted small">
-				{{ field.label }}</label>
+				{{ _(field.label) }}</label>
 {% endmacro %}
 
 {% macro render_field(field) %}
 	{% if field.hidden %}
 	<input type="hidden"
-		name="{{ field.fieldname }}" value="{{ field.default }}">
+		name="{{ field.fieldname }}" {% if field.default -%} value="{{ field.default }}" {%- endif %}>
 	{% elif field.fieldtype == "HTML" and field.options %}
 	<div class="form-group">
 		{{ field.options }}
@@ -122,7 +122,7 @@
 				<input type="checkbox" id="{{ field.fieldname }}"
 					name="{{ field.fieldname }}"
 					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
-					{{ field.label }}
+					{{ _(field.label) }}
 			</label>
 			{{ help(field) }}
 		</div>
