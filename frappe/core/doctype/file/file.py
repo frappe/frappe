@@ -9,7 +9,7 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
 import frappe, frappe.utils
-from frappe.utils.file_manager import delete_file_data_content, get_content_hash
+from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
 from frappe import _
 
 from frappe.utils.nestedset import NestedSet
@@ -172,9 +172,19 @@ class File(NestedSet):
 						raise
 
 				image = Image.open(StringIO.StringIO(r.content))
-				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
 
-				mimetype = mimetypes.guess_type(filename + "." + extn)[0]
+				try:
+					filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
+				except ValueError:
+					# the case when the file url doesn't have filename or extension
+					# but is fetched due to a query string. example: https://encrypted-tbn3.gstatic.com/images?q=something
+					filename = get_random_filename()
+					extn = ""
+
+				mimetype = None
+				if extn:
+					mimetype = mimetypes.guess_type(filename + "." + extn)[0]
+
 				if mimetype is None or not mimetype.startswith("image/"):
 					# detect file extension by reading image header properties
 					extn = imghdr.what(filename + "." + extn, h=r.content)
