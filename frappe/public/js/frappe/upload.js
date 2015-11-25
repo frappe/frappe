@@ -78,6 +78,10 @@ frappe.upload = {
 
 		var dataurl = null;
 		var _upload_file = function() {
+			if (args.file_size) {
+				frappe.upload.validate_max_file_size(args.file_size);
+			}
+
 			if(opts.on_attach) {
 				opts.on_attach(args, dataurl)
 			} else {
@@ -133,12 +137,14 @@ frappe.upload = {
 					frappe.utils.resize_image(freader, function(_dataurl) {
 						dataurl = _dataurl;
 						args.filedata = _dataurl.split(",")[1];
+						args.file_size = Math.round(args.filedata.length * 3 / 4);
 						console.log("resized!")
 						_upload_file();
 					})
 				} else {
 					dataurl = freader.result;
 					args.filedata = freader.result.split(",")[1];
+					args.file_size = fileobj.size;
 					_upload_file();
 				}
 			};
@@ -157,5 +163,15 @@ frappe.upload = {
 
 		return decodeURIComponent(escape(atob(a)));
 
+	},
+
+	validate_max_file_size: function(file_size) {
+		var max_file_size = frappe.boot.max_file_size || 5242880;
+
+		if (file_size > max_file_size) {
+			// validate max file size
+			frappe.throw(__("File size exceeded the maximum allowed size of {0} MB", [max_file_size / 1048576]));
+		}
 	}
 }
+
