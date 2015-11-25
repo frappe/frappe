@@ -24,6 +24,10 @@ def format_value(value, df, doc=None, currency=None):
 	elif df.get("fieldtype")=="Datetime":
 		return format_datetime(value)
 
+	elif value==0 and df.get("fieldtype") in ("Int", "Float", "Currency", "Percent") and df.get("print_hide_if_no_value"):
+		# this is required to show 0 as blank in table columns
+		return ""
+
 	elif df.get("fieldtype") == "Currency" or (df.get("fieldtype")=="Float" and (df.options or "").strip()):
 		return fmt_money(value, precision=get_field_precision(df, doc),
 			currency=currency if currency else (get_field_currency(df, doc) if doc else None))

@@ -38,7 +38,7 @@ body {
 .offcanvas .sidebar .divider {
   height: 1px;
   overflow: hidden;
-  background-color: #ebeff2;
+  background-color: #EBEFF2;
   width: 100%;
   margin: 0px;
 }
@@ -52,7 +52,7 @@ body {
 .offcanvas .sidebar .dropdown-menu > li > a:focus,
 .offcanvas .sidebar .sidebar-menu > li > a:active,
 .offcanvas .sidebar .dropdown-menu > li > a:active {
-  background-color: #f0f4f7;
+  background-color: #F0F4F7;
 }
 @media (max-width: 767px) {
   .page-content {
@@ -124,7 +124,7 @@ body {
   }
   .offcanvas .sidebar-label {
     text-transform: uppercase;
-    color: #8d99a6;
+    color: #8D99A6;
     font-size: 85%;
     margin: 0px;
     font-weight: bold;
@@ -175,7 +175,7 @@ body {
   background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
-  color: #6c7680;
+  color: #6C7680;
   font-size: inherit;
   position: relative;
   right: 24px;
@@ -194,7 +194,7 @@ body {
 }
 .navbar-center {
   float: left;
-  color: #6c7680;
+  color: #6C7680;
 }
 #navbar-breadcrumbs > li > a:before {
   font-family: FontAwesome;
@@ -211,12 +211,12 @@ body {
   top: 3px;
   content: "\f105";
   margin-right: 10px;
-  color: #c0c9d2;
+  color: #C0C9D2;
 }
 #navbar-breadcrumbs > li > a:hover:before,
 #navbar-breadcrumbs > li > a:focus:before,
 #navbar-breadcrumbs > li > a:active:before {
-  color: #36414c;
+  color: #36414C;
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
@@ -247,7 +247,7 @@ body {
 }
 .breadcrumb {
   line-height: 1.5em;
-  color: #8d99a6;
+  color: #8D99A6;
   background-color: transparent;
   margin-bottom: 10px;
   padding: 0px;
@@ -263,7 +263,7 @@ a,
 a:hover,
 a:focus,
 a:visited {
-  color: #5e64ff;
+  color: #5E64FF;
 }
 a.btn-primary {
   color: #fff;
@@ -298,7 +298,7 @@ h2 {
   border-top: 1px solid #d1d8dd;
 }
 .docs-footer a {
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .docs-footer li {
   display: inline-block;
@@ -314,7 +314,7 @@ h2 {
   font-weight: 700;
 }
 .jumbotron p {
-  font-color: #8d99a6 !important;
+  font-color: #8D99A6 !important;
 }
 .browser-image {
   min-height: 300px;

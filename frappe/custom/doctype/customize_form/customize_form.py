@@ -41,6 +41,7 @@ docfield_properties = {
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
 	'print_hide': 'Check',
+	'print_hide_if_no_value': 'Check',
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
 	'depends_on': 'Data',
