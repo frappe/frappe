@@ -39,6 +39,13 @@ def get_data():
 					"description": _("Set Permissions per User")
 				},
 				{
+					"type": "page",
+					"name": "modules_setup",
+					"label": _("Show / Hide Modules"),
+					"icon": "icon-upload",
+					"description": _("Show or hide modules globally.")
+				},
+				{
 					"type": "report",
 					"is_query_report": True,
 					"doctype": "User",
@@ -67,17 +74,9 @@ def get_data():
 					"hide_count": True
 				},
 				{
-					"type": "page",
-					"name": "modules_setup",
-					"label": _("Show / Hide Modules"),
-					"icon": "icon-upload",
-					"description": _("Show or hide modules globally.")
-				},
-				{
 					"type": "doctype",
-					"name": "Naming Series",
-					"description": _("Set numbering series for transactions."),
-					"hide_count": True
+					"name": "Scheduler Log",
+					"description": _("Log of error on automated events (scheduler).")
 				},
 			]
 		},
@@ -94,15 +93,24 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Rename Tool",
-					"description": _("Rename many items by uploading a .csv file."),
+					"name": "Naming Series",
+					"description": _("Set numbering series for transactions."),
 					"hide_count": True
 				},
 				{
 					"type": "doctype",
-					"name": "File",
-					"description": _("Manage uploaded files.")
-				}
+					"name": "Rename Tool",
+					"label": _("Bulk Rename"),
+					"description": _("Rename many items by uploading a .csv file."),
+					"hide_count": True
+				},
+				{
+					"type": "page",
+					"name": "backups",
+					"label": _("Download Backups"),
+					"description": _("List of backups available for download"),
+					"icon": "icon-download"
+				},
 			]
 		},
 		{
@@ -174,6 +182,13 @@ def get_data():
 			"icon": "icon-star",
 			"items": [
 				{
+					"type": "page",
+					"name": "applications",
+					"label": _("Application Installer"),
+					"description": _("Install Applications."),
+					"icon": "icon-download"
+				},
+				{
 					"type": "doctype",
 					"name": "Social Login Keys",
 					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
@@ -214,31 +229,6 @@ def get_data():
 
 			]
 		},
-		{
-			"label": _("System"),
-			"icon": "icon-cog",
-			"items": [
-				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "icon-download"
-				},
-				{
-					"type": "doctype",
-					"name": "Scheduler Log",
-					"description": _("Log of error on automated events (scheduler).")
-				},
-				{
-					"type": "page",
-					"name": "backups",
-					"label": _("Download Backups"),
-					"description": _("List of backups available for download"),
-					"icon": "icon-download"
-				},
-			]
-		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "icon-globe")
 	return data
