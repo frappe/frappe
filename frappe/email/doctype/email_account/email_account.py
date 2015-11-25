@@ -9,13 +9,15 @@ from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, st
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
-from frappe.email.receive import POP3Server, Email
+from frappe.email.receive import POP3Server,Email
 from poplib import error_proto
-import re
+import imaplib 
+import markdown2, re
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 
-class SentEmailInInbox(Exception): pass
+class SentEmailInInbox(Exception): pass  # imap
+class error(Exception): pass             # imap
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -30,7 +32,7 @@ class EmailAccount(Document):
 		self.name = self.email_account_name
 
 	def validate(self):
-		"""Validate email id and check POP3 and SMTP connections is enabled."""
+		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
 			validate_email_add(self.email_id, True)
 
@@ -102,7 +104,8 @@ class EmailAccount(Document):
 			"host": self.pop3_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"password": self.password
+			"password": self.password,
+			"use_imap":self.use_imap
 		}
 
 		if not self.pop3_server:
@@ -111,7 +114,7 @@ class EmailAccount(Document):
 		pop3 = POP3Server(frappe._dict(args))
 		try:
 			pop3.connect()
-		except error_proto, e:
+		except (error_proto,imaplib.IMAP4.error) , e:
 			frappe.throw(e.message)
 
 		return pop3
@@ -315,14 +318,18 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
-def pull(now=False):
+def pull(now=True):
 	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
 	import frappe.tasks
+	print "in pull method "
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
+		print email_account
 		#frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
 		if now:
+			print "in now"
 			frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
 		else:
+			print "not now"
 			frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
 
 def notify_unreplied():
