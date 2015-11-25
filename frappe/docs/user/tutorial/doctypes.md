@@ -38,8 +38,7 @@ We can add the following fields:
 1. Status (Select): For Select fields, you will enter the Options. Enter **Issued** and **Available** each on a new line in the Options box. See diagram below
 1. Publisher (Data)
 1. Language (Data)
-1. Image (Attach)
-1. Image View (Image)
+1. Image (Attach Image)
 
 #### Add Permissions
 
