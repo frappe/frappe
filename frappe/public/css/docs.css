@@ -238,6 +238,7 @@ body {
   font-size: 16px;
   line-height: 1.65em;
   color: #454e57;
+  position: relative;
 }
 .container {
   max-width: 800px;
@@ -245,6 +246,12 @@ body {
 .splash {
   background: #383851;
   color: #ffffff;
+}
+.navbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
 }
 .navbar a {
   font-size: 16px;
