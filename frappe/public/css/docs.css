@@ -241,6 +241,10 @@ body {
 .container {
   max-width: 800px;
 }
+.splash {
+  background: #383851;
+  color: #ffffff;
+}
 .navbar a {
   font-size: 16px;
   font-weight: normal;
