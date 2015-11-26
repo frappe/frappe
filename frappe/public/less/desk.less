@@ -134,8 +134,28 @@ ul.linked-with-list li {
 
 /* jquery ui */
 
+.ui-datepicker .ui-datepicker-header {
+	border-radius: 0px !important;
+}
+
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
 	display: inline;
+}
+
+.ui-datepicker select.ui-datepicker-month {
+	margin-right: 3px;
+}
+.ui-datepicker .ui-datepicker-title {
+	line-height: inherit !important;
+	padding-bottom: 3px;
+}
+
+.ui-datepicker-today .ui-state-default {
+	background-color: @light-border-color !important;
+}
+
+.ui-state-default {
+	box-shadow: none !important;
 }
 
 .hidden-xs-inline, .hidden-xs-inline-block {

@@ -523,16 +523,27 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
 		altFormat:'yy-mm-dd',
 		changeYear: true,
+		changeMonth: true,
 		yearRange: "-70Y:+10Y",
 	},
 	make_input: function() {
 		this._super();
+		this.set_t_for_today();
 		this.set_datepicker();
 	},
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
+	},
+	set_t_for_today: function() {
+		var me = this;
+		this.$input.on("keydown", function(e) {
+			if(e.which===84) { // 84 === t
+				me.set_value(frappe.datetime.str_to_user(frappe.datetime.nowdate()));
+				return false;
+			}
+		});
 	},
 	parse: function(value) {
 		if(value) {
@@ -878,7 +889,7 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		this.$wrapper.on("refresh", function() {
 			me.set_image();
 		});
-		
+
 		this.set_image();
 	},
 	set_image: function() {
