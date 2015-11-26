@@ -25,7 +25,6 @@ import mimetypes, imghdr
 from frappe.utils import get_files_path
 
 class FolderNotEmpty(frappe.ValidationError): pass
-class ThumbnailError(frappe.ValidationError): pass
 
 exclude_from_linked_with = True
 
@@ -154,13 +153,16 @@ class File(NestedSet):
 	def make_thumbnail(self):
 		if self.file_url:
 			if self.file_url.startswith("/files"):
-				image, filename, extn = get_local_image(self.file_url)
+				try:
+					image, filename, extn = get_local_image(self.file_url)
+				except IOError:
+					return
 
 			else:
 				try:
 					image, filename, extn = get_web_image(self.file_url)
-				except ThumbnailError:
-					frappe.msgprint("Unable to write file format for {0}".format(self.file_url))
+				except requests.exceptions.HTTPError:
+					return
 
 			thumbnail = ImageOps.fit(
 				image,
@@ -177,6 +179,7 @@ class File(NestedSet):
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
 				frappe.msgprint("Unable to write file format for {0}".format(path))
+				return
 
 			return thumbnail_url
 
@@ -289,7 +292,7 @@ def get_local_image(file_url):
 		image = Image.open(file_path)
 	except IOError:
 		frappe.msgprint("Unable to read file format for {0}".format(file_url))
-		return
+		raise
 
 	content = None
 
@@ -315,9 +318,11 @@ def get_web_image(file_url):
 		r.raise_for_status()
 	except requests.exceptions.HTTPError, e:
 		if "404" in e.args[0]:
-			frappe.throw(_("File '{0}' not found").format(file_url))
+			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:
-			raise ThumbnailError
+			frappe.msgprint("Unable to read file format for {0}".format(file_url))
+
+		raise
 
 	image = Image.open(StringIO.StringIO(r.content))
 
