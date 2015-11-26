@@ -25,6 +25,7 @@ import mimetypes, imghdr
 from frappe.utils import get_files_path
 
 class FolderNotEmpty(frappe.ValidationError): pass
+class ThumbnailError(frappe.ValidationError): pass
 
 exclude_from_linked_with = True
 
@@ -156,7 +157,10 @@ class File(NestedSet):
 				image, filename, extn = get_local_image(self.file_url)
 
 			else:
-				image, filename, extn = get_web_image(self.file_url)
+				try:
+					image, filename, extn = get_web_image(self.file_url)
+				except ThumbnailError:
+					frappe.msgprint("Unable to write file format for {0}".format(self.file_url))
 
 			thumbnail = ImageOps.fit(
 				image,
@@ -313,7 +317,7 @@ def get_web_image(file_url):
 		if "404" in e.args[0]:
 			frappe.throw(_("File '{0}' not found").format(file_url))
 		else:
-			raise
+			raise ThumbnailError
 
 	image = Image.open(StringIO.StringIO(r.content))
 

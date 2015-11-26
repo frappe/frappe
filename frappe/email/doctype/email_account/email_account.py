@@ -14,6 +14,9 @@ from poplib import error_proto
 import re
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+from frappe.desk.form import assign_to
+from frappe.utils.user import get_system_managers
+import socket
 
 class SentEmailInInbox(Exception): pass
 
@@ -96,7 +99,7 @@ class EmailAccount(Document):
 			)
 			server.sess
 
-	def get_pop3(self):
+	def get_pop3(self, in_receive=False):
 		"""Returns logged in POP3 connection object."""
 		args = {
 			"host": self.pop3_server,
@@ -111,10 +114,45 @@ class EmailAccount(Document):
 		pop3 = POP3Server(frappe._dict(args))
 		try:
 			pop3.connect()
+
 		except error_proto, e:
-			frappe.throw(e.message)
+			if in_receive and e.message=="-ERR authentication failed":
+				# if called via self.receive and it leads to authentication error, disable incoming
+				# and send email to system manager
+				self.handle_incoming_connect_error(
+					description=_('Authentication failed while receiving emails from Email Account {0}'.format(self.name))
+				)
+
+				return None
+
+			else:
+				frappe.throw(e.message)
+
+		except socket.error:
+			if in_receive:
+				# timeout while connecting, see receive.py connect method
+				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
+				self.handle_incoming_connect_error(description=description)
+
+				return None
+
+			else:
+				raise
 
 		return pop3
+
+	def handle_incoming_connect_error(self, description):
+		self.db_set("enable_incoming", 0)
+
+		for user in get_system_managers(only_name=True):
+			assign_to.add({
+				'assign_to': user,
+				'doctype': self.doctype,
+				'name': self.name,
+				'description': description,
+				'priority': 'High',
+				'notify': 1
+			})
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3."""
@@ -122,7 +160,10 @@ class EmailAccount(Document):
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
-				pop3 = self.get_pop3()
+				pop3 = self.get_pop3(in_receive=True)
+				if not pop3:
+					return
+
 				incoming_mails = pop3.get_messages()
 
 			exceptions = []

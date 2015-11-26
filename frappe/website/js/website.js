@@ -371,12 +371,6 @@ $.extend(frappe, {
 		// blur
 		if(!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
-				.on("click", function() {
-					if (cur_frm && cur_frm.cur_grid) {
-						cur_frm.cur_grid.toggle_view();
-						return false;
-					}
-				})
 				.appendTo("body");
 
 			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
