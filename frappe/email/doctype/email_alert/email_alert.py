@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
@@ -95,10 +96,21 @@ def evaluate_alert(doc, alert, event):
 		return
 
 	subject = alert.subject
+
+	if event != "Value Change" and not doc.is_new():
+		# reload the doc for the latest values & comments,
+		# except for validate type event.
+		doc = frappe.get_doc(doc.doctype, doc.name)
+
+	context = {"doc": doc, "alert": alert, "comments": None}
+
+	if doc.get("_comments"):
+		context["comments"] = json.loads(doc.get("_comments"))
+
 	if "{" in subject:
-		subject = frappe.render_template(alert.subject, {"doc": doc, "alert": alert})
+		subject = frappe.render_template(alert.subject, context)
 
 	frappe.sendmail(recipients=recipients, subject=subject,
-		message= frappe.render_template(alert.message, {"doc": doc, "alert":alert}),
+		message= frappe.render_template(alert.message, context),
 		bulk=True, reference_doctype = doc.doctype, reference_name = doc.name,
 		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)
