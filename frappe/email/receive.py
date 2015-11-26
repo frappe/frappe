@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import time
-import _socket, poplib
+import socket, poplib
 import frappe
 from frappe import _
 from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
@@ -48,7 +48,7 @@ class POP3Server:
 			# connection established!
 			return True
 
-		except _socket.error:
+		except socket.error:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise

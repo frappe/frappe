@@ -13,6 +13,14 @@ from frappe.email.doctype.email_account.email_account import notify_unreplied
 from datetime import datetime, timedelta
 
 class TestEmailAccount(unittest.TestCase):
+	def setUp(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.db_set("enable_incoming", 1)
+
+	def tearDown(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.db_set("enable_incoming", 0)
+
 	def test_incoming(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
 
