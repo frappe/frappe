@@ -1,10 +1,14 @@
-<div class="app-listing padding" data-title="{%= app.app_title %}">
+<div class="app-listing padding" data-category="{{ app.app_category || "Not set" }}"
+    data-title="{{ app.app_title }}"
+        {{ app.installed ? "data-installed=1" : "" }}
+        {{ app.featured ? "data-featured=1" : "" }}>
 	<div class="media">
 		<div class="pull-right app-buttons">
+			<a class="btn btn-default btn-xs" href="{{ app.app_url }}" target="_blank">{%= __("Website") %}</a>
 			{% if (app.installed) { %}
-			<button class="btn btn-default" disabled=disabled>{%= __("Installed") %}</button>
+			<button class="btn btn-default btn-xs" disabled=disabled>{%= __("Installed") %}</button>
 			{% } else { %}
-			<button class="btn btn-primary install" data-app="{%= app.app_name %}">{%= __("Install") %}</button>
+			<button class="btn btn-primary btn-xs install" data-app="{%= app.app_name %}">{%= __("Install") %}</button>
 			{% } %}
 		</div>
 		<div class="pull-left app-icon-wrapper">{%= app.app_icon %}</div>

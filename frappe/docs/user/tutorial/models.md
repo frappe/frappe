@@ -8,7 +8,7 @@ When you create a **DocType** a new folder is created in the **Module** and a mo
 
 ### Developer Mode
 
-To create models, you must set `developer_mode` as 1 in the `site_config.json` file.
+To create models, you must set `developer_mode` as 1 in the `site_config.json` file and execute command `bench clear-cache` or use the user menu in UI and click on "Reload" for the changes to take effect.
 
 	{
 	 "db_name": "library",

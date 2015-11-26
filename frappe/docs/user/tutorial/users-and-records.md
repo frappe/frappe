@@ -22,7 +22,7 @@ You will now see an icon for the Library Management module. Click on that icon a
 
 <img class="screenshot" alt="Library Management Module" src="{{url_prefix}}/assets/img/lib_management_module.png">
 
-Here you can see the DocTypes that we have created for the application. List us start creating a few records.
+Here you can see the DocTypes that we have created for the application. Let us start creating a few records.
 
 First let us create a new Article:
 

@@ -59,8 +59,9 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
 				frappe.OutgoingEmailError)
 
-		email_account.default_sender = email.utils.formataddr((email_account.name,
-			email_account.get("sender") or email_account.get("email_id")))
+		if email_account:
+			email_account.default_sender = email.utils.formataddr((email_account.name,
+				email_account.get("sender") or email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 

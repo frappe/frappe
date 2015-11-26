@@ -132,7 +132,7 @@ frappe.ui.Filter = Class.extend({
 			}
 		});
 		if(this.fieldname) {
-			this.fieldselect.set_value(this.doctype, this.fieldname);
+			this.fieldselect.set_value(this._doctype || this.doctype, this.fieldname);
 		}
 	},
 	set_events: function() {
