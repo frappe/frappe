@@ -237,6 +237,7 @@ body {
 body {
   font-size: 16px;
   line-height: 1.65em;
+  color: #454e57;
 }
 .container {
   max-width: 800px;
@@ -248,6 +249,9 @@ body {
 .navbar a {
   font-size: 16px;
   font-weight: normal;
+}
+.navbar a.navbar-brand {
+  font-weight: bold;
 }
 .breadcrumb {
   line-height: 1.5em;
@@ -285,7 +289,6 @@ h2 {
   border: none;
   padding: 15px 0px;
   border-radius: 0px;
-  border-top: 5px solid #7575ff;
   border-bottom: 1px solid #d1d8dd;
 }
 .section {
