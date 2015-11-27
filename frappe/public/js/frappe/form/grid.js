@@ -249,6 +249,13 @@ frappe.ui.form.Grid = Class.extend({
 								if(!blank_row) {
 									var d = me.frm.add_child(me.df.fieldname);
 									$.each(row, function(ci, value) {
+										var fieldname = fieldnames[ci];
+										var df = frappe.meta.get_docfield(me.df.options, fieldname);
+
+										// convert date formatting
+										if(df.fieldtype==="Date" && value) {
+											value = frappe.datetime.user_to_str(value);
+										}
 										d[fieldnames[ci]] = value;
 									});
 								}
@@ -266,6 +273,7 @@ frappe.ui.form.Grid = Class.extend({
 		var me = this;
 		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
 			var data = [];
+			var docfields = [];
 			data.push([__("Bulk Edit {0}", [me.df.label])]);
 			data.push([]);
 			data.push([]);
@@ -276,6 +284,7 @@ frappe.ui.form.Grid = Class.extend({
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					data[3].push(df.description || "");
+					docfields.push(df);
 				}
 			});
 
@@ -283,7 +292,14 @@ frappe.ui.form.Grid = Class.extend({
 			$.each(me.frm.doc[me.df.fieldname] || [], function(i, d) {
 				row = [];
 				$.each(data[2], function(i, fieldname) {
-					row.push(d[fieldname] || "");
+					var value = d[fieldname];
+
+					// format date
+					if(docfields[i].fieldtype==="Date" && value) {
+						value = frappe.datetime.str_to_user(value);
+					}
+
+					row.push(value || "");
 				});
 				data.push(row);
 			});
