@@ -99,6 +99,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// css
 		doctype.__css && frappe.dom.set_style(doctype.__css);
 
+		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
 		show_alert("Error in Client Script.");
