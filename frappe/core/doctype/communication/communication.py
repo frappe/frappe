@@ -394,7 +394,3 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"name": comm.name,
 		"emails_not_sent_to": ", ".join(comm.emails_not_sent_to) if hasattr(comm, "emails_not_sent_to") else None
 	}
-
-@frappe.whitelist()
-def get_convert_to():
-	return frappe.get_hooks("communication_convert_to")
