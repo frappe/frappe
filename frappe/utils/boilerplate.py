@@ -118,6 +118,7 @@ app_icon = "{app_icon}"
 app_color = "{app_color}"
 app_email = "{app_email}"
 app_version = "0.0.1"
+app_license = "{app_license}"
 
 # Includes in <head>
 # ------------------

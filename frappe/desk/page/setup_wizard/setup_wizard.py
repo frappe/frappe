@@ -7,6 +7,7 @@ import frappe, json, os
 from frappe.utils import strip
 from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
+from frappe.geo.country_info import get_country_info
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -15,6 +16,14 @@ def setup_complete(args):
 	args = process_args(args)
 
 	try:
+		if args.language and args.language != "english":
+			set_default_language(args.language)
+
+		frappe.clear_cache()
+
+		# update system settings
+		update_system_settings(args)
+
 		for method in frappe.get_hooks("setup_wizard_complete"):
 			frappe.get_attr(method)(args)
 
@@ -32,6 +41,27 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
+
+def update_system_settings(args):
+	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
+
+	# replace these as float number formats, as they have 0 precision
+	# and are currency number formats and not for floats
+	if number_format=="#.###":
+		number_format = "#.###,##"
+	elif number_format=="#,###":
+		number_format = "#,###.##"
+
+	system_settings = frappe.get_doc("System Settings", "System Settings")
+	system_settings.update({
+		"language": args.get("language"),
+		"time_zone": args.get("timezone"),
+		"float_precision": 3,
+		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
+		'number_format': number_format,
+		'enable_scheduler': 1 if not frappe.flags.in_test else 0
+	})
+	system_settings.save()
 
 def process_args(args):
 	if not args:
