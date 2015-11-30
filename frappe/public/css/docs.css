@@ -404,18 +404,23 @@ pre {
   font-weight: bold;
 }
 .breadcrumb {
-  line-height: 1.5em;
+  line-height: 1em;
   color: #8D99A6;
   background-color: transparent;
   margin-bottom: 32px;
   padding: 0px;
+  padding-left: 20px;
+  background: url('/assets/img/up.png') 0% 30% no-repeat;
+}
+.breadcrumb .icon {
+  display: none;
 }
 .breadcrumb a,
 .breadcrumb a:hover,
 .breadcrumb a:focus,
 .breadcrumb a:visited {
-  color: inherit;
-  font-size: 14px;
+  color: #7575ff;
+  font-size: 16px;
 }
 a,
 a:hover,
@@ -552,4 +557,33 @@ p {
 }
 hr {
   margin: 48px 0px 30px;
+}
+.edit {
+  padding-left: 20px;
+  background: url('/assets/img/smiley.png') 0% 50% no-repeat;
+  color: #8d99a6;
+  position: relative;
+  top: -26px;
+}
+a.edit,
+a.edit:hover,
+a.edit:focus,
+a.edit:visited {
+  color: #8d99a6;
+}
+.btn-next {
+  float: right;
+}
+.btn-next:after {
+  content: " \2192";
+}
+#current td {
+  font-weight: bold;
+}
+#current td code {
+  font-weight: normal;
+  background: transparent;
+  font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
+  color: #454e57;
+  font-size: 16px;
 }

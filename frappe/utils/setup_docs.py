@@ -321,7 +321,7 @@ class setup_docs(object):
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
-					'<p><br><a class="text-muted" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
+					'<p><br><a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
