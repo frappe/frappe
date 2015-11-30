@@ -88,8 +88,38 @@ body {
 }
 
 code{
-  color: #ff0000;
+  color: #e66a12;
+  background: #fff6df;
 }
+
+pre {
+  background:#fafbfc;
+  border: 1px solid #e1e9f0;
+  border-radius:2px;
+}
+
+.hljs {
+  background:transparent;
+  border:none;
+  padding:1.2em 1.5em 1.5em;
+  color:#454e57;
+}
+
+.hljs-keyword, .hljs-tag, .css .hljs-class, .css .hljs-id, .lisp .hljs-title, .nginx .hljs-title, .hljs-request, .hljs-status, .clojure .hljs-attribute{
+    color:#e66a12;
+  }
+  .diff .hljs-deletion, .hljs-string, .hljs-tag .hljs-value, .hljs-preprocessor, .hljs-pragma, .hljs-built_in, .hljs-javadoc, .smalltalk .hljs-class, .smalltalk .hljs-localvars, .smalltalk .hljs-array, .css .hljs-rules .hljs-value, .hljs-attr_selector, .hljs-pseudo, .apache .hljs-cbracket, .tex .hljs-formula, .coffeescript .hljs-attribute{
+    color:#dd4a68;
+  }
+  .hljs-number, .hljs-date, .hljs-regexp, .hljs-literal, .hljs-hexcolor, .smalltalk .hljs-symbol, .smalltalk .hljs-char, .go .hljs-constant, .hljs-change, .lasso .hljs-variable, .makefile .hljs-variable, .asciidoc .hljs-bullet, .markdown .hljs-bullet, .asciidoc .hljs-link_url, .markdown .hljs-link_url{
+    color:#7575ff;
+  }
+  .hljs-shebang, .diff .hljs-addition, .hljs-comment, .hljs-annotation, .hljs-template_comment, .hljs-pi, .hljs-doctype{
+    color:#6a906a;
+  }
+  .dos .hljs-keyword, .hljs-decorator, .hljs-title, .hljs-type, .diff .hljs-header, .ruby .hljs-class .hljs-parent, .apache .hljs-tag, .nginx .hljs-built_in, .tex .hljs-command, .hljs-prompt {
+   color:#4f4fa4;
+  }
 
 .navbar {
 	//background-color: @navbar-bg !important;
@@ -115,7 +145,7 @@ code{
   line-height: 1.5em;
   color: @text-muted;
   background-color: transparent;
-  margin-bottom: 10px;
+  margin-bottom: 32px;
   padding: 0px;
 }
 .breadcrumb a,
@@ -137,8 +167,26 @@ a.btn-primary& {
 	}
 }
 
+.btn-next-wrapper {
+  margin:32px 0 16px;
+}
+
 h2 {
+ margin-top:48px;
 	font-size: 24px;
+}
+
+h3, h4 {
+ margin-top:48px;
+}
+
+p {
+ margin-bottom:16px;
+}
+
+.hero-and-content > p {
+ max-width:723px;
+ margin:0 auto;
 }
 
 .navbar {
@@ -166,6 +214,7 @@ h2 {
  font-size: 14px;
  
  h3 {
+  margin-top:24px;
   font-size:16px;
  }
  img.frappe-bird {
@@ -252,12 +301,12 @@ h2 {
 }
 
 .screenshot {
-	border: 2px solid @border-color;
+	border: 1px solid @border-color;
 	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
-	margin: 30px 0px;
+	margin: 8px 0px;
 	max-width: 100%;
 }
 
 hr {
-	margin: 30px 0px;
+	margin: 48px 0px 30px;
 }
