@@ -42,16 +42,54 @@ body {
     line-height: 1.4em;
    }
  }
- 
  .section{
    padding: 30px 0 0 0;
  }
 }
 
 
-  code{
-  color: #ff0000;
+.page-container{
+  padding-top:128px;
+  margin:0 auto;
+  width:870px;
+  
+  .page-content {
+   width:83%;
+   margin:0 auto;
+  }
+ 
+  .webpage-content{
+    ol > li, ul > li {
+     margin: 26px auto; 
+    }
+
+    ol > li li, ul > li li {
+     margin: 13px auto;
+    }
+
+    ol li ol {
+     list-style-type: disc;
+    }
+    ul, ol {
+     margin-bottom:26px;
+    }
+  }
+}
+
+#page-index {
+ padding-top:0;
+ width:100%;
+ margin:0;
+ 
+ .page-content {
+  width:100%;
+  margin:0;
  }
+}
+
+code{
+  color: #ff0000;
+}
 
 .navbar {
 	//background-color: @navbar-bg !important;

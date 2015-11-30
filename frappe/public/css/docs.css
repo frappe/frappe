@@ -273,6 +273,39 @@ body {
 .splash .section {
   padding: 30px 0 0 0;
 }
+.page-container {
+  padding-top: 128px;
+  margin: 0 auto;
+  width: 870px;
+}
+.page-container .page-content {
+  width: 83%;
+  margin: 0 auto;
+}
+.page-container .webpage-content ol > li,
+.page-container .webpage-content ul > li {
+  margin: 26px auto;
+}
+.page-container .webpage-content ol > li li,
+.page-container .webpage-content ul > li li {
+  margin: 13px auto;
+}
+.page-container .webpage-content ol li ol {
+  list-style-type: disc;
+}
+.page-container .webpage-content ul,
+.page-container .webpage-content ol {
+  margin-bottom: 6px;
+}
+#page-index {
+  padding-top: 0;
+  width: 100%;
+  margin: 0;
+}
+#page-index .page-content {
+  width: 100%;
+  margin: 0;
+}
 code {
   color: #ff0000;
 }
