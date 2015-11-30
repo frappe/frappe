@@ -15,7 +15,8 @@ body {
 }
 
 .splash{
- background: #383851;
+ background-color: #383851;
+ background-image: url('/assets/img/background.png');
  color: #ffffff;
  padding-top: 128px;
  
@@ -47,6 +48,11 @@ body {
  }
 }
 
+
+  code{
+  color: #ff0000;
+ }
+
 .navbar {
 	//background-color: @navbar-bg !important;
 	//background-color: @text-color !important;
@@ -55,6 +61,8 @@ body {
  top:0;
  right: 0;
  left: 0;
+ width:870px;
+ margin:0 auto;
 }
 .navbar a {
 	font-size: 16px;
@@ -112,18 +120,34 @@ h2 {
 }
 
 .docs-footer {
-	margin-top: 80px;
 	padding: 30px 0px 60px 0px;
 	border-top: 1px solid @border-color;
-
+ width:870px;
+ margin:0 auto;
+ margin-top: 80px;
+ font-size: 14px;
+ 
+ h3 {
+  font-size:16px;
+ }
+ img.frappe-bird {
+  width:40px;
+  height:40px;
+  background:#fff;
+  margin-bottom:10px;
+  padding:5px;
+ }
 	a {
 		color: @text-muted;
 	}
 
 	li {
 		display: inline-block;
-		margin: 0 15px;
+		margin: 0 10px;
 	}
+ .built-with-frappe{
+  margin-top:-50px;
+ }
 }
 
 // fake frames

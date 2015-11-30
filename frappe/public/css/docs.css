@@ -245,7 +245,8 @@ body {
   max-width: 870px;
 }
 .splash {
-  background: #383851;
+  background-color: #383851;
+  background-image: url('/assets/img/background.png');
   color: #ffffff;
   padding-top: 128px;
 }
@@ -272,11 +273,16 @@ body {
 .splash .section {
   padding: 30px 0 0 0;
 }
+code {
+  color: #ff0000;
+}
 .navbar {
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
+  width: 870px;
+  margin: 0 auto;
 }
 .navbar a {
   font-size: 16px;
@@ -330,16 +336,32 @@ h2 {
   margin-bottom: 30px;
 }
 .docs-footer {
-  margin-top: 80px;
   padding: 30px 0px 60px 0px;
   border-top: 1px solid #d1d8dd;
+  width: 870px;
+  margin: 0 auto;
+  margin-top: 80px;
+  font-size: 14px;
+}
+.docs-footer h3 {
+  font-size: 16px;
+}
+.docs-footer img.frappe-bird {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 5px;
 }
 .docs-footer a {
   color: #8D99A6;
 }
 .docs-footer li {
   display: inline-block;
-  margin: 0 15px;
+  margin: 0 10px;
+}
+.docs-footer .built-with-frappe {
+  margin-top: -50px;
 }
 .browser-image {
   min-height: 300px;

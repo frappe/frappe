@@ -68,7 +68,11 @@
 					<footer class="docs-footer">
 						<div class="container">
 						{%- if footer is defined -%}{{ footer }}{%- endif -%}
-                        <br>
+                        
+                        <div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="{{ docs_base_url }}/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
                         <div class="text-center">
                             <ul class="list-unstyled">
                                 <li>
@@ -93,9 +97,7 @@
                                 </li>
                             </ul>
                         </div>
-                        <div class="built-with-frappe text-center">
-                            <img src="{{ docs_base_url }}/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
-                        </div>
+                        
                     </div>
 					</footer>
 				</div>
