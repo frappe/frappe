@@ -53,7 +53,8 @@ docfield_properties = {
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Text Editor', 'Code'), ('Data', 'Select'), ('Text', 'Small Text'))
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code'), ('Data', 'Select'),
+	('Text', 'Small Text'))
 
 class CustomizeForm(Document):
 	def on_update(self):
