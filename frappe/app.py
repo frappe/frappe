@@ -23,6 +23,7 @@ import frappe.website.render
 from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
 
+from frappe.utils.error import error_collector
 
 local_manager = LocalManager([frappe.local])
 
@@ -86,7 +87,7 @@ def application(request):
 
 	except Exception, e:
 		http_status_code = getattr(e, "http_status_code", 500)
-		#print frappe.get_traceback()
+		error_collector(e)
 
 		if (http_status_code==500
 			and isinstance(e, MySQLdb.OperationalError)
