@@ -51,7 +51,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var fields_before_cc = [
 			{fieldtype: "Section Break"},
-			{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients"},
+			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
 		];
@@ -65,7 +65,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{fieldtype: "Section Break"},
 			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content"},
-			{fieldtype: "Section Break"},
+			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
 			{label:__("Send As Email"), fieldtype:"Check",
 				fieldname:"send_email"},
@@ -399,6 +399,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 
+		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients){
+        		msgprint(__("Enter Email Recipient(s)"));
+            		return;
+        	}
+        	
 		if(!form_values.attach_document_print) {
 			print_html = null;
 			print_format = null;
