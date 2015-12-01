@@ -65,7 +65,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{fieldtype: "Section Break"},
 			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content"},
-			{fieldtype: "Section Break"},
+			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
 			{label:__("Send As Email"), fieldtype:"Check",
 				fieldname:"send_email"},
@@ -403,7 +403,7 @@ frappe.views.CommunicationComposer = Class.extend({
         		msgprint(__("Enter Email Recipient(s)"));
             		return;
         	}
-        	
+
 		if(!form_values.attach_document_print) {
 			print_html = null;
 			print_format = null;
