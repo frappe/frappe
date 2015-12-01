@@ -284,18 +284,18 @@ body {
 }
 .page-container .webpage-content ol > li,
 .page-container .webpage-content ul > li {
-  margin: 26px auto;
+  margin: 13px auto;
 }
 .page-container .webpage-content ol > li li,
 .page-container .webpage-content ul > li li {
-  margin: 13px auto;
+  margin: 4px auto;
 }
 .page-container .webpage-content ol li ol {
   list-style-type: disc;
 }
 .page-container .webpage-content ul,
 .page-container .webpage-content ol {
-  margin-bottom: 26px;
+  margin-bottom: 32px;
 }
 #page-index {
   padding-top: 0;
@@ -563,7 +563,7 @@ hr {
   background: url('/assets/img/smiley.png') 0% 50% no-repeat;
   color: #8d99a6;
   position: relative;
-  top: -26px;
+  top: -10px;
 }
 a.edit,
 a.edit:hover,
@@ -572,6 +572,7 @@ a.edit:visited {
   color: #8d99a6;
 }
 .btn-next {
+  margin-top: 16px;
   float: right;
 }
 .btn-next:after {
