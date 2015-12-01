@@ -161,7 +161,7 @@ class File(NestedSet):
 			else:
 				try:
 					image, filename, extn = get_web_image(self.file_url)
-				except requests.exceptions.HTTPError:
+				except (requests.exceptions.HTTPError, requests.exceptions.SSLError):
 					return
 
 			thumbnail = ImageOps.fit(
@@ -321,7 +321,6 @@ def get_web_image(file_url):
 			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:
 			frappe.msgprint("Unable to read file format for {0}".format(file_url))
-
 		raise
 
 	image = Image.open(StringIO.StringIO(r.content))
