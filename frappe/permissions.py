@@ -147,7 +147,7 @@ def update_share_permissions(role_permissions, doc, user):
 		for ptype in share_ptypes:
 			if permissions_by_share[ptype]:
 				role_permissions[ptype] = 1
-		
+
 def get_role_permissions(meta, user=None, verbose=False):
 	"""Returns dict of evaluated role permissions like `{"read": True, "write":False}`
 

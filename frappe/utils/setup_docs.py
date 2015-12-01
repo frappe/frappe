@@ -321,7 +321,7 @@ class setup_docs(object):
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
-					'<p><br><a class="text-muted" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
+					'<p><br><a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
@@ -372,7 +372,10 @@ class setup_docs(object):
 			"css/octicons": "css/octicons",
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
-			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg"
+			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
+   "images/background.png": "img/background.png",
+   "images/smiley.png": "img/smiley.png",
+   "images/up.png": "img/up.png"
 		}
 
 		for source, target in copy_files.iteritems():

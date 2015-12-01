@@ -547,10 +547,10 @@ def get_link_to_form(doctype, name, label=None):
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
 def get_url_to_form(doctype, name):
-	return get_url(uri = "desk#Form/{0}/{1}".format(doctype, name))
+	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
 
 def get_url_to_list(doctype):
-	return get_url(uri = "desk#List/{0}".format(doctype))
+	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
 operator_map = {
 	# startswith

@@ -418,7 +418,7 @@ def clear_cache(user=None, doctype=None):
 
 	frappe.local.role_permissions = {}
 
-def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -426,7 +426,14 @@ def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	if throw and not out:
+		if doc:
+			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
+		else:
+			frappe.throw(_("No permission for {0}").format(doctype))
+
+	return out
 
 def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
