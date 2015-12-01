@@ -372,7 +372,10 @@ class setup_docs(object):
 			"css/octicons": "css/octicons",
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
-			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg"
+			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
+   "images/background.png": "img/background.png",
+   "images/smiley.png": "img/smiley.png",
+   "images/up.png": "img/up.png"
 		}
 
 		for source, target in copy_files.iteritems():
