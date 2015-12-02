@@ -111,6 +111,16 @@ class setup_docs(object):
 		self.make_folder(self.api_base_path,
 			template = "templates/autodoc/api_home.html")
 
+		# make /user
+		user_path = os.path.join(self.docs_path, "user")
+		if not os.path.exists(user_path):
+			os.makedirs(user_path)
+
+		# make /assets/img
+		img_path = os.path.join(self.docs_path, "assets", "img")
+		if not os.path.exists(img_path):
+			os.makedirs(img_path)
+
 	def build_user_docs(self):
 		"""Build templates for user docs pages, if missing."""
 		#user_docs_path = os.path.join(self.docs_path, "user")
@@ -373,9 +383,9 @@ class setup_docs(object):
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
 			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
-   "images/background.png": "img/background.png",
-   "images/smiley.png": "img/smiley.png",
-   "images/up.png": "img/up.png"
+			"images/background.png": "img/background.png",
+			"images/smiley.png": "img/smiley.png",
+			"images/up.png": "img/up.png"
 		}
 
 		for source, target in copy_files.iteritems():
