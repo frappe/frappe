@@ -23,9 +23,10 @@ def get_data():
 			"type": "module"
 		},
 		"Core": {
+			"label": _("Developer"),
 			"color": "#589494",
 			"icon": "icon-cog",
-			"icon": "octicon octicon-file-binary",
+			"icon": "octicon octicon-circuit-board",
 			"type": "module",
 			"system_manager": 1
 		},
@@ -34,7 +35,6 @@ def get_data():
 			"color": "#FFF5A7",
 			"reverse": 1,
 			"icon": "octicon octicon-calendar",
-			"type": "module",
-			"system_manager": 1
+			"type": "module"
 		}
 	}

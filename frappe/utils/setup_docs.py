@@ -41,7 +41,8 @@ class setup_docs(object):
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"version": getattr(self.docs_config, "version", "")
+				"version": getattr(self.docs_config, "version", ""),
+				"style": getattr(self.docs_config, "style", "")
 			}),
 			"get_doctype_app": frappe.get_doctype_app
 		}
@@ -110,6 +111,16 @@ class setup_docs(object):
 		self.api_base_path = os.path.join(self.path, "api")
 		self.make_folder(self.api_base_path,
 			template = "templates/autodoc/api_home.html")
+
+		# make /user
+		user_path = os.path.join(self.docs_path, "user")
+		if not os.path.exists(user_path):
+			os.makedirs(user_path)
+
+		# make /assets/img
+		img_path = os.path.join(self.docs_path, "assets", "img")
+		if not os.path.exists(img_path):
+			os.makedirs(img_path)
 
 	def build_user_docs(self):
 		"""Build templates for user docs pages, if missing."""
@@ -321,7 +332,7 @@ class setup_docs(object):
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
-					'<p><br><a class="text-muted" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
+					'<p><br><a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
@@ -372,7 +383,10 @@ class setup_docs(object):
 			"css/octicons": "css/octicons",
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
-			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg"
+			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
+			"images/background.png": "img/background.png",
+			"images/smiley.png": "img/smiley.png",
+			"images/up.png": "img/up.png"
 		}
 
 		for source, target in copy_files.iteritems():
@@ -394,3 +408,4 @@ class setup_docs(object):
 				text = css_file.read()
 			with open(path, "w") as css_file:
 				css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
+
