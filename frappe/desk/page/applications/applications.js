@@ -147,7 +147,7 @@ frappe.applications.Installer = Class.extend({
 			+ __('No matching apps found') + '</p>').appendTo(me.wrapper).toggle(false);
 
 		this.wrapper.find(".install").on("click", function() {
-			me.install_app($(this).attr("data-app"), this);
+			me.install_app($(this).attr("data-app"), $(this).attr("data-title"), this);
 		});
 
 	},
@@ -156,18 +156,20 @@ frappe.applications.Installer = Class.extend({
 		this.no_result.toggle(this.wrapper.find(".app-listing:visible").length ? false : true);
 	},
 
-	install_app: function(app_name, btn) {
-		frappe.call({
-			method: "frappe.desk.page.applications.applications.install_app",
-			args: { name: app_name },
-			freeze: true,
-			btn: btn,
-			callback: function(r) {
-				if(!r.exc) {
-					frappe.update_msgprint(__("Refreshing..."));
-					setTimeout(function() { window.location.reload() }, 2000)
+	install_app: function(app_name, app_title, btn) {
+		frappe.confirm(__("Install {0}?", [app_title]), function() {
+			frappe.call({
+				method: "frappe.desk.page.applications.applications.install_app",
+				args: { name: app_name },
+				freeze: true,
+				btn: btn,
+				callback: function(r) {
+					if(!r.exc) {
+						frappe.update_msgprint(__("Refreshing..."));
+						setTimeout(function() { window.location.reload() }, 2000)
+					}
 				}
-			}
+			});
 		});
 	},
 

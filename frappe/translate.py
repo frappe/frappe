@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 
 import frappe, os, re, codecs, json
 from frappe.utils.jinja import render_include
+from frappe.utils import strip
 from jinja2 import TemplateError
 import itertools, operator
 
@@ -192,10 +193,10 @@ def load_lang(lang, apps=None):
 			for item in csv_content:
 				if len(item)==3:
 					# with file and line numbers
-					cleaned[item[1]] = item[2]
+					cleaned[item[1]] = strip(item[2])
 
 				elif len(item)==2:
-					cleaned[item[0]] = item[1]
+					cleaned[item[0]] = strip(item[1])
 
 				else:
 					raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
