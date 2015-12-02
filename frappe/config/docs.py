@@ -21,5 +21,12 @@ Frappe Framework was designed to build [ERPNext](https://erpnext.com), open sour
 ERP for managing small and medium sized businesses.
 """
 
+style = """
+.splash .jumbotron h1 {
+	font-weight: 200;
+	font-size: 48px;
+}
+"""
+
 def get_context(context):
 	pass

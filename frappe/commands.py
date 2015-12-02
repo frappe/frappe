@@ -404,19 +404,43 @@ def write_docs(context, app, target, local=False):
 @click.argument('docs_version')
 @click.argument('target')
 @click.option('--local', default=False, is_flag=True, help='Run app locally')
-def build_docs(context, app, docs_version, target, local=False):
+@click.option('--watch', default=False, is_flag=True, help='Watch for changes and rewrite')
+def build_docs(context, app, docs_version, target, local=False, watch=False):
 	"Setup docs in target folder of target app"
-	from frappe.utils.setup_docs import setup_docs
+	from frappe.utils import watch
 	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			make = setup_docs(app)
+		_build_docs_once(site, app, docs_version, target, local)
+
+		if watch:
+			def trigger_make(source_path, event_type):
+				if "/templates/autodoc/" in source_path:
+					_build_docs_once(site, app, docs_version, target, local)
+
+				elif ("/docs.css" in source_path
+					or "/docs/" in source_path
+					or "docs.py" in source_path):
+					_build_docs_once(site, app, docs_version, target, local, only_content_updated=True)
+
+			apps_path = frappe.get_app_path("frappe", "..", "..")
+			watch(apps_path, handler=trigger_make)
+
+def _build_docs_once(site, app, docs_version, target, local, only_content_updated=False):
+	from frappe.utils.setup_docs import setup_docs
+
+	try:
+
+		frappe.init(site=site)
+		frappe.connect()
+		make = setup_docs(app)
+
+		if not only_content_updated:
 			make.build(docs_version)
 			make.sync_docs()
-			make.make_docs(target, local)
-		finally:
-			frappe.destroy()
+
+		make.make_docs(target, local)
+
+	finally:
+		frappe.destroy()
 
 
 @click.command('reset-perms')

@@ -238,17 +238,17 @@ body {
   font-size: 16px;
   line-height: 1.65em;
   color: #454e57;
-  position: relative;
   -webkit-font-smoothing: antialiased;
 }
 .container {
   max-width: 870px;
 }
 .splash {
-  background-color: #383851;
+  background-color: #36414C;
   background-image: url('/assets/img/background.png');
   color: #ffffff;
   padding-top: 128px;
+  margin-top: -92px;
 }
 .splash .jumbotron {
   background-color: transparent;
@@ -274,13 +274,9 @@ body {
   padding: 30px 0 0 0;
 }
 .page-container {
-  padding-top: 128px;
+  padding-top: 38px;
   margin: 0 auto;
-  width: 870px;
-}
-.page-container .page-content {
-  width: 83%;
-  margin: 0 auto;
+  max-width: 870px;
 }
 .page-container .webpage-content ol > li,
 .page-container .webpage-content ul > li {
@@ -297,6 +293,12 @@ body {
 .page-container .webpage-content ol {
   margin-bottom: 32px;
 }
+@media (min-width: 768px) {
+  .page-container .page-content {
+    width: 83%;
+    margin: 0 auto;
+  }
+}
 #page-index {
   padding-top: 0;
   width: 100%;
@@ -305,6 +307,9 @@ body {
 #page-index .page-content {
   width: 100%;
   margin: 0;
+}
+body[data-path="index"] .navbar .toggle-sidebar i {
+  color: #fff;
 }
 code {
   color: #e66a12;
@@ -389,12 +394,9 @@ pre {
   color: #4f4fa4;
 }
 .navbar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  width: 870px;
-  margin: 0 auto;
+  max-width: 870px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .navbar a {
   font-size: 16px;
@@ -402,6 +404,14 @@ pre {
 }
 .navbar a.navbar-brand {
   font-weight: bold;
+}
+.navbar a.toggle-sidebar {
+  margin-top: 8px;
+}
+.sidebar a {
+  font-size: 14px;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
 }
 .breadcrumb {
   line-height: 1em;
@@ -422,11 +432,14 @@ pre {
   color: #7575ff;
   font-size: 16px;
 }
-a,
-a:hover,
-a:focus,
-a:visited {
+.hero-and-content a,
+.hero-and-content a:hover,
+.hero-and-content a:focus,
+.hero-and-content a:visited {
   color: #5E64FF;
+}
+.hero-and-content a.btn {
+  color: inherit;
 }
 a.btn-primary {
   color: #fff;
@@ -470,7 +483,7 @@ p {
 .docs-footer {
   padding: 30px 0px 60px 0px;
   border-top: 1px solid #d1d8dd;
-  width: 870px;
+  max-width: 870px;
   margin: 0 auto;
   margin-top: 80px;
   font-size: 14px;
@@ -497,7 +510,7 @@ p {
   margin-top: -50px;
 }
 .browser-image {
-  min-height: 300px;
+  min-height: 200px;
   border: 1px solid #d1d8dd;
 }
 .fake-browser-frame {
@@ -587,12 +600,4 @@ a.edit:visited {
   font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
   color: #454e57;
   font-size: 16px;
-}
-@media (max-width: 767px) {
-  .offcanvas-container,
-  .offcanvas,
-  .offcanvas-main-section {
-    position: relative;
-    width: 50%;
-  }
 }

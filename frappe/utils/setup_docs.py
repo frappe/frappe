@@ -41,7 +41,8 @@ class setup_docs(object):
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"version": getattr(self.docs_config, "version", "")
+				"version": getattr(self.docs_config, "version", ""),
+				"style": getattr(self.docs_config, "style", "")
 			}),
 			"get_doctype_app": frappe.get_doctype_app
 		}
@@ -407,3 +408,4 @@ class setup_docs(object):
 				text = css_file.read()
 			with open(path, "w") as css_file:
 				css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
+

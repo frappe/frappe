@@ -6,7 +6,7 @@ body {
 	font-size: 16px;
 	line-height: 1.65em;
  color: #454e57;
- position: relative;
+ // position: relative;
  -webkit-font-smoothing: antialiased;
 }
 
@@ -15,23 +15,25 @@ body {
 }
 
 .splash{
- background-color: #383851;
+ // background-color: #383851;
+ background-color: @text-color;
  background-image: url('/assets/img/background.png');
  color: #ffffff;
  padding-top: 128px;
- 
+ margin-top: -92px;
+
  .jumbotron{
   background-color: transparent;
 	 padding: 14px 0 60px 0;
 	 text-align: center;
   text-shadow: 0px 1px 2px rgba(0,0,0,0.7);
-  
+
    h1 {
     font-size: 36px;
     font-weight: 700;
     opacity: 0.9;
    }
-  
+
    p {
     font-size: 24px;
     font-color: @text-muted !important;
@@ -49,18 +51,13 @@ body {
 
 
 .page-container{
-  padding-top:128px;
+  padding-top:38px;
   margin:0 auto;
-  width:870px;
-  
-  .page-content {
-   width:83%;
-   margin:0 auto;
-  }
- 
+  max-width:870px;
+
   .webpage-content{
     ol > li, ul > li {
-     margin: 13px auto; 
+     margin: 13px auto;
     }
 
     ol > li li, ul > li li {
@@ -76,15 +73,29 @@ body {
   }
 }
 
+@media (min-width: 768px) {
+    .page-container .page-content {
+	     width:83%;
+	     margin:0 auto;
+    }
+
+}
+
 #page-index {
  padding-top:0;
  width:100%;
  margin:0;
- 
+
  .page-content {
   width:100%;
   margin:0;
  }
+}
+
+body[data-path="index"] {
+    .navbar .toggle-sidebar i {
+   		color: #fff;
+    }
 }
 
 code{
@@ -125,12 +136,16 @@ pre {
 	//background-color: @navbar-bg !important;
 	//background-color: @text-color !important;
 	// border-bottom: 3px solid @border-color !important;
- position: absolute;
- top:0;
- right: 0;
- left: 0;
- width:870px;
- margin:0 auto;
+ // position: absolute;
+ // top:0;
+ // right: 0;
+ // left: 0;
+ // max-width:870px;
+ // margin:0 auto;
+
+ max-width: 870px;
+ margin-left: auto;
+ margin-right: auto;
 }
 .navbar a {
 	font-size: 16px;
@@ -139,6 +154,16 @@ pre {
  &.navbar-brand{
   font-weight: bold;
  }
+
+ &.toggle-sidebar {
+	 margin-top: 8px;
+ }
+}
+
+.sidebar a {
+	font-size: 14px;
+	padding-top: 14px !important;
+	padding-bottom: 14px !important;
 }
 
 .breadcrumb {
@@ -149,7 +174,7 @@ pre {
   padding: 0px;
   padding-left:20px;
   background:url('/assets/img/up.png') 0% 30% no-repeat;
- 
+
   .icon {
     display:none;
   }
@@ -162,8 +187,14 @@ pre {
   font-size: 16px;
 }
 
-a, a:hover, a:focus, a:visited {
-	color: @brand-primary;
+.hero-and-content {
+	a, a:hover, a:focus, a:visited {
+		color: @brand-primary;
+	}
+
+	a.btn {
+		color: inherit;
+	}
 }
 
 a.btn-primary& {
@@ -214,11 +245,11 @@ p {
 .docs-footer {
 	padding: 30px 0px 60px 0px;
 	border-top: 1px solid @border-color;
- width:870px;
+ max-width:870px;
  margin:0 auto;
  margin-top: 80px;
  font-size: 14px;
- 
+
  h3 {
   margin-top:24px;
   font-size:16px;
@@ -245,7 +276,7 @@ p {
 
 // fake frames
 .browser-image {
-	min-height: 300px;
+	min-height: 200px;
 	border: 1px solid #d1d8dd;
 }
 
@@ -333,7 +364,7 @@ a.edit, a.edit:hover, a.edit:focus, a.edit:visited {
  float:right;
 }
 .btn-next:after {
- content:" \2192"; 
+ content:" \2192";
 }
 
 #current td {
@@ -347,11 +378,11 @@ a.edit, a.edit:hover, a.edit:focus, a.edit:visited {
  font-size:16px;
 }
 
-@media (max-width: 767px) {
-  .offcanvas-container,
-  .offcanvas,
-  .offcanvas-main-section {
-    position: relative;
-   width:50%;
-  }
-}
+// @media (max-width: 767px) {
+//   .offcanvas-container,
+//   .offcanvas,
+//   .offcanvas-main-section {
+//     position: relative;
+//    width:50%;
+//   }
+// }
