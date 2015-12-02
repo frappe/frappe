@@ -19,7 +19,7 @@ import json
 import frappe
 
 def error_collector(exception):
-	ticket_id = '{ip:s}.{timestamp:s}.{uuid:s}'.format(
+	error_id = '{ip:s}.{timestamp:s}.{uuid:s}'.format(
 		ip=frappe.local.request_ip or '127.0.0.1',
 		timestamp=str(datetime.datetime.now()),
 		uuid=str(uuid.uuid4())
@@ -31,10 +31,10 @@ def error_collector(exception):
 
 	snap = snapshot(exception)
 
-	with file(os.path.join(store_folder, ticket_id)+'.json', 'wb') as ticket:
-		json.dump(snap, ticket)
+	with file(os.path.join(store_folder, error_id)+'.json', 'wb') as error:
+		json.dump(snap, error)
 
-	print 'New ticket collected with id `{}`'.format(ticket_id)
+	print 'New Exception collected with id `{}`'.format(error_id)
 
 def snapshot(exception):
 	"""
