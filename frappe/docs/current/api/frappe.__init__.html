@@ -1,7 +1,7 @@
 <!-- title: frappe.__init__ --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.10.1</a>
+	Version 6.11.0</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/__init__.py"
@@ -1118,7 +1118,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.__init__.has_permission" href="#frappe.__init__.has_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.__init__.<b>has_permission</b>
-        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False)</i>
+        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False, throw=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raises <code>frappe.PermissionError</code> if not permitted.</p>
 

@@ -420,3 +420,31 @@ def get_request_session(max_retries=3):
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	return session
 
+def watch(path, handler=None, debug=True):
+	import sys
+	import time
+	import logging
+	from watchdog.observers import Observer
+	from watchdog.events import LoggingEventHandler, FileSystemEventHandler
+
+	class Handler(FileSystemEventHandler):
+		def on_any_event(self, event):
+			if debug:
+				print "File {0}: {1}".format(event.event_type, event.src_path)
+
+			if not handler:
+				print "No handler specified"
+				return
+
+			handler(event.src_path, event.event_type)
+
+	event_handler = Handler()
+	observer = Observer()
+	observer.schedule(event_handler, path, recursive=True)
+	observer.start()
+	try:
+		while True:
+			time.sleep(1)
+	except KeyboardInterrupt:
+		observer.stop()
+	observer.join()

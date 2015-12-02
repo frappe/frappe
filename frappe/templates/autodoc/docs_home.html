@@ -12,7 +12,11 @@
  nav.navbar.navbar-main {
   border-bottom:1px solid rgba(225,233,240,0.25);
  }
+ {% if app.style %} {{ app.style }} {% endif %}
+
 </style>
+
+<!-- start-hero -->
 <div class="splash">
  <div class="container">
   <div class="col-sm-10 col-sm-offset-1">
@@ -29,6 +33,8 @@
   </div>
  </div>
 </div>
+<!-- end-hero -->
+
 {% if app.long_description %}
 <div class="container">
  <div class="col-sm-10 col-sm-offset-1">

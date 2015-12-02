@@ -43,7 +43,7 @@
 		{%- endblock -%}
 	{%- endblock -%}
 </head>
-<body>
+<body data-path="{{ path }}">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,7 +59,13 @@
                         {% include "templates/includes/navbar/navbar.html" %}
                     {%- endblock -%}
                     <div class="hero-and-content">
+    					{%- block hero -%}
+                            <div data-html-block="hero">
+                                {{ hero or "" }}
+                            </div>
+                        {%- endblock -%}
                         {% block content %}
+							<div class="container">
                                {{ content }}
                                <!-- edit-link -->
                             </div>
@@ -68,7 +74,7 @@
 					<footer class="docs-footer">
 						<div class="container">
 						{%- if footer is defined -%}{{ footer }}{%- endif -%}
-                        
+
                         <div class="built-with-frappe text-center">
                             <img class="frappe-bird" src="{{ docs_base_url }}/assets/img/frappe-bird-grey.svg">
                             <h3>By Frappe Technologies</h3>
@@ -97,7 +103,7 @@
                                 </li>
                             </ul>
                         </div>
-                        
+
                     </div>
 					</footer>
 				</div>

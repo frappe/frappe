@@ -7,7 +7,7 @@
 <div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.10.1</a>
+	Version 6.11.0</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/email_account"
@@ -518,9 +518,9 @@ Yandex.Mail</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="get_pop3" href="#get_pop3" class="text-muted small">
+        <a name="get_server" href="#get_server" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_pop3</b>
+		<b>get_server</b>
         <i class="text-muted">(self, in_receive=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns logged in POP3 connection object.</p>
@@ -607,7 +607,7 @@ Yandex.Mail</pre>
 		<b>receive</b>
         <i class="text-muted">(self, test_mails=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Called by scheduler to receive emails from this EMail account using POP3.</p>
+	<div class="docs-attr-desc"><p>Called by scheduler to receive emails from this EMail account using POP3/IMAP.</p>
 </div>
 	<br>
 
@@ -668,7 +668,7 @@ it will create a new parent transaction (e.g. Issue)</p>
 		<b>validate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Validate email id and check POP3 and SMTP connections is enabled.</p>
+	<div class="docs-attr-desc"><p>Validate email id and check POP3/IMAP and SMTP connections is enabled.</p>
 </div>
 	<br>
 
@@ -736,9 +736,9 @@ and <code>notify_if_unreplied</code> is set as true.</p>
         <a name="frappe.email.doctype.email_account.email_account.pull" href="#frappe.email.doctype.email_account.email_account.pull" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.doctype.email_account.email_account.<b>pull</b>
-        <i class="text-muted">(now=False)</i>
+        <i class="text-muted">(now=True)</i>
     </p>
-	<div class="docs-attr-desc"><p>Will be called via scheduler, pull emails from all enabled POP3 email accounts.</p>
+	<div class="docs-attr-desc"><p>Will be called via scheduler, pull emails from all enabled Email accounts.</p>
 </div>
 	<br>
 
