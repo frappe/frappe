@@ -357,7 +357,7 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
-def pull(now=True):
+def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	import frappe.tasks
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
