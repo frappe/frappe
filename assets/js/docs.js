@@ -32,7 +32,9 @@ $(function() {
 				modal.find(".btn-search").trigger("click");
 			}
 			if(e.which===9) {
+				e.preventDefault();
 				modal.find(".btn-search").focus();
+				return false;
 			}
 			var text = $(this).val();
 			modal.find(".btn-search").attr("href", "https://google.com/search?q="
