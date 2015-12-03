@@ -15,6 +15,7 @@
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
 
     
 	<link rel="shortcut icon"
@@ -26,16 +27,16 @@
     
 <meta name="name" content="frappe.__init__" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
-<meta name="twitter:description" content="Version 6.7.7 Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
+<meta name="twitter:description" content="Version 6.x.x Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:description" content="Version 6.7.7 Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
+<meta name="og:description" content="Version 6.x.x Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
 <meta name="og:title" content="frappe.__init__" data-html-block="meta_block">
 <meta name="twitter:title" content="frappe.__init__" data-html-block="meta_block">
-<meta name="description" content="Version 6.7.7 Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
+<meta name="description" content="Version 6.x.x Source Introductionglobals attached to frappe module + some utility functions that should probably be" data-html-block="meta_block">
 
 		
-			<style data-html-block="style"></style></head>
-<body>
+			<style></style></head>
+<body data-path="current/api/frappe.__init__">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -55,11 +56,11 @@
 				
 				<ul class="nav navbar-nav navbar-left">
 </ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
-	<a href="https://frappe.github.io/frappe/contents.html"
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
 		
 		>
-	Contents</a></li><li data-label='User Guide' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='User Guide' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
@@ -77,22 +78,17 @@
 		</div>
 	</nav>
 </header>
-<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
-                        
-                            <div class="container">
-                            <div class="page-container" id="page-frappe.__init__" data-path="current/api/frappe.__init__"
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content"><div data-html-block="hero">
+                                
+                            </div>
+							<div class="container">
+                               <div class="page-container" id="page-frappe.__init__" data-path="current/api/frappe.__init__"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
             <div class="row">
                 <div class="col-sm-8">
-            		<div class="page-header-block" data-html-block="header"><h1>frappe.__init__</h1></div>
-                </div>
-                <div class="col-sm-4">
-            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
-                </div>
-            </div>
-    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+                 <div class="page-breadcrumbs" data-html-block="breadcrumbs">
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
@@ -102,6 +98,13 @@
 	
 </ul>
 </div>
+            		<div class="page-header-block" data-html-block="header"><h1>frappe.__init__</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
@@ -109,7 +112,7 @@
 	<!-- title: frappe.__init__ --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.7.7</a>
+	Version 6.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/__init__.py"
@@ -718,6 +721,22 @@ todo = frappe.get_doc("ToDo", "TD0001")
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.__init__.get_doctype_app" href="#frappe.__init__.get_doctype_app" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.__init__.<b>get_doctype_app</b>
+        <i class="text-muted">(doctype)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.__init__.get_file_items" href="#frappe.__init__.get_file_items" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.__init__.<b>get_file_items</b>
@@ -1210,7 +1229,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.__init__.has_permission" href="#frappe.__init__.has_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.__init__.<b>has_permission</b>
-        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False)</i>
+        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False, throw=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raises <code>frappe.PermissionError</code> if not permitted.</p>
 
@@ -1778,12 +1797,15 @@ def myfunc(param1, param2):
     	</div>
 	</div>
 </div>
-                            <!-- edit-link -->
+                               <!-- edit-link -->
                             </div>
                         
                     </div>
 					<footer class="docs-footer">
-						<div class="container"><br>
+						<div class="container"><div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
                         <div class="text-center">
                             <ul class="list-unstyled">
                                 <li>
@@ -1808,9 +1830,7 @@ def myfunc(param1, param2):
                                 </li>
                             </ul>
                         </div>
-                        <div class="built-with-frappe text-center">
-                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
-                        </div>
+
                     </div>
 					</footer>
 				</div>
@@ -1820,11 +1840,11 @@ def myfunc(param1, param2):
 				<div class="sidebar-navbar-items">
 					<ul class="nav navbar-nav navbar-left">
 </ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
-	<a href="https://frappe.github.io/frappe/contents.html"
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
 		
 		>
-	Contents</a></li><li data-label='User Guide' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='User Guide' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
@@ -1843,32 +1863,8 @@ def myfunc(param1, param2):
 	</div>
 
 	<!-- js should be loaded in body! -->
-    <script>
-    $(function() {
-	if(hljs) {
-		$('pre code').each(function(i, block) {
-			hljs.highlightBlock(block);
-		});
-	}
-
-	$(".toggle-sidebar").on("click", function() {
-		$(".offcanvas").addClass("active-right");
-		return false;
-	});
-
-	// collapse offcanvas sidebars!
-	$(".offcanvas .sidebar").on("click", "a", function() {
-		$(".offcanvas").removeClass("active-left active-right");
-	});
-
-	$(".offcanvas-main-section-overlay").on("click", function() {
-		$(".offcanvas").removeClass("active-left active-right");
-		return false;
-	});
-
-});
-    </script>
-		<script data-html-block="script"></script>
+		<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";</script>
 
 	<!-- csrf_token --></body>
 </html>

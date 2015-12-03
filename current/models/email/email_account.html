@@ -15,6 +15,7 @@
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
 
     
 	<link rel="shortcut icon"
@@ -26,16 +27,16 @@
     
 <meta name="name" content="Email Account" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
-<meta name="twitter:description" content="Version 6.7.7 Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
+<meta name="twitter:description" content="Version 6.x.x Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:description" content="Version 6.7.7 Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
+<meta name="og:description" content="Version 6.x.x Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
 <meta name="og:title" content="Email Account" data-html-block="meta_block">
 <meta name="twitter:title" content="Email Account" data-html-block="meta_block">
-<meta name="description" content="Version 6.7.7 Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
+<meta name="description" content="Version 6.x.x Source Table Name: tabEmail Account Fields &lt;table" data-html-block="meta_block">
 
 		
-			<style data-html-block="style"></style></head>
-<body>
+			<style></style></head>
+<body data-path="current/models/email/email_account">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -55,11 +56,11 @@
 				
 				<ul class="nav navbar-nav navbar-left">
 </ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
-	<a href="https://frappe.github.io/frappe/contents.html"
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
 		
 		>
-	Contents</a></li><li data-label='User Guide' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='User Guide' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
@@ -77,22 +78,17 @@
 		</div>
 	</nav>
 </header>
-<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content">
-                        
-                            <div class="container">
-                            <div class="page-container" id="page-email_account" data-path="current/models/email/email_account"
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script><div class="hero-and-content"><div data-html-block="hero">
+                                
+                            </div>
+							<div class="container">
+                               <div class="page-container" id="page-email_account" data-path="current/models/email/email_account"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
             <div class="row">
                 <div class="col-sm-8">
-            		<div class="page-header-block" data-html-block="header"><h1>Email Account</h1></div>
-                </div>
-                <div class="col-sm-4">
-            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
-                </div>
-            </div>
-    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+                 <div class="page-breadcrumbs" data-html-block="breadcrumbs">
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
@@ -102,6 +98,13 @@
 	
 </ul>
 </div>
+            		<div class="page-header-block" data-html-block="header"><h1>Email Account</h1></div>
+                </div>
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions"></div>
+                </div>
+            </div>
+    		
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
@@ -115,7 +118,7 @@
 <div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.7.7</a>
+	Version 6.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/email_account"
@@ -171,7 +174,8 @@
                 <pre>
 GMail
 Yahoo Mail
-Outlook.com</pre>
+Outlook.com
+Yandex.Mail</pre>
             </td>
         </tr>
         
@@ -625,10 +629,10 @@ Outlook.com</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="get_pop3" href="#get_pop3" class="text-muted small">
+        <a name="get_server" href="#get_server" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_pop3</b>
-        <i class="text-muted">(self)</i>
+		<b>get_server</b>
+        <i class="text-muted">(self, in_receive=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns logged in POP3 connection object.</p>
 </div>
@@ -645,6 +649,20 @@ Outlook.com</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Return list of emails listed</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="handle_incoming_connect_error" href="#handle_incoming_connect_error" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>handle_incoming_connect_error</b>
+        <i class="text-muted">(self, description)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -700,7 +718,7 @@ Outlook.com</pre>
 		<b>receive</b>
         <i class="text-muted">(self, test_mails=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Called by scheduler to receive emails from this EMail account using POP3.</p>
+	<div class="docs-attr-desc"><p>Called by scheduler to receive emails from this EMail account using POP3/IMAP.</p>
 </div>
 	<br>
 
@@ -761,7 +779,7 @@ it will create a new parent transaction (e.g. Issue)</p>
 		<b>validate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Validate email id and check POP3 and SMTP connections is enabled.</p>
+	<div class="docs-attr-desc"><p>Validate email id and check POP3/IMAP and SMTP connections is enabled.</p>
 </div>
 	<br>
 
@@ -831,7 +849,7 @@ and <code>notify_if_unreplied</code> is set as true.</p>
 		frappe.email.doctype.email_account.email_account.<b>pull</b>
         <i class="text-muted">(now=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Will be called via scheduler, pull emails from all enabled POP3 email accounts.</p>
+	<div class="docs-attr-desc"><p>Will be called via scheduler, pull emails from all enabled Email accounts.</p>
 </div>
 	<br>
 
@@ -843,12 +861,14 @@ and <code>notify_if_unreplied</code> is set as true.</p>
         <h4>Linked In:</h4>
         <ul>
         
+			
             <li>
 
 
 <a href="https://frappe.github.io/frappe/current/models/core/communication">Communication</a>
 
 </li>
+			
         
         </ul>
     
@@ -864,12 +884,15 @@ and <code>notify_if_unreplied</code> is set as true.</p>
     	</div>
 	</div>
 </div>
-                            <!-- edit-link -->
+                               <!-- edit-link -->
                             </div>
                         
                     </div>
 					<footer class="docs-footer">
-						<div class="container"><br>
+						<div class="container"><div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
                         <div class="text-center">
                             <ul class="list-unstyled">
                                 <li>
@@ -894,9 +917,7 @@ and <code>notify_if_unreplied</code> is set as true.</p>
                                 </li>
                             </ul>
                         </div>
-                        <div class="built-with-frappe text-center">
-                            <img src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg" style="width: 40px; height: 40px; margin-top: 20px;">
-                        </div>
+
                     </div>
 					</footer>
 				</div>
@@ -906,11 +927,11 @@ and <code>notify_if_unreplied</code> is set as true.</p>
 				<div class="sidebar-navbar-items">
 					<ul class="nav navbar-nav navbar-left">
 </ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='Contents' >
-	<a href="https://frappe.github.io/frappe/contents.html"
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
 		
 		>
-	Contents</a></li><li data-label='User Guide' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='User Guide' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
@@ -929,32 +950,8 @@ and <code>notify_if_unreplied</code> is set as true.</p>
 	</div>
 
 	<!-- js should be loaded in body! -->
-    <script>
-    $(function() {
-	if(hljs) {
-		$('pre code').each(function(i, block) {
-			hljs.highlightBlock(block);
-		});
-	}
-
-	$(".toggle-sidebar").on("click", function() {
-		$(".offcanvas").addClass("active-right");
-		return false;
-	});
-
-	// collapse offcanvas sidebars!
-	$(".offcanvas .sidebar").on("click", "a", function() {
-		$(".offcanvas").removeClass("active-left active-right");
-	});
-
-	$(".offcanvas-main-section-overlay").on("click", function() {
-		$(".offcanvas").removeClass("active-left active-right");
-		return false;
-	});
-
-});
-    </script>
-		<script data-html-block="script"></script>
+		<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";</script>
 
 	<!-- csrf_token --></body>
 </html>
