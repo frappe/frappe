@@ -245,7 +245,7 @@ body {
 }
 .splash {
   background-color: #36414C;
-  background-image: url('/assets/img/background.png');
+  background-image: url('https://frappe.github.io/frappe/assets/img/background.png');
   color: #ffffff;
   padding-top: 128px;
   margin-top: -92px;
@@ -420,7 +420,7 @@ pre {
   margin-bottom: 32px;
   padding: 0px;
   padding-left: 20px;
-  background: url('/assets/img/up.png') 0% 30% no-repeat;
+  background: url('https://frappe.github.io/frappe/assets/img/up.png') 0% 30% no-repeat;
 }
 .breadcrumb .icon {
   display: none;
@@ -573,7 +573,7 @@ hr {
 }
 .edit {
   padding-left: 20px;
-  background: url('/assets/img/smiley.png') 0% 50% no-repeat;
+  background: url('https://frappe.github.io/frappe/assets/img/smiley.png') 0% 50% no-repeat;
   color: #8d99a6;
   position: relative;
   top: -10px;
