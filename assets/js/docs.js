@@ -31,6 +31,9 @@ $(function() {
 			if(e.which===13) {
 				modal.find(".btn-search").trigger("click");
 			}
+			if(e.which===9) {
+				modal.find(".btn-search").focus();
+			}
 			var text = $(this).val();
 			modal.find(".btn-search").attr("href", "https://google.com/search?q="
 				+ text + "+site:" + (window.docs_base_url || ""));
