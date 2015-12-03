@@ -216,9 +216,9 @@ The hook function will be passed the doc in concern as the only argument.
 
 * `validate`
 * `before_save`
+* `after_save`
 * `before_insert`
 * `after_insert`
-* `validate`
 * `before_submit`
 * `before_cancel`
 * `before_update_after_submit`
