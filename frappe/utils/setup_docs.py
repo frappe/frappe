@@ -28,7 +28,7 @@ class setup_docs(object):
 			"app": frappe._dict({
 				"name": self.app,
 				"title": self.app_title,
-				"description": markdown2.markdown(self.hooks.get("app_description")[0]),
+				"description": self.hooks.get("app_description")[0],
 				"version": version,
 				"publisher": self.hooks.get("app_publisher")[0],
 				"icon": self.hooks.get("app_icon")[0],
@@ -38,11 +38,15 @@ class setup_docs(object):
 				"source_link": self.docs_config.source_link,
 				"hide_install": getattr(self.docs_config, "hide_install", False),
 				"docs_base_url": self.docs_config.docs_base_url,
-				"long_description": getattr(self.docs_config, "long_description", ""),
+				"long_description": markdown2.markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", "")
+				"style": getattr(self.docs_config, "style", ""),
+				"splash_light_background": getattr(self.docs_config, "splash_light_background", False),
 			}),
+			"metatags": {
+				"description": self.hooks.get("app_description")[0],
+			},
 			"get_doctype_app": frappe.get_doctype_app
 		}
 
@@ -274,6 +278,7 @@ class setup_docs(object):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
 
+		cnt = 0
 		for page in frappe.db.sql("""select parent_website_route,
 			page_name from `tabWeb Page` where ifnull(template_path, '')!=''""", as_dict=True):
 
@@ -291,7 +296,7 @@ class setup_docs(object):
 				"page_links_with_extn": True,
 				"relative_links": True,
 				"docs_base_url": self.docs_base_url,
-				"url_prefix": self.docs_base_url
+				"url_prefix": self.docs_base_url,
 			}
 
 			context.update(self.app_context)
@@ -345,6 +350,10 @@ class setup_docs(object):
 
 			with open(target_filename, "w") as htmlfile:
 				htmlfile.write(html.encode("utf-8"))
+
+				cnt += 1
+
+		print "Wrote {0} files".format(cnt)
 
 
 	def copy_assets(self):
