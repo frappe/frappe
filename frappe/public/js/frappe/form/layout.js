@@ -284,9 +284,21 @@ frappe.ui.form.Layout = Class.extend({
 	focus_on_next_field: function(start_idx, fields) {
 		// loop to find next eligible fields
 		for(var i= start_idx + 1, len = fields.length; i < len; i++) {
-			if(fields[i].disp_status==="Write" && !in_list(frappe.model.no_value_type, fields[i].df.fieldtype)) {
-				this.set_focus(fields[i]);
-				break;
+			var field = fields[i];
+			if(field.disp_status==="Write") {
+				if(field.df.fieldtype==="Table") {
+					// open table grid
+					if(!(field.grid.grid_rows && field.grid.grid_rows.length)) {
+						// empty grid, add a new row
+						field.grid.add_new_row();
+					}
+					// show grid row (if exists)
+					field.grid.grid_rows[0].show_form();
+
+				} else if(!in_list(frappe.model.no_value_type, field.df.fieldtype)) {
+					this.set_focus(field);
+					break;
+				}
 			}
 		}
 	},

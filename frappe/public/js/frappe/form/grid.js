@@ -507,7 +507,6 @@ frappe.ui.form.GridRow = Class.extend({
 		return this;
 	},
 	show_form: function() {
-		var me = this;
 		if(!this.form_panel) {
 			this.form_panel = $('<div class="form-in-grid"></div>')
 				.appendTo(this.wrapper);
@@ -516,21 +515,28 @@ frappe.ui.form.GridRow = Class.extend({
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 		frappe.dom.freeze("", "dark");
-		if(this.frm.doc.docstatus===0) {
-			var first = this.form_area.find(":input:first");
-			if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
-				try {
-					first.get(0).focus();
-				} catch(e) {
-					console.log("Dialog: unable to focus on first input: " + e);
-				}
-			}
-		}
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		frappe.ui.scroll(this.wrapper, true, 15);
-		me.frm.script_manager.trigger(me.doc.parentfield + "_on_form_rendered");
-		me.frm.script_manager.trigger("form_render", me.doc.doctype, me.doc.name);
+		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
+		this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
+		this.set_focus();
+	},
+	set_focus: function() {
+		// wait for animation and then focus on the first row
+		var me = this;
+		setTimeout(function() {
+			if(me.frm.doc.docstatus===0) {
+				var first = me.form_area.find(":input:first");
+				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						//
+					}
+				}
+			}
+		}, 500);
 	},
 	hide_form: function() {
 		// if(this.form_panel)

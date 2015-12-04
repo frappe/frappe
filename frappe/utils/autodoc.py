@@ -54,6 +54,10 @@ def get_version(name):
 		installed = frappe.get_installed_apps()
 
 	def _for_module(m):
+		app_name = m.split(".")[0]
+		docs_version = frappe.get_attr(app_name + ".config.docs.docs_version")
+		if docs_version:
+			return docs_version
 		return getattr(importlib.import_module(m.split(".")[0]), "__version__", "0.0.0")
 
 	if "." in name or name in installed:

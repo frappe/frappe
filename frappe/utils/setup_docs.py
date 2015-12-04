@@ -41,7 +41,6 @@ class setup_docs(object):
 				"long_description": getattr(self.docs_config, "long_description", ""),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"version": getattr(self.docs_config, "version", ""),
 				"style": getattr(self.docs_config, "style", "")
 			}),
 			"get_doctype_app": frappe.get_doctype_app
@@ -323,6 +322,9 @@ class setup_docs(object):
 					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
 				]
 
+			context.top_bar_items = [{"label": '<i class="octicon octicon-search"></i>', "url": "#",
+				"right": 1}] + context.top_bar_items
+
 			if not context.favicon:
 				context.favicon = "/assets/img/favicon.ico"
 
@@ -332,7 +334,7 @@ class setup_docs(object):
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
-					'<p><br><a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">Improve this page</a></p>'.format(\
+					edit_link.format(\
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
@@ -375,6 +377,7 @@ class setup_docs(object):
 			"js/lib/jquery/jquery.min.js": "js/jquery.min.js",
 			"js/lib/bootstrap.min.js": "js/bootstrap.min.js",
 			"js/lib/highlight.pack.js": "js/highlight.pack.js",
+			"js/docs.js": "js/docs.js",
 			"css/bootstrap.css": "css/bootstrap.css",
 			"css/font-awesome.css": "css/font-awesome.css",
 			"css/docs.css": "css/docs.css",
@@ -397,15 +400,28 @@ class setup_docs(object):
 			else:
 				shutil.copy(source_path, os.path.join(assets_path, target))
 
-		# fix path for font-files
+		# fix path for font-files, background
 		files = (
 			os.path.join(assets_path, "css", "octicons", "octicons.css"),
 			os.path.join(assets_path, "css", "font-awesome.css"),
+			os.path.join(assets_path, "css", "docs.css"),
 		)
 
 		for path in files:
 			with open(path, "r") as css_file:
 				text = css_file.read()
 			with open(path, "w") as css_file:
-				css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
+				if "docs.css" in path:
+					css_file.write(text.replace("/assets/img/",
+						self.docs_base_url + '/assets/img/'))
+				else:
+					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
 
+
+edit_link = '''
+<div class="page-container">
+	<div class="page-content">
+	<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">
+		Improve this page</a>
+	</div>
+</div>'''
