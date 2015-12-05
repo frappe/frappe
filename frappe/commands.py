@@ -407,7 +407,7 @@ def write_docs(context, app, target, local=False):
 @click.option('--watch', default=False, is_flag=True, help='Watch for changes and rewrite')
 def build_docs(context, app, docs_version, target, local=False, watch=False):
 	"Setup docs in target folder of target app"
-	from frappe.utils import watch
+	from frappe.utils import watch as start_watch
 	for site in context.sites:
 		_build_docs_once(site, app, docs_version, target, local)
 
@@ -422,7 +422,7 @@ def build_docs(context, app, docs_version, target, local=False, watch=False):
 					_build_docs_once(site, app, docs_version, target, local, only_content_updated=True)
 
 			apps_path = frappe.get_app_path("frappe", "..", "..")
-			watch(apps_path, handler=trigger_make)
+			start_watch(apps_path, handler=trigger_make)
 
 def _build_docs_once(site, app, docs_version, target, local, only_content_updated=False):
 	from frappe.utils.setup_docs import setup_docs

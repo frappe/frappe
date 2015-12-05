@@ -1149,6 +1149,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.autocomplete_open = false;
 
+				if(ui.item.action) {
+					ui.item.action.apply(me);
+				}
+
 				// prevent selection on tab
 				var TABKEY = 9;
 				if(event.keyCode === TABKEY) {
