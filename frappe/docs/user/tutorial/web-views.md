@@ -16,11 +16,11 @@ Let us look at the standard Web Views:
 
 If you are logged in as the test user, go to `/article` and you should see the list of articles:
 
-![Web List]({{url_prefix}}/assets/img/guide/26-web-list.png)
+![Web List]({{docs_base_url}}/assets/img/guide/26-web-list.png)
 
 Click on one article and you will see the default web view
 
-![Web List]({{url_prefix}}/assets/img/guide/26-web-view.png)
+![Web List]({{docs_base_url}}/assets/img/guide/26-web-view.png)
 
 Now if you want to make a better list view for the article, drop a file called `list_item.html` in the `library_management/doctype/article` folder. Here is an example file:
 
@@ -45,7 +45,7 @@ Here, you will get all the properties of the article in the `doc` object.
 
 The updated list view looks like this!
 
-![Web List]({{url_prefix}}/assets/img/guide/27-web-view-list.png)
+![Web List]({{docs_base_url}}/assets/img/guide/27-web-view-list.png)
 
 #### Home Page
 
