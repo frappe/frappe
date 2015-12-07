@@ -14,7 +14,7 @@ To start the development server, run `bench start`
 
 You can now open your browser and go to `http://localhost:8000`. You should see this login page if all goes well:
 
-<img class="screenshot" alt="Login Screen" src="{{url_prefix}}/assets/img/login.png">
+<img class="screenshot" alt="Login Screen" src="{{docs_base_url}}/assets/img/login.png">
 
 Now login as the default user "Administrator"
 
@@ -23,7 +23,7 @@ Password: **admin**
 
 When you login, you should see the "Desk" home page
 
-<img class="screenshot" alt="Desk" src="{{url_prefix}}/assets/img/desk.png">
+<img class="screenshot" alt="Desk" src="{{docs_base_url}}/assets/img/desk.png">
 
 As you can see, the Frappe basic system comes with a bunch of pre-loaded applications and screens like To Do, Calendar etc. These apps can integrated in your app workflow as we progress.
 

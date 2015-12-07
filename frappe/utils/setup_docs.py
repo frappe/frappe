@@ -41,8 +41,7 @@ class setup_docs(object):
 				"long_description": markdown2.markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", ""),
-				"splash_light_background": getattr(self.docs_config, "splash_light_background", False),
+				"style": getattr(self.docs_config, "style", "")
 			}),
 			"metatags": {
 				"description": self.hooks.get("app_description")[0],
