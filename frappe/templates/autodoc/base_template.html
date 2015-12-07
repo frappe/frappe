@@ -15,6 +15,7 @@
 	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/jquery.min.js"></script>
 	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/docs.js"></script>
 
     {% block favicon %}
 	<link rel="shortcut icon"
@@ -37,7 +38,7 @@
 	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 
 		{%- block style %}
-			<style data-html-block="style">
+			<style>
 			{%- if style is defined -%}{{ style }}{%- endif -%}
 			</style>
 		{%- endblock -%}
@@ -120,11 +121,9 @@
 	</div>
 
 	<!-- js should be loaded in body! -->
-    <script>
-    {% include "templates/autodoc/docs.js" %}
-    </script>
 	{%- block script %}
-		<script data-html-block="script">
+		<script>
+        window.docs_base_url = "{{ docs_base_url }}";
 		{%- if script is defined -%}{{ script }}{%- endif -%}
 		</script>
 	{%- endblock %}

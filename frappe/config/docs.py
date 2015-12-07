@@ -2,7 +2,7 @@
 source_link = "https://github.com/frappe/frappe"
 docs_base_url = "https://frappe.github.io/frappe"
 headline = "Superhero Web Framework"
-sub_heading = "Build extensions to ERPNext or make your own database driven app"
+sub_heading = "Build extensions to ERPNext or make your own app"
 hide_install = True
 long_description = """Frappe is a full stack web application framework written in Python,
 Javascript, HTML/CSS with MySQL as the backend. It was built for ERPNext
@@ -19,14 +19,10 @@ to ERPNext.
 
 Frappe Framework was designed to build [ERPNext](https://erpnext.com), open source
 ERP for managing small and medium sized businesses.
-"""
 
-style = """
-.splash .jumbotron h1 {
-	font-weight: 200;
-	font-size: 48px;
-}
+[Get started with the Tutorial](https://github.frappe.io/frappe/user/tutorial)
 """
+docs_version = "6.x.x"
 
 def get_context(context):
 	pass

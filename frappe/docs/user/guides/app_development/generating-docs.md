@@ -65,13 +65,35 @@ You can add images in the `/docs/assets` folder. You can add links to the images
 
 ---
 
+## Setting up output docs
+
+1. Create a `/docs` folder in your bench, parallel to your `/sites` folder. e.g. `/frappe-bench/docs`
+2. Copy the repo of your app to the docs folder. e.g. `cp -R apps/myapp docs/myapp` (you can also clone it here using `git clone`).
+3. Go to your docs folder `cd docs/myapp`
+4. Checkout the gh-pages branch `git checkout --orphan gh-pages`
+5. Clean everything `git rm -rf .`
+
+Note > The branch name `gh-pages` is only if you are using GitHub. If you are hosting this on any other static file server, can just skip this and just create your docs folder for your app like `docs/myapp`
+
+Putting it all together:
+
+    mkdir docs
+    cp -R apps/myapp docs/myapp
+    cd docs/myapp
+    git checkout --orphan gh-pages
+    git rm -rf .
+
+---
+
 ## Viewing Locally
 
 To test your docs locally, add a `--local` option to the `build-docs` command.
 
-    bench --site [site] build-docs [appname] current /home/docs/reponame --local
+    bench --site [site] build-docs [appname] current $PWD/docs/reponame --local
 
 Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer
+
+Run this from your `docs/myapp` folder:
 
     python -m SimpleHTTPServer 8080
 
@@ -81,15 +103,8 @@ Then it will build urls so that you can view these files locally. To view them l
 
 To publish your docs on GitHub pages, you will have to create an empty and orphan branch in your repository called `gh-pages` and write yours there
 
-Go to new folder (outside your bench) and clone your repo again
+Now go back to your bench folder and write these docs to this branch. For example if your path to the `gh-pages` repo is `docs/reponame`
 
-    $ git clone git@github.com:[orgname]/[reponame]
-    $ cd reponame
-    $ git checkout --orphan gh-pages
-    $ git rm -rf .
-
-Now go back to your bench folder and write these docs to this branch. For example if your path to the `gh-pages` repo is `/home/docs/reponame`
-
-    bench --site [site] build-docs [appname] current /home/docs/reponame
+    bench --site [site] build-docs [appname] current $PWD/docs/reponame
 
 To check your documentation online go to: https://[orgname].github.io/[reponame]

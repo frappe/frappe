@@ -1,3 +1,4 @@
+frappe.config.core
 frappe.config.desk
 frappe.config.desktop
 frappe.config.docs
