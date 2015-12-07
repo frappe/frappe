@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Custom Module Icon</title>
+	<title>App Development</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Custom Module Icon" data-html-block="meta_block">
+<meta name="name" content="App Development" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Custom Module Icon" data-html-block="meta_block">
-<meta name="twitter:title" content="Custom Module Icon" data-html-block="meta_block">
+<meta name="og:title" content="App Development" data-html-block="meta_block">
+<meta name="twitter:title" content="App Development" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/custom-module-icon">
+<body data-path="user/guides/app-development">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-custom-module-icon" data-path="user/guides/app_development/custom-module-icon"
+                               <div class="page-container" id="page-app-development" data-path="user/guides/app-development"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
-		App Development</a>
+		<a href="https://frappe.github.io/frappe/user/guides">
+		Guides</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Custom Module Icon</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>App Development</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,31 +106,79 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="custom-module-icon" style="text-align: Left">
-	<p>If you want to create a custom icon for your module, you will have to create an SVG file for your module and set the path to this file in the <code>desktop/config.py</code> of your app.<br></p>
+	<article class="web-page-content" id="app-development" style="text-align: Left">
+	<p>
 
-<p>This icon is loaded via AJAX first time, then it will be rendered.</p>
 
-<p>Example:</p>
-
-<pre><code>from frappe import _
-
-def get_data():
-    return {
-        "Frappe Apps": {
-            "color": "orange",
-            "icon": "assets/frappe/images/frappe.svg",
-            "label": _("Frappe.io Portal"),
-            "type": "module"
-        }
-    }
-</code></pre>
-
-<blockquote>
-  <p>PS: A great place to buy SVG icons for a low cost is the awesome <a href="http://thenounproject.com/">Noun Project</a></p>
-</blockquote>
-
-<!-- markdown -->
+    <ol>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/adding-module-icons-on-desktop.html">Adding Module Icons On Desktop</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/custom-module-icon.html">Custom Module Icon</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/generating-docs.html">Generating Documentation Website for your App</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/how-enable-developer-mode-in-frappe.html">How Enable Developer Mode In Frappe</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/fetch-custom-field-value-from-master-to-all-related-transactions.html">Fetch Custom Field Value From Master To All Related Transactions</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/executing-code-on-doctype-events.html">Executing Code On Doctype Events</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/insert-a-document-via-api.html">Insert A Document Via Api</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/how-to-improve-a-standard-control.html">How To Improve A Standard Control</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/overriding-link-query-by-custom-script.html">Overriding Link Query By Custom Script</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/single-type-doctype.html">Single Type Doctype</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/trigger-event-on-deletion-of-grid-row.html">Trigger Event On Deletion Of Grid Row</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/dialogs-types.html">Dialogs Types</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/guides/app-development/using-html-templates-in-javascript.html">Using Html Templates In Javascript</a>
+            
+        </li>
+    
+    </ol>
+</p>
 
 	</article>
 	
@@ -142,7 +190,7 @@ def get_data():
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/custom-module-icon.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/index.md">
 		Improve this page</a>
 	</div>
 </div>

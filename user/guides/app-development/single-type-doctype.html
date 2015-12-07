@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Adding Module Icons On Desktop</title>
+	<title>Single Type Doctype</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Adding Module Icons On Desktop" data-html-block="meta_block">
+<meta name="name" content="Single Type Doctype" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Adding Module Icons On Desktop" data-html-block="meta_block">
-<meta name="twitter:title" content="Adding Module Icons On Desktop" data-html-block="meta_block">
+<meta name="og:title" content="Single Type Doctype" data-html-block="meta_block">
+<meta name="twitter:title" content="Single Type Doctype" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/adding-module-icons-on-desktop">
+<body data-path="user/guides/app-development/single-type-doctype">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-adding-module-icons-on-desktop" data-path="user/guides/app_development/adding-module-icons-on-desktop"
+                               <div class="page-container" id="page-single-type-doctype" data-path="user/guides/app-development/single-type-doctype"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Adding Module Icons On Desktop</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Single Type Doctype</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,42 +106,16 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="adding-module-icons-on-desktop" style="text-align: Left">
-	<p>To create a module icon for a Page, List or Module, you will have to edit the <code>config/desktop.py</code> file in your app.</p>
+	<article class="web-page-content" id="single-type-doctype" style="text-align: Left">
+	<p>DocTypes have a table associated with them. For example DocType <strong>Customer</strong> will have a table <code>tabCustomer</code> associated with it.</p>
 
-<p>In this file you will have to write the <code>get_data</code> method that will return a dict object with the module icon parameters</p>
+<p><strong>Single</strong> type DocTypes have no table associated and there is only one Document for it. This is similar to the Singleton pattern in Java. Single DocTypes are ideal for saving Settings (that are globally applicable) and for wizard / helper type forms that have no documents, but when the DocType is used for the Form UI.</p>
 
-<h3>Example 1: Module Icon</h3>
+<p>The data in Single DocType is stored in <code>tabSingles</code> (<code>doctype</code>, <code>field</code>, <code>value</code>)</p>
 
-<pre><code>def get_data():
-    return {
-        "Accounts": {
-            "color": "#3498db",
-            "icon": "octicon octicon-repo",
-            "type": "module"
-        },
-    }
-</code></pre>
+<h4>Examples</h4>
 
-<h3>Example 2: List Icon</h3>
-
-<pre><code>def get_data():
-    return {
-        "To Do": {
-            "color": "#f1c40f",
-            "icon": "icon-check",
-            "icon": "octicon octicon-check",
-            "label": _("To Do"),
-            "link": "List/ToDo",
-            "doctype": "ToDo",
-            "type": "list"
-        },
-    }
-</code></pre>
-
-<p>Note: Module views are visible based on permissions.</p>
-
-<!-- markdown -->
+<p>In Frappe, Single types are <strong>System Settings</strong> and <strong>Customize Form</strong></p>
 
 	</article>
 	
@@ -153,7 +127,7 @@
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/adding-module-icons-on-desktop.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/single-type-doctype.md">
 		Improve this page</a>
 	</div>
 </div>

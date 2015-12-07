@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Insert A Document Via Api</title>
+	<title>Using Html Templates In Javascript</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Insert A Document Via Api" data-html-block="meta_block">
+<meta name="name" content="Using Html Templates In Javascript" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Insert A Document Via Api" data-html-block="meta_block">
-<meta name="twitter:title" content="Insert A Document Via Api" data-html-block="meta_block">
+<meta name="og:title" content="Using Html Templates In Javascript" data-html-block="meta_block">
+<meta name="twitter:title" content="Using Html Templates In Javascript" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/insert-a-document-via-api">
+<body data-path="user/guides/app-development/using-html-templates-in-javascript">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-insert-a-document-via-api" data-path="user/guides/app_development/insert-a-document-via-api"
+                               <div class="page-container" id="page-using-html-templates-in-javascript" data-path="user/guides/app-development/using-html-templates-in-javascript"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Insert A Document Via Api</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Using Html Templates In Javascript</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,64 +106,50 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="insert-a-document-via-api" style="text-align: Left">
-	<p>You can insert documents via a script using the <code>frappe.get_doc</code> method</p>
+	<article class="web-page-content" id="using-html-templates-in-javascript" style="text-align: Left">
+	<p>Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig's Microtemplate script to render HTML templates in the Desk application.</p>
 
-<h3>Examples:</h3>
+<blockquote>
+  <p>Note 1: In Frappe we use the Jinja-like <code>{%</code> tags to embed code rather than the standard <code>&lt;%</code></p>
+  
+  <p>Note 2: Never use single quotes <code>'</code> inside the HTML template.</p>
+</blockquote>
 
-<h4>1. Insert a ToDo</h4>
+<p>To render a template,</p>
 
-<pre><code>todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-todo.insert()
+<ol>
+<li>Create a template <code>html</code> file in your app. e.g. <code>address_list.html</code></li>
+<li>Add it to <code>build.json</code> for your app (you can include it in <code>frappe.min.js</code> or your own javascript file).</li>
+<li>To render it in your app, use <code>frappe.render(frappe.templates.address_list, {[context]})</code></li>
+</ol>
+
+<h4>Example Template:</h4>
+
+<p>From <code>erpnext/public/js/templates/address_list.js</code></p>
+
+<pre><code>&lt;p&gt;&lt;button class="btn btn-sm btn-default btn-address"&gt;
+    &lt;i class="icon-plus"&gt;&lt;/i&gt; New Address&lt;/button&gt;&lt;/p&gt;
+{% for(var i=0, l=addr_list.length; i&lt;l; i++) { %}
+    &lt;hr&gt;
+    &lt;a href="#Form/Address/{%= addr_list[i].name %}" class="btn btn-sm btn-default pull-right"&gt;
+        {%= __("Edit") %}&lt;/a&gt;
+    &lt;h4&gt;{%= addr_list[i].address_type %}&lt;/h4&gt;
+    &lt;div style="padding-left: 15px;"&gt;
+        &lt;div&gt;
+            {% if(addr_list[i].is_primary_address) { %}&lt;span class="label label-info"&gt;
+                {%= __("Primary") %}&lt;/span&gt;{% } %}
+            {% if(addr_list[i].is_shipping_address) { %}&lt;span class="label label-default"&gt;
+                {%= __("Shipping") %}&lt;/span&gt;{% } %}
+        &lt;/div&gt;
+        &lt;p style="margin-top: 5px;"&gt;{%= addr_list[i].display %}&lt;/p&gt;
+    &lt;/div&gt;
+{% } %}
+{% if(!addr_list.length) { %}
+&lt;p class="text-muted"&gt;{%= __("No address added yet.") %}&lt;/p&gt;
+{% } %}
 </code></pre>
 
-<hr />
-
-<h4>2. Insert without the user's permissions being checked:</h4>
-
-<pre><code>todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-todo.insert(ignore_permissions = True)
-</code></pre>
-
-<hr />
-
-<h4>3. Submit after inserting</h4>
-
-<pre><code>todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-todo.insert(ignore_permissions=True)
-todo.submit()
-</code></pre>
-
-<hr />
-
-<h4>4. Insert a document on saving of another document</h4>
-
-<pre><code>class MyType(Document):
-    def on_update(self):
-        todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
-        todo.insert()
-</code></pre>
-
-<hr />
-
-<h4>5. Insert a document with child tables:</h4>
-
-<pre><code>sales_order = frappe.get_doc({
-    "doctype": "Sales Order", 
-    "company": "_Test Company", 
-    "customer": "_Test Customer", 
-    "delivery_date": "2013-02-23", 
-    "sales_order_details": [
-        {
-            "item_code": "_Test Item Home Desktop 100", 
-            "qty": 10.0, 
-            "rate": 100.0, 
-            "warehouse": "_Test Warehouse - _TC"
-        }
-    ] 
-})
-sales_order.insert()
-</code></pre>
+<!-- markdown -->
 
 	</article>
 	
@@ -175,7 +161,7 @@ sales_order.insert()
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/insert-a-document-via-api.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/using-html-templates-in-javascript.md">
 		Improve this page</a>
 	</div>
 </div>

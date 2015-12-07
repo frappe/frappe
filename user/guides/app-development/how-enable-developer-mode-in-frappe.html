@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Single Type Doctype</title>
+	<title>How Enable Developer Mode In Frappe</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Single Type Doctype" data-html-block="meta_block">
+<meta name="name" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Single Type Doctype" data-html-block="meta_block">
-<meta name="twitter:title" content="Single Type Doctype" data-html-block="meta_block">
+<meta name="og:title" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
+<meta name="twitter:title" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/single-type-doctype">
+<body data-path="user/guides/app-development/how-enable-developer-mode-in-frappe">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-single-type-doctype" data-path="user/guides/app_development/single-type-doctype"
+                               <div class="page-container" id="page-how-enable-developer-mode-in-frappe" data-path="user/guides/app-development/how-enable-developer-mode-in-frappe"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Single Type Doctype</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>How Enable Developer Mode In Frappe</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,16 +106,25 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="single-type-doctype" style="text-align: Left">
-	<p>DocTypes have a table associated with them. For example DocType <strong>Customer</strong> will have a table <code>tabCustomer</code> associated with it.</p>
+	<article class="web-page-content" id="how-enable-developer-mode-in-frappe" style="text-align: Left">
+	<p>When you are in application design mode and you want the changes in your DocTypes, Reports etc to affect the app repository, you must be in <strong>Developer Mode</strong>.</p>
 
-<p><strong>Single</strong> type DocTypes have no table associated and there is only one Document for it. This is similar to the Singleton pattern in Java. Single DocTypes are ideal for saving Settings (that are globally applicable) and for wizard / helper type forms that have no documents, but when the DocType is used for the Form UI.</p>
+<p>To enable developer mode, update the <code>site_config.json</code> file of your site in the sites folder for example:</p>
 
-<p>The data in Single DocType is stored in <code>tabSingles</code> (<code>doctype</code>, <code>field</code>, <code>value</code>)</p>
+<pre><code>frappe-bench/sites/site1/site_config.json
+</code></pre>
 
-<h4>Examples</h4>
+<p>Add this to the JSON object</p>
 
-<p>In Frappe, Single types are <strong>System Settings</strong> and <strong>Customize Form</strong></p>
+<pre><code>"developer_mode": 1
+</code></pre>
+
+<p>After setting developer mode, clear the cache:</p>
+
+<pre><code>$ bench clear-cache
+</code></pre>
+
+<!-- markdown -->
 
 	</article>
 	
@@ -127,7 +136,7 @@
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/single-type-doctype.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/how-enable-developer-mode-in-frappe.md">
 		Improve this page</a>
 	</div>
 </div>

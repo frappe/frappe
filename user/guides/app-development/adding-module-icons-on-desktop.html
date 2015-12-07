@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Executing Code On Doctype Events</title>
+	<title>Adding Module Icons On Desktop</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="name" content="Adding Module Icons On Desktop" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
-<meta name="twitter:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="og:title" content="Adding Module Icons On Desktop" data-html-block="meta_block">
+<meta name="twitter:title" content="Adding Module Icons On Desktop" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/executing-code-on-doctype-events">
+<body data-path="user/guides/app-development/adding-module-icons-on-desktop">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-executing-code-on-doctype-events" data-path="user/guides/app_development/executing-code-on-doctype-events"
+                               <div class="page-container" id="page-adding-module-icons-on-desktop" data-path="user/guides/app-development/adding-module-icons-on-desktop"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Executing Code On Doctype Events</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Adding Module Icons On Desktop</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,39 +106,42 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="executing-code-on-doctype-events" style="text-align: Left">
-	<p>To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType's controller module. </p>
+	<article class="web-page-content" id="adding-module-icons-on-desktop" style="text-align: Left">
+	<p>To create a module icon for a Page, List or Module, you will have to edit the <code>config/desktop.py</code> file in your app.</p>
 
-<h4>1. Controller Module</h4>
+<p>In this file you will have to write the <code>get_data</code> method that will return a dict object with the module icon parameters</p>
 
-<p>The controller module exists in the <code>doctype</code> folder in the Module of the <code>DocType</code>. For example, the controller for <strong>ToDo</strong> exists in <code>frappe/desk/doctype/todo/todo.py</code> (version 5). A controller template is created when the DocType is created. which looks like</p>
+<h3>Example 1: Module Icon</h3>
 
-<pre><code>from __future__ import unicode_literals
-
-import frappe
-from frappe.model.document import Document
-
-class CustomType(Document):
-    pass
+<pre><code>def get_data():
+    return {
+        "Accounts": {
+            "color": "#3498db",
+            "icon": "octicon octicon-repo",
+            "type": "module"
+        },
+    }
 </code></pre>
 
-<h4>2. Document Properties</h4>
+<h3>Example 2: List Icon</h3>
 
-<p>All the fields and child tables are available to the class as attributes. For example the <strong>name</strong> property is <code>self.name</code></p>
+<pre><code>def get_data():
+    return {
+        "To Do": {
+            "color": "#f1c40f",
+            "icon": "icon-check",
+            "icon": "octicon octicon-check",
+            "label": _("To Do"),
+            "link": "List/ToDo",
+            "doctype": "ToDo",
+            "type": "list"
+        },
+    }
+</code></pre>
 
-<h4>3. Adding Methods</h4>
+<p>Note: Module views are visible based on permissions.</p>
 
-<p>In this module, you can add standard methods to the class that are called when a document of that type is created. Standard Handlers are:</p>
-
-<ol>
-<li><code>autoname</code>: Called while naming. You can set the <code>self.name</code> property in the method.</li>
-<li><code>before_insert</code>: Called before a document is inserted.</li>
-<li><code>validate</code>: Called before document is saved. You can throw an exception if you don't want the document to be saved</li>
-<li><code>on_update</code>: Called after the document is inserted or updated in the database.</li>
-<li><code>on_submit</code>: Called after submission.</li>
-<li><code>on_cancel</code>: Called after cancellation.</li>
-<li><code>on_trash</code>: Called after document is deleted.</li>
-</ol>
+<!-- markdown -->
 
 	</article>
 	
@@ -150,7 +153,7 @@ class CustomType(Document):
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/executing-code-on-doctype-events.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/adding-module-icons-on-desktop.md">
 		Improve this page</a>
 	</div>
 </div>

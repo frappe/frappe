@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>How Enable Developer Mode In Frappe</title>
+	<title>Overriding Link Query By Custom Script</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
+<meta name="name" content="Overriding Link Query By Custom Script" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
-<meta name="twitter:title" content="How Enable Developer Mode In Frappe" data-html-block="meta_block">
+<meta name="og:title" content="Overriding Link Query By Custom Script" data-html-block="meta_block">
+<meta name="twitter:title" content="Overriding Link Query By Custom Script" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/how-enable-developer-mode-in-frappe">
+<body data-path="user/guides/app-development/overriding-link-query-by-custom-script">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-how-enable-developer-mode-in-frappe" data-path="user/guides/app_development/how-enable-developer-mode-in-frappe"
+                               <div class="page-container" id="page-overriding-link-query-by-custom-script" data-path="user/guides/app-development/overriding-link-query-by-custom-script"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>How Enable Developer Mode In Frappe</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Overriding Link Query By Custom Script</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,23 +106,92 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="how-enable-developer-mode-in-frappe" style="text-align: Left">
-	<p>When you are in application design mode and you want the changes in your DocTypes, Reports etc to affect the app repository, you must be in <strong>Developer Mode</strong>.</p>
+	<article class="web-page-content" id="overriding-link-query-by-custom-script" style="text-align: Left">
+	<p>You can override the standard link query by using <code>set_query</code></p>
 
-<p>To enable developer mode, update the <code>site_config.json</code> file of your site in the sites folder for example:</p>
+<h3>1. Adding Fitlers</h3>
 
-<pre><code>frappe-bench/sites/site1/site_config.json
+<p>You can add filters to the query:</p>
+
+<pre><code>frappe.ui.form.on("Bank Reconciliation", "onload", function(frm) {
+    cur_frm.set_query("bank_account", function() {
+        return {
+            "filters": {
+                "account_type": "Bank",
+                "group_or_ledger": "Ledger"
+            }
+        };
+    });
+});
 </code></pre>
 
-<p>Add this to the JSON object</p>
+<p>A more complex query:</p>
 
-<pre><code>"developer_mode": 1
+<pre><code>frappe.ui.form.on("Bank Reconciliation", "onload", function(frm){
+    cur_frm.set_query("bank_account", function(){
+        return {
+            "filters": [
+                ["Bank Account": "account_type", "=", "Bank"],
+                            ["Bank Account": "group_or_ledger", "!=", "Group"]
+            ]
+        }
+    });
+});
 </code></pre>
 
-<p>After setting developer mode, clear the cache:</p>
+<hr />
 
-<pre><code>$ bench clear-cache
+<h3>2. Calling a Different Method to Generate Results</h3>
+
+<p>You can also set a server side method to be called on the query:</p>
+
+<pre><code>frm.set_query("item_code", "items", function() {
+    return {
+        query: "erpnext.controllers.queries.item_query",
+        filters: frm.doc.enquiry_type === "Maintenance" ?
+            {"is_service_item": "Yes"} : {"is_sales_item": "Yes"}
+    };
+});
 </code></pre>
+
+<h4>Custom Method</h4>
+
+<p>The custom method should return a list of items for auto select. If you want to send additional data, you can send multiple columns in the list.</p>
+
+<p>Parameters to the custom method are:</p>
+
+<p><code>def custom_query(doctype, txt, searchfield, start, page_len, filters)</code></p>
+
+<p><strong>Example:</strong></p>
+
+<pre><code># searches for leads which are not converted
+def lead_query(doctype, txt, searchfield, start, page_len, filters):
+    return frappe.db.sql("""select name, lead_name, company_name from `tabLead`
+        where docstatus &amp;lt; 2
+            and ifnull(status, '') != 'Converted'
+            and ({key} like %(txt)s
+                or lead_name like %(txt)s
+                or company_name like %(txt)s)
+            {mcond}
+        order by
+            if(locate(%(_txt)s, name), locate(%(_txt)s, name), 99999),
+            if(locate(%(_txt)s, lead_name), locate(%(_txt)s, lead_name), 99999),
+            if(locate(%(_txt)s, company_name), locate(%(_txt)s, company_name), 99999),
+            name, lead_name
+        limit %(start)s, %(page_len)s""".format(**{
+            'key': searchfield,
+            'mcond':get_match_cond(doctype)
+        }), {
+            'txt': "%%%s%%" % txt,
+            '_txt': txt.replace("%", ""),
+            'start': start,
+            'page_len': page_len
+        })
+</code></pre>
+
+<p>For more examples see:</p>
+
+<p><a href="https://github.com/frappe/erpnext/blob/develop/erpnext/controllers/queries.py">https://github.com/frappe/erpnext/blob/develop/erpnext/controllers/queries.py</a></p>
 
 <!-- markdown -->
 
@@ -136,7 +205,7 @@
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/how-enable-developer-mode-in-frappe.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/overriding-link-query-by-custom-script.md">
 		Improve this page</a>
 	</div>
 </div>

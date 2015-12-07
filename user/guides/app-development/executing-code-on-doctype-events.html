@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>How To Add Customizations To App</title>
+	<title>Executing Code On Doctype Events</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="How To Add Customizations To App" data-html-block="meta_block">
+<meta name="name" content="Executing Code On Doctype Events" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="How To Add Customizations To App" data-html-block="meta_block">
-<meta name="twitter:title" content="How To Add Customizations To App" data-html-block="meta_block">
+<meta name="og:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
+<meta name="twitter:title" content="Executing Code On Doctype Events" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/how-to-add-customizations-to-app">
+<body data-path="user/guides/app-development/executing-code-on-doctype-events">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-how-to-add-customizations-to-app" data-path="user/guides/app_development/how-to-add-customizations-to-app"
+                               <div class="page-container" id="page-executing-code-on-doctype-events" data-path="user/guides/app-development/executing-code-on-doctype-events"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>How To Add Customizations To App</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Executing Code On Doctype Events</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,26 +106,39 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="how-to-add-customizations-to-app" style="text-align: Left">
-	<p>If you want to add <strong>Custom Fields</strong> to your app so that they are automatically created when you app is installed on a new site, you will have to add them as <strong>Fixtures</strong> in the <code>hooks.py</code> file of your app.</p>
+	<article class="web-page-content" id="executing-code-on-doctype-events" style="text-align: Left">
+	<p>To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType's controller module. </p>
 
-<p>In your <code>hooks.py</code> file, add <code>"Custom Fields"</code></p>
+<h4>1. Controller Module</h4>
 
-<pre><code>fixtures = ["Custom Field"]
+<p>The controller module exists in the <code>doctype</code> folder in the Module of the <code>DocType</code>. For example, the controller for <strong>ToDo</strong> exists in <code>frappe/desk/doctype/todo/todo.py</code> (version 5). A controller template is created when the DocType is created. which looks like</p>
+
+<pre><code>from __future__ import unicode_literals
+
+import frappe
+from frappe.model.document import Document
+
+class CustomType(Document):
+    pass
 </code></pre>
 
-<p>Export fixtures before you commit your app with:</p>
+<h4>2. Document Properties</h4>
 
-<pre><code>$ bench --site mysite export-fixtures
-</code></pre>
+<p>All the fields and child tables are available to the class as attributes. For example the <strong>name</strong> property is <code>self.name</code></p>
 
-<p>This will create a new folder called <code>fixtures</code> in your app folder and a <code>.csv</code> or <code>.json</code> file will be created with the custom fields.</p>
+<h4>3. Adding Methods</h4>
 
-<p>This file will be automatically imported when the app is installed in a new site or updated via <code>bench update</code>.</p>
+<p>In this module, you can add standard methods to the class that are called when a document of that type is created. Standard Handlers are:</p>
 
-<p>Note: You can also add single DocTypes like "Website Settings" as fixtures</p>
-
-<!-- markdown -->
+<ol>
+<li><code>autoname</code>: Called while naming. You can set the <code>self.name</code> property in the method.</li>
+<li><code>before_insert</code>: Called before a document is inserted.</li>
+<li><code>validate</code>: Called before document is saved. You can throw an exception if you don't want the document to be saved</li>
+<li><code>on_update</code>: Called after the document is inserted or updated in the database.</li>
+<li><code>on_submit</code>: Called after submission.</li>
+<li><code>on_cancel</code>: Called after cancellation.</li>
+<li><code>on_trash</code>: Called after document is deleted.</li>
+</ol>
 
 	</article>
 	
@@ -137,7 +150,7 @@
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/how-to-add-customizations-to-app.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/executing-code-on-doctype-events.md">
 		Improve this page</a>
 	</div>
 </div>

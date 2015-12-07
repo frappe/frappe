@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Trigger Event On Deletion Of Grid Row</title>
+	<title>Generating Documentation Website for your App</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="Trigger Event On Deletion Of Grid Row" data-html-block="meta_block">
+<meta name="name" content="Generating Documentation Website for your App" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="Trigger Event On Deletion Of Grid Row" data-html-block="meta_block">
-<meta name="twitter:title" content="Trigger Event On Deletion Of Grid Row" data-html-block="meta_block">
+<meta name="og:title" content="Generating Documentation Website for your App" data-html-block="meta_block">
+<meta name="twitter:title" content="Generating Documentation Website for your App" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="user/guides/app_development/trigger-event-on-deletion-of-grid-row">
+<body data-path="user/guides/app-development/generating-docs">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-trigger-event-on-deletion-of-grid-row" data-path="user/guides/app_development/trigger-event-on-deletion-of-grid-row"
+                               <div class="page-container" id="page-generating-docs" data-path="user/guides/app-development/generating-docs"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/guides/app_development">
+		<a href="https://frappe.github.io/frappe/user/guides/app-development">
 		App Development</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>Trigger Event On Deletion Of Grid Row</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Generating Documentation Website for your App</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,31 +106,124 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="trigger-event-on-deletion-of-grid-row" style="text-align: Left">
-	<p>To trigger an event when a row from a grid has been deleted, you need to add a handler the <code>fieldname_remove</code> event, where fieldname is the fieldname of the grid (Table)</p>
+	<article class="web-page-content" id="generating-docs" style="text-align: Left">
+	<p>Frappe version 6.7 onwards includes a full-blown documentation generator so that you can easily create a website for your app that has both user docs and developers docs (auto-generated). These pages are generated as static HTML pages so that you can add them as GitHub pages.</p>
 
-<h3>Example for add</h3>
+<h2>Writing Docs</h2>
 
-<p>Recalculate totals when a Journal Entry row has been added</p>
+<h3>1. Setting up docs</h3>
 
-<pre><code>frappe.ui.form.on("Journal Entry Account", "accounts_add", function(frm){
-        cur_frm.cscript.update_totals(frm.doc);
-});
+<h4>1.1. Setup <code>docs.py</code></h4>
+
+<p>The first step is to setup the docs folder. For that you must create a new file in your app <code>config/docs.py</code> if it is not auto-generated. In your <code>docs.py</code> file, add the following module properties.</p>
+
+<pre><code>source_link = "https://github.com/[orgname]/[reponame]"
+docs_base_url = "https://[orgname].github.io/[reponame]"
+headline = "This is what my app does"
+sub_heading = "Slightly more details with key features"
+long_description = """(long description in markdown)"""
+
+def get_context(context):
+    # optional settings
+
+    # context.brand_html = 'Brand info on the top left'
+    # context.favicon = 'path to favicon'
+    #
+    # context.top_bar_items = [
+    #   {"label": "About", "url": context.docs_base_url + "/about"},
+    # ]
+
+    pass
 </code></pre>
 
-<!-- markdown -->
+<h4>1.2. Generate <code>/docs</code></h4>
 
-<h3>Example for delete</h3>
+<p>To generate the docs for the <code>current</code> version, go to the command line and write</p>
 
-<p>Recalculate totals when a Journal Entry row has been deleted</p>
-
-<pre><code>frappe.ui.form.on("Journal Entry Account", "accounts_remove", function(frm){
-        cur_frm.cscript.update_totals(frm.doc);
-});
+<pre><code>bench --site sitename make-docs app_name current
 </code></pre>
 
-<!-- markdown -->
+<p>If you want to maintain versions of your docs, then you can add a version number instead of <code>current</code></p>
 
+<p>This will create a <code>/docs</code> folder in your app.</p>
+
+<h3>2. Add User Documentation</h3>
+
+<p>To add user documentation, add folders and pages in your <code>/docs/user</code> folder in the same way you would build a website pages in the <code>www</code> folder.</p>
+
+<p>Some quick tips:</p>
+
+<ol>
+<li>Add your pages as <code>.md</code> or <code>.html</code> pages</li>
+<li>Optionally add <code>.css</code> files with the same name that will be automatically served</li>
+<li>Add index by adding <code>{index}</code></li>
+</ol>
+
+<h3>3. Linking</h3>
+
+<p>While linking make sure you add <code>https://frappe.github.io/frappe</code> to all your links.</p>
+
+<pre><code>&lt;a href="{{ docs_base_url }}/user/link/to/page.html"&gt;Link Description&lt;/a&gt;
+</code></pre>
+
+<h3>4. Adding Images</h3>
+
+<p>You can add images in the <code>/docs/assets</code> folder. You can add links to the images as follows:</p>
+
+<pre><code>&lt;img src="{{ docs_base_url }}/assets/img/my-img/gif" class="screenshot"&gt;
+</code></pre>
+
+<hr />
+
+<h2>Setting up output docs</h2>
+
+<ol>
+<li>Create a <code>/docs</code> folder in your bench, parallel to your <code>/sites</code> folder. e.g. <code>/frappe-bench/docs</code></li>
+<li>Copy the repo of your app to the docs folder. e.g. <code>cp -R apps/myapp docs/myapp</code> (you can also clone it here using <code>git clone</code>).</li>
+<li>Go to your docs folder <code>cd docs/myapp</code></li>
+<li>Checkout the gh-pages branch <code>git checkout --orphan gh-pages</code></li>
+<li>Clean everything <code>git rm -rf .</code></li>
+</ol>
+
+<p>Note &gt; The branch name <code>gh-pages</code> is only if you are using GitHub. If you are hosting this on any other static file server, can just skip this and just create your docs folder for your app like <code>docs/myapp</code></p>
+
+<p>Putting it all together:</p>
+
+<pre><code>mkdir docs
+cp -R apps/myapp docs/myapp
+cd docs/myapp
+git checkout --orphan gh-pages
+git rm -rf .
+</code></pre>
+
+<hr />
+
+<h2>Viewing Locally</h2>
+
+<p>To test your docs locally, add a <code>--local</code> option to the <code>build-docs</code> command.</p>
+
+<pre><code>bench --site [site] build-docs [appname] current $PWD/docs/reponame --local
+</code></pre>
+
+<p>Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer</p>
+
+<p>Run this from your <code>docs/myapp</code> folder:</p>
+
+<pre><code>python -m SimpleHTTPServer 8080
+</code></pre>
+
+<hr />
+
+<h2>Publishing to GitHub Pages</h2>
+
+<p>To publish your docs on GitHub pages, you will have to create an empty and orphan branch in your repository called <code>gh-pages</code> and write yours there</p>
+
+<p>Now go back to your bench folder and write these docs to this branch. For example if your path to the <code>gh-pages</code> repo is <code>docs/reponame</code></p>
+
+<pre><code>bench --site [site] build-docs [appname] current $PWD/docs/reponame
+</code></pre>
+
+<p>To check your documentation online go to: https://[orgname].github.io/[reponame]</p>
 	</article>
 	
 </div>
@@ -141,7 +234,7 @@
                                
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app_development/trigger-event-on-deletion-of-grid-row.md">
+	<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/guides/app-development/generating-docs.md">
 		Improve this page</a>
 	</div>
 </div>
