@@ -495,7 +495,7 @@ fieldset {
   padding-bottom: 15px;
 }
 .website-list .result {
-  margin-top: 60px;
+  margin-top: 15px;
 }
 .web-list-item {
   padding: 15px 0px;
@@ -598,6 +598,9 @@ textarea {
 a.active {
   pointer-events: none;
   cursor: default;
+}
+.page-breadcrumbs {
+  padding-top: 20px;
 }
 .page-breadcrumbs .breadcrumb {
   padding: 0px;
