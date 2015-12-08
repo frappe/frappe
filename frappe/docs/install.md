@@ -8,7 +8,7 @@ To intall Frappe Framework, you will have to install the <a href="https://github
 
 After you have installed Frappe Bench, go to you bench folder, which is     `frappe.bench` by default and setup **frappe**.
 
-    bench get-app frappe {{ source_link }}
+    bench get-app frappe {{ app.source_link }}
 
 Then create a new site to install the app.
 
