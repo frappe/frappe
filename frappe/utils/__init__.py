@@ -314,8 +314,8 @@ def get_site_base_path(sites_dir=None, hostname=None):
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 
-def get_files_path(*path):
-	return get_site_path("public", "files", *path)
+def get_files_path(*path, **kwargs):
+	return get_site_path("private" if kwargs.get("is_private") else "public", "files", *path)
 
 def get_bench_path():
 	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))

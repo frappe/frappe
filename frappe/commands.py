@@ -868,21 +868,23 @@ def use(site, sites_path='.'):
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
 @pass_context
-def backup(context, with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
+def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
+	backup_path_private_files=None, quiet=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = context.verbose
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
+		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
 		if verbose:
 			from frappe.utils import now
 			print "database backup taken -", odb.backup_path_db, "- on", now()
 			if with_files:
 				print "files backup taken -", odb.backup_path_files, "- on", now()
-		frappe.destroy()
+				print "private files backup taken -", odb.backup_path_private_files, "- on", now()
 
+		frappe.destroy()
 
 @click.command('remove-from-installed-apps')
 @click.argument('app')

@@ -20,5 +20,6 @@ def get_context(context):
 	files = [('/backups/' + _file,
 		get_time(os.path.join(path, _file)),
 		get_size(os.path.join(path, _file))) for _file in files]
+	files.sort(key=lambda x: x[1], reverse=True)
 
 	return {"files": files}
