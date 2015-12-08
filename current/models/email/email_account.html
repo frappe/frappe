@@ -267,19 +267,31 @@ Yandex.Mail</pre>
         
         <tr >
             <td>10</td>
-            <td ><code>pop3_server</code></td>
+            <td ><code>use_imap</code></td>
             <td >
-                Data</td>
+                Check</td>
             <td >
-                POP3 Server
-                <p class="text-muted small">
-                    e.g. pop.gmail.com</p>
+                Use IMAP
+                
             </td>
             <td></td>
         </tr>
         
         <tr >
             <td>11</td>
+            <td ><code>email_server</code></td>
+            <td >
+                Data</td>
+            <td >
+                Email Server
+                <p class="text-muted small">
+                    e.g. pop.gmail.com / imap.gmail.com</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>12</td>
             <td ><code>use_ssl</code></td>
             <td >
                 Check</td>
@@ -291,7 +303,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>13</td>
             <td ><code>attachment_limit</code></td>
             <td >
                 Int</td>
@@ -304,7 +316,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>14</td>
             <td ><code>append_to</code></td>
             <td >
                 Link</td>
@@ -326,7 +338,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>15</td>
             <td ><code>default_incoming</code></td>
             <td >
                 Check</td>
@@ -339,7 +351,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>15</td>
+            <td>16</td>
             <td ><code>section_break_13</code></td>
             <td >
                 Section Break</td>
@@ -351,7 +363,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>16</td>
+            <td>17</td>
             <td ><code>notify_if_unreplied</code></td>
             <td >
                 Check</td>
@@ -363,7 +375,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>18</td>
             <td ><code>unreplied_for_mins</code></td>
             <td >
                 Int</td>
@@ -375,7 +387,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>19</td>
             <td ><code>send_notification_to</code></td>
             <td >
                 Small Text</td>
@@ -388,7 +400,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>19</td>
+            <td>20</td>
             <td ><code>outgoing_mail_settings</code></td>
             <td >
                 Section Break</td>
@@ -400,7 +412,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>21</td>
             <td ><code>enable_outgoing</code></td>
             <td >
                 Check</td>
@@ -413,7 +425,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>21</td>
+            <td>22</td>
             <td ><code>smtp_server</code></td>
             <td >
                 Data</td>
@@ -426,7 +438,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>22</td>
+            <td>23</td>
             <td ><code>use_tls</code></td>
             <td >
                 Check</td>
@@ -438,7 +450,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>23</td>
+            <td>24</td>
             <td ><code>smtp_port</code></td>
             <td >
                 Data</td>
@@ -451,7 +463,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>24</td>
+            <td>25</td>
             <td ><code>default_outgoing</code></td>
             <td >
                 Check</td>
@@ -464,7 +476,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>25</td>
+            <td>26</td>
             <td ><code>always_use_account_email_id_as_sender</code></td>
             <td >
                 Check</td>
@@ -477,7 +489,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>26</td>
+            <td>27</td>
             <td ><code>signature_section</code></td>
             <td >
                 Section Break</td>
@@ -489,7 +501,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>27</td>
+            <td>28</td>
             <td ><code>add_signature</code></td>
             <td >
                 Check</td>
@@ -501,7 +513,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>28</td>
+            <td>29</td>
             <td ><code>signature</code></td>
             <td >
                 Text Editor</td>
@@ -513,7 +525,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>29</td>
+            <td>30</td>
             <td ><code>auto_reply</code></td>
             <td >
                 Section Break</td>
@@ -525,7 +537,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>30</td>
+            <td>31</td>
             <td ><code>enable_auto_reply</code></td>
             <td >
                 Check</td>
@@ -537,7 +549,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>31</td>
+            <td>32</td>
             <td ><code>auto_reply_message</code></td>
             <td >
                 Text Editor</td>
@@ -550,7 +562,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>32</td>
+            <td>33</td>
             <td ><code>set_footer</code></td>
             <td >
                 Section Break</td>
@@ -562,7 +574,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>33</td>
+            <td>34</td>
             <td ><code>footer</code></td>
             <td >
                 Text Editor</td>
