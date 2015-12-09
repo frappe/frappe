@@ -50,7 +50,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
+	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr

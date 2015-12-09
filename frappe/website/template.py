@@ -130,17 +130,20 @@ def add_index(out, context):
 	if "{next}" in out.get("content", ""):
 		next_item = context.doc.get_next()
 		next_item.extn = "" if context.doc.has_children(next_item.name) else extn
-		if context.relative_links:
-			next_item.name = next_item.page_name or ""
-		else:
-			if next_item and next_item.name and next_item.name[0]!="/":
-				next_item.name = "/" + next_item.name
+		if next_item and next_item.page_name:
+			if context.relative_links:
+				if next_item.next_parent:
+					next_item.name = "../" + next_item.page_name or ""
+				else:
+					next_item.name = next_item.page_name or ""
+			else:
+				if next_item and next_item.name and next_item.name[0]!="/":
+					next_item.name = "/" + next_item.name
 
-		if next_item and next_item.name:
 			if not next_item.title:
 				next_item.title = ""
-			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}{extn}">'\
-				+_("Next")+': {title}</a></p>').format(**next_item)
+			html = ('<p class="btn-next-wrapper">'+_("Next")\
+				+': <a class="btn-next" href="{name}{extn}">{title}</a></p>').format(**next_item)
 		else:
 			html = ""
 
