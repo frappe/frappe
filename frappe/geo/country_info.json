@@ -2567,11 +2567,7 @@
  },
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
-  "number_format": "#.###,##",
-  "currency": "VEF",
-  "currency_symbol": "Bs.",
-  "currency_fraction": "Centimos",
-  "currency_fraction_units": 100
+  "number_format": "#,###.##"
  },
  "Vietnam": {
   "code": "vn",

@@ -1,5 +1,5 @@
 basics
-app-development
+app_development
 deployment
 reports-and-printing
 portal-development
