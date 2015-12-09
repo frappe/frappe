@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method
+from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -25,6 +25,7 @@ def upload():
 	folder = frappe.form_dict.folder
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
+	is_private = cint(frappe.form_dict.is_private)
 
 	if not filename and not file_url:
 		frappe.msgprint(_("Please select a file or url"),
@@ -32,14 +33,18 @@ def upload():
 
 	# save
 	if filename:
-		filedata = save_uploaded(dt, dn, folder)
+		filedata = save_uploaded(dt, dn, folder, is_private)
 	elif file_url:
 		filedata = save_url(file_url, dt, dn, folder)
 
 	comment = {}
 	if dt and dn:
 		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
-			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
+			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
+				"icon": ' <i class="icon icon-lock text-warning"></i>' if filedata.is_private else "",
+				"file_url": filedata.file_url.replace("#", "%23") if filedata.file_name else filedata.file_url,
+				"file_name": filedata.file_name or filedata.file_url
+			})))
 
 	return {
 		"name": filedata.name,
@@ -48,10 +53,10 @@ def upload():
 		"comment": comment.as_dict() if comment else {}
 	}
 
-def save_uploaded(dt, dn, folder):
+def save_uploaded(dt, dn, folder, is_private):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn, folder);
+		return save_file(fname, content, dt, dn, folder, is_private=is_private);
 	else:
 		raise Exception
 
@@ -133,7 +138,7 @@ def get_random_filename(extn=None, content_type=None):
 
 	return random_string(7) + (extn or "")
 
-def save_file(fname, content, dt, dn, folder=None, decode=False):
+def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
@@ -146,12 +151,12 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 	content_hash = get_content_hash(content)
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash)
+	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
 	if not file_data:
 		call_hook_method("before_write_file", file_size=file_size)
 
-		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
-		file_data = method(fname, content, content_type=content_type)
+		write_file_method = get_hook_method('write_file', fallback=save_file_on_filesystem)
+		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
 		file_data = copy(file_data)
 
 	file_data.update({
@@ -161,6 +166,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
+		"is_private": is_private
 	})
 
 	f = frappe.get_doc(file_data)
@@ -172,19 +178,23 @@ def save_file(fname, content, dt, dn, folder=None, decode=False):
 
 	return f
 
-def get_file_data_from_hash(content_hash):
-	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s", content_hash):
+def get_file_data_from_hash(content_hash, is_private=0):
+	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
 		b = frappe.get_doc('File', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
 
-def save_file_on_filesystem(fname, content, content_type=None):
-	public_path = os.path.join(frappe.local.site_path, "public")
-	fpath = write_file(content, get_files_path(), fname)
-	path =  os.path.relpath(fpath, public_path)
+def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
+	fpath = write_file(content, fname, is_private)
+
+	if is_private:
+		file_url = "/private/files/{0}".format(fname)
+	else:
+		file_url = "/files/{0}".format(fname)
+
 	return {
-		'file_name': os.path.basename(path),
-		'file_url': '/' + path
+		'file_name': os.path.basename(fpath),
+		'file_url': file_url
 	}
 
 def check_max_file_size(content):
@@ -198,14 +208,17 @@ def check_max_file_size(content):
 
 	return file_size
 
-def write_file(content, file_path, fname):
+def write_file(content, fname, is_private=0):
 	"""write file to disk with a random name (to compare)"""
+	file_path = get_files_path(is_private=is_private)
+
 	# create directory (if not exists)
-	frappe.create_folder(get_files_path())
+	frappe.create_folder(file_path)
 	# write the file
 	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
 		f.write(content)
-	return get_files_path(fname)
+
+	return get_files_path(fname, is_private=is_private)
 
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
@@ -261,12 +274,16 @@ def delete_file_from_filesystem(doc, only_thumbnail=False):
 
 def delete_file(path):
 	"""Delete file from `public folder`"""
-	if path and path.startswith("/files/"):
-		parts = os.path.split(path)
-		path = frappe.utils.get_site_path("public", "files", parts[-1])
-
+	if path:
 		if ".." in path.split("/"):
 			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+
+		parts = os.path.split(path.strip("/"))
+		if parts[0]=="files":
+			path = frappe.utils.get_site_path("public", "files", parts[-1])
+
+		else:
+			path = frappe.utils.get_site_path("private", "files", parts[-1])
 
 		path = encode(path)
 		if os.path.exists(path):
@@ -277,22 +294,31 @@ def get_file(fname):
 	file_path = get_file_path(fname)
 
 	# read the file
-	with open(encode(get_site_path("public", file_path)), 'r') as f:
+	with open(encode(file_path), 'r') as f:
 		content = f.read()
 
 	return [file_path.rsplit("/", 1)[-1], content]
 
 def get_file_path(file_name):
 	"""Returns file path from given file name"""
-	f = frappe.db.sql("""select file_name from `tabFile`
+	f = frappe.db.sql("""select file_url from `tabFile`
 		where name=%s or file_name=%s""", (file_name, file_name))
 	if f:
-		file_name = f[0][0]
+		file_url = f[0][0]
 
-	file_path = file_name
+	file_path = file_url
 
 	if not "/" in file_path:
-		file_path = "files/" + file_path
+		file_path = "/files/" + file_path
+
+	if file_path.startswith("/private/files/"):
+		file_path = get_files_path(*file_path.split("/private/files/", 1)[1].split("/"), is_private=1)
+
+	elif file_path.startswith("/files/"):
+		file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
+
+	else:
+		frappe.throw(_("There is some problem with the file url: {0}").format(file_url))
 
 	return file_path
 

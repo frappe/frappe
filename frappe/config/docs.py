@@ -20,7 +20,7 @@ to ERPNext.
 Frappe Framework was designed to build [ERPNext](https://erpnext.com), open source
 ERP for managing small and medium sized businesses.
 
-[Get started with the Tutorial](https://github.frappe.io/frappe/user/tutorial)
+[Get started with the Tutorial](https://frappe.github.io/frappe/user/tutorial)
 """
 docs_version = "6.x.x"
 

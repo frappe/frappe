@@ -3,7 +3,7 @@ frappe.provide("frappe.ui");
 frappe.listview_settings['File'] = {
 	hide_name_column: true,
 	use_route: true,
-	add_fields: ["is_folder", "file_name", "file_url", "folder"],
+	add_fields: ["is_folder", "file_name", "file_url", "folder", "is_private"],
 	formatters: {
 		file_size: function(value) {
 			// formatter for file size
@@ -17,13 +17,20 @@ frappe.listview_settings['File'] = {
 	},
 	prepare_data: function(data) {
 		// set image icons
+		var icon = ""
+
 		if(data.is_folder) {
-			data._title = '<i class="icon-folder-close-alt icon-fixed-width"></i> ' + data.file_name;
+			icon += '<i class="icon-folder-close-alt icon-fixed-width"></i> ';
 		} else if(frappe.utils.is_image_file(data.file_name)) {
-			data._title = '<i class="icon-picture icon-fixed-width"></i> ' + data.file_name;
+			icon += '<i class="icon-picture icon-fixed-width"></i> ';
 		} else {
-			data._title = '<i class="icon-file-alt icon-fixed-width"></i> \
-				' + (data.file_name ? data.file_name : data.file_url);
+			icon += '<i class="icon-file-alt icon-fixed-width"></i> '
+		}
+
+		data._title = icon + (data.file_name ? data.file_name : data.file_url)
+
+		if (data.is_private) {
+			data._title += ' <i class="icon-lock icon-fixed-width text-warning"></i>'
 		}
 	},
 	onload: function(doclist) {
@@ -87,7 +94,9 @@ frappe.listview_settings['File'] = {
 				frappe.upload.upload_file(dataTransfer.files[0], {
 					"folder": doclist.current_folder,
 					"from_form": 1
-				}, {});
+				}, {
+					confirm_is_private: 1
+				});
 			});
 	},
 	add_menu_item_copy: function(doclist){

@@ -246,7 +246,9 @@ class WebsiteGenerator(Document):
 					if route==r.name:
 						return siblings[i+1]
 
-			return parent.get_next()
+			out = parent.get_next()
+			out.next_parent = True
+			return out
 		else:
 			return frappe._dict()
 

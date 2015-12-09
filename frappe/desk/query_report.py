@@ -238,7 +238,7 @@ def get_linked_doctypes(columns, data):
 	for row in data:
 		if row:
 			if len(row) != len(columns_with_value):
-				if isinstance(row, list):
+				if isinstance(row, (list, tuple)):
 					row = enumerate(row)
 				elif isinstance(row, dict):
 					row = row.items()

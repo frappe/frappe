@@ -64,10 +64,12 @@ frappe.ui.form.Attachments = Class.extend({
 		var me = this;
 		var $attach = $(repl('<li class="attachment-row">\
 				<a class="close" data-owner="%(owner)s">&times;</a>\
+				%(lock_icon)s\
 				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
 					class="text-ellipsis" style="max-width: calc(100% - 43px);">\
 					<span>%(file_name)s</span></a>\
 			</li>', {
+				lock_icon: attachment.is_private ? '<i class="icon icon-lock icon-fixed-width text-warning"></i> ': "",
 				file_name: file_name,
 				file_url: frappe.urllib.get_full_url(file_url)
 			}))
@@ -149,7 +151,7 @@ frappe.ui.form.Attachments = Class.extend({
 			// remove upload dialog
 			this.dialog.$wrapper.remove();
 		}
-		
+
 		// make upload dialog
 		this.dialog = frappe.ui.get_upload_dialog({
 			"args": me.get_args(),

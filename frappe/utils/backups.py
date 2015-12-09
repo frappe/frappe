@@ -22,13 +22,15 @@ class BackupGenerator:
 		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None, db_host="localhost"):
+	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
+		backup_path_private_files=None, db_host="localhost"):
 		self.db_host = db_host
 		self.db_name = db_name
 		self.user = user
 		self.password = password
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
+		self.backup_path_private_files = backup_path_private_files
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
 		"""
@@ -38,20 +40,22 @@ class BackupGenerator:
 		#Check if file exists and is less than a day old
 		#If not Take Dump
 		if not force:
-			last_db, last_file = self.get_recent_backup(older_than)
+			last_db, last_file, last_private_file = self.get_recent_backup(older_than)
 		else:
-			last_db, last_file = False, False
-			
-		if not (self.backup_path_files and self.backup_path_db):
+			last_db, last_file, last_private_file = False, False, False
+
+		if not (self.backup_path_files and self.backup_path_db and self.backup_path_private_files):
 			self.set_backup_file_name()
-		if not (last_db and last_file):
+
+		if not (last_db and last_file and last_private_file):
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
+
 		else:
 			self.backup_path_files = last_file
 			self.backup_path_db = last_db
-
+			self.backup_path_private_files = last_private_file
 
 	def set_backup_file_name(self):
 		import random
@@ -60,32 +64,45 @@ class BackupGenerator:
 
 		#Generate a random name using today's date and a 8 digit random number
 		for_db = todays_date + "_" + random_number + "_database.sql.gz"
-		for_files = todays_date + "_" + random_number + "_files.tar"
+		for_public_files = todays_date + "_" + random_number + "_files.tar"
+		for_private_files = todays_date + "_" + random_number + "_private_files.tar"
 		backup_path = get_backup_path()
+
 		if not self.backup_path_db:
 			self.backup_path_db = os.path.join(backup_path, for_db)
 		if not self.backup_path_files:
-			self.backup_path_files = os.path.join(backup_path, for_files)
+			self.backup_path_files = os.path.join(backup_path, for_public_files)
+		if not self.backup_path_private_files:
+			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def get_recent_backup(self, older_than):
 		file_list = os.listdir(get_backup_path())
 		backup_path_files = None
 		backup_path_db = None
+		backup_path_private_files = None
+
 		for this_file in file_list:
 			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
-				if "_files" in this_file_path:
+				if "_private_files" in this_file_path:
+					backup_path_private_files = this_file_path
+				elif "_files" in this_file_path:
 					backup_path_files = this_file_path
-				if "_database" in this_file_path:
+				elif "_database" in this_file_path:
 					backup_path_db = this_file_path
-		return (backup_path_db, backup_path_files)
+
+		return (backup_path_db, backup_path_files, backup_path_private_files)
 
 	def zip_files(self):
-		files_path = frappe.get_site_path("public", "files")
-		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
-		err, out = frappe.utils.execute_in_shell(cmd_string)
-		print 'Backed up files', os.path.abspath(self.backup_path_files)
+		for folder in ("public", "private"):
+			files_path = frappe.get_site_path(folder, "files")
+			backup_path = self.backup_path_files if folder=="public" else self.backup_path_private_files
+
+			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
+			err, out = frappe.utils.execute_in_shell(cmd_string)
+
+			print 'Backed up files', os.path.abspath(backup_path)
 
 	def take_dump(self):
 		import frappe.utils
@@ -140,18 +157,20 @@ def get_backup():
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
 	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 48)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
-						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = frappe.db.host)
+						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
+						  backup_path_private_files=backup_path_private_files,
+						  db_host = frappe.db.host)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 

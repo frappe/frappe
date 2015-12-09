@@ -78,9 +78,12 @@
 			<div style="margin: 10px 0px">
 				{% $.each(data.attachments, function(i, a) { %}
 				<div class="text-ellipsis">
-					<a href="{%= a %}" class="text-muted small" target="_blank">
+					<a href="{%= a.file_url.replace(/#/g, \'%23\') %}" class="text-muted small" target="_blank">
 						<i class="icon-paperclip"></i>
-						{%= a.split("/").slice(-1)[0] %}
+						{%= a.file_url.split("/").slice(-1)[0] %}
+						{% if (a.is_private) { %}
+						<i class="icon icon-lock text-warning"></i>
+						{% } %}
 					</a>
 				</div>
 				{% }); %}
