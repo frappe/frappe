@@ -36,7 +36,7 @@ def error_collector(exception):
 
 	print 'New Exception collected with id `{}`'.format(error_id)
 
-def snapshot(exception):
+def snapshot(exception, context=10):
 	"""
 	Return a dict describing a given traceback (based on cgitb.text)
 	"""
