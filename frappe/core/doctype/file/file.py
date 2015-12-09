@@ -108,6 +108,9 @@ class File(NestedSet):
 			frappe.throw(_("Folder is mandatory"))
 
 	def validate_file(self):
+		"""Validates existence of public file
+		TODO: validate for private file
+		"""
 		if (self.file_url or "").startswith("/files/"):
 			if not self.file_name:
 				self.file_name = self.file_url.split("/files/")[-1]
@@ -337,3 +340,12 @@ def get_web_image(file_url):
 	filename = "/files/" + strip(urllib.unquote(filename))
 
 	return image, filename, extn
+
+def check_file_permission(file_url):
+	for file in frappe.get_all("File", filters={"file_url": file_url, "is_private": 1}, fields=["name", "attached_to_doctype", "attached_to_name"]):
+
+		if (frappe.has_permission("File", ptype="read", doc=file.name)
+			or frappe.has_permission(file.attached_to_doctype, ptype="read", doc=file.attached_to_name)):
+			return True
+
+	raise frappe.PermissionError

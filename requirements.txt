@@ -21,7 +21,7 @@ requests
 celery
 redis
 selenium
-pdfkit
+-e git+http://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
 html2text

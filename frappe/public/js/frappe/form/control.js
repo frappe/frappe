@@ -810,13 +810,14 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			onerror: function() {
 				me.dialog.hide();
 			},
+			is_private: this.df.is_private
 		}
 
 		if(this.frm) {
 			this.upload_options.args = {
 				from_form: 1,
 				doctype: this.frm.doctype,
-				docname: this.frm.docname,
+				docname: this.frm.docname
 			}
 		} else {
 			this.upload_options.on_attach = function(fileobj, dataurl) {

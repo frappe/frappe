@@ -16,6 +16,8 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
+from frappe.core.doctype.file.file import check_file_permission
+from frappe.website.render import render
 
 def report_error(status_code):
 	if (status_code!=404 or frappe.conf.logging) and not frappe.local.flags.disable_traceback:
@@ -97,7 +99,6 @@ def json_handler(obj):
 
 def as_page():
 	"""print web page"""
-	from frappe.website.render import render
 	return render(frappe.response['page_name'], http_status_code=frappe.response.get("http_status_code"))
 
 def redirect():
@@ -110,6 +111,17 @@ def download_backup(path):
 		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
 
 	return send_private_file(path)
+
+def download_private_file(path):
+	"""Checks permissions and sends back private file"""
+	try:
+		check_file_permission(path)
+
+	except frappe.PermissionError:
+		raise Forbidden(_("You don't have permission to access this file"))
+
+	return send_private_file(path.split("/private", 1)[1])
+
 
 def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
@@ -127,7 +139,10 @@ def send_private_file(path):
 			raise NotFound
 
 		response = Response(wrap_file(frappe.local.request.environ, f))
-		response.headers.add(b'Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
+
+		# no need for content disposition, let browser handle it
+		# response.headers.add(b'Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
+
 		response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
 
 	return response

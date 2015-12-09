@@ -355,7 +355,7 @@ class Email:
 		for attachment in self.attachments:
 			try:
 				file_data = save_file(attachment['fname'], attachment['fcontent'],
-					doc.doctype, doc.name)
+					doc.doctype, doc.name, is_private=1)
 				saved_attachments.append(file_data)
 
 				if attachment['fname'] in self.cid_map:

@@ -50,8 +50,20 @@
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>2</td>
+            <td ><code>is_private</code></td>
+            <td >
+                Check</td>
+            <td >
+                Is Private
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>3</td>
             <td ><code>preview</code></td>
             <td >
                 Section Break</td>
@@ -63,7 +75,7 @@
         </tr>
         
         <tr >
-            <td>3</td>
+            <td>4</td>
             <td ><code>preview_html</code></td>
             <td >
                 HTML</td>
@@ -75,7 +87,7 @@
         </tr>
         
         <tr class="info">
-            <td>4</td>
+            <td>5</td>
             <td ><code>section_break_5</code></td>
             <td >
                 Section Break</td>
@@ -87,7 +99,7 @@
         </tr>
         
         <tr >
-            <td>5</td>
+            <td>6</td>
             <td ><code>is_home_folder</code></td>
             <td >
                 Check</td>
@@ -99,7 +111,7 @@
         </tr>
         
         <tr >
-            <td>6</td>
+            <td>7</td>
             <td ><code>is_attachments_folder</code></td>
             <td >
                 Check</td>
@@ -111,7 +123,7 @@
         </tr>
         
         <tr >
-            <td>7</td>
+            <td>8</td>
             <td ><code>file_size</code></td>
             <td >
                 Int</td>
@@ -123,7 +135,7 @@
         </tr>
         
         <tr >
-            <td>8</td>
+            <td>9</td>
             <td ><code>column_break_5</code></td>
             <td class="info">
                 Column Break</td>
@@ -135,7 +147,7 @@
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>10</td>
             <td ><code>file_url</code></td>
             <td >
                 Small Text</td>
@@ -147,7 +159,7 @@
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>11</td>
             <td ><code>thumbnail_url</code></td>
             <td >
                 Small Text</td>
@@ -159,7 +171,7 @@
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>12</td>
             <td ><code>folder</code></td>
             <td >
                 Link</td>
@@ -180,7 +192,7 @@
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>13</td>
             <td ><code>is_folder</code></td>
             <td >
                 Check</td>
@@ -192,7 +204,7 @@
         </tr>
         
         <tr class="info">
-            <td>13</td>
+            <td>14</td>
             <td ><code>section_break_8</code></td>
             <td >
                 Section Break</td>
@@ -204,7 +216,7 @@
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>15</td>
             <td ><code>attached_to_doctype</code></td>
             <td >
                 Link</td>
@@ -225,7 +237,7 @@
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>16</td>
             <td ><code>column_break_10</code></td>
             <td class="info">
                 Column Break</td>
@@ -237,7 +249,7 @@
         </tr>
         
         <tr >
-            <td>16</td>
+            <td>17</td>
             <td ><code>attached_to_name</code></td>
             <td >
                 Data</td>
@@ -249,7 +261,7 @@
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>18</td>
             <td ><code>content_hash</code></td>
             <td >
                 Data</td>
@@ -261,7 +273,7 @@
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>19</td>
             <td ><code>lft</code></td>
             <td >
                 Int</td>
@@ -273,7 +285,7 @@
         </tr>
         
         <tr >
-            <td>19</td>
+            <td>20</td>
             <td ><code>rgt</code></td>
             <td >
                 Int</td>
@@ -285,7 +297,7 @@
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>21</td>
             <td ><code>old_parent</code></td>
             <td >
                 Data</td>
@@ -607,7 +619,8 @@
 		<b>validate_file</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Validates existence of public file
+TODO: validate for private file</p>
 </div>
 	<br>
 
@@ -643,6 +656,22 @@
         
     </div>
     <hr>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.core.doctype.file.file.check_file_permission" href="#frappe.core.doctype.file.file.check_file_permission" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.core.doctype.file.file.<b>check_file_permission</b>
+        <i class="text-muted">(file_url)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
 
 	
 

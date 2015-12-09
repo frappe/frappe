@@ -28,7 +28,8 @@ frappe.confirm = function(message, ifyes, ifno) {
 		primary_action: function() {
 			ifyes();
 			d.hide();
-		}
+		},
+		secondary_action_label: __("No")
 	});
 	d.show();
 

@@ -72,6 +72,9 @@ def application(request):
 		elif frappe.request.path.startswith('/backups'):
 			response = frappe.utils.response.download_backup(request.path)
 
+		elif frappe.request.path.startswith('/private/files/'):
+			response = frappe.utils.response.download_private_file(request.path)
+
 		elif frappe.local.request.method in ('GET', 'HEAD'):
 			response = frappe.website.render.render(request.path)
 

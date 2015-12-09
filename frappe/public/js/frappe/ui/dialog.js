@@ -30,6 +30,10 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			this.set_primary_action(this.primary_action_label || __("Submit"), this.primary_action);
 		}
 
+		if (this.secondary_action_label) {
+			this.get_close_btn().html(this.secondary_action_label);
+		}
+
 		var me = this;
 		this.$wrapper
 			.on("hide.bs.modal", function() {
