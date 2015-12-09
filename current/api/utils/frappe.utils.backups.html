@@ -141,7 +141,7 @@ If specifying db<em>file</em>name, also append ".sql.gz"</p>
         <a name="__init__" href="#__init__" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>__init__</b>
-        <i class="text-muted">(self, db_name, user, password, backup_path_db=None, backup_path_files=None, db_host=localhost)</i>
+        <i class="text-muted">(self, db_name, user, password, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, db_host=localhost)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -332,7 +332,7 @@ False: file is new</p>
         <a name="frappe.utils.backups.new_backup" href="#frappe.utils.backups.new_backup" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.backups.<b>new_backup</b>
-        <i class="text-muted">(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False)</i>
+        <i class="text-muted">(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -348,7 +348,7 @@ False: file is new</p>
         <a name="frappe.utils.backups.scheduled_backup" href="#frappe.utils.backups.scheduled_backup" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.backups.<b>scheduled_backup</b>
-        <i class="text-muted">(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, force=False)</i>
+        <i class="text-muted">(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>this function is called from scheduler
 deletes backups older than 7 days
