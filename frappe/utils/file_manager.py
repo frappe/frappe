@@ -301,14 +301,14 @@ def get_file(fname):
 
 def get_file_path(file_name):
 	"""Returns file path from given file name"""
-	file_path = ""
-
 	f = frappe.db.sql("""select file_url from `tabFile`
 		where name=%s or file_name=%s""", (file_name, file_name))
 	if f:
-		file_path = f[0][0]
+		file_name = f[0][0]
 
-	if file_path and "/" not in file_path:
+	file_path = file_name
+
+	if "/" not in file_path:
 		file_path = "/files/" + file_path
 
 	if file_path.startswith("/private/files/"):
