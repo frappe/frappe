@@ -127,9 +127,10 @@ def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
 
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
-		path = '/' + path
+		path = '/protected/' + path
 		response = Response()
 		response.headers[b'X-Accel-Redirect'] = path
+
 	else:
 		filename = os.path.basename(path)
 		filepath = frappe.utils.get_site_path(path)
