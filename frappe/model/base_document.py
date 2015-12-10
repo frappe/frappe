@@ -331,8 +331,10 @@ class BaseDocument(object):
 
 	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
-		self.set("modified", now())
-		self.set("modified_by", frappe.session.user)
+		if update_modified:
+			self.set("modified", now())
+			self.set("modified_by", frappe.session.user)
+
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 
