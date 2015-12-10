@@ -139,7 +139,7 @@ def send_private_file(path):
 		except IOError:
 			raise NotFound
 
-		response = Response(wrap_file(frappe.local.request.environ, f))
+		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 
 		# no need for content disposition, let browser handle it
 		# response.headers.add(b'Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
