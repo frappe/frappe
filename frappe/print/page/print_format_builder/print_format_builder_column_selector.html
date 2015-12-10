@@ -6,8 +6,7 @@
 </div>
 <div class="column-selector-list">
     {% for (i=0; i < fields.length; i++) { var f = fields[i]; %}
-        {% if(!in_list(["Section Break", "Column Break"]) && f.label) {
-            var selected = in_list(column_names, f.fieldname) %}
+        {% var selected = in_list(column_names, f.fieldname) %}
         <div class="row column-selector-row">
             <div class="col-sm-6">
                 <div class="checkbox">
@@ -27,6 +26,5 @@
                     {%= selected ? "" : "disabled" %}>
             </div>
         </div>
-        {% } %}
     {% } %}
 </div>
