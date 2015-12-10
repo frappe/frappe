@@ -483,10 +483,33 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 			var $body = $(d.body);
-
+			
+			
+			var doc_fields = frappe.get_meta(doctype).fields;
+			var docfields_by_name = {};
+			
+			// docfields by fieldname
+			$.each(doc_fields, function(j, f) {
+				if(f) docfields_by_name[f.fieldname] = f;
+			})
+			
+			// add field which are in column_names first to preserve order
+			var fields = [];
+			$.each(column_names, function(i, v) {
+				if(in_list(Object.keys(docfields_by_name), v)) {
+					fields.push(docfields_by_name[v]);
+				}
+			})
+			// add remaining fields
+			$.each(doc_fields, function(j, f) {
+				if (f && !in_list(column_names, f.fieldname) 
+					&& !in_list(["Section Break", "Column Break"], f.fieldtype) && f.label) {
+						fields.push(f);
+				}
+			})
 			// render checkboxes
 			$(frappe.render_template("print_format_builder_column_selector", {
-				fields: frappe.get_meta(doctype).fields,
+				fields: fields,
 				column_names: column_names,
 				widths: widths
 			})).appendTo(d.body);

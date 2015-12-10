@@ -809,8 +809,11 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			},
 			onerror: function() {
 				me.dialog.hide();
-			},
-			is_private: this.df.is_private
+			}
+		}
+
+		if ("is_private" in this.df) {
+			this.upload_options.is_private = this.df.is_private;
 		}
 
 		if(this.frm) {
