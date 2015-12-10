@@ -120,7 +120,10 @@
 		"public/js/frappe/views/communication.js",
 
 		"public/js/frappe/change_log.html",
-		"public/js/frappe/desk.js"
+		"public/js/frappe/desk.js",
+
+		"public/html/error_object.html",
+		"public/html/error_snapshot.html"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"

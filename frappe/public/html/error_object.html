@@ -1,0 +1,12 @@
+{% if (Object.prototype.toString.call(x) === "[object Object]") { %}
+<table class="table">
+    {% for (var key in x) { %}
+    <tr>
+        <td><code>{{ key }}</code></td>
+        <td>{{ x[key] }}</td>
+    </tr>
+    {% } %}
+</table>
+{% } else { %}
+    {{ x }}
+{% } %}

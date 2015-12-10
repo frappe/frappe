@@ -6,6 +6,7 @@ import frappe
 from frappe.utils.scheduler import enqueue_events
 from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX, ASYNC_TASKS_PREFIX
 from frappe.utils import get_sites
+from frappe.utils.error import error_collector
 from frappe.utils.file_lock import create_lock, delete_lock
 from frappe.handler import execute_cmd
 from frappe.async import set_task_status, END_LINE, get_std_streams
@@ -13,6 +14,8 @@ from frappe.utils.scheduler import log
 import frappe.utils.response
 import sys
 import time
+import json
+import os
 import MySQLdb
 
 @celery_task()
@@ -230,3 +233,27 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 
 	finally:
 		frappe.destroy()
+
+@celery_task
+def collect_tickets():
+	try:
+		path = frappe.get_site_path('tickets')
+		if not os.path.exists(path):
+			return
+
+		for fname in os.listdir(path):
+			fullpath = os.path.join(path, fname)
+
+			with open(fullpath, 'rb') as filedata:
+				data = json.load(filedata)
+
+			for field in ['locals', 'exception', 'frames']:
+				data[field] = json.dumps(data[field])
+
+			doc = frappe.new_doc('Error Snapshot')
+			doc.update(data)
+			doc.save()
+
+			os.remove(fullpath)
+	except Exception as e:
+		error_collector(e)
