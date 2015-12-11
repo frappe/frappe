@@ -107,3 +107,4 @@ frappe.patches.v6_6.rename_slovak_language
 frappe.patches.v6_6.fix_file_url
 frappe.patches.v6_9.rename_burmese_language
 frappe.patches.v6_11.rename_field_in_email_account
+execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
