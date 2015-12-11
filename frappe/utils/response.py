@@ -125,6 +125,7 @@ def download_private_file(path):
 
 def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
+	filename = os.path.basename(path)
 
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/protected/' + path
@@ -132,7 +133,6 @@ def send_private_file(path):
 		response.headers[b'X-Accel-Redirect'] = path
 
 	else:
-		filename = os.path.basename(path)
 		filepath = frappe.utils.get_site_path(path)
 		try:
 			f = open(filepath, 'rb')
@@ -141,9 +141,10 @@ def send_private_file(path):
 
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 
-		response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
+	# no need for content disposition and force download. let browser handle its opening.
+	# response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
 
-		response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
+	response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
 
 	return response
 
