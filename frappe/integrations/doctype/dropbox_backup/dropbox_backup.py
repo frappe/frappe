@@ -160,6 +160,9 @@ def backup_to_dropbox():
 def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, error_log):
 	import dropbox.rest
 
+	if not os.path.exists(path):
+		return
+
 	try:
 		response = dropbox_client.metadata(dropbox_folder)
 	except dropbox.rest.ErrorResponse, e:
