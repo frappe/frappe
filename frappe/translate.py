@@ -363,7 +363,7 @@ def get_messages_from_file(path):
 			return [(os.path.relpath(" +".join([path, str(pos)]), apps_path),
 					message) for pos, message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
 	else:
-		print "Translate: {0} missing".format(os.path.abspath(path))
+		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
 def extract_messages_from_code(code, is_py=False):
