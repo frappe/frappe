@@ -24,8 +24,14 @@ def setup_complete(args):
 		# update system settings
 		update_system_settings(args)
 
-		for method in frappe.get_hooks("setup_wizard_complete"):
-			frappe.get_attr(method)(args)
+		try:
+			for method in frappe.get_hooks("setup_wizard_complete"):
+				frappe.get_attr(method)(args)
+
+		except frappe.SetupWizardComplete:
+			# if setup wizard is already complete, bypass the error so that home page can be set to desktop
+			# when can this happen? The user could click on the back button and try to submit the setup wizard agian
+			pass
 
 		frappe.db.set_default('desktop:home_page', 'desktop')
 		frappe.db.commit()
