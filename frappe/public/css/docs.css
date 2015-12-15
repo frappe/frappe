@@ -573,15 +573,13 @@ hr {
   margin: 48px 0px 30px;
 }
 .edit {
-  padding-left: 20px;
-  background: url('/assets/img/smiley.png') 0% 50% no-repeat;
   color: #8d99a6;
-  display: block;
 }
 a.edit,
 a.edit:hover,
 a.edit:focus,
-a.edit:visited {
+a.edit:visited,
+.edit-container .icon {
   color: #8d99a6;
 }
 .btn-next {
@@ -603,4 +601,10 @@ a.edit:visited {
 }
 .hero-and-content [data-html-block="hero"] {
   overflow-y: hidden;
+}
+.page-content-wrapper > .row .col-sm-8 {
+  width: 100%;
+}
+.page-content-wrapper > .row .col-sm-4 {
+  display: none;
 }

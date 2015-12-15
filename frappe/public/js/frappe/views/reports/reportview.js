@@ -297,12 +297,15 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			.get(0), this.dataView,
 			columns, options);
 
-		this.grid.setSelectionModel(new Slick.CellSelectionModel());
-		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-			dataItemColumnValueExtractor: function(item, columnDef, value) {
-				return item[columnDef.field];
-			}
-		}));
+		if (!frappe.dom.is_touchscreen()) {
+			this.grid.setSelectionModel(new Slick.CellSelectionModel());
+			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+				dataItemColumnValueExtractor: function(item, columnDef, value) {
+					return item[columnDef.field];
+				}
+			}));
+		}
+
 		frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
 		if(this.start!=0 && !options.autoHeight) {
 			this.grid.scrollRowIntoView(this.data.length-1);

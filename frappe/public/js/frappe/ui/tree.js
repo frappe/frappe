@@ -64,7 +64,6 @@ frappe.ui.TreeNode = Class.extend({
 				if(me.tree.click)
 					me.tree.click(this);
 			})
-			.bind('reload', function() { me.reload(); })
 			.data('label', this.label)
 			.data('node', this)
 			.appendTo(this.parent);
@@ -198,30 +197,32 @@ frappe.ui.TreeNode = Class.extend({
 	reload: function() {
 		this.load();
 	},
+	reload_parent: function() {
+		this.parent_node.load();
+	},
 	load: function(callback) {
-		var me = this;
+		var node = this;
 		args = $.extend(this.tree.args || {}, {
-			parent: this.data ? (this.data.parent || this.data.value) : null
+			parent: this.data.value
 		});
 
 		return frappe.call({
 			method: this.tree.method,
 			args: args,
 			callback: function(r) {
-				me.$ul.empty();
+				node.$ul.empty();
 				if (r.message) {
 					$.each(r.message, function(i, v) {
-						node = me.addnode(v);
-						node.$a
+						var child_node = node.addnode(v);
+						child_node.$a
 							.data('node-data', v)
-							.data('node', node);
+							.data('node', child_node);
 					});
 				}
 
-				if(!me.expanded)
-					me.toggle_node(callback);
-				me.loaded = true;
-
+				node.expanded = false;
+				node.toggle_node(callback);
+				node.loaded = true;
 			}
 		})
 	}

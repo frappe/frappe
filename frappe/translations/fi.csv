@@ -1,5 +1,5 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +225,Press Esc to close,Paina Esc Sulje
-apps/frappe/frappe/desk/form/assign_to.py +152,"A new task, {0}, has been assigned to you by {1}. {2}","uusi tehtävä, {0}, nimetty sinulle {1}. {2}"
+apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","uusi tehtävä, {0}, nimetty sinulle {1}. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Posti
 apps/frappe/frappe/config/setup.py +104,Rename many items by uploading a .csv file.,nimeä uudelleen useita tuotteita kerrallaan lataamalla .csv-tiedoston
 DocType: Workflow State,pause,tauko
@@ -7,15 +7,15 @@ apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access t
 DocType: About Us Settings,Website,verkkosivusto
 DocType: User,Facebook Username,Facebook käyttäjänimi
 apps/frappe/frappe/email/bulk.py +148,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Voi lähettää tämän sähköpostin. Olet ylittänyt lähettämisen raja {0} sähköposteja tässä kuussa.
-apps/frappe/frappe/public/js/legacy/form.js +690,Permanently Submit {0}?,lähetetäänkö pysyvästi {0}
+apps/frappe/frappe/public/js/legacy/form.js +691,Permanently Submit {0}?,lähetetäänkö pysyvästi {0}
 apps/frappe/frappe/client.py +162,Invalid file path: {0},Virheellinen tiedoston polku: {0}
 DocType: Workflow State,eye-open,silmä-kiinni
 DocType: Bulk Email,Send After,lähetä jälkeen
-apps/frappe/frappe/utils/file_manager.py +30,Please select a file or url,Valitse tiedosto tai url
+apps/frappe/frappe/utils/file_manager.py +31,Please select a file or url,Valitse tiedosto tai url
 DocType: DocField,DocField,asiakirja kenttä
 DocType: Comment,Comment By Fullname,kommentti (kokonimi)
 DocType: DocField,Options,vaihtoehdot
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +344,Cannot edit standard fields,peruskenttiä ei voi muokata
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +347,Cannot edit standard fields,peruskenttiä ei voi muokata
 DocType: Print Format,Print Format Builder,tulostusmuodon rakentaja
 apps/frappe/frappe/public/js/frappe/ui/page.js +4,Form,Muoto
 DocType: Report,Report Manager,raportinhallinta
@@ -28,9 +28,9 @@ DocType: Workflow State,zoom-out,loitonna
 DocType: Comment,Reference DocType and Reference Name are used to render a comment as a link (href) to a Doc.,viite asiakirjatyyppiä ja viite nimeä käytetään kommentin tekemiseen linkkinä asiakirjaan (href)
 apps/frappe/frappe/public/js/legacy/form.js +65,Cannot open {0} when its instance is open,ei voi avata {0} sillä esimerkki on auki
 apps/frappe/frappe/model/document.py +749,Table {0} cannot be empty,taulukko {0} ei voi olla tyhjä
-apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +891,With Ledgers,tilikirjoissa
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +893,With Ledgers,tilikirjoissa
 DocType: Social Login Keys,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +465,"{0}, Row {1}","{0}, Rivi {1}"
+apps/frappe/frappe/model/base_document.py +467,"{0}, Row {1}","{0}, Rivi {1}"
 apps/frappe/frappe/model/document.py +723,Beginning with,Alkaa
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,tietojen tuonti/lataus mallipohja
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Vanhempi
@@ -82,7 +82,7 @@ DocType: Standard Reply,Owner,Omistaja
 DocType: Communication,Visit,vierailu
 apps/frappe/frappe/desk/page/applications/application_row.html +16,Install,asenna
 DocType: Custom Script,Client,asiakas
-apps/frappe/frappe/public/js/legacy/form.js +423,This form has been modified after you have loaded it,"Tämä lomake on muutettu sen jälkeen, kun olet ladannut sen"
+apps/frappe/frappe/public/js/legacy/form.js +424,This form has been modified after you have loaded it,"Tämä lomake on muutettu sen jälkeen, kun olet ladannut sen"
 DocType: Website Settings,Twitter Share via,Twitter jaa (kautta)
 apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,upota kuvien diaesitys verkkosivustoon
 DocType: Workflow Action,Workflow Action Name,työmäärä toiminto nimi
@@ -103,16 +103,16 @@ apps/frappe/frappe/public/js/frappe/form/grid_body.html +14,Add multiple rows,li
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","aseta kentän '{0}' alapuolelle, maininta omassa kentässä '{1}' ei ole olemassa"
 ,App Installer,App Installer
 DocType: Workflow State,circle-arrow-up,kierrä-nuoli-ylös
-apps/frappe/frappe/public/js/frappe/upload.js +88,Uploading...,ladataan ...
+apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,ladataan ...
 DocType: Workflow State,italic,kursiivi-
 apps/frappe/frappe/core/doctype/doctype/doctype.py +455,{0}: Cannot set Import without Create,{0}: ei voi tuoda ellei sitä luoda
 DocType: Comment,Post Topic,Post Topic
 apps/frappe/frappe/config/desk.py +21,Event and other calendars.,Tapahtuma ja muut kalentereita.
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +611,Drag to sort columns,siirrä muokataksesi sarakkeita
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Drag to sort columns,siirrä muokataksesi sarakkeita
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,leveydet voidaan asettaa px:na tai %:na
 apps/frappe/frappe/public/js/frappe/form/print.js +96,Start,alku
 DocType: User,First Name,etunimi
-apps/frappe/frappe/core/doctype/file/file.py +147,Cannot delete Home and Attachments folders,Voi poistaa Koti ja lisälaitteet kansiot
+apps/frappe/frappe/core/doctype/file/file.py +150,Cannot delete Home and Attachments folders,Voi poistaa Koti ja lisälaitteet kansiot
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,käyttäjän käyttöoikeudet perustuu nimettyihin rooleihin
 apps/frappe/frappe/public/js/frappe/views/communication.js +414,You are not allowed to send emails related to this document,"Et voi lähettää sähköposteja, jotka liittyvät tähän dokumenttiin"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Verkkosivuston perusteemaa ei voi poistaa
@@ -165,7 +165,7 @@ DocType: Communication,Closed,suljettu
 DocType: Blog Settings,Blog Title,Blogin otsikko
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,muokkaa asettamalla ylätunnisteen
 DocType: About Us Settings,Team Members,tiimin jäsenet
-apps/frappe/frappe/public/js/frappe/upload.js +74,Please attach a file or set a URL,Liitä tiedosto tai asettaa URL
+apps/frappe/frappe/public/js/frappe/upload.js +83,Please attach a file or set a URL,Liitä tiedosto tai asettaa URL
 DocType: Async Task,System Manager,järjestelmähallinta
 DocType: DocField,Permissions,Oikeudet
 DocType: Dropbox Backup,Allow Dropbox Access,salli Dropbox pääsy
@@ -177,10 +177,10 @@ DocType: Event,Public,Julkinen
 apps/frappe/frappe/public/js/frappe/ui/listing.js +52,Nothing to show,Mitään näyttöä
 apps/frappe/frappe/email/smtp.py +140,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,"sähköpostitiliä ei ole määritetty, tee uusi sähköpostitili kohdassa määritykset> sähköposti> sähköpostitili"
 DocType: DocField,Print Hide If No Value,Tulosta Piilota Jos Ei Arvo
-apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +209,Upload Attachment,lataa liitteet
+apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Upload Attachment,lataa liitteet
 DocType: Block Module,Block Module,estä moduuli
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,vie mallipohja
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +346,No permission to edit,Ei lupaa muokata
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +349,No permission to edit,Ei lupaa muokata
 DocType: Block Module,Module,moduuli
 DocType: Email Alert,Send Alert On,lähetä hälyytys päällä
 DocType: Web Form,Website URL,verkkosivujen URL
@@ -213,7 +213,7 @@ DocType: Top Bar Item,Parent Label,Parent Label
 apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Kyselysi on vastaanotettu ja vastaamme mahdollisimman pian. Mikäli haluat lähettää lisää  tietoa, voit vastata tähän osoitteeseen."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,oikeudet on siirretty automaattisesti perusraporteille ja hauille
 DocType: Event,Repeat Till,Toista Till
-apps/frappe/frappe/core/doctype/file/file_list.js +167,New,Uusi
+apps/frappe/frappe/core/doctype/file/file_list.js +176,New,Uusi
 DocType: System Settings,Loading...,Ladataan ...
 DocType: DocField,Password,Salasana
 DocType: Blogger,Will be used in url (usually first name).,käytetään url:ssa (yleensä etunimi).
@@ -224,14 +224,14 @@ apps/frappe/frappe/desk/doctype/event/event.py +68,Upcoming Events for Today,tul
 DocType: Email Alert Recipient,Email By Document Field,sähköposti asiakirjakentän mukaan
 apps/frappe/frappe/email/receive.py +61,Cannot connect: {0},Ei voi muodostaa: {0}
 apps/frappe/frappe/utils/nestedset.py +218,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,"voit yhdistää ainoastaan ryhmän-ryhmään, tai jatkosidoksen-jatkosidokseen"
-apps/frappe/frappe/utils/file_manager.py +42,Added {0},lisätty {0}
+apps/frappe/frappe/utils/file_manager.py +43,Added {0},lisätty {0}
 DocType: Currency,Fraction Units,jako yksiköt
 DocType: DocField,Type,tyyppi
 DocType: Communication,Subject,aihe
 DocType: Web Page,Parent Web Page,Parent Web-sivu
 apps/frappe/frappe/core/doctype/docshare/docshare.py +36,User is mandatory for Share,käyttäjän jako vaaditaan
 DocType: DocField,Hidden,piilotettu
-apps/frappe/frappe/model/base_document.py +397,{0} must be set first,{0} on määritettävä ensin
+apps/frappe/frappe/model/base_document.py +399,{0} must be set first,{0} on määritettävä ensin
 DocType: Workflow State,plane,kone
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","ladatessasi uusia tietueita ""sarjan nimeäminen"" muuttuu pakolliseksi, mikäli näin on asetettu"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +140,DocType can only be renamed by Administrator,DOCTYPE voi vain nimetä uudelleen Administrator
@@ -253,15 +253,15 @@ DocType: Page Role,Page Role,Page Rooli
 apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Field {0} in row {1} cannot be hidden and mandatory without default,kenttää {0} rivillä {1} ei voi piilottaa ja vaaditaan ilman oletusta
 DocType: System Settings,mm/dd/yyyy,pp / kk / vvvv
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +16,Previous,Edellinen
-apps/frappe/frappe/email/doctype/email_account/email_account.py +336,Re:,Re:
+apps/frappe/frappe/email/doctype/email_account/email_account.py +341,Re:,Re:
 DocType: Currency,"Sub-currency. For e.g. ""Cent""","alavaluutta esim ""sentti"""
 DocType: Letter Head,Check this to make this the default letter head in all prints,täppää mikäli haluat tämän oletus ylätunnisteeksi kaikissa tulosteissa
 DocType: Print Format,Server,serveri
 DocType: DocField,Link,Linkki
-apps/frappe/frappe/utils/file_manager.py +88,No file attached,Ei tiedostoa liitteenä
+apps/frappe/frappe/utils/file_manager.py +93,No file attached,Ei tiedostoa liitteenä
 DocType: Version,Version,Versio
 DocType: User,Fill Screen,täytä näyttö
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +455,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","tätä raporttipuuta ei voi näyttää puuttuvien tietojen vuoksi, todennäköisesti käyttöoikeudet on suodatettu pois"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","tätä raporttipuuta ei voi näyttää puuttuvien tietojen vuoksi, todennäköisesti käyttöoikeudet on suodatettu pois"
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,muokkaa oikeuksia
 apps/frappe/frappe/public/js/frappe/form/grid.js +267,Edit via Upload,muokkaa lataamalla
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","asiakirja tyyppi.., esim asiakas"
@@ -275,17 +275,17 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These per
 DocType: Property Setter,ID (name) of the entity whose property is to be set,tunniste (nimi) kirjaukseen mihin omaisuutta määritetään
 DocType: Website Settings,Website Theme Image Link,"verkkosivujen teemakuva, linkki"
 DocType: Website Settings,Sidebar Items,sivupalkki tuotteet
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +519,Select Report Name,valitse raportin nimi
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +522,Select Report Name,valitse raportin nimi
 DocType: Workflow State,exclamation-sign,huutomerkki
 DocType: Website Theme,Hide Sidebar,piilota sivupalkki
-apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +179,Please install dropbox python module,asenna Dropbox python moduuli
+apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +197,Please install dropbox python module,asenna Dropbox python moduuli
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +8,Gantt,gantt
 DocType: About Us Settings,Introduce your company to the website visitor.,esittele yrityksesi verkkosivujenkävijöille
 apps/frappe/frappe/public/js/frappe/form/workflow.js +116,To,(lle)
 apps/frappe/frappe/templates/base.html +145,Please enter email address,syötä sähköpostiosoite
 apps/frappe/frappe/model/rename_doc.py +356,Successful: {0} to {1},Onnistunut: {0} on {1}
 apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,Ole hyvä ja kopioida tämän tehdä muutoksia
-apps/frappe/frappe/utils/pdf.py +46,PDF generation failed because of broken image links,PDF teko epäonnistui rikkoutuneiden kuvalinkkien johdosta
+apps/frappe/frappe/utils/pdf.py +49,PDF generation failed because of broken image links,PDF teko epäonnistui rikkoutuneiden kuvalinkkien johdosta
 DocType: Print Settings,Font Size,fonttikoko
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +14,Unread Messages,lukemattomat viestit
 DocType: System Settings,Disable Standard Email Footer,poista sähköpostin perusalatunniste käytöstä
@@ -296,9 +296,9 @@ apps/frappe/frappe/website/doctype/website_settings/website_settings.js +72,Sele
 DocType: Workflow State,volume-down,volyymi-alas
 DocType: Email Account,Send Notification to,lähetä ilmoitus
 DocType: DocField,Collapsible,Kokoontaitettava
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +633,Saved,tallennettu
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +656,Saved,tallennettu
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,"valitse vaihtoehdot, kukin vaihtoehto omalle riville"
-apps/frappe/frappe/public/js/legacy/form.js +713,Permanently Cancel {0}?,Pysyvästi Peruuta {0}?
+apps/frappe/frappe/public/js/legacy/form.js +714,Permanently Cancel {0}?,Pysyvästi Peruuta {0}?
 DocType: Workflow State,music,musiikki
 apps/frappe/frappe/config/setup.py +66,Settings,asetukset
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,määritä asiakirjatyyppi
@@ -323,7 +323,7 @@ DocType: DocType,Fields,kentät
 DocType: System Settings,Your organization name and address for the email footer.,Yrityksen nimi ja osoite sähköpostin alatunnisteeseen
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,Parent Taulukko
 apps/frappe/frappe/config/desktop.py +26,Developer,Kehittäjä
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +52,Created,tehty
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +56,Created,tehty
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} rivi {1} ei voi sisältää sekä URL ja alasidoksia
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,kantaa {0} ei voi poistaa
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162,No comments yet,Ei vielä kommentteja
@@ -362,7 +362,7 @@ DocType: Workflow State,thumbs-down,peukalo-alas
 apps/frappe/frappe/core/doctype/page/page.py +33,Not in Developer Mode,Ei kehittäjätilassa
 DocType: Comment,Comment Time,"kommentti, aika"
 DocType: Workflow State,indent-left,luetelmakohta vasemmassa
-apps/frappe/frappe/utils/file_manager.py +269,It is risky to delete this file: {0}. Please contact your System Manager.,Se on riskialtista poistaa tiedoston: {0}. Ota yhteyttä System Manager.
+apps/frappe/frappe/utils/file_manager.py +279,It is risky to delete this file: {0}. Please contact your System Manager.,Se on riskialtista poistaa tiedoston: {0}. Ota yhteyttä System Manager.
 DocType: Currency,Currency Name,valuutan nimi
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,sisältöruutu
@@ -493,9 +493,9 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,Ei Apps asennettu
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,Merkitse kentän Pakollinen
 DocType: Communication,Clicked,Napsautetaan
-apps/frappe/frappe/public/js/legacy/form.js +864,No permission to '{0}' {1},Ei lupaa &quot;{0}&quot; {1}
+apps/frappe/frappe/public/js/legacy/form.js +865,No permission to '{0}' {1},Ei lupaa &quot;{0}&quot; {1}
 DocType: User,Google User ID,Google käyttäjätunnus
-apps/frappe/frappe/desk/form/utils.py +50,This method can only be used to create a Comment,tätä menetelmää voidaan käyttää vain kommenttien luontiin
+apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,tätä menetelmää voidaan käyttää vain kommenttien luontiin
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,Ei {0} löytyi
 apps/frappe/frappe/config/setup.py +227,Add custom forms.,lisää omia lomakkeita/muotoja
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,"järjestelmässä on monia ennalta määriteltyjä rooleja, voit lisätä uusia rooleja määritelläksesi tarkempia käyttöoikeuksia"
@@ -525,7 +525,7 @@ apps/frappe/frappe/config/setup.py +73,"Language, Date and Time settings","kieli
 DocType: Event,Saturday,lauantai
 DocType: User,Represents a User in the system.,Edustaa Käyttäjä järjestelmässä.
 DocType: DocField,Label,Etiketti
-apps/frappe/frappe/desk/form/assign_to.py +139,"The task {0}, that you assigned to {1}, has been closed.",tehtävä {0} joka on nimetty sinulle {1} on suljettu
+apps/frappe/frappe/desk/form/assign_to.py +140,"The task {0}, that you assigned to {1}, has been closed.",tehtävä {0} joka on nimetty sinulle {1} on suljettu
 DocType: User,Modules Access,moduuleihin pääsy
 DocType: Print Format,Print Format Type,tulostusmuoto tyyppi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7,Open Source Applications for the Web,sovellusverkkosivu Open Source
@@ -545,7 +545,7 @@ DocType: Communication,Delivery Status,toimituksen tila
 DocType: Module Def,App Name,sovelluksen nimi
 DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","kenttä, joka näyttää työmäärän tilan tapahtumien osalta (ellei kenttää ole tehty, uusi piilotettu kenttä luodaan)"
 apps/frappe/frappe/templates/pages/login.py +162,Email not verified with {1},sähköpostia ei voi todentaa {1}
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +533,Edit to add content,muokkaa lisäämällä sisältöä
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +556,Edit to add content,muokkaa lisäämällä sisältöä
 apps/frappe/frappe/__init__.py +432,No permission for {0},Ei lupaa {0}
 DocType: Web Form,Advanced,tarkka
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Viite: {0} {1}
@@ -571,7 +571,7 @@ apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","
 apps/frappe/frappe/public/js/frappe/desk.js +300,Updated To New Version,päivitetty uuteen versioon
 DocType: DocField,Depends On,riippuu
 DocType: DocPerm,Additional Permissions,lisäkäyttöoikeudet
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +33,Compose,luo
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +37,Compose,luo
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,aloita tietojen syöttäminen tämän viivan alapuolelle
 DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,päivitä mallipohja ja tallenna se .csv tiedostoksi (Comma Separate Values) ennen liittämistä
@@ -591,7 +591,7 @@ DocType: Workflow Action,Workflow Action Master,tyomäärän toiminnot valvonta
 DocType: Custom Field,Field Type,kentän tyyppi
 apps/frappe/frappe/utils/data.py +402,only.,vain.
 DocType: Feed,Doc Type,asiakirja tyyppi
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +452,Descending,aleneva
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +455,Descending,aleneva
 apps/frappe/frappe/email/receive.py +57,Invalid Mail Server. Please rectify and try again.,"virheellinen sähköpostiserveri, korjaa ja yritä uudelleen"
 DocType: Dropbox Backup,Dropbox Backup,Dropbox Backup
 DocType: DocField,"For Links, enter the DocType as range.
@@ -601,7 +601,7 @@ apps/frappe/frappe/model/db_query.py +330,No permission to read {0},Ei lupaa luk
 apps/frappe/frappe/config/desk.py +7,Tools,työkalut
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,kannalla ei voi olla useampaa sidosta
 apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,hae
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +363,ID field is required to edit values using Report. Please select the ID field using the Column Picker,"kentän tunnus vaaditaan arvojen muokkaamiseen raportin avulla, valitse kentän käyttämällä sarakkeen valitsijaa"
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +366,ID field is required to edit values using Report. Please select the ID field using the Column Picker,"kentän tunnus vaaditaan arvojen muokkaamiseen raportin avulla, valitse kentän käyttämällä sarakkeen valitsijaa"
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,kommentit
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,vahvista
 apps/frappe/frappe/desk/page/applications/applications.js +160,Install {0}?,Asenna {0}?
@@ -627,7 +627,7 @@ DocType: User,Facebook User ID,Facebook käyttäjätunnus
 DocType: Workflow State,fast-forward,pikakelaus eteenpäin
 DocType: Communication,Communication,viestintä
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.","valitse sarakkeita täppäämällä, siirrä tehdäksesi tilaus"
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +572,This is PERMANENT action and you cannot undo. Continue?,"tätä pysyvää toimintaa ei voi kumota, jatka?"
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +575,This is PERMANENT action and you cannot undo. Continue?,"tätä pysyvää toimintaa ei voi kumota, jatka?"
 DocType: Event,Every Day,joka päivä
 apps/frappe/frappe/email/smtp.py +59,Please setup default Email Account from Setup > Email > Email Account,määritä oletussähköposti kohdassa määritys> sähköposti> sähköpostitili
 DocType: Workflow State,move,liikkua
@@ -676,7 +676,7 @@ apps/frappe/frappe/templates/pages/404.html +10,"We are very sorry for this, but
 apps/frappe/frappe/core/doctype/doctype/doctype.py +249,Field {0} of type {1} cannot be mandatory,kenttä {0} tyyppiä {1} on valinnainen
 DocType: System Settings,"eg. If Apply User Permissions is checked for Report DocType but no User Permissions are defined for Report for a User, then all Reports are shown to that User","esim. Jos Käytä Käyttöluvat tarkastetaan Ilmoita DOCTYPE mutta ei Käyttäjän Oikeudet määritellään raportti käyttäjä, niin kaikki raportit osoitettu, että Käyttäjä"
 DocType: System Settings,Session Expiry Mobile,istunto vanhenee mobiili
-apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +889,Select To Download:,valitse mitä ladata:
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +891,Select To Download:,valitse mitä ladata:
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,If {0} is permitted,mikäli {0} on sallittua
 DocType: DocPerm,If user is the owner,mikäli käyttäjä on omistaja
 ,Activity,Aktiviteetti
@@ -711,7 +711,7 @@ apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,Ei {0} lupaa
 DocType: Feed,Login,Kirjaudu
 DocType: System Settings,Enable Scheduled Jobs,aktivoi töiden aikataulut
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Huomautuksia:
-apps/frappe/frappe/public/js/frappe/form/control.js +1354,Markdown,Hinnanalennus
+apps/frappe/frappe/public/js/frappe/form/control.js +1362,Markdown,Hinnanalennus
 DocType: DocShare,Document Name,asiakirjan nimi
 DocType: ToDo,Medium,Keskikokoinen
 DocType: Comment,Comment By,kommentti
@@ -756,7 +756,7 @@ apps/frappe/frappe/config/desk.py +14,Documents assigned to you and by you.,Asia
 DocType: User,Email Signature,sähköposti allekirjoitus
 DocType: Website Settings,Google Analytics ID,Google Analytics tunnus
 DocType: Website Theme,Link to your Bootstrap theme,Linkki Bootstrap teema
-apps/frappe/frappe/public/js/frappe/form/control.js +1353,Edit as {0},muokkaa kuten {0}
+apps/frappe/frappe/public/js/frappe/form/control.js +1361,Edit as {0},muokkaa kuten {0}
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +11,Add new row,Lisää rivi
 DocType: DocPerm,Delete,poista
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +165,New {0},Uusi {0}
@@ -785,12 +785,13 @@ DocType: Report,Query Report,raporttikysely
 DocType: User,Set New Password,aseta uusi salasana
 DocType: User,Github User ID,Github käyttäjätunnus
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,If Document Type,mikäli asiakirja tyyppi
+apps/frappe/frappe/desk/page/applications/applications.py +88,Unknown app {0},Tuntematon sovellus {0}
 DocType: Communication,Chat,chatti
 apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Fieldname {0} appears multiple times in rows {1},kenttänimi {0} ilmestyy useita kertoja riveissä {1}
 DocType: DocType,System,järjestelmä
 apps/frappe/frappe/public/js/legacy/print_format.js +144,Unknown Print Format: {0},Tuntematon Tulosta Formaatti: {0}
 DocType: Workflow State,arrow-down,arrow-down
-apps/frappe/frappe/public/js/frappe/ui/tree.js +123,Collapse,romahdus
+apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Collapse,romahdus
 apps/frappe/frappe/model/delete_doc.py +133,User not allowed to delete {0}: {1},käyttäjä ei saa poistaa {0}: {1}
 DocType: Website Settings,Linked In Share,Linked In Share
 apps/frappe/frappe/public/js/frappe/model/model.js +21,Last Updated On,viimeksi päivitetty
@@ -798,7 +799,7 @@ DocType: Website Settings,Top Bar,ylävalikko
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,Etusivu / Test-kansion 2
 DocType: System Settings,Ignore User Permissions If Missing,Torju käyttäjä käyttöoikeudet Jos Puuttuu
 apps/frappe/frappe/public/js/frappe/form/control.js +748,Please save the document before uploading.,tallenna asiakirja ennen lataamista
-apps/frappe/frappe/public/js/frappe/ui/messages.js +162,Enter your password,syötä salasana
+apps/frappe/frappe/public/js/frappe/ui/messages.js +163,Enter your password,syötä salasana
 DocType: Dropbox Backup,Dropbox Access Secret,Dropbox pääsy salaus
 apps/frappe/frappe/core/doctype/doctype/doctype.py +319,Fold must come before a Section Break,taitos tulee olla ennen osanvaihtoa
 apps/frappe/frappe/core/doctype/user/user.py +383,Not allowed to reset the password of {0},Ei saa nollata salasanan {0}
@@ -823,7 +824,7 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +34,This form does not have a
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Session Expiry must be in format {0},tapahtuman päättyminen tulee olla muodossa {0}
 DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.","valitsetavoite = ""_tyhjä"" avaa uuden sivun"
 apps/frappe/frappe/public/js/frappe/model/model.js +466,Permanently delete {0}?,Pysyvästi poistaa {0}?
-apps/frappe/frappe/core/doctype/file/file.py +131,Same file has already been attached to the record,sama tiedosto on jo liitetty tietueeseen
+apps/frappe/frappe/core/doctype/file/file.py +134,Same file has already been attached to the record,sama tiedosto on jo liitetty tietueeseen
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +59,Ignore encoding errors.,ohita koodi virheet
 DocType: Workflow State,wrench,jakoavain
 apps/frappe/frappe/desk/page/applications/applications.js +45,Not Set,Ei asetettu
@@ -831,15 +832,14 @@ DocType: Communication,Date,päivä
 DocType: Website Settings,Disable Signup,poista kirjautuminen käytöstä
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while your system is being setup. This may take a few moments.,"odota kunnes järjestelmä määritetty, tämä saattaa kestää hetken"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Roolit voidaan asettaa käyttäjiä heidän User sivulta.
-apps/frappe/frappe/website/doctype/web_page/web_page.py +163,Website Search,Verkkosivujen Haku
 DocType: DocField,Mandatory,Pakollinen
 apps/frappe/frappe/core/doctype/doctype/doctype.py +412,{0}: No basic permissions set,{0}: perusoikeuksia ei määritetty
-apps/frappe/frappe/utils/backups.py +141,Download link for your backup will be emailed on the following email address: {0},lataa varmuuskopio linkki lähetetään sähköpostilla seuraaviin osoitteisiin {0}
+apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},lataa varmuuskopio linkki lähetetään sähköpostilla seuraaviin osoitteisiin {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","tarkoittaa  lähetä, poista, muuta"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,To Do - tehtävät
 apps/frappe/frappe/public/js/frappe/ui/editor.html +25,Paragraph,Kohta
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,Kaikki olemassa luvalla poistetaan / päälle.
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +454,Then By (optional),tämän jälkeen (valinnainen)
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +457,Then By (optional),tämän jälkeen (valinnainen)
 DocType: File,Preview HTML,Esikatselu HTML
 apps/frappe/frappe/desk/doctype/todo/todo.py +18,Assigned to {0}: {1},nimetty {0}: {1}
 DocType: DocField,Percent,Prosentti
@@ -865,7 +865,7 @@ apps/frappe/frappe/public/js/frappe/misc/utils.js +110,and,ja
 DocType: About Us Team Member,Image Link,kuvalinkki
 DocType: Workflow State,step-backward,askel-taaksepäin
 apps/frappe/frappe/utils/boilerplate.py +232,{app_title},{app_otsikko}
-apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +182,Please set Dropbox access keys in your site config,määritä Dropbox pääsyn asetukset
+apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +200,Please set Dropbox access keys in your site config,määritä Dropbox pääsyn asetukset
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Poista tämä ennätys jotta lähettämällä tähän sähköpostiosoitteeseen
 DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,käytä tilin mainittua sähköpostitunnusta lähettäjänä kaikille tililtä lähetetyille sähköposteille
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"uusille tietueille vain pakolliset kentät ovat välttämättömiä, ylimääräiset sarakkeet voidaan poistaa tarvittaessa"
@@ -887,24 +887,24 @@ apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,"hae, mist
 apps/frappe/frappe/model/document.py +416,Record does not exist,tietuetta ei löydy
 apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,Page puuttuu tai siirretty
 DocType: DocField,Name,Nimi
-apps/frappe/frappe/public/js/frappe/form/control.js +989,Open Link,Avaa linkki
-apps/frappe/frappe/desk/page/applications/applications.py +88,Unknown app,Tuntematon sovellus
+apps/frappe/frappe/public/js/frappe/form/control.js +993,Open Link,Avaa linkki
 apps/frappe/frappe/desk/form/load.py +42,Did not load,ei ole lanattu
 apps/frappe/frappe/desk/query_report.py +80,Query must be a SELECT,kysely tulee olla valittu
 DocType: Website Settings,Facebook Share,Facebook jako
 apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Completed,valmistunut
+DocType: File,Is Private,On Yksityinen
 DocType: Web Form,Select DocType,valitse asiakirjatyyppi
-apps/frappe/frappe/public/js/frappe/upload.js +173,File size exceeded the maximum allowed size of {0} MB,tiedoston koko ylitti sallitun koon {0} MB
+apps/frappe/frappe/public/js/frappe/upload.js +207,File size exceeded the maximum allowed size of {0} MB,tiedoston koko ylitti sallitun koon {0} MB
 apps/frappe/frappe/core/doctype/doctype/doctype.py +400,Enter at least one permission row,syötä vähintään yksi oikeus rivissä
 apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,tehty
 DocType: Workflow State,align-center,keskitys tasaus
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,voi kirjoittaa
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","tiettyjä asiakirjoja, kuten myyntilaskut ei tule enää muuttaa lähetetty tilassa, tarvittaessa voit rajoittaa lähettäjän käyttöoikeuksia rooleista"
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +612,You are not allowed to export this report,Raporttia ei saa ladata
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,Raporttia ei saa ladata
 DocType: Communication,Sender,lähettäjä
 DocType: Web Page,Description for search engine optimization.,hakukoneoptimoinnin kuvaus
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,lataa tyhjä mallipohja
-apps/frappe/frappe/core/doctype/file/file_list.js +95,Copy,Kopio
+apps/frappe/frappe/core/doctype/file/file_list.js +104,Copy,Kopio
 apps/frappe/frappe/core/doctype/file/test_file.py +74,Home/Test Folder 1/Test Folder 3,Etusivu / Testi kansio 1 / Test-kansion 3
 DocType: Website Settings,&lt;head&gt; HTML,&lt;Head&gt; HTML
 apps/frappe/frappe/public/js/frappe/views/calendar.js +88,Select or drag across time slots to create a new event.,valitse tai vieritä oikea aikaväli tehdäksesi uuden tapahtuman
@@ -949,7 +949,7 @@ DocType: Customize Form,"Fields separated by comma (,) will be included in the "
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,Ole hyvä Monista tämä Verkkosivujen Teema muokata.
 DocType: DocField,Text Editor,tekstin muokkaus
 apps/frappe/frappe/config/website.py +69,Settings for About Us Page.,tietoa meistä sivun asetukset
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +538,Edit Custom HTML,muokkaa omaa HTML
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +561,Edit Custom HTML,muokkaa omaa HTML
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +8,In,sisään
 DocType: Email Alert,Value Change,muuta arvoa
 DocType: Standard Reply,Standard Reply,perusvastaus
@@ -983,11 +983,11 @@ apps/frappe/frappe/desk/page/applications/applications.js +61,Search Results,Hak
 apps/frappe/frappe/public/js/frappe/model/indicator.js +5,Not Saved,Ei tallennettu
 DocType: Communication,Replied,Vastasi
 DocType: Custom Field,Default Value,oletus arvo
-apps/frappe/frappe/public/js/frappe/ui/messages.js +177,Verify,vahvistus
+apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify,vahvistus
 DocType: Workflow Document State,Update Field,päivitä kenttä
 apps/frappe/frappe/desk/page/applications/applications.js +50,Regional Extensions,Alueelliset Laajennukset
-apps/frappe/frappe/email/doctype/email_account/email_account.py +342,Leave this conversation,"poistu, keskustelu"
-apps/frappe/frappe/model/base_document.py +393,Options not set for link field {0},vaihtoehtomäärityksiä ei ole tehty linkin kentälle {0}
+apps/frappe/frappe/email/doctype/email_account/email_account.py +347,Leave this conversation,"poistu, keskustelu"
+apps/frappe/frappe/model/base_document.py +395,Options not set for link field {0},vaihtoehtomäärityksiä ei ole tehty linkin kentälle {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +151,You cannot unset 'Read Only' for field {0},Et voi katkaistu &quot;Read Only&quot; kentän {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,määritykset suoritettu loppuun
 DocType: Workflow State,asterisk,tähtimerkki
@@ -1003,7 +1003,7 @@ apps/frappe/frappe/model/naming.py +90,Invalid naming series (. missing),virheel
 DocType: System Settings,Language,Kieli
 DocType: DocPerm,Cancel,peruuta
 DocType: Web Page,Page content,Sivun sisältö
-apps/frappe/frappe/core/doctype/file/file.py +116,File {0} does not exist,Tiedoston {0} ei ole olemassa
+apps/frappe/frappe/core/doctype/file/file.py +119,File {0} does not exist,Tiedoston {0} ei ole olemassa
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,tyhjä mikäli uusi tietue
 apps/frappe/frappe/config/website.py +79,List of themes for Website.,Luettelo teemoja verkkosivuilla.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +44,Logout,Kirjaudu ulos
@@ -1014,14 +1014,14 @@ DocType: Note,Note,Huomata
 apps/frappe/frappe/email/bulk.py +96,This email was sent to you as CC,Tämä sähköposti lähetettiin sinulle CC
 DocType: Email Account,Email Ids,sähköpostitunnukset
 DocType: Currency,Symbol,symbooli
-apps/frappe/frappe/model/base_document.py +434,Row #{0}:,Rivi # {0}:
+apps/frappe/frappe/model/base_document.py +436,Row #{0}:,Rivi # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,Uusi salasana lähetetään
 apps/frappe/frappe/auth.py +222,Login not allowed at this time,Kirjaudu kielletty tällä hetkellä
 DocType: Async Task,Runtime,Runtime
 DocType: Contact Us Settings,Introduction,esittely
 DocType: DocType,Permissions Settings,käyttöoikeus asetukset
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +207,{0} List,{0} lista
-apps/frappe/frappe/desk/form/assign_to.py +39,Already in user's To Do list,Jo käyttäjän tehdä lista
+apps/frappe/frappe/desk/form/assign_to.py +41,Already in user's To Do list,Jo käyttäjän tehdä lista
 DocType: Email Account,Enable Outgoing,aktivoi lähtevä
 apps/frappe/frappe/desk/page/applications/applications.js +147,No matching apps found,Ei vastaavia sovelluksia löytynyt
 apps/frappe/frappe/public/js/frappe/model/indicator.js +43,Submitted,lähetetty
@@ -1036,7 +1036,7 @@ DocType: Custom Field,Properties,Ominaisuudet
 apps/frappe/frappe/core/doctype/file/test_file.py +43,Home/Test Folder 1,Etusivu / Testi kansio 1
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47,"Do not update, but insert new records.","älä päivitä, vaan tee uusia tietueita"
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +160,Assign to me,Liitä minulle
-apps/frappe/frappe/core/doctype/file/file_list.js +74,Edit Folder,Muokkaa kansiota
+apps/frappe/frappe/core/doctype/file/file_list.js +81,Edit Folder,Muokkaa kansiota
 DocType: DocField,Dynamic Link,dynaaminen linkki
 apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +39,Details,lisätiedot
 DocType: Property Setter,DocType or Field,asiakirjatyyppi tai kenttä
@@ -1062,7 +1062,7 @@ DocType: Scheduler Log,Log of Scheduler Errors,aikatauluvirheloki
 DocType: User,Bio,Bio
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,lähetetään
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +182,Custom HTML,oma HTML
-apps/frappe/frappe/core/doctype/file/file_list.js +71,Enter folder name,Anna kansion nimi
+apps/frappe/frappe/core/doctype/file/file_list.js +78,Enter folder name,Anna kansion nimi
 DocType: Comment,Comment Docname,"kommentti, asiakirjanimi"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,valitse rooli
 apps/frappe/frappe/model/delete_doc.py +219,Deleted,poistettu
@@ -1097,7 +1097,7 @@ DocType: Email Unsubscribe,Global Unsubscribe,Globaali tilaus
 apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,Rooli on olemassa
 apps/frappe/frappe/public/js/frappe/views/communication.js +82,Select Print Format,valitse tulostusmuoto
 DocType: DocField,Print Hide,Tulosta Piilota
-apps/frappe/frappe/public/js/frappe/ui/messages.js +58,Enter Value,syötä Arvo
+apps/frappe/frappe/public/js/frappe/ui/messages.js +59,Enter Value,syötä Arvo
 DocType: Workflow State,tint,sävytys
 DocType: Workflow State,Style,tyyli
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,e.g.:,"esim,"
@@ -1108,7 +1108,7 @@ DocType: Workflow State,forward,eteenpäin
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +52,{0} edited this {1},{0} muokkasi tätä {1}
 DocType: Web Page,Custom Javascript,oma Javascript
 DocType: DocPerm,Submit,lähetä
-apps/frappe/frappe/core/doctype/file/file_list.js +56,New Folder,Uusi kansio
+apps/frappe/frappe/core/doctype/file/file_list.js +63,New Folder,Uusi kansio
 DocType: Website Settings,Sub-domain provided by erpnext.com,ala-domainit (erpnext.com) tarjoamat
 DocType: System Settings,dd-mm-yyyy,pp-kk-vvvv
 apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,tämän raportin avaamiseen vaaditaan käyttöoikeudet
@@ -1130,7 +1130,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +158,Add to To Do,Lisää To Do
 DocType: Comment,Comment Doctype,"kommentti, asiakirjatyyppi"
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Assigned To Me,nimetty minulle
-apps/frappe/frappe/public/js/frappe/ui/messages.js +177,Verify Password,vahvista salasana
+apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify Password,vahvista salasana
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,oli virheitä
 apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,lähellä
 apps/frappe/frappe/model/document.py +452,Cannot change docstatus from 0 to 2,asiakirjan tilaa ei voi muuttaa 0:stä 2:seen
@@ -1141,7 +1141,7 @@ DocType: Patch Log,List of patches executed,Luettelo laastaria teloitettiin
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} on jo jääneet
 DocType: Communication,Communication Medium,viestintä medium
 DocType: Website Settings,Banner HTML,banneri HTML
-apps/frappe/frappe/model/base_document.py +438,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ei voi olla ""{2}"" sen tulisi olla yksi ""{3}"":sta"
+apps/frappe/frappe/model/base_document.py +440,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ei voi olla ""{2}"" sen tulisi olla yksi ""{3}"":sta"
 apps/frappe/frappe/utils/data.py +489,{0} or {1},{0} tai {1}
 apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,salasanan päivitys
 DocType: Workflow State,trash,roska
@@ -1153,7 +1153,7 @@ DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web pag
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,tuotetta ei voi lisätä omaksi alatuotteekseen
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +55,{0} created this {1},{0} on tehnyt tämän {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +36,Document is only editable by users of role,asiakirja on muokattavissa käyttäjä roolissa
-apps/frappe/frappe/desk/form/assign_to.py +145,"The task {0}, that you assigned to {1}, has been closed by {2}.",tehtävä {0} joka on nimetty sinulle {1} on suljettu {2} johdosta
+apps/frappe/frappe/desk/form/assign_to.py +146,"The task {0}, that you assigned to {1}, has been closed by {2}.",tehtävä {0} joka on nimetty sinulle {1} on suljettu {2} johdosta
 DocType: Blogger,Short Name,lyhyt nimi
 DocType: Workflow State,magnet,magneetti
 apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,"tämä valuutta on poistettu käytöstä, aktivoi se tapahtumissa"
@@ -1209,7 +1209,7 @@ DocType: Email Account,Login Id,Kirjaudu Id
 apps/frappe/frappe/core/page/data_import_tool/importer.py +178,Not allowed to Import,Ei voi tuoda
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,lupatasot
 DocType: Workflow State,Warning,varoitus
-apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +856,"Ignoring Item {0}, because a group exists with the same name!",ohita tuote {0} sillä samalla nimellä on jo olemassa ryhmä
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +858,"Ignoring Item {0}, because a group exists with the same name!",ohita tuote {0} sillä samalla nimellä on jo olemassa ryhmä
 DocType: DocType,In Dialog,keskustelussa
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +143,Help,ohje
 DocType: User,Login Before,Kirjaudu Ennen
@@ -1219,7 +1219,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Is,on
 DocType: Workflow State,info-sign,info-kyltti
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","miten tämä valuuttaa tulisi alustaa, ellei käytä järjestelän oletusasetuksia"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,näytä käyttöoikeudet
-apps/frappe/frappe/utils/response.py +110,You need to be logged in and have System Manager Role to be able to access backups.,Sinun tulee kirjautua sisään järjestelmänhallitsijan roolissa jotta voit käyttää varmuuskopioita.
+apps/frappe/frappe/utils/response.py +111,You need to be logged in and have System Manager Role to be able to access backups.,Sinun tulee kirjautua sisään järjestelmänhallitsijan roolissa jotta voit käyttää varmuuskopioita.
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,Tallenna ennen kiinnittämistä.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),lisätty {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},kenttätyyppiä {0} ei voi muuttaa {1}:si rivillä {2}
@@ -1236,7 +1236,7 @@ DocType: Event,Starts on,alkaa
 DocType: System Settings,System Settings,järjestelmäasetukset
 apps/frappe/frappe/email/bulk.py +160,This email was sent to {0} and copied to {1},Tämä sähköposti lähetettiin {0} ja kopioidaan {1}
 DocType: Workflow State,th,th
-apps/frappe/frappe/public/js/frappe/form/control.js +1115,Create a new {0},tee uusi {0}
+apps/frappe/frappe/public/js/frappe/form/control.js +1119,Create a new {0},tee uusi {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +220,Report {0},raportti {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +231,Open {0},Open {0}
 DocType: Communication,Recipients,Vastaanottajat
@@ -1281,10 +1281,10 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +408,For {0} at level {1} in 
 DocType: Page,All,Kaikki
 DocType: Bulk Email,Recipient,Vastaanottaja
 apps/frappe/frappe/config/setup.py +145,Drag and Drop tool to build and customize Print Formats.,siirrä ja tiputa muodostaaksesi oman tulostusmuodon
-apps/frappe/frappe/public/js/frappe/ui/tree.js +123,Expand,laajenna
+apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,laajenna
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,aseta
 DocType: Workflow State,align-right,tasaa-oikea
-apps/frappe/frappe/core/doctype/file/file.py +194,Folder {0} is not empty,Kansio {0} ei ole tyhjä
+apps/frappe/frappe/core/doctype/file/file.py +197,Folder {0} is not empty,Kansio {0} ei ole tyhjä
 DocType: Page,Roles,Roolit
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +208,Field {0} is not selectable.,kenttä {0} ei ole valittavissa
 DocType: System Settings,Session Expiry,istunto vanhenee
@@ -1306,7 +1306,7 @@ DocType: Website Theme,Google Font (Heading),Google Font (ylätunniste)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +166,Find {0} in {1},"etsi {0}, {1}:sta"
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","liitä tiedonanto tähän asiakirjatyyppiin, (tulee olla kentät ""tila"" ja ""otsikko"")"
 DocType: DocType,Allow Import via Data Import Tool,Salli Tuo kautta Tietojen tuonti Tool
-apps/frappe/frappe/model/base_document.py +492,Not allowed to change {0} after submission,Eivät saa muuttaa {0} toimittamisen jälkeen
+apps/frappe/frappe/model/base_document.py +494,Not allowed to change {0} after submission,Eivät saa muuttaa {0} toimittamisen jälkeen
 DocType: Comment,Comment Type,"kommentti, tyyppi"
 apps/frappe/frappe/config/setup.py +8,Users,käyttäjät
 DocType: Report,Report Type,raportin tyyppi
@@ -1315,7 +1315,7 @@ apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,jaa jonkun kan
 apps/frappe/frappe/core/doctype/user/user.js +130,Loading,Ladataan
 apps/frappe/frappe/config/setup.py +194,"Enter keys to enable login via Facebook, Google, GitHub.","aktivoi kirjautuminen kautta Facebook, Google, GitHub:n kautta"
 apps/frappe/frappe/public/js/frappe/ui/tags.js +21,Add a tag,Lisää tagi
-apps/frappe/frappe/public/js/frappe/form/control.js +971,Please attach a file first.,Liitä tiedosto ensin.
+apps/frappe/frappe/public/js/frappe/form/control.js +975,Please attach a file first.,Liitä tiedosto ensin.
 apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","nimen asennuksessa ilmeni virheitä, ota yhteyttä järjestelmähallintaan"
 DocType: Website Slideshow Item,Website Slideshow Item,Verkkosivujen Kuvaesitys Kohde
 DocType: DocType,Title Case,otsikko tapaus
@@ -1347,7 +1347,7 @@ DocType: About Us Settings,Org History,Org History
 DocType: Workflow,Workflow Name,työmäärä nimi
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +169,Notify by Email,Ilmoita sähköpostilla
 DocType: Web Form,Allow Edit,Salli Edit
-apps/frappe/frappe/core/doctype/file/file_list.js +109,Paste,Tahna
+apps/frappe/frappe/core/doctype/file/file_list.js +118,Paste,Tahna
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},"ei voi muuttaa asiakirjan peruutettu tilaa, toiminnon rivi {0}"
 DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","säännöt,  miten tilat vaihtuvat seuraavaan tilaan ja kenen roolissa on sallittua vaihtaa tila jne"
 apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} on jo olemassa
@@ -1367,7 +1367,7 @@ DocType: Web Page,Slideshow,diaesitys
 DocType: Workflow State,Search,haku
 DocType: Web Form,Web Form Fields,verkkosivu muoto kentät
 DocType: Website Theme,Top Bar Text Color,ylävalikko tekstin väri
-apps/frappe/frappe/core/doctype/file/file.py +321,File '{0}' not found,Tiedosto {0} &#39;ei löytynyt
+apps/frappe/frappe/core/doctype/file/file.py +324,File '{0}' not found,Tiedosto {0} &#39;ei löytynyt
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +370,Remove Section,poista jakso
 DocType: User,Change Password,Vaihda salasana
 apps/frappe/frappe/public/js/frappe/form/control.js +428,Invalid Email: {0},virheellinen sähköposti: {0}
@@ -1375,9 +1375,9 @@ apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start
 apps/frappe/frappe/templates/includes/sidebar.html +7,Back,takaisin
 apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},Sinulla ei ole käyttöoikeuksia tehdä raporttia: {0}
 DocType: Blog Post,Blog Post,Blogikirjoitus
-apps/frappe/frappe/public/js/frappe/form/control.js +1124,Advanced Search,tarkka haku
+apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,tarkka haku
 apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,Salasanan ohjeet on lähetetty sähköpostiisi
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +487,Sort By,lajittele
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,lajittele
 apps/frappe/frappe/config/setup.py +199,Manage cloud backups on Dropbox,hallitse varmuuskopioita Dropboxissa
 DocType: Workflow,States,asemat
 DocType: Email Alert,Attach Print,Kiinnitä Tulosta
@@ -1421,9 +1421,9 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,info:
 DocType: Custom Field,Permission Level,Lupa Level
 DocType: User,Send Notifications for Transactions I Follow,lähetä ilmoituksia tapahtumista joita seuraan
 apps/frappe/frappe/core/doctype/doctype/doctype.py +451,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: ei voi lähettää, perua tai muuttaa ilman kirjoitusta"
-apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +81,Are you sure you want to delete the attachment?,"Oletko varma, että haluat poistaa liitetiedoston?"
+apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,"Oletko varma, että haluat poistaa liitetiedoston?"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,määritykset> käyttäjät
-apps/frappe/frappe/model/base_document.py +470,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: {1} saavat katkaistu, kun Max merkkiä sallittu on {2}"
+apps/frappe/frappe/model/base_document.py +472,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: {1} saavat katkaistu, kun Max merkkiä sallittu on {2}"
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,kiitos
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,tallennetaan
 DocType: Print Settings,Print Style Preview,Tulosta Style esikatselu
@@ -1435,7 +1435,7 @@ DocType: DocField,In List View,luettelonäkymänä
 DocType: Email Account,Use TLS,käytä TLS:ää
 apps/frappe/frappe/email/smtp.py +35,Invalid login or password,virheellinen kirjautuminen tai salasana
 apps/frappe/frappe/config/setup.py +222,Add custom javascript to forms.,lisää omia javascript lomakkeisiin/muotoihin
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +295,Sr No,srj nro
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +297,Sr No,srj nro
 ,Role Permissions Manager,roolit- ja käyttöoikeushallinta
 DocType: Website Theme,This must be checked if the below style settings are applicable,tämä tulee tarkastaa mikäli allaolevia tyyliasetuksia käytetään
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +111,Name of the new Print Format,nimeä uusi tulostusmuoto
@@ -1463,7 +1463,7 @@ DocType: DocField,Attach,Liittää
 apps/frappe/frappe/core/doctype/doctype/doctype.py +354,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} ei ole kelvollinen fieldname kuvio. Sen pitäisi olla {{FIELD_NAME}}.
 DocType: DocType,Permission Rules,Lupa Säännöt
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +135,Links,Linkit
-apps/frappe/frappe/model/base_document.py +362,Value missing for,arvo puuttuu
+apps/frappe/frappe/model/base_document.py +364,Value missing for,arvo puuttuu
 apps/frappe/frappe/model/delete_doc.py +137,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: lähetystietuetta ei voi poistaa.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +86,new type of document,uudentyyppinen asiakirja
 DocType: DocPerm,Read,Luettu
@@ -1486,7 +1486,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +29,F
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +302,Add A User Restriction,Lisää käyttäjärajoitus
 DocType: DocType,Name Case,Name Case
 apps/frappe/frappe/public/js/frappe/form/share.js +26,Shared with everyone,jaettu kaikkien kanssa
-apps/frappe/frappe/model/base_document.py +358,Data missing in table,taulukon tietoja puuttuu
+apps/frappe/frappe/model/base_document.py +360,Data missing in table,taulukon tietoja puuttuu
 DocType: Web Form,Success URL,menestys URL
 DocType: Email Account,Append To,liitä
 DocType: Workflow Document State,Only Allow Edit For,Vain Salli Edit For
@@ -1502,7 +1502,7 @@ apps/frappe/frappe/core/doctype/user/user.js +152,Add all roles,Lisää kaikki r
 apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
 				can get back to you. Thanks!","syötä sähköpostiosoite ja viestin, jotta voimme \ vastata sinulle, kiitos!"
 apps/frappe/frappe/email/smtp.py +152,Could not connect to outgoing email server,lähtevän sähköpostin palvelimeen ei saatu yhteyttä
-apps/frappe/frappe/public/js/frappe/form/control.js +1354,Rich Text,Rich Text
+apps/frappe/frappe/public/js/frappe/form/control.js +1362,Rich Text,Rich Text
 DocType: Workflow State,resize-full,"kokoa, täysi"
 DocType: Workflow State,off,pois
 apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,raportti {0} on poistettu käytöstä
@@ -1514,11 +1514,11 @@ apps/frappe/frappe/database.py +217,Too many writes in one request. Please send 
 DocType: Workflow State,arrow-up,arrow-up
 DocType: DocField,Allow on Submit,salli lähetys
 apps/frappe/frappe/core/page/desktop/desktop.js +59,All Applications,kaikki sovellukset
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +422,Pick Columns,valitse sarakkeet
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +425,Pick Columns,valitse sarakkeet
 DocType: Web Page,Add code as &lt;script&gt;,Lisää koodi
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,valitse tyyppi
 DocType: Letter Head,Letter Head,Kirje Head
-apps/frappe/frappe/core/doctype/file/file.py +204,No permission to write / remove.,Ei oikeutta kirjoittaa / poistaa.
+apps/frappe/frappe/core/doctype/file/file.py +207,No permission to write / remove.,Ei oikeutta kirjoittaa / poistaa.
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,"lisää siirtämällä elementit sivuvalikosta lisätä, voit vedä niitä takaisin roskakoriin"
 DocType: Workflow State,resize-small,kokoa-small
 apps/frappe/frappe/public/js/frappe/ui/editor.html +69,Horizontal Line Break,horisontaalinen rivinvaihto
@@ -1547,8 +1547,9 @@ apps/frappe/frappe/desk/page/applications/applications.py +74,You cannot install
 DocType: Scheduler Log,Error,virhe
 DocType: DocField,Column Break,sarakkeenvaihto
 DocType: Event,Thursday,torstai
+apps/frappe/frappe/utils/response.py +121,You don't have permission to access this file,Sinulla ei ole lupaa käyttää tätä tiedostoa
 apps/frappe/frappe/model/document.py +524,Cannot link cancelled document: {0},Ei voi linkittää peruttu asiakirjan: {0}
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +556,"For example: If you want to include the document ID, use {0}","esim, mikäli haluat sisällyttää asiakirjan tunnuksen käytä {0}"
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +579,"For example: If you want to include the document ID, use {0}","esim, mikäli haluat sisällyttää asiakirjan tunnuksen käytä {0}"
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +482,Select Table Columns for {0},valitse taulukon sarakkeet {0}
 DocType: Custom Field,Options Help,"vaihtoehdo, ohjeet"
 DocType: DocField,Report Hide,piilota raportti
@@ -1576,10 +1577,10 @@ DocType: DocField,Datetime,päiväysaika
 DocType: Workflow State,arrow-right,arrow-right
 DocType: Workflow State,Workflow state represents the current state of a document.,"työmäärän tila, näyttää asiakirjan statuksen"
 apps/frappe/frappe/public/js/frappe/ui/editor.js +445,Open Link in a new Window,Open Link in new Window
-apps/frappe/frappe/utils/file_manager.py +244,Removed {0},Poistettu {0}
+apps/frappe/frappe/utils/file_manager.py +257,Removed {0},Poistettu {0}
 DocType: Company History,Highlight,kohokohta
 DocType: DocField,Fold,taitos
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +451,Ascending,Nouseva
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +454,Ascending,Nouseva
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,perustulostus lomaketta ei voi päivittää
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.js +12,Please specify,Ilmoitathan
 DocType: Page,Page Name,Sivun nimi
@@ -1611,7 +1612,7 @@ DocType: Page,Yes,Kyllä
 DocType: DocType,Max Attachments,Max Liitteet
 DocType: Page,Page,Sivu
 DocType: Workflow State,briefcase,salkku
-apps/frappe/frappe/model/base_document.py +451,Value cannot be changed for {0},arvoa ei voi muuttaa {0}
+apps/frappe/frappe/model/base_document.py +453,Value cannot be changed for {0},arvoa ei voi muuttaa {0}
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
 					Please enter a valid email address so that we can get back.","Olet kirjoittanut nimesi sähköpostiosoitteen sijaan. \ Anna voimassaoleva sähköpostiosoite, jotta voimme vastata sinulle."
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","tyyli muuttaa painikken väriä: voitto-vihreä, palo-punainen, kääntö-musta, tavallinen-tummansininen, vinkki-vaaleansininen, ongelma-oranssi"
@@ -1624,6 +1625,7 @@ DocType: Web Form,Go to this url after completing the form.,siirry tähän url:n
 DocType: DocType,Document,asiakirja
 apps/frappe/frappe/core/doctype/doctype/doctype.py +106,Series {0} already used in {1},sarjat {0} on käytetty {1}
 DocType: DocField,Code,koodi
+DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Kaikki mahdolliset Workflow valtioiden ja roolit työnkulun. Docstatus Vaihtoehdot: 0 on &quot;suosikki&quot;, 1 &quot;Lähettäjä&quot; ja 2 &quot;Peruttu&quot;"
 DocType: Website Theme,Footer Text Color,alatunniste tekstin väri
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","käyttöoikeudet tasolla 0 ovat asiakirjan taso oikeuksia, eli ne ovat ensisijaisesti asiakirjan pääsyyn"
 DocType: Print Format,Print Format,tulostusmuoto
@@ -1642,7 +1644,7 @@ apps/frappe/frappe/config/core.py +22,Pages in Desk (place holders),Sivut Desk (
 DocType: DocField,Collapsible Depends On,Kokoontaitettava Riippuu
 DocType: Email Account,SMTP Server,palvelin SMTP
 DocType: Print Format,Print Format Help,"tulostusmuoto, ohjeet"
-apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +890,With Groups,jossa ryhmät
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +892,With Groups,jossa ryhmät
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","mikäli olet päivittämässä valitse ""korvaa"" muuten nykyisiä rivejä ei poisteta"
 DocType: Event,Every Month,joka kuukausi
 DocType: Letter Head,Letter Head in HTML,Kirje Head HTML
@@ -1666,7 +1668,7 @@ apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,omat raportit
 DocType: Website Script,Website Script,Verkkosivujen Script
 apps/frappe/frappe/config/setup.py +155,Customized HTML Templates for printing transactions.,muokatut HTML mallipohjat tulostustapahtumiin
 DocType: Workflow,Is Active,on aktiivinen
-apps/frappe/frappe/desk/form/utils.py +87,No further records,ei muita tietueita
+apps/frappe/frappe/desk/form/utils.py +92,No further records,ei muita tietueita
 DocType: DocField,Long Text,Pitkä teksti
 DocType: Workflow State,Primary,Ensisijainen
 apps/frappe/frappe/core/page/data_import_tool/importer.py +38,Please do not change the rows above {0},Älä muuta rivejä {0}
@@ -1730,6 +1732,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,yhtäs
 apps/frappe/frappe/core/doctype/doctype/doctype.py +282,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"kentän tyyppiä ""Dynamic Link"" määritykset tulee osoittaa toiseen linkkikenttään 'asiakirjatyypin' vaihtoehtomäärityksillä"
 DocType: About Us Settings,Team Members Heading,tiimin jäsenet otsikko
 DocType: DocField,Do not allow user to change after set the first time,älä anna käyttäjän muuttaa määrityksiä ensimmäisen kerrän jälkeen
+apps/frappe/frappe/public/js/frappe/upload.js +112,Private or Public?,Yksityinen vai julkinen?
 DocType: User,Third Party Authentication,kolmannen osapuolen todennus
 DocType: Website Settings,Banner is above the Top Menu Bar.,banneri on päävalikon yllä
 DocType: Email Account,Port,Portti
@@ -1760,7 +1763,7 @@ apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,aktivoi rapor
 DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"nimeä rooleja käyttäjälle täppäämällä päälle/pois, klikkaa roolia nähdäksesi mitä oikeoksia siihen on määritelty"
 DocType: Web Page,Insert Code,aseta koodi
 DocType: ToDo,Low,Alhainen
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +555,You can add dynamic properties from the document by using Jinja templating.,voit lisätä asiakirjan dynaamisia ominaisuuksia käyttämällä Jinja mallinnusta
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +578,You can add dynamic properties from the document by using Jinja templating.,voit lisätä asiakirjan dynaamisia ominaisuuksia käyttämällä Jinja mallinnusta
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +87,List a document type,asiakirja tyyppi luettelo
 DocType: Event,Ref Type,viite tyyppi
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.","sarake ""nimi"" (tunnus) tulee olla tyhjä mikäli ladatessasi uusia tietueita"
@@ -1845,6 +1848,7 @@ DocType: Feed,Feed,palaute
 DocType: ToDo,Reference Type,viite tyyppi
 DocType: Event,Repeat On,Toista
 DocType: Communication,Marked As Spam,Merkitty roskapostiksi
+apps/frappe/frappe/utils/file_manager.py +321,There is some problem with the file url: {0},On joitakin ongelmia tiedosto url: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,käyttäjän käyttöoikeudet
 apps/frappe/frappe/desk/page/activity/activity.js +153,Oct,Lokakuu
 DocType: Workflow State,warning-sign,varoitus-merkki
@@ -1905,13 +1909,13 @@ DocType: Print Format,Edit Format,muokkaa muotoa
 apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,rekisteröinti suoritettu loppuun
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,ylävalikon väri ja tekstin väri ovat samat niissä tulee olla iso kontrasti jotta teksi on luettavissa
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),voit ladata enintään 5000 tietueitta kerralla. (vähemmän joissakin tapauksissa)
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +542,Report was not saved (there were errors),raporttia ei tallenneta (oli virheitä)
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +545,Report was not saved (there were errors),raporttia ei tallenneta (oli virheitä)
 DocType: Print Settings,Print Style,Tulosta Style
 DocType: DocPerm,Import,tuonti
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,rivi {0}: peruskentissä ei ole sallittua aktivoida salli lähetettäessä
 apps/frappe/frappe/config/setup.py +90,Import / Export Data,tuo / vie tietoa
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},päivitetty {0}
-apps/frappe/frappe/public/js/legacy/form.js +168,Cannot print cancelled documents,peruttua asiakirjaa ei voi tulostaa
+apps/frappe/frappe/public/js/legacy/form.js +169,Cannot print cancelled documents,peruttua asiakirjaa ei voi tulostaa
 DocType: User,Desktop Background,Työpöydän taustakuvaksi
 DocType: Workflow State,chevron-right,välimerkki-oikea
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +159,"Change type of field. (Currently, Type change is \
@@ -1924,10 +1928,10 @@ DocType: Website Settings,Brand HTML,brändin HTML
 apps/frappe/frappe/templates/includes/login/login.js +19,Both login and password required,käyttäjätunnus ja salasana vaaditaan
 apps/frappe/frappe/model/document.py +430,Please refresh to get the latest document.,Päivitä saada viimeisimmät asiakirjan.
 DocType: User,Security Settings,turva asetukset
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Add Column,Lisää sarake
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +617,Add Column,Lisää sarake
 ,Desktop,työpöytä
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,"teksti linkki verkkosivulle näytetään jos tällä lomakkeella on verkkosivu, linkin reitti muodostuu automaattisesti tyyliin `sivu_nimi` ja` emo_verkkosivu_reitti`"
-apps/frappe/frappe/public/js/frappe/form/control.js +1250,Please set {0} first,Aseta {0} Ensimmäinen
+apps/frappe/frappe/public/js/frappe/form/control.js +1258,Please set {0} first,Aseta {0} Ensimmäinen
 DocType: Dropbox Backup,Send Backups to Dropbox,lähetä varmuuskopiot Dropbox:iin
 DocType: Patch Log,Patch,Läikkä
 DocType: Async Task,Failed,Epäonnistui
@@ -1936,8 +1940,6 @@ DocType: Web Form,Allow Comments,Salli kommentit
 DocType: User,Background Style,taustan tyyli
 DocType: System Settings,mm-dd-yyyy,kk-pp-vvvv
 apps/frappe/frappe/desk/doctype/feed/feed.py +93,{0} logged in,{0} kirjautui sisään
-DocType: Workflow,"All possible Workflow States and roles of the workflow. 
-Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","kaikki mahdolliset työmäärätilat ja työroolivaihtoehdot: 0 on ""tallennettu"", 1 ""lähetetty"" ja 2 ""peruttu"""
 apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,Kirjautumistunnuksesi on
 DocType: Dropbox Backup,Send Notifications To,lähetä ilmoituksia
 DocType: DocField,Ignore User Permissions,ohita käyttäjäoikeudet

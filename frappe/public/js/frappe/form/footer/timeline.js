@@ -28,6 +28,10 @@ frappe.ui.form.Comments = Class.extend({
 				}
 			});
 
+		this.input.keydown("meta+return ctrl+return", function(e) {
+			me.button.trigger("click");
+		});
+
 		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
 			.on("change", function() {
 				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));

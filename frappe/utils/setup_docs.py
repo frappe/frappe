@@ -429,7 +429,11 @@ class setup_docs(object):
 edit_link = '''
 <div class="page-container">
 	<div class="page-content">
-	<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">
-		Improve this page</a>
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">
+			Improve this page
+		</a>
+	</div>
 	</div>
 </div>'''

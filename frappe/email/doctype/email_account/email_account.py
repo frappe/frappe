@@ -146,14 +146,19 @@ class EmailAccount(Document):
 		self.db_set("enable_incoming", 0)
 
 		for user in get_system_managers(only_name=True):
-			assign_to.add({
-				'assign_to': user,
-				'doctype': self.doctype,
-				'name': self.name,
-				'description': description,
-				'priority': 'High',
-				'notify': 1
-			})
+			try:
+				assign_to.add({
+					'assign_to': user,
+					'doctype': self.doctype,
+					'name': self.name,
+					'description': description,
+					'priority': 'High',
+					'notify': 1
+				})
+			except assign_to.DuplicateToDoError:
+				frappe.message_log.pop()
+				pass
+
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""

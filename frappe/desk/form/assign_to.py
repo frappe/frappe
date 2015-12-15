@@ -8,6 +8,8 @@ import frappe
 from frappe import _
 from frappe.desk.form.load import get_docinfo
 
+class DuplicateToDoError(frappe.ValidationError): pass
+
 def get(args=None):
 	"""get assigned to"""
 	if not args:
@@ -36,8 +38,7 @@ def add(args=None):
 	if frappe.db.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		and owner=%(assign_to)s""", args):
-		frappe.msgprint(_("Already in user's To Do list"), raise_exception=True)
-		return
+		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 
 	else:
 		from frappe.utils import nowdate
