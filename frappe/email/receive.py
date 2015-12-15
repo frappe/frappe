@@ -76,6 +76,9 @@ class EmailServer:
 			return True
 
 		except _socket.error:
+			# log performs rollback and logs error in scheduler log
+			log("receive.connect_pop")
+
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
