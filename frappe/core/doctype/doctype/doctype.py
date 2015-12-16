@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 
 import re
 import frappe
+import unicodedata
+
 from frappe import _
 
 from frappe.utils import now, cint
@@ -14,6 +16,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
+
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -81,7 +84,7 @@ class DocType(Document):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
 					if d.label:
-						d.fieldname = d.label.strip().lower().replace(' ','_')
+						d.fieldname = normalize_unicode(d.label).strip().lower().replace(' ','_')
 						if d.fieldname in restricted:
 							d.fieldname = d.fieldname + '1'
 					else:
@@ -524,3 +527,7 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
+
+def normalize_unicode(label):
+	data = unicodedata.normalize_fieldname('NFKD', string)
+	return ''.join(c for c in data if not unicodedata.combining(c))
