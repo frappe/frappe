@@ -26,6 +26,7 @@
    "oldfieldtype": "Data", 
    "permlevel": 0, 
    "print_hide": 0, 
+   "print_hide_if_no_value": 0, 
    "read_only": 0, 
    "report_hide": 0, 
    "reqd": 1, 
@@ -48,6 +49,7 @@
    "no_copy": 0, 
    "permlevel": 0, 
    "print_hide": 0, 
+   "print_hide_if_no_value": 0, 
    "read_only": 0, 
    "report_hide": 0, 
    "reqd": 0, 
@@ -70,6 +72,7 @@
    "no_copy": 0, 
    "permlevel": 0, 
    "print_hide": 0, 
+   "print_hide_if_no_value": 0, 
    "read_only": 0, 
    "report_hide": 0, 
    "reqd": 0, 
@@ -92,6 +95,7 @@
    "no_copy": 0, 
    "permlevel": 0, 
    "print_hide": 0, 
+   "print_hide_if_no_value": 0, 
    "read_only": 0, 
    "report_hide": 0, 
    "reqd": 0, 
@@ -110,7 +114,8 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2015-11-16 06:29:43.937722", 
+ "menu_index": 0, 
+ "modified": "2015-12-16 02:12:12.092442", 
  "modified_by": "Administrator", 
  "module": "Geo", 
  "name": "Country", 
@@ -158,5 +163,7 @@
   }
  ], 
  "read_only": 0, 
- "read_only_onload": 0
+ "read_only_onload": 0, 
+ "sort_field": "country_name", 
+ "sort_order": "ASC"
 }

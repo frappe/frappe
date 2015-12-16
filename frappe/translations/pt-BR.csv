@@ -50,7 +50,7 @@ apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},V
 apps/frappe/frappe/config/setup.py +211,"Change field properties (hide, readonly, permission etc.)","Alterar as propriedades do campo (esconder , readonly , permissão etc )"
 DocType: Workflow State,lock,trancar
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,Configurações da Página Fale Conosco.
-apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,Administrador logado
+apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,Administrador logou-se
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opções de contato, como ""Perguntas sobre Vendas, Perguntas de suporte"", etc cada uma em uma nova linha ou separadas por vírgulas."
 apps/frappe/frappe/public/js/frappe/ui/editor.js +448,Insert,Insert
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +21,Select {0},Selecione {0}
@@ -1681,7 +1681,7 @@ apps/frappe/frappe/public/js/frappe/views/pageview.js +110,Sorry! You are not pe
 DocType: Workflow State,bell,sino
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +39,Share this document with,Compartilhe este documento com
 apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,Jun.
-apps/frappe/frappe/utils/nestedset.py +235,{0} {1} cannot be a leaf node as it has children,"{0} {1} não pode ser um nó de folha , uma vez que tem filhos"
+apps/frappe/frappe/utils/nestedset.py +235,{0} {1} cannot be a leaf node as it has children,"{0} {1} não pode ser um nó de extremidade , uma vez que tem filhos"
 DocType: Feed,Info,Informações
 DocType: Communication,Series,série
 DocType: Communication,Email,Email
