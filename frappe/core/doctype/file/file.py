@@ -164,7 +164,7 @@ class File(NestedSet):
 			else:
 				try:
 					image, filename, extn = get_web_image(self.file_url)
-				except (requests.exceptions.HTTPError, requests.exceptions.SSLError):
+				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
 			thumbnail = ImageOps.fit(
