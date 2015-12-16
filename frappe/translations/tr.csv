@@ -395,7 +395,7 @@ DocType: File,Content Hash,İçerik Hash
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,"Mağazalar, çeşitli yüklü uygulamalar bilinen en son sürümlerinin JSON. Bu sürüm notları göstermek için kullanılır."
 DocType: Website Theme,Google Font (Text),Google Font (Yazı)
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} zaten {1} {2} aboneliğinden çıktı
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,Kaldırmak değildi
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,Kaldırılamaz
 DocType: Report,Query,Sorgu
 DocType: DocType,Sort Order,Sıralama
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +137,'In List View' not allowed for type {0} in row {1},'Liste görüntüle' izin türü için {0} üst üste {1}
@@ -1035,7 +1035,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +62,Assignment Comp
 DocType: DocPerm,User Permission DocTypes,Belge Türüne Göre Kullanıcı İzni
 apps/frappe/frappe/public/js/frappe/model/model.js +488,New Name,Yeni Adı
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +136,Please save the document before removing assignment,Atama çıkarmadan önce belgeyi saklayınız
-apps/frappe/frappe/public/js/frappe/form/grid_form.html +10,Insert Above,Ekle Üstü
+apps/frappe/frappe/public/js/frappe/form/grid_form.html +10,Insert Above,Yukarı Ekle
 apps/frappe/frappe/public/js/frappe/model/indicator.js +30,Draft,Taslak
 apps/frappe/frappe/public/js/frappe/model/indicator.js +30,Draft,Taslak
 DocType: User,Female,Kadın

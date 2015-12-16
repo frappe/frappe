@@ -1,17 +1,17 @@
 ar	العربية
 bg	bǎlgarski
+bn	বাংলা
 bo	ལྷ་སའི་སྐད་
 bs	bosanski
-bn	বাংলা
 ca	català
 cs	česky
 da	dansk
 da-DK	 dansk (Danmark)
 de	deutsch
 el	ελληνικά
+en	english
 es	español
 es-PE	 Español (Perú)
-en	english
 fa	پارسی
 fi	suomalainen
 fr	français
@@ -26,10 +26,11 @@ km	ភាសាខ្មែរ
 kn	ಕನ್ನಡ
 ko	한국의
 lv	latviešu valoda
-mr	मराठी
 mk	македонски
-my	မြန်မာ
+ml	മലയാളം
+mr	मराठी
 ms	Melayu
+my	မြန်မာ
 nl	nederlands
 no	norsk
 pl	polski
