@@ -44,5 +44,5 @@ If you are customizing Print templates, you need to learn the [Jinja Templating 
 
 ---
 
-When you are ready, [try building a sample application on Frappe](/tutorial/app)
+When you are ready, [try building a sample application on Frappe]({{ docs_base_url }}/user/tutorial/app)
 
