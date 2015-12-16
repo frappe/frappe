@@ -87,12 +87,18 @@ def json_handler(obj):
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return unicode(obj)
+
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
+
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
 
 		return doc
+
+	elif type(obj)==type or isinstance(obj, Exception):
+		return repr(obj)
+
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))

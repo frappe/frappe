@@ -1,5 +1,5 @@
 frappe.listview_settings["Error Snapshot"] = {
-    add_fields: ["parent_snapshot", "relapses", "seen"],
+    add_fields: ["parent_error_snapshot", "relapses", "seen"],
     filters:[
         ["parent_error_snapshot","=",null],
         ["seen", "=", false]
@@ -10,6 +10,5 @@ frappe.listview_settings["Error Snapshot"] = {
         } else {
             return [__("First Level"), !doc.seen ? "red" : "green", "parent_error_snapshot,=,"];
         }
-    },
-    order_by: "relapses desc"
+    }
 }

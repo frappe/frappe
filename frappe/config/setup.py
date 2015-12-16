@@ -78,6 +78,11 @@ def get_data():
 					"name": "Scheduler Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
+				{
+					"type": "doctype",
+					"name": "Error Snapshot",
+					"description": _("Log of error during requests.")
+				},
 			]
 		},
 		{

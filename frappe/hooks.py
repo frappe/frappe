@@ -119,7 +119,7 @@ scheduler_events = {
 		"frappe.email.bulk.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.tasks.collect_tickets",
+		"frappe.utils.error.collect_error_snapshots",
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",

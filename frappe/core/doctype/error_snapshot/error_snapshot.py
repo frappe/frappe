@@ -9,20 +9,17 @@ from frappe.model.document import Document
 class ErrorSnapshot(Document):
 	def onload(self):
 		if not self.parent_error_snapshot:
-			self.seen = True
+			self.db_set('seen', True, update_modified=False)
 
-			frappe.db.set_value("Error Snapshot", self.name, "seen", True)
+			for relapsed in frappe.get_all("Error Snapshot", filters={"parent_error_snapshot": self.name}):
+				frappe.db.set_value("Error Snapshot", relapsed.name, "seen", True, update_modified=False)
 
-			for relapsed in frappe.db.get_list("Traceback", filters=[[
-				"Error Snapshot", "parent_error_snapshot", "=", self.name]]):
-				frappe.db.set_value("error_snapshot", relapsed["name"], "seen", True)
-
-			frappe.db.commit()
+			frappe.local.flags.commit = True
 
 	def validate(self):
-		parent = frappe.get_list('Error Snapshot', filters=[
-			['Error Snapshot', 'evalue', '=', self.evalue],
-			['Error Snapshot', 'parent_error_snapshot', '=', None]], fields=["name", "relapses", "seen"])
+		parent = frappe.get_all("Error Snapshot",
+			filters={"evalue": self.evalue, "parent_error_snapshot": ""},
+			fields=["name", "relapses", "seen"], limit_page_length=1)
 
 		if parent:
 			parent = parent[0]
