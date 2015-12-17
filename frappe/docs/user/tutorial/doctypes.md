@@ -34,11 +34,14 @@ You can also set other properties of the field like whether it is mandatory, rea
 We can add the following fields:
 
 1. Article Name (Data)
-1. Author (Data)
-1. Status (Select): For Select fields, you will enter the Options. Enter **Issued** and **Available** each on a new line in the Options box. See diagram below
-1. Publisher (Data)
-1. Language (Data)
-1. Image (Attach Image)
+2. Author (Data)
+3. Description
+4. ISBN
+5. Status (Select): For Select fields, you will enter the Options. Enter **Issued** and **Available** each on a new line in the Options box. See diagram below
+6. Publisher (Data)
+7. Language (Data)
+8. Image (Attach Image)
+
 
 #### Add Permissions
 
