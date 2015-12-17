@@ -4,7 +4,7 @@ After creating the Roles, let us create the **DocTypes**
 
 To create a new **DocType**, go to:
 
-> Core > Documents > Doctype > New
+> Developer > Documents > Doctype > New
 
 <img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
 
