@@ -1,7 +1,7 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +225,Press Esc to close,Esc tuşuna basın kapatmak için
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","Yeni bir görev, {0}, {1} tarafından size atanmıştır. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Gönder
-apps/frappe/frappe/config/setup.py +104,Rename many items by uploading a .csv file.,Bir. Csv dosyası yükleyerek birçok öğe yeniden adlandırın.
+apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,Bir. Csv dosyası yükleyerek birçok öğe yeniden adlandırın.
 DocType: Workflow State,pause,durma
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,Bu sayfaya erişmek için izniniz yok.
 DocType: About Us Settings,Website,Web sitesi
@@ -48,7 +48,7 @@ apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You nee
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,Gibi değil
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Set the display label for the field,Alan için ekran etiketi ayarlayın
 apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},Yanlış değeri: {0} olmalı {1} {2}
-apps/frappe/frappe/config/setup.py +211,"Change field properties (hide, readonly, permission etc.)","Değişim alan özellikleri (sakla, salt okunur, izin vb)"
+apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","Değişim alan özellikleri (sakla, salt okunur, izin vb)"
 DocType: Workflow State,lock,kilitlemek
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,İletişim Sayfası Ayarları
 apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,Yönetici Giriş Yaptı
@@ -72,7 +72,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To impor
 DocType: DocType,Default Print Format,Varsayılan Yazdırma Biçimi
 DocType: Workflow State,Tags,Etiketler
 apps/frappe/frappe/public/js/frappe/form/workflow.js +33,None: End of Workflow,Hiçbiri: İş Akışı sonu
-apps/frappe/frappe/model/db_schema.py +315,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{1} içinde {0} eşsiz olarak ayarlanamaz, çünkü bir çok normal değer girilmiş"
+apps/frappe/frappe/model/db_schema.py +320,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{1} içinde {0} eşsiz olarak ayarlanamaz, çünkü bir çok normal değer girilmiş"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,Belge Türleri
 DocType: Workflow,Workflow State Field,İş Akışı Durumu Tarla
 DocType: Blog Post,Guest,Konuk
@@ -93,6 +93,7 @@ apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages
 DocType: Workflow Action,Workflow Action Name,İş Akışı Eylem Adı
 apps/frappe/frappe/core/doctype/doctype/doctype.py +145,DocType can not be merged,DocType birleştirilmiş olamaz
 DocType: Web Form Field,Fieldtype,FIELDTYPE
+DocType: Error Snapshot,Friendly Title,Dost Başlığı
 apps/frappe/frappe/desk/form/save.py +46,Did not cancel,Iptal edilmedi
 DocType: Workflow State,plus,artı
 apps/frappe/frappe/config/desktop.py +10,File Manager,Dosya Yöneticisi
@@ -140,7 +141,7 @@ DocType: Workflow State,Comment,Yorum yap
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","Onları değiştiren, daha sonra bunları iptal ve Ekleyen belgeleri değiştirebilirsiniz."
 DocType: DocField,Display,Görüntü
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Rol 0 düzeyinde erişimi yoksa, daha yüksek seviyeler anlamsızdır."
-DocType: Scheduler Log,Seen,Görülme
+DocType: Error Snapshot,Seen,Görülme
 apps/frappe/frappe/public/js/frappe/form/layout.js +85,Show more details,Daha fazla ayrıntı göster
 DocType: System Settings,Run scheduled jobs only if checked,Kontrol yalnızca zamanlanmış işlerini
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".","Varsayılan değer alanları (tuşlar) ve değerlerini girin. Bir alan için birden fazla değer eklerseniz, ilki alınacak. Bu varsayılan ayrıca &quot;maç&quot; izni kuralları ayarlamak için kullanılır. Alanların listesini görmek için, &quot;Özelleştir Formu&quot; gidin."
@@ -163,7 +164,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Örneğin:
 DocType: Workflow,Defines workflow states and rules for a document.,Bir belge için iş akışı durumları ve kuralları tanımlar.
 DocType: Workflow State,Filter,filtre
 DocType: DocType,Show this field as title,Başlık olarak bu alanı göster
-apps/frappe/frappe/model/db_schema.py +521,Fieldname {0} cannot have special characters like {1},Fieldname {0} gibi özel karakterleri olamaz {1}
+apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},Fieldname {0} gibi özel karakterleri olamaz {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,Dil Seçiniz
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,Dil Seçiniz
 apps/frappe/frappe/model/document.py +428,Error: Document has been modified after you have opened it,Hata: Bunu açtıktan sonra Belge modifiye edilmiştir
@@ -379,7 +380,7 @@ DocType: User,Send Welcome Email,Hoşgeldiniz E-postası Gönder
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,İndirme olarak aynı formatta tüm kullanıcı izinleri içeren CSV dosyasını yükleyin.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +360,Remove Filter,Filtre kaldır
 DocType: Feed,Doc Name,Doküman adı
-apps/frappe/frappe/config/setup.py +103,Bulk Rename,Toplu Rename
+apps/frappe/frappe/config/setup.py +108,Bulk Rename,Toplu Rename
 DocType: DocField,Heading,Başlık
 DocType: Workflow State,resize-vertical,resize-vertical
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,İletişim Sayfası için gerekli bilgiler
@@ -424,7 +425,7 @@ DocType: DocShare,Everyone,Herkes
 DocType: Workflow State,backward,geri
 apps/frappe/frappe/core/doctype/doctype/doctype.py +429,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}: Aynı Rolü Düzey ile izin Sadece bir kural {1}
 DocType: Workflow State,share,paylaş
-apps/frappe/frappe/config/setup.py +97,Set numbering series for transactions.,Işlemler için seri numaralandırma ayarlayın.
+apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,Işlemler için seri numaralandırma ayarlayın.
 DocType: User,Last IP,Son IP
 DocType: DocPerm,Filter records based on User Permissions defined for a user,Bir kullanıcı için kullanıcı tanımlı İzinler dayanmaktadır filtre kayıtları
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),Resmi takın (ya da sadece sürükleyip & bırakabilirsiniz)
@@ -468,7 +469,7 @@ DocType: Contact Us Settings,Address Line 1,Adres Satırı 1
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,Şubat
 DocType: DocPerm,Role,Rol
 apps/frappe/frappe/utils/data.py +385,Cent,Sent
-apps/frappe/frappe/config/setup.py +171,"States for workflow (e.g. Draft, Approved, Cancelled).","Iş akışı için Devletler (örneğin Taslak, Onaylı, İptal)."
+apps/frappe/frappe/config/setup.py +176,"States for workflow (e.g. Draft, Approved, Cancelled).","Iş akışı için Devletler (örneğin Taslak, Onaylı, İptal)."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,Set Miktarı
 DocType: Comment,Unsubscribed,Kaydolmamış
 ,Data Import Tool,Veri Alma Aracı
@@ -525,7 +526,7 @@ apps/frappe/frappe/public/js/legacy/form.js +865,No permission to '{0}' {1},Izni
 DocType: User,Google User ID,Google Kullanıcı Kimliği
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,"Bu yöntem, yalnızca açıklama oluşturmak için kullanılabilir"
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,Hayır {0} bulundu
-apps/frappe/frappe/config/setup.py +227,Add custom forms.,Özelleştirilmiş formlar ekle
+apps/frappe/frappe/config/setup.py +232,Add custom forms.,Özelleştirilmiş formlar ekle
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistem birçok önceden tanımlı roller sağlar. Sen ince izinlerini ayarlamak için yeni roller ekleyebilir.
 DocType: Country,Geo,Geo
 apps/frappe/frappe/desk/page/applications/applications.js +46,Domains,Alanlar
@@ -589,7 +590,7 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age>18","Burada tanımlanan AlanAdı değeri vardır YA kurallar gerçek (örnekler) yalnızca, bu alan belirecektir: myField eval: doc.myfield == &#39;Benim Değeri&#39; eval: doc.age&gt; 18"
 DocType: File,Attached To Name,Adı için Eklenmiş
-apps/frappe/frappe/email/receive.py +88,Invalid User Name or Support Password. Please rectify and try again.,Geçersiz Kullanıcı Adı veya Şifre Destek. Lütfen Düzeltin ve tekrar deneyin.
+apps/frappe/frappe/email/receive.py +91,Invalid User Name or Support Password. Please rectify and try again.,Geçersiz Kullanıcı Adı veya Şifre Destek. Lütfen Düzeltin ve tekrar deneyin.
 DocType: Email Account,Login Id is Different,Giriş Kimliği Farklıdır
 DocType: Email Account,Yahoo Mail,Yahoo E-Posta
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,Kayıt Edildi!
@@ -631,7 +632,7 @@ DocType: Dropbox Backup,Dropbox Backup,Dropbox Yedekleme
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Linkler için, aralığı olarak DOCTYPE girin. Seç, her yeni bir hat üzerinde, Seçenekler listesine girmek."
 DocType: Workflow State,film,film
-apps/frappe/frappe/model/db_query.py +330,No permission to read {0},Hiçbir izni okumak için {0}
+apps/frappe/frappe/model/db_query.py +329,No permission to read {0},Hiçbir izni okumak için {0}
 apps/frappe/frappe/config/desk.py +7,Tools,Araçlar
 apps/frappe/frappe/config/desk.py +7,Tools,Araçlar
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,Çoklu kök düğümler izin verilmiyor.
@@ -723,8 +724,8 @@ DocType: DocPerm,If user is the owner,Kullanıcı sahibi ise
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Yardım: sistemindeki başka bir kayda bağlamak için, ""# Form / Not / [İsim Not]"" Bağlantı URL olarak kullanın. (""Http://"" kullanmayın)"
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Yardım: sistemindeki başka bir kayda bağlamak için, ""# Form / Not / [İsim Not]"" Bağlantı URL olarak kullanın. (""Http://"" kullanmayın)"
 DocType: Communication,Delayed,Gecikmiş
-apps/frappe/frappe/config/setup.py +111,List of backups available for download,Yüklenebilir yedekleme listesi
-apps/frappe/frappe/config/setup.py +217,Add fields to forms.,Formlara ekstra alan ekleme.
+apps/frappe/frappe/config/setup.py +116,List of backups available for download,Yüklenebilir yedekleme listesi
+apps/frappe/frappe/config/setup.py +222,Add fields to forms.,Formlara ekstra alan ekleme.
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,Bu sayfaya erişmek için giriş yapmış olmanız gerekiyor.
 DocType: Workflow State,leaf,yaprak
@@ -780,7 +781,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +306,Add A New
 DocType: Workflow Transition,Next State,Next State
 apps/frappe/frappe/public/js/frappe/ui/editor.html +56,Align Left (Ctrl/Cmd+L),Sol (Ctrl / Cmd + L) hizalayın
 DocType: User,Block Modules,Blok Modülleri
-apps/frappe/frappe/model/db_schema.py +127,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Için uzunluğu dönülüyor {0} için &#39;{1}&#39; in &#39;{2}&#39;; Uzunluğunun ayarlanması {3} kesilmesi veri neden olacaktır.
+apps/frappe/frappe/model/db_schema.py +132,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Için uzunluğu dönülüyor {0} için &#39;{1}&#39; in &#39;{2}&#39;; Uzunluğunun ayarlanması {3} kesilmesi veri neden olacaktır.
 DocType: Print Format,Custom CSS,Özel CSS
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +3,Add a comment,Yorum ekle
 apps/frappe/frappe/model/rename_doc.py +359,Ignored: {0} to {1},Yok Sayılan: {0} için {1}
@@ -902,13 +903,13 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +81,"Import Re
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,No Permissions set for this criteria.
 DocType: Custom Field,Custom,Özel
 DocType: Custom Field,Custom,Özel
-apps/frappe/frappe/config/setup.py +128,Setup Email Alert based on various criteria.,Kur-posta Uyarısı çeşitli kriterlere dayalı.
+apps/frappe/frappe/config/setup.py +133,Setup Email Alert based on various criteria.,Kur-posta Uyarısı çeşitli kriterlere dayalı.
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93,Posts filed under {0},Filed under Mesajlar {0}
 DocType: Email Alert,Send alert if date matches this field's value,Tarih bu alanın değerini eşleşirse uyarı gönder
 DocType: Workflow,Transitions,Geçişler
 DocType: User,Login After,Sonra yap
 DocType: Print Format,Monospace,Monospace
-apps/frappe/frappe/config/setup.py +138,Printing,Baskı
+apps/frappe/frappe/config/setup.py +143,Printing,Baskı
 DocType: Workflow State,thumbs-up,thumbs-up
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,Cevap ekle
 DocType: DocPerm,DocPerm,DocPerm
@@ -1096,7 +1097,7 @@ apps/frappe/frappe/public/js/frappe/model/indicator.js +43,Submitted,Tanzim Edil
 apps/frappe/frappe/public/js/frappe/model/indicator.js +43,Submitted,Tanzim Edildi
 DocType: System Settings,Email Footer Address,E-posta Adresi Altbilgi
 DocType: DocField,Text,Metin
-apps/frappe/frappe/config/setup.py +133,Standard replies to common queries.,Standart ortak sorgulara cevap.
+apps/frappe/frappe/config/setup.py +138,Standard replies to common queries.,Standart ortak sorgulara cevap.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +31,Report an Issue,Hata Bildir
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,Standart gönderme
 DocType: Workflow State,volume-off,sesi-kapa
@@ -1119,7 +1120,7 @@ DocType: Workflow State,Upload,Karşıya Yükle
 DocType: System Settings,Date Format,Tarih Biçimi
 DocType: System Settings,Date Format,Tarih Biçimi
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,Yayınlandı değil
-apps/frappe/frappe/config/setup.py +176,"Actions for workflow (e.g. Approve, Cancel).","İş akışı için eylemler (örneğin İptal, Onayla)."
+apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Cancel).","İş akışı için eylemler (örneğin İptal, Onayla)."
 DocType: Workflow State,flag,bayrak
 DocType: Web Page,Text Align,Metin Hizala
 DocType: Contact Us Settings,Forward To Email Address,İleri E-posta Adresi
@@ -1152,7 +1153,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh F
 DocType: DocField,Select,Seç
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,Dosya bağlı değil
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Bu ayarlarsanız, bu Ürün seçilen ebeveyn altında açılan gelecektir."
-apps/frappe/frappe/model/db_query.py +442,Please select atleast 1 column from {0} to sort,{0} sıralamak den en az 1 sütun seçin
+apps/frappe/frappe/model/db_query.py +440,Please select atleast 1 column from {0} to sort,{0} sıralamak den en az 1 sütun seçin
 apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},Yolda bulunamadı şablon: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","En Bar&#39;da menü öğeleri. Top Bar rengini ayarlamak için, seçilen Web Sitesi Tema gidin."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,İçe aktardıktan sonra kayıta gir.
@@ -1239,7 +1240,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +10,Not equals,E
 DocType: Website Script,Script to attach to all web pages.,Senaryo tüm web sayfalarına eklemek için.
 DocType: Web Form,Allow Multiple,Birden izin
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +19,Assign,Atamak
-apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,Veriyi  csv formatında içeri veya dışarı aktar.
+apps/frappe/frappe/config/setup.py +97,Import / Export Data from .csv files.,Veriyi  csv formatında içeri veya dışarı aktar.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +62,You are not allowed to create / edit reports,Rapor oluşturmak ve düzenlemek için yetkiniz yok
 DocType: Workflow State,Icon will appear on the button,Simge düğmesi görünecektir
 DocType: Website Settings,Website Settings,Web Sitesi Ayarları
@@ -1289,12 +1290,12 @@ DocType: DocType,In Dialog,Diyalog
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +143,Help,Yardım
 DocType: User,Login Before,Önce Giriş
 DocType: Web Page,Insert Style,Stil ekleme
-apps/frappe/frappe/config/setup.py +187,Application Installer,Application Installer
+apps/frappe/frappe/config/setup.py +192,Application Installer,Application Installer
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Is,Mı
 DocType: Workflow State,info-sign,info-sign
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Bu para birimi nasıl biçimlendirilmelidir? Ayarlanmamışsa, sistem varsayılanı kullanacaktır."
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,Göster Kullanıcı İzinleri
-apps/frappe/frappe/utils/response.py +111,You need to be logged in and have System Manager Role to be able to access backups.,Yedek almak için sisteme giriş yapmalı ve sistem yöneticisi rolüne sahip olmalısınız.
+apps/frappe/frappe/utils/response.py +117,You need to be logged in and have System Manager Role to be able to access backups.,Yedek almak için sisteme giriş yapmalı ve sistem yöneticisi rolüne sahip olmalısınız.
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,Takmadan önce tasarruf edin.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),Eklenen {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},Alan Türleri {0} değiştirilemez {1} üste {2}
@@ -1358,7 +1359,7 @@ apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer an
 apps/frappe/frappe/core/doctype/doctype/doctype.py +408,For {0} at level {1} in {2} in row {3},Için {0} düzeyde {1} {2} tane üst üste {3}
 DocType: Page,All,Tümü
 DocType: Bulk Email,Recipient,Alıcı
-apps/frappe/frappe/config/setup.py +145,Drag and Drop tool to build and customize Print Formats.,Sürükle ve Bırak aracı inşa etmek ve Baskı Biçimleri özelleştirmek için.
+apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,Sürükle ve Bırak aracı inşa etmek ve Baskı Biçimleri özelleştirmek için.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,Genişlet
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,Ayarla
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,Ayarla
@@ -1395,7 +1396,7 @@ DocType: Email Account,Signature,İmza
 apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,Ile paylaş
 apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,Ile paylaş
 apps/frappe/frappe/core/doctype/user/user.js +130,Loading,Yükleme
-apps/frappe/frappe/config/setup.py +194,"Enter keys to enable login via Facebook, Google, GitHub.","Facebook, Google, GitHub üzerinden oturum açmayı etkinleştirme anahtarlarını girin."
+apps/frappe/frappe/config/setup.py +199,"Enter keys to enable login via Facebook, Google, GitHub.","Facebook, Google, GitHub üzerinden oturum açmayı etkinleştirme anahtarlarını girin."
 apps/frappe/frappe/public/js/frappe/ui/tags.js +21,Add a tag,Bir etiket ekle
 apps/frappe/frappe/public/js/frappe/form/control.js +975,Please attach a file first.,Önce bir dosya ekleyiniz.
 apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","Adını ayarı bazı hatalar vardı, yöneticinizle irtibata geçiniz"
@@ -1461,7 +1462,7 @@ DocType: Blog Post,Blog Post,Blog postası
 apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,Gelişmiş Arama
 apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,Parola sıfırlama bilgileri e-posta gönderildi
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,Sırala
-apps/frappe/frappe/config/setup.py +199,Manage cloud backups on Dropbox,Dropbox üzerinde bulut yedekleme Yönet
+apps/frappe/frappe/config/setup.py +204,Manage cloud backups on Dropbox,Dropbox üzerinde bulut yedekleme Yönet
 DocType: Workflow,States,Devletler
 DocType: Email Alert,Attach Print,Yazdır takın
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Eğer sonra iptal ve bunu kaydetmek Belgeyi Amend zaman, eski sayısının bir versiyonu yeni bir numara almak olacaktır."
@@ -1485,7 +1486,7 @@ DocType: Country,Time Zones,Saat Dilimleri
 DocType: DocField,Image,Resim
 DocType: DocField,Image,Resim
 DocType: Workflow State,remove-sign,remove-sign
-apps/frappe/frappe/config/setup.py +166,Define workflows for forms.,Formlar için iş akışlarını tanımlayın.
+apps/frappe/frappe/config/setup.py +171,Define workflows for forms.,Formlar için iş akışlarını tanımlayın.
 DocType: Communication,Other,Diğer
 DocType: Communication,Other,Diğer
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +156,Start new Format,Yeni Format başlat
@@ -1523,7 +1524,7 @@ DocType: Website Settings,Website Theme,Web Sitesi Tema
 DocType: DocField,In List View,Liste Görünümü
 DocType: Email Account,Use TLS,TLS kullanın
 apps/frappe/frappe/email/smtp.py +35,Invalid login or password,Geçersiz giriş ya da şifre
-apps/frappe/frappe/config/setup.py +222,Add custom javascript to forms.,Formlara özel javascript ekle.
+apps/frappe/frappe/config/setup.py +227,Add custom javascript to forms.,Formlara özel javascript ekle.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +297,Sr No,Sr Hayır
 ,Role Permissions Manager,Rol İzinler Müdürü
 DocType: Website Theme,This must be checked if the below style settings are applicable,"Aşağıdaki stil ayarları uygulanabilir değilse, bu kontrol edilmelidir"
@@ -1641,7 +1642,7 @@ DocType: DocField,Column Break,Sütun Arası
 DocType: DocField,Column Break,Sütun Arası
 DocType: Event,Thursday,Perşembe
 DocType: Event,Thursday,Perşembe
-apps/frappe/frappe/utils/response.py +121,You don't have permission to access this file,Bu dosyaya erişmek izniniz yok
+apps/frappe/frappe/utils/response.py +127,You don't have permission to access this file,Bu dosyaya erişmek izniniz yok
 apps/frappe/frappe/model/document.py +524,Cannot link cancelled document: {0},İptal belgeyi bağlantı Can not: {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +579,"For example: If you want to include the document ID, use {0}","Örneğin: Belge Kimliği eklemek istiyorsanız, kullanmak {0}"
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +482,Select Table Columns for {0},Için Tablo Seç Sütunlar {0}
@@ -1754,7 +1755,7 @@ DocType: Web Form,Web Form,Web Formu
 DocType: About Us Settings,Org History Heading,Org Tarih Başlık
 DocType: Communication,Integrations can use this field to set email delivery status,Entegrasyonlar e-posta dağıtım durumunu ayarlamak için bu alanı kullanabilirsiniz
 DocType: Web Form,Web Page Link Text,Web Sayfası Bağlantı Metni
-apps/frappe/frappe/config/setup.py +150,"Set default format, page size, print style etc.","Set varsayılan biçim, sayfa boyutu, baskı tarzı vs"
+apps/frappe/frappe/config/setup.py +155,"Set default format, page size, print style etc.","Set varsayılan biçim, sayfa boyutu, baskı tarzı vs"
 DocType: DocType,Naming,Adlandırma
 DocType: Event,Every Year,Her Yıl
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +23,Select All,Tümünü Seç
@@ -1768,7 +1769,7 @@ DocType: DocPerm,Role and Level,Rolü ve Seviye
 DocType: File,Thumbnail URL,Küçük resim URL
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Özel Raporlar
 DocType: Website Script,Website Script,Website Script
-apps/frappe/frappe/config/setup.py +155,Customized HTML Templates for printing transactions.,Baskı işlemleri için özel HTML Şablonları.
+apps/frappe/frappe/config/setup.py +160,Customized HTML Templates for printing transactions.,Baskı işlemleri için özel HTML Şablonları.
 DocType: Workflow,Is Active,Aktif
 apps/frappe/frappe/desk/form/utils.py +92,No further records,Başka bir kayıt
 DocType: DocField,Long Text,Uzun Metin
@@ -1833,7 +1834,7 @@ DocType: Company History,Year,Yıl
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} aralıksız yoktur {1}
 DocType: Event,Event Type,Faaliyet Türü
 DocType: User,Last Known Versions,Son Bilinen Sürümleri
-apps/frappe/frappe/config/setup.py +123,Add / Manage Email Accounts.,E-posta Hesaplarını Ekle / Yönet.
+apps/frappe/frappe/config/setup.py +128,Add / Manage Email Accounts.,E-posta Hesaplarını Ekle / Yönet.
 DocType: Blog Category,Published,Yayınlandı
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,E-postanız için teşekkür ederiz
 DocType: DocField,Small Text,Küçük Metin
@@ -1950,7 +1951,7 @@ DocType: Workflow State,chevron-left,chevron-left
 DocType: Bulk Email,Sending,Gönderme
 apps/frappe/frappe/auth.py +208,Not allowed from this IP Address,Bu IP Adresi izin verilmez
 DocType: Website Slideshow,This goes above the slideshow.,Bu slayt üzerinde gider.
-apps/frappe/frappe/config/setup.py +188,Install Applications.,Uygulamaları yükleyin.
+apps/frappe/frappe/config/setup.py +193,Install Applications.,Uygulamaları yükleyin.
 DocType: User,Last Name,Soyadı
 DocType: Event,Private,Özel
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),PDF olarak Email Print Ekler Gönder (Önerilen)
@@ -2041,7 +2042,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +545,Report was 
 DocType: Print Settings,Print Style,Yazdırma Stili
 DocType: DocPerm,Import,İçe aktar
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,Satır {0}: standart alanlar için Gönder izin etkinleştirmek için izin verilmez
-apps/frappe/frappe/config/setup.py +90,Import / Export Data,İthalat / İhracat Verileri
+apps/frappe/frappe/config/setup.py +95,Import / Export Data,İthalat / İhracat Verileri
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},şuna güncellendi {0}
 apps/frappe/frappe/public/js/legacy/form.js +169,Cannot print cancelled documents,İptal belgeler yazılamıyor.
 DocType: User,Desktop Background,Masaüstü arkaplanı
