@@ -6,6 +6,7 @@ import frappe
 from frappe.utils.scheduler import enqueue_events
 from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX, ASYNC_TASKS_PREFIX
 from frappe.utils import get_sites
+from frappe.utils.error import make_error_snapshot
 from frappe.utils.file_lock import create_lock, delete_lock
 from frappe.handler import execute_cmd
 from frappe.async import set_task_status, END_LINE, get_std_streams
@@ -13,6 +14,8 @@ from frappe.utils.scheduler import log
 import frappe.utils.response
 import sys
 import time
+import json
+import os
 import MySQLdb
 
 @celery_task()
@@ -186,12 +189,17 @@ def run_async_task(self, site=None, user=None, cmd=None, form_dict=None, hijack_
 
 @celery_task()
 def sendmail(site, communication_name, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None, lang=None):
+	recipients=None, cc=None, lang=None, session=None):
 	try:
 		frappe.connect(site=site)
 
 		if lang:
 			frappe.local.lang = lang
+
+		if session:
+			# hack to enable access to private files in PDF
+			session['data'] = frappe._dict(session['data'])
+			frappe.local.session.update(session)
 
 		# upto 3 retries
 		for i in xrange(3):
@@ -230,3 +238,4 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 
 	finally:
 		frappe.destroy()
+

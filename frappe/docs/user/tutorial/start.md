@@ -16,10 +16,11 @@ You can now open your browser and go to `http://localhost:8000`. You should see 
 
 <img class="screenshot" alt="Login Screen" src="{{docs_base_url}}/assets/img/login.png">
 
-Now login as the default user "Administrator"
+Now login with : 
 
 Login ID: **Administrator**
-Password: **admin**
+
+Password : **Use the password that was generated during installation**
 
 When you login, you should see the "Desk" home page
 

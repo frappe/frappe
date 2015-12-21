@@ -15,6 +15,7 @@ es-PE	 Español (Perú)
 fa	پارسی
 fi	suomalainen
 fr	français
+gu	ગુજરાતી
 he	עברית
 hi	हिंदी
 hr	hrvatski

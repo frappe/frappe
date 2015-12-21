@@ -5,7 +5,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.14.1"
+app_version = "6.15.0"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
@@ -119,6 +119,7 @@ scheduler_events = {
 		"frappe.email.bulk.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
+		"frappe.utils.error.collect_error_snapshots",
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",

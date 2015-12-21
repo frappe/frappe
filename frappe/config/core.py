@@ -50,7 +50,12 @@ def get_data():
 					"type": "doctype",
 					"name": "Bulk Email",
 					"description": _("Background Email Queue"),
-				}
+				},
+				{
+					"type": "doctype",
+					"name": "Error Snapshot",
+					"description": _("A log of request errors"),
+				},
 			]
 		}
 	]
