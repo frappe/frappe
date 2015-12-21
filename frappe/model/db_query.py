@@ -226,7 +226,7 @@ class DatabaseQuery(object):
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
-			values = (frappe.db.escape(v.strip()) for v in values)
+			values = (frappe.db.escape(v.strip(), percent=False) for v in values)
 			values = '("{0}")'.format('", "'.join(values))
 
 			condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
@@ -253,9 +253,9 @@ class DatabaseQuery(object):
 					value = "" if f.value==None else f.value
 					fallback = '""'
 
-					if f.operator == "like" and isinstance(value, basestring):
+					if f.operator in ("like", "not like") and isinstance(value, basestring):
 						# because "like" uses backslash (\) for escaping
-						value = value.replace("\\", "\\\\")
+						value = value.replace("\\", "\\\\").replace("%", "%%")
 
 			else:
 				value = flt(f.value)
@@ -263,14 +263,13 @@ class DatabaseQuery(object):
 
 			# put it inside double quotes
 			if isinstance(value, basestring):
-				value = '"{0}"'.format(frappe.db.escape(value))
+				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 			condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
 				tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
 				value=value)
 
-		# replace % with %% to prevent python format string error
-		return condition.replace("%", "%%")
+		return condition
 
 	def get_filter(self, f):
 		"""Returns a _dict like
@@ -341,7 +340,7 @@ class DatabaseQuery(object):
 
 			if role_permissions.get("if_owner", {}).get("read"):
 				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
-					frappe.db.escape(frappe.session.user)))
+					frappe.db.escape(frappe.session.user, percent=False)))
 
 		if as_condition:
 			conditions = ""
@@ -358,15 +357,14 @@ class DatabaseQuery(object):
 				conditions =  "({conditions}) or ({shared_condition})".format(
 					conditions=conditions, shared_condition=self.get_share_condition())
 
-			# replace % with %% to prevent python format string error
-			return conditions.replace("%", "%%")
+			return conditions
 
 		else:
 			return self.match_filters
 
 	def get_share_condition(self):
 		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["'%s'"] * len(self.shared))) % \
-			tuple([frappe.db.escape(s) for s in self.shared])
+			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
 		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes, user_permissions)
@@ -383,7 +381,7 @@ class DatabaseQuery(object):
 				if user_permission_values:
 					condition += """ or `tab{doctype}`.`{fieldname}` in ({values})""".format(
 						doctype=self.doctype, fieldname=df.fieldname,
-						values=", ".join([('"'+frappe.db.escape(v)+'"') for v in user_permission_values])
+						values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"') for v in user_permission_values])
 					)
 				match_conditions.append("({condition})".format(condition=condition))
 
