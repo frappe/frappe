@@ -39,7 +39,7 @@ def get_pdf(html, options=None):
 			filedata = fileobj.read()
 
 	except IOError, e:
-		if "ContentNotFoundError" in e.message:
+		if "ContentNotFoundError" in e.message or "ContentOperationNotPermittedError" in e.message:
 			# allow pdfs with missing images if file got created
 			if os.path.exists(fname):
 				with open(fname, "rb") as fileobj:
