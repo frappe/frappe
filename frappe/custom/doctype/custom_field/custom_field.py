@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cstr
 from frappe import _
-
+import json
 from frappe.model.document import Document
 
 class CustomField(Document):
@@ -36,7 +36,8 @@ class CustomField(Document):
 			validate_fields_for_doctype(self.dt)
 
 		# create property setter to emulate insert after
-		self.create_property_setter()
+		if self.insert_after:
+			self.set_property_setter_for_idx()
 
 		# update the schema
 		# if not frappe.flags.in_test:
@@ -53,26 +54,58 @@ class CustomField(Document):
 
 		frappe.clear_cache(doctype=self.dt)
 
-	def create_property_setter(self):
-		if not self.insert_after: return
-
+	def set_property_setter_for_idx(self):
 		dt_meta = frappe.get_meta(self.dt)
 		if not dt_meta.get_field(self.insert_after):
 			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', does not exist")
 				.format(self.insert_after, self.label), frappe.DoesNotExistError)
+				
+		if self.fieldname == self.insert_after:
+			frappe.throw(_("Insert After cannot be set as {0}").format(dt_meta.get_label(self.insert_after)))
 
 		frappe.db.sql("""\
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
 			AND field_name = %s
 			AND property = 'previous_field'""", (self.dt, self.fieldname))
+		
+		_idx = []
+		field_order_changed = False
+		
+		existing_property_setter = frappe.db.get_value("Property Setter", 
+			{"doc_type": self.dt, "property": "_idx"}, ["name", "value"], as_dict=1)
+		
+		# if no existsing property setter, build based on meta
+		if not existing_property_setter:
+			for df in sorted(dt_meta.get("fields"), key=lambda x: x.idx):
+				_idx.append(df.fieldname)
+			field_order_changed = True
+		else:
+			_idx = json.loads(existing_property_setter.value)
+			
+			# Delete existing property setter if field's order has been changed
+			existing_idx = _idx.index(self.fieldname) if self.fieldname in _idx else None
+			if existing_idx==None or _idx[existing_idx - 1] != self.insert_after:
+				frappe.delete_doc("Property Setter", existing_property_setter.name)
+				field_order_changed = True
+				
+		# Create new peroperty setter if order changed
+		if _idx and field_order_changed:
+			if self.fieldname in _idx:
+				_idx.remove(self.fieldname)
+			
+			new_idx = (_idx.index(self.insert_after) + 1) if (self.insert_after in _idx) else len(_idx)
+				
+			_idx[new_idx] = self.fieldname
 
-		frappe.make_property_setter({
-			"doctype":self.dt,
-			"fieldname": self.fieldname,
-			"property": "previous_field",
-			"value": self.insert_after
-		}, validate_fields_for_doctype=False)
+			frappe.make_property_setter({
+				"doctype":self.dt,
+				"doctype_or_field": "DocType",
+				"fieldname": self.fieldname,
+				"property": "_idx",
+				"value": json.dumps(_idx),
+				"property_type": "Text"
+			}, validate_fields_for_doctype=False)
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
