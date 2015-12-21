@@ -180,4 +180,8 @@ def get_match_cond(doctype):
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
 def build_match_conditions(doctype, as_condition=True):
-	return (DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)).replace("%", "%%")
+	match_conditions =  DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+	if as_condition:
+		return match_conditions.replace("%", "%%")
+	else:
+		return match_conditions
