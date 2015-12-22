@@ -57,10 +57,15 @@ def sync_worker(app, worker, prefix=''):
 	required_queues = set(get_required_queues(app, prefix=prefix))
 	to_add = required_queues - active_queues
 	to_remove = active_queues - required_queues
+
 	for queue in to_add:
+		if is_site_in_maintenance_mode(queue, prefix):
+			continue
+
 		app.control.broadcast('add_consumer', arguments={
 				'queue': queue
 		}, reply=True, destination=[worker])
+
 	for queue in to_remove:
 		app.control.broadcast('cancel_consumer', arguments={
 				'queue': queue
@@ -78,6 +83,19 @@ def get_required_queues(app, prefix=''):
 		ret.append('{}{}'.format(prefix, site))
 	ret.append(app.conf['CELERY_DEFAULT_QUEUE'])
 	return ret
+
+def is_site_in_maintenance_mode(queue, prefix):
+	# check if site is in maintenance mode
+	site = queue.replace(prefix, "")
+	try:
+		frappe.init(site=site)
+		if not frappe.local.conf.db_name or frappe.local.conf.maintenance_mode:
+			# don't add site if in maintenance mode
+			return True
+	finally:
+		frappe.destroy()
+
+	return False
 
 @celery_task()
 def scheduler_task(site, event, handler, now=False):
