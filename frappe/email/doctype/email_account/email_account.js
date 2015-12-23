@@ -59,6 +59,7 @@ frappe.ui.form.on("Email Account", {
 				frm.set_value(key, value);
 			});
 		}
+		frm.events.show_gmail_message_for_less_secure_apps(frm);
 	},
 	use_imap: function(frm) {
 		if (frm.doc.use_imap) {
@@ -92,5 +93,14 @@ frappe.ui.form.on("Email Account", {
 	refresh: function(frm) {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
-	}
+		frm.events.show_gmail_message_for_less_secure_apps(frm);
+	},
+	show_gmail_message_for_less_secure_apps: function(frm) {
+		frm.dashboard.reset();
+		if(frm.doc.service==="GMail") {
+			frm.dashboard.set_headline_alert('GMail will only work if you allows access for Less Secure \
+				Apps in GMail Settings. <a target="_blank" \
+				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
+		}
+	},
 });

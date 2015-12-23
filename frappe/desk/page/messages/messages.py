@@ -31,9 +31,9 @@ def get_list(arg=None):
 		return frappe.db.sql("""select * from `tabComment`
 		where (owner=%(contact)s
 			or comment_docname=%(user)s
+			or (owner=comment_docname and ifnull(parenttype, "")!="Assignment")
 			or owner=comment_docname)
 		and comment_doctype ='Message'
-		and ifnull(parenttype, "")!="Assignment"
 		order by creation desc
 		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
 	else:
@@ -42,7 +42,6 @@ def get_list(arg=None):
 		or (owner=%(user)s and comment_docname=%(contact)s)
 		or (owner=%(contact)s and comment_docname=%(contact)s))
 		and comment_doctype ='Message'
-		and ifnull(parenttype, "")!="Assignment"
 		order by creation desc
 		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
 

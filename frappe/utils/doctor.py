@@ -16,11 +16,11 @@ def get_redis_conn():
 def get_queues(site=None):
 	"Returns the name of queues where frappe enqueues tasks as per the configuration"
 	queues = ["celery"]
-	if frappe.conf.celery_queue_per_site:
-		sites = [site] if site else frappe.utils.get_sites()
-		for site in sites:
-			queues.append(site)
-			queues.append('longjobs@' + site)
+	sites = [site] if site else frappe.utils.get_sites()
+	for site in sites:
+		queues.append(site)
+		queues.append('longjobs@' + site)
+
 	return queues
 
 def get_task_body(taskstr):

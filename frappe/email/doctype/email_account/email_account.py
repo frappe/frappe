@@ -117,11 +117,11 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error), e:
-			if in_receive and e.message=="-ERR authentication failed":
+			if in_receive and (e.message=="-ERR authentication failed" or "log in via your web browser" in e.message):
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}'.format(self.name))
+					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}'.format(self.name, e.message))
 				)
 
 				return None

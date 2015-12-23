@@ -23,8 +23,9 @@ frappe.ui.notifications.update_notifications = function() {
 
 	// add to toolbar and sidebar
 	$.each(doctypes, function(i, doctype) {
-		if(!in_list(["ToDo", "Comment", "Event"]))
-		frappe.ui.notifications.add_notification(doctype);
+		if(!in_list(["ToDo", "Comment", "Event"], doctype)) {
+			frappe.ui.notifications.add_notification(doctype);
+		}
 	});
 
 	// set click events
