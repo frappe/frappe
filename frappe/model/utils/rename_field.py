@@ -117,10 +117,6 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 def update_property_setters(doctype, old_fieldname, new_fieldname):
 	frappe.db.sql("""update `tabProperty Setter` set field_name = %s
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
-		
-	frappe.db.sql("""update `tabProperty Setter` set `value` = %s
-		where doc_type=%s and `value` =%s and property='previous_field'""", 
-		(new_fieldname, doctype, old_fieldname))
 
 	idx_property = frappe.db.sql("""select name, value from `tabProperty Setter` 
 		where doc_type=%s and property = '_idx' and value like '%%%s%%'""", 
