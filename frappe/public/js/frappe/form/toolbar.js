@@ -125,7 +125,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// email
-		if(frappe.model.can_email(null, me.frm)) {
+		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
 				me.frm.email_doc();}, true);
 		}
