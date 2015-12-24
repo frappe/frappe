@@ -162,6 +162,11 @@ frappe.ui.form.Comments = Class.extend({
 				c.comment_html = c.comment;
 				c.comment_html = frappe.utils.strip_whitespace(c.comment_html);
 			}
+
+			// bold @mentions
+			if(c.comment_type==="Comment") {
+				c.comment_html = c.comment_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
+			}
 		}
 	},
 	set_icon_and_color: function(c) {
@@ -335,8 +340,10 @@ frappe.ui.form.Comments = Class.extend({
 
 		var username_user_map = {};
 		for (var name in frappe.boot.user_info) {
-			var _user = frappe.boot.user_info[name];
-			username_user_map[_user.username] = _user;
+			if(name !== "Administrator" && name !== "Guest") {
+				var _user = frappe.boot.user_info[name];
+				username_user_map[_user.username] = _user;
+			}
 		}
 
 		this.mention_input = this.wrapper.find(".mention-input");
