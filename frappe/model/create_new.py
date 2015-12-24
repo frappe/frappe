@@ -74,6 +74,8 @@ def get_user_default_value(df, defaults, user_permissions):
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.options)
+		if not user_default and df.fieldname != frappe.scrub(df.options):
+			user_default = defaults.get(df.fieldname)
 		is_allowed_user_default = user_default and (not user_permissions_exist(df, user_permissions)
 			or (user_default in user_permissions.get(df.options, [])))
 
