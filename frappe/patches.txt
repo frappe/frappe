@@ -109,3 +109,4 @@ frappe.patches.v6_9.rename_burmese_language
 frappe.patches.v6_11.rename_field_in_email_account
 execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
 frappe.patches.v6_15.remove_property_setter_for_previous_field
+frappe.patches.v6_15.set_username
