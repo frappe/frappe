@@ -300,7 +300,7 @@ class User(Document):
 				exists.append(d.role)
 
 	def validate_username(self):
-		if not self.username and self.is_new():
+		if not self.username and self.is_new() and self.first_name:
 			self.username = frappe.scrub(self.first_name)
 
 		if not self.username:
@@ -312,12 +312,7 @@ class User(Document):
 		if self.username_exists():
 			frappe.msgprint(_("Username {0} already exists"))
 			self.suggest_username()
-			raise frappe.DuplicateEntryError(self.username)
-
-		if not self.is_new():
-			old_username = self.get_db_value("username")
-			if old_username and self.username != old_username and "System Manager" not in frappe.get_roles():
-				frappe.throw(_("Only a System Manager can change Username"))
+			self.username = ""
 
 		# should be made up of characters, numbers and underscore only
 		if not re.match(r"^[\w]+$", self.username):
