@@ -43,15 +43,27 @@ frappe.socket = {
 		});
 
 		$(document).on("form_refresh", function(e, frm) {
+			if (frm.is_new()) {
+				return;
+			}
+
 			frappe.socket.doc_open(frm.doctype, frm.docname);
 		});
 
 		$(document).on('form-unload', function(e, frm) {
+			if (frm.is_new()) {
+				return;
+			}
+
 			// frappe.socket.doc_unsubscribe(frm.doctype, frm.docname);
 			frappe.socket.doc_close(frm.doctype, frm.docname);
 		});
 
 		window.onbeforeunload = function() {
+			if (frm.is_new()) {
+				return;
+			}
+
 			// if tab/window is closed, notify other users
 			if (cur_frm && cur_frm.doc) {
 				frappe.socket.doc_close(cur_frm.doctype, cur_frm.docname);

@@ -650,18 +650,17 @@ class Database:
 
 	def get_default(self, key, parent="__default"):
 		"""Returns default value as a list if multiple or single"""
-		d = frappe.defaults.get_defaults(parent).get(key)
+		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
-
-	def get_defaults_as_list(self, key, parent="__default"):
-		"""Returns default values as a list."""
-		d = frappe.defaults.get_default(key, parent)
-		return isinstance(d, basestring) and [d] or d
 
 	def get_defaults(self, key=None, parent="__default"):
 		"""Get all defaults"""
 		if key:
-			return frappe.defaults.get_defaults(parent).get(key)
+			defaults = frappe.defaults.get_defaults(parent)
+			d = defaults.get(key, None)
+			if(not d and key != frappe.scrub(key)):
+				d = defaults.get(frappe.scrub(key), None)
+			return d
 		else:
 			return frappe.defaults.get_defaults(parent)
 
@@ -784,8 +783,19 @@ class Database:
 			self._cursor = None
 			self._conn = None
 
-	def escape(self, s):
+	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
 		if isinstance(s, unicode):
 			s = (s or "").encode("utf-8")
-		return unicode(MySQLdb.escape_string(s), "utf-8").replace("%","%%").replace("`", "\\`")
+
+		s = unicode(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
+
+		# NOTE separating % escape, because % escape should only be done when using LIKE operator
+		# or when you use python format string to generate query that already has a %s
+		# for example: sql("select name from `tabUser` where name=%s and {0}".format(conditions), something)
+		# defaulting it to True, as this is the most frequent use case
+		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
+		if percent:
+			s = s.replace("%", "%%")
+
+		return s

@@ -1,7 +1,7 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +225,Press Esc to close,הקש על מקש Esc כדי לסגור
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","משימה חדשה, {0}, הוקצתה לך על ידי {1}. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,הודעה
-apps/frappe/frappe/config/setup.py +104,Rename many items by uploading a .csv file.,שינוי שם פריטים רבים על ידי העלאת קובץ csv.
+apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,שינוי שם פריטים רבים על ידי העלאת קובץ csv.
 DocType: Workflow State,pause,הפסקה
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,אינכם מורשים לגשת לדף זה.
 DocType: About Us Settings,Website,אתר
@@ -47,7 +47,7 @@ apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You nee
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,לא כמו
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Set the display label for the field,הגדר את תווית התצוגה עבור השדה
 apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},ערך שגוי: {0} חייב להיות {1} {2}
-apps/frappe/frappe/config/setup.py +211,"Change field properties (hide, readonly, permission etc.)","מאפייני שדה שינוי (להסתיר, לקריאה בלבד, וכו 'רשות)"
+apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","מאפייני שדה שינוי (להסתיר, לקריאה בלבד, וכו 'רשות)"
 DocType: Workflow State,lock,לנעול
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,הגדרות לצורו קשר דף.
 apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,מנהל מחובר
@@ -131,7 +131,7 @@ DocType: Workflow State,Comment,תגובה
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","באפשרותך לשנות מסמכים שהוגשו על ידי הביטול ולאחר מכן, תיקונם."
 DocType: DocField,Display,תצוגה
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","אם לא יש להם תפקיד גישה ברמה 0, רמות גבוהות יותר ואז הן חסרות משמעות."
-DocType: Scheduler Log,Seen,נראה
+DocType: Error Snapshot,Seen,נראה
 apps/frappe/frappe/public/js/frappe/form/layout.js +85,Show more details,הצג פרטים נוספים
 DocType: System Settings,Run scheduled jobs only if checked,הפעל עבודות מתוכננות רק אם בדקתי
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".","הזן שדות ערך ברירת מחדל (מקשים) וערכים. אם תוסיף ערכים מרובים עבור שדה, הראשון יהיה נטל. ברירת מחדל אלה משמשים גם לקביעת כללי רשות &quot;התאמה&quot;. כדי לראות רשימה של שדות, ללכת &quot;טופס התאמה אישית&quot;."
@@ -152,7 +152,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,לדוגמא:
 DocType: Workflow,Defines workflow states and rules for a document.,מגדיר מדינות זרימת עבודה וכללים למסמך.
 DocType: Workflow State,Filter,מסנן
 DocType: DocType,Show this field as title,הצג תחום זה ככותרת
-apps/frappe/frappe/model/db_schema.py +521,Fieldname {0} cannot have special characters like {1},Fieldname {0} לא יכול להיות תווים מיוחדים כמו {1}
+apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},Fieldname {0} לא יכול להיות תווים מיוחדים כמו {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,בחר את השפה שלך
 apps/frappe/frappe/model/document.py +428,Error: Document has been modified after you have opened it,שגיאה: המסמך השתנה לאחר שפתחת אותו
 apps/frappe/frappe/core/doctype/doctype/doctype.py +476,{0}: Cannot set Assign Submit if not Submittable,{0}: לא ניתן להגדיר הקצאה שלח אם לא Submittable
@@ -349,7 +349,7 @@ DocType: User,Send Welcome Email,שלח ברוכים הבאים
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,העלה קובץ CSV המכיל את כל הרשאות המשתמש בתבנית זהה להורדה.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +360,Remove Filter,הסר סינון
 DocType: Feed,Doc Name,שם דוק
-apps/frappe/frappe/config/setup.py +103,Bulk Rename,שינוי שם גורף
+apps/frappe/frappe/config/setup.py +108,Bulk Rename,שינוי שם גורף
 DocType: DocField,Heading,כותרת
 DocType: Workflow State,resize-vertical,לשנות את הגודל אנכי
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,מידע מבוא לצורו קשר הדף
@@ -391,7 +391,7 @@ DocType: DocShare,Everyone,כולם
 DocType: Workflow State,backward,אחורה
 apps/frappe/frappe/core/doctype/doctype/doctype.py +429,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: רק כלל אחד אפשר באותו התפקיד, ורמה {1}"
 DocType: Workflow State,share,מניות
-apps/frappe/frappe/config/setup.py +97,Set numbering series for transactions.,הגדר מספור סדרה לעסקות.
+apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,הגדר מספור סדרה לעסקות.
 DocType: User,Last IP,IP האחרון
 DocType: DocPerm,Filter records based on User Permissions defined for a user,רשומות מסנן המבוסס על הרשאות משתמש מוגדרות עבור משתמש
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),הכנס תמונה (או פשוט לגרור ולשחרר)
@@ -434,7 +434,7 @@ DocType: Contact Us Settings,Address Line 1,שורת כתובת 1
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,פבואר
 DocType: DocPerm,Role,תפקיד
 apps/frappe/frappe/utils/data.py +385,Cent,סנט
-apps/frappe/frappe/config/setup.py +171,"States for workflow (e.g. Draft, Approved, Cancelled).","הברית לעבודה (למשל טיוטה, מאושר, בוטל)."
+apps/frappe/frappe/config/setup.py +176,"States for workflow (e.g. Draft, Approved, Cancelled).","הברית לעבודה (למשל טיוטה, מאושר, בוטל)."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,כמות שנקבעה
 DocType: Comment,Unsubscribed,רישום בוטל
 ,Data Import Tool,נתוני יבוא כלי
@@ -489,7 +489,7 @@ apps/frappe/frappe/public/js/legacy/form.js +865,No permission to '{0}' {1},אי
 DocType: User,Google User ID,זיהוי משתמש Google
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,שיטה זו יכולה רק לשמש ליצירת תגובה
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,לא {0} מצא
-apps/frappe/frappe/config/setup.py +227,Add custom forms.,להוסיף צורות מותאמות אישית.
+apps/frappe/frappe/config/setup.py +232,Add custom forms.,להוסיף צורות מותאמות אישית.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,המערכת מספקת מספר רב של תפקידים מוגדרים מראש. אתה יכול להוסיף תפקידים חדשים כדי להגדיר הרשאות עדינות.
 DocType: Country,Geo,Geo
 apps/frappe/frappe/desk/page/applications/applications.js +46,Domains,תחומים
@@ -545,7 +545,7 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age>18",שדה זה יופיע רק אם fieldname המוגדר כאן יש ערך או הכללים נכונים (דוגמאות): myfield הערכה: doc.myfield == &#39;הערך שלי &quot;הערכה: doc.age&gt; 18
 DocType: File,Attached To Name,מצורף לשם
-apps/frappe/frappe/email/receive.py +88,Invalid User Name or Support Password. Please rectify and try again.,שם משתמש או סיסמא לא חוקיים תמיכה. אנא לתקן ונסה שוב.
+apps/frappe/frappe/email/receive.py +91,Invalid User Name or Support Password. Please rectify and try again.,שם משתמש או סיסמא לא חוקיים תמיכה. אנא לתקן ונסה שוב.
 DocType: Email Account,Login Id is Different,כניסת זיהוי הוא שונה
 DocType: Email Account,Yahoo Mail,Yahoo Mail
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,הציל!
@@ -587,7 +587,7 @@ DocType: Dropbox Backup,Dropbox Backup,גיבוי Dropbox
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","לקישורים, להיכנס לDOCTYPE כטווח. לבחירה, הזינו רשימה של אפשרויות, כל בשורה חדשה."
 DocType: Workflow State,film,סרט
-apps/frappe/frappe/model/db_query.py +330,No permission to read {0},אין הרשאות לקריאת {0}
+apps/frappe/frappe/model/db_query.py +329,No permission to read {0},אין הרשאות לקריאת {0}
 apps/frappe/frappe/config/desk.py +7,Tools,כלים
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,צמתים שורש מרובים אסורים.
 apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,קבל
@@ -672,8 +672,8 @@ DocType: DocPerm,If user is the owner,אם משתמש הוא בעל
 ,Activity,פעילות
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","עזרה: לקישור לרשומה אחרת במערכת, להשתמש ""# טופס / הערה / [הערה שם]"" ככתובת URL הקישור. (לא להשתמש ""http: //"")"
 DocType: Communication,Delayed,מושהה
-apps/frappe/frappe/config/setup.py +111,List of backups available for download,רשימה של גיבויים זמינים להורדה
-apps/frappe/frappe/config/setup.py +217,Add fields to forms.,הוספת שדות לצורות.
+apps/frappe/frappe/config/setup.py +116,List of backups available for download,רשימה של גיבויים זמינים להורדה
+apps/frappe/frappe/config/setup.py +222,Add fields to forms.,הוספת שדות לצורות.
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,אתה צריך להיות מחובר כדי לגשת לדף זה.
 DocType: Workflow State,leaf,עלה
@@ -836,13 +836,13 @@ DocType: Website Settings,Landing Page,דף נחיתה
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +81,"Import Request Queued. This may take a few moments, please be patient.","בקשת יבוא בתור. זה עלול לקחת כמה רגעים, אנא התאזר בסבלנות."
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,אין הרשאות שנקבעו לזה קריטריונים.
 DocType: Custom Field,Custom,מותאם אישית
-apps/frappe/frappe/config/setup.py +128,Setup Email Alert based on various criteria.,הגדרת דואר אלקטרוני התראה על פי קריטריונים שונים.
+apps/frappe/frappe/config/setup.py +133,Setup Email Alert based on various criteria.,הגדרת דואר אלקטרוני התראה על פי קריטריונים שונים.
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93,Posts filed under {0},הודעות הגישו תחת {0}
 DocType: Email Alert,Send alert if date matches this field's value,שלח התראה אם תאריך מתאים הערך של תחום זה
 DocType: Workflow,Transitions,מעברים
 DocType: User,Login After,כניסה לאחר
 DocType: Print Format,Monospace,Monospace
-apps/frappe/frappe/config/setup.py +138,Printing,הדפסה
+apps/frappe/frappe/config/setup.py +143,Printing,הדפסה
 DocType: Workflow State,thumbs-up,אגודלים מורמים
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,הוסף תגובה
 DocType: DocPerm,DocPerm,DocPerm
@@ -1011,7 +1011,7 @@ apps/frappe/frappe/desk/page/applications/applications.js +147,No matching apps 
 apps/frappe/frappe/public/js/frappe/model/indicator.js +43,Submitted,הוגש
 DocType: System Settings,Email Footer Address,כתובת דוא&quot;ל תחתונה
 DocType: DocField,Text,טקסט
-apps/frappe/frappe/config/setup.py +133,Standard replies to common queries.,סטנדרטי משיב לשאלות נפוצות.
+apps/frappe/frappe/config/setup.py +138,Standard replies to common queries.,סטנדרטי משיב לשאלות נפוצות.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +31,Report an Issue,דווח על בעיה
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,ברירת מחדל שליחה
 DocType: Workflow State,volume-off,נפח-off
@@ -1032,7 +1032,7 @@ DocType: Workflow,Workflow,זרימת עבודה
 DocType: Workflow State,Upload,העלאה
 DocType: System Settings,Date Format,פורמט תאריך
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,לא פורסם
-apps/frappe/frappe/config/setup.py +176,"Actions for workflow (e.g. Approve, Cancel).","פעולות לעבודה (לדוגמא לאשר, לבטל)."
+apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Cancel).","פעולות לעבודה (לדוגמא לאשר, לבטל)."
 DocType: Workflow State,flag,דגל
 DocType: Web Page,Text Align,טקסט יישור
 DocType: Contact Us Settings,Forward To Email Address,"קדימה To כתובת דוא""ל"
@@ -1149,7 +1149,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +10,Not equals,�
 DocType: Website Script,Script to attach to all web pages.,תסריט לצרף לכל דפי האינטרנט.
 DocType: Web Form,Allow Multiple,לאפשר מרובה
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +19,Assign,להקצות
-apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,יבוא / יצוא נתונים מקבצי csv.
+apps/frappe/frappe/config/setup.py +97,Import / Export Data from .csv files.,יבוא / יצוא נתונים מקבצי csv.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +62,You are not allowed to create / edit reports,אין באפשרותך ליצור דוחות עריכה /
 DocType: Workflow State,Icon will appear on the button,סמל יופיע על הכפתור
 DocType: Website Settings,Website Settings,הגדרות אתר
@@ -1196,12 +1196,12 @@ DocType: DocType,In Dialog,בדיאלוג
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +143,Help,עזרה
 DocType: User,Login Before,כניסה לפני
 DocType: Web Page,Insert Style,הכנס סגנון
-apps/frappe/frappe/config/setup.py +187,Application Installer,מתקין יישום
+apps/frappe/frappe/config/setup.py +192,Application Installer,מתקין יישום
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Is,האם
 DocType: Workflow State,info-sign,מידע לחתום
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","איך מטבע זה צריך להיות מעוצב? אם לא מוגדר, ישתמש ברירות המחדל של מערכת"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,הרשאות משתמש הצג
-apps/frappe/frappe/utils/response.py +111,You need to be logged in and have System Manager Role to be able to access backups.,אתה צריך להיות מחובר ויש לי תפקיד מנהל מערכת כדי שתוכל לגשת לגיבויים.
+apps/frappe/frappe/utils/response.py +117,You need to be logged in and have System Manager Role to be able to access backups.,אתה צריך להיות מחובר ויש לי תפקיד מנהל מערכת כדי שתוכל לגשת לגיבויים.
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,אנא שמור לפני הצמדה.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),הוסיף {0} ({1})
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Search Fields should contain valid fieldnames,שדות חיפוש צריכים להכיל fieldnames חוקי
@@ -1259,7 +1259,7 @@ apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer an
 apps/frappe/frappe/core/doctype/doctype/doctype.py +408,For {0} at level {1} in {2} in row {3},עבור {0} ברמת {1} {2} בשורת {3}
 DocType: Page,All,כל
 DocType: Bulk Email,Recipient,נמען
-apps/frappe/frappe/config/setup.py +145,Drag and Drop tool to build and customize Print Formats.,גרור ושחררתם כלי לבנות ולהתאים אישית את תבניות הדפסה.
+apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,גרור ושחררתם כלי לבנות ולהתאים אישית את תבניות הדפסה.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,להרחיב
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,הגדר
 DocType: Workflow State,align-right,ליישר ימני
@@ -1291,7 +1291,7 @@ DocType: Report,Report Type,סוג הדוח
 DocType: Email Account,Signature,חתימה
 apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,שתף עם
 apps/frappe/frappe/core/doctype/user/user.js +130,Loading,Loading
-apps/frappe/frappe/config/setup.py +194,"Enter keys to enable login via Facebook, Google, GitHub.","הזן מפתחות כדי לאפשר התחברות באמצעות פייסבוק, גוגל, GitHub."
+apps/frappe/frappe/config/setup.py +199,"Enter keys to enable login via Facebook, Google, GitHub.","הזן מפתחות כדי לאפשר התחברות באמצעות פייסבוק, גוגל, GitHub."
 apps/frappe/frappe/public/js/frappe/ui/tags.js +21,Add a tag,הוסף תג
 apps/frappe/frappe/public/js/frappe/form/control.js +975,Please attach a file first.,נא לצרף קובץ ראשון.
 apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","היו כמה טעויות הגדרה שם, אנא צור קשר עם המנהל"
@@ -1356,7 +1356,7 @@ DocType: Blog Post,Blog Post,בלוג הודעה
 apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,חיפוש מתקדם
 apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,"הוראות לאיפוס סיסמא נשלחו לדוא""ל שלך"
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,מיין לפי
-apps/frappe/frappe/config/setup.py +199,Manage cloud backups on Dropbox,ניהול גיבויי ענן על Dropbox
+apps/frappe/frappe/config/setup.py +204,Manage cloud backups on Dropbox,ניהול גיבויי ענן על Dropbox
 DocType: Workflow,States,הברית
 DocType: Email Alert,Attach Print,צרף הדפסה
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","כאשר אתה לתקן מסמך לאחר לבטל ולשמור אותו, הוא יקבל מספר חדש שהוא גרסה של המספר הישן."
@@ -1377,7 +1377,7 @@ DocType: Workflow State,glass,זכוכית
 DocType: Country,Time Zones,אזורי זמן
 DocType: DocField,Image,תמונה
 DocType: Workflow State,remove-sign,להסיר לחתום
-apps/frappe/frappe/config/setup.py +166,Define workflows for forms.,להגדיר זרימות עבודה לצורות.
+apps/frappe/frappe/config/setup.py +171,Define workflows for forms.,להגדיר זרימות עבודה לצורות.
 DocType: Communication,Other,אחר
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +156,Start new Format,התחל פורמט חדש
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +144,Please attach a file,נא לצרף קובץ
@@ -1412,7 +1412,7 @@ DocType: Website Settings,Website Theme,נושא אתר
 DocType: DocField,In List View,בצפה ברשימה
 DocType: Email Account,Use TLS,השימוש TLS
 apps/frappe/frappe/email/smtp.py +35,Invalid login or password,התחברות או סיסמא לא חוקיות
-apps/frappe/frappe/config/setup.py +222,Add custom javascript to forms.,להוסיף מותאם אישית JavaScript לצורות.
+apps/frappe/frappe/config/setup.py +227,Add custom javascript to forms.,להוסיף מותאם אישית JavaScript לצורות.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +297,Sr No,SR לא
 ,Role Permissions Manager,מנהל הרשאות התפקיד
 DocType: Website Theme,This must be checked if the below style settings are applicable,זה חייב להיבדק אם הגדרות הסגנון להלן חלות
@@ -1525,7 +1525,7 @@ apps/frappe/frappe/desk/page/applications/applications.py +74,You cannot install
 DocType: Scheduler Log,Error,שגיאה
 DocType: DocField,Column Break,Break עמודה
 DocType: Event,Thursday,יום חמישי
-apps/frappe/frappe/utils/response.py +121,You don't have permission to access this file,אין לך הרשאה לגשת לקובץ זה
+apps/frappe/frappe/utils/response.py +127,You don't have permission to access this file,אין לך הרשאה לגשת לקובץ זה
 apps/frappe/frappe/model/document.py +524,Cannot link cancelled document: {0},אינך יכול לקשר מסמך בוטל: {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +579,"For example: If you want to include the document ID, use {0}","לדוגמא: אם ברצונך לכלול זיהוי המסמך, השתמש {0}"
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +482,Select Table Columns for {0},עמודות הטבלה בחר עבור {0}
@@ -1627,7 +1627,7 @@ DocType: Web Form,Web Form,טופס אינטרנט
 DocType: About Us Settings,Org History Heading,ההיסטוריה org כותרת
 DocType: Communication,Integrations can use this field to set email delivery status,אינטגרציות יכולות להשתמש בשדה זה כדי להגדיר מצב משלוח דוא&quot;ל
 DocType: Web Form,Web Page Link Text,טקסט קישור לדף אינטרנט
-apps/frappe/frappe/config/setup.py +150,"Set default format, page size, print style etc.","פורמט שנקבע כברירת מחדל, גודל עמוד, סגנון הדפסה וכו '"
+apps/frappe/frappe/config/setup.py +155,"Set default format, page size, print style etc.","פורמט שנקבע כברירת מחדל, גודל עמוד, סגנון הדפסה וכו '"
 DocType: DocType,Naming,שמות
 DocType: Event,Every Year,בכל שנה
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +23,Select All,בחר הכל
@@ -1641,7 +1641,7 @@ DocType: DocPerm,Role and Level,תפקיד ורמה
 DocType: File,Thumbnail URL,כתובת תמונה ממוזערת
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,דוחות מותאמים אישית
 DocType: Website Script,Website Script,האתר סקריפט
-apps/frappe/frappe/config/setup.py +155,Customized HTML Templates for printing transactions.,תבניות HTML מותאמים אישית עבור עסקות הדפסה.
+apps/frappe/frappe/config/setup.py +160,Customized HTML Templates for printing transactions.,תבניות HTML מותאמים אישית עבור עסקות הדפסה.
 DocType: Workflow,Is Active,האם Active
 apps/frappe/frappe/desk/form/utils.py +92,No further records,לא רשומות נוסף
 DocType: DocField,Long Text,טקסט ארוך
@@ -1698,7 +1698,7 @@ DocType: Company History,Year,שנה
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} אינו קיים בשורת {1}
 DocType: Event,Event Type,סוג האירוע
 DocType: User,Last Known Versions,גרסאות ידוע אחרונות
-apps/frappe/frappe/config/setup.py +123,Add / Manage Email Accounts.,"הוספה / ניהול חשבונות דוא""ל."
+apps/frappe/frappe/config/setup.py +128,Add / Manage Email Accounts.,"הוספה / ניהול חשבונות דוא""ל."
 DocType: Blog Category,Published,פורסם
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,"תודה על הדוא""ל שלך"
 DocType: DocField,Small Text,טקסט קטן
@@ -1804,7 +1804,7 @@ DocType: Workflow State,chevron-left,שמאל שברון
 DocType: Bulk Email,Sending,שליחה
 apps/frappe/frappe/auth.py +208,Not allowed from this IP Address,אסור מכתובת IP זו
 DocType: Website Slideshow,This goes above the slideshow.,זה הולך מעל המצגת.
-apps/frappe/frappe/config/setup.py +188,Install Applications.,התקנת יישומים.
+apps/frappe/frappe/config/setup.py +193,Install Applications.,התקנת יישומים.
 DocType: User,Last Name,שם משפחה
 DocType: Event,Private,פרטי
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),"שלח קבצים מצורפים הדפסת דוא""ל כקובץ PDF (מומלץ)"
@@ -1881,7 +1881,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +545,Report was 
 DocType: Print Settings,Print Style,סגנון הדפסה
 DocType: DocPerm,Import,יבוא
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,שורת {0}: לא תורשה לאפשר אפשר בשלח לשדות סטנדרטיים
-apps/frappe/frappe/config/setup.py +90,Import / Export Data,יבוא / יצוא נתונים
+apps/frappe/frappe/config/setup.py +95,Import / Export Data,יבוא / יצוא נתונים
 apps/frappe/frappe/public/js/legacy/form.js +169,Cannot print cancelled documents,לא ניתן להדפיס מסמכים בוטלו
 DocType: User,Desktop Background,רקע שולחן עבודה
 DocType: Workflow State,chevron-right,שברון-תקין

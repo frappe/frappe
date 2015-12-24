@@ -1,7 +1,7 @@
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +225,Press Esc to close,Escキーを押して閉じる
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}",{1}からあなたに新しいタスク{0}が割当されています。 {2}
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,投稿
-apps/frappe/frappe/config/setup.py +104,Rename many items by uploading a .csv file.,csvファイルをアップロードすることで多くのアイテムの名前を変更します
+apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,csvファイルをアップロードすることで多くのアイテムの名前を変更します
 DocType: Workflow State,pause,休止
 apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access this page.,このページへのアクセスを許可されていません。
 DocType: About Us Settings,Website,ウェブサイト
@@ -47,7 +47,7 @@ apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You nee
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,みたいではなく
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Set the display label for the field,フィールドの表示ラベルを設定
 apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},不正な値：{0} は {1} {2}でなければなりません
-apps/frappe/frappe/config/setup.py +211,"Change field properties (hide, readonly, permission etc.)",変更フィールドのプロパティ（非表示、読み取り専用、アクセス権など）
+apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)",変更フィールドのプロパティ（非表示、読み取り専用、アクセス権など）
 DocType: Workflow State,lock,ロック
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,お問い合わせページの設定
 apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,管理者がログインしました
@@ -69,7 +69,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To impor
 DocType: DocType,Default Print Format,デフォルト印刷フォーマット
 DocType: Workflow State,Tags,タグ
 apps/frappe/frappe/public/js/frappe/form/workflow.js +33,None: End of Workflow,なし：ワークフローの終了
-apps/frappe/frappe/model/db_schema.py +315,"{0} field cannot be set as unique in {1}, as there are non-unique existing values",非ユニークの値が存在するため、フィールド {0} を{1} 内でユニークに設定することはできません
+apps/frappe/frappe/model/db_schema.py +320,"{0} field cannot be set as unique in {1}, as there are non-unique existing values",非ユニークの値が存在するため、フィールド {0} を{1} 内でユニークに設定することはできません
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,文書タイプ
 DocType: Workflow,Workflow State Field,ワークフローステータスのフィールド
 DocType: Blog Post,Guest,ゲスト
@@ -132,7 +132,7 @@ DocType: Workflow State,Comment,コメント
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.",提出した書類は、キャンセルし修正することによって変更することができます
 DocType: DocField,Display,表示
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.",「役割」にレベル0のアクセス権が無い場合、より高いレベルには意味がありません。
-DocType: Scheduler Log,Seen,閲覧済
+DocType: Error Snapshot,Seen,閲覧済
 apps/frappe/frappe/public/js/frappe/form/layout.js +85,Show more details,詳細を表示
 DocType: System Settings,Run scheduled jobs only if checked,スケジュールされたジョブを実行（チェックを入れた場合のみ）
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".",デフォルト値フィールド（キー）と値を入力します。フィールドに複数の値を追加する場合、最初のものが選択されます。これらのデフォルトは「一致」の制限ルールを設定するために使用されます。フィールドのリストを表示するには「フォームのカスタマイズ」を参照してください。
@@ -154,7 +154,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,例：
 DocType: Workflow,Defines workflow states and rules for a document.,ドキュメントのためのワークフローの状況とルールを定義します。
 DocType: Workflow State,Filter,フィルタ
 DocType: DocType,Show this field as title,タイトルとしてこのフィールドを表示
-apps/frappe/frappe/model/db_schema.py +521,Fieldname {0} cannot have special characters like {1},フィールド名{0}には、{1}などの特殊文字を含めることはできません
+apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},フィールド名{0}には、{1}などの特殊文字を含めることはできません
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,言語を選択
 apps/frappe/frappe/model/document.py +428,Error: Document has been modified after you have opened it,エラー：あなたが文書を開いた後に変更されています
 apps/frappe/frappe/core/doctype/doctype/doctype.py +476,{0}: Cannot set Assign Submit if not Submittable,{0}：提出可能になっていない場合は、割当の提出が設定できません
@@ -357,7 +357,7 @@ DocType: User,Send Welcome Email,ウェルカムメールを送信
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式で全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +360,Remove Filter,フィルタの削除
 DocType: Feed,Doc Name,文書名
-apps/frappe/frappe/config/setup.py +103,Bulk Rename,一括名前変更
+apps/frappe/frappe/config/setup.py +108,Bulk Rename,一括名前変更
 DocType: DocField,Heading,見出し
 DocType: Workflow State,resize-vertical,縦高変更アイコン
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,お問い合わせページのための入門的な情報
@@ -400,7 +400,7 @@ DocType: DocShare,Everyone,全員
 DocType: Workflow State,backward,後方
 apps/frappe/frappe/core/doctype/doctype/doctype.py +429,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}：同じ役割、レベル、{1} にには1つのルールのみ許可されます
 DocType: Workflow State,share,共有
-apps/frappe/frappe/config/setup.py +97,Set numbering series for transactions.,取引用の連番を設定
+apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,取引用の連番を設定
 DocType: User,Last IP,最新のIP
 DocType: DocPerm,Filter records based on User Permissions defined for a user,ユーザーに対して定義された権限に基づくフィルターレコード
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),画像を挿入（または単にドラッグ＆ドロップ）
@@ -443,7 +443,7 @@ DocType: Contact Us Settings,Address Line 1,住所 1行目
 apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,2月
 DocType: DocPerm,Role,役割
 apps/frappe/frappe/utils/data.py +385,Cent,セント
-apps/frappe/frappe/config/setup.py +171,"States for workflow (e.g. Draft, Approved, Cancelled).",ワークフローの状態（例：ドラフト・承認・キャンセル）
+apps/frappe/frappe/config/setup.py +176,"States for workflow (e.g. Draft, Approved, Cancelled).",ワークフローの状態（例：ドラフト・承認・キャンセル）
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,数量を設定
 DocType: Comment,Unsubscribed,購読解除
 ,Data Import Tool,データインポートツール
@@ -500,7 +500,7 @@ apps/frappe/frappe/public/js/legacy/form.js +865,No permission to '{0}' {1},権�
 DocType: User,Google User ID,GoogleのユーザーID
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,この方法は、コメントの作成に使用できます
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,{0}が見つかりません
-apps/frappe/frappe/config/setup.py +227,Add custom forms.,カスタムフォームを追加
+apps/frappe/frappe/config/setup.py +232,Add custom forms.,カスタムフォームを追加
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,このシステムは、多くの事前定義された役割を提供しています。細かい権限を設定するための新しい役割を追加することができます。
 DocType: Country,Geo,地理
 apps/frappe/frappe/desk/page/applications/applications.js +46,Domains,ドメイン
@@ -558,7 +558,7 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age>18",このフィールドは、ここで設定されているフィールド名が値を持っているか、または条件が真となる場合に表示されます。（例）myfield eval:doc.myfield=='My Value' eval:doc.age>18
 DocType: File,Attached To Name,名前に添付
-apps/frappe/frappe/email/receive.py +88,Invalid User Name or Support Password. Please rectify and try again.,無効なユーザー名またはサポートパスワード。修正してからもう一度やり直してください。
+apps/frappe/frappe/email/receive.py +91,Invalid User Name or Support Password. Please rectify and try again.,無効なユーザー名またはサポートパスワード。修正してからもう一度やり直してください。
 DocType: Email Account,Login Id is Different,ログインIDが異なっています
 DocType: Email Account,Yahoo Mail,Yahooメール
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,保存しました！
@@ -600,7 +600,7 @@ DocType: Dropbox Backup,Dropbox Backup,Dropboxバックアップ
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.",リンクには、範囲として文書タイプを入力します。選択には、それぞれ新しい行に、オプションのリストを入力します。
 DocType: Workflow State,film,フィルム
-apps/frappe/frappe/model/db_query.py +330,No permission to read {0},{0}を読むための権限がありません
+apps/frappe/frappe/model/db_query.py +329,No permission to read {0},{0}を読むための権限がありません
 apps/frappe/frappe/config/desk.py +7,Tools,ツール
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,複数のルートノードは許可されていません。
 apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,取得
@@ -687,8 +687,8 @@ DocType: DocPerm,If user is the owner,ユーザが所有者である場合
 ,Activity,活動
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","ヘルプ：システム内の別のレコードにリンクするには、「＃フォーム/備考/ [名前をメモ]「リンクのURLとして使用します。 （「http:// ""を使用しないでください）"
 DocType: Communication,Delayed,遅延
-apps/frappe/frappe/config/setup.py +111,List of backups available for download,ダウンロード可能なバックアップのリスト
-apps/frappe/frappe/config/setup.py +217,Add fields to forms.,フォームにフィールドを追加。
+apps/frappe/frappe/config/setup.py +116,List of backups available for download,ダウンロード可能なバックアップのリスト
+apps/frappe/frappe/config/setup.py +222,Add fields to forms.,フォームにフィールドを追加。
 DocType: File,rgt,右
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,このページにアクセスするにはログインする必要があります
 DocType: Workflow State,leaf,リーフ
@@ -738,7 +738,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +306,Add A New
 DocType: Workflow Transition,Next State,次の状態
 apps/frappe/frappe/public/js/frappe/ui/editor.html +56,Align Left (Ctrl/Cmd+L),左寄せ（Ctrl/Cmd+ L）
 DocType: User,Block Modules,ブロックモジュール
-apps/frappe/frappe/model/db_schema.py +127,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,&#39;{1}&#39;の{0}に長さを戻す &#39;{2}&#39;に。長さを設定すると、{3}のデータの切り捨ての原因になりますように。
+apps/frappe/frappe/model/db_schema.py +132,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,&#39;{1}&#39;の{0}に長さを戻す &#39;{2}&#39;に。長さを設定すると、{3}のデータの切り捨ての原因になりますように。
 DocType: Print Format,Custom CSS,カスタムCSS
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +3,Add a comment,コメントを追加
 apps/frappe/frappe/model/rename_doc.py +359,Ignored: {0} to {1},無視されます：{0} {1}
@@ -856,13 +856,13 @@ DocType: Website Settings,Landing Page,ランディングページ
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +81,"Import Request Queued. This may take a few moments, please be patient.",インポート要求キュー。時間がかかる場合がありますので、しばらくお待ちください。
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,この条件には権限が設定されていません。
 DocType: Custom Field,Custom,カスタム
-apps/frappe/frappe/config/setup.py +128,Setup Email Alert based on various criteria.,様々な基準に基づいてメールでの警告をセットアップします。
+apps/frappe/frappe/config/setup.py +133,Setup Email Alert based on various criteria.,様々な基準に基づいてメールでの警告をセットアップします。
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93,Posts filed under {0},{0}配下の投稿
 DocType: Email Alert,Send alert if date matches this field's value,日付がこのフィールドの値と一致した場合にアラートを送信
 DocType: Workflow,Transitions,移行
 DocType: User,Login After,ログイン後
 DocType: Print Format,Monospace,等幅
-apps/frappe/frappe/config/setup.py +138,Printing,印刷
+apps/frappe/frappe/config/setup.py +143,Printing,印刷
 DocType: Workflow State,thumbs-up,賛成
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,返事を追加する
 DocType: DocPerm,DocPerm,文書管理
@@ -1035,7 +1035,7 @@ apps/frappe/frappe/desk/page/applications/applications.js +147,No matching apps 
 apps/frappe/frappe/public/js/frappe/model/indicator.js +43,Submitted,提出済
 DocType: System Settings,Email Footer Address,メールフッターの住所
 DocType: DocField,Text,文章
-apps/frappe/frappe/config/setup.py +133,Standard replies to common queries.,一般的な問い合わせへの標準的な返答
+apps/frappe/frappe/config/setup.py +138,Standard replies to common queries.,一般的な問い合わせへの標準的な返答
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +31,Report an Issue,課題をレポート
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,デフォルトの送信
 DocType: Workflow State,volume-off,無音
@@ -1056,7 +1056,7 @@ DocType: Workflow,Workflow,ワークフロー
 DocType: Workflow State,Upload,アップロード
 DocType: System Settings,Date Format,日付の表示形式
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,公開されていません
-apps/frappe/frappe/config/setup.py +176,"Actions for workflow (e.g. Approve, Cancel).",ワークフローのアクション（例：承認、キャンセル）
+apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Cancel).",ワークフローのアクション（例：承認、キャンセル）
 DocType: Workflow State,flag,フラグ
 DocType: Web Page,Text Align,行揃え
 DocType: Contact Us Settings,Forward To Email Address,メールアドレスに転送
@@ -1089,7 +1089,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh F
 DocType: DocField,Select,選択
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,ファイルが添付されていません
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",これを設定すると、このアイテムは選択された親の下にあるドロップダウンにあらわれます。
-apps/frappe/frappe/model/db_query.py +442,Please select atleast 1 column from {0} to sort,ソートする{0}から少なくとも1列を選択してください
+apps/frappe/frappe/model/db_query.py +440,Please select atleast 1 column from {0} to sort,ソートする{0}から少なくとも1列を選択してください
 apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},テンプレートが次のパスに見つかりません：{0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.",トップバーのメニュー項目。トップバーの色を設定するには、選択されたウェブサイトのテーマに移動します
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,インポート後に提出
@@ -1175,7 +1175,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +10,Not equals,�
 DocType: Website Script,Script to attach to all web pages.,全てのWebページに添付するためのスクリプト
 DocType: Web Form,Allow Multiple,複数の許可
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +19,Assign,割当
-apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,CSVファイルからのインポート/エクスポートデータ。
+apps/frappe/frappe/config/setup.py +97,Import / Export Data from .csv files.,CSVファイルからのインポート/エクスポートデータ。
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +62,You are not allowed to create / edit reports,レポートを作成／編集する許可がありません
 DocType: Workflow State,Icon will appear on the button,アイコンがボタン上に表示されます
 DocType: Website Settings,Website Settings,Webサイト設定
@@ -1222,12 +1222,12 @@ DocType: DocType,In Dialog,ダイアログ内
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +143,Help,ヘルプ
 DocType: User,Login Before,ログイン前
 DocType: Web Page,Insert Style,スタイルを挿入
-apps/frappe/frappe/config/setup.py +187,Application Installer,アプリケーションインストーラ
+apps/frappe/frappe/config/setup.py +192,Application Installer,アプリケーションインストーラ
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Is,あります
 DocType: Workflow State,info-sign,インフォサイン
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",この通貨はどのようなフォーマットにするべきですか？設定されていない場合は、システムデフォルトを使用します
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +250,Show User Permissions,ユーザー権限表示
-apps/frappe/frappe/utils/response.py +111,You need to be logged in and have System Manager Role to be able to access backups.,バックアップにアクセスするには、ログインしていること、システムマネージャーの役割を持っていることが必要です
+apps/frappe/frappe/utils/response.py +117,You need to be logged in and have System Manager Role to be able to access backups.,バックアップにアクセスするには、ログインしていること、システムマネージャーの役割を持っていることが必要です
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,添付する前に保存してください
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),追加された{0}（{1}）
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},行{2}のフィールドタイプは{0}から{1}に変更することはできません
@@ -1289,7 +1289,7 @@ apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer an
 apps/frappe/frappe/core/doctype/doctype/doctype.py +408,For {0} at level {1} in {2} in row {3},行{3}の{2}のレベル{1}の{0}
 DocType: Page,All,すべて
 DocType: Bulk Email,Recipient,受信者
-apps/frappe/frappe/config/setup.py +145,Drag and Drop tool to build and customize Print Formats.,印刷形式を構築しカスタマイズするためのドラッグ＆ドロップツール
+apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,印刷形式を構築しカスタマイズするためのドラッグ＆ドロップツール
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,展開
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,設定
 DocType: Workflow State,align-right,右寄せ
@@ -1324,7 +1324,7 @@ DocType: Report,Report Type,レポートタイプ
 DocType: Email Account,Signature,署名
 apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,共有
 apps/frappe/frappe/core/doctype/user/user.js +130,Loading,読み込み中
-apps/frappe/frappe/config/setup.py +194,"Enter keys to enable login via Facebook, Google, GitHub.",Facebook・Google・GitHub経由でログインするためのキーを入力してください。
+apps/frappe/frappe/config/setup.py +199,"Enter keys to enable login via Facebook, Google, GitHub.",Facebook・Google・GitHub経由でログインするためのキーを入力してください。
 apps/frappe/frappe/public/js/frappe/ui/tags.js +21,Add a tag,タグを追加
 apps/frappe/frappe/public/js/frappe/form/control.js +975,Please attach a file first.,ファイルを添付してください
 apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator",名前の設定でいくつかエラーが発生しました。管理者に連絡してください。
@@ -1389,7 +1389,7 @@ DocType: Blog Post,Blog Post,ブログの投稿
 apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,詳細検索
 apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,パスワードのリセット手順をメールで送信しました
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,並べ替え
-apps/frappe/frappe/config/setup.py +199,Manage cloud backups on Dropbox,Dropboxのクラウドバックアップを管理
+apps/frappe/frappe/config/setup.py +204,Manage cloud backups on Dropbox,Dropboxのクラウドバックアップを管理
 DocType: Workflow,States,状態
 DocType: Email Alert,Attach Print,印刷を添付
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",キャンセル後に書類を修正・保存した場合、その書類には新規の番号が付与されます。
@@ -1410,7 +1410,7 @@ DocType: Workflow State,glass,ガラス
 DocType: Country,Time Zones,時間帯
 DocType: DocField,Image,画像
 DocType: Workflow State,remove-sign,削除記号
-apps/frappe/frappe/config/setup.py +166,Define workflows for forms.,フォームのワークフローを定義します
+apps/frappe/frappe/config/setup.py +171,Define workflows for forms.,フォームのワークフローを定義します
 DocType: Communication,Other,その他
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +156,Start new Format,新しいフォーマットを開始
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +144,Please attach a file,ファイルを添付してください
@@ -1445,7 +1445,7 @@ DocType: Website Settings,Website Theme,ウェブサイトのテーマ
 DocType: DocField,In List View,リストビュー内
 DocType: Email Account,Use TLS,TLSを使用
 apps/frappe/frappe/email/smtp.py +35,Invalid login or password,無効なログインまたはパスワード
-apps/frappe/frappe/config/setup.py +222,Add custom javascript to forms.,フォームへのカスタムJavaScriptを追加します。
+apps/frappe/frappe/config/setup.py +227,Add custom javascript to forms.,フォームへのカスタムJavaScriptを追加します。
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +297,Sr No,シリアル番号
 ,Role Permissions Manager,役割権限マネージャー
 DocType: Website Theme,This must be checked if the below style settings are applicable,以下のスタイル設定が適用される場合、チェックを入れる必要があります
@@ -1558,7 +1558,7 @@ apps/frappe/frappe/desk/page/applications/applications.py +74,You cannot install
 DocType: Scheduler Log,Error,エラー
 DocType: DocField,Column Break,列区切り
 DocType: Event,Thursday,木曜日
-apps/frappe/frappe/utils/response.py +121,You don't have permission to access this file,このファイルにアクセスする権限がありません
+apps/frappe/frappe/utils/response.py +127,You don't have permission to access this file,このファイルにアクセスする権限がありません
 apps/frappe/frappe/model/document.py +524,Cannot link cancelled document: {0},キャンセルされた文書をリンクすることはできません：{0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +579,"For example: If you want to include the document ID, use {0}",例：文書IDを含める場合、{0}を使用
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +482,Select Table Columns for {0},{0}のテーブル列を選択
@@ -1664,7 +1664,7 @@ DocType: Web Form,Web Form,ウェブフォーム
 DocType: About Us Settings,Org History Heading,沿革見出し
 DocType: Communication,Integrations can use this field to set email delivery status,統合では、メール配信のステータスを設定するために、このフィールドを使用することができます
 DocType: Web Form,Web Page Link Text,Webページのリンクテキスト
-apps/frappe/frappe/config/setup.py +150,"Set default format, page size, print style etc.",デフォルト書式、ページサイズ、印刷スタイル等を設定
+apps/frappe/frappe/config/setup.py +155,"Set default format, page size, print style etc.",デフォルト書式、ページサイズ、印刷スタイル等を設定
 DocType: DocType,Naming,命名
 DocType: Event,Every Year,毎年
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +23,Select All,すべて選択
@@ -1678,7 +1678,7 @@ DocType: DocPerm,Role and Level,役割とレベル
 DocType: File,Thumbnail URL,サムネイルのURL
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,カスタム レポート
 DocType: Website Script,Website Script,ウェブサイトのスクリプト
-apps/frappe/frappe/config/setup.py +155,Customized HTML Templates for printing transactions.,取引印刷用のカスタマイズされたHTMLテンプレート
+apps/frappe/frappe/config/setup.py +160,Customized HTML Templates for printing transactions.,取引印刷用のカスタマイズされたHTMLテンプレート
 DocType: Workflow,Is Active,アクティブ
 apps/frappe/frappe/desk/form/utils.py +92,No further records,これ以上のレコードはありません
 DocType: DocField,Long Text,長いテキスト
@@ -1736,7 +1736,7 @@ DocType: Company History,Year,年
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},行 {1} に {0} は存在しません
 DocType: Event,Event Type,イベント タイプ
 DocType: User,Last Known Versions,最後の既知のバージョン
-apps/frappe/frappe/config/setup.py +123,Add / Manage Email Accounts.,メールアカウントの追加／管理
+apps/frappe/frappe/config/setup.py +128,Add / Manage Email Accounts.,メールアカウントの追加／管理
 DocType: Blog Category,Published,公開済
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,メールいただきありがとうございます
 DocType: DocField,Small Text,小さいテキスト
@@ -1846,7 +1846,7 @@ DocType: Workflow State,chevron-left,山カッコ（左）
 DocType: Bulk Email,Sending,送信中
 apps/frappe/frappe/auth.py +208,Not allowed from this IP Address,このIPアドレスからは許可されていません
 DocType: Website Slideshow,This goes above the slideshow.,スライドショーの上に配置されます
-apps/frappe/frappe/config/setup.py +188,Install Applications.,アプリケーションをインストールします。
+apps/frappe/frappe/config/setup.py +193,Install Applications.,アプリケーションをインストールします。
 DocType: User,Last Name,お名前（姓）
 DocType: Event,Private,個人
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),書類をPDFでメールに添付して送信（推奨）
@@ -1928,7 +1928,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +545,Report was 
 DocType: Print Settings,Print Style,印刷スタイル
 DocType: DocPerm,Import,インポート
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,行{0}：標準フィールドの「提出」を「許可」にすることが許可されていません
-apps/frappe/frappe/config/setup.py +90,Import / Export Data,データのインポート/エクスポート
+apps/frappe/frappe/config/setup.py +95,Import / Export Data,データのインポート/エクスポート
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},{0}に更新
 apps/frappe/frappe/public/js/legacy/form.js +169,Cannot print cancelled documents,キャンセルの文書を印刷することはできません
 DocType: User,Desktop Background,デスクトップの背景

@@ -49,8 +49,7 @@ def get_celery_app():
 		app.conf.CELERY_SEND_EVENTS = True
 		app.conf.CELERY_SEND_TASK_SENT_EVENT = True
 
-	if conf.celery_queue_per_site:
-		app.conf.CELERY_ROUTES = (SiteRouter(), AsyncTaskRouter())
+	app.conf.CELERY_ROUTES = (SiteRouter(), AsyncTaskRouter())
 
 	app.conf.CELERYBEAT_SCHEDULE = get_beat_schedule(conf)
 
@@ -90,11 +89,10 @@ def get_beat_schedule(conf):
 		},
 	}
 
-	if conf.celery_queue_per_site:
-		schedule['sync_queues'] = {
-			'task': 'frappe.tasks.sync_queues',
-			'schedule': timedelta(seconds=conf.scheduler_interval or DEFAULT_SCHEDULER_INTERVAL)
-		}
+	schedule['sync_queues'] = {
+		'task': 'frappe.tasks.sync_queues',
+		'schedule': timedelta(seconds=conf.scheduler_interval or DEFAULT_SCHEDULER_INTERVAL)
+	}
 
 	return schedule
 

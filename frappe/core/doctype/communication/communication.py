@@ -109,7 +109,7 @@ class Communication(Document):
 			from frappe.tasks import sendmail
 			sendmail.delay(frappe.local.site, self.name,
 				print_html=print_html, print_format=print_format, attachments=attachments,
-				recipients=recipients, cc=cc, lang=frappe.local.lang)
+				recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
 		recipients=None, cc=None):
