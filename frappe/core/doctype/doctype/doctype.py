@@ -296,12 +296,13 @@ def validate_fields(meta):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
 				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
 
-			has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-				from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
-				doctype=d.parent, fieldname=d.fieldname))
+			if not d.get("__islocal"):
+				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
+					from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+					doctype=d.parent, fieldname=d.fieldname))
 
-			if has_non_unique_values and has_non_unique_values[0][0]:
-				frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
+				if has_non_unique_values and has_non_unique_values[0][0]:
+					frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))

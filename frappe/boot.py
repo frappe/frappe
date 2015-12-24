@@ -119,7 +119,7 @@ def get_fullnames():
 	ret = frappe.db.sql("""select name,
 		concat(ifnull(first_name, ''),
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
-			user_image as image, gender, email
+			user_image as image, gender, email, username
 		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
