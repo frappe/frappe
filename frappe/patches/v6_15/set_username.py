@@ -7,7 +7,7 @@ def execute():
 	users = frappe.db.sql_list("""select name from `tabUser` order by if(user_type='System User', 0, 1)""")
 	for name in users:
 		user = frappe.get_doc("User", name)
-		if user.username:
+		if user.username or not user.first_name:
 			continue
 
 		username = user.suggest_username()
