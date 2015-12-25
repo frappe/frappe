@@ -87,6 +87,9 @@ class DocType(Document):
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
+				# fieldnames should be lowercase
+				d.fieldname = d.fieldname.lower()
+
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
 		if not autoname: autoname = self.autoname
