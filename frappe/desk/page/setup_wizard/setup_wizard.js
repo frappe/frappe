@@ -263,7 +263,9 @@ function load_frappe_slides() {
 					frappe.wiz.welcome.setup_fields(slide);
 
 					slide.get_field("language")
-						.set_input(frappe.wiz.welcome.data.default_language || "english");
+						.set_input(frappe.wiz.welcome.data.default_language || "english")
+						.trigger("change");
+
 					moment.locale("en");
 				}
 			});
