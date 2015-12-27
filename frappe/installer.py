@@ -197,7 +197,7 @@ def set_all_patches_as_completed(app):
 			frappe.get_doc({
 				"doctype": "Patch Log",
 				"patch": patch
-			}).insert()
+			}).insert(ignore_permissions=True)
 		frappe.db.commit()
 
 def init_singles():
