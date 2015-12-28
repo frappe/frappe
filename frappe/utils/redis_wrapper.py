@@ -17,39 +17,61 @@ class RedisWrapper(redis.Redis):
 
 		return "{0}|{1}".format(frappe.conf.db_name, key).encode('utf-8')
 
-	def set_value(self, key, val, user=None):
-		"""Sets cache value."""
+	def set_value(self, key, val, user=None, expires_in_sec=None):
+		"""Sets cache value.
+
+		:param key: Cache key
+		:param val: Value to be cached
+		:param user: Prepends key with User
+		:param expires_in_sec: Expire value of this key in X seconds
+		"""
 		key = self.make_key(key, user)
-		frappe.local.cache[key] = val
+
+		if not expires_in_sec:
+			frappe.local.cache[key] = val
+
 		try:
-			self.set(key, pickle.dumps(val))
+			if expires_in_sec:
+				self.setex(key, pickle.dumps(val), expires_in_sec)
+			else:
+				self.set(key, pickle.dumps(val))
+
 		except redis.exceptions.ConnectionError:
 			return None
 
-	def get_value(self, key, generator=None, user=None):
+	def get_value(self, key, generator=None, user=None, expires=False):
 		"""Returns cache value. If not found and generator function is
 			given, it will call the generator.
 
 		:param key: Cache key.
-		:param generator: Function to be called to generate a value if `None` is returned."""
+		:param generator: Function to be called to generate a value if `None` is returned.
+		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
+		"""
 		original_key = key
 		key = self.make_key(key, user)
 
-		if key not in frappe.local.cache:
+		if key in frappe.local.cache:
+			val = frappe.local.cache[key]
+
+		else:
 			val = None
 			try:
 				val = self.get(key)
 			except redis.exceptions.ConnectionError:
 				pass
+
 			if val is not None:
 				val = pickle.loads(val)
-			if val is None and generator:
-				val = generator()
-				self.set_value(original_key, val, user=user)
-			else:
-				frappe.local.cache[key] = val
 
-		return frappe.local.cache.get(key)
+			if not expires:
+				if val is None and generator:
+					val = generator()
+					self.set_value(original_key, val, user=user)
+
+				else:
+					frappe.local.cache[key] = val
+
+		return val
 
 	def get_all(self, key):
 		ret = {}
@@ -147,3 +169,4 @@ class RedisWrapper(redis.Redis):
 			return super(redis.Redis, self).hkeys(self.make_key(name))
 		except redis.exceptions.ConnectionError:
 			return []
+

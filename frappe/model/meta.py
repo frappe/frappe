@@ -164,42 +164,26 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of previous_field"""
-		newlist = []
-		pending = self.get("fields")
-
 		if self.get("_idx"):
+			newlist = []
+			pending = self.get("fields")
+			
 			for fieldname in json.loads(self.get("_idx")):
 				d = self.get("fields", {"fieldname": fieldname}, limit=1)
 				if d:
 					newlist.append(d[0])
 					pending.remove(d[0])
-		else:
-			maxloops = 20
-			while (pending and maxloops>0):
-				maxloops -= 1
-				for d in pending[:]:
-					if d.get("previous_field"):
-						# field already added
-						for n in newlist:
-							if n.fieldname==d.previous_field:
-								newlist.insert(newlist.index(n)+1, d)
-								pending.remove(d)
-								break
-					else:
-						newlist.append(d)
-						pending.remove(d)
+					
+			if pending:
+				newlist += pending
+			
+			# renum
+			idx = 1
+			for d in newlist:
+				d.idx = idx
+				idx += 1
 
-		# recurring at end
-		if pending:
-			newlist += pending
-
-		# renum
-		idx = 1
-		for d in newlist:
-			d.idx = idx
-			idx += 1
-
-		self.set("fields", newlist)
+			self.set("fields", newlist)
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {

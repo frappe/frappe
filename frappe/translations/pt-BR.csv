@@ -501,7 +501,7 @@ DocType: User,Google User ID,Google ID do usuário
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,Este método apenas pode ser usado para criar um comentário
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,Não {0} encontrado
 apps/frappe/frappe/config/setup.py +232,Add custom forms.,Adicionar formulários personalizados.
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,O sistema proporciona várias funções pré - definidas . Você pode adicionar novas funções para definir as permissões mais finos.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,O sistema disponibiliza várias funções pré-definidas. Você pode adicionar novas funções para definir permissões mais específicas.
 DocType: Country,Geo,Geo
 apps/frappe/frappe/desk/page/applications/applications.js +46,Domains,Domínios
 DocType: Blog Category,Blog Category,Categoria do Blog
@@ -514,7 +514,7 @@ DocType: Page,Page HTML,Página HTML
 DocType: Web Page,Header,Cabeçalho
 apps/frappe/frappe/public/js/frappe/model/model.js +79,Unknown Column: {0},Coluna desconhecida: {0}
 DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Opcional: Sempre enviar para esses ids. Cada ID de e-mail em uma nova linha
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Os usuários com papel {0}:
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Os usuários com a função {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Instalando App {0}
 DocType: Print Format,Custom Format,Formato personalizado
 DocType: Workflow State,random,acaso
@@ -835,7 +835,7 @@ apps/frappe/frappe/desk/page/applications/applications.js +45,Not Set,não infor
 DocType: Communication,Date,Data
 DocType: Website Settings,Disable Signup,Desativar Registre-se
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while your system is being setup. This may take a few moments.,Sente-se apertado enquanto o sistema está sendo configurado . Isso pode demorar alguns instantes.
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,As funções podem ser definidas para os usuários de sua página de usuário .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,As funções podem ser definidas para os usuários através de sua página de Usuário.
 DocType: DocField,Mandatory,Obrigatório
 apps/frappe/frappe/core/doctype/doctype/doctype.py +412,{0}: No basic permissions set,{0}: Nenhum conjunto de permissões básico
 apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},Link de download para o seu backup será enviado por email no seguinte endereço de email: {0}
@@ -1104,7 +1104,7 @@ DocType: ToDo,Description and Status,Descrição e Status
 DocType: Web Page,HTML for header section. Optional,HTML para a seção de cabeçalho. opcional
 apps/frappe/frappe/model/rename_doc.py +348,Maximum {0} rows allowed,Máximo de {0} linhas permitido
 DocType: Email Unsubscribe,Global Unsubscribe,Mundial Unsubscribe
-apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,papel existe
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,A função existe
 apps/frappe/frappe/public/js/frappe/views/communication.js +82,Select Print Format,Selecione o Formato de Impressão
 DocType: DocField,Print Hide,Ocultar impressão
 apps/frappe/frappe/public/js/frappe/ui/messages.js +59,Enter Value,Digite o Valor
@@ -1195,7 +1195,7 @@ apps/frappe/frappe/public/js/frappe/form/share.js +54,Share {0} with,Partilhar {
 DocType: Workflow State,hand-up,mão acima
 DocType: Blog Settings,Writers Introduction,Escritores Introdução
 DocType: Communication,Phone,Telefone
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Selecione o tipo de documento ou função para começar.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Selecione o Tipo de Documento ou Função para começar.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +262,ProTip: You can also use Ctrl+S to Save,Protip: Você também pode usar Ctrl + S para salvar
 apps/frappe/frappe/public/js/frappe/views/container.js +55,Page not found,Página não encontrada
 DocType: DocField,Precision,Precisão
@@ -1238,7 +1238,7 @@ apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,"
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),Adicionado {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},FieldType não pode ser alterado a partir de {0} a {1} em linha {2}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Search Fields should contain valid fieldnames,Pesquisa Campos deve conter fieldnames válidos
-apps/frappe/frappe/core/doctype/user/user.js +317,Role Permissions,Permissões de função
+apps/frappe/frappe/core/doctype/user/user.js +317,Role Permissions,Permissões da Função
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +5,Can Read,Pode ver
 DocType: Standard Reply,Response,Resposta
 apps/frappe/frappe/public/js/frappe/form/workflow.js +41,Workflow will start after saving.,Fluxo de trabalho será iníciado após salvar.
@@ -1679,7 +1679,7 @@ apps/frappe/frappe/core/doctype/user/user.py +359,Registered but disabled.,"Regi
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +536,Delete permanently?,Apagar de forma permanente?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +89,Search in a document type,Pesquisar em um tipo de documento
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Allow field to remain editable even after submission,Permitir campo para permanecer editável mesmo após a apresentação
-DocType: DocPerm,Role and Level,Papel e Nível
+DocType: DocPerm,Role and Level,Função e Nível
 DocType: File,Thumbnail URL,URL Thumbnail
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Relatórios personalizados
 DocType: Website Script,Website Script,Script do site

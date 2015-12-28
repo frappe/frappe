@@ -62,7 +62,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['user_permissions'] = get_user_permissions(docs[0])
+	frappe.response['user_permissions'] = get_user_permissions(docs)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
@@ -95,8 +95,11 @@ def get_docinfo(doc=None, doctype=None, name=None):
 def get_user_permissions(meta):
 	out = {}
 	all_user_permissions = frappe.defaults.get_user_permissions()
-	for df in meta.get_fields_to_check_permissions(all_user_permissions):
-		out[df.options] = list(set(all_user_permissions[df.options]))
+	
+	for m in meta:
+		for df in m.get_fields_to_check_permissions(all_user_permissions):
+			out[df.options] = list(set(all_user_permissions[df.options]))
+	
 	return out
 
 def get_attachments(dt, dn):

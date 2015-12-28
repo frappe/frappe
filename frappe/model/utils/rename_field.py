@@ -35,8 +35,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
 
 	# update in property setter
-	frappe.db.sql("""update `tabProperty Setter` set field_name = %s
-		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
+	update_property_setters(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):
@@ -114,3 +113,21 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 		if columns_modified:
 			frappe.db.sql("""update `tabDefaultValue` set defvalue=%s
 				where defkey=%s""" % ('%s', '%s'), (json.dumps(new_columns), key))
+
+def update_property_setters(doctype, old_fieldname, new_fieldname):
+	frappe.db.sql("""update `tabProperty Setter` set field_name = %s
+		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
+
+	idx_property = frappe.db.sql("""select name, value from `tabProperty Setter` 
+		where doc_type=%s and property = '_idx' and value like '%%%s%%'""", 
+		(doctype, old_fieldname), as_dict=1)
+	
+	if idx_property:
+		idx_property_value = json.loads(idx_property[0].value)
+		for field in idx_property_value:
+			if field == old_fieldname:
+				field = new_fieldname
+				break
+			
+		frappe.db.set_value("Property Setter", idx_property[0].name, "value", json.dumps(idx_property_value))
+	

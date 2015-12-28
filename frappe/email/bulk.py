@@ -244,7 +244,7 @@ def flush(from_test=False):
 		from_test = True
 
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
-		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
+		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
@@ -281,8 +281,9 @@ def flush(from_test=False):
 			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
-		finally:
-			frappe.db.commit()
+		# NOTE: removing commit here because we pass auto_commit
+		# finally:
+		# 	frappe.db.commit()
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""

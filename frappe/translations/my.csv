@@ -88,6 +88,7 @@ apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages
 DocType: Workflow Action,Workflow Action Name,အသွားအလာလှုပ်ရှားမှုအမည်
 apps/frappe/frappe/core/doctype/doctype/doctype.py +145,DocType can not be merged,DOCTYPE ပေါင်းစည်းမရနိုင်ပါ
 DocType: Web Form Field,Fieldtype,Fieldtype
+DocType: Error Snapshot,Friendly Title,friendly ခေါင်းစဉ်
 apps/frappe/frappe/desk/form/save.py +46,Did not cancel,ဖျက်သိမ်းဘဲ
 DocType: Workflow State,plus,အပေါင်း
 apps/frappe/frappe/config/desktop.py +10,File Manager,ဖိုင်မန်နေဂျာ
@@ -385,6 +386,7 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +6,Bold (Ctrl/Cmd+B),ရဲ�
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,upload နှင့် Sync
 apps/frappe/frappe/public/js/frappe/form/share.js +33,Shared with {0},{0} နှင့်အတူ shared
 DocType: Comment,Reference Name,ကိုးကားစရာအမည်
+DocType: Error Snapshot,Exception,ချွင်းချက်
 DocType: Email Account,Use IMAP,IMAP ထဲကကိုအသုံးပြုပါ
 DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,လူပျိုအမျိုးအစားများကိုမစားပွဲဆက်နွယ်တစ်ခုသာစံချိန်ရှိသည်။ တန်ဖိုးများကို tabSingles ထဲမှာသိမ်းထားပါတယ်
 DocType: Bulk Email,Bulk Email,bulk Email
@@ -393,6 +395,7 @@ DocType: File,Folder,Folder ကို
 DocType: DocField,Index,ညွှန်ပြသောအရာ
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 1,option 1
 apps/frappe/frappe/public/js/frappe/ui/editor.html +12,Number list,နံပါတ်စာရင်း
+apps/frappe/frappe/config/setup.py +84,Log of error during requests.,တောင်းဆိုမှုများစဉ်အတွင်းအမှားအယွင်းအထဲ။
 DocType: DocShare,Everyone,လူတိုင်းသည်
 DocType: Workflow State,backward,နောက်ပြန်
 apps/frappe/frappe/core/doctype/doctype/doctype.py +429,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: တစ်ယောက်သာတူညီအခန်းကဏ္ဍနှင့်အတူခွင့်ပြုအုပ်ချုပ်, အဆင့်နှင့် {1}"
@@ -691,6 +694,7 @@ DocType: Email Account,Email ID,အီးမေးလ် ID ကို
 apps/frappe/frappe/public/js/frappe/ui/editor.html +49,Insert Link,Link ကိုထည့်ပါ
 DocType: Contact Us Settings,Query Options,query က Options
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +108,Import Successful!,အောင်မြင်သောတင်သွင်း!
+DocType: Error Snapshot,Timestamp,Timestamp
 DocType: Patch Log,Patch Log,patch အထဲ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +379,Add,ပေါင်း
 DocType: Communication,Sent or Received,ကိုစလှေတျသို့မဟုတ်ရရှိထားသည့်
@@ -862,6 +866,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,စာ�
 DocType: DocPerm,DocPerm,DocPerm
 apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Precision should be between 1 and 6,Precision 1 နှင့် 6 အကြားဖြစ်သင့်တယ်
 apps/frappe/frappe/public/js/frappe/misc/utils.js +110,and,နှင့်
+DocType: Error Snapshot,Frames,frames
 DocType: About Us Team Member,Image Link,image ကို Link ကို
 DocType: Workflow State,step-backward,ခြေလှမ်း-နောက်ပြန်
 apps/frappe/frappe/utils/boilerplate.py +232,{app_title},{app_title}
@@ -950,6 +955,7 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Dup
 DocType: DocField,Text Editor,text Editor ကို
 apps/frappe/frappe/config/website.py +69,Settings for About Us Page.,အကြောင်း Us စာမျက်နှာဖြစ်သည် Settings ကို။
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +561,Edit Custom HTML,Edit ကို Custom HTML ကို
+DocType: Error Snapshot,Error Snapshot,error snapshot
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +8,In,တွင်
 DocType: Email Alert,Value Change,Value တစ်ခုပြောင်းရန်
 DocType: Standard Reply,Standard Reply,စံစာပြန်ရန်
@@ -1011,6 +1017,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","ဤညွှန်ကြားချက်ကိုဘယ်မှာမထောကျအကူပွုလြှငျ, GitHub ကိစ္စများပေါ်တွင်သင့်အကြံပြုချက်များအတွက် add ကိုကျေးဇူးတင်ပါ။"
 DocType: Workflow State,bookmark,bookmark
 DocType: Note,Note,မှတ်ချက်
+apps/frappe/frappe/public/html/error_snapshot.html +32,Error Report,error အစီရင်ခံစာ
 apps/frappe/frappe/email/bulk.py +96,This email was sent to you as CC,CC သကဲ့သို့သင်တို့ကိုဤအီးမေးကိုစေလွှတ်ခဲ့သည်
 DocType: Email Account,Email Ids,အီးမေးလ် IDS
 DocType: Currency,Symbol,အထိမ်းအမှတ်
@@ -1042,6 +1049,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +39,Details,�
 DocType: Property Setter,DocType or Field,DOCTYPE သို့မဟုတ်ဖျော်ဖြေမှု
 DocType: Communication,Soft-Bounced,soft-ကစားနိုင်ခဲ့ပါတယ်
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,ခွင့်ပြုချက်ပြင်ဆင်ခြင်းသည်လျင်မြန်စွာအကူအညီ
+apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js +9,Show Relapses,Show ကို Relapses
 DocType: Report,Report Builder,အစီရင်ခံစာ Builder
 DocType: Async Task,Task Name,Task Name
 DocType: Workflow,Workflow,အသွားအလာ
@@ -1076,6 +1084,7 @@ DocType: Workflow State,fullscreen,မျက်နှာပြင်အပြည
 DocType: Event,Ref Name,Ref အမည်
 DocType: Web Page,Center,အလယ်ဗဟို
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,Setup ကို&gt; အသုံးပြုသူခွင့်ပြုချက် Manager က
+apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,ပထမဦးစွာအဆင့်
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,ပြည်နယ်ကိုပြောင်းလဲတာဝန်ပေးတယောက်စာရွက်စာတမ်းနှင့်အခန်းကဏ္ဍအတွက်ခွင့်ပြုပြည်နယ်များကိုကိုယ်စားပြုပါတယ်။
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh Form,Form တွင် refresh
 DocType: DocField,Select,ကိုရွေးပါ
@@ -1135,12 +1144,14 @@ apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were error
 apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,ပိတ်
 apps/frappe/frappe/model/document.py +452,Cannot change docstatus from 0 to 2,2 0 မှ docstatus မပြောင်းနိုင်ပါ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Update,Update ကို
+DocType: Error Snapshot,Snapshot View,snapshot ကြည့်ရန်
 apps/frappe/frappe/core/doctype/doctype/doctype.py +260,Options must be a valid DocType for field {0} in row {1},Options ကိုလယ်၌ {0} အတန်းအတွက် {1} သည်မှန်ကန်သော DOCTYPE ဖြစ်ရမည်
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Edit ကို Properties ကို
 DocType: Patch Log,List of patches executed,ကွပ်မျက်ခံရပြင်ဆင်ဖာထေးစာရင်း
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ပြီးသား unsubscribe
 DocType: Communication,Communication Medium,ဆက်သွယ်ရေးအလတ်စား
 DocType: Website Settings,Banner HTML,Banner က HTML
+DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/model/base_document.py +440,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} &quot;{2}&quot; မဖြစ်နိုင်။ ဒါဟာ &quot;{3}&quot; တယောက်ဖြစ်သင့်
 apps/frappe/frappe/utils/data.py +489,{0} or {1},{0} သို့မဟုတ် {1}
 apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,Password ကို Update ကို
@@ -1150,7 +1161,9 @@ DocType: Web Form,"In JSON as [{""title"":""Jobs"", ""name"":""jobs""}]","[{: &q
 DocType: Event,Leave blank to repeat always,အမြဲပြန်လုပ်မှအလွတ် Leave
 DocType: Event,Ends on,အပေါ်အဆုံးသတ်
 DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",အဓိကအားဖြင့် Website ကိုစိစစ်အတည်ပြုခြင်းနှင့် SEO ဆိုသည်မှာများအတွက်အသုံးပြုတဲ့ဝဘ်စာမျက်နှာ၏ &lt;head&gt; အပိုင်းအတွက် HTML ကို Added
+apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,ပြန်ရောက်သွားတယ်
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,item ၎င်း၏ကိုယ်ပိုင်ဆင်းသက်လာမှဆက်ပြောသည်မရနိုင်ပါ
+DocType: Error Snapshot,Relapses,Relapses
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +55,{0} created this {1},{0} {1} ဒီနေသူများကဖန်တီး
 apps/frappe/frappe/public/js/frappe/form/workflow.js +36,Document is only editable by users of role,စာရွက်စာတမ်းအခန်းကဏ္ဍ၏အသုံးပြုသူများသာတည်းဖြတ်မှု
 apps/frappe/frappe/desk/form/assign_to.py +146,"The task {0}, that you assigned to {1}, has been closed by {2}.","သင် {1}, {2} ကြောင့်ပိတ်ထားခဲ့ဖို့တာဝန်ပေးသောအလုပ်တစ်ခုကို {0}, ။"
@@ -1514,6 +1527,7 @@ apps/frappe/frappe/database.py +217,Too many writes in one request. Please send 
 DocType: Workflow State,arrow-up,မြှား-up က
 DocType: DocField,Allow on Submit,Submit အပေါ် Allow
 apps/frappe/frappe/core/page/desktop/desktop.js +59,All Applications,အားလုံးသည်အသုံးပြုခြင်း
+DocType: Error Snapshot,Exception Type,ခြွင်းချက်ကအမျိုးအစား
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +425,Pick Columns,-Columns Pick
 DocType: Web Page,Add code as &lt;script&gt;,&lt;script&gt; အဖြစ် code ကို Add
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Type ကိုရွေးပါ
@@ -1684,6 +1698,7 @@ DocType: Communication,Series,စီးရီး
 DocType: Communication,Email,အီးမေးလ်
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,သင့်ရဲ့မက်ဆေ့ခ်ျကိုကျေးဇူးတင်ပါသည်
 DocType: Website Settings,Home Page,Home Page
+DocType: Error Snapshot,Parent Error Snapshot,မိဘတစ်အမှား snapshot
 DocType: Email Alert,Filters,စိစစ်မှုများ
 DocType: Workflow State,share-alt,ရှယ်ယာ-alt +
 DocType: Role,Role Name,အခန်းက္ပအမည်
@@ -1787,6 +1802,7 @@ DocType: Website Settings,Home Page is Products,Home Page ထုတ်ကုန�
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},{0} ကြောင့်ပိတ်ထားတာဝန်ကို
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,ရေတွက်
 apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,DOCTYPE ပထမဦးဆုံးကိုရွေးပါ ကျေးဇူးပြု.
+DocType: Error Snapshot,Locals,ဒေသခံတွေ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,ဥပမာ (55 + 434) / 4 သို့မဟုတ် = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/model/naming.py +40,{0} is required,{0} လိုအပ်သည်
 DocType: Social Login Keys,GitHub Client ID,GitHub လိုင်း ID ကို

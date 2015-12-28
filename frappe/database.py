@@ -650,18 +650,17 @@ class Database:
 
 	def get_default(self, key, parent="__default"):
 		"""Returns default value as a list if multiple or single"""
-		d = frappe.defaults.get_defaults(parent).get(key)
+		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
-
-	def get_defaults_as_list(self, key, parent="__default"):
-		"""Returns default values as a list."""
-		d = frappe.defaults.get_default(key, parent)
-		return isinstance(d, basestring) and [d] or d
 
 	def get_defaults(self, key=None, parent="__default"):
 		"""Get all defaults"""
 		if key:
-			return frappe.defaults.get_defaults(parent).get(key)
+			defaults = frappe.defaults.get_defaults(parent)
+			d = defaults.get(key, None)
+			if(not d and key != frappe.scrub(key)):
+				d = defaults.get(frappe.scrub(key), None)
+			return d
 		else:
 			return frappe.defaults.get_defaults(parent)
 

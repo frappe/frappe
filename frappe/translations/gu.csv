@@ -1938,3 +1938,24 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +159,"Change 
 						allowed among 'Currency and Float')","ક્ષેત્રમાં પ્રકાર બદલો. (હાલમાં, પ્રકારમાં ફેરફાર \ &#39;કરન્સી અને ફ્લોટ&#39; વચ્ચે માન્ય છે)"
 apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be in developer mode to edit a Standard Web Form,તમે પ્રમાણભૂત વેબ ફોર્મ ફેરફાર કરવા માટે વિકાસકર્તા મોડમાં પ્રયત્ન કરવાની જરૂર છે
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +48,"For comparative filters, start with",તુલનાત્મક ફિલ્ટર સાથે શરૂ
+DocType: Website Theme,Link to Bootstrap CSS,સીએસએસ બુટસ્ટ્રેપ લિંક
+DocType: Workflow State,camera,કેમેરા
+DocType: Website Settings,Brand HTML,બ્રાન્ડ HTML
+apps/frappe/frappe/templates/includes/login/login.js +19,Both login and password required,જરૂરી બંને પ્રવેશ અને પાસવર્ડ
+apps/frappe/frappe/model/document.py +430,Please refresh to get the latest document.,તાજેતરની દસ્તાવેજ વિચાર તાજું કરો.
+DocType: User,Security Settings,સુરક્ષા સેટિંગ્સ
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +617,Add Column,કૉલમ ઉમેરો
+,Desktop,ડેસ્કટોપ
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,"આ ફોર્મ વેબ પાનું છે, તો લખાણ વેબ પૃષ્ઠ પર લિંક માટે પ્રદર્શિત કરવા માટે. લિંક માર્ગ આપોઆપ page_name` અને `parent_website_route`` પર આધારિત પેદા થશે"
+apps/frappe/frappe/public/js/frappe/form/control.js +1258,Please set {0} first,પ્રથમ {0} સુયોજિત કરો
+DocType: Dropbox Backup,Send Backups to Dropbox,ડ્રૉપબૉક્સ પર બેકઅપ મોકલો
+DocType: Patch Log,Patch,પેચ
+DocType: Async Task,Failed,નિષ્ફળ
+apps/frappe/frappe/core/page/data_import_tool/importer.py +43,No data found,કોઈ માહિતી મળી
+DocType: Web Form,Allow Comments,ટિપ્પણીઓ માટે પરવાનગી આપે છે
+DocType: User,Background Style,પૃષ્ઠભૂમિ શૈલી
+DocType: System Settings,mm-dd-yyyy,MM-ડીડી YYYY
+apps/frappe/frappe/desk/doctype/feed/feed.py +93,{0} logged in,{0} લૉગ ઇન
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,તમારી લૉગિન આઈડી છે
+DocType: Dropbox Backup,Send Notifications To,સૂચના મોકલો
+DocType: DocField,Ignore User Permissions,વપરાશકર્તા પરવાનગીઓ અવગણો

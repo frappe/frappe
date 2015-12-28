@@ -17,11 +17,17 @@ def add_user_default(key, value, user=None, parenttype=None):
 	add_default(key, value, user or frappe.session.user, parenttype)
 
 def get_user_default(key, user=None):
-	d = get_defaults(user or frappe.session.user).get(key, None)
+	user_defaults = get_defaults(user or frappe.session.user)
+	d = user_defaults.get(key, None)
+	if(not d and key != frappe.scrub(key)):
+		d = user_defaults.get(frappe.scrub(key), None)
 	return isinstance(d, list) and d[0] or d
 
 def get_user_default_as_list(key, user=None):
-	d = get_defaults(user or frappe.session.user).get(key, None)
+	user_defaults = get_defaults(user or frappe.session.user)
+	d = user_defaults.get(key, None)
+	if(not d and key != frappe.scrub(key)):
+		d = user_defaults.get(frappe.scrub(key), None)
 	return (not isinstance(d, list)) and [d] or d
 
 def get_user_permissions(user=None):
@@ -149,7 +155,7 @@ def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().hget("defaults", parent)
 	if defaults==None:
-		# sort descending because first default must get preceedence
+		# sort descending because first default must get precedence
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
 			where parent = %s order by creation""", (parent,), as_dict=1)
 
