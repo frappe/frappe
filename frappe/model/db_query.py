@@ -25,7 +25,7 @@ class DatabaseQuery(object):
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
-		ignore_permissions=False, user=None):
+		ignore_permissions=False, user=None, with_comment_count=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -45,9 +45,14 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 
 		if query:
-			return self.run_custom_query(query)
+			result = self.run_custom_query(query)
 		else:
-			return self.build_and_run()
+			result = self.build_and_run()
+
+		if with_comment_count and not as_list and self.doctype:
+			self.add_comment_count(result)
+
+		return result
 
 	def build_and_run(self):
 		args = self.prepare_args()
@@ -444,3 +449,21 @@ class DatabaseQuery(object):
 			return 'limit %s, %s' % (self.limit_start, self.limit_page_length)
 		else:
 			return ''
+
+	def add_comment_count(self, result):
+		for r in result:
+			if not r.name:
+				continue
+
+			if "_comments" in r:
+				comment_count = len(json.loads(r._comments or "[]"))
+			else:
+				comment_count = cint(frappe.db.get_value("Comment",
+					filters={"comment_doctype": self.doctype, "comment_docname": r.name, "comment_type": "Comment"},
+					fieldname="count(name)"))
+
+			communication_count = cint(frappe.db.get_value("Communication",
+				filters={"reference_doctype": self.doctype, "reference_name": r.name},
+				fieldname="count(name)"))
+
+			r._comment_count = comment_count + communication_count

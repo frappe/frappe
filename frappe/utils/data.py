@@ -10,6 +10,9 @@ import re, urllib, datetime, math
 import babel.dates
 from dateutil import parser
 from num2words import num2words
+import HTMLParser
+from html2text import html2text
+
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -620,3 +623,12 @@ def unique(seq):
 def strip(val, chars=None):
 	# \ufeff is no-width-break, \u200b is no-width-space
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
+
+def to_markdown(html):
+	text = None
+	try:
+		text = html2text(html)
+	except HTMLParser.HTMLParseError:
+		pass
+
+	return text

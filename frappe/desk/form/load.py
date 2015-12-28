@@ -95,11 +95,11 @@ def get_docinfo(doc=None, doctype=None, name=None):
 def get_user_permissions(meta):
 	out = {}
 	all_user_permissions = frappe.defaults.get_user_permissions()
-	
+
 	for m in meta:
 		for df in m.get_fields_to_check_permissions(all_user_permissions):
 			out[df.options] = list(set(all_user_permissions[df.options]))
-	
+
 	return out
 
 def get_attachments(dt, dn):
@@ -108,7 +108,7 @@ def get_attachments(dt, dn):
 
 def get_comments(dt, dn, limit=100):
 	comments = frappe.db.sql("""select name, comment, comment_by, creation,
-			reference_doctype, reference_name, comment_type, "Comment" as doctype
+			reference_doctype, reference_name, comment_type, "Comment" as doctype, _liked_by
 		from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
 		order by creation desc limit %s""",
@@ -116,7 +116,7 @@ def get_comments(dt, dn, limit=100):
 
 	communications = frappe.db.sql("""select name,
 			content as comment, sender as comment_by, creation,
-			communication_medium as comment_type, subject, delivery_status,
+			communication_medium as comment_type, subject, delivery_status, _liked_by,
 			"Communication" as doctype
 		from tabCommunication
 		where reference_doctype=%s and reference_name=%s

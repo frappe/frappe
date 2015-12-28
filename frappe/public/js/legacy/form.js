@@ -472,6 +472,8 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 	$(cur_frm.wrapper).trigger('render_complete');
 
 	this.layout.show_empty_form_message();
+
+	this.scroll_to_element();
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {
@@ -872,4 +874,22 @@ _f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
 
 _f.Frm.prototype.has_perm = function(ptype) {
 	return frappe.perm.has_perm(this.doctype, 0, ptype, this.doc);
+}
+
+_f.Frm.prototype.scroll_to_element = function() {
+	if (frappe.route_options && frappe.route_options.scroll_to) {
+		var scroll_to = frappe.route_options.scroll_to;
+		delete frappe.route_options.scroll_to;
+
+		var selector = [];
+		for (var key in scroll_to) {
+			var value = scroll_to[key];
+			selector.push(repl('[data-%(key)s="%(value)s"]', {key: key, value: value}));
+		}
+
+		selector = $(selector.join(" "));
+		if (selector.length) {
+			frappe.ui.scroll(selector, true, 30);
+		}
+	}
 }

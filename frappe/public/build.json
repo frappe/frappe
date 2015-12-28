@@ -16,6 +16,7 @@
 		"public/js/lib/highlight.pack.js",
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
+		"public/js/frappe/query_string.js",
 		"website/js/website.js",
 		"public/js/lib/socket.io.min.js"
 	],
@@ -121,6 +122,7 @@
 
 		"public/js/frappe/change_log.html",
 		"public/js/frappe/desk.js",
+		"public/js/frappe/query_string.js",
 
 		"public/html/error_object.html",
 		"public/html/error_snapshot.html"
@@ -180,7 +182,8 @@
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tags.js",
-		"public/js/frappe/ui/star.js",
+		"public/js/frappe/ui/like.js",
+		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
 		"public/js/frappe/list/doclistview.js",
 		"public/js/frappe/list/list_sidebar.js",

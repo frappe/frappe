@@ -116,7 +116,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_filterable();
 		this.init_filters();
 		this.init_headers();
-		this.init_star();
+		this.init_like();
 		this.init_select_all();
 	},
 
@@ -168,9 +168,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		});
 		this.$page.find(".result-list").on("click", ".list-row-left", function(e) {
-			// don't open in case of checkbox, star, filterable
+			// don't open in case of checkbox, like, filterable
 			if ((e.target.className || "").indexOf("filterable")!==-1
-				|| (e.target.className || "").indexOf("icon-star")!==-1
+				|| (e.target.className || "").indexOf("octicon-heart")!==-1
 				|| e.target.type==="checkbox") {
 				return;
 			}
@@ -307,8 +307,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		}
 
-		this.list_header.find(".list-starred-by-me")
-			.toggleClass("text-extra-muted not-starred", !this.is_star_filtered());
+		this.list_header.find(".list-liked-by-me")
+			.toggleClass("text-extra-muted not-liked", !this.is_star_filtered());
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
@@ -355,6 +355,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			filters: this.filter_list.get_filters(),
 			order_by: this.listview.order_by || undefined,
 			group_by: this.listview.group_by || undefined,
+			with_comment_count: true
 		}
 
 		// apply default filters, if specified for a listing
@@ -368,15 +369,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.filter_list.add_filter(this.doctype, "_assign", 'like', '%' + user + '%');
 		this.run();
 	},
-	starred_by_me: function() {
-		this.filter_list.add_filter(this.doctype, "_starred_by", 'like', '%' + user + '%');
+	liked_by_me: function() {
+		this.filter_list.add_filter(this.doctype, "_liked_by", 'like', '%' + user + '%');
 		this.run();
 	},
-	remove_starred_by_me: function() {
-		this.filter_list.get_filter("_starred_by").remove();
+	remove_liked_by_me: function() {
+		this.filter_list.get_filter("_liked_by").remove();
 	},
 	is_star_filtered: function() {
-		return this.filter_list.filter_exists(this.doctype, "_starred_by", 'like', '%' + user + '%');
+		return this.filter_list.filter_exists(this.doctype, "_liked_by", 'like', '%' + user + '%');
 	},
 	init_menu: function() {
 		var me = this;
@@ -453,19 +454,20 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}, true)
 	},
 
-	init_star: function() {
+	init_like: function() {
 		var me = this;
-		this.$page.find(".result-list").on("click", ".star-action", function() {
-			frappe.ui.toggle_star($(this), me.doctype, $(this).attr("data-name"));
-			return false;
-		});
-		this.list_header.find(".list-starred-by-me").on("click", function() {
+		this.$page.find(".result-list").on("click", ".like-action", frappe.ui.click_toggle_like);
+		this.list_header.find(".list-liked-by-me").on("click", function() {
 			if (me.is_star_filtered()) {
-				me.remove_starred_by_me();
+				me.remove_liked_by_me();
 			} else {
-				me.starred_by_me();
+				me.liked_by_me();
 			}
 		});
+
+		if (!frappe.dom.is_touchscreen()) {
+			frappe.ui.setup_like_popover(this.$page.find(".result-list"), ".liked-by");
+		}
 	},
 
 	init_select_all: function() {
@@ -576,7 +578,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				return false;
 			} else {
 				// second filter set for this field
-				if(fieldname=='_user_tags' || fieldname=="_starred_by") {
+				if(fieldname=='_user_tags' || fieldname=="_liked_by") {
 					// and for tags
 					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 				} else {
@@ -587,7 +589,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname=='_user_tags' || fieldname=="_starred_by") {
+			if(fieldname=='_user_tags' || fieldname=="_liked_by") {
 				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 			} else {
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);

@@ -10,7 +10,7 @@ $.extend(frappe.model, {
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_starred_by', 'docstatus',
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
 	std_fields: [
@@ -21,7 +21,7 @@ $.extend(frappe.model, {
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
 		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
 		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
-		{fieldname:'_starred_by', fieldtype:'Data', label:__('Starred By')},
+		{fieldname:'_liked_by', fieldtype:'Data', label:__('Liked By')},
 		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
 		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},

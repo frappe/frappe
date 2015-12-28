@@ -96,10 +96,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var cc = [ [this.frm.doc.owner, 1] ];
 
-		var starred_by = frappe.ui.get_starred_by(this.frm.doc);
-		if (starred_by) {
-			for ( var i=0, l=starred_by.length; i<l; i++ ) {
-				cc.push( [starred_by[i], 1] );
+		var liked_by = frappe.ui.get_liked_by(this.frm.doc);
+		if (liked_by) {
+			for ( var i=0, l=liked_by.length; i<l; i++ ) {
+				cc.push( [liked_by[i], 1] );
 			}
 		}
 

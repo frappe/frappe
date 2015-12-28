@@ -33,9 +33,10 @@
 	        {% } else { %}
 	            <span class="avatar avatar-small avatar-empty"></span>
 	        {% } %}
-	    	<span class="h6 {% if(!data._comments_list.length) { %}text-extra-muted{% } %}">
+	    	<span class="list-comment-count small
+				{% if(!data._comment_count) { %} text-extra-muted {% } else { %} text-muted {% } %}">
 	    		<i class="octicon octicon-comment-discussion"></i>
-	                {%= data._comments_list.length || 0 %}
+	                {%= (data._comment_count > 99 ? "99+" : data._comment_count) || 0 %}
 	        </span>
 		</div>
 		<div class="pull-right list-row-modified">

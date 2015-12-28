@@ -1,10 +1,15 @@
 <div class="row activity-row" data-creation="{%= creation.split(" ")[0] + " 00:00:00" %}">
 	<div class="col-xs-3 text-right activity-date"><span class="{%= date_class %}">
 		{%= date_sep || "" %}</span></div>
-	<div class="col-xs-9 activity-message" data-doctype="{%= doc_type %}" data-docname="{%= doc_name %}"
+	<div class="col-xs-9 activity-message"
+		data-doctype="{%= doc_type %}"
+		data-docname="{%= doc_name %}"
+		data-reference-doctype="{{ reference_doctype }}"
+		data-reference-name="{{ reference_name }}"
 		title="{%= by %} / {%= dateutil.str_to_user(creation) %}">
 		<span class="avatar avatar-small">
-			<img src="{%= imgsrc %}">
+			<div class="avatar-frame" style="background-image: url({{ imgsrc }});"></div>
+			<!-- <img src="{%= imgsrc %}"> -->
 		</span>
 		<span class="small">
 		{% if (feed_type==="Login") { %}
@@ -15,6 +20,13 @@
 			{%= __("Commented on {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
 		{% } else if (doc_type && !feed_type) { %}
 			{%= __("Updated {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else if (feed_type==="Like" && doc_type) { %}
+			{%= by %} <i class="octicon octicon-heart"></i>
+			{% if (in_list(["Comment", "Communication"], doc_type)) { %}
+				{%= subject %}
+			{% } else { %}
+				{%= link %}
+			{% } %}
 		{% } else if (doc_type) { %}
 			{%= __("{0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
 		{% } else { %}
