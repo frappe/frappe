@@ -95,10 +95,7 @@ $.extend(frappe.model, {
 			}
 
 			// 2 - look in user defaults
-			var user_default = frappe.defaults.get_user_default(df.options);
-			if (!user_default)
-				user_default = frappe.defaults.get_user_default(df.fieldname);
-
+			var user_default = frappe.defaults.get_user_default(df.fieldname);
 			var is_allowed_user_default = user_default &&
 				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
 

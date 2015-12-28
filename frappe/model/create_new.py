@@ -73,9 +73,7 @@ def get_user_default_value(df, defaults, user_permissions):
 			return user_permissions[df.options][0]
 
 		# 2 - Look in user defaults
-		user_default = defaults.get(df.options)
-		if not user_default:
-			user_default = defaults.get(df.fieldname)
+		user_default = defaults.get(df.fieldname)
 		is_allowed_user_default = user_default and (not user_permissions_exist(df, user_permissions)
 			or (user_default in user_permissions.get(df.options, [])))
 
@@ -111,7 +109,7 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 		if df.get("default"):
 			if df.default.startswith(":"):
 				default_value = get_default_based_on_another_field(df, user_permissions, parent_doc)
-				if default_value is not None:
+				if default_value is not None and not doc.get(df.fieldname):
 					doc[df.fieldname] = default_value
 
 			elif df.fieldtype == "Datetime" and df.default.lower() == "now":
