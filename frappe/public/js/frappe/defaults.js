@@ -13,8 +13,15 @@ frappe.defaults = {
 	get_user_defaults: function(key) {
 		var defaults = frappe.boot.user.defaults;
 		var d = defaults[key];
-		if(!d && (key !== frappe.model.scrub(key)))
-			d = defaults[frappe.model.scrub(key)];
+		
+		if (key !== frappe.model.scrub(key)) {
+			if (d && $.isArray(d) && d.length===1) {
+				// Use User Permission value when only when it has a single value
+				d = d[0];
+			} else {
+				d = defaults[frappe.model.scrub(key)];
+			}
+		}
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},
@@ -45,8 +52,14 @@ frappe.defaults = {
 	get_default: function(key) {
 		var defaults = frappe.boot.user.defaults;
 		var value = defaults[key];
-		if(!value && (key !== frappe.model.scrub(key)))
-			value = defaults[frappe.model.scrub(key)];
+		if (key !== frappe.model.scrub(key)) {
+			if (value && $.isArray(value) && value.length===1) {
+				value = value[0];
+			} else {
+				value = defaults[frappe.model.scrub(key)];
+			}
+		}
+		
 		if(value) {
 			try {
 				return JSON.parse(value)
