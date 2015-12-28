@@ -100,13 +100,14 @@
         <a name="get_value" href="#get_value" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_value</b>
-        <i class="text-muted">(self, key, generator=None, user=None)</i>
+        <i class="text-muted">(self, key, generator=None, user=None, expires=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns cache value. If not found and generator function is
 given, it will call the generator.</p>
 
 <p>param key: Cache key.
-param generator: Function to be called to generate a value if <code>None</code> is returned.</p>
+param generator: Function to be called to generate a value if <code>None</code> is returned.
+param expires: If the key is supposed to be with an expiry, don't store it in frappe.local</p>
 </div>
 	<br>
 
@@ -202,9 +203,18 @@ param generator: Function to be called to generate a value if <code>None</code> 
         <a name="set_value" href="#set_value" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>set_value</b>
-        <i class="text-muted">(self, key, val, user=None)</i>
+        <i class="text-muted">(self, key, val, user=None, expires_in_sec=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Sets cache value.</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>key</code></strong> -  Cache key</li>
+<li><strong><code>val</code></strong> -  Value to be cached</li>
+<li><strong><code>user</code></strong> -  Prepends key with User</li>
+<li><strong><code>expires_in_sec</code></strong> -  Expire value of this key in X seconds</li>
+</ul>
 </div>
 	<br>
 
