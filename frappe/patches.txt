@@ -13,6 +13,7 @@ execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter') #2014-12-31-1
 execute:frappe.reload_doc('core', 'doctype', 'patch_log') #2016-10-31
 execute:frappe.reload_doctype("File") # 2015-10-19
+execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length
@@ -108,6 +109,6 @@ frappe.patches.v6_6.fix_file_url
 frappe.patches.v6_9.rename_burmese_language
 frappe.patches.v6_11.rename_field_in_email_account
 execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
-frappe.patches.v6_15.remove_property_setter_for_previous_field
+frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
