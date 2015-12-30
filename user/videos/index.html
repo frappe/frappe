@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.share</title>
+	<title>Video Tutorials for Frappe Framework</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="frappe.share" data-html-block="meta_block">
+<meta name="name" content="Video Tutorials for Frappe Framework" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="frappe.share" data-html-block="meta_block">
-<meta name="twitter:title" content="frappe.share" data-html-block="meta_block">
+<meta name="og:title" content="Video Tutorials for Frappe Framework" data-html-block="meta_block">
+<meta name="twitter:title" content="Video Tutorials for Frappe Framework" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="current/api/frappe.share">
+<body data-path="user/videos">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-frappe.share" data-path="current/api/frappe.share"
+                               <div class="page-container" id="page-videos" data-path="user/videos"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe/user">
+		Develop Apps with Frappe</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>frappe.share</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>Video Tutorials for Frappe Framework</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,167 +106,14 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.share" style="text-align: Left">
-	<!-- title: frappe.share --><div class="dev-header">
+	<article class="web-page-content" id="videos" style="text-align: Left">
+	<p>This 10-part video tutorial will teach you how to build complex apps in Frappe</p>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+<p>Pre-requisites: <a href="https://frappe.github.io/frappe/user/tutorial/before.html" target="_blank">You must have some understanding of Python, Javascript and MySQL before you start this tutorial.</a></p>
 
+<hr />
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/share.py"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
-
-</div>
-
-
-
-
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.share.add</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.share.add" href="#frappe.share.add" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>add</b>
-        <i class="text-muted">(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Share the given document with a user.</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.share.check_share_permission" href="#frappe.share.check_share_permission" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>check_share_permission</b>
-        <i class="text-muted">(doctype, name)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Check if the user can share with other users</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.share.get_share_name" href="#frappe.share.get_share_name" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>get_share_name</b>
-        <i class="text-muted">(doctype, name, user, everyone)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.share.get_shared" href="#frappe.share.get_shared" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>get_shared</b>
-        <i class="text-muted">(doctype, user=None, rights=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Get list of shared document names for given user and DocType.</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>doctype</code></strong> -  DocType of which shared names are queried.</li>
-<li><strong><code>user</code></strong> -  User for which shared names are queried.</li>
-<li><strong><code>rights</code></strong> -  List of rights for which the document is shared. List of <code>read</code>, <code>write</code>, <code>share</code></li>
-</ul>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.share.get_shared_doctypes" href="#frappe.share.get_shared_doctypes" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>get_shared_doctypes</b>
-        <i class="text-muted">(user=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Return list of doctypes in which documents are shared for the given user.</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.share.get_users</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.share.get_users" href="#frappe.share.get_users" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>get_users</b>
-        <i class="text-muted">(doctype, name, fields=*)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Get list of users with which this document is shared</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.share.remove" href="#frappe.share.remove" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>remove</b>
-        <i class="text-muted">(doctype, name, user, flags=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.share.set_permission</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.share.set_permission" href="#frappe.share.set_permission" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.share.<b>set_permission</b>
-        <i class="text-muted">(doctype, name, user, permission_to, value=1, everyone=0)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Set share permission.</p>
-</div>
-	<br>
-
-	
-
-
-
-<!-- autodoc -->
+<iframe width="670" height="376" src="https://www.youtube.com/embed/videoseries?list=PL3lFfCEoMxvzHtsZHFJ4T3n5yMM3nGJ1W" frameborder="0" allowfullscreen></iframe>
 	</article>
 	
 </div>
@@ -274,7 +121,17 @@
     	</div>
 	</div>
 </div>
-                               <!-- edit-link -->
+                               
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/videos/index.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                             </div>
                         
                     </div>

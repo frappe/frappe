@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.handler</title>
+	<title>frappe.utils.oauth</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -25,16 +25,16 @@
 		href="/assets/img/favicon.ico"
 		type="image/x-icon">
     
-<meta name="name" content="frappe.handler" data-html-block="meta_block">
+<meta name="name" content="frappe.utils.oauth" data-html-block="meta_block">
 <meta name="twitter:card" content="summary" data-html-block="meta_block">
 <meta name="og:type" content="article" data-html-block="meta_block">
-<meta name="og:title" content="frappe.handler" data-html-block="meta_block">
-<meta name="twitter:title" content="frappe.handler" data-html-block="meta_block">
+<meta name="og:title" content="frappe.utils.oauth" data-html-block="meta_block">
+<meta name="twitter:title" content="frappe.utils.oauth" data-html-block="meta_block">
 <meta name="description" content="" data-html-block="meta_block">
 
 		
 			<style></style></head>
-<body data-path="current/api/frappe.handler">
+<body data-path="current/api/utils/frappe.utils.oauth">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -80,7 +80,7 @@
                                 
                             </div>
 							<div class="container">
-                               <div class="page-container" id="page-frappe.handler" data-path="current/api/frappe.handler"
+                               <div class="page-container" id="page-frappe.utils.oauth" data-path="current/api/utils/frappe.utils.oauth"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -90,13 +90,13 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe/current/api/utils">
+		utils</a>
 	</li>
 	
 </ul>
 </div>
-            		<div class="page-header-block" data-html-block="header"><h1>frappe.handler</h1></div>
+            		<div class="page-header-block" data-html-block="header"><h1>frappe.utils.oauth</h1></div>
                 </div>
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions"></div>
@@ -106,14 +106,14 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.handler" style="text-align: Left">
-	<!-- title: frappe.handler --><div class="dev-header">
+	<article class="web-page-content" id="frappe.utils.oauth" style="text-align: Left">
+	<!-- title: frappe.utils.oauth --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 6.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/handler.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/oauth.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -124,14 +124,107 @@
 
 	
         
+	<h3 style="font-weight: normal;">Class <b>SignupDisabledError</b></h3>
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.async_ping</code>
-    </p>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.exceptions.PermissionError</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+    </div>
+    <hr>
+
+	
+
+	
+        
+    
+    
 	<p class="docs-attr-name">
-        <a name="frappe.handler.async_ping" href="#frappe.handler.async_ping" class="text-muted small">
+        <a name="frappe.utils.oauth.get_first_name" href="#frappe.utils.oauth.get_first_name" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>async_ping</b>
+		frappe.utils.oauth.<b>get_first_name</b>
+        <i class="text-muted">(data)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.oauth.get_info_via_oauth" href="#frappe.utils.oauth.get_info_via_oauth" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.oauth.<b>get_info_via_oauth</b>
+        <i class="text-muted">(provider, code, decoder=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.oauth.get_last_name" href="#frappe.utils.oauth.get_last_name" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.oauth.<b>get_last_name</b>
+        <i class="text-muted">(data)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.oauth.get_oauth2_authorize_url" href="#frappe.utils.oauth.get_oauth2_authorize_url" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.oauth.<b>get_oauth2_authorize_url</b>
+        <i class="text-muted">(provider)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.oauth.get_oauth2_flow" href="#frappe.utils.oauth.get_oauth2_flow" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.oauth.<b>get_oauth2_flow</b>
+        <i class="text-muted">(provider)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.oauth.get_oauth2_providers" href="#frappe.utils.oauth.get_oauth2_providers" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.oauth.<b>get_oauth2_providers</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -145,12 +238,12 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.handler.execute_cmd" href="#frappe.handler.execute_cmd" class="text-muted small">
+        <a name="frappe.utils.oauth.get_oauth_keys" href="#frappe.utils.oauth.get_oauth_keys" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>execute_cmd</b>
-        <i class="text-muted">(cmd, from_async=False)</i>
+		frappe.utils.oauth.<b>get_oauth_keys</b>
+        <i class="text-muted">(provider)</i>
     </p>
-	<div class="docs-attr-desc"><p>execute a request as python module</p>
+	<div class="docs-attr-desc"><p>get client<em>id and client</em>secret from database or conf</p>
 </div>
 	<br>
 
@@ -159,14 +252,12 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.get_async_task_status</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.handler.get_async_task_status" href="#frappe.handler.get_async_task_status" class="text-muted small">
+        <a name="frappe.utils.oauth.get_redirect_uri" href="#frappe.utils.oauth.get_redirect_uri" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>get_async_task_status</b>
-        <i class="text-muted">(task_id)</i>
+		frappe.utils.oauth.<b>get_redirect_uri</b>
+        <i class="text-muted">(provider)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -179,42 +270,10 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.handler.get_attr" href="#frappe.handler.get_attr" class="text-muted small">
+        <a name="frappe.utils.oauth.login_oauth_user" href="#frappe.utils.oauth.login_oauth_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>get_attr</b>
-        <i class="text-muted">(cmd)</i>
-    </p>
-	<div class="docs-attr-desc"><p>get method object from cmd</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.handler.handle" href="#frappe.handler.handle" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>handle</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>handle request</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.handler.is_whitelisted" href="#frappe.handler.is_whitelisted" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>is_whitelisted</b>
-        <i class="text-muted">(method)</i>
+		frappe.utils.oauth.<b>login_oauth_user</b>
+        <i class="text-muted">(data=None, provider=None, state=None, email_id=None, key=None, generate_login_token=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -225,14 +284,12 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.logout</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.handler.logout" href="#frappe.handler.logout" class="text-muted small">
+        <a name="frappe.utils.oauth.login_via_oauth2" href="#frappe.utils.oauth.login_via_oauth2" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>logout</b>
-        <i class="text-muted">()</i>
+		frappe.utils.oauth.<b>login_via_oauth2</b>
+        <i class="text-muted">(provider, code, state, decoder=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -243,14 +300,12 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.ping</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.handler.ping" href="#frappe.handler.ping" class="text-muted small">
+        <a name="frappe.utils.oauth.redirect_post_login" href="#frappe.utils.oauth.redirect_post_login" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>ping</b>
-        <i class="text-muted">()</i>
+		frappe.utils.oauth.<b>redirect_post_login</b>
+        <i class="text-muted">(desk_user)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -261,86 +316,12 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.run_custom_method</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.handler.run_custom_method" href="#frappe.handler.run_custom_method" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>run_custom_method</b>
-        <i class="text-muted">(doctype, name, custom_method)</i>
-    </p>
-	<div class="docs-attr-desc"><p>cmd=run<em>custom</em>method&amp;doctype={doctype}&amp;name={name}&amp;custom<em>method={custom</em>method}</p>
-</div>
-	<br>
-
-	
-
-	
-        
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.runserverobj</code>
-    </p>
 	<p class="docs-attr-name">
-        <a name="frappe.handler.runserverobj" href="#frappe.handler.runserverobj" class="text-muted small">
+        <a name="frappe.utils.oauth.update_oauth_user" href="#frappe.utils.oauth.update_oauth_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>runserverobj</b>
-        <i class="text-muted">(method, docs=None, dt=None, dn=None, arg=None, args=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.uploadfile</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.handler.uploadfile" href="#frappe.handler.uploadfile" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>uploadfile</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.version</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.handler.version" href="#frappe.handler.version" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>version</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.handler.web_logout</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.handler.web_logout" href="#frappe.handler.web_logout" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.handler.<b>web_logout</b>
-        <i class="text-muted">()</i>
+		frappe.utils.oauth.<b>update_oauth_user</b>
+        <i class="text-muted">(user, data, provider)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
