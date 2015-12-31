@@ -196,7 +196,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def log(msg):
 		if via_console:
-			print msg
+			print msg.encode('utf-8')
 		else:
 			ret.append(msg)
 
