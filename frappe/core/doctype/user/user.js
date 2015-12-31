@@ -35,10 +35,6 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 	}
 }
 
-cur_frm.cscript.user_image = function(doc) {
-	refresh_field("user_image_show");
-}
-
 cur_frm.cscript.refresh = function(doc) {
 	if(doc.name===user && !doc.__unsaved && frappe.languages && (doc.language || frappe.boot.user.language)
 		&& doc.language !== frappe.boot.user.language) {
@@ -76,7 +72,7 @@ cur_frm.cscript.refresh = function(doc) {
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
 		cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
-		cur_frm.toggle_enable('*', doc.enabled);
+		// cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'read_only', 0);
 	}
 

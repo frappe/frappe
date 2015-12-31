@@ -18,10 +18,10 @@ p {
   margin: 10px 0px;
 }
 .text-color {
-  color: #36414c !important;
+  color: #36414C !important;
 }
 .text-muted {
-  color: #8d99a6 !important;
+  color: #8D99A6 !important;
 }
 .text-extra-muted {
   color: #d1d8dd !important;
@@ -82,7 +82,7 @@ a.text-extra-muted {
 }
 kbd {
   color: inherit;
-  background-color: #f0f4f7;
+  background-color: #F0F4F7;
 }
 .btn [class^="icon-"],
 .nav [class^="icon-"],
@@ -186,7 +186,7 @@ a.badge-hover:active .badge {
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   text-align: center;
-  color: #36414c !important;
+  color: #36414C !important;
 }
 #freeze.dark {
   background-color: #334143;
@@ -214,4 +214,8 @@ a.no-decoration:active {
   .text-center-xs {
     text-align: center;
   }
+}
+.grayscale {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
 }

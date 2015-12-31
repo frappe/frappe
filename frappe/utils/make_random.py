@@ -1,9 +1,17 @@
 import frappe, random
 
-from erpnext_demo import settings
+settings = frappe._dict(
+	prob = {
+		"default": { "make": 0.6, "qty": (1,5) },
+	}
+)
 
 def add_random_children(doc, fieldname, rows, randomize, unique=None):
-	for i in xrange(random.randrange(1, rows)):
+	nrows = rows
+	if rows > 1:
+		nrows = random.randrange(1, rows)
+
+	for i in xrange(nrows):
 		d = {}
 		for key, val in randomize.items():
 			if isinstance(val[0], basestring):
@@ -21,7 +29,7 @@ def get_random(doctype, filters=None):
 	condition = []
 	if filters:
 		for key, val in filters.items():
-			condition.append("%s='%s'" % (key, val.replace("'", "\'")))
+			condition.append("%s='%s'" % (key, str(val).replace("'", "\'")))
 	if condition:
 		condition = " where " + " and ".join(condition)
 	else:

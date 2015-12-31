@@ -82,9 +82,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
+			doc.run_method("after_delete")
 
 		if doc:
 			try:
+				doc.notify_update()
 				insert_feed(doc)
 			except ImportError:
 				pass
@@ -105,7 +107,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
 		frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
 	else:
-		frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+		frappe.db.sql("delete from `tab%s` where name=%s" % (frappe.db.escape(doctype), "%s"), (name,))
 
 	# get child tables
 	if doc:
@@ -150,41 +152,58 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
+				# raise exception only if
+				# linked to an non-cancelled doc when deleting
+				# or linked to a submitted doc when cancelling
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 					doc.name, item.parenttype if item.parent else link_dt, item.parent or item.name),
 					frappe.LinkExistsError)
 
-def check_if_doc_is_dynamically_linked(doc):
+def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	for query in dynamic_link_queries:
 		for df in frappe.db.sql(query, as_dict=True):
 			if frappe.get_meta(df.parent).issingle:
 
 				# dynamic link in single doc
 				refdoc = frappe.db.get_singles_dict(df.parent)
-				if refdoc.get(df.options)==doc.doctype and refdoc.get(df.fieldname)==doc.name:
+				if (refdoc.get(df.options)==doc.doctype
+					and refdoc.get(df.fieldname)==doc.name
+					and ((method=="Delete" and refdoc.docstatus < 2)
+						or (method=="Cancel" and refdoc.docstatus==1))
+					):
+					# raise exception only if
+					# linked to an non-cancelled doc when deleting
+					# or linked to a submitted doc when cancelling
 					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 						doc.name, df.parent, ""), frappe.LinkExistsError)
 			else:
-
 				# dynamic link in table
-				for name in frappe.db.sql_list("""select name from `tab{parent}` where
-					{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name)):
-					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
-						doc.name, df.parent, name), frappe.LinkExistsError)
+				for refdoc in frappe.db.sql("""select name, docstatus from `tab{parent}` where
+					{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
+
+					if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):
+						# raise exception only if
+						# linked to an non-cancelled doc when deleting
+						# or linked to a submitted doc when cancelling
+						frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")\
+							.format(doc.doctype, doc.name, df.parent, refdoc.name), frappe.LinkExistsError)
 
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
-		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)),
+		ignore_permissions=True)
 
 def delete_linked_comments(doc):
 	"""Delete comments from the document"""
-
 	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
-		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)
+		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True,
+		ignore_permissions=True)
 
 def delete_linked_communications(doc):
-	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
-		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name)))
+	# make communications orphans
+	frappe.db.sql("""update `tabCommunication`
+		set reference_doctype=null, reference_name=null
+		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

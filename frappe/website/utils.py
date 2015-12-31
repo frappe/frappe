@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe, re, os
-from werkzeug.urls import url_parse, url_unparse
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -33,14 +32,18 @@ def get_comment_list(doctype, name):
 		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
+	if frappe.local.flags.home_page:
+		return frappe.local.flags.home_page
+
 	def _get_home_page():
 		role_home_page = frappe.get_hooks("role_home_page")
 		home_page = None
 
-		for role in frappe.get_roles():
-			if role in role_home_page:
-				home_page = role_home_page[role][-1]
-				break
+		if role_home_page:
+			for role in frappe.get_roles():
+				if role in role_home_page:
+					home_page = role_home_page[role][-1]
+					break
 
 		if not home_page:
 			home_page = frappe.get_hooks("home_page")
@@ -65,6 +68,9 @@ def is_signup_enabled():
 
 def cleanup_page_name(title):
 	"""make page name from title"""
+	if not title:
+		return title
+
 	name = title.lower()
 	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
 	name = re.sub('[:/]', '-', name)
@@ -164,20 +170,29 @@ def abs_url(path):
 		path = "/" + path
 	return path
 
-def get_full_index(doctype="Web Page"):
+def get_full_index(route=None, doctype="Web Page", extn = False):
 	"""Returns full index of the website (on Web Page) upto the n-th level"""
 	all_routes = []
 
 	def get_children(parent):
-		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title"],
+		children = frappe.db.get_all(doctype, ["parent_website_route", "page_name", "title", "template_path"],
 			{"parent_website_route": parent}, order_by="idx asc")
 		for d in children:
 			d.url = abs_url(os.path.join(d.parent_website_route or "", d.page_name))
 			if d.url not in all_routes:
-				d.children = get_children(d.url[1:])
+				d.children = get_children(d.url.lstrip("/"))
 				all_routes.append(d.url)
+
+			if extn and os.path.basename(d.template_path).split(".")[0] != "index":
+				d.url = d.url + ".html"
+
+		# no index.html for home page
+		# home should not be in table of contents
+		if not parent:
+			children = [d for d in children if d.page_name not in ("index.html", "index",
+				"", "contents")]
 
 		return children
 
-	return get_children("")
+	return get_children(route or "")
 

@@ -37,6 +37,12 @@
   display: inline-block;
   vertical-align: middle;
 }
+.editable-title .title-text {
+  cursor: pointer;
+}
+.editable-title .title-text:hover {
+  background-color: #fffce7;
+}
 .page-actions {
   padding-top: 17px;
   padding-bottom: 17px;
@@ -97,4 +103,25 @@ select.input-sm {
 }
 .message-page .btn-home {
   margin-top: 1rem;
+}
+@media (max-width: 991px) {
+  .page-head .page-title h1 {
+    font-size: 22px;
+    margin-top: 22px;
+  }
+}
+@media (max-width: 767px) {
+  .page-actions {
+    width: 100px;
+    float: right;
+  }
+  .page-title {
+    position: absolute;
+    left: 0;
+    right: 101px;
+    width: 100%;
+  }
+  .page-head .page-title h1 {
+    font-size: 18px;
+  }
 }

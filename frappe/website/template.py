@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import strip_html
+from frappe.website.utils import get_full_index
 from frappe import _
 from jinja2.utils import concat
 from jinja2 import meta
@@ -57,10 +58,13 @@ def separate_style_and_script(out, context):
 
 def set_breadcrumbs(out, context):
 	"""Build breadcrumbs template (deprecated)"""
-	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
+	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) \
+		or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
 
-	# breadcrumbs
-	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
+	if out["no_breadcrumbs"]:
+		out["breadcrumbs"] = ""
+
+	elif "breadcrumbs" not in out:
 		out["breadcrumbs"] = frappe.get_template("templates/includes/breadcrumbs.html").render(context)
 
 def set_title_and_header(out, context):
@@ -106,18 +110,40 @@ def set_sidebar(out, context):
 def add_index(out, context):
 	"""Add index, next button if `{index}`, `{next}` is present."""
 	# table of contents
-	if "{index}" in out.get("content", "") and context.get("children"):
-		html = frappe.get_template("templates/includes/static_index.html").render({
-				"items": context["children"]})
 
-		out["content"] = out["content"].replace("{index}", html)
+	extn = ""
+	if context.page_links_with_extn:
+		extn = ".html"
+
+	if "{index}" in out.get("content", "") and context.get("children") and len(context.children):
+		full_index = get_full_index(context.pathname, extn = extn)
+
+		if full_index:
+			html = frappe.get_template("templates/includes/full_index.html").render({
+					"full_index": full_index,
+					"url_prefix": context.url_prefix
+				})
+
+			out["content"] = out["content"].replace("{index}", html)
 
 	# next and previous
 	if "{next}" in out.get("content", ""):
 		next_item = context.doc.get_next()
-		if next_item:
-			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
-			html = ('<p class="btn-next-wrapper"><a class="btn-next" href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
+		next_item.extn = "" if context.doc.has_children(next_item.name) else extn
+		if next_item and next_item.page_name:
+			if context.relative_links:
+				if next_item.next_parent:
+					next_item.name = "../" + next_item.page_name or ""
+				else:
+					next_item.name = next_item.page_name or ""
+			else:
+				if next_item and next_item.name and next_item.name[0]!="/":
+					next_item.name = "/" + next_item.name
+
+			if not next_item.title:
+				next_item.title = ""
+			html = ('<p class="btn-next-wrapper">'+_("Next")\
+				+': <a class="btn-next" href="{name}{extn}">{title}</a></p>').format(**next_item)
 		else:
 			html = ""
 

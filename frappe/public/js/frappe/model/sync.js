@@ -54,11 +54,14 @@ $.extend(frappe.model, {
 			if(r.docs) {
 				var doc = r.docs[0];
 			} else {
-				var doc = cur_frm.doc;
+				if(cur_frm)
+					var doc = cur_frm.doc;
 			}
-			if(!frappe.model.docinfo[doc.doctype])
-				frappe.model.docinfo[doc.doctype] = {};
-			frappe.model.docinfo[doc.doctype][doc.name] = r.docinfo;
+			if(doc) {
+				if(!frappe.model.docinfo[doc.doctype])
+					frappe.model.docinfo[doc.doctype] = {};
+				frappe.model.docinfo[doc.doctype][doc.name] = r.docinfo;
+			}
 		}
 
 		return r.docs;

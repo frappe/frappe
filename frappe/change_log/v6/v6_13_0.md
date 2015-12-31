@@ -1,0 +1,4 @@
+- Attachments can now be marked as **Private**
+	- Private files cannot be accessed unless you are logged in
+	- To access a private file, you need to have read permission on the file or read permission on the document to which the file is attached
+	- All attachments in a new incoming email are private

@@ -35,6 +35,9 @@ class UnsupportedMediaType(Exception):
 class Redirect(Exception):
 	http_status_code = 301
 
+class CSRFTokenError(Exception):
+	http_status_code = 400
+
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
@@ -44,6 +47,7 @@ class MandatoryError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
+class CharacterLengthExceededError(ValidationError): pass
 class UpdateAfterSubmitError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
 class CancelledLinkError(LinkValidationError): pass
@@ -53,3 +57,5 @@ class EmptyTableError(ValidationError): pass
 class LinkExistsError(ValidationError): pass
 class InvalidEmailAddressError(ValidationError): pass
 class TemplateNotFoundError(ValidationError): pass
+class UniqueValidationError(ValidationError): pass
+class AppNotInstalledError(ValidationError): pass

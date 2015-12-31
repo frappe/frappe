@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.permissions
+import frappe.async
 
 from frappe import _
 
@@ -12,10 +13,12 @@ from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt
-from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
+from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
+#@frappe.async.handler
 @frappe.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None, ignore_links=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
+	ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""
 	frappe.flags.mute_emails = True
 	# extra input params
@@ -38,7 +41,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		max_rows = 5000
 		if not data:
 			frappe.throw(_("No data found"))
-		elif len(data) > max_rows:
+		elif not via_console and len(data) > max_rows:
 			frappe.throw(_("Only allowed {0} rows in one import").format(max_rows))
 
 	def get_start_row():
@@ -190,7 +193,21 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			delete_child_rows(data, doctype)
 
 	ret = []
+
+	def log(msg):
+		if via_console:
+			print msg.encode('utf-8')
+		else:
+			ret.append(msg)
+
+	def as_link(doctype, name):
+		if via_console:
+			return "{0}: {1}".format(doctype, name)
+		else:
+			return getlink(doctype, name)
+
 	error = False
+	total = len(data)
 	for i, row in enumerate(data):
 		# bypass empty rows
 		if main_doc_empty(row):
@@ -199,14 +216,20 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		row_idx = i + start_row
 		doc = None
 
-		doc = get_doc(row_idx)
+		# publish task_update
+		frappe.publish_realtime("data_import_progress", {"progress": [i, total]},
+			user=frappe.session.user, now=True)
+
 		try:
-			frappe.local.message_log = []
+			doc = get_doc(row_idx)
+			if pre_process:
+				pre_process(doc)
+
 			if parentfield:
 				parent = frappe.get_doc(parenttype, doc["parent"])
 				doc = parent.append(parentfield, doc)
 				parent.save()
-				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
+				log('Inserted row for %s at #%s' % (as_link(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
 				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
@@ -214,25 +237,27 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					original.update(doc)
 					original.flags.ignore_links = ignore_links
 					original.save()
-					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
+					log('Updated row (#%d) %s' % (row_idx + 1, as_link(original.doctype, original.name)))
 					doc = original
 				else:
 					doc = frappe.get_doc(doc)
 					prepare_for_insert(doc)
 					doc.flags.ignore_links = ignore_links
 					doc.insert()
-					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))
+					log('Inserted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
 				if submit_after_import:
 					doc.submit()
-					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))
+					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
 		except Exception, e:
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
 			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1,
+			log('Error for row (#%d) %s : %s' % (row_idx + 1,
 				len(row)>1 and row[1] or "", err_msg))
 			frappe.errprint(frappe.get_traceback())
+		finally:
+			frappe.local.message_log = []
 
 	if error:
 		frappe.db.rollback()

@@ -1,0 +1,62 @@
+<!-- title: {{ app.title }}: Documentation -->
+<!-- description: {{ app.headline }} -->
+<!-- no-breadcrumbs -->
+<style>
+ {% if app.style %} {{ app.style }} {% endif %}
+</style>
+
+<!-- start-hero -->
+<div class="splash">
+ <div class="container">
+  <div class="col-sm-10 col-sm-offset-1">
+   <div class="jumbotron">
+    <h1>{{ app.headline }}</h1>
+    <p>{{ app.sub_heading }}</p>
+   </div>
+   <div class="section" style="padding-top: 0px; margin-top: -30px;">
+      <div class="fake-browser-frame">
+       <img class="img-responsive browser-image feature-image"
+              src="assets/img/home.png">
+      </div>
+   </div>
+  </div>
+ </div>
+</div>
+<!-- end-hero -->
+
+{% if app.long_description %}
+<div class="container">
+ <div class="col-sm-10 col-sm-offset-1">
+  <div class="section">
+      {{ app.long_description|markdown }}
+  </div>
+ </div>
+</div>
+{% endif %}
+
+{% if not app.hide_install %}
+<div class="container">
+ <div class="col-sm-10 col-sm-offset-1">
+  <div class="section" id="install">
+    <h2>Install</h2>
+    <h4>From your site</h4>
+    <p>To install this app, login to your site and click on "Installer". Search for <b>{{ app.title }}</b> and click on "Install"</p>
+    <h4>Using Bench</h4>
+    <p>Go to your bench folder and setup the new app</p>
+    <pre><code class="sh">$ bench get-app {{app.name}} {{app.source_link}}
+$ bench new-site testsite
+$ bench --site testsite install-app {{app.name}}</code></pre>
+    <p>Login to your site to configure the app.</p>
+    <p><a href="install.html">Detailed Installation Steps</a></p>
+   </div>
+   <div class="section">
+       <h2>Author</h2>
+
+       <p>{{ app.publisher }} ({{ app.email }})</p>
+   </div>
+ </div>
+</div>
+{% endif %}
+
+<!-- autodoc -->
+<!-- jinja -->

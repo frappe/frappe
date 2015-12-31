@@ -191,6 +191,7 @@ frappe.PermissionEngine = Class.extend({
 
 			if (d.permlevel===0) {
 				me.setup_user_permissions(d, role_cell);
+				me.setup_if_owner(d, role_cell);
 			}
 
 			var cell = me.add_cell(row, d, "permlevel");
@@ -269,8 +270,14 @@ frappe.PermissionEngine = Class.extend({
 		d.help = "";
 	},
 
+	setup_if_owner: function(d, role_cell) {
+		var checkbox = this.add_check(role_cell, d, "if_owner")
+			.removeClass("col-md-4")
+			.css({"margin-top": "15px"});
+	},
+
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"print", "email", "report", "import", "export", "set_user_permissions"],
+		"print", "email", "report", "import", "export", "set_user_permissions", "share"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a class='grey' href='#'>"+__(role)+"</a>")
@@ -495,13 +502,6 @@ frappe.PermissionEngine = Class.extend({
 
 	get_perm: function(name) {
 		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];
-	},
-	get_user_fields: function(doctype) {
-		var user_fields = frappe.get_children("DocType", doctype, "fields", {fieldtype:"Link", options:"User"})
-		user_fields = user_fields.concat(frappe.get_children("DocType", doctype, "fields",
-			{fieldtype:"Select", link_doctype:"User"}))
-
-		return 	user_fields
 	},
 	get_link_fields: function(doctype) {
 		return frappe.get_children("DocType", doctype, "fields",

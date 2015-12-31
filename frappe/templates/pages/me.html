@@ -10,10 +10,13 @@
 				<a href="/me"><img class="user-image" src="{{ user_image }}" /></a>
 			</div>
 			<div>
-				<h4><a href="/me">{{ fullname }}</a></h4>
+				<h4>{{ fullname }}</h4>
 				<ul class="list-unstyled">
 					<li><a href="/update-password">
                         <h6 class="text-muted">{{ _("Reset Password") }}</h6>
+                    </a></li>
+					<li><a href="/edit-profile">
+                        <h6 class="text-muted">{{ _("Edit Profile") }}</h6>
                     </a></li>
 					<li><a href="/?cmd=web_logout">
                         <h6 class="text-muted">{{ _("Logout") }}</h6>
@@ -25,7 +28,8 @@
 	<div class="col-sm-9">
 		<ul class="list-group" style="margin: 15px 0px;">
 			{% for opts in my_account_list -%}
-			<li class="list-group-item"><a href="{{ opts.url }}">
+			<li class="list-group-item"><a href="{{ opts.url }}"
+                    class="no-decoration">
                 <h4>{{ opts.label }}</h4></a></li>
 			{%- endfor %}
 		</ul>

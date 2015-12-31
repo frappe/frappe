@@ -31,7 +31,6 @@ def get_bootinfo():
 		bootinfo['user_info'] = get_fullnames()
 		bootinfo['sid'] = frappe.session['sid'];
 
-	# home page
 	bootinfo.modules = {}
 	for app in frappe.get_installed_apps():
 		try:
@@ -45,7 +44,7 @@ def get_bootinfo():
 	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from
 		tabDocType where ifnull(icon,'')!=''"""))
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where ifnull(issingle,0)=1""")
+	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -53,6 +52,7 @@ def get_bootinfo():
 	load_conf_settings(bootinfo)
 	load_print(bootinfo, doclist)
 	doclist.extend(get_meta_bundle("Page"))
+	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):
@@ -69,13 +69,13 @@ def get_bootinfo():
 	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
-	bootinfo.default_background_image = get_url("/assets/frappe/images/ui/into-the-dawn.jpg")
+	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 
 	return bootinfo
 
 def load_conf_settings(bootinfo):
 	from frappe import conf
-	bootinfo.max_file_size = conf.get('max_file_size') or 5242880
+	bootinfo.max_file_size = conf.get('max_file_size') or 10485760
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
 
@@ -104,16 +104,23 @@ def get_allowed_pages():
 
 def load_translations(bootinfo):
 	if frappe.local.lang != 'en':
-		bootinfo["__messages"] = frappe.get_lang_dict("boot")
+		messages = frappe.get_lang_dict("boot")
+
 		bootinfo["lang"] = frappe.lang
+
+		# load translated report names
+		for name in bootinfo.user.all_reports:
+			messages[name] = frappe._(name)
+
+		bootinfo["__messages"] = messages
 
 def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select name,
 		concat(ifnull(first_name, ''),
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
-			user_image as image, gender, email
-		from tabUser where ifnull(enabled, 0)=1 and user_type!="Website User" """, as_dict=1)
+			user_image as image, gender, email, username
+		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:
@@ -132,10 +139,15 @@ def add_home_page(bootinfo, docs):
 	if frappe.session.user=="Guest":
 		return
 	home_page = frappe.db.get_default("desktop:home_page")
+
+	if home_page == "setup-wizard":
+		bootinfo.setup_wizard_requires = frappe.get_hooks("setup_wizard_requires")
+
 	try:
 		page = frappe.desk.desk_page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError):
-		frappe.message_log.pop()
+		if frappe.message_log:
+			frappe.message_log.pop()
 		page = frappe.desk.desk_page.get('desktop')
 
 	bootinfo['home_page'] = page.name
@@ -154,4 +166,4 @@ def load_print(bootinfo, doclist):
 	load_print_css(bootinfo, print_settings)
 
 def load_print_css(bootinfo, print_settings):
-	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern")
+	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)

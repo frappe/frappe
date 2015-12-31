@@ -127,7 +127,8 @@ def pack(target, sources, no_compress, verbose):
 				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
-				outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+				if minified:
+					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
 					print "{0}: {1}k".format(f, int(len(minified) / 1024))
@@ -173,6 +174,10 @@ def files_dirty():
 		return False
 
 def compile_less():
+	from distutils.spawn import find_executable
+	if not find_executable("lessc"):
+		return
+
 	for path in app_paths:
 		less_path = os.path.join(path, "public", "less")
 		if os.path.exists(less_path):
@@ -188,4 +193,4 @@ def compile_less():
 					print "compiling {0}".format(fpath)
 
 					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
-					os.system("which lessc && lessc {0} > {1}".format(fpath, css_path))
+					os.system("lessc {0} > {1}".format(fpath, css_path))

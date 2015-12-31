@@ -66,8 +66,19 @@ refresh_field = function(n, docname, table_field) {
 	if(typeof n==typeof [])
 		refresh_many(n, docname, table_field);
 
-	if(table_field && cur_frm.fields_dict[table_field].grid.grid_rows_by_docname) { // for table
-		cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
+	if (n && typeof n==='string' && table_field){
+		var grid = cur_frm.fields_dict[table_field].grid,
+			field = frappe.utils.filter_dict(grid.docfields, {fieldname: n});
+		if (field && field.length){
+			field = field[0];
+			var meta = frappe.meta.get_docfield(field.parent, field.fieldname, docname);
+			$.extend(field, meta);
+			if (docname){
+				cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
+			} else {
+				cur_frm.fields_dict[table_field].grid.refresh();
+			}
+		}
 	} else if(cur_frm) {
 		cur_frm.refresh_field(n)
 	}
@@ -158,11 +169,18 @@ _f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
 	}
 }
 
-_f.Frm.prototype.set_df_property = function(fieldname, property, value) {
-	var field = this.get_docfield(fieldname);
+_f.Frm.prototype.set_df_property = function(fieldname, property, value, docname, table_field) {
+	if (!docname && !table_field){
+		var field = this.get_docfield(fieldname);
+	} else {
+		var grid = cur_frm.fields_dict[table_field].grid,
+		fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+		if (fname && fname.length)
+			var field = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+	}
 	if(field) {
 		field[property] = value;
-		this.refresh_field(fieldname);
+		refresh_field(fieldname, table_field);
 	};
 }
 

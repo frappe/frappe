@@ -1,7 +1,7 @@
 <div class="list-row list-row-head">
     <div class="row doclist-row">
-        <div class="col-xs-12
-			{% if (list.meta.title_field) { %}
+        <div class="col-xs-10
+			{% if (list.meta.title_field && !list.settings.hide_name_column) { %}
                 col-sm-8
             {% } else { %}
                 col-sm-10
@@ -11,7 +11,7 @@
         </div>
 
         <!-- id -->
-        {% if (list.meta.title_field) { %}
+        {% if (list.meta.title_field && !list.settings.hide_name_column) { %}
         <div class="list-col col-sm-2 hidden-xs text-right">
         </div>
         {% } %}

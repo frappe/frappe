@@ -11,7 +11,7 @@ def get(name):
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
 	page = frappe.get_doc('Page', name)
-	if has_permission(page):
+	if page.is_permitted():
 		page.load_assets()
 		return page
 	else:

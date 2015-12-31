@@ -4,7 +4,7 @@
 }
 .grid-heading-row {
   border-bottom: 1px solid #d1d8dd;
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   font-weight: bold;
 }
 .grid-row {
@@ -56,6 +56,16 @@
 }
 .grid-row p {
   margin-bottom: 5px;
+}
+.grid-row .col-sm-6 .editor-toolbar-text-group,
+.grid-row .col-sm-6 .editor-toolbar-align-group {
+  display: none;
+}
+.grid-row .col-sm-6 .text-editor {
+  height: 200px;
+}
+.grid-row .col-sm-6 .markdown-text-editor {
+  height: 251px;
 }
 .form-in-grid {
   background-color: white;

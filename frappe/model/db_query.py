@@ -201,56 +201,87 @@ class DatabaseQuery(object):
 		"""build conditions from user filters"""
 		if isinstance(filters, dict):
 			filters = [filters]
+
 		for f in filters:
 			if isinstance(f, basestring):
 				conditions.append(f)
 			else:
-				f = self.get_filter_tuple(f)
+				conditions.append(self.prepare_filter_condition(f))
 
-				tname = ('`tab' + f[0] + '`')
-				if not tname in self.tables:
-					self.append_table(tname)
+	def prepare_filter_condition(self, f):
+		"""Returns a filter condition in the format:
 
-				# prepare in condition
-				if f[2] in ['in', 'not in']:
-					opts = f[3]
-					if not isinstance(opts, (list, tuple)):
-						opts = f[3].split(",")
-					opts = [frappe.db.escape(t.strip()) for t in opts]
-					f[3] = '("{0}")'.format('", "'.join(opts))
-					conditions.append('ifnull({tname}.{fname}, "") {operator} {value}'.format(
-						tname=tname, fname=f[1], operator=f[2], value=f[3]))
-				else:
-					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
-					df = df[0] if df else None
+				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
+		"""
 
-					if df and df.fieldtype=="Date":
-						value, default_val = '"{0}"'.format(frappe.db.escape(getdate(f[3]).strftime("%Y-%m-%d"))), \
-							"'0000-00-00'"
+		f = self.get_filter(f)
 
-					elif df and df.fieldtype=="Datetime":
-						value, default_val = '"{0}"'.format(frappe.db.escape(get_datetime(f[3]).strftime("%Y-%m-%d %H:%M:%S.%f"))), \
-							"'0000-00-00 00:00:00'"
+		tname = ('`tab' + f.doctype + '`')
+		if not tname in self.tables:
+			self.append_table(tname)
 
-					elif df and df.fieldtype=="Time":
-						value, default_val = '"{0}"'.format(frappe.db.escape(get_time(f[3]).strftime("%H:%M:%S.%f"))), \
-							"'00:00:00'"
+		# prepare in condition
+		if f.operator in ('in', 'not in'):
+			values = f.value
+			if not isinstance(values, (list, tuple)):
+				values = values.split(",")
 
-					elif f[2] == "like" or (isinstance(f[3], basestring) and
-						(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
-							if f[2] == "like":
-								# because "like" uses backslash (\) for escaping
-								f[3] = f[3].replace("\\", "\\\\")
+			values = (frappe.db.escape(v.strip(), percent=False) for v in values)
+			values = '("{0}")'.format('", "'.join(values))
 
-							value, default_val = '"{0}"'.format(frappe.db.escape(f[3])), '""'
-					else:
-						value, default_val = flt(f[3]), 0
+			condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
+				tname=tname, fname=f.fieldname, operator=f.operator, value=values)
 
-					conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
-						tname=tname, fname=f[1], default_val=default_val, operator=f[2],
-						value=value))
+		else:
+			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
+			df = df[0] if df else None
 
-	def get_filter_tuple(self, f):
+			if df and df.fieldtype=="Date":
+				value = getdate(f.value).strftime("%Y-%m-%d")
+				fallback = "'0000-00-00'"
+
+			elif df and df.fieldtype=="Datetime":
+				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
+				fallback = "'0000-00-00 00:00:00'"
+
+			elif df and df.fieldtype=="Time":
+				value = get_time(f.value).strftime("%H:%M:%S.%f")
+				fallback = "'00:00:00'"
+
+			elif f.operator in ("like", "not like") or (isinstance(f.value, basestring) and
+				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
+					value = "" if f.value==None else f.value
+					fallback = '""'
+
+					if f.operator in ("like", "not like") and isinstance(value, basestring):
+						# because "like" uses backslash (\) for escaping
+						value = value.replace("\\", "\\\\").replace("%", "%%")
+
+			else:
+				value = flt(f.value)
+				fallback = 0
+
+			# put it inside double quotes
+			if isinstance(value, basestring):
+				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
+
+			condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
+				tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
+				value=value)
+
+		return condition
+
+	def get_filter(self, f):
+		"""Returns a _dict like
+
+			{
+				"doctype": "DocType",
+				"fieldname": "fieldname",
+				"operator": "=",
+				"value": "value"
+			}
+
+		"""
 		if isinstance(f, dict):
 			key, value = f.items()[0]
 			f = self.make_filter_tuple(key, value)
@@ -262,15 +293,27 @@ class DatabaseQuery(object):
 			f = (self.doctype, f[0], f[1], f[2])
 
 		elif len(f) != 4:
-			frappe.throw("Filter must have 4 values (doctype, fieldname, condition, value): " + str(f))
+			frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
 
-		return list(f)
+		if not f[2]:
+			# if operator is missing
+			f[2] = "="
+
+		valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
+		if f[2] not in valid_operators:
+			frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+
+		return frappe._dict({
+			"doctype": f[0],
+			"fieldname": f[1],
+			"operator": f[2],
+			"value": f[3]
+		})
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []
-
 		only_if_shared = False
 
 		if not self.tables: self.extract_tables()
@@ -295,9 +338,9 @@ class DatabaseQuery(object):
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
-				# share is an OR condition, if there is a role permission
-				if not only_if_shared and self.shared:
-					self.or_conditions.append(self.get_share_condition())
+			if role_permissions.get("if_owner", {}).get("read"):
+				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
+					frappe.db.escape(frappe.session.user, percent=False)))
 
 		if as_condition:
 			conditions = ""
@@ -309,6 +352,11 @@ class DatabaseQuery(object):
 			if doctype_conditions:
 				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
 
+			# share is an OR condition, if there is a role permission
+			if not only_if_shared and self.shared and conditions:
+				conditions =  "({conditions}) or ({shared_condition})".format(
+					conditions=conditions, shared_condition=self.get_share_condition())
+
 			return conditions
 
 		else:
@@ -316,11 +364,10 @@ class DatabaseQuery(object):
 
 	def get_share_condition(self):
 		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["'%s'"] * len(self.shared))) % \
-			tuple([frappe.db.escape(s) for s in self.shared])
+			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
-		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,
-			user_permissions)
+		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes, user_permissions)
 		meta = frappe.get_meta(self.doctype)
 
 		for doctypes in user_permission_doctypes:
@@ -328,13 +375,17 @@ class DatabaseQuery(object):
 			match_conditions = []
 			# check in links
 			for df in meta.get_fields_to_check_permissions(doctypes):
-				match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")=""
-					or `tab{doctype}`.`{fieldname}` in ({values}))""".format(
-					doctype=self.doctype,
-					fieldname=df.fieldname,
-					values=", ".join([('"'+frappe.db.escape(v)+'"') for v in user_permissions[df.options]])
-				))
-				match_filters[df.options] = user_permissions[df.options]
+				user_permission_values = user_permissions.get(df.options, [])
+
+				condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
+				if user_permission_values:
+					condition += """ or `tab{doctype}`.`{fieldname}` in ({values})""".format(
+						doctype=self.doctype, fieldname=df.fieldname,
+						values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"') for v in user_permission_values])
+					)
+				match_conditions.append("({condition})".format(condition=condition))
+
+				match_filters[df.options] = user_permission_values
 
 			if match_conditions:
 				self.match_conditions.append(" and ".join(match_conditions))

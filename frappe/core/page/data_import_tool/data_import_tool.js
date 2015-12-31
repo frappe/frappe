@@ -75,27 +75,61 @@ frappe.DataImportTool = Class.extend({
 			onerror: function(r) {
 				me.onerror(r);
 			},
+			queued: function() {
+				// async, show queued
+				msg_dialog.clear();
+				msgprint(__("Import Request Queued. This may take a few moments, please be patient."));
+			},
+			running: function() {
+				// update async status as running
+				msg_dialog.clear();
+				msgprint(__("Importing..."));
+				me.write_messages([__("Importing")]);
+				me.has_progress = false;
+			},
+			progress: function(data) {
+				// show callback if async
+				if(data.progress) {
+					frappe.hide_msgprint(true);
+					me.has_progress = true;
+					frappe.show_progress(__("Importing"), data.progress[0],
+						data.progress[1]);
+				}
+			},
 			callback: function(attachment, r) {
 				if(r.message.error) {
 					me.onerror(r);
 				} else {
-					// replace links if error has occured
+					if(me.has_progress) {
+						frappe.show_progress(__("Importing"), 1, 1);
+						setTimeout(frappe.hide_progress, 1000);
+					}
+
 					r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
 						concat(r.message.messages)
 
-					me.write_messages(r);
+					me.write_messages(r.messages);
 				}
 			}
 		});
 
+		frappe.realtime.on("data_import_progress", function(data) {
+			if(data.progress) {
+				frappe.hide_msgprint(true);
+				me.has_progress = true;
+				frappe.show_progress(__("Importing"), data.progress[0],
+					data.progress[1]);
+			}
+		})
+
 	},
-	write_messages: function(r) {
+	write_messages: function(data) {
 		this.page.main.find(".import-log").removeClass("hide");
 		var parent = this.page.main.find(".import-log-messages").empty();
 
 		// TODO render using template!
-		for (var i=0, l=r.messages.length; i<l; i++) {
-			var v = r.messages[i];
+		for (var i=0, l=data.length; i<l; i++) {
+			var v = data[i];
 			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(parent);
 			if(v.substr(0,5)=='Error') {
 				$p.css('color', 'red');
@@ -127,7 +161,9 @@ frappe.DataImportTool = Class.extend({
 
 			r.messages.push("Please correct and import again.");
 
-			this.write_messages(r);
+			frappe.show_progress(__("Importing"), 1, 1);
+
+			this.write_messages(r.messages);
 		}
 	}
 });

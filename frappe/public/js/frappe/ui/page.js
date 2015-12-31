@@ -68,7 +68,7 @@ frappe.ui.Page = Class.extend({
 		if(this.icon)
 			this.get_main_icon(this.icon);
 
-		this.main = this.wrapper.find(".layout-main-section");
+		this.body = this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
 		this.indicator = this.wrapper.find(".indicator");
@@ -230,6 +230,25 @@ frappe.ui.Page = Class.extend({
 	add_inner_button: function(label, action) {
 		return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 			.on("click", action).appendTo(this.inner_toolbar.removeClass("hide"))
+	},
+
+	//-- Sidebar --//
+
+	add_sidebar_item: function(label, action, insert_after, prepend) {
+		var parent = this.sidebar.find(".sidebar-menu.standard-actions");
+		var li = $('<li>');
+		var link = $('<a>').html(label).on("click", action).appendTo(li);
+
+		if(insert_after) {
+			li.insertAfter(parent.find(insert_after));
+		} else {
+			if(prepend) {
+				li.prependTo(parent);
+			} else {
+				li.appendTo(parent);
+			}
+		}
+		return link;
 	},
 
 	//---//

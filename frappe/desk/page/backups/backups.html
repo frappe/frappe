@@ -1,0 +1,32 @@
+<!-- jinja -->
+
+<table class="table table-striped table-bordered" style="max-width: 600px;">
+    <thead>
+        <tr>
+            <th style="width: 30%;">
+                {{ _("Date") }}
+            </th>
+            <th style="width: 50%;">
+                {{ _("File") }}
+            </th>
+            <th>
+                {{ _("Size") }}
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in files %}
+        <tr>
+            <td>
+                {{ f[1] }}
+            </td>
+            <td>
+                <a href="{{ f[0] }}" target="_blank">{{ f[0] }}</a>
+            </td>
+            <td>
+                {{ f[2] }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

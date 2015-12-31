@@ -82,7 +82,7 @@ def make_autoname(key, doctype=''):
            DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key=="hash":
-		return frappe.generate_hash(doctype)[:10]
+		return frappe.generate_hash(doctype, 10)
 
 	if not "#" in key:
 		key = key + ".#####"
@@ -176,8 +176,8 @@ def _set_amended_name(doc):
 def append_number_if_name_exists(doc):
 	if frappe.db.exists(doc.doctype, doc.name):
 		last = frappe.db.sql("""select name from `tab{}`
-			where name regexp '{}-[[:digit:]]+'
-			order by name desc limit 1""".format(doc.doctype, doc.name))
+			where name regexp '^{}-[[:digit:]]+'
+			order by length(name) desc, name desc limit 1""".format(doc.doctype, doc.name))
 
 		if last:
 			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)

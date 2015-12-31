@@ -20,9 +20,13 @@
 		type="image/x-icon">
     {% endblock %}
 	{%- block head -%}
-		{% if meta_block is defined %}
+		{% if meta_block is defined -%}
 		{{ meta_block }}
-		{% endif %}
+		{%- endif %}
+
+		{% if head_html is defined -%}
+		{{ head_html or "" }}
+		{%- endif %}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
@@ -44,7 +48,7 @@
     </script>
     {% endif -%}
 </head>
-<body>
+<body data-path="{{ path }}">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -108,6 +112,8 @@
 		{%- if script is defined -%}{{ script }}{%- endif -%}
 		</script>
 	{%- endblock %}
+
+	<!-- csrf_token -->
 
     {%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>

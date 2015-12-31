@@ -272,12 +272,14 @@ frappe.views.QueryReport = Class.extend({
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns,
 			this.slickgrid_options);
 
-		this.grid.setSelectionModel(new Slick.CellSelectionModel());
-		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-			dataItemColumnValueExtractor: function(item, columnDef, value) {
-				return item[columnDef.field];
-			}
-		}));
+		if (!frappe.dom.is_touchscreen()) {
+			this.grid.setSelectionModel(new Slick.CellSelectionModel());
+			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+				dataItemColumnValueExtractor: function(item, columnDef, value) {
+					return item[columnDef.field];
+				}
+			}));
+		}
 
 		this.setup_header_row();
 		this.grid.init();
@@ -338,7 +340,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	get_formatter: function() {
 		var formatter = function(row, cell, value, columnDef, dataContext, for_print) {
-			var value = frappe.format(value, columnDef.df, {for_print: for_print}, dataContext);
+			var value = frappe.format(value, columnDef.df, {for_print: for_print, always_show_decimals: true}, dataContext);
 
 			if (columnDef.df.is_tree) {
 				value = frappe.query_report.tree_formatter(row, cell, value, columnDef, dataContext);
@@ -444,7 +446,7 @@ frappe.views.QueryReport = Class.extend({
 		try {
 			var parent_name = item[me.parent_field];
 			while (parent_name) {
-				if (me.item_by_name[parent_name]._collapsed) {
+				if (!me.item_by_name[parent_name] || me.item_by_name[parent_name]._collapsed) {
 					return false;
 				}
 				parent_name = me.item_by_name[parent_name][me.parent_field];

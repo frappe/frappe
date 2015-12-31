@@ -21,6 +21,14 @@ a.form-link {
 	display: none;
 }
 
+.link-primary& {
+	color: @brand-primary;
+
+	&:hover, &:focus {
+		color: @brand-primary;
+	}
+}
+
 .ui-autocomplete .link-option {
 	font-weight: normal;
 }
@@ -126,8 +134,28 @@ ul.linked-with-list li {
 
 /* jquery ui */
 
+.ui-datepicker .ui-datepicker-header {
+	border-radius: 0px !important;
+}
+
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
 	display: inline;
+}
+
+.ui-datepicker select.ui-datepicker-month {
+	margin-right: 3px;
+}
+.ui-datepicker .ui-datepicker-title {
+	line-height: inherit !important;
+	padding-bottom: 3px;
+}
+
+.ui-datepicker-today .ui-state-default {
+	background-color: @light-border-color !important;
+}
+
+.ui-state-default {
+	box-shadow: none !important;
 }
 
 .hidden-xs-inline, .hidden-xs-inline-block {
@@ -314,12 +342,8 @@ ul.linked-with-list li {
 	text-align: center;
 }
 
-.set-filters .btn-xs {
-	padding: 0px 10px 2px;
-}
-
 .intro-area {
-	padding: 15px;
+	padding: 15px 30px;
 }
 
 .footnote-area {
@@ -353,4 +377,34 @@ ul.linked-with-list li {
 
 .frappe-rtl input ,.frappe-rtl textarea {
 	direction: rtl
+}
+
+.text-editor {
+	height: 400px;
+	background-color: white;
+	border-collapse: separate;
+	border: 1px solid rgb(204, 204, 204);
+	padding: 4px;
+	box-sizing: content-box;
+	-webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+	box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+	border-radius: 3px;
+	overflow: scroll;
+	outline: none;
+}
+
+.markdown-text-editor {
+	height: 451px;
+	font-family: Monaco, "Courier New", monospace;
+}
+
+.breadcrumb {
+	font-size: 12px;
+	background-color: #fff;
+}
+
+.breadcrumb.for-file-list {
+	margin-bottom: 0px;
+	border-bottom: 1px solid @border-color;
+	border-radius: 0px;
 }

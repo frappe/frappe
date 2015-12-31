@@ -2,280 +2,31 @@
 @import "mixins.less";
 @import "offcanvas.less";
 
-@media(max-width: 767px) {
-	.modal {
-		.modal-dialog {
-			margin: 0px;
-			padding: 0px;
-			width: 100%;
-			height: 100%;
-
-			position: fixed;
-			top: 0px;
-			bottom: 0px;
-			left: 0px;
-			right: 0px;
-			overflow-y: auto;
-			background-color: #fff;
-		}
-
-		.modal-content {
-			border-radius: 0px;
-			border: none;
-			box-shadow: none;
-			height: 100%;
-		}
-
-		.modal-body .form-layout {
-			margin: -15px;
-		}
-
-		.file-upload {
-			.input-upload {
-				width: 100%;
-				text-align: center;
-
-				.btn-browse {
-					width: 100%;
-				}
-			}
-
-			.web-link-wrapper {
-				display: block;
-				width: 100% !important;
-				text-align: center;
-
-				.file-upload-or {
-					display: block;
-					margin: 15px 24px;
-				}
-
-				.input-link {
-					width: 100% !important;
-				}
-			}
-		}
-	}
-
-	.layout-main-section-wrapper {
-		padding: 0px;
-	}
-
-	.form-section {
-		padding-left: 0px !important;
-		padding-right: 0px !important;
-	}
-
-	.layout-main-section {
-		border-left-color: transparent !important;
-		border-right-color: transparent !important;
-	}
-
-	.form-grid {
-		margin-left: -17px;
-		margin-right: -17px;
-		border-left: none !important;
-		border-right: none !important;
-		border-radius: none;
-	}
-
-	// forms
-
-	.form-page {
-		.form-section {
-			padding: 0px 15px;
-		}
-
-		.frappe-control {
-			padding: 7px 15px;
-			border-bottom: 1px solid @border-color;
-			margin: 0px -15px;
-
-			.link-btn {
-				top: -2px;
-			}
-
-			.like-disabled-input {
-				min-height: 0px !important;
-			}
-		}
-
-		.frappe-control[data-fieldtype="Table"] {
-			padding: 0px 15px;
-			margin-top: -1px;
-			border-bottom: none;
-
-			label {
-				margin-top: 7px;
-			}
-		}
-
-		.form-section:last-child .form-column:last-child .frappe-control:last-child {
-			border-bottom: none;
-		}
-
-		.form-control {
-			border: none;
-			box-shadow: none;
-			background-color: inherit;
-			height: auto;
-			padding: 0px;
-			margin-bottom: 7px;
-			border-radius: 0px;
-
-			// make all fields left-aligned!
-			text-align: left !important;
-		}
-
-		.form-control:focus {
-			box-shadow: none;
-		}
-
-		// select.form-control {
-		// 	text-indent: -2px;
-		// }
-	}
-
-	// timeline
-
-	.timeline {
-		border-left: none !important;
-		border-right: none !important;
-
-		.timeline-head {
-			padding: 7px 15px;
-		}
-
-		.timeline-item {
-			padding: 15px;
-			border-bottom: 1px dashed @border-color;
-		}
-
-		.timeline-item:last-child {
-			border-bottom: none;
-		}
-	}
-
-	// listviews
-	.doclist-row& {
-		position: relative;
-		padding-right: 10px;
-
-		.list-row-id {
-			left: 18px;
-			text-align: left;
-			margin-top: 3px;
-		}
-
-		&.has-checkbox .list-row-id {
-			left: 40px;
-		}
-
-		.list-row-indicator {
-			position: absolute;
-			right: 0px;
-			top: -20px;
-		}
-
-		.list-row-modified {
-			margin-right: -10px;
-		}
-
-		.list-row-left {
-			z-index: 1;
-		}
-
-		.list-row-right {
-			float: right;
-		}
-
-		.list-row-right.no-right-column {
-			position: absolute;
-			top: 0;
-			right: 10px;
-			left: -10px;
-			width: 100%;
-
-			.list-row-indicator {
-				top: 5px;
-
-				// bigger indicators for list
-				.indicator::before, .indicator::after {
-					height: 14px;
-					width: 14px;
-					border-radius: 14px;
-				}
-
-			}
-		}
-	}
-
-	// messages
-	body[data-route^="messages"] {
-		.navbar-center-show;
-	}
-
-	#page-messages {
-		.layout-side-section {
-			position: relative;
-			left: 0px;
-			border-right: 1px solid @border-color;
-			padding-left: 0px;
-			float: left;
-
-			// hack! to prevent overlap of borders
-			width: 76px;
-		}
-
-		.layout-main-section-wrapper {
-			position: absolute;
-			left: 75px;
-			right: 0px;
-			border-left: 1px solid @border-color;
-			float: left;
-		}
-
-		.module-sidebar-item {
-			margin: 0px;
-
-			.messages-sidebar-link {
-				padding: 15px;
-			}
-		}
-
-		.timeline-head {
-			padding: 15px 15px 7px;
-		}
-
-		.list-row {
-			padding: 7px 0px;
-		}
-
-		.message-row-right {
-			margin-top: 10px;
-			text-align: left;
-		}
-	}
-
-	#page-setup-wizard {
-		.form-section:first-child .form-column:first-child .frappe-control:first-child {
-			border-top: 1px solid @border-color;
-		}
-
-		.form-section:last-child .form-column:last-child .frappe-control:last-child {
-			border-bottom: 1px solid @border-color;
-		}
-
-		.setup-wizard-slide .form {
-			border: none;
-		}
-	}
-}
-
 @media(max-width: 991px) {
+	input[type='checkbox'] {
+	    -webkit-appearance:none;
+	    width: 12px;
+	    height: 12px;
+	    background: white;
+	    border-radius: 6px;
+	    border: 1px solid @border-color;
+		display: inline-block;
+	}
+	input[type='checkbox']:checked {
+	    background: @checkbox-color;
+		border-color: @checkbox-color;
+	}
+	input.list-select-all {
+		margin-top: 0px;
+	}
+	.input-area input[type='checkbox'] {
+		margin-top: 2px;
+		margin-left: -23px;
+	}
+
 	.intro-area,
 	.footnote-area {
-		padding: 15px 0px;
+		padding: 15px;
 	}
 
 	.grid-row-open {
@@ -286,13 +37,6 @@
 		position: relative;
 	}
 
-	.page-head {
-		.page-title h1 {
-			font-size: 18px;
-			margin-top: 22px;
-		}
-	}
-
 	body[data-route^="Form"] {
 		.page-title h1 {
 			margin-top: 14px;
@@ -300,7 +44,7 @@
 
 		.page-title .indicator {
 			display: block;
-			margin-top: -5px;
+			margin-top: -9px;
 			margin-bottom: 3px;
 		}
 
@@ -314,7 +58,8 @@
 			display: block;
 			position: absolute;
 			bottom: -30px;
-			right: 8px;
+			right: 5px;
+			min-width: 200px;
 		}
 	}
 
@@ -334,6 +79,10 @@
 
 	.module-item {
 		padding: 7px 0px !important;
+
+		h4 {
+			font-weight: normal;
+		}
 	}
 
 	#navbar-breadcrumbs {
@@ -443,17 +192,223 @@
 		}
 	}
 
-	body[data-route^="Module"] {
-		.page-title {
+	.linked-with-dialog {
+		width: 100% !important;
+	}
+}
+
+@media(max-width: 767px) {
+	.modal {
+		.modal-dialog {
+			margin: 0px;
+			padding: 0px;
 			width: 100%;
+			height: 100%;
+
+			position: fixed;
+			top: 0px;
+			bottom: 0px;
+			left: 0px;
+			right: 0px;
+			overflow-y: auto;
+			background-color: #fff;
 		}
 
-		.page-actions {
-			display: none !important;
+		.modal-content {
+			border-radius: 0px;
+			border: none;
+			box-shadow: none;
+			height: 100%;
+		}
+
+		.modal-body .form-layout {
+			margin: -15px;
+		}
+
+		.file-upload {
+			.input-upload {
+				width: 100%;
+				text-align: center;
+
+				.btn-browse {
+					width: 100%;
+				}
+			}
+
+			.web-link-wrapper {
+				display: block;
+				width: 100% !important;
+				text-align: center;
+
+				.file-upload-or {
+					display: block;
+					margin: 15px 24px;
+				}
+
+				.input-link {
+					width: 100% !important;
+				}
+			}
 		}
 	}
 
-	.linked-with-dialog {
-		width: 100% !important;
+	.layout-main-section-wrapper {
+		padding: 0px;
+	}
+
+	.layout-main-section {
+		border-left-color: transparent !important;
+		border-right-color: transparent !important;
+	}
+
+	// timeline
+
+	.timeline {
+		border-left: none !important;
+		border-right: none !important;
+
+		.timeline-head {
+			padding: 7px 15px;
+		}
+
+		.timeline-item {
+			padding: 15px;
+			border-bottom: 1px dashed @border-color;
+		}
+
+		.timeline-item:last-child {
+			border-bottom: none;
+		}
+	}
+
+	// listviews
+	.list-row {
+		padding: 13px 15px !important;
+	}
+
+	.doclist-row& {
+		position: relative;
+		padding-right: 10px;
+
+		.list-id {
+			font-weight: normal;
+		}
+
+		.list-row-id {
+			left: 18px;
+			text-align: left;
+			margin-top: 3px;
+		}
+
+		&.has-checkbox .list-row-id {
+			left: 40px;
+		}
+
+		.list-row-indicator {
+			position: absolute;
+			right: 0px;
+			top: -20px;
+		}
+
+		.list-row-modified {
+			margin-right: -10px;
+		}
+
+		.list-row-left {
+			z-index: 1;
+		}
+
+		.list-row-right {
+			float: right;
+
+			.list-row-indicator {
+				top: 4px;
+
+				// bigger indicators for list
+				.indicator::before, .indicator::after {
+					height: 12px;
+					width: 12px;
+					border-radius: 12px;
+				}
+
+			}
+
+		}
+
+		.list-row-right.no-right-column {
+			position: absolute;
+			top: 0;
+			right: 10px;
+			left: -10px;
+			width: 100%;
+
+		}
+	}
+
+	// messages
+	body[data-route^="messages"] {
+		.navbar-center-show;
+	}
+
+	#page-messages {
+		.layout-side-section {
+			position: relative;
+			left: 0px;
+			border-right: 1px solid @border-color;
+			padding-left: 0px;
+			float: left;
+
+			// hack! to prevent overlap of borders
+			width: 76px;
+		}
+
+		.layout-main-section-wrapper {
+			position: absolute;
+			left: 75px;
+			right: 0px;
+			border-left: 1px solid @border-color;
+			float: left;
+		}
+
+		.module-sidebar-item {
+			margin: 0px;
+
+			.messages-sidebar-link {
+				padding: 15px;
+			}
+		}
+
+		.timeline-head {
+			padding: 15px 15px 7px;
+		}
+
+		.list-row {
+			padding: 7px 0px;
+		}
+
+		.message-row-right {
+			margin-top: 10px;
+			text-align: left;
+		}
+	}
+
+	#page-setup-wizard {
+		.form-section:first-child .form-column:first-child .frappe-control:first-child {
+			border-top: 1px solid @border-color;
+		}
+
+		.form-section:last-child .form-column:last-child .frappe-control:last-child {
+			border-bottom: 1px solid @border-color;
+		}
+
+		.setup-wizard-slide .form {
+			border: none;
+		}
+	}
+
+	body[data-route^="Form"] {
+		.page-title .indicator {
+			margin-top: 1px;
+		}
 	}
 }

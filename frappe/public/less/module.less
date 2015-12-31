@@ -51,3 +51,19 @@
 	background-color: red;
 	width: 0px;
 }
+
+@media(max-width: 767px) {
+	body[data-route^="Module"] {
+		.page-title {
+			width: 100%;
+		}
+
+		.page-actions {
+			display: none !important;
+		}
+
+		.layout-main-section {
+			border-bottom: 0px;
+		}
+	}
+}

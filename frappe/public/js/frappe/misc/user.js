@@ -62,13 +62,21 @@ frappe.get_gravatar = function(email_id) {
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
-	if(!src) src = frappe.boot.default_background_image;
+	if(src) {
+		var background = repl('background: url("%(src)s") center center;', {src: src});
+	} else {
+		var background = "background-color: #4B4C9D;";
+	}
 
 	frappe.dom.set_style(repl('%(selector)s { \
-		background: url("%(src)s") center center;\
+		%(background)s \
 		background-attachment: fixed; \
 		%(style)s \
-	}', {src:src, selector:selector, style: style==="Fill Screen" ? "background-size: cover;" : ""}));
+	}', {
+		selector:selector,
+		background:background,
+		style: style==="Fill Screen" ? "background-size: cover;" : ""
+	}));
 }
 
 frappe.provide('frappe.user');
@@ -185,6 +193,29 @@ $.extend(frappe.user, {
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	},
+
+	get_formatted_email: function(email) {
+		var fullname = frappe.user.full_name(email);
+
+		if (!fullname) {
+			return email;
+		} else {
+			// to quote or to not
+			var quote = '';
+
+			// only if these special characters are found
+			// why? To make the output same as that in python!
+			if (fullname.search(/[\[\]\\()<>@,:;".]/) !== -1) {
+				quote = '"';
+			}
+
+			return repl('%(quote)s%(fullname)s%(quote)s <%(email)s>', {
+				fullname: fullname,
+				email: email,
+				quote: quote
+			});
+		}
+	}
 });
 
 frappe.session_alive = true;

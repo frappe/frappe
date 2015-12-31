@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import time
-import _socket, poplib
+import _socket, poplib, imaplib
 import frappe
 from frappe import _
 from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
@@ -17,7 +17,7 @@ class EmailTimeoutError(frappe.ValidationError): pass
 class TotalSizeExceededError(frappe.ValidationError): pass
 class LoginLimitExceeded(frappe.ValidationError): pass
 
-class POP3Server:
+class EmailServer:
 	"""Wrapper for POP server to pull emails."""
 	def __init__(self, args=None):
 		self.setup(args)
@@ -36,6 +36,33 @@ class POP3Server:
 
 	def connect(self):
 		"""Connect to **Email Account**."""
+		if cint(self.settings.use_imap):
+			return self.connect_imap()
+		else:
+			return self.connect_pop()
+
+	def connect_imap(self):
+		"""Connect to IMAP"""
+		try:
+			if cint(self.settings.use_ssl):
+				self.imap = Timed_IMAP4_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+			else:
+				self.imap = Timed_IMAP4(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+			self.imap.login(self.settings.username, self.settings.password)
+			# connection established!
+			return True
+
+		except _socket.error:
+			# Invalid mail server -- due to refusing connection
+			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
+			raise
+
+		except Exception, e:
+			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
+			raise
+
+	def connect_pop(self):
+		#this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
 				self.pop = Timed_POP3_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
@@ -49,6 +76,9 @@ class POP3Server:
 			return True
 
 		except _socket.error:
+			# log performs rollback and logs error in scheduler log
+			log("receive.connect_pop")
+
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
@@ -75,8 +105,9 @@ class POP3Server:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
-			pop_list = self.pop.list()[1]
-			num = num_copy = len(pop_list)
+
+			email_list = self.get_new_mails()
+			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
 			if num > 20: num = 20
@@ -86,22 +117,23 @@ class POP3Server:
 			self.max_email_size = cint(frappe.local.conf.get("max_email_size"))
 			self.max_total_size = 5 * self.max_email_size
 
-			for i, pop_meta in enumerate(pop_list):
+			for i, message_meta in enumerate(email_list):
 				# do not pull more than NUM emails
 				if (i+1) > num:
 					break
 
 				try:
-					self.retrieve_message(pop_meta, i+1)
+					self.retrieve_message(message_meta, i+1)
 				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
 
 			# WARNING: Mark as read - message number 101 onwards from the pop list
 			# This is to avoid having too many messages entering the system
 			num = num_copy
-			if num > 100 and not self.errors:
-				for m in xrange(101, num+1):
-					self.pop.dele(m)
+			if not cint(self.settings.use_imap):
+				if num > 100 and not self.errors:
+					for m in xrange(101, num+1):
+						self.pop.dele(m)
 
 		except Exception, e:
 			if self.has_login_limit_exceeded(e):
@@ -112,17 +144,35 @@ class POP3Server:
 
 		finally:
 			# no matter the exception, pop should quit if connected
-			self.pop.quit()
+			if cint(self.settings.use_imap):
+				self.imap.logout()
+			else:
+				self.pop.quit()
 
 		return self.latest_messages
 
-	def retrieve_message(self, pop_meta, msg_num):
+	def get_new_mails(self):
+		"""Return list of new mails"""
+		if cint(self.settings.use_imap):
+			self.imap.select("Inbox")
+			response, message = self.imap.uid('search', None, "UNSEEN")
+			email_list =  message[0].split()
+		else:
+			email_list = self.pop.list()[1]
+
+		return email_list
+
+	def retrieve_message(self, message_meta, msg_num=None):
 		incoming_mail = None
 		try:
-			self.validate_pop(pop_meta)
-			msg = self.pop.retr(msg_num)
+			self.validate_message_limits(message_meta)
 
-			self.latest_messages.append(b'\n'.join(msg[1]))
+			if cint(self.settings.use_imap):
+				status, message = self.imap.uid('fetch', message_meta, '(RFC822)')
+				self.latest_messages.append(message[0][1])
+			else:
+				msg = self.pop.retr(msg_num)
+				self.latest_messages.append(b'\n'.join(msg[1]))
 
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
@@ -140,9 +190,11 @@ class POP3Server:
 				self.errors = True
 				frappe.db.rollback()
 
-				self.pop.dele(msg_num)
+				if not cint(self.settings.use_imap):
+					self.pop.dele(msg_num)
 		else:
-			self.pop.dele(msg_num)
+			if not cint(self.settings.use_imap):
+				self.pop.dele(msg_num)
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -153,16 +205,16 @@ class POP3Server:
 			"Connection timed out",
 		)
 		for message in messages:
-			if message in strip(cstr(e.message)):
+			if message in strip(cstr(e.message)) or message in strip(cstr(getattr(e, 'strerror', ''))):
 				return True
 		return False
 
-	def validate_pop(self, pop_meta):
+	def validate_message_limits(self, message_meta):
 		# throttle based on email size
 		if not self.max_email_size:
 			return
 
-		m, size = pop_meta.split()
+		m, size = message_meta.split()
 		size = cint(size)
 
 		if size < self.max_email_size:
@@ -203,6 +255,7 @@ class Email:
 		self.text_content = ''
 		self.html_content = ''
 		self.attachments = []
+		self.cid_map = {}
 		self.parse()
 		self.set_content_and_type()
 		self.set_subject()
@@ -293,19 +346,32 @@ class Email:
 				'fcontent': fcontent,
 			})
 
+			cid = (part.get("Content-Id") or "").strip("><")
+			if cid:
+				self.cid_map[fname] = cid
+
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
 		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
+		saved_attachments = []
+
 		for attachment in self.attachments:
 			try:
-				save_file(attachment['fname'], attachment['fcontent'],
-					doc.doctype, doc.name)
+				file_data = save_file(attachment['fname'], attachment['fcontent'],
+					doc.doctype, doc.name, is_private=1)
+				saved_attachments.append(file_data)
+
+				if attachment['fname'] in self.cid_map:
+					self.cid_map[file_data.name] = self.cid_map[attachment['fname']]
+
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass
+
+		return saved_attachments
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
@@ -341,3 +407,8 @@ class Timed_POP3(TimerMixin, poplib.POP3):
 
 class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
 	_super = poplib.POP3_SSL
+class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
+	_super = imaplib.IMAP4
+
+class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
+	_super = imaplib.IMAP4_SSL

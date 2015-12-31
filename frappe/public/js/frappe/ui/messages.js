@@ -28,7 +28,8 @@ frappe.confirm = function(message, ifyes, ifno) {
 		primary_action: function() {
 			ifyes();
 			d.hide();
-		}
+		},
+		secondary_action_label: __("No")
 	});
 	d.show();
 
@@ -44,11 +45,19 @@ frappe.confirm = function(message, ifyes, ifno) {
 }
 
 frappe.prompt = function(fields, callback, title, primary_label) {
+	if (typeof fields === "string") {
+		fields = [{
+			label: fields,
+			fieldname: "value",
+			fieldtype: "Data",
+			reqd: 1
+		}];
+	}
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
 		title: title || __("Enter Value"),
-	})
+	});
 	d.set_primary_action(primary_label || __("Submit"), function() {
 		var values = d.get_values();
 		if(!values) {
@@ -56,7 +65,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 		}
 		d.hide();
 		callback(values);
-	})
+	});
 	d.show();
 	return d;
 }
@@ -94,6 +103,15 @@ frappe.msgprint = function(msg, title) {
 		});
 		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
+
+		msg_dialog.loading_indicator = $('<div class="loading-indicator text-center" \
+				style="margin: 15px;">\
+				<img src="/assets/frappe/images/ui/ajax-loader.gif"></div>')
+			.appendTo(msg_dialog.body);
+
+		msg_dialog.clear = function() {
+			msg_dialog.msg_area.empty();
+		}
 	}
 
 	if(msg.search(/<br>|<p>|<li>/)==-1)
@@ -105,12 +123,38 @@ frappe.msgprint = function(msg, title) {
 	if(msg_dialog.msg_area.html()) msg_dialog.msg_area.append("<hr>");
 
 	msg_dialog.msg_area.append(msg);
+	msg_dialog.loading_indicator.addClass("hide");
+
+	msg_dialog.show_loading = function() {
+		msg_dialog.loading_indicator.removeClass("hide");
+	}
 
 	// make msgprint always appear on top
 	msg_dialog.$wrapper.css("z-index", 2000);
 	msg_dialog.show();
 
 	return msg_dialog;
+}
+
+frappe.hide_msgprint = function(instant) {
+	if(msg_dialog && msg_dialog.$wrapper.is(":visible")) {
+		if(instant) {
+			msg_dialog.$wrapper.removeClass("fade");
+		}
+		msg_dialog.hide();
+		if(instant) {
+			msg_dialog.$wrapper.addClass("fade");
+		}
+	}
+}
+
+// update html in existing msgprint
+frappe.update_msgprint = function(html) {
+	if(!msg_dialog || (msg_dialog && !msg_dialog.$wrapper.is(":visible"))) {
+		frappe.msgprint(html);
+	} else {
+		msg_dialog.msg_area.html(html);
+	}
 }
 
 frappe.verify_password = function(callback) {
@@ -136,6 +180,32 @@ frappe.verify_password = function(callback) {
 
 var msgprint = frappe.msgprint;
 
+frappe.show_progress = function(title, count, total) {
+	if(frappe.cur_progress && frappe.cur_progress.title === title
+			&& frappe.cur_progress.$wrapper.is(":visible")) {
+		var dialog = frappe.cur_progress;
+	} else {
+		var dialog = new frappe.ui.Dialog({
+			title: title,
+		});
+		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
+			.appendTo(dialog.body);
+			dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
+				.find(".progress-bar");
+		dialog.$wrapper.removeClass("fade");
+		dialog.show();
+		frappe.cur_progress = dialog;
+	}
+	dialog.progress_bar.css({"width": cint(flt(count) * 100 / total) + "%" });
+}
+
+frappe.hide_progress = function() {
+	if(frappe.cur_progress) {
+		frappe.cur_progress.hide();
+		frappe.cur_progress = null;
+	}
+}
+
 // Floating Message
 function show_alert(txt, seconds) {
 	if(!$('#dialog-container').length) {
@@ -152,6 +222,7 @@ function show_alert(txt, seconds) {
 		$(this).parent().remove();
 		return false;
 	});
+
 	div.delay(seconds ? seconds * 1000 : 3000).fadeOut(300);
 	return div;
 }

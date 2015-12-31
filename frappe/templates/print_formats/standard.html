@@ -5,9 +5,9 @@
 <div class="page-break">
     {{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
     {% for section in page %}
-    <div class="row">
+    <div class="row section-break">
         {% for column in section %}
-        <div class="col-xs-{{ (12 / section|len)|int }}">
+        <div class="col-xs-{{ (12 / section|len)|int }} column-break">
             {% for df in column %}
                 {{ render_field(df, doc) }}
             {% endfor %}
@@ -17,15 +17,3 @@
     {% endfor %}
 </div>
 {% endfor %}
-
-{%- if trigger_print -%}
-<script>
-window.print();
-
-// close the window after print
-// NOTE: doesn't close if print is cancelled in Chrome
-window.onfocus = function() {
-	window.close();
-}
-</script>
-{%- endif -%}

@@ -20,7 +20,7 @@
 .set-filters .btn-group .btn-default {
   background-color: transparent;
   border: 1px solid #d1d8dd;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .filter-box {
   border-top: 1px solid #d1d8dd;
@@ -61,18 +61,18 @@
   margin-bottom: 0px;
 }
 .list-row-head {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd !important;
 }
 .list-row:hover,
 .grid-row:hover {
-  background: #f7fafc;
+  background: #F7FAFC;
 }
 .list-row:last-child {
   border-bottom: 0px;
 }
 .list-row-head {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd !important;
 }
 .list-row .h6 {
@@ -151,4 +151,15 @@
 }
 .list-value {
   vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .doclist-row {
+    font-size: 14px;
+  }
+  .doclist-row [type='checkbox'] {
+    display: none;
+  }
+  .doclist-row .list-row-right .list-row-modified {
+    display: none;
+  }
 }

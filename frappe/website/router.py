@@ -78,7 +78,7 @@ def get_generator_routes():
 						if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
 
 				if controller.website.condition_field:
-					condition ="where ifnull({0}, 0)=1".format(controller.website.condition_field)
+					condition ="where {0}=1".format(controller.website.condition_field)
 
 				for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
 						{2}""".format(route_column_name, doctype, condition), as_dict=True):

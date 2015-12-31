@@ -8,22 +8,27 @@ moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
-	convert_to_user_tz: function(date) {
+	convert_to_user_tz: function(date, format) {
+		// format defaults to true
 		if(sys_defaults.time_zone) {
-			return moment.tz(date, sys_defaults.time_zone).utc()
-				.utcOffset(moment.user_utc_offset).format(moment.defaultDatetimeFormat);
+			var date_obj = moment.tz(date, sys_defaults.time_zone).local();
 		} else {
-			return moment(date).format(moment.defaultDatetimeFormat);
+			var date_obj = moment(date);
 		}
+
+		return (format===false) ? date_obj : date_obj.format(moment.defaultDatetimeFormat);
 	},
 
-	convert_to_system_tz: function(date) {
+	convert_to_system_tz: function(date, format) {
+		// format defaults to true
+
 		if(sys_defaults.time_zone) {
-			return moment(date).utc()
-				.utcOffset(moment.system_utc_offset).format(moment.defaultDatetimeFormat);
+			var date_obj = moment(date).tz(sys_defaults.time_zone);
 		} else {
-			return moment(date).format(moment.defaultDatetimeFormat);
+			var date_obj = moment(date);
 		}
+
+		return (format===false) ? date_obj : date_obj.format(moment.defaultDatetimeFormat);
 	},
 
 	is_timezone_same: function() {
@@ -72,6 +77,14 @@ $.extend(frappe.datetime, {
 
 	month_end: function() {
 		return moment().endOf("month").format();
+	},
+
+	year_start: function(){
+		return moment().startOf("year").format();
+	},
+
+	year_end: function(){
+		return moment().endOf("year").format();
 	},
 
 	get_user_fmt: function() {
@@ -132,7 +145,8 @@ $.extend(frappe.datetime, {
 	},
 
 	now_time: function() {
-		return moment().locale("en").format("HH:mm:ss");
+		return frappe.datetime.convert_to_system_tz(moment(), false)
+			.locale("en").format("HH:mm:ss");
 	},
 
 	validate: function(d) {

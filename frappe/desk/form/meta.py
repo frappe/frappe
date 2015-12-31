@@ -33,9 +33,9 @@ class FormMeta(Meta):
 
 	def load_assets(self):
 		self.add_search_fields()
+		self.add_linked_document_type()
 
 		if not self.istable:
-			self.add_linked_with()
 			self.add_code()
 			self.load_print_formats()
 			self.load_workflows()
@@ -49,7 +49,7 @@ class FormMeta(Meta):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
-			for k in ("link_doctype", "search_fields", "is_custom_field"):
+			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)
 
 		return d
@@ -74,9 +74,9 @@ class FormMeta(Meta):
 		self.add_html_templates(path)
 
 	def _add_code(self, path, fieldname):
-		js = frappe.read_file(path)
+		js = get_js(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_include(js))
+			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + js)
 
 	def add_html_templates(self, path):
 		if self.custom:
@@ -91,18 +91,8 @@ class FormMeta(Meta):
 		self.set("__js", (self.get("__js") or "") + js)
 
 	def add_code_via_hook(self, hook, fieldname):
-		for app_name in frappe.get_installed_apps():
-			code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
-			if not code_hook:
-				continue
-
-			files = code_hook.get(self.name, [])
-			if not isinstance(files, list):
-				files = [files]
-
-			for file in files:
-				path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
-				self._add_code(path, fieldname)
+		for path in get_code_files_via_hooks(hook, self.name):
+			self._add_code(path, fieldname)
 
 	def add_custom_script(self):
 		"""embed all require files"""
@@ -120,46 +110,18 @@ class FormMeta(Meta):
 				if search_fields:
 					df.search_fields = map(lambda sf: sf.strip(), search_fields.split(","))
 
-	def add_linked_with(self):
-		"""add list of doctypes this doctype is 'linked' with"""
-		links = frappe.db.sql("""select parent, fieldname from tabDocField
-			where (fieldtype="Link" and options=%s)
-			or (fieldtype="Select" and options=%s)""", (self.name, "link:"+ self.name))
-		links += frappe.db.sql("""select dt as parent, fieldname from `tabCustom Field`
-			where (fieldtype="Link" and options=%s)
-			or (fieldtype="Select" and options=%s)""", (self.name, "link:"+ self.name))
-
-		links = dict(links)
-
-		ret = {}
-
-		for dt in links:
-			ret[dt] = { "fieldname": links[dt] }
-
-		if links:
-			for grand_parent, options in frappe.db.sql("""select parent, options from tabDocField
-				where fieldtype="Table"
-					and options in (select name from tabDocType
-						where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
-
-				ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
-				if options in ret:
-					del ret[options]
-
-		links = frappe.db.sql("""select dt from `tabCustom Field`
-			where (fieldtype="Table" and options=%s)""", (self.name))
-		links += frappe.db.sql("""select parent from tabDocField
-			where (fieldtype="Table" and options=%s)""", (self.name))
-
-		for dt, in links:
-			if not dt in ret:
-				ret[dt] = {"get_parent": True}
-
-		self.set("__linked_with", ret, as_value=True)
+	def add_linked_document_type(self):
+		for df in self.get("fields", {"fieldtype": "Link"}):
+			if df.options:
+				try:
+					df.linked_document_type = frappe.get_meta(df.options).document_type
+				except frappe.DoesNotExistError:
+					# edge case where options="[Select]"
+					pass
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql("""select * FROM `tabPrint Format`
-			WHERE doc_type=%s AND docstatus<2 and ifnull(disabled, 0)=0""", (self.name,), as_dict=1,
+			WHERE doc_type=%s AND docstatus<2 and disabled=0""", (self.name,), as_dict=1,
 			update={"doctype":"Print Format"})
 
 		self.set("__print_formats", print_formats, as_value=True)
@@ -200,4 +162,25 @@ class FormMeta(Meta):
 				messages = make_dict_from_messages(messages)
 				self.get("__messages").update(messages, as_value=True)
 
+def get_code_files_via_hooks(hook, name):
+	code_files = []
+	for app_name in frappe.get_installed_apps():
+		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
+		if not code_hook:
+			continue
+
+		files = code_hook.get(name, [])
+		if not isinstance(files, list):
+			files = [files]
+
+		for file in files:
+			path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
+			code_files.append(path)
+
+	return code_files
+
+def get_js(path):
+	js = frappe.read_file(path)
+	if js:
+		return render_include(js)
 

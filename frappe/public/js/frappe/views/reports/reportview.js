@@ -97,9 +97,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			parent: this.page.main,
 			start: 0,
 			show_filters: true,
-			new_doctype: this.doctype,
 			allow_delete: true,
 		});
+		this.make_new_and_refresh();
 		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
@@ -109,8 +109,16 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_save();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
-		this.page.add_menu_item(__("Refresh"), function() {
-			me.refresh();
+	},
+
+	make_new_and_refresh: function() {
+		var me = this;
+		this.page.set_primary_action(__("Refresh"), function() {
+			me.run();
+		});
+
+		this.page.add_menu_item(__("New {0}", [this.doctype]), function() {
+			me.make_new_doc(me.doctype);
 		}, true);
 	},
 
@@ -187,17 +195,21 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	},
 
 	get_order_by: function() {
+		var order_by = [];
+
 		// first
-		var order_by = this.get_selected_table_and_column(this.sort_by_select)
-			+ ' ' + this.sort_order_select.val();
+		var sort_by_select = this.get_selected_table_and_column(this.sort_by_select);
+		if (sort_by_select) {
+			order_by.push(sort_by_select + " " + this.sort_order_select.val());
+		}
 
 		// second
 		if(this.sort_by_next_select.val()) {
-			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select)
-				+ ' ' + this.sort_order_next_select.val();
+			order_by.push(this.get_selected_table_and_column(this.sort_by_next_select)
+				+ ' ' + this.sort_order_next_select.val());
 		}
 
-		return order_by;
+		return order_by.join(", ");
 	},
 
 	get_selected_table_and_column: function(select) {
@@ -240,10 +252,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
-					return frappe.format(value, docfield, {for_print: for_print}, dataContext);
+					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
 				}
 			}
 			return coldef;
@@ -285,12 +297,15 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			.get(0), this.dataView,
 			columns, options);
 
-		this.grid.setSelectionModel(new Slick.CellSelectionModel());
-		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-			dataItemColumnValueExtractor: function(item, columnDef, value) {
-				return item[columnDef.field];
-			}
-		}));
+		if (!frappe.dom.is_touchscreen()) {
+			this.grid.setSelectionModel(new Slick.CellSelectionModel());
+			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+				dataItemColumnValueExtractor: function(item, columnDef, value) {
+					return item[columnDef.field];
+				}
+			}));
+		}
+
 		frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
 		if(this.start!=0 && !options.autoHeight) {
 			this.grid.scrollRowIntoView(this.data.length-1);
@@ -338,7 +353,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			title: __("Edit") + " " + __(docfield.label),
 			fields: [docfield, {"fieldtype": "Button", "label": "Update"}],
 		});
-		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
 		d.get_input("update").on("click", function() {
 			var args = {
 				doctype: docfield.parent,
@@ -378,6 +392,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			});
 		});
 		d.show();
+		d.set_input(docfield.fieldname, row[docfield.fieldname]);
 	},
 
 	set_data: function() {
@@ -669,7 +684,9 @@ frappe.ui.ColumnPicker = Class.extend({
 		this.dialog.hide();
 		// selected columns as list of [column_name, table_name]
 		var columns = $.map(this.columns, function(v) {
-			return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
+			return (v && v.selected_fieldname && v.selected_doctype)
+				? [[v.selected_fieldname, v.selected_doctype]]
+				: null;
 		});
 
 		frappe.defaults.set_default("_list_settings:" + this.doctype, columns);

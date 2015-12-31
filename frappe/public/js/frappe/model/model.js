@@ -34,6 +34,37 @@ $.extend(frappe.model, {
 	new_names: {},
 	events: {},
 
+	init: function() {
+		// setup refresh if the document is updated somewhere else
+		frappe.realtime.on("doc_update", function(data) {
+			// set list dirty
+			frappe.views.set_list_as_dirty(data.doctype);
+			var doc = locals[data.doctype] && locals[data.doctype][data.name];
+			if(doc) {
+				// current document is dirty, show message if its not me
+				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
+					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
+						doc.__needs_refresh = true;
+						cur_frm.show_if_needs_refresh();
+					}
+				} else {
+					if(!doc.__unsaved) {
+						// no local changes, remove from locals
+						frappe.model.remove_from_locals(doc.doctype, doc.name);
+					} else {
+						// show message when user navigates back
+						doc.__needs_refresh = true;
+					}
+				}
+			}
+		});
+
+		frappe.realtime.on("list_update", function(data) {
+			frappe.views.set_list_as_dirty(data.doctype);
+		});
+
+	},
+
 	is_value_type: function(fieldtype) {
 		// not in no-value type
 		return frappe.model.no_value_type.indexOf(fieldtype)===-1;
@@ -52,7 +83,7 @@ $.extend(frappe.model, {
 
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {
-			callback();
+			callback && callback();
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
@@ -81,7 +112,7 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
-					callback(r);
+					callback && callback(r);
 				}
 			});
 		}
@@ -120,6 +151,35 @@ $.extend(frappe.model, {
 
 	get_docinfo: function(doctype, name) {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
+	},
+
+	set_docinfo: function(doctype, name, key, value) {
+		if (frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name]) {
+			frappe.model.docinfo[doctype][name][key] = value;
+		}
+	},
+
+	new_comment: function(comment) {
+		var reference_doctype = comment.comment_doctype || comment.reference_doctype;
+		var reference_name = comment.comment_docname || comment.reference_name;
+
+		if (frappe.model.docinfo[reference_doctype] && frappe.model.docinfo[reference_doctype][reference_name]) {
+			var comments = frappe.model.docinfo[reference_doctype][reference_name].comments;
+			var comment_exists = false;
+			for (var i=0, l=comments.length; i<l; i++) {
+				if (comments[i].name==comment.name) {
+					comment_exists = true;
+					break;
+				}
+			}
+
+			if (!comment_exists) {
+				 frappe.model.docinfo[reference_doctype][reference_name].comments = comments.concat([comment]);
+			}
+		}
+		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
+			cur_frm.comments && cur_frm.comments.refresh();
+		}
 	},
 
 	get_shared: function(doctype, name) {
@@ -412,6 +472,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {
+						frappe.utils.play_sound("delete");
 						frappe.model.clear_doc(doctype, docname);
 						if(callback) callback(r,rt);
 					}
@@ -424,7 +485,7 @@ $.extend(frappe.model, {
 		var d = new frappe.ui.Dialog({
 			title: __("Rename {0}", [__(docname)]),
 			fields: [
-				{label:__("New Name"), fieldname: "new_name", fieldtype:"Data", reqd:1},
+				{label:__("New Name"), fieldname: "new_name", fieldtype:"Data", reqd:1, "default": docname},
 				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
 			]
 		});

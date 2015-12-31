@@ -75,11 +75,11 @@ body[data-route="desktop"] .navbar-default {
   letter-spacing: normal;
 }
 .app-icon:hover path {
-  fill: #ffffff;
+  fill: #fff;
 }
 .app-icon:hover i,
 .app-icon:hover {
-  color: #ffffff;
+  color: #fff;
 }
 .app-icon-small {
   padding: 12px;
@@ -160,4 +160,16 @@ body[data-route="desktop"] .navbar-default {
 .all-applications-dialog .checkbox {
   margin-top: 3px;
   margin-bottom: 3px;
+}
+.desktop-list-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+}
+.desktop-list-item:hover,
+.desktop-list-item:focus {
+  background-color: #F7FAFC;
+}
+.desktop-list-item h4 {
+  display: inline-block;
 }

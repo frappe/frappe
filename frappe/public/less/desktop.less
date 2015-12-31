@@ -56,6 +56,7 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
 	text-shadow: -1px 1px 5px rgba(0, 0, 0, 0.15);
+
 }
 
 .app-icon svg, .app-icon img {
@@ -198,5 +199,23 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	.checkbox {
 		margin-top: 3px;
 		margin-bottom: 3px;
+	}
+}
+
+.desktop-list {
+
+}
+
+.desktop-list-item& {
+	padding: 10px 15px;
+	border-bottom: 1px solid @border-color;
+	cursor: pointer;
+
+	&:hover, &:focus {
+		background-color: @panel-bg;
+	}
+
+	h4 {
+		display: inline-block;
 	}
 }

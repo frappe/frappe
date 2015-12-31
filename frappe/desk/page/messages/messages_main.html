@@ -8,11 +8,15 @@
     			class="form-control messages-textarea"></textarea>
     	</div>
 		<div style="padding-top: 15px;">
-    		<button class="pull-right btn btn-default btn-sm btn-post" data-contact="{%= contact %}">
+    		<button class="pull-right btn btn-primary btn-sm btn-post" data-contact="{%= contact %}">
     			{%= __("Post") %}
     		</button>
 			{% if (contact === user) { %}
-			<span class="pull-right indicator orange">{%= __("Public") %}</span>
+                <span class="pull-right"
+                    style="margin-top: 4px; margin-right: 10px;">
+            		<i class="octicon octicon-rss"></i>
+                    <span class="text-muted small">{%= __("Public") %}</span>
+                </span>
 			{% } %}
             <div class="pull-right checkbox text-muted small"
 				style="margin-right: 15px; margin-top: 7px;">

@@ -8,6 +8,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.make_menu();
 		this.refresh();
 		this.add_update_button_on_dirty();
+		this.setup_editable_title();
 	},
 	refresh: function() {
 		this.set_title();
@@ -46,7 +47,44 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(this.frm.meta.title_field) {
 			frappe.utils.set_title(title + " - " + this.frm.docname);
 		}
+		this.page.$title_area.toggleClass("editable-title",
+			!!(this.is_title_editable() || this.can_rename()));
+
 		this.set_indicator();
+	},
+	is_title_editable: function() {
+		if (this.frm.meta.title_field==="title"
+			&& this.frm.perm[0].write
+			&& !this.frm.get_docfield("title").options) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+	can_rename: function() {
+		return this.frm.perm[0].write && this.frm.meta.allow_rename;
+	},
+	setup_editable_title: function() {
+		var me = this;
+		this.page.$title_area.find(".title-text").on("click", function() {
+			if(me.is_title_editable()) {
+				frappe.prompt({fieldname: "title", fieldtype:"Data",
+					label: __("Title"), reqd: 1, "default": me.frm.doc.title },
+					function(data) {
+						if(data.title) {
+							me.frm.set_value("title", data.title);
+							if(!me.frm.doc.__islocal) {
+								me.frm.save_or_update();
+							} else {
+								me.set_title();
+							}
+						}
+					}, __("Edit Title"), __("Update"));
+			}
+			if(me.can_rename()) {
+				me.frm.rename_doc();
+			}
+		});
 	},
 	get_dropdown_menu: function(label) {
 		return this.page.add_dropdown(label);
@@ -87,7 +125,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// email
-		if(frappe.model.can_email(null, me.frm)) {
+		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
 				me.frm.email_doc();}, true);
 		}
@@ -106,7 +144,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// rename
-		if(me.frm.meta.allow_rename && me.frm.perm[0].write) {
+		if(this.can_rename()) {
 			this.page.add_menu_item(__("Rename"), function() {
 				me.frm.rename_doc();}, true);
 		}
@@ -220,6 +258,9 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else {
 			var click = {
 				"Save": function() {
+					if(!frappe.dom.is_touchscreen() && Math.random() < 0.25) {
+						show_alert(__("ProTip: You can also use Ctrl+S to Save"));
+					}
 					me.frm.save('Save', null, this);
 				},
 				"Submit": function() {
@@ -254,10 +295,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(has_workflow) {
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
-			this.page.set_secondary_action('Cancel', function() {
+			this.page.set_secondary_action(__('Cancel'), function() {
 				me.frm.savecancel(this) }, 'icon-ban-circle');
 		} else if(docstatus==2 && p[AMEND]) {
-			this.page.set_secondary_action('Amend', function() {
+			this.page.set_secondary_action(__('Amend'), function() {
 				me.frm.amend_doc() }, 'icon-pencil', true);
 		}
 	},

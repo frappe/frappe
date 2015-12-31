@@ -7,6 +7,7 @@
 		<div class="col-sm-4">
 			{% if (doc.fieldtype==="Section Break") { %}<strong>{% } %}
 				{% if (doc.reqd) { %}<span class="text-danger">{% } %}
+				{% if (doc.bold) { %}<b>{% } %}
 				{% if (doc.hidden) { %}
 					<span class="text-muted"><i class="icon-eye-close"></i>{% } %}
 					{% if(doc.fieldtype==="Link") { %}<i class="icon-link"></i>{% } %}
@@ -15,6 +16,7 @@
 					{%= doc.label %}
 				{% if (doc.hidden) { %}</span>{% } %}
 				{% if (doc.reqd) { %}</span>{% } %}
+				{% if (doc.bold) { %}</b>{% } %}
 			{% if (doc.fieldtype=="Section Break") { %}</strong>{% } %}
 			{% if (doc.description) { %}<p class="text-muted small">{%= doc.description %}</p>{% } %}
 		</div>

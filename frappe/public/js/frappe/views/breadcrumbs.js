@@ -4,7 +4,9 @@
 frappe.breadcrumbs = {
 	all: {},
 
-	preferred: {},
+	preferred: {
+		"File": ""
+	},
 
 	set_doctype_module: function(doctype, module) {
 		localStorage["preferred_breadcrumbs:" + doctype] = module;
@@ -33,7 +35,7 @@ frappe.breadcrumbs = {
 
 		if(from_module) {
 			breadcrumbs.module = from_module;
-		} else if(frappe.breadcrumbs.preferred[breadcrumbs.doctype]) {
+		} else if(frappe.breadcrumbs.preferred[breadcrumbs.doctype]!==undefined) {
 			// get preferred module for breadcrumbs
 			breadcrumbs.module = frappe.breadcrumbs.preferred[breadcrumbs.doctype];
 		}
@@ -60,8 +62,9 @@ frappe.breadcrumbs = {
 			if(breadcrumbs.doctype==="User" && frappe.user.modules.indexOf("Setup")===-1) {
 				// no user listview for non-system managers
 			} else {
-				$(repl('<li><a href="#List/%(doctype)s">%(label)s</a></li>',
-					{doctype: breadcrumbs.doctype, label: __(breadcrumbs.doctype)}))
+				route = (cur_frm && cur_frm.list_route) || ("List/" + breadcrumbs.doctype)
+				$(repl('<li><a href="#%(route)s">%(label)s</a></li>',
+					{route: route, label: __(breadcrumbs.doctype)}))
 					.appendTo($breadcrumbs);
 			}
 		}
@@ -72,8 +75,8 @@ frappe.breadcrumbs = {
 	rename: function(doctype, old_name, new_name) {
 		var old_route_str = ["Form", doctype, old_name].join("/");
 		var new_route_str = ["Form", doctype, new_name].join("/");
-		frappe.breadcrumbs[new_route_str] = frappe.breadcrumbs[old_route_str];
-		delete frappe.breadcrumbs[old_route_str];
+		frappe.breadcrumbs.all[new_route_str] = frappe.breadcrumbs.all[old_route_str];
+		delete frappe.breadcrumbs.all[old_route_str];
 	}
 
 }

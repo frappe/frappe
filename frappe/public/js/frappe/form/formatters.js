@@ -29,7 +29,7 @@ frappe.form.formatters = {
 
 		} else {
 			// show 1.000000 as 1
-			if (!is_null(value)) {
+			if (!(options || {}).always_show_decimals && !is_null(value)) {
 				var temp = cstr(value).split(".");
 				if (temp[1]==undefined || cint(temp[1])===0) {
 					precision = 0;
@@ -85,14 +85,22 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function(value) {
-		return value ? dateutil.str_to_user(value) : "";
+		if (value) {
+			value = dateutil.str_to_user(value);
+			// handle invalid date
+			if (value==="Invalid date") {
+				value = null;
+			}
+		}
+
+		return value || "";
 	},
 	Datetime: function(value) {
 		return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
 	},
 	Text: function(value) {
 		if(value) {
-			var tags = ["<p", "<div", "<br"];
+			var tags = ["<p", "<div", "<br", "<table"];
 			var match = false;
 
 			for(var i=0; i<tags.length; i++) {

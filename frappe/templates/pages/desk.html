@@ -19,7 +19,7 @@
 	{%- endfor -%}
 </head>
 <body>
-	<div class="centered splash">
+	<div class="centered splash" style="max-width: 360px;">
         <img src="{{ splash_image or "/assets/frappe/images/splash.png" }}">
     </div>
 	<div class="offcanvas-container">
@@ -38,7 +38,9 @@
 	</div>
 
 	<!-- hack! load background image asap, before desktop is rendered -->
+	{% if background_image %}
 	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
+	{% endif %}
 
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 
@@ -51,10 +53,18 @@
 
 	frappe.boot = {{ boot }};
 
+	frappe.csrf_token = "{{ csrf_token }}";
+
 	</script>
 
 	{% for include in include_js %}
 	<script type="text/javascript" src="{{ include }}"></script>
 	{% endfor %}
     {% include "templates/includes/google_analytics.html" %}
+
+	{% for sound in (sounds or []) %}
+	<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
+		<source src="{{ sound.src }}"></source>
+	</audio>
+	{% endfor %}
 </body>

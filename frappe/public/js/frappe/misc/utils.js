@@ -43,6 +43,9 @@ frappe.utils = {
 		});
 		return out.join(newline);
 	},
+	escape_html: function(txt) {
+		return $("<div></div>").text(txt || "").html();
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -486,5 +489,26 @@ frappe.utils = {
 
 		// reset the original title
 		frappe.utils.set_title(frappe._original_title);
+	},
+
+	is_image_file: function(filename) {
+		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
+	},
+
+	play_sound: function(name) {
+		try {
+			if (frappe.boot.user.mute_sounds) {
+				return;
+			}
+
+			var audio = $("#sound-" + name)[0];
+			audio.volume = audio.getAttribute("volume");
+			audio.play();
+
+		} catch(e) {
+			console.log("Cannot play sound", name, e);
+			// pass
+		}
+
 	}
 };

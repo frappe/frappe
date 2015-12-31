@@ -64,10 +64,12 @@ frappe.ui.form.Attachments = Class.extend({
 		var me = this;
 		var $attach = $(repl('<li class="attachment-row">\
 				<a class="close" data-owner="%(owner)s">&times;</a>\
+				%(lock_icon)s\
 				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
 					class="text-ellipsis" style="max-width: calc(100% - 43px);">\
 					<span>%(file_name)s</span></a>\
 			</li>', {
+				lock_icon: attachment.is_private ? '<i class="icon icon-lock icon-fixed-width text-warning"></i> ': "",
 				file_name: file_name,
 				file_url: frappe.urllib.get_full_url(file_url)
 			}))
@@ -145,27 +147,17 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	new_attachment: function(fieldname) {
 		var me = this;
-		if(!this.dialog) {
-			this.dialog = new frappe.ui.Dialog({
-				title: __('Upload Attachment'),
-			});
+		if (this.dialog) {
+			// remove upload dialog
+			this.dialog.$wrapper.remove();
 		}
-		this.dialog.show();
-		this.fieldname = fieldname;
 
-		$(this.dialog.body).empty();
-		frappe.upload.make({
-			parent: this.dialog.body,
-			args: this.get_args(),
-			callback: function(attachment, r) {
-				me.attachment_uploaded(attachment, r);
-			},
-			onerror: function() {
-				me.dialog.hide();
-			},
-			btn: this.dialog.set_primary_action(__("Attach")),
-			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
-			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
+		// make upload dialog
+		this.dialog = frappe.ui.get_upload_dialog({
+			"args": me.get_args(),
+			"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
+			"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
 		});
 	},
 	get_args: function() {
@@ -213,3 +205,38 @@ frappe.ui.form.Attachments = Class.extend({
 		this.refresh();
 	}
 });
+
+frappe.ui.get_upload_dialog = function(opts){
+	dialog = new frappe.ui.Dialog({
+		title: __('Upload Attachment'),
+	});
+
+	var btn = dialog.set_primary_action(__("Attach"));
+	btn.removeClass("btn-primary").addClass("btn-default");
+
+	dialog.show();
+
+	$(dialog.body).empty();
+
+	frappe.upload.make({
+		parent: dialog.body,
+		args: opts.args,
+		callback: function(attachment, r) {
+			dialog.hide();
+			if(opts.callback){
+				opts.callback(attachment, r);
+			}
+		},
+		on_select: function() {
+			btn.removeClass("btn-default").addClass("btn-primary");
+		},
+		onerror: function() {
+			dialog.hide();
+		},
+		btn: btn,
+		max_width: opts.max_width,
+		max_height: opts.max_height,
+	});
+
+	return dialog;
+}

@@ -4,7 +4,6 @@
 from __future__ import unicode_literals, absolute_import
 import sys
 import os
-import subprocess
 import json
 import click
 import hashlib
@@ -16,6 +15,8 @@ import frappe.utils
 from frappe.utils import cint
 from distutils.spawn import find_executable
 from functools import wraps
+
+click.disable_unicode_literals_warning = True
 
 def pass_context(f):
 	@wraps(f)
@@ -104,7 +105,7 @@ def _is_scheduler_enabled():
 	enable_scheduler = False
 	try:
 		frappe.connect()
-		enable_scheduler = cint(frappe.db.get_default("enable_scheduler"))
+		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler")) and True or False
 	except:
 		pass
 	finally:
@@ -125,9 +126,8 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	site = get_single_site(context)
 	frappe.init(site=site)
-	if not db_name:
-		db_name = frappe.conf.db_name
-		_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
+	db_name = db_name or frappe.conf.db_name or hashlib.sha1(site).hexdigest()[:10]
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
 
 @click.command('reinstall')
 @pass_context
@@ -140,7 +140,7 @@ def reinstall(context):
 		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
-	except Exception, e:
+	except Exception:
 		installed = []
 	finally:
 		if frappe.db:
@@ -163,6 +163,16 @@ def install_app(context, app):
 			_install_app(app, verbose=context.verbose)
 		finally:
 			frappe.destroy()
+
+@click.command('list-apps')
+@pass_context
+def list_apps(context):
+	"Reinstall site ie. wipe all data and start over"
+	site = get_single_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+	print "\n".join(frappe.get_installed_apps())
+	frappe.destroy()
 
 @click.command('add-system-manager')
 @click.argument('email')
@@ -190,8 +200,6 @@ def migrate(context, rebuild_website=False):
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
 	from frappe.desk.notifications import clear_notifications
-
-	verbose = context.verbose
 
 	for site in context.sites:
 		print 'Migrating', site
@@ -312,15 +320,16 @@ def destroy_all_sessions(context):
 			frappe.destroy()
 
 @click.command('sync-www')
+@click.option('--force', help='Rebuild all pages', is_flag=True, default=False)
 @pass_context
-def sync_www(context):
+def sync_www(context, force=False):
 	"Sync files from static pages from www directory to Web Pages"
 	from frappe.website import statics
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			statics.sync_statics(rebuild=context.force)
+			statics.sync_statics(rebuild=force)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -340,35 +349,102 @@ def build_website(context):
 		finally:
 			frappe.destroy()
 
-@click.command('setup-docs')
-@click.argument('app')
-@click.argument('docs-app')
-@click.argument('path')
+@click.command('make-docs')
 @pass_context
-def setup_docs(context,app, docs_app, path):
+@click.argument('app')
+@click.argument('docs_version')
+def make_docs(context, app, docs_version):
 	"Setup docs in target folder of target app"
 	from frappe.utils.setup_docs import setup_docs
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			setup_docs(app, docs_app, path)
+			make = setup_docs(app)
+			make.build(docs_version)
+		finally:
+			frappe.destroy()
+
+@click.command('sync-docs')
+@pass_context
+@click.argument('app')
+def sync_docs(context, app):
+	"Sync docs from /docs folder into the database (Web Page)"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.sync_docs()
+		finally:
+			frappe.destroy()
+
+
+@click.command('write-docs')
+@pass_context
+@click.argument('app')
+@click.argument('target')
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def write_docs(context, app, target, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.make_docs(target, local)
 		finally:
 			frappe.destroy()
 
 @click.command('build-docs')
-@click.argument('app')
 @pass_context
-def build_docs(context, app):
-	"Build docs from /src to /www folder in app"
-	from frappe.utils.autodoc import build
-	frappe.destroy()
+@click.argument('app')
+@click.option('--docs-version', default='current')
+@click.option('--target', default=None)
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+@click.option('--watch', default=False, is_flag=True, help='Watch for changes and rewrite')
+def build_docs(context, app, docs_version="current", target=None, local=False, watch=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils import watch as start_watch
+	if not target:
+		target = os.path.abspath(os.path.join("..", "docs", app))
+
 	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			build(app)
-		finally:
-			frappe.destroy()
+		_build_docs_once(site, app, docs_version, target, local)
+
+		if watch:
+			def trigger_make(source_path, event_type):
+				if "/templates/autodoc/" in source_path:
+					_build_docs_once(site, app, docs_version, target, local)
+
+				elif ("/docs.css" in source_path
+					or "/docs/" in source_path
+					or "docs.py" in source_path):
+					_build_docs_once(site, app, docs_version, target, local, only_content_updated=True)
+
+			apps_path = frappe.get_app_path("frappe", "..", "..")
+			start_watch(apps_path, handler=trigger_make)
+
+def _build_docs_once(site, app, docs_version, target, local, only_content_updated=False):
+	from frappe.utils.setup_docs import setup_docs
+
+	try:
+
+		frappe.init(site=site)
+		frappe.connect()
+		make = setup_docs(app)
+
+		if not only_content_updated:
+			make.build(docs_version)
+			make.sync_docs()
+
+		make.make_docs(target, local)
+
+	finally:
+		frappe.destroy()
+
 
 @click.command('reset-perms')
 @pass_context
@@ -380,7 +456,7 @@ def reset_perms(context):
 			frappe.init(site=site)
 			frappe.connect()
 			for d in frappe.db.sql_list("""select name from `tabDocType`
-				where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+				where istable=0 and custom=0"""):
 					frappe.clear_cache(doctype=d)
 					reset_perms(d)
 		finally:
@@ -388,22 +464,34 @@ def reset_perms(context):
 
 @click.command('execute')
 @click.argument('method')
+@click.option('--args')
+@click.option('--kwargs')
 @pass_context
-def execute(context, method):
+def execute(context, method, args=None, kwargs=None):
 	"execute a function"
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			print frappe.local.site
-			ret = frappe.get_attr(method)()
+
+			if args:
+				args = eval(args)
+			else:
+				args = ()
+
+			if kwargs:
+				kwargs = eval(args)
+			else:
+				kwargs = {}
+
+			ret = frappe.get_attr(method)(*args, **kwargs)
 
 			if frappe.db:
 				frappe.db.commit()
 		finally:
 			frappe.destroy()
 		if ret:
-			print ret
+			print json.dumps(ret)
 
 @click.command('celery')
 @click.argument('args')
@@ -529,6 +617,55 @@ def import_doc(context, path, force=False):
 		finally:
 			frappe.destroy()
 
+@click.command('import-csv')
+@click.argument('path')
+@click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
+@click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
+@click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
+@pass_context
+def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False):
+	"Import CSV using data import tool"
+	from frappe.core.page.data_import_tool import importer
+	from frappe.utils.csvutils import read_csv_content
+	site = get_single_site(context)
+
+	with open(path, 'r') as csvfile:
+		content = read_csv_content(csvfile.read())
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	try:
+		importer.upload(content, submit_after_import=submit_after_import,
+			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
+			via_console=True)
+		frappe.db.commit()
+	except Exception:
+		print frappe.get_traceback()
+
+	frappe.destroy()
+
+@click.command('bulk-rename')
+@click.argument('doctype')
+@click.argument('path')
+@pass_context
+def _bulk_rename(context, doctype, path):
+	"Rename multiple records via CSV file"
+	from frappe.model.rename_doc import bulk_rename
+	from frappe.utils.csvutils import read_csv_content
+
+	site = get_single_site(context)
+
+	with open(path, 'r') as csvfile:
+		rows = read_csv_content(csvfile.read())
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	bulk_rename(doctype, rows, via_console = True)
+
+	frappe.destroy()
+
 # translation
 @click.command('build-message-files')
 @pass_context
@@ -613,6 +750,7 @@ def console(context):
 	site = get_single_site(context)
 	frappe.init(site=site)
 	frappe.connect()
+	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
 	IPython.embed()
 
@@ -632,7 +770,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 	site = get_single_site(context)
 	frappe.init(site=site)
 
-	if frappe.conf.run_selenium_tests:
+	if frappe.conf.run_selenium_tests and False:
 		sel.start(context.verbose, driver)
 
 	try:
@@ -686,10 +824,18 @@ def request(context, args):
 
 @click.command('doctor')
 def doctor():
-	"Get untranslated strings for lang."
+	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
 	frappe.init('')
 	return _doctor()
+
+@click.command('celery-doctor')
+@click.option('--site', help='site name')
+def celery_doctor(site=None):
+	"Get diagnostic info about background workers"
+	from frappe.utils.doctor import celery_doctor as _celery_doctor
+	frappe.init('')
+	return _celery_doctor(site=site)
 
 @click.command('purge-all-tasks')
 def purge_all_tasks():
@@ -725,21 +871,23 @@ def use(site, sites_path='.'):
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
 @pass_context
-def backup(context, with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
+def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
+	backup_path_private_files=None, quiet=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = context.verbose
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
+		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
 		if verbose:
 			from frappe.utils import now
 			print "database backup taken -", odb.backup_path_db, "- on", now()
 			if with_files:
 				print "files backup taken -", odb.backup_path_files, "- on", now()
-		frappe.destroy()
+				print "private files backup taken -", odb.backup_path_private_files, "- on", now()
 
+		frappe.destroy()
 
 @click.command('remove-from-installed-apps')
 @click.argument('app')
@@ -751,6 +899,20 @@ def remove_from_installed_apps(context, app):
 			frappe.init(site=site)
 			frappe.connect()
 			remove_from_installed_apps(app)
+		finally:
+			frappe.destroy()
+
+@click.command('uninstall-app')
+@click.argument('app')
+@click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
+@pass_context
+def uninstall(context, app, dry_run=False):
+	from frappe.installer import remove_app
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			remove_app(app, dry_run)
 		finally:
 			frappe.destroy()
 
@@ -774,6 +936,18 @@ def move(dest_dir, site):
 	os.rename(old_path, final_new_path)
 	frappe.destroy()
 	return final_new_path
+
+
+@click.command('set-config')
+@click.argument('key')
+@click.argument('value')
+@pass_context
+def set_config(context, key, value):
+	from frappe.installer import update_site_config
+	for site in context.sites:
+		frappe.init(site=site)
+		update_site_config(key, value)
+		frappe.destroy()
 
 @click.command('drop-site')
 @click.argument('site')
@@ -799,6 +973,15 @@ def drop_site(site, root_login='root', root_password=None):
 		os.mkdir(archived_sites_dir)
 	move(archived_sites_dir, site)
 
+@click.command('version')
+@pass_context
+def get_version(context):
+	frappe.init(site=context.sites[0])
+	for m in sorted(frappe.local.app_modules.keys()):
+		module = frappe.get_module(m)
+		if hasattr(module, "__version__"):
+			print "{0} {1}".format(m, module.__version__)
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -813,6 +996,7 @@ commands = [
 	restore,
 	reinstall,
 	install_app,
+	list_apps,
 	add_system_manager,
 	migrate,
 	run_patch,
@@ -824,7 +1008,9 @@ commands = [
 	destroy_all_sessions,
 	sync_www,
 	build_website,
-	setup_docs,
+	make_docs,
+	sync_docs,
+	write_docs,
 	build_docs,
 	reset_perms,
 	execute,
@@ -837,6 +1023,8 @@ commands = [
 	export_csv,
 	export_fixtures,
 	import_doc,
+	import_csv,
+	_bulk_rename,
 	build_message_files,
 	get_untranslated,
 	update_translations,
@@ -846,6 +1034,7 @@ commands = [
 	serve,
 	request,
 	doctor,
+	celery_doctor,
 	purge_all_tasks,
 	dump_queue_status,
 	console,
@@ -853,5 +1042,8 @@ commands = [
 	_use,
 	backup,
 	remove_from_installed_apps,
+	uninstall,
 	drop_site,
+	set_config,
+	get_version,
 ]

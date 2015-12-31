@@ -7,11 +7,13 @@ from frappe import _
 from frappe.website.render import clear_cache
 from frappe.model.document import Document
 from frappe.model.db_schema import add_column
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, get_link_to_form
+from frappe.core.doctype.user.user import extract_mentions
+
+exclude_from_linked_with = True
 
 class Comment(Document):
 	"""Comments are added to Documents via forms or views like blogs etc."""
-	__doclink__ = "https://frappe.io/docs/models/core/comment"
 	no_feed_on_delete = True
 
 	def get_feed(self):
@@ -32,6 +34,25 @@ class Comment(Document):
 			"name": self.comment_docname,
 			"feed_type": comment_type
 		}
+
+	def after_insert(self):
+		"""Send realtime updates"""
+		if not self.comment_doctype:
+			return
+
+		if self.comment_doctype == 'Message':
+			if self.comment_docname == frappe.session.user:
+				message = self.as_dict()
+				message['broadcast'] = True
+				frappe.publish_realtime('new_message', message)
+			else:
+				# comment_docname contains the user who is addressed in the messages' page comment
+				frappe.publish_realtime('new_message', self.as_dict(), user=self.comment_docname)
+		else:
+			frappe.publish_realtime('new_comment', self.as_dict(), doctype= self.comment_doctype,
+				docname = self.comment_docname)
+
+			self.notify_mentions()
 
 	def validate(self):
 		"""Raise exception for more than 50 comments."""
@@ -127,6 +148,33 @@ class Comment(Document):
 
 		self.update_comments_in_parent(_comments)
 
+	def notify_mentions(self):
+		if self.comment_doctype and self.comment_docname and self.comment and self.comment_type=="Comment":
+			mentions = extract_mentions(self.comment)
+
+			if not mentions:
+				return
+
+			sender_fullname = get_fullname(frappe.session.user)
+			parent_doc_label = "{0} {1}".format(_(self.comment_doctype), self.comment_docname)
+			subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
+			message = frappe.get_template("templates/emails/mentioned_in_comment.html").render({
+				"sender_fullname": sender_fullname,
+				"comment": self,
+				"link": get_link_to_form(self.comment_doctype, self.comment_docname, label=parent_doc_label)
+			})
+
+			recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
+				for username in mentions]
+
+			frappe.sendmail(
+				recipients=recipients,
+				sender=frappe.session.user,
+				subject=subject,
+				message=message,
+				bulk=True
+			)
+
 def on_doctype_update():
 	"""Add index to `tabComment` `(comment_doctype, comment_name)`"""
 	if not frappe.db.sql("""show index from `tabComment`
@@ -134,4 +182,3 @@ def on_doctype_update():
 		frappe.db.commit()
 		frappe.db.sql("""alter table `tabComment`
 			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")
-

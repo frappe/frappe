@@ -118,8 +118,12 @@ frappe.ui.Listing = Class.extend({
 	set_primary_action: function() {
 		var me = this;
 		if(this.new_doctype) {
-			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
-			this.page.set_primary_action(__("New"), function() { make_new_doc(); }, "octicon octicon-plus");
+			if(this.listview.settings.set_primary_action){
+				this.listview.settings.set_primary_action(this);
+			} else {
+				this.page.set_primary_action(__("New"), function() {
+					me.make_new_doc(me.new_doctype); }, "octicon octicon-plus");
+			}
 		} else {
 			this.page.clear_primary_action();
 		}
@@ -128,16 +132,20 @@ frappe.ui.Listing = Class.extend({
 	make_new_doc: function(doctype) {
 		var me = this;
 		frappe.model.with_doctype(doctype, function() {
-			var doc = frappe.model.get_new_doc(doctype);
-			if(me.filter_list) {
-				frappe.route_options = {};
-				$.each(me.filter_list.get_filters(), function(i, f) {
-					if(f[0]===doctype && f[2]==="=" && !in_list(frappe.model.std_fields_list, f[1])) {
-						frappe.route_options[f[1]] = f[3];
-					}
-				})
+			if(me.custom_new_doc) {
+				me.custom_new_doc(doctype);
+			} else {
+				var doc = frappe.model.get_new_doc(doctype);
+				if(me.filter_list) {
+					frappe.route_options = {};
+					$.each(me.filter_list.get_filters(), function(i, f) {
+						if(f[2]==="=" && !in_list(frappe.model.std_fields_list, f[1])) {
+							frappe.route_options[f[1]] = f[3];
+						}
+					});
+				}
+				frappe.set_route("Form", doctype, doc.name);
 			}
-			frappe.set_route("Form", doctype, doc.name);
 		});
 	},
 

@@ -10,6 +10,7 @@ from frappe.utils import get_fullname
 
 subject_field = "description"
 sender_field = "sender"
+exclude_from_linked_with = True
 
 class ToDo(Document):
 	def validate(self):
@@ -64,7 +65,7 @@ class ToDo(Document):
 
 			assignments.reverse()
 			frappe.db.set_value(self.reference_type, self.reference_name,
-				"_assign", json.dumps(assignments))
+				"_assign", json.dumps(assignments), update_modified=False)
 
 		except Exception, e:
 			if e.args[0] == 1146 and frappe.flags.in_install:

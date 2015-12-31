@@ -33,6 +33,11 @@ $.extend(frappe.model, {
 		}
 
 		frappe.model.add_to_locals(doc);
+
+		if (!parent_doc) {
+			doc.__run_link_triggers = 1;
+		}
+
 		return doc;
 	},
 
@@ -65,7 +70,7 @@ $.extend(frappe.model, {
 
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
-				} else if(f.fieldtype == "Select" && f.options
+				} else if(f.fieldtype == "Select" && f.options && typeof f.options === 'string'
 					&& !in_list(["[Select]", "Loading..."], f.options)) {
 						doc[f.fieldname] = f.options.split("\n")[0];
 				}
@@ -76,13 +81,16 @@ $.extend(frappe.model, {
 
 	get_default_value: function(df, doc, parent_doc) {
 		var user_permissions = frappe.defaults.get_user_permissions();
+		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
 			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
-			// 1 - look in user permissions
-			if (has_user_permissions && user_permissions[df.options].length===1) {
+			// 1 - look in user permissions for document_type=="Setup".
+			// We don't want to include permissions of transactions to be used for defaults.
+			if (df.linked_document_type==="Setup"
+				&& has_user_permissions && user_permissions[df.options].length===1) {
 				return user_permissions[df.options][0];
 			}
 
@@ -93,7 +101,7 @@ $.extend(frappe.model, {
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
-				return frappe.defaults.get_user_default(df.fieldname);
+				return user_default;
 			}
 		}
 
@@ -117,8 +125,11 @@ $.extend(frappe.model, {
 				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].indexOf(boot_doc)!==-1;
 
 				if (is_allowed_boot_doc) {
-					return frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
+					return boot_doc;
 				}
+			} else if (df.fieldname===meta.title_field) {
+				// ignore defaults for title field
+				return "";
 			}
 
 			// is this default value is also allowed as per user permissions?
@@ -208,18 +219,21 @@ $.extend(frappe.model, {
 
 		} else if (!opts.source_name && opts.frm) {
 			opts.source_name = opts.frm.doc.name;
-
 		}
 
 		return frappe.call({
-			type: "GET",
+			type: "POST",
 			method: opts.method,
 			args: {
 				"source_name": opts.source_name
 			},
+			freeze: true,
 			callback: function(r) {
 				if(!r.exc) {
-					var doc = frappe.model.sync(r.message);
+					frappe.model.sync(r.message);
+					if(opts.run_link_triggers) {
+						frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
+					}
 					frappe.set_route("Form", r.message.doctype, r.message.name);
 				}
 			}
@@ -234,7 +248,9 @@ $.extend(frappe.model, {
 		}
 		var _map = function() {
 			return frappe.call({
-				type: "GET",
+				// Sometimes we hit the limit for URL length of a GET request
+				// as we send the full target_doc. Hence this is a POST request.
+				type: "POST",
 				method: opts.method,
 				args: {
 					"source_name": opts.source_name,

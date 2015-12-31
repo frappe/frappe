@@ -2,7 +2,7 @@
     <ol>
     {% for item in item_list %}
         <li>
-            <a href="{{ item.url }}">{{ item.title }}</a>
+            <a href="{{ url_prefix }}{{ item.url }}">{{ item.title }}</a>
             {% if item.children %}{{ make_item_list(item.children) }}{% endif %}
         </li>
     {% endfor %}

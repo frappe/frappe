@@ -7,6 +7,8 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
+from frappe.model import default_fields
+from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -15,6 +17,46 @@ class WebForm(WebsiteGenerator):
 		page_title_field = "title",
 		no_cache = 1
 	)
+
+	def onload(self):
+		if self.is_standard and not frappe.conf.developer_mode:
+			self.use_meta_fields()
+
+	def validate(self):
+		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test)
+			and self.is_standard and not frappe.conf.developer_mode):
+			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+
+	def use_meta_fields(self):
+		meta = frappe.get_meta(self.doc_type)
+
+		for df in self.web_form_fields:
+			meta_df = meta.get_field(df.fieldname)
+
+			if not meta_df:
+				continue
+
+			for prop in docfield_properties:
+				if df.fieldtype==meta_df.fieldtype and prop != "idx":
+					df.set(prop, meta_df.get(prop))
+
+			if df.fieldtype == "Link":
+				try:
+					options = [d.name for d in frappe.get_list(df.options)]
+					df.fieldtype = "Select"
+
+					if len(options)==1:
+						df.options = options[0]
+						df.default = options[0]
+						df.hidden = 1
+
+					else:
+						df.options = "\n".join([""] + options)
+
+				except frappe.PermissionError:
+					df.hidden = 1
+
+			# TODO translate options of Select fields like Country
 
 	def get_context(self, context):
 		from frappe.templates.pages.list import get_context as get_list_context
@@ -30,6 +72,9 @@ class WebForm(WebsiteGenerator):
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
+		if self.is_standard:
+			self.use_meta_fields()
+
 		if self.login_required and logged_in:
 			if self.allow_edit:
 				if self.allow_multiple:
@@ -41,6 +86,9 @@ class WebForm(WebsiteGenerator):
 					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 					if name:
 						frappe.form_dict.name = name
+					else:
+						# only a single doc allowed and no existing doc, hence new
+						frappe.form_dict.new = 1
 
 		# always render new form if login is not required or doesn't allow editing existing ones
 		if not self.login_required or not self.allow_edit:
@@ -60,7 +108,13 @@ class WebForm(WebsiteGenerator):
 		if self.allow_comments and frappe.form_dict.name:
 			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
 
+		context.parents = self.get_parents(context)
+
 		context.types = [f.fieldtype for f in self.web_form_fields]
+		if context.success_message:
+			context.success_message = context.success_message.replace("\n",
+				"<br>").replace("'", "\'")
+
 		return context
 
 	def get_layout(self):
@@ -78,10 +132,15 @@ class WebForm(WebsiteGenerator):
 		return layout
 
 	def get_parents(self, context):
+		parents = None
 		if context.parents:
-			return context.parents
+			parents = context.parents
 		elif self.breadcrumbs:
-			return json.loads(self.breadcrumbs)
+			parents = json.loads(self.breadcrumbs)
+		elif context.is_list:
+			parents = [{"title": _("My Account"), "name": "me"}]
+
+		return parents
 
 @frappe.whitelist(allow_guest=True)
 def accept():

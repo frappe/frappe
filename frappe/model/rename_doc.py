@@ -66,8 +66,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 def update_attachments(doctype, old, new):
 	try:
-		frappe.db.sql("""update `tabFile Data` set attached_to_name=%s
-			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
+		if old != "File Data" and doctype != "DocType":
+			frappe.db.sql("""update `tabFile` set attached_to_name=%s
+				where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
 			raise
@@ -78,13 +79,13 @@ def rename_versions(doctype, old, new):
 
 def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
-	frappe.db.sql("update `tab%s` set name=%s where name=%s" % (doctype, '%s', '%s'),
+	frappe.db.sql("update `tab%s` set name=%s where name=%s" % (frappe.db.escape(doctype), '%s', '%s'),
 		(new, old))
 	update_child_docs(old, new, meta)
 
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
-	exists = frappe.db.sql("select name from `tab{doctype}` where name=%s for update".format(doctype=doctype), new)
+	exists = frappe.db.sql("select name from `tab{doctype}` where name=%s for update".format(doctype=frappe.db.escape(doctype)), new)
 	exists = exists[0][0] if exists else None
 
 	if merge and not exists:
@@ -96,7 +97,7 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
 		frappe.msgprint(_("You need write permission to rename"), raise_exception=1)
 
-	if not force and not meta.allow_rename:
+	if not (force or ignore_permissions) and not meta.allow_rename:
 		frappe.msgprint(_("{0} not allowed to be renamed").format(_(doctype)), raise_exception=1)
 
 	# validate naming like it's done in doc.py
@@ -129,7 +130,7 @@ def update_child_docs(old, new, meta):
 	# update "parent"
 	for df in meta.get_table_fields():
 		frappe.db.sql("update `tab%s` set parent=%s where parent=%s" \
-			% (df.options, '%s', '%s'), (new, old))
+			% (frappe.db.escape(df.options), '%s', '%s'), (new, old))
 
 def update_link_field_values(link_fields, old, new, doctype):
 	for field in link_fields:
@@ -145,15 +146,15 @@ def update_link_field_values(link_fields, old, new, doctype):
 			frappe.db.sql("""\
 				update `tab%s` set `%s`=%s
 				where `%s`=%s""" \
-				% (parent, field['fieldname'], '%s',
-					field['fieldname'], '%s'),
+				% (frappe.db.escape(parent), frappe.db.escape(field['fieldname']), '%s',
+					frappe.db.escape(field['fieldname']), '%s'),
 				(new, old))
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
 	link_fields = frappe.db.sql("""\
 		select parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
@@ -162,7 +163,7 @@ def get_link_fields(doctype):
 	# get link fields from tabCustom Field
 	custom_link_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
@@ -174,7 +175,7 @@ def get_link_fields(doctype):
 	# remove fields whose options have been changed using property setter
 	property_setter_link_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
 		from `tabProperty Setter` ps
 		where
@@ -216,24 +217,24 @@ def get_select_fields(old, new):
 	# get link fields from tabDocField
 	select_fields = frappe.db.sql("""\
 		select parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
 			df.parent != %s and df.fieldtype = 'Select' and
 			df.options like "%%%%%s%%%%" """ \
-		% ('%s', old), (new,), as_dict=1)
+		% ('%s', frappe.db.escape(old)), (new,), as_dict=1)
 
 	# get link fields from tabCustom Field
 	custom_select_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
 			df.dt != %s and df.fieldtype = 'Select' and
 			df.options like "%%%%%s%%%%" """ \
-		% ('%s', old), (new,), as_dict=1)
+		% ('%s', frappe.db.escape(old)), (new,), as_dict=1)
 
 	# add custom link fields list to link fields list
 	select_fields += custom_select_fields
@@ -241,7 +242,7 @@ def get_select_fields(old, new):
 	# remove fields whose options have been changed using property setter
 	property_setter_select_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select ifnull(issingle, 0) from tabDocType dt
+			(select issingle from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
 		from `tabProperty Setter` ps
 		where
@@ -249,7 +250,7 @@ def get_select_fields(old, new):
 			ps.property_type='options' and
 			ps.field_name is not null and
 			ps.value like "%%%%%s%%%%" """ \
-		% ('%s', old), (new,), as_dict=1)
+		% ('%s', frappe.db.escape(old)), (new,), as_dict=1)
 
 	select_fields += property_setter_select_fields
 
@@ -261,14 +262,14 @@ def update_select_field_values(old, new):
 		where
 			parent != %s and fieldtype = 'Select' and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new))
+		('%s', '%s', '%s', frappe.db.escape(old), frappe.db.escape(old)), (old, new, new))
 
 	frappe.db.sql("""\
 		update `tabCustom Field` set options=replace(options, %s, %s)
 		where
 			dt != %s and fieldtype = 'Select' and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new))
+		('%s', '%s', '%s', frappe.db.escape(old), frappe.db.escape(old)), (old, new, new))
 
 	frappe.db.sql("""\
 		update `tabProperty Setter` set value=replace(value, %s, %s)
@@ -276,7 +277,7 @@ def update_select_field_values(old, new):
 			doc_type != %s and field_name is not null and
 			property='options' and
 			(value like "%%%%\\n%s%%%%" or value like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new))
+		('%s', '%s', '%s', frappe.db.escape(old), frappe.db.escape(old)), (old, new, new))
 
 def update_parenttype_values(old, new):
 	child_doctypes = frappe.db.sql("""\
@@ -332,3 +333,38 @@ def rename_dynamic_links(doctype, old, new):
 
 					frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
 						where name=%s""".format(**df), (new, to_change))
+
+def bulk_rename(doctype, rows=None, via_console = False):
+	"""Bulk rename documents
+
+	:param doctype: DocType to be renamed
+	:param rows: list of documents as `((oldname, newname), ..)`"""
+	if not rows:
+		frappe.throw(_("Please select a valid csv file with data"))
+
+	if not via_console:
+		max_rows = 500
+		if len(rows) > max_rows:
+			frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
+
+	rename_log = []
+	for row in rows:
+		# if row has some content
+		if len(row) > 1 and row[0] and row[1]:
+			try:
+				if rename_doc(doctype, row[0], row[1]):
+					msg = _("Successful: {0} to {1}").format(row[0], row[1])
+					frappe.db.commit()
+				else:
+					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
+			except Exception, e:
+				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
+				frappe.db.rollback()
+
+			if via_console:
+				print msg
+			else:
+				rename_log.append(msg)
+
+	if not via_console:
+		return rename_log

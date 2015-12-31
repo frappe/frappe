@@ -20,7 +20,7 @@
             {% if (col.type==="Subject") { %}
                 {%= subject %}
             {% } else if (col.type==="Indicator") { %}
-                {%= me.get_indicator(data) %}
+                {%= list.get_indicator(data) %}
             {% } else if (col.render) { %}
                 {%= col.render(data) %}
             {% } else if (col.fieldtype==="Image") { %}
@@ -36,7 +36,12 @@
                 <a class="filterable h6 text-muted grey"
                     data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
             {% } else { %}
-                {%= frappe.format(value, col.df, null, data) %}
+                {% if(list.settings.formatters
+                    && list.settings.formatters[col.fieldname]) { %}
+                    {{ list.settings.formatters[col.fieldname](value, col.df, data) }}
+                {% } else { %}
+                    {{ frappe.format(value, col.df, null, data) }}
+                {% } %}
             {% } %}
             {% if(col.type!=="Indicator") { %}</span>{% } %}
         </div>

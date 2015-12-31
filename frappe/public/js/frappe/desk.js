@@ -22,6 +22,8 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
+		frappe.socket.init();
+		frappe.model.init();
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -59,6 +61,15 @@ frappe.Application = Class.extend({
 
 		// ask to allow notifications
 		frappe.utils.if_notify_permitted();
+
+		// listen to csrf_update
+		frappe.realtime.on("csrf_generated", function(data) {
+			// handles the case when a user logs in again from another tab
+			// and it leads to invalid request in the current tab
+			if (data.csrf_token && data.sid===frappe.get_cookie("sid")) {
+				frappe.csrf_token = data.csrf_token;
+			}
+		});
 	},
 
 	load_bootinfo: function() {
@@ -70,14 +81,9 @@ frappe.Application = Class.extend({
 			this.set_globals();
 			this.sync_pages();
 			moment.locale(frappe.boot.lang);
+			moment.user_utc_offset = moment().utcOffset();
 			if(frappe.boot.timezone_info) {
 				moment.tz.add(frappe.boot.timezone_info);
-				if(sys_defaults.time_zone) {
-					moment.system_utc_offset = moment().tz(sys_defaults.time_zone).utcOffset();
-				} else {
-					moment.system_utc_offset = moment().utcOffset();
-				}
-				moment.user_utc_offset = moment().utcOffset();
 			}
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
@@ -126,10 +132,6 @@ frappe.Application = Class.extend({
 
 						if(frappe.get_route()[0] != "messages") {
 							if(r.message.new_messages.length) {
-								$.each(r.message.new_messages, function(i, m) {
-									frappe.utils.notify(__("Message from {0}", [m.comment_by_fullname]),
-										m.comment);
-								});
 								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
 							}
 						}

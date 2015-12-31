@@ -16,7 +16,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 
 	this.page = wrapper.page;
 
-	this.page.set_title(__("Activity"), frappe.get_module("Activity").icon);
+	this.page.set_title(__("Activity"));
 
 	this.page.list = new frappe.ui.Listing({
 		hide_refresh: true,

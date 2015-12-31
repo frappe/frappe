@@ -1,15 +1,19 @@
 <div class="row message-row small">
-	{% if (data.owner==data.comment_docname && data.parenttype!="Assignment") { %}
-		<span class="pull-left indicator orange" title="{%= __("Public") %}"></span>
-	{% } %}
     <div class="col-sm-9">
         <div class="media">
+        	{% if (data.owner==data.comment_docname
+                    && data.parenttype!="Assignment") { %}
+        		<span class="pull-left" title="{{ __("Public") }}"><i class="octicon octicon-rss text-muted" style="margin-top: 3px;"></i></span>
+        	{% } else { %}
+        		<span class="pull-left" title="{{ __("Public") }}" style="width: 20px; height: 16px; display: inline-block;"></span>
+            {% } %}
 			<div class="pull-left hidden-xs">
 	        	<span class="avatar avatar-small" title="{%= frappe.user.full_name(data.owner) %} ">
-	        		<img class="media-object" src="{%= frappe.user.image(data.owner) %}">
+	        		<img class="media-object {{ data.is_system_message ? "grayscale" : "" }}"
+								src="{%= frappe.user.image(data.owner) %}">
 	        	</span>
 			</div>
-            <div class="media-body">
+            <div class="media-body {{ data.is_system_message ? "text-muted" : "" }}">
                 {%= data.comment %}
             </div>
         </div>

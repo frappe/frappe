@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import re
 import frappe
 from frappe import _
 
@@ -12,13 +13,15 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
+from frappe.model.db_schema import validate_column_name
+
+class InvalidFieldNameError(frappe.ValidationError): pass
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
 }
 
 class DocType(Document):
-	__doclink__ = "https://frappe.io/docs/models/core/doctype"
 	def get_feed(self):
 		return self.name
 
@@ -30,14 +33,13 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
-		if not frappe.conf.get("developer_mode") and not self.custom:
-			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+		self.check_developer_mode()
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
 		self.validate_series()
 		self.scrub_field_names()
-		self.validate_title_field()
+		self.validate_document_type()
 		validate_fields(self)
 
 		if self.istable:
@@ -47,6 +49,20 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
+
+	def check_developer_mode(self):
+		"""Throw exception if not developer mode or via patch"""
+		if frappe.flags.in_patch:
+			return
+
+		if not frappe.conf.get("developer_mode") and not self.custom:
+			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+
+	def validate_document_type(self):
+		if self.document_type=="Transaction":
+			self.document_type = "Document"
+		if self.document_type=="Master":
+			self.document_type = "Setup"
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -71,12 +87,8 @@ class DocType(Document):
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
-
-	def validate_title_field(self):
-		"""Throw exception if `title_field` is not a valid field."""
-		if self.title_field and \
-			self.title_field not in [d.fieldname for d in self.get("fields")]:
-			frappe.throw(_("Title field must be a valid fieldname"))
+				# fieldnames should be lowercase
+				d.fieldname = d.fieldname.lower()
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
@@ -88,7 +100,7 @@ class DocType(Document):
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
-			and (not autoname in ('Prompt', 'hash')) \
+			and (not autoname.lower() in ('prompt', 'hash')) \
 			and (not autoname.startswith('naming_series:')):
 
 			prefix = autoname.split('.')[0]
@@ -127,6 +139,11 @@ class DocType(Document):
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
+		if not self.custom and frappe.session.user != "Administrator":
+			frappe.throw(_("DocType can only be renamed by Administrator"))
+
+		self.check_developer_mode()
+
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
@@ -201,7 +218,7 @@ class DocType(Document):
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
-	validate_fields(frappe.get_meta(doctype))
+	validate_fields(frappe.get_meta(doctype, cached=False))
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):
@@ -217,13 +234,13 @@ def validate_fields(meta):
 	9. Precision is set in numeric fields and is between 1 & 6.
 	10. Fold is not at the end (if set).
 	11. `search_fields` are valid.
+	12. `title_field` and title field pattern are valid.
+	13. `unique` check is only valid for Data, Link and Read Only fieldtypes.
+	14. `unique` cannot be checked if there exist non-unique values.
 
 	:param meta: `frappe.model.meta.Meta` object to check."""
 	def check_illegal_characters(fieldname):
-		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
-			'(', ')', '[', ']', '/']:
-			if c in fieldname:
-				frappe.throw(_("{0} not allowed in fieldname {1}").format(c, fieldname))
+		validate_column_name(fieldname)
 
 	def check_unique_fieldname(fieldname):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
@@ -263,8 +280,8 @@ def validate_fields(meta):
 	def check_dynamic_link_options(d):
 		if d.fieldtype=="Dynamic Link":
 			doctype_pointer = filter(lambda df: df.fieldname==d.options, fields)
-			if not doctype_pointer or (doctype_pointer[0].fieldtype!="Link") \
-				or (doctype_pointer[0].options!="DocType"):
+			if not doctype_pointer or (doctype_pointer[0].fieldtype not in ("Link", "Select")) \
+				or (doctype_pointer[0].fieldtype=="Link" and doctype_pointer[0].options!="DocType"):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
 	def check_illegal_default(d):
@@ -278,8 +295,17 @@ def validate_fields(meta):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(d):
-		if getattr(d, "unique", False) and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
-			frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
+		if getattr(d, "unique", False):
+			if d.fieldtype not in ("Data", "Link", "Read Only"):
+				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
+
+			if not d.get("__islocal"):
+				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
+					from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+					doctype=d.parent, fieldname=d.fieldname))
+
+				if has_non_unique_values and has_non_unique_values[0][0]:
+					frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
@@ -299,6 +325,7 @@ def validate_fields(meta):
 					frappe.throw(_("Fold can not be at the end of the form"))
 
 	def check_search_fields(meta):
+		"""Throw exception if `search_fields` don't contain valid fields."""
 		if not meta.search_fields:
 			return
 
@@ -308,13 +335,40 @@ def validate_fields(meta):
 			if fieldname not in fieldname_list:
 				frappe.throw(_("Search Fields should contain valid fieldnames"))
 
+	def check_title_field(meta):
+		"""Throw exception if `title_field` isn't a valid fieldname."""
+		if not meta.title_field:
+			return
 
+		fieldname_list = [d.fieldname for d in fields]
+
+		if meta.title_field not in fieldname_list:
+			frappe.throw(_("Title field must be a valid fieldname"), InvalidFieldNameError)
+
+		def _validate_title_field_pattern(pattern):
+			if not pattern:
+				return
+
+			for fieldname in re.findall("{(.*?)}", pattern, re.UNICODE):
+				if fieldname.startswith("{"):
+					# edge case when double curlies are used for escape
+					continue
+
+				if fieldname not in fieldname_list:
+					frappe.throw(_("{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.").format(fieldname),
+						InvalidFieldNameError)
+
+		df = meta.get("fields", filters={"fieldname": meta.title_field})[0]
+		if df:
+			_validate_title_field_pattern(df.options)
+			_validate_title_field_pattern(df.default)
 
 	fields = meta.get("fields")
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
+		d.fieldname = d.fieldname.lower()
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
@@ -327,6 +381,7 @@ def validate_fields(meta):
 
 	check_fold(fields)
 	check_search_fields(meta)
+	check_title_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
@@ -362,14 +417,21 @@ def validate_permissions(doctype, for_remove=False):
 
 	def check_double(d):
 		has_similar = False
+		similar_because_of = ""
 		for p in permissions:
-			if (p.role==d.role and p.permlevel==d.permlevel
-				and p.apply_user_permissions==d.apply_user_permissions and p!=d):
-				has_similar = True
-				break
+			if p.role==d.role and p.permlevel==d.permlevel and p!=d:
+				if p.apply_user_permissions==d.apply_user_permissions:
+					has_similar = True
+					similar_because_of = _("Apply User Permissions")
+					break
+				elif p.if_owner==d.if_owner:
+					similar_because_of = _("If Owner")
+					has_similar = True
+					break
 
 		if has_similar:
-			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and Apply User Permissions").format(get_txt(d)))
+			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and {1}")\
+				.format(get_txt(d),	similar_because_of))
 
 	def check_level_zero_is_set(d):
 		if cint(d.permlevel) > 0 and d.role != 'All':
@@ -466,4 +528,3 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
-

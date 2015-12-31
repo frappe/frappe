@@ -28,10 +28,25 @@ frappe.call = function(opts) {
 		args.cmd = opts.method;
 	}
 
+	var callback = function(data, response_text) {
+		if(data.task_id) {
+			// async call, subscribe
+			frappe.socket.subscribe(data.task_id, opts);
+
+			if(opts.queued) {
+				opts.queued(data);
+			}
+		}
+		else if (opts.callback) {
+			// ajax
+			return opts.callback(data, response_text);
+		}
+	}
+
 	return frappe.request.call({
 		type: opts.type || "POST",
 		args: args,
-		success: opts.callback,
+		success: callback,
 		error: opts.error,
 		always: opts.always,
 		btn: opts.btn,
@@ -46,9 +61,6 @@ frappe.call = function(opts) {
 
 frappe.request.call = function(opts) {
 	frappe.request.prepare(opts);
-
-	// all requests will be post, set _type as POST for commit
-	opts.args._type = opts.type;
 
 	var statusCode = {
 		200: function(data, xhr) {
@@ -72,14 +84,16 @@ frappe.request.call = function(opts) {
 				}
 			}
 
+			frappe.utils.play_sound("error");
 			msgprint(__("Not permitted"));
 		},
 		508: function(xhr) {
+			frappe.utils.play_sound("error");
 			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
 		},
 		413: function(data, xhr) {
 			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
-				[(frappe.boot.max_file_size || 5242880) / 1048576]))
+				[(frappe.boot.max_file_size || 5242880) / 1048576]));
 		},
 		417: function(xhr) {
 			var r = xhr.responseJSON;
@@ -90,6 +104,7 @@ frappe.request.call = function(opts) {
 					r = xhr.responseText;
 				}
 			}
+
 			opts.error_callback && opts.error_callback(r);
 		},
 		501: function(data, xhr) {
@@ -97,18 +112,25 @@ frappe.request.call = function(opts) {
 			opts.error_callback && opts.error_callback(data, xhr.responseText);
 		},
 		500: function(xhr) {
+			frappe.utils.play_sound("error");
 			msgprint(__("Server Error: Please check your server logs or contact tech support."))
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
+		},
+		504: function(xhr) {
+			msgprint(__("Request Timed Out"))
+			opts.error_callback && opts.error_callback();
 		}
 	};
 
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
-		type: 'POST',
+		type: opts.type,
 		dataType: opts.dataType || 'json',
-		async: opts.async
+		async: opts.async,
+		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+		cache: false
 	};
 
 	frappe.last_request = ajax_args.data;
@@ -301,7 +323,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 				].join("\n");
 
 				var communication_composer = new frappe.views.CommunicationComposer({
-					subject: 'Error Report',
+					subject: 'Error Report [' + frappe.datetime.nowdate() + ']',
 					recipients: error_report_email,
 					message: error_report_message,
 					doc: {

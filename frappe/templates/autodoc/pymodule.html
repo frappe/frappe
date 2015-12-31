@@ -1,0 +1,12 @@
+<!-- title: {{ name }} -->
+
+{%- from "templates/autodoc/macros.html" import automodule, source_link,
+	version -%}
+<div class="dev-header">
+{{ version(app.name) }}
+{{ source_link(app, name.replace(".", "/") + ".py") }}
+</div>
+
+{{ automodule(name) }}
+
+<!-- autodoc -->

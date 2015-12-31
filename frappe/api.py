@@ -58,13 +58,13 @@ def handle():
 			if frappe.local.request.method=="GET":
 				if not doc.has_permission("read"):
 					frappe.throw(_("Not permitted"), frappe.PermissionError)
-					doc.run_method(method, **frappe.local.form_dict)
+				frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
 
 			if frappe.local.request.method=="POST":
 				if not doc.has_permission("write"):
 					frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-				doc.run_method(method, **frappe.local.form_dict)
+				frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
 				frappe.db.commit()
 
 		else:

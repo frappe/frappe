@@ -4,6 +4,9 @@
     	<div class="page-content-wrapper">
             <div class="row">
                 <div class="col-sm-8">
+                 <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+                  {%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+                 </div>
             		<div class="page-header-block" data-html-block="header">
             			{%- if header is defined -%}
                             {% if header %}{{ header }}{% endif %}
@@ -18,9 +21,7 @@
             		</div>
                 </div>
             </div>
-    		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
-    			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
-    		</div>
+    		
     	    <div class="page-content-block">
     		{%- block content -%}{{ content or "" }}{%- endblock -%}
     	    </div>

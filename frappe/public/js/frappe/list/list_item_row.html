@@ -1,6 +1,6 @@
 <div class="row doclist-row {% if (data._checkbox) { %} has-checkbox {% } %}">
-    <div class="{% if(right_column) { %} col-xs-12 {% } else { %} col-xs-10 {% } %}
-		{% if (list.meta.title_field) { %}
+    <div class="col-xs-10
+		{% if (list.meta.title_field && !list.settings.hide_name_column) { %}
             col-sm-8
         {% } else { %}
             col-sm-10
@@ -10,11 +10,10 @@
     </div>
 
     <!-- id -->
-    {% if (list.meta.title_field) {
+    {% if (list.meta.title_field && !list.settings.hide_name_column) {
 		var is_different = data.name !== data[list.meta.title_field];
 	%}
-    <div class="list-col col-sm-2 col-xs-10 text-right text-ellipsis rtl list-row-id
-		{% if (!is_different) { %} hidden-xs {% } %}">
+    <div class="list-col col-sm-2 hidden-xs text-right text-ellipsis list-row-id">
 		{% if (is_different) { %}
         <a class="text-muted list-value" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
             {%= data.name %}</a>
@@ -24,7 +23,6 @@
 
     <!-- comment -->
     <div class="list-col col-sm-2 col-xs-2
-		{% if(!right_column) { %} no-right-column {% } %}
 		text-right list-row-right">
 		<div class="visible-xs pull-right list-row-indicator">{%= list.get_indicator_dot(data) %}</div>
 		<div class="hidden-xs pull-right">

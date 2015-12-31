@@ -62,12 +62,29 @@
 	margin-left: 15px;
 }
 
-.grid-row td {
-	vertical-align: top;
-}
+.grid-row {
+	td {
+		vertical-align: top;
+	}
 
-.grid-row p {
-	margin-bottom: 5px;
+	p {
+		margin-bottom: 5px;
+	}
+
+	.col-sm-6 {
+		.editor-toolbar-text-group,
+		.editor-toolbar-align-group {
+			display: none;
+		}
+
+		.text-editor {
+			height: 200px;
+		}
+
+		.markdown-text-editor {
+			height: 251px;
+		}
+	}
 }
 
 .form-in-grid {

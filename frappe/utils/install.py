@@ -39,6 +39,9 @@ def after_install():
 		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
+	from frappe.core.doctype.file.file import make_home_folder
+	make_home_folder()
+
 	for d in install_docs:
 		try:
 			frappe.get_doc(d).insert()
@@ -58,6 +61,8 @@ def after_install():
 	from frappe.auth import _update_password
 	_update_password("Administrator", get_admin_password())
 
+	# setup wizard now in frappe
+	frappe.db.set_default('desktop:home_page', 'setup-wizard');
 
 	frappe.db.commit()
 
@@ -106,7 +111,8 @@ def add_country_and_currency(name, country):
 			"country_name": name,
 			"code": country.code,
 			"date_format": country.date_format or "dd-mm-yyyy",
-			"time_zones": "\n".join(country.timezones or [])
+			"time_zones": "\n".join(country.timezones or []),
+			"docstatus": 0
 		}).db_insert()
 
 	if country.currency and not frappe.db.exists("Currency", country.currency):
@@ -116,6 +122,7 @@ def add_country_and_currency(name, country):
 			"fraction": country.currency_fraction,
 			"symbol": country.currency_symbol,
 			"fraction_units": country.currency_fraction_units,
-			"number_format": country.number_format
+			"number_format": country.number_format,
+			"docstatus": 0
 		}).db_insert()
 

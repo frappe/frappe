@@ -18,27 +18,44 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function() {
-		check_name();
-		if(check_mandatory()) {
-			_call({
-				method: "frappe.desk.form.save.savedocs",
-				args: { doc: frm.doc, action:action},
-				callback: function(r) {
-					$(document).trigger("save", [frm.doc]);
-					callback(r);
-				},
-				btn: btn,
-				freeze_message: freeze_message
-			});
-		} else {
-			$(btn).prop("disabled", false);
-		}
+		check_name(function() {
+			if(check_mandatory()) {
+				_call({
+					method: "frappe.desk.form.save.savedocs",
+					args: { doc: frm.doc, action:action},
+					callback: function(r) {
+						$(document).trigger("save", [frm.doc]);
+						callback(r);
+					},
+					btn: btn,
+					freeze_message: freeze_message
+				});
+			} else {
+				$(btn).prop("disabled", false);
+			}
+		});
+
 	};
 
 	var cancel = function() {
+		var args = {
+			doctype: frm.doc.doctype,
+			name: frm.doc.name
+		};
+
+		// update workflow state value if workflow exists
+		var workflow_state_fieldname = frappe.workflow.get_state_fieldname(frm.doctype);
+		if(workflow_state_fieldname) {
+			$.extend(args, {
+				workflow_state_fieldname: workflow_state_fieldname,
+				workflow_state: frm.doc[workflow_state_fieldname]
+
+			});
+		}
+
 		_call({
 			method: "frappe.desk.form.save.cancel",
-			args: { doctype: frm.doc.doctype, name: frm.doc.name },
+			args: args,
 			callback: function(r) {
 				$(document).trigger("save", [frm.doc]);
 				callback(r);
@@ -48,19 +65,33 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		});
 	};
 
-	var check_name = function() {
+	var check_name = function(callback) {
 		var doc = frm.doc;
 		var meta = locals.DocType[doc.doctype];
 		if(doc.__islocal && (meta && meta.autoname
 				&& meta.autoname.toLowerCase()=='prompt')) {
-			var newname = prompt('Enter the name of the new '+ doc.doctype, '');
-			if(newname) {
-				doc.__newname = strip(newname);
-			} else {
-				msgprint(__("Name is required"));
-				$(btn).prop("disabled", false);
-				throw "name required";
+			var d = frappe.prompt(__("Name"), function(values) {
+				var newname = values.value;
+				if(newname) {
+					doc.__newname = strip(newname);
+				} else {
+					msgprint(__("Name is required"));
+					throw "name required";
+				}
+
+				callback();
+
+			}, __('Enter the name of the new {0}', [doc.doctype]), __("Create"));
+
+			if(doc.__newname) {
+				d.set_value("value", doc.__newname);
 			}
+
+			d.onhide = function() {
+				$(btn).prop("disabled", false);
+			}
+		} else {
+			callback();
 		}
 	};
 
@@ -129,7 +160,9 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		$(opts.btn).prop("disabled", true);
 
 		if(frappe.ui.form.is_saving) {
-			msgprint(__("Already saving. Please wait a few moments."));
+			// this is likely to happen if the user presses the shortcut cmd+s for a longer duration or uses double click
+			// no need to show this to user, as they can see "Saving" in freeze message
+			console.log("Already saving. Please wait a few moments.")
 			throw "saving";
 		}
 		frappe.ui.form.is_saving = true;

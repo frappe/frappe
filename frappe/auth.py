@@ -23,7 +23,7 @@ class HTTPRequest:
 			self.domain = self.domain[4:]
 
 		if frappe.get_request_header('X-Forwarded-For'):
-			frappe.local.request_ip = frappe.get_request_header('X-Forwarded-For')
+			frappe.local.request_ip = (frappe.get_request_header('X-Forwarded-For').split(",")[0]).strip()
 
 		elif frappe.get_request_header('REMOTE_ADDR'):
 			frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR')
@@ -32,21 +32,18 @@ class HTTPRequest:
 			frappe.local.request_ip = '127.0.0.1'
 
 		# language
-		self.set_lang(frappe.request.accept_languages.values())
+		self.set_lang()
 
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
-
-		# override request method. All request to be of type POST, but if _type == "POST" then commit
-		if frappe.form_dict.get("_type"):
-			frappe.local.request_method = frappe.form_dict.get("_type")
-			del frappe.form_dict["_type"]
 
 		# set db
 		self.connect()
 
 		# login
 		frappe.local.login_manager = LoginManager()
+
+		self.validate_csrf_token()
 
 		# write out latest cookies
 		frappe.local.cookie_manager.init_cookies()
@@ -57,19 +54,25 @@ class HTTPRequest:
 		# run login triggers
 		if frappe.form_dict.get('cmd')=='login':
 			frappe.local.login_manager.run_trigger('on_session_creation')
-			self.clear_active_sessions()
 
-	def clear_active_sessions(self):
-		if not frappe.conf.get("deny_multiple_sessions"):
-			return
+	def validate_csrf_token(self):
+		if frappe.local.request and frappe.local.request.method=="POST":
+			if not frappe.local.session.data.csrf_token or frappe.local.session.data.device=="mobile":
+				# not via boot
+				return
 
-		if frappe.session.user != "Guest":
-			clear_sessions(frappe.session.user, keep_current=True)
+			csrf_token = frappe.get_request_header("X-Frappe-CSRF-Token")
+			if not csrf_token and "csrf_token" in frappe.local.form_dict:
+				csrf_token = frappe.local.form_dict.csrf_token
+				del frappe.local.form_dict["csrf_token"]
 
+			if frappe.local.session.data.csrf_token != csrf_token:
+				frappe.local.flags.disable_traceback = True
+				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
-	def set_lang(self, lang_codes):
+	def set_lang(self):
 		from frappe.translate import guess_language
-		frappe.local.lang = guess_language(lang_codes)
+		frappe.local.lang = guess_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
@@ -89,8 +92,16 @@ class LoginManager:
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
 			self.login()
+			self.resume = False
 		else:
-			self.make_session(resume=True)
+			try:
+				self.resume = True
+				self.make_session(resume=True)
+				self.set_user_info(resume=True)
+			except AttributeError:
+				self.user = "Guest"
+				self.make_session()
+				self.set_user_info()
 
 	def login(self):
 		# clear cache
@@ -99,29 +110,34 @@ class LoginManager:
 		self.post_login()
 
 	def post_login(self):
-		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
-		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
-		self.user_type = self.info.user_type
-
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
 		self.make_session()
 		self.set_user_info()
 
-	def set_user_info(self):
+	def set_user_info(self, resume=False):
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+		self.full_name = " ".join(filter(None, [self.info.first_name,
+			self.info.last_name]))
+		self.user_type = self.info.user_type
+
 		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
-			frappe.local.response["message"] = "No App"
+			if not resume:
+				frappe.local.response["message"] = "No App"
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
-			frappe.local.response['message'] = 'Logged In'
+			if not resume:
+				frappe.local.response['message'] = 'Logged In'
 
-		frappe.response["full_name"] = self.full_name
+		if not resume:
+			frappe.response["full_name"] = self.full_name
+
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
@@ -134,6 +150,14 @@ class LoginManager:
 		# reset user if changed to Guest
 		self.user = frappe.local.session_obj.user
 		frappe.local.session = frappe.local.session_obj.data
+		self.clear_active_sessions()
+
+	def clear_active_sessions(self):
+		if not frappe.conf.get("deny_multiple_sessions"):
+			return
+
+		if frappe.session.user != "Guest":
+			clear_sessions(frappe.session.user, keep_current=True)
 
 	def authenticate(self, user=None, pwd=None):
 		if not (user and pwd):

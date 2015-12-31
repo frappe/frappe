@@ -63,18 +63,27 @@ def use_theme(theme):
 
 def add_website_theme(context):
 	bootstrap = frappe.get_hooks("bootstrap")[0]
-	website_theme = get_active_theme()
-	context.theme = website_theme and website_theme.as_dict() or frappe._dict()
-	if website_theme:
-		if website_theme.bootstrap:
-			bootstrap = website_theme.bootstrap
+	web_include_css = context.web_include_css
+	context.theme = frappe._dict()
 
-		context.no_sidebar = website_theme.no_sidebar
+	if not context.disable_website_theme:
+		website_theme = get_active_theme()
+		context.theme = website_theme and website_theme.as_dict() or frappe._dict()
+
+		if website_theme:
+			if website_theme.bootstrap:
+				bootstrap = website_theme.bootstrap
+
+			context.no_sidebar = website_theme.no_sidebar
+
+			context.web_include_css = ["website_theme.css"] + context.web_include_css
 
 	context.web_include_css = [bootstrap] + context.web_include_css
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
 	if website_theme:
-		return frappe.get_doc("Website Theme", website_theme)
-
+		try:
+			return frappe.get_doc("Website Theme", website_theme)
+		except frappe.DoesNotExistError:
+			pass

@@ -9,6 +9,7 @@ from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
+from frappe.model.db_schema import type_map, varchar_len
 
 _classes = {}
 
@@ -161,6 +162,9 @@ class BaseDocument(object):
 		value.parenttype = self.doctype
 		value.parentfield = key
 
+		if value.docstatus is None:
+			value.docstatus = 0
+
 		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
 
@@ -174,9 +178,19 @@ class BaseDocument(object):
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 
-			if d[fieldname]=="":
-				df = self.meta.get_field(fieldname)
-				if df and df.fieldtype in ("Datetime", "Date"):
+			df = self.meta.get_field(fieldname)
+			if df:
+				if df.fieldtype in ("Check", "Int") and not isinstance(d[fieldname], int):
+					d[fieldname] = cint(d[fieldname])
+
+				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
+					d[fieldname] = flt(d[fieldname])
+
+				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
+					d[fieldname] = None
+
+				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
+					# unique empty field should be set to None
 					d[fieldname] = None
 
 		return d
@@ -185,6 +199,9 @@ class BaseDocument(object):
 		for key in default_fields:
 			if key not in self.__dict__:
 				self.__dict__[key] = None
+
+			if key in ("idx", "docstatus") and self.__dict__[key] is None:
+				self.__dict__[key] = 0
 
 		for key in self.get_valid_columns():
 			if key not in self.__dict__:
@@ -222,7 +239,7 @@ class BaseDocument(object):
 				if k in default_fields:
 					del doc[k]
 
-		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):
+		for key in ("_user_tags", "__islocal", "__onload", "_starred_by", "__run_link_triggers"):
 			if self.get(key):
 				doc[key] = self.get(key)
 
@@ -253,15 +270,23 @@ class BaseDocument(object):
 					values = ", ".join(["%s"] * len(columns))
 				), d.values())
 		except Exception, e:
-			if e.args[0]==1062 and "PRIMARY" in cstr(e.args[1]):
-				if self.meta.autoname=="hash":
-					# hash collision? try again
-					self.name = None
-					self.db_insert()
-					return
-				type, value, traceback = sys.exc_info()
-				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-				raise frappe.NameError, (self.doctype, self.name, e), traceback
+			if e.args[0]==1062:
+				if "PRIMARY" in cstr(e.args[1]):
+					if self.meta.autoname=="hash":
+						# hash collision? try again
+						self.name = None
+						self.db_insert()
+						return
+
+					type, value, traceback = sys.exc_info()
+					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+					raise frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback
+
+				elif "Duplicate" in cstr(e.args[1]):
+					# unique constraint
+					self.show_unique_validation_message(e)
+				else:
+					raise
 			else:
 				raise
 
@@ -281,18 +306,35 @@ class BaseDocument(object):
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
 				), d.values() + [d.get("name")])
 		except Exception, e:
-			if e.args[0]==1062:
-				type, value, traceback = sys.exc_info()
-				fieldname = str(e).split("'")[-2]
-				frappe.msgprint(_("{0} must be unique".format(self.meta.get_label(fieldname))))
-				raise frappe.ValidationError, (self.doctype, self.name, e), traceback
+			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
+				self.show_unique_validation_message(e)
 			else:
 				raise
 
+	def show_unique_validation_message(self, e):
+		type, value, traceback = sys.exc_info()
+		fieldname, label = str(e).split("'")[-2], None
+
+		# unique_first_fieldname_second_fieldname is the constraint name
+		# created using frappe.db.add_unique
+		if "unique_" in fieldname:
+			fieldname = fieldname.split("_", 1)[1]
+
+		df = self.meta.get_field(fieldname)
+		if df:
+			label = df.label
+
+		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+
+		# this is used to preserve traceback
+		raise frappe.UniqueValidationError, (self.doctype, self.name, e), traceback
+
 	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
-		self.set("modified", now())
-		self.set("modified_by", frappe.session.user)
+		if update_modified:
+			self.set("modified", now())
+			self.set("modified_by", frappe.session.user)
+
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 
@@ -411,13 +453,42 @@ class BaseDocument(object):
 				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
 
+	def _validate_length(self):
+		if frappe.flags.in_install:
+			return
+
+		for fieldname, value in self.get_valid_dict().iteritems():
+			df = self.meta.get_field(fieldname)
+			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
+				max_length = cint(df.get("length")) or cint(varchar_len)
+
+				if len(cstr(value)) > max_length:
+					if self.parentfield and self.idx:
+						reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+
+					else:
+						reference = "{0} {1}".format(_(self.doctype), self.name)
+
+					frappe.throw(_("{0}: '{1}' will get truncated, as max characters allowed is {2}")\
+						.format(reference, _(df.label), max_length), frappe.CharacterLengthExceededError)
+
 	def _validate_update_after_submit(self):
-		db_values = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
-		for key, db_value in db_values.iteritems():
+		# get the full doc with children
+		db_values = frappe.get_doc(self.doctype, self.name).as_dict()
+
+		for key in self.as_dict():
 			df = self.meta.get_field(key)
+			db_value = db_values.get(key)
 
 			if df and not df.allow_on_submit and (self.get(key) or db_value):
-				self_value = self.get_value(key)
+				if df.fieldtype=="Table":
+					# just check if the table size has changed
+					# individual fields will be checked in the loop for children
+					self_value = len(self.get(key))
+					db_value = len(db_value)
+
+				else:
+					self_value = self.get_value(key)
 
 				if self_value != db_value:
 					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
@@ -453,7 +524,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -461,7 +532,14 @@ class BaseDocument(object):
 			from frappe.model.meta import get_default_df
 			df = get_default_df(fieldname)
 
-		return format_value(self.get(fieldname), df=df, doc=doc or self, currency=currency)
+		val = self.get(fieldname)
+		if absolute_value and isinstance(val, (int, float)):
+			val = abs(self.get(fieldname))
+
+		if not doc:
+			doc = getattr(self, "parent_doc", None) or self
+
+		return format_value(val, df=df, doc=doc, currency=currency)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
 		"""Returns true if fieldname is to be hidden for print.
@@ -478,10 +556,16 @@ class BaseDocument(object):
 		meta_df = self.meta.get_field(fieldname)
 		if meta_df and meta_df.get("__print_hide"):
 			return True
-		if df:
-			return df.print_hide
-		if meta_df:
-			return meta_df.print_hide
+
+		print_hide = 0
+
+		if self.get(fieldname)==0 and not self.meta.istable:
+			print_hide = ( df and df.print_hide_if_no_value ) or ( meta_df and meta_df.print_hide_if_no_value )
+
+		if not print_hide:
+			print_hide = ( df and df.print_hide ) or ( meta_df and meta_df.print_hide )
+
+		return print_hide
 
 	def in_format_data(self, fieldname):
 		"""Returns True if shown via Print Format::`format_data` property.

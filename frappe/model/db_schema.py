@@ -12,9 +12,13 @@ import re
 import os
 import frappe
 from frappe import _
-from frappe.utils import cstr, cint
+from frappe.utils import cstr, cint, flt
+import MySQLdb
 
 class InvalidColumnName(frappe.ValidationError): pass
+
+varchar_len = '140'
+standard_varchar_columns = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
 
 type_map = {
 	'Currency':		('decimal', '18,6')
@@ -30,14 +34,14 @@ type_map = {
 	,'Datetime':	('datetime', '6')
 	,'Time':		('time', '6')
 	,'Text':		('text', '')
-	,'Data':		('varchar', '255')
-	,'Link':		('varchar', '255')
-	,'Dynamic Link':('varchar', '255')
-	,'Password':	('varchar', '255')
-	,'Select':		('varchar', '255')
-	,'Read Only':	('varchar', '255')
-	,'Attach':		('varchar', '255')
-	,'Attach Image':('varchar', '255')
+	,'Data':		('varchar', varchar_len)
+	,'Link':		('varchar', varchar_len)
+	,'Dynamic Link':('varchar', varchar_len)
+	,'Password':	('varchar', varchar_len)
+	,'Select':		('varchar', varchar_len)
+	,'Read Only':	('varchar', varchar_len)
+	,'Attach':		('text', '')
+	,'Attach Image':('text', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -52,13 +56,15 @@ def updatedb(dt):
 	   * updates columns
 	   * updates indices
 	"""
-	res = frappe.db.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
+	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
 	if not res:
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
 
 	if not res[0][0]:
-		frappe.db.commit()
 		tab = DbTable(dt, 'tab')
+		tab.validate()
+
+		frappe.db.commit()
 		tab.sync()
 		frappe.db.begin()
 
@@ -75,17 +81,66 @@ class DbTable:
 
 		self.add_index = []
 		self.drop_index = []
-
 		self.set_default = []
 
 		# load
 		self.get_columns_from_docfields()
 
+	def validate(self):
+		"""Check if change in varchar length isn't truncating the columns"""
+		if self.is_new():
+			return
+
+		self.get_columns_from_db()
+
+		columns = [frappe._dict({"fieldname": f, "fieldtype": "Data"}) for f in standard_varchar_columns]
+		columns += self.columns.values()
+
+		for col in columns:
+			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
+
+				# validate length range
+				new_length = cint(col.length) or cint(varchar_len)
+				if not (1 <= new_length <= 255):
+					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+
+				try:
+					# check for truncation
+					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
+						.format(fieldname=col.fieldname, doctype=self.doctype))
+
+				except MySQLdb.OperationalError, e:
+					if e.args[0]==1054:
+						# Unknown column 'column_name' in 'field list'
+						continue
+
+					else:
+						raise
+
+				if max_length and max_length[0][0] > new_length:
+					current_type = self.current_columns[col.fieldname]["type"]
+					current_length = re.findall('varchar\(([\d]+)\)', current_type)
+					if not current_length:
+						# case when the field is no longer a varchar
+						continue
+
+					current_length = current_length[0]
+
+					if col.fieldname in self.columns:
+						self.columns[col.fieldname].length = current_length
+
+					frappe.msgprint(_("Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.")\
+						.format(current_length, col.fieldname, self.doctype, new_length))
+
+
 	def sync(self):
-		if not self.name in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name):
+		if self.is_new():
 			self.create()
 		else:
 			self.alter()
+
+	def is_new(self):
+		return self.name not in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name)
 
 	def create(self):
 		add_text = ''
@@ -100,21 +155,21 @@ class DbTable:
 
 		# create table
 		frappe.db.sql("""create table `%s` (
-			name varchar(255) not null primary key,
+			name varchar({varchar_len}) not null primary key,
 			creation datetime(6),
 			modified datetime(6),
-			modified_by varchar(255),
-			owner varchar(255),
-			docstatus int(1) default '0',
-			parent varchar(255),
-			parentfield varchar(255),
-			parenttype varchar(255),
-			idx int(8),
+			modified_by varchar({varchar_len}),
+			owner varchar({varchar_len}),
+			docstatus int(1) not null default '0',
+			parent varchar({varchar_len}),
+			parentfield varchar({varchar_len}),
+			parenttype varchar({varchar_len}),
+			idx int(8) not null default '0',
 			%sindex parent(parent))
 			ENGINE=InnoDB
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""" % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
@@ -140,23 +195,37 @@ class DbTable:
 			get columns from docfields and custom fields
 		"""
 		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
+		lengths = {}
 		precisions = {}
+		uniques = {}
 
-		if not frappe.flags.in_install:
+		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
 			if custom_fl: fl += custom_fl
 
-			# get precision from property setters
-			for ps in frappe.get_all("Property Setter", fields=["field_name", "value"],
-				filters={"doc_type": self.doctype, "doctype_or_field": "DocField", "property": "precision"}):
-					precisions[ps.field_name] = ps.value
+			# apply length, precision and unique from property setters
+			for ps in frappe.get_all("Property Setter", fields=["field_name", "property", "value"],
+				filters={
+					"doc_type": self.doctype,
+					"doctype_or_field": "DocField",
+					"property": ["in", ["precision", "length", "unique"]]
+				}):
+
+				if ps.property=="length":
+					lengths[ps.field_name] = cint(ps.value)
+
+				elif ps.property=="precision":
+					precisions[ps.field_name] = cint(ps.value)
+
+				elif ps.property=="unique":
+					uniques[ps.field_name] = cint(ps.value)
 
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
-				f['fieldtype'], f.get('length'), f.get('default'), f.get('search_index'),
-				f.get('options'), f.get('unique'), precisions.get(f['fieldname']) or f.get('precision'))
+				f['fieldtype'], lengths.get(f["fieldname"]) or f.get('length'), f.get('default'), f.get('search_index'),
+				f.get('options'), uniques.get(f["fieldname"], f.get('unique')), precisions.get(f['fieldname']) or f.get('precision'))
 
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
@@ -196,7 +265,6 @@ class DbTable:
 			frappe.db.sql("set foreign_key_checks=1")
 
 	def alter(self):
-		self.get_columns_from_db()
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname, None))
 
@@ -226,15 +294,32 @@ class DbTable:
 			if col.fieldname=="name":
 				continue
 
-			if not col.default:
+			if col.fieldtype in ("Check", "Int"):
+				col_default = cint(col.default)
+
+			elif col.fieldtype in ("Currency", "Float", "Percent"):
+				col_default = flt(col.default)
+
+			elif not col.default:
 				col_default = "null"
+
 			else:
 				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
 
 			query.append('alter column `{}` set default {}'.format(col.fieldname, col_default))
 
 		if query:
-			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			try:
+				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
+			except Exception, e:
+				# sanitize
+				if e.args[0]==1060:
+					frappe.throw(str(e))
+				elif e.args[0]==1062:
+					fieldname = str(e).split("'")[-2]
+					frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(fieldname, self.name)))
+				else:
+					raise e
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default,
@@ -250,12 +335,20 @@ class DbColumn:
 		self.precision = precision
 
 	def get_definition(self, with_default=1):
-		column_def = get_definition(self.fieldtype, self.precision)
+		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
 		if not column_def:
 			return column_def
 
-		if self.default and (self.default not in default_shortcuts) \
+		if self.fieldtype in ("Check", "Int"):
+			default_value = cint(self.default) or 0
+			column_def += ' not null default {0}'.format(default_value)
+
+		elif self.fieldtype in ("Currency", "Float", "Percent"):
+			default_value = flt(self.default) or 0
+			column_def += ' not null default {0}'.format(default_value)
+
+		elif self.default and (self.default not in default_shortcuts) \
 			and not self.default.startswith(":") and column_def not in ('text', 'longtext'):
 			column_def += ' default "' + self.default.replace('"', '\"') + '"'
 
@@ -265,7 +358,7 @@ class DbColumn:
 		return column_def
 
 	def build_for_alter_table(self, current_def):
-		column_def = get_definition(self.fieldtype)
+		column_def = get_definition(self.fieldtype, self.precision, self.length)
 
 		# no columns
 		if not column_def:
@@ -278,27 +371,26 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or (self.unique and not current_def['unique'] \
-			and column_def in ('text', 'longtext')):
+		if (current_def['type'] != column_def) or \
+			((self.unique and not current_def['unique']) and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
 		else:
-			# index
-			if (current_def['index'] and not self.set_index):
-				self.table.drop_index.append(self)
-
-			if (current_def['unique'] and not self.unique) and not (column_def in ('text', 'longtext')):
-				self.table.drop_index.append(self)
-
-			if (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
-				self.table.add_index.append(self)
-
 			# default
 			if (self.default_changed(current_def) \
 				and (self.default not in default_shortcuts) \
 				and not cstr(self.default).startswith(":") \
 				and not (column_def in ['text','longtext'])):
 				self.table.set_default.append(self)
+
+		# index should be applied or dropped irrespective of type change
+		if ( (current_def['index'] and not self.set_index and not self.unique)
+			or (current_def['unique'] and not self.unique) ):
+			# to drop unique you have to drop index
+			self.table.drop_index.append(self)
+
+		elif (not current_def['index'] and self.set_index) and not (column_def in ('text', 'longtext')):
+			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):
 		if "decimal" in current_def['type']:
@@ -437,7 +529,7 @@ def validate_column_name(n):
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()
-	for t in frappe.db.sql("select name from tabDocType where ifnull(issingle,0)=0"):
+	for t in frappe.db.sql("select name from tabDocType where issingle=0"):
 		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
@@ -450,23 +542,30 @@ def remove_all_foreign_keys():
 		for f in fklist:
 			frappe.db.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
 
-def get_definition(fieldtype, precision=None):
+def get_definition(fieldtype, precision=None, length=None):
 	d = type_map.get(fieldtype)
 
 	if not d:
 		return
 
-	ret = d[0]
+	coltype = d[0]
+	size = None
 	if d[1]:
-		length = d[1]
-		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
-			length = '18,9'
-		ret += '(' + length + ')'
+		size = d[1]
 
-	return ret
+	if size:
+		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
+			size = '18,9'
+
+		if coltype == "varchar" and length:
+			size = length
+
+	if size is not None:
+		coltype = "{coltype}({size})".format(coltype=coltype, size=size)
+
+	return coltype
 
 def add_column(doctype, column_name, fieldtype, precision=None):
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
-

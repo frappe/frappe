@@ -4,10 +4,10 @@
 		{% if (item.description) { %}
 		<div class="col-xs-8">
 			<h4>{%= item.label || item.name %}</h4>
-			{% if (item.type==="doctype") { %}
-			<span class="open-notification hide" data-doctype="{%= item.name %}"></span>
+			{% if (item.type==="doctype" || item.type==="page") { %}
+			<span class="open-notification hide" data-doctype="{%= item.data_doctype || item.name %}"></span>
 			{% } %}
-			<p class="text-muted small module-item-description">{%= item.description %}</p>
+			<p class="text-muted small module-item-description hidden-xs">{%= item.description %}</p>
 		</div>
 		<div class="col-xs-4 text-muted text-right small" style="padding-top: 5px;">
 			{% if (item.last_modified) { %}
@@ -21,4 +21,10 @@
 		{% } %}
 	</div>
 	{% } %}
+    <div class="row visible-sm visible-xs" style="padding: 15px;">
+        <div class="col-xs-12">
+            <a onclick="frappe.ui.toolbar.toggle_left_sidebar();" class="text-primary">
+                {%= __("More") %}</a>
+        </div>
+    </div>
 </div>

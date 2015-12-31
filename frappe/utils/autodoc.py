@@ -8,50 +8,9 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-import inspect, importlib, re, frappe, os, shutil
+import inspect, importlib, re, frappe
 from frappe.model.document import get_controller
-from markdown2 import markdown
 
-def build(app):
-	app_path = frappe.get_app_path(app)
-	source = frappe.get_app_path(app, "src")
-	dest = frappe.get_app_path(app, "www")
-	for basepath, folders, files in os.walk(source):
-		destpath = os.path.join(dest, os.path.relpath(basepath, source))
-
-		# make target dir if missing
-		if not os.path.exists(destpath):
-			os.makedirs(destpath)
-
-		# delete removed folders in source from dest
-		for destfolder in os.listdir(destpath):
-			if os.path.isdir(os.path.join(destpath, destfolder)):
-				if destfolder not in folders:
-					os.path.join(destpath, destfolder)
-					shutil.rmtree(os.path.join(destpath, destfolder))
-
-		for fname in files:
-			# delete file
-			if os.path.exists(os.path.join(destpath, fname)):
-				os.remove(os.path.join(destpath, fname))
-
-			print fname
-			if fname.rsplit(".", 1)[-1] in ("md", "html"):
-				# render template and build file
-				with open(os.path.join(destpath, fname.rsplit(".", 1)[0] + ".html"), "w") as destfile:
-					if fname.endswith(".md"):
-						# convert markdown to html before rendering
-						with open(os.path.join(basepath, fname), "r") as template_file:
-							template = markdown(template_file.read())
-						html = frappe.render_template(template, {}).encode("utf-8")
-						destfile.write(html)
-					else:
-						template_path = os.path.relpath(os.path.join(basepath, fname), app_path)
-						html = frappe.render_template(template_path, {}, is_path=True).encode("utf-8")
-						destfile.write(html)
-			else:
-				# not a template, copy
-				shutil.copyfile(os.path.join(basepath, fname), os.path.join(destpath, fname))
 
 def automodule(name):
 	"""Returns a list of attributes for given module string.
@@ -83,17 +42,34 @@ def automodule(name):
 
 	return {
 		"members": filter(None, attributes),
+		"docs": getattr(obj, "__doc__", "")
 	}
 
+installed = None
 def get_version(name):
-	def _for_module(m):
-		return importlib.import_module(m.split(".")[0]).__version__
+	print name
+	global installed
 
-	if "." in name or name=="frappe":
+	if not installed:
+		installed = frappe.get_installed_apps()
+
+	def _for_module(m):
+		app_name = m.split(".")[0]
+
+		try:
+			docs_version = frappe.get_attr(app_name + ".config.docs.docs_version")
+		except AttributeError:
+			docs_version = None
+
+		if docs_version:
+			return docs_version
+
+		return getattr(importlib.import_module(m.split(".")[0]), "__version__", "0.0.0")
+
+	if "." in name or name in installed:
 		return _for_module(name)
 	else:
 		return _for_module(get_controller(name).__module__)
-
 
 def get_class_info(class_obj, module_name):
 	members = []
@@ -117,15 +93,14 @@ def get_class_info(class_obj, module_name):
 	}
 
 def get_function_info(value):
-	docs = getattr(value, "__doc__", "")
-	if docs:
-		return {
-			"name": value.__name__,
-			"type": "function",
-			"args": inspect.getargspec(value),
-			"docs": parse(docs),
-			"whitelisted": value in frappe.whitelisted
-		}
+	docs = getattr(value, "__doc__")
+	return {
+		"name": value.__name__,
+		"type": "function",
+		"args": inspect.getargspec(value),
+		"docs": parse(docs) if docs else '<span class="text-muted">No docs</span>',
+		"whitelisted": value in frappe.whitelisted
+	}
 
 def parse(docs):
 	"""Parse __docs__ text into markdown. Will parse directives like `:param name:` etc"""
@@ -179,17 +154,3 @@ def strip_leading_tabs(docs):
 def automodel(doctype):
 	"""return doctype template"""
 	pass
-
-def get_doclink(name):
-	"""Returns `__doclink__` property of a module or DocType if exists"""
-	if name=="[Select]": return ""
-
-	if "." in name:
-		obj = frappe.get_attr(name)
-	else:
-		obj = get_controller(name)
-
-	if hasattr(obj, "__doclink__"):
-		return obj.__doclink__
-	else:
-		return ""

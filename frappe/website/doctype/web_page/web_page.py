@@ -11,7 +11,6 @@ from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
-from frappe.utils import strip_html
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -28,6 +27,12 @@ class WebPage(WebsiteGenerator):
 	def validate(self):
 		if self.template_path and not getattr(self, "from_website_sync"):
 			frappe.throw(frappe._("Cannot edit templated page"))
+
+		# avoid recursive parent_web_page.
+		if self.parent_web_page == self.page_name:
+			self.parent_web_page = ""
+			self.parent_website_route = ""
+
 		super(WebPage, self).validate()
 
 	def get_context(self, context):
@@ -146,28 +151,12 @@ class WebPage(WebsiteGenerator):
 	def set_metatags(self, context):
 		context.metatags = {
 			"name": context.title,
-			"description": (context.description or context.main_section or "").replace("\n", " ")[:500]
+			"description": (context.description or "").replace("\n", " ")[:500]
 		}
 
 		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
-
-# def get_list_context(context=None):
-# 	list_context = frappe._dict(
-# 		title = _("Website Search"),
-# 		template = "templates/includes/kb_list.html",
-# 		row_template = "templates/includes/kb_row.html",
-# 		get_level_class = get_level_class,
-# 		hide_filters = True,
-# 		filters = {"published": 1}
-# 	)
-#
-# 	if frappe.local.form_dict.txt:
-# 		list_context.subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
-# 	#
-# 	# list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
-# 	return list_context
 
 def check_broken_links():
 	cnt = 0

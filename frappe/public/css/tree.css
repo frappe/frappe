@@ -5,6 +5,9 @@
   list-style: none;
   margin: 2px 0px;
 }
+ul.tree-children {
+  padding-left: 20px;
+}
 .tree-link {
   cursor: pointer;
 }
@@ -12,7 +15,7 @@
   color: #5e64ff !important;
 }
 .tree-hover {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   min-height: 20px;
   border: 1px solid #d1d8dd;
 }
@@ -21,4 +24,9 @@
   padding: 0px 5px;
   margin-left: 15px;
   margin-bottom: -4px;
+}
+@media (max-width: 767px) {
+  ul.tree-children {
+    padding-left: 10px;
+  }
 }

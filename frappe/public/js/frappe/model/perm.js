@@ -60,14 +60,28 @@ $.extend(frappe.perm, {
 				});
 			}
 
+			// if owner
+			if(!$.isEmptyObject(perm[0].if_owner)) {
+				if(doc.owner===user) {
+					$.extend(perm[0], perm[0].if_owner);
+				} else {
+					// not owner, remove permissions
+					$.each(perm[0].if_owner, function(ptype, value) {
+						if(perm[0].if_owner[ptype]) {
+							perm[0][ptype] = 0
+						}
+					})
+				}
+			}
+
 			// apply permissions from shared
 			if(docinfo.shared) {
-				for(var i=0; i<docinfo.shared; i++) {
+				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
 					if(s.user===user) {
-						perm[0]["read"] = s.read;
-						perm[0]["write"] = s.write;
-						perm[0]["share"] = s.share;
+						perm[0]["read"] = perm[0]["read"] || s.read;
+						perm[0]["write"] = perm[0]["write"] || s.write;
+						perm[0]["share"] = perm[0]["share"] || s.share;
 
 						if(s.read) {
 							// also give print, email permissions if read
@@ -78,6 +92,7 @@ $.extend(frappe.perm, {
 					}
 				}
 			}
+
 		}
 
 		if(frappe.model.can_read(doctype) && !perm[0].read) {
@@ -89,6 +104,9 @@ $.extend(frappe.perm, {
 	},
 
 	build_role_permissions: function(perm, meta) {
+		// Returns a `dict` of evaluated Role Permissions
+		// Apply User Permission and its DocTypes are used to display match rules in list view
+
 		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
 			if(user_roles.indexOf(p.role)!==-1) {
@@ -100,6 +118,7 @@ $.extend(frappe.perm, {
 				$.each(frappe.perm.rights, function(i, key) {
 					perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
 
+					// NOTE: this data is required for displaying match rules in list view
 					if (permlevel===0) {
 						var apply_user_permissions = perm[permlevel].apply_user_permissions;
 						var current_value = (apply_user_permissions[key]===undefined ?
@@ -108,6 +127,7 @@ $.extend(frappe.perm, {
 					}
 				});
 
+				// NOTE: this data is required for displaying match rules in list view
 				if (permlevel===0 && cint(p.apply_user_permissions) && p.user_permission_doctypes) {
 					// set user_permission_doctypes in perms
 					var user_permission_doctypes = JSON.parse(p.user_permission_doctypes);
@@ -175,6 +195,10 @@ $.extend(frappe.perm, {
 					match_rules.push(rules);
 				}
 			});
+		}
+
+		if (perm[0].if_owner && perm[0].read) {
+			match_rules.push({"Owner": user});
 		}
 
 		return match_rules;
@@ -263,7 +287,8 @@ $.extend(frappe.perm, {
 		if(explain) console.log("By Submit:" + status);
 
 		// allow on submit
-		var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		// var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		var allow_on_submit = cint(df.allow_on_submit);
 		if(status==="Read" && allow_on_submit && cint(doc.docstatus)===1 && p.write) {
 			status = "Write";
 		}

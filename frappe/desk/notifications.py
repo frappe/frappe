@@ -47,6 +47,7 @@ def get_new_messages():
 			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
 
 def get_notifications_for_modules(config, notification_count):
+	"""Notifications for modules"""
 	open_count_module = {}
 	for m in config.for_module:
 		try:
@@ -56,12 +57,13 @@ def get_notifications_for_modules(config, notification_count):
 				open_count_module[m] = frappe.get_attr(config.for_module[m])()
 
 				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count_module[m])
-		except frappe.PermissionError, e:
+		except frappe.PermissionError:
 			frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
 	return open_count_module
 
 def get_notifications_for_doctypes(config, notification_count):
+	"""Notifications for DocTypes"""
 	can_read = frappe.get_user().get_can_read()
 	open_count_doctype = {}
 
@@ -73,10 +75,13 @@ def get_notifications_for_doctypes(config, notification_count):
 				open_count_doctype[d] = notification_count[d]
 			else:
 				try:
-					result = frappe.get_list(d, fields=["count(*)"],
-						filters=condition, as_list=True)[0][0]
+					if isinstance(condition, dict):
+						result = frappe.get_list(d, fields=["count(*)"],
+							filters=condition, as_list=True)[0][0]
+					else:
+						result = frappe.get_attr(condition)()
 
-				except frappe.PermissionError, e:
+				except frappe.PermissionError:
 					frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
 				except Exception, e:
@@ -95,8 +100,7 @@ def clear_notifications(user="*"):
 		frappe.cache().delete_keys("notification_count:")
 	else:
 		# delete count for user
-		for key in frappe.cache().get_keys("notification_count:"):
-			frappe.cache().hdel(key, user)
+		frappe.cache().hdel_keys("notification_count:", user)
 
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)

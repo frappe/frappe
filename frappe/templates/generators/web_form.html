@@ -5,25 +5,25 @@
 {% endblock %}
 
 {% block header_actions %}
-    {% if params.name or params.new %}
-	<button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-        {{ _("Submit") if params.new else _("Update") }}</button>
-	<a href="{{ pathname }}" class="btn btn-default btn-sm">
-        {{ _("Cancel") }}</a>
-    {% elif is_list %}
-	<a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
-		{{ _("New {0}").format(_(doc_type)) }}
-	</a>
-    {% endif %}
+  {% if params.name or params.new %}
+    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+    		{{ _("Submit") if params.new else _("Update") }}</button>
+    <a href="{{ pathname }}" class="btn btn-default btn-sm">
+    		{{ _("Cancel") }}</a>
+  {% elif is_list %}
+    <a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
+    {{ _("New {0}").format(_(doc_type)) }}
+    </a>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
 <!-- no-sidebar -->
 <div class="introduction">
-    {% if introduction_text %}
-    <p class="lead">{{ introduction_text }}</p>
-    <hr>
-    {% endif %}
+	{% if introduction_text %}
+	<p class="lead">{{ introduction_text }}</p>
+	<hr>
+	{% endif %}
 </div>
 {% if login_required and frappe.user=="Guest" %}
 <div class="login-required">
@@ -37,37 +37,36 @@
 	</p>
 </div>
 {% elif is_list %}
-    {% include "templates/includes/list/list.html" %}
-    <script>{% include "templates/includes/list/list.js" %}</script>
+	{% include "templates/includes/list/list.html" %}
+	<script>{% include "templates/includes/list/list.js" %}</script>
 {% else %}
-
 <br>
 
 {%- macro properties(field) %}
-    name="{{ field.fieldname }}" id="{{ field.fieldname }}"
-    {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}
-    data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}"
-    {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
-    {{ field.read_only and "disabled" or "" }}
+		name="{{ field.fieldname }}" id="{{ field.fieldname }}"
+		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
+		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
+		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
+		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
 
 {%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or field.default or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
-    {% if field.description -%}
-    <span class="help-block small">{{ field.description }}</span>
-    {%- endif -%}
+		{% if field.description -%}
+		<span class="help-block small">{{ _(field.description) }}</span>
+		{%- endif -%}
 {%- endmacro %}
 
 {% macro label(field) %}
-    <label for="{{ field.fieldname }}" class="control-label text-muted small">
-        {{ field.label }}</label>
+		<label for="{{ field.fieldname }}" class="control-label text-muted small">
+				{{ _(field.label) }}</label>
 {% endmacro %}
 
 {% macro render_field(field) %}
 	{% if field.hidden %}
 	<input type="hidden"
-		name="{{ field.fieldname }}" value="{{ field.default }}">
+		name="{{ field.fieldname }}" {% if field.default -%} value="{{ field.default }}" {%- endif %}>
 	{% elif field.fieldtype == "HTML" and field.options %}
 	<div class="form-group">
 		{{ field.options }}
@@ -123,7 +122,7 @@
 				<input type="checkbox" id="{{ field.fieldname }}"
 					name="{{ field.fieldname }}"
 					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
-					{{ field.label }}
+					{{ _(field.label) }}
 			</label>
 			{{ help(field) }}
 		</div>
@@ -138,7 +137,7 @@
 	<div class="row">
 		<div class="col-sm-9">
 			<div class="text-muted">
-				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''  }}/{{ doc.page_name }}">
+				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}">
 					{{ web_page_link_text }}</a>
 			</div>
 		</div>
@@ -150,17 +149,17 @@
 	<input type="hidden" name="name" value="{{ params.name }}">
 	{%- endif %}
 
-    {% for section in layout %}
-    <div class="row">
-        {% for column in section %}
-        <div class="col-sm-{{ (12 / (section|len))|int }}">
-            {% for field in column %}
-                {{ render_field(field) }}
-            {% endfor %}
-        </div>
-        {% endfor %}
-    </div>
-    {% endfor %}
+		{% for section in layout %}
+		<div class="row">
+				{% for column in section %}
+				<div class="col-sm-{{ (12 / (section|len))|int }}" style="max-width: 500px;">
+						{% for field in column %}
+								{{ render_field(field) }}
+						{% endfor %}
+				</div>
+				{% endfor %}
+		</div>
+		{% endfor %}
 </form>
 {% if allow_comments and not params.new -%}
 <div class="comments">
@@ -176,7 +175,7 @@
 <script>
 frappe.ready(function() {
 	window.file_reading = false;
-    window.success_message = "{{ success_message or "" }}";
+		window.success_message = "{{ success_message or "" }}";
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	var $form = $("form[data-web-form='{{ name }}']");
 
@@ -257,20 +256,21 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-    				window.saving = false;
-                    if(window.success_message) {
-    					$form.addClass("hide");
-    					$(".comments, .introduction").addClass("hide");
-    					scroll(0, 0);
-    					$(".form-message")
-    						.html('{{ success_message }}<p><a href="{{ success_url }}">\
-                                {{ _("Continue") }}</a></p>')
-    						.removeClass("hide");
+					if(window.success_message) {
+						$form.addClass("hide");
+						$(".comments, .introduction").addClass("hide");
+						scroll(0, 0);
+						$(".form-message")
+							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
+							.removeClass("hide");
                     } else {
-                        window.location.href = "{{ success_url }}";
-                    }
-				}
-			}
+						window.location.href = "{{ success_url }}";
+				    }
+			    }
+		    },
+            always: function() {
+                window.saving = false;
+            }
 		});
 
 		return false;
@@ -323,7 +323,7 @@ frappe.ready(function() {
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
-	$form.find("[data-fieldtype='Date']").datetimepicker({
+	$form.find("[data-fieldtype='Datetime']").datetimepicker({
 		altFormat:'yy-mm-dd',
 		changeYear: true,
 		yearRange: "-70Y:+10Y",

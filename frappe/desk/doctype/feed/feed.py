@@ -9,6 +9,8 @@ from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe import _
 
+exclude_from_linked_with = True
+
 class Feed(Document):
 	pass
 
@@ -56,7 +58,7 @@ def update_feed(doc, method=None):
 	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
 		return
 
-	if doc.doctype == "Feed":
+	if doc.doctype == "Feed" or doc.meta.issingle:
 		return
 
 	if hasattr(doc, "get_feed"):

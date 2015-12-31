@@ -1,0 +1,14 @@
+adding-module-icons-on-desktop
+custom-module-icon
+generating-docs
+how-enable-developer-mode-in-frappe
+fetch-custom-field-value-from-master-to-all-related-transactions
+executing-code-on-doctype-events
+how-to-add-customizations-to-app
+insert-a-document-via-api
+how-to-improve-a-standard-control
+overriding-link-query-by-custom-script
+single-type-doctype
+trigger-event-on-deletion-of-grid-row
+dialogs-types
+using-html-templates-in-javascript

@@ -12,16 +12,19 @@ from __future__ import unicode_literals
 
 import frappe, os, re, codecs, json
 from frappe.utils.jinja import render_include
+from frappe.utils import strip
 from jinja2 import TemplateError
 import itertools, operator
 
-def guess_language(lang_codes):
+def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
+	lang_codes = frappe.request.accept_languages.values()
 	if not lang_codes:
 		return frappe.local.lang
 
 	guess = None
-	lang_list = get_all_languages() or []
+	if not lang_list:
+		lang_list = get_all_languages() or []
 
 	for l in lang_codes:
 		code = l.strip()
@@ -165,15 +168,16 @@ def get_full_dict(lang):
 
 	:param lang: Language Code, e.g. `hi`
 	"""
-	if lang == "en":
+	if not lang or lang == "en":
 		return {}
 
 	if not frappe.local.lang_full_dict:
 		frappe.local.lang_full_dict = frappe.cache().hget("lang_full_dict", lang)
 		if not frappe.local.lang_full_dict:
+			frappe.local.lang_full_dict = load_lang(lang)
+
 			# cache lang
 			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
-			frappe.local.lang_full_dict = load_lang(lang)
 
 	return frappe.local.lang_full_dict
 
@@ -184,11 +188,21 @@ def load_lang(lang, apps=None):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
 			csv_content = read_csv_file(path)
-			try:
-				# with file and line numbers
-				cleaned = dict([(item[1], item[2]) for item in csv_content if item[2]])
-			except IndexError:
-				cleaned = dict([(item[0], item[1]) for item in csv_content if item[1]])
+
+			cleaned = {}
+			for item in csv_content:
+				if len(item)==3:
+					# with file and line numbers
+					cleaned[item[1]] = strip(item[2])
+
+				elif len(item)==2:
+					cleaned[item[0]] = strip(item[1])
+
+				else:
+					raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
+						app=app, lang=lang, values=repr(item).encode("utf-8")
+					))
+
 			out.update(cleaned)
 	return out
 
@@ -229,7 +243,7 @@ def get_messages_for_app(app):
 					raise Exception
 
 	# app_include_files
-	messages.extend(get_messages_from_include_files(app))
+	messages.extend(get_all_messages_from_js_files(app))
 
 	# server_messages
 	messages.extend(get_server_messages(app))
@@ -293,7 +307,7 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 
 	doc_path = frappe.get_module_path(module, doctype, name)
 
-	messages = get_messages_from_file(os.path.join(doc_path, name +".py"))
+	messages = get_messages_from_file(os.path.join(doc_path, frappe.scrub(name) +".py"))
 
 	if os.path.exists(doc_path):
 		for filename in os.listdir(doc_path):
@@ -316,10 +330,25 @@ def get_server_messages(app):
 	return messages
 
 def get_messages_from_include_files(app_name=None):
-	"""Extracts all translatable strings from Javascript app files"""
+	"""Returns messages from js files included at time of boot like desk.min.js for desk and web"""
 	messages = []
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
+
+	return messages
+
+def get_all_messages_from_js_files(app_name=None):
+	"""Extracts all translatable strings from app `.js` files"""
+	messages = []
+	for app in ([app_name] if app_name else frappe.get_installed_apps()):
+		if os.path.exists(frappe.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
+				if "frappe/public/js/lib" in basepath:
+					continue
+
+				for fname in files:
+					if fname.endswith(".js") or fname.endswith(".html"):
+						messages.extend(get_messages_from_file(os.path.join(basepath, fname)))
 
 	return messages
 
@@ -334,6 +363,7 @@ def get_messages_from_file(path):
 			return [(os.path.relpath(" +".join([path, str(pos)]), apps_path),
 					message) for pos, message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
 	else:
+		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
 def extract_messages_from_code(code, is_py=False):
@@ -352,6 +382,7 @@ def extract_messages_from_code(code, is_py=False):
 	messages += [(m.start(), m.groups()[0]) for m in re.compile("_\('([^']*)'").finditer(code)]
 	if is_py:
 		messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
+
 	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
 	return pos_to_line_no(messages, code)
 
@@ -394,7 +425,7 @@ def write_csv_file(path, app_messages, lang_dict):
 	:param app_messages: Translatable strings for this app.
 	:param lang_dict: Full translated dict.
 	"""
-	app_messages.sort()
+	app_messages.sort(lambda x,y: cmp(x[1], y[1]))
 	from csv import writer
 	with open(path, 'wb') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
@@ -518,3 +549,11 @@ def deduplicate_messages(messages):
 
 def get_bench_dir():
 	return os.path.join(frappe.__file__, '..', '..', '..', '..')
+
+def rename_language(old_name, new_name):
+	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
+	if language_in_system_settings == old_name:
+		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
+
+	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
+		{ "old_name": old_name, "new_name": new_name })

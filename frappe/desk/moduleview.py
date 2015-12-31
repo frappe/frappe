@@ -59,10 +59,10 @@ def build_standard_config(module, doctype_info):
 	data = []
 
 	add_section(data, _("Documents"), "icon-star",
-		[d for d in doctype_info if in_document_section(d)])
+		[d for d in doctype_info if d.document_type in ("Document", "Transaction")])
 
 	add_section(data, _("Setup"), "icon-cog",
-		[d for d in doctype_info if not in_document_section(d)])
+		[d for d in doctype_info if d.document_type in ("Master", "Setup", "")])
 
 	add_section(data, _("Standard Reports"), "icon-list",
 		get_report_list(module, is_standard="Yes"))
@@ -82,22 +82,18 @@ def add_section(data, label, icon, items):
 def add_custom_doctypes(data, doctype_info):
 	"""Adds Custom DocTypes to modules setup via `config/desktop.py`."""
 	add_section(data, _("Documents"), "icon-star",
-		[d for d in doctype_info if (d.custom and in_document_section(d))])
+		[d for d in doctype_info if (d.custom and d.document_type in ("Document", "Transaction"))])
 
 	add_section(data, _("Setup"), "icon-cog",
-		[d for d in doctype_info if (d.custom and not in_document_section(d))])
-
-def in_document_section(d):
-	"""Returns True if `document_type` property is one of `Master`, `Transaction` or not set."""
-	return d.document_type in ("Transaction", "Master", "")
+		[d for d in doctype_info if (d.custom and d.document_type in ("Setup", "Master", ""))])
 
 def get_doctype_info(module):
 	"""Returns list of non child DocTypes for given module."""
 	doctype_info = frappe.db.sql("""select "doctype" as type, name, description,
-		ifnull(document_type, "") as document_type, ifnull(custom, 0) as custom,
-		ifnull(issingle, 0) as issingle
-		from `tabDocType` where module=%s and ifnull(istable, 0)=0
-		order by ifnull(custom, 0) asc, document_type desc, name asc""", module, as_dict=True)
+		ifnull(document_type, "") as document_type, custom as custom,
+		issingle as issingle
+		from `tabDocType` where module=%s and istable=0
+		order by custom asc, document_type desc, name asc""", module, as_dict=True)
 
 	for d in doctype_info:
 		d.description = _(d.description or "")

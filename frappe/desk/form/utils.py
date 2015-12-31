@@ -16,22 +16,6 @@ def remove_attach():
 	return frappe.utils.file_manager.remove_file(fid)
 
 @frappe.whitelist()
-def get_fields():
-	"""get fields"""
-	r = {}
-	args = {
-		'select':frappe.form_dict.get('select')
-		,'from':frappe.form_dict.get('from')
-		,'where':frappe.form_dict.get('where')
-	}
-	ret = frappe.db.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
-	if ret:
-		fl, i = frappe.form_dict.get('fields').split(','), 0
-		for f in fl:
-			r[f], i = ret[0][i], i+1
-	frappe.response['message']=r
-
-@frappe.whitelist()
 def validate_link():
 	"""validate link when updated by user"""
 	import frappe
@@ -44,17 +28,22 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	if frappe.db.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
+	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options),
+		'%s'), (value,))
+
+	if valid_value:
+		valid_value = valid_value[0][0]
 
 		# get fetch values
 		if fetch:
 			# escape with "`"
-			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
+			fetch = ", ".join(("`{0}`".format(frappe.db.escape(f.strip())) for f in fetch.split(",")))
 
 			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
 				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
-					% (fetch, options, '%s'), (value,))[0]]
+					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]]
 
+		frappe.response['valid_value'] = valid_value
 		frappe.response['message'] = 'Ok'
 
 @frappe.whitelist()
@@ -105,52 +94,3 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	else:
 		return res[0][0]
 
-@frappe.whitelist()
-def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
-	if not metadata_loaded: metadata_loaded = []
-	meta = frappe.desk.form.meta.get_meta(doctype)
-	linkinfo = meta.get("__linked_with")
-	results = {}
-
-	if not linkinfo:
-		return results
-
-	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-	for dt, link in linkinfo.items():
-		link["doctype"] = dt
-		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
-		linkmeta = link_meta_bundle[0]
-		if not linkmeta.get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
-				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
-				+ ["name", "modified", "docstatus"]
-
-			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
-
-			try:
-				if link.get("get_parent"):
-					if me and me.parent and me.parenttype == dt:
-						ret = frappe.get_list(doctype=dt, fields=fields,
-							filters=[[dt, "name", '=', me.parent]])
-					else:
-						ret = None
-
-				elif link.get("child_doctype"):
-					ret = frappe.get_list(doctype=dt, fields=fields,
-						filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
-
-				else:
-					ret = frappe.get_list(doctype=dt, fields=fields,
-						filters=[[dt, link.get("fieldname"), '=', name]])
-
-			except frappe.PermissionError:
-				frappe.local.message_log.pop()
-				continue
-
-			if ret:
-				results[dt] = ret
-
-			if not no_metadata and not dt in metadata_loaded:
-				frappe.local.response.docs.extend(link_meta_bundle)
-
-	return results
