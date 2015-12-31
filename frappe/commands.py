@@ -401,13 +401,16 @@ def write_docs(context, app, target, local=False):
 @click.command('build-docs')
 @pass_context
 @click.argument('app')
-@click.argument('docs_version')
-@click.argument('target')
+@click.option('--docs-version', default='current')
+@click.option('--target', default=None)
 @click.option('--local', default=False, is_flag=True, help='Run app locally')
 @click.option('--watch', default=False, is_flag=True, help='Watch for changes and rewrite')
-def build_docs(context, app, docs_version, target, local=False, watch=False):
+def build_docs(context, app, docs_version="current", target=None, local=False, watch=False):
 	"Setup docs in target folder of target app"
 	from frappe.utils import watch as start_watch
+	if not target:
+		target = os.path.abspath(os.path.join("..", "docs", app))
+
 	for site in context.sites:
 		_build_docs_once(site, app, docs_version, target, local)
 

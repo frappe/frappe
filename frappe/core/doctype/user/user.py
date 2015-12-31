@@ -88,7 +88,7 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		self.send_password_notifcation(self.__new_password)
+		self.send_password_notification(self.__new_password)
 
 	def share_with_self(self):
 		if self.user_type=="System User":
@@ -106,7 +106,7 @@ class User(Document):
 			else:
 				frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
-	def send_password_notifcation(self, new_password):
+	def send_password_notification(self, new_password):
 		try:
 			if self.in_insert:
 				if self.name not in STANDARD_USERS:
@@ -310,12 +310,12 @@ class User(Document):
 		self.username = self.username.strip(" @")
 
 		if self.username_exists():
-			frappe.msgprint(_("Username {0} already exists"))
+			frappe.msgprint(_("Username {0} already exists").format(self.username))
 			self.suggest_username()
 			self.username = ""
 
 		# should be made up of characters, numbers and underscore only
-		if not re.match(r"^[\w]+$", self.username):
+		if self.username and not re.match(r"^[\w]+$", self.username):
 			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
