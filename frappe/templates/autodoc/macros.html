@@ -25,14 +25,14 @@
 {% endmacro %}
 
 {% macro render_function(obj, module_name) %}
-    {% set full_name = (module_name + "." if module_name else "" ) + obj.name %}
+    {% set full_name = ((module_name + "." if module_name else "" ) + obj.name).replace(".__init__", "") %}
     {% if obj.whitelisted %}<p><span class="label label-info">Public API</span>
         <br><code>/api/method/{{ full_name }}</code>
     </p>{% endif %}
 	<p class="docs-attr-name">
         <a name="{{ full_name }}" href="#{{ full_name }}" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		{{ module_name + "." if module_name else "" }}<b>{{ obj.name }}</b>
+		{{ module_name.replace(".__init__", "") + "." if module_name else "" }}<b>{{ obj.name }}</b>
         <i class="text-muted">({{ print_args(obj.args) if obj.args else "" }})</i>
     </p>
 	<div class="docs-attr-desc">{{ obj.docs|markdown }}</div>

@@ -89,7 +89,7 @@ Putting it all together:
 
 To test your docs locally, add a `--local` option to the `build-docs` command.
 
-    bench --site [site] build-docs [appname] current $PWD/docs/reponame --local
+    bench --site [site] build-docs [appname] --local
 
 Then it will build urls so that you can view these files locally. To view them locally in your browser, you can use the Python SimpleHTTPServer
 
@@ -105,6 +105,6 @@ To publish your docs on GitHub pages, you will have to create an empty and orpha
 
 Now go back to your bench folder and write these docs to this branch. For example if your path to the `gh-pages` repo is `docs/reponame`
 
-    bench --site [site] build-docs [appname] current $PWD/docs/reponame
+    bench --site [site] build-docs [appname]
 
 To check your documentation online go to: https://[orgname].github.io/[reponame]

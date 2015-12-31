@@ -25,4 +25,7 @@ ERP for managing small and medium sized businesses.
 docs_version = "6.x.x"
 
 def get_context(context):
-	pass
+	context.top_bar_items = [
+		{"label": "Developer Tutorials", "url": context.docs_base_url + "/user", "right": 1},
+		{"label": "Documentation", "url": context.docs_base_url + "/current", "right": 1}
+	]
