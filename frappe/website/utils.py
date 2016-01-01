@@ -6,7 +6,7 @@ import frappe, re, os
 
 def delete_page_cache(path):
 	cache = frappe.cache()
-	groups = ("page_context", "website_page", "sitemap_options")
+	groups = ("website_page", "sitemap_options")
 	if path:
 		for name in groups:
 			cache.hdel(name, path)

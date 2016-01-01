@@ -133,13 +133,7 @@ frappe.ready(function() {
 	login.bind_events();
 
 	if (!window.location.hash) {
-		if (frappe.supports_pjax()) {
-			// preserve back button
-			window.history.replaceState(window.history.state, window.document.title, window.location.href + "#login");
-			$(window).trigger("hashchange");
-		} else {
-			window.location.hash = "#login";
-		}
+		window.location.hash = "#login";
 	} else {
 		$(window).trigger("hashchange");
 	}

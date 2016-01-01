@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{{ title }}</title>
+	<title>{% block title %} {{ title }} {% endblock %}</title>
 	<meta name="generator" content="frappe">
 
     {% block favicon %}
@@ -30,12 +30,19 @@
 
 	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 
-		{%- block style %}
-			<style data-html-block="style">
-			{%- if style is defined -%}{{ style }}{%- endif -%}
-			</style>
-		{%- endblock -%}
+		{%- block style %}{%- endblock -%}
 	{%- endblock -%}
+    <script>
+    window.frappe = {
+    	page_ready_events: {},
+    	ready: function(fn) {
+    		if (!frappe.page_ready_events[location.pathname]) {
+    			frappe.page_ready_events[location.pathname] = []
+    		}
+    		frappe.page_ready_events[location.pathname].push(fn);
+    	}
+    }
+    </script>
 </head>
 <body data-path="{{ path }}">
 	<div class="offcanvas-container">
@@ -53,16 +60,12 @@
                         {% include "templates/includes/navbar/navbar.html" %}
                     {%- endblock -%}
                     <div class="hero-and-content">
-    					{%- block hero -%}
-                            <div data-html-block="hero">
-                                {{ hero or "" }}
-                            </div>
-                        {%- endblock -%}
-                        {% block content %}
-                            <div class="container" data-html-block="content">
-                            {{ content }}
-                            </div>
-                        {% endblock %}
+                        <div data-html-block="hero">
+    					{%- block hero -%}{%- endblock -%}
+                        </div>
+                        <div class="container" data-html-block="content">
+                        {% block content %}{% endblock %}
+                        </div>
                     </div>
 					<footer class="page-footer">
 						<div class="container" data-html-block="footer">
@@ -103,17 +106,7 @@
 	<script type="text/javascript" src="{{ link|abs_url }}"></script>
 	{%- endfor -%}
 
-	{%- block script_lib %}
-		<script data-html-block="script_lib" data-path="{{ name }}">
-		{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
-		</script>
-	{%- endblock -%}
-
-	{%- block script %}
-		<script data-html-block="script">
-		{%- if script is defined -%}{{ script }}{%- endif -%}
-		</script>
-	{%- endblock %}
+    {%- block script %}{%- endblock %}
 
 	<!-- csrf_token -->
 

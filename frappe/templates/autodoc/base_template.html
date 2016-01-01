@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{{ title }}</title>
+	<title>{% block title %} {{ title }} {% endblock %}</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="{{ docs_base_url }}/assets/css/hljs.css">
@@ -32,11 +32,7 @@
 
 	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
 
-		{%- block style %}
-			<style>
-			{%- if style is defined -%}{{ style }}{%- endif -%}
-			</style>
-		{%- endblock -%}
+		{%- block style %}{%- endblock -%}
 	{%- endblock -%}
 </head>
 <body data-path="{{ path }}">
@@ -55,17 +51,12 @@
                         {% include "templates/includes/navbar/navbar.html" %}
                     {%- endblock -%}
                     <div class="hero-and-content">
-    					{%- block hero -%}
-                            <div data-html-block="hero">
-                                {{ hero or "" }}
-                            </div>
-                        {%- endblock -%}
-                        {% block content %}
-							<div class="container">
-                               {{ content }}
-                               <!-- edit-link -->
-                            </div>
-                        {% endblock %}
+                        <div data-html-block="hero">
+    					{%- block hero -%}{%- endblock -%}
+                        </div>
+                        <div class="container" data-html-block="content">
+                        {% block content %}{% endblock %}
+                        </div>
                     </div>
 					<footer class="docs-footer">
 						<div class="container">
@@ -121,12 +112,10 @@
 	<script type="text/javascript" src="{{ docs_base_url }}/assets/js/docs.js"></script>
 
 	<!-- js should be loaded in body! -->
-	{%- block script %}
-		<script>
+	<script>
         window.docs_base_url = "{{ docs_base_url }}";
-		{%- if script is defined -%}{{ script }}{%- endif -%}
-		</script>
-	{%- endblock %}
+    </script>
+	{%- block script %}{%- endblock %}
 
 	<!-- csrf_token -->
     {%- block body_include %}{{ body_include or "" }}{% endblock -%}

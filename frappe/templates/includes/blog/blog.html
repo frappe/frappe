@@ -1,6 +1,10 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
 
-{% block content %}
+{% block hero %}{% endblock %}
+
+{% block page_content %}
 <!-- no-header -->
 <!-- no-breadcrumbs -->
 {% if blog_subtitle %}
@@ -17,7 +21,9 @@
 </div>
 {% endblock %}
 
-{% block script %}{% include "templates/includes/list/list.js" %}{% endblock %}
+{% block script %}
+<script>{% include "templates/includes/list/list.js" %}</script>
+{% endblock %}
 
 {% block style %}
 <style>
