@@ -6,10 +6,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-	<script type="text/javascript"
-		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-	<script type="text/javascript"
-		src="/assets/js/frappe-web.min.js"></script>
 
     {% block favicon %}
 	<link rel="shortcut icon"
@@ -40,13 +36,6 @@
 			</style>
 		{%- endblock -%}
 	{%- endblock -%}
-    {%- if js_globals is defined %}
-    <script>
-    {%- for key, value in js_globals.iteritems() %}
-    window.{{ key }} = "{{ value[0] }}";
-    {%- endfor -%}
-    </script>
-    {% endif -%}
 </head>
 <body data-path="{{ path }}">
 	<div class="offcanvas-container">
@@ -97,6 +86,19 @@
 	</div>
 
 	<!-- js should be loaded in body! -->
+	<script type="text/javascript"
+		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript"
+		src="/assets/js/frappe-web.min.js"></script>
+
+    {%- if js_globals is defined %}
+    <script>
+    {%- for key, value in js_globals.iteritems() %}
+    window.{{ key }} = "{{ value[0] }}";
+    {%- endfor -%}
+    </script>
+    {% endif -%}
+
 	{%- for link in web_include_js %}
 	<script type="text/javascript" src="{{ link|abs_url }}"></script>
 	{%- endfor -%}
