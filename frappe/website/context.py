@@ -5,41 +5,16 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.template import build_template
 from frappe.website.router import get_route_info
-from frappe.website.utils import can_cache
 
 def get_context(path, args=None):
-	context = None
-	context_cache = {}
+	context = get_route_info(path)
 
-	def add_data_path(context):
-		if not context.data:
-			context.data = {}
+	if args:
+		context.update(args)
 
-		context.data["path"] = path
-
-	# try from cache
-	if can_cache():
-		context_cache = frappe.cache().hget("page_context", path) or {}
-		context = context_cache.get(frappe.local.lang, None)
-
-	if not context:
-		context = get_route_info(path)
-		if args:
-			context.update(args)
-		context = build_context(context)
-
-		add_data_path(context)
-
-		if can_cache(context.no_cache):
-			context_cache[frappe.local.lang] = context
-			frappe.cache().hset("page_context", path, context_cache)
-
-	else:
-		add_data_path(context)
-
-	context.update(context.data or {})
+	context = build_context(context)
+	context["path"] = path
 
 	return context
 
@@ -89,9 +64,6 @@ def build_context(context):
 	if not context.base_template_path:
 		app_base = frappe.get_hooks("base_template")
 		context.base_template_path = app_base[0] if app_base else "templates/base.html"
-
-	if context.get("base_template_path") != context.get("template") and not context.get("rendered"):
-		context.data = build_template(context)
 
 	return context
 

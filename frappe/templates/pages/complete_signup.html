@@ -1,6 +1,12 @@
-{% block style %}{% include "templates/includes/login/login.css" %}{% endblock %}
+{% extends "templates/web.html" %}
 
-{% block content %}
+{% block style %}
+<style>
+{% include "templates/includes/login/login.css" %}
+</style>
+{% endblock %}
+
+{% block page_content %}
 <div class="login-content container" style="max-width: 800px;">
 	<form role="form form-signin" method="POST"
         action="/api/method/frappe.templates.pages.login.login_oauth_user">

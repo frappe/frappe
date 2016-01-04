@@ -1,3 +1,5 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ title or (_("{0} List").format(_(doctype))) }}{% endblock %}
 
 {% block header %}
@@ -22,6 +24,8 @@
 {% endif %}
 {% endblock %}
 
-{% block content %}{% include "templates/includes/list/list.html" %}{% endblock %}
+{% block page_content %}{% include "templates/includes/list/list.html" %}{% endblock %}
 
-{% block script %}{% include "templates/includes/list/list.js" %}{% endblock %}
+{% block script %}
+<script>{% include "templates/includes/list/list.js" %}</script>
+{% endblock %}

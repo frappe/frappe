@@ -1,3 +1,5 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block header %}
@@ -17,7 +19,7 @@
   {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <div class="introduction">
 	{% if introduction_text %}
