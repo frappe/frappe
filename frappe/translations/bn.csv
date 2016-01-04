@@ -7,11 +7,12 @@ apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access t
 DocType: About Us Settings,Website,ওয়েবসাইট
 DocType: User,Facebook Username,ফেসবুক ব্যবহারকারীর নাম
 apps/frappe/frappe/email/bulk.py +148,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,এই ইমেইল পাঠাতে পারবেন না. আপনি এই মাসের জন্য {0} ইমেইল পাঠানোর সীমা অতিক্রম করেছেন.
-apps/frappe/frappe/public/js/legacy/form.js +691,Permanently Submit {0}?,স্থায়ীভাবে {0} পাঠাবেন?
+apps/frappe/frappe/public/js/legacy/form.js +693,Permanently Submit {0}?,স্থায়ীভাবে {0} পাঠাবেন?
 apps/frappe/frappe/client.py +162,Invalid file path: {0},অবৈধ ফাইল পাথ: {0}
 DocType: Workflow State,eye-open,চোখের খোলা
 DocType: Bulk Email,Send After,পরে পাঠান
 apps/frappe/frappe/utils/file_manager.py +31,Please select a file or url,একটি ফাইল বা URL নির্বাচন করুন
+DocType: User,Username,ইউজারনেম
 DocType: DocField,DocField,DocField
 DocType: Comment,Comment By Fullname,দ্বারা FullName মন্তব্য
 DocType: DocField,Options,বিকল্প
@@ -36,11 +37,12 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Templa
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,মাতা
 apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,Jinja টেমপ্লেট সিনট্যাক্স ত্রুটি
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;টিম সদস্য&quot; বা &quot;ম্যানেজমেন্ট&quot;
-apps/frappe/frappe/core/doctype/doctype/doctype.py +286,Default for 'Check' type of field must be either '0' or '1',মাঠের &#39;চেক&#39; টাইপ-এর জন্য ডিফল্ট হয় &#39;0&#39; বা &#39;1&#39; হতে হবে
-apps/frappe/frappe/public/js/frappe/list/listview.js +340,Yesterday,গতকাল
+apps/frappe/frappe/core/doctype/doctype/doctype.py +289,Default for 'Check' type of field must be either '0' or '1',মাঠের &#39;চেক&#39; টাইপ-এর জন্য ডিফল্ট হয় &#39;0&#39; বা &#39;1&#39; হতে হবে
+apps/frappe/frappe/public/js/frappe/list/listview.js +339,Yesterday,গতকাল
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +10,Test Runner,টেস্ট রানার
 DocType: Email Account,Enable Incoming,ইনকামিং সক্রিয়
 DocType: Workflow State,Danger,ঝুঁকি
+apps/frappe/frappe/templates/pages/login.html +35,Email Address,ইমেল ঠিকানা
 DocType: Workflow State,th-large,ম-বড়
 DocType: Communication,Unread Notification Sent,প্রেরিত অপঠিত বিজ্ঞপ্তি
 apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You need {0} role to export.,রপ্তানি অনুমোদিত নয়. আপনি এক্সপোর্ট করতে {0} ভূমিকা প্রয়োজন.
@@ -50,7 +52,7 @@ apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},�
 apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","পরিবর্তন ক্ষেত্রের বৈশিষ্ট্য (আড়াল, কেবলমাত্র অনুমতি ইত্যাদি)"
 DocType: Workflow State,lock,তালা
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,আমাদের সাথে যোগাযোগ করুন পৃষ্ঠা জন্য সেটিংস.
-apps/frappe/frappe/core/doctype/user/user.py +490,Administrator Logged In,অ্যাডমিনিস্ট্রেটর লগ ইন
+apps/frappe/frappe/core/doctype/user/user.py +535,Administrator Logged In,অ্যাডমিনিস্ট্রেটর লগ ইন
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","ইত্যাদি &quot;সেলস কোয়েরি, সাপোর্ট ক্যোয়ারী&quot; মত যোগাযোগ অপশন, একটি নতুন লাইন প্রতিটি বা কমা দ্বারা পৃথকীকৃত."
 apps/frappe/frappe/public/js/frappe/ui/editor.js +448,Insert,সন্নিবেশ
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +21,Select {0},নির্বাচন {0}
@@ -74,7 +76,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Docume
 DocType: Workflow,Workflow State Field,কর্মপ্রবাহ রাজ্য মাঠ
 DocType: Blog Post,Guest,অতিথি
 DocType: DocType,Title Field,শিরোনাম মাঠ
-apps/frappe/frappe/core/doctype/user/user.py +487,"If you think this is unauthorized, please change the Administrator password.","আপনি এই অননুমোদিত যদি মনে করেন, অ্যাডমিনিস্ট্রেটর পাসওয়ার্ড পরিবর্তন করুন."
+apps/frappe/frappe/core/doctype/user/user.py +532,"If you think this is unauthorized, please change the Administrator password.","আপনি এই অননুমোদিত যদি মনে করেন, অ্যাডমিনিস্ট্রেটর পাসওয়ার্ড পরিবর্তন করুন."
 apps/frappe/frappe/email/doctype/email_account/email_account.py +62,{0} is mandatory,{0} বাধ্যতামূলক
 DocType: Workflow State,eject,দূরীভূত করা
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,ব্যবহারকারীর অনুমতি জন্য সাহায্য
@@ -86,14 +88,14 @@ apps/frappe/frappe/public/js/legacy/form.js +424,This form has been modified aft
 DocType: Website Settings,Twitter Share via,টুইটার মাধ্যমে শেয়ার
 apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,ওয়েবসাইটের পেজ এম্বেড ইমেজ স্লাইডশো.
 DocType: Workflow Action,Workflow Action Name,কর্মপ্রবাহ কর্ম নাম
-apps/frappe/frappe/core/doctype/doctype/doctype.py +145,DocType can not be merged,DOCTYPE মার্জ করা যাবে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +148,DocType can not be merged,DOCTYPE মার্জ করা যাবে না
 DocType: Web Form Field,Fieldtype,Fieldtype
 DocType: Error Snapshot,Friendly Title,বন্ধুত্বপূর্ণ শিরোনাম
 apps/frappe/frappe/desk/form/save.py +46,Did not cancel,বাতিল করা হয়নি
 DocType: Workflow State,plus,যোগ
 apps/frappe/frappe/config/desktop.py +10,File Manager,নথি ব্যবস্থাপক
 DocType: Scheduler Log,Scheduler Log,নির্ধারণকারী কার্যবিবরণী
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +15,You,আপনি
+apps/frappe/frappe/public/js/frappe/misc/user.js +88,You,আপনি
 DocType: Website Theme,lowercase,ছোট হাতের
 DocType: Print Format,Helvetica,Helvetica
 DocType: Note,Everyone can read,সবাই পড়তে পারেন
@@ -101,12 +103,12 @@ apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_
 DocType: Email Unsubscribe,Email Unsubscribe,ইমেইল আনসাবস্ক্রাইব
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,ভাল ফলাফলের জন্য একটি স্বচ্ছ পটভূমি সঙ্গে প্রায় প্রস্থ 150px এর একটি চিত্র নির্বাচন করুন.
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +14,Add multiple rows,একাধিক সারি যোগ
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","ক্ষেত্র &#39;{0}&#39; কাস্টম ক্ষেত্র উল্লেখ করার পর সন্নিবেশ &#39;{1}&#39;, অস্তিত্ব নেই"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +110,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","ক্ষেত্র &#39;{0}&#39; কাস্টম ক্ষেত্র উল্লেখ করার পর সন্নিবেশ &#39;{1}&#39;, অস্তিত্ব নেই"
 ,App Installer,অ্যাপ্লিকেশন ইনস্টলার
 DocType: Workflow State,circle-arrow-up,বৃত্ত-তীর-আপ
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,আপলোড হচ্ছে ...
 DocType: Workflow State,italic,বাঁকা ছাঁদে গঠিত
-apps/frappe/frappe/core/doctype/doctype/doctype.py +455,{0}: Cannot set Import without Create,{0}: তৈরি ছাড়া আমদানি সেট করা যায় না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +459,{0}: Cannot set Import without Create,{0}: তৈরি ছাড়া আমদানি সেট করা যায় না
 DocType: Comment,Post Topic,পোস্ট টপিক
 apps/frappe/frappe/config/desk.py +21,Event and other calendars.,ঘটনা এবং অন্যান্য ক্যালেন্ডার.
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Drag to sort columns,কলাম সাজাতে ড্র্যাগ
@@ -120,7 +122,7 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are no
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +177,Example,উদাহরণ
 DocType: Workflow State,gift,উপহার
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Reqd,Reqd
-apps/frappe/frappe/core/doctype/communication/communication.py +193,Unable to find attachment {0},সংযুক্তি খুঁজে পেতে অসমর্থ {0}
+apps/frappe/frappe/core/doctype/communication/communication.py +194,Unable to find attachment {0},সংযুক্তি খুঁজে পেতে অসমর্থ {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Assign a permission level to the field.,ক্ষেত্রের একটি অনুমতি স্তর নির্ধারণ করুন.
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,প্রদর্শন করুন / আড়াল মডিউল
 apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,নিষ্ক্রিয় প্রতিবেদন
@@ -157,11 +159,11 @@ DocType: DocType,Show this field as title,শিরোনাম হিসেব�
 apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},FIELDNAME {0} মত বিশেষ অক্ষর থাকতে পারে না {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,আপনার ভাষা নির্বাচন করুন
 apps/frappe/frappe/model/document.py +428,Error: Document has been modified after you have opened it,ত্রুটি: আপনি এটা খোলা আছে নথি পরিবর্ধিত হয়েছে
-apps/frappe/frappe/core/doctype/doctype/doctype.py +476,{0}: Cannot set Assign Submit if not Submittable,{0}: বরাদ্দ Submittable না হলে জমা সেট করা যায় না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +480,{0}: Cannot set Assign Submit if not Submittable,{0}: বরাদ্দ Submittable না হলে জমা সেট করা যায় না
 DocType: Social Login Keys,Facebook,ফেসবুক
 apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",দ্বারা ফিল্টার &quot;{0}&quot;
 DocType: DocType,Administrator,প্রশাসক
-apps/frappe/frappe/desk/page/messages/messages.js +47,Message from {0},থেকে বার্তা {0}
+apps/frappe/frappe/desk/page/messages/messages.js +49,Message from {0},থেকে বার্তা {0}
 DocType: Communication,Closed,বন্ধ
 DocType: Blog Settings,Blog Title,ব্লগ শিরোনাম
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,শিরোনাম সেট সম্পাদনা
@@ -177,10 +179,12 @@ DocType: Workflow State,Refresh,সতেজ করা
 DocType: Event,Public,প্রকাশ্য
 apps/frappe/frappe/public/js/frappe/ui/listing.js +52,Nothing to show,কিছুই দেখাতে
 apps/frappe/frappe/email/smtp.py +140,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,ইমেইল অ্যাকাউন্ট না সেটআপ. সেটআপ&gt; ইমেইল&gt; ইমেইল একাউন্ট থেকে একটি নতুন ইমেইল একাউন্ট তৈরি করুন
+apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,পছন্দ
 DocType: DocField,Print Hide If No Value,প্রিন্ট লুকালেও কোন মূল্য
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Upload Attachment,আপলোড সংযুক্তি
 DocType: Block Module,Block Module,ব্লক মডিউল
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,রপ্তানি টেমপ্লেট
+apps/frappe/frappe/desk/like.py +94,Communication: {0} in {1},যোগাযোগ: {0} মধ্যে {1}
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +349,No permission to edit,কোন অনুমতি সম্পাদনা করতে
 DocType: Block Module,Module,মডিউল
 DocType: Email Alert,Send Alert On,সতর্কতা পাঠান
@@ -192,12 +196,12 @@ DocType: Website Settings,Set Banner from Image,চিত্র থেকে স
 apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you at {0},একটি নতুন অ্যাকাউন্ট তৈরি এ আপনার জন্য তৈরি করা হয়েছে {0}
 apps/frappe/frappe/public/js/frappe/views/communication.js +403,Enter Email Recipient(s),প্রবেশ করুন প্রাপক (গুলি)
 DocType: Print Format,Verdana,ভার্ডানা
-apps/frappe/frappe/core/doctype/user/user.py +203,User {0} cannot be deleted,{0} ব্যবহারকারী মোছা যাবে না
+apps/frappe/frappe/core/doctype/user/user.py +206,User {0} cannot be deleted,{0} ব্যবহারকারী মোছা যাবে না
 apps/frappe/frappe/public/js/frappe/request.js +92,Another transaction is blocking this one. Please try again in a few seconds.,অথবা অন্য কোন গন্তব্যে এই এক ব্লক করা হয়. কয়েক সেকেন্ডের মধ্যে আবার চেষ্টা করুন.
 DocType: Property Setter,Field Name,ক্ষেত্র নাম
 apps/frappe/frappe/public/js/frappe/misc/utils.js +107,or,বা
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +92,module name...,মডিউল নাম ...
-apps/frappe/frappe/templates/generators/web_form.html +264,Continue,চালিয়ে
+apps/frappe/frappe/templates/generators/web_form.html +266,Continue,চালিয়ে
 DocType: Custom Field,Fieldname,ক্ষেত্র নাম
 DocType: Workflow State,certificate,শংসাপত্র
 DocType: User,Tile,টালি
@@ -208,6 +212,7 @@ apps/frappe/frappe/email/smtp.py +178,Unable to send emails at this time,এই 
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +5,Search or type a command,অনুসন্ধান বা কমান্ডটি টাইপ করুন
 DocType: Email Account,e.g. smtp.gmail.com,যেমন smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +366,Add A New Rule,একটি নতুন নিয়ম যোগ
+apps/frappe/frappe/templates/pages/complete_signup.html +13,One Last Step,গত এক ধাপ
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,ডকুমেন্ট টাইপ (DOCTYPE) যদি এই ক্ষেত্রের সাথে যুক্ত হতে চান নাম. যেমন গ্রাহক
 DocType: User,Roles Assigned,ভূমিকা নির্ধারিত
 DocType: Top Bar Item,Parent Label,মূল ট্যাগ
@@ -235,15 +240,15 @@ DocType: DocField,Hidden,গোপন
 apps/frappe/frappe/model/base_document.py +399,{0} must be set first,{0} প্রথমে সেট করা আবশ্যক
 DocType: Workflow State,plane,সমতল
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","আপনি নতুন রেকর্ড আপলোড করা হয় তাহলে যদি থাকে, &quot;সিরিজ নামকরণ&quot;, বাধ্যতামূলক হয়ে যায়."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +140,DocType can only be renamed by Administrator,DOCTYPE শুধুমাত্র অ্যাডমিনিস্ট্রেটর দ্বারা পালটে যাবে
-apps/frappe/frappe/core/doctype/doctype/doctype.py +321,Fold can not be at the end of the form,ফোল্ড ফর্মের শেষে হতে পারে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +143,DocType can only be renamed by Administrator,DOCTYPE শুধুমাত্র অ্যাডমিনিস্ট্রেটর দ্বারা পালটে যাবে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +325,Fold can not be at the end of the form,ফোল্ড ফর্মের শেষে হতে পারে না
 DocType: Communication,Bounced,ফেরত
 apps/frappe/frappe/config/setup.py +14,System and Website Users,সিস্টেম এবং ওয়েবসাইট ব্যবহারকারীদের
 DocType: Workflow Document State,Doc Status,ডক স্থিতি
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +78,"Your download is being built, this may take a few moments...","আপনার ডাউনলোড নির্মিত হচ্ছে, এই কয়েক মিনিট সময় নিতে পারে ..."
 apps/frappe/frappe/public/js/frappe/ui/listing.html +6,Add Filter,ফিল্টার যোগ
 DocType: Web Page,Begin this page with a slideshow of images,ছবি একটি স্লাইডশো সঙ্গে এই পৃষ্ঠার শুরু
-apps/frappe/frappe/utils/data.py +492,{0} and {1},{0} এবং {1}
+apps/frappe/frappe/utils/data.py +495,{0} and {1},{0} এবং {1}
 DocType: Version,Docname,Docname
 apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,সংস্করণ পুনরুদ্ধার
 DocType: About Us Settings,Website Manager,ওয়েবসাইট ম্যানেজার
@@ -251,7 +256,7 @@ DocType: Event Role,Event Role,ইভেন্ট ভূমিকা
 apps/frappe/frappe/public/js/frappe/ui/editor.html +65,Indent (Tab),ইনডেন্ট (ট্যাব)
 DocType: Workflow State,List,তালিকা
 DocType: Page Role,Page Role,পৃষ্ঠা ভূমিকা
-apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Field {0} in row {1} cannot be hidden and mandatory without default,মাঠ {0} সারিতে {1} আড়াল করা যাবে না এবং ডিফল্ট ছাড়া বাধ্যতামূলক
+apps/frappe/frappe/core/doctype/doctype/doctype.py +270,Field {0} in row {1} cannot be hidden and mandatory without default,মাঠ {0} সারিতে {1} আড়াল করা যাবে না এবং ডিফল্ট ছাড়া বাধ্যতামূলক
 DocType: System Settings,mm/dd/yyyy,মিমি / ডিডি / YYYY
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +16,Previous,পূর্ববর্তী
 apps/frappe/frappe/email/doctype/email_account/email_account.py +341,Re:,লিখেছেন:
@@ -264,7 +269,7 @@ DocType: Version,Version,সংস্করণ
 DocType: User,Fill Screen,পর্দা ভরাট
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","কারণে অনুপস্থিত তথ্য, এই বৃক্ষ প্রতিবেদন প্রদর্শন করতে পারেনি. সম্ভবত, এটা কারণে অনুমতি ফিল্টার আউট হচ্ছে."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,অনুমতি সম্পাদনা
-apps/frappe/frappe/public/js/frappe/form/grid.js +267,Edit via Upload,আপলোডের মাধ্যমে সম্পাদনা
+apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,আপলোডের মাধ্যমে সম্পাদনা
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","নথি প্রকার ..., যেমন গ্রাহক"
 DocType: Workflow State,barcode,বারকোড
 DocType: Country,Country Name,দেশের নাম
@@ -283,7 +288,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +197,Pl
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +8,Gantt,Gantt
 DocType: About Us Settings,Introduce your company to the website visitor.,ওয়েবসাইট পরিদর্শক আপনার কোম্পানীর পরিচয় করিয়ে.
 apps/frappe/frappe/public/js/frappe/form/workflow.js +116,To,থেকে
-apps/frappe/frappe/templates/base.html +145,Please enter email address,ইমেল ঠিকানা লিখুন
+apps/frappe/frappe/templates/base.html +148,Please enter email address,ইমেল ঠিকানা লিখুন
 apps/frappe/frappe/model/rename_doc.py +356,Successful: {0} to {1},সফল: {0} থেকে {1}
 apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,সমস্ত পরিবর্তন করতে পারবেন এই ডুপ্লিকেট অনুগ্রহ
 apps/frappe/frappe/utils/pdf.py +49,PDF generation failed because of broken image links,পিডিএফ প্রজন্মের কারণ ভাঙা ইমেজ লিঙ্ক ব্যর্থ
@@ -299,32 +304,33 @@ DocType: Email Account,Send Notification to,বিজ্ঞপ্তি পা�
 DocType: DocField,Collapsible,বন্ধ হইতে সক্ষম
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +656,Saved,সংরক্ষিত
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,নির্বাচন করার জন্য বিকল্প. একটি নতুন লাইন প্রতিটি বিকল্প.
-apps/frappe/frappe/public/js/legacy/form.js +714,Permanently Cancel {0}?,স্থায়ীভাবে বাতিল {0}?
+apps/frappe/frappe/public/js/legacy/form.js +716,Permanently Cancel {0}?,স্থায়ীভাবে বাতিল {0}?
 DocType: Workflow State,music,সঙ্গীত
 apps/frappe/frappe/config/setup.py +66,Settings,সেটিংস
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,DOCTYPE উল্লেখ করুন
 apps/frappe/frappe/public/js/frappe/views/module/module_section.html +27,More,অধিক
 apps/frappe/frappe/public/js/frappe/model/model.js +492,Rename,পুনঃনামকরণ
 DocType: Print Format,Format Data,বিন্যাসে তথ্য
-apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +7,Like,মত
+DocType: Feed,Like,মত
 DocType: Customize Form Field,Customize Form Field,ফরম ক্ষেত্র কাস্টমাইজ
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Allow User,অনুমতি
 apps/frappe/frappe/config/setup.py +54,Check which Documents are readable by a User,কোনো ব্যবহারকারীর দ্বারা পাঠযোগ্য যা দস্তাবেজ চেক
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +161,use % as wildcard,ওয়াইল্ডকার্ড হিসেবে% ব্যবহার
 DocType: User,Reset Password Key,পাসওয়ার্ড রিসেট করুন কী
 DocType: Email Account,Enable Auto Reply,অটো উত্তর সক্রিয়
+apps/frappe/frappe/desk/like.py +87,Comment: {0} in {1},মন্তব্য: {0} মধ্যে {1}
 apps/frappe/frappe/core/doctype/scheduler_log/scheduler_log_list.js +7,Not Seen,দেখা যায় না
 DocType: Workflow State,zoom-in,প্রসারিত করো
 apps/frappe/frappe/email/bulk.py +165,Unsubscribe from this list,এই তালিকা থেকে সদস্যতা ত্যাগ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +13,Reference DocType and Reference Name are required,রেফারেন্স DOCTYPE ও রেফারেন্স প্রয়োজন নাম
-apps/frappe/frappe/desk/page/activity/activity.js +153,Sep,সেপ্টেম্বর
+apps/frappe/frappe/desk/page/activity/activity.js +190,Sep,সেপ্টেম্বর
 DocType: DocField,Width,প্রস্থ
 DocType: Email Account,Notify if unreplied,Unreplied যদি অবহিত
 DocType: DocType,Fields,ক্ষেত্রসমূহ
 DocType: System Settings,Your organization name and address for the email footer.,ইমেল পাদচরণ জন্য আপনার প্রতিষ্ঠানের নাম ও ঠিকানা.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,মূল ছক
 apps/frappe/frappe/config/desktop.py +26,Developer,ডেভেলপার
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +56,Created,নির্মিত
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +57,Created,নির্মিত
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} সারিতে {1} উভয় URL এবং সন্তানের আইটেম থাকতে পারে না
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,{0} রুট মোছা যাবে না
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162,No comments yet,এখনো কোন মন্তব্য নেই
@@ -343,9 +349,10 @@ DocType: DefaultValue,DefaultValue,DefaultValue
 DocType: Dropbox Backup,Daily,দৈনিক
 apps/frappe/frappe/config/setup.py +19,User Roles,ব্যবহারকারী ভূমিকা
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,প্রপার্টি সেটার একটি স্ট্যান্ডার্ড DOCTYPE বা ক্ষেত্র সম্পত্তি অগ্রাহ্য করা
-apps/frappe/frappe/core/doctype/user/user.py +333,Cannot Update: Incorrect / Expired Link.,আপডেট করতে পারবেন না: ভুল / মেয়াদউত্তীর্ণ লিংক.
+apps/frappe/frappe/core/doctype/user/user.py +378,Cannot Update: Incorrect / Expired Link.,আপডেট করতে পারবেন না: ভুল / মেয়াদউত্তীর্ণ লিংক.
 DocType: DocField,Set Only Once,শুধু একবার সেট
-apps/frappe/frappe/core/doctype/doctype/doctype.py +482,{0}: Cannot set import as {1} is not importable,{0}: {1} আমদানিযোগ্য নয় হিসাবে আমদানি সেট করা যায় না
+apps/frappe/frappe/core/doctype/user/user.py +313,Username {0} already exists,ইউজারনেম {0} আগে থেকেই আছে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +486,{0}: Cannot set import as {1} is not importable,{0}: {1} আমদানিযোগ্য নয় হিসাবে আমদানি সেট করা যায় না
 DocType: Top Bar Item,"target = ""_blank""",টার্গেট = &quot;_blank&quot;
 DocType: Workflow State,hdd,HDD
 DocType: ToDo,High,উচ্চ
@@ -371,6 +378,7 @@ DocType: User,Stores the JSON of last known versions of various installed apps. 
 DocType: Website Theme,Google Font (Text),গুগল ফন্ট (টেক্সট)
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} জন্য ইতিমধ্যে আন-সাবস্ক্রাইব {1} {2}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,অপসারণ করা হয়নি
+apps/frappe/frappe/desk/like.py +98,Liked,পছন্দ
 DocType: Report,Query,প্রশ্ন
 DocType: DocType,Sort Order,সজ্জাক্রম
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +137,'In List View' not allowed for type {0} in row {1},সারি {1} এর টাইপ {0} জন্য 'তালিকা দেখুন' অনুমোদিত নয়
@@ -378,7 +386,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),টুইট আপনার ব্যবহারকারীর অ্যাকাউন্টের মাধ্যমে শেয়ার করা হবে (উল্লেখ করা হলে)
 ,Document Share Report,ডকুমেন্ট শেয়ার প্রতিবেদন
 DocType: User,Last Login,সর্বশেষ লগইন
-apps/frappe/frappe/core/doctype/doctype/doctype.py +366,Fieldname is required in row {0},FIELDNAME সারিতে প্রয়োজন বোধ করা হয় {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +370,Fieldname is required in row {0},FIELDNAME সারিতে প্রয়োজন বোধ করা হয় {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,স্তম্ভ
 DocType: Custom Field,Adds a custom field to a DocType,একটি DOCTYPE একটি কাস্টম ক্ষেত্র যোগ
 DocType: File,Is Home Folder,হোম ফোল্ডার
@@ -398,24 +406,26 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +12,Number list,সংখ্�
 apps/frappe/frappe/config/setup.py +84,Log of error during requests.,অনুরোধ সময় ত্রুটির লগ ইন করুন.
 DocType: DocShare,Everyone,সবাই
 DocType: Workflow State,backward,অনুন্নত
-apps/frappe/frappe/core/doctype/doctype/doctype.py +429,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: একই ভূমিকা, শ্রেনী এবং ক্রেডিট সঙ্গে অনুমতি দেওয়া শুধু একটা রুল {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +433,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: একই ভূমিকা, শ্রেনী এবং ক্রেডিট সঙ্গে অনুমতি দেওয়া শুধু একটা রুল {1}"
 DocType: Workflow State,share,ভাগ
 apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,লেনদেনের জন্য সিরিজ সংখ্যায়ন সেট.
 DocType: User,Last IP,সর্বশেষ আইপি
 DocType: DocPerm,Filter records based on User Permissions defined for a user,একটি ব্যবহারকারীর জন্য নির্ধারিত ব্যবহারকারীর অনুমতি উপর ভিত্তি করে ফিল্টার রেকর্ড
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),ছবি ঢোকান (বা শুধু ড্র্যাগ এন্ড ড্রপ)
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,FIELDNAME কাস্টম ক্ষেত্র জন্য নির্ধারণ করে না
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +32,Fieldname not set for Custom Field,FIELDNAME কাস্টম ক্ষেত্র জন্য নির্ধারণ করে না
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,সর্বশেষ আপডেট করা হয়েছে
 apps/frappe/frappe/public/js/frappe/form/workflow.js +117,is not allowed.,অনুমোদিত নয়.
 DocType: Website Theme,Background Color,পিছনের রঙ
 apps/frappe/frappe/public/js/frappe/views/communication.js +460,There were errors while sending email. Please try again.,ইমেইল পাঠানোর সময় কিছু সমস্যা হয়েছে. অনুগ্রহ করে আবার চেষ্টা করুন.
 DocType: Web Page,0 is highest,0 সর্বোচ্চ
+apps/frappe/frappe/templates/pages/login.html +71,Send Password,পাসওয়ার্ডটি পাঠান
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +24,Attachments,সংযুক্তি
 apps/frappe/frappe/website/doctype/web_form/web_form.py +73,You don't have the permissions to access this document,আপনি এই দস্তাবেজটি অ্যাক্সেস করতে অনুমতি নেই
 DocType: Email Alert,Value Changed,মান পরিবর্তন
 apps/frappe/frappe/model/base_document.py +282,Duplicate name {0} {1},সদৃশ নাম {0} {1}
 DocType: Web Form Field,Web Form Field,ওয়েব ফরম ক্ষেত্র
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +198,Hide field in Report Builder,প্রতিবেদন নির্মাতা লুকান ক্ষেত্রের
+apps/frappe/frappe/templates/generators/blog_post.html +21,This post is filed under {0},এই পোস্টের অধীনে দায়ের করা হয় {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,HTML সম্পাদনা করুন
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,মৌলিক অনুমতি পুনরুদ্ধার
 DocType: DocField,Button,বোতাম
@@ -426,34 +436,35 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +403,Did n
 DocType: Contact Us Settings,Contact Us Settings,আমাদের সেটিংস যোগাযোগ
 DocType: Workflow State,text-width,টেক্সট-প্রস্থ
 apps/frappe/frappe/public/js/legacy/form.js +139,Maximum Attachment Limit for this record reached.,এই রেকর্ডের জন্য এটাচমেন্টের সর্বাধিক সীমায় পৌঁছেছে.
+apps/frappe/frappe/templates/pages/login.html +15,Sign in using,ব্যবহার করে সাইন ইন
 DocType: Email Alert,View Properties (via Customize Form),(কাস্টমাইজ ফরম মাধ্যমে) বৈশিষ্ট্য দেখুন
 DocType: Website Settings,Sidebar,সাইডবার
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,প্রতিবেদন নির্মাতা রিপোর্ট প্রতিবেদন নির্মাতা দ্বারা সরাসরি পরিচালিত হয়. কিছুই করার নাই.
-apps/frappe/frappe/website/doctype/web_page/web_page.py +29,Cannot edit templated page,টেমপ্লেট পাতা সম্পাদনা করতে পারবেন না
+apps/frappe/frappe/website/doctype/web_page/web_page.py +31,Cannot edit templated page,টেমপ্লেট পাতা সম্পাদনা করতে পারবেন না
 apps/frappe/frappe/model/document.py +722,none of,কেউ
 apps/frappe/frappe/public/js/frappe/views/communication.js +72,Send Me A Copy,আমাকে একটি কপি পাঠান
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,ব্যবহারকারীর অনুমতি আপলোড
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,চেক আইটেম ডেস্কটপে প্রদর্শিত হবে
-apps/frappe/frappe/core/doctype/doctype/doctype.py +472,{0} cannot be set for Single types,{0} একক ধরনের জন্য নির্ধারণ করা যাবে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +476,{0} cannot be set for Single types,{0} একক ধরনের জন্য নির্ধারণ করা যাবে না
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +46,{0} are currently viewing this document,{0} বর্তমানে এই ডকুমেন্ট দেখছেন
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +104,{0} updated,{0} আপডেট করা হয়েছে
-apps/frappe/frappe/core/doctype/doctype/doctype.py +462,Report cannot be set for Single types,গালাগাল প্রতিবেদন একা ধরনের জন্য নির্ধারণ করা যাবে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +466,Report cannot be set for Single types,গালাগাল প্রতিবেদন একা ধরনের জন্য নির্ধারণ করা যাবে না
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +17,"To run a test add the module name in the route after '{0}'. For example, {1}","একটি পরীক্ষার পর রুট মডিউল নাম যোগ চালানোর &#39;{0}&#39;. উদাহরণস্বরূপ, {1}"
 DocType: Contact Us Settings,Address Line 1,ঠিকানা লাইন 1
-apps/frappe/frappe/desk/page/activity/activity.js +152,Feb,ফেব্রুয়ারী
+apps/frappe/frappe/desk/page/activity/activity.js +189,Feb,ফেব্রুয়ারী
 DocType: DocPerm,Role,ভূমিকা
-apps/frappe/frappe/utils/data.py +385,Cent,সেন্ট
+apps/frappe/frappe/utils/data.py +388,Cent,সেন্ট
 apps/frappe/frappe/config/setup.py +176,"States for workflow (e.g. Draft, Approved, Cancelled).","দেখাবার জন্য যুক্তরাষ্ট্র (যেমন খসড়া অনুমোদিত, বাতিল হয়েছে)."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,সেট পরিমাণ
 DocType: Comment,Unsubscribed,সদস্যতামুক্তি
 ,Data Import Tool,ডেটা আমদানি টুল
-apps/frappe/frappe/core/doctype/user/user.py +378,Registration Details Emailed.,নিবন্ধন বিবরণ ইমেল.
+apps/frappe/frappe/core/doctype/user/user.py +423,Registration Details Emailed.,নিবন্ধন বিবরণ ইমেল.
 DocType: Workflow State,Stop,থামুন
 DocType: Top Bar Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,আপনি খুলতে চান পাতা লিংক. আপনি এটি একটি গ্রুপ ঊর্ধ্বতন করতে চান তাহলে ফাঁকা ছেড়ে দিন.
 DocType: DocType,Is Single,একা
 apps/frappe/frappe/email/bulk.py +231,{0} has left the conversation in {1} {2},{0} মধ্যে কথোপকথন ত্যাগ করেছে {1} {2}
 DocType: Blogger,User ID of a Blogger,একটি ব্লগার এর ইউজার আইডি
-apps/frappe/frappe/core/doctype/user/user.py +198,There should remain at least one System Manager,অন্তত একটি সিস্টেম ম্যানেজার থাকা উচিত
+apps/frappe/frappe/core/doctype/user/user.py +201,There should remain at least one System Manager,অন্তত একটি সিস্টেম ম্যানেজার থাকা উচিত
 DocType: Workflow State,circle-arrow-right,বৃত্ত-তীর-ডান
 apps/frappe/frappe/public/js/legacy/form.js +70,Cannot open instance when its {0} is open,তার {0} খোলা থাকলে উদাহরণস্বরূপ খোলা যাচ্ছে না
 DocType: Scheduler Log,Method,পদ্ধতি
@@ -484,11 +495,11 @@ DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular
 DocType: Workflow State,heart,হৃদয়
 DocType: Workflow State,minus,ঋণচিহ্ন
 apps/frappe/frappe/public/js/frappe/request.js +116,Server Error: Please check your server logs or contact tech support.,সার্ভার সমস্যা: আপনার সার্ভার লগ পরীক্ষা বা কারিগরি সহায়তা সাথে যোগাযোগ করুন.
-apps/frappe/frappe/core/doctype/user/user.py +116,Welcome email sent,স্বাগতম ইমেইল পাঠানো
-apps/frappe/frappe/public/js/frappe/views/calendar.js +92,Select dates to create a new ,নির্বাচন তারিখগুলি একটি নতুন তৈরি করতে
+apps/frappe/frappe/core/doctype/user/user.py +119,Welcome email sent,স্বাগতম ইমেইল পাঠানো
+apps/frappe/frappe/public/js/frappe/views/calendar.js +90,Select dates to create a new ,নির্বাচন তারিখগুলি একটি নতুন তৈরি করতে
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +242,Let's prepare the system for first use.,প্রথম ব্যবহারের জন্য সিস্টেম প্রস্তুত করা যাক.
 apps/frappe/frappe/desk/page/applications/applications.js +129,Featured,আলোচিত
-apps/frappe/frappe/core/doctype/user/user.py +361,Already Registered,ইতিমধ্যে নিবন্ধভুক্ত
+apps/frappe/frappe/core/doctype/user/user.py +406,Already Registered,ইতিমধ্যে নিবন্ধভুক্ত
 DocType: System Settings,Float Precision,ফ্লোট যথার্থ
 apps/frappe/frappe/core/doctype/page/page.py +35,Only Administrator can edit,কেবলমাত্র প্রশাসক সম্পাদনা করতে পারেন
 DocType: Property Setter,Property Setter,প্রপার্টি গোয়েন্দা
@@ -496,7 +507,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,কোনো অ্যাপ্লিকেশন ইনস্টল করা
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,হিসাবে বাধ্যতামূলক ক্ষেত্র চিহ্ন
 DocType: Communication,Clicked,ক্লিক
-apps/frappe/frappe/public/js/legacy/form.js +865,No permission to '{0}' {1},কোন অনুমতি &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/legacy/form.js +867,No permission to '{0}' {1},কোন অনুমতি &#39;{0}&#39; {1}
 DocType: User,Google User ID,গুগল ব্যবহারকারী আইডি
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,এই পদ্ধতি শুধুমাত্র একটি মন্তব্য তৈরি করতে ব্যবহার করা যেতে পারে
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,কোন {0} পাওয়া
@@ -512,6 +523,7 @@ apps/frappe/frappe/public/js/frappe/form/grid_form.html +26,Insert Below,নি�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +110,All customizations will be removed. Please confirm.,সব কাস্টমাইজেশন সরিয়ে নেওয়া হবে. অনুগ্রহ করে নিশ্চিত করুন.
 DocType: Page,Page HTML,পৃষ্ঠা এইচটিএমএল
 DocType: Web Page,Header,শিরোলেখ
+DocType: Feed,Doc Owner,ডক মালিক
 apps/frappe/frappe/public/js/frappe/model/model.js +79,Unknown Column: {0},অজানা কলাম: {0}
 DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ঐচ্ছিক: সর্বদা এই আইডিতে পাঠাতে. একটি নতুন সারি প্রতিটি ইমেইল আইডি
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ভূমিকা {0} সঙ্গে ব্যবহারকারী:
@@ -547,7 +559,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +91,Open a module 
 DocType: Communication,Delivery Status,ডেলিভারি স্থিতি
 DocType: Module Def,App Name,অ্যাপ নাম
 DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","লেনদেন কর্মপ্রবাহ রাষ্ট্র প্রতিনিধিত্ব করে মাঠ (ক্ষেত্র উপস্থিত না থাকলে, একটি নতুন লুকানো কাস্টম ক্ষেত্র তৈরি করা হবে)"
-apps/frappe/frappe/templates/pages/login.py +162,Email not verified with {1},সঙ্গে যাচাই না ইমেইল {1}
+apps/frappe/frappe/utils/oauth.py +171,Email not verified with {1},সঙ্গে যাচাই না ইমেইল {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +556,Edit to add content,কন্টেন্ট যোগ করতে সম্পাদন
 apps/frappe/frappe/__init__.py +432,No permission for {0},জন্য কোন অনুমতি {0}
 DocType: Web Form,Advanced,অগ্রসর
@@ -562,10 +574,10 @@ apps/frappe/frappe/email/receive.py +91,Invalid User Name or Support Password. P
 DocType: Email Account,Login Id is Different,লগইন আইডি ভিন্ন
 DocType: Email Account,Yahoo Mail,ইয়াহু মেইল
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +476,Saved!,সংরক্ষিত!
-apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},আপডেট করা হয়েছে {0}: {1}
+apps/frappe/frappe/desk/page/activity/activity_row.html +22,Updated {0}: {1},আপডেট করা হয়েছে {0}: {1}
 DocType: DocType,User Cannot Create,ইউজার তৈরি করতে পারবেন না
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","শুধুমাত্র এক ধরনের অনুমতি রেকর্ড সংজ্ঞায়িত করা হয় তাহলে এই এছাড়াও, ঐ লিঙ্কের জন্য ডিফল্ট মান হিসেবে নির্ধারণ করা হবে."
-apps/frappe/frappe/desk/page/activity/activity.js +196,{0} on {1},{1} এ {0}
+apps/frappe/frappe/desk/page/activity/activity.js +233,{0} on {1},{1} এ {0}
 DocType: Customize Form,Enter Form Type,ফরম প্রকার লিখুন
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,কোন রেকর্ড বাঁধা.
 DocType: User,Send Password Update Notification,পাসওয়ার্ড আপডেট বিজ্ঞপ্তি পাঠান
@@ -574,14 +586,13 @@ apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","
 apps/frappe/frappe/public/js/frappe/desk.js +300,Updated To New Version,নতুন সংস্করণে আপডেট করা হয়েছে
 DocType: DocField,Depends On,নির্ভর করে
 DocType: DocPerm,Additional Permissions,অতিরিক্ত অনুমতির
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +37,Compose,রচনা করা
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,এই রেখার নিচের তথ্য লিখে শুরু
 DocType: Workflow State,retweet,রিট্যুইট
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,টেমপ্লেট হালনাগাদ ও সংযোজনের আগে CSV বিন্যাসে (কমা পৃথক মান) সংরক্ষণ করুন.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +164,Specify the value of the field,ক্ষেত্রের মান উল্লেখ
 DocType: Report,Disabled,অক্ষম
-apps/frappe/frappe/desk/page/activity/activity.js +152,May,মে
-apps/frappe/frappe/desk/page/activity/activity.js +152,Jan,জানুয়ারি
+apps/frappe/frappe/desk/page/activity/activity.js +189,May,মে
+apps/frappe/frappe/desk/page/activity/activity.js +189,Jan,জানুয়ারি
 DocType: Email Account,Always use Account's Email ID as Sender,সর্বদা প্রেরক হিসাবে অ্যাকাউন্টের ইমেল আইডি ব্যবহার
 DocType: Workflow State,eye-close,চোখের বন্ধ
 apps/frappe/frappe/public/js/frappe/request.js +295,Report this issue,এই সমস্যা প্রতিবেদন
@@ -592,7 +603,7 @@ apps/frappe/frappe/config/website.py +49,Setup of fonts and background.,ফন�
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +4,Editing Row,সম্পাদনা সারি
 DocType: Workflow Action,Workflow Action Master,কর্মপ্রবাহ কর্ম মাস্টার
 DocType: Custom Field,Field Type,ক্ষেত্র প্রকার
-apps/frappe/frappe/utils/data.py +402,only.,কেবল.
+apps/frappe/frappe/utils/data.py +405,only.,কেবল.
 DocType: Feed,Doc Type,ডক ধরন
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +455,Descending,অধোগামী
 apps/frappe/frappe/email/receive.py +57,Invalid Mail Server. Please rectify and try again.,অবৈধ মেল সার্ভার. ত্রুটিমুক্ত এবং আবার চেষ্টা করুন.
@@ -600,20 +611,22 @@ DocType: Dropbox Backup,Dropbox Backup,ড্রপবক্স ব্যাক�
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","লিংক এর জন্য, পরিসীমা হিসাবে doctype লিখতে. নির্বাচন করুন, প্রতিটি একটি নতুন লাইন, তালিকার বিকল্প লিখুন."
 DocType: Workflow State,film,চলচ্চিত্র
-apps/frappe/frappe/model/db_query.py +329,No permission to read {0},কোন অনুমতি পড়তে {0}
+apps/frappe/frappe/model/db_query.py +334,No permission to read {0},কোন অনুমতি পড়তে {0}
 apps/frappe/frappe/config/desk.py +7,Tools,সরঞ্জাম
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,একাধিক রুট নোড অনুমোদিত নয়.
 apps/frappe/frappe/public/js/frappe/model/create_new.js +280,Get,পাওয়া
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +366,ID field is required to edit values using Report. Please select the ID field using the Column Picker,আইডি ক্ষেত্রের প্রতিবেদন ব্যবহার মান সম্পাদনা করার প্রয়োজন বোধ করা হয়. কলাম বাছাইকারি ব্যবহার আইডি ক্ষেত্র নির্বাচন করুন
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +365,ID field is required to edit values using Report. Please select the ID field using the Column Picker,আইডি ক্ষেত্রের প্রতিবেদন ব্যবহার মান সম্পাদনা করার প্রয়োজন বোধ করা হয়. কলাম বাছাইকারি ব্যবহার আইডি ক্ষেত্র নির্বাচন করুন
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,মন্তব্য
 apps/frappe/frappe/public/js/frappe/ui/messages.js +23,Confirm,নিশ্চিত করা
 apps/frappe/frappe/desk/page/applications/applications.js +160,Install {0}?,ইনস্টল {0}?
+apps/frappe/frappe/templates/pages/login.html +50,Forgot Password?,পাসওয়ার্ড ভুলে গেছেন?
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
 apps/frappe/frappe/email/doctype/email_account/email_account.py +43,Login Id is required,লগইন আইডি আবশ্যক
 DocType: Website Slideshow,Website Slideshow,ওয়েবসাইট স্লাইড
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +6,No Data,কোন ডেটা
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","ওয়েবসাইট হোম পেজে যে লিংক. স্ট্যান্ডার্ড লিংক (সূচক, লগইন, পণ্য, ব্লগ, সম্পর্কে, যোগাযোগ)"
 apps/frappe/frappe/public/js/frappe/ui/editor.html +8,Bullet list,বুলেট তালিকা
+apps/frappe/frappe/email/doctype/email_account/email_account.py +124,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},ইমেইল অ্যাকাউন্ট {0} থেকে ইমেইল প্রাপ্তির যখন প্রমাণীকরণ ব্যর্থ হয়েছে. সার্ভার থেকে বার্তা: {1}
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +49,values and dates,মান এবং তারিখ
 DocType: Website Settings,Banner Image,ব্যানার চিত্র
 DocType: Custom Field,Custom Field,কাস্টম ক্ষেত্র
@@ -647,7 +660,6 @@ DocType: System Settings,Security,নিরাপত্তা
 DocType: Currency,**Currency** Master,** ** একক মাস্টার
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +87,Please save the document before assignment,নিয়োগ আগে নথি সংরক্ষণ করুন
 DocType: Website Settings,Address and other legal information you may want to put in the footer.,ঠিকানা এবং অন্যান্য আইনগত তথ্য আপনি পাদচরণ একটি বার্তা দেখাতে চাইবেন.
-apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +27,Starred By Me,আমার দ্বারা তারকাচিহ্নিত
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,ডকুমেন্ট টাইপ নির্বাচন করুন
 apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,এটা সন্তানের নোড আছে {0} মুছে ফেলা যায় না
 apps/frappe/frappe/templates/includes/list/filters.html +19,clear,পরিষ্কার
@@ -655,6 +667,7 @@ apps/frappe/frappe/desk/doctype/event/event.py +28,Every day events should finis
 DocType: Communication,User Tags,ব্যবহারকারী ট্যাগ্স
 DocType: Workflow State,download-alt,ডাউনলোড-Alt
 apps/frappe/frappe/desk/page/applications/applications.py +91,Downloading App {0},অ্যাপ ডাউনলোড {0}
+apps/frappe/frappe/templates/pages/login.html +42,Sign in,প্রবেশ কর
 DocType: Web Page,Main Section,প্রধান ধারা
 DocType: Page,Icon,আইকন
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +50,to filter values between 5 & 10,5 ও 10 এর মধ্যে মান ফিল্টার
@@ -675,8 +688,8 @@ DocType: Website Settings,Hide Footer Signup,পাদলেখ সাইনআ�
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,এই সংরক্ষিত ও কলাম এবং ফলাফলের আসতে যেখানে একই ফোল্ডারে একটি পাইথন ফাইলটি লিখতে.
 DocType: DocType,Sort Field,সাজান মাঠ
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +356,Edit Filter,সম্পাদনা ফিল্টার
-apps/frappe/frappe/templates/pages/404.html +10,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","আমরা এই জন্য খুবই দুঃখিত, কিন্তু আপনি যে পৃষ্ঠাটি খুঁজছেন অনুপস্থিত (এই কারণে অঙ্ক একটি টাইপো নিয়ে হতে পারে) বা সরানো হয়."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +249,Field {0} of type {1} cannot be mandatory,মাঠ {0} টাইপ {1} বাধ্যতামূলক হতে পারে না
+apps/frappe/frappe/templates/pages/404.html +12,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","আমরা এই জন্য খুবই দুঃখিত, কিন্তু আপনি যে পৃষ্ঠাটি খুঁজছেন অনুপস্থিত (এই কারণে অঙ্ক একটি টাইপো নিয়ে হতে পারে) বা সরানো হয়."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,Field {0} of type {1} cannot be mandatory,মাঠ {0} টাইপ {1} বাধ্যতামূলক হতে পারে না
 DocType: System Settings,"eg. If Apply User Permissions is checked for Report DocType but no User Permissions are defined for Report for a User, then all Reports are shown to that User","যেমন. গালাগাল প্রতিবেদন Doctype জন্য চেক করা হয় কিন্তু কোন ব্যবহারকারীর অনুমতি একটি ব্যবহারকারীর জন্য রিপোর্ট সংজ্ঞায়িত হয় ব্যবহারকারীর অনুমতি প্রয়োগ, তাহলে সব রিপোর্ট যে ব্যবহারকারী যাও দেখানো হয়"
 DocType: System Settings,Session Expiry Mobile,সেশন মেয়াদ উত্তীর্ন মোবাইল
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +891,Select To Download:,ডাউনলোড করার জন্য নির্বাচন:
@@ -686,6 +699,7 @@ DocType: DocPerm,If user is the owner,ব্যবহারকারী মা�
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")",সাহায্য: ব্যাংকিং ব্যবস্থায় দেশের অন্য একটি রেকর্ড Link Link URL হিসেবে &quot;# ফরম / নোট / [নাম উল্লেখ্য]&quot; ব্যবহার করার জন্য. (ব্যবহার করবেন না &quot;HTTP: //&quot;)
 DocType: Communication,Delayed,বিলম্বিত
 apps/frappe/frappe/config/setup.py +116,List of backups available for download,ডাউনলোডের জন্য উপলব্ধ ব্যাকআপ তালিকা
+apps/frappe/frappe/templates/pages/login.html +60,Sign up,নিবন্ধন করুন
 apps/frappe/frappe/config/setup.py +222,Add fields to forms.,ফরম ক্ষেত্র যুক্ত.
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,আপনি এই পাতা অ্যাক্সেস করতে লগ করা প্রয়োজন.
@@ -701,8 +715,7 @@ DocType: Communication,Sent or Received,প্রেরিত বা প্র�
 DocType: DefaultValue,Key,চাবি
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +124,Setup Complete,সম্পূর্ণ সেটআপ
 apps/frappe/frappe/config/setup.py +61,Report of all document shares,সব নথি শেয়ারের প্রতিবেদন
-apps/frappe/frappe/public/js/frappe/model/model.js +24,Starred By,দ্বারা তারকাচিহ্নিত
-apps/frappe/frappe/templates/pages/update-password.html +14,New Password,নতুন পাসওয়ার্ড
+apps/frappe/frappe/templates/pages/update-password.html +16,New Password,নতুন পাসওয়ার্ড
 DocType: Website Theme,Style using CSS,সিএসএস ব্যবহার স্টাইল
 DocType: Async Task,Reference DocType,রেফারেন্স DOCTYPE
 DocType: User,System User,সিস্টেম ব্যবহারকারী
@@ -732,6 +745,7 @@ DocType: Communication,Phone No.,ফোন নম্বর.
 DocType: Workflow State,fire,আগুন
 DocType: Async Task,Async Task,ASYNC কার্য
 DocType: Workflow State,picture,ছবি
+apps/frappe/frappe/templates/pages/complete_signup.html +22,Complete,সম্পূর্ণ
 DocType: Print Format,Custom HTML Help,কাস্টম এইচটিএমএল হেল্প
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +306,Add A New Restriction,একটি নতুন নিষেধাজ্ঞা করো
 DocType: Workflow Transition,Next State,পরবর্তী রাজ্য
@@ -739,7 +753,7 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +56,Align Left (Ctrl/Cmd+L),�
 DocType: User,Block Modules,ব্লক মডিউল
 apps/frappe/frappe/model/db_schema.py +132,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,দৈর্ঘ্য প্রত্যাবর্তন {0} জন্য &#39;{1}&#39; এ &#39;{2}&#39;; দৈর্ঘ্য সেটিং {3} তথ্য এর truncation কারণ হবে হিসাবে.
 DocType: Print Format,Custom CSS,কাস্টম CSS
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +3,Add a comment,একটা মন্তব্য যোগ করুন
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +4,Add a comment,একটা মন্তব্য যোগ করুন
 apps/frappe/frappe/model/rename_doc.py +359,Ignored: {0} to {1},উপেক্ষিত: {0} থেকে {1}
 apps/frappe/frappe/config/setup.py +79,Log of error on automated events (scheduler).,স্বয়ংক্রিয় ঘটনা (নির্ধারণকারী) উপর ত্রুটির লগ ইন করুন.
 apps/frappe/frappe/utils/csvutils.py +74,Not a valid Comma Separated Value (CSV File),কোনো বৈধ কমা দ্বারা পৃথকীকৃত মান (CSV ফাইল)
@@ -753,8 +767,8 @@ apps/frappe/frappe/core/doctype/user/user.js +162,Clear all roles,সব ভূ�
 apps/frappe/frappe/model/base_document.py +327,{0} must be unique,{0} অনন্য হওয়া আবশ্যক
 apps/frappe/frappe/permissions.py +269,Row,সারি
 DocType: Workflow State,Check,চেক
-apps/frappe/frappe/desk/page/activity/activity.js +152,Apr,এপ্রিল
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +82,Edit Title,সম্পাদনা শিরোনাম
+apps/frappe/frappe/desk/page/activity/activity.js +189,Apr,এপ্রিল
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +79,Edit Title,সম্পাদনা শিরোনাম
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,"এই লিঙ্কটি ক্ষেত্রের জন্য DOCTYPE হতে হবে, যা FIELDNAME."
 apps/frappe/frappe/config/desk.py +14,Documents assigned to you and by you.,আপনি এবং আপনার দ্বারা নির্ধারিত ডকুমেন্টস.
 DocType: User,Email Signature,ইমেইল স্বাক্ষর
@@ -763,7 +777,7 @@ DocType: Website Theme,Link to your Bootstrap theme,আপনার বুটস
 apps/frappe/frappe/public/js/frappe/form/control.js +1361,Edit as {0},হিসাবে সম্পাদনা {0}
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +11,Add new row,নতুন সারি যোগ
 DocType: DocPerm,Delete,মুছে
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +165,New {0},নতুন {0}
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +148,New {0},নতুন {0}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +199,No User Restrictions found.,কোন ব্যবহারকারীর বিধিনিষেধ পাওয়া.
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,ডিফল্ট ইনবক্স
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +104,Make a new,একটি নতুন তৈরি করুন
@@ -776,39 +790,42 @@ DocType: Country,Country,দেশ
 apps/frappe/frappe/public/js/frappe/views/communication.js +80,Attach Document Print,ডকুমেন্ট প্রিন্ট সংযুক্ত
 DocType: Communication,Received,গৃহীত
 DocType: Social Login Keys,Google Client ID,গুগল ক্লায়েন্ট আইডি
-apps/frappe/frappe/core/doctype/user/user.py +63,Adding System Manager to this User as there must be atleast one System Manager,এই ব্যবহারকারী যাও সিস্টেম ম্যানেজার যোগ অন্তত একটি সিস্টেম ম্যানেজার হতে হবে হিসাবে
+apps/frappe/frappe/core/doctype/user/user.py +66,Adding System Manager to this User as there must be atleast one System Manager,এই ব্যবহারকারী যাও সিস্টেম ম্যানেজার যোগ অন্তত একটি সিস্টেম ম্যানেজার হতে হবে হিসাবে
 DocType: DocField,Attach Image,চিত্র সংযুক্ত
 DocType: Workflow State,list-alt,তালিকায়-Alt
-apps/frappe/frappe/templates/pages/update-password.html +63,Password Updated,পাসওয়ার্ড আপডেট করা
+apps/frappe/frappe/templates/pages/update-password.html +65,Password Updated,পাসওয়ার্ড আপডেট করা
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",নির্বাচন মডিউল (অনুমতি উপর ভিত্তি করে) দেখানো হবে. লুকানো যদি তারা সমস্ত ব্যবহারকারীদের জন্য আড়াল করা হবে.
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +154,Permissions Updated,অনুমতি আপডেট
 apps/frappe/frappe/email/doctype/email_account/email_account.py +51,Append To is mandatory for incoming mails,অন্তর্মুখী মেইল জন্য বাধ্যতামূলক সংযোজন
 DocType: Communication,Rejected,প্রত্যাখ্যাত
-apps/frappe/frappe/core/doctype/doctype/doctype.py +254,Options requried for Link or Table type field {0} in row {1},সারিতে লিংক বা ছক টাইপ ক্ষেত্রের {0} জন্য requried বিকল্প {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +257,Options requried for Link or Table type field {0} in row {1},সারিতে লিংক বা ছক টাইপ ক্ষেত্রের {0} জন্য requried বিকল্প {1}
 DocType: Report,Query Report,ক্যোয়ারী প্রতিবেদন
 DocType: User,Set New Password,নতুন পাসওয়ার্ড সেট করুন
 DocType: User,Github User ID,GitHub ইউজার আইডি
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,If Document Type,ডকুমেন্ট টাইপ করুন
 apps/frappe/frappe/desk/page/applications/applications.py +88,Unknown app {0},অজানা অ্যাপ্লিকেশন {0}
 DocType: Communication,Chat,চ্যাট
-apps/frappe/frappe/core/doctype/doctype/doctype.py +245,Fieldname {0} appears multiple times in rows {1},FIELDNAME {0} সারি একাধিক বার প্রদর্শিত {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +248,Fieldname {0} appears multiple times in rows {1},FIELDNAME {0} সারি একাধিক বার প্রদর্শিত {1}
+DocType: Bulk Email,Expired,মেয়াদউত্তীর্ণ
 DocType: DocType,System,পদ্ধতি
+apps/frappe/frappe/templates/pages/login.html +62,Have an account? Login,একটি একাউন্ট আছে? লগইন
 apps/frappe/frappe/public/js/legacy/print_format.js +144,Unknown Print Format: {0},অজানা মুদ্রণ বিন্যাস: {0}
 DocType: Workflow State,arrow-down,তীর-ডাউন
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Collapse,পতন
 apps/frappe/frappe/model/delete_doc.py +133,User not allowed to delete {0}: {1},ব্যবহারকারী মোছার জন্য অনুমোদিত নয় {0}: {1}
 DocType: Website Settings,Linked In Share,শেয়ার লিঙ্ক ইন
 apps/frappe/frappe/public/js/frappe/model/model.js +21,Last Updated On,সর্বশেষ আপডেট করা হয়েছে
+apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +27,Likes,পছন্দ
 DocType: Website Settings,Top Bar,শীর্ষ বার
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,হোম / Test ফোল্ডার 2
 DocType: System Settings,Ignore User Permissions If Missing,হারিয়ে যাওয়া যদি ব্যবহারকারীর অনুমতি উপেক্ষা
 apps/frappe/frappe/public/js/frappe/form/control.js +748,Please save the document before uploading.,আপলোড করার আগে নথি সংরক্ষণ করুন.
 apps/frappe/frappe/public/js/frappe/ui/messages.js +163,Enter your password,আপনার পাসওয়ার্ড লিখুন
 DocType: Dropbox Backup,Dropbox Access Secret,ড্রপবক্স অ্যাক্সেস গোপন
-apps/frappe/frappe/core/doctype/doctype/doctype.py +319,Fold must come before a Section Break,একটি অনুচ্ছেদ বিরতির আগে আসতে হবে ভাঁজ
-apps/frappe/frappe/core/doctype/user/user.py +383,Not allowed to reset the password of {0},পাসওয়ার্ড রিসেট করার অনুমতি দেওয়া হয়নি {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +323,Fold must come before a Section Break,একটি অনুচ্ছেদ বিরতির আগে আসতে হবে ভাঁজ
+apps/frappe/frappe/core/doctype/user/user.py +428,Not allowed to reset the password of {0},পাসওয়ার্ড রিসেট করার অনুমতি দেওয়া হয়নি {0}
 DocType: Workflow State,hand-down,হাত নিচে করো
-apps/frappe/frappe/core/doctype/doctype/doctype.py +448,{0}: Cannot set Cancel without Submit,{0}: ছাড়া জমা বাতিল সেট করা যায় না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +452,{0}: Cannot set Cancel without Submit,{0}: ছাড়া জমা বাতিল সেট করা যায় না
 DocType: Website Theme,Theme,বিষয়বস্তু
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +146,There were errors.,ত্রুটি রয়েছে.
 DocType: DocType,Is Submittable,Submittable হয়
@@ -837,7 +854,7 @@ DocType: Website Settings,Disable Signup,সাইনআপ অক্ষম
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while your system is being setup. This may take a few moments.,"আপনার সিস্টেম সেটআপ করা হচ্ছে, যখন শক্ত হয়ে বসুন. এটি কয়েক মিনিট সময় নিতে পারে."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,ভূমিকা তাদের ব্যবহারকারীর পাতা থেকে ব্যবহারকারীদের জন্য নির্ধারণ করা যাবে.
 DocType: DocField,Mandatory,কার্যভার
-apps/frappe/frappe/core/doctype/doctype/doctype.py +412,{0}: No basic permissions set,{0} থে মৌলিক অনুমতি সেট
+apps/frappe/frappe/core/doctype/doctype/doctype.py +416,{0}: No basic permissions set,{0} থে মৌলিক অনুমতি সেট
 apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},আপনার ব্যাকআপ জন্য ডাউনলোড লিংক ওপেন ইমেইল ঠিকানা ইমেল করা হবে: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","বাতিল, জমা অর্থ সংশোধন"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,করতে
@@ -850,6 +867,7 @@ DocType: DocField,Percent,শতাংশ
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +255,Please set filters,ফিল্টার সেট করুন
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +25,Linked With,সংযুক্ত
 DocType: Workflow State,book,বই
+DocType: Feed,Use this to provide alternative link to a feed record,একটি ফিড রেকর্ড করতে বিকল্প লিংক প্রদান করার জন্যে ব্যবহার করুন
 DocType: Website Settings,Landing Page,অবতরণ পাতা
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +81,"Import Request Queued. This may take a few moments, please be patient.","আমদানি অনুরোধ সারিবদ্ধ. এটি কয়েক মিনিট সময় নিতে পারে, দয়া করে ধৈর্য ধরুন."
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,কোন অনুমতি এই মানদণ্ড নির্ধারণ করা.
@@ -864,7 +882,7 @@ apps/frappe/frappe/config/setup.py +143,Printing,মুদ্রণ
 DocType: Workflow State,thumbs-up,অঙ্গুষ্ঠ আপ
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,উত্তর করো
 DocType: DocPerm,DocPerm,DocPerm
-apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Precision should be between 1 and 6,যথার্থ 1 এবং 6 এর মধ্যে হতে হবে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +295,Precision should be between 1 and 6,যথার্থ 1 এবং 6 এর মধ্যে হতে হবে
 apps/frappe/frappe/public/js/frappe/misc/utils.js +110,and,এবং
 DocType: Error Snapshot,Frames,ফ্রেম
 DocType: About Us Team Member,Image Link,চিত্র লিংক
@@ -874,7 +892,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +200,Pl
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,এই ইমেইল ঠিকানায় পাঠানোর অনুমতি এই রেকর্ড মুছে
 DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,এই অ্যাকাউন্টটি ব্যবহার করে পাঠানো সব ইমেইল জন্য প্রেরক হিসাবে এই অ্যাকাউন্টের উল্লিখিত ইমেইল আইডি ব্যবহার করে.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,শুধু বাধ্যতামূলক ক্ষেত্র নতুন রেকর্ডের জন্য প্রয়োজন হয়. যদি আপনি চান আপনি অ বাধ্যতামূলক কলাম মুছে দিতে পারেন.
-apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ইভেন্ট আপডেট করতে অক্ষম
+apps/frappe/frappe/public/js/frappe/views/calendar.js +274,Unable to update event,ইভেন্ট আপডেট করতে অক্ষম
 DocType: Workflow State,text-height,টেক্সট-উচ্চতা
 DocType: Workflow State,map-marker,মানচিত্র-মার্কার
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,একটি সমস্যার জমা
@@ -890,7 +908,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +114,Setting Up,ঠি
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,এটি একটি স্বয়ংক্রিয়ভাবে উত্পন্ন উত্তর
 apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,থেকে পান
 apps/frappe/frappe/model/document.py +416,Record does not exist,রেকর্ড বিদ্যমান নয়
-apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,অনুপস্থিত বা সরানো পৃষ্ঠা
+apps/frappe/frappe/templates/pages/404.html +6,Page missing or moved,অনুপস্থিত বা সরানো পৃষ্ঠা
 DocType: DocField,Name,নাম
 apps/frappe/frappe/public/js/frappe/form/control.js +993,Open Link,খোলা সংযুক্তি
 apps/frappe/frappe/desk/form/load.py +42,Did not load,লোড করা হয়নি
@@ -900,7 +918,7 @@ apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Com
 DocType: File,Is Private,ব্যক্তিগত
 DocType: Web Form,Select DocType,নির্বাচন DOCTYPE
 apps/frappe/frappe/public/js/frappe/upload.js +207,File size exceeded the maximum allowed size of {0} MB,ফাইলের আকার {0} মেগাবাইট সর্বোচ্চ অনুমোদিত মাপ অতিক্রম
-apps/frappe/frappe/core/doctype/doctype/doctype.py +400,Enter at least one permission row,অন্তত একটি অনুমতি সারিতে লিখুন
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,Enter at least one permission row,অন্তত একটি অনুমতি সারিতে লিখুন
 apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,তৈরি
 DocType: Workflow State,align-center,সারিবদ্ধ-কেন্দ্র
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,লিখতে পারেন
@@ -912,7 +930,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download
 apps/frappe/frappe/core/doctype/file/file_list.js +104,Copy,কপি
 apps/frappe/frappe/core/doctype/file/test_file.py +74,Home/Test Folder 1/Test Folder 3,হোম / Test ফোল্ডার 1 / Test ফোল্ডার 3
 DocType: Website Settings,&lt;head&gt; HTML,&lt;Head&gt; এইচটিএমএল
-apps/frappe/frappe/public/js/frappe/views/calendar.js +88,Select or drag across time slots to create a new event.,নির্বাচন করুন অথবা একটি নতুন ইভেন্ট তৈরি করতে সময় স্লট জুড়ে টেনে আনুন.
+apps/frappe/frappe/public/js/frappe/views/calendar.js +86,Select or drag across time slots to create a new event.,নির্বাচন করুন অথবা একটি নতুন ইভেন্ট তৈরি করতে সময় স্লট জুড়ে টেনে আনুন.
 DocType: DocField,In Filter,ফিল্টার
 DocType: Website Theme,Footer Color,পাদলেখ রঙ
 DocType: Web Page,"Page to show on the website
@@ -920,7 +938,7 @@ DocType: Web Page,"Page to show on the website
 apps/frappe/frappe/public/js/frappe/request.js +71,You have been logged out,আপনি লগ আউট করা হয়েছে
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},DOCTYPE জন্য অনুমতি সরাতে পারবেন না: {0} এবং নাম: {1}
 apps/frappe/frappe/public/js/frappe/ui/editor.html +51,Remove Link,লিংক সরান
-apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,লগ ইন
+apps/frappe/frappe/desk/page/activity/activity_row.html +16,Logged in,লগ ইন
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,ডিফল্ট পাঠানোর এবং ইনবক্স
 DocType: Print Settings,Letter,চিঠি
 DocType: Async Task,Succeeded,অনুসৃত
@@ -940,15 +958,15 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - খসড়া; 1 - জমা হয়েছে; 2 - বাতিল হয়েছে
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,প্রদর্শন অথবা আড়াল করুন মডিউল
 DocType: File,Attached To DocType,DOCTYPE সংযুক্ত
-apps/frappe/frappe/desk/page/activity/activity.js +153,Aug,আগস্ট
+apps/frappe/frappe/desk/page/activity/activity.js +190,Aug,আগস্ট
 DocType: DocField,Int,Int
 DocType: Page,Title,খেতাব
-apps/frappe/frappe/public/js/frappe/list/doclistview.js +418,Customize,কাস্টমাইজ করুন
+apps/frappe/frappe/public/js/frappe/list/doclistview.js +419,Customize,কাস্টমাইজ করুন
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent",= [?] যেমন 1 ইউএসডি জন্য ভগ্নাংশ = 100 সেন্ট 1 মুদ্রা
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +370,Add New Permission Rule,নতুন অনুমতি রুল করো
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +25,You can use wildcard %,আপনি যদি ওয়াইল্ডকার্ড% ব্যবহার করতে পারেন
-apps/frappe/frappe/desk/page/activity/activity.js +152,Mar,বিকলাঙ্গ করা
+apps/frappe/frappe/desk/page/activity/activity.js +189,Mar,বিকলাঙ্গ করা
 apps/frappe/frappe/public/js/frappe/upload.js +131,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","(.gif, .jpg, JPEG, এক চুমুক মদ, .png, SVG খুলে) অনুমোদিত শুধু ইমেজ এক্সটেনশন"
 DocType: Customize Form,"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box","কমা দ্বারা পৃথকীকৃত ক্ষেত্রসমূহ (,) মধ্যে অন্তর্ভুক্ত করা হবে অনুসন্ধান ডায়লগ বক্স প্রদর্শিত তালিকা দ্বারা অনুসন্ধান &quot;&quot;"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,এই ওয়েবসাইট থিম কাস্টমাইজ ডুপ্লিকেট করুন.
@@ -1022,7 +1040,7 @@ apps/frappe/frappe/email/bulk.py +96,This email was sent to you as CC,এই ই
 DocType: Email Account,Email Ids,ইমেল আইডি
 DocType: Currency,Symbol,প্রতীক
 apps/frappe/frappe/model/base_document.py +436,Row #{0}:,সারি # {0}:
-apps/frappe/frappe/core/doctype/user/user.py +81,New password emailed,নতুন পাসওয়ার্ড ইমেইল
+apps/frappe/frappe/core/doctype/user/user.py +84,New password emailed,নতুন পাসওয়ার্ড ইমেইল
 apps/frappe/frappe/auth.py +222,Login not allowed at this time,এই সময়ে অনুমোদিত নয় লগইন
 DocType: Async Task,Runtime,রানটাইম
 DocType: Contact Us Settings,Introduction,ভূমিকা
@@ -1038,14 +1056,14 @@ apps/frappe/frappe/config/setup.py +138,Standard replies to common queries.,স�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +31,Report an Issue,একটি সমস্যা রিপোর্ট
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,ডিফল্ট পাঠানো
 DocType: Workflow State,volume-off,ভলিউম বন্ধ
-DocType: Custom Field,Properties,প্রোপার্টি
+apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +85,Liked by {0},দ্বারা পছন্দ {0}
 ,Download Backups,ডাউনলোড ব্যাকআপ
 apps/frappe/frappe/core/doctype/file/test_file.py +43,Home/Test Folder 1,হোম / Test ফোল্ডার 1
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47,"Do not update, but insert new records.","আপডেট, কিন্তু নতুন রেকর্ড সন্নিবেশ না."
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +160,Assign to me,আমার ধার্য
 apps/frappe/frappe/core/doctype/file/file_list.js +81,Edit Folder,সম্পাদনা ফোল্ডার
 DocType: DocField,Dynamic Link,ডাইনামিক লিংক
-apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +39,Details,বিবরণ
+apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +42,Details,বিবরণ
 DocType: Property Setter,DocType or Field,DOCTYPE বা ক্ষেত্র
 DocType: Communication,Soft-Bounced,নরম-ফেরত
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,সেটিং অনুমতি জন্য দ্রুত সহায়তা
@@ -1053,6 +1071,7 @@ apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js +9,Show Relapse
 DocType: Report,Report Builder,প্রতিবেদন নির্মাতা
 DocType: Async Task,Task Name,টাস্ক নাম
 DocType: Workflow,Workflow,কর্মপ্রবাহ
+apps/frappe/frappe/templates/pages/login.html +46,Not a user yet? Sign up,এখনো একটি ব্যবহারকারী? নিবন্ধন করুন
 DocType: Workflow State,Upload,আপলোড
 DocType: System Settings,Date Format,তারিখ বিন্যাস
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,প্রকাশিত হয়নি
@@ -1060,15 +1079,16 @@ apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Can
 DocType: Workflow State,flag,পতাকা
 DocType: Web Page,Text Align,টেক্সট সারিবদ্ধ
 DocType: Contact Us Settings,Forward To Email Address,ফরোয়ার্ড ইমেইল ঠিকানায়
-apps/frappe/frappe/core/doctype/doctype/doctype.py +342,Title field must be a valid fieldname,শিরোনাম ক্ষেত্রের একটি বৈধ FIELDNAME হতে হবে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +346,Title field must be a valid fieldname,শিরোনাম ক্ষেত্রের একটি বৈধ FIELDNAME হতে হবে
 apps/frappe/frappe/desk/moduleview.py +61,Documents,কাগজপত্র
-apps/frappe/frappe/templates/pages/me.html +19,Edit Profile,জীবন বৃত্তান্ত সম্পাদনা
+apps/frappe/frappe/templates/pages/me.html +21,Edit Profile,জীবন বৃত্তান্ত সম্পাদনা
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,ঘন্টা যেমন 06:00 অধিবেশন মেয়াদ উত্তীর্ন
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","আপনি এই সেট করে থাকেন, শুধুমাত্র সেই ব্যবহারকারীদের ক্ষেত্রে সক্ষম এক্সেস নথি হতে হবে (যেমন. ব্লগ পোস্ট) লিংক (যেমন. ব্লগার) যেখানে বিদ্যমান."
 apps/frappe/frappe/utils/csvutils.py +33,Unable to open attached file. Please try again.,সংযুক্ত ফাইলটি খুলতে অক্ষম. অনুগ্রহ করে আবার চেষ্টা করুন.
 DocType: Scheduler Log,Log of Scheduler Errors,নির্ধারণকারী ত্রুটি কার্যবিবরণী
 DocType: User,Bio,বায়ো
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,জমা দেওয়ার
+apps/frappe/frappe/desk/page/activity/activity.js +78,Show Likes,দেখান পছন্দ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +182,Custom HTML,কাস্টম এইচটিএমএল
 apps/frappe/frappe/core/doctype/file/file_list.js +78,Enter folder name,ফোল্ডারের নাম লিখুন
 DocType: Comment,Comment Docname,Docname মন্তব্য
@@ -1090,7 +1110,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh F
 DocType: DocField,Select,নির্বাচন করা
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,ফাইল সংযুক্ত করা
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","আপনি এই সেট করেন তাহলে, এই আইটেমটি নির্বাচিত ঊর্ধ্বতন অধীনে একটি ড্রপ ডাউন আসবে."
-apps/frappe/frappe/model/db_query.py +440,Please select atleast 1 column from {0} to sort,{0} সাজাতে থেকে অন্তত 1 কলাম নির্বাচন করুন
+apps/frappe/frappe/model/db_query.py +445,Please select atleast 1 column from {0} to sort,{0} সাজাতে থেকে অন্তত 1 কলাম নির্বাচন করুন
 apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},পাথ এ পাওয়া কোন টেমপ্লেট: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","উপরের বারে মেনু আইটেম. শীর্ষ বারের রঙ নির্ধারণের জন্য, নির্বাচিত ওয়েবসাইট বিষয়বস্তু যান."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,ইম্পোর্ট করার পরে জমা দিন.
@@ -1114,26 +1134,26 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +166,{0} comments,{0} 
 apps/frappe/frappe/desk/page/applications/applications.js +44,Select Category...,ক্যাটাগরি নির্বাচন করুন...
 DocType: Customize Form Field,Label and Type,ট্যাগ ও ধরন
 DocType: Workflow State,forward,অগ্রবর্তী
-apps/frappe/frappe/public/js/frappe/form/sidebar.js +52,{0} edited this {1},{0} সম্পাদনা করেছে {1}
+apps/frappe/frappe/public/js/frappe/form/sidebar.js +59,{0} edited this {1},{0} সম্পাদনা করেছে {1}
 DocType: Web Page,Custom Javascript,কাস্টম জাভাস্ক্রিপ্ট
 DocType: DocPerm,Submit,জমা দিন
 apps/frappe/frappe/core/doctype/file/file_list.js +63,New Folder,নতুন ফোল্ডার
 DocType: Website Settings,Sub-domain provided by erpnext.com,Erpnext.com দ্বারা উপলব্ধ সাব-ডোমেইন
 DocType: System Settings,dd-mm-yyyy,ডিডি-মিমি-YYYY
 apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,এই প্রতিবেদন অ্যাক্সেস প্রতিবেদন অনুমতি থাকতে হবে.
-apps/frappe/frappe/templates/base.html +134,Added,যোগ করা
+apps/frappe/frappe/templates/base.html +137,Added,যোগ করা
 apps/frappe/frappe/desk/doctype/event/event.py +66,Daily Event Digest is sent for Calendar Events where reminders are set.,দৈনিক ইভেন্ট ডাইজেস্ট অনুস্মারক সেট করা হয় যেখানে ক্যালেন্ডার ইভেন্টের জন্য পাঠানো হয়.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +32,View Website,ওয়েবসাইট দেখুন
 DocType: Workflow State,remove,অপসারণ
 DocType: Email Account,If non standard port (e.g. 587),অ মানক পোর্ট (যেমন 587)
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +153,Reload,পুনরায় লোড করুন
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +136,Reload,পুনরায় লোড করুন
 apps/frappe/frappe/desk/query_report.py +136,Total,মোট
 DocType: Event,Participants,অংশগ্রহণকারীরা
 DocType: Bulk Email,Reference DocName,রেফারেন্স DocName
 DocType: Web Form,Success Message,সাফল্যের বার্তা
 DocType: DocType,User Cannot Search,ব্যবহারকারী অনুসন্ধান করতে পারেন না
 DocType: DocPerm,Apply this rule if the User is the Owner,ব্যবহারকারী মালিক যদি এই নিয়ম প্রযোজ্য
-apps/frappe/frappe/desk/page/activity/activity.js +47,Build Report,প্রতিবেদন তৈরি
+apps/frappe/frappe/desk/page/activity/activity.js +73,Build Report,প্রতিবেদন তৈরি
 apps/frappe/frappe/model/rename_doc.py +92,"{0} {1} does not exist, select a new target to merge","{0} {1} অস্তিত্ব নেই, একত্রীকরণ একটি নতুন টার্গেট নির্বাচন"
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},DOCTYPE জন্য অনুমতি সেট করা যায় না: {0} এবং নাম: {1}
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +158,Add to To Do,কি যোগ
@@ -1145,7 +1165,7 @@ apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,ঘনিষ্ঠ
 apps/frappe/frappe/model/document.py +452,Cannot change docstatus from 0 to 2,0 থেকে 2 docstatus পরিবর্তন করা যাবে না
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Update,আপডেট
 DocType: Error Snapshot,Snapshot View,স্ন্যাপশট দেখুন
-apps/frappe/frappe/core/doctype/doctype/doctype.py +260,Options must be a valid DocType for field {0} in row {1},বিকল্প সারিতে ক্ষেত্রের {0} জন্য একটি বৈধ DOCTYPE হতে হবে {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Options must be a valid DocType for field {0} in row {1},বিকল্প সারিতে ক্ষেত্রের {0} জন্য একটি বৈধ DOCTYPE হতে হবে {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,বৈশিষ্ট্য সম্পাদনা
 DocType: Patch Log,List of patches executed,প্যাচ তালিকা মৃত্যুদন্ড
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ইতিমধ্যে আন-সাবস্ক্রাইব
@@ -1153,10 +1173,10 @@ DocType: Communication,Communication Medium,যোগাযোগের মা�
 DocType: Website Settings,Banner HTML,ব্যানার এইচটিএমএল
 DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/model/base_document.py +440,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} হতে পারে না &quot;{2}&quot;. এটা এক হতে হবে &quot;{3}&quot;
-apps/frappe/frappe/utils/data.py +489,{0} or {1},{0} বা {1}
-apps/frappe/frappe/core/doctype/user/user.py +157,Password Update,পাসওয়ার্ড আপডেট
+apps/frappe/frappe/utils/data.py +492,{0} or {1},{0} বা {1}
+apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,পাসওয়ার্ড আপডেট
 DocType: Workflow State,trash,আবর্জনা
-apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,ডিসেম্বর
+apps/frappe/frappe/desk/page/activity/activity.js +190,Dec,ডিসেম্বর
 DocType: Web Form,"In JSON as [{""title"":""Jobs"", ""name"":""jobs""}]","JSON মধ্যে যেমন [{&quot;শিরোনাম&quot;: &quot;চাকরি&quot;, &quot;নাম&quot;: &quot;কাজ&quot;}]"
 DocType: Event,Leave blank to repeat always,সবসময় পুনরাবৃত্তি ফাঁকা ছেড়ে দিন
 DocType: Event,Ends on,এ শেষ
@@ -1164,7 +1184,7 @@ DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web pag
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Relapsed
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,আইটেমটি নিজস্ব সন্তান যোগ করা যাবে না
 DocType: Error Snapshot,Relapses,Relapses
-apps/frappe/frappe/public/js/frappe/form/sidebar.js +55,{0} created this {1},{0} তৈরি করেছ এই {1}
+apps/frappe/frappe/public/js/frappe/form/sidebar.js +62,{0} created this {1},{0} তৈরি করেছ এই {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +36,Document is only editable by users of role,ডকুমেন্ট ভূমিকা ব্যবহারকারীদের দ্বারা শুধুমাত্র সম্পাদনাযোগ্য
 apps/frappe/frappe/desk/form/assign_to.py +146,"The task {0}, that you assigned to {1}, has been closed by {2}.",আপনি {1} দ্বারা {2} বন্ধ করা হয়েছে নির্ধারিত যে টাস্ক {0}.
 DocType: Blogger,Short Name,সংক্ষিপ্ত নাম
@@ -1173,6 +1193,7 @@ apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled
 DocType: Contact Us Settings,"Default: ""Contact Us""",ডিফল্ট: &quot;যোগাযোগ&quot;
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +378,"Level 0 is for document level permissions, higher levels for field level permissions.","শ্রেনী 0 নথি স্তর অনুমতি, মাঠ পর্যায়ে অনুমতির জন্য উচ্চ মাত্রার জন্য."
 DocType: Custom Script,Sample,নমুনা
+apps/frappe/frappe/core/doctype/user/user.py +319,"Username should not contain any special characters other than letters, numbers and underscore","ইউজারনেম অক্ষর, সংখ্যা এবং আন্ডারস্কোর ছাড়া অন্য কোন বিশেষ অক্ষর ধারণ করা উচিত নয়"
 DocType: Event,Every Week,প্রতি সপ্তাহে
 DocType: Custom Field,Is Mandatory Field,পাঠিয়ে দিন
 DocType: User,Website User,ওয়েবসাইট দেখুন ব্যবহারকারী
@@ -1190,12 +1211,13 @@ DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ r
 apps/frappe/frappe/modules/__init__.py +81,App not found,অ্যাপ্লিকেশন পাওয়া যায় না
 DocType: Workflow State,pencil,পেন্সিল
 apps/frappe/frappe/config/desk.py +27,Chat messages and other notifications.,বার্তা এবং অন্যান্য বিজ্ঞপ্তি চ্যাট.
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +114,Insert After cannot be set as {0},হিসাবে সেট করা যাবে না পরে ঢোকান {0}
 apps/frappe/frappe/public/js/frappe/form/share.js +54,Share {0} with,শেয়ার {0} সঙ্গে
 DocType: Workflow State,hand-up,হাত তোল
 DocType: Blog Settings,Writers Introduction,রাইটার্স ভূমিকা
 DocType: Communication,Phone,ফোন
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,নির্বাচন ডকুমেন্ট প্রকার ভূমিকা বা শুরু করার জন্য.
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +262,ProTip: You can also use Ctrl+S to Save,Protip: আপনি সংরক্ষণ করতে Ctrl + S ব্যবহার করতে পারেন
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +245,ProTip: You can also use Ctrl+S to Save,Protip: আপনি সংরক্ষণ করতে Ctrl + S ব্যবহার করতে পারেন
 apps/frappe/frappe/public/js/frappe/views/container.js +55,Page not found,পৃষ্ঠা খুঁজে পাওয়া যায়নি
 DocType: DocField,Precision,স্পষ্টতা
 DocType: Website Slideshow,Slideshow Items,স্লাইডশো আইটেম
@@ -1203,14 +1225,13 @@ apps/frappe/frappe/model/delete_doc.py +158,Cannot delete or cancel because {0} 
 DocType: Website Settings,Twitter Share,Twitter এই গেমটি শেয়ার
 DocType: Event,Groups,গ্রুপ
 DocType: Workflow State,Workflow State,কর্মপ্রবাহ রাজ্য
-apps/frappe/frappe/templates/pages/me.html +1,My Account,আমার অ্যাকাউন্ট
+apps/frappe/frappe/templates/pages/me.html +3,My Account,আমার অ্যাকাউন্ট
 DocType: ToDo,Allocated To,বরাদ্দ
 apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,আপনার নতুন পাসওয়ার্ড সেট করতে নিচের লিঙ্কে ক্লিক করুন
 DocType: Email Alert,Days After,দিন পরে
 DocType: Contact Us Settings,Settings for Contact Us Page,আমাদের সাথে যোগাযোগ করুন পৃষ্ঠা জন্য সেটিংস
 DocType: Custom Script,Script Type,স্ক্রিপ্টের ধরন
 DocType: Email Account,Footer,পাদলেখ
-apps/frappe/frappe/email/doctype/email_account/email_account.py +124,Authentication failed while receiving emails from Email Account {0},ইমেইল একাউন্ট থেকে ইমেইল প্রাপ্তির যখন প্রমাণীকরণ ব্যর্থ {0}
 apps/frappe/frappe/utils/verified_command.py +39,Invalid Link,অবৈধ লিঙ্ক
 DocType: Web Page,Show Title,শো শিরোনাম
 DocType: Property Setter,Property Type,সম্পত্তির প্রকার
@@ -1236,7 +1257,7 @@ apps/frappe/frappe/utils/response.py +117,You need to be logged in and have Syst
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,সংযোজনের পূর্বে সংরক্ষণ করুন.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),যোগ করা হয়েছে {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype থেকে পরিবর্তন করা যাবে না {0} থেকে {1} সারিতে {2}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Search Fields should contain valid fieldnames,অনুসন্ধান ক্ষেত্র বৈধ fieldnames থাকা উচিত
+apps/frappe/frappe/core/doctype/doctype/doctype.py +336,Search Fields should contain valid fieldnames,অনুসন্ধান ক্ষেত্র বৈধ fieldnames থাকা উচিত
 apps/frappe/frappe/core/doctype/user/user.js +317,Role Permissions,ভূমিকা অনুমতি
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +5,Can Read,পড়তে পারে
 DocType: Standard Reply,Response,প্রতিক্রিয়া
@@ -1254,7 +1275,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +220,Report {0},�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +231,Open {0},ওপেন {0}
 DocType: Communication,Recipients,প্রাপক
 DocType: Workflow State,ok-sign,OK-সাইন
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +142,Duplicate,নকল
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +125,Duplicate,নকল
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +305,From Date must be before To Date,জন্ম তারিখ থেকে আগে হওয়া আবশ্যক
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +17,Please specify which value field must be checked,"চেক করা আবশ্যক, যা মান ক্ষেত্র উল্লেখ করুন"
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added",&quot;মূল&quot; এই সারিতে যোগ করা হবে যা প্যারেন্ট টেবিল উল্লেখ
@@ -1266,7 +1287,7 @@ apps/frappe/frappe/desk/moduleview.py +57,Module Not Found,মডিউল প�
 DocType: User,Location,অবস্থান
 ,Permitted Documents For User,ব্যবহারকারী অনুমোদিত ডকুমেন্টস
 apps/frappe/frappe/core/doctype/docshare/docshare.py +42,"You need to have ""Share"" permission",আপনি &quot;শেয়ার&quot; অনুমতি থাকতে হবে
-apps/frappe/frappe/public/js/frappe/form/grid.js +277,Bulk Edit {0},বাল্ক সম্পাদনা {0}
+apps/frappe/frappe/public/js/frappe/form/grid.js +281,Bulk Edit {0},বাল্ক সম্পাদনা {0}
 DocType: Email Alert Recipient,Email Alert Recipient,ইমেইল এলার্ট প্রাপক
 DocType: Blog Category,Parent Website Route,মূল ওয়েবসাইট রুট
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,সক্রিয় নয়
@@ -1288,9 +1309,9 @@ DocType: Workflow State,envelope,খাম
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,অপশন 2
 apps/frappe/frappe/core/doctype/docshare/docshare.py +46,{0} shared this document with {1},{0} সঙ্গে এই নথিটি ভাগ {1}
 DocType: Website Settings,Google Plus One,গুগল প্লাস ওয়ান
-apps/frappe/frappe/desk/page/activity/activity.js +153,Jul,জুলাই
+apps/frappe/frappe/desk/page/activity/activity.js +190,Jul,জুলাই
 apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer and logo.","উপরের ন্যাভিগেশন বারের মধ্যে, ফুটার ও লোগোর সেটআপ."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +408,For {0} at level {1} in {2} in row {3},জন্য {0} এ স্তর {1} এ {2} সারিতে {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +412,For {0} at level {1} in {2} in row {3},জন্য {0} এ স্তর {1} এ {2} সারিতে {3}
 DocType: Page,All,সব
 DocType: Bulk Email,Recipient,প্রাপক
 apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,ড্র্যাগ এবং ড্রপ টুল নির্মাণ ও মুদ্রণ বিন্যাস কাস্টমাইজ.
@@ -1335,8 +1356,8 @@ DocType: DocType,Title Case,শিরোনাম কেস
 DocType: Blog Post,Email Sent,ইমেইল পাঠানো
 apps/frappe/frappe/public/js/frappe/views/communication.js +70,Send As Email,ইমেইল পাঠান
 DocType: Website Theme,Link Color,লিংক রঙ
-apps/frappe/frappe/core/doctype/user/user.py +47,User {0} cannot be disabled,ব্যবহারকারী {0} অক্ষম করা যাবে না
-apps/frappe/frappe/core/doctype/user/user.py +479,"Dear System Manager,","প্রিয় সিস্টেম ম্যানেজার,"
+apps/frappe/frappe/core/doctype/user/user.py +50,User {0} cannot be disabled,ব্যবহারকারী {0} অক্ষম করা যাবে না
+apps/frappe/frappe/core/doctype/user/user.py +524,"Dear System Manager,","প্রিয় সিস্টেম ম্যানেজার,"
 DocType: Event,Sunday,রবিবার
 apps/frappe/frappe/public/js/frappe/form/save.js +14,Amending,সংশোধনী
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +5,Dialog box to select a Link Value,একটি লিংক মান নির্বাচন করার জন্য ডায়ালগ বক্স
@@ -1344,6 +1365,7 @@ DocType: Contact Us Settings,Send enquiries to this email address,এই ইম�
 DocType: Letter Head,Letter Head Name,চিঠি মাথা নাম
 apps/frappe/frappe/config/website.py +23,User editable form on Website.,ওয়েবসাইটে ব্যবহারকারীর সম্পাদনযোগ্য ফর্ম.
 DocType: Workflow State,file,ফাইল
+apps/frappe/frappe/templates/pages/login.html +73,Back to Login,প্রবেশ করতে পেছান
 apps/frappe/frappe/model/rename_doc.py +98,You need write permission to rename,আপনি নামান্তর অনুমতি লিখুন প্রয়োজন
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +433,Apply Rule,নিয়ম প্রযোজ্য
 DocType: User,Karma,কর্মফল
@@ -1351,7 +1373,7 @@ DocType: DocField,Table,টেবিল
 DocType: File,File Size,ফাইলের আকার
 apps/frappe/frappe/website/doctype/web_form/web_form.py +189,You must login to submit this form,আপনি এই ফর্মটি আবার জমা দিলে লগইন করতে হবে
 DocType: User,Background Image,পটভূমি চিত্র
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +316,"Select your Country, Time Zone and Currency","আপনার দেশ, সময় মন্ডল ও মুদ্রা নির্বাচন"
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +318,"Select your Country, Time Zone and Currency","আপনার দেশ, সময় মন্ডল ও মুদ্রা নির্বাচন"
 DocType: Async Task,Queued,সারিবদ্ধ
 apps/frappe/frappe/public/js/frappe/form/print.js +96,New Custom Print Format,নতুন কাস্টম মুদ্রন বিন্যাস
 DocType: DocPerm,Create,তৈরি করুন
@@ -1385,19 +1407,19 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +370,
 DocType: User,Change Password,পাসওয়ার্ড পরিবর্তন করুন
 apps/frappe/frappe/public/js/frappe/form/control.js +428,Invalid Email: {0},অবৈধ ইমেল: {0}
 apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start,ইভেন্ট শেষে শুরুর পরে হবে
-apps/frappe/frappe/templates/includes/sidebar.html +7,Back,পিছনে
 apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},আপনি যদি একটি রিপোর্ট পেতে অনুমতি নেই: {0}
 DocType: Blog Post,Blog Post,ব্লগ পোস্ট
 apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,উন্নত অনুসন্ধান
-apps/frappe/frappe/core/doctype/user/user.py +390,Password reset instructions have been sent to your email,পাসওয়ার্ড রিসেট নির্দেশাবলী আপনার ইমেইল পাঠানো হয়েছে
+apps/frappe/frappe/core/doctype/user/user.py +435,Password reset instructions have been sent to your email,পাসওয়ার্ড রিসেট নির্দেশাবলী আপনার ইমেইল পাঠানো হয়েছে
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,ক্রমানুসার
 apps/frappe/frappe/config/setup.py +204,Manage cloud backups on Dropbox,ড্রপবক্স মেঘ ব্যাকআপ
 DocType: Workflow,States,যুক্তরাষ্ট্র
 DocType: Email Alert,Attach Print,প্রিন্ট সংযুক্ত
+apps/frappe/frappe/core/doctype/user/user.py +337,Suggested Username: {0},প্রস্তাবিত ইউজারনেম: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","আপনি একটি নথি পরে তা বাতিল এবং সংরক্ষণ সংশোধন হলে, এটা পুরানো সংখ্যা একটি সংস্করণ যে একটি নতুন নম্বর পেতে হবে."
 apps/frappe/frappe/core/doctype/doctype/doctype.py +39,{0} not allowed in name,{0} নামে অনুমোদিত নয়
 DocType: Workflow State,circle-arrow-left,বৃত্ত-তীর-বাম
-apps/frappe/frappe/sessions.py +111,Redis cache server not running. Please contact Administrator / Tech support,Redis ক্যাশে সার্ভার চলমান না. অ্যাডমিনিস্ট্রেটর / কারিগরি সহায়তা সাথে যোগাযোগ করুন
+apps/frappe/frappe/sessions.py +113,Redis cache server not running. Please contact Administrator / Tech support,Redis ক্যাশে সার্ভার চলমান না. অ্যাডমিনিস্ট্রেটর / কারিগরি সহায়তা সাথে যোগাযোগ করুন
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +85,Make a new record,একটি নতুন রেকর্ড করতে
 DocType: Currency,Fraction,ভগ্নাংশ
 apps/frappe/frappe/public/js/frappe/form/control.js +758,Select from existing attachments,বিদ্যমান সংযুক্তি থেকে নির্বাচন
@@ -1428,12 +1450,12 @@ DocType: Custom Script,Custom Script,কাস্টম স্ক্রিপ্
 DocType: Contact Us Settings,Address Line 2,ঠিকানা লাইন ২
 DocType: ToDo,Reference,উল্লেখ
 apps/frappe/frappe/public/js/frappe/model/model.js +26,Assigned To,নিযুক্ত করা
-apps/frappe/frappe/core/doctype/user/user.py +166,Verify Your Account,আপনার অ্যাকাউন্ট যাচাই করুন
+apps/frappe/frappe/core/doctype/user/user.py +169,Verify Your Account,আপনার অ্যাকাউন্ট যাচাই করুন
 DocType: Workflow Transition,Action,কর্ম
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,তথ্য:
 DocType: Custom Field,Permission Level,অনুমতি শ্রেনী
 DocType: User,Send Notifications for Transactions I Follow,আমি অনুসরণ লেনদেন জন্য বিজ্ঞপ্তি পাঠাতে
-apps/frappe/frappe/core/doctype/doctype/doctype.py +451,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: সরিয়ে ফেলতে চান, লেখা ছাড়া সংশোধন সেট করা যায় না"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +455,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: সরিয়ে ফেলতে চান, লেখা ছাড়া সংশোধন সেট করা যায় না"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,আপনি সংযুক্তি মুছে ফেলতে চান আপনি কি নিশ্চিত?
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,সেটআপ&gt; ইউজার
 apps/frappe/frappe/model/base_document.py +472,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: সর্বোচ্চ অক্ষর অনুমতি দেন &#39;{1}&#39;, ছেঁটে ফেলা হবে হয় {2}"
@@ -1462,28 +1484,28 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84,Blog,ব্লগ
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with data,তথ্য দিয়ে ডাউনলোড
 DocType: Workflow State,hand-right,হাত-ডান
 DocType: Website Settings,Subdomain,সাবডোমেন
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +314,Region,এলাকা
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +316,Region,এলাকা
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,Current status,এখনকার অবস্থা
 DocType: Web Form,Allow Delete,মুছে মঞ্জুরি
 DocType: Email Alert,Message Examples,বার্তা উদাহরণ
 DocType: Web Form,Login Required,লগইন প্রয়োজন
 apps/frappe/frappe/config/website.py +59,Write titles and introductions to your blog.,আপনার ব্লগে শিরোনাম ও ভূমিকা লিখুন.
 DocType: Email Account,Notify if unreplied for (in mins),(মিনিট) জন্য unreplied যদি অবহিত
-apps/frappe/frappe/public/js/frappe/list/listview.js +343,2 days ago,২ দিন আগে
+apps/frappe/frappe/public/js/frappe/list/listview.js +342,2 days ago,২ দিন আগে
 apps/frappe/frappe/config/website.py +64,Categorize blog posts.,ব্লগ পোস্ট শ্রেণীবিভক্ত.
 DocType: Workflow State,Time,সময়
 DocType: DocField,Attach,জোড়া
-apps/frappe/frappe/core/doctype/doctype/doctype.py +354,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} একটি বৈধ FIELDNAME প্যাটার্ন নয়. এটা হওয়া উচিত {{}} FIELD_NAME.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +358,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} একটি বৈধ FIELDNAME প্যাটার্ন নয়. এটা হওয়া উচিত {{}} FIELD_NAME.
 DocType: DocType,Permission Rules,অনুমতি বিধি
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +135,Links,লিংক
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +118,Links,লিংক
 apps/frappe/frappe/model/base_document.py +364,Value missing for,মূল্য জন্য অনুপস্থিত
 apps/frappe/frappe/model/delete_doc.py +137,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: জমা রেকর্ড মুছে ফেলা যাবে না.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +86,new type of document,ডকুমেন্টের নতুন ধরনের
 DocType: DocPerm,Read,পড়া
-apps/frappe/frappe/templates/pages/update-password.html +10,Old Password,পুরনো পাসওয়ার্ড
+apps/frappe/frappe/templates/pages/update-password.html +12,Old Password,পুরনো পাসওয়ার্ড
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},দ্বারা পোস্ট {0}
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","বিন্যাস কলামে, ক্যোয়ারী কলাম লেবেল দিতে."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +478,{0}: Cannot set Assign Amend if not Submittable,{0}: Submittable না হলে বরাদ্দ সংশোধন সেট করা যায় না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +482,{0}: Cannot set Assign Amend if not Submittable,{0}: Submittable না হলে বরাদ্দ সংশোধন সেট করা যায় না
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,সম্পাদনা ভূমিকা অনুমতি
 DocType: Social Login Keys,Social Login Keys,সামাজিক লগইন কি
 DocType: Comment,Comment Date,মন্তব্য তারিখ
@@ -1505,12 +1527,12 @@ DocType: Email Account,Append To,লিখবেন
 DocType: Workflow Document State,Only Allow Edit For,শুধু সম্পাদনা জন্য অনুমতি
 DocType: File,Is Folder,ফোল্ডার
 DocType: DocType,DocType,DOCTYPE
-apps/frappe/frappe/core/doctype/user/user.py +393,User {0} does not exist,ব্যবহারকারী {0} অস্তিত্ব নেই
+apps/frappe/frappe/core/doctype/user/user.py +438,User {0} does not exist,ব্যবহারকারী {0} অস্তিত্ব নেই
 DocType: Website Theme,"If image is selected, color will be ignored.","ইমেজ নির্বাচন করা হয় তাহলে, রঙ উপেক্ষা করা হবে."
 DocType: User,Mute Sounds,নিঃশব্দ
 DocType: Top Bar Item,Top Bar Item,শীর্ষ বারে আইটেম
 apps/frappe/frappe/utils/csvutils.py +50,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","অজানা ফাইল এনকোডিং. চেষ্টা UTF-8, উইন্ডোজ-1250, উইন্ডোজ-1252."
-apps/frappe/frappe/core/doctype/user/user.py +104,Sorry! Sharing with Website User is prohibited.,দুঃখিত! ওয়েবসাইট দেখুন ব্যবহারকারী সাথে ভাগ নিষিদ্ধ.
+apps/frappe/frappe/core/doctype/user/user.py +107,Sorry! Sharing with Website User is prohibited.,দুঃখিত! ওয়েবসাইট দেখুন ব্যবহারকারী সাথে ভাগ নিষিদ্ধ.
 apps/frappe/frappe/core/doctype/user/user.js +152,Add all roles,সব ভূমিকা করো
 apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
 				can get back to you. Thanks!",আমরা আপনাকে ফেরত পেতে পারেন \ যাতে আপনার ইমেইল এবং পাঠান উভয় লিখুন. ধন্যবাদ!
@@ -1531,6 +1553,7 @@ DocType: Error Snapshot,Exception Type,ব্যতিক্রম ধরণ
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +425,Pick Columns,কলাম চয়ন
 DocType: Web Page,Add code as &lt;script&gt;,&lt;Script&gt; হিসাবে কোড যোগ
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,নির্বাচন ধরন
+apps/frappe/frappe/config/core.py +57,A log of request errors,অনুরোধ ত্রুটি লগ
 DocType: Letter Head,Letter Head,চিঠি মাথা
 apps/frappe/frappe/core/doctype/file/file.py +207,No permission to write / remove.,কোন অনুমতি / Remove লিখতে.
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,পার্শ্বদন্ডে থেকে ড্র্যাগ উপাদান যোগ করার জন্য. আবর্জনা থেকে তাদের টানুন.
@@ -1551,8 +1574,9 @@ DocType: Workflow State,Edit,সম্পাদন করা
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +170,Permissions can be managed via Setup &gt; Role Permissions Manager,অনুমতি সেটআপ&gt; ভূমিকা অনুমতি ম্যানেজার মাধ্যমে পরিচালিত হতে পারে
 DocType: Contact Us Settings,Pincode,পিনকোড
 apps/frappe/frappe/core/page/data_import_tool/importer.py +70,Please make sure that there are no empty columns in the file.,কোন খালি কলাম ফাইলে আছে দয়া করে নিশ্চিত করুন.
+apps/frappe/frappe/utils/oauth.py +209,Please ensure that your profile has an email address,আপনার প্রোফাইল একটি ইমেইল ঠিকানা আছে কিনা তা নিশ্চিত করুন
 apps/frappe/frappe/public/js/frappe/model/create_new.js +218,You have unsaved changes in this form. Please save before you continue.,আপনি এই ফর্মটি আবার এ অসংরক্ষিত পরিবর্তন রয়েছে. আপনি অবিরত করার পূর্বে সংরক্ষণ করুন.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +288,Default for {0} must be an option,{0} একটি বিকল্প হতে হবে এর জন্য ডিফল্ট
+apps/frappe/frappe/core/doctype/doctype/doctype.py +291,Default for {0} must be an option,{0} একটি বিকল্প হতে হবে এর জন্য ডিফল্ট
 DocType: User,User Image,ব্যবহারকারী চিত্র
 apps/frappe/frappe/email/bulk.py +243,Emails are muted,ইমেইল নিঃশব্দ
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +22,Ctrl + Up,Ctrl + আপ
@@ -1579,9 +1603,9 @@ apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,ব্রাউজ 
 DocType: DocField,Currency,মুদ্রা
 apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your browser,আপনার ব্রাউজারে এটি দেখতে
 DocType: Async Task,Running,চলমান
-apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,পাসওয়ার্ড রিসেট করুন
+apps/frappe/frappe/templates/pages/update-password.html +3,Reset Password,পাসওয়ার্ড রিসেট করুন
 DocType: Workflow State,hand-left,হাত-বাম
-apps/frappe/frappe/core/doctype/doctype/doctype.py +297,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} অনন্য হতে পারে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +300,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} অনন্য হতে পারে না
 DocType: Email Account,Use SSL,ব্যবহারের SSL- র
 DocType: Workflow State,play-circle,খেলার-বৃত্ত
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,সম্পাদনা করুন প্রিন্ট বিন্যাস নির্বাচন
@@ -1590,6 +1614,7 @@ apps/frappe/frappe/config/desk.py +33,Private and public Notes.,সরকার�
 DocType: DocField,Datetime,তারিখ সময়
 DocType: Workflow State,arrow-right,তীর-ডান
 DocType: Workflow State,Workflow state represents the current state of a document.,কর্মপ্রবাহ রাষ্ট্র একটি নথির বর্তমান রাষ্ট্র প্রতিনিধিত্ব করে.
+apps/frappe/frappe/utils/oauth.py +198,Token is missing,টোকেন অনুপস্থিত
 apps/frappe/frappe/public/js/frappe/ui/editor.js +445,Open Link in a new Window,একটি নতুন উইন্ডোতে লিঙ্ক খুলুন
 apps/frappe/frappe/utils/file_manager.py +257,Removed {0},সরানো হয়েছে {0}
 DocType: Company History,Highlight,লক্ষণীয় করা
@@ -1615,11 +1640,11 @@ DocType: ToDo,ToDo,করতে
 DocType: DocField,No Copy,কোন কপি
 DocType: Workflow State,qrcode,QRCode
 DocType: Web Form,Breadcrumbs,Breadcrumbs
-apps/frappe/frappe/core/doctype/doctype/doctype.py +424,If Owner,মালিক যদি
+apps/frappe/frappe/core/doctype/doctype/doctype.py +428,If Owner,মালিক যদি
 apps/frappe/frappe/website/doctype/web_form/web_form.py +70,You need to be logged in to access this {0}.,আপনি এই অ্যাক্সেস করতে লগ করা প্রয়োজন {0}.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +167,Complete By,দ্বারা সম্পূর্ণ
 apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{1} দ্বারা {0}
-apps/frappe/frappe/core/doctype/comment/comment.py +57,Cannot add more than 50 comments,50 টিরও বেশি মন্তব্য যুক্ত করা যাবে না
+apps/frappe/frappe/core/doctype/comment/comment.py +63,Cannot add more than 50 comments,50 টিরও বেশি মন্তব্য যুক্ত করা যাবে না
 DocType: Website Settings,Top Bar Items,শীর্ষ বার আইটেম
 DocType: Print Settings,Print Settings,মুদ্রণ সেটিংস
 DocType: Page,Yes,হাঁ
@@ -1637,7 +1662,7 @@ DocType: Workflow State,resize-horizontal,পুনরায় আকার-অ
 DocType: Communication,Content,বিষয়বস্তু
 DocType: Web Form,Go to this url after completing the form.,ফর্ম পূরণ করার পর এই URL- এ যান.
 DocType: DocType,Document,দলিল
-apps/frappe/frappe/core/doctype/doctype/doctype.py +106,Series {0} already used in {1},ইতিমধ্যে ব্যবহৃত সিরিজ {0} {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +109,Series {0} already used in {1},ইতিমধ্যে ব্যবহৃত সিরিজ {0} {1}
 DocType: DocField,Code,কোড
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","সব সম্ভব কর্মপ্রবাহ যুক্তরাষ্ট্র ও কর্মপ্রবাহ ভূমিকা. Docstatus বিকল্প: 0 &quot;সংরক্ষিত&quot;, হয় 1 &quot;জমা&quot; হয় এবং 2 &quot;বাতিল&quot; হয়"
 DocType: Website Theme,Footer Text Color,পাদচরণ রং
@@ -1647,13 +1672,13 @@ apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,একটি 
 apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,নথি ধরনের এবং ভূমিকা অনুমতি সেট
 DocType: About Us Settings,"""Company History""",&quot;কোম্পানি ইতিহাস&quot;
 apps/frappe/frappe/permissions.py +330,Permission already set,অনুমতি ইতিমধ্যে সেট
-apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},প্রথম মন্তব্য {0}: {1}
+apps/frappe/frappe/desk/page/activity/activity_row.html +20,Commented on {0}: {1},প্রথম মন্তব্য {0}: {1}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +248,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,এই সীমাবদ্ধতা অনুমতি শাসনের জন্য চেক করা এবং এই মান সঙ্গে একটি ক্ষেত্র উপস্থিত হয় যেখানে &#39;ব্যবহারকারীর অনুমতি প্রয়োগ&#39; নথি ধরনের জন্য প্রযোজ্য হবে.
 DocType: Email Alert,Send alert if this field's value changes,এই ক্ষেত্র এর মান পরিবর্তন যদি সতর্কতা পাঠান
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +102,Select a DocType to make a new format,একটি নতুন বিন্যাস করা একটি DOCTYPE নির্বাচন
 DocType: Module Def,Module Def,মডিউল Def
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +7,Done,কৃত
-apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +48,Reply,উত্তর
+apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +51,Reply,উত্তর
 apps/frappe/frappe/config/core.py +22,Pages in Desk (place holders),ডেস্ক অন্তর্ভুক্ত নিবন্ধসমূহ (জায়গা ধারক)
 DocType: DocField,Collapsible Depends On,বন্ধ হইতে উপর নির্ভর
 DocType: Email Account,SMTP Server,SMTP সার্ভার
@@ -1672,8 +1697,8 @@ DocType: Event,Every Year,প্রত্যেক বছর
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +23,Select All,সবগুলো নির্বাচন করা
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not Linked to any record.,কোনো রেকর্ড করা লিঙ্ক না.
 apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,ভূমিকা দ্বারা
-apps/frappe/frappe/core/doctype/user/user.py +359,Registered but disabled.,নিবন্ধিত কিন্তু প্রতিবন্ধী.
-apps/frappe/frappe/public/js/frappe/list/doclistview.js +536,Delete permanently?,স্থায়ীভাবে মুছে ফেলতে চান?
+apps/frappe/frappe/core/doctype/user/user.py +404,Registered but disabled.,নিবন্ধিত কিন্তু প্রতিবন্ধী.
+apps/frappe/frappe/public/js/frappe/list/doclistview.js +538,Delete permanently?,স্থায়ীভাবে মুছে ফেলতে চান?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +89,Search in a document type,ডকুমেন্ট টাইপ এ অনুসন্ধান
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Allow field to remain editable even after submission,ক্ষেত্রের এমনকি জমা পরে সম্পাদনযোগ্য থাকা অনুমতি
 DocType: DocPerm,Role and Level,ভূমিকা ও শ্রেনী
@@ -1691,12 +1716,13 @@ DocType: Communication,More Information,অধিক তথ্য
 apps/frappe/frappe/public/js/frappe/views/pageview.js +110,Sorry! You are not permitted to view this page.,দুঃখিত! আপনি এই পৃষ্ঠাটি দেখতে অনুমতিপ্রাপ্ত নন.
 DocType: Workflow State,bell,ঘণ্টা
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +39,Share this document with,সাথে এই দস্তাবেজ ভাগ
-apps/frappe/frappe/desk/page/activity/activity.js +152,Jun,জুন
+apps/frappe/frappe/desk/page/activity/activity.js +189,Jun,জুন
 apps/frappe/frappe/utils/nestedset.py +235,{0} {1} cannot be a leaf node as it has children,এটা শিশুদের আছে {0} {1} পাতার একটি নোড হতে পারে না
 DocType: Feed,Info,তথ্য
 DocType: Communication,Series,সিরিজ
 DocType: Communication,Email,ইমেইল
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,তোমার বার্তার জন্য তোমাকে ধন্যবাদ
+apps/frappe/frappe/templates/pages/login.py +54,Invalid Login Token,অবৈধ প্রবেশ টোকেন
 DocType: Website Settings,Home Page,হোম পেজ
 DocType: Error Snapshot,Parent Error Snapshot,মূল ত্রুটি স্ন্যাপশট
 DocType: Email Alert,Filters,ফিল্টার
@@ -1742,9 +1768,9 @@ apps/frappe/frappe/config/setup.py +128,Add / Manage Email Accounts.,ইমে�
 DocType: Blog Category,Published,প্রকাশিত
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,তোমার ই - মেইলের জন্য ধন্যবাদ
 DocType: DocField,Small Text,ছোট লেখা
-apps/frappe/frappe/core/doctype/user/user.py +481,Administrator accessed {0} on {1} via IP Address {2}.,অ্যাডমিনিস্ট্রেটর ব্যবহার {0} থেকে {1} IP ঠিকানা মাধ্যমে {2}.
+apps/frappe/frappe/core/doctype/user/user.py +526,Administrator accessed {0} on {1} via IP Address {2}.,অ্যাডমিনিস্ট্রেটর ব্যবহার {0} থেকে {1} IP ঠিকানা মাধ্যমে {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,সমান
-apps/frappe/frappe/core/doctype/doctype/doctype.py +282,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',ক্ষেত্রের বিকল্প &#39;ডাইনামিক লিংক&#39; টাইপ &#39;DOCTYPE&#39; হিসাবে অপশন সঙ্গে অন্য লিঙ্ক ক্ষেত্র নির্দেশ করতে হবে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +285,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',ক্ষেত্রের বিকল্প &#39;ডাইনামিক লিংক&#39; টাইপ &#39;DOCTYPE&#39; হিসাবে অপশন সঙ্গে অন্য লিঙ্ক ক্ষেত্র নির্দেশ করতে হবে
 DocType: About Us Settings,Team Members Heading,শীর্ষক দলের সদস্যদের
 DocType: DocField,Do not allow user to change after set the first time,প্রথমবার ব্যবহারকারী পর সেট পরিবর্তন করার অনুমতি দেয় না
 apps/frappe/frappe/public/js/frappe/upload.js +112,Private or Public?,বেসরকারী বা সরকারী?
@@ -1757,8 +1783,9 @@ DocType: Website Slideshow,Slideshow like display for the website,ওয়ে�
 apps/frappe/frappe/public/js/frappe/ui/editor.html +59,Center (Ctrl/Cmd+E),কেন্দ্র (Ctrl + / cmd + ই)
 apps/frappe/frappe/core/page/modules_setup/modules_setup.py +11,Updated,আপডেট করা হয়েছে
 apps/frappe/frappe/sessions.py +29,Cache Cleared,ক্যাশে সাফ
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +16,New Email,নতুন ইমেইল
 DocType: Dropbox Backup,Upload Frequency,আপলোড ফ্রিকোয়েন্সি
-apps/frappe/frappe/core/doctype/user/user.py +73,User with System Manager Role should always have User Type: System User,সিস্টেম ম্যানেজার ভূমিকা সঙ্গে ব্যবহারকারী সবসময় ব্যবহারকারী প্রকার থাকতে হবে: সিস্টেম ব্যবহারকারী
+apps/frappe/frappe/core/doctype/user/user.py +76,User with System Manager Role should always have User Type: System User,সিস্টেম ম্যানেজার ভূমিকা সঙ্গে ব্যবহারকারী সবসময় ব্যবহারকারী প্রকার থাকতে হবে: সিস্টেম ব্যবহারকারী
 DocType: DocPerm,Export,রপ্তানি
 DocType: About Us Settings,More content for the bottom of the page.,পৃষ্ঠার নীচের অংশে আরো কন্টেন্ট জন্য.
 apps/frappe/frappe/public/js/frappe/request.js +214,Session Expired. Logging you out,সময় মেয়াদ শেষ. আপনি লগ আউট
@@ -1768,7 +1795,7 @@ DocType: Blog Category,Category Name,নামের তালিকা
 DocType: Print Settings,PDF Settings,পিডিএফ সেটিংস
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,কলামের নাম
 apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,ডিফল্ট করা
-apps/frappe/frappe/core/doctype/doctype/doctype.py +307,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} সূচীবদ্ধ করা যাবে না জন্য
+apps/frappe/frappe/core/doctype/doctype/doctype.py +311,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} সূচীবদ্ধ করা যাবে না জন্য
 DocType: Communication,Email Account,ইমেইল একাউন্ট
 DocType: Workflow State,Download,ডাউনলোড
 DocType: Blog Post,Blog Intro,মুখ্য পৃষ্ঠা Privacy Policy ব্লগ
@@ -1794,27 +1821,29 @@ apps/frappe/frappe/public/js/frappe/model/model.js +104,Unable to load: {0},ল�
 DocType: DocField,Read Only,শুধুমাত্র পঠনযোগ্য
 DocType: Print Settings,Send Print as PDF,পিডিএফ হিসাবে প্রিন্ট পাঠান
 DocType: Workflow Transition,Allowed,প্রেজেন্টেশন
-apps/frappe/frappe/core/doctype/doctype/doctype.py +314,There can be only one Fold in a form,একটি ফর্ম শুধুমাত্র এক ভাঁজ আছে হতে পারে
+apps/frappe/frappe/core/doctype/doctype/doctype.py +318,There can be only one Fold in a form,একটি ফর্ম শুধুমাত্র এক ভাঁজ আছে হতে পারে
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,অকার্যকর হোম পেজ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,রিসেট ফিল্টার
-apps/frappe/frappe/core/doctype/doctype/doctype.py +441,{0}: Permission at level 0 must be set before higher levels are set,{0}: উচ্চ মাত্রার সেট করা হয় আগে স্তর 0 এ অনুমতি সেট করা আবশ্যক
+apps/frappe/frappe/core/doctype/doctype/doctype.py +445,{0}: Permission at level 0 must be set before higher levels are set,{0}: উচ্চ মাত্রার সেট করা হয় আগে স্তর 0 এ অনুমতি সেট করা আবশ্যক
 DocType: Website Settings,Home Page is Products,হোম পেজ পণ্য
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},অ্যাসাইনমেন্ট দ্বারা বন্ধ {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,গণনা করা
 apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Please select DocType first,প্রথম DOCTYPE দয়া করে নির্বাচন করুন
 DocType: Error Snapshot,Locals,অঁচলবাসী
+apps/frappe/frappe/templates/emails/mentioned_in_comment.html +2,{0} mentioned you in a comment in {1},{0} একটি মন্তব্যে উল্লেখ {1}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,যেমন (55 + + 434) / 4 বা = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/model/naming.py +40,{0} is required,{0} প্রয়োজন
 DocType: Social Login Keys,GitHub Client ID,গিটহাব ক্লায়েন্ট আইডি
 DocType: Contact Us Settings,City,শহর
 DocType: DocField,Perm Level,স্থায়ী ঢেউ তোলা শ্রেনী
 apps/frappe/frappe/desk/doctype/event/event.py +59,Events In Today's Calendar,আজকের ক্যালেন্ডার ঘটনাগুলি
-apps/frappe/frappe/templates/base.html +137,Error: Not a valid id?,ত্রুটি: একটি বৈধ আইডি?
+apps/frappe/frappe/templates/base.html +140,Error: Not a valid id?,ত্রুটি: একটি বৈধ আইডি?
 DocType: Web Page,Web Page,ওয়েব পেজ
 DocType: Blog Category,Blogger,ব্লগার
 apps/frappe/frappe/public/js/frappe/views/ganttview.js +45,Gantt Chart,Gantt চার্ট
 apps/frappe/frappe/public/js/frappe/form/control.js +563,Date must be in format: {0},জন্ম বিন্যাসে নির্মাণ করা আবশ্যক: {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +22,Select Columns,নির্বাচন কলাম
+apps/frappe/frappe/templates/pages/login.py +45,Missing parameters for login,লগইন জন্য অনুপস্থিত পরামিতি
 DocType: Workflow State,folder-open,ফোল্ডারের-খোলা
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,অনুসন্ধান অ্যাপ্লিকেশন
 apps/frappe/frappe/config/website.py +18,Single Post (article).,একা পোস্ট (নিবন্ধ).
@@ -1822,20 +1851,20 @@ DocType: Page,No,না
 DocType: Property Setter,Set Value,সেট মান
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +190,Hide field in form,আকারে ক্ষেত্র লুকান
 DocType: Email Alert,Optional: The alert will be sent if this expression is true,ঐচ্ছিক: এই অভিব্যক্তি সত্য হলে সতর্কতা পাঠানো হবে
-apps/frappe/frappe/public/js/frappe/list/doclistview.js +451,Select records for assignment,নিয়োগ জন্য নির্বাচন রেকর্ড
+apps/frappe/frappe/public/js/frappe/list/doclistview.js +452,Select records for assignment,নিয়োগ জন্য নির্বাচন রেকর্ড
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +87,Importing,আমদানি হচ্ছে
 DocType: ToDo,Assigned By,দ্বারা নির্ধারিত হয়
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,আপনি ক্ষেত্রের উপর মাত্রা সেট কাস্টমাইজ ফর্ম ব্যবহার করতে পারেন.
 DocType: DocPerm,Level,শ্রেনী
 DocType: DocPerm,Report,রিপোর্ট
-apps/frappe/frappe/templates/generators/web_form.html +31,Please login to create a new {0},একটি নতুন তৈরি করতে দয়া করে লগইন করুন {0}
+apps/frappe/frappe/templates/generators/web_form.html +33,Please login to create a new {0},একটি নতুন তৈরি করতে দয়া করে লগইন করুন {0}
 apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} সংরক্ষিত হয়েছে
-apps/frappe/frappe/core/doctype/user/user.py +235,User {0} cannot be renamed,{0} ব্যবহারকারীর নাম পরিবর্তন করা যাবে না
+apps/frappe/frappe/core/doctype/user/user.py +238,User {0} cannot be renamed,{0} ব্যবহারকারীর নাম পরিবর্তন করা যাবে না
 DocType: Website Settings,An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org],.ico এক্সটেনশন সঙ্গে একটি আইকন ফাইল. 16 X 16 px এর হতে হবে. একটি ফেভিকন জেনারেটর ব্যবহার করে তৈরি করা. [Favicon-generator.org]
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,রপ্তানি
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","ব্যবহারকারীর অনুমতি প্রয়োগ করতে ব্যবহৃত DocTypes এর JSON তালিকা. যদি খালি, সব লিঙ্ক DocTypes ব্যবহারকারীর অনুমতি প্রয়োগ করতে ব্যবহৃত হবে."
 DocType: Report,Ref DocType,সুত্র DOCTYPE
-apps/frappe/frappe/core/doctype/doctype/doctype.py +453,{0}: Cannot set Amend without Cancel,{0}: ছাড়া বাতিল সংশোধন সেট করা যায় না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +457,{0}: Cannot set Amend without Cancel,{0}: ছাড়া বাতিল সংশোধন সেট করা যায় না
 apps/frappe/frappe/public/js/frappe/form/print_layout.html +20,Full Page,পুরো পাতা
 DocType: DocType,Is Child Table,শিশু টেবিল হয়
 apps/frappe/frappe/utils/csvutils.py +123,{0} must be one of {1},{0} কে অবশ্যই {1} এর মাঝে কোন একটি হতে হবে
@@ -1859,14 +1888,14 @@ DocType: Workflow Action,Workflow Action,কর্মপ্রবাহ এক�
 DocType: Event,Send an email reminder in the morning,সকালে একটি ইমেল অনুস্মারক পাঠান
 DocType: Blog Post,Published On,প্রকাশিত
 DocType: User,Gender,লিঙ্গ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +304,Field '{0}' cannot be set as Unique as it has non-unique values,মাঠ &#39;{0}&#39; এটা অ অনন্য মান আছে হিসাবে অনন্য হিসাবে সেট করা যাবে না
+apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Field '{0}' cannot be set as Unique as it has non-unique values,মাঠ &#39;{0}&#39; এটা অ অনন্য মান আছে হিসাবে অনন্য হিসাবে সেট করা যাবে না
 DocType: Feed,Feed,ভোজন
 DocType: ToDo,Reference Type,রেফারেন্স ধরন
 DocType: Event,Repeat On,একই পদ্ধতি পুনরাবৃত্তি করুন
 DocType: Communication,Marked As Spam,স্প্যাম হিসাবে চিহ্নিত
 apps/frappe/frappe/utils/file_manager.py +321,There is some problem with the file url: {0},ফাইলের URL সঙ্গে কিছু সমস্যা আছে: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,ব্যবহারকারীর অনুমতি
-apps/frappe/frappe/desk/page/activity/activity.js +153,Oct,অক্টোবর
+apps/frappe/frappe/desk/page/activity/activity.js +190,Oct,অক্টোবর
 DocType: Workflow State,warning-sign,সতর্কীকরণ চিহ্ন
 DocType: Workflow State,User,ব্যবহারকারী
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",হিসাবে ব্রাইজার উইণ্ডোয় দেখান শিরোনাম &quot;উপসর্গ - শিরোনাম&quot;
@@ -1885,9 +1914,9 @@ DocType: DocField,Default,ডিফল্ট
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +140,{0} added,{0} যোগ করা হয়েছে
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,না
 DocType: Workflow State,star,তারকা
-apps/frappe/frappe/desk/page/activity/activity.js +153,Nov,নভেম্বর
+apps/frappe/frappe/desk/page/activity/activity.js +190,Nov,নভেম্বর
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +160,values separated by commas,মান কমা দ্বারা পৃথকীকৃত
-apps/frappe/frappe/core/doctype/doctype/doctype.py +271,Max width for type Currency is 100px in row {0},টাইপ একক জন্য সর্বোচ্চ প্রস্থ সারিতে 100px হয় {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +274,Max width for type Currency is 100px in row {0},টাইপ একক জন্য সর্বোচ্চ প্রস্থ সারিতে 100px হয় {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,বিষয়বস্তু ওয়েবপৃষ্ঠাটি.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,একটি নতুন ভূমিকা করো
 apps/frappe/frappe/templates/includes/login/login.js +126,Oops! Something went wrong,ওহো! কিছু ভুল হয়েছে
@@ -1898,7 +1927,8 @@ apps/frappe/frappe/desk/moduleview.py +67,Standard Reports,স্ট্যান
 DocType: User,Email Settings,ইমেইল সেটিংস
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} কোনো বৈধ রাজ্য
 DocType: Workflow State,ok-circle,OK-বৃত্ত
-apps/frappe/frappe/core/doctype/user/user.py +102,Sorry! User should have complete access to their own record.,দুঃখিত! ব্যবহারকারী তাদের নিজের রেকর্ড করতে সম্পূর্ণ সুযোগ থাকা উচিত.
+apps/frappe/frappe/core/doctype/user/user.py +105,Sorry! User should have complete access to their own record.,দুঃখিত! ব্যবহারকারী তাদের নিজের রেকর্ড করতে সম্পূর্ণ সুযোগ থাকা উচিত.
+apps/frappe/frappe/utils/oauth.py +203,Invalid Token,অবৈধ টোকেন
 DocType: Custom Field,In Report Filter,গালাগাল প্রতিবেদন ফিল্টার
 DocType: DocType,Hide Actions,পদক্ষেপ লুকান
 DocType: DocType,"<a onclick=""msgprint('<ol>\
@@ -1955,7 +1985,7 @@ apps/frappe/frappe/core/page/data_import_tool/importer.py +43,No data found,ক�
 DocType: Web Form,Allow Comments,মন্তব্য করার অনুমতি দিন
 DocType: User,Background Style,ব্যাকগ্রাউন্ড শৈলী
 DocType: System Settings,mm-dd-yyyy,মিমি-DD-YYYY
-apps/frappe/frappe/desk/doctype/feed/feed.py +93,{0} logged in,{0} লগ
+apps/frappe/frappe/desk/doctype/feed/feed.py +103,{0} logged in,{0} লগ
 apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,আপনার লগইন আইডি হল
 DocType: Dropbox Backup,Send Notifications To,বিজ্ঞপ্তি পাঠান
 DocType: DocField,Ignore User Permissions,ব্যবহারকারীর অনুমতি উপেক্ষা
