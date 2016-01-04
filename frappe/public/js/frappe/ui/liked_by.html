@@ -1,0 +1,8 @@
+<ul class="list-unstyled liked-by-popover">
+	{% for (var i in liked_by) { var liked_by_user = liked_by[i]; %}
+		<li>
+			{%= frappe.avatar(liked_by_user) %}
+			<span>{%= frappe.user.full_name(liked_by_user) %}</span>
+		</li>
+	{% } %}
+</ul>

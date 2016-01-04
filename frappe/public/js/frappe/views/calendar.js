@@ -42,9 +42,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
 
-		if (module !== "Desk") {
-			frappe.breadcrumbs.add(module, this.doctype)
-		}
+		frappe.breadcrumbs.add(module, this.doctype)
 
 		this.add_filters();
 

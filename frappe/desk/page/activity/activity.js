@@ -18,36 +18,73 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 
 	this.page.set_title(__("Activity"));
 
-	this.page.list = new frappe.ui.Listing({
-		hide_refresh: true,
-		page: this.page,
-		method: 'frappe.desk.page.activity.activity.get_feed',
-		parent: $("<div></div>").appendTo(this.page.main),
-		render_row: function(row, data) {
-			new frappe.activity.Feed(row, data);
-		}
-	});
+	frappe.model.with_doctype("Feed", function() {
+		me.page.list = new frappe.ui.Listing({
+			hide_refresh: true,
+			page: me.page,
+			method: 'frappe.desk.page.activity.activity.get_feed',
+			parent: $("<div></div>").appendTo(me.page.main),
+			render_row: function(row, data) {
+				new frappe.activity.Feed(row, data);
+			},
+			show_filters: true,
+			doctype: "Feed",
+ 			get_args: function() {
+				if (frappe.route_options && frappe.route_options.show_likes) {
+					delete frappe.route_options.show_likes;
+					return {
+						show_likes: true
+					}
+				} else {
+					return {}
+				}
+			}
+		});
 
-	this.page.list.run();
+		me.page.list.run();
+
+		me.page.set_primary_action(__("Refresh"), function() {
+			me.page.list.filter_list.clear_filters();
+			me.page.list.run();
+		}, "octicon octicon-sync");
+	});
 
 	frappe.activity.render_plot(this.page);
 
 	this.page.main.on("click", ".activity-message", function() {
-		var doctype = $(this).attr("data-doctype"),
+		var reference_doctype = $(this).attr("data-reference-doctype"),
+			reference_name = $(this).attr("data-reference-name"),
+			doctype = $(this).attr("data-doctype"),
 			docname = $(this).attr("data-docname");
+
 		if (doctype && docname) {
-			frappe.set_route(["Form", doctype, docname]);
+			frappe.set_route(["Form", reference_doctype || doctype, reference_name || docname]);
+
+			if (reference_doctype && reference_name) {
+				frappe.route_options = {
+					scroll_to: { "doctype": doctype, "name": docname }
+				}
+			}
 		}
 	});
 
-	this.page.set_primary_action(__("Refresh"), function() { me.page.list.run(); }, "octicon octicon-sync");
-
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
-		this.page.set_secondary_action(__('Build Report'), function() {
+		this.page.add_menu_item(__('Build Report'), function() {
 			frappe.set_route('Report', "Feed");
-		}, 'icon-th');
+		}, 'icon-th')
 	}
+
+	this.page.add_menu_item(__('Show Likes'), function() {
+		frappe.route_options = {
+			show_likes: true
+		};
+		me.page.list.run();
+	}, 'octicon octicon-heart');
+};
+
+frappe.pages['activity'].on_page_show = function() {
+	frappe.breadcrumbs.add("Desk");
 }
 
 frappe.activity.last_feed_date = false;
@@ -69,7 +106,7 @@ frappe.activity.Feed = Class.extend({
 			.find("a").addClass("grey");
 	},
 	scrub_data: function(data) {
-		data.by = frappe.user_info(data.owner).fullname;
+		data.by = frappe.user.full_name(data.owner);
 		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
 
 		data.icon = "icon-flag";

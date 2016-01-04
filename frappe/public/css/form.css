@@ -61,8 +61,7 @@
 .empty-section {
   display: none !important;
 }
-.shaded-section,
-.timeline-item:nth-child(even) {
+.shaded-section {
   background-color: #fafbfc;
 }
 .modal .form-layout {
@@ -87,37 +86,165 @@
   background-color: #e74c3c;
 }
 .timeline {
-  border: 1px solid #d1d8dd;
   margin: 30px 0px;
+}
+.timeline .timeline-head .comment-input {
+  height: auto;
 }
 .timeline-item {
   margin-top: 0px;
-  padding: 15px 30px 7px;
-  border-bottom: 1px solid #d1d8dd;
-}
-.timeline-item .icon-fixed-width {
-  text-align: center;
 }
 .timeline-item blockquote {
   font-size: inherit;
 }
-.timeline-item:last-child {
-  border-bottom: 0px;
+.timeline-items {
+  position: relative;
 }
-.timeline-item .reply {
-  margin-top: 5px;
+.timeline {
+  position: relative;
+}
+.timeline::before {
+  content: " ";
+  border-left: 1px solid #d1d8dd;
+  position: absolute;
+  top: 0px;
+  bottom: -124px;
+  left: 43px;
+  z-index: -1;
+}
+@media (max-width: 991px) {
+  .timeline::before {
+    bottom: -64px;
+  }
+}
+.timeline-item.user-content {
+  margin: 30px 0px 30px 30px;
+}
+.timeline-item.user-content .media-body {
+  border: 1px solid #d1d8dd;
+  border-radius: 2px;
+  margin-left: -7px;
+  position: relative;
+  overflow: visible;
+}
+.timeline-item.user-content .comment-header {
+  background-color: #fafbfc;
+  padding: 7px 15px;
+  margin: 0px;
+  color: #8D99A6;
+  border-bottom: 1px solid #EBEFF2;
+}
+.timeline-item.user-content .comment-header .octicon-heart {
+  color: #ff5858;
+  cursor: pointer;
+}
+.timeline-item.user-content .reply {
+  padding: 10px 15px;
+}
+.timeline-item.user-content .reply > div > p:first-child {
+  margin-top: 0px;
+}
+.timeline-item.user-content .reply > div > p:last-child {
+  margin-bottom: 0px;
+}
+.timeline-item.user-content .close-btn-container {
+  padding: 2px 15px;
+}
+.timeline-item.user-content .comment-likes {
+  margin-left: 5px;
+}
+.timeline-item.user-content .media-body:after,
+.timeline-item.user-content .media-body:before {
+  right: 100%;
+  top: 15px;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.timeline-item.user-content .media-body:after {
+  border-color: rgba(136, 183, 213, 0);
+  border-right-color: #fafbfc;
+  border-width: 6px;
+  margin-top: -6px;
+}
+.timeline-item.user-content .media-body:before {
+  border-color: rgba(194, 225, 245, 0);
+  border-right-color: #d1d8dd;
+  border-width: 7px;
+  margin-top: -7px;
+}
+.timeline-item.notification-content {
+  padding-left: 30px;
+  margin: 30px 0px;
+  position: relative;
+  color: #8D99A6;
+}
+.timeline-item.notification-content * {
+  color: #8D99A6;
+}
+.timeline-item.notification-content .icon-fixed-width {
+  margin-left: 36px;
+}
+.timeline-item.notification-content .octicon-heart {
+  color: #ff5858 !important;
+}
+.timeline-item.notification-content::before {
+  content: " ";
+  width: 7px;
+  height: 7px;
+  background-color: #d1d8dd;
+  position: absolute;
+  left: 40px;
+  border-radius: 50%;
+  top: 5px;
 }
 .timeline-item .reply-link {
-  padding: 0px 7px;
-}
-.timeline-item h6,
-.timeline-head h6 {
-  margin-top: 6px;
+  padding-left: 7px;
 }
 .timeline-head {
+  background-color: white;
+  border: 1px solid #d1d8dd;
+  border-radius: 2px;
+}
+.timeline-head .comment-input-header {
   background-color: #fafbfc;
-  padding: 15px 30px;
-  border-bottom: 1px solid #d1d8dd;
+  padding: 7px 15px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.timeline-head .comment-input-container {
+  padding: 15px;
+}
+.timeline-head .comment-input {
+  border-color: #EBEFF2;
+  max-width: 100%;
+}
+.timeline-head .comment-input:focus {
+  box-shadow: none;
+}
+@media (max-width: 767px) {
+  .timeline-head {
+    border-left: none;
+    border-right: none;
+    border-radius: 0px;
+  }
+}
+.timeline-new-email {
+  margin: 30px 0px;
+  padding: 0px 65px;
+  position: relative;
+}
+.timeline-new-email::before {
+  content: " ";
+  width: 7px;
+  height: 7px;
+  background-color: #d1d8dd;
+  position: absolute;
+  left: 40px;
+  border-radius: 50%;
+  top: 5px;
 }
 .form-footer h5 {
   margin: 15px 0px;

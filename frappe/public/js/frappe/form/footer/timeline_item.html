@@ -1,16 +1,19 @@
-<div class="media timeline-item" data-name="{%= data.name %}">
+<div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}">
+	{% if (data.user_content) { %}
 	<span class="pull-left avatar avatar-medium">
-		<img class="media-object" src="{%= data.image %}">
+		<div class="avatar-frame" style="background-image: url({%= data.image %})"></div>
 	</span>
-	<div class="pull-left media-body" style="max-width: calc(100% - 41px); padding-right: 0px;">
-		<div>
-			<div class="pull-right">
+	{% } %}
+
+	<div class="pull-left media-body" style="max-width: calc(100% - 50px); padding-right: 0px;">
+		<div class="media-content-wrapper">
+			<div class="pull-right close-btn-container">
 				<span class="small text-muted">
 					{%= data.delete %}
 				</span>
 			</div>
 			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
-				<h6>
+				<div class="comment-header small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
                     <span class="text-muted" style="font-weight: normal;">
@@ -47,14 +50,23 @@
 						<a class="text-muted reply-link pull-right"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
                     {% } %}
-                </h6>
+					<span class="comment-likes" data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
+						<i class="octicon octicon-heart like-action
+							{% if (!data.liked_by_user) { %}
+								text-extra-muted not-liked
+							{% } %} "
+							data-doctype="{%= data.doctype %}"
+							data-name="{%= data.name %}"></i>
+						<span class="likes-count text-muted">{{ data._liked_by.length }}</span>
+					</span>
+                </div>
 				<div class="reply">
         			<div>
         				{%= data.comment_html %}
         			</div>
                 </div>
             {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
-                <h6>
+                <div class="small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
 						{% if(data.reference_doctype && data.reference_name) { %}
 						<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
@@ -65,14 +77,19 @@
 						{% } %}
                         <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
-                </h6>
+                </div>
             {% } else { %}
-                <h6>
+                <div class="small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
-                    <span title="{%= data.comment_by %}">{%= data.fullname %}</span> {%= data.comment %}
-                        <span class="text-muted" style="font-weight: normal;">
-                        &ndash; {%= data.comment_on %}</span>
-                </h6>
+					{% if (data.comment_type == "Like") { %}
+						<span title="{%= data.comment_by %}">{%= __("Liked by {0}", [data.fullname]) %}</span>
+					{% } else { %}
+                    	<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
+						{%= data.comment %}
+					{% } %}
+                    <span class="text-muted" style="font-weight: normal;">
+                    &ndash; {%= data.comment_on %}</span>
+                </div>
             {% } %}
 			{% if(data.attachments && data.attachments.length) { %}
 			<div style="margin: 10px 0px">

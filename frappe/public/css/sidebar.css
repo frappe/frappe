@@ -161,6 +161,10 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .form-sidebar .form-viewers .shared-with-everyone .octicon {
   color: #36414C !important;
 }
+.form-sidebar .liked-by .octicon-heart {
+  font-size: 16px;
+  cursor: pointer;
+}
 .form-sidebar .form-shared .share-doc-btn:hover,
 .form-sidebar .form-shared .share-doc-btn:focus,
 .form-sidebar .form-shared .share-doc-btn:active {
@@ -174,6 +178,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .sidebar-left .form-sidebar .form-tags,
 .sidebar-left .form-sidebar .assignment-row,
 .sidebar-left .form-sidebar .form-shared,
+.sidebar-left .form-sidebar .liked-by,
 .sidebar-left .form-sidebar .modified-by,
 .sidebar-left .form-sidebar .created-by,
 .sidebar-left .form-sidebar .tags-label,

@@ -62,3 +62,12 @@
 	width: 97% !important;
 	margin: auto;
 }
+
+#page-activity .list-filters {
+	display: none !important;
+}
+
+#page-activity .octicon-heart {
+	color: #ff5858;
+	margin: 0px 5px;
+}

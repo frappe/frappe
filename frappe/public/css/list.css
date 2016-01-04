@@ -98,6 +98,13 @@
 .doclist-row {
   font-size: 12px;
 }
+.doclist-row .likes-count {
+  display: inline-block;
+  width: 15px;
+  margin-left: -5px;
+  color: #8D99A6;
+  font-size: 12px;
+}
 .doclist-row .docstatus .octicon {
   font-size: 12px;
 }
@@ -134,14 +141,14 @@
   margin: 0px -15px;
   padding: 5px 15px;
 }
-.listview-main-section .icon-star {
+.listview-main-section .octicon-heart {
   cursor: pointer;
 }
-.list-row-head .icon-star {
-  vertical-align: middle;
+.list-row-head .octicon-heart {
+  margin-right: 13px;
 }
-.star-action.icon-star {
-  color: #ffdb4c;
+.like-action.octicon-heart {
+  color: #ff5858;
 }
 .list-id {
   font-weight: bold;
@@ -162,4 +169,9 @@
   .doclist-row .list-row-right .list-row-modified {
     display: none;
   }
+}
+.list-comment-count {
+  display: inline-block;
+  width: 37px;
+  text-align: left;
 }

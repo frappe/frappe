@@ -124,6 +124,14 @@
 
 .doclist-row {
 	font-size: 12px;
+
+	.likes-count {
+		display: inline-block;
+		width: 15px;
+		margin-left: -5px;
+		color: @text-muted;
+		font-size: 12px;
+	}
 }
 
 .doclist-row .docstatus .octicon {
@@ -172,16 +180,17 @@
 	padding: 5px 15px;
 }
 
-.listview-main-section .icon-star {
+.listview-main-section .octicon-heart {
 	cursor: pointer;
 }
 
-.list-row-head .icon-star {
-	vertical-align: middle;
+.list-row-head .octicon-heart {
+	margin-right: 13px;
 }
 
-.star-action.icon-star {
-	color: #ffdb4c;
+.like-action.octicon-heart {
+	// color: #ffdb4c;
+	color: @heart-color;
 }
 
 .list-id {
@@ -208,4 +217,10 @@
 	.doclist-row .list-row-right .list-row-modified {
 		display: none;
 	}
+}
+
+.list-comment-count {
+	display: inline-block;
+	width: 37px;
+	text-align: left;
 }

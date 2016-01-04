@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown
 import email.utils
 from markdown2 import markdown
 
@@ -89,12 +89,7 @@ class EMail:
 
 	def set_html_as_text(self, html):
 		"""return html2text"""
-		import HTMLParser
-		from html2text import html2text
-		try:
-			self.set_text(html2text(html))
-		except HTMLParser.HTMLParseError:
-			pass
+		self.set_text(to_markdown(html))
 
 	def set_message(self, message, mime_type='text/html', as_attachment=0, filename='attachment.html'):
 		"""Append the message with MIME content to the root node (as attachment)"""

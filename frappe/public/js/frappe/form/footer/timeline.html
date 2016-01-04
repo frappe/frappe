@@ -1,37 +1,21 @@
 <div class="timeline">
     <div class="timeline-head">
-        <h6 class="text-muted">{%= __("Add a comment") %}</h6>
-        <div>
-    		<textarea style="height: 80px" style="margin-top: 10px;"
-    			class="form-control"></textarea>
+		<div class="comment-input-header">
+			<span class="small text-muted">{%= __("Add a comment") %}</span>
+    		<button class="btn btn-default btn-comment btn-xs pull-right">
+    			{%= __("Comment") %}
+    		</button>
+		</div>
+        <div class="comment-input-container">
+    		<textarea class="form-control comment-input"></textarea>
 			<input type="data" class="hidden mention-input">
         </div>
-        <div class="media">
-        	<span class="pull-left avatar avatar-medium">
-        		<img class="media-object" src="{%= image %}">
-        	</span>
-        	<div class="media-body">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <h6>{%= __("You") %}</h6>
-                    </div>
-                    <div class="col-xs-8 text-right" style="margin-top: 2px;">
-                		<button class="btn btn-primary btn-go btn-xs pull-right">
-                			{%= __("Comment") %}
-                		</button>
-                        <div class="checkbox text-muted small pull-right"
-                            style="margin-top: 3px; margin-right: 15px;">
-            			    <label>
-                				<input type="checkbox" class="is-email" style="margin-top: 1px;">
-                				{%= __("Email") %}
-                			</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+	<div class="timeline-new-email">
+		<button class="btn btn-default btn-new-email btn-xs">
+			{%= __("New Email") %}
+		</button>
+	</div>
     <div class="timeline-items">
 
     </div>

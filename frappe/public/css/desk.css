@@ -546,3 +546,11 @@ ul.linked-with-list li {
   border-bottom: 1px solid #d1d8dd;
   border-radius: 0px;
 }
+.liked-by-popover {
+  min-width: 200px;
+  margin-top: -10px;
+  margin-bottom: -10px;
+}
+.liked-by-popover li {
+  margin: 15px 0px;
+}

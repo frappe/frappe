@@ -14,6 +14,9 @@ def get_notification_config():
 			"Comment": "frappe.core.notifications.get_unread_messages",
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
 		},
+		"for_other": {
+			"Likes": "frappe.core.notifications.get_unseen_likes"
+		}
 	}
 
 def get_things_todo():
@@ -41,3 +44,12 @@ def get_unread_messages():
 		AND comment_docname = %s
 		AND docstatus=0
 		""", (frappe.session.user,))[0][0]
+
+def get_unseen_likes():
+	"""Returns count of unseen likes"""
+	return frappe.db.sql("""select count(*) from `tabFeed`
+		where
+		feed_type='Like'
+		and owner is not null and owner!=%(user)s
+		and doc_owner=%(user)s
+		and seen=0""", {"user": frappe.session.user})[0][0]
