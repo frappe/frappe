@@ -28,3 +28,5 @@ def execute():
 					"name": name,
 					"owner": owner
 				})
+
+		frappe.db.commit()
