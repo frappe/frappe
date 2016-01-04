@@ -282,7 +282,8 @@ $.extend(frappe, {
 	do_search: function(val) {
 		var path = (frappe.search_path && frappe.search_path[location.pathname]
 			|| window.search_path || location.pathname);
-		frappe.load_via_ajax(path + "?txt=" + encodeURIComponent(val));
+
+		window.location.href = path + "?txt=" + encodeURIComponent(val);
 	},
 	set_search_path: function(path) {
 		frappe.search_path[location.pathname] = path;
