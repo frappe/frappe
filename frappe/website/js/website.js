@@ -299,27 +299,6 @@ $.extend(frappe, {
 			}
 		})
 	},
-	toggle_template_blocks: function() {
-		// this assumes frappe base template
-		$(".page-footer").toggleClass("hidden",
-			!!!$(".page-footer").text().trim());
-
-		// hide breadcrumbs if no breadcrumb content or if it is same as the header
-		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
-			!$("[data-html-block='breadcrumbs']").text().trim() ||
-			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
-
-		// adjust page header block
-		var page_header_actions = $(".page-header-actions-block");
-		if(page_header_actions.text().trim()) {
-			page_header_actions.parent().removeClass("hidden");
-			$(".page-header-block").parent().removeClass("col-sm-12").addClass("col-sm-8");
-		} else {
-			page_header_actions.parent().addClass("hidden");
-			$(".page-header-block").parent().removeClass("col-sm-8").addClass("col-sm-12");
-		}
-
-	},
 	get_navbar_search: function() {
 		return $(".navbar .search, .sidebar .search");
 	},
@@ -465,7 +444,6 @@ $(document).on("page-change", function() {
 	$('.dropdown-toggle').dropdown();
 
 	frappe.datetime.refresh_when();
-	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
