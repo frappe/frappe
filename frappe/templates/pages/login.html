@@ -1,6 +1,12 @@
-{% block style %}{% include "templates/includes/login/login.css" %}{% endblock %}
+{% extends "templates/web.html" %}
 
-{% block content %}
+{% block style %}
+<style>
+{% include "templates/includes/login/login.css" %}
+</style>
+{% endblock %}
+
+{% block page_content %}
 <!-- no-header -->
 <!-- no-sidebar -->
 <div class="login-content" style="padding-top: 30px; padding-bottom:15px">
@@ -71,6 +77,8 @@
 </div>
 {% endblock %}
 
-{% block script_lib %}{% include "templates/includes/login/login.js" %}{% endblock %}
+{% block script %}
+<script>{% include "templates/includes/login/login.js" %}</script>
+{% endblock %}
 
 {% block sidebar %}{% endblock %}

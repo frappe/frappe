@@ -95,16 +95,10 @@ def render_page(path):
 	out = None
 
 	if can_cache():
-		if is_ajax():
-			# ajax, send context
-			context_cache = frappe.cache().hget("page_context", path)
-			if context_cache and frappe.local.lang in context_cache:
-				out = context_cache[frappe.local.lang].get("data")
-		else:
-			# return rendered page
-			page_cache = frappe.cache().hget("website_page", path)
-			if page_cache and frappe.local.lang in page_cache:
-				out = page_cache[frappe.local.lang]
+		# return rendered page
+		page_cache = frappe.cache().hget("website_page", path)
+		if page_cache and frappe.local.lang in page_cache:
+			out = page_cache[frappe.local.lang]
 
 	if out:
 		frappe.local.response.from_cache = True
@@ -116,27 +110,24 @@ def build(path):
 	if not frappe.db:
 		frappe.connect()
 
-	build_method = (build_json if is_ajax() else build_page)
-
 	try:
-		return build_method(path)
+		return build_page(path)
 	except frappe.DoesNotExistError:
 		hooks = frappe.get_hooks()
 		if hooks.website_catch_all:
 			path = hooks.website_catch_all[0]
-			return build_method(path)
+			return build_page(path)
 		else:
 			raise
-
-def build_json(path):
-	return get_context(path).data
 
 def build_page(path):
 	if not getattr(frappe.local, "path", None):
 		frappe.local.path = path
 
 	context = get_context(path)
-	html = frappe.get_template(context.base_template_path).render(context)
+	html = frappe.get_template(context.template).render(context)
+
+	# html = frappe.get_template(context.base_template_path).render(context)
 
 	if can_cache(context.no_cache):
 		page_cache = frappe.cache().hget("website_page", path) or {}
@@ -144,9 +135,6 @@ def build_page(path):
 		frappe.cache().hset("website_page", path, page_cache)
 
 	return html
-
-def is_ajax():
-	return getattr(frappe.local, "is_ajax", False)
 
 def resolve_path(path):
 	if not path:
@@ -238,11 +226,5 @@ def get_doctype_from_path(path):
 	return None, None
 
 def add_csrf_token(data):
-	if is_ajax() or frappe.session.user == "Guest" or not frappe.local.session.data.csrf_token:
-		pass
-
-	else:
-		data = data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
+	return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
 			frappe.local.session.data.csrf_token))
-
-	return data

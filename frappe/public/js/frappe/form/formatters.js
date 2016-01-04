@@ -117,7 +117,7 @@ frappe.form.formatters = {
 
 		return frappe.form.formatters.Data(value);
 	},
-	StarredBy: function(value) {
+	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
 			if(v) html+= '<span class="avatar avatar-small" \

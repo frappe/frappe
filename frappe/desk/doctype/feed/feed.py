@@ -12,7 +12,13 @@ from frappe import _
 exclude_from_linked_with = True
 
 class Feed(Document):
-	pass
+	no_feed_on_delete = True
+
+	def validate(self):
+		if not (self.reference_doctype and self.reference_name):
+			# reset both if even one is missing
+			self.reference_doctype = self.reference_name = None
+
 
 def on_doctype_update():
 	if not frappe.db.sql("""show index from `tabFeed`
@@ -24,8 +30,11 @@ def on_doctype_update():
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
-	if not frappe.permissions.apply_user_permissions("Feed", "read", user):
+	use_user_permissions = frappe.permissions.apply_user_permissions("Feed", "read", user)
+	if not use_user_permissions:
 		return ""
+
+	conditions = ['`tabFeed`.owner="{user}" or `tabFeed`.doc_owner="{user}"'.format(user=frappe.db.escape(user))]
 
 	user_permissions = frappe.defaults.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
@@ -34,19 +43,17 @@ def get_permission_query_conditions(user):
 		list(set(can_read) - set(user_permissions.keys()))]
 
 	if not can_read_doctypes:
-		return ""
+		conditions += ["tabFeed.doc_type in ({})".format(", ".join(can_read_doctypes))]
 
-	conditions = ["tabFeed.doc_type in ({})".format(", ".join(can_read_doctypes))]
+		if user_permissions:
+			can_read_docs = []
+			for doctype, names in user_permissions.items():
+				for n in names:
+					can_read_docs.append('"{}|{}"'.format(doctype, n))
 
-	if user_permissions:
-		can_read_docs = []
-		for doctype, names in user_permissions.items():
-			for n in names:
-				can_read_docs.append('"{}|{}"'.format(doctype, n))
-
-		if can_read_docs:
-			conditions.append("concat_ws('|', tabFeed.doc_type, tabFeed.doc_name) in ({})".format(
-				", ".join(can_read_docs)))
+			if can_read_docs:
+				conditions.append("concat_ws('|', tabFeed.doc_type, tabFeed.doc_name) in ({})".format(
+					", ".join(can_read_docs)))
 
 	return "(" + " or ".join(conditions) + ")"
 
@@ -83,7 +90,10 @@ def update_feed(doc, method=None):
 				"doc_type": doctype,
 				"doc_name": name,
 				"subject": feed.subject,
-				"full_name": get_fullname(doc.owner)
+				"full_name": get_fullname(doc.owner),
+				"doc_owner": frappe.db.get_value(doctype, name, "owner"),
+				"reference_doctype": feed.reference_doctype,
+				"reference_name": feed.reference_name
 			}).insert(ignore_permissions=True)
 
 def login_feed(login_manager):
