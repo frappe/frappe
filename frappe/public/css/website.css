@@ -270,9 +270,8 @@ a.no-decoration:active {
   padding: 50% 0px;
   background-size: cover;
   background-repeat: no-repeat;
-  background-position: center top;
-  border-radius: 0.5em;
-  border: 1px solid #EBEFF2;
+  background-position: center center;
+  border-radius: 4px;
 }
 .indicator,
 .indicator-right {
