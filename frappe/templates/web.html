@@ -8,19 +8,24 @@
 	<div class="page-content">
     	<div class="page-content-wrapper">
             <div class="row">
-                <div class="col-sm-8">
-                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-                    {% block breadcrumbs %}{% endblock %}
+				{% set full_width = (self.breadcrumbs() or self.header()) and not self.header_actions() -%}
+                <div class="{% if not full_width %} col-sm-8 {% else %} col-sm-12 {% endif %}">
+					{% if self.breadcrumbs() %}
+	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+	                    {% block breadcrumbs %}{% endblock %}
+	                </div>
+					{% endif %}
+	        		<div class="page-header-block" data-html-block="header">
+	                    {% block header %}{% endblock %}
+	        		</div>
                 </div>
-        		<div class="page-header-block" data-html-block="header">
-                    {% block header %}{% endblock %}
-        		</div>
-                </div>
+				{% if not full_width %}
                 <div class="col-sm-4">
             		<div class="page-header-actions-block" data-html-block="header-actions">
                         {% block header_actions %}{% endblock %}
             		</div>
                 </div>
+				{% endif %}
             </div>
     	    <div class="page-content-block">
     		    {%- block page_content -%}{%- endblock -%}

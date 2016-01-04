@@ -114,7 +114,7 @@ class WebPage(WebsiteGenerator):
 			context.title = context.page_titles.get(context.pathname)[0]
 
 		# header
-		if "header" in context:
+		if context.no_header and "header" in context:
 			context.header = ""
 
 		if not context.no_header:

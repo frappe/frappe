@@ -24,14 +24,17 @@ def toggle_like(doctype, name, add=False):
 
 	_toggle_like(doctype, name, add)
 
-def _toggle_like(doctype, name, add=False, user=None):
+def _toggle_like(doctype, name, add, user=None):
 	"""Same as toggle_like but hides param `user` from API"""
 
 	if not user:
 		user = frappe.session.user
 
 	try:
-		liked_by = frappe.db.get_value(doctype, name, "_liked_by")
+		liked_by, owner = frappe.db.get_value(doctype, name, ["_liked_by", "owner"])
+		if owner==frappe.session.user and add=="Yes":
+			frappe.throw(_("You cannot like something that you created"))
+
 		if liked_by:
 			liked_by = json.loads(liked_by)
 		else:
@@ -66,7 +69,7 @@ def remove_like(doctype, name):
 			"comment_by": frappe.session.user,
 			"comment_type": "Like"
 		}
-	)])
+	)], ignore_permissions=True)
 
 	# remove Feed
 	frappe.delete_doc("Feed", [c.name for c in frappe.get_all("Feed",

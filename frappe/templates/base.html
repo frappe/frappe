@@ -67,11 +67,13 @@
                         {% block content %}{% endblock %}
                         </div>
                     </div>
+					{%- if footer is defined -%}
 					<footer class="page-footer">
-						<div class="container" data-html-block="footer">
-							{%- if footer is defined -%}{{ footer }}{%- endif -%}
+						<div class="container">
+							{{ footer }}
 						</div>
 					</footer>
+					{%- endif -%}
 				</div>
 				<div>
 					{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
