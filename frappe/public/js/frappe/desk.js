@@ -80,7 +80,7 @@ frappe.Application = Class.extend({
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
-			moment.locale(frappe.boot.lang);
+			moment.locale("en");
 			moment.user_utc_offset = moment().utcOffset();
 			if(frappe.boot.timezone_info) {
 				moment.tz.add(frappe.boot.timezone_info);
