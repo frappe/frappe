@@ -262,9 +262,14 @@ function load_frappe_slides() {
 					frappe.wiz.welcome.data = r.message;
 					frappe.wiz.welcome.setup_fields(slide);
 
-					slide.get_field("language")
-						.set_input(frappe.wiz.welcome.data.default_language || "english")
-						.trigger("change");
+					var language_field = slide.get_field("language");
+					language_field.set_input(frappe.wiz.welcome.data.default_language || "english");
+
+					if (!frappe.wiz._from_load_messages) {
+						language_field.$input.trigger("change");
+					}
+
+					delete frappe.wiz._from_load_messages;
 
 					moment.locale("en");
 				}
@@ -289,6 +294,7 @@ function load_frappe_slides() {
 					},
 					callback: function(r) {
 						// TODO save values!
+						frappe.wiz._from_load_messages = true;
 
 						// reset all slides so that labels are translated
 						frappe.wiz.slides = [];
