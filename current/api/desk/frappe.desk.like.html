@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.config </title>
+	<title> frappe.desk.like </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="current/api/config/frappe.config">
+<body data-path="current/api/desk/frappe.desk.like">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -70,7 +70,7 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-frappe.config" data-path="current/api/config/frappe.config"
+<div class="page-container" id="page-frappe.desk.like" data-path="current/api/desk/frappe.desk.like"
     data-doctype="Web Page">
 	<div class="page-content">
     	<div class="page-content-wrapper">
@@ -84,8 +84,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api/config">
-		config</a>
+		<a href="https://frappe.github.io/frappe/current/api/desk">
+		desk</a>
 	</li>
 	
 </ul>
@@ -95,7 +95,7 @@
 	                </div>
 					
 	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.config</h1>
+	                    <h1>frappe.desk.like</h1>
 	        		</div>
                 </div>
 				
@@ -103,16 +103,16 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.config" styl
+	<article class="web-page-content" id="frappe.desk.like" styl
 
     e="text-align: Left">
-	<!-- title: frappe.config --><div class="dev-header">
+	<!-- title: frappe.desk.like --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 6.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/config.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/desk/like.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -120,6 +120,84 @@
 
 
 
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like._toggle_like" href="#frappe.desk.like._toggle_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>_toggle_like</b>
+        <i class="text-muted">(doctype, name, add, user=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Same as toggle_like but hides param <code>user</code> from API</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.add_comment" href="#frappe.desk.like.add_comment" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>add_comment</b>
+        <i class="text-muted">(doctype, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.remove_like" href="#frappe.desk.like.remove_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>remove_like</b>
+        <i class="text-muted">(doctype, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Remove previous Like</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.desk.like.toggle_like</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.toggle_like" href="#frappe.desk.like.toggle_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>toggle_like</b>
+        <i class="text-muted">(doctype, name, add=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Adds / removes the current user in the <code>__liked_by</code> property of the given document.
+If column does not exist, will add it in the database.</p>
+
+<p>The <code>_liked_by</code> property is always set from this function and is ignored if set via
+Document API</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to like</li>
+<li><strong><code>name</code></strong> -  Name of the document to like</li>
+<li><strong><code>add</code></strong> -  <code>Yes</code> if like is to be added. If not <code>Yes</code> the like will be removed.</li>
+</ul>
+</div>
+	<br>
+
+	
 
 
 
