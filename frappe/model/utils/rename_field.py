@@ -119,7 +119,7 @@ def update_property_setters(doctype, old_fieldname, new_fieldname):
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
 
 	idx_property = frappe.db.sql("""select name, value from `tabProperty Setter` 
-		where doc_type=%s and property = '_idx' and value like '%%%s%%'""", 
+		where doc_type='%s' and property = '_idx' and value like '%%%s%%'""" % 
 		(doctype, old_fieldname), as_dict=1)
 	
 	if idx_property:
