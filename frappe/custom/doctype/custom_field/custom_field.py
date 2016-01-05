@@ -92,11 +92,9 @@ class CustomField(Document):
 		# Create new peroperty setter if order changed
 		if _idx and not existing_property_setter:
 			field_idx = (_idx.index(self.insert_after) + 1) if (self.insert_after in _idx) else len(_idx)
-			if field_idx < len(_idx):
-				_idx[field_idx] = self.fieldname
-			else:
-				_idx.append(self.fieldname)
-
+			
+			_idx.insert(field_idx, self.fieldname)
+			
 			frappe.make_property_setter({
 				"doctype":self.dt,
 				"doctype_or_field": "DocType",
