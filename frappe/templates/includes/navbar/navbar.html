@@ -14,6 +14,16 @@
 				{% include "templates/includes/navbar/navbar_items.html" %}
 				{% endblock %}
 			</div>
+			<div class="cart-icon" style="float:right;padding-top:10px;">
+				<a href="/cart" class="text-muted small">
+					<div class="btn btn-primary cart"> {{ _("Cart") }} 
+						<span id="cart-count" class="label" 
+							style="padding-left:5px;margin-left:5px;
+								margin-right:-5px;background-color: #2905E2;">
+						</span>
+					</div>
+				</a>
+			</div>
 		</div>
 	</nav>
 </header>

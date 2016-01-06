@@ -829,8 +829,10 @@ _f.Frm.prototype.set_footnote = function(txt) {
 }
 
 
-_f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	return this.page.add_inner_button(label, fn);
+_f.Frm.prototype.add_custom_button = function(label, fn, group) {
+	// temp! old parameter used to be icon
+	if(group && group.indexOf("icon")!==-1) group = null;
+	return this.page.add_inner_button(label, fn, group);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
