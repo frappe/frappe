@@ -50,6 +50,9 @@ class DocType(Document):
 
 		self.make_amendable()
 
+		if self.istable:
+			self.allow_import = 0
+
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
 		if frappe.flags.in_patch:
