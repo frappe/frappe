@@ -372,6 +372,12 @@ class BaseDocument(object):
 			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
 
+		# check for missing parent and parenttype
+		if self.meta.istable:
+			for fieldname in ("parent", "parenttype"):
+				if not self.get(fieldname):
+					missing.append((fieldname, get_msg(frappe._dict(label=fieldname))))
+
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):

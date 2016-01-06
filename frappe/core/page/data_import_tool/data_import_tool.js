@@ -110,7 +110,8 @@ frappe.DataImportTool = Class.extend({
 
 					me.write_messages(r.messages);
 				}
-			}
+			},
+			is_private: true
 		});
 
 		frappe.realtime.on("data_import_progress", function(data) {

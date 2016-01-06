@@ -19,30 +19,33 @@ def add_user_default(key, value, user=None, parenttype=None):
 def get_user_default(key, user=None):
 	user_defaults = get_defaults(user or frappe.session.user)
 	d = user_defaults.get(key, None)
-	
-	if key != frappe.scrub(key):
+
+	if is_a_user_permission_key(key):
 		if d and isinstance(d, (list, tuple)) and len(d)==1:
 			# Use User Permission value when only when it has a single value
 			d = d[0]
-			
+
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
-	
+
 	return isinstance(d, (list, tuple)) and d[0] or d
 
 def get_user_default_as_list(key, user=None):
 	user_defaults = get_defaults(user or frappe.session.user)
 	d = user_defaults.get(key, None)
-	
-	if key != frappe.scrub(key):
+
+	if is_a_user_permission_key(key):
 		if d and isinstance(d, (list, tuple)) and len(d)==1:
 			# Use User Permission value when only when it has a single value
 			d = [d[0]]
-			
+
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
 	return (not isinstance(d, (list, tuple))) and [d] or d
+
+def is_a_user_permission_key(key):
+	return ":" not in key and key != frappe.scrub(key)
 
 def get_user_permissions(user=None):
 	if not user:

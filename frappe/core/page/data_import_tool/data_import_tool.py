@@ -19,11 +19,7 @@ def get_data_keys():
 
 @frappe.whitelist()
 def get_doctypes():
-	if "System Manager" in frappe.get_roles():
-	    return [r[0] for r in frappe.db.sql("""select name from `tabDocType`
-			where allow_import = 1""")]
-	else:
-		return frappe.get_user()._get("can_import")
+	return frappe.get_user()._get("can_import")
 
 @frappe.whitelist()
 def get_doctype_options():
