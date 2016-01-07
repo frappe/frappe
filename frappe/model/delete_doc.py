@@ -82,10 +82,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
+			doc.run_method("after_delete")
 
 		if doc:
 			try:
-				doc.notify_modified()
+				doc.notify_update()
 				insert_feed(doc)
 			except ImportError:
 				pass
@@ -106,7 +107,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
 		frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
 	else:
-		frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+		frappe.db.sql("delete from `tab%s` where name=%s" % (frappe.db.escape(doctype), "%s"), (name,))
 
 	# get child tables
 	if doc:

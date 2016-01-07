@@ -65,8 +65,15 @@
 			$(this).toggle(false);
 			$("#comment-form").toggle();
 
-			$("[name='comment_by']").val(getCookie("user_id") || "");
-			$("[name='comment_by_fullname']").val(getCookie("full_name") || "");
+            var full_name = "", user_id = "";
+            if(frappe.is_user_logged_in()) {
+                full_name = getCookie("full_name");
+                user_id = getCookie("user_id");
+                if(user_id != "Guest") {
+        			$("[name='comment_by']").val(user_id);
+        			$("[name='comment_by_fullname']").val(full_name);
+                }
+            }
 			$("#comment-form textarea").val("");
 		})
 		$("#submit-comment").click(function() {

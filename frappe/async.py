@@ -17,68 +17,48 @@ END_LINE = '<!-- frappe: end-file -->'
 TASK_LOG_MAX_AGE = 86400  # 1 day in seconds
 redis_server = None
 
-
 def handler(f):
 	cmd = f.__module__ + '.' + f.__name__
 
-	def _run(args, set_in_response=True):
+	def run(args, set_in_response=True, hijack_std=False):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
 			return execute_cmd(cmd, from_async=True)
 		args = frappe._dict(args)
-		task = run_async_task.delay(frappe.local.site,
-			(frappe.session and frappe.session.user) or 'Administrator', cmd, args)
+		task = run_async_task.delay(site=frappe.local.site,
+			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
+									form_dict=args, hijack_std=hijack_std)
 		if set_in_response:
 			frappe.local.response['task_id'] = task.id
 		return task.id
 
 	@wraps(f)
 	def queue(*args, **kwargs):
-		from frappe.tasks import run_async_task
-		from frappe.handler import execute_cmd
-		if frappe.conf.disable_async:
-			return execute_cmd(cmd, from_async=True)
-		task = run_async_task.delay(frappe.local.site,
-			(frappe.session and frappe.session.user) or 'Administrator', cmd,
-				frappe.local.form_dict)
-		frappe.local.response['task_id'] = task.id
+		task_id = run(frappe.local.form_dict, set_in_response=True)
 		return {
 			"status": "queued",
-			"task_id": task.id
+			"task_id": task_id
 		}
+
 	queue.async = True
 	queue.queue = f
-	queue.run = _run
+	queue.run = run
 	frappe.whitelisted.append(f)
 	frappe.whitelisted.append(queue)
 	return queue
 
 
-def run_async_task(method, args, reference_doctype=None, reference_name=None, set_in_response=True):
-	if frappe.local.request and frappe.local.request.method == "GET":
-		frappe.throw("Cannot run task in a GET request")
-	task_id = method.run(args, set_in_response=set_in_response)
-	task = frappe.new_doc("Async Task")
-	task.celery_task_id = task_id
-	task.status = "Queued"
-	task.reference_doctype = reference_doctype
-	task.reference_name = reference_name
-	task.save()
-	return task_id
-
-
 @frappe.whitelist()
 def get_pending_tasks_for_doc(doctype, docname):
-	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype='%s' and reference_name='%s'" % (doctype, docname))
+	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype=%s and reference_name=%s", (doctype, docname))
 
 
 @handler
 def ping():
 	from time import sleep
-	sleep(6)
+	sleep(1)
 	return "pong"
-
 
 @frappe.whitelist()
 def get_task_status(task_id):
@@ -91,9 +71,7 @@ def get_task_status(task_id):
 		"progress": 0
 	}
 
-
 def set_task_status(task_id, status, response=None):
-	frappe.db.set_value("Async Task", task_id, "status", status)
 	if not response:
 		response = {}
 	response.update({
@@ -119,10 +97,10 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event, message=None, room=None, user=None, doctype=None, docname=None, now=False):
+def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, now=False):
 	"""Publish real-time updates
 
-	:param event: Event name, like `task_progress` etc.
+	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
@@ -131,8 +109,20 @@ def publish_realtime(event, message=None, room=None, user=None, doctype=None, do
 	if message is None:
 		message = {}
 
+	if event is None:
+		if frappe.local.task_id:
+			event = "task_progress"
+		else:
+			event = "global"
+
 	if not room:
-		if user:
+		if frappe.local.task_id:
+			room = get_task_progress_room()
+			if not "task_id" in message:
+				message["task_id"] = frappe.local.task_id
+
+			now = True
+		elif user:
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
@@ -155,20 +145,21 @@ def emit_via_redis(event, message, room):
 	try:
 		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
+		# print frappe.get_traceback()
 		pass
 
 def put_log(line_no, line, task_id=None):
 	r = get_redis_server()
 	if not task_id:
 		task_id = frappe.local.task_id
-	task_progress_room = "task_progress:" + frappe.local.task_id
+	task_progress_room = get_task_progress_room()
 	task_log_key = "task_log:" + task_id
 	publish_realtime('task_progress', {
 		"message": {
 			"lines": {line_no: line}
 		},
 		"task_id": task_id
-	}, room=task_progress_room)
+	}, room=task_progress_room, now=True)
 	r.hset(task_log_key, line_no, line)
 	r.expire(task_log_key, 3600)
 
@@ -211,7 +202,7 @@ def get_task_log_file_path(task_id, stream_type):
 def can_subscribe_doc(doctype, docname, sid):
 	from frappe.sessions import Session
 	from frappe.exceptions import PermissionError
-	session = Session(None).get_session_data()
+	session = Session(None, resume=True).get_session_data()
 	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype='read'):
 		raise PermissionError()
 	return True
@@ -233,3 +224,5 @@ def get_user_room(user):
 def get_site_room():
 	return ''.join([frappe.local.site, ':all'])
 
+def get_task_progress_room():
+	return "task_progress:" + frappe.local.task_id

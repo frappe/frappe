@@ -60,6 +60,9 @@ class Meta(Document):
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
+	def get_dynamic_link_fields(self):
+		return self.get("fields", {"fieldtype": "Dynamic Link"})
+
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
@@ -161,42 +164,26 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of previous_field"""
-		newlist = []
-		pending = self.get("fields")
-
 		if self.get("_idx"):
+			newlist = []
+			pending = self.get("fields")
+			
 			for fieldname in json.loads(self.get("_idx")):
 				d = self.get("fields", {"fieldname": fieldname}, limit=1)
 				if d:
 					newlist.append(d[0])
 					pending.remove(d[0])
-		else:
-			maxloops = 20
-			while (pending and maxloops>0):
-				maxloops -= 1
-				for d in pending[:]:
-					if d.get("previous_field"):
-						# field already added
-						for n in newlist:
-							if n.fieldname==d.previous_field:
-								newlist.insert(newlist.index(n)+1, d)
-								pending.remove(d)
-								break
-					else:
-						newlist.append(d)
-						pending.remove(d)
+					
+			if pending:
+				newlist += pending
+			
+			# renum
+			idx = 1
+			for d in newlist:
+				d.idx = idx
+				idx += 1
 
-		# recurring at end
-		if pending:
-			newlist += pending
-
-		# renum
-		idx = 1
-		for d in newlist:
-			d.idx = idx
-			idx += 1
-
-		self.set("fields", newlist)
+			self.set("fields", newlist)
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
@@ -256,16 +243,25 @@ def get_field_currency(df, doc=None):
 
 	if not doc:
 		return None
-
-	if ":" in cstr(df.get("options")):
-		split_opts = df.get("options").split(":")
-		if len(split_opts)==3:
-			currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]),
-				split_opts[2])
-	else:
-		currency = doc.get(df.get("options"))
-
-	return currency
+	
+	if not getattr(frappe.local, "field_currency", None):
+		frappe.local.field_currency = frappe._dict()
+		
+	if not frappe.local.field_currency.get((doc.doctype, doc.parent or doc.name), {}).get(df.fieldname):
+		if ":" in cstr(df.get("options")):
+			split_opts = df.get("options").split(":")
+			if len(split_opts)==3:
+				currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
+		else:
+			currency = doc.get(df.get("options"))
+			if not currency and doc.parent:
+				currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+	
+		if currency:
+			frappe.local.field_currency.setdefault((doc.doctype, doc.parent or doc.name), frappe._dict())\
+				.setdefault(df.fieldname, currency)
+			
+	return frappe.local.field_currency.get((doc.doctype, doc.parent or doc.name), {}).get(df.fieldname)
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
@@ -319,22 +315,29 @@ def trim_tables():
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = [df.fieldname for df in frappe.get_meta(doctype).fields if df.fieldtype not in no_value_fields]
-		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields]
+		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields
+			and not f.startswith("_")]
 		if columns_to_remove:
+			print doctype, "columns removed:", columns_to_remove
 			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)
 
 def clear_cache(doctype=None):
-	frappe.cache().delete_value("is_table")
-	frappe.cache().delete_value("doctype_modules")
+	cache = frappe.cache()
 
-	groups = ["meta", "form_meta", "table_columns", "last_modified"]
+	cache.delete_value("is_table")
+	cache.delete_value("doctype_modules")
+
+	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
 
 	def clear_single(dt):
 		for name in groups:
-			frappe.cache().hdel(name, dt)
+			cache.hdel(name, dt)
+
+		# also clear linked_with list cache
+		cache.delete_keys("user:*:linked_with:{doctype}:".format(doctype=doctype))
 
 	if doctype:
 		clear_single(doctype)
@@ -351,5 +354,5 @@ def clear_cache(doctype=None):
 	else:
 		# clear all
 		for name in groups:
-			frappe.cache().delete_value(name)
+			cache.delete_value(name)
 

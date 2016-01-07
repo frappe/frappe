@@ -10,6 +10,9 @@ import re, urllib, datetime, math
 import babel.dates
 from dateutil import parser
 from num2words import num2words
+import HTMLParser
+from html2text import html2text
+
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -203,13 +206,16 @@ def formatdate(string_date=None, format_string=None):
 
 	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
+def format_time(txt):
+	return babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+
 def format_datetime(datetime_string, format_string=None):
 	if not datetime_string:
 		return
 
 	datetime = get_datetime(datetime_string)
 	if not format_string:
-		format_string = get_user_format().replace("mm", "MM") + " hh:mm:ss"
+		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
 
 	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
@@ -510,6 +516,9 @@ def get_url(uri=None, full_address=False):
 	"""get app url from request"""
 	host_name = frappe.local.conf.host_name
 
+	if uri and (uri.startswith("http://") or uri.startswith("https://")):
+		return uri
+
 	if not host_name:
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
@@ -535,10 +544,16 @@ def get_url(uri=None, full_address=False):
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]
 
-def get_url_to_form(doctype, name, label=None):
+def get_link_to_form(doctype, name, label=None):
 	if not label: label = name
 
-	return """<a href="/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
+
+def get_url_to_form(doctype, name):
+	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
+
+def get_url_to_list(doctype):
+	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
 operator_map = {
 	# startswith
@@ -608,3 +623,12 @@ def unique(seq):
 def strip(val, chars=None):
 	# \ufeff is no-width-break, \u200b is no-width-space
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
+
+def to_markdown(html):
+	text = None
+	try:
+		text = html2text(html)
+	except HTMLParser.HTMLParseError:
+		pass
+
+	return text

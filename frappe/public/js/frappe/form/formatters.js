@@ -85,7 +85,15 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function(value) {
-		return value ? dateutil.str_to_user(value) : "";
+		if (value) {
+			value = dateutil.str_to_user(value);
+			// handle invalid date
+			if (value==="Invalid date") {
+				value = null;
+			}
+		}
+
+		return value || "";
 	},
 	Datetime: function(value) {
 		return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
@@ -109,7 +117,7 @@ frappe.form.formatters = {
 
 		return frappe.form.formatters.Data(value);
 	},
-	StarredBy: function(value) {
+	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
 			if(v) html+= '<span class="avatar avatar-small" \

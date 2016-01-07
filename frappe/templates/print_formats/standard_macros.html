@@ -20,13 +20,13 @@
 		{%- if data -%}
 		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
 			table_meta, df) -%}
-		<div>
+		<div {{ fieldmeta(df) }}>
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
-						<th style="width: 40px">Sr</th>
+						<th style="width: 40px" class="table-sr">Sr</th>
 						{% for tdf in visible_columns %}
-							<th style="width: {{ get_width(tdf) }}px;" class="{{ get_align_class(tdf.fieldtype) }}">
+							<th style="width: {{ get_width(tdf) }}px;" class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
 						{% endfor %}
 					</tr>
@@ -34,10 +34,10 @@
 				<tbody>
 					{% for d in data %}
 					<tr>
-						<td>{{ d.idx }}</td>
+						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
-							<td class="{{ get_align_class(tdf.fieldtype) }}">
-                                {{ print_value(tdf, d, doc) }}</td>
+							<td class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
+                                <div class="value">{{ print_value(tdf, d, table_meta, doc) }}</div></td>
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -48,15 +48,19 @@
 	{%- endif -%}
 {%- endmacro -%}
 
+{% macro fieldmeta(df) -%}
+data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
+{%- endmacro %}
+
 {%- macro render_field_with_label(df, doc) -%}
-		<div class="row">
+		<div class="row" {{ fieldmeta(df) }}>
 			<div class="col-xs-5 text-right">
 				{% if df.fieldtype not in ("Image","HTML") and
 					doc.get(df.fieldname) != None %}
 				<label>{{ _(df.label) }}</label>
 				{% endif %}
 			</div>
-			<div class="col-xs-7 {{ get_align_class(df.fieldtype) }}">
+			<div class="col-xs-7 {{ get_align_class(df.fieldtype) }} value">
 				{% if doc.get(df.fieldname) != None -%}
 					{{ print_value(df, doc) }}{% endif %}
 			</div>
@@ -65,10 +69,10 @@
 
 {%- macro render_text_field(df, doc) -%}
 {%- if doc.get(df.fieldname) != None -%}
-<div style="padding: 10px 0px">
+<div style="padding: 10px 0px" {{ fieldmeta(df) }}>
 	{%- if df.fieldtype in ("Text", "Code") %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
-		<pre>{{ doc.get(df.fieldname) }}</pre>
+		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
 	{% endif -%}
@@ -84,6 +88,9 @@
 		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" class="img-responsive">
+	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
+		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
+		<img src="{{ doc[df.fieldname] }}" class="img-responsive">
     {% elif df.fieldtype=="HTML" %}
         {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
@@ -98,7 +105,7 @@
 {%- endmacro %}
 
 {% macro get_align_class(fieldtype) %}
-	{%- if fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ "text-right" }}
+	{%- if fieldtype in ("Int", "Float", "Currency") -%}{{ "text-right" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}
@@ -119,16 +126,16 @@
     </div>
     {% endif %}
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
-	<div class="text-center">
+	<div class="text-center" document-status="draft">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
     </div>
 	{%- endif -%}
 	{%- if doc.meta.is_submittable and doc.docstatus==2-%}
-	<div class="text-center">
+	<div class="text-center" document-status="cancelled">
 		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
     </div>
 	{%- endif -%}
 	{% if max_pages > 1 %}
-	<p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
+	<p class="text-right page-number">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
 	{% endif %}
 {%- endmacro -%}

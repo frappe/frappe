@@ -14,6 +14,7 @@ login.bind_events = function() {
 		args.cmd = "login";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
+		args.device = "desktop";
 		if(!args.usr || !args.pwd) {
 			frappe.msgprint(__("Both login and password required"));
 			return false;
@@ -132,13 +133,7 @@ frappe.ready(function() {
 	login.bind_events();
 
 	if (!window.location.hash) {
-		if (frappe.supports_pjax()) {
-			// preserve back button
-			window.history.replaceState(window.history.state, window.document.title, window.location.href + "#login");
-			$(window).trigger("hashchange");
-		} else {
-			window.location.hash = "#login";
-		}
+		window.location.hash = "#login";
 	} else {
 		$(window).trigger("hashchange");
 	}

@@ -31,15 +31,16 @@ def get_list(arg=None):
 		return frappe.db.sql("""select * from `tabComment`
 		where (owner=%(contact)s
 			or comment_docname=%(user)s
-			or (owner=comment_docname and ifnull(parenttype, "")!="Assignment"))
+			or (owner=comment_docname and ifnull(parenttype, "")!="Assignment")
+			or owner=comment_docname)
 		and comment_doctype ='Message'
 		order by creation desc
 		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
 	else:
 		return frappe.db.sql("""select * from `tabComment`
-		where (owner=%(contact)s and comment_docname=%(user)s)
+		where ((owner=%(contact)s and comment_docname=%(user)s)
 		or (owner=%(user)s and comment_docname=%(contact)s)
-		or (owner=%(contact)s and comment_docname=%(contact)s)
+		or (owner=%(contact)s and comment_docname=%(contact)s))
 		and comment_doctype ='Message'
 		order by creation desc
 		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
@@ -51,7 +52,7 @@ def get_active_users():
 		(select count(*) from tabSessions where user=tabUser.name
 			and timediff(now(), lastupdate) < time("01:00:00")) as has_session
 	 	from tabUser
-		where ifnull(enabled,0)=1 and
+		where enabled=1 and
 		ifnull(user_type, '')!='Website User' and
 		name not in ({})
 		order by first_name""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS, as_dict=1)
@@ -88,6 +89,8 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 			_notify([user.name for user in get_enabled_system_users()], txt)
 		else:
 			_notify(contact, txt, subject)
+
+	return d
 
 @frappe.whitelist()
 def delete(arg=None):

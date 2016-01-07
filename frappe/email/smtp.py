@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import smtplib
+import email.utils
 import _socket
 from frappe.utils import cint
 from frappe import _
@@ -15,7 +16,7 @@ def send(email, append_to=None):
 		frappe.flags.sent_mail = email.as_string()
 		return
 
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
 
@@ -58,6 +59,10 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
 				frappe.OutgoingEmailError)
 
+		if email_account:
+			email_account.default_sender = email.utils.formataddr((email_account.name,
+				email_account.get("sender") or email_account.get("email_id")))
+
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 
 	return frappe.local.outgoing_email_account[append_to or "default"]
@@ -77,11 +82,12 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"sender": frappe.conf.get("auto_email_id", "notifications@example.com")
 		})
 		email_account.from_site_config = True
+		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
 
 	if not email_account and not raise_exception_not_set:
 		return None
 
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+	if frappe.are_emails_muted():
 		# create a stub
 		email_account = frappe.new_doc("Email Account")
 		email_account.update({

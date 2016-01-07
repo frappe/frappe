@@ -8,44 +8,45 @@ frappe.ui.form.Share = Class.extend({
 		$.extend(this, opts);
 	},
 	refresh: function() {
+		this.render_sidebar();
+	},
+	render_sidebar: function() {
 		var me = this;
 		this.parent.empty();
 
-		var everyone = null;
-		var shared = $.map(this.shared || this.frm.get_docinfo().shared, function(s) {
+		var shared = this.shared || this.frm.get_docinfo().shared;
+		var users = [];
+		for (var i=0, l=shared.length; i < l; i++) {
+			var s = shared[i];
+
 			if (s.everyone) {
-				everyone = s;
+				users.push({
+					icon: "octicon octicon-megaphone text-muted",
+					avatar_class: "avatar-empty share-doc-btn shared-with-everyone",
+					title: __("Shared with everyone")
+				});
+			} else {
+				var user_info = frappe.user_info(s.user);
+				users.push({
+					image: user_info.image,
+					fullname: user_info.fullname,
+					title: __("Shared with {0}", [user_info.fullname])
+				});
 			}
+		}
 
-			return s ? s.user : null;
+		if (!me.frm.doc.__islocal) {
+			users.push({
+				icon: "octicon octicon-plus text-muted",
+				avatar_class: "avatar-empty share-doc-btn",
+				title: __("Share")
+			});
+		}
+
+		this.parent.append(frappe.render_template("users_in_sidebar", {"users": users}));
+		this.parent.find(".avatar").on("click", function() {
+			me.frm.share_doc();
 		});
-
-		if (everyone) {
-			$(repl('<span><a class="avatar avatar-small avatar-empty share-doc-btn shared-with-everyone" title="%(title)s">\
-				<i class="octicon octicon-megaphone text-muted"></i></a></span>', {title: __("Shared with everyone")}))
-				.appendTo(this.parent)
-				.on("click", function() { me.frm.share_doc(); });
-		}
-
-		for(var i=0; i<shared.length; i++) {
-			var user_info = frappe.user_info(shared[i]);
-			$(repl('<span class="avatar avatar-small" title="'
-				+__("Shared with {0}", [user_info.fullname])+'">\
-				<img class="media-object" src="%(image)s" alt="%(fullname)s"></span>',
-				{image: user_info.image, fullname: user_info.fullname}))
-				.appendTo(this.parent)
-				.on("click", function() { me.frm.share_doc(); });
-		}
-
-		// share
-		if(!me.frm.doc.__islocal) {
-			$(repl('<span><a class="avatar avatar-small avatar-empty share-doc-btn" title="%(title)s">\
-				<i class="octicon octicon-plus text-muted"></i></a></span>', {title: __("Share")}))
-				.appendTo(this.parent)
-				.on("click", function() { me.frm.share_doc(); });
-
-		}
-
 	},
 	show: function() {
 		var me = this;

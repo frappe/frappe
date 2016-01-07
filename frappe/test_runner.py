@@ -231,15 +231,22 @@ def make_test_objects(doctype, test_records, verbose=None):
 		docstatus = d.docstatus
 
 		d.docstatus = 0
-		d.run_method("before_test_insert")
 
 		try:
+			d.run_method("before_test_insert")
 			d.insert()
 
 			if docstatus == 1:
 				d.submit()
 		except frappe.NameError:
 			pass
+
+		except Exception, e:
+			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
+				pass
+
+			else:
+				raise
 
 		records.append(d.name)
 

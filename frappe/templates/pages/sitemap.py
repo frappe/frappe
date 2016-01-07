@@ -25,7 +25,7 @@ def get_context(context):
 
 	for route, data in get_generator_routes().iteritems():
 		links.append({
-			"loc": urllib.basejoin(host, urllib.quote(route.encode("utf-8"))),
+			"loc": urllib.basejoin(host, urllib.quote((route or "").encode("utf-8"))),
 			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")
 		})
 

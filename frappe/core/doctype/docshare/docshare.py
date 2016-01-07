@@ -7,6 +7,8 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_fullname
 
+exclude_from_linked_with = True
+
 class DocShare(Document):
 	no_feed_on_delete = True
 

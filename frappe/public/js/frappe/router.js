@@ -53,7 +53,15 @@ frappe.route = function() {
 
 frappe.get_route = function(route) {
 	// for app
-	return frappe.get_route_str(route).split('/')
+	var route = frappe.get_route_str(route).split('/')
+	var parts = route[route.length - 1].split("?");
+	route[route.length - 1] = parts[0];
+	if (parts.length > 1) {
+		var query_params = get_query_params(parts[1]);
+		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
+	}
+
+	return route;
 }
 
 frappe.get_prev_route = function() {

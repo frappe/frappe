@@ -503,13 +503,6 @@ frappe.PermissionEngine = Class.extend({
 	get_perm: function(name) {
 		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];
 	},
-	get_user_fields: function(doctype) {
-		var user_fields = frappe.get_children("DocType", doctype, "fields", {fieldtype:"Link", options:"User"})
-		user_fields = user_fields.concat(frappe.get_children("DocType", doctype, "fields",
-			{fieldtype:"Select", link_doctype:"User"}))
-
-		return 	user_fields
-	},
 	get_link_fields: function(doctype) {
 		return frappe.get_children("DocType", doctype, "fields",
 			{fieldtype:"Link", options:["not in", ["User", '[Select]']]});

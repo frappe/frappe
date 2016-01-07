@@ -38,7 +38,7 @@ body {
 .offcanvas .sidebar .divider {
   height: 1px;
   overflow: hidden;
-  background-color: #ebeff2;
+  background-color: #EBEFF2;
   width: 100%;
   margin: 0px;
 }
@@ -52,5 +52,5 @@ body {
 .offcanvas .sidebar .dropdown-menu > li > a:focus,
 .offcanvas .sidebar .sidebar-menu > li > a:active,
 .offcanvas .sidebar .dropdown-menu > li > a:active {
-  background-color: #f0f4f7;
+  background-color: #F0F4F7;
 }

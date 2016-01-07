@@ -36,6 +36,7 @@ def get_allowed_functions_for_jenv():
 	from frappe.model.document import get_controller
 	from frappe.website.utils import get_shade
 	from frappe.modules import scrub
+	import mimetypes
 
 	datautils = {}
 	for key, obj in frappe.utils.data.__dict__.items():
@@ -64,15 +65,16 @@ def get_allowed_functions_for_jenv():
 			"get_doc": frappe.get_doc,
 			"db": {
 				"get_value": frappe.db.get_value,
+				"get_default": frappe.db.get_default,
 			},
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			"utils": datautils,
-			"user": hasattr(frappe.local, "session") and frappe.local.session.user or "Guest",
+			"user": getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest",
 			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar,
-			"full_name": hasattr(frappe.local, "session") and frappe.local.session.data.full_name or "Guest",
+			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
 			"render_template": frappe.render_template
 		},
 		"autodoc": {
@@ -84,7 +86,8 @@ def get_allowed_functions_for_jenv():
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
 		"_": frappe._,
 		"get_shade": get_shade,
-		"scrub": scrub
+		"scrub": scrub,
+		"guess_mimetype": mimetypes.guess_type
 	}
 
 def get_jloader():
@@ -93,6 +96,7 @@ def get_jloader():
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 		apps = frappe.get_installed_apps(sort=True)
+
 		apps.reverse()
 
 		frappe.local.jloader = ChoiceLoader(

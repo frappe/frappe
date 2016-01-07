@@ -78,18 +78,28 @@ frappe.ui.form.ScriptManager = Class.extend({
 			var tmp = eval(cs);
 		}
 
-		// setup add fetch
-		$.each(this.frm.fields, function(i, field) {
-			var df = field.df;
-			if((df.fieldtype==="Read Only" || df.read_only==1) && df.options && df.options.indexOf(".")!=-1) {
+		function setup_add_fetch(df) {
+			if((df.fieldtype==="Read Only" || df.read_only==1)
+				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
+			}
+		}
+
+		// setup add fetch
+		$.each(this.frm.fields, function(i, field) {
+			setup_add_fetch(field.df);
+			if(field.df.fieldtype==="Table") {
+				$.each(frappe.meta.get_docfields(field.df.options, me.frm.docname), function(i, df) {
+					setup_add_fetch(df);
+				});
 			}
 		});
 
 		// css
 		doctype.__css && frappe.dom.set_style(doctype.__css);
 
+		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
 		show_alert("Error in Client Script.");
@@ -124,7 +134,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 					if(r.message=='Ok') {
 						if(r.fetch_values)
 							me.set_fetch_values(df, docname, r.fetch_values);
-						if(callback) callback(value);
+						if(callback) callback(r.valid_value);
 					} else {
 						if(callback) callback("");
 					}

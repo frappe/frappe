@@ -1,0 +1,13 @@
+{
+	"app_url": "https://github.com/frappe/poll",
+	"app_name": "poll",
+	"app_icon": "icon-ok-sign",
+	"app_color": "#4cd964",
+	"app_description": "Online poll for the website",
+	"app_publisher": "Frappe",
+	"app_email": "hello@frappe.io",
+	"repo_url": "https://github.com/frappe/poll.git",
+	"app_title": "Poll",
+	"app_version": "0.1.0",
+	"app_category": "Portal"
+}

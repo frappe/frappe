@@ -272,12 +272,14 @@ frappe.views.QueryReport = Class.extend({
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns,
 			this.slickgrid_options);
 
-		this.grid.setSelectionModel(new Slick.CellSelectionModel());
-		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-			dataItemColumnValueExtractor: function(item, columnDef, value) {
-				return item[columnDef.field];
-			}
-		}));
+		if (!frappe.dom.is_touchscreen()) {
+			this.grid.setSelectionModel(new Slick.CellSelectionModel());
+			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+				dataItemColumnValueExtractor: function(item, columnDef, value) {
+					return item[columnDef.field];
+				}
+			}));
+		}
 
 		this.setup_header_row();
 		this.grid.init();
@@ -444,7 +446,7 @@ frappe.views.QueryReport = Class.extend({
 		try {
 			var parent_name = item[me.parent_field];
 			while (parent_name) {
-				if (me.item_by_name[parent_name]._collapsed) {
+				if (!me.item_by_name[parent_name] || me.item_by_name[parent_name]._collapsed) {
 					return false;
 				}
 				parent_name = me.item_by_name[parent_name][me.parent_field];

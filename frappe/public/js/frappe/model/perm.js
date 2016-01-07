@@ -60,9 +60,23 @@ $.extend(frappe.perm, {
 				});
 			}
 
+			// if owner
+			if(!$.isEmptyObject(perm[0].if_owner)) {
+				if(doc.owner===user) {
+					$.extend(perm[0], perm[0].if_owner);
+				} else {
+					// not owner, remove permissions
+					$.each(perm[0].if_owner, function(ptype, value) {
+						if(perm[0].if_owner[ptype]) {
+							perm[0][ptype] = 0
+						}
+					})
+				}
+			}
+
 			// apply permissions from shared
 			if(docinfo.shared) {
-				for(var i=0; i<docinfo.shared; i++) {
+				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
 					if(s.user===user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
@@ -78,6 +92,7 @@ $.extend(frappe.perm, {
 					}
 				}
 			}
+
 		}
 
 		if(frappe.model.can_read(doctype) && !perm[0].read) {
@@ -130,10 +145,6 @@ $.extend(frappe.perm, {
 							perm[permlevel]["user_permission_doctypes"][key].push(user_permission_doctypes);
 						});
 					}
-				}
-
-				if (permlevel===0 && p["if_owner"]) {
-					perm[0]["if_owner"] = 1;
 				}
 			}
 		});
@@ -276,7 +287,8 @@ $.extend(frappe.perm, {
 		if(explain) console.log("By Submit:" + status);
 
 		// allow on submit
-		var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		// var allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);
+		var allow_on_submit = cint(df.allow_on_submit);
 		if(status==="Read" && allow_on_submit && cint(doc.docstatus)===1 && p.write) {
 			status = "Write";
 		}

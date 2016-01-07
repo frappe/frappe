@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown
 import email.utils
 from markdown2 import markdown
 
@@ -42,7 +42,7 @@ class EMail:
 
 		if isinstance(recipients, basestring):
 			recipients = recipients.replace(';', ',').replace('\n', '')
-			recipients = recipients.split(',')
+			recipients = split_emails(recipients)
 
 		# remove null
 		recipients = filter(None, (strip(r) for r in recipients))
@@ -89,12 +89,7 @@ class EMail:
 
 	def set_html_as_text(self, html):
 		"""return html2text"""
-		import HTMLParser
-		from html2text import html2text
-		try:
-			self.set_text(html2text(html))
-		except HTMLParser.HTMLParseError:
-			pass
+		self.set_text(to_markdown(html))
 
 	def set_message(self, message, mime_type='text/html', as_attachment=0, filename='attachment.html'):
 		"""Append the message with MIME content to the root node (as attachment)"""
@@ -161,8 +156,7 @@ class EMail:
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
 	def get_default_sender(self):
-		email_account = get_outgoing_email_account()
-		return email.utils.formataddr((email_account.name, email_account.get("sender") or email_account.get("email_id")))
+		return  get_outgoing_email_account().default_sender
 
 	def validate(self):
 		"""validate the email ids"""
@@ -238,18 +232,18 @@ def get_footer(email_account, footer=None):
 	footer = footer or ""
 
 	if email_account and email_account.footer:
-		footer += email_account.footer
+		footer += '<div style="margin: 15px auto;">{0}</div>'.format(email_account.footer)
 
 	footer += "<!--unsubscribe link here-->"
 
 	company_address = frappe.db.get_default("email_footer_address")
 
 	if company_address:
-		footer += '<div style="text-align: center; color: #8d99a6">{0}</div>'\
+		footer += '<div style="margin: 15px auto; text-align: center; color: #8d99a6">{0}</div>'\
 			.format(company_address.replace("\n", "<br>"))
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
-			footer += default_mail_footer
+			footer += '<div style="margin: 15px auto;">{0}</div>'.format(default_mail_footer)
 
 	return footer

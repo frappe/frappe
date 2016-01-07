@@ -18,9 +18,7 @@ base_template_path = "templates/pages/print.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
-	if not frappe.form_dict.format:
-		frappe.form_dict.format = standard_format
-
+	"""Build context for print"""
 	if not frappe.form_dict.doctype or not frappe.form_dict.name:
 		return {
 			"body": """<h1>Error</h1>
@@ -31,13 +29,27 @@ def get_context(context):
 	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	meta = frappe.get_meta(doc.doctype)
 
+	print_format = get_print_format_doc(None, meta = meta)
+
 	return {
-		"body": get_html(doc, print_format = frappe.form_dict.format,
-			meta=meta, trigger_print = frappe.form_dict.trigger_print, no_letterhead=frappe.form_dict.no_letterhead),
-		"css": get_print_style(frappe.form_dict.style, frappe.form_dict.format),
+		"body": get_html(doc, print_format = print_format,
+			meta=meta, trigger_print = frappe.form_dict.trigger_print,
+			no_letterhead=frappe.form_dict.no_letterhead),
+		"css": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name
 	}
+
+def get_print_format_doc(print_format_name, meta):
+	"""Returns print format document"""
+	if not print_format_name:
+		print_format_name = frappe.form_dict.format \
+			or meta.default_print_format or "Standard"
+
+	if print_format_name == "Standard":
+		return None
+	else:
+		return frappe.get_doc("Print Format", print_format_name)
 
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
@@ -46,12 +58,6 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		no_letterhead = cint(no_letterhead)
 	elif no_letterhead is None:
 		no_letterhead = not cint(frappe.db.get_single_value("Print Settings", "with_letterhead"))
-
-	if isinstance(doc, basestring) and isinstance(name, basestring):
-		doc = frappe.get_doc(doc, name)
-
-	if isinstance(doc, basestring):
-		doc = frappe.get_doc(json.loads(doc))
 
 	doc.flags.in_print = True
 
@@ -71,11 +77,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	format_data, format_data_map = [], {}
 
 	# determine template
-	if print_format in ("Standard", standard_format):
-		template = "standard"
-	else:
-		print_format = frappe.get_doc("Print Format", print_format)
-
+	if print_format:
 		if print_format.standard=="Yes" or print_format.custom_format:
 			template = jenv.from_string(get_print_format(doc.doctype,
 				print_format))
@@ -97,8 +99,12 @@ def get_html(doc, name=None, print_format=None, meta=None,
 			# fallback
 			template = "standard"
 
+	else:
+		template = "standard"
+
+
 	if template == "standard":
-		template = jenv.get_template("templates/print_formats/standard.html")
+		template = jenv.get_template(standard_format)
 
 	args = {
 		"doc": doc,
@@ -119,6 +125,15 @@ def get_html(doc, name=None, print_format=None, meta=None,
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
+	"""Returns `html` and `style` of print format, used in PDF etc"""
+
+	if isinstance(doc, basestring) and isinstance(name, basestring):
+		doc = frappe.get_doc(doc, name)
+
+	if isinstance(doc, basestring):
+		doc = frappe.get_doc(json.loads(doc))
+
+	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 	return {
 		"html": get_html(doc, name=name, print_format=print_format, meta=meta,
 	no_letterhead=no_letterhead, trigger_print=trigger_print),
@@ -200,6 +215,10 @@ def make_layout(doc, meta, format_data=None):
 			df.print_hide = 0
 
 		if df.fieldtype=="Section Break" or page==[]:
+			if len(page) > 1 and not any(page[-1]):
+				# truncate prev section if empty
+				del page[-1]
+
 			page.append([])
 
 		if df.fieldtype=="Column Break" or (page[-1]==[] and df.fieldtype!="Section Break"):
@@ -232,9 +251,6 @@ def make_layout(doc, meta, format_data=None):
 						df.end = None
 						page[-1][-1].append(df)
 
-	# filter empty sections
-	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), pg) for pg in layout]
-
 	return layout
 
 def is_visible(df, doc):
@@ -254,6 +270,9 @@ def has_value(df, doc):
 		return False
 
 	elif isinstance(value, basestring) and not strip_html(value).strip():
+		return False
+
+	elif isinstance(value, list) and not len(value):
 		return False
 
 	return True
@@ -284,6 +303,9 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 		# prepend css with at_import
 		css = at_import + css
 
+	if print_format and print_format.css:
+		css += "\n\n" + print_format.css
+
 	return css
 
 def get_font(print_settings, print_format=None, for_legacy=False):
@@ -292,8 +314,7 @@ def get_font(print_settings, print_format=None, for_legacy=False):
 		return default
 
 	font = None
-	if print_format and print_format not in ("Standard", standard_format):
-		print_format = frappe.get_doc("Print Format", print_format)
+	if print_format:
 		if print_format.font and print_format.font!="Default":
 			font = '{0}, sans-serif'.format(print_format.font)
 

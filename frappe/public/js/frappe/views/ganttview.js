@@ -10,17 +10,19 @@ frappe.views.GanttFactory = frappe.views.Factory.extend({
 		frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
 		frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
 
-		frappe.model.with_doctype(route[1], function() {
+		this.doctype = route[1];
+
+		frappe.model.with_doctype(this.doctype, function() {
 			var page = me.make_page();
 			$(page).on("show", function() {
 				page.ganttview.set_filters_from_route_options();
 			});
 
 			var options = {
-				doctype: route[1],
+				doctype: me.doctype,
 				parent: page
 			};
-			$.extend(options, frappe.views.calendar[route[1]] || {});
+			$.extend(options, frappe.views.calendar[me.doctype] || {});
 
 			page.ganttview = new frappe.views.Gantt(options);
 		});
@@ -47,10 +49,14 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 			function() { me.refresh(); }, "icon-refresh")
 
 		this.page.add_field({fieldtype:"Date", label:"From",
-			fieldname:"start", "default": frappe.datetime.month_start(), input_css: {"z-index": 3}});
+			fieldname:"start", "default": frappe.datetime.month_start(),
+			change: function() { me.refresh(); },
+			input_css: {"z-index": 3}});
 
 		this.page.add_field({fieldtype:"Date", label:"To",
-			fieldname:"end", "default": frappe.datetime.month_end(), input_css: {"z-index": 3}});
+			fieldname:"end", "default": frappe.datetime.month_end(),
+			change: function() { me.refresh(); },
+			input_css: {"z-index": 3}});
 
 		this.add_filters();
 		this.wrapper = $("<div style='position:relative;z-index:1;'></div>").appendTo(this.page.main);
@@ -76,7 +82,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 					gantt_area.gantt({
 						source: me.get_source(r),
 						navigate: "scroll",
-						scale: "days",
+						scale: me.gantt_scale || "days",
 						minScale: "hours",
 						maxScale: "months",
 						itemsPerPage: 20,
@@ -98,6 +104,21 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 		// projects
 		$.each(r.message, function(i,v) {
 
+			v["title"] = v[me.field_map["title"]];
+
+			// description
+			v.desc = v.title
+				+ (v.name ? ("<br>" + v.name) : "");
+
+			$.each(v, function(key, value) {
+				if(!in_list(["name", "title", me.field_map["title"], "desc"], key) && value) {
+					var label = frappe.meta.get_label(me.doctype, key);
+					if(label) {
+						v.desc += "<br>" + label + ": " + value;
+					}
+				}
+			});
+
 			// standardize values
 			$.each(me.field_map, function(target, source) {
 				v[target] = v[source];
@@ -108,13 +129,22 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 				v.end.setHours(v.end.getHours() + 1);
 			}
 
+			// class
+			if(me.style_map) {
+				v.cssClass = me.style_map[v.status]
+			} else if(me.get_css_class) {
+				v.cssClass = me.get_css_class(v);
+			} else {
+				v.cssClass = frappe.utils.guess_style(v.status, "standard")
+			}
+
 			if(v.start && v.end) {
 				source.push({
 					name: v.title,
 					desc: v.status,
 					values: [{
 						name: v.title,
-						desc: v.title + "<br>" + (v.status || ""),
+						desc: v.desc,
 						from: '/Date('+moment(v.start).format("X")+'000)/',
 						to: '/Date('+moment(v.end).format("X")+'000)/',
 						customClass: {
@@ -123,9 +153,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 							'info':'ganttBlue',
 							'success':'ganttGreen',
 							'':'ganttGray'
-						}[me.style_map ?
-							me.style_map[v.status] :
-							frappe.utils.guess_style(v.status, "standard")],
+						}[v.cssClass],
 						dataObj: v
 					}]
 				})

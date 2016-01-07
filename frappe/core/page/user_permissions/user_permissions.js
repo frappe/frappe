@@ -139,10 +139,15 @@ frappe.UserPermissions = Class.extend({
 				],
 				primary_action_label: __("Upload and Sync"),
 				primary_action: function() {
+					var filedata = d.fields_dict.attach.get_value();
+					if(!filedata) {
+						msgprint(_("Please attach a file"));
+						return;
+					}
 					frappe.call({
 						method:"frappe.core.page.user_permissions.user_permissions.import_user_permissions",
 						args: {
-							filedata: d.fields_dict.attach.get_value()
+							filedata: filedata
 						},
 						callback: function(r) {
 							if(!r.exc) {

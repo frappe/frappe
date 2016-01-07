@@ -4,10 +4,12 @@
 from __future__ import unicode_literals
 import frappe, unittest, json
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 
 test_dependencies = ["Custom Field", "Property Setter"]
 class TestCustomizeForm(unittest.TestCase):
 	def insert_custom_field(self):
+		frappe.delete_doc_if_exists("Custom Field", "User-test_custom_field")
 		frappe.get_doc({
 			"doctype": "Custom Field",
 			"dt": "User",
@@ -174,3 +176,29 @@ class TestCustomizeForm(unittest.TestCase):
 
 		# allow for custom field
 		self.assertEquals(d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)
+
+	def test_title_field_pattern(self):
+		d = self.get_customize_form("Web Form")
+
+		df = d.get("fields", {"fieldname": "title"})[0]
+
+		# invalid fieldname
+		df.options = """{doc_type} - {introduction_test}"""
+		self.assertRaises(InvalidFieldNameError, d.run_method, "save_customization")
+
+		# space in formatter
+		df.options = """{doc_type} - {introduction text}"""
+		self.assertRaises(InvalidFieldNameError, d.run_method, "save_customization")
+
+		# valid fieldname
+		df.options = """{doc_type} - {introduction_text}"""
+		d.run_method("save_customization")
+
+		# valid fieldname with escaped curlies
+		df.options = """{{ {doc_type} }} - {introduction_text}"""
+		d.run_method("save_customization")
+
+		# undo
+		df.options = None
+		d.run_method("save_customization")
+

@@ -310,12 +310,13 @@
  },
  "Bosnia and Herzegovina": {
   "code": "ba",
+  "currency": "BAM",
   "currency_fraction": "Fening",
   "currency_fraction_units": 100,
-  "currency_symbol": "KM or \u041a\u041c",
-  "number_format": "#,###.##",
+  "currency_symbol": "KM",
+  "number_format": "#.###,##",
   "timezones": [
-   "Europe/Belgrade"
+   "Europe/Sarajevo"
   ]
  },
  "Botswana": {
@@ -625,7 +626,7 @@
   "currency_symbol": "kn",
   "number_format": "#.###,##",
   "timezones": [
-   "Europe/Belgrade"
+   "Europe/Zagreb"
   ]
  },
  "Cuba": {
@@ -2566,7 +2567,11 @@
  },
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
-  "number_format": "#,###.##"
+  "number_format": "#.###,##",
+  "currency": "VEF",
+  "currency_symbol": "Bs.",
+  "currency_fraction": "Centimos",
+  "currency_fraction_units": 100
  },
  "Vietnam": {
   "code": "vn",

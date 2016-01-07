@@ -29,7 +29,7 @@ frappe.ui.FilterList = Class.extend({
 		this.filters = [];
 	},
 
-	add_filter: function(tablename, fieldname, condition, value) {
+	add_filter: function(doctype, fieldname, condition, value, hidden) {
 		this.$w.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
 
@@ -38,21 +38,26 @@ frappe.ui.FilterList = Class.extend({
 			return;
 		}
 
-		var filter = this.push_new_filter(tablename, fieldname, condition, value);
+		var filter = this.push_new_filter(doctype, fieldname, condition, value);
 
-		if (is_new_filter) {
+		if (filter && is_new_filter) {
 			filter.$w.addClass("is-new-filter");
+		}
+
+		if (filter && hidden) {
+			filter.freeze();
+			filter.$btn_group.addClass("hide");
 		}
 
 		return filter;
 	},
 
-	push_new_filter: function(tablename, fieldname, condition, value) {
-		if(this.filter_exists(tablename, fieldname, condition, value)) return;
+	push_new_filter: function(doctype, fieldname, condition, value) {
+		if(this.filter_exists(doctype, fieldname, condition, value)) return;
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
-			tablename: tablename,
+			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
@@ -63,11 +68,11 @@ frappe.ui.FilterList = Class.extend({
 		return filter;
 	},
 
-	filter_exists: function(tablename, fieldname, condition, value) {
+	filter_exists: function(doctype, fieldname, condition, value) {
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				if(f[0]==tablename && f[1]==fieldname && f[2]==condition
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
 					&& f[3]==value) return true;
 
 			}
@@ -127,7 +132,7 @@ frappe.ui.Filter = Class.extend({
 			}
 		});
 		if(this.fieldname) {
-			this.fieldselect.set_value(this.tablename, this.fieldname);
+			this.fieldselect.set_value(this._doctype || this.doctype, this.fieldname);
 		}
 	},
 	set_events: function() {
@@ -145,7 +150,7 @@ frappe.ui.Filter = Class.extend({
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
 			var condition = $(this).val();
-			if(in_list(["in", "like", "not in"], condition)) {
+			if(in_list(["in", "like", "not in", "not like"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
 				if(!me.field.desc_area) {
 					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
@@ -163,7 +168,7 @@ frappe.ui.Filter = Class.extend({
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me.tablename, me.fieldname, me.condition, me.value);
+			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
@@ -173,17 +178,17 @@ frappe.ui.Filter = Class.extend({
 		this.$w.remove();
 		this.$btn_group && this.$btn_group.remove();
 		this.field = null;
+		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.update_filters();
 			this.flist.listobj.dirty = true;
-			this.flist.listobj.run();
+			this.flist.listobj.refresh();
 		}
 	},
 
-	set_values: function(tablename, fieldname, condition, value) {
+	set_values: function(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
-		this.set_field(tablename, fieldname);
+		this.set_field(doctype, fieldname);
 		if(condition) this.$w.find('.condition').val(condition).change();
 		if(value!=null) this.field.set_input(value);
 	},
@@ -205,6 +210,12 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
+
+		// all fields shown in filters
+		if(df.hidden) {
+			df.hidden = 0;
+		}
+
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
@@ -306,7 +317,7 @@ frappe.ui.Filter = Class.extend({
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(this.get_condition()==='like') {
+		if(this.get_condition().indexOf('like', 'not like')!==-1) {
 			// automatically append wildcards
 			if(val) {
 				if(val.slice(0,1) !== "%") {

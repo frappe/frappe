@@ -1,7 +1,13 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block header %}
-{{ title }}
+<h1>{{ title }}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% include "templates/includes/breadcrumbs.html" %}
 {% endblock %}
 
 {% block header_actions %}
@@ -17,7 +23,7 @@
   {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <div class="introduction">
 	{% if introduction_text %}
@@ -40,13 +46,12 @@
 	{% include "templates/includes/list/list.html" %}
 	<script>{% include "templates/includes/list/list.js" %}</script>
 {% else %}
-
 <br>
 
 {%- macro properties(field) %}
 		name="{{ field.fieldname }}" id="{{ field.fieldname }}"
-		{% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}
-		data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}"
+		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
+		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
@@ -55,19 +60,19 @@
 
 {%- macro help(field) -%}
 		{% if field.description -%}
-		<span class="help-block small">{{ field.description }}</span>
+		<span class="help-block small">{{ _(field.description) }}</span>
 		{%- endif -%}
 {%- endmacro %}
 
 {% macro label(field) %}
 		<label for="{{ field.fieldname }}" class="control-label text-muted small">
-				{{ field.label }}</label>
+				{{ _(field.label) }}</label>
 {% endmacro %}
 
 {% macro render_field(field) %}
 	{% if field.hidden %}
 	<input type="hidden"
-		name="{{ field.fieldname }}" value="{{ field.default }}">
+		name="{{ field.fieldname }}" {% if field.default -%} value="{{ field.default }}" {%- endif %}>
 	{% elif field.fieldtype == "HTML" and field.options %}
 	<div class="form-group">
 		{{ field.options }}
@@ -123,7 +128,7 @@
 				<input type="checkbox" id="{{ field.fieldname }}"
 					name="{{ field.fieldname }}"
 					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
-					{{ field.label }}
+					{{ _(field.label) }}
 			</label>
 			{{ help(field) }}
 		</div>
@@ -137,10 +142,10 @@
 	{% if params.name and web_page_link_text %}
 	<div class="row">
 		<div class="col-sm-9">
-			<div class="text-muted">
-				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}">
+			<p class="text-muted">
+				<a class="btn btn-default btn-sm" href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}" target="_blank">
 					{{ web_page_link_text }}</a>
-			</div>
+			</p>
 		</div>
 	</div>
 	{% endif %}
@@ -153,7 +158,7 @@
 		{% for section in layout %}
 		<div class="row">
 				{% for column in section %}
-				<div class="col-sm-{{ (12 / (section|len))|int }}">
+				<div class="col-sm-{{ (12 / (section|len))|int }}" style="max-width: 500px;">
 						{% for field in column %}
 								{{ render_field(field) }}
 						{% endfor %}
@@ -257,20 +262,21 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-						window.saving = false;
-										if(window.success_message) {
-							$form.addClass("hide");
-							$(".comments, .introduction").addClass("hide");
-							scroll(0, 0);
-							$(".form-message")
-								.html('{{ success_message }}<p><a href="{{ success_url }}">\
-																{{ _("Continue") }}</a></p>')
-								.removeClass("hide");
-										} else {
-												window.location.href = "{{ success_url }}";
-										}
-				}
-			}
+					if(window.success_message) {
+						$form.addClass("hide");
+						$(".comments, .introduction").addClass("hide");
+						scroll(0, 0);
+						$(".form-message")
+							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
+							.removeClass("hide");
+                    } else {
+						window.location.href = "{{ success_url }}";
+				    }
+			    }
+		    },
+            always: function() {
+                window.saving = false;
+            }
 		});
 
 		return false;
@@ -323,7 +329,7 @@ frappe.ready(function() {
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
 	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
-	$form.find("[data-fieldtype='Date']").datetimepicker({
+	$form.find("[data-fieldtype='Datetime']").datetimepicker({
 		altFormat:'yy-mm-dd',
 		changeYear: true,
 		yearRange: "-70Y:+10Y",

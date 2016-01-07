@@ -32,7 +32,7 @@ def enqueue_events(site):
 
 	# set scheduler last event
 	frappe.db.begin()
-	frappe.db.set_value('System Settings', 'System Settings', 'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
+	frappe.db.set_value('System Settings', 'System Settings', 'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT), update_modified=False)
 	frappe.db.commit()
 
 	out = []

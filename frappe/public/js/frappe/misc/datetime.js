@@ -10,9 +10,8 @@ frappe.provide("frappe.datetime");
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
-
 		if(sys_defaults.time_zone) {
-			var date_obj = moment.tz(date, sys_defaults.time_zone).utc().utcOffset(moment.user_utc_offset);
+			var date_obj = moment.tz(date, sys_defaults.time_zone).local();
 		} else {
 			var date_obj = moment(date);
 		}
@@ -24,7 +23,7 @@ $.extend(frappe.datetime, {
 		// format defaults to true
 
 		if(sys_defaults.time_zone) {
-			var date_obj = moment(date).utc().utcOffset(moment.system_utc_offset);
+			var date_obj = moment(date).tz(sys_defaults.time_zone);
 		} else {
 			var date_obj = moment(date);
 		}
@@ -78,6 +77,14 @@ $.extend(frappe.datetime, {
 
 	month_end: function() {
 		return moment().endOf("month").format();
+	},
+
+	year_start: function(){
+		return moment().startOf("year").format();
+	},
+
+	year_end: function(){
+		return moment().endOf("year").format();
 	},
 
 	get_user_fmt: function() {

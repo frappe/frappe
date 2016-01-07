@@ -98,10 +98,14 @@ def get_list_context(context, doctype):
 
 	return list_context
 
-def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False):
+def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False,
+	fields=None, order_by=None):
 	meta = frappe.get_meta(doctype)
 	if not filters:
 		filters = []
+
+	if not fields:
+		fields = "distinct *"
 
 	or_filters = []
 
@@ -115,7 +119,8 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 			else:
 				filters.append([doctype, "name", "like", "%" + txt + "%"])
 
-	return frappe.get_list(doctype, fields = "distinct *",
+	return frappe.get_list(doctype, fields = fields,
 		filters=filters, or_filters=or_filters, limit_start=limit_start,
-		limit_page_length = limit_page_length, ignore_permissions=ignore_permissions)
+		limit_page_length = limit_page_length, ignore_permissions=ignore_permissions,
+		order_by=order_by)
 

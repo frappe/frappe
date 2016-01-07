@@ -105,9 +105,9 @@ def get_list_context(context=None):
 def get_children():
 	return frappe.db.sql("""select concat("blog/", page_name) as name,
 		title from `tabBlog Category`
-		where ifnull(published, 0) = 1
+		where published = 1
 		and exists (select name from `tabBlog Post`
-			where `tabBlog Post`.blog_category=`tabBlog Category`.name and ifnull(published, 0)=1)
+			where `tabBlog Post`.blog_category=`tabBlog Category`.name and published=1)
 		order by title asc""", as_dict=1)
 
 def clear_blog_cache():

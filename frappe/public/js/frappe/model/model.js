@@ -10,7 +10,7 @@ $.extend(frappe.model, {
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', '_starred_by', 'docstatus',
+		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
 	std_fields: [
@@ -21,7 +21,7 @@ $.extend(frappe.model, {
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
 		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
 		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
-		{fieldname:'_starred_by', fieldtype:'Data', label:__('Starred By')},
+		{fieldname:'_liked_by', fieldtype:'Data', label:__('Liked By')},
 		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
 		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
@@ -42,7 +42,7 @@ $.extend(frappe.model, {
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 			if(doc) {
 				// current document is dirty, show message if its not me
-				if(cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
+				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
 					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
 						doc.__needs_refresh = true;
 						cur_frm.show_if_needs_refresh();
@@ -83,7 +83,7 @@ $.extend(frappe.model, {
 
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {
-			callback();
+			callback && callback();
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
@@ -112,7 +112,7 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
-					callback(r);
+					callback && callback(r);
 				}
 			});
 		}
@@ -153,11 +153,18 @@ $.extend(frappe.model, {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
 	},
 
-	new_comment: function(comment) {
-		if (frappe.model.docinfo[comment.comment_doctype]
-				&& frappe.model.docinfo[comment.comment_doctype][comment.comment_docname]) {
-			var comments = frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments;
+	set_docinfo: function(doctype, name, key, value) {
+		if (frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name]) {
+			frappe.model.docinfo[doctype][name][key] = value;
+		}
+	},
 
+	new_comment: function(comment) {
+		var reference_doctype = comment.comment_doctype || comment.reference_doctype;
+		var reference_name = comment.comment_docname || comment.reference_name;
+
+		if (frappe.model.docinfo[reference_doctype] && frappe.model.docinfo[reference_doctype][reference_name]) {
+			var comments = frappe.model.docinfo[reference_doctype][reference_name].comments;
 			var comment_exists = false;
 			for (var i=0, l=comments.length; i<l; i++) {
 				if (comments[i].name==comment.name) {
@@ -165,12 +172,13 @@ $.extend(frappe.model, {
 					break;
 				}
 			}
+
 			if (!comment_exists) {
-				 frappe.model.docinfo[comment.comment_doctype][comment.comment_docname].comments = comments.concat([comment]);
+				 frappe.model.docinfo[reference_doctype][reference_name].comments = comments.concat([comment]);
 			}
 		}
-		if (cur_frm.doctype === comment.comment_doctype && cur_frm.docname === comment.comment_docname) {
-				cur_frm.comments.refresh();
+		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
+			cur_frm.comments && cur_frm.comments.refresh();
 		}
 	},
 
@@ -464,6 +472,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {
+						frappe.utils.play_sound("delete");
 						frappe.model.clear_doc(doctype, docname);
 						if(callback) callback(r,rt);
 					}

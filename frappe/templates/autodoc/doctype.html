@@ -1,15 +1,15 @@
 <!-- title: {{ doctype }} -->
 
 {% from "templates/autodoc/macros.html" import automodule, version,
-  github_link, doctype_link, discuss_link %}
+  source_link, doctype_link %}
 {% set doc = frappe.get_doc("DocType", doctype) %}
 {% set controller = autodoc.get_controller(doctype) %}
 
-<p>
+<div class="dev-header">
 {{ version(doctype) }}
-{{ github_link(app, app.name + "/" + scrub(doc.module)
+{{ source_link(app, app.name + "/" + scrub(doc.module)
   + "/doctype/" + scrub(doctype), True) }}
-</p>
+</div>
 
 {% if doc.issingle %}<span class="label label-info">Single</span>{% endif %}
 {% if doc.istable %}<span class="label label-info">Child Table</span>{% endif %}
@@ -22,7 +22,7 @@
 
 <h3>Fields</h3>
 
-<table class="table table-bordered" style="table-layout: fixed;">
+<table class="table table-bordered">
     <thead>
         <tr>
             <th style="width: 5%">Sr</th>
@@ -46,7 +46,7 @@
             </td>
             <td>{% if df.options and df.fieldtype not in ("HTML") %}
                 {% if df.fieldtype in ("Table", "Link") %}
-                {{ doctype_link(df.options) }}
+                {{ doctype_link(app, df.options) }}
                 {% else %}<pre>{{ df.options }}</pre>{% endif %}
             {% endif %}</td>
         </tr>
@@ -61,28 +61,30 @@
 
     {{ automodule(controller.__module__) }}
     {% set parents = frappe.get_list("DocField",
-        filters = {"options": doctype, "fieldtype": "Link"}, fields = ["distinct parent"]) %}
+        filters = {"options": doctype, "fieldtype": "Link"}, fields = ["distinct parent"], order_by="parent asc") %}
     {% if parents %}
         <h4>Linked In:</h4>
         <ul>
         {% for parent in parents %}
-            <li>{{ doctype_link(parent.parent) }}</li>
+			{% if get_doctype_app(parent.parent)==app.name %}
+            <li>{{ doctype_link(app, parent.parent) }}</li>
+			{% endif %}
         {% endfor %}
         </ul>
     {% endif %}
 {% else %}
     {% set parents = frappe.get_list("DocField",
-        filters = {"options": doctype, "fieldtype": "Table"}, fields = ["parent"]) %}
+        filters = {"options": doctype, "fieldtype": "Table"}, fields = ["distinct parent"], order_by="parent asc") %}
     {% if parents %}
     <h4>Child Table Of</h4>
     <ul>
     {% for parent in parents %}
-        <li>{{ doctype_link(parent.parent) }}</li>
+        <li>{{ doctype_link(app, parent.parent) }}</li>
     {% endfor %}
     </ul>
     {% endif %}
 {% endif %}
 
-<!-- jinja --><!-- static -->
-
-{{ discuss_link() }}
+<!-- autodoc -->
+<!-- jinja -->
+<!-- static -->

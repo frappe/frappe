@@ -121,7 +121,8 @@ $.extend(frappe.meta, {
 		if(fn==="owner") {
 			return "Owner";
 		} else {
-			return this.get_docfield(dt, fn, dn).label || fn;
+			var df = this.get_docfield(dt, fn, dn);
+			return (df ? df.label : "") || fn;
 		}
 	},
 

@@ -90,7 +90,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	clear: function() {
 		for(key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			if(f) {
+			if(f && f.set_input) {
 				f.set_input(f.df['default'] || '');
 			}
 		}

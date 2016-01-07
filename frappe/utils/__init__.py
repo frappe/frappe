@@ -9,7 +9,6 @@ import os, sys, re, urllib
 import frappe
 import requests
 
-
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 
@@ -51,7 +50,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
+	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr
@@ -76,7 +75,11 @@ def validate_email_add(email_str, throw=False):
 	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
 	if not match:
-		return False
+		if throw:
+			frappe.throw(frappe._("{0} is not a valid email id").format(email),
+				frappe.InvalidEmailAddressError)
+		else:
+			return False
 
 	matched = match.group(0)
 
@@ -88,6 +91,15 @@ def validate_email_add(email_str, throw=False):
 			frappe.InvalidEmailAddressError)
 
 	return matched
+
+def split_emails(txt):
+	email_list = []
+	for email in re.split(''',(?=(?:[^"]|"[^"]*")*$)''', cstr(txt)):
+		email = strip(cstr(email))
+		if email:
+			email_list.append(email)
+
+	return email_list
 
 def random_string(length):
 	"""generate a random string"""
@@ -302,8 +314,11 @@ def get_site_base_path(sites_dir=None, hostname=None):
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 
-def get_files_path(*path):
-	return get_site_path("public", "files", *path)
+def get_files_path(*path, **kwargs):
+	return get_site_path("private" if kwargs.get("is_private") else "public", "files", *path)
+
+def get_bench_path():
+	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
 
 def get_backups_path():
 	return get_site_path("private", "backups")
@@ -353,6 +368,10 @@ def get_hook_method(hook_name, fallback=None):
 	if fallback:
 		return fallback
 
+def call_hook_method(hook, *args, **kwargs):
+	for method_name in frappe.get_hooks(hook):
+		frappe.get_attr(method_name)(*args, **kwargs)
+
 def update_progress_bar(txt, i, l):
 	lt = len(txt)
 	if lt < 36:
@@ -401,3 +420,31 @@ def get_request_session(max_retries=3):
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	return session
 
+def watch(path, handler=None, debug=True):
+	import sys
+	import time
+	import logging
+	from watchdog.observers import Observer
+	from watchdog.events import LoggingEventHandler, FileSystemEventHandler
+
+	class Handler(FileSystemEventHandler):
+		def on_any_event(self, event):
+			if debug:
+				print "File {0}: {1}".format(event.event_type, event.src_path)
+
+			if not handler:
+				print "No handler specified"
+				return
+
+			handler(event.src_path, event.event_type)
+
+	event_handler = Handler()
+	observer = Observer()
+	observer.schedule(event_handler, path, recursive=True)
+	observer.start()
+	try:
+		while True:
+			time.sleep(1)
+	except KeyboardInterrupt:
+		observer.stop()
+	observer.join()

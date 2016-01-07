@@ -68,7 +68,7 @@ frappe.ui.Page = Class.extend({
 		if(this.icon)
 			this.get_main_icon(this.icon);
 
-		this.main = this.wrapper.find(".layout-main-section");
+		this.body = this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
 		this.indicator = this.wrapper.find(".indicator");
@@ -234,7 +234,7 @@ frappe.ui.Page = Class.extend({
 
 	//-- Sidebar --//
 
-	add_sidebar_item: function(label, action, insert_after) {
+	add_sidebar_item: function(label, action, insert_after, prepend) {
 		var parent = this.sidebar.find(".sidebar-menu.standard-actions");
 		var li = $('<li>');
 		var link = $('<a>').html(label).on("click", action).appendTo(li);
@@ -242,7 +242,11 @@ frappe.ui.Page = Class.extend({
 		if(insert_after) {
 			li.insertAfter(parent.find(insert_after));
 		} else {
-			li.appendTo(parent);
+			if(prepend) {
+				li.prependTo(parent);
+			} else {
+				li.appendTo(parent);
+			}
 		}
 		return link;
 	},

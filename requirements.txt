@@ -21,7 +21,7 @@ requests
 celery
 redis
 selenium
-pdfkit
+-e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
 html2text
@@ -29,3 +29,5 @@ email_reply_parser
 click
 num2words
 watchdog==0.8.0
+bleach
+Pillow

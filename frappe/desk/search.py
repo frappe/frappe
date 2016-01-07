@@ -59,14 +59,18 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			# build from doctype
 			if txt:
+				search_fields = ["name"]
+				if meta.title_field:
+					search_fields.append(meta.title_field)
+
 				if meta.search_fields:
-					for f in meta.get_search_fields():
-						fmeta = meta.get_field(f.strip())
-						if f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
-							"Link", "Select", "Read Only", "Text Editor"]):
-								or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
-				else:
-					filters.append([doctype, searchfield or "name", "like", "%{0}%".format(txt)])
+					search_fields.extend(meta.get_search_fields())
+
+				for f in search_fields:
+					fmeta = meta.get_field(f.strip())
+					if f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
+						"Link", "Select", "Read Only", "Text Editor"]):
+							or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
 
 			if meta.get("fields", {"fieldname":"enabled", "fieldtype":"Check"}):
 				filters.append([doctype, "enabled", "=", 1])
@@ -77,13 +81,13 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
-				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
+				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
 
 			values = frappe.desk.reportview.execute(doctype,
 				filters=filters, fields=fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,
-				order_by="if(_relevance, _relevance, 99999), name asc".format(doctype),
+				order_by="if(_relevance, _relevance, 99999), modified desc".format(doctype),
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
 				as_list=True)
 

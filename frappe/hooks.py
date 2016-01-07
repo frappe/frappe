@@ -2,33 +2,13 @@ from __future__ import unicode_literals
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies Pvt. Ltd."
-app_description = """## Frappe Framework
-
-Frappe is a full stack web application framework written in Python,
-Javascript, HTML/CSS with MySQL as the backend. It was built for ERPNext
-but is pretty generic and can be used to build database driven apps.
-
-The key differece in Frappe compared to other frameworks is that Frappe
-is that meta-data is also treated as data and is used to build front-ends
-very easily. Frappe comes with a full blown admin UI called the **Desk**
-that handles forms, navigation, lists, menus, permissions, file attachment
-and much more out of the box.
-
-Frappe also has a plug-in architecture that can be used to build plugins
-to ERPNext.
-
-### Links:
-
-- Project Home: [https://frappe.io](https://frappe.io)
-- Tutorial: [https://frappe.io/tutorial](https://frappe.io/tutorial)
-- GitHub: [https://github.com/frappe/frappe](https://github.com/frappe/frappe)
-- Forum: [https://discuss.erpnext.com](https://discuss.erpnext.com)
-"""
+app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.0.8"
+app_version = "6.17.4"
 app_color = "orange"
-github_link = "https://github.com/frappe/frappe"
+source_link = "https://github.com/frappe/frappe"
+app_license = "MIT"
 
 app_email = "info@frappe.io"
 
@@ -64,12 +44,6 @@ website_route_rules = [
 	{"from_route": "/blog", "to_route": "Blog Post"},
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"}
 ]
-
-website_context = {
-	"hero": {
-		"blog": "templates/includes/blog/hero.html"
-	}
-}
 
 write_file_keys = ["file_url", "file_name"]
 
@@ -139,6 +113,7 @@ scheduler_events = {
 		"frappe.email.bulk.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
+		"frappe.utils.error.collect_error_snapshots",
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",
@@ -148,11 +123,30 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 		"frappe.async.remove_old_task_logs",
+	],
+	"daily_long": [
+		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
+	],
+	"weekly_long": [
+		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_weekly"
 	]
+
 }
 
 default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"
 
 get_translated_dict = {
-	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict"
+	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
+	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict"
 }
+
+sounds = [
+	{"name": "email", "src": "/assets/frappe/sounds/email.mp3"},
+	{"name": "submit", "src": "/assets/frappe/sounds/submit.mp3"},
+	{"name": "cancel", "src": "/assets/frappe/sounds/cancel.mp3"},
+	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3"},
+	{"name": "click", "src": "/assets/frappe/sounds/click.mp3"},
+	{"name": "error", "src": "/assets/frappe/sounds/error.mp3"},
+	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
+	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
+]

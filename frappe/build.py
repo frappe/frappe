@@ -174,6 +174,10 @@ def files_dirty():
 		return False
 
 def compile_less():
+	from distutils.spawn import find_executable
+	if not find_executable("lessc"):
+		return
+
 	for path in app_paths:
 		less_path = os.path.join(path, "public", "less")
 		if os.path.exists(less_path):
@@ -189,4 +193,4 @@ def compile_less():
 					print "compiling {0}".format(fpath)
 
 					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
-					os.system("which lessc && lessc {0} > {1}".format(fpath, css_path))
+					os.system("lessc {0} > {1}".format(fpath, css_path))

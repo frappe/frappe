@@ -58,6 +58,8 @@ class Document(BaseDocument):
 		all values (including child documents) from the database.
 		"""
 		self.doctype = self.name = None
+		self._default_new_docs = {}
+		self.flags = frappe._dict()
 
 		if arg1 and isinstance(arg1, basestring):
 			if not arg2:
@@ -83,8 +85,9 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
-		self._default_new_docs = {}
-		self.flags = frappe._dict()
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -145,6 +148,17 @@ class Document(BaseDocument):
 			return True
 		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
 
+	def has_website_permission(self, permtype="read", verbose=False):
+		"""Call `frappe.has_website_permission` if `self.flags.ignore_permissions`
+		is not set.
+
+		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
+		if self.flags.ignore_permissions:
+			return True
+
+		return (frappe.has_website_permission(self.doctype, permtype, self, verbose=verbose)
+			or self.has_permission(permtype, verbose=verbose))
+
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
 		msg = _("No permission to {0} {1} {2}".format(perm_type, self.doctype, self.name or ""))
@@ -167,7 +181,7 @@ class Document(BaseDocument):
 
 		self.check_permission("create")
 		self._set_defaults()
-		self._set_docstatus_user_and_timestamp()
+		self.set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.run_method("before_insert")
 		self.set_new_name()
@@ -218,7 +232,7 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		self._set_docstatus_user_and_timestamp()
+		self.set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
@@ -295,7 +309,10 @@ class Document(BaseDocument):
 				frappe.db.sql("""insert into tabSingles(doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
-	def _set_docstatus_user_and_timestamp(self):
+		if self.doctype in frappe.db.value_cache:
+			del frappe.db.value_cache[self.doctype]
+
+	def set_docstatus_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
@@ -320,11 +337,13 @@ class Document(BaseDocument):
 		self._validate_links()
 		self._validate_selects()
 		self._validate_constants()
+		self._validate_length()
 
 		children = self.get_all_children()
 		for d in children:
 			d._validate_selects()
 			d._validate_constants()
+			d._validate_length()
 
 		# extract images after validations to save processing if some validation error is raised
 		self._extract_images_from_text_editor()
@@ -457,6 +476,10 @@ class Document(BaseDocument):
 
 		self._validate_update_after_submit()
 		for d in self.get_all_children():
+			if d.is_new() and self.meta.get_field(d.parentfield).allow_on_submit:
+				# in case of a new row, don't validate allow on submit, if table is allow on submit
+				continue
+
 			d._validate_update_after_submit()
 
 		# TODO check only allowed values are updated
@@ -595,12 +618,35 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		frappe.cache().hdel("last_modified", self.doctype)
-		self.notify_modified()
+		self.clear_cache()
+		self.notify_update()
 
 		self.latest = None
 
-	def notify_modified(self):
+	def clear_cache(self):
+		frappe.cache().hdel("last_modified", self.doctype)
+		self.clear_linked_with_cache()
+
+	def clear_linked_with_cache(self):
+		cache = frappe.cache()
+		def _clear_cache(d):
+			for df in (d.meta.get_link_fields() + d.meta.get_dynamic_link_fields()):
+				if d.get(df.fieldname):
+					doctype = df.options if df.fieldtype=="Link" else d.get(df.options)
+					name = d.get(df.fieldname)
+
+					if df.fieldtype=="Dynamic Link":
+						# clear linked doctypes list
+						cache.hdel("linked_doctypes", doctype)
+
+					# delete linked with cache for all users
+					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
+
+		_clear_cache(self)
+		for d in self.get_all_children():
+			_clear_cache(d)
+
+	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name)
@@ -718,7 +764,7 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
-	def add_comment(self, comment_type, text=None, comment_by=None):
+	def add_comment(self, comment_type, text=None, comment_by=None, reference_doctype=None, reference_name=None):
 		"""Add a comment to this document.
 
 		:param comment_type: e.g. `Comment`. See Comment for more info."""
@@ -728,7 +774,9 @@ class Document(BaseDocument):
 			"comment_type": comment_type,
 			"comment_doctype": self.doctype,
 			"comment_docname": self.name,
-			"comment": text or _(comment_type)
+			"comment": text or _(comment_type),
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name
 		}).insert(ignore_permissions=True)
 		return comment
 
@@ -736,10 +784,10 @@ class Document(BaseDocument):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation)).hexdigest()
 
-	def get_starred_by(self):
-		starred_by = getattr(self, "_starred_by", None)
-		if starred_by:
-			return json.loads(starred_by)
+	def get_liked_by(self):
+		liked_by = getattr(self, "_liked_by", None)
+		if liked_by:
+			return json.loads(liked_by)
 		else:
 			return []
 

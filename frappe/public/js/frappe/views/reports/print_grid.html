@@ -25,11 +25,14 @@
         {% for (var i=0, l= data.length; i < l; i++) {
             var row = data[i]; %}
             <tr>
-            {% for(var c=0; c < columns_length; c++) { var col = columns[c]; %}
+            {% for(var c=0; c < columns_length; c++) { var col = columns[c];%}
                 {% if(col.name && col._id !== "_check") { %}
-                <td>{%= col.formatter
-                        ? col.formatter(i, c, row[col.id], col, row, true)
-                        : row[col.id] %}</td>
+					
+					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
+						
+                	<td>{%= col.formatter
+	                        ? col.formatter(i, c, value, col, row, true)
+	                        : value %}</td>
                 {% } %}
             {% } %}
             </tr>
