@@ -49,5 +49,5 @@ th	ไทย
 tr	Türk
 uk	українська
 vi	việt
-zh-cn	簡體中文
-zh-tw	正體中文
+zh-cn	简本中文
+zh-tw	繁體中文
