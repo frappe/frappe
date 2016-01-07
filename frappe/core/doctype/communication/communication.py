@@ -51,7 +51,7 @@ class Communication(Document):
 		comment["comment_type"] = comment["communication_medium"]
 
 		frappe.publish_realtime('new_comment', comment, doctype = self.reference_doctype,
-			docname = self.reference_name)
+			docname = self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""

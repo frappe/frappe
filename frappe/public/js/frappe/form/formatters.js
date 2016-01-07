@@ -202,7 +202,7 @@ frappe.format = function(value, df, options, doc) {
 	var formatted = formatter(value, df, options, doc);
 
 	if (typeof formatted == "string")
-		formatted = frappe.utils.remove_script_and_style(formatted);
+		formatted = frappe.dom.remove_script_and_style(formatted);
 
 	return formatted;
 }

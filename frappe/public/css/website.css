@@ -108,6 +108,7 @@ a.badge-hover:active .badge {
   background-color: #D8DFE5;
 }
 .msgprint {
+  margin: 15px 0px;
   text-align: center;
 }
 .msgprint pre {
