@@ -30,7 +30,7 @@ frappe.ui.form.on("Communication", "refresh", function(frm) {
 
 frappe.ui.form.on("Communication", "onload", function(frm) {
 	if(frm.doc.content) {
-		frm.doc.content = frappe.utils.remove_script_and_style(frm.doc.content);
+		frm.doc.content = frappe.dom.remove_script_and_style(frm.doc.content);
 	}
 	frm.set_query("reference_doctype", function() {
 		return {

@@ -24,6 +24,18 @@ frappe.dom = {
 		// execute the script globally
 		document.getElementsByTagName('head')[0].appendChild(el);
 	},
+	remove_script_and_style: function(txt) {
+		var div = document.createElement('div');
+		div.innerHTML = txt;
+		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
+			var elements = div.getElementsByTagName(e);
+			var i = elements.length;
+			while (i--) {
+				elements[i].parentNode.removeChild(elements[i]);
+			}
+		});
+		return div.innerHTML;
+	},
 	set_style: function(txt, id) {
 		if(!txt) return;
 

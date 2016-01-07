@@ -102,9 +102,11 @@ frappe.ui.form.Control = Class.extend({
 			undefined;
 	},
 	set_model_value: function(value) {
-		if(frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
-			value, this.df.fieldtype)) {
-			this.last_value = value;
+		if(this.doctype) {
+			if(frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
+				value, this.df.fieldtype)) {
+				this.last_value = value;
+			}
 		}
 	},
 });
@@ -1384,7 +1386,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 	_set_input: function(value) {
 		if(value == null) value = "";
-		value = frappe.utils.remove_script_and_style(value);
+		value = frappe.dom.remove_script_and_style(value);
 		this.editor.set_input(value);
 		this.md_editor.val(value);
 		this.last_value = value;
