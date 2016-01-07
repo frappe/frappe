@@ -218,12 +218,14 @@ def migrate(context, rebuild_website=False):
 
 			clear_notifications()
 		finally:
+			frappe.publish_realtime("version-update")
 			frappe.destroy()
 
 	if rebuild_website:
 		call_command(build_website, context)
 	else:
 		call_command(sync_www, context)
+
 
 def prepare_for_update():
 	from frappe.sessions import clear_global_cache

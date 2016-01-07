@@ -218,7 +218,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 		# publish task_update
 		frappe.publish_realtime("data_import_progress", {"progress": [i, total]},
-			user=frappe.session.user, now=True)
+			user=frappe.session.user)
 
 		try:
 			doc = get_doc(row_idx)
