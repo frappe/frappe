@@ -91,7 +91,7 @@ bsEditor = Class.extend({
 		selection_marker: 'edit-focus-marker',
 		selection_color: 'darkgrey',
 		remove_typography: false,
-		max_file_size: 1,
+		max_file_size: 5,
 	},
 
 	bind_hotkeys: function () {
