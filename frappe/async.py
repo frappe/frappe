@@ -97,7 +97,7 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, now=False):
+def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, after_commit=False):
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
@@ -105,23 +105,24 @@ def publish_realtime(event=None, message=None, room=None, user=None, doctype=Non
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
 	:param doctype: Transmit to doctype, docname
-	:param docname: Transmit to doctype, docname"""
+	:param docname: Transmit to doctype, docname
+	:param after_commit: (default False) will emit after current transaction is committed"""
 	if message is None:
 		message = {}
 
 	if event is None:
-		if frappe.local.task_id:
+		if getattr(frappe.local, "task_id", None):
 			event = "task_progress"
 		else:
 			event = "global"
 
 	if not room:
-		if frappe.local.task_id:
+		if getattr(frappe.local, "task_id", None):
 			room = get_task_progress_room()
 			if not "task_id" in message:
 				message["task_id"] = frappe.local.task_id
 
-			now = True
+			after_commit = False
 		elif user:
 			room = get_user_room(user)
 		elif doctype and docname:
@@ -129,10 +130,10 @@ def publish_realtime(event=None, message=None, room=None, user=None, doctype=Non
 		else:
 			room = get_site_room()
 
-	if now:
-		emit_via_redis(event, message, room)
-	else:
+	if after_commit:
 		frappe.local.realtime_log.append([event, message, room])
+	else:
+		emit_via_redis(event, message, room)
 
 def emit_via_redis(event, message, room):
 	"""Publish real-time updates via redis
@@ -159,7 +160,7 @@ def put_log(line_no, line, task_id=None):
 			"lines": {line_no: line}
 		},
 		"task_id": task_id
-	}, room=task_progress_room, now=True)
+	}, room=task_progress_room)
 	r.hset(task_log_key, line_no, line)
 	r.expire(task_log_key, 3600)
 

@@ -1052,7 +1052,9 @@ def publish_realtime(*args, **kwargs):
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
 	:param doctype: Transmit to doctype, docname
-	:param docname: Transmit to doctype, docname"""
+	:param docname: Transmit to doctype, docname
+	:param after_commit: (default False) will emit after current transaction is committed
+	"""
 	import frappe.async
 
 	return frappe.async.publish_realtime(*args, **kwargs)

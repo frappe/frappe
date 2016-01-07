@@ -649,11 +649,11 @@ class Document(BaseDocument):
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
-			doctype=self.doctype, docname=self.name)
+			doctype=self.doctype, docname=self.name, after_commit=True)
 
 		if not self.meta.get("read_only") and not self.meta.get("issingle") and \
 			not self.meta.get("istable"):
-			frappe.publish_realtime("list_update", {"doctype": self.doctype})
+			frappe.publish_realtime("list_update", {"doctype": self.doctype}, after_commit=True)
 
 
 	def check_no_back_links_exist(self):
