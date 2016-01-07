@@ -1,5 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 /*
 + Layout
@@ -14,7 +14,7 @@
 				+ subrows
 
 */
-function Layout(parent, width) { 
+function Layout(parent, width) {
 	if(parent&&parent.substr) { parent = $i(parent); }
 
 	this.wrapper = $a(parent, 'div', '', {display:'none'});
@@ -23,7 +23,7 @@ function Layout(parent, width) {
 	if(width) {
 		this.width = this.wrapper.style.width;
 	}
-	
+
 	this.myrows = [];
 }
 
@@ -45,8 +45,8 @@ Layout.prototype.addcell = function(width) {
 
 Layout.prototype.setcolour = function(col) { $bg(cc,col); }
 
-Layout.prototype.show = function() { $ds(this.wrapper); }
-Layout.prototype.hide = function() { $dh(this.wrapper); }
+Layout.prototype.show = function() { $(this.wrapper).toggle(false); }
+Layout.prototype.hide = function() { $(this.wrapper).toggle(false); }
 Layout.prototype.close_borders = function() {
 	if(this.with_border) {
 		this.myrows[this.myrows.length-1].wrapper.style.borderBottom = '1px solid #000';
@@ -56,7 +56,7 @@ Layout.prototype.close_borders = function() {
 function LayoutRow(layout, parent) {
 	this.layout = layout;
 	this.wrapper = $a(parent,'div','form-layout-row');
-	
+
 	// main head
 	this.main_head = $a(this.wrapper, 'div');
 
@@ -67,17 +67,17 @@ function LayoutRow(layout, parent) {
 		this.wrapper.style.border = '1px solid #000';
 		this.wrapper.style.borderBottom = '0px';
 	}
-	
+
 	this.header = $a(this.main_body, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});
 	this.body = $a(this.main_body,'div');
 	this.table = $a(this.body, 'table', '', {width:'100%', borderCollapse: 'collapse', tableLayout:'fixed'});
 	this.row = this.table.insertRow(0);
-	
+
 	this.mycells = [];
 }
 
-LayoutRow.prototype.hide = function() { $dh(this.wrapper); }
-LayoutRow.prototype.show = function() { $ds(this.wrapper); }
+LayoutRow.prototype.hide = function() { $(this.wrapper).toggle(false); }
+LayoutRow.prototype.show = function() { $(this.wrapper).toggle(true); }
 
 LayoutRow.prototype.addCell = function(wid) {
 	var lc = new LayoutCell(this.layout, this, wid);
@@ -100,11 +100,11 @@ function LayoutCell(layout, layoutRow, width) {
 
 	this.cell.style.verticalAlign = 'top';
 	this.set_width(layoutRow.row, width);
-	
-	var h = $a(this.cell, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});	
 
-	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '0px')}); 
-	
+	var h = $a(this.cell, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});
+
+	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '0px')});
+
 	layout.cur_cell = this.wrapper;
 	layout.cur_cell.header = h;
 }
@@ -114,29 +114,29 @@ LayoutCell.prototype.set_width = function(row, width) {
 	var w = 100;
 	var n_cells = row.cells.length;
 	var cells_with_no_width = n_cells;
-	
+
 	// current cell
 	if(width) {
 		$y(row.cells[n_cells-1], {width: cint(width) + '%'})
 	} else {
 		row.cells[n_cells-1].estimated_width = 1;
 	}
-	
+
 	// get user specified width
 	for(var i=0; i<n_cells; i++) {
 		if(!row.cells[i].estimated_width) {
 			w = w - cint(row.cells[i].style.width);
-			cells_with_no_width--; 
+			cells_with_no_width--;
 		}
 	}
-	
+
 	// evenly distribute all
 	for(var i=0; i<n_cells; i++) {
 		if(row.cells[i].estimated_width)
 			$y(row.cells[i], {width:cint(w/cells_with_no_width) + '%'})
 	}
-	
+
 }
 
-LayoutCell.prototype.show = function() { $ds(this.wrapper); }
-LayoutCell.prototype.hide = function() { $dh(this.wrapper); }
+LayoutCell.prototype.show = function() { $(this.wrapper).toggle(true); }
+LayoutCell.prototype.hide = function() { $(this.wrapper).toggle(false); }

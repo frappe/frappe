@@ -5,6 +5,7 @@ frappe.provide("website");
 frappe.provide("frappe.search_path");
 
 $.extend(frappe, {
+	boot: {},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
@@ -382,9 +383,12 @@ if (typeof Array.prototype.map !== "function") {
 	};
 }
 
-function remove_script_and_style(txt) {
-	return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
-		$("<div></div>").html(txt).find("script,noscript,style,title,meta").remove().end().html();
+function cstr(s) {
+	return s==null ? '' : s+'';
+}
+
+function is_null(v) {
+	if(v===null || v===undefined || cstr(v).trim()==="") return true;
 }
 
 function is_html(txt) {
