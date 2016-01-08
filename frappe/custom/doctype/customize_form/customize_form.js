@@ -12,7 +12,6 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'in_create', '=', 0],
 					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole, \
 						 Page, Page Role, Module Def, Print Format, Report, Customize Form, \
 						 Customize Form Field']

@@ -18,6 +18,12 @@
 		"website/js/website.js",
 		"public/js/lib/socket.io.min.js"
 	],
+	"js/editor.min.js": [
+		"public/js/lib/jquery/jquery.hotkeys.js",
+		"public/js/lib/beautify-html.js",
+		"public/js/frappe/ui/editor.html",
+		"public/js/frappe/ui/editor.js"
+	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/modal.html",
