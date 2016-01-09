@@ -95,7 +95,7 @@
   padding: 15px 30px 7px;
   border-bottom: 1px solid #d1d8dd;
 }
-.timeline-item .icon-fixed-width {
+.timeline-item .icon-fixed-width .fa-fw {
   text-align: center;
 }
 .timeline-item blockquote {

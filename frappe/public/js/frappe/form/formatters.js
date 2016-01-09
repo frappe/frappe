@@ -57,7 +57,7 @@ frappe.form.formatters = {
 		if(value) {
 			return '<i class="octicon octicon-check" style="margin-right: 8px;"></i>';
 		} else {
-			return '<i class="icon-check-empty text-extra-muted" style="margin-right: 8px;"></i>';
+			return '<i class="fa fa-square-o text-extra-muted" style="margin-right: 8px;"></i>';
 		}
 	},
 	Link: function(value, docfield, options) {
@@ -159,7 +159,7 @@ frappe.form.formatters = {
 			return repl("<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='icon-small icon-white icon-%(icon)s'></i> %(value)s</span>", {
+				<i class='icon-small fa-inverse fa fa-%(icon)s'></i> %(value)s</span>", {
 					value: value,
 					style: workflow_state.style.toLowerCase(),
 					icon: workflow_state.icon

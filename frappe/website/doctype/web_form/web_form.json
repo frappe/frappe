@@ -466,7 +466,7 @@
  ],
  "hide_heading": 0,
  "hide_toolbar": 0,
- "icon": "icon-edit",
+ "icon": "fa fa-pencil-square-o",
  "in_create": 0,
  "in_dialog": 0,
  "is_submittable": 0,

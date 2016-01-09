@@ -33,15 +33,15 @@
     margin: -20px auto 20px;
 }
 
-.setup-wizard-slide .icon-fixed-width {
+.setup-wizard-slide .icon-fixed-width .fa-fw {
 	vertical-align: middle;
 }
 
-.setup-wizard-slide .icon-circle-blank {
+.setup-wizard-slide .icon-circle-blank .fa-circle-o{
 	font-size: 7px;
 }
 
-.setup-wizard-slide .icon-circle {
+.setup-wizard-slide .icon-circle .fa-circle {
 	font-size: 10px;
 }
 

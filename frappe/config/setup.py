@@ -6,7 +6,7 @@ def get_data():
 	data = [
 		{
 			"label": _("Users"),
-			"icon": "icon-group",
+			"icon": "fa fa-users",
 			"items": [
 				{
 					"type": "doctype",
@@ -22,41 +22,41 @@ def get_data():
 		},
 		{
 			"label": _("Permissions"),
-			"icon": "icon-lock",
+			"icon": "fa fa-lock",
 			"items": [
 				{
 					"type": "page",
 					"name": "permission-manager",
 					"label": _("Role Permissions Manager"),
-					"icon": "icon-lock",
+					"icon": "fa fa-lock",
 					"description": _("Set Permissions on Document Types and Roles")
 				},
 				{
 					"type": "page",
 					"name": "user-permissions",
 					"label": _("User Permissions Manager"),
-					"icon": "icon-shield",
+					"icon": "fa fa-shield",
 					"description": _("Set Permissions per User")
 				},
 				{
 					"type": "page",
 					"name": "modules_setup",
 					"label": _("Show / Hide Modules"),
-					"icon": "icon-upload",
+					"icon": "fa fa-arrow-circle-o-up",
 					"description": _("Show or hide modules globally.")
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"doctype": "User",
-					"icon": "icon-eye-open",
+					"icon": "fa fa-eye",
 					"name": "Permitted Documents For User",
 					"description": _("Check which Documents are readable by a User")
 				},
 				{
 					"type": "report",
 					"doctype": "DocShare",
-					"icon": "icon-share",
+					"icon": "fa fa-share-square-o",
 					"name": "Document Share Report",
 					"description": _("Report of all document shares")
 				}
@@ -64,7 +64,7 @@ def get_data():
 		},
 		{
 			"label": _("Settings"),
-			"icon": "icon-wrench",
+			"icon": "fa fa-wrench",
 			"items": [
 				{
 					"type": "doctype",
@@ -82,13 +82,13 @@ def get_data():
 		},
 		{
 			"label": _("Data"),
-			"icon": "icon-th",
+			"icon": "fa fa-th",
 			"items": [
 				{
 					"type": "page",
 					"name": "data-import-tool",
 					"label": _("Import / Export Data"),
-					"icon": "icon-upload",
+					"icon": "fa fa-arrow-circle-o-up",
 					"description": _("Import / Export Data from .csv files.")
 				},
 				{
@@ -109,13 +109,13 @@ def get_data():
 					"name": "backups",
 					"label": _("Download Backups"),
 					"description": _("List of backups available for download"),
-					"icon": "icon-download"
+					"icon": "fa fa-arrow-circle-o-down"
 				},
 			]
 		},
 		{
 			"label": _("Email"),
-			"icon": "icon-envelope",
+			"icon": "fa fa-envelope",
 			"items": [
 				{
 					"type": "doctype",
@@ -136,7 +136,7 @@ def get_data():
 		},
 		{
 			"label": _("Printing"),
-			"icon": "icon-print",
+			"icon": "fa fa-print",
 			"items": [
 				{
 					"type": "page",
@@ -158,7 +158,7 @@ def get_data():
 		},
 		{
 			"label": _("Workflow"),
-			"icon": "icon-random",
+			"icon": "fa fa-random",
 			"items": [
 				{
 					"type": "doctype",
@@ -179,14 +179,14 @@ def get_data():
 		},
 		{
 			"label": _("Integrations"),
-			"icon": "icon-star",
+			"icon": "fa fa-star",
 			"items": [
 				{
 					"type": "page",
 					"name": "applications",
 					"label": _("Application Installer"),
 					"description": _("Install Applications."),
-					"icon": "icon-download"
+					"icon": "fa fa-arrow-circle-o-down"
 				},
 				{
 					"type": "doctype",
@@ -203,7 +203,7 @@ def get_data():
 		},
 		{
 			"label": _("Customize"),
-			"icon": "icon-glass",
+			"icon": "fa fa-glass",
 			"items": [
 				{
 					"type": "doctype",
@@ -230,5 +230,5 @@ def get_data():
 			]
 		},
 	]
-	add_setup_section(data, "frappe", "website", _("Website"), "icon-globe")
+	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

@@ -291,7 +291,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 		var error_message = '<div>\
 			<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre>'
 			+'<p class="text-right"><a class="btn btn-default report-btn">\
-				<i class="icon-fixed-width icon-envelope"></i> '
+				<i class="fa-fw fa fa-envelope"></i> '
 			+ __("Report this issue") + '</a></p>'
 			+'</div>';
 

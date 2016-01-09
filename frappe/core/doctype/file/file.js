@@ -2,7 +2,7 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 	if(!frm.doc.is_folder) {
 		frm.add_custom_button(__('Download'), function() {
 			window.open(frm.doc.file_url);
-		}, "icon-download");
+		}, "fa fa-arrow-circle-o-down");
 	}
 
 	var wrapper = frm.get_field("preview_html").$wrapper;

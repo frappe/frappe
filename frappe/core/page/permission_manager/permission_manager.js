@@ -305,7 +305,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-default btn-sm'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-default btn-sm'><i class='fa fa-times'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)

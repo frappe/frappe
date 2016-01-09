@@ -24,7 +24,7 @@ def get_data():
 		},
 		"Core": {
 			"color": "#589494",
-			"icon": "icon-cog",
+			"icon": "fa fa-cog",
 			"icon": "octicon octicon-file-binary",
 			"type": "module",
 			"system_manager": 1

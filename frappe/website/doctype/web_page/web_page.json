@@ -627,7 +627,7 @@
  ], 
  "hide_heading": 0, 
  "hide_toolbar": 0, 
- "icon": "icon-file-alt", 
+ "icon": "fa fa-file-o", 
  "idx": 1, 
  "in_create": 0, 
  "in_dialog": 0, 

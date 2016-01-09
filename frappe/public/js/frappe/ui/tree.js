@@ -80,7 +80,7 @@ frappe.ui.TreeNode = Class.extend({
 		var me= this;
 		var icon_html = '<i class="icon-fixed-width octicon octicon-primitive-dot text-extra-muted"></i>';
 		if(this.expandable) {
-			icon_html = '<i class="icon-fixed-width icon-folder-close text-muted"></i>';
+			icon_html = '<i class="fa-fw fa fa-folder text-muted"></i>';
 		}
 		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
 			appendTo(this.$a);
@@ -182,9 +182,9 @@ frappe.ui.TreeNode = Class.extend({
 			// open close icon
 			this.$a.find('i').removeClass();
 			if(!this.expanded) {
-				this.$a.find('i').addClass('icon-fixed-width icon-folder-open text-muted');
+				this.$a.find('i').addClass('fa-fw fa fa-folder-open text-muted');
 			} else {
-				this.$a.find('i').addClass('icon-fixed-width icon-folder-close text-muted');
+				this.$a.find('i').addClass('fa-fw fa fa-folder text-muted');
 			}
 		}
 

@@ -87,14 +87,14 @@ frappe.UserPermissions = Class.extend({
 						fieldname: "download",
 						label: __("Download"),
 						fieldtype: "Button",
-						icon: "icon-download"
+						icon: "fa fa-arrow-circle-o-down"
 					});
 
 					me.upload = me.wrapper.page.add_field({
 						fieldname: "upload",
 						label: __("Upload"),
 						fieldtype: "Button",
-						icon: "icon-upload"
+						icon: "fa fa-arrow-circle-o-up"
 					});
 				}
 
@@ -269,7 +269,7 @@ frappe.UserPermissions = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-sm btn-default'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-sm btn-default'><i class='fa fa-times'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)

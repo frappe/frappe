@@ -18,11 +18,11 @@ frappe.listview_settings['File'] = {
 	prepare_data: function(data) {
 		// set image icons
 		if(data.is_folder) {
-			data._title = '<i class="icon-folder-close-alt icon-fixed-width"></i> ' + data.file_name;
+			data._title = '<i class="fa fa-folder-o fa-fw"></i> ' + data.file_name;
 		} else if(frappe.utils.is_image_file(data.file_name)) {
-			data._title = '<i class="icon-picture icon-fixed-width"></i> ' + data.file_name;
+			data._title = '<i class="fa fa-picture-o fa-fw"></i> ' + data.file_name;
 		} else {
-			data._title = '<i class="icon-file-alt icon-fixed-width"></i> \
+			data._title = '<i class="fa fa-file-o fa-fw"></i> \
 				' + (data.file_name ? data.file_name : data.file_url);
 		}
 	},

@@ -296,7 +296,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
 			this.page.set_secondary_action(__('Cancel'), function() {
-				me.frm.savecancel(this) }, 'icon-ban-circle');
+				me.frm.savecancel(this) }, 'fa fa-ban');
 		} else if(docstatus==2 && p[AMEND]) {
 			this.page.set_secondary_action(__('Amend'), function() {
 				me.frm.amend_doc() }, 'icon-pencil', true);

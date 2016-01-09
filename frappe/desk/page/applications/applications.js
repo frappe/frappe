@@ -178,7 +178,7 @@ frappe.applications.Installer = Class.extend({
 		frappe.ui.make_app_page({
 			parent: this.parent,
 			title: __('App Installer'),
-			icon: "icon-download",
+			icon: "fa fa-arrow-circle-o-down",
 			single_column: true
 		});
 

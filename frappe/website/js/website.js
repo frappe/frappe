@@ -129,7 +129,7 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
+		if(!icon) icon="icon-refresh fa fa-spin";
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'

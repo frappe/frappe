@@ -283,7 +283,7 @@ frappe.ui.Page = Class.extend({
 		var module_info = frappe.get_module(module);
 		if(!module_info) {
 			module_info = {
-				icon: "icon-question-sign",
+				icon: "fa fa-question-circle",
 				color: "#ddd"
 			}
 		}
@@ -300,7 +300,7 @@ frappe.ui.Page = Class.extend({
 
 	get_main_icon: function(icon) {
 		return this.$title_area.find(".title-icon")
-			.html('<i class="'+icon+' icon-fixed-width"></i> ')
+			.html('<i class="'+icon+' fa-fw"></i> ')
 			.toggle(true);
 		},
 

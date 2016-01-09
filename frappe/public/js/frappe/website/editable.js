@@ -1,6 +1,6 @@
 frappe.make_editable = function(editor, doctype, name, fieldname) {
 	frappe.require("/assets/js/editor.min.js");
-	
+
 	WebPageEditor = bsEditor.extend({
 		onhide: function(action) {
 			this._super(action);
@@ -13,17 +13,17 @@ frappe.make_editable = function(editor, doctype, name, fieldname) {
 		toggle_edit_mode: function(bool) {
 			var me = this;
 			this._super(bool);
-			
+
 			if(!bool) {
 				// remove existing web page editor toggles
 				$('li.editable-toggle + li').remove();
 				$('li.editable-toggle').remove();
-				
+
 				var $edit_btn = $(repl('<li class="editable-toggle">\
-					<a href="#"><i class="icon-fixed-width icon-pencil"></i>Edit %(doctype)s</a></li>\
+					<a href="#"><i class="fa-fw fa fa-pencil"></i>Edit %(doctype)s</a></li>\
 					<li class="divider"></li>', {doctype: doctype}))
 					.prependTo($("#website-post-login ul.dropdown-menu"));
-			
+
 				$edit_btn.find("a")
 					.on("click", function() {
 						me.toggle_edit_mode(true);
@@ -33,7 +33,7 @@ frappe.make_editable = function(editor, doctype, name, fieldname) {
 			}
 		}
 	});
-	
+
 	bseditor = new WebPageEditor({
 		editor: editor,
 		onsave: function(bseditor) {

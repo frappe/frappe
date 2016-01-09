@@ -40,7 +40,7 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.add_menu_divider(menu);
 		}
 
-		return $('<li class="custom-menu"><a><i class="icon-fixed-width '
+		return $('<li class="custom-menu"><a><i class="fa-fw '
 			+icon+'"></i> '+label+'</a></li>')
 			.insertBefore(menu.find(".divider"))
 			.find("a")
