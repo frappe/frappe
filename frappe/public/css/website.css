@@ -108,6 +108,7 @@ a.badge-hover:active .badge {
   background-color: #D8DFE5;
 }
 .msgprint {
+  margin: 15px 0px;
   text-align: center;
 }
 .msgprint pre {
@@ -264,6 +265,15 @@ a.no-decoration:active {
   height: 0;
   padding-bottom: 100%;
 }
+.avatar-frame {
+  width: 100%;
+  height: 0;
+  padding: 50% 0px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  border-radius: 4px;
+}
 .indicator,
 .indicator-right {
   background: none;
@@ -313,6 +323,14 @@ a.no-decoration:active {
 .indicator.darkgrey::before,
 .indicator-right.darkgrey::after {
   background: #b8c2cc;
+}
+.indicator.yellow::before,
+.indicator-right.yellow::after {
+  background: #FEEF72;
+}
+.indicator.light-blue::before,
+.indicator-right.light-blue::after {
+  background: #7CD6FD;
 }
 .navbar-brand {
   max-width: none;

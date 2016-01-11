@@ -1,6 +1,7 @@
 frappe.desk.calendar
 frappe.desk.desk_page
 frappe.desk
+frappe.desk.like
 frappe.desk.moduleview
 frappe.desk.notifications
 frappe.desk.query_builder
@@ -8,5 +9,4 @@ frappe.desk.query_report
 frappe.desk.report_dump
 frappe.desk.reportview
 frappe.desk.search
-frappe.desk.star
 frappe.desk.tags

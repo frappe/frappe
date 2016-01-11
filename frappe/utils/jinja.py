@@ -96,6 +96,7 @@ def get_jloader():
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 		apps = frappe.get_installed_apps(sort=True)
+
 		apps.reverse()
 
 		frappe.local.jloader = ChoiceLoader(

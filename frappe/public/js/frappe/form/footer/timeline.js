@@ -14,32 +14,30 @@ frappe.ui.form.Comments = Class.extend({
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
 
-		this.button = this.wrapper.find(".btn-go")
+		this.comment_button = this.wrapper.find(".btn-comment")
 			.on("click", function() {
-				if(me.wrapper.find(".is-email").prop("checked")) {
-					new frappe.views.CommunicationComposer({
-						doc: me.frm.doc,
-						txt: frappe.markdown(me.input.val()),
-						frm: me.frm,
-						recipients: me.get_recipient()
-					})
-				} else {
-					me.add_comment(this);
-				}
+				me.add_comment(this);
 			});
 
 		this.input.keydown("meta+return ctrl+return", function(e) {
-			me.button.trigger("click");
+			me.comment_button.trigger("click");
 		});
 
-		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
-			.on("change", function() {
-				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
+		this.email_button = this.wrapper.find(".btn-new-email")
+			.on("click", function() {
+				new frappe.views.CommunicationComposer({
+					doc: me.frm.doc,
+					txt: frappe.markdown(me.input.val()),
+					frm: me.frm,
+					recipients: me.get_recipient()
+				})
 			});
 
 		this.list.on("click", ".toggle-blockquote", function() {
 			$(this).parent().siblings("blockquote").toggleClass("hidden");
 		});
+
+		this.setup_comment_like();
 
 		this.setup_mentions();
 	},
@@ -116,7 +114,7 @@ frappe.ui.form.Comments = Class.extend({
 
 	prepare_comment: function(c) {
 		if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
-			c["delete"] = '<a class="close" href="#">&times;</a>';
+			c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
 		} else {
 			c["delete"] = "";
 		}
@@ -130,7 +128,7 @@ frappe.ui.form.Comments = Class.extend({
 		c.image = frappe.user_info(c.comment_by).image
 			|| frappe.get_gravatar(c.comment_by);
 		c.comment_on = comment_when(c.creation);
-		c.fullname = frappe.user_info(c.comment_by).fullname;
+		c.fullname = frappe.user.full_name(c.comment_by);
 
 		if(c.attachments && typeof c.attachments==="string")
 			c.attachments = JSON.parse(c.attachments);
@@ -150,7 +148,7 @@ frappe.ui.form.Comments = Class.extend({
 			if(c.comment_type=="Email") {
 				c.comment = c.comment.split("<!-- original-reply -->")[0];
 				c.comment = frappe.utils.strip_original_content(c.comment);
-				c.comment = frappe.utils.remove_script_and_style(c.comment);
+				c.comment = frappe.dom.remove_script_and_style(c.comment);
 
 				c.original_comment = c.comment;
 				c.comment = frappe.utils.toggle_blockquote(c.comment);
@@ -166,6 +164,15 @@ frappe.ui.form.Comments = Class.extend({
 			// bold @mentions
 			if(c.comment_type==="Comment") {
 				c.comment_html = c.comment_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
+			}
+
+			if (in_list(["Comment", "Email"], c.comment_type)) {
+				c.user_content = true;
+				if (!$.isArray(c._liked_by)) {
+					c._liked_by = JSON.parse(c._liked_by || "[]");
+				}
+
+				c.liked_by_user = c._liked_by.indexOf(user)!==-1;
 			}
 		}
 	},
@@ -186,7 +193,8 @@ frappe.ui.form.Comments = Class.extend({
 			"Attachment": "octicon octicon-cloud-upload",
 			"Attachment Removed": "octicon octicon-trashcan",
 			"Shared": "octicon octicon-eye",
-			"Unshared": "octicon octicon-circle-slash"
+			"Unshared": "octicon octicon-circle-slash",
+			"Like": "octicon octicon-heart"
 		}[c.comment_type]
 
 		c.color = {
@@ -348,10 +356,13 @@ frappe.ui.form.Comments = Class.extend({
 
 		this.mention_input = this.wrapper.find(".mention-input");
 
+		var source = Object.keys(username_user_map);
+		source.sort();
+
 		this.mention_input.autocomplete({
 			minLength: 0,
 			autoFocus: true,
-			source: Object.keys(username_user_map),
+			source: source,
 			select: function(event, ui) {
 				var value = ui.item.value;
 				var textarea_value = me.input.val();
@@ -469,7 +480,19 @@ frappe.ui.form.Comments = Class.extend({
 					// prevent default
 					return false;
 				}
+			} else {
+				if (e.which==me.codes.TAB) {
+					me.comment_button.focus();
+
+					return false;
+				}
 			}
 		});
+	},
+
+	setup_comment_like: function() {
+		this.wrapper.on("click", ".comment-likes .octicon-heart", frappe.ui.click_toggle_like);
+
+		frappe.ui.setup_like_popover(this.wrapper, ".comment-likes");
 	}
 });

@@ -151,7 +151,7 @@ class WebsiteGenerator(Document):
 
 			# if no parent and not home page, then parent is home page
 			if not _parent_val and me.get_route() != home_page:
-				parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
+				# parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
 				break
 
 			elif _parent_val:

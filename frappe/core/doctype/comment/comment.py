@@ -23,8 +23,8 @@ class Comment(Document):
 
 		if self.comment_type in ("Created", "Submitted", "Cancelled", "Label"):
 			comment_type = "Label"
-		elif self.comment_type == "Comment":
-			comment_type = "Comment"
+		elif self.comment_type in ("Comment", "Like"):
+			comment_type = self.comment_type
 		else:
 			comment_type = "Info"
 
@@ -32,7 +32,9 @@ class Comment(Document):
 			"subject": self.comment,
 			"doctype": self.comment_doctype,
 			"name": self.comment_docname,
-			"feed_type": comment_type
+			"feed_type": comment_type,
+			"reference_doctype": self.reference_doctype,
+			"reference_name": self.reference_name
 		}
 
 	def after_insert(self):
@@ -44,13 +46,15 @@ class Comment(Document):
 			if self.comment_docname == frappe.session.user:
 				message = self.as_dict()
 				message['broadcast'] = True
-				frappe.publish_realtime('new_message', message)
+				frappe.publish_realtime('new_message', message, after_commit=True)
 			else:
 				# comment_docname contains the user who is addressed in the messages' page comment
-				frappe.publish_realtime('new_message', self.as_dict(), user=self.comment_docname)
+				frappe.publish_realtime('new_message', self.as_dict(),
+					user=self.comment_docname, after_commit=True)
 		else:
-			frappe.publish_realtime('new_comment', self.as_dict(), doctype= self.comment_doctype,
-				docname = self.comment_docname)
+			frappe.publish_realtime('new_comment', self.as_dict(),
+				doctype= self.comment_doctype, docname = self.comment_docname,
+				after_commit=True)
 
 			self.notify_mentions()
 
@@ -182,3 +186,6 @@ def on_doctype_update():
 		frappe.db.commit()
 		frappe.db.sql("""alter table `tabComment`
 			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")
+
+	if "_liked_by" not in frappe.db.get_table_columns("Comment"):
+		add_column("Comment", "_liked_by", "Text")

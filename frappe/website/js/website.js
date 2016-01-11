@@ -5,6 +5,7 @@ frappe.provide("website");
 frappe.provide("frappe.search_path");
 
 $.extend(frappe, {
+	boot: {},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
@@ -197,175 +198,6 @@ $.extend(frappe, {
 			$(".user-image").attr("src", frappe.get_cookie("user_image"));
 		}
 	},
-	setup_push_state: function() {
-		if(frappe.supports_pjax()) {
-			// hack for chrome's onload popstate call
-			window.initial_href = window.location.href
-			$(document).on("click", "a", frappe.handle_click);
-
-			$(window).on("popstate", function(event) {
-				// don't run this on hash change
-				if (location.hash && (!window.previous_href || window.previous_href.replace(location.hash, '') ===
-					 location.href.replace(location.hash, '')))
-					 return;
-
-				// hack for chrome's onload popstate call
-				if(window.initial_href==location.href && window.previous_href==undefined) {
-					window.history.replaceState({"reload": true},
-						window.document.title, location.href);
-					return;
-				}
-
-				window.previous_href = location.href;
-				var state = event.originalEvent.state;
-				if(!state) {
-					window.location.reload();
-					return;
-				}
-				frappe.render_json(state);
-			});
-		}
-	},
-	handle_click: function(event) {
-		// taken from jquery pjax
-		var link = event.currentTarget
-
-		if (link.tagName.toUpperCase() !== 'A')
-			throw "using pjax requires an anchor element";
-
-		// Middle click, cmd click, and ctrl click should open
-		// links in a new tab as normal.
-		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
-			return;
-
-		if (link.getAttribute("target"))
-			return;
-
-		// Ignore cross origin links
-		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
-			return;
-
-		// Ignore anchors on the same page
-		if (link.hash && link.href.replace(link.hash, '') ===
-			 location.href.replace(location.hash, ''))
-			 return;
-
-		// Ignore empty anchor "foo.html#"
-		if (link.href === location.href + '#')
-			return;
-
-		// our custom logic
-		if (link.href.indexOf("cmd=")!==-1 || link.hasAttribute("no-pjax"))
-			return;
-
-		// has an extension, but is not htm/html
-		var last_part = (link.href.split("/").slice(-1)[0] || "");
-		if (last_part.indexOf(".")!==-1 && (last_part.indexOf(".htm")===-1))
-			return;
-
-		event.preventDefault();
-		frappe.load_via_ajax(link.href);
-
-	},
-	load_via_ajax: function(href) {
-		// console.log("calling ajax", href);
-		window.previous_href = href;
-		history.pushState(null, null, href);
-
-		var _render = function(data) {
-			try {
-				history.replaceState(data, data.title, href);
-			} catch(e) {
-				// data too big (?)
-				history.replaceState(null, data.title, href);
-			}
-			scroll(0,0);
-			frappe.render_json(data);
-		};
-
-		frappe.freeze();
-		$.ajax({
-			url: href,
-			cache: false,
-			statusCode: {
-				200: _render,
-				404: function(xhr) { _render(xhr.responseJSON); }
-			}
-		}).fail(function(xhr, status, error) {
-			window.location.reload();
-		}).always(function() {
-			frappe.unfreeze();
-		});
-	},
-	render_json: function(data) {
-		if (data.reload) {
-			window.location.reload();
-			return;
-		}
-
-		$('[data-html-block]').each(function(i, section) {
-			var $section = $(section);
-			var stype = $section.attr("data-html-block");
-
-
-			// handle meta separately
-			if (stype==="meta_block") return;
-
-			var block_data = data[stype] || "";
-
-			// NOTE: use frappe.ready instead of $.ready for reliable execution
-			if(stype==="script") {
-				$section.remove();
-				$("<script data-html-block='script'></script>")
-					.html(block_data)
-					.appendTo("body");
-			} else if(stype==="script_lib") {
-				// render once
-				if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
-					$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
-					.html(data.script_lib)
-					.appendTo("body");
-				}
-			} else {
-				$section.html(block_data);
-			}
-		});
-		if(data.title) $("title").html(data.title);
-
-		// change meta tags
-		$('[data-html-block="meta_block"]').remove();
-		if(data.meta_block) {
-			$("head").append(data.meta_block);
-		}
-
-		// change id of current page
-		$(".page-container").attr("id", "page-" + data.path);
-
-		// set data-path value in body
-		$("body").attr("data-path", data.path);
-
-		// clear page-header-right
-		$(".page-header-right").html("");
-
-		window.ga && ga('send', 'pageview', location.pathname);
-		$(document).trigger("page-change");
-	},
-	supports_pjax: function() {
-		return (window.history && window.history.pushState && window.history.replaceState &&
-		  // pushState isn't reliable on iOS until 5.
-		  !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]|WebApps\/.+CFNetwork)/))
-	},
-	get_pathname: function() {
-		return location.pathname;
-	},
-	page_ready_events: {},
-	ready: function(fn) {
-		// console.log("frappe.ready", frappe.get_pathname());
-		if (!frappe.page_ready_events[frappe.get_pathname()]) {
-			frappe.page_ready_events[frappe.get_pathname()] = []
-		}
-		frappe.page_ready_events[frappe.get_pathname()].push(fn);
-	},
 	freeze_count: 0,
 	freeze: function(msg) {
 		// blur
@@ -395,7 +227,7 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function() {
-		var ready_functions = frappe.page_ready_events[frappe.get_pathname()];
+		var ready_functions = frappe.page_ready_events[location.pathname];
 		if (ready_functions && ready_functions.length) {
 			for (var i=0, l=ready_functions.length; i < l; i++) {
 				var ready = ready_functions[i];
@@ -404,7 +236,7 @@ $.extend(frappe, {
 		}
 
 		// remove them so that they aren't fired again and again!
-		delete frappe.page_ready_events[frappe.get_pathname()];
+		delete frappe.page_ready_events[location.pathname];
 	},
 	highlight_code_blocks: function() {
 		if(hljs) {
@@ -451,7 +283,8 @@ $.extend(frappe, {
 	do_search: function(val) {
 		var path = (frappe.search_path && frappe.search_path[location.pathname]
 			|| window.search_path || location.pathname);
-		frappe.load_via_ajax(path + "?txt=" + encodeURIComponent(val));
+
+		window.location.href = path + "?txt=" + encodeURIComponent(val);
 	},
 	set_search_path: function(path) {
 		frappe.search_path[location.pathname] = path;
@@ -466,27 +299,6 @@ $.extend(frappe, {
 				return false;
 			}
 		})
-	},
-	toggle_template_blocks: function() {
-		// this assumes frappe base template
-		$(".page-footer").toggleClass("hidden",
-			!!!$(".page-footer").text().trim());
-
-		// hide breadcrumbs if no breadcrumb content or if it is same as the header
-		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
-			!$("[data-html-block='breadcrumbs']").text().trim() ||
-			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
-
-		// adjust page header block
-		var page_header_actions = $(".page-header-actions-block");
-		if(page_header_actions.text().trim()) {
-			page_header_actions.parent().removeClass("hidden");
-			$(".page-header-block").parent().removeClass("col-sm-12").addClass("col-sm-8");
-		} else {
-			page_header_actions.parent().addClass("hidden");
-			$(".page-header-block").parent().removeClass("col-sm-8").addClass("col-sm-12");
-		}
-
 	},
 	get_navbar_search: function() {
 		return $(".navbar .search, .sidebar .search");
@@ -505,46 +317,6 @@ function valid_email(id) {
 }
 
 var validate_email = valid_email;
-
-function get_url_arg(name) {
-	return get_query_params()[name] || "";
-}
-
-function get_query_params() {
-	var query_params = {};
-	var query_string = location.search.substring(1);
-	var query_list = query_string.split("&");
-	for (var i=0, l=query_list.length; i < l; i++ ){
-		var pair = query_list[i].split("=");
-		var key = pair[0];
-		if (!key) {
-			continue;
-		}
-
-		var value = pair[1];
-		if (typeof value === "string") {
-			value = decodeURIComponent(value);
-		}
-
-		if (key in query_params) {
-			if (typeof query_params[key] === undefined) {
-				query_params[key] = [];
-			} else if (typeof query_params[key] === "string") {
-				query_params[key] = [query_params[key]];
-			}
-			query_params[key].push(value);
-		} else {
-			query_params[key] = value;
-		}
-	}
-	return query_params;
-}
-
-function make_query_string(obj) {
-	var query_params = [];
-	$.each(obj, function(k, v) { query_params.push(encodeURIComponent(k) + "=" + encodeURIComponent(v)); });
-	return "?" + query_params.join("&");
-}
 
 function repl(s, dict) {
 	if(s==null)return '';
@@ -611,9 +383,12 @@ if (typeof Array.prototype.map !== "function") {
 	};
 }
 
-function remove_script_and_style(txt) {
-	return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
-		$("<div></div>").html(txt).find("script,noscript,style,title,meta").remove().end().html();
+function cstr(s) {
+	return s==null ? '' : s+'';
+}
+
+function is_null(v) {
+	if(v===null || v===undefined || cstr(v).trim()==="") return true;
 }
 
 function is_html(txt) {
@@ -660,24 +435,23 @@ $(document).ready(function() {
 
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
-		$("#website-post-login .dropdown-menu").append('<li><a href="/desk" no-pjax>Switch To Desk</a></li>');
+		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
 	}
 
 	frappe.render_user();
-	frappe.setup_push_state();
 
 	$(document).trigger("page-change");
 });
 
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
+	$('.dropdown-toggle').dropdown();
+
 	frappe.datetime.refresh_when();
-	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
 	frappe.make_navbar_active();
-
 	// scroll to hash
 	if (window.location.hash) {
 		var element = document.getElementById(window.location.hash.substring(1));

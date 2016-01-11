@@ -333,8 +333,9 @@ class setup_docs(object):
 				context.favicon = "/assets/img/favicon.ico"
 
 			context.only_static = True
+			context.base_template_path = "templates/autodoc/base_template.html"
 
-			html = frappe.get_template("templates/autodoc/base_template.html").render(context)
+			html = frappe.get_template("templates/generators/web_page.html").render(context)
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',

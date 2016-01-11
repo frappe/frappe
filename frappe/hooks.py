@@ -5,7 +5,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.16.4"
+app_version = "6.17.6"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
@@ -44,12 +44,6 @@ website_route_rules = [
 	{"from_route": "/blog", "to_route": "Blog Post"},
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"}
 ]
-
-website_context = {
-	"hero": {
-		"blog": "templates/includes/blog/hero.html"
-	}
-}
 
 write_file_keys = ["file_url", "file_name"]
 

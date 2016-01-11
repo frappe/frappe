@@ -49,7 +49,7 @@ frappe.views.ListView = Class.extend({
 		}
 
 		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified',
-			'modified_by', '_assign', '_starred_by'],
+			'modified_by', '_assign', '_liked_by'],
 		function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
@@ -266,7 +266,7 @@ frappe.views.ListView = Class.extend({
         var indicator = frappe.get_indicator(doc, this.doctype);
 		if(indicator) {
 	        return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
-				+indicator[2]+'">'+indicator[0]+'<span>';
+				+indicator[2]+'">'+__(indicator[0])+'<span>';
 		} else {
 			return "";
 		}
@@ -277,15 +277,15 @@ frappe.views.ListView = Class.extend({
 		if (!indicator) {
 			return "";
 		}
-		return '<span class="indicator '+indicator[1]+'" title="'+indicator[0]+'"></span>';
+		return '<span class="indicator '+indicator[1]+'" title="'+__(indicator[0])+'"></span>';
 	},
 
 	prepare_data: function(data) {
 		if(data.modified)
 			this.prepare_when(data, data.modified);
 
-		data._starred_by = data._starred_by ?
-			JSON.parse(data._starred_by) : [];
+		data._liked_by = data._liked_by ?
+			JSON.parse(data._liked_by) : [];
 
 		data._checkbox = (frappe.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete
 
@@ -311,7 +311,6 @@ frappe.views.ListView = Class.extend({
 		}
 		data._user = user;
 
-		data._comments_list = data._comments ? JSON.parse(data._comments) : [];
 		data._tags = $.map((data._user_tags || "").split(","),
 			function(v) { return v ? v : null; });
 		data._assign_list = data._assign ? JSON.parse(data._assign) : [];

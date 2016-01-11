@@ -60,12 +60,12 @@ frappe.socket = {
 		});
 
 		window.onbeforeunload = function() {
-			if (frm.is_new()) {
+			if (!cur_frm || cur_frm.is_new()) {
 				return;
 			}
 
 			// if tab/window is closed, notify other users
-			if (cur_frm && cur_frm.doc) {
+			if (cur_frm.doc) {
 				frappe.socket.doc_close(cur_frm.doctype, cur_frm.docname);
 			}
 		}

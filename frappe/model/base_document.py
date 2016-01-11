@@ -239,7 +239,7 @@ class BaseDocument(object):
 				if k in default_fields:
 					del doc[k]
 
-		for key in ("_user_tags", "__islocal", "__onload", "_starred_by", "__run_link_triggers"):
+		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers"):
 			if self.get(key):
 				doc[key] = self.get(key)
 
@@ -371,6 +371,12 @@ class BaseDocument(object):
 		for df in self.meta.get("fields", {"reqd": 1}):
 			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
+
+		# check for missing parent and parenttype
+		if self.meta.istable:
+			for fieldname in ("parent", "parenttype"):
+				if not self.get(fieldname):
+					missing.append((fieldname, get_msg(frappe._dict(label=fieldname))))
 
 		return missing
 

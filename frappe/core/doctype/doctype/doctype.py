@@ -50,6 +50,9 @@ class DocType(Document):
 
 		self.make_amendable()
 
+		if self.istable:
+			self.allow_import = 0
+
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
 		if frappe.flags.in_patch:
@@ -274,7 +277,7 @@ def validate_fields(meta):
 			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
 
 	def check_in_list_view(d):
-		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
+		if d.in_list_view and (d.fieldtype in no_value_fields):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
 	def check_dynamic_link_options(d):

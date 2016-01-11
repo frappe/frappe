@@ -1,7 +1,13 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block header %}
-{{ title }}
+<h1>{{ title }}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% include "templates/includes/breadcrumbs.html" %}
 {% endblock %}
 
 {% block header_actions %}
@@ -17,7 +23,7 @@
   {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <div class="introduction">
 	{% if introduction_text %}
@@ -136,10 +142,10 @@
 	{% if params.name and web_page_link_text %}
 	<div class="row">
 		<div class="col-sm-9">
-			<div class="text-muted">
-				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}">
+			<p class="text-muted">
+				<a class="btn btn-default btn-sm" href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}" target="_blank">
 					{{ web_page_link_text }}</a>
-			</div>
+			</p>
 		</div>
 	</div>
 	{% endif %}

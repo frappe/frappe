@@ -2,20 +2,19 @@
 	"css/frappe-web.css": [
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/nprogress.css",
 		"public/css/website.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/misc/number_format.js",
-		"public/js/lib/nprogress.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
+		"public/js/frappe/query_string.js",
 		"website/js/website.js",
 		"public/js/lib/socket.io.min.js"
 	],
@@ -24,6 +23,16 @@
 		"public/js/lib/beautify-html.js",
 		"public/js/frappe/ui/editor.html",
 		"public/js/frappe/ui/editor.js"
+	],
+	"js/dialog.min.js": [
+		"public/js/frappe/dom.js",
+		"public/js/frappe/ui/modal.html",
+		"public/js/frappe/form/formatters.js",
+		"public/js/frappe/form/layout.js",
+		"public/js/frappe/ui/field_group.js",
+		"public/js/frappe/form/control.js",
+		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
 		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
@@ -38,7 +47,6 @@
 		"public/css/sidebar.css",
 		"public/css/page.css",
 		"public/css/tree.css",
-		"public/css/nprogress.css",
 		"public/css/desktop.css",
 		"public/css/form.css",
 		"public/css/mobile.css"
@@ -49,7 +57,6 @@
 		"public/js/lib/tag-it.min.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
-		"public/js/lib/nprogress.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
@@ -84,7 +91,6 @@
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/ui/dialog.js",
-		"public/js/frappe/ui/button.js",
 		"public/js/frappe/ui/app_icon.js",
 
 		"public/js/frappe/model/model.js",
@@ -121,6 +127,7 @@
 
 		"public/js/frappe/change_log.html",
 		"public/js/frappe/desk.js",
+		"public/js/frappe/query_string.js",
 
 		"public/html/error_object.html",
 		"public/html/error_snapshot.html"
@@ -180,7 +187,8 @@
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tags.js",
-		"public/js/frappe/ui/star.js",
+		"public/js/frappe/ui/like.js",
+		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
 		"public/js/frappe/list/doclistview.js",
 		"public/js/frappe/list/list_sidebar.js",

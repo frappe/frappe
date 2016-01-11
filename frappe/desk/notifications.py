@@ -24,7 +24,9 @@ def get_notifications():
 	return {
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
 		"open_count_module": get_notifications_for_modules(config, notification_count),
+		"open_count_other": get_notifications_for_other(config, notification_count),
 		"new_messages": get_new_messages()
+		# "likes": get_count_of_new_likes()
 	}
 
 def get_new_messages():
@@ -48,19 +50,27 @@ def get_new_messages():
 
 def get_notifications_for_modules(config, notification_count):
 	"""Notifications for modules"""
-	open_count_module = {}
-	for m in config.for_module:
+	return get_notifications_for("for_module", config, notification_count)
+
+def get_notifications_for_other(config, notification_count):
+	"""Notifications for other items"""
+	return get_notifications_for("for_other", config, notification_count)
+
+def get_notifications_for(notification_type, config, notification_count):
+	open_count = {}
+	notification_map = config.get(notification_type) or {}
+	for m in notification_map:
 		try:
 			if m in notification_count:
-				open_count_module[m] = notification_count[m]
+				open_count[m] = notification_count[m]
 			else:
-				open_count_module[m] = frappe.get_attr(config.for_module[m])()
+				open_count[m] = frappe.get_attr(notification_map[m])()
 
-				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count_module[m])
+				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
 		except frappe.PermissionError:
 			frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
-	return open_count_module
+	return open_count
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
@@ -143,7 +153,7 @@ def get_notification_config():
 		config = frappe._dict()
 		for notification_config in frappe.get_hooks().notification_config:
 			nc = frappe.get_attr(notification_config)()
-			for key in ("for_doctype", "for_module", "for_module_doctypes"):
+			for key in ("for_doctype", "for_module", "for_module_doctypes", "for_other"):
 				config.setdefault(key, {})
 				config[key].update(nc.get(key, {}))
 		return config

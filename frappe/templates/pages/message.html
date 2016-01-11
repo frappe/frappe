@@ -1,8 +1,14 @@
+{% extends "templates/web.html" %}
+
 {% block title %}{{ title }}{% endblock %}
 
-{% block header %}{{ header }}{% endblock %}
+{% block header %}
+	{% if header is defined -%}
+	<h1>{{ header }}</h1>
+	{%- endif %}
+{% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <div class="message-content" style="min-height: 200px;">
 	<div>

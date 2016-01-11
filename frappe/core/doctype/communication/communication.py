@@ -10,6 +10,7 @@ from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
 from frappe import _
+from frappe.model.db_schema import add_column
 
 from frappe.model.document import Document
 
@@ -50,7 +51,7 @@ class Communication(Document):
 		comment["comment_type"] = comment["communication_medium"]
 
 		frappe.publish_realtime('new_comment', comment, doctype = self.reference_doctype,
-			docname = self.reference_name)
+			docname = self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
@@ -246,7 +247,6 @@ class Communication(Document):
 				# if it is a fetched email, add follows to CC
 				cc.append(self.get_owner_email())
 				cc += self.get_assignees()
-				cc += self.get_starrers()
 
 		if cc:
 			# exclude email accounts, unfollows, recipients and unsubscribes
@@ -306,10 +306,6 @@ class Communication(Document):
 
 		return filtered
 
-	def get_starrers(self):
-		"""Return list of users who have starred this document."""
-		return [( get_formatted_email(user) or user ) for user in self.get_parent_doc().get_starred_by()]
-
 	def get_owner_email(self):
 		owner = self.get_parent_doc().owner
 		return get_formatted_email(owner) or owner
@@ -336,6 +332,9 @@ class Communication(Document):
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
+
+	if "_liked_by" not in frappe.db.get_table_columns("Communication"):
+		add_column("Communication", "_liked_by", "Text")
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",

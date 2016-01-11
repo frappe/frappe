@@ -40,7 +40,7 @@ frappe.breadcrumbs = {
 			breadcrumbs.module = frappe.breadcrumbs.preferred[breadcrumbs.doctype];
 		}
 
-		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
+		if(breadcrumbs.module) {
 			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
 

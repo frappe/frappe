@@ -330,20 +330,6 @@ body {
     border-left-color: transparent !important;
     border-right-color: transparent !important;
   }
-  .timeline {
-    border-left: none !important;
-    border-right: none !important;
-  }
-  .timeline .timeline-head {
-    padding: 7px 15px;
-  }
-  .timeline .timeline-item {
-    padding: 15px;
-    border-bottom: 1px dashed #d1d8dd;
-  }
-  .timeline .timeline-item:last-child {
-    border-bottom: none;
-  }
   .list-row {
     padding: 13px 15px !important;
   }

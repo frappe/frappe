@@ -1,6 +1,8 @@
+{% extends "templates/web.html" %}
+
 {% block title %}About Us{% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <article class="about-content">
 	{{ doc.company_introduction or """<p>Some Introduction about your company that you would

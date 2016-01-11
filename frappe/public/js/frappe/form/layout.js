@@ -236,11 +236,12 @@ frappe.ui.form.Layout = Class.extend({
 			grid_row = null;
 			prev = null,
 			fields = me.fields_list,
-			in_grid = false;
+			in_grid = false,
+			focused = false;
 
 		// in grid
 		if(doctype != me.doctype) {
-			grid_row =me.get_open_grid_row()
+			grid_row = me.get_open_grid_row();
 			fields = grid_row.layout.fields_list;
 		}
 
@@ -254,38 +255,43 @@ frappe.ui.form.Layout = Class.extend({
 					}
 					break;
 				}
-				if(i==len-1) {
-					// last field in this group
-					if(grid_row) {
-						// in grid
-						if(grid_row.doc.idx==grid_row.grid.grid_rows.length) {
-							// last row, close it and find next field
-							grid_row.toggle_view(false, function() {
-								me.handle_tab(grid_row.grid.df.parent, grid_row.grid.df.fieldname);
-							})
-						} else {
-							// next row
-							grid_row.grid.grid_rows[grid_row.doc.idx].toggle_view(true);
-						}
-					} else {
-						$(this.primary_button).focus();
-					}
-				} else {
-					me.focus_on_next_field(i, fields);
+				if(i < len-1) {
+					focused = me.focus_on_next_field(i, fields);
 				}
 
-				break;
+				if (focused) {
+					break;
+				}
 			}
-			if(fields[i].disp_status==="Write")
+			if(this.is_visible(fields[i]))
 				prev = fields[i];
 		}
+
+		if (!focused) {
+			// last field in this group
+			if(grid_row) {
+				// in grid
+				if(grid_row.doc.idx==grid_row.grid.grid_rows.length) {
+					// last row, close it and find next field
+					grid_row.toggle_view(false, function() {
+						grid_row.grid.frm.layout.handle_tab(grid_row.grid.df.parent, grid_row.grid.df.fieldname);
+					})
+				} else {
+					// next row
+					grid_row.grid.grid_rows[grid_row.doc.idx].toggle_view(true);
+				}
+			} else {
+				$(this.primary_button).focus();
+			}
+		}
+
 		return false;
 	},
 	focus_on_next_field: function(start_idx, fields) {
 		// loop to find next eligible fields
 		for(var i= start_idx + 1, len = fields.length; i < len; i++) {
 			var field = fields[i];
-			if(field.disp_status==="Write") {
+			if(this.is_visible(field)) {
 				if(field.df.fieldtype==="Table") {
 					// open table grid
 					if(!(field.grid.grid_rows && field.grid.grid_rows.length)) {
@@ -294,13 +300,17 @@ frappe.ui.form.Layout = Class.extend({
 					}
 					// show grid row (if exists)
 					field.grid.grid_rows[0].show_form();
+					return true;
 
 				} else if(!in_list(frappe.model.no_value_type, field.df.fieldtype)) {
 					this.set_focus(field);
-					break;
+					return true;
 				}
 			}
 		}
+	},
+	is_visible: function(field) {
+		return field.disp_status==="Write" && (field.$wrapper && field.$wrapper.is(":visible"))
 	},
 	set_focus: function(field) {
 		// next is table, show the table

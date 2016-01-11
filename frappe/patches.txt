@@ -75,6 +75,7 @@ execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, loca
 frappe.patches.v5_0.fix_feed
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
+frappe.patches.v6_16.star_to_like
 frappe.patches.v5_0.bookmarks_to_stars
 frappe.patches.v5_0.style_settings_to_website_theme
 frappe.patches.v5_0.rename_ref_type_fieldnames
@@ -112,3 +113,5 @@ execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'fi
 frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
+frappe.patches.v6_16.feed_doc_owner
+
