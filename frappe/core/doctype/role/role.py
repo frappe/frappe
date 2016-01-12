@@ -7,6 +7,10 @@ import frappe
 from frappe.model.document import Document
 
 class Role(Document):
+	def before_rename(self, old, new, merge=False):
+		if old in ("Guest", "Administrator", "System Manager", "All"):
+			frappe.throw(frappe._("Standard roles cannot be renamed"))
+
 	def after_insert(self):
 		# Add role to Administrator
 		if frappe.flags.in_install != "frappe":
