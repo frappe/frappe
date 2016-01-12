@@ -295,7 +295,7 @@ frappe.views.QueryReport = Class.extend({
 		var formatter = this.get_formatter();
 
 		this.columns = [{id: "_id", field: "_id", name: __("Sr No"), width: 60}]
-			.concat($.map(columns, function(c) {
+			.concat($.map(columns, function(c, i) {
 				if ($.isPlainObject(c)) {
 					var df = c;
 				} else if (c.indexOf(":")!==-1) {
@@ -320,6 +320,10 @@ frappe.views.QueryReport = Class.extend({
 
 				if (!df.fieldtype) df.fieldtype = "Data";
 				if (!cint(df.width)) df.width = 80;
+				
+				if (df.hidden) {
+					return null;
+				}
 
 				var col = $.extend({}, df, {
 					label: df.label || (df.fieldname && __(toTitle(df.fieldname.replace(/_/g, " ")))) || "",
@@ -331,6 +335,7 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
+				col.index = i;
 
 				return col
 		}));
@@ -371,7 +376,7 @@ frappe.views.QueryReport = Class.extend({
 			} else {
 				var newrow = {};
 				for(var i=1, j=this.columns.length; i<j; i++) {
-					newrow[this.columns[i].field] = row[i-1];
+					newrow[this.columns[i].field] = row[this.columns[i].index];
 				};
 			}
 			newrow._id = row_idx + 1;
