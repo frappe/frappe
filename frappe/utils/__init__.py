@@ -369,8 +369,11 @@ def get_hook_method(hook_name, fallback=None):
 		return fallback
 
 def call_hook_method(hook, *args, **kwargs):
+	out = None
 	for method_name in frappe.get_hooks(hook):
-		frappe.get_attr(method_name)(*args, **kwargs)
+		out = out or frappe.get_attr(method_name)(*args, **kwargs)
+
+	return out
 
 def update_progress_bar(txt, i, l):
 	lt = len(txt)

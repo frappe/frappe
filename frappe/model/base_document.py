@@ -569,7 +569,10 @@ class BaseDocument(object):
 			print_hide = ( df and df.print_hide_if_no_value ) or ( meta_df and meta_df.print_hide_if_no_value )
 
 		if not print_hide:
-			print_hide = ( df and df.print_hide ) or ( meta_df and meta_df.print_hide )
+			if df and df.print_hide is not None:
+				print_hide = df.print_hide
+			elif meta_df:
+				print_hide = meta_df.print_hide
 
 		return print_hide
 
