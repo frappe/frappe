@@ -147,7 +147,8 @@ frappe.urllib = {
 
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
-		var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
+		// var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
+		var url = (frappe.base_url || window.location.origin)
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
 	},
