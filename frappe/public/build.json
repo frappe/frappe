@@ -24,6 +24,16 @@
 		"public/js/frappe/ui/editor.html",
 		"public/js/frappe/ui/editor.js"
 	],
+	"js/dialog.min.js": [
+		"public/js/frappe/dom.js",
+		"public/js/frappe/ui/modal.html",
+		"public/js/frappe/form/formatters.js",
+		"public/js/frappe/form/layout.js",
+		"public/js/frappe/ui/field_group.js",
+		"public/js/frappe/form/control.js",
+		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/ui/dialog.js"
+	],
 	"css/desk.min.css": [
 		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
 		"public/css/bootstrap.css",
@@ -81,7 +91,6 @@
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/ui/dialog.js",
-		"public/js/frappe/ui/button.js",
 		"public/js/frappe/ui/app_icon.js",
 
 		"public/js/frappe/model/model.js",

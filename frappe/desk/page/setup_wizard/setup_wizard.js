@@ -243,7 +243,7 @@ function load_frappe_slides() {
 
 		fields: [
 			{ fieldname: "language", label: __("Select Your Language"), reqd:1,
-				fieldtype: "Select" },
+				fieldtype: "Select", "default": "english" },
 		],
 
 		onload: function(slide) {

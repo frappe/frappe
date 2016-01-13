@@ -1,4 +1,4 @@
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +225,Press Esc to close,Esc ಪ್ರೆಸ್ ಮುಚ್ಚಲು
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,Esc ಪ್ರೆಸ್ ಮುಚ್ಚಲು
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","ಒಂದು ಹೊಸ ಕೆಲಸವನ್ನು, {0}, {1} ನಿಮಗೆ ಗೊತ್ತುಮಾಡಲ. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,ಪೋಸ್ಟ್
 apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,ಒಂದು . CSV ಕಡತ ಅಪ್ಲೋಡ್ ಮೂಲಕ ಅನೇಕ ವಸ್ತುಗಳನ್ನು ಮರುಹೆಸರಿಸು .
@@ -31,13 +31,13 @@ apps/frappe/frappe/public/js/legacy/form.js +65,Cannot open {0} when its instanc
 apps/frappe/frappe/model/document.py +749,Table {0} cannot be empty,ಟೇಬಲ್ {0} ಖಾಲಿ ಇರುವಂತಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +893,With Ledgers,ಲೆಡ್ಜರ್ನೊಂದಿಗೆ
 DocType: Social Login Keys,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +467,"{0}, Row {1}","{0}, ರೋ {1}"
+apps/frappe/frappe/model/base_document.py +473,"{0}, Row {1}","{0}, ರೋ {1}"
 apps/frappe/frappe/model/document.py +723,Beginning with,ಆರಂಭಗೊಂಡು
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,ಆಮದು ಟೆಂಪ್ಲೇಟು
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,ಪೋಷಕ
 apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,ಜಿಂಜ ಟೆಂಪ್ಲೇಟ್ ವಾಕ್ಯರಚನಾದೋಷ
 DocType: About Us Settings,"""Team Members"" or ""Management""","""ತಂಡದ ಸದಸ್ಯರು"" ಅಥವಾ "" ನಿರ್ವಹಣೆ """
-apps/frappe/frappe/core/doctype/doctype/doctype.py +289,Default for 'Check' type of field must be either '0' or '1',ಕ್ಷೇತ್ರದ 'ಪರಿಶೀಲಿಸಿ' ಕೌಟುಂಬಿಕತೆ ಡೀಫಾಲ್ಟ್ ಎರಡೂ '0' ಅಥವಾ '1' ಇರಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Default for 'Check' type of field must be either '0' or '1',ಕ್ಷೇತ್ರದ 'ಪರಿಶೀಲಿಸಿ' ಕೌಟುಂಬಿಕತೆ ಡೀಫಾಲ್ಟ್ ಎರಡೂ '0' ಅಥವಾ '1' ಇರಬೇಕು
 apps/frappe/frappe/public/js/frappe/list/listview.js +339,Yesterday,ನಿನ್ನೆ
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +10,Test Runner,ಟೆಸ್ಟ್ ರನ್ನರ್
 DocType: Email Account,Enable Incoming,ಒಳಬರುವ ಸಕ್ರಿಯಗೊಳಿಸಿ
@@ -47,7 +47,7 @@ DocType: Workflow State,th-large,ನೇ ದೊಡ್ಡ
 DocType: Communication,Unread Notification Sent,ಕಳುಹಿಸಲಾಗಿದೆ ಓದದ ಅಧಿಸೂಚನೆಯನ್ನು
 apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You need {0} role to export.,ರಫ್ತು ಅವಕಾಶ . ನೀವು ರಫ್ತು {0} ಪಾತ್ರದಲ್ಲಿ ಅಗತ್ಯವಿದೆ .
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,ಲೈಕ್
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Set the display label for the field,ಕ್ಷೇತ್ರಕ್ಕೆ ಪ್ರದರ್ಶನ ಲೇಬಲ್ ಹೊಂದಿಸಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +154,Set the display label for the field,ಕ್ಷೇತ್ರಕ್ಕೆ ಪ್ರದರ್ಶನ ಲೇಬಲ್ ಹೊಂದಿಸಿ
 apps/frappe/frappe/model/document.py +740,Incorrect value: {0} must be {1} {2},ತಪ್ಪಾದ ಮೌಲ್ಯವು: {0} ಇರಬೇಕು {1} {2}
 apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","ಬದಲಾಯಿಸಿ ಕ್ಷೇತ್ರ ಗುಣಗಳನ್ನು ( ಮರೆಮಾಡಲು , ಮಾತ್ರ , ಅನುಮತಿ , ಇತ್ಯಾದಿ ಓದಲು )"
 DocType: Workflow State,lock,ಕರುಳು
@@ -88,7 +88,7 @@ apps/frappe/frappe/public/js/legacy/form.js +424,This form has been modified aft
 DocType: Website Settings,Twitter Share via,ಟ್ವಿಟರ್ ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಿ
 apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,ವೆಬ್ಸೈಟ್ ಪುಟಗಳಲ್ಲಿ ಎಂಬೆಡ್ ಚಿತ್ರ ಸ್ಲೈಡ್ಶೋಗಳು .
 DocType: Workflow Action,Workflow Action Name,ವರ್ಕ್ಫ್ಲೋ ಆಕ್ಷನ್ ಹೆಸರು
-apps/frappe/frappe/core/doctype/doctype/doctype.py +148,DocType can not be merged,Doctype ವಿಲೀನಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +151,DocType can not be merged,Doctype ವಿಲೀನಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Web Form Field,Fieldtype,Fieldtype
 DocType: Error Snapshot,Friendly Title,ಸ್ನೇಹಿ ಶೀರ್ಷಿಕೆ
 apps/frappe/frappe/desk/form/save.py +46,Did not cancel,ನಿಲ್ಲಿಸಲಿಲ್ಲ
@@ -103,12 +103,12 @@ apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_
 DocType: Email Unsubscribe,Email Unsubscribe,ಇಮೇಲ್ ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,ಉತ್ತಮ ಫಲಿತಾಂಶಗಳಿಗಾಗಿ ಒಂದು ಪಾರದರ್ಶಕ ಹಿನ್ನೆಲೆ ಸುಮಾರು ಅಗಲ 150px ಚಿತ್ರವನ್ನು ಆಯ್ಕೆ .
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +14,Add multiple rows,ಅನೇಕ ಸಾಲುಗಳನ್ನು ಸೇರಿಸಿ
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +110,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","' {0} ' ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ ' {1} ' ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ, ಕ್ಷೇತ್ರ ನಂತರ ಸೇರಿಸಿ"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +108,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","' {0} ' ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ ' {1} ' ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ, ಕ್ಷೇತ್ರ ನಂತರ ಸೇರಿಸಿ"
 ,App Installer,ಅಪ್ಲಿಕೇಶನ್ ಅನುಸ್ಥಾಪಕವನ್ನು
 DocType: Workflow State,circle-arrow-up,ಸರ್ಕಲ್ ಬಾಣದ ಅಪ್
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,ಅಪ್ಲೋಡ್ ...
 DocType: Workflow State,italic,ಪುರಾತನ ಇಟಲಿಯ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +459,{0}: Cannot set Import without Create,{0} : ರಚಿಸಿ ಇಲ್ಲದೆ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +462,{0}: Cannot set Import without Create,{0} : ರಚಿಸಿ ಇಲ್ಲದೆ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 DocType: Comment,Post Topic,ಪೋಸ್ಟ್ ವಿಷಯ
 apps/frappe/frappe/config/desk.py +21,Event and other calendars.,ಈವೆಂಟ್ ಮತ್ತು ಇತರ ಪಂಚಾಂಗಗಳಲ್ಲಿ.
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Drag to sort columns,ಕಾಲಮ್ಗಳನ್ನು ವಿಂಗಡಿಸಲು ಎಳೆಯಿರಿ
@@ -119,11 +119,11 @@ apps/frappe/frappe/core/doctype/file/file.py +150,Cannot delete Home and Attachm
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,ಅನುಮತಿಗಳು ಅವರು ವಹಿಸಿಕೊಡಲಾಗುತ್ತದೆ ಏನು ಪಾತ್ರಗಳು ಆಧರಿಸಿ ಅಪ್ಲೈಡ್ ಬಳಕೆದಾರ ಪಡೆಯಲು .
 apps/frappe/frappe/public/js/frappe/views/communication.js +414,You are not allowed to send emails related to this document,ಈ ಡಾಕ್ಯುಮೆಂಟ್ಗೆ ಸಂಬಂಧಿಸಿದ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಲು ಅನುಮತಿ ಇಲ್ಲ
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,ನೀವು ಪ್ರಮಾಣಿತ ವೆಬ್ಸೈಟ್ ಥೀಮ್ ಅಳಿಸಲು ಅನುಮತಿ ಇಲ್ಲ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +177,Example,ಉದಾಹರಣೆಗೆ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Example,ಉದಾಹರಣೆಗೆ
 DocType: Workflow State,gift,ವಿಷ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Reqd,ಬೇಕಾಗಿದೆ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +180,Reqd,ಬೇಕಾಗಿದೆ
 apps/frappe/frappe/core/doctype/communication/communication.py +194,Unable to find attachment {0},ಪತ್ತೆ ಮಾಡಲಾಗಲಿಲ್ಲ ಬಾಂಧವ್ಯ {0}
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Assign a permission level to the field.,ಕ್ಷೇತ್ರ ಒಂದು ಅನುಮತಿಯನ್ನು ಮಟ್ಟದ ನಿಗದಿಪಡಿಸಿ.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,Assign a permission level to the field.,ಕ್ಷೇತ್ರ ಒಂದು ಅನುಮತಿಯನ್ನು ಮಟ್ಟದ ನಿಗದಿಪಡಿಸಿ.
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,ತೋರಿಸು / ಮರೆಮಾಡು ಮಾಡ್ಯೂಲ್ಗಳು
 apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ ವರದಿ
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್ ಫಾರ್ಮ್ಯಾಟ್: frappe.query_reports [ 'ವರದಿಯನ್ನು ಹೆಸರು '] = {}
@@ -150,7 +150,7 @@ DocType: DocType,Hide Heading,ಅಡಗಿಸು ಶಿರೋನಾಮೆ
 apps/frappe/frappe/config/core.py +17,Groups of DocTypes,DOCTYPES ಗುಂಪುಗಳು
 DocType: Workflow State,remove-circle,ತೆಗೆದು ವೃತ್ತ
 apps/frappe/frappe/config/website.py +54,Javascript to append to the head section of the page.,ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್ ಪುಟ ತಲೆ ಭಾಗಕ್ಕೆ ಸೇರಿಸಲು .
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53,Reset to defaults,ಡೀಫಾಲ್ಟ್ಗೆ ಮರುಹೊಂದಿಸಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +52,Reset to defaults,ಡೀಫಾಲ್ಟ್ಗೆ ಮರುಹೊಂದಿಸಿ
 DocType: Workflow,Transition Rules,ಪರಿವರ್ತನೆ ನಿಯಮಗಳು
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,ಉದಾಹರಣೆ :
 DocType: Workflow,Defines workflow states and rules for a document.,ಒಂದು ದಾಖಲೆ ಕೆಲಸದೊತ್ತಡದ ರಾಜ್ಯಗಳು ಮತ್ತು ನಿಯಮಗಳನ್ನು ವ್ಯಾಖ್ಯಾನಿಸುತ್ತದೆ.
@@ -159,7 +159,7 @@ DocType: DocType,Show this field as title,ಶೀರ್ಷಿಕೆ ಈ ಕ್
 apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},FIELDNAME {0} ನಂತಹ ವಿಶೇಷ ಅಕ್ಷರಗಳು ಹೊಂದುವಂತಿಲ್ಲ {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆ
 apps/frappe/frappe/model/document.py +428,Error: Document has been modified after you have opened it,ದೋಷ : ನೀವು ತೆರೆದಿದ್ದೀರಿ ನಂತರ ಡಾಕ್ಯುಮೆಂಟ್ ಮಾರ್ಪಡಿಸಲಾಗಿದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +480,{0}: Cannot set Assign Submit if not Submittable,{0} : ನಿಯೋಜನೆ ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +483,{0}: Cannot set Assign Submit if not Submittable,{0} : ನಿಯೋಜನೆ ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
 DocType: Social Login Keys,Facebook,ಫೇಸ್ಬುಕ್
 apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",ಫಿಲ್ಟರ್ &quot;{0}&quot;
 DocType: DocType,Administrator,ನಿರ್ವಾಹಕ
@@ -184,7 +184,7 @@ DocType: DocField,Print Hide If No Value,ಪ್ರಿಂಟ್ ಮರೆಮಾ�
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Upload Attachment,ಬಾಂಧವ್ಯ ಅಪ್ಲೋಡ್
 DocType: Block Module,Block Module,ಬ್ಲಾಕ್ ಘಟಕ
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,ರಫ್ತು ಟೆಂಪ್ಲೇಟು
-apps/frappe/frappe/desk/like.py +94,Communication: {0} in {1},ಸಂವಹನ: {0} ನಲ್ಲಿ {1}
+apps/frappe/frappe/desk/like.py +99,Communication: {0} in {1},ಸಂವಹನ: {0} ನಲ್ಲಿ {1}
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +349,No permission to edit,ಸಂಪಾದಿಸಲು ಯಾವುದೇ ಅನುಮತಿಯಿಲ್ಲ
 DocType: Block Module,Module,ಮಾಡ್ಯೂಲ್ಗಳು
 DocType: Email Alert,Send Alert On,ಜಾಗರೂಕ ಕಳಿಸಿ
@@ -199,9 +199,9 @@ DocType: Print Format,Verdana,Verdana
 apps/frappe/frappe/core/doctype/user/user.py +206,User {0} cannot be deleted,ಬಳಕೆದಾರ {0} ಅಳಿಸಲಾಗಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/request.js +92,Another transaction is blocking this one. Please try again in a few seconds.,ಮತ್ತೊಂದು ವ್ಯವಹಾರ ಈ ಒಂದು ತಡೆಯುವ ಇದೆ. ಕೆಲವು ನಿಮಿಷಗಳ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.
 DocType: Property Setter,Field Name,ಕ್ಷೇತ್ರ ಹೆಸರು
-apps/frappe/frappe/public/js/frappe/misc/utils.js +107,or,ಅಥವಾ
+apps/frappe/frappe/public/js/frappe/misc/utils.js +95,or,ಅಥವಾ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +92,module name...,ಘಟಕ ಹೆಸರು ...
-apps/frappe/frappe/templates/generators/web_form.html +266,Continue,ಮುಂದುವರಿಸಿ
+apps/frappe/frappe/templates/generators/web_form.html +270,Continue,ಮುಂದುವರಿಸಿ
 DocType: Custom Field,Fieldname,ಕ್ಷೇತ್ರ ಹೆಸರು
 DocType: Workflow State,certificate,ಪ್ರಮಾಣಪತ್ರ
 DocType: User,Tile,ಟೈಲ್
@@ -237,11 +237,11 @@ DocType: Communication,Subject,ವಿಷಯ
 DocType: Web Page,Parent Web Page,ಪೋಷಕ ವೆಬ್ ಪುಟ
 apps/frappe/frappe/core/doctype/docshare/docshare.py +36,User is mandatory for Share,ಬಳಕೆದಾರ ಹಂಚಿಕೊಳ್ಳಿ ಕಡ್ಡಾಯವಾದರೂ
 DocType: DocField,Hidden,ಗುಪ್ತ
-apps/frappe/frappe/model/base_document.py +399,{0} must be set first,{0} ಮೊದಲ ಸೆಟ್ ಮಾಡಬೇಕು
+apps/frappe/frappe/model/base_document.py +405,{0} must be set first,{0} ಮೊದಲ ಸೆಟ್ ಮಾಡಬೇಕು
 DocType: Workflow State,plane,ಫಿಲ್ಮುಗಳು
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","ನೀವು ಹೊಸ ದಾಖಲೆ ಅಪ್ಲೋಡ್ ಮಾಡುತ್ತಿದ್ದರೆ ಅಳವಡಿಸಿದ್ದರೆ, ""ಸರಣಿ ಹೆಸರಿಸುವ"", ಕಡ್ಡಾಯವಾಗಿ ಆಗುತ್ತದೆ."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +143,DocType can only be renamed by Administrator,DOCTYPE ಮಾತ್ರ ನಿರ್ವಾಹಕರಿಂದ ಮರುನಾಮಕರಣ ಮಾಡಬಹುದು
-apps/frappe/frappe/core/doctype/doctype/doctype.py +325,Fold can not be at the end of the form,ಪಟ್ಟು ರೂಪ ಕೊನೆಯಲ್ಲಿ ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +146,DocType can only be renamed by Administrator,DOCTYPE ಮಾತ್ರ ನಿರ್ವಾಹಕರಿಂದ ಮರುನಾಮಕರಣ ಮಾಡಬಹುದು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +328,Fold can not be at the end of the form,ಪಟ್ಟು ರೂಪ ಕೊನೆಯಲ್ಲಿ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Communication,Bounced,ಪುಟಿದೇಳುವ
 apps/frappe/frappe/config/setup.py +14,System and Website Users,ವ್ಯವಸ್ಥೆ ಮತ್ತು ವೆಬ್ಸೈಟ್ ಬಳಕೆದಾರರು
 DocType: Workflow Document State,Doc Status,ಡಾಕ್ ಸ್ಥಿತಿ
@@ -256,7 +256,7 @@ DocType: Event Role,Event Role,ಇವೆಂಟ್ ಪಾತ್ರ
 apps/frappe/frappe/public/js/frappe/ui/editor.html +65,Indent (Tab),ಇಂಡೆಂಟ್ (ಟ್ಯಾಬ್)
 DocType: Workflow State,List,ಪಟ್ಟಿ
 DocType: Page Role,Page Role,ಪುಟ ಪಾತ್ರ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +270,Field {0} in row {1} cannot be hidden and mandatory without default,ಫೀಲ್ಡ್ {0} ಸತತವಾಗಿ {1} ಡೀಫಾಲ್ಟ್ ಇಲ್ಲದೆ ಮರೆಮಾಡಲಾಗಿದೆ ಮತ್ತು ಕಡ್ಡಾಯ ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +273,Field {0} in row {1} cannot be hidden and mandatory without default,ಫೀಲ್ಡ್ {0} ಸತತವಾಗಿ {1} ಡೀಫಾಲ್ಟ್ ಇಲ್ಲದೆ ಮರೆಮಾಡಲಾಗಿದೆ ಮತ್ತು ಕಡ್ಡಾಯ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: System Settings,mm/dd/yyyy,DD / MM / YYYY
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +16,Previous,ಹಿಂದಿನ
 apps/frappe/frappe/email/doctype/email_account/email_account.py +341,Re:,ಮರು:
@@ -288,7 +288,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +197,Pl
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +8,Gantt,ಗ್ಯಾಂಟ್
 DocType: About Us Settings,Introduce your company to the website visitor.,ವೆಬ್ಸೈಟ್ ಭೇಟಿ ನಿಮ್ಮ ಕಂಪನಿ ಪರಿಚಯಿಸಲು.
 apps/frappe/frappe/public/js/frappe/form/workflow.js +116,To,ಗೆ
-apps/frappe/frappe/templates/base.html +148,Please enter email address,ದಯವಿಟ್ಟು ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ
+apps/frappe/frappe/templates/base.html +144,Please enter email address,ದಯವಿಟ್ಟು ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ
 apps/frappe/frappe/model/rename_doc.py +356,Successful: {0} to {1},ಯಶಸ್ವಿ: {0} ಗೆ {1}
 apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,ಬದಲಾವಣೆಗಳನ್ನು ಮಾಡಲು ಈ ನಕಲು ದಯವಿಟ್ಟು
 apps/frappe/frappe/utils/pdf.py +49,PDF generation failed because of broken image links,ಪಿಡಿಎಫ್ ಪೀಳಿಗೆಯ ಏಕೆಂದರೆ ಮುರಿದ ಚಿತ್ರ ಕೊಂಡಿಗಳು ಉಂಟಾಗಿದ್ದರಿಂದ
@@ -318,7 +318,7 @@ apps/frappe/frappe/config/setup.py +54,Check which Documents are readable by a U
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +161,use % as wildcard,ವೈಲ್ಡ್ಕಾರ್ಡ್ ಮಾಹಿತಿ% ಬಳಸಲು
 DocType: User,Reset Password Key,ಪಾಸ್ವರ್ಡ್ ಕೀ ಕೊಡುಗೆಗಳು
 DocType: Email Account,Enable Auto Reply,ಆಟೋ ಉತ್ತರಿಸಿ ಸಕ್ರಿಯಗೊಳಿಸಿ
-apps/frappe/frappe/desk/like.py +87,Comment: {0} in {1},ಕಾಮೆಂಟ್: {0} ನಲ್ಲಿ {1}
+apps/frappe/frappe/desk/like.py +92,Comment: {0} in {1},ಕಾಮೆಂಟ್: {0} ನಲ್ಲಿ {1}
 apps/frappe/frappe/core/doctype/scheduler_log/scheduler_log_list.js +7,Not Seen,ನೋಡಿಲ್ಲ
 DocType: Workflow State,zoom-in,ಜೂಮ್ ಇನ್
 apps/frappe/frappe/email/bulk.py +165,Unsubscribe from this list,ಈ ಪಟ್ಟಿಯಿಂದ ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್
@@ -352,7 +352,7 @@ DocType: Property Setter,Property Setter overrides a standard DocType or Field p
 apps/frappe/frappe/core/doctype/user/user.py +378,Cannot Update: Incorrect / Expired Link.,ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ : ಕೊನೆಗೊಂಡಿದೆ / ತಪ್ಪಾದ ಲಿಂಕ್ .
 DocType: DocField,Set Only Once,ಕೇವಲ ಒಮ್ಮೆ ಹೊಂದಿಸಿ
 apps/frappe/frappe/core/doctype/user/user.py +313,Username {0} already exists,ಬಳಕೆದಾರ ಹೆಸರು {0} ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +486,{0}: Cannot set import as {1} is not importable,{0} : {1} importable ಅಲ್ಲ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +489,{0}: Cannot set import as {1} is not importable,{0} : {1} importable ಅಲ್ಲ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 DocType: Top Bar Item,"target = ""_blank""","ಗುರಿ = ""_blank"""
 DocType: Workflow State,hdd,ಎಚ್ಡಿಡಿ
 DocType: ToDo,High,ಎತ್ತರದ
@@ -378,7 +378,7 @@ DocType: User,Stores the JSON of last known versions of various installed apps. 
 DocType: Website Theme,Google Font (Text),ಗೂಗಲ್ ಫಾಂಟ್ (ಪಠ್ಯ)
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} ಈಗಾಗಲೇ ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್ {1} {2}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did not remove,ತೆಗೆದು ಇಲ್ಲ
-apps/frappe/frappe/desk/like.py +98,Liked,ಇಷ್ಟಪಟ್ಟಿದ್ದಾರೆ
+apps/frappe/frappe/desk/like.py +103,Liked,ಇಷ್ಟಪಟ್ಟಿದ್ದಾರೆ
 DocType: Report,Query,ಪ್ರಶ್ನೆಯ
 DocType: DocType,Sort Order,ವಿಂಗಡಣಾ ಕ್ರಮ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +137,'In List View' not allowed for type {0} in row {1},' ListView ರಲ್ಲಿ ' ಅವಕಾಶ ಮಾದರಿ {0} ಸತತವಾಗಿ {1}
@@ -386,7 +386,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),( ಸೂಚಿಸಿದ್ದಲ್ಲಿ ) ಪಟ್ಟಿಗಳನ್ನು ಬಳಕೆದಾರ ಖಾತೆಯನ್ನು ಮೂಲಕ ಹಂಚಲಾಗುತ್ತದೆ
 ,Document Share Report,ಡಾಕ್ಯುಮೆಂಟ್ ಪಾಲಿನ ವರದಿಯು
 DocType: User,Last Login,ಕೊನೆಯ ಲಾಗಿನ್
-apps/frappe/frappe/core/doctype/doctype/doctype.py +370,Fieldname is required in row {0},ಕ್ಷೇತ್ರ ಹೆಸರು ಸತತವಾಗಿ ಅಗತ್ಯವಿದೆ {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,Fieldname is required in row {0},ಕ್ಷೇತ್ರ ಹೆಸರು ಸತತವಾಗಿ ಅಗತ್ಯವಿದೆ {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,ಅಂಕಣ
 DocType: Custom Field,Adds a custom field to a DocType,ಒಂದು DOCTYPE ಕಸ್ಟಮ್ ಕ್ಷೇತ್ರ ಸೇರಿಸುತ್ತದೆ
 DocType: File,Is Home Folder,ಮುಖಪುಟ ಫೋಲ್ಡರ್
@@ -406,9 +406,10 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +12,Number list,ಸಂಖ್�
 apps/frappe/frappe/config/setup.py +84,Log of error during requests.,ವಿನಂತಿಗಳನ್ನು ಸಮಯದಲ್ಲಿ ದೋಷ ಲಾಗ್.
 DocType: DocShare,Everyone,ಪ್ರತಿಯೊಬ್ಬರೂ
 DocType: Workflow State,backward,ಹಿಮ್ಮೊಗ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +433,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: ಅದೇ ಪಾತ್ರ, ಮಟ್ಟ ಮತ್ತು ಅವಕಾಶ ಒಂದೇ ನಿಯಮ {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +436,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: ಅದೇ ಪಾತ್ರ, ಮಟ್ಟ ಮತ್ತು ಅವಕಾಶ ಒಂದೇ ನಿಯಮ {1}"
 DocType: Workflow State,share,ಪಾಲು
 apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,ವ್ಯವಹಾರಗಳಿಗೆ ಸರಣಿ ಸಂಖ್ಯಾ ಹೊಂದಿಸಿ .
+apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,ನೀವು ರಚಿಸಿದ ಏನಾದರೂ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: User,Last IP,ಕೊನೆಯ ಐಪಿ
 DocType: DocPerm,Filter records based on User Permissions defined for a user,ಒಂದು ಬಳಕೆದಾರ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಆಧರಿಸಿ ಆಯ್ಕೆ ದಾಖಲೆಗಳು
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),ಚಿತ್ರವನ್ನು ಸೇರಿಸಲು (ಅಥವಾ ಕೇವಲ ಎಳೆಯಿರಿ ಮತ್ತು ಡ್ರಾಪ್)
@@ -424,8 +425,8 @@ apps/frappe/frappe/website/doctype/web_form/web_form.py +73,You don't have the p
 DocType: Email Alert,Value Changed,ಮೌಲ್ಯ ಬದಲಾಗಿದೆ
 apps/frappe/frappe/model/base_document.py +282,Duplicate name {0} {1},ನಕಲಿ ಹೆಸರು {0} {1}
 DocType: Web Form Field,Web Form Field,ವೆಬ್ ಫಾರ್ಮ್ ಫೀಲ್ಡ್
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +198,Hide field in Report Builder,ವರದಿ ಬಿಲ್ಡರ್ ಮರೆಮಾಡಿ ಕ್ಷೇತ್ರ
-apps/frappe/frappe/templates/generators/blog_post.html +21,This post is filed under {0},ಈ ಪೋಸ್ಟ್ ಅಡಿಯಲ್ಲಿ ದಾಖಲಾಗುವ {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197,Hide field in Report Builder,ವರದಿ ಬಿಲ್ಡರ್ ಮರೆಮಾಡಿ ಕ್ಷೇತ್ರ
+apps/frappe/frappe/templates/generators/blog_post.html +25,This post is filed under {0},ಈ ಪೋಸ್ಟ್ ಅಡಿಯಲ್ಲಿ ದಾಖಲಾಗುವ {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,HTML ಸಂಪಾದಿಸಿ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,ಮೂಲ ಅನುಮತಿಗಳು ಮರುಸ್ಥಾಪಿಸಿ
 DocType: DocField,Button,ಗುಂಡಿ
@@ -445,10 +446,10 @@ apps/frappe/frappe/model/document.py +722,none of,ಯಾವುದೂ
 apps/frappe/frappe/public/js/frappe/views/communication.js +72,Send Me A Copy,ಮಿ ಪ್ರತಿಯನ್ನು ಕಳುಹಿಸಿ
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅಪ್ಲೋಡ್
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,ಪರೀಕ್ಷಿಸಿದ್ದು ಐಟಂಗಳನ್ನು ಡೆಸ್ಕ್ಟಾಪ್ ತೋರಿಸಲಾಗುತ್ತದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +476,{0} cannot be set for Single types,{0} ಏಕ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +479,{0} cannot be set for Single types,{0} ಏಕ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +46,{0} are currently viewing this document,{0} ಪ್ರಸ್ತುತ ದಾಖಲೆ ವೀಕ್ಷಿಸುತ್ತಿದ್ದಾರೆ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +104,{0} updated,{0} ಅಪ್ಡೇಟ್ಗೊಳಿಸಲಾಗಿದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +466,Report cannot be set for Single types,ವರದಿ ಒಂದೇ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +469,Report cannot be set for Single types,ವರದಿ ಒಂದೇ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +17,"To run a test add the module name in the route after '{0}'. For example, {1}","ಪರೀಕ್ಷಾ ನಂತರ ಮಾರ್ಗದಲ್ಲಿ ಭಾಗದಲ್ಲಿ ಹೆಸರು ಸೇರಿಸಲು ಚಲಾಯಿಸಲು &#39;{0}&#39;. ಉದಾಹರಣೆಗೆ, {1}"
 DocType: Contact Us Settings,Address Line 1,ಲೈನ್ 1 ವಿಳಾಸ
 apps/frappe/frappe/desk/page/activity/activity.js +189,Feb,ಫೆಬ್ರವರಿ
@@ -486,7 +487,7 @@ DocType: DocType,Search Fields,ಹುಡುಕಾಟ ಜಾಗ
 apps/frappe/frappe/public/js/legacy/print_format.js +120,No document selected,ಆಯ್ಕೆ ಯಾವುದೇ ಡಾಕ್ಯುಮೆಂಟ್
 DocType: Event,Event,ಈವೆಂಟ್
 apps/frappe/frappe/public/js/frappe/views/communication.js +497,"On {0}, {1} wrote:","{0} ನಲ್ಲಿ, {1} ಬರೆದರು:"
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +81,Cannot delete standard field. You can hide it if you want,ಪ್ರಮಾಣಿತ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ನೀವು ಬಯಸಿದರೆ ನೀವು ಇದು ಮರೆಮಾಡಬಹುದು
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80,Cannot delete standard field. You can hide it if you want,ಪ್ರಮಾಣಿತ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ನೀವು ಬಯಸಿದರೆ ನೀವು ಇದು ಮರೆಮಾಡಬಹುದು
 DocType: Top Bar Item,For top bar,ಅಗ್ರ ಬಾರ್
 DocType: Contact Us Settings,Address,ವಿಳಾಸ
 DocType: Print Settings,In points. Default is 9.,ಅಂಕಗಳನ್ನು. ಡೀಫಾಲ್ಟ್ 9.
@@ -505,7 +506,7 @@ apps/frappe/frappe/core/doctype/page/page.py +35,Only Administrator can edit,ಕ
 DocType: Property Setter,Property Setter,ಆಸ್ತಿ ಸೆಟ್ಟರ್
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select User or DocType to start.,ಆರಂಭಿಸಲು ಬಳಕೆದಾರ ಅಥವಾ doctype ಆಯ್ಕೆ .
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,ಯಾವುದೇ ಅಪ್ಲಿಕೇಶನ್ಗಳನ್ನು ಸ್ಥಾಪಿಸಲಾಗಿಲ್ಲ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Mark the field as Mandatory,ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರ ಗುರುತು
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Mark the field as Mandatory,ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರ ಗುರುತು
 DocType: Communication,Clicked,ಕ್ಲಿಕ್
 apps/frappe/frappe/public/js/legacy/form.js +867,No permission to '{0}' {1},ಯಾವುದೇ ಅನುಮತಿಯಿಲ್ಲ ' {0} ' {1}
 DocType: User,Google User ID,ಗೂಗಲ್ ಬಳಕೆದಾರ ID
@@ -520,7 +521,7 @@ apps/frappe/frappe/model/mapper.py +81,Cannot map because following condition fa
 DocType: User,Roles HTML,ಪಾತ್ರಗಳು ಎಚ್ಟಿಎಮ್ಎಲ್
 apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,ಕ್ರಿಯಾಶೀಲ
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +26,Insert Below,ಕೆಳಗೆ ಸೇರಿಸಿ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +110,All customizations will be removed. Please confirm.,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಲಾಗುತ್ತದೆ. ಖಚಿತಪಡಿಸಿ.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +109,All customizations will be removed. Please confirm.,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಲಾಗುತ್ತದೆ. ಖಚಿತಪಡಿಸಿ.
 DocType: Page,Page HTML,HTML ಪುಟ
 DocType: Web Page,Header,ತಲೆಹೊಡೆತ
 DocType: Feed,Doc Owner,ಡಾಕ್ ಮಾಲೀಕ
@@ -549,7 +550,7 @@ apps/frappe/frappe/public/js/frappe/request.js +121,Request Timed Out,ಟೈ�
 DocType: DocType,Hide Toolbar,ಪರಿಕರ ಪಟ್ಟಿ ಮರೆಮಾಡಿ
 DocType: User,Last Active,ಸಕ್ರಿಯ ಕೊನೆಯ
 DocType: Email Account,SMTP Settings for outgoing emails,ಹೊರಹೋಗುವ ಇಮೇಲ್ಗಳನ್ನು SMTP ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
-apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +159,Import Failed,ಆಮದು ವಿಫಲವಾಗಿದೆ
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +160,Import Failed,ಆಮದು ವಿಫಲವಾಗಿದೆ
 apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,ನಿಮ್ಮ ಪಾಸ್ವರ್ಡ್ ಅನ್ನು ನವೀಕರಿಸಲಾಗಿದೆ. ನಿಮ್ಮ ಹೊಸ ಗುಪ್ತಪದವನ್ನು
 DocType: Email Account,Auto Reply Message,ಆಟೋ ಉತ್ತರಿಸಿ ಸಂದೇಶ
 DocType: Email Alert,Condition,ಪರಿಸ್ಥಿತಿ
@@ -583,13 +584,13 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records ta
 DocType: User,Send Password Update Notification,ಪಾಸ್ವರ್ಡ್ ಅಪ್ಡೇಟ್ ಅಧಿಸೂಚನೆ ಕಳುಹಿಸಿ
 apps/frappe/frappe/public/js/legacy/form.js +62,"Allowing DocType, DocType. Be careful!",ಅವಕಾಶ doctype doctype . ಎಚ್ಚರಿಕೆ!
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","ಮುದ್ರಣ, ಇಮೇಲ್ ಕಸ್ಟಮೈಸ್ ಸ್ವರೂಪಗಳು"
-apps/frappe/frappe/public/js/frappe/desk.js +300,Updated To New Version,ಹೊಸ ಆವೃತ್ತಿ ಅಪ್ಡೇಟ್
+apps/frappe/frappe/public/js/frappe/desk.js +308,Updated To New Version,ಹೊಸ ಆವೃತ್ತಿ ಅಪ್ಡೇಟ್
 DocType: DocField,Depends On,ಅವಲಂಬಿಸಿರುತ್ತದೆ
 DocType: DocPerm,Additional Permissions,ಹೆಚ್ಚುವರಿ ಅನುಮತಿಗಳು
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,ಈ ಸಾಲಿನ ಕೆಳಗೆ ಡೇಟಾವನ್ನು ನಮೂದಿಸುವ ಪ್ರಾರಂಭಿಸಿ
 DocType: Workflow State,retweet,ರಿಟ್ವೀಟ್
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,ಟೆಂಪ್ಲೇಟ್ ನವೀಕರಿಸಲು ಮತ್ತು ಲಗತ್ತಿಸುತ್ತಿದ್ದೇನೆ ಮೊದಲು CSV ನಲ್ಲಿ ಸ್ವರೂಪ (ಅಲ್ಪವಿರಾಮದಿಂದ ಪ್ರತ್ಯೇಕ ಮೌಲ್ಯಗಳು) ಉಳಿಸಲು.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +164,Specify the value of the field,ಕ್ಷೇತ್ರದ ನಿಗದಿಸಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Specify the value of the field,ಕ್ಷೇತ್ರದ ನಿಗದಿಸಿ
 DocType: Report,Disabled,ಅಂಗವಿಕಲ
 apps/frappe/frappe/desk/page/activity/activity.js +189,May,ಮೇ
 apps/frappe/frappe/desk/page/activity/activity.js +189,Jan,ಜನವರಿ
@@ -689,7 +690,7 @@ apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the 
 DocType: DocType,Sort Field,ವಿಂಗಡಿಸಿ ಫೀಲ್ಡ್
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +356,Edit Filter,ಸಂಪಾದಿಸಿ ಫಿಲ್ಟರ್
 apps/frappe/frappe/templates/pages/404.html +12,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","ಈ ತುಂಬಾ ಕ್ಷಮಿಸಿ, ಆದರೆ ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟ ಕಾಣೆಯಾಗಿದೆ (ಈ ಏಕೆಂದರೆ ವಿಳಾಸ ಒಂದು ಮುದ್ರಣದೋಷ ಆಗಿರಬಹುದು) ಅಥವಾ ಚಲಿಸುವ."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +252,Field {0} of type {1} cannot be mandatory,ಫೀಲ್ಡ್ {0} ಬಗೆಯ {1} ಕಡ್ಡಾಯವಾಗಿ ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +255,Field {0} of type {1} cannot be mandatory,ಫೀಲ್ಡ್ {0} ಬಗೆಯ {1} ಕಡ್ಡಾಯವಾಗಿ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: System Settings,"eg. If Apply User Permissions is checked for Report DocType but no User Permissions are defined for Report for a User, then all Reports are shown to that User","ಉದಾ. ವರದಿ DOCTYPE ಪರೀಕ್ಷಿಸಲಾಗುತ್ತದೆ ಆದರೆ ಯಾವುದೇ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಒಂದು ಬಳಕೆದಾರ ವರದಿ ಉಲ್ಲೇಖಿಸಲ್ಪಡುತ್ತದೆ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅನ್ವಯಿಸು, ನಂತರ ಎಲ್ಲಾ ವರದಿಗಳು ಬಳಕೆದಾರ ತೋರಿಸಲಾಗಿದೆ"
 DocType: System Settings,Session Expiry Mobile,ಸೆಷನ್ ಅಂತ್ಯ ಮೊಬೈಲ್
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +891,Select To Download:,ಡೌನ್ಲೋಡ್ ಮಾಡಿ
@@ -720,7 +721,7 @@ DocType: Website Theme,Style using CSS,ಸಿಎಸ್ಎಸ್ ಬಳಸಿ ಶ
 DocType: Async Task,Reference DocType,ರೆಫರೆನ್ಸ್ doctype
 DocType: User,System User,ವ್ಯವಸ್ಥೆಯ ಬಳಕೆದಾರ
 DocType: Report,Is Standard,ಸ್ಟ್ಯಾಂಡರ್ಡ್
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Specify a default value,ಒಂದು ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯವನ್ನು ಸೂಚಿಸಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Specify a default value,ಒಂದು ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯವನ್ನು ಸೂಚಿಸಿ
 DocType: Website Settings,FavIcon,ಫೆವಿಕಾನ್
 DocType: Workflow State,minus-sign,ಮೈನಸ್ ಚಿಹ್ನೆ
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,ಕಂಡುಬಂದಿಲ್ಲ
@@ -728,7 +729,7 @@ apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,ಯಾವು�
 DocType: Feed,Login,ಲಾಗಿನ್
 DocType: System Settings,Enable Scheduled Jobs,ನಿಗದಿತ ಉದ್ಯೋಗಗಳು ಸಕ್ರಿಯಗೊಳಿಸಿ
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,ಟಿಪ್ಪಣಿಗಳು:
-apps/frappe/frappe/public/js/frappe/form/control.js +1362,Markdown,Markdown
+apps/frappe/frappe/public/js/frappe/form/control.js +1365,Markdown,Markdown
 DocType: DocShare,Document Name,ಡಾಕ್ಯುಮೆಂಟ್ ಹೆಸರು
 DocType: ToDo,Medium,ಮಧ್ಯಮ
 DocType: Comment,Comment By,ಕಾಮೆಂಟ್
@@ -768,16 +769,16 @@ apps/frappe/frappe/model/base_document.py +327,{0} must be unique,{0} ಅನನ�
 apps/frappe/frappe/permissions.py +269,Row,ರೋ
 DocType: Workflow State,Check,ಪರಿಶೀಲಿಸಿ
 apps/frappe/frappe/desk/page/activity/activity.js +189,Apr,ಏಪ್ರಿ
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +79,Edit Title,ಸಂಪಾದಿಸಿ ಶೀರ್ಷಿಕೆ
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +80,Edit Title,ಸಂಪಾದಿಸಿ ಶೀರ್ಷಿಕೆ
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,ಈ ಲಿಂಕ್ ಕ್ಷೇತ್ರಕ್ಕೆ doctype ವಾಗಿರುತ್ತದೆ FIELDNAME.
 apps/frappe/frappe/config/desk.py +14,Documents assigned to you and by you.,ನೀವು ಮತ್ತು ನೀವು ಅದಕ್ಕೆ ಡಾಕ್ಯುಮೆಂಟ್ಸ್.
 DocType: User,Email Signature,ಇಮೇಲ್ ಸಹಿ
 DocType: Website Settings,Google Analytics ID,Google Analytics ID ಯನ್ನು
 DocType: Website Theme,Link to your Bootstrap theme,ನಿಮ್ಮ ಬೂಟ್ಸ್ಟ್ರ್ಯಾಪ್ ಥೀಮ್ ಲಿಂಕ್
-apps/frappe/frappe/public/js/frappe/form/control.js +1361,Edit as {0},ಎಂದು ಬದಲಾಯಿಸಿ {0}
+apps/frappe/frappe/public/js/frappe/form/control.js +1364,Edit as {0},ಎಂದು ಬದಲಾಯಿಸಿ {0}
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +11,Add new row,ಹೊಸ ಸಾಲನ್ನು ಸೇರಿಸಿ
 DocType: DocPerm,Delete,ಅಳಿಸಿ
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +148,New {0},ಹೊಸ {0}
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +149,New {0},ಹೊಸ {0}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +199,No User Restrictions found.,ಯಾವುದೇ ಬಳಕೆದಾರ ನಿರ್ಬಂಧಗಳು ಕಂಡುಬಂದಿಲ್ಲ.
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,ಡೀಫಾಲ್ಟ್ ಇನ್ಬಾಕ್ಸ್
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +104,Make a new,ಹೊಸ ಮಾಡಿ
@@ -798,14 +799,14 @@ apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules 
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +154,Permissions Updated,ಅನುಮತಿಗಳು ಅಪ್ಡೇಟ್ಗೊಳಿಸಲಾಗಿದೆ
 apps/frappe/frappe/email/doctype/email_account/email_account.py +51,Append To is mandatory for incoming mails,ಒಳಬರುವ ಮೇಲ್ಗಳು ಕಡ್ಡಾಯವಾದರೂ ಸೇರಿಸು
 DocType: Communication,Rejected,ತಿರಸ್ಕರಿಸಲಾಗಿದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +257,Options requried for Link or Table type field {0} in row {1},ಲಿಂಕ್ ಅಥವಾ ಟೇಬಲ್ ಟೈಪ್ ಕ್ಷೇತ್ರಕ್ಕೆ ಅಗತ್ಯವಿರುವ ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +260,Options requried for Link or Table type field {0} in row {1},ಲಿಂಕ್ ಅಥವಾ ಟೇಬಲ್ ಟೈಪ್ ಕ್ಷೇತ್ರಕ್ಕೆ ಅಗತ್ಯವಿರುವ ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1}
 DocType: Report,Query Report,ಪ್ರಶ್ನೆಯ ವರದಿ
 DocType: User,Set New Password,ಹೊಸ ಗುಪ್ತಪದವನ್ನು ಹೊಂದಿಸುವಿಕೆ
 DocType: User,Github User ID,GitHub ಬಳಕೆದಾರ ID
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,If Document Type,ಡಾಕ್ಯುಮೆಂಟ್ ಕೌಟುಂಬಿಕತೆ ವೇಳೆ
 apps/frappe/frappe/desk/page/applications/applications.py +88,Unknown app {0},ಅಜ್ಞಾತ ಅಪ್ಲಿಕೇಶನ್ {0}
 DocType: Communication,Chat,ಚಾಟಿಂಗ್
-apps/frappe/frappe/core/doctype/doctype/doctype.py +248,Fieldname {0} appears multiple times in rows {1},ಕ್ಷೇತ್ರ ಹೆಸರು {0} ಸಾಲುಗಳಲ್ಲಿ ಅನೇಕ ಬಾರಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +251,Fieldname {0} appears multiple times in rows {1},ಕ್ಷೇತ್ರ ಹೆಸರು {0} ಸಾಲುಗಳಲ್ಲಿ ಅನೇಕ ಬಾರಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ {1}
 DocType: Bulk Email,Expired,ಅವಧಿ
 DocType: DocType,System,ವ್ಯವಸ್ಥೆ
 apps/frappe/frappe/templates/pages/login.html +62,Have an account? Login,ಒಂದು ಖಾತೆಯನ್ನು ಹೊಂದಿಲ್ಲ? ಲಾಗಿನ್
@@ -819,13 +820,13 @@ apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +27,Likes,ಇ�
 DocType: Website Settings,Top Bar,ಟಾಪ್ ಬಾರ್
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,ಮುಖಪುಟ / ಟೆಸ್ಟ್ ಫೋಲ್ಡರ್ 2
 DocType: System Settings,Ignore User Permissions If Missing,ಮಿಸ್ಸಿಂಗ್ ವೇಳೆ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ನಿರ್ಲಕ್ಷಿಸು
-apps/frappe/frappe/public/js/frappe/form/control.js +748,Please save the document before uploading.,ಅಪ್ಲೋಡ್ ಮೊದಲು ಡಾಕ್ಯುಮೆಂಟ್ ಉಳಿಸಬಹುದು ದಯವಿಟ್ಟು.
+apps/frappe/frappe/public/js/frappe/form/control.js +750,Please save the document before uploading.,ಅಪ್ಲೋಡ್ ಮೊದಲು ಡಾಕ್ಯುಮೆಂಟ್ ಉಳಿಸಬಹುದು ದಯವಿಟ್ಟು.
 apps/frappe/frappe/public/js/frappe/ui/messages.js +163,Enter your password,ನಿಮ್ಮ ಗುಪ್ತಪದವನ್ನು ನಮೂದಿಸಿ
 DocType: Dropbox Backup,Dropbox Access Secret,ಡ್ರಾಪ್ಬಾಕ್ಸ್ ಪ್ರವೇಶ ಸೀಕ್ರೆಟ್
-apps/frappe/frappe/core/doctype/doctype/doctype.py +323,Fold must come before a Section Break,ಒಂದು ವಿಭಾಗ ಬ್ರೇಕ್ ಮೊದಲು ಬರುವದು ಪಟ್ಟು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +326,Fold must come before a Section Break,ಒಂದು ವಿಭಾಗ ಬ್ರೇಕ್ ಮೊದಲು ಬರುವದು ಪಟ್ಟು
 apps/frappe/frappe/core/doctype/user/user.py +428,Not allowed to reset the password of {0},{0} ಪಾಸ್ವರ್ಡ್ ರೀಸೆಟ್ ಅವಕಾಶ
 DocType: Workflow State,hand-down,ಕೈ ಕೆಳಗೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +452,{0}: Cannot set Cancel without Submit,{0} : ಸಲ್ಲಿಸಿ ರದ್ದು ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +455,{0}: Cannot set Cancel without Submit,{0} : ಸಲ್ಲಿಸಿ ರದ್ದು ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 DocType: Website Theme,Theme,ಥೀಮ್
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +146,There were errors.,ದೋಷಗಳು ಇದ್ದವು.
 DocType: DocType,Is Submittable,Submittable ಈಸ್
@@ -854,7 +855,7 @@ DocType: Website Settings,Disable Signup,ಸೈನ್ ಅಪ್ ನಿಷ್�
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while your system is being setup. This may take a few moments.,ನಿಮ್ಮ ವ್ಯವಸ್ಥೆಯ ಸೆಟಪ್ ಬಂದಿದ್ದರೂ ಜಾಗ್ರತರಾಗಿ . ಈ ಜೂನ್ ಕೆಲವು ಕ್ಷಣಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಬಹುದು .
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,ಪಾತ್ರಗಳು ಅವರ ಬಳಕೆದಾರ ಪುಟ ಬಳಕೆದಾರರಿಗೆ ಹೊಂದಿಸಬಹುದಾಗಿದೆ.
 DocType: DocField,Mandatory,ಆಜ್ಞಾಪಕ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +416,{0}: No basic permissions set,{0} : ಇಲ್ಲ ಮೂಲಭೂತ ಅನುಮತಿಗಳನ್ನು ಸೆಟ್
+apps/frappe/frappe/core/doctype/doctype/doctype.py +419,{0}: No basic permissions set,{0} : ಇಲ್ಲ ಮೂಲಭೂತ ಅನುಮತಿಗಳನ್ನು ಸೆಟ್
 apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},ನಿಮ್ಮ ಬ್ಯಾಕ್ಅಪ್ ಡೌನ್ಲೋಡ್ ಲಿಂಕ್ ಕೆಳಗಿನ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ ಇಮೇಲ್ ನಡೆಯಲಿದೆ: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","ಆಫ್ , ಸಲ್ಲಿಸಿ ರದ್ದು , ಮಾಡಿರಿ ಅರ್ಥ"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,ಮಾಡಲು
@@ -882,8 +883,8 @@ apps/frappe/frappe/config/setup.py +143,Printing,ಮುದ್ರಣ
 DocType: Workflow State,thumbs-up,ಥಂಬ್ಸ್ ಅಪ್
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,ಉತ್ತರಿಸಿ ಸೇರಿಸಿ
 DocType: DocPerm,DocPerm,DocPerm
-apps/frappe/frappe/core/doctype/doctype/doctype.py +295,Precision should be between 1 and 6,ನಿಖರವಾದ 1 ಮತ್ತು 6 ನಡುವೆ ಇರಬೇಕು
-apps/frappe/frappe/public/js/frappe/misc/utils.js +110,and,ಮತ್ತು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Precision should be between 1 and 6,ನಿಖರವಾದ 1 ಮತ್ತು 6 ನಡುವೆ ಇರಬೇಕು
+apps/frappe/frappe/public/js/frappe/misc/utils.js +98,and,ಮತ್ತು
 DocType: Error Snapshot,Frames,ಚೌಕಟ್ಟುಗಳು
 DocType: About Us Team Member,Image Link,ಚಿತ್ರ ಲಿಂಕ್
 DocType: Workflow State,step-backward,ಹಂತ ಹಿಂದುಳಿದ
@@ -902,7 +903,7 @@ DocType: File,Is Attachments Folder,ಲಗತ್ತುಗಳು ಫೋಲ�
 apps/frappe/frappe/templates/includes/login/login.js +46,Valid Login id required.,ಮಾನ್ಯ ಲಾಗಿನ್ ಐಡಿ ಅಗತ್ಯವಿದೆ.
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,ಮತ್ತೆತೆರೆಯಿರಿ
 apps/frappe/frappe/model/rename_doc.py +343,Please select a valid csv file with data,ದತ್ತಾಂಶ ಮಾನ್ಯ CSV ಕಡತ ಆಯ್ಕೆ ಮಾಡಿ
-apps/frappe/frappe/core/doctype/docshare/docshare.py +53,{0} un-shared this document with {1},{0} ಅನ್ ಹಂಚಿಕೆಯ ಈ ಡಾಕ್ಯುಮೆಂಟ್ {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +58,{0} un-shared this document with {1},{0} ಅನ್ ಹಂಚಿಕೆಯ ಈ ಡಾಕ್ಯುಮೆಂಟ್ {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,{1} ಗೆ {0} ನಿಂದ ಡಾಕ್ಯುಮೆಂಟ್ ಸ್ಥಿತಿಯನ್ನು ಪರಿವರ್ತನೆ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +114,Setting Up,ಹೊಂದಿಸಲಾಗುತ್ತಿದೆ
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,ಇದು ಸ್ವಯಂ ನಿರ್ಮಿತ ಉತ್ತರ ಹೊಂದಿದೆ
@@ -910,7 +911,7 @@ apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,ಗೆ ಪ
 apps/frappe/frappe/model/document.py +416,Record does not exist,ದಾಖಲೆಯು ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ
 apps/frappe/frappe/templates/pages/404.html +6,Page missing or moved,ಕಾಣೆಯಾಗಿದೆ ಅಥವಾ ತೆರಳಿದರು ಪುಟ
 DocType: DocField,Name,ಹೆಸರು
-apps/frappe/frappe/public/js/frappe/form/control.js +993,Open Link,ಲಿಂಕ್ ತೆರೆಯಿರಿ
+apps/frappe/frappe/public/js/frappe/form/control.js +995,Open Link,ಲಿಂಕ್ ತೆರೆಯಿರಿ
 apps/frappe/frappe/desk/form/load.py +42,Did not load,ಲೋಡ್ ಮಾಡಲಿಲ್ಲ
 apps/frappe/frappe/desk/query_report.py +80,Query must be a SELECT,ಪ್ರಶ್ನೆಯು ಆಯ್ಕೆ ಮಾಡಬೇಕು
 DocType: Website Settings,Facebook Share,ಫೇಸ್ಬುಕ್ ಹಂಚಿಕೊಳ್ಳಿ
@@ -918,7 +919,7 @@ apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Com
 DocType: File,Is Private,ಖಾಸಗಿ
 DocType: Web Form,Select DocType,ಆಯ್ಕೆ doctype
 apps/frappe/frappe/public/js/frappe/upload.js +207,File size exceeded the maximum allowed size of {0} MB,ಕಡತ ಗಾತ್ರ {0} ಎಂಬಿ ಗರಿಷ್ಠ ಅವಕಾಶ ಗಾತ್ರ ಮೀರಿದೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +404,Enter at least one permission row,ಕನಿಷ್ಠ ಒಂದು ಅನುಮತಿಯನ್ನು ಸಾಲು ಯನ್ನು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +407,Enter at least one permission row,ಕನಿಷ್ಠ ಒಂದು ಅನುಮತಿಯನ್ನು ಸಾಲು ಯನ್ನು
 apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,ದಾಖಲಿಸಿದವರು
 DocType: Workflow State,align-center,ಸೆಂಟರ್ align
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,ಬರೆಯಬಹುದು
@@ -945,7 +946,7 @@ DocType: Async Task,Succeeded,ಉತ್ತರಾಧಿಕಾರಿ
 apps/frappe/frappe/public/js/frappe/form/save.js +137,Mandatory fields required in {0},ಅಗತ್ಯವಿದೆ ಕಡ್ಡಾಯ ಜಾಗ {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,{0} ಅನುಮತಿಗಳನ್ನು ಮರುಹೊಂದಿಸಿ ?
 apps/frappe/frappe/permissions.py +326,{0} {1} not found,{0} {1} ಕಂಡುಬಂದಿಲ್ಲ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +215,Show a description below the field,ಕ್ಷೇತ್ರದಲ್ಲಿ ಕೆಳಗೆ ಒಂದು ವಿವರಣೆ ತೋರಿಸಲು
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Show a description below the field,ಕ್ಷೇತ್ರದಲ್ಲಿ ಕೆಳಗೆ ಒಂದು ವಿವರಣೆ ತೋರಿಸಲು
 DocType: Workflow State,align-left,ಎಡಕ್ಕೆ
 DocType: User,Defaults,ಡಿಫಾಲ್ಟ್
 apps/frappe/frappe/public/js/frappe/model/model.js +489,Merge with existing,ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ವಿಲೀನಗೊಳ್ಳಲು
@@ -978,7 +979,7 @@ DocType: Error Snapshot,Error Snapshot,ದೋಷ ಸ್ನ್ಯಾಪ್�
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +8,In,ರಲ್ಲಿ
 DocType: Email Alert,Value Change,ಮೌಲ್ಯ ಬದಲಾಯಿಸು
 DocType: Standard Reply,Standard Reply,ಗುಣಮಟ್ಟದ ಉತ್ತರ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Width of the input box,ಇನ್ಪುಟ್ ಬಾಕ್ಸ್ ಅಗಲ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175,Width of the input box,ಇನ್ಪುಟ್ ಬಾಕ್ಸ್ ಅಗಲ
 DocType: UserRole,UserRole,UserRole
 DocType: System Settings,In Hours,ಗಂಟೆಗಳ
 DocType: Print Settings,With Letterhead,ತಲೆಬರಹ ಜೊತೆ
@@ -1012,7 +1013,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify,ಪರಿಶಿ�
 DocType: Workflow Document State,Update Field,ಅಪ್ಡೇಟ್ ಫೀಲ್ಡ್
 apps/frappe/frappe/desk/page/applications/applications.js +50,Regional Extensions,ಪ್ರಾದೇಶಿಕ ವಿಸ್ತರಣೆಗಳು
 apps/frappe/frappe/email/doctype/email_account/email_account.py +347,Leave this conversation,ಈ ಸಂಭಾಷಣೆ ಬಿಡಿ
-apps/frappe/frappe/model/base_document.py +395,Options not set for link field {0},ಆಯ್ಕೆಗಳು ಲಿಂಕ್ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೆಟ್ ಅಲ್ಲ {0}
+apps/frappe/frappe/model/base_document.py +401,Options not set for link field {0},ಆಯ್ಕೆಗಳು ಲಿಂಕ್ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೆಟ್ ಅಲ್ಲ {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +151,You cannot unset 'Read Only' for field {0},ನೀವು ಕ್ಷೇತ್ರಕ್ಕೆ ಹೊಂದಿಸದೆ ಅಲ್ಲ &#39;ಓದಲು ಮಾತ್ರ&#39; ಮಾಡಬಹುದು {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,ಕಂಪ್ಲೀಟ್ ಸೆಟಪ್
 DocType: Workflow State,asterisk,ನಕ್ಷತ್ರ ಚಿಹ್ನೆ
@@ -1040,7 +1041,7 @@ apps/frappe/frappe/public/html/error_snapshot.html +32,Error Report,ದೋ
 apps/frappe/frappe/email/bulk.py +96,This email was sent to you as CC,ಈ ಇಮೇಲ್ ಸಿಸಿ ಮಾಹಿತಿ ಕಳುಹಿಸಲಾಗಿದೆ
 DocType: Email Account,Email Ids,ಇಮೇಲ್ ಐಡಿಗಳನ್ನು
 DocType: Currency,Symbol,ವಿಗ್ರಹ
-apps/frappe/frappe/model/base_document.py +436,Row #{0}:,ರೋ # {0}:
+apps/frappe/frappe/model/base_document.py +442,Row #{0}:,ರೋ # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +84,New password emailed,ಹೊಸ ಗುಪ್ತಪದವನ್ನು ಇಮೇಲ್
 apps/frappe/frappe/auth.py +222,Login not allowed at this time,ಲಾಗಿನ್ ಈ ಸಮಯದಲ್ಲಿ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
 DocType: Async Task,Runtime,ಚಾಲನಾಸಮಯ
@@ -1080,7 +1081,7 @@ apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Can
 DocType: Workflow State,flag,ಧ್ವಜ
 DocType: Web Page,Text Align,ಪಠ್ಯ align
 DocType: Contact Us Settings,Forward To Email Address,ಫಾರ್ವರ್ಡ್ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +346,Title field must be a valid fieldname,ಶೀರ್ಷಿಕೆ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಾನ್ಯ ಕ್ಷೇತ್ರ ಹೆಸರು ಇರಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Title field must be a valid fieldname,ಶೀರ್ಷಿಕೆ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಾನ್ಯ ಕ್ಷೇತ್ರ ಹೆಸರು ಇರಬೇಕು
 apps/frappe/frappe/desk/moduleview.py +61,Documents,ಡಾಕ್ಯುಮೆಂಟ್ಸ್
 apps/frappe/frappe/templates/pages/me.html +21,Edit Profile,ಪ್ರೊಫೈಲ್ಸಂಪಾದಿಸು
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,ಗಂಟೆಗಳ ಇ ಜಿ ನಲ್ಲಿ ಸೆಷನ್ ಅಂತ್ಯ 06:00
@@ -1107,7 +1108,7 @@ DocType: Web Page,Center,ಕೇಂದ್ರ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,ಸೆಟಪ್ > ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಮ್ಯಾನೇಜರ್
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,ಮೊದಲ ಮಟ್ಟ
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,ರಾಜ್ಯದ ಬದಲಾಯಿಸಲು ನಿಗದಿಪಡಿಸಲಾಗಿದೆ ಒಂದು ದಸ್ತಾವೇಜು ಪಾತ್ರದಲ್ಲಿ ಅವಕಾಶ ರಾಜ್ಯಗಳಲ್ಲಿ ಪ್ರತಿನಿಧಿಸುತ್ತದೆ.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49,Refresh Form,ರಿಫ್ರೆಶ್ ಫಾರ್ಮ್
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +48,Refresh Form,ರಿಫ್ರೆಶ್ ಫಾರ್ಮ್
 DocType: DocField,Select,ಆರಿಸು
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,ಫೈಲ್ ಲಗತ್ತಿಸಲಾದ
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","ನೀವು ಈ ಸೆಟ್ , ಈ ಐಟಂ ಆಯ್ಕೆ ಮೂಲ ಅಡಿಯಲ್ಲಿ ಡ್ರಾಪ್ ಡೌನ್ ಬರುತ್ತವೆ ."
@@ -1142,12 +1143,12 @@ apps/frappe/frappe/core/doctype/file/file_list.js +63,New Folder,ಹೊಸ �
 DocType: Website Settings,Sub-domain provided by erpnext.com,Erpnext.com ಒದಗಿಸಿದ ಉಪ ಡೊಮೇನ್
 DocType: System Settings,dd-mm-yyyy,ತಿಂಗಳು - YYYY
 apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,ಈ ವರದಿ ವರದಿ ಪ್ರವೇಶಿಸಲು ಅನುಮತಿ ಕಡ್ಡಾಯ .
-apps/frappe/frappe/templates/base.html +137,Added,ಸೇರಿಸಲಾಗಿದೆ
+apps/frappe/frappe/templates/base.html +133,Added,ಸೇರಿಸಲಾಗಿದೆ
 apps/frappe/frappe/desk/doctype/event/event.py +66,Daily Event Digest is sent for Calendar Events where reminders are set.,ಡೈಲಿ ಡೈಜೆಸ್ಟ್ ಕ್ರಿಯೆಯನ್ನು ಜ್ಞಾಪನೆಗಳನ್ನು ಸೆಟ್ ಅಲ್ಲಿ ಕ್ಯಾಲೆಂಡರ್ ಕ್ರಿಯೆಗಳು ಕಳುಹಿಸಲಾಗುತ್ತದೆ.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +32,View Website,ವೀಕ್ಷಿಸಿ ವೆಬ್ಸೈಟ್
 DocType: Workflow State,remove,ತೆಗೆದುಹಾಕಿ
 DocType: Email Account,If non standard port (e.g. 587),ವೇಳೆ ಅಲ್ಲದ ಪ್ರಮಾಣಿತವಲ್ಲದ ಪೋರ್ಟ್ ( ಇ ಜಿ 587 )
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +136,Reload,ರೀಲೋಡ್
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +137,Reload,ರೀಲೋಡ್
 apps/frappe/frappe/desk/query_report.py +136,Total,ಒಟ್ಟು
 DocType: Event,Participants,ಭಾಗವಹಿಸುವವರು
 DocType: Bulk Email,Reference DocName,ರೆಫರೆನ್ಸ್ DocName
@@ -1162,18 +1163,18 @@ DocType: Comment,Comment Doctype,ಕಾಮೆಂಟ್ DOCTYPE
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Assigned To Me,ಮಿ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ
 apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify Password,ಪಾಸ್ವರ್ಡ್ ಪರಿಶೀಲಿಸಿ
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,ದೋಷಗಳು ಇದ್ದವು
-apps/frappe/frappe/desk/doctype/todo/todo.js +22,Close,ಮುಚ್ಚಿ
+apps/frappe/frappe/core/doctype/communication/communication.js +19,Close,ಮುಚ್ಚಿ
 apps/frappe/frappe/model/document.py +452,Cannot change docstatus from 0 to 2,0 ರಿಂದ 2 docstatus ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Update,ಅಪ್ಡೇಟ್
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +87,Update,ಅಪ್ಡೇಟ್
 DocType: Error Snapshot,Snapshot View,ಸ್ನ್ಯಾಪ್ಶಾಟ್ ವೀಕ್ಷಿಸಿ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Options must be a valid DocType for field {0} in row {1},ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1} ಕ್ಷೇತ್ರದಲ್ಲಿ ಒಂದು ಮಾನ್ಯವಾದ DOCTYPE ಇರಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +266,Options must be a valid DocType for field {0} in row {1},ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1} ಕ್ಷೇತ್ರದಲ್ಲಿ ಒಂದು ಮಾನ್ಯವಾದ DOCTYPE ಇರಬೇಕು
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,ಪ್ರಾಪರ್ಟೀಸ್ ಸಂಪಾದಿಸಿ
 DocType: Patch Log,List of patches executed,ತೇಪೆ ಪಟ್ಟಿ ಮರಣದಂಡನೆ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ಈಗಾಗಲೇ ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್
 DocType: Communication,Communication Medium,ಸಂವಹನ ಮಧ್ಯಮ
 DocType: Website Settings,Banner HTML,ಬ್ಯಾನರ್ ಎಚ್ಟಿಎಮ್ಎಲ್
 DocType: Error Snapshot,Pyver,Pyver
-apps/frappe/frappe/model/base_document.py +440,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ಸಾಧ್ಯವಿಲ್ಲ ""{2}"". ಇದು ""{3}"" ಒಂದು ಆಗಿರಬೇಕು"
+apps/frappe/frappe/model/base_document.py +446,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ಸಾಧ್ಯವಿಲ್ಲ ""{2}"". ಇದು ""{3}"" ಒಂದು ಆಗಿರಬೇಕು"
 apps/frappe/frappe/utils/data.py +492,{0} or {1},{0} ಅಥವಾ {1}
 apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,ಪಾಸ್ವರ್ಡ್ ಅಪ್ಡೇಟ್
 DocType: Workflow State,trash,ಕಸ
@@ -1212,13 +1213,13 @@ DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ r
 apps/frappe/frappe/modules/__init__.py +81,App not found,ಅಪ್ಲಿಕೇಶನ್ ಕಂಡುಬಂದಿಲ್ಲ
 DocType: Workflow State,pencil,ಪೆನ್ಸಿಲ್
 apps/frappe/frappe/config/desk.py +27,Chat messages and other notifications.,ಸಂದೇಶಗಳನ್ನು ಮತ್ತು ಇತರ ಅಧಿಸೂಚನೆಗಳನ್ನು ಚಾಟಿಂಗ್.
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +114,Insert After cannot be set as {0},ಎಂದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ ನಂತರ ಸೇರಿಸಲು {0}
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +112,Insert After cannot be set as {0},ಎಂದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ ನಂತರ ಸೇರಿಸಲು {0}
 apps/frappe/frappe/public/js/frappe/form/share.js +54,Share {0} with,ಹಂಚಿಕೊಳ್ಳಿ {0} ಜೊತೆ
 DocType: Workflow State,hand-up,ಕೈ ಅಪ್
 DocType: Blog Settings,Writers Introduction,ರೈಟರ್ಸ್ ಪರಿಚಯ
 DocType: Communication,Phone,ದೂರವಾಣಿ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,ಆರಂಭಿಸಲು ದಾಖಲೆ ಪ್ರಕಾರ ಅಥವಾ ರೋಲ್ ಮಾಡಿ .
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +245,ProTip: You can also use Ctrl+S to Save,ProTip: ನೀವು ಉಳಿಸಿ Ctrl + S ಬಳಸಬಹುದು
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +246,ProTip: You can also use Ctrl+S to Save,ProTip: ನೀವು ಉಳಿಸಿ Ctrl + S ಬಳಸಬಹುದು
 apps/frappe/frappe/public/js/frappe/views/container.js +55,Page not found,ಪುಟ ಸಿಗಲಿಲ್ಲ
 DocType: DocField,Precision,ನಿಖರವಾದ
 DocType: Website Slideshow,Slideshow Items,ಸ್ಲೈಡ್ಶೋ ಐಟಂಗಳು
@@ -1246,7 +1247,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22
 DocType: Workflow State,Warning,ಎಚ್ಚರಿಕೆ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +858,"Ignoring Item {0}, because a group exists with the same name!","ನಿರ್ಲಕ್ಷಿಸಲಾಗುತ್ತಿದೆ ಐಟಂ {0} , ಗುಂಪು ಅದೇ ಹೆಸರಿನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ ಕಾರಣ!"
 DocType: DocType,In Dialog,ಮಾತುಕತೆ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +143,Help,ಸಹಾಯ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +142,Help,ಸಹಾಯ
 DocType: User,Login Before,ಮೊದಲು ಲಾಗಿನ್ ಆಗಿ
 DocType: Web Page,Insert Style,ಶೈಲಿ ಸೇರಿಸಿ
 apps/frappe/frappe/config/setup.py +192,Application Installer,ಅಪ್ಲಿಕೇಶನ್ ಅನುಸ್ಥಾಪಕವನ್ನು
@@ -1258,7 +1259,7 @@ apps/frappe/frappe/utils/response.py +117,You need to be logged in and have Syst
 apps/frappe/frappe/public/js/legacy/form.js +134,Please save before attaching.,ಲಗತ್ತಿಸುತ್ತಿದ್ದೇನೆ ಮೊದಲು ಉಳಿಸಲು ದಯವಿಟ್ಟು.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),ಸೇರಿಸಲಾಗಿದೆ {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype ಗೆ {0} ನಿಂದ ಬದಲಾವಣೆ ಸಾಧ್ಯವಿಲ್ಲ {1} ಸತತವಾಗಿ {2}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +336,Search Fields should contain valid fieldnames,ಹುಡುಕಾಟ ಕ್ಷೇತ್ರಗಳಿಗೆ ಮಾನ್ಯ fieldnames ಹೊಂದಿರಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +339,Search Fields should contain valid fieldnames,ಹುಡುಕಾಟ ಕ್ಷೇತ್ರಗಳಿಗೆ ಮಾನ್ಯ fieldnames ಹೊಂದಿರಬೇಕು
 apps/frappe/frappe/core/doctype/user/user.js +317,Role Permissions,ಅನುಮತಿಗಳನ್ನು
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +5,Can Read,ಓದಬಹುದು
 DocType: Standard Reply,Response,(ರೆಸ್ಪಾನ್ಸ್‌) ಪ್ರತಿಕ್ರಿಯೆ
@@ -1271,12 +1272,12 @@ DocType: Event,Starts on,ರಂದು ಪ್ರಾರಂಭವಾಗುತ್ತ
 DocType: System Settings,System Settings,ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
 apps/frappe/frappe/email/bulk.py +160,This email was sent to {0} and copied to {1},ಈ ಇಮೇಲ್ {0} ಕಳುಹಿಸಲಾಗಿದೆ ಮತ್ತು ನಕಲು ಮಾಡಲಾಯಿತು {1}
 DocType: Workflow State,th,ನೇ
-apps/frappe/frappe/public/js/frappe/form/control.js +1119,Create a new {0},ಹೊಸ {0} ರಚಿಸಿ
+apps/frappe/frappe/public/js/frappe/form/control.js +1121,Create a new {0},ಹೊಸ {0} ರಚಿಸಿ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +220,Report {0},ವರದಿ {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +231,Open {0},ಓಪನ್ {0}
 DocType: Communication,Recipients,ಸ್ವೀಕೃತದಾರರ
 DocType: Workflow State,ok-sign,ಸರಿ ಚಿಹ್ನೆ
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +125,Duplicate,ನಕಲು
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +126,Duplicate,ನಕಲು
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +305,From Date must be before To Date,ದಿನಾಂಕ ಇಲ್ಲಿಯವರೆಗೆ ಮೊದಲು ಇರಬೇಕು
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +17,Please specify which value field must be checked,ಮೌಲ್ಯದ ಕ್ಷೇತ್ರದಲ್ಲಿ ಪರೀಕ್ಷಿಸಬೇಕು ನಿರ್ದಿಷ್ಟಪಡಿಸಲು ದಯವಿಟ್ಟು
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""ಪೋಷಕ"" ಈ ಸಾಲಿನಲ್ಲಿ ಇದರಲ್ಲಿ ಪೋಷಕ ಟೇಬಲ್ ಸೂಚಿಸುತ್ತದೆ"
@@ -1295,7 +1296,7 @@ apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,ಸ�
 DocType: About Us Settings,Settings for the About Us Page,ನಮ್ಮ ಬಗ್ಗೆ ಪುಟ ಸೆಟ್ಟಿಂಗ್ಗಳು
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,ಡಾಕ್ಯುಮೆಂಟ್ ಆಯ್ಕೆ ಕೌಟುಂಬಿಕತೆ ಡೌನ್ಲೋಡ್
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,ಉದಾ pop.gmail.com / imap.gmail.com
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +186,Use the field to filter records,ದಾಖಲೆಗಳನ್ನು ಫಿಲ್ಟರ್ ಕ್ಷೇತ್ರ ಬಳಸಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Use the field to filter records,ದಾಖಲೆಗಳನ್ನು ಫಿಲ್ಟರ್ ಕ್ಷೇತ್ರ ಬಳಸಿ
 DocType: Email Account,Outlook.com,Outlook.com
 DocType: System Settings,Scheduler Last Event,ಶೆಡ್ಯೂಲರ ಕೊನೆಯ ಈವೆಂಟ್
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,ಗೂಗಲ್ ಅನಾಲಿಟಿಕ್ಸ್ ID ಸೇರಿಸಿ : ಯುಎ ಉದಾ 89XXX57 - 1 . . ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗಾಗಿ ಗೂಗಲ್ ಅನಾಲಿಟಿಕ್ಸ್ ಸಹಾಯ ಹುಡುಕಲು ದಯವಿಟ್ಟು .
@@ -1308,11 +1309,11 @@ apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the A
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,<Span class = ಪಠ್ಯ ಮ್ಯೂಟ್ ಡೇಟಾ ಯಾವುದೇ ವಿಷಯವನ್ನು = 1>
 DocType: Workflow State,envelope,ಹೊದಿಕೆ
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,ಆಯ್ಕೆ 2
-apps/frappe/frappe/core/doctype/docshare/docshare.py +46,{0} shared this document with {1},{0} ಈ ಡಾಕ್ಯುಮೆಂಟ್ ಹಂಚಿಕೆಯ {1}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} shared this document with {1},{0} ಈ ಡಾಕ್ಯುಮೆಂಟ್ ಹಂಚಿಕೆಯ {1}
 DocType: Website Settings,Google Plus One,ಗೂಗಲ್ ಪ್ಲಸ್ ಒಂದು
 apps/frappe/frappe/desk/page/activity/activity.js +190,Jul,ಜುಲೈ
 apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer and logo.","ಉನ್ನತ ಸಂಚರಣೆ ಬಾರ್ , ಅಡಿಟಿಪ್ಪಣಿ ಮತ್ತು ಲಾಂಛನವನ್ನು ಸೆಟಪ್ ."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +412,For {0} at level {1} in {2} in row {3},ಫಾರ್ {0} ಮಟ್ಟದಲ್ಲಿ {1} ಗೆ {2} ಸತತವಾಗಿ {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +415,For {0} at level {1} in {2} in row {3},ಫಾರ್ {0} ಮಟ್ಟದಲ್ಲಿ {1} ಗೆ {2} ಸತತವಾಗಿ {3}
 DocType: Page,All,ಎಲ್ಲಾ
 DocType: Bulk Email,Recipient,ಗ್ರಾಹಿ
 apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,ಎಳೆದು ಉಪಕರಣ ನಿರ್ಮಿಸಲು ಮತ್ತು ಮುದ್ರಣ ಸ್ವರೂಪಗಳು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು.
@@ -1341,7 +1342,7 @@ DocType: Website Theme,Google Font (Heading),ಗೂಗಲ್ ಫಾಂಟ್ (�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +166,Find {0} in {1},ರಲ್ಲಿ {0} ಕ್ಲಿಕ್ {1}
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","(, ಜಾಗ, ""ಸ್ಥಿತಿ"" ಹೊಂದಿರಬೇಕು ""ವಿಷಯ"") ಈ DOCTYPE ವಿರುದ್ಧ ಸಂವಹನ ಸೇರಿಸಲು"
 DocType: DocType,Allow Import via Data Import Tool,ಡೇಟಾ ಆಮದು ಟೂಲ್ ಮೂಲಕ ಆಮದು ಅನುಮತಿಸಿ
-apps/frappe/frappe/model/base_document.py +494,Not allowed to change {0} after submission,ಸಲ್ಲಿಕೆ ನಂತರ {0} ಬದಲಾಯಿಸಲು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+apps/frappe/frappe/model/base_document.py +500,Not allowed to change {0} after submission,ಸಲ್ಲಿಕೆ ನಂತರ {0} ಬದಲಾಯಿಸಲು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
 DocType: Comment,Comment Type,ಕಾಮೆಂಟ್ ಟೈಪ್
 apps/frappe/frappe/config/setup.py +8,Users,ಬಳಕೆದಾರರು
 DocType: Report,Report Type,ವರದಿ ಪ್ರಕಾರ
@@ -1350,7 +1351,7 @@ apps/frappe/frappe/public/js/frappe/form/share.js +112,Share With,ಹಂಚಿ�
 apps/frappe/frappe/core/doctype/user/user.js +130,Loading,ಲೋಡ್
 apps/frappe/frappe/config/setup.py +199,"Enter keys to enable login via Facebook, Google, GitHub.","ಫೇಸ್ಬುಕ್, ಗೂಗಲ್ , GitHub ಮೂಲಕ ಲಾಗಿನ್ ಸಕ್ರಿಯಗೊಳಿಸಲು Enter ಕೀಲಿಗಳನ್ನು ."
 apps/frappe/frappe/public/js/frappe/ui/tags.js +21,Add a tag,ಟ್ಯಾಗ್ ಸೇರಿಸಿ
-apps/frappe/frappe/public/js/frappe/form/control.js +975,Please attach a file first.,ಮೊದಲ ಒಂದು ಕಡತ ಲಗತ್ತಿಸಬಹುದು ದಯವಿಟ್ಟು .
+apps/frappe/frappe/public/js/frappe/form/control.js +977,Please attach a file first.,ಮೊದಲ ಒಂದು ಕಡತ ಲಗತ್ತಿಸಬಹುದು ದಯವಿಟ್ಟು .
 apps/frappe/frappe/model/naming.py +156,"There were some errors setting the name, please contact the administrator","ಹೆಸರು ಹೊಂದಿಸುವ ಕೆಲವು ದೋಷಗಳಿವೆ, ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ"
 DocType: Website Slideshow Item,Website Slideshow Item,ವೆಬ್ಸೈಟ್ ಸ್ಲೈಡ್ ಶೊ ಐಟಂ
 DocType: DocType,Title Case,TitleCase
@@ -1374,7 +1375,7 @@ DocType: DocField,Table,ಮೇಜು
 DocType: File,File Size,ಫೈಲ್ ಗಾತ್ರ
 apps/frappe/frappe/website/doctype/web_form/web_form.py +189,You must login to submit this form,ಈ ಸಲ್ಲಿಸಲು ಲಾಗಿನ್ ಮಾಡಬೇಕು
 DocType: User,Background Image,ಹಿನ್ನೆಲೆ ಚಿತ್ರ
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +318,"Select your Country, Time Zone and Currency","ನಿಮ್ಮ ದೇಶ, ಕಾಲವಲಯವನ್ನು ಮತ್ತು ಕರೆನ್ಸಿ ಆಯ್ಕೆ"
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +324,"Select your Country, Time Zone and Currency","ನಿಮ್ಮ ದೇಶ, ಕಾಲವಲಯವನ್ನು ಮತ್ತು ಕರೆನ್ಸಿ ಆಯ್ಕೆ"
 DocType: Async Task,Queued,ಸರತಿಯಲ್ಲಿ
 apps/frappe/frappe/public/js/frappe/form/print.js +96,New Custom Print Format,ಹೊಸ ಕಸ್ಟಮ್ ಪ್ರಿಂಟ್ ಸ್ವರೂಪ
 DocType: DocPerm,Create,ರಚಿಸಿ
@@ -1395,6 +1396,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +310,Add Attachments,
 DocType: Workflow State,signal,ಸಂಕೇತ
 DocType: DocType,Show Print First,ಪ್ರಿಂಟ್ ಮೊದಲ ಶೋ
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +340,Make a new {0},ಮಾಡಿ ಹೊಸ {0}
+apps/frappe/frappe/core/doctype/communication/communication.js +24,Reopen,ಪುನಾರಂಭಿಸುವ
 apps/frappe/frappe/public/js/frappe/views/communication.js +182,Re: {0},ಮರು: {0}
 DocType: Print Settings,Monochrome,ಏಕವರ್ಣದ
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","ಇತ್ಯಾದಿ ಈ ದಾಖಲೆಯಂತೆ "" ಓಪನ್ "" ಸೈನ್ ಇರುವಂತಹುದು ವಿವಿಧ "" ಸ್ಟೇಟ್ಸ್ "" , "" ಅನುಮೋದನೆ ಬಾಕಿ "" ,"
@@ -1406,11 +1408,11 @@ DocType: Website Theme,Top Bar Text Color,ಟಾಪ್ ಬಾರ್ ಪಠ್ಯ
 apps/frappe/frappe/core/doctype/file/file.py +324,File '{0}' not found,ಫೈಲ್ &#39;{0}&#39; ಕಂಡುಬಂದಿಲ್ಲ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +370,Remove Section,ವಿಭಾಗ ತೆಗೆದುಹಾಕಿ
 DocType: User,Change Password,ಗುಪ್ತಪದವನ್ನು ಬದಲಿಸಿ
-apps/frappe/frappe/public/js/frappe/form/control.js +428,Invalid Email: {0},ಅಮಾನ್ಯವಾದ ಇಮೇಲ್ : {0}
+apps/frappe/frappe/public/js/frappe/form/control.js +430,Invalid Email: {0},ಅಮಾನ್ಯವಾದ ಇಮೇಲ್ : {0}
 apps/frappe/frappe/desk/doctype/event/event.py +20,Event end must be after start,ಇವೆಂಟ್ ಕೊನೆಯಲ್ಲಿ ಆರಂಭದ ನಂತರ ಇರಬೇಕು
 apps/frappe/frappe/desk/query_report.py +22,You don't have permission to get a report on: {0},ನೀವು ಮೇಲೆ ವರದಿಯನ್ನು ಪಡೆಯಲು ಅನುಮತಿ ಇಲ್ಲ: {0}
 DocType: Blog Post,Blog Post,ಬ್ಲಾಗ್ ಪೋಸ್ಟ್
-apps/frappe/frappe/public/js/frappe/form/control.js +1128,Advanced Search,ವಿಸ್ತೃತ ಹುಡುಕಾಟ
+apps/frappe/frappe/public/js/frappe/form/control.js +1130,Advanced Search,ವಿಸ್ತೃತ ಹುಡುಕಾಟ
 apps/frappe/frappe/core/doctype/user/user.py +435,Password reset instructions have been sent to your email,ಪಾಸ್ವರ್ಡ್ ರೀಸೆಟ್ ಸೂಚನೆಗಳನ್ನು ನಿಮ್ಮ ಇಮೇಲ್ ಕಳುಹಿಸಲಾಗಿದೆ
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +490,Sort By,ವಿಂಗಡಿಸಿ
 apps/frappe/frappe/config/setup.py +204,Manage cloud backups on Dropbox,ಡ್ರಾಪ್ಬಾಕ್ಸ್ ಮೇಲೆ ಮೋಡದ ಬ್ಯಾಕ್ಅಪ್ ನಿರ್ವಹಿಸಿ
@@ -1423,7 +1425,7 @@ DocType: Workflow State,circle-arrow-left,ವೃತ್ತದ ಬಾಣವನ್�
 apps/frappe/frappe/sessions.py +113,Redis cache server not running. Please contact Administrator / Tech support,Redis ಸಂಗ್ರಹ ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿಲ್ಲ. ನಿರ್ವಾಹಕ / ಟೆಕ್ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +85,Make a new record,ಹೊಸ ದಾಖಲೆ ಮಾಡಿ
 DocType: Currency,Fraction,ಭಿನ್ನರಾಶಿ
-apps/frappe/frappe/public/js/frappe/form/control.js +758,Select from existing attachments,ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಲಗತ್ತುಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ
+apps/frappe/frappe/public/js/frappe/form/control.js +760,Select from existing attachments,ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಲಗತ್ತುಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ
 DocType: Custom Field,Field Description,ಫೀಲ್ಡ್ ವಿವರಣೆ
 apps/frappe/frappe/model/naming.py +49,Name not set via Prompt,ಪ್ರಾಂಪ್ಟಿನಲ್ಲಿ ಮೂಲಕ ಸೆಟ್ ಹೆಸರು
 DocType: Note,Note is a free page where users can share documents / notes,ಗಮನಿಸಿ ಬಳಕೆದಾರರು ದಾಖಲೆಗಳನ್ನು / ಟಿಪ್ಪಣಿಗಳು ಹಂಚಿಕೊಳ್ಳಬಹುದು ಅಲ್ಲಿ ಒಂದು ಉಚಿತ ಪುಟ
@@ -1456,10 +1458,10 @@ DocType: Workflow Transition,Action,ಕ್ರಿಯೆ
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,ಮಾಹಿತಿ:
 DocType: Custom Field,Permission Level,ಅನುಮತಿ ಮಟ್ಟ
 DocType: User,Send Notifications for Transactions I Follow,ನಾನು ಅನುಸರಿಸಿ ಟ್ರಾನ್ಸಾಕ್ಷನ್ಸ್ ಅಧಿಸೂಚನೆಗಳನ್ನು ಕಳುಹಿಸಲು
-apps/frappe/frappe/core/doctype/doctype/doctype.py +455,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : ಬರೆಯಿರಿ ಇಲ್ಲದೆ ಮಾಡಿರಿ , ರದ್ದು , ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +458,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : ಬರೆಯಿರಿ ಇಲ್ಲದೆ ಮಾಡಿರಿ , ರದ್ದು , ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,ನೀವು ಬಾಂಧವ್ಯ ಅಳಿಸಲು ಬಯಸುತ್ತೀರೆ?
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,ಸೆಟಪ್ > ಬಳಕೆದಾರ
-apps/frappe/frappe/model/base_document.py +472,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: ಮ್ಯಾಕ್ಸ್ ಅಕ್ಷರಗಳ ಅನುಮತಿ &#39;{1}&#39;, ಮೊಟಕುಗೊಂಡ ಪಡೆಯುತ್ತಾನೆ {2}"
+apps/frappe/frappe/model/base_document.py +478,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: ಮ್ಯಾಕ್ಸ್ ಅಕ್ಷರಗಳ ಅನುಮತಿ &#39;{1}&#39;, ಮೊಟಕುಗೊಂಡ ಪಡೆಯುತ್ತಾನೆ {2}"
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,ಧನ್ಯವಾದಗಳು
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,ಉಳಿಸಲಾಗುತ್ತಿದೆ
 DocType: Print Settings,Print Style Preview,ಮುದ್ರಣ ಶೈಲಿ ಮುನ್ನೋಟ
@@ -1485,7 +1487,7 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84,Blog,ಬ್ಲಾ�
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with data,ಮಾಹಿತಿಯನ್ನು ಡೌನ್ಲೋಡ್
 DocType: Workflow State,hand-right,ಕೈ ಬಲ
 DocType: Website Settings,Subdomain,ಸಬ್ಡೊಮೈನ್
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +316,Region,ಪ್ರದೇಶ
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +322,Region,ಪ್ರದೇಶ
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,Current status,ಪ್ರಸ್ತುತ ಸ್ಥಿತಿಯನ್ನು
 DocType: Web Form,Allow Delete,ಅಳಿಸಿ ಅವಕಾಶ
 DocType: Email Alert,Message Examples,ಸಂದೇಶ ಉದಾಹರಣೆಗಳು
@@ -1496,9 +1498,9 @@ apps/frappe/frappe/public/js/frappe/list/listview.js +342,2 days ago,2 ದಿನ
 apps/frappe/frappe/config/website.py +64,Categorize blog posts.,ಬ್ಲಾಗ್ ಪೋಸ್ಟ್ಗಳನ್ನು ವರ್ಗೀಕರಿಸಲು.
 DocType: Workflow State,Time,ಟೈಮ್
 DocType: DocField,Attach,ಲಗತ್ತಿಸಿ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +358,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} ಮಾನ್ಯ FIELDNAME ನಮೂನೆ ಅಲ್ಲ. ಇದು ಇರಬೇಕು {{FIELD_NAME}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +361,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} ಮಾನ್ಯ FIELDNAME ನಮೂನೆ ಅಲ್ಲ. ಇದು ಇರಬೇಕು {{FIELD_NAME}}.
 DocType: DocType,Permission Rules,ಅನುಮತಿಯನ್ನು ನಿಯಮಗಳನ್ನು
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +118,Links,ಲಿಂಕ್ಸ್
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +119,Links,ಲಿಂಕ್ಸ್
 apps/frappe/frappe/model/base_document.py +364,Value missing for,ಮೌಲ್ಯ ಕಾಣೆಯಾಗಿದೆ
 apps/frappe/frappe/model/delete_doc.py +137,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: ಸಲ್ಲಿಸಲಾಗಿದೆ ರೆಕಾರ್ಡ್ ಅಳಿಸಲಾಗುವುದಿಲ್ಲ.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +86,new type of document,ದಸ್ತಾವೇಜಿನ ಹೊಸ ರೀತಿಯ
@@ -1506,11 +1508,11 @@ DocType: DocPerm,Read,ಓದು
 apps/frappe/frappe/templates/pages/update-password.html +12,Old Password,ಹಳೆಯ ಪಾಸ್ವರ್ಡ್
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},ಪೋಸ್ಟ್ಗಳು {0}
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.",", ಕಾಲಮ್ಗಳನ್ನು ಫಾರ್ಮಾಟ್ ಪ್ರಶ್ನೆಯಲ್ಲಿ ಕಾಲಮ್ ಲೇಬಲ್ಗಳನ್ನು ನೀಡಿ."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +482,{0}: Cannot set Assign Amend if not Submittable,{0} : ನಿಯೋಜನೆ ಮಾಡಿರಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +485,{0}: Cannot set Assign Amend if not Submittable,{0} : ನಿಯೋಜನೆ ಮಾಡಿರಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,ಸಂಪಾದಿಸಿ ಅನುಮತಿಗಳನ್ನು
 DocType: Social Login Keys,Social Login Keys,ಸಮಾಜ ಲಾಗಿನ್ ಕೀಸ್
 DocType: Comment,Comment Date,ಕಾಮೆಂಟ್ ದಿನಾಂಕ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +54,Remove all customizations?,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಿ ?
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53,Remove all customizations?,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಿ ?
 DocType: Website Slideshow,Slideshow Name,ಸ್ಲೈಡ್ಶೋ ಹೆಸರು
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,ರದ್ದುಗೊಳಿಸಲಾಗುತ್ತಿದೆ
 DocType: DocType,Allow Rename,ಮರುಹೆಸರಿಸು ಅನುಮತಿಸಿ
@@ -1539,7 +1541,7 @@ apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your ema
 				can get back to you. Thanks!","ನಾವು ನೀವು ಮರಳಿ ಪಡೆಯಬಹುದು \
  ಆದ್ದರಿಂದ ನಿಮ್ಮ ಇಮೇಲ್ ಮತ್ತು ಸಂದೇಶವನ್ನು ಎರಡೂ ನಮೂದಿಸಿ. ಧನ್ಯವಾದಗಳು!"
 apps/frappe/frappe/email/smtp.py +152,Could not connect to outgoing email server,ಹೊರಹೋಗುವ ಇಮೇಲ್ ಸರ್ವರ್ ಸಂಪರ್ಕ ಸಾಧ್ಯವಾಗಿಲ್ಲ
-apps/frappe/frappe/public/js/frappe/form/control.js +1362,Rich Text,ರಿಚ್ ಟೆಕ್ಸ್ಟ್
+apps/frappe/frappe/public/js/frappe/form/control.js +1365,Rich Text,ರಿಚ್ ಟೆಕ್ಸ್ಟ್
 DocType: Workflow State,resize-full,ಮರುಗಾತ್ರಗೊಳಿಸಿ - ಪೂರ್ಣ
 DocType: Workflow State,off,ಆಫ್
 apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,ವರದಿ {0} ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ
@@ -1573,12 +1575,12 @@ DocType: Website Slideshow,"Note: For best results, images must be of the same s
 DocType: DocType,Auto Name,ಕಾರು ಹೆಸರು
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 3,ಆಯ್ಕೆ 3
 DocType: Workflow State,Edit,ಸಂಪಾದಿಸು
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +170,Permissions can be managed via Setup &gt; Role Permissions Manager,ಅನುಮತಿಗಳು ಮರುಹೊಂದಿಸಿ & gt ಮೂಲಕ ನಿರ್ವಹಿಸಬಹುದಾಗಿದೆ; ಅನುಮತಿಗಳನ್ನು ಮ್ಯಾನೇಜರ್
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup &gt; Role Permissions Manager,ಅನುಮತಿಗಳು ಮರುಹೊಂದಿಸಿ & gt ಮೂಲಕ ನಿರ್ವಹಿಸಬಹುದಾಗಿದೆ; ಅನುಮತಿಗಳನ್ನು ಮ್ಯಾನೇಜರ್
 DocType: Contact Us Settings,Pincode,ಪಿನ್ ಕೋಡ್
 apps/frappe/frappe/core/page/data_import_tool/importer.py +70,Please make sure that there are no empty columns in the file.,ಖಚಿತವಾಗಿ thatthere ಕಡತದಲ್ಲಿ ಯಾವುದೇ ಖಾಲಿ ಕಾಲಮ್ಗಳನ್ನು ಮಾಡಲು ದಯವಿಟ್ಟು .
 apps/frappe/frappe/utils/oauth.py +209,Please ensure that your profile has an email address,ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ಹೊಂದಿದೆ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ
 apps/frappe/frappe/public/js/frappe/model/create_new.js +218,You have unsaved changes in this form. Please save before you continue.,ನೀವು ಈ ರೂಪದಲ್ಲಿ ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿಲ್ಲ.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +291,Default for {0} must be an option,{0} ಒಂದು ಆಯ್ಕೆಯನ್ನು ಇರಬೇಕು ಡೀಫಾಲ್ಟ್
+apps/frappe/frappe/core/doctype/doctype/doctype.py +294,Default for {0} must be an option,{0} ಒಂದು ಆಯ್ಕೆಯನ್ನು ಇರಬೇಕು ಡೀಫಾಲ್ಟ್
 DocType: User,User Image,ಬಳಕೆದಾರ ಚಿತ್ರ
 apps/frappe/frappe/email/bulk.py +243,Emails are muted,ಇಮೇಲ್ಗಳನ್ನು ಮ್ಯೂಟ್
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +22,Ctrl + Up,Ctrl + ಅಪ್
@@ -1607,7 +1609,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your b
 DocType: Async Task,Running,ರನ್ನಿಂಗ್
 apps/frappe/frappe/templates/pages/update-password.html +3,Reset Password,ಪಾಸ್ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ
 DocType: Workflow State,hand-left,ಕೈ ಎಡ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +300,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} ಅನನ್ಯ ಮಾಡಲಾಗದ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +303,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} ಅನನ್ಯ ಮಾಡಲಾಗದ
 DocType: Email Account,Use SSL,SSL ಬಳಸಲು
 DocType: Workflow State,play-circle,ಆಡಲು ವೃತ್ತ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,ಸಂಪಾದಿಸಿ ಮುದ್ರಿಸಿ ಸ್ವರೂಪ ಆಯ್ಕೆ
@@ -1625,7 +1627,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +454,Ascending,�
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಮುದ್ರಣ ರೂಪದಲ್ಲಿ ಅಪ್ಡೇಟ್ ಸಾಧ್ಯವಿಲ್ಲ
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.js +12,Please specify,ಸೂಚಿಸಲು ದಯವಿಟ್ಟು
 DocType: Page,Page Name,ಪುಟ ಹೆಸರು
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +147,Help: Field Properties,ಸಹಾಯ: ಫೀಲ್ಡ್ ಪ್ರಾಪರ್ಟೀಸ್
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +146,Help: Field Properties,ಸಹಾಯ: ಫೀಲ್ಡ್ ಪ್ರಾಪರ್ಟೀಸ್
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +86,Importing...,ಆಮದು ಮಾಡಲಾಗುತ್ತಿದೆ ...
 apps/frappe/frappe/model/document.py +738,Incorrect value in row {0}: {1} must be {2} {3},ತಪ್ಪಾದ ಮೌಲ್ಯವನ್ನು ಸತತವಾಗಿ {0} : {1} ಇರಬೇಕು {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},ಸಲ್ಲಿಸಿದ ಡಾಕ್ಯುಮೆಂಟ್ ಕರಡುಪ್ರತಿಯನ್ನು ಪರಿವರ್ತಿಸಬಹುದಾದ ಸಾಧ್ಯವಿಲ್ಲ .
@@ -1642,18 +1644,18 @@ DocType: ToDo,ToDo,ಟೊಡೊ
 DocType: DocField,No Copy,ಯಾವುದೇ ಪ್ರತಿಯನ್ನು
 DocType: Workflow State,qrcode,QRCode
 DocType: Web Form,Breadcrumbs,ಬ್ರೆಡ್
-apps/frappe/frappe/core/doctype/doctype/doctype.py +428,If Owner,ಮಾಲೀಕ ವೇಳೆ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +431,If Owner,ಮಾಲೀಕ ವೇಳೆ
 apps/frappe/frappe/website/doctype/web_form/web_form.py +70,You need to be logged in to access this {0}.,ಈ ಪ್ರವೇಶಿಸಲು ಲಾಗ್ ಇನ್ ಅಗತ್ಯವಿದೆ {0}.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +167,Complete By,ದಿ ಕಂಪ್ಲೀಟ್
 apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} ಮೂಲಕ {1}
-apps/frappe/frappe/core/doctype/comment/comment.py +63,Cannot add more than 50 comments,ಹೆಚ್ಚು 50 ಪ್ರತಿಕ್ರಿಯೆಗಳು ಸೇರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/comment/comment.py +65,Cannot add more than 50 comments,ಹೆಚ್ಚು 50 ಪ್ರತಿಕ್ರಿಯೆಗಳು ಸೇರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Website Settings,Top Bar Items,ಟಾಪ್ ಬಾರ್ ಐಟಂಗಳು
 DocType: Print Settings,Print Settings,ಮುದ್ರಣ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
 DocType: Page,Yes,ಹೌದು
 DocType: DocType,Max Attachments,ಮ್ಯಾಕ್ಸ್ ಲಗತ್ತುಗಳನ್ನು
 DocType: Page,Page,ಪುಟ
 DocType: Workflow State,briefcase,ವಕಾಲತ್ತು ಪೆಟ್ಟಿಗೆ
-apps/frappe/frappe/model/base_document.py +453,Value cannot be changed for {0},ಮೌಲ್ಯ ಬದಲಾವಣೆ ಸಾಧ್ಯವಿಲ್ಲ {0}
+apps/frappe/frappe/model/base_document.py +459,Value cannot be changed for {0},ಮೌಲ್ಯ ಬದಲಾವಣೆ ಸಾಧ್ಯವಿಲ್ಲ {0}
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
 					Please enter a valid email address so that we can get back.","ನಿಮ್ಮ ಹೆಸರು ಬದಲಿಗೆ ನಿಮ್ಮ ಇಮೇಲ್ ಬರೆದಿದ್ದಾರೆ ತೋರುತ್ತದೆ. ನಾವು ಮತ್ತೆ ಪಡೆಯುವುದಕ್ಕಾಗಿ \
  ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ."
@@ -1665,7 +1667,7 @@ DocType: Workflow State,resize-horizontal,ಅಡ್ಡಲಾಗಿ ಮರುಗ�
 DocType: Communication,Content,ವಿಷಯ
 DocType: Web Form,Go to this url after completing the form.,ರೂಪ ಮುಗಿದ ನಂತರ ಈ URL ಗೆ ಹೋಗಿ.
 DocType: DocType,Document,ದಾಖಲೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +109,Series {0} already used in {1},ಸರಣಿ {0} ಈಗಾಗಲೇ ಬಳಸಲಾಗುತ್ತದೆ {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +112,Series {0} already used in {1},ಸರಣಿ {0} ಈಗಾಗಲೇ ಬಳಸಲಾಗುತ್ತದೆ {1}
 DocType: DocField,Code,ಕೋಡ್
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","ಎಲ್ಲಾ ಸಂಭಾವ್ಯ ವರ್ಕ್ಫ್ಲೋ ಸ್ಟೇಟ್ಸ್ ಮತ್ತು ಕೆಲಸದೊತ್ತಡದ ಪಾತ್ರಗಳಿಗೆ. Docstatus ಆಯ್ಕೆಗಳು: 0 &quot;ಉಳಿಸಿದ&quot;, ಆಗಿದೆ 1 &quot;ಸಲ್ಲಿಸಿದ&quot; ಮತ್ತು 2 &quot;ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ&quot; ಇದೆ"
 DocType: Website Theme,Footer Text Color,ಅಡಿಟಿಪ್ಪಣಿ ಪಠ್ಯ ಬಣ್ಣ
@@ -1675,6 +1677,7 @@ apps/frappe/frappe/config/website.py +28,User ID of a blog writer.,ಬ್ಲಾ�
 apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,ಡಾಕ್ಯುಮೆಂಟ್ ವಿಧಗಳು ಮತ್ತು ಪಾತ್ರಗಳು ಅನುಮತಿಗಳು
 DocType: About Us Settings,"""Company History""",""" ಕಂಪೆನಿ ಇತಿಹಾಸ """
 apps/frappe/frappe/permissions.py +330,Permission already set,ಅನುಮತಿ ಈಗಾಗಲೇ ಸೆಟ್
+apps/frappe/frappe/core/doctype/docshare/docshare.py +49,{0} shared this document with everyone,{0} ಎಲ್ಲರೂ ಈ ಡಾಕ್ಯುಮೆಂಟ್ ಹಂಚಿಕೆಯ
 apps/frappe/frappe/desk/page/activity/activity_row.html +20,Commented on {0}: {1},ಕಾಮೆಂಟ್ {0}: {1}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +248,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,ಈ ನಿರ್ಬಂಧಗಳನ್ನು ಅನುಮತಿ ನಿಯಮ ಪರಿಶೀಲಿಸಿದ ಮತ್ತು ಈ ಮೌಲ್ಯವನ್ನು ಒಂದು ಕ್ಷೇತ್ರದಲ್ಲಿ ಇರುತ್ತದೆ ಅಲ್ಲಿ &#39;ಬಳಕೆದಾರ ಅನುಮತಿಗಳನ್ನು ಅನ್ವಯಿಸು&#39; ಡಾಕ್ಯುಮೆಂಟ್ ವಿಧಗಳು ಅನ್ವಯಿಸುತ್ತದೆ.
 DocType: Email Alert,Send alert if this field's value changes,ಎಚ್ಚರಿಕೆಯನ್ನು ಕಳುಹಿಸಿ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮೌಲ್ಯದ ಬದಲಾಯಿಸಿದರೆ
@@ -1703,7 +1706,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,
 apps/frappe/frappe/core/doctype/user/user.py +404,Registered but disabled.,ನೋಂದಾಯಿತ ಆದರೆ ಅಂಗವಿಕಲ .
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +538,Delete permanently?,ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +89,Search in a document type,ಒಂದು ದಾಖಲೆ ಪ್ರಕಾರ ನಲ್ಲಿ ಹುಡುಕಾಟ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Allow field to remain editable even after submission,ಕ್ಷೇತ್ರ ಸಹ ಸಲ್ಲಿಕೆ ನಂತರ ಸಂಪಾದಿಸಬಹುದಾದ ಉಳಿಯಲು ಅವಕಾಶ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201,Allow field to remain editable even after submission,ಕ್ಷೇತ್ರ ಸಹ ಸಲ್ಲಿಕೆ ನಂತರ ಸಂಪಾದಿಸಬಹುದಾದ ಉಳಿಯಲು ಅವಕಾಶ
 DocType: DocPerm,Role and Level,ಪಾತ್ರ ಮತ್ತು ಮಟ್ಟ
 DocType: File,Thumbnail URL,ಥಂಬ್ನೇಲ್ URL
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,ಕಸ್ಟಮ್ ವರದಿಗಳು
@@ -1740,10 +1743,10 @@ DocType: Email Alert,Send days before or after the reference date,ಮೊದ�
 DocType: User,Allow user to login only after this hour (0-24),ಬಳಕೆದಾರ ಮಾತ್ರ ಈ ಗಂಟೆ ನಂತರ ( 0-24 ) ಲಾಗಿನ್ ಅನುಮತಿಸಿ
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +21,Value,ಮೌಲ್ಯ
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,ನನ್ನ ಅದಕ್ಕೆ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +59,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,ಅಲ್ಲ ಡೆವಲಪರ್ ಮೋಡ್ನಲ್ಲಿ! Site_config.json ಸೆಟ್ ಅಥವಾ 'ಕಸ್ಟಮ್' DOCTYPE ಮಾಡಲು.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +62,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,ಅಲ್ಲ ಡೆವಲಪರ್ ಮೋಡ್ನಲ್ಲಿ! Site_config.json ಸೆಟ್ ಅಥವಾ 'ಕಸ್ಟಮ್' DOCTYPE ಮಾಡಲು.
 DocType: Workflow State,globe,ಗೋಳ
 DocType: System Settings,dd.mm.yyyy,dd.mm.yyyy
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +194,Hide field in Standard Print Format,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಪ್ರಿಂಟ್ ಸ್ವರೂಪ ಮರೆಮಾಡಿ ಕ್ಷೇತ್ರ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193,Hide field in Standard Print Format,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಪ್ರಿಂಟ್ ಸ್ವರೂಪ ಮರೆಮಾಡಿ ಕ್ಷೇತ್ರ
 DocType: ToDo,Priority,ಆದ್ಯತೆ
 DocType: Dropbox Backup,Dropbox Access Allowed,ಅನುಮತಿಸಲಾಗಿದೆ ಡ್ರಾಪ್ಬಾಕ್ಸ್ ಪ್ರವೇಶ
 DocType: Dropbox Backup,Weekly,ವಾರದ
@@ -1773,7 +1776,7 @@ apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
 DocType: DocField,Small Text,ಸಣ್ಣ ಪಠ್ಯ
 apps/frappe/frappe/core/doctype/user/user.py +526,Administrator accessed {0} on {1} via IP Address {2}.,ನಿರ್ವಾಹಕ ಪಡೆದದ್ದು {0} ನಲ್ಲಿ {1} IP ವಿಳಾಸ ಮೂಲಕ {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,ಸಮ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +285,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',ಕ್ಷೇತ್ರದ ಆಯ್ಕೆಗಳು 'ಡೈನಾಮಿಕ್ ಲಿಂಕ್' ಮಾದರಿ 'doctype' ಎಂದು ಆಯ್ಕೆಗಳು ಮತ್ತೊಂದು ಲಿಂಕ್ ಫೀಲ್ಡ್ ಬೆಟ್ಟು ಮಾಡಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +288,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',ಕ್ಷೇತ್ರದ ಆಯ್ಕೆಗಳು 'ಡೈನಾಮಿಕ್ ಲಿಂಕ್' ಮಾದರಿ 'doctype' ಎಂದು ಆಯ್ಕೆಗಳು ಮತ್ತೊಂದು ಲಿಂಕ್ ಫೀಲ್ಡ್ ಬೆಟ್ಟು ಮಾಡಬೇಕು
 DocType: About Us Settings,Team Members Heading,ಶಿರೋನಾಮೆ ತಂಡದ ಸದಸ್ಯರು
 DocType: DocField,Do not allow user to change after set the first time,ಬಳಕೆದಾರ ಮೊದಲ ಸೆಟ್ ಸಮಯದ ನಂತರ ಬದಲಾಯಿಸಲು ಅವಕಾಶ ಇಲ್ಲ
 apps/frappe/frappe/public/js/frappe/upload.js +112,Private or Public?,ಖಾಸಗಿ ಅಥವಾ ಸಾರ್ವಜನಿಕ?
@@ -1798,7 +1801,7 @@ DocType: Blog Category,Category Name,ವರ್ಗ ಹೆಸರು
 DocType: Print Settings,PDF Settings,ಪಿಡಿಎಫ್ ಸೆಟ್ಟಿಂಗ್ಗಳು
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,ಅಂಕಣ ಹೆಸರು
 apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,ಡೀಫಾಲ್ಟ್ ಮಾಡಿ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +311,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} ಸೂಚಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +314,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} ಸೂಚಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Communication,Email Account,ಇಮೇಲ್ ಖಾತೆ
 DocType: Workflow State,Download,ಡೌನ್ಲೋಡ್
 DocType: Blog Post,Blog Intro,ಪರಿಚಯ ಬ್ಲಾಗ್
@@ -1824,10 +1827,10 @@ apps/frappe/frappe/public/js/frappe/model/model.js +104,Unable to load: {0},ಲ�
 DocType: DocField,Read Only,readonly
 DocType: Print Settings,Send Print as PDF,ಮುದ್ರಿಸು Send ಪಿಡಿಎಫ್
 DocType: Workflow Transition,Allowed,ಅವಕಾಶ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +318,There can be only one Fold in a form,ಒಂದು ರೂಪದಲ್ಲಿ ಒಂದೇ ಪದರ ಇಲ್ಲದಂತಾಗುತ್ತದೆ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +321,There can be only one Fold in a form,ಒಂದು ರೂಪದಲ್ಲಿ ಒಂದೇ ಪದರ ಇಲ್ಲದಂತಾಗುತ್ತದೆ
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,ಅಮಾನ್ಯವಾದ ಮುಖಪುಟ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,ಫಿಲ್ಟರ್ ಕೊಡುಗೆಗಳು
-apps/frappe/frappe/core/doctype/doctype/doctype.py +445,{0}: Permission at level 0 must be set before higher levels are set,{0} : ಉನ್ನತ ಮಟ್ಟದ ಸೆಟ್ ಮೊದಲು ಮಟ್ಟದ 0 ಅನುಮತಿಯ ಸೆಟ್ ಮಾಡಬೇಕು
+apps/frappe/frappe/core/doctype/doctype/doctype.py +448,{0}: Permission at level 0 must be set before higher levels are set,{0} : ಉನ್ನತ ಮಟ್ಟದ ಸೆಟ್ ಮೊದಲು ಮಟ್ಟದ 0 ಅನುಮತಿಯ ಸೆಟ್ ಮಾಡಬೇಕು
 DocType: Website Settings,Home Page is Products,ಮುಖಪುಟ ಉತ್ಪನ್ನಗಳು ಆಗಿದೆ
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},ಹುದ್ದೆ ಮುಚ್ಚಲಾಯಿತು {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +93,Calculate,ಲೆಕ್ಕ
@@ -1840,11 +1843,11 @@ DocType: Social Login Keys,GitHub Client ID,GitHub ಕ್ಲೈಂಟ್ ID
 DocType: Contact Us Settings,City,ನಗರ
 DocType: DocField,Perm Level,ಪೆರ್ಮ್ ಮಟ್ಟ
 apps/frappe/frappe/desk/doctype/event/event.py +59,Events In Today's Calendar,ಇಂದಿನ ಕ್ಯಾಲೆಂಡರ್ ಕ್ರಿಯೆಗಳು
-apps/frappe/frappe/templates/base.html +140,Error: Not a valid id?,ದೋಷ: ಮಾನ್ಯ ಐಡಿ?
+apps/frappe/frappe/templates/base.html +136,Error: Not a valid id?,ದೋಷ: ಮಾನ್ಯ ಐಡಿ?
 DocType: Web Page,Web Page,ವೆಬ್ ಪುಟ
 DocType: Blog Category,Blogger,ಬ್ಲಾಗರ್
 apps/frappe/frappe/public/js/frappe/views/ganttview.js +45,Gantt Chart,ಗಂಟ್ ಚಾರ್ಟ್
-apps/frappe/frappe/public/js/frappe/form/control.js +563,Date must be in format: {0},ದಿನಾಂಕ ಸ್ವರೂಪದಲ್ಲಿರಬೇಕು : {0}
+apps/frappe/frappe/public/js/frappe/form/control.js +565,Date must be in format: {0},ದಿನಾಂಕ ಸ್ವರೂಪದಲ್ಲಿರಬೇಕು : {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +22,Select Columns,ಆಯ್ಕೆ ಅಂಕಣ
 apps/frappe/frappe/templates/pages/login.py +45,Missing parameters for login,ಲಾಗಿನ್ ಮಿಸ್ಸಿಂಗ್ ನಿಯತಾಂಕಗಳನ್ನು
 DocType: Workflow State,folder-open,ಫೋಲ್ಡರ್ ತೆರೆದ
@@ -1852,7 +1855,8 @@ apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Appl
 apps/frappe/frappe/config/website.py +18,Single Post (article).,ಒಂದೇ ಪೋಸ್ಟ್ ( ಲೇಖನ ) .
 DocType: Page,No,ಇಲ್ಲ
 DocType: Property Setter,Set Value,ಸೆಟ್ ಮೌಲ್ಯ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +190,Hide field in form,ರೂಪದಲ್ಲಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮರೆಮಾಡಿ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Hide field in form,ರೂಪದಲ್ಲಿ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮರೆಮಾಡಿ
+apps/frappe/frappe/public/js/frappe/desk.js +75,"The application has been updated to a new version, please refresh this page","ಅಪ್ಲಿಕೇಶನ್ ಹೊಸ ಆವೃತ್ತಿ ಅಪ್ಡೇಟ್ ಮಾಡಲಾಗಿದೆ, ಈ ಪುಟವನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ"
 DocType: Email Alert,Optional: The alert will be sent if this expression is true,ಐಚ್ಛಿಕ: ಈ ಅಭಿವ್ಯಕ್ತಿ ನಿಜವಾದ ವೇಳೆ ಎಚ್ಚರಿಕೆಯನ್ನು ಕಳುಹಿಸಲಾಗುವುದು
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +452,Select records for assignment,ಹುದ್ದೆ ಆಯ್ಕೆ ದಾಖಲೆಗಳು
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +87,Importing,ಆಮದು
@@ -1860,14 +1864,14 @@ DocType: ToDo,Assigned By,ಅದಕ್ಕೆ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,ನೀವು ಜಾಗ ಮಟ್ಟವನ್ನು ಹೊಂದಿಸಲು ಕಸ್ಟಮೈಸ್ ಫಾರ್ಮ್ ಬಳಸಬಹುದು .
 DocType: DocPerm,Level,ಮಟ್ಟ
 DocType: DocPerm,Report,ವರದಿ
-apps/frappe/frappe/templates/generators/web_form.html +33,Please login to create a new {0},ಹೊಸ ರಚಿಸಲು ಲಾಗಿನ್ ದಯವಿಟ್ಟು {0}
+apps/frappe/frappe/templates/generators/web_form.html +37,Please login to create a new {0},ಹೊಸ ರಚಿಸಲು ಲಾಗಿನ್ ದಯವಿಟ್ಟು {0}
 apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} ಉಳಿಸಲಾಗಿದೆ
 apps/frappe/frappe/core/doctype/user/user.py +238,User {0} cannot be renamed,ಬಳಕೆದಾರ {0} ಮರುನಾಮಕರಣ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Website Settings,An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org],.ico ವಿಸ್ತರಣೆ ಐಕಾನ್ ಕಡತ. 16 X 16 px ಇರಬೇಕು. ಒಂದು ಫೆವಿಕಾನ್ ಜನರೇಟರ್ ಬಳಸಿ ಉತ್ಪಾದಿಸಲಾಗುತ್ತದೆ. [favicon-generator.org]
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,ರಫ್ತು
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅರ್ಜಿ ಬಳಸಲಾಗುತ್ತದೆ Doctypes JSON ಪಟ್ಟಿ. ಖಾಲಿ ಇದ್ದರೆ, ಎಲ್ಲಾ ಲಿಂಕ್ Doctypes ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅರ್ಜಿ ಬಳಸಲಾಗುತ್ತದೆ."
 DocType: Report,Ref DocType,ಉಲ್ಲೇಖ doctype
-apps/frappe/frappe/core/doctype/doctype/doctype.py +457,{0}: Cannot set Amend without Cancel,{0} : ರದ್ದು ಮಾಡಿರಿ ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +460,{0}: Cannot set Amend without Cancel,{0} : ರದ್ದು ಮಾಡಿರಿ ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/form/print_layout.html +20,Full Page,ಪೂರ್ಣ ಪುಟ
 DocType: DocType,Is Child Table,ChildTable ಈಸ್
 apps/frappe/frappe/utils/csvutils.py +123,{0} must be one of {1},{0} {1} ಒಂದು ಇರಬೇಕು
@@ -1891,7 +1895,7 @@ DocType: Workflow Action,Workflow Action,ವರ್ಕ್ಫ್ಲೋ ಆ�
 DocType: Event,Send an email reminder in the morning,ಬೆಳಿಗ್ಗೆ ಇಮೇಲ್ ಜ್ಞಾಪನೆಯನ್ನು ಕಳುಹಿಸಿ
 DocType: Blog Post,Published On,ರಂದು ಪ್ರಕಟವಾದ
 DocType: User,Gender,ಲಿಂಗ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +308,Field '{0}' cannot be set as Unique as it has non-unique values,ಕ್ಷೇತ್ರದಲ್ಲಿ &#39;{0}&#39; ಇದು ಅಲ್ಲದ ಅನನ್ಯ ಮೌಲ್ಯಗಳನ್ನು ಹೊಂದಿದೆ ಅನನ್ಯ ಎಂದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +311,Field '{0}' cannot be set as Unique as it has non-unique values,ಕ್ಷೇತ್ರದಲ್ಲಿ &#39;{0}&#39; ಇದು ಅಲ್ಲದ ಅನನ್ಯ ಮೌಲ್ಯಗಳನ್ನು ಹೊಂದಿದೆ ಅನನ್ಯ ಎಂದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Feed,Feed,ಫೀಡ್
 DocType: ToDo,Reference Type,ರೆಫರೆನ್ಸ್ ಕೌಟುಂಬಿಕತೆ
 DocType: Event,Repeat On,ರಂದು ಪುನರಾವರ್ತಿಸಿ
@@ -1919,7 +1923,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,ಅಲ
 DocType: Workflow State,star,ನಕ್ಷತ್ರ
 apps/frappe/frappe/desk/page/activity/activity.js +190,Nov,ನವೆಂಬರ್
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +160,values separated by commas,ಬೇರ್ಪಡಿಸಲಾಗಿರುತ್ತದೆ ಮೌಲ್ಯಗಳನ್ನು
-apps/frappe/frappe/core/doctype/doctype/doctype.py +274,Max width for type Currency is 100px in row {0},ಮಾದರಿ ಕರೆನ್ಸಿ ಮ್ಯಾಕ್ಸ್ ಅಗಲ ಸತತವಾಗಿ 100px {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +277,Max width for type Currency is 100px in row {0},ಮಾದರಿ ಕರೆನ್ಸಿ ಮ್ಯಾಕ್ಸ್ ಅಗಲ ಸತತವಾಗಿ 100px {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,ವಿಷಯ ವೆಬ್ ಪುಟ .
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,ಹೊಸ ಪಾತ್ರ ಸೇರಿಸಿ
 apps/frappe/frappe/templates/includes/login/login.js +126,Oops! Something went wrong,ಅಯ್ಯೋ! ಏನೋ ತಪ್ಪಾಗಿದೆ
@@ -1963,11 +1967,12 @@ DocType: Print Settings,Print Style,ಮುದ್ರಣ ಶೈಲಿ
 DocType: DocPerm,Import,ಆಮದು
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,ಸಾಲು {0}: ಪ್ರಮಾಣಿತ ಕ್ಷೇತ್ರಗಳಿಗೆ ಸಲ್ಲಿಸಿ ಅನುಮತಿಸಿ ಬೆಳೆಸಲು ಅವಕಾಶವಿರುತ್ತದೆ ಮಾಡಿರುವುದಿಲ್ಲ
 apps/frappe/frappe/config/setup.py +95,Import / Export Data,ಆಮದು / ರಫ್ತು ಡೇಟಾವನ್ನು
+apps/frappe/frappe/core/doctype/role/role.py +12,Standard roles cannot be renamed,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಪಾತ್ರಗಳನ್ನು ಮರುನಾಮಕರಣ ಸಾಧ್ಯವಿಲ್ಲ
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},ಅಪ್ಡೇಟ್ {0}
 apps/frappe/frappe/public/js/legacy/form.js +169,Cannot print cancelled documents,ರದ್ದು ದಾಖಲೆಗಳನ್ನು ಮುದ್ರಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 DocType: User,Desktop Background,ಡೆಸ್ಕ್ಟಾಪ್ ಹಿನ್ನೆಲೆ
 DocType: Workflow State,chevron-right,CHEVRON ಬಲ
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +159,"Change type of field. (Currently, Type change is \
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158,"Change type of field. (Currently, Type change is \
 						allowed among 'Currency and Float')","ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಾದರಿ ಬದಲಾಯಿಸಿ. (ಪ್ರಸ್ತುತ, ಕೌಟುಂಬಿಕತೆ ಬದಲಾವಣೆ \
  'ಕರೆನ್ಸಿ ಮತ್ತು ಫ್ಲೋಟ್' ನಡುವೆ ಅವಕಾಶ ಇದೆ)"
 apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be in developer mode to edit a Standard Web Form,ನೀವು ಪ್ರಮಾಣಿತ ವೆಬ್ ಫಾರ್ಮ್ ಸಂಪಾದಿಸಲು ಡೆವೆಲಪರ್ ಮೋಡ್ ಅಗತ್ಯವಿದೆ
@@ -1981,7 +1986,7 @@ DocType: User,Security Settings,ಭದ್ರತಾ ಸೆಟ್ಟಿಂಗ್�
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +617,Add Column,ಅಂಕಣ ಸೇರಿಸಿ
 ,Desktop,ಡೆಸ್ಕ್ಟಾಪ್
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,ಈ ಫಾರ್ಮ್ ವೆಬ್ ಪುಟ ವೇಳೆ ಪಠ್ಯ ವೆಬ್ ಪುಟ ಲಿಂಕ್ ಫಾರ್ ಪ್ರದರ್ಶನವಾಗಲು. ಲಿಂಕ್ ಮಾರ್ಗ ಸ್ವಯಂಚಾಲಿತವಾಗಿ page_name` ಮತ್ತು `parent_website_route`` ಆಧರಿಸಿ ರಚಿಸಲಾಗಿದೆ
-apps/frappe/frappe/public/js/frappe/form/control.js +1258,Please set {0} first,ಮೊದಲ {0} ಸೆಟ್ ದಯವಿಟ್ಟು
+apps/frappe/frappe/public/js/frappe/form/control.js +1261,Please set {0} first,ಮೊದಲ {0} ಸೆಟ್ ದಯವಿಟ್ಟು
 DocType: Dropbox Backup,Send Backups to Dropbox,ಡ್ರಾಪ್ಬಾಕ್ಸ್ ಬ್ಯಾಕ್ಅಪ್ಗಳು ಕಳುಹಿಸಿ
 DocType: Patch Log,Patch,ಮಚ್ಚೆ
 DocType: Async Task,Failed,ವಿಫಲವಾಗಿದೆ

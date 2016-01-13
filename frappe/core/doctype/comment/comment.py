@@ -46,13 +46,15 @@ class Comment(Document):
 			if self.comment_docname == frappe.session.user:
 				message = self.as_dict()
 				message['broadcast'] = True
-				frappe.publish_realtime('new_message', message)
+				frappe.publish_realtime('new_message', message, after_commit=True)
 			else:
 				# comment_docname contains the user who is addressed in the messages' page comment
-				frappe.publish_realtime('new_message', self.as_dict(), user=self.comment_docname)
+				frappe.publish_realtime('new_message', self.as_dict(),
+					user=self.comment_docname, after_commit=True)
 		else:
-			frappe.publish_realtime('new_comment', self.as_dict(), doctype= self.comment_doctype,
-				docname = self.comment_docname)
+			frappe.publish_realtime('new_comment', self.as_dict(),
+				doctype= self.comment_doctype, docname = self.comment_docname,
+				after_commit=True)
 
 			self.notify_mentions()
 

@@ -27,7 +27,7 @@ frappe.get_indicator = function(doc, doctype) {
 	}
 
 	if(is_submittable && doc.docstatus==0) {
-		return [__("Draft"), "light-blue", "docstatus,=,0"];
+		return [__("Draft"), "red", "docstatus,=,0"];
 	}
 
 	if(is_submittable && doc.docstatus==2) {
