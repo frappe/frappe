@@ -42,7 +42,7 @@ Here is the finished controller:
 
 In this script:
 
-1. We get the last trasaction before the current transaction date using the query function `frappe.get_list`
+1. We get the last transaction before the current transaction date using the query function `frappe.get_list`
 1. If the last transaction is something we don't like we throw an exception using `frappe.throw`
 1. We use `_("text")` method to identify translatable strings.
 
