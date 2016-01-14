@@ -62,13 +62,15 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 		msgprint(__('Allowing DocType, DocType. Be careful!'))
 	} else if(this.doctype=='DocType') {
 		if (frappe.views.formview[docname] || frappe.pages['List/'+docname]) {
-			msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
-			throw 'doctype open conflict'
+			window.location.reload();
+			// msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
+			// throw 'doctype open conflict'
 		}
 	} else {
 		if (frappe.views.formview.DocType && frappe.views.formview.DocType.frm.opendocs[this.doctype]) {
-			msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
-			throw 'doctype open conflict'
+			window.location.reload();
+			// msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
+			// throw 'doctype open conflict'
 		}
 	}
 }
