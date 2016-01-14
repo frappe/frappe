@@ -657,7 +657,10 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 		if(frappe._from_link) {
 			if(me.doctype===frappe._from_link.df.options) {
-				frappe._from_link.parse_validate_and_set_in_model(me.docname);
+				frappe.model.set_value(frappe._from_link.doctype,
+					frappe._from_link.docname, frappe._from_link.fieldname, me.docname);
+				frappe._from_link.refresh();
+
 				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
 				setTimeout(function() { scroll(0, frappe._from_link_scrollY); }, 100);
 			}
