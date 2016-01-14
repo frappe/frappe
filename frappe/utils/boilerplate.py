@@ -227,14 +227,15 @@ from __future__ import unicode_literals
 from frappe import _
 
 def get_data():
-	return {{
-		"{app_title}": {{
+	return [
+		{{
+			"module_name": "{app_title}",
 			"color": "{app_color}",
 			"icon": "{app_icon}",
 			"type": "module",
 			"label": _("{app_title}")
 		}}
-	}}
+	]
 """
 
 setup_template = """# -*- coding: utf-8 -*-

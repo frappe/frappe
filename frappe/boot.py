@@ -9,7 +9,7 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
-from frappe.utils import get_gravatar, get_url
+from frappe.utils import get_gravatar
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 
@@ -32,9 +32,16 @@ def get_bootinfo():
 		bootinfo['sid'] = frappe.session['sid'];
 
 	bootinfo.modules = {}
+	bootinfo.module_list = []
 	for app in frappe.get_installed_apps():
 		try:
-			bootinfo.modules.update(frappe.get_attr(app + ".config.desktop.get_data")() or {})
+			modules = frappe.get_attr(app + ".config.desktop.get_data")() or {}
+			if isinstance(modules, dict):
+				bootinfo.modules.update(modules)
+			else:
+				for m in modules:
+					bootinfo.modules[m['module_name']] = m
+					bootinfo.module_list.append(m['module_name'])
 		except ImportError:
 			pass
 		except AttributeError:

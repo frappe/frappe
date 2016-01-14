@@ -123,7 +123,7 @@ $.extend(frappe.user, {
 
 		if(!modules_list || !modules_list.length) {
 			// all modules
-			modules_list = keys(frappe.modules).sort();
+			modules_list = frappe.boot.module_list;
 		}
 
 		// filter hidden modules
