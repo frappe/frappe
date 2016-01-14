@@ -11,6 +11,9 @@ def make_boilerplate(dest, app_name):
 		print "Destination directory does not exist"
 		return
 
+	# app_name should be in snake_case
+	app_name = frappe.scrub(app_name)
+
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
