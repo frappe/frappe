@@ -57,7 +57,8 @@
   margin-top: 70px;
 }
 /* show menu aligned to the right border of the dropdown */
-.page-actions .dropdown-menu {
+.page-actions .dropdown-menu,
+.form-inner-toolbar .dropdown-menu {
   right: 0px;
   left: auto;
 }
