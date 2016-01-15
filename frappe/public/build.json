@@ -7,6 +7,7 @@
 	"js/frappe-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
 		"public/js/frappe/provide.js",
+		"public/js/frappe/format.js",
 		"public/js/frappe/misc/number_format.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
@@ -15,8 +16,7 @@
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
-		"website/js/website.js",
-		"public/js/lib/socket.io.min.js"
+		"website/js/website.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
