@@ -230,14 +230,14 @@ frappe.ui.Page = Class.extend({
 	get_inner_group_button: function(label) {
 		var $group = this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
 		if(!$group.length) {
-			$group = $('<div class="btn-group" data-label='+label+' style="margin-left: 10px;">\
+			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
 				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar.removeClass("hide"));
 		}
 		return $group;
 	},
-	
+
 	set_inner_btn_group_as_primary: function(label) {
 		this.get_inner_group_button(label).find("button").removeClass("btn-default").addClass("btn-primary");
 	},
