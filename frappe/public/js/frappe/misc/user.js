@@ -104,26 +104,28 @@ $.extend(frappe.user, {
 	},
 	get_desktop_items: function(global) {
 		// get user sequence preference
-		var modules_list = null;
+		var modules_list = [];
 		if(!global) {
 			var user_list = frappe.defaults.get_default("_desktop_items");
 			if(user_list && user_list.length)
 				var modules_list = user_list;
 
-			if(modules_list) {
-				// add missing modules - they will be hidden anyways by the view
-				$.each(frappe.modules, function(m, module) {
-					var module = frappe.get_module(m);
-					if(modules_list.indexOf(m)===-1) {
-						modules_list.push(m);
-					}
-				});
-			}
 		}
 
-		if(!modules_list || !modules_list.length) {
-			// all modules
-			modules_list = frappe.boot.module_list;
+		frappe.boot.module_list.forEach(function(i, m) {
+			if(modules_list.indexOf(m)===-1) {
+				modules_list.push(m);
+			}
+		});
+
+		if(modules_list) {
+			// add missing modules - they will be hidden anyways by the view
+			$.each(frappe.modules, function(m, module) {
+				var module = frappe.get_module(m);
+				if(modules_list.indexOf(m)===-1) {
+					modules_list.push(m);
+				}
+			});
 		}
 
 		// filter hidden modules

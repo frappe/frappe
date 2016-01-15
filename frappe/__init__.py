@@ -645,7 +645,7 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 		apps.insert(0, 'frappe')
 	return apps
 
-def get_installed_apps(sort=False):
+def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
 		return []
@@ -657,6 +657,11 @@ def get_installed_apps(sort=False):
 
 	if sort:
 		installed = [app for app in get_all_apps(True) if app in installed]
+
+	if frappe_last:
+		if 'frappe' in installed:
+			installed.remove('frappe')
+		installed.append('frappe')
 
 	return installed
 

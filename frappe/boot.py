@@ -33,7 +33,7 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_installed_apps(frappe_last=True):
 		try:
 			modules = frappe.get_attr(app + ".config.desktop.get_data")() or {}
 			if isinstance(modules, dict):
