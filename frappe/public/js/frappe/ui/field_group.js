@@ -19,8 +19,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, f) {
-				if(f.df["default"])
+				if(f.df["default"]) {
 					f.set_input(f.df["default"]);
+				}
+					
 			})
 			if(!this.no_submit_on_enter) {
 				this.catch_enter_as_submit();

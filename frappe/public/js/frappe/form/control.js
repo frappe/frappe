@@ -47,9 +47,15 @@ frappe.ui.form.Control = Class.extend({
 	// as strings based on permissions
 	get_status: function(explain) {
 		if(!this.doctype && !this.docname) {
+			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				if(explain) console.log("By Hidden: None");
 				return "None";
+
+			} else if (cint(this.df.read_only)) {
+				if(explain) console.log("By Read Only: Read");
+				return "Read";
+
 			}
 
 			return "Write";
@@ -268,7 +274,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		this.disp_area && $(this.disp_area)
-			.html(frappe.format(this.value, this.df, {no_icon:true, inline:true},
+			.html(frappe.format(this.value || this.get_value(), this.df, {no_icon:true, inline:true},
 					this.doc || (this.frm && this.frm.doc)));
 	},
 
@@ -921,9 +927,10 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		// refresh options first - (new ones??)
 		this.set_options(value || "");
 
-		this._super(value);
-
-		var input_value = this.$input.val();
+		var input_value = null;
+		if(this.$input) {
+			var input_value = this.$input.val();
+		}
 
 		// not a possible option, repair
 		if(this.doctype && this.docname) {
@@ -940,6 +947,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 				this.set_value(input_value);
 			}
 		}
+
+		this._super(value);
+
 	},
 	set_options: function(value) {
 		var options = this.df.options || [];
@@ -956,11 +966,13 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		}
 		this.last_options = options.toString();
 
-		var selected = this.$input.find(":selected").val();
-		this.$input.empty().add_options(options || []);
+		if(this.$input) {
+			var selected = this.$input.find(":selected").val();
+			this.$input.empty().add_options(options || []);
 
-		if(value===undefined && selected) {
-			this.$input.val(selected);
+			if(value===undefined && selected) {
+				this.$input.val(selected);
+			}
 		}
 	},
 	get_file_attachment_list: function() {

@@ -40,7 +40,13 @@ frappe.search = {
 				if(ui.item.onclick) {
 					ui.item.onclick(ui.item.match);
 				} else {
+					var previous_hash = window.location.hash;
 					frappe.set_route(ui.item.route);
+
+					// hashchange didn't fire!
+					if (window.location.hash == previous_hash) {
+						frappe.route();
+					}
 				}
 				$(this).val('');
 				return false;
