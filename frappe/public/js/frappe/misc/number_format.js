@@ -214,3 +214,10 @@ function in_list(list, item) {
 		if(list[i]==item) return true;
 	return false;
 }
+
+function remainder(numerator, denominator, precision) {
+	precision = cint(precision);
+	var multiplier = Math.pow(10, precision);
+	var _remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier;
+	return flt(_remainder, precision);
+};
