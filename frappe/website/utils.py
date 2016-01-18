@@ -26,10 +26,14 @@ def can_cache(no_cache=False):
 
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
-		comment, comment_by_fullname, creation, comment_by
-		from `tabComment` where comment_doctype=%s
-		and ifnull(comment_type, "Comment")="Comment"
-		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
+		content, sender_full_name, creation, sender
+		from `tabCommunication`
+		where
+			communication_type='Comment'
+			and reference_doctype=%s
+			and reference_name=%s
+			and (comment_type is null or comment_type='Comment')
+		order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
 	if frappe.local.flags.home_page:

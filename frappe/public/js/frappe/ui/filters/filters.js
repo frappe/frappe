@@ -235,7 +235,6 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var field_area = me.$w.find('.filter_field').empty().get(0);
-
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: field_area,

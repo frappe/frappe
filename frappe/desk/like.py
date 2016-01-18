@@ -64,40 +64,26 @@ def _toggle_like(doctype, name, add, user=None):
 def remove_like(doctype, name):
 	"""Remove previous Like"""
 	# remove Comment
-	frappe.delete_doc("Comment", [c.name for c in frappe.get_all("Comment",
+	frappe.delete_doc("Communication", [c.name for c in frappe.get_all("Communication",
 		filters={
-			"comment_doctype": doctype,
-			"comment_docname": name,
-			"comment_by": frappe.session.user,
-			"comment_type": "Like"
-		}
-	)], ignore_permissions=True)
-
-	# remove Feed
-	frappe.delete_doc("Feed", [c.name for c in frappe.get_all("Feed",
-		filters={
-			"doc_type": doctype,
-			"doc_name": name,
+			"communication_type": "Comment",
+			"reference_doctype": doctype,
+			"reference_name": name,
 			"owner": frappe.session.user,
-			"feed_type": "Like"
+			"comment_type": "Like"
 		}
 	)], ignore_permissions=True)
 
 def add_comment(doctype, name):
 	doc = frappe.get_doc(doctype, name)
 
-	if doctype=="Comment":
-		link = get_link_to_form(doc.comment_doctype, doc.comment_docname,
-			"{0} {1}".format(_(doc.comment_doctype), doc.comment_docname))
-		doc.add_comment("Like", _("Comment: {0} in {1}").format("<b>" + doc.comment + "</b>", link),
-			reference_doctype=doc.comment_doctype, reference_name=doc.comment_docname)
-
-	elif doctype=="Communication":
+	if doctype=="Communication":
 		link = get_link_to_form(doc.reference_doctype, doc.reference_name,
 			"{0} {1}".format(_(doc.reference_doctype), doc.reference_name))
 
-		doc.add_comment("Like", _("Communication: {0} in {1}").format("<b>" + doc.subject + "</b>", link),
-			reference_doctype=doc.reference_doctype, reference_name=doc.reference_name)
+		doc.add_comment("Like", _("{0}: {1} in {2}").format(_(doc.communication_type),
+			"<b>" + doc.subject + "</b>", link),
+			link_doctype=doc.reference_doctype, link_name=doc.reference_name)
 
 	else:
 		doc.add_comment("Like", _("Liked"))

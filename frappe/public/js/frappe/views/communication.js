@@ -110,10 +110,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		}
 
-		var comments = this.frm.get_docinfo().comments;
-		if (comments) {
-			for ( var i=0, l=comments.length; i<l; i++ ) {
-				cc.push( [comments[i].comment_by, 0] );
+		var communications = this.frm.get_docinfo().communications;
+		if (communications) {
+			for ( var i=0, l=communications.length; i<l; i++ ) {
+				cc.push( [communications[i].sender, 0] );
 			}
 		}
 
@@ -160,21 +160,21 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.subject = this.subject || "";
 
 		if(!this.recipients && this.last_email) {
-			this.recipients = this.last_email.comment_by;
+			this.recipients = this.last_email.sender;
 		}
 
 		if(!this.recipients) {
-			this.recipients = this.frm && this.frm.comments.get_recipient();
+			this.recipients = this.frm && this.frm.timeline.get_recipient();
 		}
 
 		if(!this.subject && this.frm) {
 			// get subject from last communication
-			var last = this.frm.comments.get_last_email();
+			var last = this.frm.timeline.get_last_email();
 
 			if(last) {
 				this.subject = last.subject;
 				if(!this.recipients) {
-					this.recipients = last.comment_by;
+					this.recipients = last.sender;
 				}
 
 				// prepend "Re:"
@@ -420,7 +420,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		};
 
 		return frappe.call({
-			method:"frappe.core.doctype.communication.communication.make",
+			method:"frappe.core.doctype.communication.email.make",
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,
@@ -453,7 +453,7 @@ frappe.views.CommunicationComposer = Class.extend({
 							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
 						}
 						// clear input
-						cur_frm.comments.input.val("");
+						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
 				} else {
@@ -469,7 +469,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			last_email = this.last_email;
 
 		if(!last_email) {
-			last_email = this.frm && this.frm.comments.get_last_email(true);
+			last_email = this.frm && this.frm.timeline.get_last_email(true);
 		}
 
 		if(!frappe.utils.is_html(signature)) {
@@ -489,13 +489,13 @@ frappe.views.CommunicationComposer = Class.extend({
 			+ (signature ? ("<br>" + signature) : "");
 
 		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.comment;
+			var last_email_content = last_email.original_comment || last_email.content;
 
 			fields.content.set_input(reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(last_email.creation) , last_email.comment_by]) + '</p>' +
+					[frappe.datetime.global_date_format(last_email.creation) , last_email.sender]) + '</p>' +
 					last_email_content +
 				'<blockquote>');
 		} else {

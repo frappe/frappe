@@ -2,15 +2,14 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doctype("Feed")
+	frappe.reload_doctype("Communication")
 
-	frappe.db.sql("update `tabFeed` set seen=1")
-
-	for doctype, name in frappe.db.sql("""select distinct doc_type, doc_name from `tabFeed`
+	for doctype, name in frappe.db.sql("""select distinct reference_doctype, reference_name
+		from `tabCommunication`
 		where
-			(doc_type is not null and doc_type != '')
-			and (doc_name is not null and doc_name != '')
-			and doc_type != 'Feed'
+			(reference_doctype is not null and reference_doctype != '')
+			and (reference_name is not null and reference_name != '')
+			and (reference_owner is null or reference_owner = '')
 		for update"""):
 
 		owner = frappe.db.get_value(doctype, name, "owner")
@@ -18,12 +17,12 @@ def execute():
 		if not owner:
 			continue
 
-		frappe.db.sql("""update `tabFeed`
-			set doc_owner=%(owner)s
+		frappe.db.sql("""update `tabCommunication`
+			set reference_owner=%(owner)s
 			where
-				doc_type=%(doctype)s
-				and doc_name=%(name)s
-				and (doc_owner is null or doc_owner = '')""".format(doctype=doctype), {
+				reference_doctype=%(doctype)s
+				and reference_name=%(name)s
+				and (reference_owner is null or reference_owner = '')""".format(doctype=doctype), {
 					"doctype": doctype,
 					"name": name,
 					"owner": owner

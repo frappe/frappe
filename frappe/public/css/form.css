@@ -97,6 +97,9 @@
 .timeline-item blockquote {
   font-size: inherit;
 }
+.timeline-item .btn-more {
+  margin-left: 65px;
+}
 .timeline-items {
   position: relative;
 }

@@ -81,8 +81,8 @@
 				comment_by_fullname: $("[name='comment_by_fullname']").val(),
 				comment_by: $("[name='comment_by']").val(),
 				comment: $("[name='comment']").val(),
-				comment_doctype: "{{ comment_doctype or doctype }}",
-				comment_docname: "{{ comment_docname or name }}",
+				reference_doctype: "{{ reference_doctype or doctype }}",
+				reference_name: "{{ reference_name or name }}",
 				comment_type: "Comment",
 				page_name: "{{ pathname }}",
 			}

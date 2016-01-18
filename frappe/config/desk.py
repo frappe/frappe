@@ -25,7 +25,7 @@ def get_data():
 					"label": _("Messages"),
 					"name": "messages",
 					"description": _("Chat messages and other notifications."),
-					"data_doctype": "Comment"
+					"data_doctype": "Communication"
 				},
 				{
 					"type": "doctype",

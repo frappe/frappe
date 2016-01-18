@@ -815,7 +815,7 @@ _f.Frm.prototype.reload_docinfo = function(callback) {
 		callback: function(r) {
 			// docinfo will be synced
 			if(callback) callback(r.docinfo);
-			me.comments.refresh();
+			me.timeline.refresh();
 			me.assign_to.refresh();
 			me.attachments.refresh();
 		}

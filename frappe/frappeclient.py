@@ -173,9 +173,9 @@ class FrappeClient(object):
 			new_doc.insert()
 
 			if not meta.istable:
-				if doctype != "Comment":
-					self.migrate_doctype("Comment", {"comment_doctype": doctype, "comment_docname": doc["name"]},
-						update={"comment_docname": new_doc.name}, verbose=0)
+				if doctype != "Communication":
+					self.migrate_doctype("Communication", {"reference_doctype": doctype, "reference_name": doc["name"]},
+						update={"reference_name": new_doc.name}, verbose=0)
 
 				if doctype != "File":
 					self.migrate_doctype("File", {"attached_to_doctype": doctype,

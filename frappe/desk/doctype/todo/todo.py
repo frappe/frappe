@@ -14,41 +14,40 @@ exclude_from_linked_with = True
 
 class ToDo(Document):
 	def validate(self):
+		self._assignment = None
 		if self.is_new():
-			self.add_assign_comment(frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description), "Assigned")
+			self._assignment = {
+				"text": frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description),
+				"comment_type": "Assigned"
+			}
+
 		else:
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
-				self.add_assign_comment(frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
-					"Assignment Completed")
+				self._assignment = {
+					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
+					"comment_type": "Assignment Completed"
+				}
 
 	def on_update(self):
+		if self._assignment:
+			self.add_assign_comment(**self._assignment)
+
 		self.update_in_reference()
 
 	def on_trash(self):
-		# unlink assignment comment
-		frappe.db.sql("""update `tabComment` set reference_doctype=null and reference_name=null
-			where reference_doctype='ToDo' and reference_name=%s""", self.name)
+		# unlink todo from linked comments
+		frappe.db.sql("""update `tabCommunication` set link_doctype=null, link_name=null
+			where link_doctype=%(doctype)s and link_name=%(name)s""", {"doctype": self.doctype, "name": self.name})
 
 		self.update_in_reference()
 
 	def add_assign_comment(self, text, comment_type):
-		if not self.reference_type and self.reference_name:
+		if not (self.reference_type and self.reference_name):
 			return
 
-		comment = frappe.get_doc({
-			"doctype":"Comment",
-			"comment_by": frappe.session.user,
-			"comment_type": comment_type,
-			"comment_doctype": self.reference_type,
-			"comment_docname": self.reference_name,
-			"comment": """{text}""".format(text=text),
-			"reference_doctype": self.doctype,
-			"reference_name": self.name
-		})
-		comment.flags.ignore_permissions = True
-		comment.flags.ignore_links = True
-		comment.insert()
+		frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text,
+			link_doctype=self.doctype, link_name=self.name)
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):
