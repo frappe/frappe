@@ -116,10 +116,8 @@ class setup_docs(object):
 
 		# make /user
 		user_path = os.path.join(self.docs_path, "user")
-		if os.path.exists(user_path):
-			shutil.rmtree(user_path, ignore_errors=True)
-
-		os.makedirs(user_path)
+		if not os.path.exists(user_path):
+			os.makedirs(user_path)
 
 		# make /assets/img
 		img_path = os.path.join(self.docs_path, "assets", "img")
@@ -278,6 +276,10 @@ class setup_docs(object):
 	def write_files(self):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
+
+		# clear the user, current folder in target
+		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
+		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
 
 		cnt = 0
 		for page in frappe.db.sql("""select parent_website_route,
