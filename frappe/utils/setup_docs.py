@@ -116,8 +116,10 @@ class setup_docs(object):
 
 		# make /user
 		user_path = os.path.join(self.docs_path, "user")
-		if not os.path.exists(user_path):
-			os.makedirs(user_path)
+		if os.path.exists(user_path):
+			shutil.rmtree(user_path, ignore_errors=True)
+
+		os.makedirs(user_path)
 
 		# make /assets/img
 		img_path = os.path.join(self.docs_path, "assets", "img")
