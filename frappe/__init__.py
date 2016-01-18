@@ -40,13 +40,18 @@ class _dict(dict):
 
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
+	from frappe.translate import get_full_dict
+	from frappe.utils import cstr
+
 	if not lang:
 		lang = local.lang
+
+	# msg should always be unicode
+	msg = cstr(msg)
 
 	if lang == "en":
 		return msg
 
-	from frappe.translate import get_full_dict
 	return get_full_dict(local.lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
