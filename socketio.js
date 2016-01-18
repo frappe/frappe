@@ -201,16 +201,16 @@ function can_subscribe_doc(args) {
 		.end(function(err, res) {
 			if (!res) {
 				console.log("No response for doc_subscribe");
-				
+
 			} else if (res.status == 403) {
 				return;
-				
+
 			} else if (err) {
 				console.log(err);
-				
+
 			} else if (res.status == 200) {
 				args.callback(err, res);
-				
+
 			} else {
 				console.log("Something went wrong", err, res);
 			}
@@ -226,8 +226,13 @@ function send_viewers(args) {
 	// open doc room
 	var room = get_open_doc_room(args.socket, args.doctype, args.docname);
 
+	var socketio_room = io.sockets.adapter.rooms[room] || {};
+
+	// for compatibility with both v1.3.7 and 1.4.4
+	var clients_dict = ("sockets" in socketio_room) ? socketio_room.sockets : socketio_room;
+
 	// socket ids connected to this room
-	var clients = Object.keys(io.sockets.adapter.rooms[room] || {});
+	var clients = Object.keys(clients_dict || {});
 
 	var viewers = [];
 	for (var i in io.sockets.sockets) {
