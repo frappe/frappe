@@ -350,7 +350,7 @@ class EmailAccount(Document):
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""
 		self.send_notification_to = self.send_notification_to.replace(",", "\n")
-		out = [e.strip() for e in self.send_notification_to.split("\n")]
+		out = [e.strip() for e in self.send_notification_to.split("\n") if e.strip()]
 		return out
 
 	def on_trash(self):
