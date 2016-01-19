@@ -18,6 +18,7 @@ function get_query_params(query_string) {
 
 		var value = pair[1];
 		if (typeof value === "string") {
+			value = value.replace(/\+/g, "%20");
 			value = decodeURIComponent(value);
 		}
 
