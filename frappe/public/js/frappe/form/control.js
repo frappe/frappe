@@ -885,12 +885,12 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 });
 
 frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
-	make_input: function() {
+	make: function() {
 		var me = this;
 		this._super();
 		this.img_wrapper = $('<div style="margin: 7px 0px;">\
 			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
-			.prependTo(this.input_area);
+			.appendTo(this.wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper).toggle(false);
 
@@ -900,16 +900,18 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 
 		this.$wrapper.on("refresh", function() {
 			me.set_image();
+			if(me.get_status()=="Read") {
+				$(me.disp_area).toggle(false);
+			}
 		});
-
 		this.set_image();
 	},
 	set_image: function() {
 		if(this.get_value()) {
-			$(this.input_area).find(".missing-image").toggle(false);
+			$(this.img_wrapper).find(".missing-image").toggle(false);
 			this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
 		} else {
-			$(this.input_area).find(".missing-image").toggle(true);
+			$(this.img_wrapper).find(".missing-image").toggle(true);
 			this.img.toggle(false);
 		}
 	}
