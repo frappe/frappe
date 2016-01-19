@@ -564,10 +564,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
 		ignore_permissions, flags)
 
-def delete_doc_if_exists(doctype, name):
+def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
 	if db.exists(doctype, name):
-		delete_doc(doctype, name)
+		delete_doc(doctype, name, force=force)
 
 def reload_doctype(doctype, force=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""

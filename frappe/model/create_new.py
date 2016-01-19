@@ -40,7 +40,7 @@ def make_new_doc(doctype):
 	set_user_and_static_default_values(doc)
 
 	doc._fix_numeric_types()
-	doc = doc.get_valid_dict()
+	doc = doc.get_valid_dict(sanitize=False)
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
 
