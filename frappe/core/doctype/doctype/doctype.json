@@ -926,7 +926,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-01-11 01:54:58.471041", 
+ "modified": "2016-01-19 12:04:52.332070", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
@@ -976,6 +976,6 @@
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "module", 
- "sort_field": "name", 
- "sort_order": "ASC"
+ "sort_field": "modified", 
+ "sort_order": "DESC"
 }
