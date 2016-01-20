@@ -221,3 +221,15 @@ function remainder(numerator, denominator, precision) {
 	var _remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier;
 	return flt(_remainder, precision);
 };
+
+function round_based_on_smallest_currency_fraction(value, currency, precision) {
+	var smallest_currency_fraction_value = flt(frappe.model.get_value(":Currency", 
+		currency, "smallest_currency_fraction_value"))
+	
+	var remainder_val = remainder(value, smallest_currency_fraction_value, precision);
+	if(remainder_val > (smallest_currency_fraction_value / 2)) {
+		return value + (smallest_currency_fraction_value - remainder_val);
+	} else {
+		return value - remainder_val;
+	}
+};
