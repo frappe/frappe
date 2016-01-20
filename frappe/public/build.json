@@ -94,7 +94,7 @@
 		"public/js/frappe/ui/app_icon.js",
 
 		"public/js/frappe/model/model.js",
-		"public/js/frappe/model/db.js",
+		"public/js/frappe/db.js",
 		"public/js/frappe/model/meta.js",
 		"public/js/frappe/model/sync.js",
 		"public/js/frappe/model/create_new.js",
