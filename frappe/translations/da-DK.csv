@@ -240,7 +240,7 @@ DocType: DocField,Link,Link
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,Ingen fil vedhæftet
 DocType: Version,Version,Version
 DocType: User,Fill Screen,Udfyld skærm
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Kan ikke vise dette træ rapport, på grund af manglende data. Mest sandsynligt er det at blive filtreret ud på grund af tilladelser."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Kan ikke vise dette træ rapport, på grund af manglende data. Mest sandsynligt er det at blive filtreret ud på grund af tilladelser."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Rediger tilladelser
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,Edit via Upload
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","dokumenttype ..., fx kunde"
@@ -823,7 +823,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,Oprettet den
 DocType: Workflow State,align-center,tilpasse-center
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,Kan Skriv
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Visse dokumenter, som en faktura, bør ikke ændres, når endelig. Den endelige tilstand for sådanne dokumenter kaldes Tilmeldt. Du kan begrænse hvilke roller kan Submit."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,Du har ikke tilladelse til at eksportere denne rapport
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,Du har ikke tilladelse til at eksportere denne rapport
 DocType: Communication,Sender,Sender
 DocType: Web Page,Description for search engine optimization.,Beskrivelse for søgemaskine optimering.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Hent Blank skabelon
@@ -1738,7 +1738,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,Unik
 DocType: Email Account,Service,Service
 DocType: File,File Name,File Name
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),Fandt du ikke {0} for {0} ({1})
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),Fandt du ikke {0} for {0} ({1})
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Næste
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Set Tilladelser pr Bruger
 DocType: Print Format,Edit Format,Rediger Format
