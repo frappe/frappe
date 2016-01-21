@@ -173,10 +173,14 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self):
-		d = {}
+	def get_valid_dict(self, sanitize=True):
+		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
+			
+			# if no need for sanitization and value is None, continue
+			if not sanitize and d[fieldname] is None:
+				continue
 
 			df = self.meta.get_field(fieldname)
 			if df:
@@ -184,6 +188,7 @@ class BaseDocument(object):
 					d[fieldname] = cint(d[fieldname])
 
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
+					
 					d[fieldname] = flt(d[fieldname])
 
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
@@ -243,7 +248,7 @@ class BaseDocument(object):
 			if self.get(key):
 				doc[key] = self.get(key)
 
-		return frappe._dict(doc)
+		return doc
 
 	def as_json(self):
 		return frappe.as_json(self.as_dict())

@@ -392,7 +392,7 @@ A <strong>Version</strong> is a JSON dump of the current document state.</p>
         <a name="frappe.delete_doc_if_exists" href="#frappe.delete_doc_if_exists" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>delete_doc_if_exists</b>
-        <i class="text-muted">(doctype, name)</i>
+        <i class="text-muted">(doctype, name, force=0)</i>
     </p>
 	<div class="docs-attr-desc"><p>Delete document if exists.</p>
 </div>
@@ -685,7 +685,7 @@ todo = frappe.get_doc("ToDo", "TD0001")
         <a name="frappe.get_installed_apps" href="#frappe.get_installed_apps" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_installed_apps</b>
-        <i class="text-muted">(sort=False)</i>
+        <i class="text-muted">(sort=False, frappe_last=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get list of installed apps in current site.</p>
 </div>
@@ -1364,6 +1364,7 @@ response JSON and shown in a pop-up / modal.</p>
 <li><strong><code>user</code></strong> -  Transmit to user</li>
 <li><strong><code>doctype</code></strong> -  Transmit to doctype, docname</li>
 <li><strong><code>docname</code></strong> -  Transmit to doctype, docname</li>
+<li><strong><code>after_commit</code></strong> -  (default False) will emit after current transaction is committed</li>
 </ul>
 </div>
 	<br>

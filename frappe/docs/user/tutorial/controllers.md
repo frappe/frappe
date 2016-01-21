@@ -1,6 +1,6 @@
 # Controllers
 
-Next step would be adding methods and event handlers to models. In your app, we sould like to ensure that if a Library Transaction is made, the Article in question must be in stock and the member loaning the Article must have a valid membership.
+Next step would be adding methods and event handlers to models. In the app, we should ensure that if a Library Transaction is made, the Article in question must be in stock and the member loaning the Article must have a valid membership.
 
 For this, we can write a validation just before the Library Transaction object is saved. To do this, open the `library_management/doctype/library_transaction/library_transaction.py` template.
 
@@ -42,7 +42,7 @@ Here is the finished controller:
 
 In this script:
 
-1. We get the last trasaction before the current transaction date using the query function `frappe.get_list`
+1. We get the last transaction before the current transaction date using the query function `frappe.get_list`
 1. If the last transaction is something we don't like we throw an exception using `frappe.throw`
 1. We use `_("text")` method to identify translatable strings.
 

@@ -40,13 +40,18 @@ class _dict(dict):
 
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
+	from frappe.translate import get_full_dict
+	from frappe.utils import cstr
+
 	if not lang:
 		lang = local.lang
+
+	# msg should always be unicode
+	msg = cstr(msg)
 
 	if lang == "en":
 		return msg
 
-	from frappe.translate import get_full_dict
 	return get_full_dict(local.lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
@@ -559,10 +564,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
 		ignore_permissions, flags)
 
-def delete_doc_if_exists(doctype, name):
+def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
 	if db.exists(doctype, name):
-		delete_doc(doctype, name)
+		delete_doc(doctype, name, force=force)
 
 def reload_doctype(doctype, force=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
@@ -645,7 +650,7 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 		apps.insert(0, 'frappe')
 	return apps
 
-def get_installed_apps(sort=False):
+def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
 		return []
@@ -657,6 +662,11 @@ def get_installed_apps(sort=False):
 
 	if sort:
 		installed = [app for app in get_all_apps(True) if app in installed]
+
+	if frappe_last:
+		if 'frappe' in installed:
+			installed.remove('frappe')
+		installed.append('frappe')
 
 	return installed
 

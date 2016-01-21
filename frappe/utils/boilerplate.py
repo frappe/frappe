@@ -11,6 +11,9 @@ def make_boilerplate(dest, app_name):
 		print "Destination directory does not exist"
 		return
 
+	# app_name should be in snake_case
+	app_name = frappe.scrub(app_name)
+
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
@@ -224,14 +227,15 @@ from __future__ import unicode_literals
 from frappe import _
 
 def get_data():
-	return {{
-		"{app_title}": {{
+	return [
+		{{
+			"module_name": "{app_title}",
 			"color": "{app_color}",
 			"icon": "{app_icon}",
 			"type": "module",
 			"label": _("{app_title}")
 		}}
-	}}
+	]
 """
 
 setup_template = """# -*- coding: utf-8 -*-

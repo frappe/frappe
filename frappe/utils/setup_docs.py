@@ -277,6 +277,10 @@ class setup_docs(object):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
 
+		# clear the user, current folder in target
+		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
+		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
+
 		cnt = 0
 		for page in frappe.db.sql("""select parent_website_route,
 			page_name from `tabWeb Page` where ifnull(template_path, '')!=''""", as_dict=True):

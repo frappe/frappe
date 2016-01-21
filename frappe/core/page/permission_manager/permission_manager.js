@@ -435,7 +435,7 @@ frappe.PermissionEngine = Class.extend({
 			});
 
 			var fields_to_check = d.user_permission_doctypes
-				? JSON.parse(d.user_permission_doctypes) : d.linked_doctypes;
+				? JSON.parse(d.user_permission_doctypes) : [];
 
 			for (var i=0, l=fields_to_check.length; i<l; i++) {
 				dialog.set_value(fields_to_check[i], 1);

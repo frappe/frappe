@@ -40,7 +40,7 @@ If you are customizing Print templates, you need to learn the [Jinja Templating 
 
 #### 6. Git and GitHub
 
-[Learn how to contribute back to an open source project usign Git and GitHub](https://guides.github.com/activities/contributing-to-open-source/), two great tools to help you manage your code and share it with others.
+[Learn how to contribute back to an open source project using Git and GitHub](https://guides.github.com/activities/contributing-to-open-source/), two great tools to help you manage your code and share it with others.
 
 ---
 

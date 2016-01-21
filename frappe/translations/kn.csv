@@ -267,7 +267,7 @@ DocType: DocField,Link,ಕೊಂಡಿ
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,ಲಗತ್ತಿಸಲಾದ ಯಾವುದೇ ಕಡತ
 DocType: Version,Version,ರೂಪಾಂತರ
 DocType: User,Fill Screen,ಪರದೆಯನ್ನು ತುಂಬಿರಿ
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","ಕಾರಣ ಕಾಣೆಯಾಗಿದೆ ಡೇಟಾ, ಈ ಮರದ ವರದಿ ತೋರಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಹೆಚ್ಚಾಗಿ, ಇದು ಕಾರಣ ಅನುಮತಿಗಳನ್ನು ಔಟ್ ಫಿಲ್ಟರ್ ಮಾಡಲಾಗುತ್ತಿದೆ."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","ಕಾರಣ ಕಾಣೆಯಾಗಿದೆ ಡೇಟಾ, ಈ ಮರದ ವರದಿ ತೋರಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಹೆಚ್ಚಾಗಿ, ಇದು ಕಾರಣ ಅನುಮತಿಗಳನ್ನು ಔಟ್ ಫಿಲ್ಟರ್ ಮಾಡಲಾಗುತ್ತಿದೆ."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,ಸಂಪಾದಿಸಿ ಅನುಮತಿಗಳು
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,ಅಪ್ಲೋಡ್ ಮೂಲಕ ಸಂಪಾದಿಸಿ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","ದಾಖಲೆ ಪ್ರಕಾರ ..., ಉದಾ ಗ್ರಾಹಕ"
@@ -924,7 +924,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,ದಾಖಲ�
 DocType: Workflow State,align-center,ಸೆಂಟರ್ align
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,ಬರೆಯಬಹುದು
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","ಕೆಲವು ದಾಖಲೆಗಳನ್ನು , ಒಂದು ಸರಕುಪಟ್ಟಿ ಹಾಗೆ ಒಮ್ಮೆ ಅಂತಿಮ ಬದಲಾಗಿದೆ ಮಾಡಬಾರದು . ಹುಡುಕುವ ದಾಖಲೆಗಳಲ್ಲಿ ಅಂತಿಮ ರಾಜ್ಯದ ಸಲ್ಲಿಸಲಾಗಿದೆ ಎಂದು ಕರೆಯಲಾಗುತ್ತದೆ . ನೀವು ಪಾತ್ರಗಳನ್ನು ಸಲ್ಲಿಸಬಹುದು ಯಾವ ನಿರ್ಬಂಧಿಸಬಹುದು."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,ನೀವು ಈ ವರದಿಯನ್ನು ರಫ್ತು ಮಾಡಲು ಅನುಮತಿ ಇಲ್ಲ
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,ನೀವು ಈ ವರದಿಯನ್ನು ರಫ್ತು ಮಾಡಲು ಅನುಮತಿ ಇಲ್ಲ
 DocType: Communication,Sender,ಪ್ರೇಷಕ
 DocType: Web Page,Description for search engine optimization.,ಹುಡುಕಾಟ ಎಂಜಿನ್ ಉತ್ತಮಗೊಳಿಸಲು ವಿವರಣೆ.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,ಖಾಲಿ ಟೆಂಪ್ಲೇಟು
@@ -1955,7 +1955,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,ಅನನ್ಯ
 DocType: Email Account,Service,ಸೇವೆ
 DocType: File,File Name,ಫೈಲ್ ಹೆಸರು
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),ಫಾರ್ {0} ಕಾಣಲಿಲ್ಲ {0} ( {1} )
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),ಫಾರ್ {0} ಕಾಣಲಿಲ್ಲ {0} ( {1} )
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,ಮುಂದೆ
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,ಬಳಕೆದಾರ ಪ್ರತಿ ಅನುಮತಿಗಳು
 DocType: Print Format,Edit Format,ಸಂಪಾದಿಸಿ ಸ್ವರೂಪ

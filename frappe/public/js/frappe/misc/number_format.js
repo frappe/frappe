@@ -214,3 +214,32 @@ function in_list(list, item) {
 		if(list[i]==item) return true;
 	return false;
 }
+
+function remainder(numerator, denominator, precision) {
+	precision = cint(precision);
+	var multiplier = Math.pow(10, precision);
+	if (precision) {
+		var _remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier;
+	} else {
+		var _remainder = numerator % denominator;
+	}
+	
+	return flt(_remainder, precision);
+};
+
+function round_based_on_smallest_currency_fraction(value, currency, precision) {
+	var smallest_currency_fraction_value = flt(frappe.model.get_value(":Currency", 
+		currency, "smallest_currency_fraction_value"))
+	
+	if(smallest_currency_fraction_value) {
+		var remainder_val = remainder(value, smallest_currency_fraction_value, precision);
+		if(remainder_val > (smallest_currency_fraction_value / 2)) {
+			value += (smallest_currency_fraction_value - remainder_val);
+		} else {
+			value -= remainder_val;
+		}
+	} else {
+		value = Math.round(value);
+	}
+	return value;
+};

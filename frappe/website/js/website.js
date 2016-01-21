@@ -47,6 +47,8 @@ $.extend(frappe, {
 				200: function(data, xhr) {
 					if(opts.callback)
 						opts.callback(data);
+					if(opts.success)
+						opts.success(data);
 				}
 			}
 		}).always(function(data) {

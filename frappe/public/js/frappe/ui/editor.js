@@ -237,9 +237,7 @@ bsEditorToolbar = Class.extend({
 		var me = this;
 		this.file_input = this.toolbar.find('input[type="file"]')
 			.css({
-				'opacity':0,
-				'position':'absolute',
-				'left':0,
+				'visibility': 'hidden',
 				'width':0,
 				'height':0
 			});

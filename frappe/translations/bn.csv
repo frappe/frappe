@@ -267,7 +267,7 @@ DocType: DocField,Link,লিংক
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,সংযুক্ত কোন ফাইল
 DocType: Version,Version,সংস্করণ
 DocType: User,Fill Screen,পর্দা ভরাট
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","কারণে অনুপস্থিত তথ্য, এই বৃক্ষ প্রতিবেদন প্রদর্শন করতে পারেনি. সম্ভবত, এটা কারণে অনুমতি ফিল্টার আউট হচ্ছে."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","কারণে অনুপস্থিত তথ্য, এই বৃক্ষ প্রতিবেদন প্রদর্শন করতে পারেনি. সম্ভবত, এটা কারণে অনুমতি ফিল্টার আউট হচ্ছে."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,অনুমতি সম্পাদনা
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,আপলোডের মাধ্যমে সম্পাদনা
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","নথি প্রকার ..., যেমন গ্রাহক"
@@ -924,7 +924,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,তৈরি
 DocType: Workflow State,align-center,সারিবদ্ধ-কেন্দ্র
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,লিখতে পারেন
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","নির্দিষ্ট কাগজপত্র, একটি চালান মত, একবার চূড়ান্ত পরিবর্তন করা উচিত নয়. যেমন নথি জন্য চূড়ান্ত রাষ্ট্র জমা বলা হয়. আপনি ভূমিকা জমা দিতে পারেন, যা সীমিত করতে পারে."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,আপনি এই প্রতিবেদন রপ্তানি করতে অনুমতি দেওয়া হয় না
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,আপনি এই প্রতিবেদন রপ্তানি করতে অনুমতি দেওয়া হয় না
 DocType: Communication,Sender,প্রেরকের
 DocType: Web Page,Description for search engine optimization.,সার্চ ইঞ্জিন অপ্টিমাইজেশান জন্য বর্ণনা.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,ফাঁকা টেমপ্লেট ডাউনলোড
@@ -1952,7 +1952,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,অনন্য
 DocType: Email Account,Service,সেবা
 DocType: File,File Name,ফাইল নাম
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),এটি করা হয়নি {0} জন্য {0} ({1})
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),এটি করা হয়নি {0} জন্য {0} ({1})
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,পরবর্তী
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,ব্যবহারকারী প্রতি সেট অনুমতি
 DocType: Print Format,Edit Format,সম্পাদনা বিন্যাস

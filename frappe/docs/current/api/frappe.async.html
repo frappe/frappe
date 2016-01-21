@@ -322,7 +322,7 @@
         <a name="frappe.async.publish_realtime" href="#frappe.async.publish_realtime" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.async.<b>publish_realtime</b>
-        <i class="text-muted">(event=None, message=None, room=None, user=None, doctype=None, docname=None, now=False)</i>
+        <i class="text-muted">(event=None, message=None, room=None, user=None, doctype=None, docname=None, after_commit=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Publish real-time updates</p>
 
@@ -335,6 +335,7 @@
 <li><strong><code>user</code></strong> -  Transmit to user</li>
 <li><strong><code>doctype</code></strong> -  Transmit to doctype, docname</li>
 <li><strong><code>docname</code></strong> -  Transmit to doctype, docname</li>
+<li><strong><code>after_commit</code></strong> -  (default False) will emit after current transaction is committed</li>
 </ul>
 </div>
 	<br>

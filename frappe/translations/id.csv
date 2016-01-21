@@ -267,7 +267,7 @@ DocType: DocField,Link,Link
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,Tidak ada file terlampir
 DocType: Version,Version,Versi
 DocType: User,Fill Screen,Isi Layar
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Tidak dapat menampilkan laporan pohon ini, karena data yang hilang. Kemungkinan besar, ia sedang disaring karena izin."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Tidak dapat menampilkan laporan pohon ini, karena data yang hilang. Kemungkinan besar, ia sedang disaring karena izin."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Edit Perizinan
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,Mengedit via Upload
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","tipe dokumen ..., misalnya pelanggan"
@@ -924,7 +924,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,Dibuat pada
 DocType: Workflow State,align-center,rata-tengah
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,Bisa Menulis
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Dokumen-dokumen tertentu, seperti Faktur, tidak boleh berubah sekali final. Keadaan akhir untuk dokumen tersebut disebut Dikirim. Anda dapat membatasi peran yang dapat Submit."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,Anda tidak diizinkan untuk mengekspor laporan ini
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,Anda tidak diizinkan untuk mengekspor laporan ini
 DocType: Communication,Sender,Pengirim
 DocType: Web Page,Description for search engine optimization.,Deskripsi untuk optimasi mesin pencari.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Unduh Template Kosong
@@ -1955,7 +1955,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,Unik
 DocType: Email Account,Service,Layanan
 DocType: File,File Name,berkas nama
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),Tidak menemukan {0} untuk {0} ({1})
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),Tidak menemukan {0} untuk {0} ({1})
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Berikutnya
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Permissions Set per Pengguna
 DocType: Print Format,Edit Format,Mengedit Format

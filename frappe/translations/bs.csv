@@ -267,7 +267,7 @@ DocType: DocField,Link,Poveznica
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,No file u prilogu
 DocType: Version,Version,verzija
 DocType: User,Fill Screen,Ispunite zaslon
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","U nemogućnosti da se ovaj izvještaj drvo, zbog podataka koji nedostaju. Najvjerojatnije, to se filtrira zbog dozvole."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","U nemogućnosti da se ovaj izvještaj drvo, zbog podataka koji nedostaju. Najvjerojatnije, to se filtrira zbog dozvole."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Uredi dozvole
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,Edit preko Upload
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","Vrsta dokumenta ..., npr kupca"
@@ -924,7 +924,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,Kreirano
 DocType: Workflow State,align-center,poravnanje-centar
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,Mogu pisati
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Određeni dokumenti , poput fakturu , ne treba mijenjati jednom finalu . Konačno stanje za takve dokumente se zove Postavio . Možete ograničiti koje uloge mogu podnijeti ."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,Nije Vam dopušteno izvoziti ovaj izvještaj
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,Nije Vam dopušteno izvoziti ovaj izvještaj
 DocType: Communication,Sender,Pošiljaoc
 DocType: Web Page,Description for search engine optimization.,Opis za optimizaciju tražilice.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Preuzimanje Blank Template
@@ -1955,7 +1955,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,Jedinstven
 DocType: Email Account,Service,Usluga
 DocType: File,File Name,Naziv datoteke
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),Nije pronađeno {0} za {0} ( {1} )
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),Nije pronađeno {0} za {0} ( {1} )
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Sljedeći
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Određivanje dopuštenja po korisniku
 DocType: Print Format,Edit Format,Edit Format

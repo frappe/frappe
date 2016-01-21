@@ -267,7 +267,7 @@ DocType: DocField,Link,ലിങ്ക്
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,ഫയൽ അറ്റാച്ചുചെയ്തിട്ടില്ല
 DocType: Version,Version,പതിപ്പ്
 DocType: User,Fill Screen,സ്ക്രീൻ നിറയ്ക്കുക
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","കാരണം കാണാതായ ഡാറ്റ വരെ, ഈ മരം റിപ്പോർട്ട് പ്രദർശിപ്പിക്കാൻ കഴിഞ്ഞില്ല. മിക്കവാറും, അത് മൂലം അനുമതികൾ വരെ ഫിൽട്ടർ ചെയ്തുകൊണ്ടിരിക്കുന്നു."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +462,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","കാരണം കാണാതായ ഡാറ്റ വരെ, ഈ മരം റിപ്പോർട്ട് പ്രദർശിപ്പിക്കാൻ കഴിഞ്ഞില്ല. മിക്കവാറും, അത് മൂലം അനുമതികൾ വരെ ഫിൽട്ടർ ചെയ്തുകൊണ്ടിരിക്കുന്നു."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,എഡിറ്റ് അനുമതികൾ
 apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,അപ്ലോഡ് വഴി എഡിറ്റ്
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,"document type..., e.g. customer","ഡോക്യുമെന്റ് ..., ഉദാ ഉപഭോക്താവ്"
@@ -924,7 +924,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,ൽ സൃഷ�
 DocType: Workflow State,align-center,വിന്യസിക്കുക-കേന്ദ്രം
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,എഴുതാം
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","ചില രേഖകൾ, ഒരു ഇൻവോയിസ് പോലെ, ഒരിക്കൽ അവസാന രൂപാന്തരപ്പെടുകയും പാടില്ല. ഇത്തരം രേഖകൾ അന്തിമ സംസ്ഥാന സമർപ്പിച്ചു വിളിക്കുന്നു. നിങ്ങൾക്ക് വേഷങ്ങൾ സമർപ്പിക്കുക കഴിയുന്ന നിയന്ത്രിക്കാൻ കഴിയും."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +614,You are not allowed to export this report,നിങ്ങൾ ഈ റിപ്പോർട്ട് കയറ്റുമതി ചെയ്യാൻ അനുവദിച്ചിട്ടില്ല
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +619,You are not allowed to export this report,നിങ്ങൾ ഈ റിപ്പോർട്ട് കയറ്റുമതി ചെയ്യാൻ അനുവദിച്ചിട്ടില്ല
 DocType: Communication,Sender,അയച്ചയാളുടെ
 DocType: Web Page,Description for search engine optimization.,സെർച്ച് എഞ്ചിൻ ഒപ്റ്റിമൈസേഷൻ വിവരണം.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,ശൂന്യ ഫലകം ഡൗൺലോഡ്
@@ -1952,7 +1952,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: DocField,Unique,യുണീക്ക്
 DocType: Email Account,Service,സേവനം
 DocType: File,File Name,ഫയലിന്റെ പേര്
-apps/frappe/frappe/core/page/data_import_tool/importer.py +282,Did not find {0} for {0} ({1}),({1}) {0} {0} വേണ്ടി കണ്ടെത്തിയില്ല
+apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),({1}) {0} {0} വേണ്ടി കണ്ടെത്തിയില്ല
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,അടുത്തത്
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,ഉപയോക്താവ് ശതമാനം അനുമതികൾ സജ്ജമാക്കുക
 DocType: Print Format,Edit Format,എഡിറ്റ് ഫോർമാറ്റ്

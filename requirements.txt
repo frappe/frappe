@@ -12,7 +12,6 @@ python-geoip-geolite2
 python-dateutil
 pytz
 six
-slugify
 termcolor
 werkzeug
 semantic_version

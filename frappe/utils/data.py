@@ -275,6 +275,32 @@ def rounded(num, precision=0):
 		num = round(num)
 
 	return (num / multiplier) if precision else num
+	
+def remainder(numerator, denominator, precision=2):
+	precision = cint(precision)
+	multiplier = 10 ** precision
+
+	if precision:
+		_remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier
+	else:
+		_remainder = numerator % denominator
+		
+	return flt(_remainder, precision);
+
+def round_based_on_smallest_currency_fraction(value, currency, precision=2):
+	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency", 
+		currency, "smallest_currency_fraction_value"))
+	
+	if smallest_currency_fraction_value:
+		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
+		if remainder_val > (smallest_currency_fraction_value / 2):
+			value += smallest_currency_fraction_value - remainder_val
+		else:
+			value -= remainder_val
+	else:
+		value = rounded(value)
+		
+	return flt(value, precision)
 
 def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):

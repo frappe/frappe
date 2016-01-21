@@ -57,7 +57,7 @@
 							{% } %} "
 							data-doctype="{%= data.doctype %}"
 							data-name="{%= data.name %}"></i>
-						<span class="likes-count text-muted">{{ data._liked_by.length }}</span>
+						<span class="likes-count text-muted">{{ (data._liked_by || []).length }}</span>
 					</span>
                 </div>
 				<div class="reply">
