@@ -37,6 +37,15 @@ class DocType(Document):
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
+				
+		if self.issingle:
+			self.allow_import = 0
+			self.is_submittable = 0
+			self.istable = 0
+			
+		elif self.istable:
+			self.allow_import = 0		
+				
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_document_type()
@@ -49,9 +58,6 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
-
-		if self.istable:
-			self.allow_import = 0
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -298,6 +304,10 @@ def validate_fields(meta):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(d):
+		if meta.issingle:
+			d.unique = 0
+			d.search_index = 0
+		
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
 				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))

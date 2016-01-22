@@ -672,7 +672,14 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	set_input: function(value) {
 		this.input.checked = value ? 1 : 0;
 		this.last_value = value;
-	}
+	},
+	get_value: function() {
+		if (!this.$input) {
+			return;
+		}
+		
+		return this.$input.prop("checked") ? 1 : 0;
+	},
 });
 
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
