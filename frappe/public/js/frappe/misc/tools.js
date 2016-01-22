@@ -9,16 +9,20 @@ frappe.tools.downloadify = function(data, roles, title) {
 		return;
 	}
 
-	var _get_data = function() { return frappe.tools.to_csv(data); };
+	var csv_data = frappe.tools.to_csv(data);
 
-	var a         = document.createElement('a');
-	a.href        = 'data:attachment/csv,' + encodeURIComponent(_get_data());
-	a.target      = '_blank';
-	a.download    = title + '.csv';
+	// Used Blob object, because it can handle large files
+	var blob_object = new Blob([csv_data], { type: 'text/csv' });
+	var blob_url = URL.createObjectURL(blob_object);
+
+	var a = document.createElement('a');
+	a.download = title + '.csv';
+	a.href = blob_url;
 
 	document.body.appendChild(a);
 	a.click();
-	$(a).remove();
+
+	document.body.removeChild(a);
 };
 
 frappe.markdown = function(txt) {
