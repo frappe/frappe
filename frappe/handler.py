@@ -12,63 +12,6 @@ import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 import bleach
 
-@frappe.whitelist(allow_guest=True)
-def version():
-	return frappe.__version__
-
-@frappe.whitelist()
-def ping():
-	return "pong"
-
-@frappe.async.handler
-def async_ping():
-	return "pong"
-
-@frappe.whitelist()
-def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
-	frappe.desk.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
-
-@frappe.whitelist(allow_guest=True)
-def logout():
-	frappe.local.login_manager.logout()
-	frappe.db.commit()
-
-@frappe.whitelist(allow_guest=True)
-def web_logout():
-	frappe.local.login_manager.logout()
-	frappe.db.commit()
-	frappe.respond_as_web_page("Logged Out", """<p><a href="/index" class="text-muted">Back to Home</a></p>""")
-
-@frappe.whitelist(allow_guest=True)
-def run_custom_method(doctype, name, custom_method):
-	"""cmd=run_custom_method&doctype={doctype}&name={name}&custom_method={custom_method}"""
-	doc = frappe.get_doc(doctype, name)
-	if getattr(doc, custom_method, frappe._dict()).is_whitelisted:
-		frappe.call(getattr(doc, custom_method), **frappe.local.form_dict)
-	else:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-@frappe.whitelist()
-def uploadfile():
-	try:
-		if frappe.form_dict.get('from_form'):
-			try:
-				ret = frappe.utils.file_manager.upload()
-			except frappe.DuplicateEntryError:
-				# ignore pass
-				ret = None
-				frappe.db.rollback()
-		else:
-			if frappe.form_dict.get('method'):
-				method = frappe.get_attr(frappe.form_dict.method)
-				is_whitelisted(method)
-				ret = method()
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		ret = None
-
-	return ret
-
 def handle():
 	"""handle request"""
 	cmd = frappe.local.form_dict.cmd
@@ -117,6 +60,55 @@ def is_whitelisted(method):
 			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 
+@frappe.whitelist(allow_guest=True)
+def version():
+	return frappe.__version__
+
+@frappe.whitelist()
+def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
+	frappe.desk.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
+
+@frappe.whitelist(allow_guest=True)
+def logout():
+	frappe.local.login_manager.logout()
+	frappe.db.commit()
+
+@frappe.whitelist(allow_guest=True)
+def web_logout():
+	frappe.local.login_manager.logout()
+	frappe.db.commit()
+	frappe.respond_as_web_page("Logged Out", """<p><a href="/index" class="text-muted">Back to Home</a></p>""")
+
+@frappe.whitelist(allow_guest=True)
+def run_custom_method(doctype, name, custom_method):
+	"""cmd=run_custom_method&doctype={doctype}&name={name}&custom_method={custom_method}"""
+	doc = frappe.get_doc(doctype, name)
+	if getattr(doc, custom_method, frappe._dict()).is_whitelisted:
+		frappe.call(getattr(doc, custom_method), **frappe.local.form_dict)
+	else:
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+@frappe.whitelist()
+def uploadfile():
+	try:
+		if frappe.form_dict.get('from_form'):
+			try:
+				ret = frappe.utils.file_manager.upload()
+			except frappe.DuplicateEntryError:
+				# ignore pass
+				ret = None
+				frappe.db.rollback()
+		else:
+			if frappe.form_dict.get('method'):
+				method = frappe.get_attr(frappe.form_dict.method)
+				is_whitelisted(method)
+				ret = method()
+	except Exception:
+		frappe.errprint(frappe.utils.get_traceback())
+		ret = None
+
+	return ret
+
 def get_attr(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
@@ -137,3 +129,11 @@ def get_async_task_status(task_id):
 		"state": a.state,
 		"progress": 0
 	}
+
+@frappe.whitelist()
+def ping():
+	return "pong"
+
+@frappe.async.handler
+def async_ping():
+	return "pong"
