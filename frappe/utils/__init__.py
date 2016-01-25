@@ -71,7 +71,7 @@ def validate_email_add(email_str, throw=False):
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
 		return False
 
-	email = extract_email_id(email_str)
+	email = extract_email_id(email_str.strip())
 	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
 	if not match:
