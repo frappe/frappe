@@ -113,6 +113,8 @@ frappe.ui.form.Control = Class.extend({
 				value, this.df.fieldtype)) {
 				this.last_value = value;
 			}
+		} else {
+			this.set_input(value);
 		}
 	},
 });
@@ -677,7 +679,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		if (!this.$input) {
 			return;
 		}
-		
+
 		return this.$input.prop("checked") ? 1 : 0;
 	},
 });
