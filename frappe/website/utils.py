@@ -36,14 +36,19 @@ def get_home_page():
 		return frappe.local.flags.home_page
 
 	def _get_home_page():
-		role_home_page = frappe.get_hooks("role_home_page")
 		home_page = None
 
-		if role_home_page:
-			for role in frappe.get_roles():
-				if role in role_home_page:
-					home_page = role_home_page[role][-1]
-					break
+		get_website_user_home_page = frappe.get_hooks('get_website_user_home_page')
+		if get_website_user_home_page:
+			home_page = frappe.get_attr(get_website_user_home_page[-1])(frappe.session.user)
+
+		if not home_page:
+			role_home_page = frappe.get_hooks("role_home_page")
+			if role_home_page:
+				for role in frappe.get_roles():
+					if role in role_home_page:
+						home_page = role_home_page[role][-1]
+						break
 
 		if not home_page:
 			home_page = frappe.get_hooks("home_page")
@@ -52,6 +57,8 @@ def get_home_page():
 
 		if not home_page:
 			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
+
+		home_page = home_page.strip('/')
 
 		return home_page
 
