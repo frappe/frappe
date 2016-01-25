@@ -657,8 +657,8 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 		if(frappe._from_link) {
 			if(me.doctype===frappe._from_link.df.options) {
-				frappe.model.set_value(frappe._from_link.doctype,
-					frappe._from_link.docname, frappe._from_link.fieldname, me.docname);
+				frappe.model.set_value(frappe._from_link.frm.doctype,
+					frappe._from_link.frm.docname, frappe._from_link.df.fieldname, me.docname);
 				frappe._from_link.refresh();
 
 				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
