@@ -822,11 +822,14 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
 	import copy
+	from frappe.model import optional_fields, default_fields
 
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
+
+	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by']
 
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
@@ -834,22 +837,19 @@ def copy_doc(doc, ignore_no_copy=True):
 		d = doc
 
 	newdoc = get_doc(copy.deepcopy(d))
-
-	newdoc.name = None
 	newdoc.set("__islocal", 1)
-	newdoc.owner = None
-	newdoc.creation = None
-	newdoc.amended_from = None
-	newdoc.amendment_date = None
+	for fieldname in (fields_to_clear + ['amended_from', 'amendment_date']):
+		newdoc.set(fieldname, None)
+
 	if not ignore_no_copy:
 		remove_no_copy_fields(newdoc)
 
-	for d in newdoc.get_all_children():
-		d.name = None
-		d.parent = None
+	for i, d in enumerate(newdoc.get_all_children()):
 		d.set("__islocal", 1)
-		d.owner = None
-		d.creation = None
+
+		for fieldname in fields_to_clear:
+			d.set(fieldname, None)
+
 		if not ignore_no_copy:
 			remove_no_copy_fields(d)
 
