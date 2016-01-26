@@ -185,3 +185,59 @@ def build_match_conditions(doctype, as_condition=True):
 		return match_conditions.replace("%", "%%")
 	else:
 		return match_conditions
+
+def get_filters_cond(doctype, filters, conditions):
+	if filters:
+		flt = filters
+		if isinstance(filters, dict):
+			filters = filters.items()
+			flt = []
+			for f in filters:
+				op = f[1][0]
+				if isinstance(f[1], basestring) and op == '!':
+					op = "!="
+					values = f[1][1:]
+				elif op in ["not in", "in"]:
+					values = f[1][1:]
+				else:
+					op = "="
+					values = f[1]
+
+				if isinstance(values, list):
+					_flt = [doctype, f[0], op]
+					_flt.extend(values)
+					flt.append(_flt)
+				else:
+					flt.append([doctype, f[0], op, values])
+
+		query = DatabaseQuery(doctype)
+		query.filters = flt
+		query.conditions = conditions
+		query.build_filter_conditions(flt, conditions)
+
+		cond = ' and ' + ' and '.join(query.conditions)
+	else:
+		cond = ''
+	return cond
+
+STANDARD_USERS = ("Guest", "Administrator")
+
+def user_query(doctype, txt, searchfield, start, page_len, filters):
+	txt = "%{}%".format(txt)
+	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
+		from `tabUser`
+		where enabled=1
+			and docstatus < 2
+			and name not in ({standard_users})
+			and user_type != 'Website User'
+			and ({key} like %s
+				or concat_ws(' ', first_name, middle_name, last_name) like %s)
+			{mcond} {fcond}
+		order by
+			case when name like %s then 0 else 1 end,
+			case when concat_ws(' ', first_name, middle_name, last_name) like %s
+				then 0 else 1 end,
+			name asc
+		limit %s, %s""".format(standard_users=", ".join(["%s"]*len(STANDARD_USERS)),
+			key=searchfield, mcond=get_match_cond(doctype), fcond=get_filters_cond(doctype, filters, [])),
+			tuple(list(STANDARD_USERS) + [txt, txt, txt, txt, start, page_len]), debug=True)

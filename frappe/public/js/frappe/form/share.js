@@ -117,15 +117,9 @@ frappe.ui.form.Share = Class.extend({
 				label: __("Share With"),
 				fieldname: "share_with",
 				options: "User",
-				get_query: function() {
-					return {
-						query: "frappe.core.doctype.docshare.docshare.docshare_user_query",
-						filters: {
-							'user': user,
-							'doctype': me.frm.doctype,
-							'docname': me.frm.docname
-						}
-					}
+				filters: {
+					"user_type": "System User",
+					"name": ["not in", me.get_shared_user_list()]
 				}
 			},
 			only_input: true,
@@ -210,4 +204,10 @@ frappe.ui.form.Share = Class.extend({
 			});
 		});
 	},
+	get_shared_user_list: function(){
+		// return the list of users to whome the document is already shared
+		exclude_users =  $.map(this.shared, function(d){ return d.user })
+		exclude_users.push(user)
+		return exclude_users
+	}
 });
