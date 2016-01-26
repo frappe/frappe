@@ -175,7 +175,7 @@ frappe.ui.to_do_dialog = function(opts){
 		primary_action_label: __("Add")
 	});
 
-	dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+	dialog.fields_dict.assign_to.get_query = "frappe.desk.reportview.user_query";
 
 	return dialog
 }

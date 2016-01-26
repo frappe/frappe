@@ -83,7 +83,7 @@ has_permission = {
 }
 
 standard_queries = {
-	"User": "frappe.core.doctype.user.user.user_query"
+	"User": "frappe.desk.reportview.user_query"
 }
 
 doc_events = {

@@ -40,6 +40,10 @@ class DocShare(Document):
 			not frappe.has_permission(self.share_doctype, "share", self.get_doc())):
 
 			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
+			# if owner has the permission to write then only allow the self.user to write permission
+		elif not frappe.has_permission(self.share_doctype, "write", self.get_doc(), self.owner):
+			self.write = 0
+			frappe.msgprint(_('You need to have "Write" permission'))
 
 	def after_insert(self):
 		doc = self.get_doc()
@@ -61,3 +65,39 @@ def on_doctype_update():
 	"""Add index in `tabDocShare` for `(user, share_doctype)`"""
 	frappe.db.add_index("DocShare", ["user", "share_doctype"])
 	frappe.db.add_index("DocShare", ["share_doctype", "share_name"])
+
+@frappe.whitelist()
+def docshare_user_query(doctype, txt, searchfield, start, page_len, filters):
+	from frappe.desk.reportview import get_match_cond
+	txt = "%{}%".format(txt)
+	
+	# excluding Guest User and session user
+	exclude_users = ["Guest"]
+	if filters.get("user") not in exclude_users: exclude_users.append(filters.get("user"))
+	get_all_filters = {
+		"share_name":filters.get("docname"),
+		"share_doctype":filters.get("doctype"),
+	}
+	
+	# excluding the user to whom the document is already shared
+	shared_with = frappe.db.get_all("DocShare", filters=get_all_filters, fields="user", as_list=True)
+	exclude_users.extend([user[0] for user in shared_with])
+	exclude_users = list(set(exclude_users))
+
+	query = """	select name, concat_ws(' ', first_name, middle_name, last_name)
+				from `tabUser`
+				where enabled=1
+					and docstatus < 2
+					and name not in ({exclude_users})
+					and user_type != 'Website User'
+					and ({key} like %s
+						or concat_ws(' ', first_name, middle_name, last_name) like %s)
+				order by
+					case when name like %s then 0 else 1 end,
+					case when concat_ws(' ', first_name, middle_name, last_name) like %s
+						then 0 else 1 end,
+					name asc
+				limit %s, %s""".format(exclude_users=", ".join(["%s"]*len(exclude_users)),
+					key=searchfield)
+
+	return frappe.db.sql(query, tuple(list(exclude_users) + [txt, txt, txt, txt, start, page_len]))

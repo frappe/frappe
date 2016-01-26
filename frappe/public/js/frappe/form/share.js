@@ -90,7 +90,6 @@ frappe.ui.form.Share = Class.extend({
 				everyone = s;
 			}
 		});
-
 		$(frappe.render_template("set_sharing", {frm: this.frm, shared: this.shared, everyone: everyone}))
 			.appendTo(d.body);
 
@@ -98,13 +97,19 @@ frappe.ui.form.Share = Class.extend({
 			this.make_user_input();
 			this.add_share_button();
 			this.set_edit_share_events();
-		} else {
+
+			if(!frappe.model.can_write()) {
+				$(d.body).find(".add-share-write").prop("disabled", true)
+				$(d.body).find(".edit-write").prop("disabled", true)
+			}
+		}else {
 			// if cannot share, disable sharing settings.
 			$(d.body).find(".edit-share").prop("disabled", true);
 		}
 	},
 	make_user_input: function() {
 		// make add-user input
+		me = this;
 		this.dialog.share_with = frappe.ui.form.make_control({
 			parent: $(this.dialog.body).find(".input-wrapper-add-share"),
 			df: {
@@ -114,7 +119,7 @@ frappe.ui.form.Share = Class.extend({
 				options: "User",
 				filters: {
 					"user_type": "System User",
-					"name": ["!=", user]
+					"name": ["not in", me.get_shared_user_list()]
 				}
 			},
 			only_input: true,
@@ -144,7 +149,7 @@ frappe.ui.form.Share = Class.extend({
 					$.each(me.shared, function(i, s) {
 						if(s && s.user===r.message.user) {
 							// re-adding / remove the old share rule.
-							delete me.shared[i];
+							me.shared.splice(i,1)
 						}
 					})
 					me.dirty = true;
@@ -179,7 +184,7 @@ frappe.ui.form.Share = Class.extend({
 						// update shared object
 						if(s && (s.user===user || (everyone && s.everyone===1))) {
 							if(!r.message) {
-								delete me.shared[i];
+								me.shared.splice(i,1)
 							} else {
 								me.shared[i] = $.extend(s, r.message);
 							}
@@ -199,4 +204,10 @@ frappe.ui.form.Share = Class.extend({
 			});
 		});
 	},
+	get_shared_user_list: function(){
+		// return the list of users to whome the document is already shared
+		exclude_users =  $.map(this.shared, function(d){ return d.user })
+		exclude_users.push(user)
+		return exclude_users
+	}
 });
