@@ -17,7 +17,10 @@ class EmailAlert(Document):
 			frappe.throw(_("Please specify which value field must be checked"))
 
 		forbidden_document_types = ("Bulk Email",)
-		if self.document_type in forbidden_document_types:
+		if (self.document_type in forbidden_document_types
+			or frappe.get_meta(self.document_type).istable):
+			# currently email alerts don't work on child tables as events are not fired for each record of child table
+
 			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
 
 def trigger_daily_alerts():

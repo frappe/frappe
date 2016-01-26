@@ -33,6 +33,15 @@ frappe.email_alert = {
 }
 
 frappe.ui.form.on("Email Alert", {
+	onload: function(frm) {
+		frm.set_query("document_type", function() {
+			return {
+				"filters": {
+					"istable": 0
+				}
+			}
+		})
+	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
 	},
