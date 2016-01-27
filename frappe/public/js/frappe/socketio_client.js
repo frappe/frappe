@@ -6,6 +6,10 @@ frappe.socket = {
 			return;
 		}
 
+		if (frappe.socket.socket) {
+			return;
+		}
+
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
    			frappe.socket.socket = io.connect(frappe.socket.get_host(), {secure: true});
@@ -71,8 +75,8 @@ frappe.socket = {
 		}
 	},
 	get_host: function() {
-		var host = frappe.urllib.get_base_url();
-		if(frappe.boot.dev_server) {
+		var host = window.location.origin;
+		if(window.dev_server) {
 			parts = host.split(":");
 			if(parts.length > 2) {
 				host = parts[0] + ":" + parts[1];

@@ -29,6 +29,7 @@ def render_template(template, context, is_path=None):
 		return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
+	import os
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
@@ -87,7 +88,8 @@ def get_allowed_functions_for_jenv():
 		"_": frappe._,
 		"get_shade": get_shade,
 		"scrub": scrub,
-		"guess_mimetype": mimetypes.guess_type
+		"guess_mimetype": mimetypes.guess_type,
+		"dev_server": os.environ.get('DEV_SERVER', False)
 	}
 
 def get_jloader():
