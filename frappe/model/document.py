@@ -9,6 +9,7 @@ from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
+from frappe.model import optional_fields
 
 # once_only validation
 # methods
@@ -349,6 +350,11 @@ class Document(BaseDocument):
 		self._extract_images_from_text_editor()
 		for d in children:
 			d._extract_images_from_text_editor()
+
+		if self.is_new():
+			# don't set fields like _assign, _comments for new doc
+			for fieldname in optional_fields:
+				self.set(fieldname, None)
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

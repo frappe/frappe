@@ -104,7 +104,7 @@ login.login_handlers = (function() {
 	var login_handlers = {
 		200: function(data) {
 			if(data.message=="Logged In") {
-				window.location.href = get_url_arg("redirect-to") || "/desk";
+				window.location.href = get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
 				if(localStorage) {
 					var last_visited =
@@ -116,7 +116,7 @@ login.login_handlers = (function() {
 				if(last_visited && last_visited != "/login") {
 					window.location.href = last_visited;
 				} else {
-					window.location.href = "/me";
+					window.location.href = data.home_page;
 				}
 			} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
 				frappe.msgprint(data.message);

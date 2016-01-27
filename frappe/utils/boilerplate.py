@@ -145,6 +145,9 @@ app_license = "{app_license}"
 #	"Role": "home_page"
 # }}
 
+# Website user home page (by function)
+# get_website_user_home_page = "{app_name}.utils.get_home_page"
+
 # Generators
 # ----------
 

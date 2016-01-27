@@ -516,7 +516,10 @@ _f.Frm.prototype.cleanup_refresh = function() {
 
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
-		cur_frm.toggle_display(fn, false);
+
+		if (cur_frm.doc[fn]) {
+			cur_frm.toggle_display(fn, false);
+		}
 	}
 
 	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
@@ -657,8 +660,8 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 		if(frappe._from_link) {
 			if(me.doctype===frappe._from_link.df.options) {
-				frappe.model.set_value(frappe._from_link.doctype,
-					frappe._from_link.docname, frappe._from_link.fieldname, me.docname);
+				frappe.model.set_value(frappe._from_link.frm.doctype,
+					frappe._from_link.frm.docname, frappe._from_link.df.fieldname, me.docname);
 				frappe._from_link.refresh();
 
 				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);

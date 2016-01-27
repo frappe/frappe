@@ -6,11 +6,11 @@
 	<!-- Indicators -->
 	<ol class="carousel-indicators">
 		{% for slide in slides %}
-			<li data-target="#the-carousel" data-slide-to="0" 
+			<li data-target="#the-carousel" data-slide-to="0"
 				{%- if loop.index==0 %}class="active"{% endif %}></li>
 		{% endfor %}
 	</ol>
-	
+
 	<!-- Wrapper for slides -->
 	<div class="carousel-inner">
 		{% for slide in slides %}
@@ -35,5 +35,9 @@
 	</a>
 </div>
 
-<script>$(".carousel").carousel();</script>
+<script>
+frappe.ready(function() {
+	$(".carousel").carousel();
+});
+</script>
 {% endif %}
