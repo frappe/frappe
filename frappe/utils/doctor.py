@@ -26,23 +26,32 @@ def get_queues(site=None):
 def get_task_body(taskstr):
 	return json.loads(base64.decodestring(json.loads(taskstr)['body']))
 
-def purge_pending_tasks(event='all'):
+def purge_pending_tasks(event=None, site=None):
 	"""
 	Purge tasks of the event event type. Passing 'all' will not purge all
 	events but of the all event type, ie. the ones that are enqueued every five
 	mintues and would any leave daily, hourly and weekly tasks
 	"""
 	r = get_redis_conn()
-	event_tasks = frappe.get_hooks()['scheduler_events'][event]
+	if event:
+		event_tasks = frappe.get_hooks()['scheduler_events'][event]
 	count = 0
 
 	for queue in get_queues():
 		for taskstr in r.lrange(queue, 0, -1):
 			taskbody = get_task_body(taskstr)
 			kwargs = taskbody.get('kwargs')
-			if kwargs and kwargs.get('handler') and kwargs.get('handler') in event_tasks:
-				r.lrem(queue, taskstr)
-				count += 1
+			if kwargs:
+				if site and kwargs.get('site') != site:
+					continue
+
+				if event:
+					if kwargs.get('handler') and kwargs.get('handler') in event_tasks:
+						r.lrem(queue, taskstr)
+						count += 1
+				else:
+					r.lrem(queue, taskstr)
+					count += 1
 	return count
 
 def get_pending_task_count():
@@ -131,7 +140,6 @@ def doctor():
 	"""
 	Prints diagnostic information for the scheduler
 	"""
-	flag = False
 	workers_online = check_if_workers_online()
 	pending_tasks = get_pending_task_count()
 	locks = get_timedout_locks()
@@ -141,6 +149,9 @@ def doctor():
 	print "\n".join(locks)
 	if (not workers_online) or (pending_tasks > 4000) or locks:
 		return 1
+
+	print "Note: To view pending tasks, use bench dump-queue-status"
+
 	return True
 
 def celery_doctor(site=None):
@@ -149,6 +160,18 @@ def celery_doctor(site=None):
 	print 'Queue Status'
 	print '------------'
 	print json.dumps(queues, indent=1)
+	print ''
 	print 'Running Tasks'
 	print '------------'
 	print json.dumps(running_tasks, indent=1)
+
+def inspect_queue():
+	print 'Pending Tasks Queue'
+	print '-'*20
+	r = get_redis_conn()
+	for queue in get_queues():
+		for taskstr in r.lrange(queue, 0, -1):
+			taskbody = get_task_body(taskstr)
+			kwargs = taskbody.get('kwargs')
+			if kwargs:
+				print frappe.as_json(kwargs)
