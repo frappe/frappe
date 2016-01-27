@@ -112,7 +112,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 {%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead) -%}
 	{% if letter_head and not no_letterhead %}
-	<div class="letter-head">{{ letter_head }}</div>
+		<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
     {% if doc.print_heading_template %}
         {{ frappe.render_template(doc.print_heading_template, {"doc":doc}) }}
@@ -125,6 +125,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
         </h2>
     </div>
     {% endif %}
+	<p class="text-right page-number visible-pdf">
+		{{ _("Page #{0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
+	</p>
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
 	<div class="text-center" document-status="draft">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>
@@ -135,7 +138,4 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4>
     </div>
 	{%- endif -%}
-	{% if max_pages > 1 %}
-	<p class="text-right page-number">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
-	{% endif %}
 {%- endmacro -%}

@@ -3,7 +3,10 @@
 
 {% for page in layout %}
 <div class="page-break">
-    {{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
+	<div id="header-html" class="hidden-pdf">
+		{{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
+	</div>
+
     {% for section in page %}
     <div class="row section-break">
         {% for column in section %}

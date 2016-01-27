@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+	<style>
+		body {
+			margin: 0 !important;
+			border: 0 !important;
+			padding: 15mm 0 5mm !important;
+		}
+
+		.letter-head {
+			margin-top: -15mm !important;
+		}
+	</style>
+
+	{% for tag in head -%}
+		{{ tag | string }}
+	{%- endfor %}
+
+	<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->
+	<script>
+		function subst() {
+			var vars = {};
+			var x = window.location.search.substring(1).split('&');
+			for (var i in x) {
+				var z = x[i].split('=',2);
+				vars[z[0]] = unescape(z[1]);
+			}
+			var x = ['frompage','topage','page','webpage','section','subsection','subsubsection'];
+			for (var i in x) {
+				var y = document.getElementsByClassName(x[i]);
+				for (var j=0; j<y.length; ++j) {
+					y[j].textContent = vars[x[i]];
+				}
+			}
+		}
+	</script>
+
+	{% for tag in styles -%}
+		{{ tag | string }}
+	{%- endfor %}
+
+</head>
+<body onload="subst()">
+	<div class="print-format">
+		<div class="wrapper">
+			{% for tag in content -%}
+				{{ tag | string }}
+			{%- endfor %}
+		</div>
+	</div>
+</body>

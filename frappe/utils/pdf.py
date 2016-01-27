@@ -2,46 +2,18 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import pdfkit, os, frappe, sys
+import pdfkit, os, frappe
 from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
 
 def get_pdf(html, options=None):
-	if not options:
-		options = {}
-
-	options.update({
-		"print-media-type": None,
-		"background": None,
-		"images": None,
-		'margin-top': '15mm',
-		'margin-right': '15mm',
-		'margin-bottom': '15mm',
-		'margin-left': '15mm',
-		'encoding': "UTF-8",
-		'quiet': None,
-		'no-outline': None,
-	})
-
-	#create file from input html based on the divs content or create an empty file
-	header_html_file = make_html_file(html, "header")
-	footer_html_file = make_html_file(html, "footer")
-
-	#update the printing options like margin-top based on variables in html or predefined settings
-	options = read_options_from_html(html, header_html_file[0], footer_html_file[0])
-
-	if frappe.session and frappe.session.sid:
-		options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
-
-	if not options.get("page-size"):
-		options['page-size'] = frappe.db.get_single_value("Print Settings", "pdf_page_size") or "A4"
-
 	html = scrub_urls(html)
-	fname = os.path.join("/tmp", frappe.generate_hash() + ".pdf")
+	html, options = prepare_options(html, options)
+	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 
 	try:
-		pdfkit.from_string(html, fname, options=options or {}, )
+		pdfkit.from_string(html, fname, options=options or {})
 
 		with open(fname, "rb") as fileobj:
 			filedata = fileobj.read()
@@ -51,6 +23,7 @@ def get_pdf(html, options=None):
 			or "ContentOperationNotPermittedError" in e.message
 			or "UnknownContentError" in e.message
 			or "RemoteHostClosedError" in e.message):
+
 			# allow pdfs with missing images if file got created
 			if os.path.exists(fname):
 				with open(fname, "rb") as fileobj:
@@ -62,140 +35,107 @@ def get_pdf(html, options=None):
 			raise
 
 	finally:
-		# always cleanup
-		if os.path.exists(fname):
-			os.remove(fname)
+		cleanup(fname, options)
 
-	try:
-		os.remove(header_html_file[1])
-	except:
-		pass
-	try:
-		os.remove(footer_html_file[1])
-	except:
-		pass
 	return filedata
 
-
-
-def read_options_from_html(html, header_html_file, footer_html_file):
-	options = {}
-
-	soup = BeautifulSoup(html, "html5lib")
-	if (header_html_file):
-		header_html_file_url = frappe.utils.get_request_site_address() + "/files/" + header_html_file
-		options.update({
-			'header-html': header_html_file_url,
-		})
-	if (footer_html_file):
-		footer_html_file_url = frappe.utils.get_request_site_address() + "/files/" + footer_html_file
-		options.update({
-			'footer-html': footer_html_file_url,
-		})
-
-	try:
-		margin_top = soup.find('span', id='margintop')
-		margin_top = margin_top.contents
-	except:
-		margin_top = "15mm"
-	options.update({
-		'margin-top': margin_top,
-	})
+def prepare_options(html, options):
+	if not options:
+		options = {}
 
 	options.update({
-		"print-media-type": None,
-		"background": None,
-		"images": None,
-		'margin-right': '15mm',
-		'margin-bottom': '15mm',
-		'margin-left': '15mm',
-		'encoding': "UTF-8",
+		'print-media-type': None,
+		'background': None,
+		'images': None,
 		'quiet': None,
 		'no-outline': None,
+		'encoding': "UTF-8",
+
+		# defaults
+		'margin-right': '15mm',
+		'margin-left': '15mm',
 	})
-	return options
 
-#this function will copy all head info from the soup of the parent document's html and will then return a head element string
-def copy_head_info(soup):
-	html_style = ""
-	html_styles = soup.findAll('style')
-	try:
-		for style in html_styles:
-			html_style += style.prettify()
-	except:
-		pass
+	html, html_options = read_options_from_html(html)
+	options.update(html_options or {})
 
-	try:
-		html_head = ''.join(map(str, soup.find('head').contents))
-	except:
-		html_head = ''
+	# cookies
+	if frappe.session and frappe.session.sid:
+		options['cookie'] = [('sid', '{0}'.format(frappe.session.sid))]
 
-	html_head += """
-	  <script>
-			function subst() {
-				var vars={};
-			var x=window.location.search.substring(1).split('&');
-			for (var i in x) {var z=x[i].split('=',2);vars[z[0]] = unescape(z[1]);}
-			var x=['frompage','topage','page','webpage','section','subsection','subsubsection'];
-			for (var i in x) {
-			var y = document.getElementsByClassName(x[i]);
-			for (var j=0; j<y.length; ++j) y[j].textContent = vars[x[i]];
-			}
-			}
-			subst()
-		</script>
-	"""
-	html_head = "<head>"+ html_head + html_style + "</head>"
-	return html_head
+	# page size
+	if not options.get("page-size"):
+		options['page-size'] = frappe.db.get_single_value("Print Settings", "pdf_page_size") or "A4"
 
+	return html, options
 
-#this function will create a file with the contents we need for header and footer
-def make_html_file(html, type="header"):
-
-	#make sure we use the correct encoding utf8
-	reload(sys)
-	sys.setdefaultencoding('utf8')
+def read_options_from_html(html):
+	options = {}
 	soup = BeautifulSoup(html, "html5lib")
 
-	#set doctype to html5
-	html_doctype = """<!DOCTYPE html>"""
+	options.update(prepare_header_footer(soup))
 
-	#make sure we get all styles / scripts of the parent document
-	html_head = copy_head_info(soup)
+	# extract pdfkit options from html
+	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
+		try:
+			tag = soup.find(id=html_id)
+			if tag and tag.contents:
+				options[html_id] = tag.contents
+		except:
+			pass
 
-	#get the header div
-	if (type=="header"):
-		pdf_header = soup.find('div', id='htmlheader')
-	else:
-		pdf_header = soup.find('div', id='htmlfooter')
+	toggle_visible_pdf(soup)
 
-	try:
-		html_content = ''.join(map(str, pdf_header))
-	except:
-		html_content = ''
+	return soup.prettify(), options
 
-	#create the html body content
-	html_body = """<body onload="subst()" style="margin:0; padding:0;"><div class="print-format"><div class="wrapper">""" + html_content  + """</div></div></body></html>"""
+def prepare_header_footer(soup):
+	options = {}
 
-	#create the complete html of the page
-	header_html = html_doctype + html_head + html_body
+	head = soup.find("head")
+	style = soup.find_all("style")
 
-	fname = type
-	temp_file = create_temp_html_file(fname, header_html)
-	return temp_file
+	# extract header and footer
+	for html_id in ("header-html", "footer-html"):
+		content = soup.find(id=html_id)
+		if content:
+			content.extract()
+			toggle_visible_pdf(content)
+			html = frappe.render_template("templates/print_formats/pdf_header_footer.html", {
+				"head": head,
+				"style": style,
+				"content": content
+			})
 
-#this function will create a random filename and then return the filename and filepath
-def create_temp_html_file(fname, html):
-	reload(sys)
-	sys.setdefaultencoding('utf8')
-	temp_name = fname + os.urandom(16).encode('hex') + ".html"
-	fpath = frappe.utils.get_files_path() + "/" + temp_name
+			# create temp file
+			fname = os.path.join("/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
+			with open(fname, "w") as f:
+				f.write(html.encode("utf-8"))
 
-	while(os.path.exists(fpath)):
-		temp_name = fname + os.urandom(16).encode('hex') + ".html"
-		fpath = frappe.utils.get_files_path() + "/" + temp_name
+			# {"header-html": "/tmp/frappe-pdf-random.html"}
+			options[html_id] = fname
 
-	f = open(fpath,'w')
-	f.write(html)
-	f.close()
-	return temp_name, fpath
+		else:
+			if html_id == "header-html":
+				options["margin-top"] = "15mm"
+
+			elif html_id == "footer-html":
+				options["margin-bottom"] = "15mm"
+
+	return options
+
+def cleanup(fname, options):
+	if os.path.exists(fname):
+		os.remove(fname)
+
+	for key in ("header-html", "footer-html"):
+		if options.get(key) and os.path.exists(options[key]):
+			os.remove(options[key])
+
+def toggle_visible_pdf(soup):
+	for tag in soup.find_all(attrs={"class": "visible-pdf"}):
+		# remove visible-pdf class to unhide
+		tag.attrs['class'].remove('visible-pdf')
+
+	for tag in soup.find_all(attrs={"class": "hidden-pdf"}):
+		# remove tag from html
+		tag.extract()
