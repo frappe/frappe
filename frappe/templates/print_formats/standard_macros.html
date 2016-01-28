@@ -110,7 +110,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- endif -%}
 {% endmacro %}
 
-{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead) -%}
+{%- macro add_header(page_num, max_pages, doc, letter_head, no_letterhead, footer) -%}
 	{% if letter_head and not no_letterhead %}
 		<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
@@ -125,9 +125,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
         </h2>
     </div>
     {% endif %}
-	<p class="text-right page-number visible-pdf">
-		{{ _("Page #{0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
-	</p>
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
 	<div class="text-center" document-status="draft">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4>

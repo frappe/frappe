@@ -73,8 +73,6 @@ def read_options_from_html(html):
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
 
-	options.update(prepare_header_footer(soup))
-
 	# extract pdfkit options from html
 	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
 		try:
@@ -84,6 +82,8 @@ def read_options_from_html(html):
 		except:
 			pass
 
+	options.update(prepare_header_footer(soup))
+
 	toggle_visible_pdf(soup)
 
 	return soup.prettify(), options
@@ -91,19 +91,23 @@ def read_options_from_html(html):
 def prepare_header_footer(soup):
 	options = {}
 
-	head = soup.find("head")
+	head = soup.find("head").contents
 	styles = soup.find_all("style")
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
 		content = soup.find(id=html_id)
 		if content:
-			content.extract()
+			# there could be multiple instances of header-html/footer-html
+			for tag in soup.find_all(id=html_id):
+				tag.extract()
+
 			toggle_visible_pdf(content)
 			html = frappe.render_template("templates/print_formats/pdf_header_footer.html", {
 				"head": head,
 				"styles": styles,
-				"content": content
+				"content": content,
+				"html_id": html_id
 			})
 
 			# create temp file

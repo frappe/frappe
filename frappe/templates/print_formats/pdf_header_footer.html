@@ -1,49 +1,65 @@
 <!DOCTYPE html>
-<head>
-	<style>
-		body {
-			margin: 0 !important;
-			border: 0 !important;
-			padding: 15mm 0 5mm !important;
-		}
+<html>
+	<head>
+		{% if html_id=="footer-html" %}
+			{# a workaround for auto footer height in wkhtmltopdf #}
+			<link type="text/css" rel="stylesheet" media="print"
+		        href="/assets/frappe/css/bootstrap.css">
+			<link type="text/css" rel="stylesheet" media="print"
+		        href="/assets/frappe/css/font-awesome.css">
 
-		.letter-head {
-			margin-top: -15mm !important;
-		}
-	</style>
+		{% else %}
 
-	{{ head.prettify() }}
-
-	<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->
-	<script>
-		function subst() {
-			var vars = {};
-			var x = window.location.search.substring(1).split('&');
-			for (var i in x) {
-				var z = x[i].split('=',2);
-				vars[z[0]] = unescape(z[1]);
-			}
-			var x = ['frompage','topage','page','webpage','section','subsection','subsubsection'];
-			for (var i in x) {
-				var y = document.getElementsByClassName(x[i]);
-				for (var j=0; j<y.length; ++j) {
-					y[j].textContent = vars[x[i]];
-				}
-			}
-		}
-	</script>
-
-	{% for tag in styles -%}
-		{{ tag.prettify() }}
-	{%- endfor %}
-
-</head>
-<body onload="subst()">
-	<div class="print-format">
-		<div class="wrapper">
-			{% for tag in content -%}
+			{% for tag in head -%}
 				{{ tag | string }}
 			{%- endfor %}
+
+		{% endif %}
+
+		<style>
+			body {
+				margin: 0 !important;
+				border: 0 !important;
+				padding: 15mm 0 5mm !important;
+			}
+
+			.letter-head,
+			.letter-head-footer {
+				margin-top: -15mm !important;
+			}
+		</style>
+
+		<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->
+		<script>
+			function subst() {
+				var vars = {};
+				var x = window.location.search.substring(1).split('&');
+				for (var i in x) {
+					var z = x[i].split('=',2);
+					vars[z[0]] = unescape(z[1]);
+				}
+				var x = ['frompage','topage','page','webpage','section','subsection','subsubsection'];
+				for (var i in x) {
+					var y = document.getElementsByClassName(x[i]);
+					for (var j=0; j<y.length; ++j) {
+						y[j].textContent = vars[x[i]];
+					}
+				}
+			}
+		</script>
+
+		{% for tag in styles -%}
+			{{ tag | string }}
+		{%- endfor %}
+
+	</head>
+	<body onload="subst()">
+		<div class="print-format">
+			<div class="wrapper">
+				{% for tag in content -%}
+					{{ tag | string }}
+				{%- endfor %}
+			</div>
 		</div>
-	</div>
-</body>
+	</body>
+</html>
