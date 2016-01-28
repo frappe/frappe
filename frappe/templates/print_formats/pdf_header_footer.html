@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="utf-8">
+
 		{% if html_id=="footer-html" %}
-			{# a workaround for auto footer height in wkhtmltopdf #}
-			<link type="text/css" rel="stylesheet" media="print"
-		        href="/assets/frappe/css/bootstrap.css">
-			<link type="text/css" rel="stylesheet" media="print"
-		        href="/assets/frappe/css/font-awesome.css">
+
+			{# link tag does not work in footer in wkhtmltopdf,
+				so this is a workaround to include bootstrap and still have auto footer height working #}
+			<style>
+			{{ bootstrap }}
+			</style>
+
+			<style>
+			{{ fontawesome }}
+			</style>
 
 		{% else %}
 
