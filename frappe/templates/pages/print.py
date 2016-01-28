@@ -106,7 +106,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if template == "standard":
 		template = jenv.get_template(standard_format)
 
-	letter_head = get_letter_head(doc, no_letterhead)
+	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
@@ -161,7 +161,7 @@ def validate_print_permission(doc):
 
 def get_letter_head(doc, no_letterhead):
 	if no_letterhead:
-		return ""
+		return {}
 	if doc.get("letter_head"):
 		return frappe.db.get_value("Letter Head", doc.letter_head, ["content", "footer"], as_dict=True)
 	else:
