@@ -828,7 +828,6 @@ def request(context, args):
 def doctor():
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
-	frappe.init('')
 	return _doctor()
 
 @click.command('celery-doctor')
@@ -839,20 +838,23 @@ def celery_doctor(site=None):
 	frappe.init('')
 	return _celery_doctor(site=site)
 
-@click.command('purge-all-tasks')
-def purge_all_tasks():
-	"Purge any pending periodic tasks of 'all' event. Doesn't purge hourly, daily and weekly"
-	frappe.init('')
+@click.command('purge-pending-tasks')
+@click.option('--site', help='site name')
+@click.option('--event', default=None, help='one of "all", "weekly", "monthly", "hourly", "daily", "weekly_long", "daily_long"')
+def purge_all_tasks(site=None, event=None):
+	"Purge any pending periodic tasks, if event option is not given, it will purge everything for the site"
 	from frappe.utils.doctor import purge_pending_tasks
-	count = purge_pending_tasks()
+	frappe.init(site or '')
+	count = purge_pending_tasks(event=None, site=None)
 	print "Purged {} tasks".format(count)
 
 @click.command('dump-queue-status')
 def dump_queue_status():
 	"Dump detailed diagnostic infomation for task queues in JSON format"
 	frappe.init('')
-	from frappe.utils.doctor import dump_queue_status as _dump_queue_status
+	from frappe.utils.doctor import dump_queue_status as _dump_queue_status, inspect_queue
 	print json.dumps(_dump_queue_status(), indent=1)
+	print inspect_queue
 
 @click.command('make-app')
 @click.argument('destination')
