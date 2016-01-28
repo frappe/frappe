@@ -92,7 +92,7 @@ def prepare_header_footer(soup):
 	options = {}
 
 	head = soup.find("head")
-	style = soup.find_all("style")
+	styles = soup.find_all("style")
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
@@ -102,7 +102,7 @@ def prepare_header_footer(soup):
 			toggle_visible_pdf(content)
 			html = frappe.render_template("templates/print_formats/pdf_header_footer.html", {
 				"head": head,
-				"style": style,
+				"styles": styles,
 				"content": content
 			})
 

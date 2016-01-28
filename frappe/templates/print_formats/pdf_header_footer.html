@@ -12,9 +12,7 @@
 		}
 	</style>
 
-	{% for tag in head -%}
-		{{ tag | string }}
-	{%- endfor %}
+	{{ head.prettify() }}
 
 	<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->
 	<script>
@@ -36,7 +34,7 @@
 	</script>
 
 	{% for tag in styles -%}
-		{{ tag | string }}
+		{{ tag.prettify() }}
 	{%- endfor %}
 
 </head>
