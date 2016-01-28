@@ -828,7 +828,6 @@ def request(context, args):
 def doctor():
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
-	frappe.init('')
 	return _doctor()
 
 @click.command('celery-doctor')

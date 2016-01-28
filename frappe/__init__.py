@@ -173,6 +173,8 @@ def get_site_config(sites_path=None, site_path=None):
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
+		elif local.site:
+			raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 

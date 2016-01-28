@@ -3,6 +3,7 @@ import json, base64, os
 import frappe.utils
 from frappe.celery_app import get_celery
 from frappe.utils.file_lock import check_lock, LockTimeoutError
+from frappe.utils.scheduler import is_scheduler_disabled
 from collections import Counter
 from operator import itemgetter
 
@@ -140,9 +141,21 @@ def doctor():
 	"""
 	Prints diagnostic information for the scheduler
 	"""
+	print "Inspecting workers and queues..."
 	workers_online = check_if_workers_online()
 	pending_tasks = get_pending_task_count()
+
+	print "Finding locks..."
 	locks = get_timedout_locks()
+
+	print "Checking scheduler status..."
+	for site in frappe.utils.get_sites():
+		frappe.init(site)
+		frappe.connect()
+		if not is_scheduler_disabled():
+			print "{0:40}: Scheduler disabled via System Settings or site_config.json".format(site)
+		frappe.destroy()
+
 	print "Workers online:", workers_online
 	print "Pending tasks", pending_tasks
 	print "Timed out locks:"
