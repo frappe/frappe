@@ -1194,6 +1194,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(me.frm && me.frm.doc) {
 					me.selected = true;
 					me.parse_validate_and_set_in_model(ui.item.value);
+					setTimeout(function() {
+						me.selected = false;
+					}, 100);
 				} else {
 					me.$input.val(ui.item.value);
 					me.$input.trigger("change");
