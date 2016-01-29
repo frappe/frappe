@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import re
+import MySQLdb
 import frappe
 from frappe import _
 
@@ -37,15 +38,15 @@ class DocType(Document):
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
-				
+
 		if self.issingle:
 			self.allow_import = 0
 			self.is_submittable = 0
 			self.istable = 0
-			
+
 		elif self.istable:
-			self.allow_import = 0		
-				
+			self.allow_import = 0
+
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_document_type()
@@ -307,18 +308,29 @@ def validate_fields(meta):
 		if meta.issingle:
 			d.unique = 0
 			d.search_index = 0
-		
+
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
 				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
 
 			if not d.get("__islocal"):
-				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-					from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
-					doctype=d.parent, fieldname=d.fieldname))
+				try:
+					has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
+						from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+						doctype=d.parent, fieldname=d.fieldname))
 
-				if has_non_unique_values and has_non_unique_values[0][0]:
-					frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
+				except MySQLdb.OperationalError, e:
+					if e.args and e.args[0]==1054:
+						# ignore if missing column, else raise
+						# this happens in case of Custom Field
+						pass
+					else:
+						raise
+
+				else:
+					# else of try block
+					if has_non_unique_values and has_non_unique_values[0][0]:
+						frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
