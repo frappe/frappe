@@ -152,7 +152,7 @@ def doctor():
 	for site in frappe.utils.get_sites():
 		frappe.init(site)
 		frappe.connect()
-		if not is_scheduler_disabled():
+		if is_scheduler_disabled():
 			print "{0:40}: Scheduler disabled via System Settings or site_config.json".format(site)
 		frappe.destroy()
 
