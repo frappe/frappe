@@ -3,20 +3,26 @@
 
 frappe.provide("frappe.ui.form.handlers");
 
+frappe.ui.form.get_event_handler_list = function(doctype, fieldname) {
+	if(!frappe.ui.form.handlers[doctype]) {
+		frappe.ui.form.handlers[doctype] = {};
+	}
+	if(!frappe.ui.form.handlers[doctype][fieldname]) {
+		frappe.ui.form.handlers[doctype][fieldname] = [];
+	}
+	return frappe.ui.form.handlers[doctype][fieldname];
+}
+
 frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, handler) {
 	var add_handler = function(fieldname, handler) {
-		if(!frappe.ui.form.handlers[doctype]) {
-			frappe.ui.form.handlers[doctype] = {};
-		}
-		if(!frappe.ui.form.handlers[doctype][fieldname]) {
-			frappe.ui.form.handlers[doctype][fieldname] = [];
-		}
-		frappe.ui.form.handlers[doctype][fieldname].push(handler);
+		var handler_list = frappe.ui.form.get_event_handler_list(doctype, fieldname);
+		handler_list.push(handler);
 
 		// add last handler to events so it can be called as
 		// frm.events.handler(frm)
-		if(cur_frm && cur_frm.doctype===doctype)
+		if(cur_frm && cur_frm.doctype===doctype) {
 			cur_frm.events[fieldname] = handler;
+		}
 	}
 
 	if (!handler && $.isPlainObject(fieldname)) {
@@ -31,6 +37,23 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 		add_handler(fieldname, handler);
 	}
 }
+
+// remove standard event handlers
+frappe.ui.form.off = function(doctype, fieldname, handler) {
+	var handler_list = frappe.ui.form.get_event_handler_list(doctype, fieldname);
+	if(handler_list.length) {
+		frappe.ui.form.handlers[doctype][fieldname] = [];
+	}
+
+	if(cur_frm && cur_frm.doctype===doctype && cur_frm.events[fieldname]) {
+		delete cur_frm.events[fieldname];
+	}
+
+	if(cur_frm && cur_frm.cscript && cur_frm.cscript[fieldname]) {
+		delete cur_frm.cscript[fieldname];
+	}
+}
+
 
 frappe.ui.form.trigger = function(doctype, fieldname, callback) {
 	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
