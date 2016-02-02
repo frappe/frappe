@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
@@ -16,7 +17,10 @@ class EmailAlert(Document):
 			frappe.throw(_("Please specify which value field must be checked"))
 
 		forbidden_document_types = ("Bulk Email",)
-		if self.document_type in forbidden_document_types:
+		if (self.document_type in forbidden_document_types
+			or frappe.get_meta(self.document_type).istable):
+			# currently email alerts don't work on child tables as events are not fired for each record of child table
+
 			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
 
 def trigger_daily_alerts():
@@ -94,7 +98,22 @@ def evaluate_alert(doc, alert, event):
 	if not recipients:
 		return
 
-	frappe.sendmail(recipients=recipients, subject=alert.subject,
-		message= frappe.render_template(alert.message, {"doc": doc, "alert":alert}),
+	subject = alert.subject
+
+	if event != "Value Change" and not doc.is_new():
+		# reload the doc for the latest values & comments,
+		# except for validate type event.
+		doc = frappe.get_doc(doc.doctype, doc.name)
+
+	context = {"doc": doc, "alert": alert, "comments": None}
+
+	if doc.get("_comments"):
+		context["comments"] = json.loads(doc.get("_comments"))
+
+	if "{" in subject:
+		subject = frappe.render_template(alert.subject, context)
+
+	frappe.sendmail(recipients=recipients, subject=subject,
+		message= frappe.render_template(alert.message, context),
 		bulk=True, reference_doctype = doc.doctype, reference_name = doc.name,
 		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)

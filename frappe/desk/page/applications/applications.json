@@ -1,20 +1,23 @@
 {
- "creation": "2013-12-23 11:01:52.000000",
- "docstatus": 0,
- "doctype": "Page",
- "icon": "icon-magic",
- "idx": 1,
- "modified": "2013-12-23 11:01:52.000001",
- "modified_by": "Administrator",
- "module": "Desk",
- "name": "applications",
- "owner": "Administrator",
- "page_name": "applications",
+ "content": null, 
+ "creation": "2013-12-23 11:01:52", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-magic", 
+ "idx": 1, 
+ "modified": "2015-11-18 06:20:09.586810", 
+ "modified_by": "Administrator", 
+ "module": "Desk", 
+ "name": "applications", 
+ "owner": "Administrator", 
+ "page_name": "applications", 
  "roles": [
   {
    "role": "System Manager"
   }
- ],
- "standard": "Yes",
- "title": "Applications"
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "App Installer"
 }

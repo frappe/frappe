@@ -2289,6 +2289,7 @@
   "currency": "CHF",
   "currency_fraction": "Rappen[K]",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.05,
   "currency_name": "Swiss Franc",
   "currency_symbol": "Fr",
   "number_format": "#'###.##",
@@ -2487,6 +2488,7 @@
   "currency": "USD",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.05,
   "currency_name": "US Dollar",
   "currency_symbol": "$",
   "date_format": "mm-dd-yyyy",
@@ -2567,7 +2569,11 @@
  },
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
-  "number_format": "#,###.##"
+  "number_format": "#.###,##",
+  "currency": "VEF",
+  "currency_symbol": "Bs.",
+  "currency_fraction": "Centimos",
+  "currency_fraction_units": 100
  },
  "Vietnam": {
   "code": "vn",

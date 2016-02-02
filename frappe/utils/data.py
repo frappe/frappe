@@ -10,6 +10,9 @@ import re, urllib, datetime, math
 import babel.dates
 from dateutil import parser
 from num2words import num2words
+import HTMLParser
+from html2text import html2text
+
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -105,7 +108,8 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 def now_datetime():
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	return dt.replace(tzinfo=None)
 
 def _get_time_zone():
 	time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
@@ -272,6 +276,32 @@ def rounded(num, precision=0):
 		num = round(num)
 
 	return (num / multiplier) if precision else num
+
+def remainder(numerator, denominator, precision=2):
+	precision = cint(precision)
+	multiplier = 10 ** precision
+
+	if precision:
+		_remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier
+	else:
+		_remainder = numerator % denominator
+
+	return flt(_remainder, precision);
+
+def round_based_on_smallest_currency_fraction(value, currency, precision=2):
+	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
+		currency, "smallest_currency_fraction_value"))
+
+	if smallest_currency_fraction_value:
+		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
+		if remainder_val > (smallest_currency_fraction_value / 2):
+			value += smallest_currency_fraction_value - remainder_val
+		else:
+			value -= remainder_val
+	else:
+		value = rounded(value)
+
+	return flt(value, precision)
 
 def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
@@ -513,6 +543,9 @@ def get_url(uri=None, full_address=False):
 	"""get app url from request"""
 	host_name = frappe.local.conf.host_name
 
+	if uri and (uri.startswith("http://") or uri.startswith("https://")):
+		return uri
+
 	if not host_name:
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
@@ -538,10 +571,16 @@ def get_url(uri=None, full_address=False):
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]
 
-def get_url_to_form(doctype, name, label=None):
+def get_link_to_form(doctype, name, label=None):
 	if not label: label = name
 
-	return """<a href="/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
+
+def get_url_to_form(doctype, name):
+	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
+
+def get_url_to_list(doctype):
+	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
 operator_map = {
 	# startswith
@@ -611,3 +650,12 @@ def unique(seq):
 def strip(val, chars=None):
 	# \ufeff is no-width-break, \u200b is no-width-space
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
+
+def to_markdown(html):
+	text = None
+	try:
+		text = html2text(html)
+	except HTMLParser.HTMLParseError:
+		pass
+
+	return text

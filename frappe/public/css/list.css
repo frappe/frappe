@@ -20,7 +20,7 @@
 .set-filters .btn-group .btn-default {
   background-color: transparent;
   border: 1px solid #d1d8dd;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .filter-box {
   border-top: 1px solid #d1d8dd;
@@ -61,18 +61,18 @@
   margin-bottom: 0px;
 }
 .list-row-head {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd !important;
 }
 .list-row:hover,
 .grid-row:hover {
-  background: #f7fafc;
+  background: #F7FAFC;
 }
 .list-row:last-child {
   border-bottom: 0px;
 }
 .list-row-head {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd !important;
 }
 .list-row .h6 {
@@ -96,6 +96,13 @@
   height: 10px;
 }
 .doclist-row {
+  font-size: 12px;
+}
+.doclist-row .likes-count {
+  display: inline-block;
+  width: 15px;
+  margin-left: -5px;
+  color: #8D99A6;
   font-size: 12px;
 }
 .doclist-row .docstatus .octicon {
@@ -134,14 +141,14 @@
   margin: 0px -15px;
   padding: 5px 15px;
 }
-.listview-main-section .icon-star {
+.listview-main-section .octicon-heart {
   cursor: pointer;
 }
-.list-row-head .icon-star {
-  vertical-align: middle;
+.list-row-head .octicon-heart {
+  margin-right: 13px;
 }
-.star-action.icon-star {
-  color: #ffdb4c;
+.like-action.octicon-heart {
+  color: #ff5858;
 }
 .list-id {
   font-weight: bold;
@@ -162,4 +169,9 @@
   .doclist-row .list-row-right .list-row-modified {
     display: none;
   }
+}
+.list-comment-count {
+  display: inline-block;
+  width: 37px;
+  text-align: left;
 }

@@ -20,7 +20,7 @@ redis_server = None
 def handler(f):
 	cmd = f.__module__ + '.' + f.__name__
 
-	def run(args, set_in_response=True):
+	def run(args, set_in_response=True, hijack_std=False):
 		from frappe.tasks import run_async_task
 		from frappe.handler import execute_cmd
 		if frappe.conf.disable_async:
@@ -28,7 +28,7 @@ def handler(f):
 		args = frappe._dict(args)
 		task = run_async_task.delay(site=frappe.local.site,
 			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
-			form_dict=args)
+									form_dict=args, hijack_std=hijack_std)
 		if set_in_response:
 			frappe.local.response['task_id'] = task.id
 		return task.id
@@ -51,7 +51,7 @@ def handler(f):
 
 @frappe.whitelist()
 def get_pending_tasks_for_doc(doctype, docname):
-	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype='%s' and reference_name='%s'" % (doctype, docname))
+	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype=%s and reference_name=%s", (doctype, docname))
 
 
 @handler
@@ -97,7 +97,7 @@ def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
 
-def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, now=False):
+def publish_realtime(event=None, message=None, room=None, user=None, doctype=None, docname=None, after_commit=False):
 	"""Publish real-time updates
 
 	:param event: Event name, like `task_progress` etc. that will be handled by the client (default is `task_progress` if within task or `global`)
@@ -105,23 +105,24 @@ def publish_realtime(event=None, message=None, room=None, user=None, doctype=Non
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
 	:param doctype: Transmit to doctype, docname
-	:param docname: Transmit to doctype, docname"""
+	:param docname: Transmit to doctype, docname
+	:param after_commit: (default False) will emit after current transaction is committed"""
 	if message is None:
 		message = {}
 
 	if event is None:
-		if frappe.local.task_id:
+		if getattr(frappe.local, "task_id", None):
 			event = "task_progress"
 		else:
 			event = "global"
 
 	if not room:
-		if frappe.local.task_id:
+		if getattr(frappe.local, "task_id", None):
 			room = get_task_progress_room()
 			if not "task_id" in message:
 				message["task_id"] = frappe.local.task_id
 
-			now = True
+			after_commit = False
 		elif user:
 			room = get_user_room(user)
 		elif doctype and docname:
@@ -129,10 +130,10 @@ def publish_realtime(event=None, message=None, room=None, user=None, doctype=Non
 		else:
 			room = get_site_room()
 
-	if now:
-		emit_via_redis(event, message, room)
-	else:
+	if after_commit:
 		frappe.local.realtime_log.append([event, message, room])
+	else:
+		emit_via_redis(event, message, room)
 
 def emit_via_redis(event, message, room):
 	"""Publish real-time updates via redis

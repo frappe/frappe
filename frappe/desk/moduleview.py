@@ -90,10 +90,10 @@ def add_custom_doctypes(data, doctype_info):
 def get_doctype_info(module):
 	"""Returns list of non child DocTypes for given module."""
 	doctype_info = frappe.db.sql("""select "doctype" as type, name, description,
-		ifnull(document_type, "") as document_type, ifnull(custom, 0) as custom,
-		ifnull(issingle, 0) as issingle
-		from `tabDocType` where module=%s and ifnull(istable, 0)=0
-		order by ifnull(custom, 0) asc, document_type desc, name asc""", module, as_dict=True)
+		ifnull(document_type, "") as document_type, custom as custom,
+		issingle as issingle
+		from `tabDocType` where module=%s and istable=0
+		order by custom asc, document_type desc, name asc""", module, as_dict=True)
 
 	for d in doctype_info:
 		d.description = _(d.description or "")

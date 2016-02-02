@@ -2,17 +2,24 @@ execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.',
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 frappe.patches.v6_1.rename_file_data
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-08-20
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-10-16
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-24
+execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
 execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
 execute:frappe.reload_doc('email', 'doctype', 'email_alert') #2014-07-15
 execute:frappe.reload_doc('desk', 'doctype', 'todo') #2014-12-31-1
 execute:frappe.reload_doc('custom', 'doctype', 'property_setter') #2014-12-31-1
+execute:frappe.reload_doc('core', 'doctype', 'patch_log') #2016-10-31
+execute:frappe.reload_doctype("File") # 2015-10-19
+execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length
+frappe.patches.v6_4.reduce_varchar_length
+frappe.patches.v5_2.change_checks_to_not_null
+frappe.patches.v6_9.int_float_not_null #2015-11-25
 frappe.patches.v5_0.v4_to_v5
 
 frappe.patches.v5_0.remove_shopping_cart_app
@@ -68,6 +75,7 @@ execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, loca
 frappe.patches.v5_0.fix_feed
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
+frappe.patches.v6_16.star_to_like
 frappe.patches.v5_0.bookmarks_to_stars
 frappe.patches.v5_0.style_settings_to_website_theme
 frappe.patches.v5_0.rename_ref_type_fieldnames
@@ -84,7 +92,6 @@ frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'")
-frappe.patches.v5_2.change_checks_to_not_null
 frappe.patches.v5_3.rename_chinese_languages
 frappe.patches.v6_0.communication_status_and_permission
 frappe.patches.v6_0.make_task_log_folder
@@ -94,3 +101,17 @@ frappe.patches.v6_2.ignore_user_permissions_if_missing
 execute:frappe.db.sql("delete from tabSessions where user is null")
 frappe.patches.v6_2.rename_backup_manager
 execute:frappe.delete_doc("DocType", "Backup Manager")
+frappe.patches.v6_4.rename_bengali_language
+execute:frappe.db.sql("""update `tabCommunication` set parenttype=null, parent=null, parentfield=null""") #2015-10-22
+execute:frappe.permissions.reset_perms("Web Page")
+frappe.patches.v6_6.user_last_active
+frappe.patches.v6_6.rename_slovak_language
+frappe.patches.v6_6.fix_file_url
+frappe.patches.v6_9.rename_burmese_language
+frappe.patches.v6_11.rename_field_in_email_account
+execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
+frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
+frappe.patches.v6_15.set_username
+execute:frappe.permissions.reset_perms("Error Snapshot")
+frappe.patches.v6_16.feed_doc_owner
+

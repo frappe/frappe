@@ -104,7 +104,7 @@ login.login_handlers = (function() {
 	var login_handlers = {
 		200: function(data) {
 			if(data.message=="Logged In") {
-				window.location.href = get_url_arg("redirect-to") || "/desk";
+				window.location.href = get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
 				if(localStorage) {
 					var last_visited =
@@ -116,7 +116,7 @@ login.login_handlers = (function() {
 				if(last_visited && last_visited != "/login") {
 					window.location.href = last_visited;
 				} else {
-					window.location.href = "/me";
+					window.location.href = data.home_page;
 				}
 			} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
 				frappe.msgprint(data.message);
@@ -133,13 +133,7 @@ frappe.ready(function() {
 	login.bind_events();
 
 	if (!window.location.hash) {
-		if (frappe.supports_pjax()) {
-			// preserve back button
-			window.history.replaceState(window.history.state, window.document.title, window.location.href + "#login");
-			$(window).trigger("hashchange");
-		} else {
-			window.location.hash = "#login";
-		}
+		window.location.hash = "#login";
 	} else {
 		$(window).trigger("hashchange");
 	}

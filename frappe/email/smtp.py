@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import smtplib
+import email.utils
 import _socket
 from frappe.utils import cint
 from frappe import _
@@ -21,12 +22,7 @@ def send(email, append_to=None):
 
 	try:
 		smtpserver = SMTPServer(append_to=append_to)
-		if hasattr(smtpserver, "always_use_account_email_id_as_sender") and \
-			cint(smtpserver.always_use_account_email_id_as_sender) and smtpserver.login:
-			if not email.reply_to:
-				email.reply_to = email.sender
-			email.sender = smtpserver.login
-
+		smtpserver.replace_sender_in_email(email)
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
 			email.as_string())
 
@@ -58,6 +54,10 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
 				frappe.OutgoingEmailError)
 
+		if email_account:
+			email_account.default_sender = email.utils.formataddr((email_account.name,
+				email_account.get("sender") or email_account.get("email_id")))
+
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 
 	return frappe.local.outgoing_email_account[append_to or "default"]
@@ -77,6 +77,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"sender": frappe.conf.get("auto_email_id", "notifications@example.com")
 		})
 		email_account.from_site_config = True
+		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
 
 	if not email_account and not raise_exception_not_set:
 		return None
@@ -122,6 +123,13 @@ class SMTPServer:
 			self.use_ssl = self.email_account.use_tls
 			self.sender = self.email_account.email_id
 			self.always_use_account_email_id_as_sender = self.email_account.get("always_use_account_email_id_as_sender")
+
+	def replace_sender_in_email(self, email):
+		if hasattr(self, "always_use_account_email_id_as_sender") and \
+			cint(self.always_use_account_email_id_as_sender) and self.login:
+			if not email.reply_to:
+				email.reply_to = email.sender
+			email.sender = self.login
 
 	@property
 	def sess(self):
@@ -171,3 +179,4 @@ class SMTPServer:
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
+

@@ -32,6 +32,9 @@ frappe.ui.form.on("ToDo", {
 					frm.save();
 				}, null, "btn-default");
 			}
+			frm.add_custom_button(__("New"), function() {
+				newdoc("ToDo")
+			}, null, "btn-default");
 		}
 	}
 });

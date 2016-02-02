@@ -32,7 +32,7 @@ class HTTPRequest:
 			frappe.local.request_ip = '127.0.0.1'
 
 		# language
-		self.set_lang(frappe.request.accept_languages.values())
+		self.set_lang()
 
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
@@ -70,9 +70,9 @@ class HTTPRequest:
 				frappe.local.flags.disable_traceback = True
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
-	def set_lang(self, lang_codes):
+	def set_lang(self):
 		from frappe.translate import guess_language
-		frappe.local.lang = guess_language(lang_codes)
+		frappe.local.lang = guess_language()
 
 	def get_db_name(self):
 		"""get database name from conf"""
@@ -130,10 +130,12 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			if not resume:
 				frappe.local.response["message"] = "No App"
+				frappe.local.response["home_page"] = get_website_user_home_page(self.user)
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
 				frappe.local.response['message'] = 'Logged In'
+				frappe.local.response["home_page"] = "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -293,3 +295,11 @@ def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
 	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
+
+def get_website_user_home_page(user):
+	home_page_method = frappe.get_hooks('get_website_user_home_page')
+	if home_page_method:
+		home_page = frappe.get_attr(home_page_method[-1])(user)
+		return '/' + home_page.strip('/')
+	else:
+		return '/me'

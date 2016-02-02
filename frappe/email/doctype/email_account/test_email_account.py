@@ -13,6 +13,14 @@ from frappe.email.doctype.email_account.email_account import notify_unreplied
 from datetime import datetime, timedelta
 
 class TestEmailAccount(unittest.TestCase):
+	def setUp(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.db_set("enable_incoming", 1)
+
+	def tearDown(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.db_set("enable_incoming", 0)
+
 	def test_incoming(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
 
@@ -57,6 +65,11 @@ class TestEmailAccount(unittest.TestCase):
 		# check attachment
 		attachments = get_attachments(comm.doctype, comm.name)
 		self.assertTrue("erpnext-conf-14.png" in [f.file_name for f in attachments])
+
+		# cleanup
+		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
+		frappe.delete_doc("File", existing_file.name)
+		delete_file_from_filesystem(existing_file)
 
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None

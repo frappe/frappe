@@ -50,7 +50,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
+	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr
@@ -67,11 +67,14 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
-	if email_str and " " in email_str and "<" not in email_str:
+	if not email_str:
+		return False
+
+	elif " " in email_str and "<" not in email_str:
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
 		return False
 
-	email = extract_email_id(email_str)
+	email = extract_email_id(email_str.strip())
 	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
 	if not match:
@@ -314,8 +317,11 @@ def get_site_base_path(sites_dir=None, hostname=None):
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 
-def get_files_path(*path):
-	return get_site_path("public", "files", *path)
+def get_files_path(*path, **kwargs):
+	return get_site_path("private" if kwargs.get("is_private") else "public", "files", *path)
+
+def get_bench_path():
+	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), '..', '..', '..'))
 
 def get_backups_path():
 	return get_site_path("private", "backups")
@@ -365,6 +371,13 @@ def get_hook_method(hook_name, fallback=None):
 	if fallback:
 		return fallback
 
+def call_hook_method(hook, *args, **kwargs):
+	out = None
+	for method_name in frappe.get_hooks(hook):
+		out = out or frappe.get_attr(method_name)(*args, **kwargs)
+
+	return out
+
 def update_progress_bar(txt, i, l):
 	lt = len(txt)
 	if lt < 36:
@@ -413,3 +426,31 @@ def get_request_session(max_retries=3):
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	return session
 
+def watch(path, handler=None, debug=True):
+	import sys
+	import time
+	import logging
+	from watchdog.observers import Observer
+	from watchdog.events import LoggingEventHandler, FileSystemEventHandler
+
+	class Handler(FileSystemEventHandler):
+		def on_any_event(self, event):
+			if debug:
+				print "File {0}: {1}".format(event.event_type, event.src_path)
+
+			if not handler:
+				print "No handler specified"
+				return
+
+			handler(event.src_path, event.event_type)
+
+	event_handler = Handler()
+	observer = Observer()
+	observer.schedule(event_handler, path, recursive=True)
+	observer.start()
+	try:
+		while True:
+			time.sleep(1)
+	except KeyboardInterrupt:
+		observer.stop()
+	observer.join()

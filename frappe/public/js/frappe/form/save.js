@@ -160,7 +160,9 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		$(opts.btn).prop("disabled", true);
 
 		if(frappe.ui.form.is_saving) {
-			msgprint(__("Already saving. Please wait a few moments."));
+			// this is likely to happen if the user presses the shortcut cmd+s for a longer duration or uses double click
+			// no need to show this to user, as they can see "Saving" in freeze message
+			console.log("Already saving. Please wait a few moments.")
 			throw "saving";
 		}
 		frappe.ui.form.is_saving = true;

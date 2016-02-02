@@ -77,27 +77,28 @@ def get_events(start, end, user=None, for_reminder=False):
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
 		from tabEvent where ((
-			(date(starts_on) between date('%(start)s') and date('%(end)s'))
-			or (date(ends_on) between date('%(start)s') and date('%(end)s'))
-			or (date(starts_on) <= date('%(start)s') and date(ends_on) >= date('%(end)s'))
+			(date(starts_on) between date(%(start)s) and date(%(end)s))
+			or (date(ends_on) between date(%(start)s) and date(%(end)s))
+			or (date(starts_on) <= date(%(start)s) and date(ends_on) >= date(%(end)s))
 		) or (
-			date(starts_on) <= date('%(start)s') and ifnull(repeat_this_event,0)=1 and
-			ifnull(repeat_till, "3000-01-01") > date('%(start)s')
+			date(starts_on) <= date(%(start)s) and repeat_this_event=1 and
+			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
 		))
-		%(reminder_condition)s
-		and (event_type='Public' or owner='%(user)s'
+		{reminder_condition}
+		and (event_type='Public' or owner=%(user)s
 		or exists(select name from `tabDocShare` where
 			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
-			and tabDocShare.user='%(user)s')
+			and tabDocShare.user=%(user)s)
 		or exists(select * from `tabEvent Role` where
 			`tabEvent Role`.parent=tabEvent.name
-			and `tabEvent Role`.role in ('%(roles)s')))
-		order by starts_on""" % {
+			and `tabEvent Role`.role in ({roles})))
+		order by starts_on""".format(
+			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
+			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
+		), {
 			"start": start,
 			"end": end,
-			"reminder_condition": "and ifnull(send_reminder,0)=1" if for_reminder else "",
 			"user": user,
-			"roles": "', '".join(roles)
 		}, as_dict=1)
 
 	# process recurring events

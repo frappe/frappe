@@ -62,7 +62,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['user_permissions'] = get_user_permissions(docs[0])
+	frappe.response['user_permissions'] = get_user_permissions(docs)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
@@ -95,37 +95,40 @@ def get_docinfo(doc=None, doctype=None, name=None):
 def get_user_permissions(meta):
 	out = {}
 	all_user_permissions = frappe.defaults.get_user_permissions()
-	for df in meta.get_fields_to_check_permissions(all_user_permissions):
-		out[df.options] = list(set(all_user_permissions[df.options]))
+
+	for m in meta:
+		for df in m.get_fields_to_check_permissions(all_user_permissions):
+			out[df.options] = list(set(all_user_permissions[df.options]))
+
 	return out
 
 def get_attachments(dt, dn):
-	return frappe.get_all("File", fields=["name", "file_name", "file_url"],
+	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],
 		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
 
 def get_comments(dt, dn, limit=100):
 	comments = frappe.db.sql("""select name, comment, comment_by, creation,
-			reference_doctype, reference_name, comment_type, "Comment" as doctype
+			reference_doctype, reference_name, comment_type, "Comment" as doctype, _liked_by
 		from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
-		order by creation desc limit %s""" % ('%s','%s', limit),
-			(dt, dn), as_dict=1)
+		order by creation desc limit %s""",
+			(dt, dn, limit), as_dict=1)
 
 	communications = frappe.db.sql("""select name,
 			content as comment, sender as comment_by, creation,
-			communication_medium as comment_type, subject, delivery_status,
+			communication_medium as comment_type, subject, delivery_status, _liked_by,
 			"Communication" as doctype
 		from tabCommunication
 		where reference_doctype=%s and reference_name=%s
-		order by creation desc limit {0}""".format(limit), (dt, dn),
+		order by creation desc limit %s""", (dt, dn, limit),
 			as_dict=True)
 
 	for c in communications:
-		c.attachments = json.dumps([f.file_url for f in frappe.get_all("File",
-			fields=["file_url"],
+		c.attachments = json.dumps(frappe.get_all("File",
+			fields=["file_url", "is_private"],
 			filters={"attached_to_doctype": "Communication",
 				"attached_to_name": c.name}
-			)])
+			))
 
 	return comments + communications
 

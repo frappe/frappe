@@ -16,7 +16,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), message_id=None, send_after=None,
+		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, send_after=None,
 		expose_recipients=False, bulk_priority=1):
 	"""Add email to sending queue (Bulk Email)
 
@@ -48,7 +48,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	if not sender or sender == "Administrator":
 		email_account = get_outgoing_email_account()
-		sender = email_account.get("sender") or email_account.email_id
+		sender = email_account.default_sender
 
 	check_bulk_limit(recipients)
 
@@ -83,11 +83,20 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 				expose_recipients=expose_recipients,
 				unsubscribe_method=unsubscribe_method,
 				unsubscribe_params=unsubscribe_params,
-				unsubscribe_message=unsubscribe_message
+				unsubscribe_message=unsubscribe_message,
+				show_as_cc=show_as_cc
 			)
 
 			email_content = email_content.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 			email_text_context += unsubscribe_link.text
+
+			# show as cc
+			cc_message = ""
+			if email in show_as_cc:
+				cc_message = _("This email was sent to you as CC")
+
+			email_content = email_content.replace("<!-- cc message -->", cc_message)
+			email_text_context = cc_message + "\n" + email_text_context
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
@@ -136,14 +145,21 @@ def check_bulk_limit(recipients):
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
 		if (this_month + len(recipients)) > monthly_bulk_mail_limit:
-			throw(_("Email limit {0} crossed").format(monthly_bulk_mail_limit),
+			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_bulk_mail_limit),
 				BulkLimitCrossedError)
 
 def get_unsubscribe_link(reference_doctype, reference_name,
-	email, recipients, expose_recipients, unsubscribe_method, unsubscribe_params, unsubscribe_message):
+	email, recipients, expose_recipients, show_as_cc,
+	unsubscribe_method, unsubscribe_params, unsubscribe_message):
 
-	unsubscribe_email = recipients if expose_recipients else [email]
-	unsubscribe_email = _("This email was sent to {0}").format(", ".join(unsubscribe_email))
+	email_sent_to = recipients if expose_recipients else [email]
+	email_sent_cc = ", ".join([e for e in email_sent_to if e in show_as_cc])
+	email_sent_to = ", ".join([e for e in email_sent_to if e not in show_as_cc])
+
+	if email_sent_cc:
+		email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to, email_sent_cc)
+	else:
+		email_sent_message = _("This email was sent to {0}").format(email_sent_to)
 
 	if not unsubscribe_message:
 		unsubscribe_message = _("Unsubscribe from this list")
@@ -160,12 +176,12 @@ def get_unsubscribe_link(reference_doctype, reference_name,
 			</p>
 		</div>""".format(
 			unsubscribe_url = unsubscribe_url,
-			email=unsubscribe_email,
+			email=email_sent_message,
 			unsubscribe_message=unsubscribe_message
 		)
 
 	text = "\n{email}\n\n{unsubscribe_message}: {unsubscribe_url}".format(
-		email=unsubscribe_email,
+		email=email_sent_message,
 		unsubscribe_message=unsubscribe_message,
 		unsubscribe_url=unsubscribe_url
 	)
@@ -228,9 +244,9 @@ def flush(from_test=False):
 		from_test = True
 
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
-		where datediff(curdate(), creation) > 3""", auto_commit=auto_commit)
+		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
-	for i in xrange(100):
+	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
 			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)
@@ -244,6 +260,7 @@ def flush(from_test=False):
 		try:
 			if not from_test:
 				smtpserver.setup_email_account(email.reference_doctype)
+				smtpserver.replace_sender_in_email(email)
 				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
 
 			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
@@ -265,8 +282,9 @@ def flush(from_test=False):
 			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
-		finally:
-			frappe.db.commit()
+		# NOTE: removing commit here because we pass auto_commit
+		# finally:
+		# 	frappe.db.commit()
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""

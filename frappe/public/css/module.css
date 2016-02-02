@@ -18,7 +18,7 @@
 }
 .module-item:hover,
 .module-item:focus {
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
 }
 .module-item:last-child {
   border: none;

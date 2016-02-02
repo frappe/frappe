@@ -1,5 +1,7 @@
 <li data-label='{{ page.label }}' {% if page.child_items %} class="dropdown"{% endif %}>
-	<a href="{{ (page.url or '')|abs_url }}" {% if page.child_items %} class="dropdown-toggle" onclick="return false;" data-toggle="dropdown"{% endif %} {{ page.target or ''}}>
+	<a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
+		{% if page.child_items %} class="dropdown-toggle" onclick="return false;" data-toggle="dropdown"{% endif %}
+		{{ page.target or ''}}>
 	{{ page.label }}
 	{%- if page.child_items -%}
 		<span class="caret"></span>

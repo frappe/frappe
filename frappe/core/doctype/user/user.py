@@ -10,6 +10,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.utils.user import get_system_managers
 import frappe.permissions
 import frappe.share
+import re
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -38,6 +39,8 @@ class User(Document):
 		self.update_gravatar()
 		self.ensure_unique_roles()
 		self.remove_all_roles_for_guest()
+		self.validate_username()
+
 		if self.language == "Loading...":
 			self.language = None
 
@@ -85,7 +88,7 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		self.send_password_notifcation(self.__new_password)
+		self.send_password_notification(self.__new_password)
 
 	def share_with_self(self):
 		if self.user_type=="System User":
@@ -103,7 +106,7 @@ class User(Document):
 			else:
 				frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
 
-	def send_password_notifcation(self, new_password):
+	def send_password_notification(self, new_password):
 		try:
 			if self.in_insert:
 				if self.name not in STANDARD_USERS:
@@ -141,7 +144,7 @@ class User(Document):
 		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
 			where user_role.role='System Manager'
 				and user.docstatus<2
-				and ifnull(user.enabled,0)=1
+				and user.enabled=1
 				and user_role.parent = user.name
 			and user_role.parent not in ('Administrator', %s) limit 1""", (self.name,))
 
@@ -164,7 +167,7 @@ class User(Document):
 		link = get_url("/update-password?key=" + key)
 
 		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
-			{"link": link})
+			{"link": link, "site_url": get_url()})
 
 	def send_login_mail(self, subject, template, add_args):
 		"""send mail with login details"""
@@ -296,6 +299,48 @@ class User(Document):
 			else:
 				exists.append(d.role)
 
+	def validate_username(self):
+		if not self.username and self.is_new() and self.first_name:
+			self.username = frappe.scrub(self.first_name)
+
+		if not self.username:
+			return
+
+		# strip space and @
+		self.username = self.username.strip(" @")
+
+		if self.username_exists():
+			frappe.msgprint(_("Username {0} already exists").format(self.username))
+			self.suggest_username()
+			self.username = ""
+
+		# should be made up of characters, numbers and underscore only
+		if self.username and not re.match(r"^[\w]+$", self.username):
+			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
+			self.username = ""
+
+	def suggest_username(self):
+		def _check_suggestion(suggestion):
+			if self.username != suggestion and not self.username_exists(suggestion):
+				return suggestion
+
+			return None
+
+		# @firstname
+		username = _check_suggestion(frappe.scrub(self.first_name))
+
+		if not username:
+			# @firstname_last_name
+			username = _check_suggestion(frappe.scrub("{0} {1}".format(self.first_name, self.last_name or "")))
+
+		if username:
+			frappe.msgprint(_("Suggested Username: {0}").format(username))
+
+		return username
+
+	def username_exists(self, username=None):
+		return frappe.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
+
 @frappe.whitelist()
 def get_languages():
 	from frappe.translate import get_lang_dict
@@ -397,7 +442,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
 		from `tabUser`
-		where ifnull(enabled, 0)=1
+		where enabled=1
 			and docstatus < 2
 			and name not in ({standard_users})
 			and user_type != 'Website User'
@@ -437,7 +482,7 @@ def get_active_users():
 	return frappe.db.sql("""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ({})
-		and hour(timediff(now(), last_login)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
+		and hour(timediff(now(), last_active)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_website_users():
 	"""Returns total no. of website users"""
@@ -448,7 +493,7 @@ def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
 	return frappe.db.sql("""select count(*) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'
-		and hour(timediff(now(), last_login)) < 72""")[0][0]
+		and hour(timediff(now(), last_active)) < 72""")[0][0]
 
 def get_permission_query_conditions(user):
 	if user=="Administrator":
@@ -490,3 +535,7 @@ def notifify_admin_access_to_system_manager(login_manager=None):
 		frappe.sendmail(recipients=get_system_managers(), subject=_("Administrator Logged In"),
 			message=message, bulk=True)
 
+def extract_mentions(txt):
+	"""Find all instances of @username in the string.
+	The mentions will be separated by non-word characters or may appear at the start of the string"""
+	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)

@@ -29,6 +29,7 @@ def render_template(template, context, is_path=None):
 		return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
+	import os
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
@@ -65,6 +66,7 @@ def get_allowed_functions_for_jenv():
 			"get_doc": frappe.get_doc,
 			"db": {
 				"get_value": frappe.db.get_value,
+				"get_default": frappe.db.get_default,
 			},
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
@@ -86,7 +88,8 @@ def get_allowed_functions_for_jenv():
 		"_": frappe._,
 		"get_shade": get_shade,
 		"scrub": scrub,
-		"guess_mimetype": mimetypes.guess_type
+		"guess_mimetype": mimetypes.guess_type,
+		"dev_server": os.environ.get('DEV_SERVER', False)
 	}
 
 def get_jloader():
@@ -95,6 +98,7 @@ def get_jloader():
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 		apps = frappe.get_installed_apps(sort=True)
+
 		apps.reverse()
 
 		frappe.local.jloader = ChoiceLoader(

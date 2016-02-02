@@ -16,6 +16,8 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
+from frappe.core.doctype.file.file import check_file_permission
+from frappe.website.render import render
 
 def report_error(status_code):
 	if (status_code!=404 or frappe.conf.logging) and not frappe.local.flags.disable_traceback:
@@ -85,19 +87,24 @@ def json_handler(obj):
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return unicode(obj)
+
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
+
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
 
 		return doc
+
+	elif type(obj)==type or isinstance(obj, Exception):
+		return repr(obj)
+
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))
 
 def as_page():
 	"""print web page"""
-	from frappe.website.render import render
 	return render(frappe.response['page_name'], http_status_code=frappe.response.get("http_status_code"))
 
 def redirect():
@@ -111,24 +118,39 @@ def download_backup(path):
 
 	return send_private_file(path)
 
+def download_private_file(path):
+	"""Checks permissions and sends back private file"""
+	try:
+		check_file_permission(path)
+
+	except frappe.PermissionError:
+		raise Forbidden(_("You don't have permission to access this file"))
+
+	return send_private_file(path.split("/private", 1)[1])
+
+
 def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
+	filename = os.path.basename(path)
 
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
-		path = '/' + path
+		path = '/protected/' + path
 		response = Response()
 		response.headers[b'X-Accel-Redirect'] = path
+
 	else:
-		filename = os.path.basename(path)
 		filepath = frappe.utils.get_site_path(path)
 		try:
 			f = open(filepath, 'rb')
 		except IOError:
 			raise NotFound
 
-		response = Response(wrap_file(frappe.local.request.environ, f))
-		response.headers.add(b'Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
-		response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
+		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
+
+	# no need for content disposition and force download. let browser handle its opening.
+	# response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
+
+	response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
 
 	return response
 

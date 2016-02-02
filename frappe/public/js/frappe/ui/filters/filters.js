@@ -57,7 +57,7 @@ frappe.ui.FilterList = Class.extend({
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
-			doctype: doctype,
+			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
@@ -132,7 +132,7 @@ frappe.ui.Filter = Class.extend({
 			}
 		});
 		if(this.fieldname) {
-			this.fieldselect.set_value(this.doctype, this.fieldname);
+			this.fieldselect.set_value(this._doctype || this.doctype, this.fieldname);
 		}
 	},
 	set_events: function() {
@@ -150,7 +150,7 @@ frappe.ui.Filter = Class.extend({
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
 			var condition = $(this).val();
-			if(in_list(["in", "like", "not in"], condition)) {
+			if(in_list(["in", "like", "not in", "not like"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
 				if(!me.field.desc_area) {
 					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
@@ -168,7 +168,7 @@ frappe.ui.Filter = Class.extend({
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me.doctype, me.fieldname, me.condition, me.value);
+			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
@@ -210,6 +210,11 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
+
+		// filter field shouldn't be read only or hidden
+		df.read_only = 0;
+		df.hidden = 0;
+
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
@@ -230,6 +235,7 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		var field_area = me.$w.find('.filter_field').empty().get(0);
+
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: field_area,
@@ -311,7 +317,7 @@ frappe.ui.Filter = Class.extend({
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(this.get_condition()==='like') {
+		if(this.get_condition().indexOf('like', 'not like')!==-1) {
 			// automatically append wildcards
 			if(val) {
 				if(val.slice(0,1) !== "%") {

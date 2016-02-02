@@ -35,10 +35,6 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 	}
 }
 
-cur_frm.cscript.user_image = function(doc) {
-	refresh_field("user_image_show");
-}
-
 cur_frm.cscript.refresh = function(doc) {
 	if(doc.name===user && !doc.__unsaved && frappe.languages && (doc.language || frappe.boot.user.language)
 		&& doc.language !== frappe.boot.user.language) {
@@ -76,7 +72,7 @@ cur_frm.cscript.refresh = function(doc) {
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
 		cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
-		cur_frm.toggle_enable('*', doc.enabled);
+		// cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'read_only', 0);
 	}
 
@@ -119,7 +115,7 @@ frappe.ModuleEditor = Class.extend({
 			var module = $(this).attr('data-module');
 			if($(this).prop("checked")) {
 				// remove from block_modules
-				me.frm.doc.block_modules = $.map(me.frm.doc.block_modules || [], function(d) { d.module != module });
+				me.frm.doc.block_modules = $.map(me.frm.doc.block_modules || [], function(d) { if(d.module != module){ return d } });
 			} else {
 				me.frm.add_child("block_modules", {"module": module});
 			}

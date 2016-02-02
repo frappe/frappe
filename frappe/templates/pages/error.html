@@ -1,3 +1,5 @@
+{% extends "templates/web.html" %}
+
 {% block title %}Error{% endblock %}
 
 {% block header %}
@@ -6,7 +8,7 @@
 </h2>
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <!-- no-sidebar -->
 <div class="error-content">
 	<pre><code>{{ error }}</code></pre>

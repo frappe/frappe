@@ -1,6 +1,12 @@
-{% block style %}{% include "templates/includes/login/login.css" %}{% endblock %}
+{% extends "templates/web.html" %}
 
-{% block content %}
+{% block style %}
+<style>
+{% include "templates/includes/login/login.css" %}
+</style>
+{% endblock %}
+
+{% block page_content %}
 <!-- no-header -->
 <!-- no-sidebar -->
 <div class="login-content" style="padding-top: 30px; padding-bottom:15px">
@@ -51,6 +57,7 @@
 			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
 		<input type="email" id="signup_email"
 			class="form-control" placeholder="{{ _('Email Id') }}" required>
+		<br>
 		<button class="btn btn-lg btn-default btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
 		<p class="text-center small">
 			<br><a href="#login" class="grey">{{ _("Have an account? Login") }}</a>
@@ -71,6 +78,8 @@
 </div>
 {% endblock %}
 
-{% block script_lib %}{% include "templates/includes/login/login.js" %}{% endblock %}
+{% block script %}
+<script>{% include "templates/includes/login/login.js" %}</script>
+{% endblock %}
 
 {% block sidebar %}{% endblock %}

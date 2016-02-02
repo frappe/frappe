@@ -7,6 +7,8 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_fullname
 
+exclude_from_linked_with = True
+
 class DocShare(Document):
 	no_feed_on_delete = True
 
@@ -40,8 +42,13 @@ class DocShare(Document):
 			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
 
 	def after_insert(self):
-		self.get_doc().add_comment("Shared",
-			_("{0} shared this document with {1}").format(get_fullname(self.owner), get_fullname(self.user)))
+		doc = self.get_doc()
+		owner = get_fullname(self.owner)
+
+		if self.everyone:
+			doc.add_comment("Shared", _("{0} shared this document with everyone").format(owner))
+		else:
+			doc.add_comment("Shared", _("{0} shared this document with {1}").format(owner, get_fullname(self.user)))
 
 	def on_trash(self):
 		if not self.flags.ignore_share_permission:

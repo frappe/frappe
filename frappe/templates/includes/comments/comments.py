@@ -42,7 +42,7 @@ def add_comment(args=None):
 	# notify commentors
 	commentors = [d[0] for d in frappe.db.sql("""select comment_by from tabComment where
 		comment_doctype=%s and comment_docname=%s and
-		ifnull(unsubscribed, 0)=0""", (comment.comment_doctype, comment.comment_docname))]
+		unsubscribed=0""", (comment.comment_doctype, comment.comment_docname))]
 
 	owner = frappe.db.get_value(comment.comment_doctype, comment.comment_docname, "owner")
 	recipients = list(set(commentors if owner=="Administrator" else (commentors + [owner])))

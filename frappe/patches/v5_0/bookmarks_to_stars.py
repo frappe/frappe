@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import json
 import frappe
 import frappe.defaults
-from frappe.desk.star import _toggle_star
+from frappe.desk.like import _toggle_like
 
 def execute():
 	for user in frappe.get_all("User"):
@@ -29,4 +29,4 @@ def execute():
 						or int(frappe.db.get_value("DocType", doctype, "issingle") or 0)
 						or not frappe.db.table_exists(doctype)):
 						continue
-					_toggle_star(doctype, docname, add="Yes", user=username)
+					_toggle_like(doctype, docname, add="Yes", user=username)

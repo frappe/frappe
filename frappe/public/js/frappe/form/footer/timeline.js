@@ -14,28 +14,34 @@ frappe.ui.form.Comments = Class.extend({
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
 
-		this.button = this.wrapper.find(".btn-go")
+		this.comment_button = this.wrapper.find(".btn-comment")
 			.on("click", function() {
-				if(me.wrapper.find(".is-email").prop("checked")) {
-					new frappe.views.CommunicationComposer({
-						doc: me.frm.doc,
-						txt: frappe.markdown(me.input.val()),
-						frm: me.frm
-					})
-				} else {
-					me.add_comment(this);
-				}
+				me.add_comment(this);
 			});
 
-		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
-			.on("change", function() {
-				me.button.html($(this).prop("checked") ? __("Compose") : __("Comment"));
+		this.input.keydown("meta+return ctrl+return", function(e) {
+			me.comment_button.trigger("click");
+		});
+
+		this.email_button = this.wrapper.find(".btn-new-email")
+			.on("click", function() {
+				new frappe.views.CommunicationComposer({
+					doc: me.frm.doc,
+					txt: frappe.markdown(me.input.val()),
+					frm: me.frm,
+					recipients: me.get_recipient()
+				})
 			});
 
 		this.list.on("click", ".toggle-blockquote", function() {
 			$(this).parent().siblings("blockquote").toggleClass("hidden");
 		});
+
+		this.setup_comment_like();
+
+		this.setup_mentions();
 	},
+
 	refresh: function(scroll_to_end) {
 		var me = this;
 
@@ -61,6 +67,7 @@ frappe.ui.form.Comments = Class.extend({
 		this.frm.sidebar.refresh_comments();
 
 	},
+
 	render_comment: function(c) {
 		var me = this;
 		this.prepare_comment(c);
@@ -107,7 +114,7 @@ frappe.ui.form.Comments = Class.extend({
 
 	prepare_comment: function(c) {
 		if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
-			c["delete"] = '<a class="close" href="#">&times;</a>';
+			c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
 		} else {
 			c["delete"] = "";
 		}
@@ -121,7 +128,7 @@ frappe.ui.form.Comments = Class.extend({
 		c.image = frappe.user_info(c.comment_by).image
 			|| frappe.get_gravatar(c.comment_by);
 		c.comment_on = comment_when(c.creation);
-		c.fullname = frappe.user_info(c.comment_by).fullname;
+		c.fullname = frappe.user.full_name(c.comment_by);
 
 		if(c.attachments && typeof c.attachments==="string")
 			c.attachments = JSON.parse(c.attachments);
@@ -141,7 +148,7 @@ frappe.ui.form.Comments = Class.extend({
 			if(c.comment_type=="Email") {
 				c.comment = c.comment.split("<!-- original-reply -->")[0];
 				c.comment = frappe.utils.strip_original_content(c.comment);
-				c.comment = frappe.utils.remove_script_and_style(c.comment);
+				c.comment = frappe.dom.remove_script_and_style(c.comment);
 
 				c.original_comment = c.comment;
 				c.comment = frappe.utils.toggle_blockquote(c.comment);
@@ -152,6 +159,20 @@ frappe.ui.form.Comments = Class.extend({
 			} else {
 				c.comment_html = c.comment;
 				c.comment_html = frappe.utils.strip_whitespace(c.comment_html);
+			}
+
+			// bold @mentions
+			if(c.comment_type==="Comment") {
+				c.comment_html = c.comment_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
+			}
+
+			if (in_list(["Comment", "Email"], c.comment_type)) {
+				c.user_content = true;
+				if (!$.isArray(c._liked_by)) {
+					c._liked_by = JSON.parse(c._liked_by || "[]");
+				}
+
+				c.liked_by_user = c._liked_by.indexOf(user)!==-1;
 			}
 		}
 	},
@@ -172,7 +193,8 @@ frappe.ui.form.Comments = Class.extend({
 			"Attachment": "octicon octicon-cloud-upload",
 			"Attachment Removed": "octicon octicon-trashcan",
 			"Shared": "octicon octicon-eye",
-			"Unshared": "octicon octicon-circle-slash"
+			"Unshared": "octicon octicon-circle-slash",
+			"Like": "octicon octicon-heart"
 		}[c.comment_type]
 
 		c.color = {
@@ -229,6 +251,8 @@ frappe.ui.form.Comments = Class.extend({
 				if(!r.exc) {
 					me.input.val("");
 
+					frappe.utils.play_sound("click");
+
 					var comment = r.message;
 					var comments = me.get_comments();
 					var comment_exists = false;
@@ -260,6 +284,8 @@ frappe.ui.form.Comments = Class.extend({
 			},
 			callback: function(r) {
 				if(!r.exc) {
+					frappe.utils.play_sound("delete");
+
 					me.frm.get_docinfo().comments =
 						$.map(me.frm.get_docinfo().comments,
 							function(v) {
@@ -301,5 +327,172 @@ frappe.ui.form.Comments = Class.extend({
 		});
 
 		return last_email;
+	},
+
+	setup_mentions: function() {
+		var me = this;
+
+		this.cursor_from = this.cursor_to = 0
+		this.codes = $.ui.keyCode;
+		this.up = $.Event("keydown", {"keyCode": this.codes.UP});
+		this.down = $.Event("keydown", {"keyCode": this.codes.DOWN});
+		this.enter = $.Event("keydown", {"keyCode": this.codes.ENTER});
+
+		this.setup_autocomplete_for_mentions();
+
+		this.setup_textarea_event();
+	},
+
+	setup_autocomplete_for_mentions: function() {
+		var me = this;
+
+		var username_user_map = {};
+		for (var name in frappe.boot.user_info) {
+			if(name !== "Administrator" && name !== "Guest") {
+				var _user = frappe.boot.user_info[name];
+				username_user_map[_user.username] = _user;
+			}
+		}
+
+		this.mention_input = this.wrapper.find(".mention-input");
+
+		var source = Object.keys(username_user_map);
+		source.sort();
+
+		this.mention_input.autocomplete({
+			minLength: 0,
+			autoFocus: true,
+			source: source,
+			select: function(event, ui) {
+				var value = ui.item.value;
+				var textarea_value = me.input.val();
+
+				var new_value = textarea_value.substring(0, me.cursor_from)
+					+ value
+					+ textarea_value.substring(me.cursor_to);
+
+				me.input.val(new_value);
+
+				var new_cursor_location = me.cursor_from + value.length;
+
+				// move cursor to right position
+				if (me.input[0].setSelectionRange) {
+					me.input.focus();
+					me.input[0].setSelectionRange(new_cursor_location, new_cursor_location);
+
+				} else if (me.input[0].createTextRange) {
+					var range = input[0].createTextRange();
+					range.collapse(true);
+					range.moveEnd('character', new_cursor_location);
+					range.moveStart('character', new_cursor_location);
+					range.select();
+
+				} else {
+					me.input.focus();
+				}
+			}
+		});
+
+		this.mention_widget = this.mention_input.autocomplete("widget");
+
+		this.autocomplete_open = false;
+		this.mention_input
+			.on('autocompleteclose', function() {
+				me.autocomplete_open = false;
+			})
+			.on('autocompleteopen', function() {
+				me.autocomplete_open = true;
+			});
+
+		// dirty hack to prevent backspace from navigating back to history
+		$(document).on("keydown", function(e) {
+			if (e.which===me.codes.BACKSPACE && me.autocomplete_open && document.activeElement==me.mention_widget.get(0)) {
+				// me.input.focus();
+
+				return false;
+			}
+		});
+	},
+
+	setup_textarea_event: function() {
+		var me = this;
+
+		// binding this in keyup to get the value after it is set in textarea
+		this.input.keyup(function(e) {
+			if (e.which===16) {
+				// don't trigger for shift
+				return;
+
+			} else if ([me.codes.UP, me.codes.DOWN].indexOf(e.which)!==-1) {
+				// focus on autocomplete if up and down arrows
+				if (me.autocomplete_open) {
+					me.mention_widget.focus();
+					me.mention_widget.trigger(e.which===me.codes.UP ? me.up : me.down);
+				}
+				return;
+
+			} else if ([me.codes.ENTER, me.codes.ESCAPE, me.codes.TAB, me.codes.SPACE].indexOf(e.which)!==-1) {
+				me.mention_input.autocomplete("close");
+				return;
+
+			} else if (e.which !== 0 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+				if(!String.fromCharCode(e.which)) {
+					// no point in parsing it if it is not a character key
+					return;
+				}
+			}
+
+			var value = $(this).val() || "";
+			var i = e.target.selectionStart;
+			var key = value[i-1];
+			var substring = value.substring(0, i);
+			var mention = substring.match(/(?=[^\w]|^)@([\w]*)$/);
+
+			if (mention && mention.length) {
+				var mention = mention[0].slice(1);
+
+				// record location of cursor
+				me.cursor_from = i - mention.length;
+				me.cursor_to = i;
+
+				// render autocomplete at the bottom of the textbox and search for mention
+				me.mention_input.autocomplete("option", "position", {
+					of: me.input,
+					my: "left top",
+					at: "left bottom"
+				});
+				me.mention_input.autocomplete("search", mention);
+
+			} else {
+				me.cursor_from = me.cursor_to = 0;
+				me.mention_input.autocomplete("close");
+			}
+		});
+
+		// binding this in keydown to prevent default action
+		this.input.keydown(function(e) {
+			// enter, escape, tab
+			if (me.autocomplete_open) {
+				if ([me.codes.ENTER, me.codes.TAB].indexOf(e.which)!==-1) {
+					// set focused value
+					me.mention_widget.trigger(me.enter);
+
+					// prevent default
+					return false;
+				}
+			} else {
+				if (e.which==me.codes.TAB) {
+					me.comment_button.focus();
+
+					return false;
+				}
+			}
+		});
+	},
+
+	setup_comment_like: function() {
+		this.wrapper.on("click", ".comment-likes .octicon-heart", frappe.ui.click_toggle_like);
+
+		frappe.ui.setup_like_popover(this.wrapper, ".comment-likes");
 	}
 });

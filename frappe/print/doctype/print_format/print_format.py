@@ -60,3 +60,25 @@ class PrintFormat(Document):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
+@frappe.whitelist()
+def make_default(name):
+	"""Set print format as default"""
+	frappe.has_permission("Print Format", "write")
+
+	print_format = frappe.get_doc("Print Format", name)
+
+	if (frappe.conf.get('developer_mode') or 0) == 1:
+		# developer mode, set it default in doctype
+		doctype = frappe.get_doc("DocType", print_format.doc_type)
+		doctype.default_print_format = name
+		doctype.save()
+	else:
+		# customization
+		frappe.make_property_setter({
+			'doctype_or_field': "DocType",
+			'doctype': print_format.doc_type,
+			'property': "default_print_format",
+			'value': name,
+		})
+
+	frappe.msgprint(frappe._("Done"))

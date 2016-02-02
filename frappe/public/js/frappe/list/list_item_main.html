@@ -31,7 +31,7 @@
                 {% } %}
             {% } else if(col.fieldtype==="Select") { %}
                 <span class="filterable indicator {%= frappe.utils.guess_colour(value) %}"
-                    data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</span>
+                    data-filter="{%= col.fieldname %},=,{%= value %}">{%= __(value) %}</span>
             {% } else if(col.fieldtype==="Link") { %}
                 <a class="filterable h6 text-muted grey"
                     data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>

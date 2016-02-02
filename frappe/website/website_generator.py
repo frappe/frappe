@@ -151,7 +151,7 @@ class WebsiteGenerator(Document):
 
 			# if no parent and not home page, then parent is home page
 			if not _parent_val and me.get_route() != home_page:
-				parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
+				# parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
 				break
 
 			elif _parent_val:
@@ -210,19 +210,31 @@ class WebsiteGenerator(Document):
 		return children
 
 	def get_children_of(self, route):
+		"""Return list of children of given route, for generating index in Web Page"""
+
+		condition = 'parent_website_route = %s'
+		if route=="index" or not route:
+			condition = 'ifnull(parent_website_route, "") = %s and name != "index"'
+			route = ""
+
 		children = frappe.db.sql("""select name, page_name,
 			parent_website_route, {title_field} as title from `tab{doctype}`
-			where ifnull(parent_website_route,'')=%s
+			where {condition}
 			order by {order_by}""".format(
 				doctype = self.doctype,
 				title_field = self.website.page_title_field or "name",
-				order_by = self.website.order_by or "idx asc"
+				order_by = self.website.order_by or "idx asc",
+				condition = condition
 			), route, as_dict=True)
 
 		for c in children:
 			c.name = make_route(c)
 
 		return children
+
+	def has_children(self, route):
+		return frappe.db.sql('''select name from `tab{0}`
+			where parent_website_route = %s limit 1'''.format(self.doctype), route)
 
 	def get_next(self):
 		if self.meta.get_field("parent_website_route") and self.parent_website_route:
@@ -234,7 +246,9 @@ class WebsiteGenerator(Document):
 					if route==r.name:
 						return siblings[i+1]
 
-			return parent.get_next()
+			out = parent.get_next()
+			out.next_parent = True
+			return out
 		else:
 			return frappe._dict()
 

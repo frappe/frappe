@@ -75,7 +75,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		tablecolumns = filter(None,
 			[(meta.get_field(f[0]) or None) for f in frappe.db.sql('desc `tab%s`' % dt)])
 
-		tablecolumns.sort(lambda a, b: a.idx - b.idx)
+		tablecolumns.sort(lambda a, b: int(a.idx - b.idx))
 
 		if dt==doctype:
 			column_start_end[dt] = frappe._dict({"start": 0})

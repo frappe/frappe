@@ -51,7 +51,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var fields_before_cc = [
 			{fieldtype: "Section Break"},
-			{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients"},
+			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
 		];
@@ -96,10 +96,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var cc = [ [this.frm.doc.owner, 1] ];
 
-		var starred_by = frappe.ui.get_starred_by(this.frm.doc);
-		if (starred_by) {
-			for ( var i=0, l=starred_by.length; i<l; i++ ) {
-				cc.push( [starred_by[i], 1] );
+		var liked_by = frappe.ui.get_liked_by(this.frm.doc);
+		if (liked_by) {
+			for ( var i=0, l=liked_by.length; i<l; i++ ) {
+				cc.push( [liked_by[i], 1] );
 			}
 		}
 
@@ -159,7 +159,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_subject_and_recipients: function() {
 		this.subject = this.subject || "";
 
-		if(this.last_email) {
+		if(!this.recipients && this.last_email) {
 			this.recipients = this.last_email.comment_by;
 		}
 
@@ -399,6 +399,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 
+		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients){
+        		msgprint(__("Enter Email Recipient(s)"));
+            		return;
+        	}
+
 		if(!form_values.attach_document_print) {
 			print_html = null;
 			print_format = null;
@@ -434,8 +439,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
+					frappe.utils.play_sound("email");
+
 					if(form_values.send_email && r.message["emails_not_sent_to"]) {
-						msgprint( __("Email not sent to {0}",
+						msgprint( __("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
 

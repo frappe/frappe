@@ -9,6 +9,7 @@ from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
+from frappe.model.db_schema import type_map, varchar_len
 
 _classes = {}
 
@@ -172,15 +173,23 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self):
-		d = {}
+	def get_valid_dict(self, sanitize=True):
+		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
+			
+			# if no need for sanitization and value is None, continue
+			if not sanitize and d[fieldname] is None:
+				continue
 
 			df = self.meta.get_field(fieldname)
 			if df:
-				if df.fieldtype=="Check" and not isinstance(d[fieldname], int):
+				if df.fieldtype in ("Check", "Int") and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
+
+				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
+					
+					d[fieldname] = flt(d[fieldname])
 
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
 					d[fieldname] = None
@@ -195,6 +204,9 @@ class BaseDocument(object):
 		for key in default_fields:
 			if key not in self.__dict__:
 				self.__dict__[key] = None
+
+			if key in ("idx", "docstatus") and self.__dict__[key] is None:
+				self.__dict__[key] = 0
 
 		for key in self.get_valid_columns():
 			if key not in self.__dict__:
@@ -232,11 +244,11 @@ class BaseDocument(object):
 				if k in default_fields:
 					del doc[k]
 
-		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):
+		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers"):
 			if self.get(key):
 				doc[key] = self.get(key)
 
-		return frappe._dict(doc)
+		return doc
 
 	def as_json(self):
 		return frappe.as_json(self.as_dict())
@@ -324,8 +336,10 @@ class BaseDocument(object):
 
 	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
-		self.set("modified", now())
-		self.set("modified_by", frappe.session.user)
+		if update_modified:
+			self.set("modified", now())
+			self.set("modified_by", frappe.session.user)
+
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 
@@ -362,6 +376,12 @@ class BaseDocument(object):
 		for df in self.meta.get("fields", {"reqd": 1}):
 			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
+
+		# check for missing parent and parenttype
+		if self.meta.istable:
+			for fieldname in ("parent", "parenttype"):
+				if not self.get(fieldname):
+					missing.append((fieldname, get_msg(frappe._dict(label=fieldname))))
 
 		return missing
 
@@ -443,6 +463,25 @@ class BaseDocument(object):
 			if self.get(fieldname) != values.get(fieldname):
 				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
+
+	def _validate_length(self):
+		if frappe.flags.in_install:
+			return
+
+		for fieldname, value in self.get_valid_dict().iteritems():
+			df = self.meta.get_field(fieldname)
+			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
+				max_length = cint(df.get("length")) or cint(varchar_len)
+
+				if len(cstr(value)) > max_length:
+					if self.parentfield and self.idx:
+						reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+
+					else:
+						reference = "{0} {1}".format(_(self.doctype), self.name)
+
+					frappe.throw(_("{0}: '{1}' will get truncated, as max characters allowed is {2}")\
+						.format(reference, _(df.label), max_length), frappe.CharacterLengthExceededError)
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -528,10 +567,19 @@ class BaseDocument(object):
 		meta_df = self.meta.get_field(fieldname)
 		if meta_df and meta_df.get("__print_hide"):
 			return True
-		if df:
-			return df.print_hide
-		if meta_df:
-			return meta_df.print_hide
+
+		print_hide = 0
+
+		if self.get(fieldname)==0 and not self.meta.istable:
+			print_hide = ( df and df.print_hide_if_no_value ) or ( meta_df and meta_df.print_hide_if_no_value )
+
+		if not print_hide:
+			if df and df.print_hide is not None:
+				print_hide = df.print_hide
+			elif meta_df:
+				print_hide = meta_df.print_hide
+
+		return print_hide
 
 	def in_format_data(self, fieldname):
 		"""Returns True if shown via Print Format::`format_data` property.

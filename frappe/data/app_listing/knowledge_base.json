@@ -1,0 +1,13 @@
+{
+	"app_url": "https://github.com/frappe/knowledge_base",
+	"app_name": "knowledge_base",
+	"app_icon": "icon-question-sign",
+	"app_color": "#4cd964",
+	"app_description": "Publish help articles by category on the portal",
+	"app_publisher": "Frappe",
+	"app_email": "hello@frappe.io",
+	"repo_url": "https://github.com/frappe/knowledge_base.git",
+	"app_title": "Knowledge Base",
+	"app_version": "0.1.0",
+	"app_category": "Portal"
+}

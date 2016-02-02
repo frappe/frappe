@@ -1,0 +1,96 @@
+<!-- title: frappe.desk.like --><div class="dev-header">
+
+<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+	Version 6.x.x</a>
+
+
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/desk/like.py"
+		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+
+</div>
+
+
+
+
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like._toggle_like" href="#frappe.desk.like._toggle_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>_toggle_like</b>
+        <i class="text-muted">(doctype, name, add, user=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Same as toggle_like but hides param <code>user</code> from API</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.add_comment" href="#frappe.desk.like.add_comment" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>add_comment</b>
+        <i class="text-muted">(doctype, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.remove_like" href="#frappe.desk.like.remove_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>remove_like</b>
+        <i class="text-muted">(doctype, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Remove previous Like</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.desk.like.toggle_like</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.desk.like.toggle_like" href="#frappe.desk.like.toggle_like" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.like.<b>toggle_like</b>
+        <i class="text-muted">(doctype, name, add=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Adds / removes the current user in the <code>__liked_by</code> property of the given document.
+If column does not exist, will add it in the database.</p>
+
+<p>The <code>_liked_by</code> property is always set from this function and is ignored if set via
+Document API</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to like</li>
+<li><strong><code>name</code></strong> -  Name of the document to like</li>
+<li><strong><code>add</code></strong> -  <code>Yes</code> if like is to be added. If not <code>Yes</code> the like will be removed.</li>
+</ul>
+</div>
+	<br>
+
+	
+
+
+
+<!-- autodoc -->

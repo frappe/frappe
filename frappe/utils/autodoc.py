@@ -42,6 +42,7 @@ def automodule(name):
 
 	return {
 		"members": filter(None, attributes),
+		"docs": getattr(obj, "__doc__", "")
 	}
 
 installed = None
@@ -53,7 +54,17 @@ def get_version(name):
 		installed = frappe.get_installed_apps()
 
 	def _for_module(m):
-		return importlib.import_module(m.split(".")[0]).__version__
+		app_name = m.split(".")[0]
+
+		try:
+			docs_version = frappe.get_attr(app_name + ".config.docs.docs_version")
+		except AttributeError:
+			docs_version = None
+
+		if docs_version:
+			return docs_version
+
+		return getattr(importlib.import_module(m.split(".")[0]), "__version__", "0.0.0")
 
 	if "." in name or name in installed:
 		return _for_module(name)

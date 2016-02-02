@@ -1,9 +1,21 @@
+{% extends "templates/web.html" %}
+
 {%- block header -%} {{ header or "" }} {%- endblock -%}
 
-{% block content %}
+{% block hero %}{{ hero or "" }}{% endblock %}
+
+{% block breadcrumbs %}
+    {% if not no_breadcrumbs %}
+    {% include "templates/includes/breadcrumbs.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
-	<article class="web-page-content" id="{{ name }}" {% if text_align -%}style="text-align: {{ text_align }}"{%- endif %}>
+	<article class="web-page-content" id="{{ name }}" {% if text_align -%}styl
+
+    e="text-align: {{ text_align }}"{%- endif %}>
 	{{ main_section or "" }}
 	</article>
 	{% if enable_comments -%}
@@ -12,18 +24,14 @@
 	{% include 'templates/includes/comments/comments.html' %}
 	{%- endif %}
 </div>
-<script>
-$(function() {
-	if(window.logged_in && getCookie("system_user")==="yes") {
-		frappe.has_permission("Web Page", "{{ docname }}", "write", function(r) {
-			frappe.require("/assets/frappe/js/frappe/website/editable.js");
-			frappe.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
-		});
-	}
-});
-</script>
 {% endblock %}
 
-{% block style %}{{ style or "" }}{% endblock %}
+{% block style %}
+<style>
+{{ style or "" }}
+</style>
+{% endblock %}
 
-{% block script %}{{ script or "" }}{% endblock %}
+{% block script %}
+    <script>{{ script or "" }}</script>
+{% endblock %}

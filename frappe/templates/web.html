@@ -1,0 +1,36 @@
+{% extends base_template_path %}
+
+{% block hero %}{% endblock %}
+
+{% block content %}
+<div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}"
+    {% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+				{% set full_width = (self.breadcrumbs() or self.header()) and not self.header_actions() -%}
+                <div class="{% if not full_width %} col-sm-8 {% else %} col-sm-12 {% endif %}">
+					{% if self.breadcrumbs() %}
+	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+	                    {% block breadcrumbs %}{% endblock %}
+	                </div>
+					{% endif %}
+	        		<div class="page-header-block" data-html-block="header">
+	                    {% block header %}{% endblock %}
+	        		</div>
+                </div>
+				{% if not full_width %}
+                <div class="col-sm-4">
+            		<div class="page-header-actions-block" data-html-block="header-actions">
+                        {% block header_actions %}{% endblock %}
+            		</div>
+                </div>
+				{% endif %}
+            </div>
+    	    <div class="page-content-block">
+    		    {%- block page_content -%}{%- endblock -%}
+    	    </div>
+    	</div>
+	</div>
+</div>
+{% endblock %}

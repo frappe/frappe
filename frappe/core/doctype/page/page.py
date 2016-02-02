@@ -6,6 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
 from frappe import conf, _
+from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 
 class Page(Document):
 	def autoname(self):
@@ -28,8 +29,10 @@ class Page(Document):
 				self.name += '-' + str(cnt)
 
 	def validate(self):
-		if not getattr(conf,'developer_mode', 0):
+		if self.is_new() and not getattr(conf,'developer_mode', 0):
 			frappe.throw(_("Not in Developer Mode"))
+		if frappe.session.user!="Administrator":
+			frappe.throw(_("Only Administrator can edit"))
 
 	# export
 	def on_update(self):
@@ -123,5 +126,10 @@ class Page(Document):
 		if frappe.lang != 'en':
 			from frappe.translate import get_lang_js
 			self.script += get_lang_js("page", self.name)
+
+		for path in get_code_files_via_hooks("page_js", self.name):
+			js = get_js(path)
+			if js:
+				self.script += "\n\n" + js
 
 

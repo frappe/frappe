@@ -22,7 +22,7 @@
 }
 .indicator.grey::before,
 .indicator-right.grey::after {
-  background: #f0f4f7;
+  background: #F0F4F7;
 }
 .indicator.blue::before,
 .indicator-right.blue::after {
@@ -47,4 +47,12 @@
 .indicator.darkgrey::before,
 .indicator-right.darkgrey::after {
   background: #b8c2cc;
+}
+.indicator.yellow::before,
+.indicator-right.yellow::after {
+  background: #FEEF72;
+}
+.indicator.light-blue::before,
+.indicator-right.light-blue::after {
+  background: #7CD6FD;
 }

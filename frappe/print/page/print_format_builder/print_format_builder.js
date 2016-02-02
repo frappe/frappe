@@ -275,17 +275,20 @@ frappe.PrintFormatBuilder = Class.extend({
 		// visible_columns
 		var me = this;
 		if(!f.visible_columns) {
-			f.visible_columns = []
-			$.each(frappe.get_meta(f.options).fields, function(i, _f) {
-				if(!in_list(["Section Break", "Column Break"], _f.fieldtype) &&
-					!_f.print_hide && f.label) {
-
-					// column names set as fieldname|width
-					f.visible_columns.push({fieldname: _f.fieldname,
-						print_width: (_f.width || ""), print_hide:0});
-				}
-			});
+			me.init_visible_columns(f);
 		}
+	},
+	init_visible_columns: function(f) {
+		f.visible_columns = []
+		$.each(frappe.get_meta(f.options).fields, function(i, _f) {
+			if(!in_list(["Section Break", "Column Break"], _f.fieldtype) &&
+				!_f.print_hide && f.label) {
+
+				// column names set as fieldname|width
+				f.visible_columns.push({fieldname: _f.fieldname,
+					print_width: (_f.width || ""), print_hide:0});
+			}
+		});
 	},
 	setup_sortable: function() {
 		var me = this;
@@ -480,10 +483,33 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 			var $body = $(d.body);
-
+			
+			
+			var doc_fields = frappe.get_meta(doctype).fields;
+			var docfields_by_name = {};
+			
+			// docfields by fieldname
+			$.each(doc_fields, function(j, f) {
+				if(f) docfields_by_name[f.fieldname] = f;
+			})
+			
+			// add field which are in column_names first to preserve order
+			var fields = [];
+			$.each(column_names, function(i, v) {
+				if(in_list(Object.keys(docfields_by_name), v)) {
+					fields.push(docfields_by_name[v]);
+				}
+			})
+			// add remaining fields
+			$.each(doc_fields, function(j, f) {
+				if (f && !in_list(column_names, f.fieldname) 
+					&& !in_list(["Section Break", "Column Break"], f.fieldtype) && f.label) {
+						fields.push(f);
+				}
+			})
 			// render checkboxes
 			$(frappe.render_template("print_format_builder_column_selector", {
-				fields: frappe.get_meta(doctype).fields,
+				fields: fields,
 				column_names: column_names,
 				widths: widths
 			})).appendTo(d.body);
@@ -521,7 +547,10 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	get_visible_columns_string: function(f) {
-		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",")
+		if(!f.visible_columns) {
+			this.init_visible_columns(f);
+		}
+		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",");
 	},
 	get_no_content: function() {
 		return '<div class="text-extra-muted" data-no-content>'+__("Edit to add content")+'</div>'

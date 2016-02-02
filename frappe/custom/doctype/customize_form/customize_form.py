@@ -13,46 +13,50 @@ from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
+doctype_properties = {
+	'search_fields': 'Data',
+	'title_field': 'Data',
+	'sort_field': 'Data',
+	'sort_order': 'Data',
+	'default_print_format': 'Data',
+	'read_only_onload': 'Check',
+	'allow_copy': 'Check',
+	'max_attachments': 'Int'
+}
+
+docfield_properties = {
+	'idx': 'Int',
+	'label': 'Data',
+	'fieldtype': 'Select',
+	'options': 'Text',
+	'permlevel': 'Int',
+	'width': 'Data',
+	'print_width': 'Data',
+	'reqd': 'Check',
+	'unique': 'Check',
+	'ignore_user_permissions': 'Check',
+	'in_filter': 'Check',
+	'in_list_view': 'Check',
+	'hidden': 'Check',
+	'collapsible': 'Check',
+	'collapsible_depends_on': 'Data',
+	'print_hide': 'Check',
+	'print_hide_if_no_value': 'Check',
+	'report_hide': 'Check',
+	'allow_on_submit': 'Check',
+	'depends_on': 'Data',
+	'description': 'Text',
+	'default': 'Text',
+	'precision': 'Select',
+	'read_only': 'Check',
+	'length': 'Int'
+}
+
+allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code'), ('Data', 'Select'),
+	('Text', 'Small Text'))
+
 class CustomizeForm(Document):
-	doctype_properties = {
-		'search_fields': 'Data',
-		'sort_field': 'Data',
-		'sort_order': 'Data',
-		'default_print_format': 'Data',
-		'read_only_onload': 'Check',
-		'allow_copy': 'Check',
-		'max_attachments': 'Int'
-	}
-
-	docfield_properties = {
-		'idx': 'Int',
-		'label': 'Data',
-		'fieldtype': 'Select',
-		'options': 'Text',
-		'permlevel': 'Int',
-		'width': 'Data',
-		'print_width': 'Data',
-		'reqd': 'Check',
-		'unique': 'Check',
-		'ignore_user_permissions': 'Check',
-		'in_filter': 'Check',
-		'in_list_view': 'Check',
-		'hidden': 'Check',
-		'collapsible': 'Check',
-		'collapsible_depends_on': 'Data',
-		'print_hide': 'Check',
-		'report_hide': 'Check',
-		'allow_on_submit': 'Check',
-		'depends_on': 'Data',
-		'description': 'Text',
-		'default': 'Text',
-		'precision': 'Select',
-		'read_only': 'Check'
-	}
-
-	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-		('Text', 'Text Editor', 'Code'), ('Data', 'Select'), ('Text', 'Small Text'))
-
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
@@ -65,12 +69,12 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 
 		# doctype properties
-		for property in self.doctype_properties:
+		for property in doctype_properties:
 			self.set(property, meta.get(property))
 
 		for d in meta.get("fields"):
 			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
-			for property in self.docfield_properties:
+			for property in docfield_properties:
 				new_d[property] = d.get(property)
 			self.append("fields", new_d)
 
@@ -104,10 +108,10 @@ class CustomizeForm(Document):
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
-		for property in self.doctype_properties:
+		for property in doctype_properties:
 			if self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
-					property_type=self.doctype_properties[property])
+					property_type=doctype_properties[property])
 
 		update_db = False
 		for df in self.get("fields"):
@@ -119,7 +123,7 @@ class CustomizeForm(Document):
 			if not meta_df or meta_df[0].get("is_custom_field"):
 				continue
 
-			for property in self.docfield_properties:
+			for property in docfield_properties:
 				if property != "idx" and df.get(property) != meta_df[0].get(property):
 					if property == "fieldtype":
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
@@ -148,7 +152,7 @@ class CustomizeForm(Document):
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),
-						property_type=self.docfield_properties[property], fieldname=df.fieldname)
+						property_type=docfield_properties[property], fieldname=df.fieldname)
 
 		if update_db:
 			from frappe.model.db_schema import updatedb
@@ -166,7 +170,7 @@ class CustomizeForm(Document):
 	def add_custom_field(self, df):
 		d = frappe.new_doc("Custom Field")
 		d.dt = self.doc_type
-		for property in self.docfield_properties:
+		for property in docfield_properties:
 			d.set(property, df.get(property))
 		d.insert()
 		df.fieldname = d.fieldname
@@ -179,7 +183,7 @@ class CustomizeForm(Document):
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
 		changed = False
-		for property in self.docfield_properties:
+		for property in docfield_properties:
 			if df.get(property) != custom_field.get(property):
 				if property == "fieldtype":
 					self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
@@ -258,7 +262,7 @@ class CustomizeForm(Document):
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
 		allowed = False
-		for allowed_changes in self.allowed_fieldtype_change:
+		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
 		if not allowed:

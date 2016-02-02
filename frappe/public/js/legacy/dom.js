@@ -1,13 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-function $btn(parent, label, onclick, style, css_class, is_ajax) {
-	if(css_class==='green') css_class='btn-primary';
-	return new frappe.ui.Button(
-		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
-	).btn;
-}
-
 function empty_select(s) {
 	if(s.custom_select) { s.empty(); return; }
 	if(s.inp)s = s.inp;
@@ -25,20 +18,6 @@ function sel_val(s) {
 		if(s.selectedIndex<s.options.length) return s.options[s.selectedIndex].value;
 		else return '';
 	} catch(err) { return ''; /* IE fix */ }
-}
-
-function add_sel_options(s, list, sel_val, o_style) {
-	if(s.custom_select) {
-		s.set_options(list)
-		if(sel_val) s.inp.value = sel_val;
-		return;
-	}
-	if(s.inp)s = s.inp;
-	for(var i=0, len=list.length; i<len; i++) {
-		var o = new Option(list[i], list[i], false, (list[i]==sel_val? true : false));
-		if(o_style) $y(o, o_style);
-		s.options[s.options.length] = o;
-	}
 }
 
 var $n = '\n';
@@ -60,18 +39,6 @@ function $a(parent, newtag, className, cs, innerHTML, onclick) {
 	if(innerHTML) c.innerHTML = innerHTML;
 	if(onclick) c.onclick = onclick;
 	return c;
-}
-function $a_input(p, in_type, attributes, cs) {
-	if(!attributes) attributes = {};
-
-	var $input = $(p).append('<input type="'+ in_type +'">').find('input:last');
-	for(key in attributes)
-		$input.attr(key, attributes[key]);
-
-	var input = $input.get(0);
-	if(cs)
-		$y(input,cs);
-	return input;
 }
 
 function $dh(d) {
@@ -180,7 +147,8 @@ frappe.urllib = {
 
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
-		var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
+		// var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
+		var url = (frappe.base_url || window.location.origin)
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
 	},

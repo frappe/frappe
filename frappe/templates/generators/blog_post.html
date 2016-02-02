@@ -1,10 +1,16 @@
+{% extends "templates/web.html" %}
+
 {% block header %}
 <h1 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
 	{{ title }}
 </h1>
 {% endblock %}
 
-{% block content %}
+{% block breadcrumbs %}
+    {% include "templates/includes/breadcrumbs.html" %}
+{% endblock %}
+
+{% block page_content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
 	<p class="small text-muted blog-info">
@@ -26,19 +32,9 @@
 <div class="blog-comments">
 	<h2>Comments</h2>
 	{% include 'templates/includes/comments/comments.html' %}
-	<script>
-	$(function() {
-		if(window.logged_in && getCookie("system_user")==="yes") {
-			frappe.has_permission("Blog Post", "{{ name }}", "write", function(r) {
-				frappe.require("/assets/frappe/js/frappe/website/editable.js");
-				frappe.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
-			});
-		}
-	});
-	</script>
 </div>
 
 <script>
-	frappe.set_search_path("/blog");
+    frappe.ready(function() { frappe.set_search_path("/blog"); })
 </script>
 {% endblock %}

@@ -234,8 +234,21 @@ def get_linked_doctypes(columns, data):
 				linked_doctypes[df["options"]] = df["fieldname"]
 
 	# remove doctype if column is empty
+	columns_with_value = []
+	for row in data:
+		if row:
+			if len(row) != len(columns_with_value):
+				if isinstance(row, (list, tuple)):
+					row = enumerate(row)
+				elif isinstance(row, dict):
+					row = row.items()
+				
+				for col, val in row:
+					if val and col not in columns_with_value:
+						columns_with_value.append(col)
+	
 	for doctype, key in linked_doctypes.items():
-		if not any(d[key] for d in data if d):
+		if key not in columns_with_value:
 			del linked_doctypes[doctype]
 
 	return linked_doctypes

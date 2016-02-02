@@ -40,13 +40,18 @@ class _dict(dict):
 
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
+	from frappe.translate import get_full_dict
+	from frappe.utils import cstr
+
 	if not lang:
 		lang = local.lang
+
+	# msg should always be unicode
+	msg = cstr(msg)
 
 	if lang == "en":
 		return msg
 
-	from frappe.translate import get_full_dict
 	return get_full_dict(local.lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
@@ -80,7 +85,7 @@ message_log = local("message_log")
 
 lang = local("lang")
 
-def init(site, sites_path=None):
+def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None):
 		return
@@ -103,6 +108,7 @@ def init(site, sites_path=None):
 		"ignore_links": False,
 		"mute_emails": False,
 		"has_dataurl": False,
+		"new_site": new_site
 	})
 	local.rollback_observers = []
 	local.test_objects = {}
@@ -168,6 +174,8 @@ def get_site_config(sites_path=None, site_path=None):
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
+		elif local.site and not local.flags.new_site:
+			raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
@@ -310,7 +318,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
+		cc=(), show_as_cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
 		bulk_priority=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -339,7 +347,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, send_after=send_after,
+			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, send_after=send_after,
 			expose_recipients=expose_recipients, bulk_priority=bulk_priority)
 	else:
 		import frappe.email
@@ -418,7 +426,7 @@ def clear_cache(user=None, doctype=None):
 
 	frappe.local.role_permissions = {}
 
-def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -426,7 +434,14 @@ def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	if throw and not out:
+		if doc:
+			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
+		else:
+			frappe.throw(_("No permission for {0}").format(doctype))
+
+	return out
 
 def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
@@ -459,7 +474,7 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	def get_tables():
-		return db.sql_list("select name from tabDocType where ifnull(istable,0)=1")
+		return db.sql_list("select name from tabDocType where istable=1")
 
 	tables = cache().get_value("is_table", get_tables)
 	return doctype in tables
@@ -469,11 +484,14 @@ def get_precision(doctype, fieldname, currency=None, doc=None):
 	from frappe.model.meta import get_field_precision
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
-def generate_hash(txt=None):
+def generate_hash(txt=None, length=None):
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib, time
 	from .utils import random_string
-	return hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	digest = hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	if length:
+		digest = digest[:length]
+	return digest
 
 def reset_metadata_version():
 	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
@@ -549,10 +567,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
 		ignore_permissions, flags)
 
-def delete_doc_if_exists(doctype, name):
+def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""
 	if db.exists(doctype, name):
-		delete_doc(doctype, name)
+		delete_doc(doctype, name, force=force)
 
 def reload_doctype(doctype, force=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
@@ -613,7 +631,8 @@ def get_pymodule_path(modulename, *joins):
 
 	:param modulename: Python module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	joins = [scrub(part) for part in joins]
+	if not "public" in joins:
+		joins = [scrub(part) for part in joins]
 	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__), *joins)
 
 def get_module_list(app_name):
@@ -634,15 +653,23 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 		apps.insert(0, 'frappe')
 	return apps
 
-def get_installed_apps(sort=False):
+def get_installed_apps(sort=False, frappe_last=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
 		return []
+
+	if not db:
+		connect()
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
 		installed = [app for app in get_all_apps(True) if app in installed]
+
+	if frappe_last:
+		if 'frappe' in installed:
+			installed.remove('frappe')
+		installed.append('frappe')
 
 	return installed
 
@@ -735,6 +762,9 @@ def get_file_json(path):
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
 	from frappe.utils import cstr
+	if isinstance(path, unicode):
+		path = path.encode("utf-8")
+
 	if os.path.exists(path):
 		with open(path, "r") as f:
 			return cstr(f.read())
@@ -745,6 +775,10 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string):
 	"""Get python method object from its name."""
+	app_name = method_string.split(".")[0]
+	if not local.flags.in_install and app_name not in get_installed_apps():
+		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
+
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
 	return getattr(get_module(modulename), methodname)
@@ -791,11 +825,14 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
 	import copy
+	from frappe.model import optional_fields, default_fields
 
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
+
+	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by']
 
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
@@ -803,22 +840,19 @@ def copy_doc(doc, ignore_no_copy=True):
 		d = doc
 
 	newdoc = get_doc(copy.deepcopy(d))
-
-	newdoc.name = None
 	newdoc.set("__islocal", 1)
-	newdoc.owner = None
-	newdoc.creation = None
-	newdoc.amended_from = None
-	newdoc.amendment_date = None
+	for fieldname in (fields_to_clear + ['amended_from', 'amendment_date']):
+		newdoc.set(fieldname, None)
+
 	if not ignore_no_copy:
 		remove_no_copy_fields(newdoc)
 
-	for d in newdoc.get_all_children():
-		d.name = None
-		d.parent = None
+	for i, d in enumerate(newdoc.get_all_children()):
 		d.set("__islocal", 1)
-		d.owner = None
-		d.creation = None
+
+		for fieldname in fields_to_clear:
+			d.set(fieldname, None)
+
 		if not ignore_no_copy:
 			remove_no_copy_fields(d)
 
@@ -1031,12 +1065,14 @@ def publish_realtime(*args, **kwargs):
 	:param room: Room in which to publish update (default entire site)
 	:param user: Transmit to user
 	:param doctype: Transmit to doctype, docname
-	:param docname: Transmit to doctype, docname"""
+	:param docname: Transmit to doctype, docname
+	:param after_commit: (default False) will emit after current transaction is committed
+	"""
 	import frappe.async
 
 	return frappe.async.publish_realtime(*args, **kwargs)
 
-def local_cache(namespace, key, generator):
+def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request
 
 	:param namespace: frappe.local.cache[namespace]
@@ -1050,4 +1086,15 @@ def local_cache(namespace, key, generator):
 	if key not in local.cache[namespace]:
 		local.cache[namespace][key] = generator()
 
+	elif local.cache[namespace][key]==None and regenerate_if_none:
+		# if key exists but the previous result was None
+		local.cache[namespace][key] = generator()
+
 	return local.cache[namespace][key]
+
+def get_doctype_app(doctype):
+	def _get_doctype_app():
+		doctype_module = local.db.get_value("DocType", doctype, "module")
+		return local.module_app[scrub(doctype_module)]
+
+	return local_cache("doctype_app", doctype, generator=_get_doctype_app)

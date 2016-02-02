@@ -32,7 +32,7 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
-		"defaults", "user_permissions", "roles", "home_page")
+		"defaults", "user_permissions", "roles", "home_page", "linked_with")
 
 	if user:
 		for name in groups:
@@ -51,16 +51,18 @@ def clear_global_cache():
 		"app_modules", "module_app", "time_zone", "notification_config"])
 	frappe.setup_module_map()
 
-def clear_sessions(user=None, keep_current=False):
+def clear_sessions(user=None, keep_current=False, device=None):
 	if not user:
 		user = frappe.session.user
 
-	for sid in frappe.db.sql("""select sid from tabSessions where user=%s and device=%s""",
-		(user, frappe.session.data.device or "desktop")):
-		if keep_current and frappe.session.sid==sid[0]:
+	if not device:
+		device = frappe.session.data.device or "desktop"
+
+	for sid in frappe.db.sql_list("""select sid from tabSessions where user=%s and device=%s""", (user, device)):
+		if keep_current and frappe.session.sid==sid:
 			continue
 		else:
-			delete_session(sid[0])
+			delete_session(sid)
 
 def delete_session(sid=None, user=None):
 	if not user:
@@ -126,7 +128,6 @@ def get():
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
-	bootinfo["dev_server"] = os.environ.get('DEV_SERVER', False)
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	return bootinfo
@@ -146,7 +147,7 @@ def generate_csrf_token():
 	# and it leads to invalid request in the current tab
 	frappe.publish_realtime(event="csrf_generated",
 		message={"sid": frappe.local.session.sid, "csrf_token": frappe.local.session.data.csrf_token},
-		user=frappe.session.user)
+		user=frappe.session.user, after_commit=True)
 
 class Session:
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
@@ -196,8 +197,12 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			frappe.db.sql("""UPDATE tabUser SET last_login = %s, last_ip = %s
-				where name=%s""", (frappe.utils.now(), frappe.local.request_ip, self.data['user']))
+			frappe.db.sql("""UPDATE tabUser SET last_login = %(now)s, last_ip = %(ip)s, last_active = %(now)s
+				where name=%(name)s""", {
+					"now": frappe.utils.now(),
+					"ip": frappe.local.request_ip,
+					"name": self.data['user']
+				})
 
 			frappe.db.commit()
 
@@ -313,9 +318,16 @@ class Session:
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
 		if force or (time_diff==None) or (time_diff > 600):
+			# update sessions table
 			frappe.db.sql("""update tabSessions set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
+
+			# update last active in user table
+			frappe.db.sql("""update `tabUser` set last_active=%(now)s where name=%(name)s""", {
+				"now": frappe.utils.now(),
+				"name": frappe.session.user
+			})
 
 			frappe.cache().hset("last_db_session_update", self.sid, now)
 			updated_in_db = True

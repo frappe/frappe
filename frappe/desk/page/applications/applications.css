@@ -10,11 +10,7 @@
 	padding-right: 15px;
 }
 
-#page-applications .form-group {
-	margin-bottom: 0px;
-}
-
 #page-applications .app-buttons .btn {
-	width: 84px;
+	width: 64px;
 	text-align: center;
 }

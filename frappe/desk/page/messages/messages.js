@@ -22,6 +22,8 @@ frappe.pages.messages.on_page_load = function(parent) {
 frappe.pages.messages.on_page_show = function() {
 	// clear title prefix
 	frappe.utils.set_title_prefix("");
+
+	frappe.breadcrumbs.add("Desk");
 }
 
 frappe.desk.pages.Messages = Class.extend({
@@ -46,7 +48,7 @@ frappe.desk.pages.Messages = Class.extend({
 			if(comment.modified_by !== user) {
 	    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
 			}
-    		if (frappe.get_route()[0] === 'messages') {
+    		if (frappe.get_route()[0] === 'messages' && comment.owner !== user) {
     			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
     			var on_broadcast_page = current_contact === user;
     			if ((current_contact == comment.owner) || (on_broadcast_page && comment.broadcast)) {
@@ -101,7 +103,7 @@ frappe.desk.pages.Messages = Class.extend({
 
 		this.page.main.html($(frappe.render_template("messages_main", { "contact": contact })));
 
-		this.page.main.find(".messages-textarea").on("focusout", function() {
+		var text_area = this.page.main.find(".messages-textarea").on("focusout", function() {
 			// on touchscreen devices, scroll to top
 			// so that static navbar and page head don't overlap the textarea
 			if (frappe.dom.is_touchscreen()) {
@@ -109,7 +111,7 @@ frappe.desk.pages.Messages = Class.extend({
 			}
 		});
 
-		this.page.main.find(".btn-post").on("click", function() {
+		var post_btn = this.page.main.find(".btn-post").on("click", function() {
 			var btn = $(this);
 			var message_box = btn.parents(".message-box");
 			var textarea = message_box.find("textarea");
@@ -136,6 +138,10 @@ frappe.desk.pages.Messages = Class.extend({
 					btn: this
 				});
 			}
+		});
+
+		text_area.keydown("meta+return ctrl+return", function(e) {
+			post_btn.trigger("click");
 		});
 
 		this.page.wrapper.find(".page-head .message-to").html(frappe.user.full_name(contact));

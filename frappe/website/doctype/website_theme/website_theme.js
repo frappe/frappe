@@ -17,10 +17,11 @@ frappe.ui.form.on("Website Theme", "onload_post_render", function(frm) {
 });
 
 frappe.ui.form.on("Website Theme", "refresh", function(frm) {
-	frm.toggle_display(["module", "custom"], !!frappe.boot.developer_mode);
-	if (!frm.doc.custom && !!!frappe.boot.developer_mode) {
+	frm.toggle_display(["module", "custom"], !frappe.boot.developer_mode);
+	if (!frm.doc.custom && !frappe.boot.developer_mode) {
 		frm.set_read_only();
 		frm.disable_save();
+	} else {
+		frm.enable_save();
 	}
-
 });

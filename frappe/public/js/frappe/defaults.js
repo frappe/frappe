@@ -3,12 +3,25 @@
 
 frappe.defaults = {
 	get_user_default: function(key) {
-		var d = frappe.boot.user.defaults[key];
+		var defaults = frappe.boot.user.defaults;
+		var d = defaults[key];
+		if(!d && frappe.defaults.is_a_user_permission_key(key))
+			d = defaults[frappe.model.scrub(key)];
 		if($.isArray(d)) d = d[0];
 		return d;
 	},
 	get_user_defaults: function(key) {
-		var d = frappe.boot.user.defaults[key];
+		var defaults = frappe.boot.user.defaults;
+		var d = defaults[key];
+
+		if (frappe.defaults.is_a_user_permission_key(key)) {
+			if (d && $.isArray(d) && d.length===1) {
+				// Use User Permission value when only when it has a single value
+				d = d[0];
+			} else {
+				d = defaults[frappe.model.scrub(key)];
+			}
+		}
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},
@@ -36,8 +49,20 @@ frappe.defaults = {
 			callback: callback || function(r) {}
 		});
 	},
+	set_user_default_local: function(key, value) {
+		frappe.boot.user.defaults[key] = value;
+	},
 	get_default: function(key) {
-		var value = frappe.boot.user.defaults[key];
+		var defaults = frappe.boot.user.defaults;
+		var value = defaults[key];
+		if (frappe.defaults.is_a_user_permission_key(key)) {
+			if (value && $.isArray(value) && value.length===1) {
+				value = value[0];
+			} else {
+				value = defaults[frappe.model.scrub(key)];
+			}
+		}
+
 		if(value) {
 			try {
 				return JSON.parse(value)
@@ -46,6 +71,11 @@ frappe.defaults = {
 			}
 		}
 	},
+
+	is_a_user_permission_key: function(key) {
+		return key.indexOf(":")===-1 && key !== frappe.model.scrub(key);
+	},
+
 	get_user_permissions: function() {
 		return frappe.defaults.user_permissions;
 	},

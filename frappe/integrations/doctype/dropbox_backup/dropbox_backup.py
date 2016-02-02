@@ -102,10 +102,12 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "dropbox_access_allowed", allowed)
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "send_backups_to_dropbox", 1)
 			dropbox_client = client.DropboxClient(sess)
-			try:
-				dropbox_client.file_create_folder("files")
-			except:
-				pass
+			# try:
+			# 	dropbox_client.file_create_folder("private")
+			# 	dropbox_client.file_create_folder("private/files")
+			# 	dropbox_client.file_create_folder("files")
+			# except:
+			# 	pass
 
 		else:
 			allowed = 0
@@ -139,17 +141,35 @@ def backup_to_dropbox():
 	dropbox_client = client.DropboxClient(sess)
 
 	# upload database
-	backup = new_backup()
+	backup = new_backup(ignore_files=True)
 	filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 	upload_file_to_dropbox(filename, "/database", dropbox_client)
 
 	frappe.db.close()
-	response = dropbox_client.metadata("/files")
 
 	# upload files to files folder
 	did_not_upload = []
 	error_log = []
-	path = get_files_path()
+
+	upload_from_folder(get_files_path(), "/files", dropbox_client, did_not_upload, error_log)
+	upload_from_folder(get_files_path(is_private=1), "/private/files", dropbox_client, did_not_upload, error_log)
+
+	frappe.connect()
+	return did_not_upload, list(set(error_log))
+
+def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, error_log):
+	import dropbox.rest
+
+	if not os.path.exists(path):
+		return
+
+	try:
+		response = dropbox_client.metadata(dropbox_folder)
+	except dropbox.rest.ErrorResponse, e:
+		# folder not found
+		if e.status==404:
+			response = {"contents": []}
+
 	for filename in os.listdir(path):
 		filename = cstr(filename)
 
@@ -162,15 +182,13 @@ def backup_to_dropbox():
  			if os.path.basename(filepath) == os.path.basename(file_metadata["path"]) and os.stat(filepath).st_size == int(file_metadata["bytes"]):
 				found = True
 				break
+
 		if not found:
 			try:
-				upload_file_to_dropbox(filepath, "/files", dropbox_client)
+				upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
 			except Exception:
 				did_not_upload.append(filename)
 				error_log.append(frappe.get_traceback())
-
-	frappe.connect()
-	return did_not_upload, list(set(error_log))
 
 def get_dropbox_session():
 	try:
