@@ -83,6 +83,11 @@ io.on('connection', function(socket){
 		socket.leave(room);
 	});
 
+	socket.on('task_unsubscribe', function(task_id) {
+		var room = 'task:' + task_id;
+		socket.leave(room);
+	});
+
 	socket.on('doc_open', function(doctype, docname) {
 		// show who is currently viewing the form
 		can_subscribe_doc({
