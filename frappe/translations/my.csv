@@ -7,7 +7,7 @@ apps/frappe/frappe/templates/pages/desk.py +18,You are not permitted to access t
 DocType: About Us Settings,Website,website
 DocType: User,Facebook Username,Facebook က Username
 apps/frappe/frappe/email/bulk.py +148,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ဤအီးမေးလ်မပို့နိုင်ပါ။ သင်သည်ဤတစ်လ {0} အီးမေးလ်များပေးပို့န့်သတ်ချက်ကိုကူးကြပါပြီ။
-apps/frappe/frappe/public/js/legacy/form.js +698,Permanently Submit {0}?,အမြဲတမ်း {0} Submit?
+apps/frappe/frappe/public/js/legacy/form.js +701,Permanently Submit {0}?,အမြဲတမ်း {0} Submit?
 apps/frappe/frappe/client.py +162,Invalid file path: {0},မမှန်ကန်ခြင်းဖိုင်လမ်းကြောင်း: {0}
 DocType: Workflow State,eye-open,မျက်စိဖွင့်လိုက်ပါ
 DocType: Bulk Email,Send After,ပြီးနောက် Send
@@ -38,7 +38,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Templa
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,မိဘ
 apps/frappe/frappe/print/doctype/print_format/print_format.py +32,Syntax error in Jinja template,Jinja template မှာ syntax အမှား
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;ရေးအဖွဲ့အဖွဲ့ဝင်များ&quot; သို့မဟုတ် &quot;စီမံခန့်ခွဲမှု&quot;
-apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Default for 'Check' type of field must be either '0' or '1',လယ်ပြင်၌ရှိသော &#39;&#39; Check &#39;&#39; type ကို &#39;&#39; 0 &#39;သို့မဟုတ်&#39; &#39;1&#39; &#39;တစ်ခုခုရှိရမည်သည် default
+apps/frappe/frappe/core/doctype/doctype/doctype.py +299,Default for 'Check' type of field must be either '0' or '1',လယ်ပြင်၌ရှိသော &#39;&#39; Check &#39;&#39; type ကို &#39;&#39; 0 &#39;သို့မဟုတ်&#39; &#39;1&#39; &#39;တစ်ခုခုရှိရမည်သည် default
 apps/frappe/frappe/public/js/frappe/list/listview.js +339,Yesterday,မနေ့က
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +10,Test Runner,test Runner ကို
 DocType: Email Account,Enable Incoming,Incoming Enable
@@ -89,7 +89,7 @@ apps/frappe/frappe/public/js/legacy/form.js +426,This form has been modified aft
 DocType: Website Settings,Twitter Share via,Twitter ကိုဝေမျှမယ်ကနေတဆင့်
 apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,ဝက်ဘ်ဆိုက်စာမျက်နှာများတွင်ပုံရိပ်ကို Slideshow embed လုပ်ဖို့။
 DocType: Workflow Action,Workflow Action Name,အသွားအလာလှုပ်ရှားမှုအမည်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +157,DocType can not be merged,DOCTYPE ပေါင်းစည်းမရနိုင်ပါ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +158,DocType can not be merged,DOCTYPE ပေါင်းစည်းမရနိုင်ပါ
 DocType: Web Form Field,Fieldtype,Fieldtype
 DocType: Error Snapshot,Friendly Title,friendly ခေါင်းစဉ်
 apps/frappe/frappe/desk/form/save.py +46,Did not cancel,ဖျက်သိမ်းဘဲ
@@ -109,7 +109,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +108,"Insert Afte
 DocType: Workflow State,circle-arrow-up,စက်ဝိုင်း-မြှား-up က
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,တင် ...
 DocType: Workflow State,italic,italic
-apps/frappe/frappe/core/doctype/doctype/doctype.py +472,{0}: Cannot set Import without Create,{0}: Create မပါဘဲသွင်းကုန်စွဲလမ်းခြင်းမနိုင်သလား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +484,{0}: Cannot set Import without Create,{0}: Create မပါဘဲသွင်းကုန်စွဲလမ်းခြင်းမနိုင်သလား
 DocType: Comment,Post Topic,post ခေါင်းစဉ်
 apps/frappe/frappe/config/desk.py +21,Event and other calendars.,အဖြစ်အပျက်နှင့်အခြားပြက္ခဒိန်။
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Drag to sort columns,ကော်လံမျိုးရန်ဖိဆွဲပါ
@@ -160,7 +160,7 @@ DocType: DocType,Show this field as title,ခေါင်းစဉ်ကြေ�
 apps/frappe/frappe/model/db_schema.py +526,Fieldname {0} cannot have special characters like {1},Fieldname {0} {1} တူအထူးအက္ခရာများရှိသည်မဟုတ်နိုင်
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +245,Select Your Language,Your Language ကိုရွေးပါ
 apps/frappe/frappe/model/document.py +434,Error: Document has been modified after you have opened it,error: မှတ်တမ်းမှတ်ရာများကိုသင်ကဖွင့်လှစ်ပြီးနောက်နောက်ဆုံးပြင်ဆင်ခဲ့သည်ခဲ့
-apps/frappe/frappe/core/doctype/doctype/doctype.py +493,{0}: Cannot set Assign Submit if not Submittable,{0}: Submittable မဆိုနိုင်ပါ Assign Submit စွဲလမ်းခြင်းမနိုင်သလား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +505,{0}: Cannot set Assign Submit if not Submittable,{0}: Submittable မဆိုနိုင်ပါ Assign Submit စွဲလမ်းခြင်းမနိုင်သလား
 DocType: Social Login Keys,Facebook,Facebook က
 apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",&quot;{0}&quot; ဖြင့်စစ်ထုတ်သည်
 DocType: DocType,Administrator,အုပ်ချုပ်သူ
@@ -175,7 +175,7 @@ DocType: DocField,Permissions,ခွင့်ပြုချက်
 DocType: Dropbox Backup,Allow Dropbox Access,Dropbox ကို Access က Allow
 DocType: User,Get your globally recognized avatar from Gravatar.com,Gravatar.com မှသင့်တကမ္ဘာလုံးအသိအမှတ်ပြု avatar Get
 DocType: Workflow State,plus-sign,အပေါင်း-နိမိတ်လက္ခဏာ
-apps/frappe/frappe/__init__.py +777,App {0} is not installed,App ကို {0} install လုပ်ပြီးသည်မ
+apps/frappe/frappe/__init__.py +780,App {0} is not installed,App ကို {0} install လုပ်ပြီးသည်မ
 DocType: Workflow State,Refresh,အားဖြည့်
 DocType: Event,Public,ပြည်သူ့ကျန်းမာရေး
 apps/frappe/frappe/public/js/frappe/ui/listing.js +52,Nothing to show,ပြသရန်ဘယ်အရာမှ
@@ -241,15 +241,15 @@ DocType: DocField,Hidden,Hidden
 apps/frappe/frappe/model/base_document.py +410,{0} must be set first,{0} ပထမဦးဆုံးသတ်မှတ်ရမည်
 DocType: Workflow State,plane,လေယာဉ်
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","သင်အသစ်မှတ်တမ်းများကို upload အကယ်. ပစ္စုပ္ပန်လျှင်, &quot;အမည်စီးရီး&quot; မဖြစ်မနေဖြစ်လာသည်။"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +152,DocType can only be renamed by Administrator,DOCTYPE သာအုပ်ချုပ်ရေးမှူးအားဖြင့်အမည်ပြောင်းနိုင်ပါတယ်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +338,Fold can not be at the end of the form,သိုးခြံပုံစံ၏အဆုံးမှာမဖွစျနိုငျ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +153,DocType can only be renamed by Administrator,DOCTYPE သာအုပ်ချုပ်ရေးမှူးအားဖြင့်အမည်ပြောင်းနိုင်ပါတယ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +350,Fold can not be at the end of the form,သိုးခြံပုံစံ၏အဆုံးမှာမဖွစျနိုငျ
 DocType: Communication,Bounced,ကစားနိုင်ခဲ့ပါတယ်
 apps/frappe/frappe/config/setup.py +14,System and Website Users,စနစ်နှင့်ဝက်ဘ်ဆိုက်အသုံးပြုသူများ
 DocType: Workflow Document State,Doc Status,doc နဲ့ Status
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +78,"Your download is being built, this may take a few moments...","သင့်ရဲ့ download, ဒီအချိန်အနည်းငယ်ကြာနိုင်ပါသည်တည်ဆောက်လျက်ရှိသည် ..."
 apps/frappe/frappe/public/js/frappe/ui/listing.html +6,Add Filter,Filter ကို Add
 DocType: Web Page,Begin this page with a slideshow of images,ပုံရိပ်တွေ၏ဆလိုက်ရှိုးဖြင့်ဤစာမျက်နှာကိုစတင်
-apps/frappe/frappe/utils/data.py +521,{0} and {1},{0} နှင့် {1}
+apps/frappe/frappe/utils/data.py +522,{0} and {1},{0} နှင့် {1}
 DocType: Version,Docname,Docname
 apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,version တဘက်ကဲ့သို့ပကတိ
 DocType: About Us Settings,Website Manager,website Manager က
@@ -257,7 +257,7 @@ DocType: Event Role,Event Role,ပွဲအခန်းက္ပ
 apps/frappe/frappe/public/js/frappe/ui/editor.html +65,Indent (Tab),ကုန်အမှာစာ (Tab ကို)
 DocType: Workflow State,List,စာရင်း
 DocType: Page Role,Page Role,စာမျက်နှာအခန်းကဏ္ဍ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +279,Field {0} in row {1} cannot be hidden and mandatory without default,လယ်ပြင်၌ {0} အတန်းအတွက် {1} က default မပါဘဲဝှကျထားနှင့်မဖြစ်မနေမရနိုင်ပါ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +280,Field {0} in row {1} cannot be hidden and mandatory without default,လယ်ပြင်၌ {0} အတန်းအတွက် {1} က default မပါဘဲဝှကျထားနှင့်မဖြစ်မနေမရနိုင်ပါ
 DocType: System Settings,mm/dd/yyyy,မီလီမီတာ / dd / yyyy
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +16,Previous,လွန်ခဲ့သော
 apps/frappe/frappe/email/doctype/email_account/email_account.py +341,Re:,Re:
@@ -287,12 +287,13 @@ DocType: Workflow State,exclamation-sign,"ကြီးတွေ,!-နိမိ�
 DocType: Website Theme,Hide Sidebar,ဖျောက် Sidebar
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.py +197,Please install dropbox python module,dropbox အတွက် Python ရဲ့ module တစ်ခု install လုပ် ကျေးဇူးပြု.
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +8,Gantt,Gantt
+apps/frappe/frappe/templates/print_formats/standard.html +16,Page {0} of {1},{1} ၏စာမျက်နှာ {0}
 DocType: About Us Settings,Introduce your company to the website visitor.,website ကိုဧည့်သည်မှသင့်ကုမ္ပဏီမိတ်ဆက်ပေး။
 apps/frappe/frappe/public/js/frappe/form/workflow.js +116,To,ရန်
-apps/frappe/frappe/templates/base.html +144,Please enter email address,အီးမေးလ်လိပ်စာရိုက်ထည့်ပေးပါ
+apps/frappe/frappe/templates/base.html +145,Please enter email address,အီးမေးလ်လိပ်စာရိုက်ထည့်ပေးပါ
 apps/frappe/frappe/model/rename_doc.py +356,Successful: {0} to {1},အောင်မြင်သော: {0} {1} မှ
 apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,အပြောင်းအလဲများကိုလုပ်ရန်ဤ Copy လုပ်လိုက်ပါ ကျေးဇူးပြု.
-apps/frappe/frappe/utils/pdf.py +52,PDF generation failed because of broken image links,PDF ဖိုင်ရယူရန်မျိုးဆက်ဘယ်ကြောင့်ဆိုသော်လည်းကျိုးပုံရိပ်ကိုလင့်များ၏မအောင်မြင်သော
+apps/frappe/frappe/utils/pdf.py +33,PDF generation failed because of broken image links,PDF ဖိုင်ရယူရန်မျိုးဆက်ဘယ်ကြောင့်ဆိုသော်လည်းကျိုးပုံရိပ်ကိုလင့်များ၏မအောင်မြင်သော
 DocType: Print Settings,Font Size,ဖောင့်အရွယ်အစား
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +14,Unread Messages,ဖတ်ဖြစ်သောမက်ဆေ့ခ်ျများ
 DocType: System Settings,Disable Standard Email Footer,Standard အီးမေးလ် footer ကို disable
@@ -305,7 +306,7 @@ DocType: Email Account,Send Notification to,မှအမိန့်ကြော
 DocType: DocField,Collapsible,ခေါက်
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +656,Saved,Saved
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,ကိုရွေးပါရွေးစရာ။ အသစ်တစ်ခုကိုလိုင်းပေါ်တွင်အသီးအသီး option ကို။
-apps/frappe/frappe/public/js/legacy/form.js +721,Permanently Cancel {0}?,အမြဲတမ်း {0} Cancel?
+apps/frappe/frappe/public/js/legacy/form.js +724,Permanently Cancel {0}?,အမြဲတမ်း {0} Cancel?
 DocType: Workflow State,music,ဂီတ
 apps/frappe/frappe/config/setup.py +66,Settings,Settings ကို
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,DOCTYPE ကိုသတ်မှတ်ပေးပါ
@@ -353,7 +354,7 @@ DocType: Property Setter,Property Setter overrides a standard DocType or Field p
 apps/frappe/frappe/core/doctype/user/user.py +378,Cannot Update: Incorrect / Expired Link.,Update မနိုင်သည်မှားယွင်းနေ / သက်တမ်းလွန် Link ကို။
 DocType: DocField,Set Only Once,ကသာနှင့်တပြိုင်နက် Set
 apps/frappe/frappe/core/doctype/user/user.py +313,Username {0} already exists,username {0} ရှိနှင့်ပြီးသား
-apps/frappe/frappe/core/doctype/doctype/doctype.py +499,{0}: Cannot set import as {1} is not importable,{0}: {1} အရေးကြီးသောမဟုတ်ပါအဖြစ်တင်သွင်းထားမရပါ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +511,{0}: Cannot set import as {1} is not importable,{0}: {1} အရေးကြီးသောမဟုတ်ပါအဖြစ်တင်သွင်းထားမရပါ
 DocType: Top Bar Item,"target = ""_blank""",ပစ်မှတ် = &quot;_blank&quot;
 DocType: Workflow State,hdd,HDD
 DocType: ToDo,High,မြင့်သော
@@ -387,7 +388,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),(သတ်မှတ်ထားသောလျှင်) Tweet သင်၏ user account ကနေတစ်ဆင့်မျှဝေကြလိမ့်မည်
 ,Document Share Report,စာရွက်စာတမ်းဝေမျှမယ်အစီရင်ခံစာ
 DocType: User,Last Login,နောက်ဆုံးဝင်မည်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +383,Fieldname is required in row {0},Fieldname အတန်း {0} အတွက်လိုအပ်သည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +395,Fieldname is required in row {0},Fieldname အတန်း {0} အတွက်လိုအပ်သည်
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,ကြောကျတိုငျ
 DocType: Custom Field,Adds a custom field to a DocType,တစ် DOCTYPE မှတစ်စိတ်ကြိုက်ထည့်သွင်း
 DocType: File,Is Home Folder,မူလစာမျက်နှာ Folder ကို Is
@@ -407,7 +408,7 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +12,Number list,နံပါ�
 apps/frappe/frappe/config/setup.py +84,Log of error during requests.,တောင်းဆိုမှုများစဉ်အတွင်းအမှားအယွင်းအထဲ။
 DocType: DocShare,Everyone,လူတိုင်းသည်
 DocType: Workflow State,backward,နောက်ပြန်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +446,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: တစ်ယောက်သာတူညီအခန်းကဏ္ဍနှင့်အတူခွင့်ပြုအုပ်ချုပ်, အဆင့်နှင့် {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +458,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: တစ်ယောက်သာတူညီအခန်းကဏ္ဍနှင့်အတူခွင့်ပြုအုပ်ချုပ်, အဆင့်နှင့် {1}"
 DocType: Workflow State,share,ဝေစု
 apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,အရောင်းအများအတွက်စီးရီးဦးရေ Set လုပ်ပါ။
 apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,သင် create ကြောင်းအရာတစ်ခုခုကြိုက်မပေးနိုငျ
@@ -420,9 +421,9 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +117,is not allowed.,ခွ
 DocType: Website Theme,Background Color,နောက်ခံသမိုင်းအရောင်
 apps/frappe/frappe/public/js/frappe/views/communication.js +460,There were errors while sending email. Please try again.,အီးမေးလ်ပို့သည့်အနေဖြင့်အမှားများရှိကြ၏။ ထပ်ကြိုးစားပါ။
 DocType: Web Page,0 is highest,0 င်အမြင့်မားဆုံးဖြစ်ပါတယ်
-apps/frappe/frappe/templates/pages/login.html +71,Send Password,Password ကို Send
+apps/frappe/frappe/templates/pages/login.html +72,Send Password,Password ကို Send
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +24,Attachments,attachments
-apps/frappe/frappe/website/doctype/web_form/web_form.py +73,You don't have the permissions to access this document,သင်သည်ဤစာရွက်စာတမ်းဝင်ရောက်ကြည့်ရှုဖို့ခွင့်ပြုချက်မရကြ
+apps/frappe/frappe/website/doctype/web_form/web_form.py +74,You don't have the permissions to access this document,သင်သည်ဤစာရွက်စာတမ်းဝင်ရောက်ကြည့်ရှုဖို့ခွင့်ပြုချက်မရကြ
 DocType: Email Alert,Value Changed,Value တစ်ခု Changed
 apps/frappe/frappe/model/base_document.py +287,Duplicate name {0} {1},{0} {1} နာမကို Duplicate
 DocType: Web Form Field,Web Form Field,Web ကို Form တွင်ဖျော်ဖြေမှု
@@ -447,15 +448,15 @@ apps/frappe/frappe/model/document.py +728,none of,အဘယ်သူအားမ
 apps/frappe/frappe/public/js/frappe/views/communication.js +72,Send Me A Copy,ငါ့ကိုအဖြေကိုကူးယူပြီး Send
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,အသုံးပြုသူခွင့်ပြုချက် upload
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Checked ပစ္စည်းများကို Desktop ပေါ်မှာပြသပါလိမ့်မည်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +489,{0} cannot be set for Single types,{0} လူပျိုအမျိုးအစားများဘို့ရာခန့်ထားသောမရနိုင်ပါ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +501,{0} cannot be set for Single types,{0} လူပျိုအမျိုးအစားများဘို့ရာခန့်ထားသောမရနိုင်ပါ
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +46,{0} are currently viewing this document,{0} လောလောဆယ်တွင်ဤစာရွက်စာတမ်းကြည့်ရှုနေကြပါတယ်
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +104,{0} updated,{0} updated
-apps/frappe/frappe/core/doctype/doctype/doctype.py +479,Report cannot be set for Single types,အစီရင်ခံစာလူပျိုအမျိုးအစားများဘို့ရာခန့်ထားသောမရနိုင်ပါ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +491,Report cannot be set for Single types,အစီရင်ခံစာလူပျိုအမျိုးအစားများဘို့ရာခန့်ထားသောမရနိုင်ပါ
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +17,"To run a test add the module name in the route after '{0}'. For example, {1}","စမ်းသပ်မှုတစ်ခု run ဖို့ &#39;&#39; {0} &#39;&#39; ပြီးနောက်လမ်းကြောင်းအတွက် module ကိုနာမကိုအမှီထည့်ပါ။ ဥပမာအားဖြင့်, {1}"
 DocType: Contact Us Settings,Address Line 1,လိပ်စာစာကြောင်း 1
 apps/frappe/frappe/desk/page/activity/activity.js +189,Feb,ဖေဖော်ဝါရီ
 DocType: DocPerm,Role,အခန်းက္ပ
-apps/frappe/frappe/utils/data.py +414,Cent,Cent က
+apps/frappe/frappe/utils/data.py +415,Cent,Cent က
 apps/frappe/frappe/config/setup.py +176,"States for workflow (e.g. Draft, Approved, Cancelled).","လုပ်ငန်းအသွားအလာသည်ပြည်နယ်များ (ဥပမာမူကြမ်း, Approved, ဖျက်သိမ်း) ။"
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,Set ပမာဏ
 DocType: Comment,Unsubscribed,unsubscribe
@@ -509,7 +510,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select Us
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,အဘယ်သူမျှမ Apps တွေကို Install လုပ်ရတဲ့
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Mark the field as Mandatory,လယ်ပြင်အဖြစ်မသင်မနေရမာကု
 DocType: Communication,Clicked,နှိပ်လိုက်
-apps/frappe/frappe/public/js/legacy/form.js +874,No permission to '{0}' {1},မှ &#39;&#39; {0} {1} မရှိပါခွင့်ပြုချက်
+apps/frappe/frappe/public/js/legacy/form.js +877,No permission to '{0}' {1},မှ &#39;&#39; {0} {1} မရှိပါခွင့်ပြုချက်
 DocType: User,Google User ID,Google ကအသုံးပြုသူ ID
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,ဤနည်းလမ်းသာမှတ်ချက်ကိုဖန်တီးရန်အသုံးပွုနိုငျ
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,{0} မျှမတွေ့ပါ
@@ -563,7 +564,7 @@ DocType: Module Def,App Name,App ကိုအမည်
 DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","ထိုအရောင်းအဝယ်၏လုပ်ငန်းအသွားအလာပြည်နယ်ကိုကိုယ်စားပြုကြောင်းလယ်ပြင်၌ (လယ်ပြင်၌ပစ္စုပ္ပန်မဟုတ်ပါလျှင်, အသစ်တခုက hidden Custom Field နေသူများကဖန်တီးလိမ့်မည်)"
 apps/frappe/frappe/utils/oauth.py +171,Email not verified with {1},အီးမေးလ် {1} နှင့်အတူ verify မ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +556,Edit to add content,အကြောင်းအရာထည့်ရန်ပြင်ဆင်ရန်
-apps/frappe/frappe/__init__.py +437,No permission for {0},{0} ဘို့အဘယ်သူမျှမခွင့်ပြုချက်
+apps/frappe/frappe/__init__.py +440,No permission for {0},{0} ဘို့အဘယ်သူမျှမခွင့်ပြုချက်
 DocType: Web Form,Advanced,advanced
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},ကိုးကားစရာ: {0} {1}
 DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages.",အသုံးပြုသူ Type &quot;စနစ်အသုံးပြုသူ&quot; Desktop ပေါ်မှာဝင်ရောက်ကြည့်ရှုနိုင်ပါတယ်။ &quot;ဝက်ဘ်ဆိုက်အသုံးပြုသူ&quot; ကိုသာ website နှင့်ပေါ်တယ်စာမျက်နှာများတွင်သို့ logged နိုင်ပါသည်။
@@ -605,7 +606,7 @@ apps/frappe/frappe/config/website.py +49,Setup of fonts and background.,စာ�
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +4,Editing Row,တည်းဖြတ်တဲ့ Row
 DocType: Workflow Action,Workflow Action Master,အသွားအလာလှုပ်ရှားမှုမဟာ
 DocType: Custom Field,Field Type,field ကအမျိုးအစား
-apps/frappe/frappe/utils/data.py +431,only.,သာ။
+apps/frappe/frappe/utils/data.py +432,only.,သာ။
 DocType: Feed,Doc Type,doc Type
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +455,Descending,ဆငျးသကျ
 apps/frappe/frappe/email/receive.py +57,Invalid Mail Server. Please rectify and try again.,မမှန်ကန်ခြင်းမေးလ်ဆာဗာ။ ဆန်းစစ်နှင့်ထပ်ကြိုးစားပါ။
@@ -691,7 +692,7 @@ apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the 
 DocType: DocType,Sort Field,Sort ဖျော်ဖြေမှု
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +356,Edit Filter,Edit ကို Filter ကို
 apps/frappe/frappe/templates/pages/404.html +12,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","ကျွန်ုပ်တို့သည်ဤသည်အလွန်စိတ်မကောင်းသော်လည်း, သင်တို့အဘို့အရှာဖွေနေတဲ့စာမျက်နှာပျောက်နေ (ဤအကြောင်းကြောင့်လိပ်စာအတွက် typo ၏ဖြစ်နိုင်ပါတယ်) သို့မဟုတ်ရွေ့သွား၏။"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +261,Field {0} of type {1} cannot be mandatory,လယ်ပြင်၌ {0} အမျိုးအစား {1} မဖြစ်မနေမဖွစျနိုငျ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +262,Field {0} of type {1} cannot be mandatory,လယ်ပြင်၌ {0} အမျိုးအစား {1} မဖြစ်မနေမဖွစျနိုငျ
 DocType: System Settings,"eg. If Apply User Permissions is checked for Report DocType but no User Permissions are defined for Report for a User, then all Reports are shown to that User","ဥပမာ။ Apply အသုံးပြုသူခွင့်ပြုချက်အစီရင်ခံစာ DOCTYPE များအတွက်ဓြှုသျောလညျးမအသုံးပြုသူခွင့်ပြုချက်တစ်အသုံးပြုသူများအတွက်အစီရင်ခံစာအဘို့သတ်မှတ်ကြပါတယ်, ထို့နောက်အားလုံးအစီရင်ခံစာများကြောင့်အသုံးပြုသူပြနေတယ်ဆိုရင်"
 DocType: System Settings,Session Expiry Mobile,session သက်တမ်းကုန်ဆုံးမိုဘိုင်းလ်
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +891,Select To Download:,Download လုပ်ဖို့ကိုရွေးချယ်ပါ:
@@ -701,7 +702,7 @@ DocType: DocPerm,If user is the owner,အသုံးပြုသူပိုင
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","အကူအညီ: အတွက် Link URL ကိုအဖြစ် &quot;[အမည်မှတ်ချက်] # Form တွင် / မှတ်ချက် /&quot;, system ကိုနောက်ထပ်စံချိန်သစ်လင့်ထားသည်ကိုအသုံးပြုဖို့ရန်။ (&quot;: // http&quot; ကိုမသုံးပါဘူး)"
 DocType: Communication,Delayed,နှောင့်နှေး
 apps/frappe/frappe/config/setup.py +116,List of backups available for download,download ပြုလုပ်ရရှိနိုင်သောထားရှိတဲ့ Backup များစာရင်း
-apps/frappe/frappe/templates/pages/login.html +60,Sign up,ဆိုင်းအပ်
+apps/frappe/frappe/templates/pages/login.html +61,Sign up,ဆိုင်းအပ်
 apps/frappe/frappe/config/setup.py +222,Add fields to forms.,ပုံစံများမှလယ်ကွင်းထည့်ပါ။
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,သင်သည်ဤစာမျက်နှာကိုဝင်ရောက်ကြည့်ရှုရန်အတွက် logged ခံရဖို့လိုအပ်ပါတယ်။
@@ -726,11 +727,11 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Specify 
 DocType: Website Settings,FavIcon,FavIcon
 DocType: Workflow State,minus-sign,အနုတ်-နိမိတ်လက္ခဏာ
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,မတွေ့ပါ
-apps/frappe/frappe/templates/pages/print.py +158,No {0} permission,အဘယ်သူမျှမ {0} ခွင့်ပြုချက်
+apps/frappe/frappe/templates/pages/print.py +160,No {0} permission,အဘယ်သူမျှမ {0} ခွင့်ပြုချက်
 DocType: Feed,Login,လော့ဂ်အင်
 DocType: System Settings,Enable Scheduled Jobs,Scheduled ဂျော့ Enable
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,မှတ်စုများ:
-apps/frappe/frappe/public/js/frappe/form/control.js +1388,Markdown,Markdown
+apps/frappe/frappe/public/js/frappe/form/control.js +1391,Markdown,Markdown
 DocType: DocShare,Document Name,စာရွက်စာတမ်းအမည်
 DocType: ToDo,Medium,အလယ်အလတ်
 DocType: Comment,Comment By,By မှတ်ချက်လေး
@@ -776,7 +777,7 @@ apps/frappe/frappe/config/desk.py +14,Documents assigned to you and by you.,သ�
 DocType: User,Email Signature,အီးမေးလ်ထိုးမြဲလက်မှတ်
 DocType: Website Settings,Google Analytics ID,Google Analytics ID ကို
 DocType: Website Theme,Link to your Bootstrap theme,သင့်ရဲ့ Bootstrap ဆောင်ပုဒ်၏ Link
-apps/frappe/frappe/public/js/frappe/form/control.js +1387,Edit as {0},{0} အဖြစ်ပြင်ဆင်ရန်
+apps/frappe/frappe/public/js/frappe/form/control.js +1390,Edit as {0},{0} အဖြစ်ပြင်ဆင်ရန်
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +11,Add new row,အသစ်အတန်း Add
 DocType: DocPerm,Delete,Delete
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +149,New {0},နယူး {0}
@@ -800,17 +801,17 @@ apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules 
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +154,Permissions Updated,ခွင့်ပြုချက် Updated
 apps/frappe/frappe/email/doctype/email_account/email_account.py +51,Append To is mandatory for incoming mails,append ရန်အဝင်မေးလ်တွေအတွက်မဖြစ်မနေဖြစ်ပါသည်
 DocType: Communication,Rejected,ပယ်ချ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +266,Options requried for Link or Table type field {0} in row {1},Link ကိုသို့မဟုတ်စားပွဲတင် type field ကို {0} အတန်းအတွက် {1} သည် requried Options ကို
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Options requried for Link or Table type field {0} in row {1},Link ကိုသို့မဟုတ်စားပွဲတင် type field ကို {0} အတန်းအတွက် {1} သည် requried Options ကို
 DocType: Report,Query Report,query အစီရင်ခံစာ
 DocType: User,Set New Password,နယူး Password ကို Set
 DocType: User,Github User ID,Github အသုံးပြုသူ ID
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,If Document Type,Document ဖိုင် Type မယ်ဆိုရင်
 apps/frappe/frappe/desk/page/applications/applications.py +88,Unknown app {0},အမည်မသိ app ကို {0}
 DocType: Communication,Chat,chat
-apps/frappe/frappe/core/doctype/doctype/doctype.py +257,Fieldname {0} appears multiple times in rows {1},Fieldname {0} တန်းစီ {1} အတွက်အကြိမ်ပေါင်းများစွာပုံပေါ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +258,Fieldname {0} appears multiple times in rows {1},Fieldname {0} တန်းစီ {1} အတွက်အကြိမ်ပေါင်းများစွာပုံပေါ်
 DocType: Bulk Email,Expired,Expired
 DocType: DocType,System,စံနစ်
-apps/frappe/frappe/templates/pages/login.html +62,Have an account? Login,အကောင့်တစ်ခုရှိသည်? လော့ဂ်အင်
+apps/frappe/frappe/templates/pages/login.html +63,Have an account? Login,အကောင့်တစ်ခုရှိသည်? လော့ဂ်အင်
 apps/frappe/frappe/public/js/legacy/print_format.js +144,Unknown Print Format: {0},အမည်မသိပုံနှိပ်ဖွဲ့စည်းမှုပုံစံ: {0}
 DocType: Workflow State,arrow-down,မြှား-Down
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Collapse,ပြိုကဲ
@@ -824,10 +825,10 @@ DocType: System Settings,Ignore User Permissions If Missing,ပျောက်�
 apps/frappe/frappe/public/js/frappe/form/control.js +765,Please save the document before uploading.,upload မပြုလုပ်မီစာရွက်စာတမ်းကိုကယ်တင်ပေးပါ။
 apps/frappe/frappe/public/js/frappe/ui/messages.js +163,Enter your password,သင့်ရဲ့စကားဝှက်ကိုရိုက်ထည့်
 DocType: Dropbox Backup,Dropbox Access Secret,Dropbox ကို Access ကလျှို့ဝှက်ချက်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +336,Fold must come before a Section Break,သိုးခြံတစ်ပုဒ်မ Break လာ. ရှေ့တော်၌ရမယ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +348,Fold must come before a Section Break,သိုးခြံတစ်ပုဒ်မ Break လာ. ရှေ့တော်၌ရမယ်
 apps/frappe/frappe/core/doctype/user/user.py +428,Not allowed to reset the password of {0},{0} ရဲ့ password ကို reset ခွင့်မပြုခဲ့
 DocType: Workflow State,hand-down,လက်-Down
-apps/frappe/frappe/core/doctype/doctype/doctype.py +465,{0}: Cannot set Cancel without Submit,{0}: Submit မပါဘဲ Cancel စွဲလမ်းခြင်းမနိုင်သလား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +477,{0}: Cannot set Cancel without Submit,{0}: Submit မပါဘဲ Cancel စွဲလမ်းခြင်းမနိုင်သလား
 DocType: Website Theme,Theme,အကွောငျး
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +146,There were errors.,အမှားများရှိကြ၏။
 DocType: DocType,Is Submittable,Submittable ဖြစ်ပါသည်
@@ -856,7 +857,7 @@ DocType: Website Settings,Disable Signup,signup လုပ်နိုင်ပ�
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while your system is being setup. This may take a few moments.,သင့် system ဖြစ်ရခြင်း setup ကိုနေစဉ်တင်းကြပ်ထိုင်နေ။ ဤသည်အချိန်အနည်းငယ်ကြာနိုင်ပါသည်။
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,အခန်းကဏ္ဍဟာသူတို့ရဲ့အသုံးပြုသူစာမျက်နှာကနေ user တွေအတွက်သတ်မှတ်နိုင်တယ်။
 DocType: DocField,Mandatory,အတင်းအကျပ်ဖြစ်သော
-apps/frappe/frappe/core/doctype/doctype/doctype.py +429,{0}: No basic permissions set,{0}: No အခြေခံခွင့်ပြုချက်ထား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +441,{0}: No basic permissions set,{0}: No အခြေခံခွင့်ပြုချက်ထား
 apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},{0}: backup လုပ် download link ကိုအောက်ပါအီးမေးလ်လိပ်စာပေါ်မေးလ်ပို့ပေးပါလိမ့်မည်
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","၏ Submit, Cancel, ပြင်ဆင်ချက်အဓိပ္ပာယ်"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,လုပ်ပါမှ
@@ -884,7 +885,7 @@ apps/frappe/frappe/config/setup.py +143,Printing,ပုံနှိပ်ခြ�
 DocType: Workflow State,thumbs-up,လက်မထောင်ပြခြင်း
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,Add Reply,စာပြန်ရန် Add
 DocType: DocPerm,DocPerm,DocPerm
-apps/frappe/frappe/core/doctype/doctype/doctype.py +304,Precision should be between 1 and 6,Precision 1 နှင့် 6 အကြားဖြစ်သင့်တယ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +305,Precision should be between 1 and 6,Precision 1 နှင့် 6 အကြားဖြစ်သင့်တယ်
 apps/frappe/frappe/public/js/frappe/misc/utils.js +98,and,နှင့်
 DocType: Error Snapshot,Frames,frames
 DocType: About Us Team Member,Image Link,image ကို Link ကို
@@ -920,7 +921,7 @@ apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Com
 DocType: File,Is Private,ပုဂ္ဂလိကဖြစ်ပါသည်
 DocType: Web Form,Select DocType,DOCTYPE ကိုရွေးပါ
 apps/frappe/frappe/public/js/frappe/upload.js +207,File size exceeded the maximum allowed size of {0} MB,ဖိုင်အရွယ်အစား {0} MB လောက်၏အမြင့်ဆုံးခွင့်ပြုခဲ့အရွယ်အစားထက်ကျော်လွန်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +417,Enter at least one permission row,အနည်းဆုံးတဦးခွင့်ပြုချက်အတန်း Enter
+apps/frappe/frappe/core/doctype/doctype/doctype.py +429,Enter at least one permission row,အနည်းဆုံးတဦးခွင့်ပြုချက်အတန်း Enter
 apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,တွင် Created
 DocType: Workflow State,align-center,တေ့-စင်တာ
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,ရေးထားနိုင်သလား
@@ -1081,7 +1082,7 @@ apps/frappe/frappe/config/setup.py +181,"Actions for workflow (e.g. Approve, Can
 DocType: Workflow State,flag,အလံ
 DocType: Web Page,Text Align,text align
 DocType: Contact Us Settings,Forward To Email Address,Forward Email လိပ်စာရန်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +359,Title field must be a valid fieldname,ခေါင်းစဉ်လယ်တရားဝင် fieldname ဖြစ်ရမည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +371,Title field must be a valid fieldname,ခေါင်းစဉ်လယ်တရားဝင် fieldname ဖြစ်ရမည်
 apps/frappe/frappe/desk/moduleview.py +61,Documents,စာရွက်စာတမ်းများ
 apps/frappe/frappe/templates/pages/me.html +21,Edit Profile,Edit Profile
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,06:00 ဥပမာအလုပ်ချိန်အတွက် session သက်တမ်းကုန်ဆုံး
@@ -1113,7 +1114,7 @@ DocType: DocField,Select,ကိုရွေးပါ
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,file ကိုပူးတွဲမ
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",သင်သည်ဤသတ်မှတ်ပါကယခု Item drop-down ရွေးချယ်ထားသည့်မိဘအောက်မှာအတွက်လာလိမ့်မည်။
 apps/frappe/frappe/model/db_query.py +445,Please select atleast 1 column from {0} to sort,မျိုးရန် {0} ကနေ atleast 1 ကော်လံကို select ကျေးဇူးပြု.
-apps/frappe/frappe/templates/pages/print.py +184,No template found at path: {0},path ကိုမှာတှေ့မရှိပါ template ကို: {0}
+apps/frappe/frappe/templates/pages/print.py +186,No template found at path: {0},path ကိုမှာတှေ့မရှိပါ template ကို: {0}
 DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to selected Website Theme.","အပေါ်ဘားတန်းမှာရှိတဲ့ Menu ကိုပစ္စည်းများကို။ အဆိုပါထိပ်တန်းဘား၏အရောင် setting ဘို့, ရွေးချယ်ထားသောဝက်ဘ်ဆိုက် Theme ကိုသွားပါ။"
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Submit after importing.,တင်သွင်းပြီးနောက် Submit ။
 apps/frappe/frappe/public/js/frappe/model/indicator.js +34,Cancelled,ဖျက်သိမ်း
@@ -1144,7 +1145,7 @@ apps/frappe/frappe/core/doctype/file/file_list.js +63,New Folder,နယူး Fo
 DocType: Website Settings,Sub-domain provided by erpnext.com,erpnext.com ကထောက်ပံ့ပေး sub-domain
 DocType: System Settings,dd-mm-yyyy,dd-မီလီမီတာ-yyyy
 apps/frappe/frappe/desk/query_report.py +70,Must have report permission to access this report.,ဤအစီရင်ခံစာဝင်ရောက်ဖို့အစီရင်ခံစာခွင့်ပြုချက်ရှိရမယ်။
-apps/frappe/frappe/templates/base.html +133,Added,Added
+apps/frappe/frappe/templates/base.html +134,Added,Added
 apps/frappe/frappe/desk/doctype/event/event.py +66,Daily Event Digest is sent for Calendar Events where reminders are set.,Daily သတင်းစာ Event Digest မဂ္ဂဇင်းသတိပေးချက်များထားရှိရာပြက္ခဒိန်စကားဝိုင်းသည်လူကိုစေလွှတ်တာဖြစ်ပါတယ်။
 apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +35,View Website,view ဝက်ဘ်ဆိုက်
 DocType: Workflow State,remove,ရှေ့
@@ -1168,7 +1169,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +19,Close,ပိ�
 apps/frappe/frappe/model/document.py +458,Cannot change docstatus from 0 to 2,2 0 မှ docstatus မပြောင်းနိုင်ပါ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +87,Update,Update ကို
 DocType: Error Snapshot,Snapshot View,snapshot ကြည့်ရန်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +272,Options must be a valid DocType for field {0} in row {1},Options ကိုလယ်၌ {0} အတန်းအတွက် {1} သည်မှန်ကန်သော DOCTYPE ဖြစ်ရမည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +273,Options must be a valid DocType for field {0} in row {1},Options ကိုလယ်၌ {0} အတန်းအတွက် {1} သည်မှန်ကန်သော DOCTYPE ဖြစ်ရမည်
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Edit ကို Properties ကို
 DocType: Patch Log,List of patches executed,ကွပ်မျက်ခံရပြင်ဆင်ဖာထေးစာရင်း
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ပြီးသား unsubscribe
@@ -1176,7 +1177,7 @@ DocType: Communication,Communication Medium,ဆက်သွယ်ရေးအလ
 DocType: Website Settings,Banner HTML,Banner က HTML
 DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/model/base_document.py +451,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} &quot;{2}&quot; မဖြစ်နိုင်။ ဒါဟာ &quot;{3}&quot; တယောက်ဖြစ်သင့်
-apps/frappe/frappe/utils/data.py +518,{0} or {1},{0} သို့မဟုတ် {1}
+apps/frappe/frappe/utils/data.py +519,{0} or {1},{0} သို့မဟုတ် {1}
 apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,Password ကို Update ကို
 DocType: Workflow State,trash,အသုံးမရသောအရာ
 apps/frappe/frappe/desk/page/activity/activity.js +190,Dec,ဒီဇင်ဘာ
@@ -1260,7 +1261,7 @@ apps/frappe/frappe/utils/response.py +117,You need to be logged in and have Syst
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,တွဲထားခင်ကိုကယ်တင်ပေးပါ။
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),Added {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +269,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype {0} {2} အတန်းအတွက် {1} မှကနေပြောင်းလဲမပြနိုင်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +349,Search Fields should contain valid fieldnames,ရှာဖွေရန် Fields တရားဝင် fieldnames ဆံ့သင့်ပါတယ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +361,Search Fields should contain valid fieldnames,ရှာဖွေရန် Fields တရားဝင် fieldnames ဆံ့သင့်ပါတယ်
 apps/frappe/frappe/core/doctype/user/user.js +317,Role Permissions,အခန်းက္ပခွင့်ပြုချက်
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +5,Can Read,Read နိုင်သလား
 DocType: Standard Reply,Response,တုံ့ပြန်ချက်
@@ -1314,7 +1315,7 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} shared this documen
 DocType: Website Settings,Google Plus One,Google Plus တစ်ခုမှာ
 apps/frappe/frappe/desk/page/activity/activity.js +190,Jul,ဇူလိုင်
 apps/frappe/frappe/config/website.py +44,"Setup of top navigation bar, footer and logo.","ထိပ်တန်း navigation bar, footer နှင့်လိုဂိုကို Setup ။"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +425,For {0} at level {1} in {2} in row {3},{2} အတန်းအတွက် {3} အတွက် {1} အဆင့်မှာ {0} များအတွက်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +437,For {0} at level {1} in {2} in row {3},{2} အတန်းအတွက် {3} အတွက် {1} အဆင့်မှာ {0} များအတွက်
 DocType: Page,All,အားလုံး
 DocType: Bulk Email,Recipient,လက်လံသူ
 apps/frappe/frappe/config/setup.py +150,Drag and Drop tool to build and customize Print Formats.,ပုံနှိပ် Formats တည်ဆောက်ရန်နှင့်စိတ်ကြိုက် tool ကို drag and drop ။
@@ -1369,13 +1370,13 @@ DocType: Contact Us Settings,Send enquiries to this email address,ဒီအီ�
 DocType: Letter Head,Letter Head Name,ပေးစာအကြီးအကဲအမည်
 apps/frappe/frappe/config/website.py +23,User editable form on Website.,ဝက်ဘ်ဆိုက်ပေါ်တွင်အသုံးပြုသူဒီမှာ BusinessSite ပုံစံ။
 DocType: Workflow State,file,ဖိုင်ကို
-apps/frappe/frappe/templates/pages/login.html +73,Back to Login,Back ကိုဝင်မည်မှ
+apps/frappe/frappe/templates/pages/login.html +74,Back to Login,Back ကိုဝင်မည်မှ
 apps/frappe/frappe/model/rename_doc.py +98,You need write permission to rename,သင်တို့ကိုအမည်ပြောင်းဖို့ခွင့်ပြုချက်ကိုရေးလိုအပ်
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +433,Apply Rule,Rule Apply
 DocType: User,Karma,Karma
 DocType: DocField,Table,စားပှဲ
 DocType: File,File Size,ဖိုင်အရွယ်အစား
-apps/frappe/frappe/website/doctype/web_form/web_form.py +189,You must login to submit this form,သင်သည်ဤပုံစံကိုတင်ပြရန် login ရမယ်
+apps/frappe/frappe/website/doctype/web_form/web_form.py +190,You must login to submit this form,သင်သည်ဤပုံစံကိုတင်ပြရန် login ရမယ်
 DocType: User,Background Image,"နောက်ခံသမိုင်းသင်ခန်းစာများ,"
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +324,"Select your Country, Time Zone and Currency","သင့်ရဲ့နိုင်ငံ, အချိန်ဇုန်နှင့်ငွေကြေးစနစ်ကိုရွေးပါ"
 DocType: Async Task,Queued,Queued
@@ -1422,7 +1423,7 @@ DocType: Workflow,States,ပွညျထောငျစု
 DocType: Email Alert,Attach Print,ပုံနှိပ် Attach
 apps/frappe/frappe/core/doctype/user/user.py +337,Suggested Username: {0},အကြံပြုသည်အသုံးပြုသူအမည်: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","သင်ပြီးနောက်က Cancel and save document တစ်ခုပြင်ဆင်ချက်သောအခါ, အဟောင်းအရေအတွက်၏တစ်ဦးဗားရှင်းကြောင်းအသစ်တခုနံပါတ်ရလာကြလိမ့်မည်။"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +39,{0} not allowed in name,{0} နာမ၌အခွင့်မပေး
+apps/frappe/frappe/core/doctype/doctype/doctype.py +40,{0} not allowed in name,{0} နာမ၌အခွင့်မပေး
 DocType: Workflow State,circle-arrow-left,စက်ဝိုင်း-မြှား-လက်ဝဲ
 apps/frappe/frappe/sessions.py +113,Redis cache server not running. Please contact Administrator / Tech support,run မ Redis cache ကို server ကို။ အုပ်ချုပ်ရေးမှူး / Tech မှထောက်ခံမှုကိုဆက်သွယ်ပါ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +91,Make a new record,မှတ်တမ်းအသစ်တစ်ခုလုပ်ပါ
@@ -1460,7 +1461,7 @@ DocType: Workflow Transition,Action,action
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,အချက်အလက်များ:
 DocType: Custom Field,Permission Level,ခွင့်ပြုချက်အဆင့်
 DocType: User,Send Notifications for Transactions I Follow,ကိုယ့် Follow လုပ်ငန်းတွေအတွက်အသိပေးချက်များ Send
-apps/frappe/frappe/core/doctype/doctype/doctype.py +468,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Submit သတ်မှတ် Cancel, Write မပါဘဲပြင်ဆင်ချက်မရပါ"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +480,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Submit သတ်မှတ် Cancel, Write မပါဘဲပြင်ဆင်ချက်မရပါ"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,သင်ပူးတွဲဖိုင်ပယ်ဖျက်ချင်တာသေချာမှန်သလော
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Setup ကို&gt; အသုံးပြုသူတို့၏
 apps/frappe/frappe/model/base_document.py +483,"{0}: '{1}' will get truncated, as max characters allowed is {2}",{0}: max ကိုဇာတ်ကောင်များခွင့်ပြုခဲ့အဖြစ် &#39;&#39; {1} &#39;truncated ရလိမ့်မည်ဖြစ်ပါသည် {2}
@@ -1468,7 +1469,7 @@ apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,ကျေ�
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,သိမ်းဆည်းခြင်း
 DocType: Print Settings,Print Style Preview,ပုံနှိပ်ပုံစံကို Preview
 apps/frappe/frappe/core/doctype/file/test_file.py +81,Test_Folder,Test_Folder
-apps/frappe/frappe/website/doctype/web_form/web_form.py +155,You are not allowed to update this Web Form Document,သင်သည်ဤ Web ကို Form တွင် Document ဖိုင် update လုပ်ဖို့ခွင့်မပြုခဲ့ကြသည်
+apps/frappe/frappe/website/doctype/web_form/web_form.py +156,You are not allowed to update this Web Form Document,သင်သည်ဤ Web ကို Form တွင် Document ဖိုင် update လုပ်ဖို့ခွင့်မပြုခဲ့ကြသည်
 DocType: About Us Settings,About Us Settings,ကျွန်ုပ်တို့ကို Settings ကိုအကြောင်း
 DocType: Website Settings,Website Theme,website Theme
 DocType: DocField,In List View,List ကိုကြည့်ရန်အတွက်
@@ -1500,7 +1501,7 @@ apps/frappe/frappe/public/js/frappe/list/listview.js +342,2 days ago,2 days ago
 apps/frappe/frappe/config/website.py +64,Categorize blog posts.,ဘလော့ဂ်ပို့စ်များခွဲခြား။
 DocType: Workflow State,Time,အချိန်
 DocType: DocField,Attach,ကပ်
-apps/frappe/frappe/core/doctype/doctype/doctype.py +371,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} တရားဝင် fieldname ပုံစံကိုမဟုတ်ပါဘူး။ ဒါဟာ {{field_name}} ဖြစ်သင့်သည်။
+apps/frappe/frappe/core/doctype/doctype/doctype.py +383,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} တရားဝင် fieldname ပုံစံကိုမဟုတ်ပါဘူး။ ဒါဟာ {{field_name}} ဖြစ်သင့်သည်။
 DocType: DocType,Permission Rules,ခွင့်ပြုချက်နည်းဥပဒေများ
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +119,Links,Links များ
 apps/frappe/frappe/model/base_document.py +369,Value missing for,သည်ပျောက်ဆုံး Value တစ်ခု
@@ -1510,7 +1511,7 @@ DocType: DocPerm,Read,ဖတ်
 apps/frappe/frappe/templates/pages/update-password.html +12,Old Password,စကားဝှက်အဟောင်း
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97,Posts by {0},{0} ရေးသားချက်များ
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","format နဲ့ကော်လံလုပ်ဖို့, query ကိုအတွက်ကော်လံတံဆိပ်များပေးပါ။"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +495,{0}: Cannot set Assign Amend if not Submittable,{0}: Submittable မဆိုနိုင်ပါ Assign ပြင်ဆင်ချက်စွဲလမ်းခြင်းမနိုင်သလား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +507,{0}: Cannot set Assign Amend if not Submittable,{0}: Submittable မဆိုနိုင်ပါ Assign ပြင်ဆင်ချက်စွဲလမ်းခြင်းမနိုင်သလား
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Edit ကိုအခန်းကဏ္ဍခွင့်ပြုချက်
 DocType: Social Login Keys,Social Login Keys,လူမှုရေးဝင်မည်သော့ချက်များ
 DocType: Comment,Comment Date,မှတ်ချက်နေ့စွဲ
@@ -1542,7 +1543,7 @@ apps/frappe/frappe/core/doctype/user/user.js +152,Add all roles,အားလု�
 apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
 				can get back to you. Thanks!",ကျွန်တော်ပြန်သင်ရနိုင်ပါ \ ဒါကြောင့်သင့်ရဲ့အီးမေးလ်နဲ့သတင်းစကားနှစ်ခုလုံးကိုရိုက်ထည့်ပေးပါ။ ကျေးဇူးတင်ပါတယ်!
 apps/frappe/frappe/email/smtp.py +154,Could not connect to outgoing email server,အထွက်အီးမေးလ်ဆာဗာမှမချိတ်ဆက်နိုင်ဘူး
-apps/frappe/frappe/public/js/frappe/form/control.js +1388,Rich Text,ချမ်းသာတဲ့စာသား
+apps/frappe/frappe/public/js/frappe/form/control.js +1391,Rich Text,ချမ်းသာတဲ့စာသား
 DocType: Workflow State,resize-full,အရွယ်အစား-အပြည့်အဝ
 DocType: Workflow State,off,သွား
 apps/frappe/frappe/desk/query_report.py +26,Report {0} is disabled,အစီရင်ခံစာ {0} ပိတ်ထားတယ်
@@ -1581,7 +1582,7 @@ DocType: Contact Us Settings,Pincode,Pincode
 apps/frappe/frappe/core/page/data_import_tool/importer.py +70,Please make sure that there are no empty columns in the file.,အဘယ်သူမျှမလက်ချည်းကော်လံဖိုင်ကိုအတွက်ရှိတယ်လို့သေချာအောင်လေ့လာပါ။
 apps/frappe/frappe/utils/oauth.py +209,Please ensure that your profile has an email address,သင့်ရဲ့ profile ကိုအီးမေးလ်လိပ်စာရှိကြောင်းသေချာစေရန် ကျေးဇူးပြု.
 apps/frappe/frappe/public/js/frappe/model/create_new.js +218,You have unsaved changes in this form. Please save before you continue.,သင်သည်ဤပုံစံဖြင့်ကယ်တင်ခြင်းမအပြောင်းအလဲများရှိသည်။ ရှေ့ဆက်မသွားခင်ကိုကယ်တင်ပေးပါ။
-apps/frappe/frappe/core/doctype/doctype/doctype.py +300,Default for {0} must be an option,{0} သည် default option တစ်ခုဖြစ်ရပါမည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +301,Default for {0} must be an option,{0} သည် default option တစ်ခုဖြစ်ရပါမည်
 DocType: User,User Image,"အသုံးပြုသူသင်ခန်းစာများ,"
 apps/frappe/frappe/email/bulk.py +243,Emails are muted,အီးမေးလ်များကိုအသံတိတ်များမှာ
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +22,Ctrl + Up,ပြီးရင် Ctrl + Up ကို
@@ -1610,7 +1611,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py +52,View it in your b
 DocType: Async Task,Running,ပွေး
 apps/frappe/frappe/templates/pages/update-password.html +3,Reset Password,Password ကို Reset
 DocType: Workflow State,hand-left,လက်-left
-apps/frappe/frappe/core/doctype/doctype/doctype.py +313,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} ထူးခြားသောမဖြစ်နိုင်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +314,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} {1} ထူးခြားသောမဖြစ်နိုင်
 DocType: Email Account,Use SSL,SSL ကိုအသုံးပြုပါ
 DocType: Workflow State,play-circle,ကစား-စက်ဝိုင်း
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +75,Select Print Format to Edit,Edit ကိုမှပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံကိုရွေးပါ
@@ -1645,8 +1646,8 @@ DocType: ToDo,ToDo,todo
 DocType: DocField,No Copy,အဘယ်သူမျှမမိတ္တူ
 DocType: Workflow State,qrcode,qrcode
 DocType: Web Form,Breadcrumbs,Breadcrumbs
-apps/frappe/frappe/core/doctype/doctype/doctype.py +441,If Owner,ပိုင်ရှင်မယ်ဆိုရင်
-apps/frappe/frappe/website/doctype/web_form/web_form.py +70,You need to be logged in to access this {0}.,သင် {0} ဒီထဲကိုဝင်ရောက်ဖို့အတွက် logged ခံရဖို့လိုအပ်ပါတယ်။
+apps/frappe/frappe/core/doctype/doctype/doctype.py +453,If Owner,ပိုင်ရှင်မယ်ဆိုရင်
+apps/frappe/frappe/website/doctype/web_form/web_form.py +71,You need to be logged in to access this {0}.,သင် {0} ဒီထဲကိုဝင်ရောက်ဖို့အတွက် logged ခံရဖို့လိုအပ်ပါတယ်။
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +167,Complete By,အားဖြင့်ပြီးပြည့်စုံသော
 apps/frappe/frappe/templates/includes/comments/comments.py +50,{0} by {1},{0} {1} ကြောင့်
 apps/frappe/frappe/core/doctype/comment/comment.py +65,Cannot add more than 50 comments,50 ကျော်မှက်ချက်ပေးရန်အတွက်နိုင်ဘူး
@@ -1667,7 +1668,7 @@ DocType: Workflow State,resize-horizontal,အရွယ်အစား-ရေပ�
 DocType: Communication,Content,content
 DocType: Web Form,Go to this url after completing the form.,ပုံစံဖြည့်စွက်ပြီးနောက်ဒီ url သွားပါ။
 DocType: DocType,Document,စာရွက်စာတမ်း
-apps/frappe/frappe/core/doctype/doctype/doctype.py +118,Series {0} already used in {1},စီးရီး {0} ပြီးသား {1} များတွင်အသုံးပြု
+apps/frappe/frappe/core/doctype/doctype/doctype.py +119,Series {0} already used in {1},စီးရီး {0} ပြီးသား {1} များတွင်အသုံးပြု
 DocType: DocField,Code,Code ကို
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",ဖြစ်နိုင်သမျှအသွားအလာပြည်နယ်များနှင့်လုပ်ငန်းအသွားအလာ၏အခန်းကဏ္ဍ။ Docstatus Options ကို: 0 &quot;သိမ်းဆည်း&quot; 1 &quot;Submitted&quot; နှင့် 2 &quot;ဖျက်သိမ်း&quot; ဖြစ်ပါတယ်
 DocType: Website Theme,Footer Text Color,footer စာသားအရောင်
@@ -1738,12 +1739,12 @@ apps/frappe/frappe/config/core.py +27,Script or Query reports,script သို�
 DocType: Workflow Document State,Workflow Document State,အသွားအလာ Document ဖိုင်ပြည်နယ်
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","သာတိကျသောမှတ်တမ်းများတစ်အခန်းကဏ္ဍမှ acess အားပေးလိုသောငှါ, Apply အသုံးပြုသူခွင့်ပြုချက်စစ်ဆေးပါ။ အသုံးပြုသူခွင့်ပြုချက်တိကျတဲ့မှတ်တမ်းများတို့အားဤသို့သောအခန်းကဏ္ဍကိုနှင့်အတူအသုံးပြုသူများကန့်သတ်အသုံးပြုကြသည်။"
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},တင်သွင်းခြင်းမပြုမီဖျက်သိမ်းနိုင်ဘူး။ ေူပာင်းလဲရေး {0} ကိုကြည့်ပါ
-apps/frappe/frappe/templates/pages/print.py +170,Print Format {0} is disabled,ပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံ {0} ပိတ်ထားတယ်
+apps/frappe/frappe/templates/pages/print.py +172,Print Format {0} is disabled,ပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံ {0} ပိတ်ထားတယ်
 DocType: Email Alert,Send days before or after the reference date,ထိုကိုးကားနေ့စွဲမီသို့မဟုတ်အပြီးရက်ပေါင်း Send
 DocType: User,Allow user to login only after this hour (0-24),(0-24) အသုံးပြုသူသာဒီနာရီပြီးနောက် login မှ Allow
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +21,Value,အဘိုး
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,ငါ့အားဖြင့် Assigned
-apps/frappe/frappe/core/doctype/doctype/doctype.py +68,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,မ Developer Mode တွင်! site_config.json အတွက် Set သို့မဟုတ် &#39;&#39; စိတ်တိုင်းကျ &#39;&#39; DOCTYPE စေကြလော့။
+apps/frappe/frappe/core/doctype/doctype/doctype.py +69,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,မ Developer Mode တွင်! site_config.json အတွက် Set သို့မဟုတ် &#39;&#39; စိတ်တိုင်းကျ &#39;&#39; DOCTYPE စေကြလော့။
 DocType: Workflow State,globe,အလုံး
 DocType: System Settings,dd.mm.yyyy,dd.mm.yyyy
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193,Hide field in Standard Print Format,Standard ပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံအတွက်လယ်၌ဝှက်
@@ -1776,7 +1777,7 @@ apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
 DocType: DocField,Small Text,အသေးစားစာသား
 apps/frappe/frappe/core/doctype/user/user.py +526,Administrator accessed {0} on {1} via IP Address {2}.,အုပ်ချုပ်ရေးမှူး IP Address ကို {2} ကနေတဆင့် {1} အပေါ် {0} ဝင်ရောက်။
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,တူညီသော
-apps/frappe/frappe/core/doctype/doctype/doctype.py +294,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',လယ်ပြင်၌ရှိသော Options ကို &#39;&#39; Dynamic Link ကို &#39;&#39; type ကို &#39;&#39; DOCTYPE &#39;အဖြစ်ရွေးချယ်စရာနှင့်အတူအခြား Link ကိုကွင်းဆင်းဖို့ထောက်ပြရမယ်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +295,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',လယ်ပြင်၌ရှိသော Options ကို &#39;&#39; Dynamic Link ကို &#39;&#39; type ကို &#39;&#39; DOCTYPE &#39;အဖြစ်ရွေးချယ်စရာနှင့်အတူအခြား Link ကိုကွင်းဆင်းဖို့ထောက်ပြရမယ်
 DocType: About Us Settings,Team Members Heading,ရေးအဖွဲ့အဖွဲ့ဝင်များဦးတည်
 DocType: DocField,Do not allow user to change after set the first time,အသုံးပြုသူပြီးနောက်ပထမဦးဆုံးအကြိမ်ထားကိုပြောင်းလဲခွင့်မပြုပါနဲ့
 apps/frappe/frappe/public/js/frappe/upload.js +112,Private or Public?,ပုဂ္ဂလိကသို့မဟုတ်အများပိုင်?
@@ -1801,12 +1802,12 @@ DocType: Blog Category,Category Name,Category: အမည်
 DocType: Print Settings,PDF Settings,PDF ဖိုင်ရယူရန် Settings ကို
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,ကော်လံအမည်
 apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,ပုံမှန် Make
-apps/frappe/frappe/core/doctype/doctype/doctype.py +324,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} ရည်ညွှန်းမရနိုင်ပါသည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +336,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} {1} ရည်ညွှန်းမရနိုင်ပါသည်
 DocType: Communication,Email Account,အီးမေးလ်အကောင့်ကို
 DocType: Workflow State,Download,ဒေါင်းလုပ်
 DocType: Blog Post,Blog Intro,ဘလော့ Intro
 DocType: Async Task,Result,ရလဒ်ကတော့
-apps/frappe/frappe/utils/__init__.py +79,{0} is not a valid email id,{0} မှန်ကန်သော email က id မဟုတ်ပါဘူး
+apps/frappe/frappe/utils/__init__.py +82,{0} is not a valid email id,{0} မှန်ကန်သော email က id မဟုတ်ပါဘူး
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,အစီရင်ခံစာ Enable
 DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,စစ်ဆေး / အသုံးပြုသူမှတာဝန်ပေးအခန်းကဏ္ဍ Uncheck ။ အခန်းက္ပရှိတယ်လို့ permissions အဘယျသို့ထွက်ရှာတွေ့မှအခန်းကဏ္ဍပေါ်တွင်ကလစ်နှိပ်ပါ။
 DocType: Web Page,Insert Code,INSERT Code ကို
@@ -1827,10 +1828,10 @@ apps/frappe/frappe/public/js/frappe/model/model.js +104,Unable to load: {0},{0}:
 DocType: DocField,Read Only,သာလျှင် Read
 DocType: Print Settings,Send Print as PDF,PDF ဖိုင်ရယူရန်အဖြစ်ပုံနှိပ် Send
 DocType: Workflow Transition,Allowed,Allowed
-apps/frappe/frappe/core/doctype/doctype/doctype.py +331,There can be only one Fold in a form,တစ်ပုံစံတည်းသာခြံများကိုလည်းလုပ်မရှိနိုငျ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +343,There can be only one Fold in a form,တစ်ပုံစံတည်းသာခြံများကိုလည်းလုပ်မရှိနိုငျ
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,မမှန်ကန်ခြင်း Home Page
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,စိစစ်မှုများ Reset
-apps/frappe/frappe/core/doctype/doctype/doctype.py +458,{0}: Permission at level 0 must be set before higher levels are set,{0}: အဆင့်မြင့်သတ်မှတ်ကြသည်မီအဆင့် 0 မှာခွင့်ပြုချက်တင်ထားရမည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +470,{0}: Permission at level 0 must be set before higher levels are set,{0}: အဆင့်မြင့်သတ်မှတ်ကြသည်မီအဆင့် 0 မှာခွင့်ပြုချက်တင်ထားရမည်
 DocType: Website Settings,Home Page is Products,Home Page ထုတ်ကုန်များဖြစ်ပါသည်
 apps/frappe/frappe/desk/doctype/todo/todo.py +22,Assignment closed by {0},{0} ကြောင့်ပိတ်ထားတာဝန်ကို
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +99,Calculate,ရေတွက်
@@ -1843,7 +1844,7 @@ DocType: Social Login Keys,GitHub Client ID,GitHub လိုင်း ID ကိ�
 DocType: Contact Us Settings,City,မြို့
 DocType: DocField,Perm Level,Perm အဆင့်
 apps/frappe/frappe/desk/doctype/event/event.py +59,Events In Today's Calendar,ဒီနေ့ရဲ့ပြက္ခဒိန်မှာအဖွဲ့တွေ
-apps/frappe/frappe/templates/base.html +136,Error: Not a valid id?,error: မမှန်ကန်သောက id?
+apps/frappe/frappe/templates/base.html +137,Error: Not a valid id?,error: မမှန်ကန်သောက id?
 DocType: Web Page,Web Page,ဝက်ဘ်စာမျက်နှာ
 DocType: Blog Category,Blogger,ဘလော့ဂါ
 apps/frappe/frappe/public/js/frappe/views/ganttview.js +45,Gantt Chart,Gantt ဇယား
@@ -1871,7 +1872,7 @@ DocType: Website Settings,An icon file with .ico extension. Should be 16 x 16 px
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,တင်ပို့
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","အသုံးပြုသူခွင့်ပြုချက်လျှောက်ထားဖို့အသုံးပြု DOCTYPE ၏ JSON စာရင်းဖြစ်သည်။ အချည်းနှီးလျှင်, အားလုံးနှင့်ဆက်စပ် DOCTYPE အသုံးပြုသူခွင့်ပြုချက်လျှောက်ထားရန်အသုံးပြုလိမ့်မည်။"
 DocType: Report,Ref DocType,Ref DOCTYPE
-apps/frappe/frappe/core/doctype/doctype/doctype.py +470,{0}: Cannot set Amend without Cancel,{0}: Cancel မပါဘဲပြင်ဆင်ချက်စွဲလမ်းခြင်းမနိုင်သလား
+apps/frappe/frappe/core/doctype/doctype/doctype.py +482,{0}: Cannot set Amend without Cancel,{0}: Cancel မပါဘဲပြင်ဆင်ချက်စွဲလမ်းခြင်းမနိုင်သလား
 apps/frappe/frappe/public/js/frappe/form/print_layout.html +20,Full Page,အပြည့်အဝစာမျက်နှာ
 DocType: DocType,Is Child Table,ကလေးဇယားသည်
 apps/frappe/frappe/utils/csvutils.py +123,{0} must be one of {1},{0} {1} တယောက်ဖြစ်ရပါမည်
@@ -1895,7 +1896,7 @@ DocType: Workflow Action,Workflow Action,အသွားအလာလှုပ်
 DocType: Event,Send an email reminder in the morning,နံနက်ယံ၌အီးမေးလ်သတိပေး Send
 DocType: Blog Post,Published On,တွင် Published
 DocType: User,Gender,"ကျား, မ"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +321,Field '{0}' cannot be set as Unique as it has non-unique values,ဒါကြောင့် Non-မူထူးခြားတဲ့တန်ဖိုးများရှိပါတယ်အဖြစ် field &#39;&#39; {0} &#39;&#39; ထူးခြားသောအဖြစ်သတ်မှတ်မရနိုငျ
+apps/frappe/frappe/core/doctype/doctype/doctype.py +333,Field '{0}' cannot be set as Unique as it has non-unique values,ဒါကြောင့် Non-မူထူးခြားတဲ့တန်ဖိုးများရှိပါတယ်အဖြစ် field &#39;&#39; {0} &#39;&#39; ထူးခြားသောအဖြစ်သတ်မှတ်မရနိုငျ
 DocType: Feed,Feed,အစာ
 DocType: ToDo,Reference Type,ကိုးကားစရာ Type
 DocType: Event,Repeat On,တွင် Repeat
@@ -1923,7 +1924,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,မခ
 DocType: Workflow State,star,ကြယ်
 apps/frappe/frappe/desk/page/activity/activity.js +190,Nov,နိုဝင်ဘာ
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +160,values separated by commas,ကော်မာ separated တန်ဖိုးများ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +283,Max width for type Currency is 100px in row {0},အမျိုးအစားငွေကြေးစနစ်များအတွက် max ကို width ကိုအတန်းအတွက် 100px {0} သည်
+apps/frappe/frappe/core/doctype/doctype/doctype.py +284,Max width for type Currency is 100px in row {0},အမျိုးအစားငွေကြေးစနစ်များအတွက် max ကို width ကိုအတန်းအတွက် 100px {0} သည်
 apps/frappe/frappe/config/website.py +13,Content web page.,content ဝဘ်စာမျက်နှာ။
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,တစ်ဦးက New အခန်းကဏ္ဍ Add
 apps/frappe/frappe/templates/includes/login/login.js +126,Oops! Something went wrong,Oops! တစ်ခုခုမှားသွားတယ်
@@ -1974,7 +1975,7 @@ DocType: User,Desktop Background,Desktop ပေါ်မှာနောက်ခ
 DocType: Workflow State,chevron-right,Chevron ညာ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158,"Change type of field. (Currently, Type change is \
 						allowed among 'Currency and Float')","လယ်ပြင်၌ရှိသောပြောင်းလဲမှုအမျိုးအစား။ (လောလောဆယ်, Type ပြောင်းလဲမှု \ &#39;&#39; ငွေကြေးစနစ်နှင့် Float &#39;&#39; အကြားခွင့်ပြုတာဖြစ်ပါတယ်)"
-apps/frappe/frappe/website/doctype/web_form/web_form.py +28,You need to be in developer mode to edit a Standard Web Form,သငျသညျဟာ Standard က Web Form ကိုတည်းဖြတ်ဖို့အား developer mode မှာဖြစ်ရန်လိုအပ်ပါတယ်
+apps/frappe/frappe/website/doctype/web_form/web_form.py +27,You need to be in developer mode to edit a Standard Web Form,သငျသညျဟာ Standard က Web Form ကိုတည်းဖြတ်ဖို့အား developer mode မှာဖြစ်ရန်လိုအပ်ပါတယ်
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +48,"For comparative filters, start with","နှိုင်းယှဉ် filter များအဘို့, အတူစတင်"
 DocType: Website Theme,Link to Bootstrap CSS,Bootstrap CSS ကိုမှ link
 DocType: Workflow State,camera,ကင်မရာက
@@ -1985,7 +1986,7 @@ DocType: User,Security Settings,လုံခြုံရေး settings
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +617,Add Column,စစ်ကြောင်း Add
 ,Desktop,Desktop ပေါ်မှာ
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,စာသားဤပုံစံဝဘ်စာမျက်နှာရှိလျှင်က်ဘ်စာမျက်နှာ၏ Link များအတွက်ပြသခံရဖို့။ Link ကိုလမ်းကြောင်းကိုအလိုအလျောက် `page_name` နှင့်` parent_website_route` အပေါ်အခြေခံပြီး generated လိမ့်မည်
-apps/frappe/frappe/public/js/frappe/form/control.js +1284,Please set {0} first,ပထမဦးဆုံး {0} set ကျေးဇူးပြု.
+apps/frappe/frappe/public/js/frappe/form/control.js +1287,Please set {0} first,ပထမဦးဆုံး {0} set ကျေးဇူးပြု.
 DocType: Dropbox Backup,Send Backups to Dropbox,Dropbox ကိုမှရန်များ Send
 DocType: Patch Log,Patch,ဖါ
 DocType: Async Task,Failed,Failed

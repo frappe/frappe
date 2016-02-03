@@ -85,7 +85,7 @@ message_log = local("message_log")
 
 lang = local("lang")
 
-def init(site, sites_path=None):
+def init(site, sites_path=None, new_site=False):
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None):
 		return
@@ -108,6 +108,7 @@ def init(site, sites_path=None):
 		"ignore_links": False,
 		"mute_emails": False,
 		"has_dataurl": False,
+		"new_site": new_site
 	})
 	local.rollback_observers = []
 	local.test_objects = {}
@@ -173,6 +174,8 @@ def get_site_config(sites_path=None, site_path=None):
 		site_config = os.path.join(site_path, "site_config.json")
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
+		elif local.site and not local.flags.new_site:
+			raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 

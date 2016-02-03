@@ -7,7 +7,6 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
-from frappe.model import default_fields
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
@@ -37,7 +36,9 @@ class WebForm(WebsiteGenerator):
 				continue
 
 			for prop in docfield_properties:
-				if df.fieldtype==meta_df.fieldtype and prop != "idx":
+				if df.fieldtype==meta_df.fieldtype and prop not in ("idx",
+					"reqd", "default", "description", "default", "options",
+					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
 			if df.fieldtype == "Link":

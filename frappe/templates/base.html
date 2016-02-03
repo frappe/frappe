@@ -42,6 +42,7 @@
     		frappe.page_ready_events[location.pathname].push(fn);
     	}
     }
+    window.dev_server = {{ dev_server }};
     </script>
 </head>
 <body data-path="{{ path }}">

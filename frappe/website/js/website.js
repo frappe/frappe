@@ -3,6 +3,7 @@
 
 frappe.provide("website");
 frappe.provide("frappe.search_path");
+cur_frm = null;
 
 $.extend(frappe, {
 	boot: {},

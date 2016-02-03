@@ -108,7 +108,8 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 def now_datetime():
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	return dt.replace(tzinfo=None)
 
 def _get_time_zone():
 	time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
@@ -275,7 +276,7 @@ def rounded(num, precision=0):
 		num = round(num)
 
 	return (num / multiplier) if precision else num
-	
+
 def remainder(numerator, denominator, precision=2):
 	precision = cint(precision)
 	multiplier = 10 ** precision
@@ -284,13 +285,13 @@ def remainder(numerator, denominator, precision=2):
 		_remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier
 	else:
 		_remainder = numerator % denominator
-		
+
 	return flt(_remainder, precision);
 
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
-	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency", 
+	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
 		currency, "smallest_currency_fraction_value"))
-	
+
 	if smallest_currency_fraction_value:
 		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
 		if remainder_val > (smallest_currency_fraction_value / 2):
@@ -299,7 +300,7 @@ def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 			value -= remainder_val
 	else:
 		value = rounded(value)
-		
+
 	return flt(value, precision)
 
 def encode(obj, encoding="utf-8"):

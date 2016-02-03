@@ -38,6 +38,12 @@
 	}
 }
 
+.pdf-variables,
+.pdf-variable,
+.visible-pdf {
+	display: none !important;
+}
+
 .print-format {
 	font-size: {{ print_settings.font_size|flt or 9 }}pt;
 	font-family: {{ font }};
@@ -96,4 +102,6 @@ table td div {
 	thead, tfoot { display: table-row-group; }
 }
 
-
+[document-status] {
+	margin-bottom: 5mm;
+}
