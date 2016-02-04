@@ -1,2 +1,0 @@
-frappe.model.utils
-frappe.model.utils.rename_field

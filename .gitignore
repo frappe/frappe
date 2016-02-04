@@ -8,3 +8,4 @@ locale
 *.egg-info
 dist/
 build/
+frappe/docs/current
