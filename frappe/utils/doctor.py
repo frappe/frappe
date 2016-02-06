@@ -34,8 +34,17 @@ def purge_pending_tasks(event=None, site=None):
 	mintues and would any leave daily, hourly and weekly tasks
 	"""
 	r = get_redis_conn()
-	if event:
-		event_tasks = frappe.get_hooks()['scheduler_events'][event]
+	
+	event_tasks = []
+	for app in frappe.get_all_apps(True):
+		all_events = frappe.get_hooks(app_name=app).get('scheduler_events', {})
+		if event:
+			event_tasks += all_events.get(event) or []
+		else:
+			# tasks of all events
+			for tasks in all_events.values():
+				event_tasks += tasks or []
+
 	count = 0
 
 	for queue in get_queues():
