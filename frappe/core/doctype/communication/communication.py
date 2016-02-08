@@ -33,6 +33,9 @@ class Communication(Document):
 		if not self.subject:
 			self.subject = strip_html((self.content or "")[:141])
 
+		if not self.sent_or_received:
+			self.sent_or_received = "Sent"
+
 		self.set_status()
 		self.set_sender_full_name()
 		validate_email(self)
