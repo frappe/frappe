@@ -7,7 +7,6 @@ from frappe import _
 import json
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
-from frappe.model.db_schema import add_column
 from frappe.website.render import clear_cache
 
 def validate_comment(doc):
@@ -107,24 +106,15 @@ def get_comments_from_parent(doc):
 	try:
 		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
-		return json.loads(_comments)
-
 	except Exception, e:
-
-		if e.args[0]==1054:
-			if frappe.flags.in_test:
-				return
-
-			add_column(doc.reference_doctype, "_comments", "Text")
-
-			return get_comments_from_parent(doc)
-
-		elif e.args[0]==1146:
+		if e.args[0]==1146:
 			# no table
-			pass
+			_comments = "[]"
 
 		else:
 			raise
+
+	return json.loads(_comments)
 
 def update_comments_in_parent(doc, _comments):
 	"""Updates `_comments` property in parent Document with given dict.

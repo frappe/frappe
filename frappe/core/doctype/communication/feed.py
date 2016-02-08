@@ -15,7 +15,7 @@ def update_feed(doc, method=None):
 	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
 		return
 
-	if doc._action!="save":
+	if doc._action!="save" or doc.flags.ignore_feed:
 		return
 
 	if doc.doctype == "Communication" or doc.meta.issingle:

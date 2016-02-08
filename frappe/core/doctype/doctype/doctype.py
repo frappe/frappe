@@ -121,7 +121,7 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
-		updatedb(self.name)
+		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)

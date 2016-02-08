@@ -358,6 +358,9 @@ class EmailAccount(Document):
 		"""Clear communications where email account is linked"""
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
 
+	def after_rename(self, old, new, merge=False):
+		frappe.db.set_value("Email Account", new, "email_account_name", new)
+
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""

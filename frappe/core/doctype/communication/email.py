@@ -190,7 +190,11 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 	set_incoming_outgoing_accounts(doc)
 
 	if not doc.sender or cint(doc.outgoing_email_account.always_use_account_email_id_as_sender):
-		doc.sender = formataddr([frappe.session.data.full_name or "Notification", doc.outgoing_email_account.email_id])
+		sender_name = (frappe.session.data.full_name
+			or doc.outgoing_email_account.name
+			or _("Notification"))
+		sender_email_id = doc.outgoing_email_account.email_id
+		doc.sender = formataddr([sender_name, sender_email_id])
 
 	doc.attachments = []
 
@@ -222,7 +226,7 @@ def set_incoming_outgoing_accounts(doc):
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender"], as_dict=True)
+			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True)
 
 	if not doc.incoming_email_account:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
@@ -231,7 +235,7 @@ def set_incoming_outgoing_accounts(doc):
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender"], as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True) or frappe._dict()
 
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""
