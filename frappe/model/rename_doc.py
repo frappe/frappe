@@ -41,7 +41,6 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
 
-	update_comments(doctype, old, new, force)
 	update_attachments(doctype, old, new)
 
 	if merge:
@@ -117,14 +116,6 @@ def rename_doctype(doctype, old, new, force=False):
 
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
-
-	# rename comments
-	frappe.db.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
-		(new, old))
-
-def update_comments(doctype, old, new, force=False):
-	frappe.db.sql("""update `tabComment` set comment_docname=%s
-		where comment_doctype=%s and comment_docname=%s""", (new, doctype, old))
 
 def update_child_docs(old, new, meta):
 	# update "parent"

@@ -101,6 +101,7 @@
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
 
+		"public/js/lib/md5.min.js",
 		"public/js/frappe/misc/user.js",
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/frappe/misc/utils.js",

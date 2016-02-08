@@ -225,8 +225,10 @@ class User(Document):
 			and event_type='Private'""", (self.name,))
 
 		# delete messages
-		frappe.db.sql("""delete from `tabComment` where comment_doctype='Message'
-			and (comment_docname=%s or owner=%s)""", (self.name, self.name))
+		frappe.db.sql("""delete from `tabCommunication`
+			where communication_type in ('Chat', 'Notification')
+			and reference_doctype='User'
+			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
 	def before_rename(self, olddn, newdn, merge=False):
 		frappe.clear_cache(user=olddn)

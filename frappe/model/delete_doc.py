@@ -195,15 +195,22 @@ def delete_linked_todos(doc):
 
 def delete_linked_comments(doc):
 	"""Delete comments from the document"""
-	delete_doc("Comment", frappe.db.sql_list("""select name from `tabComment`
-		where comment_doctype=%s and comment_docname=%s""", (doc.doctype, doc.name)), ignore_on_trash=True,
+	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
+		where
+			communication_type = 'Comment'
+			and reference_doctype=%s
+			and reference_name=%s""", (doc.doctype, doc.name)),
+		ignore_on_trash=True,
 		ignore_permissions=True)
 
 def delete_linked_communications(doc):
 	# make communications orphans
 	frappe.db.sql("""update `tabCommunication`
 		set reference_doctype=null, reference_name=null
-		where reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
+		where
+			communication_type = 'Communication'
+			and reference_doctype=%s
+			and reference_name=%s""", (doc.doctype, doc.name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
@@ -212,11 +219,11 @@ def insert_feed(doc):
 		return
 
 	frappe.get_doc({
-		"doctype": "Feed",
-		"feed_type": "Label",
-		"doc_type": doc.doctype,
-		"doc_name": doc.name,
-		"subject": _("Deleted"),
+		"doctype": "Communication",
+		"communication_type": "Comment",
+		"comment_type": "Deleted",
+		"reference_doctype": doc.doctype,
+		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
 

@@ -141,8 +141,12 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 				t1.published_on as creation,
 				ifnull(t1.blog_intro, t1.content) as content,
 				t2.full_name, t2.avatar, t1.blogger,
-				(select count(name) from `tabComment` where
-					comment_doctype='Blog Post' and comment_docname=t1.name and comment_type="Comment") as comments
+				(select count(name) from `tabCommunication`
+					where
+						communication_type='Comment'
+						and comment_type='Comment'
+						and reference_doctype='Blog Post'
+						and reference_name=t1.name) as comments
 		from `tabBlog Post` t1, `tabBlogger` t2
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name

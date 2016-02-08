@@ -101,7 +101,7 @@ frappe.ui.form.States = Class.extend({
 
 					// success - add a comment
 					var success = function() {
-						me.frm.comments.insert_comment("Workflow", next_state);
+						me.frm.timeline.insert_comment("Workflow", next_state);
 					}
 					if(new_docstatus==1 && me.frm.doc.docstatus==0) {
 						me.frm.savesubmit(null, success, on_error);

@@ -26,7 +26,6 @@ def get_notifications():
 		"open_count_module": get_notifications_for_modules(config, notification_count),
 		"open_count_other": get_notifications_for_other(config, notification_count),
 		"new_messages": get_new_messages()
-		# "likes": get_count_of_new_likes()
 	}
 
 def get_new_messages():
@@ -41,11 +40,12 @@ def get_new_messages():
 		# no update for 30 mins, consider only the last 30 mins
 		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
 
-	return frappe.db.sql("""select comment_by_fullname, comment
-		from tabComment
-			where comment_doctype='Message'
-			and comment_docname = %s
-			and ifnull(creation, "2000-01-01") > %s
+	return frappe.db.sql("""select sender_full_name, content
+		from `tabCommunication`
+			where communication_type in ('Chat', 'Notification')
+			and reference_doctype='user'
+			and reference_name = %s
+			and creation > %s
 			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
 
 def get_notifications_for_modules(config, notification_count):

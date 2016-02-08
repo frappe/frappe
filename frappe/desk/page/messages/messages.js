@@ -46,7 +46,7 @@ frappe.desk.pages.Messages = Class.extend({
 		var me = this;
     	frappe.realtime.on('new_message', function(comment) {
 			if(comment.modified_by !== user) {
-	    		frappe.utils.notify(__("Message from {0}", [comment.comment_by_fullname]), comment.comment);
+	    		frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
 			}
     		if (frappe.get_route()[0] === 'messages' && comment.owner !== user) {
     			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
@@ -166,7 +166,7 @@ frappe.desk.pages.Messages = Class.extend({
 			hide_refresh: true,
 			freeze: false,
 			render_row: function(wrapper, data) {
-				if(data.parenttype==="Assignment" || data.comment_type==="Shared") {
+				if(data.communication_type==="Notification" || data.comment_type==="Shared") {
 					data.is_system_message = 1;
 				}
 				var row = $(frappe.render_template("messages_row", {

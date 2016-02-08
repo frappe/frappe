@@ -84,7 +84,7 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 // default notification config
 frappe.ui.notifications.config = {
 	"ToDo": { label: __("To Do") },
-	"Comment": { label: __("Messages"), route: "messages"},
+	"Messages": { label: __("Messages"), route: "messages"},
 	"Event": { label: __("Calendar"), route: "Calendar/Event" },
 	"Likes": {
 		label: __("Likes"),
@@ -94,12 +94,12 @@ frappe.ui.notifications.config = {
 			};
 
 			if (frappe.get_route()[0]=="activity") {
-				frappe.pages['activity'].on_page_show();
+				frappe.pages['activity'].page.list.refresh();
 			} else {
 				frappe.set_route("activity");
 			}
 		}
-	}
+	},
 };
 
 frappe.views.show_open_count_list = function(element) {

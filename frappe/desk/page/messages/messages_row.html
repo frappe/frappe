@@ -1,8 +1,8 @@
 <div class="row message-row small">
     <div class="col-sm-9">
         <div class="media">
-        	{% if (data.owner==data.comment_docname
-                    && data.parenttype!="Assignment") { %}
+        	{% if (data.owner==data.reference_name
+                    && data.communication_type!="Notification") { %}
         		<span class="pull-left" title="{{ __("Public") }}"><i class="octicon octicon-rss text-muted" style="margin-top: 3px;"></i></span>
         	{% } else { %}
         		<span class="pull-left" title="{{ __("Public") }}" style="width: 20px; height: 16px; display: inline-block;"></span>
@@ -14,7 +14,7 @@
 	        	</span>
 			</div>
             <div class="media-body {{ data.is_system_message ? "text-muted" : "" }}">
-                {%= data.comment %}
+                {%= data.content %}
             </div>
         </div>
     </div>
@@ -23,7 +23,7 @@
 			<span class="hidden-sm hidden-md hidden-lg">{%= frappe.user.full_name(data.owner) %}, </span>
 			{%= comment_when(data.modified) %}
 		</div>
-        {% if (data.owner==user /* && !data.comment_type && data.parenttype!="Assignment" */ ) { %}
+        {% if (data.owner==user /* && !data.comment_type && data.communication_type!="Notification" */ ) { %}
         <div>
             <a class="delete text-extra-muted" data-name="{%= data.name %}"
                 onclick="frappe.desk.pages.messages.delete(this)">Delete</a>
