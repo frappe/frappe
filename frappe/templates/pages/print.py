@@ -114,7 +114,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
 		"letter_head": letter_head.content,
-		"footer": letter_head.footer
+		"footer": letter_head.footer,
+		"print_settings": frappe.get_doc("Print Settings")
 	}
 
 	html = template.render(args, filters={"len": len})
