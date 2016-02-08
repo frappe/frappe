@@ -101,7 +101,7 @@ def get_allowed_functions_for_jenv():
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
-		"dev_server": os.environ.get('DEV_SERVER', False)
+		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 
 def get_jloader():
