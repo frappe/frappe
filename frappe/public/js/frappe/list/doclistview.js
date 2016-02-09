@@ -359,7 +359,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 
 		// apply default filters, if specified for a listing
-		$.each((this.listview.default_filters || []), function(i, f) {
+		$.each((this.listview.default_filters || this.listview.settings.default_filters || []), function(i, f) {
 		      args.filters.push(f);
 		});
 

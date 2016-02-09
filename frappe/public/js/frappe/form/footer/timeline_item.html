@@ -12,13 +12,21 @@
 					{%= data.delete %}
 				</span>
 			</div>
-			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
+			{% if(data.communication_type==="Communication" || (data.communication_type==="Comment" && data.comment_type==="Comment")) { %}
 				<div class="comment-header small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
+					<span>
+						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
+							&ndash;
+							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}" class="text-muted">
+								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
+							</a>
+						{% } %}
+					</span>
                     <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
-                    {% if(data.doctype=="Communication") { %}
+                    {% if(data.communication_type==="Communication") { %}
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
                             class="text-muted">
@@ -47,8 +55,10 @@
 						</a>
 						{% } %}
 
+						{% if (data.communication_medium === "Email") { %}
 						<a class="text-muted reply-link pull-right"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
+						{% } %}
                     {% } %}
 					<span class="comment-likes" data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
 						<i class="octicon octicon-heart like-action
@@ -62,17 +72,23 @@
                 </div>
 				<div class="reply">
         			<div>
-        				{%= data.comment_html %}
+        				{%= data.content_html %}
         			</div>
                 </div>
             {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
                 <div class="small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
-						{% if(data.reference_doctype && data.reference_name) { %}
-						<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
+							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
+							</a>
+							&ndash;
 						{% } %}
-	                        {%= data.comment %}
-						{% if(data.reference_doctype && data.reference_name) { %}
+						{% if(data.link_doctype && data.link_name) { %}
+						<a href="#Form/{%= data.link_doctype %}/{%= data.link_name %}">
+						{% } %}
+	                        {%= data.content %}
+						{% if(data.link_doctype && data.link_name) { %}
 						</a>
 						{% } %}
                         <span class="text-muted" style="font-weight: normal;">
@@ -82,10 +98,23 @@
                 <div class="small">
                     <i class="{%= data.icon %} icon-fixed-width"></i>
 					{% if (data.comment_type == "Like") { %}
-						<span title="{%= data.comment_by %}">{%= __("Liked by {0}", [data.fullname]) %}</span>
+					<span title="{%= data.comment_by %}">
+						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
+							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
+							</a> &ndash;
+						{% } %}
+						{%= __("Liked by {0}", [data.fullname]) %}
+					</span>
 					{% } else { %}
                     	<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
-						{%= data.comment %}
+						{%= data.content %}
+						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
+							 &ndash;
+							 <a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
+							</a>
+						{% } %}
 					{% } %}
                     <span class="text-muted" style="font-weight: normal;">
                     &ndash; {%= data.comment_on %}</span>

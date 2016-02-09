@@ -113,5 +113,6 @@ execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'fi
 frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
+frappe.patches.v6_19.comment_feed_communication
 frappe.patches.v6_16.feed_doc_owner
-
+frappe.patches.v6_21.print_settings_repeat_header_footer

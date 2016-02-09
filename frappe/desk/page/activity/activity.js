@@ -18,7 +18,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 
 	this.page.set_title(__("Activity"));
 
-	frappe.model.with_doctype("Feed", function() {
+	frappe.model.with_doctype("Communication", function() {
 		me.page.list = new frappe.ui.Listing({
 			hide_refresh: true,
 			page: me.page,
@@ -28,7 +28,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 				new frappe.activity.Feed(row, data);
 			},
 			show_filters: true,
-			doctype: "Feed",
+			doctype: "Communication",
  			get_args: function() {
 				if (frappe.route_options && frappe.route_options.show_likes) {
 					delete frappe.route_options.show_likes;
@@ -52,19 +52,19 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 	frappe.activity.render_plot(this.page);
 
 	this.page.main.on("click", ".activity-message", function() {
-		var reference_doctype = $(this).attr("data-reference-doctype"),
-			reference_name = $(this).attr("data-reference-name"),
+		var link_doctype = $(this).attr("data-link-doctype"),
+			link_name = $(this).attr("data-link-name"),
 			doctype = $(this).attr("data-doctype"),
 			docname = $(this).attr("data-docname");
 
 		if (doctype && docname) {
-			frappe.set_route(["Form", reference_doctype || doctype, reference_name || docname]);
-
-			if (reference_doctype && reference_name) {
+			if (link_doctype && link_name) {
 				frappe.route_options = {
 					scroll_to: { "doctype": doctype, "name": docname }
 				}
 			}
+
+			frappe.set_route(["Form", link_doctype || doctype, link_name || docname]);
 		}
 	});
 
@@ -96,9 +96,23 @@ frappe.activity.Feed = Class.extend({
 			data.add_class = "label-default";
 
 		data.link = "";
-		if (data.doc_type && data.doc_name) {
-			data.link = frappe.format(data.doc_name, {fieldtype: "Link", options: data.doc_type},
-				{label: __(data.doc_type) + " " + __(data.doc_name)});
+		if (data.link_doctype && data.link_name) {
+			data.link = frappe.format(data.link_name, {fieldtype: "Link", options: data.link_doctype},
+				{label: __(data.link_doctype) + " " + __(data.link_name)});
+
+		} else if (data.feed_type==="Comment" && data.comment_type==="Comment") {
+			// hack for backward compatiblity
+			data.link_doctype = data.reference_doctype;
+			data.link_name = data.reference_name;
+			data.reference_doctype = "Communication";
+			data.reference_name = data.name;
+
+			data.link = frappe.format(data.link_name, {fieldtype: "Link", options: data.link_doctype},
+				{label: __(data.link_doctype) + " " + __(data.link_name)});
+
+		} else if (data.reference_doctype && data.reference_name) {
+			data.link = frappe.format(data.reference_name, {fieldtype: "Link", options: data.reference_doctype},
+				{label: __(data.reference_doctype) + " " + __(data.reference_name)});
 		}
 
 		$(row)
@@ -122,10 +136,10 @@ frappe.activity.Feed = Class.extend({
 			"Comment": "label-danger",
 			"Assignment": "label-warning",
 			"Login": "label-default"
-		}[data.feed_type] || "label-info"
+		}[data.comment_type || data.communication_medium] || "label-info"
 
 		data.when = comment_when(data.creation);
-		data.feed_type = __(data.feed_type);
+		data.feed_type = data.comment_type || data.communication_medium;
 	},
 	add_date_separator: function(row, data) {
 		var date = dateutil.str_to_obj(data.creation);

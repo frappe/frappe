@@ -103,8 +103,8 @@ class WebForm(WebsiteGenerator):
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 			context.title = context.doc.get(context.doc.meta.get_title_field())
 
-			context.comment_doctype = context.doc.doctype
-			context.comment_docname = context.doc.name
+			context.reference_doctype = context.doc.doctype
+			context.reference_name = context.doc.name
 
 		if self.allow_comments and frappe.form_dict.name:
 			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)

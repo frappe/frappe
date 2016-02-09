@@ -2,10 +2,11 @@
 	{
 		"doctype": "Email Alert",
 		"subject":"_Test Email Alert 1",
-		"document_type": "Comment",
+		"document_type": "Communication",
 		"event": "New",
 		"attach_print": 0,
-		"message": "New comment {{ doc.comment }} created",
+		"message": "New comment {{ doc.content }} created",
+		"condition": "doc.communication_type=='Comment'",
 		"recipients": [
 			{ "email_by_document_field": "owner" }
 		]
@@ -13,10 +14,11 @@
 	{
 		"doctype": "Email Alert",
 		"subject":"_Test Email Alert 2",
-		"document_type": "Comment",
+		"document_type": "Communication",
 		"event": "Save",
 		"attach_print": 0,
-		"message": "New comment {{ doc.comment }} saved",
+		"message": "New comment {{ doc.content }} saved",
+		"condition": "doc.communication_type=='Comment'",
 		"recipients": [
 			{ "email_by_document_field": "owner" }
 		]

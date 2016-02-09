@@ -59,7 +59,7 @@ def make_boilerplate(dest, app_name):
 		f.write(encode(manifest_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-		f.write(encode(gitignore_template))
+		f.write(encode(gitignore_template.format(app_name = hooks.app_name)))
 
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
 		f.write(encode(setup_template.format(**hooks)))
@@ -264,7 +264,8 @@ gitignore_template = """.DS_Store
 *.pyc
 *.egg-info
 *.swp
-tags"""
+tags
+{app_name}/docs/current"""
 
 docs_template = '''"""
 Configuration for docs

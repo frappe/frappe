@@ -6,7 +6,7 @@ import unittest, email
 
 test_records = frappe.get_test_records('Email Account')
 
-from frappe.core.doctype.communication.communication import make
+from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import delete_file_from_filesystem
 from frappe.email.doctype.email_account.email_account import notify_unreplied

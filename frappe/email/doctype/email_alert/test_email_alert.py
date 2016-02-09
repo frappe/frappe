@@ -16,19 +16,21 @@ class TestEmailAlert(unittest.TestCase):
 		frappe.set_user("Administrator")
 
 	def test_new_and_save(self):
-		comment = frappe.new_doc("Comment")
-		comment.comment = "test"
-		comment.insert(ignore_permissions=True)
+		communication = frappe.new_doc("Communication")
+		communication.communication_type = 'Comment'
+		communication.subject = "test"
+		communication.content = "test"
+		communication.insert(ignore_permissions=True)
 
-		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Comment",
-			"reference_name": comment.name, "status":"Not Sent"}))
+		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Communication",
+			"reference_name": communication.name, "status":"Not Sent"}))
 		frappe.db.sql("""delete from `tabBulk Email`""")
 
-		comment.description = "test"
-		comment.save()
+		communication.content = "test 2"
+		communication.save()
 
-		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Comment",
-			"reference_name": comment.name, "status":"Not Sent"}))
+		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Communication",
+			"reference_name": communication.name, "status":"Not Sent"}))
 
 	def test_condition(self):
 		event = frappe.new_doc("Event")

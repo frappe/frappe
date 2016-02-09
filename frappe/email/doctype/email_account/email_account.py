@@ -18,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 
 class SentEmailInInbox(Exception): pass
 
@@ -333,7 +334,7 @@ class EmailAccount(Document):
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
 		if self.enable_auto_reply:
-			communication.set_incoming_outgoing_accounts()
+			set_incoming_outgoing_accounts(communication)
 
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
@@ -356,6 +357,9 @@ class EmailAccount(Document):
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+
+	def after_rename(self, old, new, merge=False):
+		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

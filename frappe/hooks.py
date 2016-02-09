@@ -5,7 +5,7 @@ app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 
 app_icon = "octicon octicon-circuit-board"
-app_version = "6.21.0"
+app_version = "6.22.0"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
@@ -60,7 +60,7 @@ calendars = ["Event"]
 # login
 
 on_session_creation = [
-	"frappe.desk.doctype.feed.feed.login_feed",
+	"frappe.core.doctype.communication.feed.login_feed",
 	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager"
 ]
 
@@ -70,16 +70,15 @@ permission_query_conditions = {
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
-	"Feed": "frappe.desk.doctype.feed.feed.get_permission_query_conditions",
-	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions"
+	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
-	"Feed": "frappe.desk.doctype.feed.feed.has_permission",
-	"Note": "frappe.desk.doctype.note.note.has_permission"
+	"Note": "frappe.desk.doctype.note.note.has_permission",
+	"Communication": "frappe.core.doctype.communication.communication.has_permission"
 }
 
 standard_queries = {
@@ -93,12 +92,11 @@ doc_events = {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-			"frappe.desk.doctype.feed.feed.update_feed"
+			"frappe.core.doctype.communication.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_submit": [
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-			"frappe.desk.doctype.feed.feed.update_feed"
 		],
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
@@ -141,12 +139,12 @@ get_translated_dict = {
 }
 
 sounds = [
-	{"name": "email", "src": "/assets/frappe/sounds/email.mp3"},
-	{"name": "submit", "src": "/assets/frappe/sounds/submit.mp3"},
-	{"name": "cancel", "src": "/assets/frappe/sounds/cancel.mp3"},
-	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3"},
-	{"name": "click", "src": "/assets/frappe/sounds/click.mp3"},
-	{"name": "error", "src": "/assets/frappe/sounds/error.mp3"},
+	{"name": "email", "src": "/assets/frappe/sounds/email.mp3", "volume": 0.1},
+	{"name": "submit", "src": "/assets/frappe/sounds/submit.mp3", "volume": 0.1},
+	{"name": "cancel", "src": "/assets/frappe/sounds/cancel.mp3", "volume": 0.1},
+	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3", "volume": 0.05},
+	{"name": "click", "src": "/assets/frappe/sounds/click.mp3", "volume": 0.05},
+	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]

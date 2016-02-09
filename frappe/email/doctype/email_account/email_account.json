@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "allow_import": 0, 
- "allow_rename": 0, 
+ "allow_rename": 1, 
  "autoname": "field:email_account_name", 
  "creation": "2014-09-11 12:04:34.163728", 
  "custom": 0, 
@@ -873,7 +873,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2015-12-02 02:27:34.031592", 
+ "modified": "2016-02-08 02:39:33.273073", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

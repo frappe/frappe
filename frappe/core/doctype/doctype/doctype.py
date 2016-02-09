@@ -121,7 +121,7 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
-		updatedb(self.name)
+		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
@@ -388,6 +388,19 @@ def validate_fields(meta):
 			_validate_title_field_pattern(df.options)
 			_validate_title_field_pattern(df.default)
 
+	def check_timeline_field(meta):
+		if not meta.timeline_field:
+			return
+
+		fieldname_list = [d.fieldname for d in fields]
+
+		if meta.timeline_field not in fieldname_list:
+			frappe.throw(_("Timeline field must be a valid fieldname"), InvalidFieldNameError)
+
+		df = meta.get("fields", {"fieldname": meta.timeline_field})[0]
+		if df.fieldtype not in ("Link", "Dynamic Link"):
+			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
+
 	fields = meta.get("fields")
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
@@ -407,6 +420,7 @@ def validate_fields(meta):
 	check_fold(fields)
 	check_search_fields(meta)
 	check_title_field(meta)
+	check_timeline_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""

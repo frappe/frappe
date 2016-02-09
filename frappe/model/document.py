@@ -770,19 +770,21 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
-	def add_comment(self, comment_type, text=None, comment_by=None, reference_doctype=None, reference_name=None):
+	def add_comment(self, comment_type, text=None, comment_by=None, link_doctype=None, link_name=None):
 		"""Add a comment to this document.
 
-		:param comment_type: e.g. `Comment`. See Comment for more info."""
+		:param comment_type: e.g. `Comment`. See Communication for more info."""
+
 		comment = frappe.get_doc({
-			"doctype":"Comment",
-			"comment_by": comment_by or frappe.session.user,
+			"doctype":"Communication",
+			"communication_type": "Comment",
+			"sender": comment_by or frappe.session.user,
 			"comment_type": comment_type,
-			"comment_doctype": self.doctype,
-			"comment_docname": self.name,
-			"comment": text or _(comment_type),
-			"reference_doctype": reference_doctype,
-			"reference_name": reference_name
+			"reference_doctype": self.doctype,
+			"reference_name": self.name,
+			"content": text or _(comment_type),
+			"link_doctype": link_doctype,
+			"link_name": link_name
 		}).insert(ignore_permissions=True)
 		return comment
 

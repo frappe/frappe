@@ -22,6 +22,18 @@ def get_jenv():
 def get_template(path):
 	return get_jenv().get_template(path)
 
+def validate_template(html):
+	"""Throws exception if there is a syntax error in the Jinja Template"""
+	import frappe
+	from jinja2 import TemplateSyntaxError
+
+	jenv = get_jenv()
+	try:
+		jenv.from_string(html)
+	except TemplateSyntaxError, e:
+		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
+		frappe.throw(frappe._("Syntax error in template"))
+
 def render_template(template, context, is_path=None):
 	if is_path or template.startswith("templates/"):
 		return get_jenv().get_template(template).render(context)
@@ -89,7 +101,7 @@ def get_allowed_functions_for_jenv():
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
-		"dev_server": os.environ.get('DEV_SERVER', False)
+		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 
 def get_jloader():
