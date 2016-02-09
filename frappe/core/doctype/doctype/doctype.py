@@ -206,6 +206,9 @@ class DocType(Document):
 		if not (self.istable or self.issingle):
 			make_boilerplate("test_controller.py", self)
 
+		if not self.istable:
+			make_boilerplate("controller.js", self)
+
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:

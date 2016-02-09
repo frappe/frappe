@@ -34,7 +34,7 @@ def purge_pending_tasks(event=None, site=None):
 	mintues and would any leave daily, hourly and weekly tasks
 	"""
 	r = get_redis_conn()
-	
+
 	event_tasks = []
 	for app in frappe.get_all_apps(True):
 		all_events = frappe.get_hooks(app_name=app).get('scheduler_events', {})
@@ -98,12 +98,13 @@ def dump_queue_status(site=None):
 	ret = []
 	r = get_redis_conn()
 	for queue in get_queues(site=site):
-		queue_details = {
-			'queue': queue,
-			'len': r.llen(queue),
-		}
-		queue_details.update(get_task_count_for_queue(queue))
-		ret.append(queue_details)
+		if r.llen(queue):
+			queue_details = {
+				'queue': queue,
+				'len': r.llen(queue),
+			}
+			queue_details.update(get_task_count_for_queue(queue))
+			ret.append(queue_details)
 
 	ret = sorted(ret, key=itemgetter('len'), reverse=True)
 	ret.insert(0, {
