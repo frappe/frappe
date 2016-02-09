@@ -15,7 +15,11 @@ function prettyDate(time, mini){
 					if(parts[0]==="a" || parts[0]==="an") {
 						parts[0] = 1;
 					}
+					if(parts[1].substr(0, 2)==="mo"){
+						ret = parts[0] + " M";
+					} else {
 					ret = parts[0] + " " + parts[1].substr(0, 1);
+					}
 				}
 			}
 		}
