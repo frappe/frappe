@@ -72,9 +72,10 @@ frappe.patches.v5_0.rename_table_fieldnames
 frappe.patches.v5_0.communication_parent
 frappe.patches.v5_0.clear_website_group_and_notifications
 execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
-frappe.patches.v5_0.fix_feed
+execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
+frappe.patches.v6_19.comment_feed_communication
 frappe.patches.v6_16.star_to_like
 frappe.patches.v5_0.bookmarks_to_stars
 frappe.patches.v5_0.style_settings_to_website_theme
@@ -87,7 +88,6 @@ execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('id
 frappe.patches.v5_0.move_scheduler_last_event_to_system_settings
 execute:frappe.db.sql("update tabUser set new_password='' where ifnull(new_password, '')!=''")
 frappe.patches.v5_0.fix_text_editor_file_urls
-execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
@@ -113,6 +113,5 @@ execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'fi
 frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
-frappe.patches.v6_19.comment_feed_communication
 frappe.patches.v6_16.feed_doc_owner
 frappe.patches.v6_21.print_settings_repeat_header_footer
