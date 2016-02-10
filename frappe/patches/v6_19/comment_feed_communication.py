@@ -179,8 +179,6 @@ def migrate_feed():
 			communication_date,
 			reference_doctype,
 			reference_name,
-			link_doctype,
-			link_name,
 
 			name,
 			user,
@@ -204,8 +202,6 @@ def migrate_feed():
 			creation as communication_date,
 			doc_type as reference_doctype,
 			doc_name as reference_name,
-			reference_doctype as link_doctype,
-			reference_name as link_name,
 
 			name,
 			owner as user,
