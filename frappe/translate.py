@@ -186,25 +186,29 @@ def load_lang(lang, apps=None):
 	out = {}
 	for app in (apps or frappe.get_all_apps(True)):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-		if os.path.exists(path):
-			csv_content = read_csv_file(path)
-
-			cleaned = {}
-			for item in csv_content:
-				if len(item)==3:
-					# with file and line numbers
-					cleaned[item[1]] = strip(item[2])
-
-				elif len(item)==2:
-					cleaned[item[0]] = strip(item[1])
-
-				else:
-					raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
-						app=app, lang=lang, values=repr(item).encode("utf-8")
-					))
-
-			out.update(cleaned)
+		out.update(get_translation_dict_from_file(path, lang, app))
 	return out
+
+def get_translation_dict_from_file(path, lang, app):
+	"""load translation dict from given path"""
+	cleaned = {}
+	if os.path.exists(path):
+		csv_content = read_csv_file(path)
+
+		for item in csv_content:
+			if len(item)==3:
+				# with file and line numbers
+				cleaned[item[1]] = strip(item[2])
+
+			elif len(item)==2:
+				cleaned[item[0]] = strip(item[1])
+
+			else:
+				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
+					app=app, lang=lang, values=repr(item).encode("utf-8")
+				))
+
+	return cleaned
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
@@ -506,6 +510,16 @@ def update_translations(lang, untranslated_file, translated_file):
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
+
+def import_translations(lang, path):
+	"""Import translations from file in standard format"""
+	clear_cache()
+	full_dict = get_full_dict(lang)
+	full_dict.update(get_translation_dict_from_file(path, lang, 'import'))
+
+	for app in frappe.get_all_apps(True):
+		write_translations_file(app, lang, full_dict)
+
 
 def rebuild_all_translation_files():
 	"""Rebuild all translation files: `[app]/translations/[lang].csv`."""
