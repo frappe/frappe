@@ -11,7 +11,6 @@ task_logger = get_task_logger(__name__)
 from datetime import timedelta
 import frappe
 import os
-import threading
 import time
 
 SITES_PATH = os.environ.get('SITES_PATH', '.')
@@ -127,14 +126,6 @@ class FrappeTask(get_celery().Task):
 def celery_task(*args, **kwargs):
 	return get_celery().task(*args, **kwargs)
 
-def make_async_task(args):
-	task = frappe.new_doc("Async Task")
-	task.update(args)
-	task.status = "Queued"
-	task.set_docstatus_user_and_timestamp()
-	task.db_insert()
-	task.notify_update()
-
 def run_test():
 	for i in xrange(30):
 		test.delay(site=frappe.local.site)
@@ -144,107 +135,6 @@ def test(site=None):
 	time.sleep(1)
 	print "task"
 
-class MonitorThread(object):
-	"""Thread manager for monitoring celery events"""
-	def __init__(self, celery_app, interval=1):
-		self.celery_app = celery_app
-		self.interval = interval
-
-		self.state = self.celery_app.events.State()
-
-		self.thread = threading.Thread(target=self.run, args=())
-		self.thread.daemon = True
-		self.thread.start()
-
-	def catchall(self, event):
-		if event['type'] != 'worker-heartbeat':
-			self.state.event(event)
-
-			if not 'uuid' in event:
-				return
-
-			task = self.state.tasks.get(event['uuid'])
-			info = task.info()
-
-			if 'name' in event and 'enqueue_events_for_site' in event['name']:
-				return
-
-			try:
-				kwargs = eval(info.get('kwargs'))
-
-				if 'site' in kwargs:
-					frappe.connect(kwargs['site'])
-
-					if event['type']=='task-sent':
-						make_async_task({
-							'name': event['uuid'],
-							'task_name': kwargs.get("cmd") or event['name']
-						})
-
-					elif event['type']=='task-received':
-						try:
-							task = frappe.get_doc("Async Task", event['uuid'])
-							task.status = 'Started'
-							task.set_docstatus_user_and_timestamp()
-							task.db_update()
-							task.notify_update()
-						except frappe.DoesNotExistError:
-							pass
-
-					elif event['type']=='task-succeeded':
-						try:
-							task = frappe.get_doc("Async Task", event['uuid'])
-							task.status = 'Succeeded'
-							task.result = info.get('result')
-							task.runtime = info.get('runtime')
-							task.set_docstatus_user_and_timestamp()
-							task.db_update()
-							task.notify_update()
-						except frappe.DoesNotExistError:
-							pass
-
-					elif event['type']=='task-failed':
-						try:
-							task = frappe.get_doc("Async Task", event['uuid'])
-							task.status = 'Failed'
-							task.traceback = event.get('traceback') or event.get('exception')
-							task.traceback = frappe.as_json(info) + "\n\n" + task.traceback
-							task.runtime = info.get('runtime')
-							task.set_docstatus_user_and_timestamp()
-							task.db_update()
-							task.notify_update()
-						except frappe.DoesNotExistError:
-							pass
-
-					frappe.db.commit()
-			except Exception:
-				print frappe.get_traceback()
-			finally:
-				frappe.destroy()
-
-
-	def run(self):
-		while True:
-			try:
-				with self.celery_app.connection() as connection:
-					recv = self.celery_app.events.Receiver(connection, handlers={
-						'*': self.catchall
-					})
-					recv.capture(limit=None, timeout=None, wakeup=True)
-
-			except (KeyboardInterrupt, SystemExit):
-				raise
-
-			except Exception:
-				# unable to capture
-				print "unable to capture:"
-				print frappe.get_traceback()
-
-			time.sleep(self.interval)
-
-
 if __name__ == '__main__':
 	app = get_celery()
-	if get_site_config().get("monitor_celery"):
-		MonitorThread(app)
 	app.start()

@@ -41,7 +41,7 @@ def pass_context(f):
 	return click.pass_context(_func)
 
 def get_single_site(context):
-	if not len(context.sites) == 1:
+	if not context.sites or not len(context.sites) == 1:
 		print 'please select a site'
 		sys.exit(1)
 	site = context.sites[0]
@@ -714,6 +714,22 @@ def update_translations(context, lang, untranslated_file, translated_file):
 	finally:
 		frappe.destroy()
 
+@click.command('import-translations')
+@click.argument('lang')
+@click.argument('path')
+@pass_context
+def import_translations(context, lang, path):
+	"Update translated strings"
+	import frappe.translate
+	site = get_single_site(context)
+	try:
+		frappe.init(site=site)
+		frappe.connect()
+		frappe.translate.import_translations(lang, path)
+	finally:
+		frappe.destroy()
+
+
 @click.command('set-admin-password')
 @click.argument('admin-password')
 @pass_context
@@ -1032,6 +1048,7 @@ commands = [
 	build_message_files,
 	get_untranslated,
 	update_translations,
+	import_translations,
 	set_admin_password,
 	mysql,
 	run_tests,

@@ -59,5 +59,5 @@ class InvalidEmailAddressError(ValidationError): pass
 class TemplateNotFoundError(ValidationError): pass
 class UniqueValidationError(ValidationError): pass
 class AppNotInstalledError(ValidationError): pass
-class IncorrectSitePath(DoesNotExistError): pass
+class IncorrectSitePath(NotFound): pass
 
