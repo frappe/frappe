@@ -68,6 +68,8 @@ class SiteRouter(object):
 		if hasattr(frappe.local, 'site'):
 			if kwargs and kwargs.get("event", "").endswith("_long"):
 				return get_queue(frappe.local.site, LONGJOBS_PREFIX)
+			elif kwargs and kwargs.get("async", False)==True:
+				return get_queue(frappe.local.site, ASYNC_TASKS_PREFIX)
 			else:
 				return get_queue(frappe.local.site)
 
@@ -95,6 +97,32 @@ def get_beat_schedule(conf):
 	}
 
 	return schedule
+
+class FrappeTask(get_celery().Task):
+	def run(self, *args, **kwargs):
+		from frappe.utils.scheduler import log
+
+		site = kwargs.pop('site')
+
+		if 'async' in kwargs:
+			kwargs.pop('async')
+
+		try:
+			frappe.connect(site=site)
+			self.execute(*args, **kwargs)
+
+		except Exception:
+			frappe.db.rollback()
+
+			task_logger.error(site)
+			task_logger.error(frappe.get_traceback())
+
+			log(self.__name__)
+		else:
+			frappe.db.commit()
+
+		finally:
+			frappe.destroy()
 
 def celery_task(*args, **kwargs):
 	return get_celery().task(*args, **kwargs)

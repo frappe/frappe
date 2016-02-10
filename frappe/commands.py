@@ -854,7 +854,7 @@ def dump_queue_status():
 	frappe.init('')
 	from frappe.utils.doctor import dump_queue_status as _dump_queue_status, inspect_queue
 	print json.dumps(_dump_queue_status(), indent=1)
-	print inspect_queue()
+	inspect_queue()
 
 @click.command('make-app')
 @click.argument('destination')
