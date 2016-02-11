@@ -64,6 +64,8 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager"
 ]
 
+after_request = "frappe.core.doctype.communication.comment.update_comments_in_parent_after_request"
+
 # permissions
 
 permission_query_conditions = {

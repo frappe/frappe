@@ -165,10 +165,6 @@ def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 
-	if "_liked_by" not in frappe.db.get_table_columns("Communication"):
-		add_column("Communication", "_liked_by", "Text")
-
-
 def has_permission(doc, ptype, user):
 	if ptype=="read" and doc.reference_doctype and doc.reference_name:
 		if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
