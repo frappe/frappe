@@ -129,6 +129,9 @@ class Meta(Document):
 			list_fields.append(self.title_field)
 		return list_fields
 
+	def get_custom_fields(self):
+		return [d for d in self.fields if d.get('is_custom_field')]
+
 	def get_title_field(self):
 		return self.title_field or "name"
 

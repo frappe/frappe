@@ -58,7 +58,11 @@ frappe.render_grid = function(opts) {
 	// build context
 	if(opts.grid) {
 		opts.columns = opts.grid.getColumns();
-		opts.data = opts.grid.getData().getItems();
+		if(opts.report) {
+			opts.data = frappe.slickgrid_tools.get_filtered_items(opts.report.dataView);
+		} else if(opts.grid) {
+			opts.data = opts.grid.getData().getItems();
+		}
 	}
 
 	// render content

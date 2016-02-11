@@ -91,7 +91,7 @@ def cleanup_page_name(title):
 	# replace repeating hyphens
 	name = re.sub(r"(-)\1+", r"\1", name)
 
-	return name
+	return name[:140]
 
 
 def get_shade(color, percent):

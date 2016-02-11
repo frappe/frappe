@@ -68,6 +68,13 @@ frappe.tools.to_csv = function(data) {
 };
 
 frappe.slickgrid_tools = {
+	get_filtered_items: function(dataView) {
+		var data = [];
+		for (var i=0, len=dataView.getLength(); i<len; i++) {
+			data.push(dataView.getItem(i));
+		}
+		return data;
+	},
 	get_view_data: function(columns, dataView, filter) {
 		var col_row = $.map(columns, function(v) { return v.name; });
 		var res = [];
