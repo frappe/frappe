@@ -20,10 +20,10 @@ import frappe.api
 import frappe.async
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name, get_site_path, call_hook_method
+from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
-
 from frappe.utils.error import make_error_snapshot
+from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 
 local_manager = LocalManager([frappe.local])
 
@@ -132,7 +132,7 @@ def handle_exception(e):
 			# code 409 represents conflict
 			http_status_code = 508
 
-	if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
+	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
 		response = frappe.utils.response.report_error(http_status_code)
 	else:
 		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
@@ -168,7 +168,7 @@ def after_request(rollback):
 			frappe.db.commit()
 			rollback = False
 
-	call_hook_method("after_request")
+	update_comments_in_parent_after_request()
 
 	# publish realtime
 	for args in frappe.local.realtime_log:
