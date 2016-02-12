@@ -251,10 +251,15 @@ $.extend(frappe.desktop, {
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
 					var circle = notifier.find(".circle-text");
+					var text = sum || '';
+					if(text > 99) {
+						text = '99+';
+					}
+
 					if(circle.length) {
-						circle.html(sum || "");
+						circle.html(text);
 					} else {
-						notifier.html(sum);
+						notifier.html(text);
 					}
 				}
 			}
