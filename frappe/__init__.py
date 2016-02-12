@@ -1047,7 +1047,7 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	return out
 
 logging_setup_complete = False
-def get_logger(module=None):
+def get_logger(module=None, loglevel="DEBUG"):
 	from frappe.setup_logging import setup_logging
 	global logging_setup_complete
 
@@ -1055,7 +1055,10 @@ def get_logger(module=None):
 		setup_logging()
 		logging_setup_complete = True
 
-	return logging.getLogger(module or "frappe")
+	logger = logging.getLogger(module or "frappe")
+	logger.setLevel(logging.DEBUG)
+
+	return logger
 
 def publish_realtime(*args, **kwargs):
 	"""Publish real-time updates

@@ -579,6 +579,10 @@ def get_definition(fieldtype, precision=None, length=None):
 	return coltype
 
 def add_column(doctype, column_name, fieldtype, precision=None):
+	if column_name in frappe.db.get_table_columns(doctype):
+		# already exists
+		return
+
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
