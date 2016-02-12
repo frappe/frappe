@@ -25,6 +25,7 @@ def setup_logging():
 		logging_conf = {
 			"version": 1,
 			"disable_existing_loggers": True,
+			"level": logging.DEBUG,
 			"filters": {
 				"context_filter": {
 					"()": "frappe.setup_logging.ContextFilter"
