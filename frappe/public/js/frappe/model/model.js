@@ -364,7 +364,7 @@ $.extend(frappe.model, {
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link") {
+			if(fieldtype=="Link" && doc) {
 				frappe.model.trigger(fieldname, value, doc);
 			}
 		}
