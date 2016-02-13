@@ -164,6 +164,7 @@ class Communication(Document):
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
+	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read" and doc.reference_doctype and doc.reference_name:
