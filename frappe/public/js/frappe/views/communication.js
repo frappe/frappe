@@ -512,7 +512,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			return split(term).pop();
 		}
 
-		$(this.dialog.fields_dict.recipients.input)
+		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
 			.bind( "keydown", function(event) {
 				if (event.keyCode === $.ui.keyCode.TAB &&
 						$(this).data( "autocomplete" ) &&
