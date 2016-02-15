@@ -101,7 +101,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "dropbox_access_secret", access_token.secret)
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "dropbox_access_allowed", allowed)
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "send_backups_to_dropbox", 1)
-			dropbox_client = client.DropboxClient(sess)
+			#dropbox_client = client.DropboxClient(sess)
 			# try:
 			# 	dropbox_client.file_create_folder("private")
 			# 	dropbox_client.file_create_folder("private/files")
@@ -169,6 +169,8 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		# folder not found
 		if e.status==404:
 			response = {"contents": []}
+		else:
+			raise
 
 	for filename in os.listdir(path):
 		filename = cstr(filename)
