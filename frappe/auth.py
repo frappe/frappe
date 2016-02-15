@@ -155,7 +155,9 @@ class LoginManager:
 		self.clear_active_sessions()
 
 	def clear_active_sessions(self):
-		if not frappe.conf.get("deny_multiple_sessions"):
+		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
+		if not frappe.conf.get("deny_multiple_sessions") \
+			or not frappe.db.get_system_setting('deny_multiple_sessions'):
 			return
 
 		if frappe.session.user != "Guest":
