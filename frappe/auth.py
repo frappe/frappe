@@ -43,6 +43,9 @@ class HTTPRequest:
 		# login
 		frappe.local.login_manager = LoginManager()
 
+		if frappe.form_dict._lang:
+			frappe.local.lang = frappe.form_dict._lang
+
 		self.validate_csrf_token()
 
 		# write out latest cookies
