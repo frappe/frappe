@@ -624,6 +624,7 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
+		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
 
@@ -803,3 +804,27 @@ class Document(BaseDocument):
 		if not self.get("__onload"):
 			self.set("__onload", {})
 		self.get("__onload")[key] = value
+
+	def update_timeline_doc(self):
+		if frappe.flags.in_install or not self.meta.timeline_field:
+			return
+
+		timeline_doctype = self.meta.get_link_doctype(self.meta.timeline_field)
+		timeline_name = self.get(self.meta.timeline_field)
+
+		if not (timeline_doctype and timeline_name):
+			return
+
+		# update timeline doc in communication if it is different than current timeline doc
+		frappe.db.sql("""update `tabCommunication`
+			set timeline_doctype=%(timeline_doctype)s, timeline_name=%(timeline_name)s
+			where
+				reference_doctype=%(doctype)s and reference_name=%(name)s
+				and (timeline_doctype is null or timeline_doctype != %(timeline_doctype)s
+					or timeline_name is null or timeline_name != %(timeline_name)s)""",
+				{
+					"doctype": self.doctype,
+					"name": self.name,
+					"timeline_doctype": timeline_doctype,
+					"timeline_name": timeline_name
+				})

@@ -117,6 +117,7 @@ CREATE TABLE `tabDocType` (
   `autoname` varchar(255) DEFAULT NULL,
   `name_case` varchar(255) DEFAULT NULL,
   `title_field` varchar(255) DEFAULT NULL,
+  `timeline_field` varchar(255) DEFAULT NULL,
   `sort_field` varchar(255) DEFAULT NULL,
   `sort_order` varchar(255) DEFAULT NULL,
   `description` text,
