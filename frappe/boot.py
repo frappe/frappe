@@ -12,6 +12,7 @@ import frappe.desk.desk_page
 from frappe.utils import get_gravatar
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
+from frappe.translate import get_lang_dict
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -77,6 +78,8 @@ def get_bootinfo():
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
+	bootinfo["lang_dict"] = get_lang_dict()
+	bootinfo["languages"] = [language for language in get_lang_dict()]
 
 	return bootinfo
 
