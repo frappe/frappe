@@ -1,5 +1,5 @@
-frappe.ui.form.on('{doctype}', {
-	refresh: function(frm) {
+frappe.ui.form.on('{doctype}', {{
+	refresh: function(frm) {{
 
-	}
-});
+	}}
+}});
