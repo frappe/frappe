@@ -17,7 +17,7 @@ In the Fields Table, you can add the fields (properties) of the DocType (Article
 Fields are much more than database columns, they can be:
 
 1. Columns in the database
-1. For Layout (section / column breaks)
+1. Layout helpers (section / column breaks)
 1. Child tables (Table type field)
 1. HTML
 1. Actions (button)
