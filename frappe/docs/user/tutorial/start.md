@@ -20,7 +20,7 @@ Now login with :
 
 Login ID: **Administrator**
 
-Password : **Use the password that was generated during installation**
+Password : **Use the password that was created during installation**
 
 When you login, you should see the "Desk" home page
 
