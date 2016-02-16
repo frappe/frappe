@@ -510,9 +510,6 @@ def has_permission(doc, user):
 		# dont allow non Administrator user to view / edit Administrator user
 		return False
 
-	else:
-		return True
-
 def notifify_admin_access_to_system_manager(login_manager=None):
 	if (login_manager
 		and login_manager.user == "Administrator"
