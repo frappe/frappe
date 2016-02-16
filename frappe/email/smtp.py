@@ -45,7 +45,8 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 		email_account = None
 
 		if append_to:
-			email_account = _get_email_account({"enable_outgoing": 1, "append_to": append_to})
+			# append_to is only valid when enable_incoming is checked
+			email_account = _get_email_account({"enable_outgoing": 1, "enable_incoming": 1, "append_to": append_to})
 
 		if not email_account:
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
