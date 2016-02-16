@@ -775,6 +775,11 @@ class Database:
 				frappe.db.sql("""alter table `tab%s`
 					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
+	def get_system_setting(self, key):
+		def _load_system_settings():
+			return self.get_singles_dict("System Settings")
+		return frappe.cache().get_value("system_settings", _load_system_settings).get(key)
+
 	def close(self):
 		"""Close database connection."""
 		if self._conn:

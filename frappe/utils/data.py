@@ -112,10 +112,7 @@ def now_datetime():
 	return dt.replace(tzinfo=None)
 
 def _get_time_zone():
-	time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
-		or "Asia/Kolkata")
-
-	return time_zone
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
 
 def get_time_zone():
 	if frappe.local.flags.in_test:
