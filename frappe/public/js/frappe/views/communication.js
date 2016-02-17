@@ -76,6 +76,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname:"attach_document_print"},
 			{label:__("Select Print Format"), fieldtype:"Select",
 				fieldname:"select_print_format"},
+			{label:__("Select Languages"), fieldtype:"Select",
+				fieldname:"language_sel"},
 			{fieldtype: "Column Break"},
 			{label:__("Select Attachments"), fieldtype:"HTML",
 				fieldname:"select_attachments"}
@@ -84,6 +86,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	prepare: function() {
 		this.setup_subject_and_recipients();
+		this.setup_print_language()
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
@@ -213,6 +216,26 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		return frappe.last_edited_communication[cur_frm.doctype][key];
+	},
+
+	setup_print_language: function() {
+		var me = this;
+		var doc = cur_frm.doc;
+		var fields = this.dialog.fields_dict;
+
+		//Load default print language from doctype
+		this.lang_code = frappe.boot.lang_dict[doc.print_language]
+
+		//On selection of language retrieve language code
+		$(fields.language_sel.input).click(function(){
+			me.lang_code = frappe.boot.lang_dict[this.value]
+		})
+
+		// Load all languages in the select field language_sel
+		$(fields.language_sel.input)
+			.empty()
+			.add_options(frappe.boot.languages)
+			.val(doc.print_language)
 	},
 
 	setup_print: function() {
@@ -357,7 +380,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			form_values.communication_medium = "Email";
 			form_values.sent_or_received = "Sent";
 		};
-
+		console.log(print_html)
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
 			args: {
@@ -373,7 +396,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				print_format: print_format,
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
-				attachments: selected_attachments
+				attachments: selected_attachments,
+				_lang : me.lang_code
 			},
 			btn: btn,
 			callback: function(r) {
