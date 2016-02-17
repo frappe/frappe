@@ -90,7 +90,7 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	if merge and not exists:
 		frappe.msgprint(_("{0} {1} does not exist, select a new target to merge").format(doctype, new), raise_exception=1)
 
-	if (not merge) and exists == new:
+	if (not merge) and exists:
 		frappe.msgprint(_("Another {0} with name {1} exists, select another name").format(doctype, new), raise_exception=1)
 
 	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
