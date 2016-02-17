@@ -89,7 +89,7 @@ def is_site_in_maintenance_mode(queue, prefix):
 	site = queue.replace(prefix, "")
 	try:
 		frappe.init(site=site)
-		if not frappe.local.conf.db_name or frappe.local.conf.maintenance_mode:
+		if not frappe.local.conf.db_name or frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
 			# don't add site if in maintenance mode
 			return True
 	finally:
@@ -135,7 +135,7 @@ def enqueue_scheduler_events():
 def enqueue_events_for_site(site):
 	try:
 		frappe.init(site=site)
-		if frappe.local.conf.maintenance_mode:
+		if frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
 			return
 		frappe.connect(site=site)
 		enqueue_events(site)
@@ -248,7 +248,7 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 			"cc": cc,
 			"lang": lang
 		}))
-		task_logger.warn(traceback)
+		task_logger.error(traceback)
 		raise
 
 	else:

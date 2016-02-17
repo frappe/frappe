@@ -101,7 +101,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name
 	frappe.clear_cache()
 
-	if name not in frappe.get_all_apps(with_frappe=True):
+	if name not in frappe.get_all_apps():
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:

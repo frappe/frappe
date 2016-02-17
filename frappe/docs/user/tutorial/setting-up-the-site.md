@@ -48,6 +48,6 @@ Now let us install our app `library_management` in our site `library`
 
 Example:
 
-	$ bench install-app library_management
+	$ bench --site library install-app library_management
 
 {next}

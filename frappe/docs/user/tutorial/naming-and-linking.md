@@ -24,7 +24,7 @@ This can be set by entering the **Autoname** field. For controller, leave blank.
 
 #### Link and Select Fields
 
-Foreign keys are specified in Frappe as **Link** type fields. The target DocType must be mentioned in the Options table.
+Foreign keys are specified in Frappe as **Link** type fields. The target DocType must be mentioned in the Options text area.
 
 In our example, in the Library Transaction DocType, we have to link both the Library Member and the Article.
 

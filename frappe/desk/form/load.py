@@ -123,6 +123,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
+			link_doctype, link_name,
 			"Communication" as doctype
 		from tabCommunication
 		where

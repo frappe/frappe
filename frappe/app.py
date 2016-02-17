@@ -72,6 +72,7 @@ def application(request):
 			raise NotFound
 
 	except HTTPException, e:
+		logger.error('Request Error')
 		return e
 
 	except frappe.SessionStopped, e:
@@ -148,10 +149,9 @@ def handle_exception(e):
 		if hasattr(frappe.local, "login_manager"):
 			frappe.local.login_manager.clear_cookies()
 
-	if http_status_code==500:
+	if http_status_code >= 500:
 		logger.error('Request Error')
-
-	make_error_snapshot(e)
+		make_error_snapshot(e)
 
 	return response
 

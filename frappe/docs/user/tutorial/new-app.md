@@ -1,11 +1,11 @@
 # Make a New App
 
-After the bench is installed, there are two main folders, `apps` and `sites`. All the applications will be installed in apps.
+Once the bench is installed, you will see two main folders, `apps` and `sites`. All the applications will be installed in apps.
 
-To make a new application, go to your bench folder and run, `bench new-app {app_name}` and fill in details about the application. This will create a boilerplate application for your.
+To make a new application, go to your bench folder and run, `bench new-app {app_name}` and fill in details about the application. This will create a boilerplate application for you.
 
 	$ bench new-app library_management
-	App Title (defaut: Lib Mgt): Liblary Management
+	App Title (defaut: Lib Mgt): Library Management
 	App Description:  App for managing Articles, Members, Memberships and Transactions for Libraries
 	App Publisher: Frappe
 	App Email: info@frappe.io

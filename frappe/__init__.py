@@ -639,18 +639,22 @@ def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
-def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
+def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
 		sites_path = local.sites_path
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
 	if with_internal_apps:
-		apps.extend(get_file_items(os.path.join(local.site_path, "apps.txt")))
-	if with_frappe:
-		if "frappe" in apps:
-			apps.remove("frappe")
-		apps.insert(0, 'frappe')
+		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, 'frappe')
+
 	return apps
 
 def get_installed_apps(sort=False, frappe_last=False):
