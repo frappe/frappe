@@ -35,33 +35,24 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.print_sel = this.wrapper
 			.find(".print-preview-select")
 			.on("change", function() {
-				if(me.is_old_style()) {
-					me.wrapper.find(".btn-download-pdf").toggle(false);
-					me.set_style();
-					me.preview_old_style();
-				} else {
-					me.wrapper.find(".btn-download-pdf").toggle(true);
-					me.preview();
-				}
+				me.multilingual_preview()
 			});
 
+		//Load default print language from doctype
 		this.lang_code = frappe.boot.lang_dict[this.frm.doc.print_language]
+
+		//On selection of language get code and pass it to preview method
 		this.language_sel = this.wrapper
 			.find(".languages")
 			.on("change", function(){
 				me.lang_code = frappe.boot.lang_dict[me.language_sel.val()]
-				if(me.is_old_style()) {
-					me.wrapper.find(".btn-download-pdf").toggle(false);
-					me.set_style();
-					me.preview_old_style();
-				} else {
-					me.wrapper.find(".btn-download-pdf").toggle(true);
-					me.preview();
-				}
+				me.multilingual_preview()
 			})
 
-		this.language_sel
-			.empty().add_options([this.frm.doc.print_language].concat(frappe.boot.languages))
+		// Load all languages in the field
+		this.language_sel.empty()
+			.add_options(frappe.boot.languages)
+			.val(this.frm.doc.print_language)
 
 		this.wrapper.find(".btn-print-print").click(function() {
 			if(me.is_old_style()) {
@@ -115,6 +106,17 @@ frappe.ui.form.PrintPreview = Class.extend({
 				}, __("New Custom Print Format"), __("Start"));
 			}
 		});
+	},
+	multilingual_preview: function(){
+		var me = this;
+		if(this.is_old_style()) {
+			me.wrapper.find(".btn-download-pdf").toggle(false);
+			me.set_style();
+			me.preview_old_style();
+		} else {
+			me.wrapper.find(".btn-download-pdf").toggle(true);
+			me.preview();
+		}
 	},
 	preview: function() {
 		var me = this;
