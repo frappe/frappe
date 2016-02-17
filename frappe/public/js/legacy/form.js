@@ -423,9 +423,13 @@ _f.Frm.prototype.refresh = function(docname) {
 
 _f.Frm.prototype.show_if_needs_refresh = function() {
 	if(this.doc.__needs_refresh) {
-		this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
-			+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
-			+ __("Refresh") + '</a>', "alert-warning");
+		if(this.doc.__unsaved) {
+			this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
+				+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
+				+ __("Refresh") + '</a>', "alert-warning");
+		} else {
+			this.reload_doc();
+		}
 	}
 }
 
