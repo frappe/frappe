@@ -83,6 +83,11 @@ def get_data():
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
 				},
+				{
+					"type": "doctype",
+					"name": "Translation",
+					"description": _("For user specific translations")
+				}
 			]
 		},
 		{
