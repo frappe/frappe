@@ -179,6 +179,9 @@ def get_full_dict(lang):
 			# cache lang
 			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
 
+		user_translations = get_user_translations(lang)
+		if user_translations:
+			frappe.local.lang_full_dict.update(user_translations)
 	return frappe.local.lang_full_dict
 
 def load_lang(lang, apps=None):
@@ -209,6 +212,20 @@ def get_translation_dict_from_file(path, lang, app):
 				))
 
 	return cleaned
+
+def get_user_translations(lang):
+	out = frappe.cache().hget('lang_user_translations', lang)
+	if not out:
+		out = {}
+		for fields in frappe.get_all('Translation',
+			fields= ["source_name", "target_name"],filters={'language_code': lang}):
+				out.update({fields.source_name: fields.target_name})
+		frappe.cache().hset('lang_user_translations', lang, out)
+	return out
+
+# def get_user_translation_key():
+# 	return 'lang_user_translations:{0}'.format(frappe.local.site)
+
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
