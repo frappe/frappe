@@ -806,7 +806,7 @@ class Document(BaseDocument):
 		self.get("__onload")[key] = value
 
 	def update_timeline_doc(self):
-		if frappe.flags.in_install or not self.meta.timeline_field:
+		if frappe.flags.in_install or not self.meta.get("timeline_field"):
 			return
 
 		timeline_doctype = self.meta.get_link_doctype(self.meta.timeline_field)
