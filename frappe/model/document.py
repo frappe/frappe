@@ -375,14 +375,21 @@ class Document(BaseDocument):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self):
-		user_roles = frappe.get_roles()
-		has_access_to = []
-		for perm in self.meta.permissions:
-			if perm.role in user_roles and perm.permlevel > 0 and perm.write:
-				if perm.permlevel not in has_access_to:
-					has_access_to.append(perm.permlevel)
+		if not hasattr(self, "_has_access_to"):
+			user_roles = frappe.get_roles()
+			self._has_access_to = []
+			for perm in self.meta.permissions:
+				if perm.role in user_roles and perm.permlevel > 0 and perm.write:
+					if perm.permlevel not in self._has_access_to:
+						self._has_access_to.append(perm.permlevel)
 
-		return has_access_to
+		return self._has_access_to
+
+	def has_permlevel_access_to(self, fieldname, df=None):
+		if not df:
+			df = self.meta.get_field(fieldname)
+
+		return df.permlevel in self.get_permlevel_access()
 
 	def _set_defaults(self):
 		if frappe.flags.in_import:
