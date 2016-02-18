@@ -35,9 +35,8 @@ class DocType(Document):
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
 		self.check_developer_mode()
-		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.name:
-				frappe.throw(_("{0} not allowed in name").format(c))
+
+		self.validate_name()
 
 		if self.issingle:
 			self.allow_import = 0
@@ -154,6 +153,8 @@ class DocType(Document):
 
 		self.check_developer_mode()
 
+		self.validate_name(new)
+
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
@@ -229,6 +230,15 @@ class DocType(Document):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
 			self.name)
 		return max_idx and max_idx[0][0] or 0
+
+	def validate_name(self, name=None):
+		if not name:
+			name = self.name
+
+		# a DocType's name should not start with a number or underscore
+		# and should only contain letters, numbers and underscore
+		if not re.match("^(?![\W])[^\d_][\w]+$", name, re.UNICODE):
+			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers and underscores"))
 
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype, cached=False))
