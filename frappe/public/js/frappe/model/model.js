@@ -81,7 +81,7 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
-	with_doctype: function(doctype, callback) {
+	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
 		} else {
@@ -98,6 +98,7 @@ $.extend(frappe.model, {
 					with_parent: 1,
 					cached_timestamp: cached_timestamp
 				},
+				async: async,
 				freeze: true,
 				callback: function(r) {
 					if(r.exc) {
