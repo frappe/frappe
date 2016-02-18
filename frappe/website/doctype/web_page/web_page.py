@@ -4,12 +4,11 @@
 from __future__ import unicode_literals
 import frappe, re, os, json, imp
 import requests, requests.exceptions
-from frappe.utils import strip_html
+from frappe.utils import strip_html, markdown
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.utils import find_first_image, get_comment_list, get_full_index
-from markdown2 import markdown
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
 from frappe import _
