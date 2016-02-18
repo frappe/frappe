@@ -61,9 +61,8 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+'.#####')
-
-def make_autoname(key, doctype=''):
+	doc.name = make_autoname(doc.naming_series+'.#####', '', doc) 
+def make_autoname(key='', doctype='', doc=''):
 	"""
    Creates an autoname from the given key:
 
@@ -109,6 +108,8 @@ def make_autoname(key, doctype=''):
 			en = today.strftime("%d")
 		elif e=='YYYY':
 			en = today.strftime('%Y')
+		elif doc and doc.get(e,None):
+			en = doc.get(e,None)
 		else: en = e
 		n+=en
 	return n
