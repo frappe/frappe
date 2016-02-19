@@ -270,6 +270,9 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 			cc.append(get_owner_email(doc))
 			cc += get_assignees(doc)
 
+	if getattr(doc, "send_me_a_copy", False) and doc.sender not in cc:
+		cc.append(doc.sender)
+
 	if cc:
 		# exclude email accounts, unfollows, recipients and unsubscribes
 		exclude = [d[0] for d in
@@ -289,10 +292,6 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 				{"reference_doctype": doc.reference_doctype, "reference_name": doc.reference_name}, as_list=True)]
 
 		cc = filter_email_list(doc, cc, exclude, is_cc=True)
-
-	if getattr(doc, "send_me_a_copy", False) and doc.sender not in cc:
-		doc.all_email_addresses.append((parseaddr(doc.sender)[1] or "").lower())
-		cc.append(doc.sender)
 
 	return cc
 
