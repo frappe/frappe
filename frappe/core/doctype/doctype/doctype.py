@@ -237,8 +237,9 @@ class DocType(Document):
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
-		if not re.match("^(?![\W])[^\d_][\w]+$", name, re.UNICODE):
-			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers and underscores"))
+		is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, re.UNICODE)
+		if not is_a_valid_name:
+			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype, cached=False))
