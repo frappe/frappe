@@ -550,7 +550,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 
 	:param app: `app` for which translations are to be written.
 	:param lang: Language code.
-	:param full_dict: Full translated langauge dict (optional).
+	:param full_dict: Full translated language dict (optional).
 	:param app_messages: Source strings (optional).
 	"""
 	if not app_messages:
