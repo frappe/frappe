@@ -14,7 +14,8 @@ def sync_fixtures(app=None):
 		apps = frappe.get_installed_apps()
 	for app in apps:
 		if os.path.exists(frappe.get_app_path(app, "fixtures")):
-			for fname in os.listdir(frappe.get_app_path(app, "fixtures")):
+			fixture_files = sorted(os.listdir(frappe.get_app_path(app, "fixtures")))
+			for fname in fixture_files:
 				if fname.endswith(".json") or fname.endswith(".csv"):
 					import_doc(frappe.get_app_path(app, "fixtures", fname), ignore_links=True, overwrite=True)
 
