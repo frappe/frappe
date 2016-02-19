@@ -38,21 +38,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 				me.multilingual_preview()
 			});
 
-		//Load default print language from doctype
-		this.lang_code = frappe.boot.lang_dict[this.frm.doc.print_language]
-
 		//On selection of language get code and pass it to preview method
 		this.language_sel = this.wrapper
 			.find(".languages")
 			.on("change", function(){
-				me.lang_code = frappe.boot.lang_dict[me.language_sel.val()]
+				me.lang_code = me.language_sel.val()
 				me.multilingual_preview()
-			})
-
-		// Load all languages in the field
-		this.language_sel.empty()
-			.add_options(frappe.boot.languages)
-			.val(this.frm.doc.print_language)
+			});
 
 		this.wrapper.find(".btn-print-print").click(function() {
 			if(me.is_old_style()) {
@@ -106,6 +98,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 				}, __("New Custom Print Format"), __("Start"));
 			}
 		});
+	},
+	set_user_lang: function(){
+		this.lang_code = this.frm.doc.language;
+		// Load all languages in the field
+		this.language_sel.empty()
+			.add_options(frappe.get_languages_dict())
+			.val(this.lang_code);
+		this.preview();
 	},
 	multilingual_preview: function(){
 		var me = this;
