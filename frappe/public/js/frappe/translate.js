@@ -15,3 +15,11 @@ frappe._ = function(txt, replace) {
 	return ret;
 };
 window.__ = frappe._
+
+frappe.get_languages_dict = function() {
+	var lang_dict = []
+	$.each(frappe.boot.lang_dict, function(lang, val){
+		lang_dict.push({'label': lang, 'value': val})
+	})
+	return lang_dict
+};
