@@ -10,7 +10,9 @@ import frappe.desk.form.load
 
 @frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None):
-	results = frappe.cache().get_value("linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
+	key = "linked_with:{doctype}:{name}".format(doctype=doctype, name=name)
+
+	results = frappe.cache().get_value(key, user=True)
 	if results:
 		return results
 
@@ -75,7 +77,7 @@ def get_linked_docs(doctype, name, linkinfo=None):
 			if ret:
 				results[dt] = ret
 
-	frappe.cache().set_value("linked_with:{doctype}:{name}".format(doctype=doctype, name=name), results, user=True)
+	frappe.cache().set_value(key, results, user=True)
 
 	return results
 
