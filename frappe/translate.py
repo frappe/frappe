@@ -179,6 +179,7 @@ def get_full_dict(lang):
 			# cache lang
 			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
 
+		# get user specific transaltion data
 		user_translations = get_user_translations(lang)
 		if user_translations:
 			frappe.local.lang_full_dict.update(user_translations)
