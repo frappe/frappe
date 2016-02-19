@@ -361,6 +361,7 @@ class BaseDocument(object):
 	def _get_missing_mandatory_fields(self):
 		"""Get mandatory fields that do not have any values"""
 		def get_msg(df):
+			print df
 			if df.fieldtype == "Table":
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
