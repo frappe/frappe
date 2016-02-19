@@ -79,8 +79,7 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo["lang_dict"] = get_lang_dict()
-	bootinfo["languages"] = sorted([language for language in get_lang_dict()])
-
+	
 	return bootinfo
 
 def load_conf_settings(bootinfo):
