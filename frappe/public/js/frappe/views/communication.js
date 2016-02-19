@@ -224,18 +224,18 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype
-		this.lang_code = frappe.boot.lang_dict[doc.print_language]
+		this.lang_code = doc.language
 
 		//On selection of language retrieve language code
 		$(fields.language_sel.input).click(function(){
-			me.lang_code = frappe.boot.lang_dict[this.value]
+			me.lang_code = this.value
 		})
 
 		// Load all languages in the select field language_sel
 		$(fields.language_sel.input)
 			.empty()
-			.add_options(frappe.boot.languages)
-			.val(doc.print_language)
+			.add_options(frappe.get_languages_dict())
+			.val(doc.language)
 	},
 
 	setup_print: function() {
