@@ -20,7 +20,6 @@ class TestDocType(unittest.TestCase):
 		})
 
 	def test_validate_name(self):
-		self.assertRaises(frappe.NameError, self.new_doctype(" Some DocType").insert)
 		self.assertRaises(frappe.NameError, self.new_doctype("_Some DocType").insert)
 		self.assertRaises(frappe.NameError, self.new_doctype("8Some DocType").insert)
 		self.assertRaises(frappe.NameError, self.new_doctype("Some (DocType)").insert)
