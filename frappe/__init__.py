@@ -43,6 +43,9 @@ def _(msg, lang=None):
 	from frappe.translate import get_full_dict
 	from frappe.utils import cstr
 
+	# To parse html data
+	msg = parse_msg(msg)
+
 	if not lang:
 		lang = local.lang
 
@@ -54,6 +57,11 @@ def _(msg, lang=None):
 
 	return get_full_dict(local.lang).get(msg) or msg
 
+def parse_msg(msg):
+	from bs4 import BeautifulSoup
+	soup = BeautifulSoup(msg, "html5lib")
+	return soup.get_text()
+	
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
 
