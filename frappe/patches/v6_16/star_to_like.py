@@ -8,7 +8,7 @@ def execute():
 
 	for table in frappe.db.get_tables():
 		columns = [r[0] for r in frappe.db.sql("DESC `{0}`".format(table))]
-		if "_starred_by" in columns:
+		if "_starred_by" in columns and '_liked_by' not in columns:
 			frappe.db.sql_ddl("""alter table `{0}` change `_starred_by` `_liked_by` Text """.format(table))
 
 	if not frappe.db.has_column("Communication", "_liked_by"):
