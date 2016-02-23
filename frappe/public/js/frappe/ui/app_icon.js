@@ -4,12 +4,7 @@
 
 frappe.provide("frappe.ui")
 frappe.ui.app_icon = {
-	get_html: function(app, small, modules) {
-		if(!modules) {
-			modules = frappe.modules;
-		}
-
-		var module = modules[app]
+	get_html: function(module, small) {
 		var icon = module.icon;
 		var color = module.color;
 		var icon_style = "";

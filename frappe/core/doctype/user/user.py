@@ -24,6 +24,11 @@ class User(Document):
 			self.email = self.email.strip()
 			self.name = self.email
 
+	def onload(self):
+		self.set_onload('all_modules',
+			[m.module_name for m in frappe.db.get_all('Desktop Icon',
+				fields=['module_name'], filters={'standard': 1})])
+
 	def validate(self):
 		self.in_insert = self.get("__islocal")
 
@@ -342,6 +347,10 @@ class User(Document):
 
 	def username_exists(self, username=None):
 		return frappe.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
+
+	def get_blocked_modules(self):
+		"""Returns list of modules blocked for that user"""
+		return [d.module for d in self.block_modules] if self.block_modules else []
 
 @frappe.whitelist()
 def get_timezones():

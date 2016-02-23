@@ -44,7 +44,7 @@ frappe.breadcrumbs = {
 			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
 
-			if(frappe.user.modules.indexOf(breadcrumbs.module)!==-1) {
+			if(frappe.user.is_module(breadcrumbs.module)) {
 				// if module access exists
 				var module_info = frappe.get_module(breadcrumbs.module),
 					icon = module_info && module_info.icon,
@@ -59,7 +59,7 @@ frappe.breadcrumbs = {
 
 		}
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
-			if(breadcrumbs.doctype==="User" && frappe.user.modules.indexOf("Setup")===-1) {
+			if(breadcrumbs.doctype==="User" && frappe.user.is_module("Setup")===-1) {
 				// no user listview for non-system managers
 			} else {
 				route = (cur_frm && cur_frm.list_route) || ("List/" + breadcrumbs.doctype)

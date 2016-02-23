@@ -171,6 +171,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().hget("defaults", parent)
+
 	if defaults==None:
 		# sort descending because first default must get precedence
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`

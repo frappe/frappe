@@ -1,0 +1,36 @@
+<div class="container">
+<div class="row">
+	<div class="col-md-12">
+		<h2>{{ label }}</h2>
+		{% for (var i=0; i < data.length; i++) { var section = data[i]; %}
+		<div class="module-section">
+		<h4>{{ section.label }}</h4>
+			{% for (var j=0; j < section.items.length; j++) {
+				var item = section.items[j];
+				if(item.type==="doctype") {
+					item.doctype = item.name;
+				}
+				if(item.doctype && frappe.model.can_read(item.doctype)) {
+					if(item.link) {
+						item.route=strip(item.link, "#")
+					}
+					else if(item.type==="doctype") {
+						item.route="List/" + item.doctype
+					}
+					else if(item.type==="report" && item.is_query_report) {
+						item.route="query-report/" + item.name
+					}
+					else if(item.type==="report") {
+						item.route="Report/" + item.doctype + "/" + item.name
+					}
+					else if(item.type==="page") {
+						item.route=item.name;
+					}
+					%}
+					<p><a href="#{{ item.route }}">{{ item.label }}</a></p>
+				{% } %}
+			{% } %}
+		{% } %}
+	</div>
+</div>
+</div>

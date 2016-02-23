@@ -82,7 +82,8 @@ frappe.Application = Class.extend({
 
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.modules = frappe.boot.modules;
+			frappe.modules = {};
+			frappe.boot.desktop_icons.forEach(function(m) { frappe.modules[m.module_name]=m; });
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
@@ -96,8 +97,6 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
-			// setup valid modules
-			frappe.user.get_user_desktop_items()
 		} else {
 			this.set_as_guest();
 		}
@@ -322,10 +321,12 @@ frappe.get_module = function(m) {
 		return;
 	}
 
-	module.name = m;
-
 	if(module.type==="module" && !module.link) {
-		module.link = "Module/" + m;
+		module.link = "Module/" + module.module_name;
+	}
+
+	if(module.type==="list" && !module.link) {
+		module.link = "List/" + module._doctype;
 	}
 
 	if (!module.link) module.link = "";
@@ -340,7 +341,7 @@ frappe.get_module = function(m) {
 	}
 
 	if(!module._label) {
-		module._label = __(module.label || module.name);
+		module._label = __(module.label);
 	}
 
 	return module;

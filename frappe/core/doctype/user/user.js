@@ -98,7 +98,7 @@ frappe.ModuleEditor = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		$.each(keys(frappe.boot.modules), function(i, m) {
+		this.frm.doc.__onload.all_modules.forEach(function(m) {
 			// TODO: add checkbox
 			$(repl('<div class="col-sm-6"><div class="checkbox">\
 				<label><input type="checkbox" class="block-module-check" data-module="%(module)s">\

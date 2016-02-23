@@ -34,22 +34,9 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
-	for app in frappe.get_installed_apps(frappe_last=True):
-		try:
-			modules = frappe.get_attr(app + ".config.desktop.get_data")() or {}
-			if isinstance(modules, dict):
-				bootinfo.modules.update(modules)
-			else:
-				for m in modules:
-					bootinfo.modules[m['module_name']] = m
-					bootinfo.module_list.append(m['module_name'])
-		except ImportError:
-			pass
-		except AttributeError:
-			pass
+	load_desktop_icons(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from
 		tabDocType where ifnull(icon,'')!=''"""))
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
@@ -87,6 +74,10 @@ def load_conf_settings(bootinfo):
 	bootinfo.max_file_size = conf.get('max_file_size') or 10485760
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
+
+def load_desktop_icons(bootinfo):
+	from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
+	bootinfo.desktop_icons = get_desktop_icons()
 
 def get_allowed_pages():
 	roles = frappe.get_roles()

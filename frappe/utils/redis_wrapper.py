@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, re
+import redis, frappe, re, copy
 import cPickle as pickle
 from frappe.utils import cstr
 
@@ -130,7 +130,7 @@ class RedisWrapper(redis.Redis):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		if key in frappe.local.cache[name]:
-			return frappe.local.cache[name][key]
+			return copy.deepcopy(frappe.local.cache[name][key])
 
 		value = None
 		try:

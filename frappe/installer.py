@@ -15,6 +15,7 @@ from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render, statics
+from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
@@ -123,6 +124,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
+	sync_from_app(name)
 	add_to_installed_apps(name)
 
 	if set_as_patched:
@@ -186,12 +188,17 @@ def remove_app(app_name, dry_run=False):
 
 	remove_from_installed_apps(app_name)
 
+<<<<<<< HEAD
 	if not dry_run:
 		# drop tables after a commit
 		frappe.db.commit()
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+=======
+	# delete desktop icons
+	frappe.db.sql('delete from `tabDesktop Icon` where app=%s', app_name)
+>>>>>>> [enhancement] desktop icons DocType
 
 def post_install(rebuild_website=False):
 	if rebuild_website:
