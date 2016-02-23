@@ -55,11 +55,15 @@ def _(msg, lang=None):
 	# To parse html data
 	msg = parse_msg(msg)
 	msg = get_full_dict(local.lang).get(msg) or msg
-
+	
 	return get_html_formatted_data(msg)
 
 def parse_msg(msg):
 	from bs4 import BeautifulSoup
+
+	if msg.find('div') != 1:
+		return msg
+
 	soup = BeautifulSoup(msg, "html5lib")
 	soup = get_formatted_text(soup) or soup.get_text()
 	return soup
