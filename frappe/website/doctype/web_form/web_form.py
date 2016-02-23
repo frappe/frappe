@@ -134,10 +134,10 @@ class WebForm(WebsiteGenerator):
 
 	def get_parents(self, context):
 		parents = None
-		if context.parents:
-			parents = context.parents
-		elif self.breadcrumbs:
+		if self.breadcrumbs:
 			parents = json.loads(self.breadcrumbs)
+		elif context.parents:
+			parents = context.parents
 		elif context.is_list:
 			parents = [{"title": _("My Account"), "name": "me"}]
 

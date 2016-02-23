@@ -76,7 +76,7 @@ frappe.ui.form.Grid = Class.extend({
 			}
 		} else {
 			// redraw
-			var _scroll_y = window.scrollY;
+			var _scroll_y = $(document).scrollTop();
 			this.wrapper.find(".grid-row").remove();
 			this.make_head();
 			this.grid_rows = [];
@@ -170,7 +170,7 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	toggle_enable: function(fieldname, enable) {
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;;
-		this.refresh();		
+		this.refresh();
 	},
 	get_docfield: function(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
