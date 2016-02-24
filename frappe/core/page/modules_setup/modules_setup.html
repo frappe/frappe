@@ -1,0 +1,33 @@
+<!-- jinja -->
+<div class="padding modules-setup">
+	{% if users %}
+	<div class="row">
+		<div class="col-sm-3" name="set_for">
+			<select class="form-control">
+				<option value="everyone" selected>{{ _("For Everyone") }}</option>
+				<option value="user">{{ _("For User") }}</option>
+			</select>
+		</div>
+		<div class="col-sm-3" name="user">
+			<select class="form-control">
+				{% for user in users %}
+				<option value="{{ user.name }}">
+					{{ user.first_name or "" }} {{ user.last_name or "" }} ({{ user.name }})</option>
+				{% endfor %}
+			</select>
+		</div>
+	</div>
+	{% endif %}
+	{% for icon in icons %}
+	<div>
+	  <div class="checkbox">
+	    <label>
+	      <input type="checkbox" data-module="{{ icon.module_name }}"
+					{% if not icon.hidden %}checked{% endif %}>
+					{{ _(icon.label or icon.module_name) }}
+	    </label>
+	  </div>
+
+	</div>
+	{% endfor %}
+</div>
