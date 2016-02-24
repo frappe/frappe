@@ -5,12 +5,19 @@ var cookie = require('cookie')
 var fs = require('fs');
 
 var redis = require("redis")
-var subscriber = redis.createClient(12311);
-
 var request = require('superagent')
-var default_site;
+
+var default_site, redis_subscriber_port, socketio_port, subscriber;
 
 
+// Acquire what ports can we plug redis_cache and socket listener
+if(fs.existsSync('/config.json')){
+	var config_json = JSON.parse(fs.readFileSync('./config.json'));
+	redis_subscriber_port = config_json.redis_async_broker_port;
+	socketio_port = config_json.socketio_port;
+}
+
+subscriber = redis.createClient(redis_subscriber_port);
 
 if(fs.existsSync('sites/currentsite.txt')) {
 	default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
@@ -145,8 +152,8 @@ subscriber.on("message", function(channel, message) {
 
 subscriber.subscribe("events");
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(socketio_port, function(){
+  console.log('listening on *:', socketio_port);
 });
 
 function get_doc_room(socket, doctype, docname) {
