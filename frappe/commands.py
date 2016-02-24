@@ -195,44 +195,16 @@ def add_system_manager(context, email, first_name, last_name):
 @pass_context
 def migrate(context, rebuild_website=False):
 	"Run patches, sync schema and rebuild files/translations"
+	from frappe.migrate import migrate
+
 	for site in context.sites:
 		print 'Migrating', site
-		_migrate(site, verbose=context.verbose)
-
-	if rebuild_website:
-		call_command(build_website, context)
-	else:
-		call_command(sync_www, context)
-
-def prepare_for_update():
-	from frappe.sessions import clear_global_cache
-	clear_global_cache()
-
-def _migrate(site, verbose=False):
-	import frappe.modules.patch_handler
-	import frappe.model.sync
-	from frappe.utils.fixtures import sync_fixtures
-	import frappe.translate
-	from frappe.desk.notifications import clear_notifications
-
-	frappe.init(site=site)
-	frappe.connect()
-
-	try:
-		prepare_for_update()
-
-		# run patches
-		frappe.modules.patch_handler.run_all()
-		# sync
-		frappe.model.sync.sync_all(verbose=verbose)
-		frappe.translate.clear_cache()
-		sync_fixtures()
-
-		clear_notifications()
-	finally:
-		frappe.publish_realtime("version-update")
-		frappe.destroy()
-
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			migrate(context.verbose, rebuild_website=rebuild_website)
+		finally:
+			frappe.destroy()
 
 @click.command('run-patch')
 @click.argument('module')
@@ -349,7 +321,7 @@ def build_website(context):
 			frappe.init(site=site)
 			frappe.connect()
 			render.clear_cache()
-			statics.sync(verbose=context.verbose).start(True)
+			statics.sync(verbose=context.verbose).start(rebuild=True)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
