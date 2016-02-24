@@ -291,60 +291,12 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.get_common" href="#frappe.utils.get_common" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.utils.<b>get_common</b>
-        <i class="text-muted">(d1, d2)</i>
-    </p>
-	<div class="docs-attr-desc"><p>returns (list of keys) the common part of two dicts</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.utils.get_common_dict" href="#frappe.utils.get_common_dict" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.utils.<b>get_common_dict</b>
-        <i class="text-muted">(d1, d2)</i>
-    </p>
-	<div class="docs-attr-desc"><p>return common dictionary of d1 and d2</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="frappe.utils.get_defaults" href="#frappe.utils.get_defaults" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.<b>get_defaults</b>
         <i class="text-muted">(key=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get dictionary of default values from the defaults, or a value if key is passed</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.utils.get_diff_dict" href="#frappe.utils.get_diff_dict" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.utils.<b>get_diff_dict</b>
-        <i class="text-muted">(d1, d2)</i>
-    </p>
-	<div class="docs-attr-desc"><p>return common dictionary of d1 and d2</p>
 </div>
 	<br>
 
@@ -627,6 +579,22 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.utils.is_json" href="#frappe.utils.is_json" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>is_json</b>
+        <i class="text-muted">(text)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.utils.is_markdown" href="#frappe.utils.is_markdown" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.<b>is_markdown</b>
@@ -675,12 +643,12 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.pprint_dict" href="#frappe.utils.pprint_dict" class="text-muted small">
+        <a name="frappe.utils.markdown" href="#frappe.utils.markdown" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.utils.<b>pprint_dict</b>
-        <i class="text-muted">(d, level=1, no_blanks=True)</i>
+		frappe.utils.<b>markdown</b>
+        <i class="text-muted">(text)</i>
     </p>
-	<div class="docs-attr-desc"><p>Pretty print a dictionary with indents</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -713,6 +681,41 @@
         <i class="text-muted">(d)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns d with empty ('' or None) values stripped</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.sanitize_email" href="#frappe.utils.sanitize_email" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>sanitize_email</b>
+        <i class="text-muted">(emails)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.sanitize_html" href="#frappe.utils.sanitize_html" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>sanitize_html</b>
+        <i class="text-muted">(html)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Sanitize HTML tags, attributes and style to prevent XSS attacks
+Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults</p>
+
+<p>Does not sanitize JSON, as it could lead to future problems</p>
 </div>
 	<br>
 

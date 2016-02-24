@@ -111,8 +111,7 @@
 <p>The system uses the <strong>Email ID</strong> supplied by these services to <strong>match with an existing user</strong> in Frappe. If no such user is found, <strong>a new user is created</strong> of the default type <strong>Website User</strong>, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from <strong>Website User</strong> to <strong>System User</strong>, so that the user can access the Desktop.</p>
 
 <figure class="text-center">
-    <img src="/assets/frappe_io/images/how-to/social-logins-1.png"
-        alt="Login screen with Social Logins enabled">
+    <img alt="Login screen with Social Logins enabled" src="/assets/frappe_io/images/how-to/social-logins-1.png">
     <figcaption>Login screen with Social Logins enabled</figcaption>
 </figure>
 
@@ -122,7 +121,7 @@
   <p>Use <strong>https://{{ yoursite }}</strong> if your site is HTTPS enabled.</p>
 </blockquote>
 
-<hr />
+<hr>
 
 <h3>Facebook</h3>
 
@@ -130,7 +129,7 @@
 <li>Go to <a href="https://developers.facebook.com">https://developers.facebook.com</a></li>
 <li>Click on Apps (topbar) &gt; New App, fill in the form.</li>
 <li>Go to Settings &gt; Basic, set the <strong>Contact Email</strong> and save the changes.</li>
-<li>Go to Settings &gt; Advanced, find the field <strong>Valid OAuth redirect URIs</strong>, and enter: <br />
+<li>Go to Settings &gt; Advanced, find the field <strong>Valid OAuth redirect URIs</strong>, and enter: <br>
 <strong>http://{{ yoursite }}/api/method/frappe.templates.pages.login.login_via_facebook</strong></li>
 <li>Save the changes in Advance tab.</li>
 <li>Go to Status &amp; Review and switch on "Do you want to make this app and all its live features available to the general public?"</li>
@@ -138,10 +137,10 @@
 </ol>
 
 <div class="embed-responsive embed-responsive-16by9">
-    <iframe src="https://www.youtube.com/embed/zC6Q6gIfiw8" class="embed-responsive-item" allowfullscreen></iframe>
+    &lt;iframe src="https://www.youtube.com/embed/zC6Q6gIfiw8" class="embed-responsive-item" allowfullscreen=""&gt;&lt;/iframe&gt;
 </div>
 
-<hr />
+<hr>
 
 <h3>Google</h3>
 
@@ -153,17 +152,17 @@
 <ul>
 <li>Web Application</li>
 <li>Authorized JavaScript origins as <strong>http://{{ yoursite }}</strong>  </li>
-<li>Authorized redirect URI as <br />
+<li>Authorized redirect URI as <br>
 <strong>http://{{ yoursite }}/api/method/frappe.templates.pages.login.login_via_google</strong></li>
 </ul></li>
 <li>Go to the section <strong>Client ID for web application</strong> and copy the Client ID and Client Secret into <strong>Desktop &gt; Website &gt; Setup &gt; Social Login Keys</strong></li>
 </ol>
 
 <div class="embed-responsive embed-responsive-16by9">
-  <iframe src="https://www.youtube.com/embed/w_EAttrE9sw" class="embed-responsive-item" allowfullscreen></iframe>
+  &lt;iframe src="https://www.youtube.com/embed/w_EAttrE9sw" class="embed-responsive-item" allowfullscreen=""&gt;&lt;/iframe&gt;
 </div>
 
-<hr />
+<hr>
 
 <h3>GitHub</h3>
 
@@ -173,7 +172,7 @@
 <li>Fill the form with:
 <ul>
 <li>Homepage URL as <strong>http://{{ yoursite }}</strong>  </li>
-<li>Authorization callback URL as <br />
+<li>Authorization callback URL as <br>
 <strong>http://{{ yoursite }}/api/method/frappe.templates.pages.login.login_via_github</strong></li>
 </ul></li>
 <li>Click on Register application.</li>
@@ -181,10 +180,10 @@
 </ol>
 
 <div class="embed-responsive embed-responsive-16by9">
-    <iframe src="https://www.youtube.com/embed/bG71DxxkVjQ" class="embed-responsive-item" allowfullscreen></iframe>
+    &lt;iframe src="https://www.youtube.com/embed/bG71DxxkVjQ" class="embed-responsive-item" allowfullscreen=""&gt;&lt;/iframe&gt;
 </div>
 
-<!-- markdown -->
+
 	</article>
 	
 </div>
