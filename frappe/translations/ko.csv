@@ -36,7 +36,7 @@ apps/frappe/frappe/model/base_document.py +478,"{0}, Row {1}",{0} 행 {1}
 apps/frappe/frappe/model/document.py +730,Beginning with,로 시작
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,데이터 가져 오기 템플릿
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,부모의
-DocType: About Us Settings,"""Team Members"" or ""Management""","""팀 회원""또는 ""관리"""
+DocType: About Us Settings,"""Team Members"" or ""Management""","""Team Members""또는 ""Management"""
 apps/frappe/frappe/core/doctype/doctype/doctype.py +302,Default for 'Check' type of field must be either '0' or '1',필드의 '확인'유형의 기본 중 하나를 '0'또는 '1'이어야합니다
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +45,Yesterday,Yester일
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +10,Test Runner,테스트 러너
@@ -1168,7 +1168,7 @@ DocType: Web Form,Success Message,성공 메시지
 DocType: DocType,User Cannot Search,사용자는 검색 할 수 없습니다
 DocType: DocPerm,Apply this rule if the User is the Owner,사용자가 소유자 인 경우이 규칙 적용
 apps/frappe/frappe/desk/page/activity/activity.js +73,Build Report,보고서보기 빌드
-apps/frappe/frappe/model/rename_doc.py +91,"{0} {1} does not exist, select a new target to merge","{0} {1}이 (가) 없습니다, 병합하는 새로운 대상을 선택"
+apps/frappe/frappe/model/rename_doc.py +91,"{0} {1} does not exist, select a new target to merge","{0} {1}이 (가) 없습니다, 새로운 대상을 선택해서 병합하세요."
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},문서 종류에 대한 사용 권한을 설정할 수 없습니다 : {0}과 이름 : {1}
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +158,Add to To Do,할일 추가
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Assigned To Me,나에게 할당
@@ -1185,7 +1185,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} 
 apps/frappe/frappe/public/js/frappe/views/communication.js +69,Communication Medium,통신 매체
 DocType: Website Settings,Banner HTML,배너 HTML
 DocType: Error Snapshot,Pyver,Pyver
-apps/frappe/frappe/model/base_document.py +451,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1}이 될 수 없습니다 ""{2}"".그것은 ""{3}""중 하나 여야합니다"
+apps/frappe/frappe/model/base_document.py +451,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1}  ""{2}""가 될 수 없습니다.  ""{3}""중 하나입니다."
 apps/frappe/frappe/utils/data.py +516,{0} or {1},{0} 또는 {1}
 apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,암호 업데이트
 DocType: Workflow State,trash,쓰레기
@@ -1294,7 +1294,7 @@ DocType: Workflow State,ok-sign,확인 서명
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +126,Duplicate,복제
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +305,From Date must be before To Date,날짜 누계 이전이어야합니다
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +21,Please specify which value field must be checked,값 필드를 선택해야하는 이유를 적어주세요
-apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""부모는""이 행을 추가해야하는 부모 테이블을 의미"
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added","""상위항목"" 테이블에서 열이 추가되어야 합니다."
 DocType: Website Theme,Apply Style,스타일 적용
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +39,Shared With,함께 공유
 ,Modules Setup,모듈 설치
@@ -1517,7 +1517,7 @@ apps/frappe/frappe/public/js/frappe/list/listview.js +342,2 days ago,1 일 전
 apps/frappe/frappe/config/website.py +64,Categorize blog posts.,블로그 게시물을 분류합니다.
 DocType: Workflow State,Time,시간
 DocType: DocField,Attach,첨부
-apps/frappe/frappe/core/doctype/doctype/doctype.py +386,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} 유효한 필드 이름 패턴이 아니다. 그것은해야한다 {{FIELD_NAME}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +386,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} 유효한 필드명 유형이 아닙니다.  {{field_name}} 이어야 합니다.
 DocType: DocType,Permission Rules,권한 규칙
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +119,Links,링크
 apps/frappe/frappe/model/base_document.py +369,Value missing for,값을 누락
@@ -1724,7 +1724,7 @@ DocType: DocType,Naming,Naming
 DocType: Event,Every Year,매년
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +23,Select All,모두 선택
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not Linked to any record.,모든 레코드에 연결되어 있지.
-apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,역할에 따라
+apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,역할별
 apps/frappe/frappe/core/doctype/user/user.py +406,Registered but disabled.,등록 만 사용할.
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +538,Delete permanently?,영구적으로 삭제 하시겠습니까?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +95,Search in a document type,문서 유형의 검색
@@ -1745,7 +1745,7 @@ apps/frappe/frappe/public/js/frappe/views/pageview.js +110,Sorry! You are not pe
 DocType: Workflow State,bell,벨
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +39,Share this document with,이 문서를 공유하기
 apps/frappe/frappe/desk/page/activity/activity.js +203,Jun,6월
-apps/frappe/frappe/utils/nestedset.py +235,{0} {1} cannot be a leaf node as it has children,이 아이를 가지고 {0} {1} 잎 노드가 될 수 없습니다
+apps/frappe/frappe/utils/nestedset.py +235,{0} {1} cannot be a leaf node as it has children,{0} {1} 은 가지 노드가 될 수 없습니다. 하위 항목을 가지고 있습니다.
 DocType: Communication,Info,정보
 DocType: Communication,Email,이메일
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,메시지를 수신했습니다

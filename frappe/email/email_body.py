@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown, markdown
 import email.utils
-from markdown2 import markdown
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,

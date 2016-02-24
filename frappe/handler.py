@@ -10,7 +10,6 @@ import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
-import bleach
 
 def handle():
 	"""handle request"""
@@ -50,10 +49,9 @@ def is_whitelisted(method):
 		if method not in frappe.xss_safe_methods:
 			# strictly sanitize form_dict
 			# escapes html characters like <> except for predefined tags like a, b, ul etc.
-			# if required, we can add more whitelisted tags like div, p, etc. (see its documentation)
 			for key, value in frappe.form_dict.items():
 				if isinstance(value, basestring):
-					frappe.form_dict[key] = bleach.clean(value)
+					frappe.form_dict[key] = frappe.utils.sanitize_html(value)
 
 	else:
 		if not method in frappe.whitelisted:
@@ -108,6 +106,7 @@ def uploadfile():
 		ret = None
 
 	return ret
+
 
 def get_attr(cmd):
 	"""get method object from cmd"""

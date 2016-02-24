@@ -147,6 +147,9 @@ def _get_communications(doctype, name, start=0, limit=20):
 					"attached_to_name": c.name}
 				))
 
+		elif c.communication_type=="Comment" and c.comment_type=="Comment":
+			c.content = frappe.utils.markdown(c.content)
+
 	return communications
 
 def get_assignments(dt, dn):

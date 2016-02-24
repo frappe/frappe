@@ -195,7 +195,6 @@ frappe.ui.form.Timeline = Class.extend({
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
 				c.content = c.content.split("<!-- original-reply -->")[0];
 				c.content = frappe.utils.strip_original_content(c.content);
-				c.content = frappe.dom.remove_script_and_style(c.content);
 
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
@@ -222,6 +221,9 @@ frappe.ui.form.Timeline = Class.extend({
 				c.liked_by_user = c._liked_by.indexOf(user)!==-1;
 			}
 		}
+
+		// basic level of XSS protection
+		c.content_html = frappe.dom.remove_script_and_style(c.content_html);
 	},
 
 	is_communication_or_comment: function(c) {

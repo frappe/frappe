@@ -376,7 +376,7 @@ def validate_fields(meta):
 
 	def check_title_field(meta):
 		"""Throw exception if `title_field` isn't a valid fieldname."""
-		if not meta.title_field:
+		if not meta.get("title_field"):
 			return
 
 		fieldname_list = [d.fieldname for d in fields]

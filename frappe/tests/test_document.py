@@ -156,3 +156,36 @@ class TestDocument(unittest.TestCase):
 		d.subject = "abcde"*100
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
+	def test_xss_filter(self):
+		d = self.test_insert()
+
+		# script
+		xss = '<script>alert("XSS")</script>'
+		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
+		d.subject += xss
+		d.save()
+		d.load_from_db()
+
+		self.assertTrue(xss not in d.subject)
+		self.assertTrue(escaped_xss in d.subject)
+
+		# onload
+		xss = '<div onload="alert("XSS")">Test</div>'
+		escaped_xss = '<div>Test</div>'
+		d.subject += xss
+		d.save()
+		d.load_from_db()
+
+		self.assertTrue(xss not in d.subject)
+		self.assertTrue(escaped_xss in d.subject)
+
+		# css attributes
+		xss = '<div style="something: doesn\'t work; color: red;">Test</div>'
+		escaped_xss = '<div style="color: red;">Test</div>'
+		d.subject += xss
+		d.save()
+		d.load_from_db()
+
+		self.assertTrue(xss not in d.subject)
+		self.assertTrue(escaped_xss in d.subject)
+

@@ -251,6 +251,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					}[docfield.fieldname] || docfield.fieldtype;
 
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
+
+						// make a copy of docfield for reportview
+						// as it needs to add a link_onclick property
+						if(!columnDef.report_docfield) {
+							columnDef.report_docfield = copy_dict(docfield);
+						}
+						docfield = columnDef.report_docfield;
+
 						docfield.link_onclick =
 							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
 								{fieldname:docfield.fieldname, value:value});
