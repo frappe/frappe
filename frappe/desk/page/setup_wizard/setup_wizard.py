@@ -8,6 +8,7 @@ from frappe.utils import strip
 from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
 from frappe.geo.country_info import get_country_info
+from frappe.utils.file_manager import save_file
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -23,6 +24,7 @@ def setup_complete(args):
 
 		# update system settings
 		update_system_settings(args)
+		update_user_name(args)
 
 		for method in frappe.get_hooks("setup_wizard_complete"):
 			frappe.get_attr(method)(args)
@@ -63,6 +65,41 @@ def update_system_settings(args):
 	})
 	system_settings.save()
 
+def update_user_name(args):
+	if args.get("email"):
+		args['name'] = args.get("email")
+
+		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
+		doc = frappe.get_doc({
+			"doctype":"User",
+			"email": args.get("email"),
+			"first_name": args.get("first_name"),
+			"last_name": args.get("last_name")
+		})
+		doc.flags.no_welcome_mail = True
+		doc.insert()
+		frappe.flags.mute_emails = _mute_emails
+		from frappe.auth import _update_password
+		_update_password(args.get("email"), args.get("password"))
+
+	else:
+		args['name'] = frappe.session.user
+
+		# Update User
+		if not args.get('last_name') or args.get('last_name')=='None':
+				args['last_name'] = None
+		frappe.db.sql("""update `tabUser` SET first_name=%(first_name)s,
+			last_name=%(last_name)s WHERE name=%(name)s""", args)
+
+	if args.get("attach_user"):
+		attach_user = args.get("attach_user").split(",")
+		if len(attach_user)==3:
+			filename, filetype, content = attach_user
+			fileurl = save_file(filename, content, "User", args.get("name"), decode=True).file_url
+			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
+
+	add_all_roles_to(args.get("name"))
+
 def process_args(args):
 	if not args:
 		args = frappe.local.form_dict
@@ -77,6 +114,14 @@ def process_args(args):
 			args[key] = strip(value)
 
 	return args
+
+def add_all_roles_to(name):
+	user = frappe.get_doc("User", name)
+	for role in frappe.db.sql("""select name from tabRole"""):
+		if role[0] not in ["Administrator", "Guest", "All", "Customer", "Supplier", "Partner", "Employee"]:
+			d = user.append("user_roles")
+			d.role = role[0]
+	user.save()
 
 @frappe.whitelist()
 def load_messages(language):
