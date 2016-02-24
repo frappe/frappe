@@ -54,11 +54,11 @@
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>
@@ -218,14 +218,14 @@ all values (including child documents) from the database.</p>
         <a name="add_comment" href="#add_comment" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>add_comment</b>
-        <i class="text-muted">(self, comment_type, text=None, comment_by=None, reference_doctype=None, reference_name=None)</i>
+        <i class="text-muted">(self, comment_type, text=None, comment_by=None, link_doctype=None, link_name=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add a comment to this document.</p>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
-<li><strong><code>comment_type</code></strong> -  e.g. <code>Comment</code>. See Comment for more info.</li>
+<li><strong><code>comment_type</code></strong> -  e.g. <code>Comment</code>. See Communication for more info.</li>
 </ul>
 </div>
 	<br>
@@ -458,6 +458,20 @@ is not set.</p>
 <ul>
 <li><strong><code>permtype</code></strong> -  one of <code>read</code>, <code>write</code>, <code>submit</code>, <code>cancel</code>, <code>delete</code></li>
 </ul>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="has_permlevel_access_to" href="#has_permlevel_access_to" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>has_permlevel_access_to</b>
+        <i class="text-muted">(self, fieldname, df=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -795,6 +809,20 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
+        <a name="update_timeline_doc" href="#update_timeline_doc" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>update_timeline_doc</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="validate_higher_perm_levels" href="#validate_higher_perm_levels" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>validate_higher_perm_levels</b>
@@ -952,11 +980,11 @@ user = get_doc({
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>

@@ -54,11 +54,11 @@
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>
@@ -148,32 +148,42 @@ Keep a track of all communications
         
         <tr >
             <td>1</td>
-            <td ><code>naming_series</code></td>
+            <td class="danger" title="Mandatory"><code>subject</code></td>
             <td >
-                Select</td>
-            <td class="text-muted" title="Hidden">
-                Series
+                Small Text</td>
+            <td >
+                Subject
                 
             </td>
-            <td>
-                <pre>COMM-</pre>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>2</td>
+            <td ><code>section_break_10</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                
+                
             </td>
+            <td></td>
         </tr>
         
         <tr >
-            <td>2</td>
+            <td>3</td>
             <td ><code>communication_medium</code></td>
             <td >
                 Select</td>
             <td >
-                Communication Medium
+                Type
                 
             </td>
             <td>
                 <pre>
+Email
 Chat
 Phone
-Email
 SMS
 Visit
 Other</pre>
@@ -181,19 +191,43 @@ Other</pre>
         </tr>
         
         <tr >
-            <td>3</td>
-            <td ><code>recipients</code></td>
+            <td>4</td>
+            <td ><code>sender</code></td>
             <td >
                 Data</td>
             <td >
-                Recipients
+                From
                 
             </td>
             <td></td>
         </tr>
         
         <tr >
-            <td>4</td>
+            <td>5</td>
+            <td ><code>column_break_4</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>recipients</code></td>
+            <td >
+                Data</td>
+            <td >
+                To
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
             <td ><code>cc</code></td>
             <td >
                 Data</td>
@@ -205,7 +239,7 @@ Other</pre>
         </tr>
         
         <tr >
-            <td>5</td>
+            <td>8</td>
             <td ><code>phone_no</code></td>
             <td >
                 Data</td>
@@ -214,50 +248,6 @@ Other</pre>
                 
             </td>
             <td></td>
-        </tr>
-        
-        <tr >
-            <td>6</td>
-            <td ><code>column_break_5</code></td>
-            <td class="info">
-                Column Break</td>
-            <td >
-                
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>7</td>
-            <td ><code>status</code></td>
-            <td >
-                Select</td>
-            <td >
-                Status
-                
-            </td>
-            <td>
-                <pre>Open
-Replied
-Closed
-Linked</pre>
-            </td>
-        </tr>
-        
-        <tr >
-            <td>8</td>
-            <td class="danger" title="Mandatory"><code>sent_or_received</code></td>
-            <td >
-                Select</td>
-            <td >
-                Sent or Received
-                
-            </td>
-            <td>
-                <pre>Sent
-Received</pre>
-            </td>
         </tr>
         
         <tr >
@@ -286,30 +276,6 @@ Recipient Unsubscribed</pre>
         
         <tr class="info">
             <td>10</td>
-            <td ><code>section_break_10</code></td>
-            <td >
-                Section Break</td>
-            <td >
-                
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>11</td>
-            <td class="danger" title="Mandatory"><code>subject</code></td>
-            <td >
-                Data</td>
-            <td >
-                Subject
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr class="info">
-            <td>12</td>
             <td ><code>section_break_8</code></td>
             <td >
                 Section Break</td>
@@ -321,19 +287,122 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>11</td>
             <td ><code>content</code></td>
             <td >
                 Text Editor</td>
             <td >
-                Content
+                Message
                 
             </td>
             <td></td>
         </tr>
         
         <tr class="info">
+            <td>12</td>
+            <td ><code>status_section</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Status
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>13</td>
+            <td class="danger" title="Mandatory"><code>communication_type</code></td>
+            <td >
+                Select</td>
+            <td >
+                Communication Type
+                
+            </td>
+            <td>
+                <pre>Communication
+Comment
+Chat
+Notification</pre>
+            </td>
+        </tr>
+        
+        <tr >
             <td>14</td>
+            <td ><code>comment_type</code></td>
+            <td >
+                Select</td>
+            <td class="text-muted" title="Hidden">
+                Comment Type
+                
+            </td>
+            <td>
+                <pre>
+Comment
+Like
+Info
+Label
+Workflow
+Created
+Updated
+Submitted
+Cancelled
+Deleted
+Assigned
+Assignment Completed
+Attachment
+Attachment Removed
+Shared
+Unshared</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>15</td>
+            <td ><code>column_break_5</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>16</td>
+            <td class="danger" title="Mandatory"><code>status</code></td>
+            <td >
+                Select</td>
+            <td >
+                Status
+                
+            </td>
+            <td>
+                <pre>Open
+Replied
+Closed
+Linked</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>17</td>
+            <td class="danger" title="Mandatory"><code>sent_or_received</code></td>
+            <td >
+                Select</td>
+            <td >
+                Sent or Received
+                
+            </td>
+            <td>
+                <pre>Sent
+Received</pre>
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>18</td>
             <td ><code>additional_info</code></td>
             <td >
                 Section Break</td>
@@ -345,31 +414,7 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>15</td>
-            <td ><code>sender</code></td>
-            <td >
-                Data</td>
-            <td >
-                Sender
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>16</td>
-            <td ><code>sender_full_name</code></td>
-            <td >
-                Data</td>
-            <td >
-                Sender Full Name
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>17</td>
+            <td>19</td>
             <td ><code>communication_date</code></td>
             <td >
                 Datetime</td>
@@ -381,7 +426,7 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>20</td>
             <td ><code>column_break_14</code></td>
             <td class="info">
                 Column Break</td>
@@ -393,7 +438,31 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>19</td>
+            <td>21</td>
+            <td ><code>sender_full_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                From Full Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>22</td>
+            <td ><code>reference_section</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Reference
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>23</td>
             <td ><code>reference_doctype</code></td>
             <td >
                 Link</td>
@@ -414,7 +483,7 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>24</td>
             <td ><code>reference_name</code></td>
             <td >
                 Dynamic Link</td>
@@ -428,28 +497,21 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>21</td>
-            <td ><code>in_reply_to</code></td>
+            <td>25</td>
+            <td ><code>reference_owner</code></td>
             <td >
-                Link</td>
+                Read Only</td>
             <td >
-                In Reply To
+                Reference Owner
                 
             </td>
             <td>
-                
-                
-
-
-<a href="https://frappe.github.io/frappe/current/models/core/communication">Communication</a>
-
-
-                
+                <pre>reference_name.owner</pre>
             </td>
         </tr>
         
         <tr >
-            <td>22</td>
+            <td>26</td>
             <td ><code>email_account</code></td>
             <td >
                 Link</td>
@@ -470,7 +532,28 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>23</td>
+            <td>27</td>
+            <td ><code>in_reply_to</code></td>
+            <td >
+                Link</td>
+            <td >
+                In Reply To
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/communication">Communication</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>28</td>
             <td ><code>user</code></td>
             <td >
                 Link</td>
@@ -491,7 +574,89 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>24</td>
+            <td>29</td>
+            <td ><code>column_break_27</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>30</td>
+            <td ><code>link_doctype</code></td>
+            <td >
+                Link</td>
+            <td >
+                Link DocType
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/doctype">DocType</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>31</td>
+            <td ><code>link_name</code></td>
+            <td >
+                Dynamic Link</td>
+            <td >
+                Link Name
+                
+            </td>
+            <td>
+                <pre>link_doctype</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>32</td>
+            <td ><code>timeline_doctype</code></td>
+            <td >
+                Link</td>
+            <td >
+                Timeline DocType
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/doctype">DocType</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>33</td>
+            <td ><code>timeline_name</code></td>
+            <td >
+                Dynamic Link</td>
+            <td >
+                Timeline Name
+                
+            </td>
+            <td>
+                <pre>timeline_doctype</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>34</td>
             <td ><code>unread_notification_sent</code></td>
             <td >
                 Check</td>
@@ -503,7 +668,19 @@ Recipient Unsubscribed</pre>
         </tr>
         
         <tr >
-            <td>25</td>
+            <td>35</td>
+            <td ><code>seen</code></td>
+            <td >
+                Check</td>
+            <td >
+                Seen
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>36</td>
             <td ><code>_user_tags</code></td>
             <td >
                 Data</td>
@@ -568,110 +745,12 @@ Recipient Unsubscribed</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="filter_email_list" href="#filter_email_list" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>filter_email_list</b>
-        <i class="text-muted">(self, email_list, exclude, is_cc=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_assignees" href="#get_assignees" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_assignees</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_attach_link" href="#get_attach_link" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_attach_link</b>
-        <i class="text-muted">(self, print_format)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns public link for the attachment via <code>templates/emails/print_link.html</code>.</p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_cc" href="#get_cc" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_cc</b>
-        <i class="text-muted">(self, recipients=None, fetched_from_email_account=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Build a list of email addresses for CC</p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_owner_email" href="#get_owner_email" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_owner_email</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="get_parent_doc" href="#get_parent_doc" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_parent_doc</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns document of <code>reference_doctype</code>, <code>reference_doctype</code></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_recipients" href="#get_recipients" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_recipients</b>
-        <i class="text-muted">(self, fetched_from_email_account=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Build a list of email addresses for To</p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_recipients_and_cc" href="#get_recipients_and_cc" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_recipients_and_cc</b>
-        <i class="text-muted">(self, recipients, cc, fetched_from_email_account=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -705,12 +784,12 @@ Recipient Unsubscribed</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="on_update" href="#on_update" class="text-muted small">
+        <a name="on_trash" href="#on_trash" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>on_update</b>
+		<b>on_trash</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Update parent status as <code>Open</code> or <code>Replied</code>.</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -719,19 +798,12 @@ Recipient Unsubscribed</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="prepare_to_notify" href="#prepare_to_notify" class="text-muted small">
+        <a name="on_update" href="#on_update" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>prepare_to_notify</b>
-        <i class="text-muted">(self, print_html=None, print_format=None, attachments=None)</i>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Prepare to make multipart MIME Email</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>print_html</code></strong> -  Send given value as HTML attachment.</li>
-<li><strong><code>print_format</code></strong> -  Attach print format of parent document.</li>
-</ul>
+	<div class="docs-attr-desc"><p>Update parent status as <code>Open</code> or <code>Replied</code>.</p>
 </div>
 	<br>
 
@@ -761,9 +833,9 @@ Recipient Unsubscribed</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="set_incoming_outgoing_accounts" href="#set_incoming_outgoing_accounts" class="text-muted small">
+        <a name="set_sender_full_name" href="#set_sender_full_name" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>set_incoming_outgoing_accounts</b>
+		<b>set_sender_full_name</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -775,12 +847,26 @@ Recipient Unsubscribed</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="update_parent" href="#update_parent" class="text-muted small">
+        <a name="set_status" href="#set_status" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>update_parent</b>
+		<b>set_status</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Update status of parent document based on who is replying.</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_timeline_doc" href="#set_timeline_doc" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_timeline_doc</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Set timeline<em>doctype and timeline</em>name</p>
 </div>
 	<br>
 
@@ -807,34 +893,14 @@ Recipient Unsubscribed</pre>
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.core.doctype.communication.communication.make</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.core.doctype.communication.communication.make" href="#frappe.core.doctype.communication.communication.make" class="text-muted small">
+        <a name="frappe.core.doctype.communication.communication.has_permission" href="#frappe.core.doctype.communication.communication.has_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.core.doctype.communication.communication.<b>make</b>
-        <i class="text-muted">(doctype=None, name=None, content=None, subject=None, sent_or_received=Sent, sender=None, recipients=None, communication_medium=Email, send_email=False, print_html=None, print_format=None, attachments=[], ignore_doctype_permissions=False, send_me_a_copy=False, cc=None)</i>
+		frappe.core.doctype.communication.communication.<b>has_permission</b>
+        <i class="text-muted">(doc, ptype, user)</i>
     </p>
-	<div class="docs-attr-desc"><p>Make a new communication.</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>doctype</code></strong> -  Reference DocType.</li>
-<li><strong><code>name</code></strong> -  Reference Document name.</li>
-<li><strong><code>content</code></strong> -  Communication body.</li>
-<li><strong><code>subject</code></strong> -  Communication subject.</li>
-<li><strong><code>sent_or_received</code></strong> -  Sent or Received (default <strong>Sent</strong>).</li>
-<li><strong><code>sender</code></strong> -  Communcation sender (default current user).</li>
-<li><strong><code>recipients</code></strong> -  Communication recipients as list.</li>
-<li><strong><code>communication_medium</code></strong> -  Medium of communication (default <strong>Email</strong>).</li>
-<li><strong><code>send_mail</code></strong> -  Send via email (default <strong>False</strong>).</li>
-<li><strong><code>print_html</code></strong> -  HTML Print format to be sent as attachment.</li>
-<li><strong><code>print_format</code></strong> -  Print Format name of parent document to be sent as attachment.</li>
-<li><strong><code>attachments</code></strong> -  List of attachments as list of files or JSON string.</li>
-<li><strong><code>send_me_a_copy</code></strong> -  Send a copy to the sender (default <strong>False</strong>).</li>
-</ul>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -936,11 +1002,11 @@ Recipient Unsubscribed</pre>
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>

@@ -54,11 +54,11 @@
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>
@@ -633,7 +633,7 @@ frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")
         <a name="frappe.get_all_apps" href="#frappe.get_all_apps" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_all_apps</b>
-        <i class="text-muted">(with_frappe=False, with_internal_apps=True, sites_path=None)</i>
+        <i class="text-muted">(with_internal_apps=True, sites_path=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get list of all apps via <code>sites/apps.txt</code>.</p>
 </div>
@@ -887,7 +887,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.get_logger" href="#frappe.get_logger" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_logger</b>
-        <i class="text-muted">(module=None)</i>
+        <i class="text-muted">(module=None, loglevel=DEBUG)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -1846,11 +1846,11 @@ def myfunc(param1, param2):
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='Documentation' >
+	Developer Tutorials</a></li><li data-label='API Documentation' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	Documentation</a></li>
+	API Documentation</a></li>
 	<!-- post login tools -->
 
 </ul>
