@@ -1764,7 +1764,7 @@ apps/frappe/frappe/templates/pages/print.py +173,Print Format {0} is disabled,Fo
 DocType: Email Alert,Send days before or after the reference date,Enviar dias antes ou depois da data de referência
 DocType: User,Allow user to login only after this hour (0-24),Permitir que o utilizador faça login apenas após esta hora (0-24)
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +21,Value,Valor
-apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Atribuído By Me
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Atribuído Por Mim
 apps/frappe/frappe/core/doctype/doctype/doctype.py +69,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Não no modo de desenvolvedor! Situado em site_config.json ou fazer DocType 'Custom'.
 DocType: Workflow State,globe,globo
 DocType: System Settings,dd.mm.yyyy,dd.mm.yyyy
