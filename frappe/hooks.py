@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 app_name = "frappe"
 app_title = "Frappe Framework"
-app_publisher = "Frappe Technologies Pvt. Ltd."
+app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 
 app_icon = "octicon octicon-circuit-board"
