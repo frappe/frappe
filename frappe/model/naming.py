@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import now_datetime, cint
+import re
 
 def set_new_name(doc):
 	"""Sets the `name`` property for the document based on various rules.
@@ -61,9 +62,9 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+'.#####')
+	doc.name = make_autoname(doc.naming_series+'.#####', '', doc) 
 
-def make_autoname(key, doctype=''):
+def make_autoname(key='', doctype='', doc=''):
 	"""
    Creates an autoname from the given key:
 
@@ -109,6 +110,8 @@ def make_autoname(key, doctype=''):
 			en = today.strftime("%d")
 		elif e=='YYYY':
 			en = today.strftime('%Y')
+		elif doc and doc.get(e):
+			en = doc.get(e)
 		else: en = e
 		n+=en
 	return n
@@ -160,6 +163,11 @@ def validate_name(doctype, name, case=None, merge=False):
 
 	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name!="DocType"):
 		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
+
+	special_characters = "<>"
+	if re.findall("[{0}]+".format(special_characters), name):
+		message = ", ".join("'{0}'".format(c) for c in special_characters)
+		frappe.throw(_("Name cannot contain special characters like {0}").format(special_characters), frappe.NameError)
 
 	return name
 
