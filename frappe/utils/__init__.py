@@ -410,9 +410,12 @@ def sanitize_html(html):
 	elif is_json(html):
 		return html
 
+	whitelisted_tags = (HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements
+		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
+
 	# retuns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(html,
-		tags=HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements + ["iframe"],
+		tags=whitelisted_tags,
 		attributes={"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes},
 		styles=bleach_whitelist.all_styles,
 		strip_comments=False)
