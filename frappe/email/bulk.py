@@ -10,7 +10,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -118,7 +118,7 @@ def add(email, sender, subject, formatted, text_content=None,
 		if message_id:
 			mail.set_message_id(message_id)
 
-		e.message = mail.as_string()
+		e.message = cstr(mail.as_string())
 
 	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
