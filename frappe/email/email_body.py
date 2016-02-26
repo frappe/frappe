@@ -178,6 +178,10 @@ class EMail:
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)
 
+	def set_in_reply_to(self, in_reply_to):
+		"""Used to send the Message-Id of a received email back as In-Reply-To"""
+		self.msg_root["In-Reply-To"] = in_reply_to
+
 	def make(self):
 		"""build into msg_root"""
 		headers = {
