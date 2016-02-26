@@ -16,7 +16,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, send_after=None,
+		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=False, bulk_priority=1):
 	"""Add email to sending queue (Bulk Email)
 
@@ -32,6 +32,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 	"""
 	if not unsubscribe_method:
@@ -100,11 +101,11 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, send_after, bulk_priority)
+			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, bulk_priority)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, send_after=None, bulk_priority=1, email_account=None):
+	cc=(), message_id=None, in_reply_to=None, send_after=None, bulk_priority=1, email_account=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
@@ -117,6 +118,9 @@ def add(email, sender, subject, formatted, text_content=None,
 
 		if message_id:
 			mail.set_message_id(message_id)
+
+		if in_reply_to:
+			mail.set_in_reply_to(in_reply_to)
 
 		e.message = cstr(mail.as_string())
 
