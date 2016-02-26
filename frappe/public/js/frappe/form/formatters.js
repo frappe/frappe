@@ -55,9 +55,9 @@ frappe.form.formatters = {
 	},
 	Check: function(value) {
 		if(value) {
-			return '<i class="octicon octicon-check" style="margin-right: 8px;"></i>';
+			return '<i class="octicon octicon-check" style="margin-right: 3px;"></i>';
 		} else {
-			return '<i class="icon-check-empty text-extra-muted" style="margin-right: 8px;"></i>';
+			return '<i class="icon-ban-circle text-extra-muted" style="margin-right: 3px;"></i>';
 		}
 	},
 	Link: function(value, docfield, options) {
