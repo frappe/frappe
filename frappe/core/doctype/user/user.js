@@ -48,14 +48,22 @@ frappe.ui.form.on('User', {
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
 		if(!doc.__islocal){
-			frm.add_custom_button(__("Set User Permissions"), function() {
+			frm.add_custom_button(__("Set Desktop Icons"), function() {
 				frappe.route_options = {
 					"user": doc.name
 				};
-				frappe.set_route("user-permissions");
+				frappe.set_route("modules_setup");
 			}, null, "btn-default")
 
 			if(has_common(user_roles, ["Administrator", "System Manager"])) {
+
+				frm.add_custom_button(__("Set User Permissions"), function() {
+					frappe.route_options = {
+						"user": doc.name
+					};
+					frappe.set_route("user-permissions");
+				}, null, "btn-default")
+
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 			}
 			frm.trigger('enabled');

@@ -52,32 +52,36 @@ $.extend(frappe.desktop, {
 		// filter valid icons
 		var out = [];
 
-		var add_to_out = function(module_name) {
-			var module = frappe.get_module(module_name);
-			if(module) {
-				module.app_icon = frappe.ui.app_icon.get_html(module);
-				out.push(module);
+		var add_to_out = function(module) {
+			var module = frappe.get_module(module.module_name, module);
+			module.app_icon = frappe.ui.app_icon.get_html(module);
+			out.push(module);
+		}
+
+		var is_permitted = function(module) {
+			if(m._doctype) {
+				return frappe.model.can_read(m._doctype);
+			} else {
+				return frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 			}
 		}
 
 		for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
 			var m = frappe.boot.desktop_icons[i];
-			if ((['Setup', 'Core', 'All Applications'].indexOf(m.module_name) === -1)
-				&& frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+			if ((['Setup', 'Core'].indexOf(m.module_name) === -1)
+				&& is_permitted(m)
 				&& !m.hidden) {
-					add_to_out(m.module_name)
+					add_to_out(m)
 			}
 		}
 
 		if(user_roles.indexOf('System Manager')!=-1) {
-			add_to_out('Setup')
+			add_to_out(frappe.get_module('Setup'))
 		}
 
 		if(user_roles.indexOf('Administrator')!=-1) {
-			add_to_out('Core')
+			add_to_out(frappe.get_module('Core'))
 		}
-
-		add_to_out('All Applications');
 
 		return out;
 	},
@@ -140,61 +144,6 @@ $.extend(frappe.desktop, {
 	set_background: function() {
 		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
 			frappe.boot.user.background_style);
-	},
-
-	all_applications: {
-		show: function() {
-			if(!this.dialog) {
-				this.make_dialog();
-			}
-			$(this.dialog.body).find(".desktop-app-search").val("").trigger("keyup");
-			this.dialog.show();
-		},
-
-		make_dialog: function() {
-			this.dialog = new frappe.ui.Dialog({
-				title: __("All Applications")
-			});
-
-			this.dialog.$wrapper.addClass("all-applications-dialog");
-			this.dialog_body = $(this.dialog.body);
-
-			$(frappe.render_template("all_applications_dialog", {
-				all_modules: keys(frappe.modules).sort(),
-				desktop_items: frappe.desktop.get_desktop_items(),
-				user_desktop_items: frappe.desktop.get_desktop_items()
-			})).appendTo(this.dialog_body);
-
-			this.bind_events();
-		},
-
-		bind_events: function() {
-			var me = this;
-
-			this.dialog_body.find(".desktop-app-search").on("keyup", function() {
-				var val = ($(this).val() || "").toLowerCase();
-				me.dialog_body.find(".list-group-item").each(function() {
-					$(this).toggle($(this).attr("data-label").toLowerCase().indexOf(val)!==-1
-						|| $(this).attr("data-name").toLowerCase().indexOf(val)!==-1);
-				})
-			});
-
-			this.dialog_body.find('input[type="checkbox"]').on("click", function() {
-				me.save_user_desktop_items();
-				frappe.after_ajax(function() {
-					frappe.desktop.refresh();
-				});
-			});
-		},
-
-		save_user_desktop_items: function() {
-			var user_desktop_items = [];
-			this.dialog_body.find('input[type="checkbox"]:checked').each(function(i, element) {
-				user_desktop_items.push($(element).attr("data-name"));
-			});
-			frappe.defaults.set_default("_user_desktop_items", user_desktop_items);
-			frappe.desktop.refresh();
-		}
 	},
 
 	show_pending_notifications: function() {

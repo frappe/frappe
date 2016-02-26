@@ -130,7 +130,7 @@ class RedisWrapper(redis.Redis):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		if key in frappe.local.cache[name]:
-			return copy.deepcopy(frappe.local.cache[name][key])
+			return frappe.local.cache[name][key]
 
 		value = None
 		try:

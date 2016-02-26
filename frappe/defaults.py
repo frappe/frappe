@@ -75,7 +75,8 @@ def get_defaults(user=None):
 		user = frappe.session.user if frappe.session else "Guest"
 
 	if user:
-		userd = get_defaults_for(user)
+		userd = {}
+		userd.update(get_defaults_for(user))
 		userd.update({"user": user, "owner": user})
 		globald.update(userd)
 

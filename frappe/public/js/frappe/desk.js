@@ -315,10 +315,14 @@ frappe.Application = Class.extend({
 	}
 });
 
-frappe.get_module = function(m) {
-	var module = frappe.modules[m];
+frappe.get_module = function(m, default_module) {
+	var module = frappe.modules[m] || default_module;
 	if (!module) {
 		return;
+	}
+
+	if(module._setup) {
+		return module;
 	}
 
 	if(module.type==="module" && !module.link) {
@@ -344,5 +348,19 @@ frappe.get_module = function(m) {
 		module._label = __(module.label);
 	}
 
+	module._setup = true;
+
 	return module;
 };
+
+frappe.add_to_desktop = function(label, doctype) {
+	frappe.call({
+		method: 'frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon',
+		args: {
+			link: frappe.get_route_str(),
+			label: label,
+			type: 'link',
+			_doctype: doctype
+		}
+	});
+}

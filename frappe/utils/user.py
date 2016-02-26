@@ -7,7 +7,7 @@ import frappe, json
 from frappe import _dict
 import frappe.share
 
-class User:
+class UserPermissions:
 	"""
 	A user permission object can be accessed as `frappe.get_user()`
 	"""

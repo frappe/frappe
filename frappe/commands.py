@@ -771,8 +771,9 @@ def console(context):
 @click.option('--test', multiple=True)
 @click.option('--driver')
 @click.option('--module')
+@click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None):
+def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False):
 	"Run tests"
 	import frappe.test_runner
 	from frappe.utils import sel
@@ -785,7 +786,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 		sel.start(context.verbose, driver)
 
 	try:
-		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests, force=context.force)
+		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
+			force=context.force, profile=profile)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:

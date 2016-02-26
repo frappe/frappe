@@ -426,6 +426,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.make_bulk_assignment();
 		this.make_bulk_printing();
 
+		// add to desktop
+		this.page.add_menu_item(__("Add to Desktop"), function() {
+			frappe.add_to_desktop(me.doctype, me.doctype);
+		}, true);
+
 	},
 	make_bulk_assignment: function() {
 

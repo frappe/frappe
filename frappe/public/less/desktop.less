@@ -48,7 +48,7 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 }
 
-.app-icon i {
+.app-icon .inner, .app-icon i {
 	font-size: 32px;
 	min-width: 32px;
 	color: @icon-color;
@@ -57,6 +57,11 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	-webkit-transition: 0.2s;
 	text-shadow: -1px 1px 5px rgba(0, 0, 0, 0.15);
 
+}
+
+.app-icon .inner {
+  line-height: 32px;
+  font-weight: bold;
 }
 
 .app-icon svg, .app-icon img {
