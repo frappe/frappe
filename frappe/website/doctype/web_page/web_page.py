@@ -183,20 +183,7 @@ class WebPage(WebsiteGenerator):
 
 	def get_static_content(self, context):
 		with open(self.template_path, "r") as contentfile:
-			content = unicode(contentfile.read(), 'utf-8')
-
-			if self.template_path.endswith(".md"):
-				if content:
-					lines = content.splitlines()
-					first_line = lines[0].strip()
-
-					if first_line.startswith("# "):
-						context.title = first_line[2:]
-						content = "\n".join(lines[1:])
-
-					content = markdown(content)
-
-			context.main_section = unicode(content.encode("utf-8"), 'utf-8')
+			context.main_section = unicode(contentfile.read(), 'utf-8')
 
 			self.check_for_redirect(context)
 
@@ -204,6 +191,17 @@ class WebPage(WebsiteGenerator):
 				context.title = self.name.replace("-", " ").replace("_", " ").title()
 
 			self.render_dynamic(context)
+
+			if self.template_path.endswith(".md"):
+				if context.main_section:
+					lines = context.main_section.splitlines()
+					first_line = lines[0].strip()
+
+					if first_line.startswith("# "):
+						context.title = first_line[2:]
+						context.main_section = "\n".join(lines[1:])
+
+					context.main_section = markdown(context.main_section, sanitize=False)
 
 		for extn in ("js", "css"):
 			fpath = self.template_path.rsplit(".", 1)[0] + "." + extn
