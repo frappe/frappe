@@ -2,7 +2,7 @@ execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.',
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 frappe.patches.v6_1.rename_file_data
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2016-02-17
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-10-16
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2016-02-26
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-24
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
