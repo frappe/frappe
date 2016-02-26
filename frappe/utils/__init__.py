@@ -432,10 +432,13 @@ def is_json(text):
 	else:
 		return True
 
-def markdown(text):
+def markdown(text, sanitize=True):
 	html = _markdown(text)
-	html = html.replace("<!-- markdown -->", "")
-	html = sanitize_html(html)
+
+	if sanitize:
+		html = html.replace("<!-- markdown -->", "")
+		html = sanitize_html(html)
+
 	return html
 
 def sanitize_email(emails):
