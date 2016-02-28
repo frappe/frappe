@@ -452,6 +452,31 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				frappe.msgprint(__("Select records for assignment"))
 			}
 		}, true)
+		
+		//bulk assignment
+		me.page.add_menu_item(__("Print"), function(){
+
+			docname = [];
+
+			$.each(me.get_checked_items(), function(i, doc){
+				docname.push(doc.name);
+			})
+
+			if(docname.length >= 1){
+				var json_string = JSON.stringify(docname);								
+				var w = window.open("/api/method/frappe.templates.pages.print.download_multi_pdf?"
+					+"doctype="+encodeURIComponent(me.doctype)
+					+"&name="+encodeURIComponent(json_string)
+					+"&format="+encodeURIComponent("Standard")
+					+"&no_letterhead="+encodeURIComponent('0'));
+				if(!w) {
+					msgprint(__("Please enable pop-ups")); return;
+				}
+			}
+			else{
+				frappe.msgprint(__("Select records for assignment"))
+			}
+		}, true)
 	},
 
 	init_like: function() {
