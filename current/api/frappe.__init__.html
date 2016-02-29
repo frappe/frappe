@@ -1617,7 +1617,7 @@ response JSON and shown in a pop-up / modal.</p>
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, bulk=False, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False, bulk_priority=1)</i>
+        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, bulk=False, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False, bulk_priority=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 
@@ -1638,6 +1638,7 @@ response JSON and shown in a pop-up / modal.</p>
 <li><strong><code>attachments</code></strong> -  List of attachments.</li>
 <li><strong><code>reply_to</code></strong> -  Reply-To email id.</li>
 <li><strong><code>message_id</code></strong> -  Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.</li>
+<li><strong><code>in_reply_to</code></strong> -  Used to send the Message-Id of a received email back as In-Reply-To.</li>
 <li><strong><code>send_after</code></strong> -  Send after the given datetime.</li>
 <li><strong><code>expose_recipients</code></strong> -  Display all recipients in the footer message - "This email was sent to"</li>
 </ul>

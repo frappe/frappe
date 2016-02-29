@@ -108,13 +108,11 @@
     e="text-align: Left">
 	<p>In a print format, you can get data from another document. For example in if you have a fields called <code>sales_order</code> in Sales Invoice, then you can get the sales order details using <code>frappe.get_doc</code>:</p>
 
-<p>
-    {% set sales<em>order</em>doc = frappe.get<em>doc("Sales Order", sales</em>order) %}</p>
+<pre><code>{% set sales_order_doc = frappe.get_doc("Sales Order", sales_order) %}
 
-<pre><code>{{ sales_order_doc.customer }}
+{{ sales_order_doc.customer }}
 </code></pre>
 
-<p></p>
 	</article>
 	
 </div>

@@ -126,11 +126,11 @@
 
 <p>If you are logged in as the test user, go to <code>/article</code> and you should see the list of articles:</p>
 
-<p><img alt="Web List" src="{{docs_base_url}}/assets/img/guide/26-web-list.png"></p>
+<p><img src="https://frappe.github.io/frappe/assets/img/guide/26-web-list.png" alt="Web List" /></p>
 
 <p>Click on one article and you will see the default web view</p>
 
-<p><img alt="Web List" src="{{docs_base_url}}/assets/img/guide/26-web-view.png"></p>
+<p><img src="https://frappe.github.io/frappe/assets/img/guide/26-web-view.png" alt="Web List" /></p>
 
 <p>Now if you want to make a better list view for the article, drop a file called <code>list_item.html</code> in the <code>library_management/doctype/article</code> folder. Here is an example file:</p>
 
@@ -145,7 +145,7 @@
         &lt;a href="/Article/{{ doc.name }}"&gt;&lt;h4&gt;{{ doc.article_name }}&lt;/h4&gt;&lt;/a&gt;
         &lt;p&gt;{{ doc.author }}&lt;/p&gt;
         &lt;p&gt;{{ (doc.description[:200] + "...")
-            if doc.description|length &gt; 200 else doc.description }}&lt;/p&gt;
+            if doc.description|len &gt; 200 else doc.description }}&lt;/p&gt;
         &lt;p class="text-muted"&gt;Publisher: {{ doc.publisher }}&lt;/p&gt;
     &lt;/div&gt;
 &lt;/div&gt;
@@ -155,7 +155,7 @@
 
 <p>The updated list view looks like this!</p>
 
-<p><img alt="Web List" src="{{docs_base_url}}/assets/img/guide/27-web-view-list.png"></p>
+<p><img src="https://frappe.github.io/frappe/assets/img/guide/27-web-view-list.png" alt="Web List" /></p>
 
 <h4>Home Page</h4>
 
