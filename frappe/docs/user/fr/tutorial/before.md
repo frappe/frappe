@@ -1,48 +1,52 @@
-# Before You Start
+# Avant de commencer
 
-<p class="lead">A list of tools, technologies that will be very helpful for building apps in Frappe.</p>
+<p class="lead">Liste des outils, technologies utiles dans le développement d'applications avec Frappe.</p>
 
-There are a number of good tutorials online and we found [CodeAcademy](http://www.codecademy.com/) to be the most beautiful ones out there here bunch of lessons you can learn from CodeAcademy
-
+Il y a un grand nombres de tutoriels en ligne et nous recommandons [CodeAcademy](http://www.codecademy.com/) ou vous 
+trouverez beaucoup de ressources de qualité.
 ---
 
 #### 1. Python
 
-Server side Frappe is written in Python and its a good idea to [quickly learn Python](http://www.codecademy.com/tracks/python) before you started digging into Frappe. Another good place to learn Python is the [tutorial on docs.python.org](https://docs.python.org/2.7/tutorial/index.html). Note that Frappe uses Python 2.7
+La partie serveur de Frappe est codée en Python et c'est une bonne idée d'[apprendre rapidement Python](http://www.codecademy.com/tracks/python) 
+avant de commencer à comprendre Frappe. [Le tutoriel sur docs.python.org](https://docs.python.org/2.7/tutorial/index.html)
+est aussi une excellente ressource pour apprendre Python. Notez que Frappe utilise Python 2.7.
 
-To write quality server side code, you must include automatic tests. You can learn the [basics of test driven development here](http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
+Pour produire une application de qualité, vous devez inclure des tests automatiques. Vous pouvez comprendre les bases
+du développement par les tests [ici](http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
 
 ---
 
-#### 2. Databases MariaDB / MySQL
+#### 2. MariaDB / MySQL
 
-You need to understand the basics of databases, like how to install, login, create new databases, and basic SQL queries. Here is a [very quick introduction to MySQL](https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) or head to [the MariaDB site for a more detailed understanding](https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
+Vous devez comprendre les notions essentielles des bases de données, comment installer, se connecter, créer de nouvelles bases, 
+et comment faire des requêtes. Voici [une rapide introduction à MySQL](https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) ou dirigez vous vers [le site MariaDB pour des informations plus détaillées](https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
 
 ---
 
 #### 3. HTML / CSS
 
-If you are building user interfaces, you will need to [learn basic HTML / CSS](http://www.codecademy.com/tracks/web) and the [Boostrap CSS Framework](http://getbootstrap.com)
+Pour construire des interfaces utilisateur, vous devez [apprendre les bases HTML / CSS](http://www.codecademy.com/tracks/web) et [connaître le framework CSS Boostrap](http://getbootstrap.com)
 
 ---
 
-#### 4. Building UI with Javascript and JQuery
+#### 4. Construire des interfaces avec Javascript et JQuery
 
-To customize forms and create new rich user interfaces, it is best to [learn Javacsript](http://www.codecademy.com/tracks/javascript) and the [popular library JQuery](http://www.codecademy.com/tracks/jquery).
-
----
-
-#### 5. Customizing Prints and Web pages with Jinja Templating
-
-If you are customizing Print templates, you need to learn the [Jinja Templating language](http://jinja.pocoo.org/). It is an easy way to create dynamic web pages (HTML).
+Pour customiser les formulaires et créer des interfaces riches, le mieux est [d'apprendre Javascript](http://www.codecademy.com/tracks/javascript) et la [fameuse librairie JQuery](http://www.codecademy.com/tracks/jquery).
 
 ---
 
-#### 6. Git and GitHub
+#### 5. Modifier les affichages et les pages web avec le sysème de template Jinja
 
-[Learn how to contribute back to an open source project using Git and GitHub](https://guides.github.com/activities/contributing-to-open-source/), two great tools to help you manage your code and share it with others.
+Si vous voulez modifier les affichages, vous devez apprendre le [language de template Jinja](http://jinja.pocoo.org/). C'est un moyen rapide de construire des pages web dynamiques.
 
 ---
 
-When you are ready, [try building a sample application on Frappe]({{ docs_base_url }}/user/tutorial/app)
+#### 6. Git et GitHub
+
+[Apprenz à contrinuer à un projet open source en utilisant Git et GitHub](https://guides.github.com/activities/contributing-to-open-source/), deux outils fantastiques pour vous aider à gérer et partager votre code.
+
+---
+
+Quand vous êtes prêts, [essayez de développer une simple applicationa avec Frappe]({{ docs_base_url }}/user/fr/tutorial/app)
 
