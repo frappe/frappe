@@ -1,6 +1,6 @@
 # Structure du repertoire d'un DocType
 
-Après avoir sauvegardé vos DocTypes, vérifiez que les modèles dans les fichiers `.json` et `.py`soient créés dans le module
+Après avoir sauvegardé vos DocTypes, vérifiez que les modèles dans les fichiers `.json` et `.py` soient créés dans le module
 `apps/library_management/library_management`. La structure du repertoire devrait ressembler à:
 
 	.
