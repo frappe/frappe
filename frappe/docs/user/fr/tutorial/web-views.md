@@ -1,28 +1,33 @@
-# Web Views
+# es vues web
 
-Frappe has two main user environments, the Desk and Web. Desk is a controlled UI environment with a rich AJAX application and the web is more traditional HTML templates served for public consumption. Web views can also be generated to create more controlled views for users who may login but still do not have access to the Desk.
+Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
+que **le web** est une collection plus traditionnelle de fichers HTML pour la consultation publique. Les vues web peuvent
+aussi être générées pour créer des vues plus controllées pour les utilisateurs qui peuvent se connecter mais qui n'ont pas
+accès au desk.
 
-In Frappe, Web Views are managed by templates and they are usually in the `templates` folder. There are 2 main types of templates.
+Dans Frappe, les vues sont gérées par des templates et sont tout naturellement placés dans le repertoire `templates`. Il 
+y a 2 principaux types de templates.
 
-1. Pages: These are Jinja templates where a single view exists for a single web route e.g. `/blog`.
-2. Generators: These are templates where each instance of a DocType has a separate web route `/blog/a-blog`, `blog/b-blog` etc.
-3. Lists and Views: These are standard lists and views with the route `[doctype]/[name]` and are rendered based on permission.
+1. Pages: Ce sont des templates Jinja ou une vue unique existe pour une route (exemple:`/blog`).
+2. Générateurs: Ce sont des templates ou chaque instance représente un **DocType** réprésenté par une url unique. (exemple:`/blog/a-blog`, `blog/b-blog` etc.)
+3. Les listes et les vues: Ce sont des listes standards et des vues avec l'url `[doctype]/[name]` et sont affichées en fonction des permissions.
 
-### Standard Web Views
+### Les vues web standards
 
-> This features is still under development.
+> Cette fonctionnalité est encore en développement.
 
-Let us look at the standard Web Views:
+Jettons un oeuil aux vues standards:
 
-If you are logged in as the test user, go to `/article` and you should see the list of articles:
+Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
 ![Web List]({{docs_base_url}}/assets/img/guide/26-web-list.png)
 
-Click on one article and you will see the default web view
+Cliquez sur un article et vous devriez voir une vue par défaut.
 
 ![Web List]({{docs_base_url}}/assets/img/guide/26-web-view.png)
 
-Now if you want to make a better list view for the article, drop a file called `list_item.html` in the `library_management/doctype/article` folder. Here is an example file:
+Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `list_item.html` dans le 
+repertoire `library_management/doctype/article`. Voici un exemple du contenu de ce fichier:
 
 	<div class="row">
 		<div class="col-sm-4">
@@ -41,24 +46,27 @@ Now if you want to make a better list view for the article, drop a file called `
 	</div>
 
 
-Here, you will get all the properties of the article in the `doc` object.
+Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
 
-The updated list view looks like this!
+La mise à jour de la liste ressemble à ca !
 
 ![Web List]({{docs_base_url}}/assets/img/guide/27-web-view-list.png)
 
-#### Home Page
+#### La page d'accueil
 
-Frappe also has a built-in signup workflow which also includes 3rd party signups via Google, Facebook and GitHub. When a user signs up on the web, she does not have access to the desk interface by default.
+Frappe permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
+le web, il n'a pas accès à l'interface du desk par defaut.
 
-> To allow user access into the Desk, open set the user from Setup > User and set the User Type as "System User"
+> Pour autoriser les utilisateurs à accéder au Desk, ouvrez la configuration de l'utilisateur (Setup > User) et définissez
+ le type d'utilisatuer à "System User".
 
-Now for the non system users, we can set a home page when they login via `hooks.py` based on the role.
+Pour les utilisateurs qui n'ont pas accès au desk, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
+`hooks.py` le tout en respectant les rôles.
 
-To when library members sign in, they must be redirected to the `article` page, to set this open `library_management/hooks.py` and add this:
+Quand un membre de la librairie se connecte, il doit être redirigé vers la page `article` donc ouvrez le fichier `library_management/hooks.py` et ajoutez:
 
 	role_home_page = {
 		"Library Member": "article"
 	}
 
-{next}
+{suite}
