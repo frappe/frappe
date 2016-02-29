@@ -1,9 +1,12 @@
-# Single DocTypes
+# Les DocTypes de type Single
 
-A application will usually have a Settings page. In our application, we can define a page where we can set the loan period. We also need to save this property. In Frappe, this can be done using a **Single** type DocType. A Single DocType is like the Singleton pattern in Java. It is an object with only one instance. Let us call this as **Library Managment Settings**.
+Une application aura en générale une seule page de configuration. Dans notre application nous pouvons donc définir une page
+ou nous définierons la période prêt. Nous avons aussi besoin de sauvegarder cette propriété. Dans Frappe, ceci est possible
+en utilisant un un Doctype de type **Single**. Un DocType **Single** est comme le pattern Singleton, une instance unique 
+d'une classe. Appelons le **Library Managment Settings**.
 
-To create an new Single DocType, mark the **Is Single** property as checked.
+Pour créer un DocType de type **Single** cochez la case **Is Single**.
 
 <img class="screenshot" alt="Single Doctypes" src="{{docs_base_url}}/assets/img/tab_single.png">
 
-{next}
+{suite}
