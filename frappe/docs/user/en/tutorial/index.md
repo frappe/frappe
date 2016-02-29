@@ -1,33 +1,41 @@
-# Frappe Tutorial
+# Tutoriel Frappe
 
-In this guide we will show you how to create an application from scratch using **Frappe**. Using the example of a Library Management System, we will cover:
+Dans ce guide nous allins vous montrer comment créer une application de A à Z en utilisant **Frappe**. En utilisant un 
+exemple de gestion d'une librairie, nous allons aborder les sujets suivants:
 
 1. Installation
-1. Making a New App
-1. Making Models
-1. Creating Users and Records
-1. Creating Controllers
-1. Creating Web Views
-1. Setting Hooks and Tasks
+1. Créer une nouvelle application
+1. Créer des modèles
+1. Créer des utilisateurs et des enregristrements
+1. Créer des contrôleurs
+1. Créer des vues web
+1. Configurer des Hooks et des tâches
 
-## Who is This For?
+## A qui s'adresse ce tutoriel ?
 
-This guide is intended for software developers who are familiar with how the web applications are built and served. Frappe Framework is built on Python and uses MariaDB database and for creating web views, HTML/CSS/Javascript is used. So it would be great if you are familiar with all these technologies. At minimum if you have never used Python before, you should take a quick tutorial before your use this Guide.
+Ce guide est à destination des développeurs familiers avec la création d'applications web. Le framework Frappe est développé
+avec Python, utilise le système de base de données MariaDB et database and HTML/CSS/Javascript pour le rendu des pages. 
+Il est donc necessaire d'être familier avec ces technologies. Si vous n'avez jamais utilisé Python auparavant, vous devriez
+suivre un tutoriel rapide avant de suivre ce guide.
 
-Frappe uses the git version control system on GitHub. It is also important that you are familiar with basic git and have an account on GitHub to manage your applications.
+Frappe utilise le système de gestion de version git sur Github. Il est donc imporant que vous connaissiez les basiques de
+l'utilisation de git et que vous ayez un compte sur Github pour gérer vos applications.
 
-## Example
+## Exemple
 
-For this guide book, we will build a simple **Library Management** application. In this application we will have models:
+Dans ce guide, nous allons développer une simple application de **gestion de librairie**. Dans cette applications nous aurons
+les modèles suivants:
 
-1. Article (Book or any other item that can be loaned)
-1. Library Member
-1. Library Transaction (Issue or Return of an article)
-1. Library Membership (A period in which a member is allowed to transact)
-1. Library Management Setting (Global settings like period of loan)
+1. Article (un livre ou tout autre produit qui peut être emprunté)
+1. Library Member (membre de la librairie)
+1. Library Transaction (prêt ou retour d'un article)
+1. Library Membership (Periode pendant laquelle un membre peut emprunter)
+1. Library Management Setting (configuration générale)
 
-The user interface (UI) for the librarian will be the **Frappe Desk**, a built-in browser based UI environment where forms are automatically generated from the models and roles and permissions are also applied.
+L'interace utilisateur (UI) pour le libraire sera **Frappe Desk**, un système de rendu d'interface où les formulaires sont
+automatiquement générés depuis les modèles en appliquant rôles et permissions.
 
-We will also create web views for library where users can browse articles from a website.
+Nous allons aussi créer des vues pour la lirairie afin que les utilisateurs puissent parcourir les articles depuis un site
+internet.
 
 {index}

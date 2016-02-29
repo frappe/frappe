@@ -1,9 +1,13 @@
-# What is an Application
+# Qu'est ce qu'une application ?
 
-An Application in Frappe is just a standard Python application. You can structure a Frappe Application the same way you structure a standard Python Application. For deployment, Frappe uses the standard Python Setuptools, so you can easily port and install the application on any machine.
+Dans Frappe, une application est juste une application Python standard. Vous pouvez structurer une application Frappe de 
+la même facon que vous structurez une application Python standard. Pour le déploiement, Frappe utilise Setuptools donc 
+vous pouvez facilement déployer votre application sur n'importe quelle machine.
 
-Frappe Framework provides a WSGI interface and for development you can use the built-in Werkzeug server. For implementing in production, we recommend using nginx and gunicorn.
+Frappe fournit une interface WSGI et pendant vos développements vous pouvez utiliser le serveur Werkzeug embarqué. Pour le
+déploiemenent en production, nous recommandons d'utiliser nginx et gunicorn.
 
-Frappe also has a multi-tenant architecture, grounds up. This means that you can run multiple "sites" in your setup, each could be serving a different set of applications and users. The database for each site is separate.
+Frappe, c'est aussune une architecture multi-tenant ce qui signifie que vous pouvez lancer plusieurs sites sur une meme
+configuration, chaque site utilisant ses propres applications et utilisateurs. La base de données de chaque site est indépendante.
 
-{next}
+{suite}

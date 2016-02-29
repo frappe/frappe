@@ -1,11 +1,13 @@
-# Installing the Frappe Bench
+# Installer le bench de Frappe
 
-Easiest way to setup frappe on a Unix Like system is to use frappe-bench. Read the detailed instructions on how to install using Frappe Bench.
+La facon la plus rapide d'installer Frappe sur un système Unix est d'utiliser frappe-bench. Lisez les instructions détaillées sur
+comment installer et utiliser Frappe Bench.
 
 > [https://github.com/frappe/bench](https://github.com/frappe/bench)
 
-With Frappe Bench you will be able to setup and host multiple applications and sites and it will also setup a Python Virtualenv so that you can have an isolated environment to run your applications (and will not have version conflict with other development environments).
+Avec Frappe Bench vous pourrez configurer et héberger de multiples applications et sites. Frappe Bench configure aussi un Virtualenv 
+Python donc vos applications seront isolées les unes des autres (et vous n'aurez pas de conflits avce d'autres environnements de developpement).
 
-The `bench` command line tool will also be installed that will help you in development and management of the installation.
+La commande `bench` sera installé et vous aidera aidera dans le développement et la gestion des vos applications.
 
-{next}
+{suite}

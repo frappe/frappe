@@ -1,8 +1,10 @@
-# Make a New App
+# Créer une nouvelle application
 
-Once the bench is installed, you will see two main folders, `apps` and `sites`. All the applications will be installed in apps.
+Une fois que Bench est installé, vous apercevrez deux répertoires, `apps` and `sites`. Toutes les applications seront 
+installées dans `apps`.
 
-To make a new application, go to your bench folder and run, `bench new-app {app_name}` and fill in details about the application. This will create a boilerplate application for you.
+Pour créer une nouvelle application, allez dans votre répertoire et lancer la commande, `bench new-app {app_name}` et 
+remplissez les informations à propos de votre application. Cela va créer un template d'application pour vous.
 
 	$ bench new-app library_management
 	App Title (defaut: Lib Mgt): Library Management
@@ -13,9 +15,9 @@ To make a new application, go to your bench folder and run, `bench new-app {app_
 	App Color (default 'grey'): #589494
 	App License (default 'MIT'): GNU General Public License
 
-### App Structure
+### Structure d'une application
 
-The application will be created in a folder called `library_management` and will have the following structure:
+L'application sera créée dans un répertoire appelé `library_management` et aura la structure suivante:
 
 	.
 	├── MANIFEST.in
@@ -41,14 +43,14 @@ The application will be created in a folder called `library_management` and will
 	├── requirements.txt
 	└── setup.py
 
-1. `config` folder contains application configuration info
-1. `desktop.py` is where desktop icons can be added to the Desk
-1. `hooks.py` is where integrations with the environment and other applications is mentioned.
-1. `library_management` (inner) is a **module** that is bootstrapped. In Frappe, a **module** is where model and controller files reside.
-1. `modules.txt` contains list of **modules** in the app. When you create a new module, it is required that you update it in this file.
-1. `patches.txt` is where migration patches are written. They are python module references using the dot notation.
-1. `templates` is the folder where web view templates are maintained. Templates for **Login** and other standard pages are bootstrapped in frappe.
-1. `generators` are where templates for models are maintained, where each model instance has a separte web route, for example a **Blog Post** where each post has its unique web url. In Frappe, the templating engine used is Jinja2
-1. `pages` is where single route templates are maintained. For example for a "/blog" type of page.
+1. `config` configuration de l'applicationfolder contains application configuration info
+1. `desktop.py` est l'endroit ou les icones peuvent être ajoutées au bureau
+1. `hooks.py` contient les définitions de la facon dont l'intégration avec l'environnement et les autres applications est faite.
+1. `library_management` (interne) est un **module** bootstrappé. Dans Frappe, un **module** est l'endroit ou sont les controlleurs et les modeles.
+1. `modules.txt` contient la liste des **modules** dans l'application. Quand vous créez un nouveau module, c'est obligatoire de l'ajouter dans ce fichier.
+1. `patches.txt` contient les patchs de migration. Ce sont des références Python utilisant la notation par point.
+1. `templates` est le repertoire qui contient les templates des vues. Les templates pour **Login** et autres pages par défaut sont déjà contenus dans Frappe.
+1. `generators` est l'endroit ou sont stockés les templates des modèles. Chaque instance du modèle a une route web comme par exemple les **articles de blog** ou chaque article a une adresse unique. Dans Frappe, Jinj2 est utilisé pour les templates.
+1. `pages` contient les routes uniques pour les templates. Par exemple "/blog" ou "/article"
 
-{next}
+{suite}
