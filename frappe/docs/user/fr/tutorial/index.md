@@ -1,6 +1,6 @@
 # Tutoriel Frappe
 
-Dans ce guide nous allins vous montrer comment créer une application de A à Z en utilisant **Frappe**. En utilisant un 
+Dans ce guide nous allons vous montrer comment créer une application de A à Z en utilisant **Frappe**. Avec un 
 exemple de gestion d'une librairie, nous allons aborder les sujets suivants:
 
 1. Installation
