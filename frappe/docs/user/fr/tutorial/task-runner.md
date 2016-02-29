@@ -1,8 +1,10 @@
-# Scheduled Tasks
+# Les tâches planifiées
 
-Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue.
+Finalement, une application a aussi à envoyer des emails de notifications ou d'autres taches planifiées. Dans Frappe, si 
+ vous avez configuré le **bench**, la tâche / planificateur est configuré via Celery en utilisant les queues Redis.
 
-To add a new task handler, go to `hooks.py` and add a new handler. Default handlers are `all`, `daily`, `weekly`, `monthly`. The `all` handler is called every 3 minutes by default.
+Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et ajoutez un nouveau gestionnaire. Les gestionnaire
+ par defaut sont `all`, `daily`, `weekly`, `monthly`. Le gestionanire `all` est appelé toutes les 3 minutes par defaut.
 
 	# Scheduled Tasks
 	# ---------------
@@ -13,7 +15,8 @@ To add a new task handler, go to `hooks.py` and add a new handler. Default handl
 		],
 	}
 
-Here we can point to a Python function and that function will be executed every day. Let us look what this function looks like:
+Ici, nous pointons sur une fonction en Python et cette fonction sera appelée tous les jours. Voyons à quoi cette fonction 
+ressemble:
 
 	# Copyright (c) 2013, Frappe
 	# For license information, please see license.txt
@@ -66,12 +69,14 @@ Here we can point to a Python function and that function will be executed every 
 
 			articles_transacted.append(d.article)
 
-We can place the above code code in any accessible Python module. The route is defined in `hooks.py`, so for our purposes we would place this code in `library_management/tasks.py`.
+Nous pouvons placer ce code dans un n'importe quel module Python accessible. La route est définie dans `hooks.py`, donc
+ 
+so for nso besoins, nos placerons ce code dans `library_management/tasks.py`.
 
 Note:
 
-1. We get the loan period from **Library Management Settings** by using `frappe.db.get_value`.
-1. We run a query in the database with `frappe.db.sql`
-1. Email is sent via `frappe.sendmail`
+1. Nous obtenons la durée de prêt depuis **Library Management Settings** en utilisant `frappe.db.get_value`.
+1. Nous lancons une requête dans la base de données via `frappe.db.sql`
+1. Les emails sont envoyés via `frappe.sendmail`
 
-{next}
+{suite}
