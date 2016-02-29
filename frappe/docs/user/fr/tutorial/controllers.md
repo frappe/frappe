@@ -1,21 +1,23 @@
-# Controllers
+# Les controleurs
 
-Next step would be adding methods and event handlers to models. In the app, we should ensure that if a Library Transaction is made, the Article in question must be in stock and the member loaning the Article must have a valid membership.
+La prochaine étape est d'ajouter quelques méthodes et évéements à nos modèles. Dans l'application, nous devons nous 
+assurer que si une opération est faite, l'article concerné doit être disponible en stock et que le membre qui souhaite
+faire le prêt à un abonnement valide.
 
-For this, we can write a validation just before the Library Transaction object is saved. To do this, open the `library_management/doctype/library_transaction/library_transaction.py` template.
+Pour cela, nous pouvons écrire une règle de validation au moment de la sauvegarde du prêt. Ouvrez le template `library_management/doctype/library_transaction/library_transaction.py`.
 
-This file is the controller for the Library Transaction object. In this you can write methods for:
+Ce fichier est le controleur qui gère les opérations de la librairie, vous pouvez y écrire des méthodes pour:
 
 1. `before_insert`
-1. `validate` (before inserting or updating)
-1. `on_update` (after saving)
-1. `on_submit` (when document is set as submitted)
+1. `validate` (avant l'insertion ou la mise à jour)
+1. `on_update` (après la sauvegarde)
+1. `on_submit` (quand le document est soumis)
 1. `on_cancel`
-1. `on_trash` (before it is about to be deleted)
+1. `on_trash` (avant qu'il ne soit sur le point d'être supprimé)
 
-You can write methods for these events and they will be called by the framework when the document is saved etc.
+Vous pouvez écrire des méthodes pour ces événement et elles seront appelées par le framework au bon moment.
 
-Here is the finished controller:
+Voici pour finir le controleur:
 
 	from __future__ import unicode_literals
 	import frappe
@@ -40,20 +42,20 @@ Here is the finished controller:
 				if not last_transaction or last_transaction[0].transaction_type!="Issue":
 					frappe.throw(_("Cannot return article not issued"))
 
-In this script:
+Dans ce scrit:
 
-1. We get the last transaction before the current transaction date using the query function `frappe.get_list`
-1. If the last transaction is something we don't like we throw an exception using `frappe.throw`
-1. We use `_("text")` method to identify translatable strings.
+1. Nous récuperons la dernière opération, avant la date de l'opération en cours en utilisant la méthode `frappe.get_list`
+1. Si la dernière opération est quelque chose qui n'est pas attendu, alors nous levons une exception en utilisant `frappe.throw`
+1. Nous utilisons la méthode  `_("text")` pour identifier une chaine traduisible.
 
-Check if your validations work by creating new records
+Verifiez vos validations en créant de nouveux enregistrements.
 
 <img class="screenshot" alt="Transaction" src="{{docs_base_url}}/assets/img/lib_trans.png">
 
-#### Debugging
+#### Debogage
 
-To Debug, always keep your JS Console open. Lookout for both Javascript and server tracebacks.
+Pour debugger, gardez toujours votre console JS ouverte, vérifier les erreurs à la fois de Javascript mais aussi du serveur.
 
-Also check your terminal window for exceptions. Any **500 Internal Server Errors** will get printed in your terminal where on which your server is running.
+Regardez aussi votre fenêtre de terminal pour les esceptions. Chaque **erreur 500 pour des problèmes internes** seront affichées dans le terminal du serveur en cours d'utilisation.
 
-{next}
+{suite}
