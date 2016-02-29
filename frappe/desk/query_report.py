@@ -109,7 +109,7 @@ def add_total_row(result, columns):
 		for i, col in enumerate(columns):
 			fieldtype = None
 			if isinstance(col, basestring):
-				col = col.split(":")
+				col = col.decode('utf-8').split(":")
 				if len(col) > 1:
 					fieldtype = col[1]
 			else:
@@ -125,7 +125,7 @@ def add_total_row(result, columns):
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], basestring):
-		first_col = columns[0].split(":")
+		first_col = columns[0].decode('utf-8').split(":")
 		if len(first_col) > 1:
 			first_col_fieldtype = first_col[1].split("/")[0]
 	else:
@@ -264,7 +264,7 @@ def get_columns_dict(columns):
 
 		# string
 		if isinstance(col, basestring):
-			col = col.split(":")
+			col = col.decode('utf-8').split(":")
 			if len(col) > 1:
 				if "/" in col[1]:
 					col_dict["fieldtype"], col_dict["options"] = col[1].split("/")
