@@ -1,7 +1,10 @@
 # Conclusion
 
 
-We hope this will give you an overview of how applications are developed in Frappe. The objective was to briefly touch on the various aspects of application development and give a broad overview. To get help on specific issues, look at the API.
+Nous espérons vous avoir donné un apercu de comment les applications sont développées avec Frappe. L'ojectif était de vous
+montrer brievement, les différents aspects du développement d'une application en vous donnant un apércu général. Pour aller plus 
+loin dans les explications, consultez l'API.
 
-For help, join the community at the [chat channel on Gitter](https://gitter.im/frappe/erpnext) or the [developer forum](https://discuss.erpnext.com)
+Pour obtenir de l'aider, rejoingnez la communauté  sur le[chat sur Gitter](https://gitter.im/frappe/erpnext) ou sur le
+[forum des développeurs](https://discuss.erpnext.com)
 
