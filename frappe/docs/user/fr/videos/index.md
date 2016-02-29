@@ -1,9 +1,8 @@
-# Tutoriaux vidéos pour le framework Frappe
+# Video Tutorials for Frappe Framework
 
-Cette vidéo en 10 parties vous enseignera comment développer une une application complexe avec Frappe
+This 10-part video tutorial will teach you how to build complex apps in Frappe
 
-Prerequis: <a href="{{ docs_base_url }}/user/tutorial/before.html" target="_blank">Vous devez avoir quelques connaissances
-sur la progammation avec Python, Javascript et MySQL avant de commencer ce tutoriel.</a>
+Pre-requisites: <a href="{{ docs_base_url }}/user/tutorial/before.html" target="_blank">You must have some understanding of Python, Javascript and MySQL before you start this tutorial.</a>
 
 ---
 

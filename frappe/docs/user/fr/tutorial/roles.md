@@ -1,14 +1,15 @@
-# Creating Roles
+# Créer des rôles
 
-Before creating Models, we must create Roles so that we can set permissions on the Model. There are two Roles we will create:
+Avant de créer des modèles, nous devons auparavant créer des rôles qui auront des permissions sur le modèles. Nous allons 
+créer deux rôles:
 
-1. Librarian
-1. Library Member
+1. Librarian pour définir le libraire
+1. Library Member pour définir un membre
 
-To create a new Role, go to:
+Pour créer un nouveau rôle, se rendre sur:
 
 > Setup > Users > Role > New
 
 <img class="screenshot" alt="Adding Roles" src="{{docs_base_url}}/assets/img/roles_creation.png">
 
-{next}
+{suite}

@@ -1,59 +1,67 @@
 # DocType
 
-After creating the Roles, let us create the **DocTypes**
+Après avoir créé les ^oles, créons des **DocTypes**
 
-To create a new **DocType**, go to:
+Pour créer un nouveau **DocType**, rendez-vous sur:
 
 > Developer > Documents > Doctype > New
 
 <img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
 
-In the DocType, first the Module, which in our case is **Library Managment**
+Dans un premier temps, saisissez le module, dans notre cas, **Library Managment**
 
-#### Adding Fields
+#### Ajouter des champs
 
-In the Fields Table, you can add the fields (properties) of the DocType (Article).
+Dans le tableau des champs, vous pouvez ajouter des champs (propriétés) du **DocType** (Article).
 
-Fields are much more than database columns, they can be:
+Les champs sont bien plus que des colonnes d'une base de données, ils peuvent être:
 
-1. Columns in the database
-1. Layout helpers (section / column breaks)
-1. Child tables (Table type field)
+1. Des colonnes d'une base de données
+1. Des aides pour la mise en page (section / saut de lignes)
+1. Des tableaux enfants (Champs de type tableau)
 1. HTML
-1. Actions (button)
-1. Attachments or Images
+1. Des actions (button)
+1. Des pièces jointes ou des images
 
-Let us add the fields of the Article.
+Ajoutons des champs pour l'article.
 
 <img class="screenshot" alt="Adding Fields" src="{{docs_base_url}}/assets/img/doctype_adding_field.png">
 
-When you add fields, you need to enter the **Type**. **Label** is optional for Section Break and Column Break. **Name** (`fieldname`) is the name of the database table column and also the property of the controller. This has to be *code friendly*, i.e. it has to have small cases are _ instead of " ". If you leave the Fieldname blank, it will be automatically set when you save it.
+Quand vous ajoutez des champs, vous devez entrer le **Type**. Le **Label** est optionnel pour les retours de sections et de colonnes. 
+Le **Name** (`fieldname`) ets le nom de la colonne dans la base de données et aussi la propriété du controleur. Les définitions
+doivent être *code friendly*, (par exemple insérer des underscores (_) à la place de espaces. Si vous laissez le champs `fieldname`
+vide, il sera automatiquement complété à la sauvegarde.
 
-You can also set other properties of the field like whether it is mandatory, read only etc.
+Vous pouvez aussi définir d'autres propriétés comme par exemple prciser que le champs est requis ou en lecture seule etc.
 
-We can add the following fields:
+Nous pouvons ajouter les champs suivants:
 
 1. Article Name (Data)
 2. Author (Data)
 3. Description
 4. ISBN
-5. Status (Select): For Select fields, you will enter the Options. Enter **Issued** and **Available** each on a new line in the Options box. See diagram below
+5. Status (Select): Pour les champs de type select, vous devez compléter les options. entrer **Issued** et **Available** 
+sur chacune des lignes comme ci-dessous
 6. Publisher (Data)
 7. Language (Data)
 8. Image (Attach Image)
 
 
-#### Add Permissions
+#### Ajouter des permissins
 
-After adding the fields, hit done and add a new row in the Permission Rules section. For now, let us give Read, Write, Create, Delete and Report access to **Librarian**. Frappe has a finely grained Role based permission model. You can also change permissions later using the **Role Permissions Manager** from **Setup**.
+Après avoir ajouté les champs, validez et ajoutez un nouveau rôle dans la section des règles de permissions. Pour le moment
+ajoutons les droits le lecture, ecriture, création et suppression au modèle **Librarian**. Frappe à une gestion fine des 
+permissions sur les modèles. Vous pouvez aussi changer les permissions plus tard en utilisant le gestionnaire de permissions
+dans la configuration.
 
 <img class="screenshot" alt="Adding Permissions" src="{{docs_base_url}}/assets/img/doctype_adding_permission.png">
 
-#### Saving
+#### Sauvegarde
 
-Click on the **Save** button. When the button is clicked, a popup will ask you for the name. Give it the name **Article** and save the DocType.
+Cliquez sur le bouton **Save**. Quand le bouton est cliqué, une popup vous demandera le nom. Donnez le nom **Article** et 
+sauvegardez le **DocType**.
 
-Now login into mysql and check the database table created:
+Maintenant, connectez vous à MySQL et vérifiez la base de données créée:
 
 	$ bench mysql
 	Welcome to the MariaDB monitor.  Commands end with ; or \g.
@@ -90,7 +98,8 @@ Now login into mysql and check the database table created:
 	18 rows in set (0.00 sec)
 
 
-As you can see, along with the DocFields, several standard columns have also been added to the table. Important to note here are, the primary key, `name`, `owner`(the user who has created the record), `creation` and `modified` (timestamps for creation and last modification).
+Comme vous pouvez le voir, en plus de nos **DocFields**, d'autres colonnes ont été ajoutées dans notre table. Notez les 
+changement, la clé primaire sur, `name`, `owner`(l'utilisateur quia créer l'enregistrement), `creation` et `modified` (des timestamps pour enregistrer les dates de creation et de modification).
 
-{next}
+{suite}
 
