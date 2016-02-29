@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown, markdown
 import email.utils
-from markdown2 import markdown
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
@@ -178,6 +177,10 @@ class EMail:
 
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)
+
+	def set_in_reply_to(self, in_reply_to):
+		"""Used to send the Message-Id of a received email back as In-Reply-To"""
+		self.msg_root["In-Reply-To"] = in_reply_to
 
 	def make(self):
 		"""build into msg_root"""

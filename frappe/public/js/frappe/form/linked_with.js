@@ -65,7 +65,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 					// add additional fields to __linked_doctypes
 					me.frm.__linked_doctypes[dt].add_fields = frappe.listview_settings[dt].add_fields;
 				}
-			});
+			}, /*async*/ false);
 		}));
 	},
 

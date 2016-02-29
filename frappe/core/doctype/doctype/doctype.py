@@ -35,9 +35,8 @@ class DocType(Document):
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
 		self.check_developer_mode()
-		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.name:
-				frappe.throw(_("{0} not allowed in name").format(c))
+
+		self.validate_name()
 
 		if self.issingle:
 			self.allow_import = 0
@@ -154,6 +153,8 @@ class DocType(Document):
 
 		self.check_developer_mode()
 
+		self.validate_name(new)
+
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
@@ -204,10 +205,10 @@ class DocType(Document):
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):
-			make_boilerplate("test_controller.py", self)
+			make_boilerplate("test_controller.py", self.as_dict())
 
 		if not self.istable:
-			make_boilerplate("controller.js", self)
+			make_boilerplate("controller.js", self.as_dict())
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
@@ -229,6 +230,16 @@ class DocType(Document):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
 			self.name)
 		return max_idx and max_idx[0][0] or 0
+
+	def validate_name(self, name=None):
+		if not name:
+			name = self.name
+
+		# a DocType's name should not start with a number or underscore
+		# and should only contain letters, numbers and underscore
+		is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, re.UNICODE)
+		if not is_a_valid_name:
+			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype, cached=False))
@@ -365,7 +376,7 @@ def validate_fields(meta):
 
 	def check_title_field(meta):
 		"""Throw exception if `title_field` isn't a valid fieldname."""
-		if not meta.title_field:
+		if not meta.get("title_field"):
 			return
 
 		fieldname_list = [d.fieldname for d in fields]

@@ -1012,10 +1012,9 @@ def drop_site(site, root_login='root', root_password=None):
 	move(archived_sites_dir, site)
 
 @click.command('version')
-@pass_context
-def get_version(context):
-	frappe.init(site=context.sites[0])
-	for m in sorted(frappe.local.app_modules.keys()):
+def get_version():
+	frappe.init('')
+	for m in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(m)
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)

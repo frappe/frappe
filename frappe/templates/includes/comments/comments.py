@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import frappe.utils, markdown2
+import frappe.utils
 from frappe.website.render import clear_cache
 
 from frappe import _
@@ -45,7 +45,7 @@ def add_comment(args=None):
 	owner = frappe.db.get_value(doc.doctype, doc.name, "owner")
 	recipients = list(set(commentors if owner=="Administrator" else (commentors + [owner])))
 
-	message = _("{0} by {1}").format(markdown2.markdown(args.get("comment")), comment.sender_full_name)
+	message = _("{0} by {1}").format(frappe.utils.markdown(args.get("comment")), comment.sender_full_name)
 	message += "<p><a href='{0}/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 		page_name, _("View it in your browser"))
 

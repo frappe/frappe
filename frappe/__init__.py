@@ -318,7 +318,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), show_as_cc=(), message_id=None, as_bulk=False, send_after=None, expose_recipients=False,
+		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False,
 		bulk_priority=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -337,6 +337,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param attachments: List of attachments.
 	:param reply_to: Reply-To email id.
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	"""
@@ -347,18 +348,18 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, send_after=send_after,
-			expose_recipients=expose_recipients, bulk_priority=bulk_priority)
+			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
+			send_after=send_after, expose_recipients=expose_recipients, bulk_priority=bulk_priority)
 	else:
 		import frappe.email
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
 
 logger = None
 whitelisted = []
@@ -639,18 +640,22 @@ def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
-def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
+def get_all_apps(with_internal_apps=True, sites_path=None):
 	"""Get list of all apps via `sites/apps.txt`."""
 	if not sites_path:
 		sites_path = local.sites_path
 
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
 	if with_internal_apps:
-		apps.extend(get_file_items(os.path.join(local.site_path, "apps.txt")))
-	if with_frappe:
-		if "frappe" in apps:
-			apps.remove("frappe")
-		apps.insert(0, 'frappe')
+		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, 'frappe')
+
 	return apps
 
 def get_installed_apps(sort=False, frappe_last=False):

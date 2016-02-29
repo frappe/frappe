@@ -6,19 +6,21 @@ import frappe
 
 from frappe.email.email_body import get_email
 from frappe.email.smtp import send
+from frappe.utils import markdown
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
-	reply_to=None, cc=(), message_id=None):
+	reply_to=None, cc=(), message_id=None, in_reply_to=None):
 	"""send markdown email"""
-	import markdown2
-	sendmail(recipients, sender, markdown2.markdown(content or msg), subject, attachments, reply_to=reply_to, cc=cc)
+	sendmail(recipients, sender, markdown(content or msg), subject, attachments, reply_to=reply_to, cc=cc)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None, content=None,
-	reply_to=None, cc=(), message_id=None):
+	reply_to=None, cc=(), message_id=None, in_reply_to=None):
 	"""send an html email as multipart with attachments and all"""
 	mail = get_email(recipients, sender, content or msg, subject, attachments=attachments, reply_to=reply_to, cc=cc)
 	if message_id:
 		mail.set_message_id(message_id)
+	if in_reply_to:
+		mail.set_in_reply_to(in_reply_to)
 
 	send(mail)
 

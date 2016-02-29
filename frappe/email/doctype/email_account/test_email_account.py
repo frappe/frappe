@@ -106,6 +106,7 @@ class TestEmailAccount(unittest.TestCase):
 			send_email=True)["name"]
 
 		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))

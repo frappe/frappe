@@ -3,23 +3,23 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var cookie = require('cookie')
 var fs = require('fs');
+var redis = require("redis");
+var request = require('superagent');
 
-var redis = require("redis")
-var subscriber = redis.createClient(12311);
+var conf = get_conf();
+var subscriber = redis.createClient(conf.redis_async_broker_port);
 
-var request = require('superagent')
-var default_site;
+// serve socketio
+http.listen(conf.socketio_port, function(){
+  console.log('listening on *:', conf.socketio_port);
+});
 
-
-
-if(fs.existsSync('sites/currentsite.txt')) {
-	default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
-}
-
+// test route
 app.get('/', function(req, res){
   res.sendfile('index.html');
 });
 
+// on socket connection
 io.on('connection', function(socket){
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
 		return;
@@ -125,6 +125,14 @@ io.on('connection', function(socket){
 	// });
 });
 
+subscriber.on("message", function(channel, message) {
+	message = JSON.parse(message);
+	io.to(message.room).emit(message.event, message.message);
+	// console.log(message.room, message.event, message.message)
+});
+
+subscriber.subscribe("events");
+
 function send_existing_lines(task_id, socket) {
 	subscriber.hgetall('task_log:' + task_id, function(err, lines) {
 		socket.emit('task_progress', {
@@ -135,19 +143,6 @@ function send_existing_lines(task_id, socket) {
 		})
 	})
 }
-
-
-subscriber.on("message", function(channel, message) {
-	message = JSON.parse(message);
-	io.to(message.room).emit(message.event, message.message);
-	// console.log(message.room, message.event, message.message)
-});
-
-subscriber.subscribe("events");
-
-http.listen(3000, function(){
-  console.log('listening on *:3000');
-});
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':doc:'+ doctype + '/' + docname;
@@ -166,8 +161,8 @@ function get_site_room(socket) {
 }
 
 function get_site_name(socket) {
-	if (default_site) {
-		return default_site;
+	if (conf.default_site) {
+		return conf.default_site;
 	}
 	else if (socket.request.headers['x-frappe-site-name']) {
 		return get_hostname(socket.request.headers['x-frappe-site-name']);
@@ -254,4 +249,29 @@ function send_viewers(args) {
 		docname: args.docname,
 		viewers: viewers
 	});
+}
+
+function get_conf() {
+	// defaults
+	var conf = {
+		redis_async_broker_port: 12311,
+		socketio_port: 3000
+	};
+
+	// get ports from bench/config.json
+	if(fs.existsSync('config.json')){
+		var bench_config = JSON.parse(fs.readFileSync('config.json'));
+		for (var key in conf) {
+			if (bench_config[key]) {
+				conf[key] = bench_config[key];
+			}
+		}
+	}
+
+	// detect current site
+	if(fs.existsSync('sites/currentsite.txt')) {
+		conf.default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
+	}
+
+	return conf;
 }

@@ -35,7 +35,7 @@ def get_celery_app():
 			broker=conf.celery_broker or DEFAULT_CELERY_BROKER,
 			backend=conf.async_redis_server or DEFAULT_CELERY_BACKEND)
 
-	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False,
+	app.autodiscover_tasks(frappe.get_all_apps(with_internal_apps=False,
 		sites_path=SITES_PATH))
 
 	app.conf.CELERY_TASK_SERIALIZER = 'json'

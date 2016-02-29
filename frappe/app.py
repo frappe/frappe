@@ -170,10 +170,6 @@ def after_request(rollback):
 
 	update_comments_in_parent_after_request()
 
-	# publish realtime
-	for args in frappe.local.realtime_log:
-		frappe.async.emit_via_redis(*args)
-
 	return rollback
 
 application = local_manager.make_middleware(application)

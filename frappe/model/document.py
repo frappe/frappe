@@ -339,22 +339,24 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
+		self._sanitize_content()
 
 		children = self.get_all_children()
 		for d in children:
 			d._validate_selects()
 			d._validate_constants()
 			d._validate_length()
-
-		# extract images after validations to save processing if some validation error is raised
-		self._extract_images_from_text_editor()
-		for d in children:
-			d._extract_images_from_text_editor()
+			d._sanitize_content()
 
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+
+		# extract images after validations to save processing if some validation error is raised
+		self._extract_images_from_text_editor()
+		for d in children:
+			d._extract_images_from_text_editor()
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
@@ -375,14 +377,21 @@ class Document(BaseDocument):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self):
-		user_roles = frappe.get_roles()
-		has_access_to = []
-		for perm in self.meta.permissions:
-			if perm.role in user_roles and perm.permlevel > 0 and perm.write:
-				if perm.permlevel not in has_access_to:
-					has_access_to.append(perm.permlevel)
+		if not hasattr(self, "_has_access_to"):
+			user_roles = frappe.get_roles()
+			self._has_access_to = []
+			for perm in self.meta.permissions:
+				if perm.role in user_roles and perm.permlevel > 0 and perm.write:
+					if perm.permlevel not in self._has_access_to:
+						self._has_access_to.append(perm.permlevel)
 
-		return has_access_to
+		return self._has_access_to
+
+	def has_permlevel_access_to(self, fieldname, df=None):
+		if not df:
+			df = self.meta.get_field(fieldname)
+
+		return df.permlevel in self.get_permlevel_access()
 
 	def _set_defaults(self):
 		if frappe.flags.in_import:
@@ -806,7 +815,7 @@ class Document(BaseDocument):
 		self.get("__onload")[key] = value
 
 	def update_timeline_doc(self):
-		if frappe.flags.in_install or not self.meta.timeline_field:
+		if frappe.flags.in_install or not self.meta.get("timeline_field"):
 			return
 
 		timeline_doctype = self.meta.get_link_doctype(self.meta.timeline_field)

@@ -27,5 +27,5 @@ docs_version = "6.x.x"
 def get_context(context):
 	context.top_bar_items = [
 		{"label": "Developer Tutorials", "url": context.docs_base_url + "/user", "right": 1},
-		{"label": "Documentation", "url": context.docs_base_url + "/current", "right": 1}
+		{"label": "API Documentation", "url": context.docs_base_url + "/current", "right": 1}
 	]

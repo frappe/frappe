@@ -92,6 +92,10 @@ def is_site_in_maintenance_mode(queue, prefix):
 		if not frappe.local.conf.db_name or frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
 			# don't add site if in maintenance mode
 			return True
+
+	except frappe.IncorrectSitePath:
+		return True
+
 	finally:
 		frappe.destroy()
 

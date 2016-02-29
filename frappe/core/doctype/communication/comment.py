@@ -15,15 +15,8 @@ def validate_comment(doc):
 	if not (doc.communication_type=='Comment' and doc.reference_doctype and doc.reference_name):
 		return
 
-	comment_count = frappe.db.sql("""select count(*) from `tabCommunication`
-		where
-			communication_type='Comment'
-			and reference_doctype=%(reference_doctype)s
-			and reference_name=%(reference_name)s""",
-		{"reference_doctype": doc.reference_doctype, "reference_name": doc.reference_name})[0][0]
-
-	if comment_count >= 50:
-		frappe.throw(_("Cannot add more than 50 comments"))
+	if doc.comment_type=="Comment" and "<!-- markdown -->" not in doc.content:
+		doc.content += '\n<!-- markdown -->'
 
 def on_trash(doc):
 	if doc.communication_type != "Comment":
