@@ -1,3 +1,3 @@
-# Develop Apps with Frappe
+# Développer des applications avec Frappe
 
 {index}
