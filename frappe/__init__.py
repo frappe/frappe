@@ -51,30 +51,8 @@ def _(msg, lang=None):
 
 	if lang == "en":
 		return msg
-
-	# To parse html data
-	msg = parse_msg(msg)
-	msg = get_full_dict(local.lang).get(msg) or msg
-	
-	return get_html_formatted_data(msg)
-
-def parse_msg(msg):
-	from bs4 import BeautifulSoup
-
-	if msg.find('div') != 1:
-		return msg
-
-	soup = BeautifulSoup(msg, "html5lib")
-	soup = get_formatted_text(soup) or soup.get_text()
-	return soup
-
-def get_formatted_text(soup):
-	formatted_text_list = [data.get_text() for data in soup.findAll('div')]
-	return '\n'.join(formatted_text_list)
-
-def get_html_formatted_data(msg):
-	if '\n' in msg : msg = '<div><font color="#111111">' + msg
-	return msg.replace('\n', '</font></div><div><font color="#111111">')
+		
+	return get_full_dict(local.lang).get(msg) or msg
 	
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.

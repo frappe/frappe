@@ -380,7 +380,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			form_values.communication_medium = "Email";
 			form_values.sent_or_received = "Sent";
 		};
-		console.log(print_html)
+
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
 			args: {
