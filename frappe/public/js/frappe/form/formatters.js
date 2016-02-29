@@ -14,7 +14,7 @@ frappe.form.formatters = {
 		}
 	},
 	Data: function(value) {
-		return frappe.utils.escape_html(value==null ? "" : value);
+		return value==null ? "" : value;
 	},
 	Select: function(value) {
 		return __(frappe.form.formatters["Data"](value));
