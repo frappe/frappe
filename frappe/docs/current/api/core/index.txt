@@ -1,2 +1,0 @@
-frappe.core
-frappe.core.notifications

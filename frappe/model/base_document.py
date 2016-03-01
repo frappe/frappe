@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import frappe, sys
 from frappe import _
-from frappe.utils import cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta
+from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
+	sanitize_html, sanitize_email)
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.modules import load_doctype_module
@@ -173,10 +174,14 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self):
-		d = {}
+	def get_valid_dict(self, sanitize=True):
+		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
+
+			# if no need for sanitization and value is None, continue
+			if not sanitize and d[fieldname] is None:
+				continue
 
 			df = self.meta.get_field(fieldname)
 			if df:
@@ -184,6 +189,7 @@ class BaseDocument(object):
 					d[fieldname] = cint(d[fieldname])
 
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
+
 					d[fieldname] = flt(d[fieldname])
 
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
@@ -243,7 +249,7 @@ class BaseDocument(object):
 			if self.get(key):
 				doc[key] = self.get(key)
 
-		return frappe._dict(doc)
+		return doc
 
 	def as_json(self):
 		return frappe.as_json(self.as_dict())
@@ -499,6 +505,42 @@ class BaseDocument(object):
 				if self_value != db_value:
 					frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 						frappe.UpdateAfterSubmitError)
+
+	def _sanitize_content(self):
+		"""Sanitize HTML and Email in field values. Used to prevent XSS.
+
+			- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
+		"""
+		if frappe.flags.in_install:
+			return
+
+		for fieldname, value in self.get_valid_dict().items():
+			if not value or not isinstance(value, basestring):
+				continue
+
+			elif ("<" not in value and ">" not in value):
+				# doesn't look like html so no need
+				continue
+
+			elif "<!-- markdown -->" in value and not ("<script" in value or "javascript:" in value):
+				# should be handled separately via the markdown converter function
+				continue
+
+			df = self.meta.get_field(fieldname)
+			sanitized_value = value
+
+			if df and (df.get("ignore_xss_filter")
+						or (df.get("fieldtype")=="Code" and df.get("options")!="Email")
+						or df.get("fieldtype") in ("Attach", "Attach Image")):
+				continue
+
+			elif df and df.get("fieldtype") in ("Data", "Code") and df.get("options")=="Email":
+				sanitized_value = sanitize_email(value)
+
+			else:
+				sanitized_value = sanitize_html(value)
+
+			self.set(fieldname, sanitized_value)
 
 	def precision(self, fieldname, parentfield=None):
 		"""Returns float precision for a particular field (or get global default).

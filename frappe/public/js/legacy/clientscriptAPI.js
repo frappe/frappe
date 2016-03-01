@@ -283,7 +283,14 @@ _f.Frm.prototype.call = function(opts) {
 				if(opts.child) {
 					// update child doc
 					opts.child = locals[opts.child.doctype][opts.child.name];
-					$.extend(opts.child, r.message);
+
+					var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
+					for (key in r.message) {
+						if (std_field_list.indexOf(key)===-1) {
+							opts.child[key] = r.message[key];
+						}
+					}
+
 					me.fields_dict[opts.child.parentfield].refresh();
 				} else {
 					// update parent doc
@@ -310,7 +317,7 @@ _f.Frm.prototype.get_field = function(field) {
 
 _f.Frm.prototype.new_doc = function(doctype, field, opts) {
 	frappe._from_link = field;
-	frappe._from_link_scrollY = scrollY;
+	frappe._from_link_scrollY = $(document).scrollTop();
 	new_doc(doctype, opts);
 }
 

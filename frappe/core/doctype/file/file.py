@@ -244,9 +244,12 @@ def make_home_folder():
 @frappe.whitelist()
 def get_breadcrumbs(folder):
 	"""returns name, file_name of parent folder"""
-	lft, rgt = frappe.db.get_value("File", folder, ["lft", "rgt"])
+	values = frappe.db.get_value("File", folder, ["lft", "rgt"], as_dict=True)
+	if not values:
+		frappe.throw(_("Folder {0} does not exist").format(folder))
+
 	return frappe.db.sql("""select name, file_name from tabFile
-		where lft < %s and rgt > %s order by lft asc""", (lft, rgt), as_dict=1)
+		where lft < %s and rgt > %s order by lft asc""", (values.lft, values.rgt), as_dict=1)
 
 @frappe.whitelist()
 def create_new_folder(file_name, folder):

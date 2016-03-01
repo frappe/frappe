@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.permissions import get_doc_permissions
 from frappe import _
+from frappe.core.doctype.communication.feed import get_feed_match_conditions
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -85,7 +86,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
-		"comments": get_comments(doc.doctype, doc.name),
+		"communications": _get_communications(doc.doctype, doc.name),
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name,
@@ -106,31 +107,50 @@ def get_attachments(dt, dn):
 	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],
 		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
 
-def get_comments(dt, dn, limit=100):
-	comments = frappe.db.sql("""select name, comment, comment_by, creation,
-			reference_doctype, reference_name, comment_type, "Comment" as doctype, _liked_by
-		from `tabComment`
-		where comment_doctype=%s and comment_docname=%s
-		order by creation desc limit %s""",
-			(dt, dn, limit), as_dict=1)
+@frappe.whitelist()
+def get_communications(doctype, name, start=0, limit=20):
+	doc = frappe.get_doc(doctype, name)
+	if not doc.has_permission("read"):
+		raise frappe.PermissionError
 
-	communications = frappe.db.sql("""select name,
-			content as comment, sender as comment_by, creation,
-			communication_medium as comment_type, subject, delivery_status, _liked_by,
+	return _get_communications(doctype, name, start, limit)
+
+
+def _get_communications(doctype, name, start=0, limit=20):
+	match_conditions = get_feed_match_conditions()
+	communications = frappe.db.sql("""select name, communication_type,
+			communication_medium, comment_type,
+			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
+			timeline_doctype, timeline_name,
+			reference_doctype, reference_name,
+			link_doctype, link_name,
 			"Communication" as doctype
 		from tabCommunication
-		where reference_doctype=%s and reference_name=%s
-		order by creation desc limit %s""", (dt, dn, limit),
+		where
+			communication_type in ("Communication", "Comment")
+			and (
+				(reference_doctype=%(doctype)s and reference_name=%(name)s)
+				or (timeline_doctype=%(doctype)s and timeline_name=%(name)s)
+			)
+			and (comment_type is null or comment_type != 'Update')
+			{match_conditions}
+		order by creation desc limit %(start)s, %(limit)s"""
+			.format(match_conditions=("and " + match_conditions) if match_conditions else ""),
+			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
 			as_dict=True)
 
 	for c in communications:
-		c.attachments = json.dumps(frappe.get_all("File",
-			fields=["file_url", "is_private"],
-			filters={"attached_to_doctype": "Communication",
-				"attached_to_name": c.name}
-			))
+		if c.communication_type=="Communication":
+			c.attachments = json.dumps(frappe.get_all("File",
+				fields=["file_url", "is_private"],
+				filters={"attached_to_doctype": "Communication",
+					"attached_to_name": c.name}
+				))
 
-	return comments + communications
+		elif c.communication_type=="Comment" and c.comment_type=="Comment":
+			c.content = frappe.utils.markdown(c.content)
+
+	return communications
 
 def get_assignments(dt, dn):
 	cl = frappe.db.sql("""select owner, description from `tabToDo`

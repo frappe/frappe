@@ -9,16 +9,27 @@ frappe.tools.downloadify = function(data, roles, title) {
 		return;
 	}
 
-	var _get_data = function() { return frappe.tools.to_csv(data); };
+	var filename = title + ".csv";
+	var csv_data = frappe.tools.to_csv(data);
+	var a = document.createElement('a');
 
-	var a         = document.createElement('a');
-	a.href        = 'data:attachment/csv,' + encodeURIComponent(_get_data());
-	a.target      = '_blank';
-	a.download    = title + '.csv';
+	if ("download" in a) {
+		// Used Blob object, because it can handle large files
+		var blob_object = new Blob([csv_data], { type: 'text/csv;charset=UTF-8' });
+		a.href = URL.createObjectURL(blob_object);
+		a.download = filename;
+
+	} else {
+		// use old method
+		a.href = 'data:attachment/csv,' + encodeURIComponent(csv_data);
+		a.download = filename;
+		a.target = "_blank";
+	}
 
 	document.body.appendChild(a);
 	a.click();
-	$(a).remove();
+
+	document.body.removeChild(a);
 };
 
 frappe.markdown = function(txt) {
@@ -64,6 +75,13 @@ frappe.tools.to_csv = function(data) {
 };
 
 frappe.slickgrid_tools = {
+	get_filtered_items: function(dataView) {
+		var data = [];
+		for (var i=0, len=dataView.getLength(); i<len; i++) {
+			data.push(dataView.getItem(i));
+		}
+		return data;
+	},
 	get_view_data: function(columns, dataView, filter) {
 		var col_row = $.map(columns, function(v) { return v.name; });
 		var res = [];

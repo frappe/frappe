@@ -195,7 +195,7 @@ frappe.utils = {
 		var style = default_style || "default";
 		var colour = "darkgrey";
 		if(text) {
-			if(has_words(["Pending", "Review", "Medium", "Not Approved", "Pending"], text)) {
+			if(has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
 			} else if(has_words(["Open", "Urgent", "High"], text)) {
@@ -498,5 +498,22 @@ frappe.utils = {
 			// pass
 		}
 
+	},
+	split_emails: function(txt) {
+		var email_list = [];
+
+		if (!txt) {
+			return email_list;
+		}
+
+		// emails can be separated by comma or newline
+		txt.split(/[,\n](?=(?:[^"]|"[^"]*")*$)/g).forEach(function(email) {
+			email = email.trim();
+			if (email) {
+				email_list.push(email);
+			}
+		});
+
+		return email_list;
 	}
 };

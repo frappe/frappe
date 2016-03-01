@@ -1,8 +1,8 @@
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 frappe.patches.v6_1.rename_file_data
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2015-10-16
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2016-02-17
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2016-02-26
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-24
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
@@ -72,9 +72,10 @@ frappe.patches.v5_0.rename_table_fieldnames
 frappe.patches.v5_0.communication_parent
 frappe.patches.v5_0.clear_website_group_and_notifications
 execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
-frappe.patches.v5_0.fix_feed
+execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
+frappe.patches.v6_19.comment_feed_communication
 frappe.patches.v6_16.star_to_like
 frappe.patches.v5_0.bookmarks_to_stars
 frappe.patches.v5_0.style_settings_to_website_theme
@@ -87,7 +88,6 @@ execute:frappe.db.sql("delete from `tabProperty Setter` where `property` in ('id
 frappe.patches.v5_0.move_scheduler_last_event_to_system_settings
 execute:frappe.db.sql("update tabUser set new_password='' where ifnull(new_password, '')!=''")
 frappe.patches.v5_0.fix_text_editor_file_urls
-execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
@@ -114,4 +114,4 @@ frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
 frappe.patches.v6_16.feed_doc_owner
-
+frappe.patches.v6_21.print_settings_repeat_header_footer

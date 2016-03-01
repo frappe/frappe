@@ -134,7 +134,7 @@ frappe.views.QueryReport = Class.extend({
 
 			frappe.render_grid({content:content, title:__(this.report_name)});
 		} else {
-			frappe.render_grid({grid:this.grid, title:__(this.report_name)});
+			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
 		}
 	},
 	pdf_report: function() {
@@ -363,7 +363,7 @@ frappe.views.QueryReport = Class.extend({
 
 				if (!df.fieldtype) df.fieldtype = "Data";
 				if (!cint(df.width)) df.width = 80;
-				
+
 				if (df.hidden) {
 					return null;
 				}

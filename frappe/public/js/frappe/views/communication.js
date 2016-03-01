@@ -47,16 +47,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_fields: function() {
-		var cc_fields = this.get_cc_fields();
-
-		var fields_before_cc = [
+		return [
 			{fieldtype: "Section Break"},
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
-		];
-
-		var fields_after_cc = [
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
@@ -85,62 +80,6 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Select Attachments"), fieldtype:"HTML",
 				fieldname:"select_attachments"}
 		];
-
-		return fields_before_cc.concat(cc_fields).concat(fields_after_cc);
-	},
-
-	get_cc_fields: function() {
-		if (!(this.frm && this.frm.doc)) {
-			return [];
-		}
-
-		var cc = [ [this.frm.doc.owner, 1] ];
-
-		var liked_by = frappe.ui.get_liked_by(this.frm.doc);
-		if (liked_by) {
-			for ( var i=0, l=liked_by.length; i<l; i++ ) {
-				cc.push( [liked_by[i], 1] );
-			}
-		}
-
-		var assignments = this.frm.get_docinfo().assignments;
-		if (assignments) {
-			for ( var i=0, l=assignments.length; i<l; i++ ) {
-				cc.push( [assignments[i].owner, 1] );
-			}
-		}
-
-		var comments = this.frm.get_docinfo().comments;
-		if (comments) {
-			for ( var i=0, l=comments.length; i<l; i++ ) {
-				cc.push( [comments[i].comment_by, 0] );
-			}
-		}
-
-		var added = [];
-		var cc_fields = [];
-		for ( var i=0, l=cc.length; i<l; i++ ) {
-			var email = cc[i][0];
-			var default_value = cc[i][1];
-
-			if ( !email || added.indexOf(email)!==-1 || email.indexOf("@")===-1 ) {
-				continue;
-			}
-
-			// for deduplication
-			added.push(email);
-
-			email = frappe.user.get_formatted_email(email);
-			cc_fields.push({
-				"label": frappe.utils.escape_html(email),
-				"fieldtype": "Check",
-				"fieldname": email,
-				"is_cc_checkbox": 1,
-				"default": default_value
-			});
-		}
-
-		return cc_fields;
 	},
 
 	prepare: function() {
@@ -160,21 +99,21 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.subject = this.subject || "";
 
 		if(!this.recipients && this.last_email) {
-			this.recipients = this.last_email.comment_by;
+			this.recipients = this.last_email.sender;
 		}
 
 		if(!this.recipients) {
-			this.recipients = this.frm && this.frm.comments.get_recipient();
+			this.recipients = this.frm && this.frm.timeline.get_recipient();
 		}
 
 		if(!this.subject && this.frm) {
 			// get subject from last communication
-			var last = this.frm.comments.get_last_email();
+			var last = this.frm.timeline.get_last_email();
 
 			if(last) {
 				this.subject = last.subject;
 				if(!this.recipients) {
-					this.recipients = last.comment_by;
+					this.recipients = last.sender;
 				}
 
 				// prepend "Re:"
@@ -420,7 +359,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		};
 
 		return frappe.call({
-			method:"frappe.core.doctype.communication.communication.make",
+			method:"frappe.core.doctype.communication.email.make",
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,
@@ -453,7 +392,7 @@ frappe.views.CommunicationComposer = Class.extend({
 							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
 						}
 						// clear input
-						cur_frm.comments.input.val("");
+						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
 				} else {
@@ -469,7 +408,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			last_email = this.last_email;
 
 		if(!last_email) {
-			last_email = this.frm && this.frm.comments.get_last_email(true);
+			last_email = this.frm && this.frm.timeline.get_last_email(true);
 		}
 
 		if(!frappe.utils.is_html(signature)) {
@@ -489,13 +428,13 @@ frappe.views.CommunicationComposer = Class.extend({
 			+ (signature ? ("<br>" + signature) : "");
 
 		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.comment;
+			var last_email_content = last_email.original_comment || last_email.content;
 
 			fields.content.set_input(reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(last_email.creation) , last_email.comment_by]) + '</p>' +
+					[frappe.datetime.global_date_format(last_email.creation) , last_email.sender]) + '</p>' +
 					last_email_content +
 				'<blockquote>');
 		} else {
@@ -512,7 +451,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			return split(term).pop();
 		}
 
-		$(this.dialog.fields_dict.recipients.input)
+		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
 			.bind( "keydown", function(event) {
 				if (event.keyCode === $.ui.keyCode.TAB &&
 						$(this).data( "autocomplete" ) &&

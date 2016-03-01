@@ -5,16 +5,15 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown
+from frappe.utils import get_url, scrub_urls, strip, expand_relative_urls, cint, split_emails, to_markdown, markdown
 import email.utils
-from markdown2 import markdown
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=()):
+	content=None, reply_to=None, cc=(), email_account=None):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=None)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)
@@ -35,7 +34,7 @@ class EMail:
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=()):
+	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None):
 		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -58,10 +57,12 @@ class EMail:
 		self.cc = cc or []
 		self.html_set = False
 
+		self.email_account = email_account
+
 	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
-			formatted = get_formatted_html(self.subject, message, footer, print_html)
+			formatted = get_formatted_html(self.subject, message, footer, print_html, email_account=self.email_account)
 
 		# this is the first html part of a multi-part message,
 		# convert to text well
@@ -177,6 +178,10 @@ class EMail:
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)
 
+	def set_in_reply_to(self, in_reply_to):
+		"""Used to send the Message-Id of a received email back as In-Reply-To"""
+		self.msg_root["In-Reply-To"] = in_reply_to
+
 	def make(self):
 		"""build into msg_root"""
 		headers = {
@@ -205,11 +210,12 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 
-def get_formatted_html(subject, message, footer=None, print_html=None):
-	# imported here to avoid cyclic import
-
+def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None):
 	message = scrub_urls(message)
-	email_account = get_outgoing_email_account(False)
+
+	if not email_account:
+		email_account = get_outgoing_email_account(False)
+
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"content": message,
 		"signature": get_signature(email_account),

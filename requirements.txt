@@ -12,7 +12,6 @@ python-geoip-geolite2
 python-dateutil
 pytz
 six
-slugify
 termcolor
 werkzeug
 semantic_version
@@ -30,4 +29,6 @@ click
 num2words
 watchdog==0.8.0
 bleach
+bleach-whitelist
 Pillow
+beautifulsoup4

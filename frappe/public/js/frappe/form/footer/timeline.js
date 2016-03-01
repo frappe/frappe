@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.Comments = Class.extend({
+frappe.ui.form.Timeline = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.make();
@@ -40,6 +40,34 @@ frappe.ui.form.Comments = Class.extend({
 		this.setup_comment_like();
 
 		this.setup_mentions();
+
+		this.list.on("click", ".btn-more", function() {
+			var communications = me.get_communications();
+			frappe.call({
+				btn: this,
+				method: "frappe.desk.form.load.get_communications",
+				args: {
+					doctype: me.frm.doc.doctype,
+					name: me.frm.doc.name,
+					start: communications.length
+				},
+				callback: function(r) {
+					if (!r.exc) {
+						if (r.message) {
+							var new_communications = r.message;
+							var communications = me.get_communications().concat(new_communications);
+							frappe.model.set_docinfo(me.frm.doc.doctype, me.frm.doc.name, "communications", communications);
+
+						} else {
+							me.more = false;
+						}
+
+						me.refresh();
+					}
+				}
+			});
+		});
+
 	},
 
 	refresh: function(scroll_to_end) {
@@ -54,13 +82,32 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 
-		var comments = [{"comment": __("Created"), "comment_type": "Created",
-			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
+		// var communications = [].concat(this.get_communications());
 
-		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
+		var communications = this.get_communications();
+
+		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				if(c.comment) me.render_comment(c);
+				if(c.content) {
+					c.frm = me.frm;
+					me.render_timeline_item(c);
+				}
 		});
+
+		// more btn
+		if (this.more===undefined && communications.length===20) {
+			this.more = true;
+		}
+
+		if (this.more) {
+			var $more = $('<div class="timeline-item">\
+				<button class="btn btn-default btn-xs btn-more">More</button>\
+			</div>').appendTo(me.list);
+		}
+
+		// created
+		me.render_timeline_item({"content": __("Created"), "comment_type": "Created", "communication_type": "Comment",
+			"sender": this.frm.doc.owner, "creation": this.frm.doc.creation, "frm": this.frm});
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
@@ -68,9 +115,9 @@ frappe.ui.form.Comments = Class.extend({
 
 	},
 
-	render_comment: function(c) {
+	render_timeline_item: function(c) {
 		var me = this;
-		this.prepare_comment(c);
+		this.prepare_timeline_item(c);
 
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c}))
 			.appendTo(me.list)
@@ -81,8 +128,8 @@ frappe.ui.form.Comments = Class.extend({
 			});
 
 
-		if(c.comment_type==="Email") {
-			this.last_type = c.comment_type;
+		if(c.communication_type=="Communication" && c.communication_medium==="Email") {
+			this.last_type = c.communication_medium;
 			this.add_reply_btn_event($timeline_item, c);
 		}
 
@@ -95,7 +142,7 @@ frappe.ui.form.Comments = Class.extend({
 			var last_email = null;
 
 			// find the email tor reply to
-			me.get_comments().forEach(function(c) {
+			me.get_communications().forEach(function(c) {
 				if(c.name==name) {
 					last_email = c;
 					return false;
@@ -112,61 +159,60 @@ frappe.ui.form.Comments = Class.extend({
 		});
 	},
 
-	prepare_comment: function(c) {
-		if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
+	prepare_timeline_item: function(c) {
+		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Communication")) {
 			c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
 		} else {
 			c["delete"] = "";
 		}
 
-		if(!c.comment_by) c.comment_by = this.frm.doc.owner;
+		if(!c.sender) c.sender = this.frm.doc.owner;
 
-		if(c.comment_by.indexOf("<")!==-1) {
-			c.comment_by = c.comment_by.split("<")[1].split(">")[0];
+		if(c.sender.indexOf("<")!==-1) {
+			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		c.image = frappe.user_info(c.comment_by).image
-			|| frappe.get_gravatar(c.comment_by);
+		c.image = frappe.user_info(c.sender).image || frappe.get_gravatar(c.sender);
 		c.comment_on = comment_when(c.creation);
-		c.fullname = frappe.user.full_name(c.comment_by);
+		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 
 		if(c.attachments && typeof c.attachments==="string")
 			c.attachments = JSON.parse(c.attachments);
 
-		if(!c.comment_type)
-			c.comment_type = "Comment"
+		if(c.communication_type=="Comment" && !c.comment_type) {
+			c.comment_type = "Comment";
+		}
 
 		this.set_icon_and_color(c);
 
 		// label view
 		if(c.comment_type==="Workflow" || c.comment_type==="Label") {
 			c.comment_html = repl('<span class="label label-%(style)s">%(text)s</span>', {
-				style: frappe.utils.guess_style(c.comment),
-				text: __(c.comment)
+				style: frappe.utils.guess_style(c.content),
+				text: __(c.content)
 			});
 		} else {
-			if(c.comment_type=="Email") {
-				c.comment = c.comment.split("<!-- original-reply -->")[0];
-				c.comment = frappe.utils.strip_original_content(c.comment);
-				c.comment = frappe.dom.remove_script_and_style(c.comment);
+			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
+				c.content = c.content.split("<!-- original-reply -->")[0];
+				c.content = frappe.utils.strip_original_content(c.content);
 
-				c.original_comment = c.comment;
-				c.comment = frappe.utils.toggle_blockquote(c.comment);
+				c.original_content = c.content;
+				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
 
-			if(!frappe.utils.is_html(c.comment)) {
-				c.comment_html = frappe.markdown(__(c.comment));
+			if(!frappe.utils.is_html(c.content)) {
+				c.content_html = frappe.markdown(__(c.content));
 			} else {
-				c.comment_html = c.comment;
-				c.comment_html = frappe.utils.strip_whitespace(c.comment_html);
+				c.content_html = c.content;
+				c.content_html = frappe.utils.strip_whitespace(c.content_html);
 			}
 
 			// bold @mentions
 			if(c.comment_type==="Comment") {
-				c.comment_html = c.comment_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
+				c.content_html = c.content_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
 			}
 
-			if (in_list(["Comment", "Email"], c.comment_type)) {
+			if (this.is_communication_or_comment(c)) {
 				c.user_content = true;
 				if (!$.isArray(c._liked_by)) {
 					c._liked_by = JSON.parse(c._liked_by || "[]");
@@ -175,7 +221,15 @@ frappe.ui.form.Comments = Class.extend({
 				c.liked_by_user = c._liked_by.indexOf(user)!==-1;
 			}
 		}
+
+		// basic level of XSS protection
+		c.content_html = frappe.dom.remove_script_and_style(c.content_html);
 	},
+
+	is_communication_or_comment: function(c) {
+		return c.communication_type==="Communication" || (c.communication_type==="Comment" && c.comment_type==="Comment");
+	},
+
 	set_icon_and_color: function(c) {
 		c.icon = {
 			"Email": "octicon octicon-mail",
@@ -195,7 +249,7 @@ frappe.ui.form.Comments = Class.extend({
 			"Shared": "octicon octicon-eye",
 			"Unshared": "octicon octicon-circle-slash",
 			"Like": "octicon octicon-heart"
-		}[c.comment_type]
+		}[c.comment_type || c.communication_medium]
 
 		c.color = {
 			"Email": "#3498db",
@@ -212,18 +266,18 @@ frappe.ui.form.Comments = Class.extend({
 			"Label": "#2c3e50",
 			"Attachment": "#7f8c8d",
 			"Attachment Removed": "#eee"
-		}[c.comment_type];
+		}[c.comment_type || c.communication_medium];
 
 		c.icon_fg = {
 			"Attachment Removed": "#333",
-		}[c.comment_type]
+		}[c.comment_type || c.communication_medium]
 
 		if(!c.icon_fg)
 			c.icon_fg = "#fff";
 
 	},
-	get_comments: function() {
-		return this.frm.get_docinfo().comments;
+	get_communications: function() {
+		return this.frm.get_docinfo().communications;
 	},
 	add_comment: function(btn) {
 		var txt = this.input.val();
@@ -238,12 +292,13 @@ frappe.ui.form.Comments = Class.extend({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
 				doc:{
-					doctype: "Comment",
+					doctype: "Communication",
+					communication_type: "Comment",
 					comment_type: comment_type || "Comment",
-					comment_doctype: this.frm.doctype,
-					comment_docname: this.frm.docname,
-					comment: comment,
-					comment_by: user
+					reference_doctype: this.frm.doctype,
+					reference_name: this.frm.docname,
+					content: comment,
+					sender: user
 				}
 			},
 			btn: btn,
@@ -254,7 +309,7 @@ frappe.ui.form.Comments = Class.extend({
 					frappe.utils.play_sound("click");
 
 					var comment = r.message;
-					var comments = me.get_comments();
+					var comments = me.get_communications();
 					var comment_exists = false;
 					for (var i=0, l=comments.length; i<l; i++) {
 						if (comments[i].name==comment.name) {
@@ -266,7 +321,7 @@ frappe.ui.form.Comments = Class.extend({
 						return;
 					}
 
-					me.frm.get_docinfo().comments = comments.concat([r.message]);
+					me.frm.get_docinfo().communications = comments.concat([r.message]);
 					me.refresh(true);
 				}
 			}
@@ -279,15 +334,15 @@ frappe.ui.form.Comments = Class.extend({
 		return frappe.call({
 			method: "frappe.client.delete",
 			args: {
-				doctype: "Comment",
+				doctype: "Communication",
 				name: name
 			},
 			callback: function(r) {
 				if(!r.exc) {
 					frappe.utils.play_sound("delete");
 
-					me.frm.get_docinfo().comments =
-						$.map(me.frm.get_docinfo().comments,
+					me.frm.get_docinfo().communications =
+						$.map(me.frm.get_docinfo().communications,
 							function(v) {
 								if(v.name==name) return null;
 								else return v;
@@ -309,13 +364,13 @@ frappe.ui.form.Comments = Class.extend({
 
 	get_last_email: function(from_recipient) {
 		var last_email = null,
-			comments = this.frm.get_docinfo().comments,
+			communications = this.frm.get_docinfo().communications,
 			email = this.get_recipient();
 
-		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
-			if(c.comment_type=="Email") {
+		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
+			if(c.communication_type=='Communication' && c.communication_medium=="Email") {
 				if(from_recipient) {
-					if(c.comment_by.indexOf(email)!==-1) {
+					if(c.sender.indexOf(email)!==-1) {
 						last_email = c;
 						return false;
 					}

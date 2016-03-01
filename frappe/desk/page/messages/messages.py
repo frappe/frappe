@@ -3,10 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils.user import get_enabled_system_users
-from frappe.utils import cint, get_fullname
+from frappe.utils import cint
 
 @frappe.whitelist()
 def get_list(arg=None):
@@ -17,34 +18,36 @@ def get_list(arg=None):
 
 	# set all messages as read
 	frappe.db.begin()
-	frappe.db.sql("""UPDATE `tabComment`
-	set docstatus = 1 where comment_doctype in ('My Company', 'Message')
-	and comment_docname = %s
-	""", frappe.session.user)
+	frappe.db.sql("""UPDATE `tabCommunication` set seen = 1
+		where
+			communication_type in ('Chat', 'Notification')
+			and reference_doctype = 'User'
+			and reference_name = %s""", frappe.session.user)
 
 	delete_notification_count_for("Messages")
 
-	frappe.db.commit()
+	frappe.local.flags.commit = True
 
 	if frappe.form_dict['contact'] == frappe.session['user']:
 		# return messages
-		return frappe.db.sql("""select * from `tabComment`
-		where (owner=%(contact)s
-			or comment_docname=%(user)s
-			or (owner=comment_docname and ifnull(parenttype, "")!="Assignment")
-			or owner=comment_docname)
-		and comment_doctype ='Message'
-		order by creation desc
-		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
+		return frappe.db.sql("""select * from `tabCommunication`
+			where
+				communication_type in ('Chat', 'Notification')
+				and reference_doctype ='User'
+				and (owner=%(contact)s
+					or reference_name=%(user)s
+					or owner=reference_name)
+			order by creation desc
+			limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
 	else:
-		return frappe.db.sql("""select * from `tabComment`
-		where ((owner=%(contact)s and comment_docname=%(user)s)
-		or (owner=%(user)s and comment_docname=%(contact)s)
-		or (owner=%(contact)s and comment_docname=%(contact)s))
-		and comment_doctype ='Message'
-		order by creation desc
-		limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
-
+		return frappe.db.sql("""select * from `tabCommunication`
+			where
+				communication_type in ('Chat', 'Notification')
+				and reference_doctype ='User'
+				and ((owner=%(contact)s and reference_name=%(user)s)
+					or (owner=%(contact)s and reference_name=%(contact)s))
+			order by creation desc
+			limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
 
 @frappe.whitelist()
 def get_active_users():
@@ -71,15 +74,15 @@ def get_active_users():
 
 @frappe.whitelist()
 def post(txt, contact, parenttype=None, notify=False, subject=None):
-	import frappe
 	"""post message"""
 
-	d = frappe.new_doc('Comment')
-	d.parenttype = parenttype
-	d.comment = txt
-	d.comment_docname = contact
-	d.comment_doctype = 'Message'
-	d.comment_by_fullname = get_fullname(frappe.session.user)
+	d = frappe.new_doc('Communication')
+	d.communication_type = 'Notification' if parenttype else 'Chat'
+	d.subject = subject
+	d.content = txt
+	d.reference_doctype = 'User'
+	d.reference_name = contact
+	d.sender = frappe.session.user
 	d.insert(ignore_permissions=True)
 
 	delete_notification_count_for("Messages")
@@ -94,7 +97,7 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 
 @frappe.whitelist()
 def delete(arg=None):
-	frappe.get_doc("Comment", frappe.form_dict['name']).delete()
+	frappe.get_doc("Communication", frappe.form_dict['name']).delete()
 
 def _notify(contact, txt, subject=None):
 	from frappe.utils import get_fullname, get_url

@@ -4,6 +4,7 @@ frappe.provide("frappe.wiz.events");
 frappe.wiz = {
 	slides: [],
 	events: {},
+	remove_app_slides: [],
 	on: function(event, fn) {
 		if(!frappe.wiz.events[event]) {
 			frappe.wiz.events[event] = [];
@@ -13,6 +14,7 @@ frappe.wiz = {
 	add_slide: function(slide) {
 		frappe.wiz.slides.push(slide);
 	},
+	
 	run_event: function(event) {
 		$.each(frappe.wiz.events[event] || [], function(i, fn) {
 			fn(frappe.wiz.wizard);
@@ -32,7 +34,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	});
 
 	frappe.wiz.run_event("before_load");
-
+	
 	var wizard_settings = {
 		page_name: "setup-wizard",
 		parent: wrapper,
@@ -237,6 +239,7 @@ function load_frappe_slides() {
 	// language selection
 	frappe.wiz.welcome = {
 		name: "welcome",
+		app_name: "frappe",
 		title: __("Welcome"),
 		icon: "icon-world",
 		help: __("Let's prepare the system for first use."),
@@ -299,6 +302,18 @@ function load_frappe_slides() {
 						// reset all slides so that labels are translated
 						frappe.wiz.slides = [];
 						frappe.wiz.run_event("before_load");
+						
+						// remove slides listed in remove_app_slides
+						for (var app in frappe.wiz.remove_app_slides) {
+							var new_slides = []
+							for (var i in frappe.wiz.slides) {
+								if (frappe.wiz.slides[i].app_name != frappe.wiz.remove_app_slides[app]) {
+									new_slides.push(frappe.wiz.slides[i]);
+								}
+							}
+							frappe.wiz.slides = new_slides;
+						}
+						
 						frappe.wiz.wizard.slides = frappe.wiz.slides;
 						frappe.wiz.run_event("after_load");
 
@@ -315,10 +330,11 @@ function load_frappe_slides() {
 				});
 			});
 		}
-	}
+	},
 
 	// region selection
 	frappe.wiz.region = {
+		app_name: "frappe",
 		title: __("Region"),
 		icon: "icon-flag",
 		help: __("Select your Country, Time Zone and Currency"),
@@ -404,6 +420,44 @@ function load_frappe_slides() {
 				});
 			});
 		}
+	},
+	
+	
+	frappe.wiz.user= {
+		app_name: "frappe",
+		title: __("The First User: You"),
+		icon: "icon-user",
+		fields: [
+			{"fieldname": "first_name", "label": __("First Name"), "fieldtype": "Data",
+				reqd:1},
+			{"fieldname": "last_name", "label": __("Last Name"), "fieldtype": "Data"},
+			{"fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
+				reqd:1, "description": __("You will use it to Login"), "options":"Email"},
+			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
+				reqd:1},
+			{fieldtype:"Attach Image", fieldname:"attach_user",
+				label: __("Attach Your Picture"), is_private: 0},
+		],
+		help: __('The first user will become the System Manager (you can change this later).'),
+		onload: function(slide) {
+			if(user!=="Administrator") {
+				slide.form.fields_dict.password.$wrapper.toggle(false);
+				slide.form.fields_dict.email.$wrapper.toggle(false);
+				slide.form.fields_dict.first_name.set_input(frappe.boot.user.first_name);
+				slide.form.fields_dict.last_name.set_input(frappe.boot.user.last_name);
+
+				var user_image = frappe.get_cookie("user_image");
+				if(user_image) {
+					var $attach_user = slide.form.fields_dict.attach_user.$wrapper;
+					$attach_user.find(".missing-image").toggle(false);
+					$attach_user.find("img").attr("src", decodeURIComponent(user_image)).toggle(true);
+				}
+
+				delete slide.form.fields_dict.email;
+				delete slide.form.fields_dict.password;
+			}
+		},
+		css_class: "single-column"
 	};
 };
 
@@ -413,4 +467,5 @@ frappe.wiz.on("before_load", function() {
 	// add welcome slide
 	frappe.wiz.add_slide(frappe.wiz.welcome);
 	frappe.wiz.add_slide(frappe.wiz.region);
+	frappe.wiz.add_slide(frappe.wiz.user);
 });

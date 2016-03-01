@@ -19,8 +19,8 @@
 	{%- endfor -%}
 </head>
 <body>
-	<div class="centered splash" style="max-width: 360px;">
-        <img src="{{ splash_image or "/assets/frappe/images/splash.png" }}">
+	<div class="centered splash" style="width: 200px; height: 200px;">
+        <img src="{{ splash_image or "/assets/frappe/images/frappe-bird-grey.svg" }}">
     </div>
 	<div class="offcanvas-container">
 		<div class="offcanvas">
@@ -48,6 +48,7 @@
 	window._version_number = "{{ build_version }}";
 	// browser support
 	window.app = true;
+	window.dev_server = {{ dev_server }};
 
 	if(!window.frappe) window.frappe = {};
 

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.utils
 import json
-from jinja2 import TemplateSyntaxError
+from frappe.utils.jinja import validate_template
 
 from frappe.model.document import Document
 
@@ -24,12 +24,7 @@ class PrintFormat(Document):
 		self.extract_images()
 
 		if self.html:
-			jenv = frappe.get_jenv()
-			try:
-				jenv.from_string(self.html)
-			except TemplateSyntaxError, e:
-				frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
-				frappe.throw(frappe._("Syntax error in Jinja template"))
+			validate_template(self.html)
 
 	def extract_images(self):
 		from frappe.utils.file_manager import extract_images_from_html

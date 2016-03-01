@@ -97,6 +97,9 @@
 .timeline-item blockquote {
   font-size: inherit;
 }
+.timeline-item .btn-more {
+  margin-left: 65px;
+}
 .timeline-items {
   position: relative;
 }
@@ -323,6 +326,9 @@ select.form-control {
   .col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
     max-width: none;
     padding-right: 0px;
+  }
+  .form-column.col-sm-6 textarea[data-fieldtype="Code"] {
+    height: 120px !important;
   }
 }
 @media (max-width: 991px) {

@@ -26,24 +26,33 @@ def can_cache(no_cache=False):
 
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
-		comment, comment_by_fullname, creation, comment_by
-		from `tabComment` where comment_doctype=%s
-		and ifnull(comment_type, "Comment")="Comment"
-		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
+		content, sender_full_name, creation, sender
+		from `tabCommunication`
+		where
+			communication_type='Comment'
+			and reference_doctype=%s
+			and reference_name=%s
+			and (comment_type is null or comment_type='Comment')
+		order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
 	if frappe.local.flags.home_page:
 		return frappe.local.flags.home_page
 
 	def _get_home_page():
-		role_home_page = frappe.get_hooks("role_home_page")
 		home_page = None
 
-		if role_home_page:
-			for role in frappe.get_roles():
-				if role in role_home_page:
-					home_page = role_home_page[role][-1]
-					break
+		get_website_user_home_page = frappe.get_hooks('get_website_user_home_page')
+		if get_website_user_home_page:
+			home_page = frappe.get_attr(get_website_user_home_page[-1])(frappe.session.user)
+
+		if not home_page:
+			role_home_page = frappe.get_hooks("role_home_page")
+			if role_home_page:
+				for role in frappe.get_roles():
+					if role in role_home_page:
+						home_page = role_home_page[role][-1]
+						break
 
 		if not home_page:
 			home_page = frappe.get_hooks("home_page")
@@ -52,6 +61,8 @@ def get_home_page():
 
 		if not home_page:
 			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
+
+		home_page = home_page.strip('/')
 
 		return home_page
 
@@ -80,7 +91,7 @@ def cleanup_page_name(title):
 	# replace repeating hyphens
 	name = re.sub(r"(-)\1+", r"\1", name)
 
-	return name
+	return name[:140]
 
 
 def get_shade(color, percent):

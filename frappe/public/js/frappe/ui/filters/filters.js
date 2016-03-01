@@ -211,10 +211,9 @@ frappe.ui.Filter = Class.extend({
 
 		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
 
-		// all fields shown in filters
-		if(df.hidden) {
-			df.hidden = 0;
-		}
+		// filter field shouldn't be read only or hidden
+		df.read_only = 0;
+		df.hidden = 0;
 
 		this.set_fieldtype(df, fieldtype);
 

@@ -1,6 +1,7 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].on_page_load = function(wrapper) {
+
 	// load desktop
 	if(!frappe.list_desktop) {
 		frappe.desktop.set_background();
@@ -77,6 +78,9 @@ $.extend(frappe.desktop, {
 		if(user_roles.indexOf('Administrator')!=-1) {
 			desktop_items.push('Core');
 		}
+
+		remove_from_list(desktop_items, "All Applications");
+		desktop_items.push('All Applications');
 
 		return desktop_items;
 	},
@@ -199,6 +203,12 @@ $.extend(frappe.desktop, {
 
 			this.dialog_body.find('input[type="checkbox"]').on("click", function() {
 				me.save_user_desktop_items();
+
+				frappe.user.modules = null;
+
+				frappe.after_ajax(function() {
+					frappe.desktop.refresh();
+				});
 			});
 		},
 
@@ -241,10 +251,15 @@ $.extend(frappe.desktop, {
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
 					var circle = notifier.find(".circle-text");
+					var text = sum || '';
+					if(text > 99) {
+						text = '99+';
+					}
+
 					if(circle.length) {
-						circle.html(sum || "");
+						circle.html(text);
 					} else {
-						notifier.html(sum);
+						notifier.html(text);
 					}
 				}
 			}

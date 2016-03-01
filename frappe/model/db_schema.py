@@ -46,10 +46,11 @@ type_map = {
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
 	'docstatus', 'parent', 'parentfield', 'parenttype', 'idx']
+optional_columns = ["_user_tags", "_comments", "_assign", "_liked_by"]
 
 default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
 
-def updatedb(dt):
+def updatedb(dt, meta=None):
 	"""
 	Syncs a `DocType` to the table
 	   * creates if required
@@ -61,7 +62,7 @@ def updatedb(dt):
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
 
 	if not res[0][0]:
-		tab = DbTable(dt, 'tab')
+		tab = DbTable(dt, 'tab', meta)
 		tab.validate()
 
 		frappe.db.commit()
@@ -69,11 +70,15 @@ def updatedb(dt):
 		frappe.db.begin()
 
 class DbTable:
-	def __init__(self, doctype, prefix = 'tab'):
+	def __init__(self, doctype, prefix = 'tab', meta = None):
 		self.doctype = doctype
 		self.name = prefix + doctype
 		self.columns = {}
 		self.current_columns = {}
+
+		self.meta = meta
+		if not self.meta:
+			self.meta = frappe.get_meta(self.doctype)
 
 		# lists for change
 		self.add_column = []
@@ -198,6 +203,14 @@ class DbTable:
 		lengths = {}
 		precisions = {}
 		uniques = {}
+
+		# optional fields like _comments
+		if not self.meta.istable:
+			for fieldname in optional_columns:
+				fl.append({
+					"fieldname": fieldname,
+					"fieldtype": "Text"
+				})
 
 		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
 			custom_fl = frappe.db.sql("""\
@@ -566,6 +579,10 @@ def get_definition(fieldtype, precision=None, length=None):
 	return coltype
 
 def add_column(doctype, column_name, fieldtype, precision=None):
+	if column_name in frappe.db.get_table_columns(doctype):
+		# already exists
+		return
+
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))

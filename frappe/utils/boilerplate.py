@@ -11,6 +11,9 @@ def make_boilerplate(dest, app_name):
 		print "Destination directory does not exist"
 		return
 
+	# app_name should be in snake_case
+	app_name = frappe.scrub(app_name)
+
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
@@ -56,7 +59,7 @@ def make_boilerplate(dest, app_name):
 		f.write(encode(manifest_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-		f.write(encode(gitignore_template))
+		f.write(encode(gitignore_template.format(app_name = hooks.app_name)))
 
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
 		f.write(encode(setup_template.format(**hooks)))
@@ -142,6 +145,9 @@ app_license = "{app_license}"
 #	"Role": "home_page"
 # }}
 
+# Website user home page (by function)
+# get_website_user_home_page = "{app_name}.utils.get_home_page"
+
 # Generators
 # ----------
 
@@ -224,14 +230,15 @@ from __future__ import unicode_literals
 from frappe import _
 
 def get_data():
-	return {{
-		"{app_title}": {{
+	return [
+		{{
+			"module_name": "{app_title}",
 			"color": "{app_color}",
 			"icon": "{app_icon}",
 			"type": "module",
 			"label": _("{app_title}")
 		}}
-	}}
+	]
 """
 
 setup_template = """# -*- coding: utf-8 -*-
@@ -257,7 +264,8 @@ gitignore_template = """.DS_Store
 *.pyc
 *.egg-info
 *.swp
-tags"""
+tags
+{app_name}/docs/current"""
 
 docs_template = '''"""
 Configuration for docs

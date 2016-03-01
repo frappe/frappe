@@ -108,13 +108,11 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 def now_datetime():
-	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	return dt.replace(tzinfo=None)
 
 def _get_time_zone():
-	time_zone = (frappe.db.get_single_value("System Settings", "time_zone")
-		or "Asia/Kolkata")
-
-	return time_zone
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
 
 def get_time_zone():
 	if frappe.local.flags.in_test:
@@ -275,6 +273,32 @@ def rounded(num, precision=0):
 		num = round(num)
 
 	return (num / multiplier) if precision else num
+
+def remainder(numerator, denominator, precision=2):
+	precision = cint(precision)
+	multiplier = 10 ** precision
+
+	if precision:
+		_remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier
+	else:
+		_remainder = numerator % denominator
+
+	return flt(_remainder, precision);
+
+def round_based_on_smallest_currency_fraction(value, currency, precision=2):
+	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
+		currency, "smallest_currency_fraction_value"))
+
+	if smallest_currency_fraction_value:
+		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
+		if remainder_val > (smallest_currency_fraction_value / 2):
+			value += smallest_currency_fraction_value - remainder_val
+		else:
+			value -= remainder_val
+	else:
+		value = rounded(value)
+
+	return flt(value, precision)
 
 def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
@@ -507,6 +531,21 @@ def comma_sep(some_list, pattern):
 			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
+
+def new_line_sep(some_list):
+	if isinstance(some_list, (list, tuple)):
+		# list(some_list) is done to preserve the existing list
+		some_list = [unicode(s) for s in list(some_list)]
+		if not some_list:
+			return ""
+		elif len(some_list) == 1:
+			return some_list[0]
+		else:
+			some_list = ["%s" % s for s in some_list]
+			return format("\n ".join(some_list))
+	else:
+		return some_list
+
 
 def filter_strip_join(some_list, sep):
 	"""given a list, filter None values, strip spaces and join"""

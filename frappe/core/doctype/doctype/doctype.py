@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import re
+import MySQLdb
 import frappe
 from frappe import _
 
@@ -34,9 +35,17 @@ class DocType(Document):
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
 		self.check_developer_mode()
-		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.name:
-				frappe.throw(_("{0} not allowed in name").format(c))
+
+		self.validate_name()
+
+		if self.issingle:
+			self.allow_import = 0
+			self.is_submittable = 0
+			self.istable = 0
+
+		elif self.istable:
+			self.allow_import = 0
+
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_document_type()
@@ -49,9 +58,6 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
-
-		if self.istable:
-			self.allow_import = 0
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -114,7 +120,7 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
-		updatedb(self.name)
+		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
@@ -146,6 +152,8 @@ class DocType(Document):
 			frappe.throw(_("DocType can only be renamed by Administrator"))
 
 		self.check_developer_mode()
+
+		self.validate_name(new)
 
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
@@ -197,7 +205,10 @@ class DocType(Document):
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):
-			make_boilerplate("test_controller.py", self)
+			make_boilerplate("test_controller.py", self.as_dict())
+
+		if not self.istable:
+			make_boilerplate("controller.js", self.as_dict())
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
@@ -219,6 +230,16 @@ class DocType(Document):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
 			self.name)
 		return max_idx and max_idx[0][0] or 0
+
+	def validate_name(self, name=None):
+		if not name:
+			name = self.name
+
+		# a DocType's name should not start with a number or underscore
+		# and should only contain letters, numbers and underscore
+		is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, re.UNICODE)
+		if not is_a_valid_name:
+			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype, cached=False))
@@ -298,17 +319,32 @@ def validate_fields(meta):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(d):
+		if meta.issingle:
+			d.unique = 0
+			d.search_index = 0
+
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
 				frappe.throw(_("Fieldtype {0} for {1} cannot be unique").format(d.fieldtype, d.label))
 
 			if not d.get("__islocal"):
-				has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-					from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
-					doctype=d.parent, fieldname=d.fieldname))
+				try:
+					has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
+						from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+						doctype=d.parent, fieldname=d.fieldname))
 
-				if has_non_unique_values and has_non_unique_values[0][0]:
-					frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
+				except MySQLdb.OperationalError, e:
+					if e.args and e.args[0]==1054:
+						# ignore if missing column, else raise
+						# this happens in case of Custom Field
+						pass
+					else:
+						raise
+
+				else:
+					# else of try block
+					if has_non_unique_values and has_non_unique_values[0][0]:
+						frappe.throw(_("Field '{0}' cannot be set as Unique as it has non-unique values").format(d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
@@ -340,7 +376,7 @@ def validate_fields(meta):
 
 	def check_title_field(meta):
 		"""Throw exception if `title_field` isn't a valid fieldname."""
-		if not meta.title_field:
+		if not meta.get("title_field"):
 			return
 
 		fieldname_list = [d.fieldname for d in fields]
@@ -366,6 +402,19 @@ def validate_fields(meta):
 			_validate_title_field_pattern(df.options)
 			_validate_title_field_pattern(df.default)
 
+	def check_timeline_field(meta):
+		if not meta.timeline_field:
+			return
+
+		fieldname_list = [d.fieldname for d in fields]
+
+		if meta.timeline_field not in fieldname_list:
+			frappe.throw(_("Timeline field must be a valid fieldname"), InvalidFieldNameError)
+
+		df = meta.get("fields", {"fieldname": meta.timeline_field})[0]
+		if df.fieldtype not in ("Link", "Dynamic Link"):
+			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
+
 	fields = meta.get("fields")
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
@@ -385,6 +434,7 @@ def validate_fields(meta):
 	check_fold(fields)
 	check_search_fields(meta)
 	check_title_field(meta)
+	check_timeline_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""

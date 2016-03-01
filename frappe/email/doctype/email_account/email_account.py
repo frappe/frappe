@@ -18,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 
 class SentEmailInInbox(Exception): pass
 
@@ -333,7 +334,7 @@ class EmailAccount(Document):
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
 		if self.enable_auto_reply:
-			communication.set_incoming_outgoing_accounts()
+			set_incoming_outgoing_accounts(communication)
 
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
@@ -344,18 +345,22 @@ class EmailAccount(Document):
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
 				message_id = communication.name,
+				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = _("Leave this conversation"),
 				bulk=True)
 
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""
 		self.send_notification_to = self.send_notification_to.replace(",", "\n")
-		out = [e.strip() for e in self.send_notification_to.split("\n")]
+		out = [e.strip() for e in self.send_notification_to.split("\n") if e.strip()]
 		return out
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+
+	def after_rename(self, old, new, merge=False):
+		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

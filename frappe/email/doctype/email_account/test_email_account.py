@@ -6,7 +6,7 @@ import unittest, email
 
 test_records = frappe.get_test_records('Email Account')
 
-from frappe.core.doctype.communication.communication import make
+from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import delete_file_from_filesystem
 from frappe.email.doctype.email_account.email_account import notify_unreplied
@@ -106,6 +106,7 @@ class TestEmailAccount(unittest.TestCase):
 			send_email=True)["name"]
 
 		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))

@@ -6,10 +6,10 @@ Call from command line:
 
 """
 
-import os, json, frappe, markdown2, shutil
+import os, json, frappe, shutil
 import frappe.website.statics
 from frappe.website.context import get_context
-from markdown2 import markdown
+from frappe.utils import markdown
 
 class setup_docs(object):
 	def __init__(self, app):
@@ -38,7 +38,7 @@ class setup_docs(object):
 				"source_link": self.docs_config.source_link,
 				"hide_install": getattr(self.docs_config, "hide_install", False),
 				"docs_base_url": self.docs_config.docs_base_url,
-				"long_description": markdown2.markdown(getattr(self.docs_config, "long_description", "")),
+				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
 				"style": getattr(self.docs_config, "style", "")
@@ -276,6 +276,10 @@ class setup_docs(object):
 	def write_files(self):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
+
+		# clear the user, current folder in target
+		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
+		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
 
 		cnt = 0
 		for page in frappe.db.sql("""select parent_website_route,

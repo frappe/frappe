@@ -3,7 +3,23 @@
 
 {% for page in layout %}
 <div class="page-break">
-    {{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
+	<div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
+		{{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead, footer) }}
+	</div>
+
+	{% if print_settings.repeat_header_footer %}
+	<div id="footer-html" class="visible-pdf">
+		{% if not no_letterhead and footer %}
+		<div class="letter-head-footer">
+			{{ footer }}
+		</div>
+		{% endif %}
+		<p class="text-center small page-number visible-pdf">
+			{{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
+		</p>
+	</div>
+	{% endif %}
+
     {% for section in page %}
     <div class="row section-break">
         {% for column in section %}

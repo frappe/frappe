@@ -429,8 +429,12 @@ class DatabaseQuery(object):
 				) and not self.group_by)
 
 			if not group_function_without_group_by:
-				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
-					meta.get("sort_field") or "modified", meta.get("sort_order") or "desc")
+				sort_field = sort_order = None
+				if meta.sort_field:
+					sort_field = meta.sort_field
+					sort_order = meta.sort_order
+
+				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
 
 				# draft docs always on top
 				if meta.is_submittable:
@@ -458,12 +462,21 @@ class DatabaseQuery(object):
 			if "_comments" in r:
 				comment_count = len(json.loads(r._comments or "[]"))
 			else:
-				comment_count = cint(frappe.db.get_value("Comment",
-					filters={"comment_doctype": self.doctype, "comment_docname": r.name, "comment_type": "Comment"},
+				comment_count = cint(frappe.db.get_value("Communication",
+					filters={
+						"communication_type": "Comment",
+						"reference_doctype": self.doctype,
+						"reference_name": r.name,
+						"comment_type": "Comment"
+					},
 					fieldname="count(name)"))
 
 			communication_count = cint(frappe.db.get_value("Communication",
-				filters={"reference_doctype": self.doctype, "reference_name": r.name},
+				filters={
+					"communication_type": "Communication",
+					"reference_doctype": self.doctype,
+					"reference_name": r.name
+				},
 				fieldname="count(name)"))
 
 			r._comment_count = comment_count + communication_count

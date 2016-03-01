@@ -7,6 +7,8 @@ import frappe
 from frappe.model.document import Document
 
 class ErrorSnapshot(Document):
+	no_feed_on_delete = True
+
 	def onload(self):
 		if not self.parent_error_snapshot:
 			self.db_set('seen', True, update_modified=False)

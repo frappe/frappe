@@ -43,6 +43,9 @@ class HTTPRequest:
 		# login
 		frappe.local.login_manager = LoginManager()
 
+		if frappe.form_dict._lang:
+			frappe.local.lang = frappe.form_dict._lang
+
 		self.validate_csrf_token()
 
 		# write out latest cookies
@@ -130,10 +133,12 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			if not resume:
 				frappe.local.response["message"] = "No App"
+				frappe.local.response["home_page"] = get_website_user_home_page(self.user)
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			if not resume:
 				frappe.local.response['message'] = 'Logged In'
+				frappe.local.response["home_page"] = "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -153,7 +158,8 @@ class LoginManager:
 		self.clear_active_sessions()
 
 	def clear_active_sessions(self):
-		if not frappe.conf.get("deny_multiple_sessions"):
+		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
+		if not (frappe.conf.get("deny_multiple_sessions") or frappe.db.get_system_setting('deny_multiple_sessions')):
 			return
 
 		if frappe.session.user != "Guest":
@@ -293,3 +299,11 @@ def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
 	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
+
+def get_website_user_home_page(user):
+	home_page_method = frappe.get_hooks('get_website_user_home_page')
+	if home_page_method:
+		home_page = frappe.get_attr(home_page_method[-1])(user)
+		return '/' + home_page.strip('/')
+	else:
+		return '/me'

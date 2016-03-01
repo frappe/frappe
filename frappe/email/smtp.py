@@ -22,12 +22,7 @@ def send(email, append_to=None):
 
 	try:
 		smtpserver = SMTPServer(append_to=append_to)
-		if hasattr(smtpserver, "always_use_account_email_id_as_sender") and \
-			cint(smtpserver.always_use_account_email_id_as_sender) and smtpserver.login:
-			if not email.reply_to:
-				email.reply_to = email.sender
-			email.sender = smtpserver.login
-
+		smtpserver.replace_sender_in_email(email)
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
 			email.as_string())
 
@@ -50,7 +45,8 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 		email_account = None
 
 		if append_to:
-			email_account = _get_email_account({"enable_outgoing": 1, "append_to": append_to})
+			# append_to is only valid when enable_incoming is checked
+			email_account = _get_email_account({"enable_outgoing": 1, "enable_incoming": 1, "append_to": append_to})
 
 		if not email_account:
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
@@ -129,6 +125,13 @@ class SMTPServer:
 			self.sender = self.email_account.email_id
 			self.always_use_account_email_id_as_sender = self.email_account.get("always_use_account_email_id_as_sender")
 
+	def replace_sender_in_email(self, email):
+		if hasattr(self, "always_use_account_email_id_as_sender") and \
+			cint(self.always_use_account_email_id_as_sender) and self.login:
+			if not email.reply_to:
+				email.reply_to = email.sender
+			email.sender = self.login
+
 	@property
 	def sess(self):
 		"""get session"""
@@ -177,3 +180,4 @@ class SMTPServer:
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
+

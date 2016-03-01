@@ -81,7 +81,7 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
-	with_doctype: function(doctype, callback) {
+	with_doctype: function(doctype, callback, async) {
 		if(locals.DocType[doctype]) {
 			callback && callback();
 		} else {
@@ -98,6 +98,7 @@ $.extend(frappe.model, {
 					with_parent: 1,
 					cached_timestamp: cached_timestamp
 				},
+				async: async,
 				freeze: true,
 				callback: function(r) {
 					if(r.exc) {
@@ -159,28 +160,52 @@ $.extend(frappe.model, {
 		}
 	},
 
-	new_comment: function(comment) {
-		var reference_doctype = comment.comment_doctype || comment.reference_doctype;
-		var reference_name = comment.comment_docname || comment.reference_name;
-
-		if (frappe.model.docinfo[reference_doctype] && frappe.model.docinfo[reference_doctype][reference_name]) {
-			var comments = frappe.model.docinfo[reference_doctype][reference_name].comments;
-			var comment_exists = false;
-			for (var i=0, l=comments.length; i<l; i++) {
-				if (comments[i].name==comment.name) {
-					comment_exists = true;
+	new_communication: function(communication) {
+		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
+		if (docinfo && docinfo.communications) {
+			var communications = docinfo.communications;
+			var communication_exists = false;
+			for (var i=0, l=communications.length; i<l; i++) {
+				if (communications[i].name==communication.name) {
+					communication_exists = true;
 					break;
 				}
 			}
 
-			if (!comment_exists) {
-				 frappe.model.docinfo[reference_doctype][reference_name].comments = comments.concat([comment]);
+			if (!communication_exists) {
+				docinfo.communications = communications.concat([communication]);
 			}
 		}
-		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
-			cur_frm.comments && cur_frm.comments.refresh();
+
+		if (cur_frm.doctype === communication.reference_doctype && cur_frm.docname === communication.reference_name) {
+			cur_frm.timeline && cur_frm.timeline.refresh();
 		}
 	},
+
+	delete_communication: function(communication) {
+		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
+		if (docinfo && docinfo.communications) {
+			var communications = docinfo.communications;
+
+			var index = -1;
+			for (var i=0, l=communications.length; i<l; i++) {
+				if (communications[i].name==communication.name) {
+					index = i;
+					break;
+				}
+			}
+
+			if (index !== -1) {
+				// remove it from communications list
+				docinfo.communications.splice(index, 1);
+			}
+		}
+
+		if (cur_frm.doctype === communication.reference_doctype && cur_frm.docname === communication.reference_name) {
+			cur_frm.timeline && cur_frm.timeline.refresh();
+		}
+	},
+
 
 	get_shared: function(doctype, name) {
 		return frappe.model.get_docinfo(doctype, name).shared;
@@ -340,7 +365,7 @@ $.extend(frappe.model, {
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link") {
+			if(fieldtype=="Link" && doc) {
 				frappe.model.trigger(fieldname, value, doc);
 			}
 		}

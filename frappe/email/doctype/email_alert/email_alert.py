@@ -7,17 +7,27 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
+from frappe.utils.jinja import validate_template
 
 class EmailAlert(Document):
 	def validate(self):
+		validate_template(self.subject)
+		validate_template(self.message)
+
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
 
 		if self.event=="Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
+		self.validate_forbidden_types()
+
+	def validate_forbidden_types(self):
 		forbidden_document_types = ("Bulk Email",)
-		if self.document_type in forbidden_document_types:
+		if (self.document_type in forbidden_document_types
+			or frappe.get_meta(self.document_type).istable):
+			# currently email alerts don't work on child tables as events are not fired for each record of child table
+
 			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
 
 def trigger_daily_alerts():

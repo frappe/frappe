@@ -1,0 +1,14 @@
+{
+	"app_url": "https://frappe.github.io/paypal_integration",
+	"app_name": "paypal_integration",
+	"app_icon": "octicon octicon-credit-card",
+	"app_color": "#179bd7",
+	"app_description": "Accept Payment via PayPal",
+	"app_publisher": "Frappe",
+	"app_email": "hello@frappe.io",
+	"repo_url": "https://github.com/frappe/paypal_integration.git",
+	"app_title": "Paypal Integation",
+	"app_version": "1.0.0",
+	"app_category": "Integrations",
+  "featured": 1
+}

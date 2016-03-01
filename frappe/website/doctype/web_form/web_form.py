@@ -7,7 +7,6 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
-from frappe.model import default_fields
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
@@ -37,7 +36,9 @@ class WebForm(WebsiteGenerator):
 				continue
 
 			for prop in docfield_properties:
-				if df.fieldtype==meta_df.fieldtype and prop != "idx":
+				if df.fieldtype==meta_df.fieldtype and prop not in ("idx",
+					"reqd", "default", "description", "default", "options",
+					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
 			if df.fieldtype == "Link":
@@ -102,8 +103,8 @@ class WebForm(WebsiteGenerator):
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 			context.title = context.doc.get(context.doc.meta.get_title_field())
 
-			context.comment_doctype = context.doc.doctype
-			context.comment_docname = context.doc.name
+			context.reference_doctype = context.doc.doctype
+			context.reference_name = context.doc.name
 
 		if self.allow_comments and frappe.form_dict.name:
 			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
@@ -133,10 +134,10 @@ class WebForm(WebsiteGenerator):
 
 	def get_parents(self, context):
 		parents = None
-		if context.parents:
-			parents = context.parents
-		elif self.breadcrumbs:
+		if self.breadcrumbs:
 			parents = json.loads(self.breadcrumbs)
+		elif context.parents:
+			parents = context.parents
 		elif context.is_list:
 			parents = [{"title": _("My Account"), "name": "me"}]
 

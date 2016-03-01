@@ -12,6 +12,7 @@ import warnings
 import datetime
 import frappe
 import frappe.defaults
+import frappe.async
 import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
@@ -672,6 +673,14 @@ class Database:
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		self.sql("commit")
 		frappe.local.rollback_observers = []
+		self.flush_realtime_log()
+
+	def flush_realtime_log(self):
+		for args in frappe.local.realtime_log:
+			frappe.async.emit_via_redis(*args)
+
+		frappe.local.realtime_log = []
+
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
@@ -774,6 +783,11 @@ class Database:
 				frappe.db.commit()
 				frappe.db.sql("""alter table `tab%s`
 					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+
+	def get_system_setting(self, key):
+		def _load_system_settings():
+			return self.get_singles_dict("System Settings")
+		return frappe.cache().get_value("system_settings", _load_system_settings).get(key)
 
 	def close(self):
 		"""Close database connection."""

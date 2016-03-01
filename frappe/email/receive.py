@@ -192,9 +192,15 @@ class EmailServer:
 
 				if not cint(self.settings.use_imap):
 					self.pop.dele(msg_num)
+				else:
+					# mark as seen
+					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 		else:
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
+			else:
+				# mark as seen
+				self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -260,8 +266,12 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 
-		self.from_email = extract_email_id(self.mail["From"])
-		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
+		# gmail mailing-list compatibility
+		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
+		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
+
+		self.from_email = extract_email_id(_from_email)
+		self.from_real_name = email.utils.parseaddr(_from_email)[0]
 
 		if self.mail["Date"]:
 			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))

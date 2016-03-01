@@ -17,7 +17,8 @@
 		<div class="checkbox">
 		    <label>
 		      <input type="checkbox" {% if (user_desktop_items.indexOf(module.name)!==-1) { %} checked {% } %}
-			  		data-name="{%= module.name %}"> {%= __(module.label) %}
+			  		data-name="{%= module.name %}"
+                    {{ module.force_show ? "disabled" : ""}}> {%= __(module.label) %}
 		    </label>
 		  </div>
 	</div>

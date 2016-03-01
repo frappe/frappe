@@ -8,14 +8,14 @@ def get_notification_config():
 	return {
 		"for_doctype": {
 			"Scheduler Log": {"seen": 0},
-			"Communication": {"status": "Open"},
+			"Communication": {"status": "Open", "communication_type": "Communication"},
 			"ToDo": "frappe.core.notifications.get_things_todo",
 			"Event": "frappe.core.notifications.get_todays_events",
-			"Comment": "frappe.core.notifications.get_unread_messages",
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
 		},
 		"for_other": {
-			"Likes": "frappe.core.notifications.get_unseen_likes"
+			"Likes": "frappe.core.notifications.get_unseen_likes",
+			"Messages": "frappe.core.notifications.get_unread_messages",
 		}
 	}
 
@@ -39,17 +39,19 @@ def get_unread_messages():
 	"returns unread (docstatus-0 messages for a user)"
 	return frappe.db.sql("""\
 		SELECT count(*)
-		FROM `tabComment`
-		WHERE comment_doctype IN ('My Company', 'Message')
-		AND comment_docname = %s
-		AND docstatus=0
+		FROM `tabCommunication`
+		WHERE communication_type in ('Chat', 'Notification')
+		AND reference_doctype = 'User'
+		AND reference_name = %s
+		AND seen=0
 		""", (frappe.session.user,))[0][0]
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
-	return frappe.db.sql("""select count(*) from `tabFeed`
+	return frappe.db.sql("""select count(*) from `tabCommunication`
 		where
-		feed_type='Like'
-		and owner is not null and owner!=%(user)s
-		and doc_owner=%(user)s
-		and seen=0""", {"user": frappe.session.user})[0][0]
+			communication_type='Comment'
+			and comment_type='Like'
+			and owner is not null and owner!=%(user)s
+			and reference_owner=%(user)s
+			and seen=0""", {"user": frappe.session.user})[0][0]

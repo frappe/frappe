@@ -13,7 +13,6 @@ from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.wsgi import SharedDataMiddleware
 from werkzeug.serving import run_with_reloader
 
-
 import frappe
 import frappe.handler
 import frappe.auth
@@ -23,8 +22,8 @@ import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
-
 from frappe.utils.error import make_error_snapshot
+from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 
 local_manager = LocalManager([frappe.local])
 
@@ -39,10 +38,7 @@ class RequestContext(object):
 		self.request = Request(environ)
 
 	def __enter__(self):
-		frappe.local.request = self.request
-		init_site(self.request)
-		make_form_dict(self.request)
-		frappe.local.http_request = frappe.auth.HTTPRequest()
+		init_request(self.request)
 
 	def __exit__(self, type, value, traceback):
 		frappe.destroy()
@@ -50,20 +46,12 @@ class RequestContext(object):
 
 @Request.application
 def application(request):
-	frappe.local.request = request
-	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	response = None
 
 	try:
 		rollback = True
 
-		init_site(request)
-
-		if frappe.local.conf.get('maintenance_mode'):
-			raise frappe.SessionStopped
-
-		make_form_dict(request)
-		frappe.local.http_request = frappe.auth.HTTPRequest()
+		init_request(request)
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
@@ -84,58 +72,17 @@ def application(request):
 			raise NotFound
 
 	except HTTPException, e:
+		logger.error('Request Error')
 		return e
 
 	except frappe.SessionStopped, e:
 		response = frappe.utils.response.handle_session_stopped()
 
 	except Exception, e:
-		http_status_code = getattr(e, "http_status_code", 500)
-
-		if (http_status_code==500
-			and isinstance(e, MySQLdb.OperationalError)
-			and e.args[0] in (1205, 1213)):
-				# 1205 = lock wait timeout
-				# 1213 = deadlock
-				# code 409 represents conflict
-				http_status_code = 508
-
-		if frappe.local.is_ajax or 'application/json' in request.headers.get('Accept', ''):
-			response = frappe.utils.response.report_error(http_status_code)
-		else:
-			traceback = "<pre>"+frappe.get_traceback()+"</pre>"
-			if frappe.local.flags.disable_traceback:
-				traceback = ""
-
-			frappe.respond_as_web_page("Server Error",
-				traceback,
-				http_status_code=http_status_code)
-			response = frappe.website.render.render("message", http_status_code=http_status_code)
-
-		if e.__class__ == frappe.AuthenticationError:
-			if hasattr(frappe.local, "login_manager"):
-				frappe.local.login_manager.clear_cookies()
-
-		if http_status_code==500:
-			logger.error('Request Error')
-
-		make_error_snapshot(e)
+		response = handle_exception(e)
 
 	else:
-		if (frappe.local.request.method in ("POST", "PUT") or frappe.local.flags.commit) and frappe.db:
-			if frappe.db.transaction_writes:
-				frappe.db.commit()
-				rollback = False
-
-		# update session
-		if getattr(frappe.local, "session_obj", None):
-			updated_in_db = frappe.local.session_obj.update()
-			if updated_in_db:
-				frappe.db.commit()
-
-		# publish realtime
-		for args in frappe.local.realtime_log:
-			frappe.async.emit_via_redis(*args)
+		rollback = after_request(rollback)
 
 	finally:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
@@ -149,13 +96,23 @@ def application(request):
 
 	return response
 
-def init_site(request):
+def init_request(request):
+	frappe.local.request = request
+	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
+
 	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
 		raise NotFound
+
+	if frappe.local.conf.get('maintenance_mode'):
+		raise frappe.SessionStopped
+
+	make_form_dict(request)
+
+	frappe.local.http_request = frappe.auth.HTTPRequest()
 
 def make_form_dict(request):
 	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
@@ -165,9 +122,57 @@ def make_form_dict(request):
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
 		frappe.local.form_dict.pop("_")
 
-application = local_manager.make_middleware(application)
-application.debug = True
+def handle_exception(e):
+	http_status_code = getattr(e, "http_status_code", 500)
 
+	if (http_status_code==500
+		and isinstance(e, MySQLdb.OperationalError)
+		and e.args[0] in (1205, 1213)):
+			# 1205 = lock wait timeout
+			# 1213 = deadlock
+			# code 409 represents conflict
+			http_status_code = 508
+
+	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
+		response = frappe.utils.response.report_error(http_status_code)
+	else:
+		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
+		if frappe.local.flags.disable_traceback:
+			traceback = ""
+
+		frappe.respond_as_web_page("Server Error",
+			traceback,
+			http_status_code=http_status_code)
+		response = frappe.website.render.render("message", http_status_code=http_status_code)
+
+	if e.__class__ == frappe.AuthenticationError:
+		if hasattr(frappe.local, "login_manager"):
+			frappe.local.login_manager.clear_cookies()
+
+	if http_status_code >= 500:
+		logger.error('Request Error')
+		make_error_snapshot(e)
+
+	return response
+
+def after_request(rollback):
+	if (frappe.local.request.method in ("POST", "PUT") or frappe.local.flags.commit) and frappe.db:
+		if frappe.db.transaction_writes:
+			frappe.db.commit()
+			rollback = False
+
+	# update session
+	if getattr(frappe.local, "session_obj", None):
+		updated_in_db = frappe.local.session_obj.update()
+		if updated_in_db:
+			frappe.db.commit()
+			rollback = False
+
+	update_comments_in_parent_after_request()
+
+	return rollback
+
+application = local_manager.make_middleware(application)
 
 def serve(port=8000, profile=False, site=None, sites_path='.'):
 	global application, _site, _sites_path

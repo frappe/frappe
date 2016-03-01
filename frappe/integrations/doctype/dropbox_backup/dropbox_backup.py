@@ -15,6 +15,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import cint, split_emails, get_request_site_address, cstr
+from frappe.utils.backups import new_backup
+from frappe.utils import get_files_path, get_backups_path
+
 import os
 from frappe import _
 
@@ -38,7 +41,6 @@ def take_backups_if(freq):
 def take_backups_dropbox():
 	did_not_upload, error_log = [], []
 	try:
-		from frappe.integrations.doctype.dropbox_backup.dropbox_backup import backup_to_dropbox
 		did_not_upload, error_log = backup_to_dropbox()
 		if did_not_upload: raise Exception
 
@@ -60,7 +62,9 @@ def send_email(success, service_name, error_status=None):
 		subject = "[Warning] Backup Upload Failed"
 		message ="""<h3>Backup Upload Failed</h3><p>Oops, your automated backup to %s
 		failed.</p>
-		<p>Error message: %s</p>
+		<p>Error message: <br>
+		<pre><code>%s</code></pre>
+		</p>
 		<p>Please contact your system manager for more information.</p>
 		""" % (service_name, error_status)
 
@@ -87,7 +91,6 @@ def get_dropbox_authorize_url():
 
 @frappe.whitelist(allow_guest=True)
 def dropbox_callback(oauth_token=None, not_approved=False):
-	from dropbox import client
 	if not not_approved:
 		if frappe.db.get_value("Dropbox Backup", None, "dropbox_access_key")==oauth_token:
 			allowed = 1
@@ -101,7 +104,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "dropbox_access_secret", access_token.secret)
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "dropbox_access_allowed", allowed)
 			frappe.db.set_value("Dropbox Backup", "Dropbox Backup", "send_backups_to_dropbox", 1)
-			dropbox_client = client.DropboxClient(sess)
+			#dropbox_client = client.DropboxClient(sess)
 			# try:
 			# 	dropbox_client.file_create_folder("private")
 			# 	dropbox_client.file_create_folder("private/files")
@@ -127,23 +130,15 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 	frappe.response['page_name'] = 'message.html'
 
 def backup_to_dropbox():
-	from dropbox import client, session
-	from frappe.utils.backups import new_backup
-	from frappe.utils import get_files_path, get_backups_path
 	if not frappe.db:
 		frappe.connect()
 
-	sess = session.DropboxSession(frappe.conf.dropbox_access_key, frappe.conf.dropbox_secret_key, "app_folder")
-
-	sess.set_token(frappe.db.get_value("Dropbox Backup", None, "dropbox_access_key"),
-		frappe.db.get_value("Dropbox Backup", None, "dropbox_access_secret"))
-
-	dropbox_client = client.DropboxClient(sess)
+	dropbox_client = get_dropbox_client()
 
 	# upload database
 	backup = new_backup(ignore_files=True)
 	filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
-	upload_file_to_dropbox(filename, "/database", dropbox_client)
+	dropbox_client = upload_file_to_dropbox(filename, "/database", dropbox_client)
 
 	frappe.db.close()
 
@@ -151,11 +146,32 @@ def backup_to_dropbox():
 	did_not_upload = []
 	error_log = []
 
-	upload_from_folder(get_files_path(), "/files", dropbox_client, did_not_upload, error_log)
-	upload_from_folder(get_files_path(is_private=1), "/private/files", dropbox_client, did_not_upload, error_log)
+	dropbox_client = upload_from_folder(get_files_path(), "/files", dropbox_client, did_not_upload, error_log)
+	dropbox_client = upload_from_folder(get_files_path(is_private=1), "/private/files", dropbox_client, did_not_upload, error_log)
 
 	frappe.connect()
 	return did_not_upload, list(set(error_log))
+
+def get_dropbox_client(previous_dropbox_client=None):
+	from dropbox import client
+
+	sess = get_dropbox_session()
+
+	sess.set_token(frappe.db.get_value("Dropbox Backup", None, "dropbox_access_key"),
+		frappe.db.get_value("Dropbox Backup", None, "dropbox_access_secret"))
+
+	dropbox_client = client.DropboxClient(sess)
+
+	# upgrade to oauth2
+	token = dropbox_client.create_oauth2_access_token()
+	dropbox_client = client.DropboxClient(token)
+
+	if previous_dropbox_client:
+		dropbox_client.connection_reset_count = previous_dropbox_client.connection_reset_count + 1
+	else:
+		dropbox_client.connection_reset_count = 0
+
+	return dropbox_client
 
 def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, error_log):
 	import dropbox.rest
@@ -169,6 +185,8 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		# folder not found
 		if e.status==404:
 			response = {"contents": []}
+		else:
+			raise
 
 	for filename in os.listdir(path):
 		filename = cstr(filename)
@@ -185,10 +203,12 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 
 		if not found:
 			try:
-				upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
+				dropbox_client = upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
 			except Exception:
 				did_not_upload.append(filename)
 				error_log.append(frappe.get_traceback())
+
+	return dropbox_client
 
 def get_dropbox_session():
 	try:
@@ -216,10 +236,26 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 				try:
 					uploader.upload_chunked()
 					uploader.finish(folder + "/" + os.path.basename(filename), overwrite=True)
-				except rest.ErrorResponse:
-					pass
+
+				except rest.ErrorResponse, e:
+					# if "[401] u'Access token not found.'",
+					# it means that the user needs to again allow dropbox backup from the UI
+					# so re-raise
+
+					if (e.startswith("[401]")
+						and dropbox_client.connection_reset_count < 10
+						and e != "[401] u'Access token not found.'"):
+
+						# session expired, so get a new connection!
+						# [401] u"The given OAuth 2 access token doesn't exist or has expired."
+						dropbox_client = get_dropbox_client(dropbox_client)
+
+					else:
+						raise
 		else:
 			dropbox_client.put_file(folder + "/" + os.path.basename(filename), f, overwrite=True)
+
+	return dropbox_client
 
 if __name__=="__main__":
 	backup_to_dropbox()

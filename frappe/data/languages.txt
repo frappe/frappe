@@ -12,6 +12,7 @@ el	ελληνικά
 en	english
 es	español
 es-PE	 Español (Perú)
+et	eesti
 fa	پارسی
 fi	suomalainen
 fr	français
@@ -45,9 +46,11 @@ sv	svenska
 sq	shqiptar
 sr	српски
 ta	தமிழ்
+te	తెలుగు
 th	ไทย
 tr	Türk
 uk	українська
+ur	اردو
 vi	việt
 zh-cn	簡體中文
 zh-tw	正體中文

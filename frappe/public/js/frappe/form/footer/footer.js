@@ -22,7 +22,7 @@ frappe.ui.form.Footer = Class.extend({
 
 	},
 	make_comments: function() {
-		this.frm.comments = new frappe.ui.form.Comments({
+		this.frm.timeline = new frappe.ui.form.Timeline({
 			parent: this.wrapper.find(".form-comments"),
 			frm: this.frm
 		})
@@ -32,7 +32,7 @@ frappe.ui.form.Footer = Class.extend({
 			this.parent.addClass("hide");
 		} else {
 			this.parent.removeClass("hide");
-			this.frm.comments.refresh();
+			this.frm.timeline.refresh();
 		}
 	},
 });

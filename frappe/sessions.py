@@ -17,7 +17,6 @@ import frappe.defaults
 import frappe.translate
 from frappe.utils.change_log import get_change_log
 import redis
-import os
 from urllib import unquote
 
 @frappe.whitelist()
@@ -48,7 +47,7 @@ def clear_cache(user=None):
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
-		"app_modules", "module_app", "time_zone", "notification_config"])
+		"app_modules", "module_app", "notification_config", 'system_settings'])
 	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False, device=None):
@@ -128,7 +127,6 @@ def get():
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
-	bootinfo["dev_server"] = os.environ.get('DEV_SERVER', False)
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
 	return bootinfo

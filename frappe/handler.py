@@ -10,19 +10,57 @@ import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
-import bleach
+
+def handle():
+	"""handle request"""
+	cmd = frappe.local.form_dict.cmd
+
+	if cmd!='login':
+		execute_cmd(cmd)
+
+	return build_response("json")
+
+def execute_cmd(cmd, from_async=False):
+	"""execute a request as python module"""
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		cmd = hook
+		break
+
+	method = get_attr(cmd)
+	if from_async:
+		method = method.queue
+
+	is_whitelisted(method)
+
+	ret = frappe.call(method, **frappe.form_dict)
+
+	# returns with a message
+	if ret:
+		frappe.response['message'] = ret
+
+def is_whitelisted(method):
+	# check if whitelisted
+	if frappe.session['user'] == 'Guest':
+		if (method not in frappe.guest_methods):
+			frappe.msgprint(_("Not permitted"))
+			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
+
+		if method not in frappe.xss_safe_methods:
+			# strictly sanitize form_dict
+			# escapes html characters like <> except for predefined tags like a, b, ul etc.
+			for key, value in frappe.form_dict.items():
+				if isinstance(value, basestring):
+					frappe.form_dict[key] = frappe.utils.sanitize_html(value)
+
+	else:
+		if not method in frappe.whitelisted:
+			frappe.msgprint(_("Not permitted"))
+			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 
 @frappe.whitelist(allow_guest=True)
 def version():
 	return frappe.__version__
-
-@frappe.whitelist()
-def ping():
-	return "pong"
-
-@frappe.async.handler
-def async_ping():
-	return "pong"
 
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
@@ -69,53 +107,6 @@ def uploadfile():
 
 	return ret
 
-def handle():
-	"""handle request"""
-	cmd = frappe.local.form_dict.cmd
-
-	if cmd!='login':
-		execute_cmd(cmd)
-
-	return build_response("json")
-
-def execute_cmd(cmd, from_async=False):
-	"""execute a request as python module"""
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
-		# override using the first hook
-		cmd = hook
-		break
-
-	method = get_attr(cmd)
-	if from_async:
-		method = method.queue
-
-	is_whitelisted(method)
-
-	ret = frappe.call(method, **frappe.form_dict)
-
-	# returns with a message
-	if ret:
-		frappe.response['message'] = ret
-
-def is_whitelisted(method):
-	# check if whitelisted
-	if frappe.session['user'] == 'Guest':
-		if (method not in frappe.guest_methods):
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
-
-		if method not in frappe.xss_safe_methods:
-			# strictly sanitize form_dict
-			# escapes html characters like <> except for predefined tags like a, b, ul etc.
-			# if required, we can add more whitelisted tags like div, p, etc. (see its documentation)
-			for key, value in frappe.form_dict.items():
-				if isinstance(value, basestring):
-					frappe.form_dict[key] = bleach.clean(value)
-
-	else:
-		if not method in frappe.whitelisted:
-			frappe.msgprint(_("Not permitted"))
-			raise frappe.PermissionError('Not Allowed, {0}'.format(method))
 
 def get_attr(cmd):
 	"""get method object from cmd"""
@@ -137,3 +128,11 @@ def get_async_task_status(task_id):
 		"state": a.state,
 		"progress": 0
 	}
+
+@frappe.whitelist()
+def ping():
+	return "pong"
+
+@frappe.async.handler
+def async_ping():
+	return "pong"
