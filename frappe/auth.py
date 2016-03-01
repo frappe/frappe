@@ -8,6 +8,7 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
+from frappe.utils import cint
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -159,7 +160,7 @@ class LoginManager:
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
-		if not (frappe.conf.get("deny_multiple_sessions") or int(frappe.db.get_system_setting('deny_multiple_sessions'))):
+		if not (frappe.conf.get("deny_multiple_sessions") or cint(frappe.db.get_system_setting('deny_multiple_sessions'))):
 			return
 
 		if frappe.session.user != "Guest":
@@ -176,7 +177,6 @@ class LoginManager:
 
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
-		from frappe.utils import cint
 		if user=='Administrator': return
 		if not cint(frappe.db.get_value('User', user, 'enabled')):
 			self.fail('User disabled or missing')
