@@ -12,6 +12,9 @@ def sync_fixtures(app=None):
 		apps = [app]
 	else:
 		apps = frappe.get_installed_apps()
+
+	frappe.flags.in_fixtures = True
+
 	for app in apps:
 		if os.path.exists(frappe.get_app_path(app, "fixtures")):
 			fixture_files = sorted(os.listdir(frappe.get_app_path(app, "fixtures")))
@@ -20,6 +23,8 @@ def sync_fixtures(app=None):
 					import_doc(frappe.get_app_path(app, "fixtures", fname), ignore_links=True, overwrite=True)
 
 		import_custom_scripts(app)
+
+	frappe.flags.in_fixtures = False
 
 	frappe.db.commit()
 
