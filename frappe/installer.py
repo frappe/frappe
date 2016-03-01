@@ -165,6 +165,8 @@ def remove_app(app_name, dry_run=False):
 	print "Backing up..."
 	scheduled_backup(ignore_files=True)
 
+	drop_doctypes = []
+
 	# remove modules, doctypes, roles
 	for module_name in frappe.get_module_list(app_name):
 		for doctype in frappe.get_list("DocType", filters={"module": module_name},
@@ -173,15 +175,23 @@ def remove_app(app_name, dry_run=False):
 			# drop table
 
 			if not dry_run:
-				if not doctype.issingle:
-					frappe.db.sql("drop table `tab{0}`".format(doctype.name))
 				frappe.delete_doc("DocType", doctype.name)
+
+				if not doctype.issingle:
+					drop_doctypes.append(doctype.name)
 
 		print "removing Module {0}...".format(module_name)
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
 
 	remove_from_installed_apps(app_name)
+
+	if not dry_run:
+		# drop tables after a commit
+		frappe.db.commit()
+
+		for doctype in set(drop_doctypes):
+			frappe.db.sql("drop table `tab{0}`".format(doctype))
 
 def post_install(rebuild_website=False):
 	if rebuild_website:
