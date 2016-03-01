@@ -182,6 +182,12 @@ def download_pdf(doctype, name, format=None):
 	frappe.local.response.filecontent = get_pdf(html)
 	frappe.local.response.type = "download"
 
+@frappe.whitelist()
+def report_to_pdf(html):
+	frappe.local.response.filename = "report.pdf"
+	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.type = "download"
+
 def validate_print_permission(doc):
 	if frappe.form_dict.get("key"):
 		if frappe.form_dict.key == doc.get_signature():
