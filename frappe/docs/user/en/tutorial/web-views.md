@@ -24,7 +24,7 @@ Click on one article and you will see the default web view
 
 Now if you want to make a better list view for the article, drop a file called `list_item.html` in the `library_management/doctype/article` folder. Here is an example file:
 
-	<div class="row">
+	{% raw %}<div class="row">
 		<div class="col-sm-4">
 			<a href="/Article/{{ doc.name }}">
 				<img src="{{ doc.image }}"
@@ -35,10 +35,10 @@ Now if you want to make a better list view for the article, drop a file called `
 			<a href="/Article/{{ doc.name }}"><h4>{{ doc.article_name }}</h4></a>
 			<p>{{ doc.author }}</p>
 			<p>{{ (doc.description[:200] + "...")
-				if doc.description|length > 200 else doc.description }}</p>
+				if doc.description|len > 200 else doc.description }}</p>
 			<p class="text-muted">Publisher: {{ doc.publisher }}</p>
 		</div>
-	</div>
+	</div>{% endraw %}
 
 
 Here, you will get all the properties of the article in the `doc` object.
