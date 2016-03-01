@@ -532,6 +532,21 @@ def comma_sep(some_list, pattern):
 	else:
 		return some_list
 
+def new_line_sep(some_list):
+	if isinstance(some_list, (list, tuple)):
+		# list(some_list) is done to preserve the existing list
+		some_list = [unicode(s) for s in list(some_list)]
+		if not some_list:
+			return ""
+		elif len(some_list) == 1:
+			return some_list[0]
+		else:
+			some_list = ["%s" % s for s in some_list]
+			return format("\n ".join(some_list))
+	else:
+		return some_list
+
+
 def filter_strip_join(some_list, sep):
 	"""given a list, filter None values, strip spaces and join"""
 	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))

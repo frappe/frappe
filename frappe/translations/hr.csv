@@ -60,7 +60,7 @@ DocType: Print Settings,Classic,Klasik
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +49,For ranges,Za raspone
 DocType: Workflow State,indent-right,alineje-desno
 apps/frappe/frappe/public/js/frappe/ui/upload.html +12,Web Link,Web Link
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +41,1 minute ago,prije 1 minutu
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +41,1 minute ago,Prije 1 minutu
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.","Preporučena skupno uređivanje zapisa putem uvoza, odnosno razumijevanje uvoz formatu."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Osim System Manager, uloge s postavite korisnički Dozvole pravo može postaviti dozvole za ostale korisnike za tu vrstu dokumenta."
 DocType: Company History,Company History,Povijest tvrtke
@@ -108,7 +108,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +108,"Insert Afte
 DocType: Workflow State,circle-arrow-up,krug sa strelicom prema gore
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,Prijenos ...
 DocType: Workflow State,italic,kurzivan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +501,{0}: Cannot set Import without Create,{0} : Ne može se uvoz bez Stvoriti
+apps/frappe/frappe/core/doctype/doctype/doctype.py +501,{0}: Cannot set Import without Create,{0} : Ne može se uvesti bez stvaranja
 apps/frappe/frappe/config/desk.py +21,Event and other calendars.,Događaj i druge kalendare.
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Drag to sort columns,Povucite kako bi sortirali stupce
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,Širina može biti postavljena u px ili%.
@@ -355,7 +355,7 @@ DocType: Property Setter,Property Setter overrides a standard DocType or Field p
 apps/frappe/frappe/core/doctype/user/user.py +380,Cannot Update: Incorrect / Expired Link.,Ne možete ažurirati : Nepravilan / istekla .
 DocType: DocField,Set Only Once,Postaviti samo jednom
 apps/frappe/frappe/core/doctype/user/user.py +315,Username {0} already exists,Korisničko ime {0} već postoji
-apps/frappe/frappe/core/doctype/doctype/doctype.py +528,{0}: Cannot set import as {1} is not importable,{0} : Ne može se uvesti kao {1} nije za uvoz
+apps/frappe/frappe/core/doctype/doctype/doctype.py +528,{0}: Cannot set import as {1} is not importable,{0} : Ne može se postaviti uvoz kao {1} nije za uvoz
 DocType: Top Bar Item,"target = ""_blank""",target = &quot;_blank&quot;
 DocType: Workflow State,hdd,HDD
 DocType: ToDo,High,Visok
@@ -365,7 +365,7 @@ apps/frappe/frappe/desk/query_report.py +19,You don't have access to Report: {0}
 DocType: User,Send Welcome Email,Pošalji e-mail dobrodošlice
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,Pošalji CSV datoteku koja sadrži sve korisničke dozvole u istom obliku kao preuzimanje.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +359,Remove Filter,Uklonite filtar
-apps/frappe/frappe/config/setup.py +108,Bulk Rename,Bulk Rename
+apps/frappe/frappe/config/setup.py +108,Bulk Rename,Skupno preimenuj
 DocType: DocField,Heading,Naslov
 DocType: Workflow State,resize-vertical,resize-vertikalna
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,Uvodni podaci za stranicu Kontaktirajte nas
@@ -386,7 +386,7 @@ DocType: DocType,Sort Order,sortiranje
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +137,'In List View' not allowed for type {0} in row {1},'U prikazu popisa' nisu dopušteni za tip {0} u redu {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,Odaberite oznaku nakon što želite umetnuti novo polje.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet će se dijeliti putem vašeg korisničkog računa (ako je određeno)
-,Document Share Report,Dokument Podijeli Prijavi
+,Document Share Report,Dokument podijele prijava
 DocType: User,Last Login,Zadnja prijava
 apps/frappe/frappe/core/doctype/doctype/doctype.py +411,Fieldname is required in row {0},"Podataka, Naziv Polja je potrebno u redu {0}"
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Kolona
@@ -408,7 +408,7 @@ apps/frappe/frappe/public/js/frappe/ui/editor.html +12,Number list,Popis brojeva
 apps/frappe/frappe/config/setup.py +84,Log of error during requests.,Prijava pogreške prilikom zahtjeva.
 DocType: DocShare,Everyone,Svako
 DocType: Workflow State,backward,Natrag
-apps/frappe/frappe/core/doctype/doctype/doctype.py +475,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Samo jedno pravilo dopušten uz istu ulogu, razine i {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +475,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Samo je jedno pravilo dopušteno za istu ulogu, razinu i {1}"
 DocType: Workflow State,share,udio
 apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,Postavi brojni slijed za transakcije.
 apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,Ne možete se sviđa nešto što ste stvorili
@@ -610,7 +610,7 @@ DocType: Custom Field,Field Type,Vrsta polja
 apps/frappe/frappe/utils/data.py +429,only.,samo.
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +455,Descending,Silazni
 apps/frappe/frappe/email/receive.py +57,Invalid Mail Server. Please rectify and try again.,Nevažeći mail server. Ispravi i pokušaj ponovno.
-DocType: Dropbox Backup,Dropbox Backup,Dropbox Backup
+DocType: Dropbox Backup,Dropbox Backup,Dropbox backup
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Za Linkovi unesite DOCTYPE kao raspona. Za Odaberi unesite popisu opcija, svaki na novoj liniji."
 DocType: Workflow State,film,film
@@ -704,7 +704,7 @@ DocType: DocPerm,If user is the owner,Ako korisnik je vlasnik
 ,Activity,Aktivnost
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Pomoć: Za povezivanje na drugi zapis u sustavu, koristite &quot;# Forma / Napomena / [Napomena ime]&quot; kao URL veze. (Ne koristite &quot;http://&quot;)"
 DocType: Communication,Delayed,Odgođeno
-apps/frappe/frappe/config/setup.py +116,List of backups available for download,Popis kopija dostupna za preuzimanje
+apps/frappe/frappe/config/setup.py +116,List of backups available for download,Popis kopija dostupnih za preuzimanje
 apps/frappe/frappe/templates/pages/login.html +61,Sign up,Prijavite se
 apps/frappe/frappe/config/setup.py +222,Add fields to forms.,Dodaj polja obrascima.
 DocType: File,rgt,RGT
@@ -832,7 +832,7 @@ DocType: Dropbox Backup,Dropbox Access Secret,Dropbox tajni pristup
 apps/frappe/frappe/core/doctype/doctype/doctype.py +351,Fold must come before a Section Break,Preklopite moraju doći pred Odjeljak Break
 apps/frappe/frappe/core/doctype/user/user.py +430,Not allowed to reset the password of {0},Nije dopušteno za resetiranje lozinke od {0}
 DocType: Workflow State,hand-down,rukom prema dolje
-apps/frappe/frappe/core/doctype/doctype/doctype.py +494,{0}: Cannot set Cancel without Submit,{0} : Ne mogu postaviti Odustani bez Podnijeti
+apps/frappe/frappe/core/doctype/doctype/doctype.py +494,{0}: Cannot set Cancel without Submit,{0} : Ne može se postaviti Odustani bez Potvrdi
 DocType: Website Theme,Theme,Tema
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +146,There were errors.,Bilo je grešaka .
 DocType: DocType,Is Submittable,Je Submittable
@@ -862,7 +862,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +115,Sit tight while y
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Uloge se mogu postaviti za korisnike iz svoje korisničke stranice .
 DocType: DocField,Mandatory,Obavezno
 apps/frappe/frappe/core/doctype/doctype/doctype.py +458,{0}: No basic permissions set,{0}: Nisu postavljene osnovne ovlasti
-apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},Preuzmite link za Vašu backup će biti poslana na e-mail adresu: {0}
+apps/frappe/frappe/utils/backups.py +158,Download link for your backup will be emailed on the following email address: {0},Poveznica za Vašu sigurnosnu kopiju će biti poslana na email adresu: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Značenje od Podnijeti, Odustati, Izmijeniti"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Podsjetnik
 apps/frappe/frappe/public/js/frappe/ui/editor.html +25,Paragraph,Paragraf
@@ -1069,7 +1069,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +31,R
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,Zadana Slanje
 DocType: Workflow State,volume-off,volumen-off
 apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +107,Liked by {0},Svidjelo mi se {0}
-,Download Backups,Preuzmite Sigurnosne kopije
+,Download Backups,Preuzmi sigurnosne kopije
 apps/frappe/frappe/core/doctype/file/test_file.py +43,Home/Test Folder 1,Početna / Ispitni mapa 1
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47,"Do not update, but insert new records.","Nemoj ažurirati, ali ubacite nove rekorde."
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +160,Assign to me,Dodijeli mi
@@ -1476,7 +1476,7 @@ DocType: Workflow Transition,Action,Akcija
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +231,Info:,Info:
 DocType: Custom Field,Permission Level,Razina ovlasti
 DocType: User,Send Notifications for Transactions I Follow,Pošalji obavijesti o transakcijama | Prati
-apps/frappe/frappe/core/doctype/doctype/doctype.py +497,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Ne mogu postaviti Podnijeti , Odustani , Izmijeniti bez zapisivanja"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +497,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Ne može se postaviti Potvrdi, Odustani, Izmijeni bez zapisivanja"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,Jeste li sigurni da želite izbrisati privitak?
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Postavke > Korisnik
 apps/frappe/frappe/model/base_document.py +483,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; bi bio skraćen, kao max likovi dopušteno je {2}"
@@ -1701,7 +1701,7 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py +49,{0} shared this documen
 apps/frappe/frappe/desk/page/activity/activity_row.html +20,Commented on {0}: {1},Komentirano {0}: {1}
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +248,These restrictions will apply for Document Types where 'Apply User Permissions' is checked for the permission rule and a field with this value is present.,"Ova ograničenja primjenjivat će se za vrste dokumenata, gdje &#39;Primijeni korisnik dozvole&#39; se provjerava za vladavinu dozvole i polje s ovim vrijednosti prisutan."
 DocType: Email Alert,Send alert if this field's value changes,Pošalji upozorenje ako se vrijednost mijenja ovom području je
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +102,Select a DocType to make a new format,Odaberite vrstu dokumenta kako bi novi format
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +102,Select a DocType to make a new format,Odaberite Doctype za kreiranje novog formata
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +40,just now,upravo sad
 DocType: Module Def,Module Def,Definicija modula
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +7,Done,Pospremljen
@@ -1749,7 +1749,7 @@ DocType: Communication,Info,Info
 DocType: Communication,Email,E-mail
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Hvala vam za vašu poruku
 apps/frappe/frappe/templates/pages/login.py +54,Invalid Login Token,Pogrešna Prijava token
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +43,1 hour ago,prije 1 sat
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +43,1 hour ago,Prije 1 sat
 DocType: Website Settings,Home Page,Početna stranica
 DocType: Error Snapshot,Parent Error Snapshot,Roditelj Greška Snimak
 DocType: Email Alert,Filters,Filteri
@@ -1821,7 +1821,7 @@ DocType: User,Enabled,Omogućeno
 DocType: Blog Category,Category Name,Naziv kategorije
 DocType: Print Settings,PDF Settings,PDF postavke
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,Naziv Stupac
-apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,Make Default
+apps/frappe/frappe/print/doctype/print_format/print_format.js +18,Make Default,Napravi zadani
 apps/frappe/frappe/core/doctype/doctype/doctype.py +339,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} od {1} ne može biti indeksirana
 DocType: Communication,Email Account,E-mail računa
 DocType: Workflow State,Download,Preuzimanje

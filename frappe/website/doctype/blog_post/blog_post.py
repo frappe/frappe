@@ -7,9 +7,8 @@ import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags
+from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
 from frappe.website.utils import find_first_image, get_comment_list
-from markdown2 import markdown
 
 class BlogPost(WebsiteGenerator):
 	save_versions = True

@@ -345,6 +345,7 @@ class EmailAccount(Document):
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
 				message_id = communication.name,
+				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = _("Leave this conversation"),
 				bulk=True)
 

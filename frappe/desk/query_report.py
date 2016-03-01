@@ -8,7 +8,7 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format
+from frappe.utils import flt, cint, get_html_format, cstr
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
@@ -80,7 +80,7 @@ def run(report_name, filters=()):
 			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
 
 		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [c[0] for c in frappe.db.get_description()]
+		columns = [cstr(c[0]) for c in frappe.db.get_description()]
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard=="Yes":
@@ -242,11 +242,11 @@ def get_linked_doctypes(columns, data):
 					row = enumerate(row)
 				elif isinstance(row, dict):
 					row = row.items()
-				
+
 				for col, val in row:
 					if val and col not in columns_with_value:
 						columns_with_value.append(col)
-	
+
 	for doctype, key in linked_doctypes.items():
 		if key not in columns_with_value:
 			del linked_doctypes[doctype]

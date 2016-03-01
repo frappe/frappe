@@ -1654,7 +1654,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.ht
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Criado campo personalizado {0} em {1}
 DocType: System Settings,Time Zone,Fuso horário
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,Um usuário pode ter permissão para vários registros do mesmo DocType.
-DocType: Workflow State,Home,casa
+DocType: Workflow State,Home,Início
 DocType: Workflow State,question-sign,ponto de interrogação
 DocType: Email Account,Add Signature,Adicionar Assinatura
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Deixou esta conversa

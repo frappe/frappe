@@ -68,7 +68,8 @@ def get_notifications_for(notification_type, config, notification_count):
 
 				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
 		except frappe.PermissionError:
-			frappe.msgprint("Permission Error in notifications for {0}".format(m))
+			pass
+			# frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
 	return open_count
 
@@ -92,7 +93,8 @@ def get_notifications_for_doctypes(config, notification_count):
 						result = frappe.get_attr(condition)()
 
 				except frappe.PermissionError:
-					frappe.msgprint("Permission Error in notifications for {0}".format(d))
+					pass
+					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
 				except Exception, e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
