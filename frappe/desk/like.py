@@ -77,7 +77,7 @@ def remove_like(doctype, name):
 def add_comment(doctype, name):
 	doc = frappe.get_doc(doctype, name)
 
-	if doctype=="Communication":
+	if doctype=="Communication" and doc.reference_doctype and doc.reference_name:
 		link = get_link_to_form(doc.reference_doctype, doc.reference_name,
 			"{0} {1}".format(_(doc.reference_doctype), doc.reference_name))
 
