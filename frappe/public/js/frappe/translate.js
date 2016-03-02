@@ -16,17 +16,19 @@ frappe._ = function(txt, replace) {
 };
 window.__ = frappe._
 
-frappe.get_languages_dict = function() {
-	var lang_dict = []
-	$.each(frappe.boot.lang_dict, function(lang, val){
-		lang_dict.push({'label': lang, 'value': val})
-	})
-	return lang_dict
+frappe.get_languages = function() {
+	if(!frappe.languages) {
+		frappe.languages = []
+		$.each(frappe.boot.lang_dict, function(lang, value){
+			frappe.languages.push({'label': lang, 'value': value})
+		});
+		frappe.languages = frappe.languages.sort(function(a, b) { return (a.value < b.value) ? -1 : 1 });
+	}
+	return frappe.languages;
 };
 
 frappe.setup_language_field = function(frm, fieldname) {
 	if (!fieldname) fieldname = 'language';
-	if(!frappe.languages) frappe.languages = frappe.get_languages_dict();
-	frm.set_df_property(fieldname, "options", [''].concat(frappe.languages) || ["", "english"]);
+	frm.set_df_property(fieldname, "options", [''].concat(frappe.get_languages()) || ["", "english"]);
 	frm.get_field(fieldname).set_input(frm.doc[fieldname] || '');
 }

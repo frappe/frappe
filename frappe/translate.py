@@ -54,7 +54,7 @@ def get_user_lang(user=None):
 		# if defined in user profile
 		user_lang = frappe.db.get_value("User", user, "language")
 		if user_lang and user_lang!="Loading...":
-			lang = get_lang_dict().get(user_lang) or frappe.local.lang
+			lang = get_lang_dict().get(user_lang, user_lang) or frappe.local.lang
 		else:
 			default_lang = frappe.db.get_default("lang")
 			lang = default_lang or frappe.local.lang
@@ -65,7 +65,7 @@ def get_user_lang(user=None):
 
 def set_default_language(language):
 	"""Set Global default language"""
-	lang = get_lang_dict()[language]
+	lang = get_lang_dict().get(language, language)
 	frappe.db.set_default("lang", lang)
 	frappe.local.lang = lang
 

@@ -79,3 +79,10 @@ Add the template in `erpnext/templates/generators/job_opening.html`
 
 	{% endblock %}{% endraw %}
 
+#### 5. Customizing List View
+
+If you add a method `get_list_view` in the controller file (job_opening.py), you can set properties for the listview
+
+	def get_list_context(context):
+		context.title = _("Jobs")
+		context.introduction = _('Current Job Openings')

@@ -37,7 +37,9 @@ frappe.ui.form.on('User', {
 	refresh: function(frm) {
 		var doc = frm.doc;
 
-		if(doc.name===user && !doc.__unsaved && frappe.languages && (doc.language || frappe.boot.user.language)
+		if(doc.name===user && !doc.__unsaved
+			&& frappe.all_timezones
+			&& (doc.language || frappe.boot.user.language)
 			&& doc.language !== frappe.boot.user.language) {
 			msgprint(__("Refreshing..."));
 			window.location.reload();

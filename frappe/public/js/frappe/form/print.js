@@ -103,7 +103,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.lang_code = this.frm.doc.language;
 		// Load all languages in the field
 		this.language_sel.empty()
-			.add_options(frappe.get_languages_dict())
+			.add_options(frappe.get_languages())
 			.val(this.lang_code);
 		this.preview();
 	},

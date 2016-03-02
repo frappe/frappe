@@ -9,3 +9,6 @@ from frappe.model.document import Document
 class Translation(Document):
 	def on_update(self):
 		frappe.cache().hdel('lang_user_translations', self.language_code)
+
+	def on_trash(self):
+		frappe.cache().hdel('lang_user_translations', self.language_code)

@@ -234,7 +234,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		// Load all languages in the select field language_sel
 		$(fields.language_sel.input)
 			.empty()
-			.add_options(frappe.get_languages_dict())
+			.add_options(frappe.get_languages())
 			.val(doc.language)
 	},
 
