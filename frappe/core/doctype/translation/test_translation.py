@@ -11,6 +11,10 @@ from frappe import _
 # test_records = frappe.get_test_records('Translation')
 
 class TestTranslation(unittest.TestCase):
+	def tearDown(self):
+		frappe.local.lang = 'en'
+		frappe.local.lang_full_dict=None
+
 	def test_doctype(self):
 		translation_data = {'hr': ['Test data', 'Testdaten'], 'ms':['Test Data','ujian Data'],
 							'et':['Test Data', 'testandmed']}
