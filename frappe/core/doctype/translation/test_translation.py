@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
+from frappe import _
+
 # test_records = frappe.get_test_records('Translation')
 
 class TestTranslation(unittest.TestCase):
@@ -17,7 +19,9 @@ class TestTranslation(unittest.TestCase):
 			frappe.local.lang_full_dict=None
 			translation = create_translation(key, val)
 			self.assertEquals(_(translation.source_name), val[1])
+
 			frappe.delete_doc('Translation', translation.name)
+			frappe.local.lang_full_dict=None
 			self.assertEquals(_(translation.source_name), val[0])
 
 def create_translation(key, val):
