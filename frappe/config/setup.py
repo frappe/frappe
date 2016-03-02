@@ -83,11 +83,6 @@ def get_data():
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
 				},
-				{
-					"type": "doctype",
-					"name": "Translation",
-					"description": _("For user specific translations")
-				}
 			]
 		},
 		{
@@ -225,6 +220,12 @@ def get_data():
 					"type": "doctype",
 					"name": "Custom Field",
 					"description": _("Add fields to forms.")
+				},
+				{
+					"type": "doctype",
+					"label": _("Custom Translations"),
+					"name": "Translation",
+					"description": _("Add your own translations")
 				},
 				{
 					"type": "doctype",

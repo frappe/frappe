@@ -23,3 +23,10 @@ frappe.get_languages_dict = function() {
 	})
 	return lang_dict
 };
+
+frappe.setup_language_field = function(frm, fieldname) {
+	if (!fieldname) fieldname = 'language';
+	if(!frappe.languages) frappe.languages = frappe.get_languages_dict();
+	frm.set_df_property(fieldname, "options", [''].concat(frappe.languages) || ["", "english"]);
+	frm.get_field(fieldname).set_input(frm.doc[fieldname] || '');
+}

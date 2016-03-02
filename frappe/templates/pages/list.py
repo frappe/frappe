@@ -29,7 +29,7 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 
 	filters = prepare_filters(kwargs)
 	meta = frappe.get_meta(doctype)
-	list_context = get_list_context({}, doctype)
+	list_context = get_list_context(frappe._dict(), doctype)
 
 	if list_context.filters:
 		filters.update(list_context.filters)

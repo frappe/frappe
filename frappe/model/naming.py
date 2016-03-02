@@ -62,7 +62,7 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+'.#####', '', doc) 
+	doc.name = make_autoname(doc.naming_series+'.#####', '', doc)
 
 def make_autoname(key='', doctype='', doc=''):
 	"""
@@ -96,24 +96,26 @@ def make_autoname(key='', doctype='', doc=''):
 	today = now_datetime()
 
 	for e in l:
-		en = ''
+		part = ''
 		if e.startswith('#'):
 			if not series_set:
 				digits = len(e)
-				en = getseries(n, digits, doctype)
+				part = getseries(n, digits, doctype)
 				series_set = True
 		elif e=='YY':
-			en = today.strftime('%y')
+			part = today.strftime('%y')
 		elif e=='MM':
-			en = today.strftime('%m')
+			part = today.strftime('%m')
 		elif e=='DD':
-			en = today.strftime("%d")
+			part = today.strftime("%d")
 		elif e=='YYYY':
-			en = today.strftime('%Y')
+			part = today.strftime('%Y')
 		elif doc and doc.get(e):
-			en = doc.get(e)
-		else: en = e
-		n+=en
+			part = doc.get(e)
+		else: part = e
+
+		if isinstance(part, basestring):
+			n+=part
 	return n
 
 def getseries(key, digits, doctype=''):

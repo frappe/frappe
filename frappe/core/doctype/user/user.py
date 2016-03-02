@@ -344,13 +344,9 @@ class User(Document):
 		return frappe.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
 
 @frappe.whitelist()
-def get_languages():
-	from frappe.translate import get_lang_dict
+def get_timezones():
 	import pytz
-	languages = get_lang_dict().keys()
-	languages.sort()
 	return {
-		"languages": [""] + languages,
 		"timezones": pytz.all_timezones
 	}
 
