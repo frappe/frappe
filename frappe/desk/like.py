@@ -31,7 +31,15 @@ def _toggle_like(doctype, name, add, user=None):
 		user = frappe.session.user
 
 	try:
-		liked_by, owner = frappe.db.get_value(doctype, name, ["_liked_by", "owner"])
+		if is_single(doctype):
+			values = frappe.db.get_singles_dict(doctype)
+			if values.has_key("_liked_by"):
+				liked_by = frappe.db.get_value(doctype, None, "_liked_by")
+			else:
+				frappe.db.sql("insert into tabSingles(doctype, field, value) values (%s, %s, Null)", (doctype, "_liked_by"))
+				liked_by = ''
+		else:
+			liked_by, owner = frappe.db.get_value(doctype, name, ["_liked_by", "owner"])
 
 		# CHANGED: Allow someone to like their own documents as it also works as a bookmark
 		# if owner==frappe.session.user and add=="Yes":
@@ -52,7 +60,10 @@ def _toggle_like(doctype, name, add, user=None):
 				liked_by.remove(user)
 				remove_like(doctype, name)
 
-		frappe.db.set_value(doctype, name, "_liked_by", json.dumps(liked_by), update_modified=False)
+		if is_single(doctype):
+			frappe.db.set_value(doctype, None, "_liked_by", json.dumps(liked_by), update_modified=False)
+		else:
+			frappe.db.set_value(doctype, name, "_liked_by", json.dumps(liked_by), update_modified=False)
 
 	except Exception, e:
 		if isinstance(e.args, (tuple, list)) and e.args and e.args[0]==1054:
