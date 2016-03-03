@@ -9,6 +9,7 @@ def execute():
 		system_settings = frappe.get_doc('System Settings', 'System Settings')
 		if get_lang_dict().get(language, language) != system_settings.language:
 			system_settings.language = get_lang_dict().get(language, language)
+			system_settings.flags.ignore_mandatory=True
 			system_settings.save()
 
 	for user in frappe.get_all('User', fields=['name', 'language']):
