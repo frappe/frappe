@@ -178,27 +178,34 @@ class Meta(Document):
 				docfield.set(ps.property, ps.value)
 
 	def sort_fields(self):
-		"""sort on basis of previous_field"""
-		if self.get("_idx"):
+		"""sort on basis of insert_after"""
+		custom_fields = self.get_custom_fields()
+
+		if custom_fields:
 			newlist = []
-			pending = self.get("fields")
 
-			for fieldname in json.loads(self.get("_idx")):
-				d = self.get("fields", {"fieldname": fieldname}, limit=1)
-				if d:
-					newlist.append(d[0])
-					pending.remove(d[0])
+			# if custom field is at top
+			# insert_after is false
+			for c in custom_fields:
+				if not c.insert_after:
+					newlist.append(c)
+					custom_fields.pop(custom_fields.index(c))
 
-			if pending:
-				newlist += pending
+			for f in self.get('fields'):
+				if not f.get('is_custom_field'):
+					newlist.append(f)
+					if custom_fields:
+						for c in custom_fields:
+							if c.insert_after==f.fieldname:
+								newlist.append(c)
+								custom_fields.pop(custom_fields.index(c))
+								break
 
-			# renum
-			idx = 1
-			for d in newlist:
-				d.idx = idx
-				idx += 1
+			# renum idx
+			for i, f in enumerate(newlist):
+				f.idx = i + 1
 
-			self.set("fields", newlist)
+			self.fields = newlist
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
