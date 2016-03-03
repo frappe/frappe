@@ -69,7 +69,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					+"&name="+encodeURIComponent(me.frm.doc.name)
 					+"&format="+me.selected_format()
 					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-					+"&_lang="+me.lang_code);
+					+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
@@ -136,7 +136,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			+(printit ? "&trigger_print=1" : "")
 			+"&format="+me.selected_format()
 			+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-			+"&_lang="+me.lang_code);
+			+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
 		if(!w) {
 			msgprint(__("Please enable pop-ups")); return;
 		}
