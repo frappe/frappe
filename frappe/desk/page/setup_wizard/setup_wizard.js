@@ -14,7 +14,7 @@ frappe.wiz = {
 	add_slide: function(slide) {
 		frappe.wiz.slides.push(slide);
 	},
-	
+
 	run_event: function(event) {
 		$.each(frappe.wiz.events[event] || [], function(i, fn) {
 			fn(frappe.wiz.wizard);
@@ -34,7 +34,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	});
 
 	frappe.wiz.run_event("before_load");
-	
+
 	var wizard_settings = {
 		page_name: "setup-wizard",
 		parent: wrapper,
@@ -302,7 +302,7 @@ function load_frappe_slides() {
 						// reset all slides so that labels are translated
 						frappe.wiz.slides = [];
 						frappe.wiz.run_event("before_load");
-						
+
 						// remove slides listed in remove_app_slides
 						for (var app in frappe.wiz.remove_app_slides) {
 							var new_slides = []
@@ -313,7 +313,7 @@ function load_frappe_slides() {
 							}
 							frappe.wiz.slides = new_slides;
 						}
-						
+
 						frappe.wiz.wizard.slides = frappe.wiz.slides;
 						frappe.wiz.run_event("after_load");
 
@@ -421,8 +421,8 @@ function load_frappe_slides() {
 			});
 		}
 	},
-	
-	
+
+
 	frappe.wiz.user= {
 		app_name: "frappe",
 		title: __("The First User: You"),

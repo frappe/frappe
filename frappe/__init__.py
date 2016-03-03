@@ -51,9 +51,9 @@ def _(msg, lang=None):
 
 	if lang == "en":
 		return msg
-
+		
 	return get_full_dict(local.lang).get(msg) or msg
-
+	
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
 

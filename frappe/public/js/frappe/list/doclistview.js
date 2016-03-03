@@ -423,6 +423,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}, true);
 		}
 
+		this.make_bulk_assignment();
+		this.make_bulk_printing();
+
+	},
+	make_bulk_assignment: function() {
+
+		var me = this;
+
 		//bulk assignment
 		me.page.add_menu_item(__("Assign To"), function(){
 
@@ -452,6 +460,57 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				frappe.msgprint(__("Select records for assignment"))
 			}
 		}, true)
+
+	},
+	make_bulk_printing: function() {
+		var me = this;
+		//bulk priting
+		me.page.add_menu_item(__("Print"), function(){
+
+			docname = [];
+
+			$.each(me.get_checked_items(), function(i, doc){
+				docname.push(doc.name);
+			})
+
+			if(docname.length >= 1){
+
+				var dialog = new frappe.ui.Dialog({
+					title: "Print Documents",
+					fields: [
+						{"fieldtype": "Check", "label": __("With Letterhead"), "fieldname": "with_letterhead"},
+						{"fieldtype": "Select", "label": __("Print Format"), "fieldname": "print_sel"},
+					]
+				});
+
+				dialog.set_primary_action(__('Print'), function() {
+					args = dialog.get_values();
+					if(!args) return;
+					var default_print_format = locals.DocType[me.doctype].default_print_format;
+					with_letterhead = args.with_letterhead ? 1 : 0;
+					print_format = args.print_sel ? args.print_sel:default_print_format;
+
+					var json_string = JSON.stringify(docname);
+					var w = window.open("/api/method/frappe.templates.pages.print.download_multi_pdf?"
+						+"doctype="+encodeURIComponent(me.doctype)
+						+"&name="+encodeURIComponent(json_string)
+						+"&format="+encodeURIComponent(print_format)
+						+"&no_letterhead="+(with_letterhead ? "0" : "1"));
+					if(!w) {
+						msgprint(__("Please enable pop-ups")); return;
+					}
+
+				})
+
+				print_formats = frappe.meta.get_print_formats(me.doctype);
+				dialog.fields_dict.print_sel.$input.empty().add_options(print_formats);
+
+				dialog.show();
+			}
+			else{
+				frappe.msgprint(__("Select records for assignment"))
+			}
+		}, true);
 	},
 
 	init_like: function() {

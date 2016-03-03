@@ -7,13 +7,15 @@ from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
-def format_value(value, df, doc=None, currency=None):
+def format_value(value, df, doc=None, currency=None, translated=False):
 	# Convert dict to object if necessary
 	if (isinstance(df, dict)):
 		df = frappe._dict(df)
 
 	if value is None:
 		value = ""
+	elif translated:
+		value = frappe._(value)
 
 	if not df:
 		return value

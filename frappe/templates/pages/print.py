@@ -144,9 +144,47 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	}
 
 @frappe.whitelist()
+def download_multi_pdf(doctype, name, format=None):
+	# name can include names of many docs of the same doctype.
+	totalhtml = ""
+	# Pagebreak to be added between each doc html
+	pagebreak = """<p style="page-break-after:always;"></p>"""
+	
+	options = {}
+	
+	import json
+	result = json.loads(name)
+	# Get html of each doc and combine including page breaks
+	for i, ss in enumerate(result):
+		html = frappe.get_print(doctype, ss, format)
+		if i == len(result)-1:
+			totalhtml = totalhtml + html
+		else:
+			totalhtml = totalhtml + html + pagebreak
+			
+	
+	
+	frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
+
+	
+	# Title of pdf
+	options.update({
+		'title': doctype,
+	})
+
+	frappe.local.response.filecontent = get_pdf(totalhtml,options)
+	frappe.local.response.type = "download"
+	
+@frappe.whitelist()
 def download_pdf(doctype, name, format=None):
 	html = frappe.get_print(doctype, name, format)
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.type = "download"
+
+@frappe.whitelist()
+def report_to_pdf(html):
+	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(html)
 	frappe.local.response.type = "download"
 

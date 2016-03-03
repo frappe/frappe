@@ -529,13 +529,18 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			sanitized_value = value
 
-			if df and (df.get("ignore_xss_filter")
+			if df and df.get("fieldtype") in ("Data", "Code", "Small Text") and df.get("options")=="Email":
+				sanitized_value = sanitize_email(value)
+
+			elif df and (df.get("ignore_xss_filter")
 						or (df.get("fieldtype")=="Code" and df.get("options")!="Email")
-						or df.get("fieldtype") in ("Attach", "Attach Image")):
+						or df.get("fieldtype") in ("Attach", "Attach Image")
+
+						# cancelled and submit but not update after submit should be ignored
+						or self.docstatus==2
+						or (self.docstatus==1 and not df.get("allow_on_submit"))):
 				continue
 
-			elif df and df.get("fieldtype") in ("Data", "Code") and df.get("options")=="Email":
-				sanitized_value = sanitize_email(value)
 
 			else:
 				sanitized_value = sanitize_html(value)
@@ -572,7 +577,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -581,6 +586,10 @@ class BaseDocument(object):
 			df = get_default_df(fieldname)
 
 		val = self.get(fieldname)
+
+		if translated:
+			val = _(val)
+
 		if absolute_value and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 

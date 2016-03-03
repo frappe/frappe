@@ -125,7 +125,7 @@ def add_all_roles_to(name):
 
 @frappe.whitelist()
 def load_messages(language):
-	"""Load translation messages for given langauge from all `setup_wizard_requires`
+	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	frappe.clear_cache()
 	set_default_language(language)

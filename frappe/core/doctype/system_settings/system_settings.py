@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model import no_value_fields
-from frappe.translate import get_lang_dict, set_default_language
+from frappe.translate import set_default_language
 from frappe.utils import cint
 from frappe.utils.momentjs import get_all_timezones
 
@@ -38,11 +38,7 @@ def load():
 		if df.fieldtype in ("Select", "Data"):
 			defaults[df.fieldname] = all_defaults.get(df.fieldname)
 
-	languages = get_lang_dict().keys()
-	languages.sort()
-
 	return {
 		"timezones": get_all_timezones(),
-		"languages": [""] + languages,
 		"defaults": defaults
 	}

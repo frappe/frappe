@@ -66,6 +66,8 @@ frappe.views.QueryReport = Class.extend({
 		}, true);
 
 		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
+		
+		this.page.add_menu_item(__("PDF"), function() { me.pdf_report(); }, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
@@ -134,6 +136,47 @@ frappe.views.QueryReport = Class.extend({
 		} else {
 			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
 		}
+	},
+	pdf_report: function() {
+		if(this.html_format) {
+			var content = frappe.render(this.html_format,
+				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
+
+			//Render Report in HTML
+			var html = frappe.render_template("print_template", {content:content, title:__(this.report_name)});
+		} else {
+			var columns = this.grid.getColumns();
+			var data = this.grid.getData().getItems();
+			var content = frappe.render_template("print_grid", {columns:columns, data:data, title:__(this.report_name)})
+
+			//Render Report in HTML
+			var html = frappe.render_template("print_template", {content:content, title:__(this.report_name)});
+		}
+
+		//Create a form to place the HTML content 
+		var formData = new FormData();
+
+		//Push the HTML content into an element
+		formData.append("html", html);
+		var blob = new Blob([], { type: "text/xml"});
+		//formData.append("webmasterfile", blob);
+		formData.append("blob", blob);
+
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", '/api/method/frappe.templates.pages.print.report_to_pdf');
+		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+		xhr.responseType = "arraybuffer";
+
+		xhr.onload = function(success) {
+		    if (this.status === 200) {
+		        var blob = new Blob([success.currentTarget.response], {type: "application/pdf"});
+		        var objectUrl = URL.createObjectURL(blob);
+
+		        //Open report in a new window
+		        window.open(objectUrl);
+		    }
+		};
+		xhr.send(formData);
 	},
 	setup_filters: function() {
 		this.clear_filters();

@@ -1,91 +1,94 @@
-cur_frm.cscript.onload = function(doc, dt, dn) {
-	if(has_common(user_roles, ["Administrator", "System Manager"])) {
-		if(!cur_frm.roles_editor) {
-			var role_area = $('<div style="min-height: 300px">')
-				.appendTo(cur_frm.fields_dict.roles_html.wrapper);
-			cur_frm.roles_editor = new frappe.RoleEditor(role_area);
+frappe.ui.form.on('User', {
+	before_load: function(frm) {
+		frappe.setup_language_field(frm);
 
-			var module_area = $('<div style="min-height: 300px">')
-				.appendTo(cur_frm.fields_dict.modules_html.wrapper);
-			cur_frm.module_editor = new frappe.ModuleEditor(cur_frm, module_area)
+		var update_tz_select = function(user_language) {
+			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
+		}
+
+		if(!frappe.all_timezones) {
+			frappe.call({
+				method: "frappe.core.doctype.user.user.get_timezones",
+				callback: function(r) {
+					frappe.all_timezones = r.message.timezones;
+					update_tz_select();
+				}
+			});
 		} else {
-			cur_frm.roles_editor.show();
+			update_tz_select();
 		}
-	}
-}
 
-cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
-	var update_language_select = function(user_language) {
-		cur_frm.set_df_property("language", "options", frappe.languages || ["", "English"]);
-		cur_frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
-		callback && callback();
-	}
-
-	if(!frappe.languages) {
-		frappe.call({
-			method: "frappe.core.doctype.user.user.get_languages",
-			callback: function(r) {
-				frappe.languages = r.message.languages;
-				frappe.all_timezones = r.message.timezones;
-				update_language_select();
-			}
-		});
-	} else {
-		update_language_select();
-	}
-}
-
-cur_frm.cscript.refresh = function(doc) {
-	if(doc.name===user && !doc.__unsaved && frappe.languages && (doc.language || frappe.boot.user.language)
-		&& doc.language !== frappe.boot.user.language) {
-		msgprint(__("Refreshing..."));
-		window.location.reload();
-	}
-
-	cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
-
-	if(!doc.__islocal){
-		cur_frm.add_custom_button(__("Set User Permissions"), function() {
-			frappe.route_options = {
-				"user": doc.name
-			};
-			frappe.set_route("user-permissions");
-		}, null, "btn-default")
-
+	},
+	onload: function(frm) {
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
-			cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
-		}
-		cur_frm.cscript.enabled(doc);
+			if(!frm.roles_editor) {
+				var role_area = $('<div style="min-height: 300px">')
+					.appendTo(frm.fields_dict.roles_html.wrapper);
+				frm.roles_editor = new frappe.RoleEditor(role_area);
 
-		cur_frm.roles_editor && cur_frm.roles_editor.show();
-		cur_frm.module_editor && cur_frm.module_editor.refresh();
-
-		if(user==doc.name) {
-			// update display settings
-			if(doc.user_image) {
-				frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
+				var module_area = $('<div style="min-height: 300px">')
+					.appendTo(frm.fields_dict.modules_html.wrapper);
+				frm.module_editor = new frappe.ModuleEditor(frm, module_area)
+			} else {
+				frm.roles_editor.show();
 			}
 		}
-	}
-}
+	},
+	refresh: function(frm) {
+		var doc = frm.doc;
 
-cur_frm.cscript.enabled = function(doc) {
-	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
-		cur_frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
-		// cur_frm.toggle_enable('*', doc.enabled);
-		cur_frm.set_df_property('enabled', 'read_only', 0);
-	}
+		if(doc.name===user && !doc.__unsaved
+			&& frappe.all_timezones
+			&& (doc.language || frappe.boot.user.language)
+			&& doc.language !== frappe.boot.user.language) {
+			msgprint(__("Refreshing..."));
+			window.location.reload();
+		}
 
-	if(user!="Administrator") {
-		cur_frm.toggle_enable('email', doc.__islocal);
-	}
-}
+		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
-cur_frm.cscript.validate = function(doc) {
-	if(cur_frm.roles_editor) {
-		cur_frm.roles_editor.set_roles_in_table()
+		if(!doc.__islocal){
+			frm.add_custom_button(__("Set User Permissions"), function() {
+				frappe.route_options = {
+					"user": doc.name
+				};
+				frappe.set_route("user-permissions");
+			}, null, "btn-default")
+
+			if(has_common(user_roles, ["Administrator", "System Manager"])) {
+				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
+			}
+			frm.trigger('enabled');
+
+			frm.roles_editor && frm.roles_editor.show();
+			frm.module_editor && frm.module_editor.refresh();
+
+			if(user==doc.name) {
+				// update display settings
+				if(doc.user_image) {
+					frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
+				}
+			}
+		}
+	},
+	validate: function(frm) {
+		if(frm.roles_editor) {
+			frm.roles_editor.set_roles_in_table()
+		}
+	},
+	enabled: function(frm) {
+		var doc = frm.doc;
+		if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
+			frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
+			frm.set_df_property('enabled', 'read_only', 0);
+		}
+
+		if(user!="Administrator") {
+			frm.toggle_enable('email', doc.__islocal);
+		}
 	}
-}
+})
+
 
 frappe.ModuleEditor = Class.extend({
 	init: function(frm, wrapper) {

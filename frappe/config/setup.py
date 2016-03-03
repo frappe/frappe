@@ -223,6 +223,12 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"label": _("Custom Translations"),
+					"name": "Translation",
+					"description": _("Add your own translations")
+				},
+				{
+					"type": "doctype",
 					"name": "Custom Script",
 					"description": _("Add custom javascript to forms.")
 				},
