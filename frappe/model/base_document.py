@@ -577,7 +577,7 @@ class BaseDocument(object):
 		return self._precision[cache_key][fieldname]
 
 
-	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False):
+	def get_formatted(self, fieldname, doc=None, currency=None, absolute_value=False, translated=False):
 		from frappe.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
@@ -586,6 +586,10 @@ class BaseDocument(object):
 			df = get_default_df(fieldname)
 
 		val = self.get(fieldname)
+
+		if translated:
+			val = _(val)
+
 		if absolute_value and isinstance(val, (int, float)):
 			val = abs(self.get(fieldname))
 

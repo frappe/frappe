@@ -94,7 +94,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
     {% elif df.fieldtype=="HTML" %}
         {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
-		{{ _(doc.get_formatted(df.fieldname, parent_doc or doc)) }}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=True) }}
 	{% endif %}
 {%- endmacro %}
 
