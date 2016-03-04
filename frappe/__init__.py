@@ -48,9 +48,6 @@ def _(msg, lang=None):
 
 	# msg should always be unicode
 	msg = cstr(msg)
-
-	if lang == "en":
-		return msg
 		
 	return get_full_dict(local.lang).get(msg) or msg
 	

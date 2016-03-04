@@ -168,7 +168,7 @@ def get_full_dict(lang):
 
 	:param lang: Language Code, e.g. `hi`
 	"""
-	if not lang or lang == "en":
+	if not lang:
 		return {}
 
 	if not frappe.local.lang_full_dict:
@@ -180,7 +180,11 @@ def get_full_dict(lang):
 			frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
 
 		# get user specific transaltion data
-		user_translations = get_user_translations(lang)
+		try:
+			user_translations = get_user_translations(lang)
+		except Exception:
+			return {}
+
 		if user_translations:
 			frappe.local.lang_full_dict.update(user_translations)
 	return frappe.local.lang_full_dict
