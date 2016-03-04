@@ -52,8 +52,10 @@ class WebPage(WebsiteGenerator):
 			# render dynamic context (if .py file exists)
 
 			# get absolute template path considering first fragment as app name
-			split_path = self.template_path.split(os.sep)
-			self.template_path = os.path.join(frappe.get_app_path(split_path[0]), *split_path[1:])
+			if not self.template_path.startswith(os.sep):
+				split_path = self.template_path.split(os.sep)
+
+				self.template_path = os.path.join(frappe.get_app_path(split_path[0]), *split_path[1:])
 
 			context = self.get_dynamic_context(frappe._dict(context))
 

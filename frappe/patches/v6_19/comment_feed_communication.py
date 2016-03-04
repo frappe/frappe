@@ -20,6 +20,13 @@ def execute():
 	update_timeline_doc_for("Blogger")
 
 def migrate_comments():
+	from_fields = ""
+	to_fields = ""
+
+	if "reference_doctype" in frappe.db.get_table_columns("Comment"):
+		from_fields = "reference_doctype as link_doctype, reference_name as link_name,"
+		to_fields = "link_doctype, link_name,"
+
 	# comments
 	frappe.db.sql("""insert ignore into `tabCommunication` (
 			subject,
@@ -30,8 +37,7 @@ def migrate_comments():
 			communication_date,
 			reference_doctype,
 			reference_name,
-			link_doctype,
-			link_name,
+			{to_fields}
 
 			name,
 			user,
@@ -53,8 +59,7 @@ def migrate_comments():
 			ifnull(timestamp(comment_date, comment_time), creation) as communication_date,
 			comment_doctype as reference_doctype,
 			comment_docname as reference_name,
-			reference_doctype as link_doctype,
-			reference_name as link_name,
+			{from_fields}
 
 			name,
 			owner as user,
@@ -66,7 +71,8 @@ def migrate_comments():
 			'Sent' as sent_or_received,
 			'Comment' as communication_type,
 			1 as seen
-		from `tabComment` where comment_doctype is not null and comment_doctype not in ('Message', 'My Company')""")
+		from `tabComment` where comment_doctype is not null and comment_doctype not in ('Message', 'My Company')"""
+			.format(to_fields=to_fields, from_fields=from_fields))
 
 	# chat and assignment notifications
 	frappe.db.sql("""insert ignore into `tabCommunication` (
@@ -78,8 +84,7 @@ def migrate_comments():
 			communication_date,
 			reference_doctype,
 			reference_name,
-			link_doctype,
-			link_name,
+			{to_fields}
 
 			name,
 			user,
@@ -105,8 +110,7 @@ def migrate_comments():
 			ifnull(timestamp(comment_date, comment_time), creation) as communication_date,
 			'User' as reference_doctype,
 			comment_docname as reference_name,
-			reference_doctype as link_doctype,
-			reference_name as link_name,
+			{from_fields}
 
 			name,
 			owner as user,
@@ -122,7 +126,8 @@ def migrate_comments():
 				end
 				as communication_type,
 			1 as seen
-		from `tabComment` where comment_doctype in ('Message', 'My Company')""", {"assignment": _("Assignment")})
+		from `tabComment` where comment_doctype in ('Message', 'My Company')"""
+			.format(to_fields=to_fields, from_fields=from_fields), {"assignment": _("Assignment")})
 
 def migrate_feed():
 	# migrate delete feed
@@ -296,4 +301,3 @@ def is_valid_timeline_doctype(reference_doctype, timeline_doctype):
 
 
 	return True
-

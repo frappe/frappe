@@ -29,7 +29,7 @@ Cliquez sur un article et vous devriez voir une vue par défaut.
 Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `list_item.html` dans le 
 repertoire `library_management/doctype/article`. Voici un exemple du contenu de ce fichier:
 
-	<div class="row">
+	{% raw %}<div class="row">
 		<div class="col-sm-4">
 			<a href="/Article/{{ doc.name }}">
 				<img src="{{ doc.image }}"
@@ -43,7 +43,7 @@ repertoire `library_management/doctype/article`. Voici un exemple du contenu de 
 				if doc.description|length > 200 else doc.description }}</p>
 			<p class="text-muted">Publisher: {{ doc.publisher }}</p>
 		</div>
-	</div>
+	</div>{% endraw %}
 
 
 Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
