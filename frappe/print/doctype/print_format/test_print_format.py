@@ -23,7 +23,7 @@ class TestPrintFormat(unittest.TestCase):
 
 	def test_print_user_modern(self):
 		print_html = self.test_print_user("Modern")
-		self.assertTrue(re.findall('th {[\s]*background-color: #eee;[\s]*}', print_html))
+		self.assertTrue(re.findall('th {[\s]*background-color: #eee !important;[\s]*}', print_html))
 
 	def test_print_user_classic(self):
 		print_html = self.test_print_user("Classic")
