@@ -185,7 +185,7 @@ def download_pdf(doctype, name, format=None):
 @frappe.whitelist()
 def report_to_pdf(html):
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.filecontent = get_pdf(html, {"orientation": "Landscape"})
 	frappe.local.response.type = "download"
 
 def validate_print_permission(doc):
