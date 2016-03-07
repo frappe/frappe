@@ -187,7 +187,7 @@ def get_full_dict(lang):
 		# get user specific transaltion data
 		user_translations = get_user_translations(lang)
 	except Exception:
-		pass
+		user_translations = None
 
 	if user_translations:
 		frappe.local.lang_full_dict.update(user_translations)
