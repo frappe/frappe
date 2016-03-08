@@ -8,7 +8,7 @@ import re
 import socket
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip, comma_or
+from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -222,16 +222,19 @@ class EmailAccount(Document):
 		communication._attachments = email.save_attachments_in_doc(communication)
 
 		# replace inline images
+
+
 		dirty = False
 		for file in communication._attachments:
 			if file.name in email.cid_map and email.cid_map[file.name]:
 				dirty = True
-				communication.content = communication.content.replace("cid:{0}".format(email.cid_map[file.name]),
+
+				email.content = email.content.replace("cid:{0}".format(email.cid_map[file.name]),
 					file.file_url)
 
 		if dirty:
 			# not sure if using save() will trigger anything
-			communication.db_set("content", communication.content)
+			communication.db_set("content", sanitize_html(email.content))
 
 		# notify all participants of this thread
 		if self.enable_auto_reply and getattr(communication, "is_first", False):
