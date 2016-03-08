@@ -14,7 +14,7 @@ frappe.ui.form.on("ToDo", {
 		if(frm.doc.reference_type && frm.doc.reference_name) {
 			frm.add_custom_button(__(frm.doc.reference_name), function() {
 				frappe.set_route("Form", frm.doc.reference_type, frm.doc.reference_name);
-			}, frappe.boot.doctype_icons[frm.doc.reference_type]);
+			});
 		}
 
 		if (!frm.doc.__islocal) {

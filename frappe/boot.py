@@ -37,8 +37,6 @@ def get_bootinfo():
 	load_desktop_icons(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from
-		tabDocType where ifnull(icon,'')!=''"""))
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
@@ -66,7 +64,7 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo["lang_dict"] = get_lang_dict()
-	
+
 	return bootinfo
 
 def load_conf_settings(bootinfo):

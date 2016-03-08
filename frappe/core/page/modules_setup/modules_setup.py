@@ -42,13 +42,20 @@ def get_user_icons(user):
 	user_perms = UserPermissions(user)
 	user_perms.build_permissions()
 
+	from frappe.boot import get_allowed_pages
+
+	allowed_pages = get_allowed_pages()
+
 	icons = []
 	for icon in get_desktop_icons(user):
-		print icon.module_name
 		if icon.hidden_in_standard:
 			continue
-		if not icon.custom and not icon.module_name in user_perms.allow_modules:
-			continue
+		if not icon.custom:
+			if icon.type=="page" and icon.link not in allowed_pages:
+				continue
+
+			elif icon.type=="module" and icon.module_name not in user_perms.allow_modules:
+				continue
 
 		icons.append(icon)
 

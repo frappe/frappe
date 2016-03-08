@@ -42,7 +42,9 @@ def render_template(template, context, is_path=None):
 	:param is_path: (optional) assert that the `template` parameter is a path'''
 
 	# if it ends with .html then its a freaking path, not html
-	if is_path or (template.endswith('.html') and '\n' not in template):
+	if (is_path
+		or template.startswith("templates/")
+		or (template.endswith('.html') and '\n' not in template)):
 		return get_jenv().get_template(template).render(context)
 	else:
 		return get_jenv().from_string(template).render(context)

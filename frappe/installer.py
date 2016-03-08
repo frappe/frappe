@@ -186,19 +186,17 @@ def remove_app(app_name, dry_run=False):
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
 
+	# delete desktop icons
+	frappe.db.sql('delete from `tabDesktop Icon` where app=%s', app_name)
+
 	remove_from_installed_apps(app_name)
 
-<<<<<<< HEAD
 	if not dry_run:
 		# drop tables after a commit
 		frappe.db.commit()
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
-=======
-	# delete desktop icons
-	frappe.db.sql('delete from `tabDesktop Icon` where app=%s', app_name)
->>>>>>> [enhancement] desktop icons DocType
 
 def post_install(rebuild_website=False):
 	if rebuild_website:

@@ -50,8 +50,9 @@ frappe.breadcrumbs = {
 					icon = module_info && module_info.icon,
 					label = module_info ? module_info.label : breadcrumbs.module;
 
+
 				if(module_info) {
-					$(repl('<li><a href="#Module/%(module)s">%(label)s</a></li>',
+					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
 				}

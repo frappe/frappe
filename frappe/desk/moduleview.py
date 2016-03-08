@@ -34,7 +34,7 @@ def get_data(module):
 	data = combine_common_sections(data)
 	data = apply_permissions(data)
 
-	set_last_modified(data)
+	#set_last_modified(data)
 
 	return data
 

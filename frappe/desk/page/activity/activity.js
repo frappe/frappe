@@ -124,12 +124,6 @@ frappe.activity.Feed = Class.extend({
 		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
 
 		data.icon = "icon-flag";
-		// if(data.doc_type) {
-		// 	data.feed_type = data.doc_type;
-		// 	data.icon = frappe.boot.doctype_icons[data.doc_type];
-		// }
-
-		// data.feed_type = data.feed_type || "Comment";
 
 		// color for comment
 		data.add_class = {

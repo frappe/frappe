@@ -49,7 +49,7 @@ def get_desktop_icons(user=None):
 
 			# override properties from standard icon
 			if standard_icon:
-				for key in ('route', 'label', 'color', 'icon'):
+				for key in ('route', 'label', 'color', 'icon', 'link'):
 					if standard_icon.get(key):
 						icon[key] = standard_icon.get(key)
 

@@ -1,6 +1,32 @@
+.module-head {
+  padding: 15px 30px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.module-head h1 {
+  padding: 0px;
+  margin: 0px;
+}
+.module-body {
+  padding: 0px 15px;
+}
+.module-body .section-head {
+  margin-bottom: 15px;
+}
+.module-section {
+  padding: 15px;
+  padding-top: 0px;
+}
+.module-section .module-section-link {
+  line-height: 1.5em;
+  font-size: 12px;
+}
+.module-section .section-head {
+  margin-top: 30px;
+}
 .module-item {
   margin: 0px;
   padding: 7px;
+  font-weight: 400;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
   transition: 0.2s;
@@ -23,8 +49,8 @@
 .module-item:last-child {
   border: none;
 }
-.module-sidebar-item.active .icon-chevron-right {
-  margin-top: 2px;
+.module-link.active .icon-chevron-right {
+  margin-top: 4px;
   display: block !important;
 }
 .module-item-progress {
@@ -42,6 +68,10 @@
   width: 0px;
 }
 @media (max-width: 767px) {
+  .module-body {
+    border-top: 1px solid #EBEFF2;
+    margin-top: 15px;
+  }
   body[data-route^="Module"] .page-title {
     width: 100%;
   }

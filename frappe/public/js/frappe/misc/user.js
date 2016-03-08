@@ -141,9 +141,10 @@ $.extend(frappe.user, {
 	},
 
 	is_module: function(m) {
-		frappe.boot.desktop_icons.forEach(function(module) {
-			if(m===module.module_name) return true;
-		});
+		var icons = frappe.get_desktop_icons();
+		for(var i=0; i<icons.length; i++) {
+			if(m===icons[i].module_name) return true;
+		}
 		return false;
 	},
 

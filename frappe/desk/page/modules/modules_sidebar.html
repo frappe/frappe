@@ -1,10 +1,12 @@
 <ul class="module-sidebar-nav nav nav-pills nav-stacked">
-    {% for (var i=0, l= modules.length; i < l; i++) { var item = modules[i]; %}
+    {% for (var i=0, l= modules.length; i < l; i++) { var item = modules[i];
+			if(item.type==="module") { %}
     <li data-label="{{ item.label }}" class="strong module-sidebar-item">
-        <a class="module-link" data-name="{{ item.module_name }}">
-            <i class="icon icon-chevron-right pull-right"
-							style="display: none;"></i>
-            <span>{{ item.label }}</span></a>
+        <a class="module-link" data-name="{{ item.module_name }}"
+					href="#modules/{{ item.module_name }}">
+          <i class="icon icon-chevron-right pull-right"
+						style="display: none;"></i>
+          <span>{{ item.label }}</span></a>
     </li>
-    {% } %}
+    {% }; } %}
 </ul>

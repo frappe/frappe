@@ -27,9 +27,19 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		});
 	},
 	show: function() {
+		this.set_module_breadcrumb();
 		this._super();
 		this.set_cur_list();
 		cur_list && cur_list.refresh();
+	},
+	set_module_breadcrumb: function() {
+		if(frappe.route_history.length > 1) {
+			var prev_route = frappe.route_history[frappe.route_history.length-2];
+			if(prev_route[0]==="modules") {
+				// save the last page from the breadcrumb was accessed
+				frappe.breadcrumbs.set_doctype_module(frappe.get_route()[1], prev_route[1]);
+			}
+		}
 	},
 	set_cur_list: function() {
 		var route = frappe.get_route();

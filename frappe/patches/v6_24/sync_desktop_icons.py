@@ -30,6 +30,5 @@ def execute():
 
 			# set remaining icons as hidden
 			for module_name in list(set([m['module_name'] for m in modules_list]) - set(user_list)):
-				print user, module_name
 				desktop_icon = get_user_copy(module_name, user=user.name)
 				desktop_icon.db_set('hidden', 1)
