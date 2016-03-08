@@ -18,7 +18,8 @@ class TestCustomizeForm(unittest.TestCase):
 			"fieldtype": "Select",
 			"in_list_view": 1,
 			"options": "\nCustom 1\nCustom 2\nCustom 3",
-			"default": "Custom 3"
+			"default": "Custom 3",
+			"insert_after": frappe.get_meta('User').fields[-1].fieldname
 		}).insert()
 
 	def setUp(self):
@@ -55,31 +56,6 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, 1)
 
 		return d
-
-	def test_save_customization_idx(self):
-		d = self.get_customize_form("User")
-		original_sequence = [df.fieldname for df in d.get("fields")]
-
-		# move field to last
-		location_field = d.get("fields", {"fieldname": "location"})[0]
-		d.get("fields").remove(location_field)
-		d.append("fields", location_field)
-		d.run_method("save_customization")
-		frappe.clear_cache(doctype=d.doc_type)
-
-		property_setter_name, _idx = frappe.db.get_value("Property Setter",
-			{"doc_type": d.doc_type, "property": "_idx"}, ("name", "value"))
-		self.assertTrue(_idx)
-
-		_idx = json.loads(_idx)
-		for i, df in enumerate(frappe.get_meta(d.doc_type).get("fields")):
-			self.assertEquals(_idx[i], df.fieldname)
-
-		frappe.delete_doc("Property Setter", property_setter_name)
-		frappe.clear_cache(doctype=d.doc_type)
-
-		for i, df in enumerate(frappe.get_meta(d.doc_type).get("fields")):
-			self.assertEquals(original_sequence[i], df.fieldname)
 
 	def test_save_customization_property(self):
 		d = self.get_customize_form("User")
@@ -129,6 +105,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("User")
+		last_fieldname = d.fields[-1].fieldname
 		d.append("fields", {
 			"label": "Test Add Custom Field Via Customize Form",
 			"fieldtype": "Data",
@@ -138,9 +115,13 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("Custom Field",
 			"User-test_add_custom_field_via_customize_form", "fieldtype"), "Data")
 
+		self.assertEquals(frappe.db.get_value("Custom Field",
+			"User-test_add_custom_field_via_customize_form", 'insert_after'), last_fieldname)
+
 		frappe.delete_doc("Custom Field", "User-test_add_custom_field_via_customize_form")
 		self.assertEquals(frappe.db.get_value("Custom Field",
 			"User-test_add_custom_field_via_customize_form"), None)
+
 
 	def test_save_customization_remove_field(self):
 		d = self.get_customize_form("User")
