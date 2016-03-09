@@ -133,37 +133,39 @@ def set_order(new_order):
 
 	clear_desktop_icons_cache()
 
-def set_hidden(hidden_list, user=None):
+def set_hidden_list(hidden_list, user=None):
 	'''Sets property `hidden`=1 in **Desktop Icon** for given user.
 	If user is None then it will set global values.
 	It will also set the rest of the icons as shown (`hidden` = 0)'''
 	if isinstance(hidden_list, basestring):
 		hidden_list = json.loads(hidden_list)
 
-	def set_hidden_value(module_name, hidden):
-		if user:
-			icon = get_user_copy(module_name, user)
-		else:
-			icon = frappe.get_doc('Desktop Icon', {'standard': 1, 'module_name': module_name})
-
-		if hidden and icon.custom:
-			frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
-			return
-
-		icon.db_set('hidden', hidden)
-
 	# set as hidden
 	for module_name in hidden_list:
-		set_hidden_value(module_name, 1)
+		set_hidden(module_name, user, 1)
 
 	# set as seen
 	for module_name in list(set(get_all_icons()) - set(hidden_list)):
-		set_hidden_value(module_name, 0)
+		set_hidden(module_name, user, 0)
 
 	if user:
 		clear_desktop_icons_cache()
 	else:
 		frappe.clear_cache()
+
+def set_hidden(module_name, user, hidden=1):
+	'''Set module hidden property for given user. If user is not specified,
+		hide/unhide it globally'''
+	if user:
+		icon = get_user_copy(module_name, user)
+	else:
+		icon = frappe.get_doc('Desktop Icon', {'standard': 1, 'module_name': module_name})
+
+	if hidden and icon.custom:
+		frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
+		return
+
+	icon.db_set('hidden', hidden)
 
 def get_all_icons():
 	return [d.module_name for d in frappe.get_all('Desktop Icon',

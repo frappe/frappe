@@ -7,7 +7,7 @@ import frappe
 import unittest
 
 from frappe.desk.doctype.desktop_icon.desktop_icon import (get_desktop_icons, add_user_icon,
-	set_hidden, set_order, clear_desktop_icons_cache)
+	set_hidden_list, set_order, clear_desktop_icons_cache)
 
 # test_records = frappe.get_test_records('Desktop Icon')
 
@@ -40,7 +40,7 @@ class TestDesktopIcon(unittest.TestCase):
 		self.assertEquals(icon.standard, 0)
 
 	def test_hide_desktop_icon(self):
-		set_hidden(["Desk"], 'test@example.com')
+		set_hidden_list(["Desk"], 'test@example.com')
 
 		icon = self.get_icon('Desk')
 		self.assertEquals(icon.hidden, 1)
@@ -48,21 +48,21 @@ class TestDesktopIcon(unittest.TestCase):
 
 	def test_remove_custom_desktop_icon_on_hidden(self):
 		self.test_add_desktop_icon()
-		set_hidden(['User'], 'test@example.com')
+		set_hidden_list(['User'], 'test@example.com')
 
 		icon = self.get_icon('User')
 		self.assertEquals(icon, None)
 
 	def test_show_desktop_icon(self):
 		self.test_hide_desktop_icon()
-		set_hidden([], 'test@example.com')
+		set_hidden_list([], 'test@example.com')
 
 		icon = self.get_icon('Desk')
 		self.assertEquals(icon.hidden, 0)
 		self.assertEquals(icon.standard, 0)
 
 	def test_globally_hidden_desktop_icon(self):
-		set_hidden(["Desk"])
+		set_hidden_list(["Desk"])
 
 		icon = self.get_icon('Desk')
 		self.assertEquals(icon.hidden, 1)

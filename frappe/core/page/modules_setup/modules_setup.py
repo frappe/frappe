@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, get_desktop_icons
+from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden_list, get_desktop_icons
 from frappe.utils.user import UserPermissions
 
 @frappe.whitelist()
@@ -12,7 +12,7 @@ def update(hidden_list, user=None):
 	if not user:
 		frappe.only_for('System Manager')
 
-	set_hidden(hidden_list, user)
+	set_hidden_list(hidden_list, user)
 	frappe.msgprint(frappe._('Updated'))
 
 def get_context(context):

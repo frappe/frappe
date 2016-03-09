@@ -20,6 +20,27 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		show_section($(link).attr('data-name'));
 	}
 
+	page.add_menu_item(__("Hide this section"), function() {
+		frappe.call({
+			method: "frappe.desk.moduleview.hide_module",
+			args: {
+				module: frappe.get_route()[1]
+			},
+			callback: function() {
+				frappe.set_route('modules', page.wrapper.find('.module-link:first').attr('data-name'));
+				window.location.reload();
+			}
+		})
+	});
+
+	page.add_menu_item(__("Settings"), function() {
+		frappe.route_options = {
+			"user": user
+		};
+		frappe.set_route("modules_setup");
+	});
+
+
 	var show_section = function(module_name) {
 		if(module_name in page.section_data) {
 			render_section(page.section_data[module_name]);
