@@ -195,7 +195,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-03-02 05:13:29.290875", 
+ "modified": "2016-03-04 15:42:07.020950", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Translation", 
@@ -227,5 +227,5 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
- "title_field": "source_name"
+ "title_field": "language_code"
 }

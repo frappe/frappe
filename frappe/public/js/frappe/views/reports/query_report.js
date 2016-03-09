@@ -66,7 +66,7 @@ frappe.views.QueryReport = Class.extend({
 		}, true);
 
 		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
-		
+
 		this.page.add_menu_item(__("PDF"), function() { me.pdf_report(); }, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
@@ -110,9 +110,20 @@ frappe.views.QueryReport = Class.extend({
 									me.page.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
+
+									var report_settings = frappe.query_reports[me.report_name];
 									me.html_format = r.message.html_format;
-									frappe.query_reports[me.report_name]["html_format"] = r.message.html_format;
-									me.refresh();
+									report_settings["html_format"] = r.message.html_format;
+
+									$.when(function() {
+										if (report_settings.onload) {
+											return report_settings.onload(me);
+										}
+
+									}()).then(function() {
+										me.refresh();
+									})
+
 								}
 							});
 						} else {
@@ -153,7 +164,7 @@ frappe.views.QueryReport = Class.extend({
 			var html = frappe.render_template("print_template", {content:content, title:__(this.report_name)});
 		}
 
-		//Create a form to place the HTML content 
+		//Create a form to place the HTML content
 		var formData = new FormData();
 
 		//Push the HTML content into an element
@@ -243,10 +254,13 @@ frappe.views.QueryReport = Class.extend({
 	refresh: function() {
 		// Run
 		var me = this;
-		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
-			__("Loading Report") + "...");
+
 		this.wrapper.find(".results").toggle(false);
 		var filters = this.get_values(true);
+
+		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
+			__("Loading Report") + "...");
+		this.wrapper.find(".no-report-area").toggle(false);
 
 		if (this.report_ajax) {
 			// abort previous request

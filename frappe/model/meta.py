@@ -178,27 +178,43 @@ class Meta(Document):
 				docfield.set(ps.property, ps.value)
 
 	def sort_fields(self):
-		"""sort on basis of previous_field"""
-		if self.get("_idx"):
+		"""sort on basis of insert_after"""
+		custom_fields = sorted(self.get_custom_fields(), key=lambda df: df.idx)
+
+		if custom_fields:
 			newlist = []
-			pending = self.get("fields")
 
-			for fieldname in json.loads(self.get("_idx")):
-				d = self.get("fields", {"fieldname": fieldname}, limit=1)
-				if d:
-					newlist.append(d[0])
-					pending.remove(d[0])
+			# if custom field is at top
+			# insert_after is false
+			for c in list(custom_fields):
+				if not c.insert_after:
+					newlist.append(c)
+					custom_fields.pop(custom_fields.index(c))
 
-			if pending:
-				newlist += pending
+			# standard fields
+			newlist += [df for df in self.get('fields') if not df.get('is_custom_field')]
 
-			# renum
-			idx = 1
-			for d in newlist:
-				d.idx = idx
-				idx += 1
+			newlist_fieldnames = [df.fieldname for df in newlist]
+			for i in xrange(2):
+				for df in list(custom_fields):
+					if df.insert_after in newlist_fieldnames:
+						cf = custom_fields.pop(custom_fields.index(df))
+						idx = newlist_fieldnames.index(df.insert_after)
+						newlist.insert(idx + 1, cf)
+						newlist_fieldnames.insert(idx + 1, cf.fieldname)
 
-			self.set("fields", newlist)
+				if not custom_fields:
+					break
+
+			# worst case, add remaining custom fields to last
+			if custom_fields:
+				newlist += custom_fields
+
+			# renum idx
+			for i, f in enumerate(newlist):
+				f.idx = i + 1
+
+			self.fields = newlist
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {

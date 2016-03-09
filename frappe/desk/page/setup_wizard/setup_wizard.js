@@ -261,6 +261,7 @@ function load_frappe_slides() {
 		load_languages: function(slide) {
 			frappe.call({
 				method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
+				freeze: true,
 				callback: function(r) {
 					frappe.wiz.welcome.data = r.message;
 					frappe.wiz.welcome.setup_fields(slide);
@@ -292,6 +293,7 @@ function load_frappe_slides() {
 				frappe._messages = {};
 				frappe.call({
 					method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
+					freeze: true,
 					args: {
 						language: lang
 					},

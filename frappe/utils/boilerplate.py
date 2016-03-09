@@ -243,20 +243,22 @@ def get_data():
 
 setup_template = """# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-import os
+from pip.req import parse_requirements
 
 version = '0.0.1'
+requirements = parse_requirements("requirements.txt", session="")
 
 setup(
-    name='{app_name}',
-    version=version,
-    description='{app_description}',
-    author='{app_publisher}',
-    author_email='{app_email}',
-    packages=find_packages(),
-    zip_safe=False,
-    include_package_data=True,
-    install_requires=("frappe",),
+	name='{app_name}',
+	version=version,
+	description='{app_description}',
+	author='{app_publisher}',
+	author_email='{app_email}',
+	packages=find_packages(),
+	zip_safe=False,
+	include_package_data=True,
+	install_requires=[str(ir.req) for ir in requirements],
+	dependency_links=[str(ir._link) for ir in requirements if ir._link]
 )
 """
 

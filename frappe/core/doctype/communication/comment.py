@@ -141,7 +141,8 @@ def add_info_comment(**kwargs):
 	kwargs.update({
 		"doctype": "Communication",
 		"communication_type": "Comment",
-		"comment_type": "Info"
+		"comment_type": "Info",
+		"status": "Closed"
 	})
 	return frappe.get_doc(kwargs).insert(ignore_permissions=True)
 

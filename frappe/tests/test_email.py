@@ -84,6 +84,17 @@ class TestEmail(unittest.TestCase):
 			reference_doctype = "User", reference_name="Administrator",
 			subject='Testing Bulk', message='This is a bulk mail!')
 
+	def test_image_parsing(self):
+		import re
+		email_account = frappe.get_doc('Email Account', '_Test Email Account 1')
+
+		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
+			communication = email_account.insert_communication(raw.read())
+
+		#print communication.content
+		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco1.png[^>]*>''', communication.content))
+		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco2.png[^>]*>''', communication.content))
+
 
 if __name__=='__main__':
 	frappe.connect()

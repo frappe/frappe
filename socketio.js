@@ -53,12 +53,17 @@ io.on('connection', function(socket){
 		});
 
 	socket.on('task_subscribe', function(task_id) {
-		var room = 'task:' + task_id;
+		var room = get_task_room(socket, task_id);
 		socket.join(room);
 	});
 
+	socket.on('task_unsubscribe', function(task_id) {
+		var room = get_task_room(socket, task_id);
+		socket.leave(room);
+	});
+
 	socket.on('progress_subscribe', function(task_id) {
-		var room = 'task_progress:' + task_id;
+		var room = get_task_room(socket, task_id);
 		socket.join(room);
 		send_existing_lines(task_id, socket);
 	});
@@ -134,14 +139,15 @@ subscriber.on("message", function(channel, message) {
 subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
+	var room = get_task_room(socket, task_id);
 	subscriber.hgetall('task_log:' + task_id, function(err, lines) {
-		socket.emit('task_progress', {
+		io.to(room).emit('task_progress', {
 			"task_id": task_id,
 			"message": {
 				"lines": lines
 			}
-		})
-	})
+		});
+	});
 }
 
 function get_doc_room(socket, doctype, docname) {
@@ -158,6 +164,10 @@ function get_user_room(socket, user) {
 
 function get_site_room(socket) {
 	return get_site_name(socket) + ':all';
+}
+
+function get_task_room(socket, task_id) {
+	return get_site_name(socket) + ':task_progress:' + task_id;
 }
 
 function get_site_name(socket) {

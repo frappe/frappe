@@ -33,6 +33,15 @@ frappe.ui.form.on("Customize Form", {
 				doc: frm.doc,
 				callback: function(r) {
 					frm.refresh();
+
+					// setup sortable
+					frm.page.body.find('.no-sort').removeClass('no-sort');
+					frm.doc.fields.forEach(function(f, i) {
+						if(!f.is_custom_field) {
+							frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"]').addClass('no-sort')
+						}
+					});
+
 				}
 			});
 		}

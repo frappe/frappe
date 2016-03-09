@@ -4,6 +4,7 @@ import frappe.share
 def execute():
 	frappe.reload_doc("core", "doctype", "docperm")
 	frappe.reload_doc("core", "doctype", "docshare")
+	frappe.reload_doc('email', 'doctype', 'email_account')
 
 	# default share to all writes
 	frappe.db.sql("""update tabDocPerm set `share`=1 where ifnull(`write`,0)=1 and ifnull(`permlevel`,0)=0""")

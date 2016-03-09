@@ -72,7 +72,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
-				delete_linked_comments(doc)
 				delete_linked_communications(doc)
 				delete_shared(doc)
 				# check if links exist
@@ -193,17 +192,13 @@ def delete_linked_todos(doc):
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)),
 		ignore_permissions=True)
 
-def delete_linked_comments(doc):
-	"""Delete comments from the document"""
-	delete_doc("Communication", frappe.db.sql_list("""select name from `tabCommunication`
+def delete_linked_communications(doc):
+	# delete comments
+	frappe.db.sql("""delete from `tabCommunication`
 		where
 			communication_type = 'Comment'
-			and reference_doctype=%s
-			and reference_name=%s""", (doc.doctype, doc.name)),
-		ignore_on_trash=True,
-		ignore_permissions=True)
+			and reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
 
-def delete_linked_communications(doc):
 	# make communications orphans
 	frappe.db.sql("""update `tabCommunication`
 		set reference_doctype=null, reference_name=null
@@ -211,6 +206,15 @@ def delete_linked_communications(doc):
 			communication_type = 'Communication'
 			and reference_doctype=%s
 			and reference_name=%s""", (doc.doctype, doc.name))
+
+	# make secondary references orphans
+	frappe.db.sql("""update `tabCommunication`
+		set link_doctype=null, link_name=null
+		where link_doctype=%s and link_name=%s""", (doc.doctype, doc.name))
+
+	frappe.db.sql("""update `tabCommunication`
+		set timeline_doctype=null, timeline_name=null
+		where timeline_doctype=%s and timeline_name=%s""", (doc.doctype, doc.name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
