@@ -14,7 +14,7 @@
 						{% if(item.type==="help") { %}
 							data-youtube-id="{{ item.youtube_id }}"{% } %}
 						href="#{{ item.route }}" style="{{ item.style }}">
-						{{ item.label }}</a>
+						{{ item.label || __(item.name) }}</a>
 					{% if(item.type==="doctype") { %}
 					<span class="open-notification hide"
 						data-doctype="{{ item.doctype || item.name }}"></span>

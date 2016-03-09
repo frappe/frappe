@@ -353,7 +353,7 @@ frappe.get_module = function(m, default_module) {
 	return module;
 };
 
-frappe.get_desktop_icons = function() {
+frappe.get_desktop_icons = function(show_hidden) {
 	// filter valid icons
 	var out = [];
 
@@ -363,22 +363,27 @@ frappe.get_desktop_icons = function() {
 		out.push(module);
 	}
 
-	var is_permitted = function(module) {
+	var show_module = function(module) {
+		var out = true;
 		if(m.type==="page") {
-			return m.link in frappe.boot.page_info;
+			out = m.link in frappe.boot.page_info;
 		}
 		if(m._doctype) {
-			return frappe.model.can_read(m._doctype);
+			out = frappe.model.can_read(m._doctype);
 		} else {
-			return frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+			out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 		}
+		if(out && !show_hidden) {
+			if(m.hidden) out = false;
+		}
+
+		return out;
 	}
 
 	for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
 		var m = frappe.boot.desktop_icons[i];
 		if ((['Setup', 'Core'].indexOf(m.module_name) === -1)
-			&& is_permitted(m)
-			&& !m.hidden) {
+			&& show_module(m)) {
 				add_to_out(m)
 		}
 	}

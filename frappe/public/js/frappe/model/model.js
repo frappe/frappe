@@ -260,7 +260,7 @@ $.extend(frappe.model, {
 
 	is_single: function(doctype) {
 		if(!doctype) return false;
-		return locals.DocType[doctype] && locals.DocType[doctype].issingle;
+		return frappe.boot.single_types.indexOf(doctype) != -1;
 	},
 
 	can_import: function(doctype, frm) {

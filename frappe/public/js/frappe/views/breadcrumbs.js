@@ -44,7 +44,7 @@ frappe.breadcrumbs = {
 			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
 
-			if(frappe.user.is_module(breadcrumbs.module)) {
+			if(frappe.get_module(breadcrumbs.module)) {
 				// if module access exists
 				var module_info = frappe.get_module(breadcrumbs.module),
 					icon = module_info && module_info.icon,

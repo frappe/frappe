@@ -12,34 +12,13 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	// page.wrapper.find('.page-content').css({'margin-top': '0px'});
 
 	// render sidebar
-	page.sidebar.html(frappe.render_template('modules_sidebar', {modules: frappe.get_desktop_icons()}));
+	page.sidebar.html(frappe.render_template('modules_sidebar', {modules: frappe.get_desktop_icons(true)}));
 
 	page.activate_link = function(link) {
 		page.wrapper.find('.module-sidebar-item.active, .module-link.active').removeClass('active');
 		$(link).addClass('active').parent().addClass("active");
 		show_section($(link).attr('data-name'));
 	}
-
-	page.add_menu_item(__("Hide this section"), function() {
-		frappe.call({
-			method: "frappe.desk.moduleview.hide_module",
-			args: {
-				module: frappe.get_route()[1]
-			},
-			callback: function() {
-				frappe.set_route('modules', page.wrapper.find('.module-link:first').attr('data-name'));
-				window.location.reload();
-			}
-		})
-	});
-
-	page.add_menu_item(__("Settings"), function() {
-		frappe.route_options = {
-			"user": user
-		};
-		frappe.set_route("modules_setup");
-	});
-
 
 	var show_section = function(module_name) {
 		if(module_name in page.section_data) {
@@ -102,8 +81,12 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						item.route=strip(item.link, "#")
 					}
 					else if(item.type==="doctype") {
-						item.route="List/" + item.doctype
-						item.style = 'text-decoration: underline;';
+						if(frappe.model.is_single(item.doctype)) {
+							item.route = 'Form/' + item.doctype;
+						} else {
+							item.route="List/" + item.doctype
+							item.style = 'text-decoration: underline;';
+						}
 						// item.style = 'font-weight: bold;';
 					}
 					else if(item.type==="report" && item.is_query_report) {
@@ -126,7 +109,6 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 					(item.doctype && frappe.model.can_read(item.doctype))) {
 						item.shown = true;
 				}
-
 			});
 		});
 	}
@@ -135,7 +117,18 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 frappe.pages['modules'].on_page_show = function(wrapper) {
 	var route = frappe.get_route();
 	if(route.length > 1) {
-		var link = frappe.modules_page.sidebar.find('.module-link[data-name="'+ route[1] +'"]');
+		var get_link = function() {
+			return frappe.modules_page.sidebar.find('.module-link[data-name="'+ route[1] +'"]');
+		}
+
+		var link = get_link();
+
+		if(!link || !link.length) {
+			var new_link_html = frappe.render_template('modules_sidebar_item',
+				{item: frappe.get_module(route[1])});
+			$(new_link_html).appendTo(frappe.modules_page.sidebar.find('.module-sidebar-nav'));
+			link = get_link();
+		}
 		frappe.modules_page.activate_link(link);
 	}
 }
