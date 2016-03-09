@@ -163,6 +163,8 @@ frappe.Application = Class.extend({
 
 	set_globals: function() {
 		// for backward compatibility
+		frappe.session.user = frappe.boot.user.name;
+		frappe.session.user_fullname = frappe.boot.user.name;
 		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
 		user_defaults = frappe.boot.user.defaults;
@@ -394,11 +396,13 @@ frappe.get_desktop_icons = function(show_hidden) {
 	}
 
 	if(user_roles.indexOf('System Manager')!=-1) {
-		add_to_out(frappe.get_module('Setup'))
+		var m = frappe.get_module('Setup');
+		if(show_module(m)) add_to_out(m)
 	}
 
 	if(user_roles.indexOf('Administrator')!=-1) {
-		add_to_out(frappe.get_module('Core'))
+		var m = frappe.get_module('Core');
+		if(show_module(m)) add_to_out(m)
 	}
 
 	return out;

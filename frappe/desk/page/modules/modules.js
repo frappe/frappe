@@ -11,10 +11,25 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	page.wrapper.find('.page-head h1').css({'padding-left': '15px'});
 	// page.wrapper.find('.page-content').css({'margin-top': '0px'});
 
+	// menu
+	page.add_menu_item(__('Set Desktop Icons'), function() {
+		frappe.route_options = {
+			"user": frappe.session.user
+		};
+		frappe.set_route("modules_setup");
+	});
+
+	if(frappe.user.has_role('System Manager')) {
+		page.add_menu_item(__('Install Apps'), function() {
+			frappe.set_route("applications");
+		});
+	}
+
 	// render sidebar
 	page.sidebar.html(frappe.render_template('modules_sidebar', {modules: frappe.get_desktop_icons(true)}));
 
 	page.activate_link = function(link) {
+		page.last_link = link;
 		page.wrapper.find('.module-sidebar-item.active, .module-link.active').removeClass('active');
 		$(link).addClass('active').parent().addClass("active");
 		show_section($(link).attr('data-name'));
@@ -117,19 +132,15 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 frappe.pages['modules'].on_page_show = function(wrapper) {
 	var route = frappe.get_route();
 	if(route.length > 1) {
-		var get_link = function() {
-			return frappe.modules_page.sidebar.find('.module-link[data-name="'+ route[1] +'"]');
-		}
-
-		var link = get_link();
-
-		if(!link || !link.length) {
-			var new_link_html = frappe.render_template('modules_sidebar_item',
-				{item: frappe.get_module(route[1])});
-			$(new_link_html).appendTo(frappe.modules_page.sidebar.find('.module-sidebar-nav'));
-			link = get_link();
-		}
-		frappe.modules_page.activate_link(link);
+		// activate section based on route
+		frappe.modules_page.activate_link(
+			frappe.modules_page.sidebar.find('.module-link[data-name="'+ route[1] +'"]'));
+	} else if(frappe.modules_page.last_link) {
+		// open last link
+		frappe.set_route('modules', frappe.modules_page.last_link.attr('data-name'))
+	} else {
+		// first time, open the first page
+		frappe.modules_page.activate_link(frappe.modules_page.sidebar.find('.module-link:first'));
 	}
 }
 
