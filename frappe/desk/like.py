@@ -31,7 +31,7 @@ def _toggle_like(doctype, name, add, user=None):
 		user = frappe.session.user
 
 	try:
-		liked_by, owner = frappe.db.get_value(doctype, name, ["_liked_by", "owner"])
+		liked_by = frappe.db.get_value(doctype, name, "_liked_by")
 
 		# CHANGED: Allow someone to like their own documents as it also works as a bookmark
 		# if owner==frappe.session.user and add=="Yes":

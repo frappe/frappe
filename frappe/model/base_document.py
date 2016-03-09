@@ -395,10 +395,8 @@ class BaseDocument(object):
 
 		invalid_links = []
 		cancelled_links = []
-		for df in self.meta.get_link_fields() + self.meta.get("fields",
-			{"fieldtype":"Dynamic Link"}):
-
-
+		for df in (self.meta.get_link_fields()
+				 + self.meta.get("fields", {"fieldtype":"Dynamic Link"})):
 			docname = self.get(df.fieldname)
 			if docname:
 				if df.fieldtype=="Link":
@@ -412,6 +410,9 @@ class BaseDocument(object):
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 				value = frappe.db.get_value(doctype, docname, "name", cache=True)
+				if frappe.get_meta(doctype).issingle:
+					value = doctype
+
 				setattr(self, df.fieldname, value)
 
 				if not value:
