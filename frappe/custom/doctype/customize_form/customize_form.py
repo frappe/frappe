@@ -175,6 +175,7 @@ class CustomizeForm(Document):
 			d.set(property, df.get(property))
 
 		d.insert_after = self.fields[i-1].fieldname
+		d.idx = i
 
 		d.insert()
 		df.fieldname = d.fieldname
@@ -199,6 +200,7 @@ class CustomizeForm(Document):
 		insert_after = self.fields[i-1].fieldname
 		if custom_field.insert_after != insert_after:
 			custom_field.insert_after = insert_after
+			custom_field.idx = i
 			changed = True
 
 		if changed:
@@ -240,7 +242,7 @@ class CustomizeForm(Document):
 			"property": property, "field_name['']": fieldname or ''})
 
 		if existing_property_setter:
-			frappe.delete_doc("Property Setter", existing_property_setter)
+			frappe.db.sql("delete from `tabProperty Setter` where name=%s", existing_property_setter)
 
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!

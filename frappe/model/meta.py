@@ -179,27 +179,36 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
-		custom_fields = self.get_custom_fields()
+		custom_fields = sorted(self.get_custom_fields(), key=lambda df: df.idx)
 
 		if custom_fields:
 			newlist = []
 
 			# if custom field is at top
 			# insert_after is false
-			for c in custom_fields:
+			for c in list(custom_fields):
 				if not c.insert_after:
 					newlist.append(c)
 					custom_fields.pop(custom_fields.index(c))
 
-			for f in self.get('fields'):
-				if not f.get('is_custom_field'):
-					newlist.append(f)
-					if custom_fields:
-						for c in custom_fields:
-							if c.insert_after==f.fieldname:
-								newlist.append(c)
-								custom_fields.pop(custom_fields.index(c))
-								break
+			# standard fields
+			newlist += [df for df in self.get('fields') if not df.get('is_custom_field')]
+
+			newlist_fieldnames = [df.fieldname for df in newlist]
+			for i in xrange(2):
+				for df in list(custom_fields):
+					if df.insert_after in newlist_fieldnames:
+						cf = custom_fields.pop(custom_fields.index(df))
+						idx = newlist_fieldnames.index(df.insert_after)
+						newlist.insert(idx + 1, cf)
+						newlist_fieldnames.insert(idx + 1, cf.fieldname)
+
+				if not custom_fields:
+					break
+
+			# worst case, add remaining custom fields to last
+			if custom_fields:
+				newlist += custom_fields
 
 			# renum idx
 			for i, f in enumerate(newlist):
