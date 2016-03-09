@@ -1,4 +1,4 @@
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224,Press Esc to close,Nhấn Esc để đóng
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +233,Press Esc to close,Nhấn Esc để đóng
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","Một nhiệm vụ mới, {0}, đã được giao cho bạn bởi {1}. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Bài
 apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,Đổi tên nhiều mặt hàng bằng cách tải lên một tập tin csv..
@@ -32,7 +32,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +893,With Ledge
 DocType: Communication,Reference Owner,Chủ đầu tư tham khảo
 DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,Nhỏ nhất đơn vị lưu thông phân số (tiền xu). Đối với ví dụ 1 cent cho USD và nó cần được nhập như 0.01
 DocType: Social Login Keys,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +479,"{0}, Row {1}","{0}, {1} Row"
+apps/frappe/frappe/model/base_document.py +480,"{0}, Row {1}","{0}, {1} Row"
 apps/frappe/frappe/model/document.py +739,Beginning with,bắt đầu bằng
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,Nhập dữ liệu mẫu
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Cha mẹ
@@ -47,7 +47,7 @@ DocType: Workflow State,th-large,thứ lớn
 DocType: Communication,Unread Notification Sent,Thông báo chưa đọc đã gửi
 apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You need {0} role to export.,Xuất khẩu không được phép. Bạn cần {0} vai trò xuất khẩu.
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,Không giống
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +154,Set the display label for the field,Đặt nhãn hiển thị cho các trường
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Set the display label for the field,Đặt nhãn hiển thị cho các trường
 apps/frappe/frappe/model/document.py +756,Incorrect value: {0} must be {1} {2},Giá trị không đúng: {0} phải {1} {2}
 apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","Tính chất thay đổi lĩnh vực (ẩn, chỉ đọc, cho phép vv)"
 DocType: Workflow State,lock,khóa
@@ -104,8 +104,8 @@ apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_
 DocType: Email Unsubscribe,Email Unsubscribe,Email Hủy đăng ký
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Chọn một hình ảnh của khoảng chiều rộng 150px với nền trong suốt cho kết quả tốt nhất.
 apps/frappe/frappe/public/js/frappe/form/grid_body.html +14,Add multiple rows,Thêm nhiều hàng
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +108,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Sau khi chèn trường '{0}' được đề cập trong Trường Tuỳ chỉnh '{1}', không tồn tại"
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +441,The first user will become the System Manager (you can change this later).,Người dùng đầu tiên sẽ trở thành quản lý hệ thống (bạn có thể thay đổi điều này sau).
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +64,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Sau khi chèn trường '{0}' được đề cập trong Trường Tuỳ chỉnh '{1}', không tồn tại"
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +443,The first user will become the System Manager (you can change this later).,Người dùng đầu tiên sẽ trở thành quản lý hệ thống (bạn có thể thay đổi điều này sau).
 ,App Installer,App Installer
 DocType: Workflow State,circle-arrow-up,vòng tròn mũi tên lên
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,Tải lên ...
@@ -120,11 +120,11 @@ apps/frappe/frappe/core/doctype/file/file.py +150,Cannot delete Home and Attachm
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Quyền được áp dụng trên người sử dụng dựa trên những gì vai trò được giao.
 apps/frappe/frappe/public/js/frappe/views/communication.js +376,You are not allowed to send emails related to this document,Bạn không được phép gửi email liên quan đến tài liệu này
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Bạn không được phép xóa một Website Theme chuẩn
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176,Example,Thí dụ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Example,Thí dụ
 DocType: Workflow State,gift,ban cho
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +180,Reqd,Reqd
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Reqd,Reqd
 apps/frappe/frappe/core/doctype/communication/email.py +216,Unable to find attachment {0},Không thể tìm thấy tập tin đính kèm {0}
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,Assign a permission level to the field.,Chỉ định một mức cho phép đến lĩnh vực này.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +177,Assign a permission level to the field.,Chỉ định một mức cho phép đến lĩnh vực này.
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,Show / Hide Modules
 apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Disable Báo cáo
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Định dạng JavaScript: frappe.query_reports ['REPORTNAME'] = {}
@@ -151,7 +151,7 @@ DocType: DocType,Hide Heading,Hiện nhóm
 apps/frappe/frappe/config/core.py +17,Groups of DocTypes,Nhóm doctypes
 DocType: Workflow State,remove-circle,loại bỏ vòng tròn
 apps/frappe/frappe/config/website.py +54,Javascript to append to the head section of the page.,Javascript để nối thêm vào phần đầu của trang.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +52,Reset to defaults,Đặt lại mặc định
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +61,Reset to defaults,Đặt lại mặc định
 DocType: Workflow,Transition Rules,Quy định chuyển tiếp
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Ví dụ:
 DocType: Workflow,Defines workflow states and rules for a document.,Xác định trạng thái công việc và các quy tắc cho một tài liệu.
@@ -175,11 +175,10 @@ DocType: DocField,Permissions,Quyền
 DocType: Dropbox Backup,Allow Dropbox Access,Cho phép truy cập Dropbox
 DocType: User,Get your globally recognized avatar from Gravatar.com,Nhận avatar nhận trên toàn cầu của bạn từ Gravatar.com
 DocType: Workflow State,plus-sign,dấu cộng
-apps/frappe/frappe/__init__.py +785,App {0} is not installed,{0} ứng dụng không được cài đặt
+apps/frappe/frappe/__init__.py +782,App {0} is not installed,{0} ứng dụng không được cài đặt
 DocType: Workflow State,Refresh,Cập nhật
 DocType: Event,Public,Công bố
 apps/frappe/frappe/public/js/frappe/ui/listing.js +52,Nothing to show,Không có gì để hiển thị
-apps/frappe/frappe/email/smtp.py +143,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Tài khoản Email không thiết lập. Hãy tạo một tài khoản email mới từ Setup> Email> Tài khoản Email
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,Thích By
 DocType: DocField,Print Hide If No Value,In Hide Nếu Không Value
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Upload Attachment,Tải lên tập tin đính kèm
@@ -239,7 +238,7 @@ DocType: Communication,Subject,Chủ đề
 DocType: Web Page,Parent Web Page,Trang Web mẹ
 apps/frappe/frappe/core/doctype/docshare/docshare.py +36,User is mandatory for Share,Người sử dụng là bắt buộc đối với Share
 DocType: DocField,Hidden,giấu
-apps/frappe/frappe/model/base_document.py +411,{0} must be set first,{0} phải được thiết lập đầu tiên
+apps/frappe/frappe/model/base_document.py +409,{0} must be set first,{0} phải được thiết lập đầu tiên
 DocType: Workflow State,plane,phi cơ
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Nếu bạn đang tải lên bản ghi mới, ""Đặt tên Series"" trở thành bắt buộc, nếu có."
 apps/frappe/frappe/core/doctype/doctype/doctype.py +152,DocType can only be renamed by Administrator,DocType chỉ có thể được đổi tên thành bởi Administrator
@@ -263,7 +262,7 @@ DocType: Page Role,Page Role,Trang Vai trò
 apps/frappe/frappe/core/doctype/doctype/doctype.py +294,Field {0} in row {1} cannot be hidden and mandatory without default,Lĩnh vực {0} trong hàng {1} có thể không được ẩn và bắt buộc mà không mặc định
 DocType: System Settings,mm/dd/yyyy,dd / mm / yyyy
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +16,Previous,Trang trước
-apps/frappe/frappe/email/doctype/email_account/email_account.py +342,Re:,Re:
+apps/frappe/frappe/email/doctype/email_account/email_account.py +345,Re:,Re:
 DocType: Currency,"Sub-currency. For e.g. ""Cent""","Phụ tiền tệ. Cho ví dụ ""Phần trăm """
 DocType: Letter Head,Check this to make this the default letter head in all prints,Kiểm tra này để làm cho đầu thư mặc định trong tất cả các bản in
 DocType: Print Format,Server,Máy chủ
@@ -271,9 +270,9 @@ DocType: DocField,Link,Liên kết
 apps/frappe/frappe/utils/file_manager.py +93,No file attached,Không có tập tin đính kèm
 DocType: Version,Version,Phiên bản
 DocType: User,Fill Screen,Điền vào màn hình
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +505,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Không thể hiển thị báo cáo cây này, do dữ liệu bị mất. Nhiều khả năng, nó đang được lọc ra do quyền."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +519,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Không thể hiển thị báo cáo cây này, do dữ liệu bị mất. Nhiều khả năng, nó đang được lọc ra do quyền."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Sửa Quyền
-apps/frappe/frappe/public/js/frappe/form/grid.js +271,Edit via Upload,Chỉnh sửa qua Tải lên
+apps/frappe/frappe/public/js/frappe/form/grid.js +272,Edit via Upload,Chỉnh sửa qua Tải lên
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,"document type..., e.g. customer","loại tài liệu ..., ví dụ như khách hàng"
 DocType: Workflow State,barcode,mã vạch
 apps/frappe/frappe/config/setup.py +228,Add your own translations,Thêm bản dịch của riêng bạn
@@ -388,7 +387,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +323,Did n
 apps/frappe/frappe/desk/like.py +89,Liked,Thích
 DocType: Report,Query,Truy vấn
 DocType: DocType,Sort Order,Xếp theo thứ tự
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +137,'In List View' not allowed for type {0} in row {1},"""Trong danh sách Xem' không cho phép loại {0} trong hàng {1}"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +136,'In List View' not allowed for type {0} in row {1},"""Trong danh sách Xem' không cho phép loại {0} trong hàng {1}"
 DocType: Custom Field,Select the label after which you want to insert new field.,Chọn nhãn sau đó bạn muốn chèn lĩnh vực mới.
 DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet sẽ được chia sẻ thông qua tài khoản người dùng của bạn (nếu được chỉ định)
 ,Document Share Report,Tài liệu Chia sẻ Báo cáo
@@ -420,7 +419,7 @@ apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,B
 DocType: User,Last IP,IP cuối cùng
 DocType: DocPerm,Filter records based on User Permissions defined for a user,Hồ sơ bộ lọc dựa trên Quyền người dùng định nghĩa cho một người dùng
 apps/frappe/frappe/public/js/frappe/ui/editor.html +46,Insert picture (or just drag & drop),Chèn hình ảnh (hoặc chỉ cần kéo và thả)
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +32,Fieldname not set for Custom Field,Fieldname không được thiết lập cho Trường Tuỳ chỉnh
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +38,Fieldname not set for Custom Field,Fieldname không được thiết lập cho Trường Tuỳ chỉnh
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,Lần cập nhật cuối By
 apps/frappe/frappe/public/js/frappe/form/workflow.js +117,is not allowed.,không được phép.
 DocType: Website Theme,Background Color,Màu nền
@@ -432,7 +431,7 @@ apps/frappe/frappe/website/doctype/web_form/web_form.py +74,You don't have the p
 DocType: Email Alert,Value Changed,Thay đổi giá trị
 apps/frappe/frappe/model/base_document.py +288,Duplicate name {0} {1},Trùng lặp tên {0} {1}
 DocType: Web Form Field,Web Form Field,Web Form Field
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197,Hide field in Report Builder,Hide trường trong Báo cáo Builder
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Hide field in Report Builder,Hide trường trong Báo cáo Builder
 apps/frappe/frappe/templates/generators/blog_post.html +25,This post is filed under {0},Bài này là đệ dưới {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,Chỉnh sửa HTML
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,Restore Original Quyền
@@ -455,7 +454,7 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload Us
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Mục đã chọn sẽ được hiển thị trên máy tính để bàn
 apps/frappe/frappe/core/doctype/doctype/doctype.py +529,{0} cannot be set for Single types,{0} không thể được thiết lập kiểu Đơn
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +46,{0} are currently viewing this document,{0} đang xem tài liệu này
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +104,{0} updated,{0} cập nhật
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +103,{0} updated,{0} cập nhật
 apps/frappe/frappe/core/doctype/doctype/doctype.py +519,Report cannot be set for Single types,Báo cáo không thể được thiết lập cho các loại đơn
 apps/frappe/frappe/public/js/frappe/views/test_runner.js +17,"To run a test add the module name in the route after '{0}'. For example, {1}","Để chạy một thử nghiệm thêm vào tên module tuyến đường sau khi &#39;{0}&#39;. Ví dụ, {1}"
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +46,{0} days ago,{0} ngày trước
@@ -468,7 +467,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js +136,Set Quantity,Đ�
 DocType: User,Unsubscribed,Bỏ đăng ký
 ,Data Import Tool,Công cụ dữ liệu nhập khẩu
 apps/frappe/frappe/core/doctype/user/user.py +421,Registration Details Emailed.,Đăng ký chi tiết gửi bằng email.
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +439,Attach Your Picture,Hình ảnh đính kèm của bạn
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +441,Attach Your Picture,Hình ảnh đính kèm của bạn
 DocType: Workflow State,Stop,dừng lại
 DocType: Top Bar Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Liên kết với các trang web mà bạn muốn mở. Để trống nếu bạn muốn làm cho nó một phụ huynh nhóm.
 DocType: DocType,Is Single,Là Đơn
@@ -496,7 +495,7 @@ DocType: DocType,Search Fields,Tìm kiếm Fields
 apps/frappe/frappe/public/js/legacy/print_format.js +120,No document selected,Không có tài liệu đã chọn
 DocType: Event,Event,Sự Kiện
 apps/frappe/frappe/public/js/frappe/views/communication.js +460,"On {0}, {1} wrote:","Trên {0}, {1} đã viết:"
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80,Cannot delete standard field. You can hide it if you want,Không thể xóa lĩnh vực tiêu chuẩn. Bạn có thể ẩn nó nếu bạn muốn
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +89,Cannot delete standard field. You can hide it if you want,Không thể xóa lĩnh vực tiêu chuẩn. Bạn có thể ẩn nó nếu bạn muốn
 DocType: Top Bar Item,For top bar,Cho thanh hàng đầu
 DocType: Contact Us Settings,Address,Địa chỉ
 DocType: Print Settings,In points. Default is 9.,Trong điểm. Mặc định là 9.
@@ -515,7 +514,7 @@ apps/frappe/frappe/core/doctype/page/page.py +35,Only Administrator can edit,Ch�
 DocType: Property Setter,Property Setter,Setter tài sản
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select User or DocType to start.,Chọn người dùng hoặc DocType để bắt đầu.
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,Không Apps cài đặt
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181,Mark the field as Mandatory,Đánh dấu sân khi bắt buộc
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +190,Mark the field as Mandatory,Đánh dấu sân khi bắt buộc
 DocType: Communication,Clicked,Clicked
 apps/frappe/frappe/public/js/legacy/form.js +882,No permission to '{0}' {1},Không có quyền '{0}' {1}
 DocType: User,Google User ID,Google ID của người dùng
@@ -531,7 +530,7 @@ apps/frappe/frappe/model/mapper.py +81,Cannot map because following condition fa
 DocType: User,Roles HTML,Vai trò HTML
 apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,Chủ động
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +26,Insert Below,Dưới đây chèn
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +109,All customizations will be removed. Please confirm.,Tất cả các tùy chỉnh sẽ được gỡ bỏ. Vui lòng xác nhận.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +118,All customizations will be removed. Please confirm.,Tất cả các tùy chỉnh sẽ được gỡ bỏ. Vui lòng xác nhận.
 DocType: Page,Page HTML,Trang HTML
 DocType: Web Page,Header,Phần đầu
 apps/frappe/frappe/public/js/frappe/model/model.js +79,Unknown Column: {0},Cột không rõ: {0}
@@ -571,7 +570,7 @@ DocType: Workflow,"Field that represents the Workflow State of the transaction (
 apps/frappe/frappe/utils/oauth.py +171,Email not verified with {1},Email không xác minh với {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +556,Edit to add content,Edit để thêm nội dung
 apps/frappe/frappe/public/js/frappe/views/communication.js +79,Select Languages,Chọn Ngôn ngữ
-apps/frappe/frappe/__init__.py +441,No permission for {0},Không có sự cho phép cho {0}
+apps/frappe/frappe/__init__.py +438,No permission for {0},Không có sự cho phép cho {0}
 DocType: Web Form,Advanced,Nâng cao
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Tham khảo: {0} {1}
 DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages.","Loại sử dụng ""Hệ thống tài khoản"" có thể truy cập vào máy tính để bàn. ""Website của thành viên"" chỉ có thể đăng nhập vào các trang web và các trang portal."
@@ -596,7 +595,7 @@ DocType: DocPerm,Additional Permissions,Quyền thêm
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Bắt đầu nhập dữ liệu dưới dòng này
 DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,Cập nhật các mẫu và lưu trong CSV (Comma giá trị riêng) định dạng trước khi đính kèm.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Specify the value of the field,Xác định giá trị của trường
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +172,Specify the value of the field,Xác định giá trị của trường
 DocType: Report,Disabled,Đã tắt
 apps/frappe/frappe/desk/page/activity/activity.js +203,May,Có thể
 apps/frappe/frappe/desk/page/activity/activity.js +203,Jan,Jan
@@ -652,10 +651,10 @@ DocType: Communication,Communication,Liên lạc
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.","Kiểm tra các cột để lựa chọn, kéo để thiết lập trật tự."
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +583,This is PERMANENT action and you cannot undo. Continue?,Đây là hành động thường xuyên và bạn không thể hoàn tác. Tiếp tục?
 DocType: Event,Every Day,Mỗi ngày
-apps/frappe/frappe/email/smtp.py +55,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Hãy cài đặt mặc định Email Account từ Setup> Email> Tài khoản Email
 DocType: Workflow State,move,Hành động
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} cài đặt
 DocType: System Settings,Date and Number Format,Ngày và định dạng số
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,"<span class=""text-muted""></span>","<span class=""text-muted""></span>"
 apps/frappe/frappe/model/document.py +737,one of,Một trong
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +79,Show Tags,Hiện tags
 DocType: Bulk Email,Not Sent,Không gửi
@@ -709,6 +708,7 @@ DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[
 DocType: Communication,Delayed,Bị hoãn
 apps/frappe/frappe/config/setup.py +116,List of backups available for download,Danh sách các bản sao lưu có sẵn để tải về
 apps/frappe/frappe/templates/pages/login.html +61,Sign up,Đăng ký
+apps/frappe/frappe/email/smtp.py +143,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Tài khoản Email không thiết lập. Hãy tạo một tài khoản email mới từ Setup&gt; Email&gt; Tài khoản Email
 apps/frappe/frappe/config/setup.py +222,Add fields to forms.,Thêm các lĩnh vực với các hình thức.
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,Bạn cần phải đăng nhập để truy cập vào trang này.
@@ -731,7 +731,7 @@ DocType: Async Task,Reference DocType,Tài liệu tham khảo DocType
 DocType: User,System User,Hệ thống tài
 DocType: Report,Is Standard,Là tiêu chuẩn
 DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Không thẻ HTML Mã hóa HTML như &lt;script&gt; hay chỉ là nhân vật như &lt;hoặc&gt;, vì chúng có thể được cố ý sử dụng trong lĩnh vực này"
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Specify a default value,Chỉ định một giá trị mặc định
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +227,Specify a default value,Chỉ định một giá trị mặc định
 DocType: Website Settings,FavIcon,Favicon
 DocType: Workflow State,minus-sign,trừ-dấu
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,Không tìm thấy
@@ -824,7 +824,7 @@ apps/frappe/frappe/templates/pages/login.html +63,Have an account? Login,Có m�
 apps/frappe/frappe/public/js/legacy/print_format.js +144,Unknown Print Format: {0},Unknown In Format: {0}
 DocType: Workflow State,arrow-down,mũi tên xuống
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Collapse,Sụp đổ
-apps/frappe/frappe/model/delete_doc.py +133,User not allowed to delete {0}: {1},Người sử dụng không được phép xóa {0}: {1}
+apps/frappe/frappe/model/delete_doc.py +132,User not allowed to delete {0}: {1},Người sử dụng không được phép xóa {0}: {1}
 DocType: Website Settings,Linked In Share,Trong liên kết Chia sẻ
 apps/frappe/frappe/public/js/frappe/model/model.js +21,Last Updated On,Lần cập nhật cuối On
 apps/frappe/frappe/public/js/frappe/list/list_item_main_head.html +27,Likes,Likes
@@ -875,9 +875,8 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any exist
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +465,Then By (optional),Sau đó bởi (tùy chọn)
 DocType: File,Preview HTML,Preview HTML
 apps/frappe/frappe/desk/doctype/todo/todo.py +20,Assigned to {0}: {1},Gán cho {0}: {1}
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,&gt; {0} year(s) ago,&gt; {0} năm (s) trước
 DocType: DocField,Percent,Phần trăm
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +298,Please set filters,Xin hãy thiết lập bộ lọc
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +312,Please set filters,Xin hãy thiết lập bộ lọc
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +25,Linked With,Liên kết với
 DocType: Workflow State,book,cuốn sách
 DocType: Website Settings,Landing Page,Trang hạ cánh
@@ -897,7 +896,7 @@ DocType: DocPerm,DocPerm,DocPerm
 apps/frappe/frappe/core/doctype/doctype/doctype.py +319,Precision should be between 1 and 6,Chính xác nên được giữa 1 và 6
 apps/frappe/frappe/public/js/frappe/misc/utils.js +98,and,và
 DocType: Error Snapshot,Frames,Khung
-apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +125,Assignment,Chuyển nhượng
+apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +130,Assignment,Chuyển nhượng
 DocType: About Us Team Member,Image Link,Liên kết hình ảnh
 DocType: Workflow State,step-backward,bước lùi
 apps/frappe/frappe/utils/boilerplate.py +239,{app_title},{} App_title
@@ -936,7 +935,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,Ngày tạo
 DocType: Workflow State,align-center,sắp xếp trung tâm
 apps/frappe/frappe/public/js/frappe/form/set_sharing.html +6,Can Write,Có thể Viết
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Một số tài liệu, giống như một hóa đơn, nên không thể thay đổi một lần thức. Trạng thái cuối cùng cho các tài liệu như vậy được gọi là Đăng. Bạn có thể hạn chế những vai trò có thể Submit."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +662,You are not allowed to export this report,Bạn không được phép xuất khẩu báo cáo này
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +676,You are not allowed to export this report,Bạn không được phép xuất khẩu báo cáo này
 DocType: ToDo,Sender,Người gửi
 DocType: Web Page,Description for search engine optimization.,Mô tả cho tối ưu hóa công cụ tìm kiếm.
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,Tải Mẫu trống
@@ -960,7 +959,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +137,Mandatory fields required 
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Thiết lập lại Quyền cho {0}?
 apps/frappe/frappe/permissions.py +328,{0} {1} not found,{0} {1} không tìm thấy
 DocType: Communication,Attachment Removed,File đính kèm Removed
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Show a description below the field,Hiển thị một mô tả dưới đây lĩnh vực này
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +223,Show a description below the field,Hiển thị một mô tả dưới đây lĩnh vực này
 DocType: Workflow State,align-left,sắp xếp bên trái
 DocType: User,Defaults,Mặc định
 apps/frappe/frappe/public/js/frappe/model/model.js +514,Merge with existing,Kết hợp với hiện tại
@@ -993,7 +992,7 @@ DocType: Error Snapshot,Error Snapshot,Lỗi Snapshot
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +8,In,Ở
 DocType: Email Alert,Value Change,Thay đổi giá trị
 DocType: Standard Reply,Standard Reply,Tiêu chuẩn Trả lời
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175,Width of the input box,Chiều rộng của hộp nhập
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +184,Width of the input box,Chiều rộng của hộp nhập
 DocType: UserRole,UserRole,UserRole
 DocType: System Settings,In Hours,Trong Hours
 DocType: Print Settings,With Letterhead,Với đề thư
@@ -1026,9 +1025,9 @@ DocType: Custom Field,Default Value,Giá trị mặc định
 apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify,Xác nhận
 DocType: Workflow Document State,Update Field,Cập nhật Dòng
 apps/frappe/frappe/desk/page/applications/applications.js +50,Regional Extensions,Phần mở rộng khu vực
-apps/frappe/frappe/email/doctype/email_account/email_account.py +349,Leave this conversation,Để lại cuộc trò chuyện này
-apps/frappe/frappe/model/base_document.py +407,Options not set for link field {0},Tùy chọn không được đặt cho trường liên kết {0}
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +151,You cannot unset 'Read Only' for field {0},Bạn không thể bỏ đặt &#39;Chỉ đọc &quot;cho lĩnh vực {0}
+apps/frappe/frappe/email/doctype/email_account/email_account.py +352,Leave this conversation,Để lại cuộc trò chuyện này
+apps/frappe/frappe/model/base_document.py +405,Options not set for link field {0},Tùy chọn không được đặt cho trường liên kết {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +150,You cannot unset 'Read Only' for field {0},Bạn không thể bỏ đặt &#39;Chỉ đọc &quot;cho lĩnh vực {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,Hoàn thành cài đặt
 DocType: Workflow State,asterisk,dấu
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,Xin vui lòng không thay đổi các tiêu đề mẫu.
@@ -1056,7 +1055,7 @@ apps/frappe/frappe/email/bulk.py +97,This email was sent to you as CC,Email này
 apps/frappe/frappe/core/doctype/doctype/doctype.py +412,Timeline field must be a valid fieldname,lĩnh vực Timeline phải là một fieldname hợp lệ
 DocType: Email Account,Email Ids,Email Id
 DocType: Currency,Symbol,Biểu tượng
-apps/frappe/frappe/model/base_document.py +448,Row #{0}:,Hàng # {0}:
+apps/frappe/frappe/model/base_document.py +449,Row #{0}:,Hàng # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +84,New password emailed,Mật khẩu mới qua email
 apps/frappe/frappe/auth.py +228,Login not allowed at this time,Đăng nhập không được phép tại thời điểm này
 DocType: Async Task,Runtime,Runtime
@@ -1125,10 +1124,9 @@ apps/frappe/frappe/desk/page/applications/applications.js +47,Developer Tools,Nh
 DocType: Workflow State,fullscreen,toàn màn hình
 DocType: Event,Ref Name,Tài liệu tham khảo Tên
 DocType: Web Page,Center,Trung tâm
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Thiết lập> Người dùng Quyền Giám đốc
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,Đầu Cấp
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Đại diện cho tiểu bang cho phép trong một tài liệu và vai trò được giao để thay đổi trạng thái.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +48,Refresh Form,Refresh Form
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +57,Refresh Form,Refresh Form
 DocType: DocField,Select,Chọn
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,Nộp không đính kèm
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Nếu bạn thiết lập này, khoản này sẽ đến trong một thả xuống dưới phụ huynh lựa chọn."
@@ -1187,7 +1185,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify Password,Xác Nh�
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Có một số lỗi
 apps/frappe/frappe/core/doctype/communication/communication.js +19,Close,Đóng
 apps/frappe/frappe/model/document.py +467,Cannot change docstatus from 0 to 2,Không thể thay đổi docstatus 0-2
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +87,Update,Cập nhật
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +96,Update,Cập nhật
 DocType: Error Snapshot,Snapshot View,Xem ảnh chụp
 apps/frappe/frappe/core/doctype/doctype/doctype.py +287,Options must be a valid DocType for field {0} in row {1},Lựa chọn phải là một DOCTYPE hợp lệ cho lĩnh vực {0} trong hàng {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Edit Properties
@@ -1196,7 +1194,8 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} 
 apps/frappe/frappe/public/js/frappe/views/communication.js +69,Communication Medium,Thông tin liên lạc trung
 DocType: Website Settings,Banner HTML,Biểu ngữ HTML
 DocType: Error Snapshot,Pyver,Pyver
-apps/frappe/frappe/model/base_document.py +452,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} không thể ""{2}"". Nó phải là một trong những ""{3}"""
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,&gt; {0} year(s) ago,&gt; {0} năm (s) trước
+apps/frappe/frappe/model/base_document.py +453,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} không thể ""{2}"". Nó phải là một trong những ""{3}"""
 apps/frappe/frappe/utils/data.py +516,{0} or {1},{0} hoặc {1}
 apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,Mật khẩu Cập nhật
 DocType: Workflow State,trash,thùng rác
@@ -1236,18 +1235,20 @@ apps/frappe/frappe/modules/__init__.py +81,App not found,Ứng dụng không tì
 apps/frappe/frappe/core/doctype/communication/communication.py +27,Cannot create a {0} against a child document: {1},Không thể tạo một {0} đối với một tài liệu trẻ em: {1}
 DocType: Workflow State,pencil,bút chì
 apps/frappe/frappe/config/desk.py +27,Chat messages and other notifications.,Các tin nhắn và các thông báo khác.
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +112,Insert After cannot be set as {0},Chèn Sau khi không thể được thiết lập như là {0}
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +68,Insert After cannot be set as {0},Chèn Sau khi không thể được thiết lập như là {0}
 apps/frappe/frappe/public/js/frappe/form/share.js +54,Share {0} with,Chia sẻ {0} với
 DocType: Workflow State,hand-up,tay lên
 DocType: Blog Settings,Writers Introduction,Giới thiệu nhà văn
 DocType: Communication,Phone,Chuyển tệp
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +78,Error while evaluating Email Alert {0}. Please fix your template.,Lỗi trong khi đánh giá Email Alert {0}. Hãy sửa mẫu của bạn.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Hãy chọn loại tài liệu hoặc Vai trò để bắt đầu.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +246,ProTip: You can also use Ctrl+S to Save,ProTip: Bạn cũng có thể sử dụng tổ hợp phím Ctrl + S để Save
 apps/frappe/frappe/public/js/frappe/views/container.js +55,Page not found,Trang không tìm thấy
 DocType: DocField,Precision,Độ chính xác
 DocType: Website Slideshow,Slideshow Items,Slideshow mục
-apps/frappe/frappe/model/delete_doc.py +158,Cannot delete or cancel because {0} {1} is linked with {2} {3},Không thể xóa hoặc hủy bỏ vì {0} {1} được liên kết với {2} {3}
+apps/frappe/frappe/model/delete_doc.py +157,Cannot delete or cancel because {0} {1} is linked with {2} {3},Không thể xóa hoặc hủy bỏ vì {0} {1} được liên kết với {2} {3}
 DocType: Website Settings,Twitter Share,Twitter Chia sẻ
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Setup&gt; Ký Quyền Giám đốc
 DocType: Event,Groups,Nhóm
 DocType: Workflow State,Workflow State,Công việc nhà nước
 apps/frappe/frappe/templates/pages/me.html +3,My Account,Tài Khoản Của Tôi
@@ -1270,10 +1271,10 @@ DocType: Email Account,Login Id,Id đăng nhập
 apps/frappe/frappe/core/page/data_import_tool/importer.py +178,Not allowed to Import,Không được phép nhập khẩu
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Mức độ cho phép
 DocType: Workflow State,Warning,Cảnh báo
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +435,You will use it to Login,Bạn sẽ sử dụng nó để đăng nhập
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +437,You will use it to Login,Bạn sẽ sử dụng nó để đăng nhập
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +858,"Ignoring Item {0}, because a group exists with the same name!","Bỏ qua mục {0}, bởi vì một nhóm tồn tại có cùng tên!"
 DocType: DocType,In Dialog,Trong Dialog
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +142,Help,Trợ giúp
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +151,Help,Trợ giúp
 DocType: User,Login Before,Trước khi đăng nhập
 DocType: Web Page,Insert Style,Chèn phong cách
 apps/frappe/frappe/config/setup.py +192,Application Installer,Ứng dụng cài đặt
@@ -1317,14 +1318,14 @@ DocType: User,Location,Vị trí
 ,Permitted Documents For User,Tài liệu được phép Đối với tài
 apps/frappe/frappe/core/doctype/docshare/docshare.py +42,"You need to have ""Share"" permission","Bạn cần phải có ""Share"" cho phép"
 DocType: Communication,Assignment Completed,phân Hoàn thành
-apps/frappe/frappe/public/js/frappe/form/grid.js +281,Bulk Edit {0},Chỉnh sửa hàng loạt {0}
+apps/frappe/frappe/public/js/frappe/form/grid.js +282,Bulk Edit {0},Chỉnh sửa hàng loạt {0}
 DocType: Email Alert Recipient,Email Alert Recipient,Email người nhận báo
 DocType: Blog Category,Parent Website Route,Mẹ Trang web Route
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Không hoạt động
 DocType: About Us Settings,Settings for the About Us Page,Cài đặt cho các Giới thiệu Trang
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,Chọn Loại tài liệu để tải
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,ví dụ: pop.gmail.com / imap.gmail.com
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Use the field to filter records,Sử dụng lĩnh vực này để lọc các bản ghi
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +194,Use the field to filter records,Sử dụng lĩnh vực này để lọc các bản ghi
 DocType: Email Account,Outlook.com,Outlook.com
 DocType: System Settings,Scheduler Last Event,Scheduler Event cuối
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Thêm Google Analytics ID: ví dụ. UA-89XXX57-1. Hãy tìm kiếm sự giúp đỡ về Google Analytics để biết thêm thông tin.
@@ -1334,7 +1335,6 @@ DocType: Email Account,Check this to pull emails from your mailbox,Kiểm tra n�
 apps/frappe/frappe/model/document.py +480,Cannot edit cancelled document,Không thể chỉnh sửa tài liệu hủy
 DocType: Event,Monday,Thứ Hai
 apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Lỗi bộ lồng nhau. Xin vui lòng liên hệ với quản trị.
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,"<span class=""text-muted""></span>",<Span class = text-tắt dữ liệu-no-content = 1>
 DocType: Workflow State,envelope,phong bì
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 2,Lựa chọn 2
 apps/frappe/frappe/core/doctype/docshare/docshare.py +51,{0} shared this document with {1},{0} chia sẻ tài liệu này với {1}
@@ -1373,7 +1373,7 @@ DocType: Website Theme,Google Font (Heading),Google Font (Heading)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +172,Find {0} in {1},Tìm {0} trong {1}
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Nối như truyền thông so với DocType này (phải có các lĩnh vực, ""Status"", ""Subject"")"
 DocType: DocType,Allow Import via Data Import Tool,Cho phép nhập dữ liệu thông qua công cụ nhập khẩu
-apps/frappe/frappe/model/base_document.py +506,Not allowed to change {0} after submission,Không được phép thay đổi {0} sau khi nộp
+apps/frappe/frappe/model/base_document.py +507,Not allowed to change {0} after submission,Không được phép thay đổi {0} sau khi nộp
 DocType: Communication,Comment Type,Comment Loại
 apps/frappe/frappe/config/setup.py +8,Users,Người sử dụng
 DocType: Report,Report Type,Loại báo cáo
@@ -1407,7 +1407,7 @@ DocType: DocField,Table,Bảng
 DocType: File,File Size,Dung lượng
 apps/frappe/frappe/website/doctype/web_form/web_form.py +190,You must login to submit this form,Bạn phải đăng nhập để nộp đơn này
 DocType: User,Background Image,Hình nền
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +340,"Select your Country, Time Zone and Currency","Chọn quốc gia của bạn, Time Zone và ngoại tệ"
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +342,"Select your Country, Time Zone and Currency","Chọn quốc gia của bạn, Time Zone và ngoại tệ"
 DocType: Async Task,Queued,Xếp hàng
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Mới Custom In Format
 DocType: DocPerm,Create,Tạo
@@ -1492,8 +1492,7 @@ DocType: Custom Field,Permission Level,Cấp phép
 DocType: User,Send Notifications for Transactions I Follow,Gửi thông báo cho tôi theo giao dịch
 apps/frappe/frappe/core/doctype/doctype/doctype.py +508,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Không thể thiết lập Gửi, Hủy bỏ, sửa đổi mà không Viết"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,Bạn có chắc bạn muốn xóa các tập tin đính kèm?
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Thiết lập> Người dùng
-apps/frappe/frappe/model/base_document.py +484,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: {1} &#39;sẽ được cắt ngắn, khi các nhân vật tối đa cho phép là {2}"
+apps/frappe/frappe/model/base_document.py +485,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: {1} &#39;sẽ được cắt ngắn, khi các nhân vật tối đa cho phép là {2}"
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Cảm ơn bạn
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,Tiết kiệm
 DocType: Print Settings,Print Style Preview,In US Preview
@@ -1505,7 +1504,7 @@ DocType: DocField,In List View,Trong Danh sách Xem
 DocType: Email Account,Use TLS,Sử dụng TLS
 apps/frappe/frappe/email/smtp.py +30,Invalid login or password,Đăng nhập hoặc mật khẩu không hợp lệ
 apps/frappe/frappe/config/setup.py +233,Add custom javascript to forms.,Thêm tùy chỉnh với các hình thức javascript.
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +340,Sr No,Sr Không
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +354,Sr No,Sr Không
 ,Role Permissions Manager,Vai trò Quyền Giám đốc
 DocType: Website Theme,This must be checked if the below style settings are applicable,Điều này phải được kiểm tra nếu các thiết lập phong cách dưới đây có thể áp dụng
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +111,Name of the new Print Format,Tên của Format In mới
@@ -1519,7 +1518,7 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +83,Blog,Blog
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with data,Tải dữ liệu
 DocType: Workflow State,hand-right,tay phải
 DocType: Website Settings,Subdomain,Tên miền phụ
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +338,Region,Vùng
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +340,Region,Vùng
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,Current status,Tình trạng hiện tại
 DocType: Web Form,Allow Delete,Cho phép Xóa
 DocType: Email Alert,Message Examples,Ví dụ tin nhắn
@@ -1534,7 +1533,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +397,{{{0}}} is not a valid f
 DocType: DocType,Permission Rules,Quy định cho phép
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +119,Links,Liên kết
 apps/frappe/frappe/model/base_document.py +370,Value missing for,Giá trị mất tích
-apps/frappe/frappe/model/delete_doc.py +137,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Ghi lại Đăng không thể bị xóa.
+apps/frappe/frappe/model/delete_doc.py +136,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Ghi lại Đăng không thể bị xóa.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +92,new type of document,loại mới của tài liệu
 DocType: DocPerm,Read,Đọc
 apps/frappe/frappe/templates/pages/update-password.html +12,Old Password,Old Password
@@ -1544,7 +1543,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +535,{0}: Cannot set Assign A
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Chỉnh sửa Vai trò Permissions
 DocType: Communication,Link DocType,liên kết DocType
 DocType: Social Login Keys,Social Login Keys,Đăng nhập xã hội phím
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53,Remove all customizations?,Loại bỏ tất cả các tùy chỉnh?
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +62,Remove all customizations?,Loại bỏ tất cả các tùy chỉnh?
 DocType: Website Slideshow,Slideshow Name,Tên slideshow
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,Hủy
 DocType: DocType,Allow Rename,Cho phép đổi tên
@@ -1607,7 +1606,7 @@ DocType: Website Slideshow,"Note: For best results, images must be of the same s
 DocType: DocType,Auto Name,Tên tự động
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 3,Lựa chọn 3
 DocType: Workflow State,Edit,Sửa
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup &gt; Role Permissions Manager,Khoản có thể được quản lý thông qua Setup & gt; Vai trò Quyền Giám đốc
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +178,Permissions can be managed via Setup &gt; Role Permissions Manager,Khoản có thể được quản lý thông qua Setup & gt; Vai trò Quyền Giám đốc
 DocType: Contact Us Settings,Pincode,Pincode
 apps/frappe/frappe/core/page/data_import_tool/importer.py +70,Please make sure that there are no empty columns in the file.,Hãy chắc chắn rằng không có cột trống trong tập tin.
 apps/frappe/frappe/utils/oauth.py +209,Please ensure that your profile has an email address,Hãy đảm bảo rằng hồ sơ của bạn có một địa chỉ email
@@ -1618,6 +1617,7 @@ apps/frappe/frappe/email/bulk.py +247,Emails are muted,Email là tắt tiếng
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +22,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,Nhóm Phong cách
 apps/frappe/frappe/desk/page/applications/applications.py +74,You cannot install this app,Bạn không thể cài đặt ứng dụng này
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; tài
 DocType: Scheduler Log,Error,Lỗi
 DocType: DocField,Column Break,Cột lao
 DocType: Event,Thursday,Thứ năm
@@ -1659,7 +1659,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +462,Ascending,T
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,Tiêu chuẩn In Định dạng không thể được cập nhật
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.js +12,Please specify,Vui lòng chỉ
 DocType: Page,Page Name,Tên trang
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +146,Help: Field Properties,Help: Field Properties
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Help: Field Properties,Help: Field Properties
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +86,Importing...,Nhập khẩu ...
 apps/frappe/frappe/model/document.py +754,Incorrect value in row {0}: {1} must be {2} {3},Giá trị không chính xác trong hàng {0}: {1} phải {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Tài liệu gửi không thể được chuyển đổi trở lại dự thảo. Hàng chuyển {0}
@@ -1686,12 +1686,12 @@ DocType: Page,Yes,Đồng ý
 DocType: DocType,Max Attachments,Max File đính kèm
 DocType: Page,Page,Trang
 DocType: Workflow State,briefcase,cặp
-apps/frappe/frappe/model/base_document.py +465,Value cannot be changed for {0},Giá trị không thể thay đổi cho {0}
+apps/frappe/frappe/model/base_document.py +466,Value cannot be changed for {0},Giá trị không thể thay đổi cho {0}
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
 					Please enter a valid email address so that we can get back.","Bạn dường như đã viết tên của bạn thay vì email của bạn. \
  Vui lòng nhập một địa chỉ email hợp lệ để chúng tôi có thể lấy lại."
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Phong cách đại diện cho các nút màu: Thành công - Green, nguy hiểm - Đỏ, Inverse - Black, Tiểu học - Dark Blue, Thông tin - Light Blue, Cảnh báo - Orange"
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +126,No Report Loaded. Please use query-report/[Report Name] to run a report.,Báo cáo không tải. Vui lòng sử dụng truy vấn báo cáo / [Báo cáo Tên] để chạy báo cáo.
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +137,No Report Loaded. Please use query-report/[Report Name] to run a report.,Báo cáo không tải. Vui lòng sử dụng truy vấn báo cáo / [Báo cáo Tên] để chạy báo cáo.
 DocType: Workflow Transition,Workflow Transition,Công việc chuyển tiếp
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +48,{0} months ago,{0} tháng trước
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,Tạo ra bởi
@@ -1741,7 +1741,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,bởi Vai tr�
 apps/frappe/frappe/core/doctype/user/user.py +402,Registered but disabled.,Đăng ký nhưng bị tàn tật.
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +597,Delete permanently?,Xóa vĩnh viễn?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +95,Search in a document type,Tìm kiếm trong một loại tài liệu
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201,Allow field to remain editable even after submission,Cho phép trường vẫn có thể chỉnh sửa ngay cả sau khi nộp hồ sơ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +210,Allow field to remain editable even after submission,Cho phép trường vẫn có thể chỉnh sửa ngay cả sau khi nộp hồ sơ
 DocType: DocPerm,Role and Level,Vai trò và Cấp
 DocType: File,Thumbnail URL,URL Thumbnail
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Báo cáo tùy chỉnh
@@ -1781,7 +1781,7 @@ apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Giao By Me
 apps/frappe/frappe/core/doctype/doctype/doctype.py +68,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Không có trong chế độ phát triển! Đặt trong site_config.json hoặc làm DocType 'Custom'.
 DocType: Workflow State,globe,toàn cầu
 DocType: System Settings,dd.mm.yyyy,DD.MM.YYYY
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193,Hide field in Standard Print Format,Hide trường trong tiêu chuẩn In Format
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Hide field in Standard Print Format,Hide trường trong tiêu chuẩn In Format
 DocType: ToDo,Priority,Ưu tiên
 DocType: Dropbox Backup,Dropbox Access Allowed,Dropbox truy cập được phép
 DocType: Dropbox Backup,Weekly,Hàng tuần
@@ -1884,7 +1884,7 @@ DocType: Web Page,Web Page,Trang web
 DocType: Blog Category,Blogger,Blogger
 apps/frappe/frappe/public/js/frappe/views/ganttview.js +45,Gantt Chart,Biểu đồ Gantt
 apps/frappe/frappe/public/js/frappe/form/control.js +592,Date must be in format: {0},Ngày phải có định dạng: {0}
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +428,The First User: You,Những thành viên đầu tiên: Bạn
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +430,The First User: You,Những thành viên đầu tiên: Bạn
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +22,Select Columns,Select Columns
 apps/frappe/frappe/templates/pages/login.py +45,Missing parameters for login,Tham số thiếu để đăng nhập
 DocType: Workflow State,folder-open,thư mục mở
@@ -1892,7 +1892,7 @@ apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Appl
 apps/frappe/frappe/config/website.py +18,Single Post (article).,Single Post (bài viết).
 DocType: Page,No,Không đồng ý
 DocType: Property Setter,Set Value,Thiết lập giá trị
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Hide field in form,Ẩn trường ở dạng
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +198,Hide field in form,Ẩn trường ở dạng
 apps/frappe/frappe/public/js/frappe/desk.js +75,"The application has been updated to a new version, please refresh this page","Ứng dụng này đã được cập nhật lên phiên bản mới, hãy làm mới trang này"
 DocType: Email Alert,Optional: The alert will be sent if this expression is true,Tùy chọn: Các cảnh báo sẽ được gửi nếu biểu thức này là đúng sự thật
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +460,Select records for assignment,Chọn hồ sơ chuyển nhượng
@@ -1931,6 +1931,7 @@ DocType: Contact Us Settings,State,Trạng thái
 DocType: Workflow Action,Workflow Action,Công việc hành động
 DocType: Event,Send an email reminder in the morning,Gửi một email nhắc nhở trong buổi sáng
 DocType: Blog Post,Published On,Được công bố trên
+apps/frappe/frappe/email/smtp.py +55,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Hãy thiết lập tài khoản mặc định Email từ Setup&gt; Email&gt; Tài khoản Email
 DocType: User,Gender,Giới Tính
 apps/frappe/frappe/core/doctype/doctype/doctype.py +347,Field '{0}' cannot be set as Unique as it has non-unique values,Dòng &#39;{0}&#39; không thể được thiết lập như là độc đáo vì nó có giá trị không phải duy nhất
 DocType: ToDo,Reference Type,Loại tài liệu tham khảo
@@ -1991,14 +1992,14 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only uploa
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +553,Report was not saved (there were errors),Báo cáo không được lưu (có lỗi)
 DocType: Print Settings,Print Style,In US
 DocType: DocPerm,Import,Nhập khẩu
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +132,Row {0}: Not allowed to enable Allow on Submit for standard fields,Row {0}: Không được phép để cho phép Allow Gửi cho lĩnh vực tiêu chuẩn
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +131,Row {0}: Not allowed to enable Allow on Submit for standard fields,Row {0}: Không được phép để cho phép Allow Gửi cho lĩnh vực tiêu chuẩn
 apps/frappe/frappe/config/setup.py +95,Import / Export Data,Nhập khẩu / xuất khẩu dữ liệu
 apps/frappe/frappe/core/doctype/role/role.py +12,Standard roles cannot be renamed,Vai trò chuẩn không thể đổi tên
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},cập nhật để {0}
 apps/frappe/frappe/public/js/legacy/form.js +171,Cannot print cancelled documents,Không thể in tài liệu bị hủy bỏ
 DocType: User,Desktop Background,Desktop Background
 DocType: Workflow State,chevron-right,Chevron phải
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158,"Change type of field. (Currently, Type change is \
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +167,"Change type of field. (Currently, Type change is \
 						allowed among 'Currency and Float')","Thay đổi loại hình trường. (Hiện nay, loại thay đổi được \
  phép giữa 'tệ và Float')"
 apps/frappe/frappe/website/doctype/web_form/web_form.py +27,You need to be in developer mode to edit a Standard Web Form,Bạn cần phải ở trong chế độ nhà phát triển để sửa một mẫu Web Standard
