@@ -185,11 +185,13 @@ class BaseDocument(object):
 
 			df = self.meta.get_field(fieldname)
 			if df:
-				if df.fieldtype in ("Check", "Int") and not isinstance(d[fieldname], int):
+				if df.fieldtype=="Check" and (not isinstance(d[fieldname], int) or d[fieldname] > 1):
+					d[fieldname] = 1 if cint(d[fieldname]) else 0
+
+				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
 
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
-
 					d[fieldname] = flt(d[fieldname])
 
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
