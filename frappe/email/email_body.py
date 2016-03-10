@@ -211,8 +211,6 @@ class EMail:
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None):
-	message = scrub_urls(message)
-
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
@@ -225,7 +223,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 		"subject": subject
 	})
 
-	return rendered_email
+	return scrub_urls(rendered_email)
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:
