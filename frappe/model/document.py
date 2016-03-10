@@ -380,7 +380,7 @@ class Document(BaseDocument):
 		if not hasattr(self, "_has_access_to"):
 			user_roles = frappe.get_roles()
 			self._has_access_to = []
-			for perm in self.meta.permissions:
+			for perm in self.get_permissions():
 				if perm.role in user_roles and perm.permlevel > 0 and perm.write:
 					if perm.permlevel not in self._has_access_to:
 						self._has_access_to.append(perm.permlevel)
@@ -392,6 +392,15 @@ class Document(BaseDocument):
 			df = self.meta.get_field(fieldname)
 
 		return df.permlevel in self.get_permlevel_access()
+
+	def get_permissions(self):
+		if self.meta.istable:
+			# use parent permissions
+			permissions = frappe.get_meta(self.parenttype).permissions
+		else:
+			permissions = self.meta.permissions
+
+		return permissions
 
 	def _set_defaults(self):
 		if frappe.flags.in_import:
