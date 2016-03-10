@@ -15,7 +15,7 @@ def get_dynamic_link_map(for_delete=False):
 
 	Note: Will not map single doctypes
 	'''
-	if not hasattr(frappe.local, 'dynamic_link_map'):
+	if getattr(frappe.local, 'dynamic_link_map', None)==None or frappe.flags.in_test:
 		# Build from scratch
 		dynamic_link_map = {}
 		for df in get_dynamic_links():
