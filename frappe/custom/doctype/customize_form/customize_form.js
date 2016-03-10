@@ -24,6 +24,10 @@ frappe.ui.form.on("Customize Form", {
 				$(grid_row.row).css({"font-weight": "bold"});
 			}
 		});
+
+		$(frm.wrapper).on("grid-make-sortable", function(e, frm) {
+			frm.trigger("setup_sortable");
+		});
 	},
 
 	doc_type: function(frm) {
@@ -33,18 +37,22 @@ frappe.ui.form.on("Customize Form", {
 				doc: frm.doc,
 				callback: function(r) {
 					frm.refresh();
-
-					// setup sortable
-					frm.page.body.find('.no-sort').removeClass('no-sort');
-					frm.doc.fields.forEach(function(f, i) {
-						if(!f.is_custom_field) {
-							frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"]').addClass('no-sort')
-						}
-					});
-
+					frm.trigger("setup_sortable");
 				}
 			});
 		}
+	},
+
+	setup_sortable: function(frm) {
+		frm.doc.fields.forEach(function(f, i) {
+			var data_row = frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"] .data-row');
+
+			if(!f.is_custom_field) {
+				data_row.removeClass('sortable-handle');
+			} else {
+				data_row.addClass("highlight");
+			}
+		});
 	},
 
 	refresh: function(frm) {

@@ -30,6 +30,12 @@
 .form-grid .data-row {
   padding: 10px 15px;
 }
+.form-grid .data-row.highlight {
+  background-color: #fffdf4;
+}
+.form-grid .data-row.sortable-handle {
+  cursor: move;
+}
 .grid-body .data-row {
   font-size: 12px;
 }
