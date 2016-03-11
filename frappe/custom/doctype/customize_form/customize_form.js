@@ -97,6 +97,10 @@ frappe.ui.form.on("Customize Form Field", {
 			msgprint(__("Cannot delete standard field. You can hide it if you want"));
 			throw "cannot delete custom field";
 		}
+	},
+	fields_add: function(frm, cdt, cdn) {
+		var f = frappe.model.get_doc(cdt, cdn);
+		f.is_custom_field = 1;
 	}
 });
 
