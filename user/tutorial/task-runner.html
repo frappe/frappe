@@ -127,7 +127,7 @@ scheduler_events = {
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import datediff, nowdate, format_date, add_days
+from frappe.utils import date_diff, nowdate, formatdate, add_days
 
 def daily():
     loan_period = frappe.db.get_value("Library Management Settings",
@@ -142,7 +142,7 @@ def daily():
         for i in items:
             content += "&lt;li&gt;{0} ({1}) due on {2}&lt;/li&gt;".format(i.article_name,
                 i.article,
-                format_date(add_days(i.transaction_date, loan_period)))
+                formatdate(add_days(i.transaction_date, loan_period)))
 
         content += "&lt;/ol&gt;"
 
@@ -167,7 +167,7 @@ def get_overdue(loan_period):
             continue
 
         if d.transaction_type=="Issue" and \
-            datediff(today, d.transaction_date) &gt; loan_period:
+            date_diff(today, d.transaction_date) &gt; loan_period:
             overdue_by_member.setdefault(d.library_member, [])
             overdue_by_member[d.library_member].append(d)
 
