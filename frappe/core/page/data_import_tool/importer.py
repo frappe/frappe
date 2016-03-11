@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
-from frappe.utils import cint, cstr, flt
+from frappe.utils import cint, cstr, flt, getdate, get_datetime
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 #@frappe.async.handler
@@ -111,7 +111,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
-									d[fieldname] = parse_date(d[fieldname]) if d[fieldname] else None
+									d[fieldname] = getdate(parse_date(d[fieldname])) if d[fieldname] else None
+								elif fieldtype == "Datetime":
+									if d[fieldname]:
+										_date, _time = d[fieldname].split(" ")
+										_date = parse_date(d[fieldname])
+										d[fieldname] = get_datetime(_date + " " + _time)
+									else:
+										d[fieldname] = None
 							except IndexError:
 								pass
 
