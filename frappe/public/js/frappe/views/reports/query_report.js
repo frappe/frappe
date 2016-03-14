@@ -139,6 +139,11 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	print_report: function() {
+		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
+			msgprint(__("You are not allowed to print this report"));
+			return false;
+		}
+		
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
@@ -149,6 +154,11 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	pdf_report: function() {
+		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
+			msgprint(__("You are not allowed to make PDF for this report"));
+			return false;
+		}
+		
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
