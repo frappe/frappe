@@ -67,7 +67,7 @@ frappe.ui.form.Control = Class.extend({
 		// hide if no value
 		if (this.doctype && status==="Read"
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
-			&& !in_list(["HTML"], this.df.fieldtype)) {
+			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
 				if(explain) console.log("By Hide Read-only, null fields: None");
 				status = "None";
 		}
