@@ -171,11 +171,13 @@ def put_log(line_no, line, task_id=None):
 
 
 def get_redis_server():
-	"""Returns memcache connection."""
+	"""returns redis_socketio connection."""
 	global redis_server
 	if not redis_server:
 		from redis import Redis
-		redis_server = Redis.from_url(conf.get("async_redis_server") or "redis://localhost:12311")
+		redis_server = Redis.from_url(conf.get("redis_socketio")
+			or conf.get("async_redis_server")
+			or "redis://localhost:12311")
 	return redis_server
 
 

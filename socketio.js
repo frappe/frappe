@@ -7,7 +7,7 @@ var redis = require("redis");
 var request = require('superagent');
 
 var conf = get_conf();
-var subscriber = redis.createClient(conf.redis_async_broker_port);
+var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
 http.listen(conf.socketio_port, function(){
@@ -268,15 +268,20 @@ function get_conf() {
 		socketio_port: 3000
 	};
 
-	// get ports from bench/config.json
-	if(fs.existsSync('config.json')){
-		var bench_config = JSON.parse(fs.readFileSync('config.json'));
-		for (var key in conf) {
-			if (bench_config[key]) {
-				conf[key] = bench_config[key];
+	var read_config = function(path) {
+		if(fs.existsSync(path)){
+			var bench_config = JSON.parse(fs.readFileSync(path));
+			for (var key in conf) {
+				if (bench_config[key]) {
+					conf[key] = bench_config[key];
+				}
 			}
 		}
 	}
+
+	// get ports from bench/config.json
+	read_config('config.json');
+	read_config('sites/common_site_config.json');
 
 	// detect current site
 	if(fs.existsSync('sites/currentsite.txt')) {
