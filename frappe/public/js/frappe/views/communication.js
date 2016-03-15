@@ -488,15 +488,14 @@ frappe.views.CommunicationComposer = Class.extend({
 					return frappe.call({
 						method:'frappe.email.get_contact_list',
 						args: {
-							'select': "email_id",
-							'from': "Contact",
-							'where': "email_id",
+							'fieldname': "email_id",
+							'doctype': "Contact",
 							'txt': extractLast(request.term).value || '%'
 						},
 						quiet: true,
 						callback: function(r) {
 							response($.ui.autocomplete.filter(
-								r.cl || [], extractLast(request.term)));
+								r.message || [], extractLast(request.term)));
 						}
 					});
 				},

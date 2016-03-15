@@ -1,4 +1,4 @@
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +233,Press Esc to close,"Nospiediet ESC, lai aizvērtu"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +245,Press Esc to close,"Nospiediet ESC, lai aizvērtu"
 apps/frappe/frappe/desk/form/assign_to.py +153,"A new task, {0}, has been assigned to you by {1}. {2}","Jaunais uzdevums, {0}, ir piešķirts jums ar {1}. {2}"
 apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Amats
 apps/frappe/frappe/config/setup.py +109,Rename many items by uploading a .csv file.,"Pārdēvēt daudz priekšmetus, augšupielādējot .csv failu."
@@ -8,7 +8,7 @@ DocType: About Us Settings,Website,Mājas lapa
 DocType: User,Facebook Username,Facebook Lietotāja
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,"Piezīme: vairākās sesijās tiks atļauts, ja mobilās ierīces"
 apps/frappe/frappe/email/bulk.py +152,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Nevar nosūtīt šo e-pastu. Jūs esat šķērsojuši sūtīšanas robežu {0} vēstules šajā mēnesī.
-apps/frappe/frappe/public/js/legacy/form.js +706,Permanently Submit {0}?,Pastāvīgi Pieteikt {0}?
+apps/frappe/frappe/public/js/legacy/form.js +719,Permanently Submit {0}?,Pastāvīgi Pieteikt {0}?
 apps/frappe/frappe/client.py +162,Invalid file path: {0},Nederīgs faila ceļš: {0}
 DocType: Workflow State,eye-open,eye-open
 DocType: Bulk Email,Send After,Nosūti Pēc
@@ -27,13 +27,13 @@ DocType: DocPerm,This role update User Permissions for a user,Šī loma atjaunin
 apps/frappe/frappe/public/js/frappe/model/model.js +511,Rename {0},Pārdēvēt {0}
 DocType: Workflow State,zoom-out,zoom-out
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,"Nevar atvērt {0}, kad tā instance ir atvērts"
-apps/frappe/frappe/model/document.py +765,Table {0} cannot be empty,Galda {0} nevar būt tukšs
+apps/frappe/frappe/model/document.py +774,Table {0} cannot be empty,Galda {0} nevar būt tukšs
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +893,With Ledgers,Ar grāmatās
 DocType: Communication,Reference Owner,atsauce Īpašnieks
 DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,"Mazākais cirkulējošo frakciju bloks (monētas). Attiecībā uz, piemēram 1 centu par USD, un tā būtu jāreģistrē kā 0,01"
 DocType: Social Login Keys,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +480,"{0}, Row {1}","{0}, Row {1}"
-apps/frappe/frappe/model/document.py +739,Beginning with,Sākot ar
+apps/frappe/frappe/model/base_document.py +482,"{0}, Row {1}","{0}, Row {1}"
+apps/frappe/frappe/model/document.py +748,Beginning with,Sākot ar
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,Data Import Template
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Vecāks
 DocType: About Us Settings,"""Team Members"" or ""Management""","""Team Members"" vai ""Management"""
@@ -47,8 +47,8 @@ DocType: Workflow State,th-large,th-liela
 DocType: Communication,Unread Notification Sent,Nelasītu adresējis
 apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You need {0} role to export.,"Eksporta nav atļauta. Jums ir nepieciešams, {0} lomu eksportu."
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +11,Not Like,Nepatīk
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Set the display label for the field,Uzstādītu displeja etiķeti jomā
-apps/frappe/frappe/model/document.py +756,Incorrect value: {0} must be {1} {2},Nepareiza vērtība: {0} ir {1}{2}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175,Set the display label for the field,Uzstādītu displeja etiķeti jomā
+apps/frappe/frappe/model/document.py +765,Incorrect value: {0} must be {1} {2},Nepareiza vērtība: {0} ir {1}{2}
 apps/frappe/frappe/config/setup.py +216,"Change field properties (hide, readonly, permission etc.)","Mainīt lauka īpašības (slēpt, tikai lasāms, atļauja uc)"
 DocType: Workflow State,lock,atslēga
 apps/frappe/frappe/config/website.py +74,Settings for Contact Us Page.,Iestatījumi kontaktu lapu.
@@ -85,7 +85,7 @@ DocType: Communication,Visit,Vizīte
 DocType: Translation,Translation,tulkojums
 apps/frappe/frappe/desk/page/applications/application_row.html +16,Install,Instalēt
 DocType: Custom Script,Client,Klients
-apps/frappe/frappe/public/js/legacy/form.js +428,This form has been modified after you have loaded it,"Šī forma ir mainīta, kad esat iekrauj to"
+apps/frappe/frappe/public/js/legacy/form.js +443,This form has been modified after you have loaded it,"Šī forma ir mainīta, kad esat iekrauj to"
 DocType: Website Settings,Twitter Share via,Twitter Share via
 apps/frappe/frappe/config/website.py +33,Embed image slideshows in website pages.,Iegult attēlu slīdrādes mājas lapām.
 DocType: Workflow Action,Workflow Action Name,Workflow Action Name
@@ -120,11 +120,11 @@ apps/frappe/frappe/core/doctype/file/file.py +150,Cannot delete Home and Attachm
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,"Atļaujas saņemt piemērots lietotājiem, pamatojoties uz to, ko Lomas tās ir piešķirtas."
 apps/frappe/frappe/public/js/frappe/views/communication.js +376,You are not allowed to send emails related to this document,"Jums nav atļauts sūtīt e-pastus, kas saistīti ar šā dokumenta"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Jums nav atļauts dzēst standarta mājas lapas tēmu
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185,Example,Piemērs
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197,Example,Piemērs
 DocType: Workflow State,gift,dāvana
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Reqd,Reqd
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201,Reqd,Reqd
 apps/frappe/frappe/core/doctype/communication/email.py +216,Unable to find attachment {0},Nevar atrast aresta {0}
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +177,Assign a permission level to the field.,Piešķirt atļaujas līmeni uz lauka.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189,Assign a permission level to the field.,Piešķirt atļaujas līmeni uz lauka.
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,Rādīt / paslēpt moduļi
 apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Atslēgt pārskats
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formāts: frappe.query_reports ['REPORTNAME'] = {}
@@ -151,7 +151,7 @@ DocType: DocType,Hide Heading,Slēpt virsraksts
 apps/frappe/frappe/config/core.py +17,Groups of DocTypes,Grupas DocTypes
 DocType: Workflow State,remove-circle,noņemt-apli
 apps/frappe/frappe/config/website.py +54,Javascript to append to the head section of the page.,Javascript lai pievienotu uz galvas sadaļā lapas.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +61,Reset to defaults,Atjaunot noklus
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +69,Reset to defaults,Atjaunot noklus
 DocType: Workflow,Transition Rules,Pārejas noteikumi
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Piemērs:
 DocType: Workflow,Defines workflow states and rules for a document.,Definē darbplūsmas valstis un noteikumus attiecībā uz dokumentu.
@@ -159,7 +159,7 @@ DocType: Workflow State,Filter,Filtrs
 DocType: DocType,Show this field as title,"Parādiet šajā jomā, kā titulu"
 apps/frappe/frappe/model/db_schema.py +539,Fieldname {0} cannot have special characters like {1},"Fieldname {0} nevar būt speciālās rakstzīmes, piemēram, {1}"
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +248,Select Your Language,Izvēlieties savu valodu
-apps/frappe/frappe/model/document.py +443,Error: Document has been modified after you have opened it,"Kļūda: Dokumentu ir mainīta pēc tam, kad esat atvēris to"
+apps/frappe/frappe/model/document.py +452,Error: Document has been modified after you have opened it,"Kļūda: Dokumentu ir mainīta pēc tam, kad esat atvēris to"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +533,{0}: Cannot set Assign Submit if not Submittable,{0}: Nevar iestatīt Piešķirt Pieteikt ja ne Submittable
 DocType: Social Login Keys,Facebook,Facebook
 apps/frappe/frappe/templates/pages/list.py +46,"Filtered by ""{0}""",Filtrēts ar &quot;{0}&quot;
@@ -238,7 +238,7 @@ DocType: Communication,Subject,Pakļauts
 DocType: Web Page,Parent Web Page,Parent Web lapa
 apps/frappe/frappe/core/doctype/docshare/docshare.py +36,User is mandatory for Share,Lietotājs ir obligāta Share
 DocType: DocField,Hidden,Hidden
-apps/frappe/frappe/model/base_document.py +409,{0} must be set first,{0} jāuzstāda vispirms
+apps/frappe/frappe/model/base_document.py +411,{0} must be set first,{0} jāuzstāda vispirms
 DocType: Workflow State,plane,plakne
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Ja Jums ir augšupielādējot jaunus rekordus, ""nosaukšana Series"" kļūst obligāta, ja klāt."
 apps/frappe/frappe/core/doctype/doctype/doctype.py +152,DocType can only be renamed by Administrator,DOCTYPE var pārdēvēta tikai Administrator
@@ -272,7 +272,7 @@ DocType: Version,Version,Versija
 DocType: User,Fill Screen,Aizpildīt ekrānu
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +519,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Nevar parādīt šo koku ziņojumu, sakarā ar trūkstošo datiem. Lielākā daļa, iespējams, tā tiek filtrēts, kas saistīts ar atļaujas."
 apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Rediģēt atļaujas
-apps/frappe/frappe/public/js/frappe/form/grid.js +272,Edit via Upload,Edit via Upload
+apps/frappe/frappe/public/js/frappe/form/grid.js +273,Edit via Upload,Edit via Upload
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +94,"document type..., e.g. customer","dokumenta veids ..., piemēram, klientu"
 DocType: Workflow State,barcode,svītrkoda
 apps/frappe/frappe/config/setup.py +228,Add your own translations,Pievienojiet savu tulkojumu
@@ -311,7 +311,7 @@ DocType: DocField,Collapsible,Saliekams
 DocType: Translation,Source Data,Source Data
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +656,Saved,Saglabāts
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line.,Iespējas izvēlieties. Katrs risinājums jaunā rindā.
-apps/frappe/frappe/public/js/legacy/form.js +729,Permanently Cancel {0}?,Pastāvīgi Atcelt {0}?
+apps/frappe/frappe/public/js/legacy/form.js +742,Permanently Cancel {0}?,Pastāvīgi Atcelt {0}?
 DocType: Workflow State,music,mūzika
 apps/frappe/frappe/config/setup.py +66,Settings,Settings
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,"Lūdzu, norādiet dokumenta tips"
@@ -342,7 +342,7 @@ apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} 
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Root {0} nevar izdzēst
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +165,No comments yet,Vēl nav neviena komentāra
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +120,Both DocType and Name required,Gan DOCTYPE un Vārds nepieciešams
-apps/frappe/frappe/model/document.py +477,Cannot change docstatus from 1 to 0,Nevar mainīt docstatus 1-0
+apps/frappe/frappe/model/document.py +486,Cannot change docstatus from 1 to 0,Nevar mainīt docstatus 1-0
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +42,Welcome,Gaidīts
 apps/frappe/frappe/desk/page/applications/applications.js +95,Installed Apps,Installed Apps
 DocType: Communication,Open,Atvērts
@@ -429,9 +429,9 @@ apps/frappe/frappe/templates/pages/login.html +72,Send Password,Sūtīt paroli
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.html +24,Attachments,Pielikumi
 apps/frappe/frappe/website/doctype/web_form/web_form.py +74,You don't have the permissions to access this document,Jums nav atļaujas piekļūt šo dokumentu
 DocType: Email Alert,Value Changed,Vērtība Mainīts
-apps/frappe/frappe/model/base_document.py +288,Duplicate name {0} {1},Dublēt nosaukums {0}{1}
+apps/frappe/frappe/model/base_document.py +290,Duplicate name {0} {1},Dublēt nosaukums {0}{1}
 DocType: Web Form Field,Web Form Field,Web Form Field
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Hide field in Report Builder,Slēpt lauks Report Builder
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Hide field in Report Builder,Slēpt lauks Report Builder
 apps/frappe/frappe/templates/generators/blog_post.html +25,This post is filed under {0},Šis amats ir iesniegts saskaņā ar {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +14,Edit HTML,Rediģēt HTML
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +494,Restore Original Permissions,Atjaunot Original Atļaujas
@@ -448,7 +448,7 @@ DocType: Email Alert,View Properties (via Customize Form),View Properties (caur 
 DocType: Website Settings,Sidebar,Sidebar
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder ziņojumus tieši pārvalda pārskata celtnieks. Neko darīt.
 apps/frappe/frappe/website/doctype/web_page/web_page.py +30,Cannot edit templated page,Nevar rediģēt templated lapu
-apps/frappe/frappe/model/document.py +738,none of,neviens no
+apps/frappe/frappe/model/document.py +747,none of,neviens no
 apps/frappe/frappe/public/js/frappe/views/communication.js +67,Send Me A Copy,Nosūtīt man kopiju
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,Augšupielādēt lietotāju atļauju
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Pārbaudīts posteņi tiks parādīts uz darbvirsmas
@@ -495,7 +495,7 @@ DocType: DocType,Search Fields,Search Fields
 apps/frappe/frappe/public/js/legacy/print_format.js +120,No document selected,Nav dokumenta atlasīts
 DocType: Event,Event,Notikums
 apps/frappe/frappe/public/js/frappe/views/communication.js +460,"On {0}, {1} wrote:",Par {0}{1} rakstīja:
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +89,Cannot delete standard field. You can hide it if you want,"Nevar izdzēst standarta lauku. Jūs varat paslēpt to, ja jūs vēlaties"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +97,Cannot delete standard field. You can hide it if you want,"Nevar izdzēst standarta lauku. Jūs varat paslēpt to, ja jūs vēlaties"
 DocType: Top Bar Item,For top bar,Par augšējā joslā
 DocType: Contact Us Settings,Address,Adrese
 DocType: Print Settings,In points. Default is 9.,Punktos. Noklusējuma ir 9.
@@ -514,9 +514,9 @@ apps/frappe/frappe/core/doctype/page/page.py +35,Only Administrator can edit,Tik
 DocType: Property Setter,Property Setter,Īpašuma seters
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select User or DocType to start.,Izvēlieties Lietotāja vai DOCTYPE sākt.
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,Nav Apps Uzstādītas
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +190,Mark the field as Mandatory,"Atzīmējiet no laukuma, Obligāta"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Mark the field as Mandatory,"Atzīmējiet no laukuma, Obligāta"
 DocType: Communication,Clicked,Uzklikšķināt
-apps/frappe/frappe/public/js/legacy/form.js +882,No permission to '{0}' {1},Nav atļaujas &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/legacy/form.js +895,No permission to '{0}' {1},Nav atļaujas &#39;{0}&#39; {1}
 DocType: User,Google User ID,Google lietotāja ID
 apps/frappe/frappe/desk/form/utils.py +55,This method can only be used to create a Comment,"Šo metodi var izmantot tikai, lai izveidotu Comment"
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +343,No {0} found,Nē {0} atrasts
@@ -530,7 +530,7 @@ apps/frappe/frappe/model/mapper.py +81,Cannot map because following condition fa
 DocType: User,Roles HTML,Lomas HTML
 apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,Aktīvs
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +26,Insert Below,Ievietot Zem
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +118,All customizations will be removed. Please confirm.,"Visi pielāgojumi tiks noņemts. Lūdzu, apstipriniet."
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +130,All customizations will be removed. Please confirm.,"Visi pielāgojumi tiks noņemts. Lūdzu, apstipriniet."
 DocType: Page,Page HTML,Page HTML
 DocType: Web Page,Header,Galvene
 apps/frappe/frappe/public/js/frappe/model/model.js +79,Unknown Column: {0},Nezināms sleja: {0}
@@ -595,7 +595,7 @@ DocType: DocPerm,Additional Permissions,Papildu atļaujas
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Sākt datu ievadīšanai zem šīs līnijas
 DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40,Update the template and save in CSV (Comma Separate Values) format before attaching.,Atjaunināt veidni un saglabāt CSV (Comma Atsevišķi vērtības) formātā pirms pievienošanas.
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +172,Specify the value of the field,Precizēt vērtību lauka
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +184,Specify the value of the field,Precizēt vērtību lauka
 DocType: Report,Disabled,Invalīdiem
 apps/frappe/frappe/desk/page/activity/activity.js +203,May,Maijs
 apps/frappe/frappe/desk/page/activity/activity.js +203,Jan,Jan
@@ -654,8 +654,7 @@ DocType: Event,Every Day,Katru dienu
 DocType: Workflow State,move,pārvietot
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} Uzstādītas
 DocType: System Settings,Date and Number Format,Datums un numurs Format
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,"<span class=""text-muted""></span>","<span class=""text-muted""></span>"
-apps/frappe/frappe/model/document.py +737,one of,viens no
+apps/frappe/frappe/model/document.py +746,one of,viens no
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +79,Show Tags,Rādīt birkas
 DocType: Bulk Email,Not Sent,Nav nosūtīts
 DocType: Web Form,Actions,Darbības
@@ -684,6 +683,7 @@ DocType: System Settings,dd/mm/yyyy,dd / mm / gggg
 apps/frappe/frappe/public/js/frappe/form/layout.js +93,Hide Details,Slēpt detaļas
 DocType: Workflow State,Tasks,Uzdevumi
 DocType: Event,Tuesday,Otrdiena
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Lietotāja
 DocType: Blog Settings,Blog Settings,Blog iestatījumi
 apps/frappe/frappe/templates/emails/new_user.html +12,You can also copy-paste this link in your browser,Jūs varat arī kopēt-ielīmēt šo saiti savā pārlūkprogrammā
 DocType: Workflow State,bullhorn,bullhorn
@@ -708,7 +708,6 @@ DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[
 DocType: Communication,Delayed,Kavējas
 apps/frappe/frappe/config/setup.py +116,List of backups available for download,Saraksts backups pieejams lejupielādei
 apps/frappe/frappe/templates/pages/login.html +61,Sign up,Pierakstīties
-apps/frappe/frappe/email/smtp.py +143,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,"E-pasta konts nav uzstādīšana. Lūdzu, izveidojiet jaunu e-pasta kontu no Setup&gt; E-pasts&gt; E-pasts kontu"
 apps/frappe/frappe/config/setup.py +222,Add fields to forms.,Pievienot laukus uz veidlapām.
 DocType: File,rgt,rgt
 apps/frappe/frappe/templates/pages/me.py +14,You need to be logged in to access this page.,Jums ir jābūt pieteicies Lai piekļūtu šai lapai.
@@ -731,7 +730,7 @@ DocType: Async Task,Reference DocType,Atsauce DOCTYPE
 DocType: User,System User,System User
 DocType: Report,Is Standard,Vai Standard
 DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Vai nav HTML kodēt HTML tagus, piemēram, &lt;script&gt; vai tikai rakstzīmes, piemēram, &lt;vai&gt;, jo tie varētu tikt apzināti izmantot šajā jomā"
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +227,Specify a default value,Norādiet noklusēto vērtību
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +239,Specify a default value,Norādiet noklusēto vērtību
 DocType: Website Settings,FavIcon,Favicon
 DocType: Workflow State,minus-sign,mīnus-zīme
 apps/frappe/frappe/public/js/frappe/request.js +75,Not Found,Not Found
@@ -765,6 +764,7 @@ apps/frappe/frappe/model/db_schema.py +137,Reverting length to {0} for '{1}' in 
 DocType: Print Format,Custom CSS,Custom CSS
 DocType: DocType,<a>Naming Options</a>,<a>nosaucot opcijas</a>
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +4,Add a comment,Pievienot komentāru
+apps/frappe/frappe/email/smtp.py +143,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,"E-pasta konts nav uzstādīšana. Lūdzu, izveidojiet jaunu e-pasta kontu no Setup&gt; E-pasts&gt; E-pasts kontu"
 apps/frappe/frappe/model/rename_doc.py +350,Ignored: {0} to {1},Ignorēja: {0} uz {1}
 apps/frappe/frappe/config/setup.py +79,Log of error on automated events (scheduler).,Log no kļūdas automatizēto pasākumos (plānotāja).
 apps/frappe/frappe/utils/csvutils.py +74,Not a valid Comma Separated Value (CSV File),Nav derīgs komatu atdalītu vērtību (CSV File)
@@ -775,7 +775,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +88,Help on Search
 DocType: User,Uncheck modules to hide from user's desktop,Noņemiet atzīmi moduļi slēpt no lietotāja datora
 DocType: DocType,Hide Copy,Slēpt Copy
 apps/frappe/frappe/core/doctype/user/user.js +165,Clear all roles,Skaidrs visiem lomas
-apps/frappe/frappe/model/base_document.py +333,{0} must be unique,{0} ir unikāls
+apps/frappe/frappe/model/base_document.py +335,{0} must be unique,{0} ir unikāls
 apps/frappe/frappe/permissions.py +269,Row,Rinda
 DocType: Workflow State,Check,Pārbaude
 apps/frappe/frappe/desk/page/activity/activity.js +203,Apr,Aprīlis
@@ -842,7 +842,7 @@ DocType: Website Theme,Theme,Tēma
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +148,There were errors.,Bija kļūdas.
 DocType: DocType,Is Submittable,Vai Submittable
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,"Vērtība, lai veiktu pārbaudi jomā var būt vai nu 0, vai 1"
-apps/frappe/frappe/model/document.py +534,Could not find {0},Neizdevās atrast {0}
+apps/frappe/frappe/model/document.py +543,Could not find {0},Neizdevās atrast {0}
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +227,Column Labels:,Kolonna Etiķetes:
 apps/frappe/frappe/model/naming.py +63,Naming Series mandatory,Nosaucot Series obligāta
 apps/frappe/frappe/model/db_schema.py +110,Length of {0} should be between 1 and 255,Garums {0} jābūt no 1 līdz 255
@@ -909,6 +909,7 @@ DocType: Workflow State,text-height,teksta augstums
 DocType: Workflow State,map-marker,karte-marķieris
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Iesniegt Problēma
 DocType: Event,Repeat this Event,Atkārtojiet šo notikumu
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Setup&gt; Lietotāja atļaujas vadītājs
 DocType: DocPerm,Amend,Grozīt
 DocType: File,Is Attachments Folder,Vai Pielikumi Folder
 apps/frappe/frappe/templates/includes/login/login.js +46,Valid Login id required.,Derīgs Login id nepieciešams.
@@ -919,7 +920,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transi
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +116,Setting Up,Iestatīšana
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Šis ir automātiski ģenerēts atbilde
 apps/frappe/frappe/public/js/frappe/model/create_new.js +269,Get From,Nokļūt no
-apps/frappe/frappe/model/document.py +431,Record does not exist,Ieraksts neeksistē
+apps/frappe/frappe/model/document.py +440,Record does not exist,Ieraksts neeksistē
 apps/frappe/frappe/templates/pages/404.html +6,Page missing or moved,"Page trūkst, vai pārvietots"
 DocType: DocField,Name,Nosaukums
 apps/frappe/frappe/public/js/frappe/form/control.js +1037,Open Link,Atvērt Link
@@ -959,7 +960,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +137,Mandatory fields required 
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Reset atļaujas {0}?
 apps/frappe/frappe/permissions.py +328,{0} {1} not found,{0}{1} nav atrasts
 DocType: Communication,Attachment Removed,Pielikums Noņemts
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +223,Show a description below the field,Parādiet aprakstu zemāk jomā
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +235,Show a description below the field,Parādiet aprakstu zemāk jomā
 DocType: Workflow State,align-left,saskaņot kreiso
 DocType: User,Defaults,Noklusējumi
 apps/frappe/frappe/public/js/frappe/model/model.js +514,Merge with existing,Saplūst ar esošo
@@ -991,7 +992,7 @@ DocType: Error Snapshot,Error Snapshot,Kļūda Snapshot
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +8,In,Uz
 DocType: Email Alert,Value Change,Vērtību maiņa
 DocType: Standard Reply,Standard Reply,Standard Atbildēt
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +184,Width of the input box,Platums ievades lodziņā
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +196,Width of the input box,Platums ievades lodziņā
 DocType: UserRole,UserRole,UserRole
 DocType: System Settings,In Hours,Stundās
 DocType: Print Settings,With Letterhead,Ar iespiedveidlapām
@@ -1025,7 +1026,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify,Pārbaudīt
 DocType: Workflow Document State,Update Field,Update Field
 apps/frappe/frappe/desk/page/applications/applications.js +50,Regional Extensions,Reģionālās paplašinājumi
 apps/frappe/frappe/email/doctype/email_account/email_account.py +352,Leave this conversation,Atstājiet šo sarunu
-apps/frappe/frappe/model/base_document.py +405,Options not set for link field {0},Opcijas nav noteikts saite jomā {0}
+apps/frappe/frappe/model/base_document.py +407,Options not set for link field {0},Opcijas nav noteikts saite jomā {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +150,You cannot unset 'Read Only' for field {0},Jūs nevarat iestatīta &quot;Tikai lasāms&quot; uz lauka {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,Complete Setup
 DocType: Workflow State,asterisk,zvaigznīte
@@ -1054,7 +1055,7 @@ apps/frappe/frappe/email/bulk.py +97,This email was sent to you as CC,Šis e-pas
 apps/frappe/frappe/core/doctype/doctype/doctype.py +412,Timeline field must be a valid fieldname,Timeline laukam jābūt derīgam fieldname
 DocType: Email Account,Email Ids,E-pasta ID
 DocType: Currency,Symbol,Simbols
-apps/frappe/frappe/model/base_document.py +449,Row #{0}:,Row # {0}:
+apps/frappe/frappe/model/base_document.py +451,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +84,New password emailed,Jaunā parole pa e-pastu
 apps/frappe/frappe/auth.py +228,Login not allowed at this time,Ienākt nav atļauts šajā laikā
 DocType: Async Task,Runtime,Runtime
@@ -1125,7 +1126,7 @@ DocType: Event,Ref Name,Ref Name
 DocType: Web Page,Center,Centrs
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,Pirmā līmeņa
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,"Pārstāv valstis atļauts vienā dokumentā, un piešķirto lomu, lai mainītu stāvokli."
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +57,Refresh Form,Atsvaidzināt Form
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +65,Refresh Form,Atsvaidzināt Form
 DocType: DocField,Select,Atlasīt
 apps/frappe/frappe/utils/csvutils.py +25,File not attached,Fails nav pievienots
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Ja jūs to, šis punkts nāks nolaižamā zem izvēlētā vecākiem."
@@ -1183,8 +1184,8 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Assigned To Me,Pi
 apps/frappe/frappe/public/js/frappe/ui/messages.js +178,Verify Password,Apstiprini Paroli
 apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,Bija kļūdas
 apps/frappe/frappe/core/doctype/communication/communication.js +19,Close,Aizvērt
-apps/frappe/frappe/model/document.py +467,Cannot change docstatus from 0 to 2,Nevar mainīt docstatus no 0 līdz 2
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +96,Update,Update
+apps/frappe/frappe/model/document.py +476,Cannot change docstatus from 0 to 2,Nevar mainīt docstatus no 0 līdz 2
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +108,Update,Update
 DocType: Error Snapshot,Snapshot View,Momentuzņēmums View
 apps/frappe/frappe/core/doctype/doctype/doctype.py +287,Options must be a valid DocType for field {0} in row {1},Iespējas jābūt derīgs DOCTYPE laukam {0} rindā {1}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +160,Edit Properties,Rediģēt Properties
@@ -1193,8 +1194,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} 
 apps/frappe/frappe/public/js/frappe/views/communication.js +69,Communication Medium,Paziņojums Medium
 DocType: Website Settings,Banner HTML,Banner HTML
 DocType: Error Snapshot,Pyver,Pyver
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,&gt; {0} year(s) ago,&gt; {0} gads (-i) atpakaļ
-apps/frappe/frappe/model/base_document.py +453,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0}{1} nevar būt ""{2}"". Tas būtu viens no ""{3}"""
+apps/frappe/frappe/model/base_document.py +455,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0}{1} nevar būt ""{2}"". Tas būtu viens no ""{3}"""
 apps/frappe/frappe/utils/data.py +516,{0} or {1},{0} vai {1}
 apps/frappe/frappe/core/doctype/user/user.py +160,Password Update,Paroles Update
 DocType: Workflow State,trash,atkritumi
@@ -1247,7 +1247,6 @@ DocType: DocField,Precision,Precizitāte
 DocType: Website Slideshow,Slideshow Items,Slideshow Items
 apps/frappe/frappe/model/delete_doc.py +157,Cannot delete or cancel because {0} {1} is linked with {2} {3},"Nevar dzēst vai atcelt, jo {0}{1} ir saistīts ar {2}{3}"
 DocType: Website Settings,Twitter Share,Twitter Share
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Setup&gt; Lietotāja atļaujas vadītājs
 DocType: Event,Groups,Grupas
 DocType: Workflow State,Workflow State,Workflow Valsts
 apps/frappe/frappe/templates/pages/me.html +3,My Account,Mans konts
@@ -1267,13 +1266,13 @@ DocType: System Settings,Background Workers,fona Workers
 DocType: DocField,Data,Dati
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Dokumenta statuss
 DocType: Email Account,Login Id,Pieteikšanās ID
-apps/frappe/frappe/core/page/data_import_tool/importer.py +178,Not allowed to Import,Nav atļauts importēt
+apps/frappe/frappe/core/page/data_import_tool/importer.py +185,Not allowed to Import,Nav atļauts importēt
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Atļauju līmeņi
 DocType: Workflow State,Warning,Brīdinājums
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +437,You will use it to Login,Jūs izmantot to uz autorizāciju
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +858,"Ignoring Item {0}, because a group exists with the same name!","Ignorējot postenis {0}, jo grupa pastāv ar tādu pašu nosaukumu!"
 DocType: DocType,In Dialog,In Dialog
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +151,Help,Palīdzēt
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163,Help,Palīdzēt
 DocType: User,Login Before,Login Pirms
 DocType: Web Page,Insert Style,Ievietot Style
 apps/frappe/frappe/config/setup.py +192,Application Installer,Application Installer
@@ -1317,21 +1316,21 @@ DocType: User,Location,Vieta
 ,Permitted Documents For User,Atļautie Dokumenti pasākumi lietotājiem
 apps/frappe/frappe/core/doctype/docshare/docshare.py +42,"You need to have ""Share"" permission","Jums ir nepieciešams, lai būtu ""Share"" atļauju"
 DocType: Communication,Assignment Completed,uzdevums Pabeigts
-apps/frappe/frappe/public/js/frappe/form/grid.js +282,Bulk Edit {0},Bulk Edit {0}
+apps/frappe/frappe/public/js/frappe/form/grid.js +283,Bulk Edit {0},Bulk Edit {0}
 DocType: Email Alert Recipient,Email Alert Recipient,E-pasts Alert Saņēmēja
 DocType: Blog Category,Parent Website Route,Parent Website Route
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Nav aktīvs
 DocType: About Us Settings,Settings for the About Us Page,Iestatījumi Par mums Page
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,Izvēlēties Dokumenta veids lejupielādēt
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,piemēram pop.gmail.com / imap.gmail.com
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +194,Use the field to filter records,"Izmantojiet lauku, lai filtrētu ierakstus"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Use the field to filter records,"Izmantojiet lauku, lai filtrētu ierakstus"
 DocType: Email Account,Outlook.com,Outlook.com
 DocType: System Settings,Scheduler Last Event,Plānotājs Pēdējais notikums
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Pievienot Google Analytics ID: piem. UA-89XXX57-1. Lūdzu meklējiet palīdzību par Google Analytics, lai iegūtu vairāk informācijas."
 DocType: Email Alert Recipient,"Expression, Optional","Expression, izvēles"
 apps/frappe/frappe/email/bulk.py +166,This email was sent to {0},Šis e-pasts tika nosūtīts uz {0}
 DocType: Email Account,Check this to pull emails from your mailbox,"Iezīmējiet šo, lai vilktu e-pastus no pastkastes"
-apps/frappe/frappe/model/document.py +480,Cannot edit cancelled document,Nevar rediģēt anulēto dokumentu
+apps/frappe/frappe/model/document.py +489,Cannot edit cancelled document,Nevar rediģēt anulēto dokumentu
 DocType: Event,Monday,Pirmdiena
 apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,"Nested komplekts kļūda. Lūdzu, sazinieties ar administratoru."
 DocType: Workflow State,envelope,aploksne
@@ -1372,7 +1371,7 @@ DocType: Website Theme,Google Font (Heading),Google Fonts (pozīcija)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +172,Find {0} in {1},Atrast {0} ir {1}
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Pievienot kā komunikācija pret šo DOCTYPE (jābūt lauki, ""statuss"", ""Tēma"")"
 DocType: DocType,Allow Import via Data Import Tool,"Atļaut importu, izmantojot Data Import rīks"
-apps/frappe/frappe/model/base_document.py +507,Not allowed to change {0} after submission,Nav atļauts mainīt {0} pēc iesniegšanas
+apps/frappe/frappe/model/base_document.py +509,Not allowed to change {0} after submission,Nav atļauts mainīt {0} pēc iesniegšanas
 DocType: Communication,Comment Type,Komentārs Type
 apps/frappe/frappe/config/setup.py +8,Users,Lietotāji
 DocType: Report,Report Type,Ziņojums Type
@@ -1491,7 +1490,7 @@ DocType: Custom Field,Permission Level,Atļauja Level
 DocType: User,Send Notifications for Transactions I Follow,Nosūtīt Paziņojumi par Darījumiem Sekoju
 apps/frappe/frappe/core/doctype/doctype/doctype.py +508,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nevar iestatīt Iesniegt, Atcelt, Grozīt bez Write"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,Vai jūs tiešām vēlaties dzēst pielikumu?
-apps/frappe/frappe/model/base_document.py +485,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; saņems saīsināts, jo ļāva max varoņi ir {2}"
+apps/frappe/frappe/model/base_document.py +487,"{0}: '{1}' will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; saņems saīsināts, jo ļāva max varoņi ir {2}"
 apps/frappe/frappe/templates/emails/password_reset.html +6,Thank you,Paldies
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,Glābšana
 DocType: Print Settings,Print Style Preview,Izdrukāt Style Preview
@@ -1531,7 +1530,7 @@ DocType: DocField,Attach,Pievienot
 apps/frappe/frappe/core/doctype/doctype/doctype.py +397,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} nav derīgs fieldname modelis. Tas būtu {{FIELD_NAME}}.
 DocType: DocType,Permission Rules,Atļauju noteikumi
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +119,Links,Saites
-apps/frappe/frappe/model/base_document.py +370,Value missing for,Vērtība pazudis
+apps/frappe/frappe/model/base_document.py +372,Value missing for,Vērtība pazudis
 apps/frappe/frappe/model/delete_doc.py +136,{0} {1}: Submitted Record cannot be deleted.,{0}{1}: Iesniegtie Record nevar izdzēst.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +92,new type of document,jauna tipa dokumenta
 DocType: DocPerm,Read,Lasīt
@@ -1542,7 +1541,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +535,{0}: Cannot set Assign A
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Rediģēt Lomu Atļaujas
 DocType: Communication,Link DocType,link DOCTYPE
 DocType: Social Login Keys,Social Login Keys,Sociālie Ienākt Keys
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +62,Remove all customizations?,Noņemt visus pielāgojumus?
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +70,Remove all customizations?,Noņemt visus pielāgojumus?
 DocType: Website Slideshow,Slideshow Name,Slaidrādi Name
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,Atcelšana
 DocType: DocType,Allow Rename,Atļaut Pārdēvēt
@@ -1554,7 +1553,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/offcanvas_left_sidebar.html +29,F
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +302,Add A User Restriction,Pievienot lietotāju Ierobežojums
 DocType: DocType,Name Case,Nosaukums Case
 apps/frappe/frappe/public/js/frappe/form/share.js +26,Shared with everyone,Kopīga ar visiem
-apps/frappe/frappe/model/base_document.py +366,Data missing in table,Datu trūkst tabulā
+apps/frappe/frappe/model/base_document.py +368,Data missing in table,Datu trūkst tabulā
 DocType: Web Form,Success URL,Success URL
 DocType: Email Account,Append To,Pievienojiet Lai
 DocType: Workflow Document State,Only Allow Edit For,Tikai Atļaut Rediģēt
@@ -1604,7 +1603,7 @@ DocType: Website Slideshow,"Note: For best results, images must be of the same s
 DocType: DocType,Auto Name,Auto nosaukums
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Option 3,3. variants
 DocType: Workflow State,Edit,Rediģēt
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +178,Permissions can be managed via Setup &gt; Role Permissions Manager,"Atļaujas var pārvaldīt, izmantojot Setup & gt; Lomu atļaujas vadītājs"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +190,Permissions can be managed via Setup &gt; Role Permissions Manager,"Atļaujas var pārvaldīt, izmantojot Setup & gt; Lomu atļaujas vadītājs"
 DocType: Contact Us Settings,Pincode,Pasta indeksa
 apps/frappe/frappe/core/page/data_import_tool/importer.py +70,Please make sure that there are no empty columns in the file.,"Lūdzu, pārliecinieties, ka nav tukšas kolonnas failā."
 apps/frappe/frappe/utils/oauth.py +209,Please ensure that your profile has an email address,"Lūdzu, pārliecinieties, ka jūsu profils ir e-pasta adrese"
@@ -1615,12 +1614,11 @@ apps/frappe/frappe/email/bulk.py +247,Emails are muted,E-pasta vēstules ir izsl
 apps/frappe/frappe/public/js/frappe/form/grid_form.html +22,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,Pozīcija Style
 apps/frappe/frappe/desk/page/applications/applications.py +74,You cannot install this app,Jūs nevarat instalēt šo lietotni
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Lietotāja
 DocType: Scheduler Log,Error,Kļūda
 DocType: DocField,Column Break,Kolonna Break
 DocType: Event,Thursday,Ceturtdiena
 apps/frappe/frappe/utils/response.py +127,You don't have permission to access this file,Jums nav atļaujas piekļūt šo failu
-apps/frappe/frappe/model/document.py +539,Cannot link cancelled document: {0},Nevar saistīt anulēto dokumentu: {0}
+apps/frappe/frappe/model/document.py +548,Cannot link cancelled document: {0},Nevar saistīt anulēto dokumentu: {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +579,"For example: If you want to include the document ID, use {0}","Piemēram: Ja jūs vēlaties, lai iekļautu dokumentu ID, izmantojiet {0}"
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +482,Select Table Columns for {0},Izvēlieties tabula Columns par {0}
 DocType: Custom Field,Options Help,Opcijas Palīdzība
@@ -1639,6 +1637,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your b
 DocType: Async Task,Running,Running
 apps/frappe/frappe/templates/pages/update-password.html +3,Reset Password,Reset Password
 DocType: Workflow State,hand-left,rokas pa kreisi
+apps/frappe/frappe/email/smtp.py +55,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Lūdzu uzstādīšana noklusējuma e-pasta kontu no Setup&gt; E-pasts&gt; E-pasts kontu
 apps/frappe/frappe/core/doctype/doctype/doctype.py +328,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} uz {1} nevar būt unikāls
 DocType: Email Account,Use SSL,Izmantot SSL
 DocType: Workflow State,play-circle,play-aplis
@@ -1657,9 +1656,9 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +462,Ascending,A
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,Standarta Print Format nevar atjaunināt
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.js +12,Please specify,"Lūdzu, norādiet"
 DocType: Page,Page Name,Lapas nosaukums
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +155,Help: Field Properties,Help: Field Properties
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +167,Help: Field Properties,Help: Field Properties
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +86,Importing...,Importēšana ...
-apps/frappe/frappe/model/document.py +754,Incorrect value in row {0}: {1} must be {2} {3},Nepareiza vērtība rindā {0}: {1} jābūt {2}{3}
+apps/frappe/frappe/model/document.py +763,Incorrect value in row {0}: {1} must be {2} {3},Nepareiza vērtība rindā {0}: {1} jābūt {2}{3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Iesniegtie Dokumentu nevar pārvērst atpakaļ uz projektu. Pāreja rinda {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,Izvēlieties esošu formātu rediģēt vai sākt jaunu formātu.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Izveidots Custom Field {0} ir {1}
@@ -1684,7 +1683,7 @@ DocType: Page,Yes,Jā
 DocType: DocType,Max Attachments,Max Pielikumi
 DocType: Page,Page,Lappuse
 DocType: Workflow State,briefcase,portfelis
-apps/frappe/frappe/model/base_document.py +466,Value cannot be changed for {0},Vērtību nevar mainīt {0}
+apps/frappe/frappe/model/base_document.py +468,Value cannot be changed for {0},Vērtību nevar mainīt {0}
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
 					Please enter a valid email address so that we can get back.","Jums šķiet, ir uzrakstījuši savu vārdu, nevis savu e-pastu. \ Ievadiet derīgu e-pasta adresi, lai mēs varētu saņemt atpakaļ."
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Stils pārstāv pogu krāsu: Success - zaļa, briesmas - sarkans, inversās - Black, pamatskolas - zils, Info - gaiši zila, Brīdinājums - Orange"
@@ -1738,7 +1737,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,pēc lomas
 apps/frappe/frappe/core/doctype/user/user.py +402,Registered but disabled.,"Reģistrēts, bet invalīdiem."
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +597,Delete permanently?,Izdzēst neatgriezeniski?
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +95,Search in a document type,Meklēt pēc dokumenta veida
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +210,Allow field to remain editable even after submission,Ļauj lauks palikt rediģējamu pat pēc iesniegšanas
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +222,Allow field to remain editable even after submission,Ļauj lauks palikt rediģējamu pat pēc iesniegšanas
 DocType: DocPerm,Role and Level,Loma un Level
 DocType: File,Thumbnail URL,Thumbnail URL
 apps/frappe/frappe/desk/moduleview.py +31,Custom Reports,Custom pārskati
@@ -1778,7 +1777,7 @@ apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Piešķirti
 apps/frappe/frappe/core/doctype/doctype/doctype.py +68,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,"Ne izstrādātāja režīmu! Noteikts site_config.json vai veikt ""Custom"" DOCTYPE."
 DocType: Workflow State,globe,zemeslode
 DocType: System Settings,dd.mm.yyyy,dd.mm.gggg
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +202,Hide field in Standard Print Format,Slēpt lauks standarta drukas formātā
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Hide field in Standard Print Format,Slēpt lauks standarta drukas formātā
 DocType: ToDo,Priority,Prioritāte
 DocType: Dropbox Backup,Dropbox Access Allowed,Dropbox Access Atļauts
 DocType: Dropbox Backup,Weekly,Nedēļas
@@ -1841,6 +1840,7 @@ DocType: Async Task,Result,Rezultāts
 apps/frappe/frappe/utils/__init__.py +88,{0} is not a valid email id,{0} nav derīga e-pasta id
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Ieslēgt ziņojumu
 DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"Pārbaudiet / atzīmēšanu lomas uzticētos Lietotājam. Noklikšķiniet uz lomu, lai uzzinātu, kas atļaujas, loma ir."
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,"<span class=""text-muted""></span>","<span class=""text-muted""></span>"
 DocType: Web Page,Insert Code,Ievietot Code
 DocType: ToDo,Low,Zems
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +578,You can add dynamic properties from the document by using Jinja templating.,"Jūs varat pievienot dinamiskās īpašības no dokumenta, izmantojot Jinja šablonu."
@@ -1889,7 +1889,7 @@ apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Appl
 apps/frappe/frappe/config/website.py +18,Single Post (article).,Single Post (raksts).
 DocType: Page,No,Nē
 DocType: Property Setter,Set Value,Uzstādīt Value
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +198,Hide field in form,Slēpt apstākļus formā
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +210,Hide field in form,Slēpt apstākļus formā
 apps/frappe/frappe/public/js/frappe/desk.js +75,"The application has been updated to a new version, please refresh this page","Pieteikums ir atjaunināta uz jaunu versiju, lūdzu atsvaidzināt šo lapu"
 DocType: Email Alert,Optional: The alert will be sent if this expression is true,"Pēc izvēles: brīdinājums tiks nosūtīts, ja šis izteikums ir taisnība"
 apps/frappe/frappe/public/js/frappe/list/doclistview.js +460,Select records for assignment,Izvēlieties ieraksti cesiju
@@ -1928,7 +1928,6 @@ DocType: Contact Us Settings,State,Valsts
 DocType: Workflow Action,Workflow Action,Workflow Action
 DocType: Event,Send an email reminder in the morning,Sūtīt e-pasta atgādinājumu no rīta
 DocType: Blog Post,Published On,Publicēts On
-apps/frappe/frappe/email/smtp.py +55,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Lūdzu uzstādīšana noklusējuma e-pasta kontu no Setup&gt; E-pasts&gt; E-pasts kontu
 DocType: User,Gender,Dzimums
 apps/frappe/frappe/core/doctype/doctype/doctype.py +347,Field '{0}' cannot be set as Unique as it has non-unique values,"Lauks &#39;{0}&#39; nevar iestatīt kā unikāla, jo tā ir ne-unikālās vērtības"
 DocType: ToDo,Reference Type,Reference Type
@@ -1975,11 +1974,12 @@ DocType: DocType,Hide Actions,Slēpt Actions
 DocType: Email Account,Email Server,E-pasta serveris
 DocType: DocShare,Document Type,Dokumenta tips
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,Etiķete ir obligāta
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,&gt; {0} year(s) ago,&gt; {0} gads (-i) atpakaļ
 DocType: Communication,Communication Type,komunikācijas veids
 DocType: DocField,Unique,Unikāls
 DocType: Email Account,Service,Pakalpojums
 DocType: File,File Name,Faila nosaukums
-apps/frappe/frappe/core/page/data_import_tool/importer.py +285,Did not find {0} for {0} ({1}),Neatrada {0} par {0} ({1})
+apps/frappe/frappe/core/page/data_import_tool/importer.py +292,Did not find {0} for {0} ({1}),Neatrada {0} par {0} ({1})
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Nākamais
 apps/frappe/frappe/config/setup.py +39,Set Permissions per User,Iestatīt atļaujas par katru lietotāju
 DocType: Print Format,Edit Format,Rediģēt formāts
@@ -1996,7 +1996,7 @@ apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},"jāatjaun
 apps/frappe/frappe/public/js/legacy/form.js +171,Cannot print cancelled documents,Nevar izdrukāt atceltos dokumentus
 DocType: User,Desktop Background,Desktop Background
 DocType: Workflow State,chevron-right,Chevron labajā
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +167,"Change type of field. (Currently, Type change is \
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +179,"Change type of field. (Currently, Type change is \
 						allowed among 'Currency and Float')","Mainiet veidu jomā. (Pašlaik Type pārmaiņas \ atļauta vidū 'Valūta un Float "")"
 apps/frappe/frappe/website/doctype/web_form/web_form.py +27,You need to be in developer mode to edit a Standard Web Form,Jums ir jābūt izstrādātāja režīmā rediģēt Standard Web formu
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +48,"For comparative filters, start with","Salīdzināšanas filtriem, sāciet ar"
@@ -2004,7 +2004,7 @@ DocType: Website Theme,Link to Bootstrap CSS,Saite uz Bootstrap CSS
 DocType: Workflow State,camera,kamera
 DocType: Website Settings,Brand HTML,Brand HTML
 apps/frappe/frappe/templates/includes/login/login.js +19,Both login and password required,"Gan login un paroli, kas nepieciešama"
-apps/frappe/frappe/model/document.py +445,Please refresh to get the latest document.,"Lūdzu, atsvaidzināt, lai saņemtu jaunāko dokumentu."
+apps/frappe/frappe/model/document.py +454,Please refresh to get the latest document.,"Lūdzu, atsvaidzināt, lai saņemtu jaunāko dokumentu."
 DocType: User,Security Settings,Drošības iestatījumi
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +625,Add Column,Pievienot kolonu
 ,Desktop,Desktop
