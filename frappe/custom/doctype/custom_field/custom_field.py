@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cstr
 from frappe import _
-import json
 from frappe.model.document import Document
 
 class CustomField(Document):
