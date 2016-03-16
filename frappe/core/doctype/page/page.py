@@ -110,13 +110,16 @@ class Page(Document):
 				with open(os.path.join(path, fname), 'r') as f:
 					template = unicode(f.read(), "utf-8")
 					if "<!-- jinja -->" in template:
-						context = {}
+						context = frappe._dict({})
 						try:
-							context = frappe.get_attr("{app}.{module}.page.{page}.{page}.get_context".format(
+							out = frappe.get_attr("{app}.{module}.page.{page}.{page}.get_context".format(
 								app = frappe.local.module_app[scrub(self.module)],
 								module = scrub(self.module),
 								page = page_name
 							))(context)
+
+							if out:
+								context = out
 						except (AttributeError, ImportError):
 							pass
 

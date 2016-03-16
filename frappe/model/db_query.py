@@ -18,7 +18,7 @@ class DatabaseQuery(object):
 		self.tables = []
 		self.conditions = []
 		self.or_conditions = []
-		self.fields = ["`tab{0}`.`name`".format(doctype)]
+		self.fields = None
 		self.user = None
 		self.flags = frappe._dict()
 
@@ -29,8 +29,24 @@ class DatabaseQuery(object):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
+		# fitlers and fields swappable
+		# its hard to remember what comes first
+		if isinstance(fields, dict):
+			# if fields is given as dict, its probably filters
+			self.filters = fields
+			fields = None
+
+		if self.fields and isinstance(filters, list) \
+			and len(filters) > 1 and isinstance(filters[0], basestring):
+			# if `filters` is a list of strings, its probably fields
+			self.fields = filters
+			filters = None
+
 		if fields:
 			self.fields = fields
+		else:
+			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+
 		self.filters = filters or []
 		self.or_filters = or_filters or []
 		self.docstatus = docstatus or []

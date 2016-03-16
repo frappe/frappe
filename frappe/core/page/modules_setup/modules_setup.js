@@ -1,61 +1,85 @@
-
 frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __('Show or Hide Modules'),
+		title: __('Show or Hide Desktop Icons'),
 		single_column: true
 	});
+	frappe.modules_setup_page = page;
 
-	frappe.breadcrumbs.add("Setup");
+	page.content = $(frappe.templates.modules_setup).appendTo(page.body);
 
-	wrapper.page.set_primary_action(__("Update"), function() {
-		frappe.modules_setup.update(this);
+	page.content.find('select[name="setup_for"]').on('change', function() {
+		page.content.find('select[name="user"]').toggle($(this).val() !== "everyone");
+		frappe.reload_modules_setup_icons(page);
 	});
 
-	page.main.css({"padding":"15px"});
+	page.content.find('select[name="user"]').on('change', function() {
+		frappe.reload_modules_setup_icons(page);
+	});
 
-	$('<p>'
-		+__("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</p>').appendTo($(wrapper).find(".layout-main"));
-	$('<div id="modules-list">').appendTo(page.main);
-
-	frappe.modules_setup.refresh_page();
-}
-
-frappe.modules_setup = {
-	refresh_page: function() {
-		$('#modules-list').empty();
-
-		var wrapper = $('<div class="list-group"></div>').appendTo("#modules-list");
-
-		$.each(keys(frappe.modules).sort(), function(i, m) {
-			if(m!="Setup") {
-				var row = $('<div class="list-group-item">\
-					<span class="check-area" style="margin-right: 10px;"></span> '
-				+ " <span> " + __(m) +'</span></div>').appendTo("#modules-list");
-				var $chk = $("<input type='checkbox' data-module='"+m+"' style='margin-top: -2px'>")
-					.appendTo(row.find(".check-area"));
-				if(!frappe.boot.hidden_modules || frappe.boot.hidden_modules.indexOf(m)==-1) {
-					$chk.prop("checked", true);
-				}
+	// return selected user or null (if everyone)
+	page.get_user = function() {
+		var selected_user = null;
+		if(page.content.find('select[name="setup_for"]').length) {
+			if(page.content.find('select[name="setup_for"]').val()==="everyone") {
+				selected_user = null;
+			} else {
+				selected_user = page.content.find('select[name="user"]').val();
 			}
-		});
-	},
-	update: function(btn) {
-		var ml = [];
-		$('#modules-list [data-module]:checkbox:not(:checked)').each(function() {
-			ml.push($(this).attr('data-module'));
-		});
-
-		return frappe.call({
-			method: 'frappe.core.page.modules_setup.modules_setup.update',
-			args: {
-				ml: ml
-			},
-			callback: function(r) {
-				if(r.exc) msgprint(__("There were errors"))
-			},
-			btn: btn
-		});
+		} else {
+			selected_user = frappe.boot.user.name;
+		}
+		return selected_user;
 	}
 
+	// save action
+	page.set_primary_action('Save', function() {
+		var hidden_list = [];
+		page.content.find('input[type="checkbox"]').each(function() {
+			if(!$(this).is(':checked')) {
+				hidden_list.push($(this).attr('data-module'));
+			}
+		});
+
+		frappe.call({
+			method: 'frappe.core.page.modules_setup.modules_setup.update',
+			args: {
+				hidden_list: hidden_list,
+				user: page.get_user()
+			},
+			freeze: true
+		});
+	});
+
+	// application installer
+	if(frappe.boot.user.roles.indexOf('System Manager')!==-1) {
+		page.add_inner_button('Install Apps', function() {
+			frappe.set_route('applications');
+		});
+	}
+}
+
+frappe.pages['modules_setup'].on_page_show = function(wrapper) {
+	if(frappe.route_options) {
+		frappe.modules_setup_page.content.find('select[name="setup_for"]')
+			.val('user').trigger('change');
+		frappe.modules_setup_page.content.find('select[name="user"]')
+			.val(frappe.route_options.user).trigger('change');
+
+		frappe.route_options = null;
+	}
+}
+
+// reload modules html (with new hidden / blocked settings for given user)
+frappe.reload_modules_setup_icons = function(page) {
+	frappe.call({
+		method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons_html',
+		args: {
+			user: page.get_user()
+		},
+		freeze: true,
+		callback: function(r) {
+			page.content.find('.modules-setup-icons').replaceWith(r.message);
+		}
+	});
 }

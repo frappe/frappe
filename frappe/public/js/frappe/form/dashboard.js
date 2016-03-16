@@ -44,7 +44,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			<div class="alert-badge">\
 				<a class="badge-link h6 text-muted">%(label)s\
 				<span class="badge" style="margin-left: 10px; font-size: 12px;">-</span></a>\
-			</div></div>', {label:label, icon: frappe.boot.doctype_icons[doctype]}))
+			</div></div>', {label:label}))
 				.appendTo(this.body)
 
 		badge.find(".badge-link").click(onclick);

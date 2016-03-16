@@ -1,20 +1,19 @@
 {
- "creation": "2012-10-04 18:45:29.000000", 
+ "content": null, 
+ "creation": "2012-10-04 18:45:29", 
  "docstatus": 0, 
  "doctype": "Page", 
  "icon": "icon-cog", 
  "idx": 1, 
- "modified": "2013-07-11 14:43:37.000000", 
+ "modified": "2016-02-26 00:21:05.501007", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "modules_setup", 
  "owner": "Administrator", 
  "page_name": "modules_setup", 
- "roles": [
-  {
-   "role": "System Manager"
-  }
- ], 
+ "roles": [], 
+ "script": null, 
  "standard": "Yes", 
+ "style": null, 
  "title": "Modules Setup"
 }

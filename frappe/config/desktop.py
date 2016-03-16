@@ -41,5 +41,13 @@ def get_data():
 			"icon": "octicon octicon-circuit-board",
 			"type": "module",
 			"system_manager": 1
-		}
+		},
+		{
+			"module_name": "All Applications",
+			"label": _("All Applications"),
+			"color": "#4aa3df",
+			"icon": "octicon octicon-three-bars",
+			"type": "module",
+			"link": "javascript:frappe.desktop.all_applications.show()"
+		},
 	]

@@ -75,7 +75,8 @@ def get_defaults(user=None):
 		user = frappe.session.user if frappe.session else "Guest"
 
 	if user:
-		userd = get_defaults_for(user)
+		userd = {}
+		userd.update(get_defaults_for(user))
 		userd.update({"user": user, "owner": user})
 		globald.update(userd)
 
@@ -171,6 +172,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().hget("defaults", parent)
+
 	if defaults==None:
 		# sort descending because first default must get precedence
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`

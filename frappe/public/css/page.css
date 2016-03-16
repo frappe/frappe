@@ -113,7 +113,7 @@ select.input-sm {
 }
 @media (max-width: 767px) {
   .page-actions {
-    width: 100px;
+    width: 105px;
     float: right;
   }
   .page-title {

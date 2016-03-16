@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, re
+import redis, frappe, re, copy
 import cPickle as pickle
 from frappe.utils import cstr
 

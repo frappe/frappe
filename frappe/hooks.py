@@ -21,8 +21,7 @@ app_include_js = [
 	"assets/js/editor.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
-	"assets/js/report.min.js",
-	"assets/js/module.min.js"
+	"assets/js/report.min.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",

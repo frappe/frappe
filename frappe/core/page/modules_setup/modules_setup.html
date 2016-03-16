@@ -1,0 +1,23 @@
+<!-- jinja -->
+{% if users %}
+<div class="padding modules-setup">
+	<div class="row">
+		<div class="col-sm-3" name="set_for">
+			<select class="form-control" name="setup_for">
+				<option value="everyone">{{ _("For Everyone") }}</option>
+				<option value="user" selected>{{ _("For User") }}</option>
+			</select>
+		</div>
+		<div class="col-sm-3">
+			<select class="form-control" name="user">
+				{% for user in users %}
+				<option value="{{ user.name }}"
+					{% if user.name == frappe.user %}selected{% endif %}>
+					{{ user.first_name or "" }} {{ user.last_name or "" }} ({{ user.name }})</option>
+				{% endfor %}
+			</select>
+		</div>
+	</div>
+</div>
+{% endif %}
+{% include "frappe/core/page/modules_setup/includes/module_icons.html" %}
