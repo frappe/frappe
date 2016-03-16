@@ -103,9 +103,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		var docstatus = cint(this.frm.doc.docstatus);
 		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
 		var prevent_draft_from_printing = print_settings.prevent_draft_from_printing
+		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
 		
 		// Print
-		if(!prevent_draft_from_printing || prevent_draft_from_printing && docstatus !== 0 || in_list(user_roles, "Administrator")){
+		if(!is_submittable || !prevent_draft_from_printing || prevent_draft_from_printing && docstatus !== 0 || in_list(user_roles, "Administrator")){
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
