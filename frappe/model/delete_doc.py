@@ -81,7 +81,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				if "DocShare" in dynamic_linked_doctypes:
 					delete_shared(doc)
 
-				if "Email Unsubscribe":
+				if "Email Unsubscribe" in dynamic_linked_doctypes:
 					delete_email_subscribe(doc)
 
 				# check if links exist
