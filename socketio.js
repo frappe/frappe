@@ -271,7 +271,7 @@ function get_conf() {
 	var read_config = function(path) {
 		if(fs.existsSync(path)){
 			var bench_config = JSON.parse(fs.readFileSync(path));
-			for (var key in conf) {
+			for (var key in bench_config) {
 				if (bench_config[key]) {
 					conf[key] = bench_config[key];
 				}

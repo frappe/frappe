@@ -77,11 +77,12 @@ frappe.socket = {
 	get_host: function() {
 		var host = window.location.origin;
 		if(window.dev_server) {
-			parts = host.split(":");
+			var parts = host.split(":");
+			var port = frappe.boot.socketio_port || '3000';
 			if(parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}
-			host = host + ":3000";
+			host = host + ":" + port;
 		}
 		return host;
 	},

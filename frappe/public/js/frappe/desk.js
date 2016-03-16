@@ -368,15 +368,20 @@ frappe.get_desktop_icons = function(show_hidden) {
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
 		}
-		if(m._doctype) {
+		else if(m._doctype) {
 			out = frappe.model.can_read(m._doctype);
 		} else {
-			out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+			if(m.module_name==='Learn') {
+				// no permissions necessary for learn
+				out = true;
+			} else {
+				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+			}
 		}
 		if(out && !show_hidden) {
 			if(m.hidden) out = false;
 		}
-
+		
 		return out;
 	}
 
