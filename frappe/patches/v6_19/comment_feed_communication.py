@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.model.rename_doc import get_link_fields, dynamic_link_queries
+from frappe.model.rename_doc import get_link_fields
+from frappe.model.dynamic_links import dynamic_link_queries
 from frappe.permissions import reset_perms
 
 def execute():
