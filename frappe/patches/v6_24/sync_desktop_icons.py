@@ -28,10 +28,16 @@ def execute():
 		if user_list:
 			user_list = json.loads(user_list)
 			for i, module_name in enumerate(user_list):
-				desktop_icon = get_user_copy(module_name, user=user.name)
-				desktop_icon.db_set('idx', i)
+				try:
+					desktop_icon = get_user_copy(module_name, user=user.name)
+					desktop_icon.db_set('idx', i)
+				except frappe.DoesNotExistError:
+					pass
 
 			# set remaining icons as hidden
 			for module_name in list(set([m['module_name'] for m in modules_list]) - set(user_list)):
-				desktop_icon = get_user_copy(module_name, user=user.name)
-				desktop_icon.db_set('hidden', 1)
+				try:
+					desktop_icon = get_user_copy(module_name, user=user.name)
+					desktop_icon.db_set('hidden', 1)
+				except frappe.DoesNotExistError:
+					pass
