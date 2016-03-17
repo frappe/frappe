@@ -137,12 +137,6 @@
 	"css/module.min.css": [
 		"public/css/module.css"
 	],
-	"js/module.min.js": [
-		"public/js/frappe/views/module/module_title.html",
-		"public/js/frappe/views/module/module_section.html",
-		"public/js/frappe/views/module/module_sidebar.html",
-		"public/js/frappe/views/module/moduleview.js"
-	],
 	"css/form.min.css": [
 		"public/css/form_grid.css"
 	],

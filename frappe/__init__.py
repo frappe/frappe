@@ -127,7 +127,7 @@ def init(site, sites_path=None, new_site=False):
 	local.system_settings = None
 
 	local.user = None
-	local.user_obj = None
+	local.user_perms = None
 	local.session = None
 	local.role_permissions = {}
 	local.valid_columns = {}
@@ -190,7 +190,9 @@ def cache():
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
-		redis_server = RedisWrapper.from_url(conf.get("cache_redis_server") or "redis://localhost:11311")
+		redis_server = RedisWrapper.from_url(conf.get('redis_cache')
+			or conf.get("cache_redis_server")
+			or "redis://localhost:11311")
 	return redis_server
 
 def get_traceback():
@@ -285,13 +287,13 @@ def set_user(username):
 	local.session.data = _dict()
 	local.role_permissions = {}
 	local.new_doc_templates = {}
-	local.user_obj = None
+	local.user_perms = None
 
 def get_user():
-	from frappe.utils.user import User
-	if not local.user_obj:
-		local.user_obj = User(local.session.user)
-	return local.user_obj
+	from frappe.utils.user import UserPermissions
+	if not local.user_perms:
+		local.user_perms = UserPermissions(local.session.user)
+	return local.user_perms
 
 def get_roles(username=None):
 	"""Returns roles of current user."""

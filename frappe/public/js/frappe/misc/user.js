@@ -101,43 +101,14 @@ $.extend(frappe.user, {
 				return true;
 		}
 	},
-	get_desktop_items: function(global) {
-		// get user sequence preference
-		var modules_list = [];
-		if(!global) {
-			var user_list = frappe.defaults.get_default("_desktop_items");
-			if(user_list && user_list.length)
-				var modules_list = user_list;
-
-		}
-
-		frappe.boot.module_list.forEach(function(i, m) {
-			if(modules_list.indexOf(m)===-1) {
-				modules_list.push(m);
-			}
-		});
-
-		if(modules_list) {
-			// add missing modules - they will be hidden anyways by the view
-			$.each(frappe.modules, function(m, module) {
-				var module = frappe.get_module(m);
-				if(modules_list.indexOf(m)===-1) {
-					modules_list.push(m);
-				}
-			});
-		}
-
-		// filter hidden modules
-		if(frappe.boot.hidden_modules && modules_list) {
-			var hidden_list = JSON.parse(frappe.boot.hidden_modules);
-			var modules_list = $.map(modules_list, function(m) {
-				if(hidden_list.indexOf(m)==-1 || (frappe.modules[m] && frappe.modules[m].force_show)) return m; else return null;
-			});
-		}
-
+	get_desktop_items: function() {
 		// hide based on permission
-		modules_list = $.map(modules_list, function(m) {
+		modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
+			var m = icon.module_name;
 			var type = frappe.modules[m] && frappe.modules[m].type;
+
+			if(frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
+
 			var ret = null;
 			switch(type) {
 				case "module":
@@ -149,7 +120,7 @@ $.extend(frappe.user, {
 						ret = m;
 					break;
 				case "list":
-					if(frappe.model.can_read(frappe.modules[m].doctype))
+					if(frappe.model.can_read(frappe.modules[m]._doctype))
 						ret = m;
 					break;
 				case "view":
@@ -168,29 +139,15 @@ $.extend(frappe.user, {
 
 		return modules_list;
 	},
-	get_user_desktop_items: function() {
-		if(!frappe.user.modules) {
-			var user_list = frappe.defaults.get_default("_user_desktop_items");
-			if(!user_list) {
-				user_list = frappe.user.get_desktop_items();
-			}
 
-			// filter_blocked_modules
-			user_list = $.map(user_list, function(m) {
-				if(frappe.user.is_module_blocked(m)) {
-					return null;
-				} else {
-					return m;
-				}
-			});
-
-			frappe.user.modules = user_list;
+	is_module: function(m) {
+		var icons = frappe.get_desktop_icons();
+		for(var i=0; i<icons.length; i++) {
+			if(m===icons[i].module_name) return true;
 		}
-		return frappe.user.modules;
+		return false;
 	},
-	is_module_blocked: function(m) {
-		return frappe.boot.user.block_modules && frappe.boot.user.block_modules.indexOf(m)!==-1;
-	},
+
 	is_report_manager: function() {
 		return frappe.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	},

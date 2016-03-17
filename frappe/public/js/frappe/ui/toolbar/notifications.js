@@ -69,7 +69,6 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 				%(count)s</span> \
 			%(label)s </a></li>', {
 				label: __(label),
-				icon: frappe.boot.doctype_icons[doctype],
 				count: count > 99 ? '99+' : count,
 				data_doctype: doctype
 			});

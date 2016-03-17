@@ -53,6 +53,9 @@ frappe.ui.Page = Class.extend({
 					<div class="layout-footer hide"></div>\
 				</div>\
 			</div>');
+			// this.wrapper.find('.page-title')
+			// 	.removeClass('col-md-7').addClass('col-md-offset-2 col-md-5')
+			// 	.css({'padding-left': '45px'});
 		}
 
 		this.$title_area = this.wrapper.find("h1");
@@ -297,25 +300,6 @@ frappe.ui.Page = Class.extend({
 	set_title_sub: function(txt) {
 		// strip icon
 		this.$sub_title_area.html(txt).toggleClass("hide", !!!txt);
-	},
-
-	add_module_icon: function(module, doctype, onclick, sub_title) {
-		var module_info = frappe.get_module(module);
-		if(!module_info) {
-			module_info = {
-				icon: "icon-question-sign",
-				color: "#ddd"
-			}
-		}
-		var icon = frappe.boot.doctype_icons[doctype] || module_info.icon;
-
-		this.get_main_icon(icon)
-			.attr("doctype-name", doctype);
-
-		this.set_title_left(function() {
-			var route = frappe.get_route()[0]==module_info.link ? "" : module_info.link;
-			frappe.set_route(route);
-		});
 	},
 
 	get_main_icon: function(icon) {

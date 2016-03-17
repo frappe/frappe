@@ -1,11 +1,11 @@
 <div  class="case-wrapper"
-	data-name="{%= name %}" data-link="{%= link %}" title="{%= _label %}">
-	{%= app_icon %}
+	data-name="{{ module_name }}" data-link="{{ link }}" title="{{ _label }}">
+	{{ app_icon }}
 	<div class="case-label text-ellipsis">
-		<div class="circle module-count-{%= _id %}" style="display: none;">
+		<div class="circle module-count-{{ _id }}" style="display: none;">
 			<span class="circle-text"></span>
 		</div>
-		<!-- <span id="module-count-{%= _id %}" class="octicon octicon-primitive-dot circle" style="display: None"></span> -->
-		<span class="case-label-text">{%= _label %}</span>
+		<!-- <span id="module-count-{{ _id }}" class="octicon octicon-primitive-dot circle" style="display: None"></span> -->
+		<span class="case-label-text">{{ _label }}</span>
 	</div>
 </div>

@@ -138,7 +138,7 @@ frappe.applications.Installer = Class.extend({
 				is_app: true
 			};
 
-			app.app_icon = frappe.ui.app_icon.get_html(app_key, null, modules);
+			app.app_icon = frappe.ui.app_icon.get_html(modules[app_key]);
 
 			$(frappe.render_template("application_row", {app: app})).appendTo(me.wrapper);
 		});

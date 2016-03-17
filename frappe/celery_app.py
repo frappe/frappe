@@ -32,8 +32,8 @@ def get_celery():
 def get_celery_app():
 	conf = get_site_config()
 	app = Celery('frappe',
-			broker=conf.celery_broker or DEFAULT_CELERY_BROKER,
-			backend=conf.async_redis_server or DEFAULT_CELERY_BACKEND)
+			broker=conf.redis_queue or conf.celery_broker or DEFAULT_CELERY_BROKER,
+			backend=conf.redis_queue or conf.async_redis_server or DEFAULT_CELERY_BACKEND)
 
 	app.autodiscover_tasks(frappe.get_all_apps(with_internal_apps=False,
 		sites_path=SITES_PATH))

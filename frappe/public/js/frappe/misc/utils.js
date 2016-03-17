@@ -23,6 +23,9 @@ frappe.utils = {
 		}
 		return true;
 	},
+	is_mobile: function() {
+		return $(document).width() < 768;
+	},
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},

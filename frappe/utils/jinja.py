@@ -35,7 +35,16 @@ def validate_template(html):
 		frappe.throw(frappe._("Syntax error in template"))
 
 def render_template(template, context, is_path=None):
-	if is_path or template.startswith("templates/"):
+	'''Render a template using Jinja
+
+	:param template: path or HTML containing the jinja template
+	:param context: dict of properties to pass to the template
+	:param is_path: (optional) assert that the `template` parameter is a path'''
+
+	# if it ends with .html then its a freaking path, not html
+	if (is_path
+		or template.startswith("templates/")
+		or (template.endswith('.html') and '\n' not in template)):
 		return get_jenv().get_template(template).render(context)
 	else:
 		return get_jenv().from_string(template).render(context)

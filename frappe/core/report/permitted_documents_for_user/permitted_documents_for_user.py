@@ -40,9 +40,9 @@ def get_columns_and_fields(doctype):
 
 def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	user = filters.get("user")
-	user_obj = frappe.utils.user.User(user)
-	user_obj.build_permissions()
-	can_read = user_obj.can_read
+	user_perms = frappe.utils.user.UserPermissions(user)
+	user_perms.build_permissions()
+	can_read = user_perms.can_read
 
 	single_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1})]
 

@@ -61,7 +61,9 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
 	def get_dynamic_link_fields(self):
-		return self.get("fields", {"fieldtype": "Dynamic Link"})
+		if not hasattr(self, '_dynamic_link_fields'):
+			self._dynamic_link_fields = self.get("fields", {"fieldtype": "Dynamic Link"})
+		return self._dynamic_link_fields
 
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
@@ -358,8 +360,8 @@ def trim_tables():
 def clear_cache(doctype=None):
 	cache = frappe.cache()
 
-	cache.delete_value("is_table")
-	cache.delete_value("doctype_modules")
+	for key in ('is_table', 'doctype_modules'):
+		cache.delete_value(key)
 
 	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
 

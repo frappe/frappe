@@ -37,9 +37,8 @@ def get_data():
 			"module_name": "Core",
 			"label": _("Developer"),
 			"color": "#589494",
-			"icon": "icon-cog",
 			"icon": "octicon octicon-circuit-board",
 			"type": "module",
 			"system_manager": 1
-		}
+		},
 	]

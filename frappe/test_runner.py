@@ -9,8 +9,9 @@ import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 import frappe.utils.scheduler
+import cProfile, StringIO, pstats
 
-def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False):
+def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False):
 	frappe.flags.print_messages = verbose
 	frappe.flags.in_test = True
 
@@ -31,11 +32,11 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 		frappe.get_attr(fn)()
 
 	if doctype:
-		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests, force=force)
+		ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
 	elif module:
-		ret = run_tests_for_module(module, verbose=verbose, tests=tests)
+		ret = run_tests_for_module(module, verbose, tests, profile)
 	else:
-		ret = run_all_tests(app, verbose)
+		ret = run_all_tests(app, verbose, profile)
 
 	frappe.db.commit()
 
@@ -53,7 +54,7 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
-def run_all_tests(app=None, verbose=False):
+def run_all_tests(app=None, verbose=False, profile=False):
 	import os
 
 	apps = [app] if app else frappe.get_installed_apps()
@@ -72,9 +73,22 @@ def run_all_tests(app=None, verbose=False):
 					# print filename[:-3]
 					_add_test(path, filename, verbose, test_suite=test_suite)
 
-	return unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	if profile:
+		pr = cProfile.Profile()
+		pr.enable()
 
-def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False):
+	out = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+	if profile:
+		pr.disable()
+		s = StringIO.StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+		ps.print_stats()
+		print s.getvalue()
+
+	return out
+
+def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
 	if force:
@@ -82,17 +96,17 @@ def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False):
 			frappe.delete_doc(doctype, name, force=True)
 	make_test_records(doctype, verbose=verbose, force=force)
 	module = frappe.get_module(test_module)
-	return _run_unittest(module, verbose=verbose, tests=tests)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
-def run_tests_for_module(module, verbose=False, tests=()):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
-	return _run_unittest(module=module, verbose=verbose, tests=tests)
+	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
 
-def _run_unittest(module, verbose=False, tests=()):
+def _run_unittest(module, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
 	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 	if tests:
@@ -103,7 +117,21 @@ def _run_unittest(module, verbose=False, tests=()):
 	else:
 		test_suite.addTest(module_test_cases)
 
-	return unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	if profile:
+		pr = cProfile.Profile()
+		pr.enable()
+
+	out = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+	if profile:
+		pr.disable()
+		s = StringIO.StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+		ps.print_stats()
+		print s.getvalue()
+
+	return out
+
 
 def _add_test(path, filename, verbose, test_suite=None):
 	import os, imp

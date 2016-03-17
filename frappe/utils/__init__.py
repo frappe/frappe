@@ -323,12 +323,13 @@ def call_hook_method(hook, *args, **kwargs):
 	return out
 
 def update_progress_bar(txt, i, l):
-	lt = len(txt)
-	if lt < 36:
-		txt = txt + " "*(36-lt)
-	complete = int(float(i+1) / l * 40)
-	sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
-	sys.stdout.flush()
+	if not getattr(frappe.local, 'request', None):
+		lt = len(txt)
+		if lt < 36:
+			txt = txt + " "*(36-lt)
+		complete = int(float(i+1) / l * 40)
+		sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
+		sys.stdout.flush()
 
 def get_html_format(print_path):
 	html_format = None

@@ -81,6 +81,11 @@ frappe.views.QueryReport = Class.extend({
 				frappe.set_route("user-permissions");
 			}, true);
 		}
+
+		// add to desktop
+		this.page.add_menu_item(__("Add to Desktop"), function() {
+			frappe.add_to_desktop(me.report_name, me.report_doc.ref_doctype);
+		}, true);
 	},
 	load: function() {
 		// load from route

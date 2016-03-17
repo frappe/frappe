@@ -31,19 +31,29 @@ $.extend(frappe.desktop, {
 
 		var template = frappe.list_desktop ? "desktop_list_view" : "desktop_icon_grid";
 
+		var all_icons = frappe.get_desktop_icons();
+		var explore_icon = {
+			module_name: 'Explore',
+			label: 'Explore',
+			_label: __('Explore'),
+			_id: 'Explore',
+			icon: 'octicon octicon-telescope',
+			color: '#7578f6',
+			link: 'modules'
+		};
+		explore_icon.app_icon = frappe.ui.app_icon.get_html(explore_icon);
 
-		this.wrapper.html(frappe.render_template(template, {
+		all_icons.push(explore_icon);
+
+		frappe.desktop.wrapper.html(frappe.render_template(template, {
 			// all visible icons
-			desktop_items: this.get_desktop_items(),
-
-			// user visible icons
-			user_desktop_items: this.get_user_desktop_items(),
+			desktop_items: all_icons,
 		}));
 
-		this.setup_module_click();
+		frappe.desktop.setup_module_click();
 
 		// notifications
-		this.show_pending_notifications();
+		frappe.desktop.show_pending_notifications();
 		$(document).on("notification-update", function() {
 			me.show_pending_notifications();
 		});
@@ -51,76 +61,14 @@ $.extend(frappe.desktop, {
 		$(document).trigger("desktop-render");
 	},
 
-	get_desktop_items: function(global) {
-		var me = this;
-
-		frappe.modules["All Applications"] = {
-			icon: "octicon octicon-three-bars",
-			label: "All Applications",
-			_label: __("All Applications"),
-			_id: "all_applications",
-			color: "#4aa3df",
-			link: "",
-			force_show: true,
-			onclick: function() {
-				me.all_applications.show();
-			}
-		}
-
-		var desktop_items = [].concat(frappe.user.get_desktop_items(global));
-
-		remove_from_list(desktop_items, "Setup");
-		if(user_roles.indexOf('System Manager')!=-1) {
-			desktop_items.push('Setup');
-		}
-
-		remove_from_list(desktop_items, "Core");
-		if(user_roles.indexOf('Administrator')!=-1) {
-			desktop_items.push('Core');
-		}
-
-		remove_from_list(desktop_items, "All Applications");
-		desktop_items.push('All Applications');
-
-		return desktop_items;
-	},
-
-	get_user_desktop_items: function() {
-		var me = this;
-
-		var user_desktop_items = [].concat(frappe.user.get_user_desktop_items());
-
-		for (var m in frappe.modules) {
-			var module = frappe.modules[m];
-			if (module.force_show && user_desktop_items.indexOf(m)===-1) {
-				user_desktop_items.push(m);
-			}
-		}
-
-		// filter valid icons
-		var out = [];
-		for (var i=0, l=user_desktop_items.length; i < l; i++) {
-			var m = user_desktop_items[i];
-			var module = frappe.get_module(m);
-
-			if (module) {
-				module.app_icon = frappe.ui.app_icon.get_html(m);
-				out.push(m);
-			}
-		}
-		return out;
-	},
-
 	setup_module_click: function() {
-		var me = this;
-
 		if(frappe.list_desktop) {
-			this.wrapper.on("click", ".desktop-list-item", function() {
-				me.open_module($(this));
+			frappe.desktop.wrapper.on("click", ".desktop-list-item", function() {
+				frappe.desktop.open_module($(this));
 			});
 		} else {
-			this.wrapper.on("click", ".app-icon", function() {
-				me.open_module($(this).parent());
+			frappe.desktop.wrapper.on("click", ".app-icon", function() {
+				frappe.desktop.open_module($(this).parent());
 			});
 		}
 	},
@@ -128,7 +76,9 @@ $.extend(frappe.desktop, {
 	open_module: function(parent) {
 		var link = parent.attr("data-link");
 		if(link) {
-			if(link.substr(0, 1)==="/" || link.substr(0, 4)==="http") {
+			if(link.indexOf('javascript:')===0) {
+				eval(link.substr(11));
+			} else if(link.substr(0, 1)==="/" || link.substr(0, 4)==="http") {
 				window.open(link, "_blank");
 			} else {
 				frappe.set_route(link);
@@ -154,7 +104,14 @@ $.extend(frappe.desktop, {
 				$("#icon-grid .case-wrapper").each(function(i, e) {
 					new_order.push($(this).attr("data-name"));
 				});
-				frappe.defaults.set_default("_desktop_items", new_order);
+
+				frappe.call({
+					method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
+					args: {
+						'new_order': new_order
+					},
+					quiet: true
+				});
 			}
 		});
 	},
@@ -162,64 +119,6 @@ $.extend(frappe.desktop, {
 	set_background: function() {
 		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
 			frappe.boot.user.background_style);
-	},
-
-	all_applications: {
-		show: function() {
-			if(!this.dialog) {
-				this.make_dialog();
-			}
-			$(this.dialog.body).find(".desktop-app-search").val("").trigger("keyup");
-			this.dialog.show();
-		},
-
-		make_dialog: function() {
-			this.dialog = new frappe.ui.Dialog({
-				title: __("All Applications")
-			});
-
-			this.dialog.$wrapper.addClass("all-applications-dialog");
-			this.dialog_body = $(this.dialog.body);
-
-			$(frappe.render_template("all_applications_dialog", {
-				all_modules: keys(frappe.modules).sort(),
-				desktop_items: frappe.desktop.get_desktop_items(true),
-				user_desktop_items: frappe.desktop.get_user_desktop_items()
-			})).appendTo(this.dialog_body);
-
-			this.bind_events();
-		},
-
-		bind_events: function() {
-			var me = this;
-
-			this.dialog_body.find(".desktop-app-search").on("keyup", function() {
-				var val = ($(this).val() || "").toLowerCase();
-				me.dialog_body.find(".list-group-item").each(function() {
-					$(this).toggle($(this).attr("data-label").toLowerCase().indexOf(val)!==-1
-						|| $(this).attr("data-name").toLowerCase().indexOf(val)!==-1);
-				})
-			});
-
-			this.dialog_body.find('input[type="checkbox"]').on("click", function() {
-				me.save_user_desktop_items();
-
-				frappe.user.modules = null;
-
-				frappe.after_ajax(function() {
-					frappe.desktop.refresh();
-				});
-			});
-		},
-
-		save_user_desktop_items: function() {
-			var user_desktop_items = [];
-			this.dialog_body.find('input[type="checkbox"]:checked').each(function(i, element) {
-				user_desktop_items.push($(element).attr("data-name"));
-			});
-			frappe.defaults.set_default("_user_desktop_items", user_desktop_items);
-			frappe.desktop.refresh();
-		}
 	},
 
 	show_pending_notifications: function() {

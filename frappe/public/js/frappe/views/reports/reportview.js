@@ -109,6 +109,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_save();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
+
+		// add to desktop
+		this.page.add_menu_item(__("Add to Desktop"), function() {
+			frappe.add_to_desktop(__('{0} Report', [me.doctype]), me.doctype);
+		}, true);
 	},
 
 	make_new_and_refresh: function() {
@@ -120,6 +125,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.page.add_menu_item(__("New {0}", [this.doctype]), function() {
 			me.make_new_doc(me.doctype);
 		}, true);
+
 	},
 
 	set_init_columns: function() {

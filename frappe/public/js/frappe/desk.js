@@ -82,7 +82,8 @@ frappe.Application = Class.extend({
 
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.modules = frappe.boot.modules;
+			frappe.modules = {};
+			frappe.boot.desktop_icons.forEach(function(m) { frappe.modules[m.module_name]=m; });
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
@@ -96,8 +97,6 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
-			// setup valid modules
-			frappe.user.get_user_desktop_items()
 		} else {
 			this.set_as_guest();
 		}
@@ -164,6 +163,8 @@ frappe.Application = Class.extend({
 
 	set_globals: function() {
 		// for backward compatibility
+		frappe.session.user = frappe.boot.user.name;
+		frappe.session.user_fullname = frappe.boot.user.name;
 		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
 		user_defaults = frappe.boot.user.defaults;
@@ -316,16 +317,22 @@ frappe.Application = Class.extend({
 	}
 });
 
-frappe.get_module = function(m) {
-	var module = frappe.modules[m];
+frappe.get_module = function(m, default_module) {
+	var module = frappe.modules[m] || default_module;
 	if (!module) {
 		return;
 	}
 
-	module.name = m;
+	if(module._setup) {
+		return module;
+	}
 
 	if(module.type==="module" && !module.link) {
-		module.link = "Module/" + m;
+		module.link = "modules/" + module.module_name;
+	}
+
+	if(module.type==="list" && !module.link) {
+		module.link = "List/" + module._doctype;
 	}
 
 	if (!module.link) module.link = "";
@@ -340,8 +347,75 @@ frappe.get_module = function(m) {
 	}
 
 	if(!module._label) {
-		module._label = __(module.label || module.name);
+		module._label = __(module.label);
 	}
+
+	module._setup = true;
 
 	return module;
 };
+
+frappe.get_desktop_icons = function(show_hidden) {
+	// filter valid icons
+	var out = [];
+
+	var add_to_out = function(module) {
+		var module = frappe.get_module(module.module_name, module);
+		module.app_icon = frappe.ui.app_icon.get_html(module);
+		out.push(module);
+	}
+
+	var show_module = function(module) {
+		var out = true;
+		if(m.type==="page") {
+			out = m.link in frappe.boot.page_info;
+		}
+		else if(m._doctype) {
+			out = frappe.model.can_read(m._doctype);
+		} else {
+			if(m.module_name==='Learn') {
+				// no permissions necessary for learn
+				out = true;
+			} else {
+				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+			}
+		}
+		if(out && !show_hidden) {
+			if(m.hidden) out = false;
+		}
+		
+		return out;
+	}
+
+	for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
+		var m = frappe.boot.desktop_icons[i];
+		if ((['Setup', 'Core'].indexOf(m.module_name) === -1)
+			&& show_module(m)) {
+				add_to_out(m)
+		}
+	}
+
+	if(user_roles.indexOf('System Manager')!=-1) {
+		var m = frappe.get_module('Setup');
+		if(show_module(m)) add_to_out(m)
+	}
+
+	if(user_roles.indexOf('Administrator')!=-1) {
+		var m = frappe.get_module('Core');
+		if(show_module(m)) add_to_out(m)
+	}
+
+	return out;
+};
+
+frappe.add_to_desktop = function(label, doctype) {
+	frappe.call({
+		method: 'frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon',
+		args: {
+			link: frappe.get_route_str(),
+			label: label,
+			type: 'link',
+			_doctype: doctype
+		}
+	});
+}

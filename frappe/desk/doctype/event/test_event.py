@@ -16,11 +16,6 @@ test_user = "test1@example.com"
 
 
 class TestEvent(unittest.TestCase):
-	# def setUp(self):
-	# 	user = frappe.get_doc("User", test_user)
-	# 	user.add_roles("Website Manager")
-
-
 	def tearDown(self):
 		frappe.set_user("Administrator")
 
