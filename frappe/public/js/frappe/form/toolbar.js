@@ -102,7 +102,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
 		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
-		var prevent_draft_from_printing = print_settings.prevent_draft_from_printing
+		var prevent_draft_from_printing = cint(print_settings.prevent_draft_from_printing)
 		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
 		
 		// Print

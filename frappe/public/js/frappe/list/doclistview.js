@@ -479,14 +479,22 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	make_bulk_printing: function() {
 		var me = this;
+		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		var prevent_draft_from_printing = cint(print_settings.prevent_draft_from_printing)
+		var is_submittable = frappe.model.is_submittable(me.doctype)
+		
 		//bulk priting
 		me.page.add_menu_item(__("Print"), function(){
-
+			var no_print = false
 			docname = [];
-
 			$.each(me.get_checked_items(), function(i, doc){
-				docname.push(doc.name);
+				if(in_list(user_roles, "Administrator") || !is_submittable || !prevent_draft_from_printing || (prevent_draft_from_printing && doc.docstatus == 1 ) )
+						docname.push(doc.name);
+				else
+					no_print = true
 			})
+			if(no_print == true)
+				frappe.msgprint("You select cancelled documents or Prevent Draft from Printing Enabled")
 
 			if(docname.length >= 1){
 
