@@ -16,8 +16,11 @@ def execute():
 	hidden_modules = frappe.db.get_global('hidden_modules')
 	if hidden_modules:
 		for m in json.loads(hidden_modules):
-			desktop_icon = frappe.get_doc('Desktop Icon', {'module_name': m, 'standard': 1, 'app': app})
-			desktop_icon.db_set('hidden', 1)
+			try:
+				desktop_icon = frappe.get_doc('Desktop Icon', {'module_name': m, 'standard': 1, 'app': app})
+				desktop_icon.db_set('hidden', 1)
+			except frappe.DoesNotExistError:
+				pass
 
 	# sync user sort
 	for user in frappe.get_all('User', filters={'user_type': 'System User'}):
