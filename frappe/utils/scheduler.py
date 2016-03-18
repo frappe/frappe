@@ -14,20 +14,14 @@ import frappe
 import json
 import frappe.utils
 from frappe.utils import get_sites
-from frappe.utils.file_lock import create_lock, check_lock, delete_lock
 from datetime import datetime
 from background_jobs import enqueue, get_jobs
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-def enqueue_events(site):
+def enqueue_events(site, current_jobs):
 	if is_scheduler_disabled():
 		return
-
-	# lock before queuing begins
-	# lock = create_lock('scheduler')
-	# if not lock:
-	# 	return
 
 	nowtime = frappe.utils.now_datetime()
 	last = frappe.db.get_value('System Settings', 'System Settings', 'scheduler_last_event')
@@ -40,13 +34,11 @@ def enqueue_events(site):
 	out = []
 	if last:
 		last = datetime.strptime(last, DATETIME_FORMAT)
-		out = enqueue_applicable_events(site, nowtime, last)
-
-	delete_lock('scheduler')
+		out = enqueue_applicable_events(site, nowtime, last, current_jobs)
 
 	return '\n'.join(out)
 
-def enqueue_applicable_events(site, nowtime, last):
+def enqueue_applicable_events(site, nowtime, last, current_jobs):
 	nowtime_str = nowtime.strftime(DATETIME_FORMAT)
 	out = []
 
@@ -54,7 +46,7 @@ def enqueue_applicable_events(site, nowtime, last):
 
 	def trigger_if_enabled(site, event, now=False):
 		if event in enabled_events:
-			trigger(site, event, now=now)
+			trigger(site, event, current_jobs, now=now)
 			_log(event)
 
 	def _log(event):
@@ -74,10 +66,10 @@ def enqueue_applicable_events(site, nowtime, last):
 			trigger_if_enabled(site, "weekly_long")
 
 		if "all" not in enabled_events:
-			trigger(site, "all")
+			trigger(site, current_jobs, "all")
 
 		if "hourly" not in enabled_events:
-			trigger(site, "hourly")
+			trigger(site, current_jobs, "hourly")
 
 	if nowtime.hour != last.hour:
 		trigger_if_enabled(site, "hourly")
@@ -87,30 +79,20 @@ def enqueue_applicable_events(site, nowtime, last):
 
 	return out
 
-def trigger(site, event, now=False):
+def trigger(site, event, current_jobs, now=False):
 	"""trigger method in startup.schedule_handler"""
 	if event.endswith("long"):
-		queue = 'low'
-		timeout = 25
+		queue = 'long'
+		timeout = 1500
 	else:
 		queue = 'default'
-		timeout = 5
+		timeout = 300
 	for handler in frappe.get_hooks("scheduler_events").get(event, []):
-		if job_dict.get(site):
-			if not handler in job_dict.get(site):
-				enqueue_task(handler, queue, timeout, now)
+		if not now:
+			if handler not in current_jobs:
+				enqueue(handler, queue, timeout)
 		else:
-			enqueue_task(handler, queue, timeout, now)
-
-
-
-def enqueue_task(handler, queue, timeout, now):
-	if not now:
-		enqueue(handler, queue, timeout)
-	else:
-		scheduler_task(site=site, event=event, handler=handler, now=True)
-
-
+			scheduler_task(site=site, event=event, handler=handler, now=True)
 
 	if frappe.flags.in_test:
 		frappe.flags.ran_schedulers.append(event)
@@ -188,9 +170,6 @@ def scheduler_task(site, event, handler, now=False):
 	traceback = ""
 	frappe.get_logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
-		frappe.init(site=site)
-		if not create_lock(handler):
-			return
 		if not now:
 			frappe.connect(site=site)
 
@@ -206,28 +185,21 @@ def scheduler_task(site, event, handler, now=False):
 	else:
 		frappe.db.commit()
 
-	finally:
-		delete_lock(handler)
-
-		if not now:
-			frappe.destroy()
-
 	frappe.get_logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 
 
 def enqueue_scheduler_events():
-	global job_dict
-	job_dict = get_jobs()
+	jobs_per_site = get_jobs()
 	for site in get_sites():
-		enqueue_events_for_site(site=site)
+		enqueue_events_for_site(site=site, current_jobs=jobs_per_site[site])
 
-def enqueue_events_for_site(site):
+def enqueue_events_for_site(site, current_jobs):
 	try:
 		frappe.init(site=site)
 		if frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
 			return
 		frappe.connect(site=site)
-		enqueue_events(site)
+		enqueue_events(site, current_jobs)
 	except:
 		frappe.get_logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
 		raise
