@@ -836,7 +836,7 @@ def copy_doc(doc, ignore_no_copy=True):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
 
-	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by']
+	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by', 'docstatus']
 
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
