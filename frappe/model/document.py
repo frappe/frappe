@@ -211,6 +211,10 @@ class Document(BaseDocument):
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
+		# delete __islocal
+		if hasattr(self, "__islocal"):
+			delattr(self, "__islocal")
+
 		return self
 
 	def save(self, ignore_permissions=None):
