@@ -48,9 +48,9 @@ def _(msg, lang=None):
 
 	# msg should always be unicode
 	msg = cstr(msg)
-		
+
 	return get_full_dict(local.lang).get(msg) or msg
-	
+
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
 
@@ -836,7 +836,10 @@ def copy_doc(doc, ignore_no_copy=True):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
 
-	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by', 'docstatus']
+	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by']
+
+	if not frappe.local.flags.in_test:
+		fields_to_clear.append("docstatus")
 
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
