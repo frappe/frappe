@@ -838,7 +838,7 @@ def copy_doc(doc, ignore_no_copy=True):
 
 	fields_to_clear = ['name', 'owner', 'creation', 'modified', 'modified_by']
 
-	if not frappe.local.flags.in_test:
+	if not local.flags.in_test:
 		fields_to_clear.append("docstatus")
 
 	if not isinstance(doc, dict):
