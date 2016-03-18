@@ -62,8 +62,11 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		page.set_title(__(m.label));
 		page.main.html(frappe.render_template('modules_section', m));
 
-		if(frappe.utils.is_mobile()) {
-			$(document).scrollTop($('.module-body').offset().top - 100);
+		if(frappe.utils.is_xs() || frappe.utils.is_sm()) {
+			// call this after a timeout, becuase a refresh will set the page to the top
+			setTimeout(function() {
+				$(document).scrollTop($('.module-body').offset().top - 100);
+			}, 100);
 		}
 
 		//setup_section_toggle();
