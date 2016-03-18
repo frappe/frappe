@@ -996,6 +996,12 @@ def get_version():
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
 
+
+@click.command('start-worker')
+def start_rq_worker():
+	from frappe.utils.background_jobs import start_worker
+	start_worker()
+
 # commands = [
 # 	new_site,
 # 	restore,
@@ -1061,5 +1067,6 @@ commands = [
 	drop_site,
 	set_config,
 	get_version,
-	new_language
+	new_language,
+	start_rq_worker,
 ]

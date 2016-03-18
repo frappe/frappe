@@ -109,7 +109,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	else:
 		check_bulk_limit(list(set(doc.sent_email_addresses)))
 		from frappe.utils.background_jobs import enqueue
-		enqueue(sendmail, communication_name=doc.name,
+		enqueue(sendmail, queue="high", timeout=5,  communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 

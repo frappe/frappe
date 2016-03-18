@@ -1,5 +1,6 @@
+from __future__ import unicode_literals
 from redis import Redis
-from rq import Queue
+from rq import Connection, Queue, Worker
 import frappe
 from collections import defaultdict
 from frappe.utils import cstr
@@ -41,12 +42,8 @@ def rq_task(site, method, kwargs):
 	finally:
 		frappe.destroy()
 
+def start_worker():
+	with Connection():
+		qs = ['high' , 'default', 'low']
+		Worker(qs).work()
 
-def new_todo(description):
-	doc = frappe.get_doc({
-	"doctype": "ToDo",
-	"title": "My new project",
-	"description": description,
-	"status": "Open"
-	})
-	doc.insert()
