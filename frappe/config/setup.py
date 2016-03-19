@@ -137,6 +137,11 @@ def get_data():
 					"name": "Standard Reply",
 					"description": _("Standard replies to common queries.")
 				},
+				{
+					"type": "doctype",
+					"name": "Mattermost Settings",
+					"description": _("Mattermost Connection Settings")
+				}
 			]
 		},
 		{
