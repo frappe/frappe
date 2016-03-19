@@ -48,17 +48,21 @@ def get_user_icons(user):
 
 	icons = []
 	for icon in get_desktop_icons(user):
+		add = True
 		if icon.hidden_in_standard:
-			continue
+			add = False
+
 		if not icon.custom:
-			if icon.type=="page" and icon.link not in allowed_pages:
-				continue
+			if icon.module_name=='Learn':
+				pass
+
+			elif icon.type=="page" and icon.link not in allowed_pages:
+				add = False
 
 			elif icon.type=="module" and icon.module_name not in user_perms.allow_modules:
-				continue
+				add = False
 
-		icons.append(icon)
+		if add:
+			icons.append(icon)
 
 	return icons
-
-

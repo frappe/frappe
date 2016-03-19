@@ -99,7 +99,8 @@ frappe.ui.form.Grid = Class.extend({
 
 			if(this.is_editable()) {
 				this.wrapper.find(".grid-footer").toggle(true);
-				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggle(!this.cannot_add_rows);
+				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggleClass("hide",
+					this.cannot_add_rows ? true : false);
 				this.make_sortable($rows);
 			} else {
 				this.wrapper.find(".grid-footer").toggle(false);

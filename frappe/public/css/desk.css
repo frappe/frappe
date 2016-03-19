@@ -317,14 +317,9 @@ a.form-link {
 textarea.form-control {
   height: 120px;
 }
-ul.linked-with-list {
-  list-style: none;
-  margin: 0 0 20px 0;
-  padding: 0 0 0 0;
-}
-ul.linked-with-list li {
-  padding: 5px 0px;
-  border-bottom: 1px solid #d1d8dd;
+.link-select-row {
+  padding: 5px;
+  border-bottom: 1px solid #EBEFF2;
 }
 /* jquery ui */
 .ui-datepicker .ui-datepicker-header {
