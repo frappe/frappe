@@ -7,6 +7,7 @@ import frappe
 from frappe.email.email_body import get_email
 from frappe.email.smtp import send
 from frappe.utils import markdown
+from frappe.email.mattermost import post
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
 	reply_to=None, cc=(), message_id=None, in_reply_to=None):
