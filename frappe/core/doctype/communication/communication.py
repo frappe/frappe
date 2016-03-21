@@ -46,6 +46,13 @@ class Communication(Document):
 		if not (self.reference_doctype and self.reference_name):
 			return
 
+		# For Mattermost notification
+		if (self.communication_type == "Comment") and (self.reference_doctype == 'Leave Application') and \
+				(self.subject == "Submitted" or self.subject.startswith("Approved")
+				 or self.subject.endswith("Approved") or self.subject.startswith("Rejected")):
+			print '------------- I am in Communication after_insert() 3 %s ' % self.subject
+			# insert here send to Mattermost function
+
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
