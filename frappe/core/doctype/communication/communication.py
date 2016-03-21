@@ -47,10 +47,12 @@ class Communication(Document):
 			return
 
 		# For Mattermost notification
-		if (self.communication_type == "Comment") and (self.reference_doctype == 'Leave Application') and \
-				(self.subject == "Submitted" or self.subject.startswith("Approved")
-				 or self.subject.endswith("Approved") or self.subject.startswith("Rejected")):
-			print '------------- I am in Communication after_insert() 3 %s ' % self.subject
+		if (self.communication_type == "Comment" and
+			self.reference_doctype in ['Leave Application', "Salary Slip", "Material Request", "Purchase Receipt",
+									   "Purchase Order"] and \
+			(self.subject == "Submitted" or self.subject.startswith("Approved")
+			 or self.subject.endswith("Approved") or self.subject.startswith("Rejected"))):
+			print '------------- I am in Communication after_insert() 6 %s ' % self.subject
 			# insert here send to Mattermost function
 
 		if self.communication_type in ("Communication", "Comment"):
