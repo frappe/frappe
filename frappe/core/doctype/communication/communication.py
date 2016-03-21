@@ -9,6 +9,7 @@ from frappe.utils import validate_email_add, get_fullname, strip_html
 from frappe.model.db_schema import add_column
 from frappe.core.doctype.communication.comment import validate_comment, notify_mentions, update_comment_in_doc
 from frappe.core.doctype.communication.email import validate_email, notify, _notify, update_parent_status
+import frappe.tasks
 
 exclude_from_linked_with = True
 
@@ -52,8 +53,7 @@ class Communication(Document):
 									   "Purchase Order"] and \
 			(self.subject == "Submitted" or self.subject.startswith("Approved")
 			 or self.subject.endswith("Approved") or self.subject.startswith("Rejected"))):
-			print '------------- I am in Communication after_insert() 6 %s ' % self.subject
-			# insert here send to Mattermost function
+			frappe.tasks.send2mattermost.delay(self.reference_doctype, self.subject)
 
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients

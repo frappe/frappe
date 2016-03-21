@@ -261,3 +261,6 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 	finally:
 		frappe.destroy()
 
+@celery_task()
+def send2mattermost(reference_doctype, subject):
+	print '----------- I am in send2mattermost; reference_doctype = %s, subject = %s' % (reference_doctype, subject)
