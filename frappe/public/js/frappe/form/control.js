@@ -1302,6 +1302,12 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		if(this.df.get_options) {
 			return this.df.get_options();
 		}
+		if (this.docname==null && cur_dialog!=null){ //for dialog box
+			return cur_dialog.get_value(this.df.options)
+		}
+		if (cur_frm==null){//for list page
+			return $("input[data-fieldname*="+this.df.options+"]").val()
+		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		// if(!options) {
 		// 	msgprint(__("Please set {0} first",

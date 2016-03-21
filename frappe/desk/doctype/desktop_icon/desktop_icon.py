@@ -97,7 +97,15 @@ def add_user_icon(label, link, type, _doctype):
 			frappe.session.user)[0][0] or \
 			frappe.db.sql('select count(*) from `tabDesktop Icon` where standard=1')[0][0]
 
-		color = random.choice(palette)
+		module = frappe.db.get_value('DocType', _doctype, 'module')
+		module_icon = frappe.get_value('Desktop Icon', {'standard':1, 'module_name':module},
+			['icon', 'color', 'reverse'], as_dict=True)
+
+		if not module_icon:
+			module_icon = frappe._dict()
+			opts = random.choice(palette)
+			module_icon.color = opts[0]
+			module_icon.reverse = 0 if (len(opts) > 1) else 1
 
 		try:
 			frappe.get_doc({
@@ -107,8 +115,9 @@ def add_user_icon(label, link, type, _doctype):
 				'link': link,
 				'type': type,
 				'_doctype': _doctype,
-				'color': color[0],
-				'reverse': 0 if (len(color) > 1) else 1,
+				'icon': module_icon.icon,
+				'color': module_icon.color,
+				'reverse': module_icon.reverse,
 				'idx': idx + 1,
 				'custom': 1,
 				'standard': 0
@@ -128,8 +137,9 @@ def set_order(new_order):
 	if isinstance(new_order, basestring):
 		new_order = json.loads(new_order)
 	for i, module_name in enumerate(new_order):
-		icon = get_user_copy(module_name, frappe.session.user)
-		icon.db_set('idx', i)
+		if module_name not in ('Explore',):
+			icon = get_user_copy(module_name, frappe.session.user)
+			icon.db_set('idx', i)
 
 	clear_desktop_icons_cache()
 

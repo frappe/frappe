@@ -44,8 +44,9 @@ frappe.ui.form.LinkSelector = Class.extend({
 			}
 		});
 		this.dialog.show();
+		this.search();
 	},
-	search: function(btn) {
+	search: function() {
 		var args = {
 				txt: this.dialog.fields_dict.txt.get_value(),
 				doctype: this.doctype,
@@ -73,8 +74,12 @@ frappe.ui.form.LinkSelector = Class.extend({
 				parent.empty();
 				if(r.values.length) {
 					$.each(r.values, function(i, v) {
-						var row = $(repl('<p><b><a href="#" data-value="%(name)s">%(name)s</a></b> \
-							<span class="text-muted">%(values)s</span></p>', {
+						var row = $(repl('<div class="row link-select-row">\
+							<div class="col-xs-4">\
+								<b><a href="#" data-value="%(name)s">%(name)s</a></b></div>\
+							<div class="col-xs-8">\
+								<span class="text-muted">%(values)s</span></div>\
+							</div>', {
 								name: v[0],
 								values: v.splice(1).join(", ")
 							})).appendTo(parent);
