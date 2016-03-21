@@ -7,20 +7,6 @@ import frappe
 
 logger = logging.getLogger(__name__)
 
-@frappe.whitelist()
-def post(txt, contact, parenttype=None, notify=False, subject=None):
-    """post message"""
-    d = frappe.new_doc('Communication')
-    d.communication_type = 'Chat'
-    d.subject = subject
-    d.comment_type = ''
-    d.content = txt
-    # d.reference_doctype = 'User'
-    # d.reference_name = contact
-    # d.sender = frappe.session.user
-    d.insert(ignore_permissions=True)
-    return d
-
 
 class MattermostAPI(object):
     def __init__(self, url):
