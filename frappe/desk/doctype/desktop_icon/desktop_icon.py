@@ -87,7 +87,7 @@ def get_desktop_icons(user=None):
 @frappe.whitelist()
 def add_user_icon(label, link, type, _doctype):
 	'''Add a new user desktop icon to the desktop'''
-	icon_name = frappe.db.exists('Desktop Icon', {'standard': 0, 'link': link})
+	icon_name = frappe.db.exists('Desktop Icon', {'standard': 0, 'link': link, 'owner': frappe.session.user})
 	if icon_name and frappe.db.get_value('Desktop Icon', icon_name, 'hidden'):
 		frappe.db.set_value('Desktop Icon', icon_name, 'hidden', 0)
 		clear_desktop_icons_cache()

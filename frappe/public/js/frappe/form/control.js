@@ -1302,11 +1302,13 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		if(this.df.get_options) {
 			return this.df.get_options();
 		}
-		if (this.docname==null && cur_dialog!=null){ //for dialog box
+		if (this.docname==null && cur_dialog) {
+			//for dialog box
 			return cur_dialog.get_value(this.df.options)
 		}
-		if (cur_frm==null){//for list page
-			return $("input[data-fieldname*="+this.df.options+"]").val()
+		if (cur_frm==null && cur_list){
+			//for list page
+			return cur_list.wrapper.find("input[data-fieldname*="+this.df.options+"]").val()
 		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		// if(!options) {
