@@ -17,6 +17,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 		this.template = null;
+		this.multiple_set = false;
 		if(this.frm.meta.__form_grid_templates
 			&& this.frm.meta.__form_grid_templates[this.df.fieldname]) {
 				this.template = this.frm.meta.__form_grid_templates[this.df.fieldname];
@@ -99,8 +100,21 @@ frappe.ui.form.Grid = Class.extend({
 
 			if(this.is_editable()) {
 				this.wrapper.find(".grid-footer").toggle(true);
-				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggleClass("hide",
-					this.cannot_add_rows ? true : false);
+
+				// show, hide buttons to add rows
+				if(this.cannot_add_rows) {
+					// add 'hide' to buttons
+					this.wrapper.find(".grid-add-row, .grid-add-multiple-rows")
+						.addClass('hide');
+				} else {
+					// show buttons
+					this.wrapper.find(".grid-add-row").removeClass('hide');
+
+					if(this.multiple_set) {
+						this.wrapper.find(".grid-add-multiple-rows").removeClass('hide')
+					}
+				}
+
 				this.make_sortable($rows);
 			} else {
 				this.wrapper.find(".grid-footer").toggle(false);
@@ -214,18 +228,22 @@ frappe.ui.form.Grid = Class.extend({
 		if(this.multiple_set) return;
 		var me = this;
 		var link_field = frappe.meta.get_docfield(this.df.options, link);
-		$(this.wrapper).find(".grid-add-multiple-rows")
-			.removeClass("hide")
-			.on("click", function() {
-				new frappe.ui.form.LinkSelector({
-					doctype: link_field.options,
-					fieldname: link,
-					qty_fieldname: qty,
-					target: me,
-					txt: ""
-				});
-				return false;
+		var btn = $(this.wrapper).find(".grid-add-multiple-rows");
+
+		// show button
+		btn.removeClass('hide');
+
+		// open link selector on click
+		btn.on("click", function() {
+			new frappe.ui.form.LinkSelector({
+				doctype: link_field.options,
+				fieldname: link,
+				qty_fieldname: qty,
+				target: me,
+				txt: ""
 			});
+			return false;
+		});
 		this.multiple_set = true;
 	},
 	setup_allow_bulk_edit: function() {
