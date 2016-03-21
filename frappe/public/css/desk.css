@@ -440,7 +440,6 @@ textarea.form-control {
 }
 .open-notification {
   position: relative;
-  top: -2px;
   left: 2px;
   display: inline-block;
   background: #ff5858;
