@@ -17,7 +17,7 @@ def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_len=50, filters=None):
+	page_len=10, filters=None):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
