@@ -87,7 +87,7 @@
 						{% if(data.link_doctype && data.link_name) { %}
 						<a href="#Form/{%= data.link_doctype %}/{%= data.link_name %}">
 						{% } %}
-	                        {%= data.content %}
+	                        {%= __(data.content) %}
 						{% if(data.link_doctype && data.link_name) { %}
 						</a>
 						{% } %}
@@ -108,7 +108,7 @@
 					</span>
 					{% } else { %}
                     	<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
-						{%= data.content %}
+						{%= __(data.content) %}
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							 &ndash;
 							 <a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
