@@ -17,10 +17,10 @@
 }
 .module-section .module-section-link {
   line-height: 1.5em;
-  font-size: 12px;
+  font-size: 14px;
 }
 .module-section-column {
-  padding: 15px 30px;
+  padding: 30px 30px;
   padding-bottom: 20px;
 }
 @media (min-width: 767px) {
