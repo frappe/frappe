@@ -114,9 +114,3 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	}
 });
 
-// close open dialogs on ESC
-$(document).bind('keydown', function(e) {
-	if(cur_dialog && !cur_dialog.no_cancel_flag && e.which==27) {
-		cur_dialog.cancel();
-	}
-});
