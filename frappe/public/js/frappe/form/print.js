@@ -64,12 +64,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		this.wrapper.find(".btn-download-pdf").click(function() {
 			if(!me.is_old_style()) {
-				var w = window.open("/api/method/frappe.templates.pages.print.download_pdf?"
+				var w = window.open(
+					frappe.urllib.get_full_url("/api/method/frappe.templates.pages.print.download_pdf?"
 					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 					+"&name="+encodeURIComponent(me.frm.doc.name)
 					+"&format="+me.selected_format()
 					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-					+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
+					+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
@@ -130,13 +131,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	new_page_preview: function(printit) {
 		var me = this;
-		var w = window.open("/print?"
+		var w = window.open(frappe.urllib.get_full_url("/print?"
 			+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 			+"&name="+encodeURIComponent(me.frm.doc.name)
 			+(printit ? "&trigger_print=1" : "")
 			+"&format="+me.selected_format()
 			+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-			+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
+			+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
 		if(!w) {
 			msgprint(__("Please enable pop-ups")); return;
 		}
