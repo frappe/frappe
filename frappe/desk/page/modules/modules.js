@@ -103,7 +103,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 							item.route = 'Form/' + item.doctype;
 						} else {
 							item.route="List/" + item.doctype
-							item.style = 'text-decoration: underline;';
+							//item.style = 'font-weight: 500;';
 						}
 						// item.style = 'font-weight: bold;';
 					}

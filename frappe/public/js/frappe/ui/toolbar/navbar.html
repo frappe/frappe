@@ -24,6 +24,8 @@
 	                <span class="text-ellipsis toolbar-user-fullname">{%= frappe.user.full_name() %}</span>
 	                <b class="caret"></b></a>
 					<ul class="dropdown-menu" id="toolbar-user" role="menu">
+	                    <li class="navbar-set-desktop-icons"><a href="#modules_setup">
+	                        {%= __("Set Desktop Icons") %}</a></li>
 	                    <li><a href="#Form/User/{%= encodeURIComponent(user) %}">
 	                        {%= __("My Settings") %}</a></li>
 	    				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
