@@ -53,7 +53,7 @@ class Communication(Document):
 									   "Purchase Order"] and \
 			(self.subject == "Submitted" or self.subject.startswith("Approved")
 			 or self.subject.endswith("Approved") or self.subject.startswith("Rejected"))):
-			frappe.tasks.send2mattermost.delay(self.reference_doctype, self.subject)
+			frappe.tasks.send2mattermost.delay(frappe.local.site, self.reference_doctype, self.subject)
 
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients

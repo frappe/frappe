@@ -17,7 +17,7 @@ import time
 import json
 import os
 import MySQLdb
-import frappe.email
+import frappe.email.mattermost
 
 @celery_task()
 def sync_queues():
@@ -263,11 +263,13 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 		frappe.destroy()
 
 @celery_task()
-def send2mattermost(reference_doctype, subject):
-	url = 'http://52.86.156.200/api/v1'
-	team = 'exampleteam'
-	email = 'someone@nowhere.com'
-	password = 'osyaosya'
+def send2mattermost(site, reference_doctype, subject):
+	frappe.connect(site=site)
+	settings = frappe.get_doc("Mattermost Settings", "Notifications")
+	url = settings.url
+	team = settings.team
+	email = settings.email
+	password = settings.password
 	client = frappe.email.mattermost.MattermostClient(url, team, email, password)
 
 	# post message in a channel
