@@ -44,6 +44,7 @@ frappe.views.QueryReport = Class.extend({
 		</div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<p class="help-msg alert-warning alert-link" style="text-align: center;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
@@ -292,6 +293,7 @@ frappe.views.QueryReport = Class.extend({
 			callback: function(r) {
 				me.report_ajax = undefined;
 				me.make_results(r.message.result, r.message.columns);
+				me.set_message(r.message.message);
 			}
 		});
 
@@ -699,5 +701,12 @@ frappe.views.QueryReport = Class.extend({
 		this.title = this.report_name;
 		frappe.tools.downloadify(result, null, this.title);
 		return false;
-	}
+	},
+	set_message: function(msg) {
+		if(msg) {
+			this.wrapper.find(".help-msg").html(msg).toggle(true);
+		} else {
+			this.wrapper.find(".help-msg").empty().toggle(false);
+		}
+	}	
 })
