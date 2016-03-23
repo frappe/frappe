@@ -144,7 +144,7 @@ class Communication(Document):
 
 	def notify(self, print_html=None, print_format=None, attachments=None,
 		recipients=None, cc=None, fetched_from_email_account=False):
-		"""Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue
+		"""Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue
 
 		:param print_html: Send given value as HTML attachment
 		:param print_format: Attach print format of parent document
