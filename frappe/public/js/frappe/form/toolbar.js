@@ -5,12 +5,12 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.Toolbar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.make_menu();
 		this.refresh();
 		this.add_update_button_on_dirty();
 		this.setup_editable_title();
 	},
 	refresh: function() {
+		this.make_menu();
 		this.set_title();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
@@ -96,16 +96,27 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 	},
 	make_menu: function() {
+		this.page.clear_icons();
+		this.page.clear_menu();
 		var me = this;
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
-
+		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		var allow_print_for_draft = cint(print_settings.allow_print_for_draft)
+		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
+		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled)
+		
 		// Print
-		if(frappe.model.can_print(null, me.frm)) {
-			this.page.add_menu_item(__("Print"), function() {
-				me.frm.print_doc();}, true);
-			this.print_icon = this.page.add_action_icon("icon-print", function() {
-				me.frm.print_doc();});
+		if(!is_submittable || docstatus == 1  || 
+			(allow_print_for_cancelled && docstatus == 2)|| 
+	 		(allow_print_for_draft && docstatus == 0)|| 
+			in_list(user_roles, "Administrator")) {
+			if(frappe.model.can_print(null, me.frm)) {
+				this.page.add_menu_item(__("Print"), function() {
+					me.frm.print_doc();}, true);
+				this.print_icon = this.page.add_action_icon("icon-print", function() {
+					me.frm.print_doc();});
+			}
 		}
 
 		// email

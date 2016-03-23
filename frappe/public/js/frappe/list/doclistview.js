@@ -479,15 +479,28 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	make_bulk_printing: function() {
 		var me = this;
+		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		var allow_print_for_draft = cint(print_settings.allow_print_for_draft)
+		var is_submittable = frappe.model.is_submittable(me.doctype)
+		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled)
+
 		//bulk priting
 		me.page.add_menu_item(__("Print"), function(){
-
+			var no_print = false
 			docname = [];
-
 			$.each(me.get_checked_items(), function(i, doc){
-				docname.push(doc.name);
+				if(!is_submittable || doc.docstatus == 1  || 
+					(allow_print_for_cancelled && doc.docstatus == 2)|| 
+	 				(allow_print_for_draft && doc.docstatus == 0)|| 
+					in_list(user_roles, "Administrator"))
+				
+						docname.push(doc.name);
+				else
+					no_print = true
 			})
-
+			if(no_print == true){
+				frappe.msgprint("You selected Draft or Cancelled documents")
+			}
 			if(docname.length >= 1){
 
 				var dialog = new frappe.ui.Dialog({
