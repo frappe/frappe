@@ -116,6 +116,16 @@ class WebForm(WebsiteGenerator):
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
 
+		# back link given with back-to url argument
+		if frappe.form_dict.get('back-to'):
+			link = frappe.form_dict.get('back-to').split('|')
+
+			# breadcrumbs
+			context.parents = [{'name': link[0], 'title': link[1] if len(link) > 1 else _('Back') }]
+
+			# success
+			context.success_url = link[0]
+
 		return context
 
 	def get_layout(self):
