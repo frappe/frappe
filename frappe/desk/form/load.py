@@ -9,7 +9,6 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.permissions import get_doc_permissions
 from frappe import _
-from frappe.core.doctype.communication.feed import get_feed_match_conditions
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -117,7 +116,6 @@ def get_communications(doctype, name, start=0, limit=20):
 
 
 def _get_communications(doctype, name, start=0, limit=20):
-	match_conditions = get_feed_match_conditions()
 	communications = frappe.db.sql("""select name, communication_type,
 			communication_medium, comment_type,
 			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
@@ -130,12 +128,13 @@ def _get_communications(doctype, name, start=0, limit=20):
 			communication_type in ("Communication", "Comment")
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
-				or (timeline_doctype=%(doctype)s and timeline_name=%(name)s)
+				or (timeline_doctype=%(doctype)s
+					and timeline_name=%(name)s
+					and communication_type="Comment"
+					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted"))
 			)
 			and (comment_type is null or comment_type != 'Update')
-			{match_conditions}
-		order by creation desc limit %(start)s, %(limit)s"""
-			.format(match_conditions=("and " + match_conditions) if match_conditions else ""),
+		order by creation desc limit %(start)s, %(limit)s""",
 			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
 			as_dict=True)
 

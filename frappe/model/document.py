@@ -805,7 +805,7 @@ class Document(BaseDocument):
 			"comment_type": comment_type,
 			"reference_doctype": self.doctype,
 			"reference_name": self.name,
-			"content": text or _(comment_type),
+			"content": text or comment_type,
 			"link_doctype": link_doctype,
 			"link_name": link_name
 		}).insert(ignore_permissions=True)
