@@ -20,7 +20,7 @@ frappe.ui.form.on('User', {
 
 	},
 	onload: function(frm) {
-		if(has_common(user_roles, ["Administrator", "System Manager"])) {
+		if(has_common(user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
