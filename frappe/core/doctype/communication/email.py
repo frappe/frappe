@@ -59,7 +59,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
-	# needed for communication.notify which uses celery delay
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
@@ -87,7 +86,7 @@ def validate_email(doc):
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
-	"""Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue
+	"""Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue
 
 	:param print_html: Send given value as HTML attachment
 	:param print_format: Attach print format of parent document
@@ -109,7 +108,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	else:
 		check_bulk_limit(list(set(doc.sent_email_addresses)))
 		from frappe.utils.background_jobs import enqueue
-		enqueue(sendmail, queue="short", timeout=300,  communication_name=doc.name,
+		enqueue(sendmail, queue="short", timeout=300, event="email", communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 

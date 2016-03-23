@@ -33,5 +33,3 @@ bleach-whitelist
 Pillow
 beautifulsoup4
 rq
-rq-dashboard
-
