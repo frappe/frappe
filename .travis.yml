@@ -17,6 +17,8 @@ install:
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+
+script:
   - cd ~/frappe-bench
   - bench use test_site
   - bench setup redis
@@ -27,9 +29,6 @@ install:
   - bench build-website
   - bench start &
   - sleep 10
-
-script:
-  - cd ~/frappe-bench
   - bench --verbose run-tests --driver Firefox
 
 before_script:
