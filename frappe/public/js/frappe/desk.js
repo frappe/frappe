@@ -260,12 +260,24 @@ frappe.Application = Class.extend({
 				return false;
 			})
 			.keydown("esc", function(e) {
+				// close open grid row
 				var open_row = $(".grid-row-open");
 				if(open_row.length) {
 					var grid_row = open_row.data("grid_row");
 					grid_row.toggle_view(false);
+					return false;
 				}
-				return false;
+
+				// close open dialog
+				if(cur_dialog && !cur_dialog.no_cancel_flag) {
+					cur_dialog.cancel();
+					return false;
+				}
+			})
+			.keydown("return", function() {
+				if(cur_dialog && cur_dialog.confirm_dialog) {
+					cur_dialog.get_primary_btn().trigger('click');
+				}
 			})
 			.keydown("ctrl+down meta+down", function(e) {
 				var open_row = $(".grid-row-open");
