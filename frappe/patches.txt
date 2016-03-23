@@ -120,3 +120,4 @@ frappe.patches.v6_21.print_settings_repeat_header_footer
 frappe.patches.v6_24.set_language_as_code
 frappe.patches.v6_20x.update_insert_after
 frappe.patches.v6_24.sync_desktop_icons
+frappe.patches.v6_20x.set_allow_draft_for_print

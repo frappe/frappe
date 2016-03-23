@@ -101,16 +101,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		var me = this;
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
-		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
-		var allow_print_for_draft = cint(print_settings.allow_print_for_draft)
 		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
-		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled)
-		
+
+		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
+		var allow_print_for_draft = cint(print_settings.allow_print_for_draft);
+		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+
 		// Print
-		if(!is_submittable || docstatus == 1  || 
-			(allow_print_for_cancelled && docstatus == 2)|| 
-	 		(allow_print_for_draft && docstatus == 0)|| 
-			in_list(user_roles, "Administrator")) {
+		if(!is_submittable || docstatus == 1  ||
+			(allow_print_for_cancelled && docstatus == 2)||
+	 		(allow_print_for_draft && docstatus == 0)) {
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);

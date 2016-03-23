@@ -54,15 +54,25 @@ def get_print_format_doc(print_format_name, meta):
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
 
+	print_settings = frappe.db.get_singles_dict("Print Settings")
+
 	if isinstance(no_letterhead, basestring):
 		no_letterhead = cint(no_letterhead)
+
 	elif no_letterhead is None:
-		no_letterhead = not cint(frappe.db.get_single_value("Print Settings", "with_letterhead"))
+		no_letterhead = not cint(print_settings.with_letthead)
 
 	doc.flags.in_print = True
 
 	if not frappe.flags.ignore_print_permissions:
 		validate_print_permission(doc)
+
+	if doc.meta.is_submittable:
+		if doc.docstatus==0 and not print_settings.allow_print_for_draft:
+			frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
+
+		if doc.docstatus==2 and not print_settings.allow_print_for_cancelled:
+			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
 
 	if hasattr(doc, "before_print"):
 		doc.before_print()
@@ -149,9 +159,9 @@ def download_multi_pdf(doctype, name, format=None):
 	totalhtml = ""
 	# Pagebreak to be added between each doc html
 	pagebreak = """<p style="page-break-after:always;"></p>"""
-	
+
 	options = {}
-	
+
 	import json
 	result = json.loads(name)
 	# Get html of each doc and combine including page breaks
@@ -161,12 +171,12 @@ def download_multi_pdf(doctype, name, format=None):
 			totalhtml = totalhtml + html
 		else:
 			totalhtml = totalhtml + html + pagebreak
-			
-	
-	
+
+
+
 	frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
 
-	
+
 	# Title of pdf
 	options.update({
 		'title': doctype,
@@ -174,7 +184,7 @@ def download_multi_pdf(doctype, name, format=None):
 
 	frappe.local.response.filecontent = get_pdf(totalhtml,options)
 	frappe.local.response.type = "download"
-	
+
 @frappe.whitelist()
 def download_pdf(doctype, name, format=None):
 	html = frappe.get_print(doctype, name, format)

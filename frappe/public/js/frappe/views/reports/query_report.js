@@ -44,7 +44,7 @@ frappe.views.QueryReport = Class.extend({
 		</div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
-			<p class="help-msg alert-warning alert-link" style="text-align: center;"></p>\
+			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
@@ -149,7 +149,7 @@ frappe.views.QueryReport = Class.extend({
 			msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		
+
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
@@ -164,7 +164,7 @@ frappe.views.QueryReport = Class.extend({
 			msgprint(__("You are not allowed to make PDF for this report"));
 			return false;
 		}
-		
+
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
@@ -708,5 +708,5 @@ frappe.views.QueryReport = Class.extend({
 		} else {
 			this.wrapper.find(".help-msg").empty().toggle(false);
 		}
-	}	
+	}
 })
