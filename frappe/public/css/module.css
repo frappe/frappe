@@ -11,6 +11,7 @@
 }
 .module-body .section-head {
   margin-bottom: 15px;
+  margin-top: 0px;
 }
 .module-section {
   border-bottom: 1px solid #EBEFF2;
@@ -20,8 +21,7 @@
   font-size: 14px;
 }
 .module-section-column {
-  padding: 30px 30px;
-  padding-bottom: 20px;
+  padding: 30px;
 }
 @media (min-width: 767px) {
   .module-section:nth-child(even) {

@@ -376,6 +376,8 @@ frappe.get_desktop_icons = function(show_hidden) {
 			if(m.module_name==='Learn') {
 				// no permissions necessary for learn
 				out = true;
+			} else if(m.module_name==='Setup' && frappe.user.has_role('System Manager')) {
+				out = true;
 			} else {
 				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 			}
@@ -383,7 +385,7 @@ frappe.get_desktop_icons = function(show_hidden) {
 		if(out && !show_hidden) {
 			if(m.hidden) out = false;
 		}
-		
+
 		return out;
 	}
 
