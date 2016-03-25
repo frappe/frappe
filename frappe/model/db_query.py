@@ -207,7 +207,7 @@ class DatabaseQuery(object):
 				self.filters.remove(each)
 
 		# add _seen if track_seen is set
-		if getattr(frappe.get_meta(self.doctype), 'track_seen'):
+		if getattr(frappe.get_meta(self.doctype), 'track_seen', False):
 			self.fields.append('_seen')
 
 	def build_conditions(self):
