@@ -678,7 +678,7 @@ class Document(BaseDocument):
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
-		if self.meta.track_seen:
+		if getattr(self.meta, 'track_seen', False):
 			self._seen = json.dumps([frappe.session.user])
 
 	def notify_update(self):
