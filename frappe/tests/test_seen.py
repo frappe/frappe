@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 import frappe, unittest, json
 
 class TestSeen(unittest.TestCase):
+	def tearDown(self):
+		frappe.set_user('Administrator')
+
 	def test_if_user_is_added(self):
 		ev = frappe.get_doc({
 			'doctype': 'Event',
