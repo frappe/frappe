@@ -213,7 +213,7 @@ class DbTable:
 				})
 
 			# add _seen column if track_seen
-			if self.meta.track_seen:
+			if getattr(self.meta, 'track_seen', False):
 				fl.append({
 					'fieldname': '_seen',
 					'fieldtype': 'Text'
