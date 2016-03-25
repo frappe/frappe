@@ -609,6 +609,7 @@ class Document(BaseDocument):
 
 		Will also update title_field if set"""
 		self.set_title_field()
+		self.reset_seen()
 
 		if self.flags.ignore_validate:
 			return
@@ -674,6 +675,11 @@ class Document(BaseDocument):
 		_clear_cache(self)
 		for d in self.get_all_children():
 			_clear_cache(d)
+
+	def reset_seen(self):
+		'''Clear _seen property and set current user as seen'''
+		if self.meta.track_seen:
+			self._seen = json.dumps([frappe.session.user])
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
@@ -810,6 +816,22 @@ class Document(BaseDocument):
 			"link_name": link_name
 		}).insert(ignore_permissions=True)
 		return comment
+
+	def add_seen(self, user=None):
+		'''add the given/current user to list of users who have seen this document (_seen)'''
+		if not user:
+			user = frappe.session.user
+
+		if self.meta.track_seen:
+			if self._seen:
+				_seen = json.loads(self._seen)
+			else:
+				_seen = []
+
+			if user not in _seen:
+				_seen.append(user)
+				self.db_set('_seen', json.dumps(_seen))
+				frappe.local.flags.commit = True
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""

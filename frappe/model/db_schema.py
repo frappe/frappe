@@ -212,6 +212,13 @@ class DbTable:
 					"fieldtype": "Text"
 				})
 
+			# add _seen column if track_seen
+			if self.meta.track_seen:
+				fl.append({
+					'fieldname': '_seen',
+					'fieldtype': 'Text'
+				})
+
 		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`

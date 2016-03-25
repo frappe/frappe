@@ -85,7 +85,7 @@ class DatabaseQuery(object):
 	def prepare_args(self):
 		self.parse_args()
 		self.extract_tables()
-		self.remove_user_tags()
+		self.set_optional_columns()
 		self.build_conditions()
 
 		args = frappe._dict()
@@ -176,7 +176,7 @@ class DatabaseQuery(object):
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			raise frappe.PermissionError, doctype
 
-	def remove_user_tags(self):
+	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		columns = frappe.db.get_table_columns(self.doctype)
 
@@ -205,6 +205,10 @@ class DatabaseQuery(object):
 				del self.filters[each]
 			else:
 				self.filters.remove(each)
+
+		# add _seen if track_seen is set
+		if frappe.get_meta(self.doctype).track_seen:
+			self.fields.append('_seen')
 
 	def build_conditions(self):
 		self.conditions = []

@@ -153,6 +153,9 @@
 .list-id {
   font-weight: bold;
 }
+.list-id.seen {
+  font-weight: normal;
+}
 .list-col {
   height: 20px;
 }

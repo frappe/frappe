@@ -102,6 +102,7 @@ class WebForm(WebsiteGenerator):
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 			context.title = context.doc.get(context.doc.meta.get_title_field())
+			context.doc.add_seen()
 
 			context.reference_doctype = context.doc.doctype
 			context.reference_name = context.doc.name

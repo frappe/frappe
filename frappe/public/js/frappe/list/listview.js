@@ -259,6 +259,14 @@ frappe.views.ListView = Class.extend({
 
 	get_avatar_and_id: function(data, without_workflow) {
 		data._without_workflow = without_workflow;
+
+		var seen = JSON.parse(data._seen);
+
+		data.css_seen = '';
+		if(seen && seen.indexOf(frappe.session.user) !== -1) {
+			data.css_seen = 'seen'
+		}
+
 		return frappe.render_template("list_item_subject", data);
 	},
 

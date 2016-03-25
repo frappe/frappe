@@ -12,7 +12,7 @@
 	</i>
 	<span class="likes-count">{{ (_liked_by.length > 9 ? "9+" : _liked_by.length) || "" }}</span>
 </span>
-<a class="grey list-id"
+<a class="grey list-id {{ css_seen }}"
     style="margin-right: 7px;"
 	href="#Form/{{ _doctype_encoded }}/{{ _name_encoded }}"
     title="{{ _full_title }}">{{ _title }}</a>

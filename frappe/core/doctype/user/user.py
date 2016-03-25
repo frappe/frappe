@@ -452,7 +452,6 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		where enabled=1
 			and docstatus < 2
 			and name not in ({standard_users})
-			and user_type != 'Website User'
 			and ({key} like %s
 				or concat_ws(' ', first_name, middle_name, last_name) like %s)
 			{mcond}

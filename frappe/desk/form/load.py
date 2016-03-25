@@ -45,6 +45,8 @@ def getdoc(doctype, name, user=None):
 	if doc and not name.startswith('_'):
 		frappe.get_user().update_recent(doctype, name)
 
+	doc.add_seen()
+
 	frappe.response.docs.append(doc)
 
 @frappe.whitelist()
