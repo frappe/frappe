@@ -390,14 +390,23 @@ def update_password(new_password, key=None, old_password=None):
 
 	_update_password(user, new_password)
 
-	frappe.db.set_value("User", user, "reset_password_key", "")
+	user_doc, redirect_url = reset_user_data(user)
 
 	frappe.local.login_manager.login_as(user)
 
-	if frappe.db.get_value("User", user, "user_type")=="System User":
+	if user_doc.user_type == "System User":
 		return "/desk"
 	else:
-		return "/"
+		return redirect_url if redirect_url else "/"
+
+def reset_user_data(user):
+	user_doc = frappe.get_doc("User", user)
+	redirect_url = user_doc.redirect_url
+	user_doc.reset_password_key = ''
+	user_doc.redirect_url = ''
+	user_doc.save(ignore_permissions=True)
+
+	return user_doc, redirect_url
 
 @frappe.whitelist()
 def verify_password(password):
