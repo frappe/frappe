@@ -14,7 +14,7 @@
   {% if params.name or params.new %}
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
     		{{ _("Submit") if params.new else _("Update") }}</button>
-    <a href="{{ pathname }}" class="btn btn-default btn-sm">
+    <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
   {% elif is_list %}
     <a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
@@ -56,9 +56,9 @@
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
 
-{%- macro value(field) -%}{% if doc %}{{ 
-	doc.get(field.fieldname) or 
-	field.default or 
+{%- macro value(field) -%}{% if doc %}{{
+	doc.get(field.fieldname) or
+	field.default or
 	frappe.form_dict.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
