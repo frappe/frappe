@@ -33,5 +33,12 @@ $.extend(cur_frm.cscript, {
 				}
 			});
 		}
+	},
+
+	send_backups_to_dropbox: function() {
+		// on disable, save the form
+		if (!cur_frm.doc.send_backups_to_dropbox) {
+			cur_frm.save();
+		}
 	}
 });
