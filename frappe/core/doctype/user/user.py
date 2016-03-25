@@ -40,6 +40,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 		self.add_system_manager_role()
 		self.validate_system_manager_user_type()
+		self.set_system_user()
 		self.check_enable_disable()
 		self.update_gravatar()
 		self.ensure_unique_roles()
@@ -87,6 +88,12 @@ class User(Document):
 			if self.send_password_update_notification:
 				self.password_update_mail(new_password)
 				frappe.msgprint(_("New password emailed"))
+
+	def set_system_user(self):
+		if self.user_roles or self.name == 'Administrator':
+			self.user_type = 'System User'
+		else:
+			self.user_type = 'Website User'
 
 	def on_update(self):
 		# clear new password
