@@ -81,6 +81,10 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("Edit Folder"), function() {
 			frappe.set_route("Form", "File", doclist.current_folder);
 		});
+
+		doclist.page.add_menu_item(__("Import Zip-Archive"), function() {
+
+		});
 	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
