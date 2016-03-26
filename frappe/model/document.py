@@ -830,7 +830,7 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				self.db_set('_seen', json.dumps(_seen))
+				self.db_set('_seen', json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
 	def get_signature(self):

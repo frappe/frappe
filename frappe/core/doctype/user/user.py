@@ -39,7 +39,6 @@ class User(Document):
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 		self.add_system_manager_role()
-		self.validate_system_manager_user_type()
 		self.set_system_user()
 		self.check_enable_disable()
 		self.update_gravatar()
@@ -74,12 +73,6 @@ class User(Document):
 				"doctype": "UserRole",
 				"role": "System Manager"
 			})
-
-	def validate_system_manager_user_type(self):
-		#if user has system manager role then user type should be system user
-		if ("System Manager" in [user_role.role for user_role in
-			self.get("user_roles")]) and self.get("user_type") != "System User":
-				frappe.throw(_("User with System Manager Role should always have User Type: System User"))
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.in_insert:
