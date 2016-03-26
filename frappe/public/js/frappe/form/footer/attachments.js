@@ -218,7 +218,7 @@ frappe.ui.get_upload_dialog = function(opts){
 
 	$(dialog.body).empty();
 
-	frappe.upload.make({
+	var make_params = {
 		parent: dialog.body,
 		args: opts.args,
 		callback: function(attachment, r) {
@@ -235,8 +235,13 @@ frappe.ui.get_upload_dialog = function(opts){
 		},
 		btn: btn,
 		max_width: opts.max_width,
-		max_height: opts.max_height,
-	});
+		max_height: opts.max_height
+	};
+	if (opts.is_private != undefined)
+	{
+		make_params['is_private'] = opts.is_private;
+	}
+	frappe.upload.make(make_params);
 
 	return dialog;
 }

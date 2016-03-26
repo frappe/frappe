@@ -89,6 +89,7 @@ frappe.listview_settings['File'] = {
 					"folder": doclist.current_folder,
 					"from_form": 1
 				},
+				"is_private": 0,
 				"callback": function(attachment, r) { doclist.refresh(); },
 			});
 		});
