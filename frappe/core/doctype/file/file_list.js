@@ -83,7 +83,21 @@ frappe.listview_settings['File'] = {
 		});
 
 		doclist.page.add_menu_item(__("Import Zip-Archive"), function() {
+			// Сюда вставить вызов формы загрузки файла
+			// get_upload_dialog (Frappe/frappe/public/js/frappe/form/footer/attachments.js)
+			var me = this;
+			//if (this.dialog) {
+			//	// remove upload dialog
+			//	this.dialog.$wrapper.remove();
+			//}
 
+			// make upload dialog
+			frappe.ui.get_upload_dialog({
+				//"args": me.get_args(),
+				//"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
+				//"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+				//"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+			});
 		});
 	},
 	setup_dragdrop: function(doclist) {
