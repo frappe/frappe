@@ -1,0 +1,42 @@
+.message-row .bot-icon {
+	width: 24px;
+	margin-right: 5px;
+	padding-left: 7px;
+	font-size: 18px;
+	/*color: #FEEF72;*/
+}
+
+
+.message-bubble {
+	padding: 0px 10px;
+	padding-top: 2px;
+	border-radius: 10px;
+	margin-bottom: 10px;
+	background-color: #d1d8dd;
+	width: 70%;
+}
+
+.message-bubble::before {
+    background-color: #d1d8dd;
+    content: "\00a0";
+    display: block;
+    height: 6px;
+    position: absolute;
+    top: 7px;
+	left: 70px;
+    transform:             rotate( 45deg ) skew( -35deg );
+        -moz-transform:    rotate( 45deg ) skew( -35deg );
+        -ms-transform:     rotate( 45deg ) skew( -35deg );
+        -o-transform:      rotate( 45deg ) skew( -35deg );
+        -webkit-transform: rotate( 45deg ) skew( -35deg );
+    width:  14px;
+}
+
+.message-bubble.my-message {
+	color: white;
+    background-color: #5E64FF;
+}
+
+.message-bubble.my-message::before {
+    background-color: #5E64FF;
+}

@@ -64,9 +64,7 @@ class TestUser(unittest.TestCase):
 		frappe.set_user("testperm@example.com")
 
 		me = frappe.get_doc("User", "testperm@example.com")
-		me.add_roles("System Manager")
-
-		self.assertTrue("System Manager" not in [d.role for d in me.get("user_roles")])
+		self.assertRaises(frappe.PermissionError, me.add_roles, "System Manager")
 
 		frappe.set_user("Administrator")
 

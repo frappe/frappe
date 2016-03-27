@@ -45,16 +45,20 @@ frappe.desk.pages.Messages = Class.extend({
 	setup_realtime: function() {
 		var me = this;
     	frappe.realtime.on('new_message', function(comment) {
-			if(comment.modified_by !== user) {
-	    		frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
+			if(comment.modified_by !== user || comment.communication_type === 'Bot') {
+				if(frappe.get_route()[0] === 'messages') {
+	    			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
+	    			var on_broadcast_page = current_contact === user;
+	    			if ((current_contact == comment.owner)
+						|| (on_broadcast_page && comment.broadcast)
+						|| current_contact === 'Bot' && comment.communication_type === 'Bot') {
+
+						setTimeout(function() { me.prepend_comment(comment); }, 1000);
+	    			}
+				} else {
+		    		frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
+				}
 			}
-    		if (frappe.get_route()[0] === 'messages' && comment.owner !== user) {
-    			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
-    			var on_broadcast_page = current_contact === user;
-    			if ((current_contact == comment.owner) || (on_broadcast_page && comment.broadcast)) {
-    				me.prepend_comment(comment);
-    			}
-    		}
     	});
 	},
 
@@ -111,6 +115,7 @@ frappe.desk.pages.Messages = Class.extend({
 			}
 		});
 
+
 		var post_btn = this.page.main.find(".btn-post").on("click", function() {
 			var btn = $(this);
 			var message_box = btn.parents(".message-box");
@@ -166,9 +171,7 @@ frappe.desk.pages.Messages = Class.extend({
 			hide_refresh: true,
 			freeze: false,
 			render_row: function(wrapper, data) {
-				if(data.communication_type==="Notification" || data.comment_type==="Shared") {
-					data.is_system_message = 1;
-				}
+				me.prepare(data);
 				var row = $(frappe.render_template("messages_row", {
 					data: data
 				})).appendTo(wrapper);
@@ -201,6 +204,24 @@ frappe.desk.pages.Messages = Class.extend({
 			return name;
 		}
 	},
+
+	prepare: function(data) {
+		if(data.communication_type==="Notification" || data.comment_type==="Shared") {
+			data.is_system_message = 1;
+		}
+
+		if(data.owner==data.reference_name
+			&& data.communication_type!=="Notification"
+			&& data.comment_type!=="Bot") {
+				data.is_public = true;
+		}
+
+		if(data.owner==data.reference_name && data.communication_type !== "Bot") {
+			data.is_mine = true;
+		}
+
+		data.content = frappe.markdown(data.content);
+	}
 
 
 

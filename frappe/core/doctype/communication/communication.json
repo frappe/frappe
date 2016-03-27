@@ -330,7 +330,7 @@
    "label": "Communication Type", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "Communication\nComment\nChat\nNotification", 
+   "options": "Communication\nComment\nChat\nBot\nNotification", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -356,7 +356,7 @@
    "label": "Comment Type", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared", 
+   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nBot", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -939,7 +939,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-02-25 04:48:34.595179", 
+ "modified": "2016-03-26 06:23:00.410128", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -990,5 +990,6 @@
  "read_only_onload": 0, 
  "search_fields": "subject", 
  "sort_order": "DESC", 
- "title_field": "subject"
+ "title_field": "subject", 
+ "track_seen": 0
 }

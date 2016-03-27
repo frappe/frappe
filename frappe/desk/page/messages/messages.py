@@ -19,6 +19,7 @@ def get_list(arg=None):
 	frappe.db.sql("""UPDATE `tabCommunication` set seen = 1
 		where
 			communication_type in ('Chat', 'Notification')
+			and seen = 0
 			and reference_doctype = 'User'
 			and reference_name = %s""", frappe.session.user)
 
@@ -26,7 +27,16 @@ def get_list(arg=None):
 
 	frappe.local.flags.commit = True
 
-	if frappe.form_dict['contact'] == frappe.session['user']:
+	if frappe.form_dict.contact == 'Bot':
+		return frappe.db.sql("""select * from `tabCommunication`
+			where
+				comment_type = 'Bot'
+				and reference_doctype = 'User'
+				and reference_name = %(user)s
+			order by creation desc
+			limit %(limit_start)s, %(limit_page_length)s""", frappe.local.form_dict, as_dict=1)
+
+	if frappe.form_dict.contact == frappe.session.user:
 		# return messages
 		return frappe.db.sql("""select * from `tabCommunication`
 			where
@@ -68,11 +78,18 @@ def get_active_users():
 		# in case of administrator
 		data.append({"name": frappe.session.user, "has_session": 100})
 
+	data.append({"name": "Bot", "has_session": 100})
+
 	return data
 
 @frappe.whitelist()
 def post(txt, contact, parenttype=None, notify=False, subject=None):
 	"""post message"""
+
+	comment_type = None
+	if contact == 'Bot':
+		contact = frappe.session.user
+		comment_type = 'Bot'
 
 	d = frappe.new_doc('Communication')
 	d.communication_type = 'Notification' if parenttype else 'Chat'
@@ -81,6 +98,10 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 	d.reference_doctype = 'User'
 	d.reference_name = contact
 	d.sender = frappe.session.user
+
+	if comment_type:
+		d.comment_type = comment_type
+
 	d.insert(ignore_permissions=True)
 
 	delete_notification_count_for("Messages")
