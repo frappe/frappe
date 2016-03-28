@@ -571,6 +571,15 @@ $.extend(frappe.model, {
 			}
 		}
 		return all;
+	},
+
+	set_name_field: function(doc, name) {
+		var meta = frappe.get_meta(doc.doctype);
+		if(meta.autoname && meta.autoname.indexOf("field:")!==-1) {
+			doc[meta.autoname.substr(6)] = name;
+		} else if(meta.title_field) {
+			doc[meta.title_field] = name;
+		}
 	}
 });
 

@@ -22,7 +22,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				if(f.df["default"]) {
 					f.set_input(f.df["default"]);
 				}
-					
+
 			})
 			if(!this.no_submit_on_enter) {
 				this.catch_enter_as_submit();
@@ -59,7 +59,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
-				if(v) ret[f.df.fieldname] = v;
+				if(v!==null) ret[f.df.fieldname] = v;
 			}
 		}
 		if(errors.length) {

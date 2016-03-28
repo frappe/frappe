@@ -315,12 +315,6 @@ _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
 };
 
-_f.Frm.prototype.new_doc = function(doctype, field, opts) {
-	frappe._from_link = field;
-	frappe._from_link_scrollY = $(document).scrollTop();
-	new_doc(doctype, opts);
-}
-
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];

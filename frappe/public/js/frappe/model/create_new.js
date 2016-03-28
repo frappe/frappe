@@ -38,6 +38,13 @@ $.extend(frappe.model, {
 			doc.__run_link_triggers = 1;
 		}
 
+		// set the name if called from a link field
+		if(frappe.route_options && frappe.route_options.name_field) {
+			frappe.model.set_name_field(doc, frappe.route_options.name_field);
+			delete frappe.route_options.name_field;
+		}
+
+
 		return doc;
 	},
 

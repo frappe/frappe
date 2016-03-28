@@ -168,7 +168,8 @@
 		"public/js/frappe/form/footer/footer.js",
 		"public/js/frappe/form/footer/attachments.js",
 		"public/js/frappe/form/footer/timeline.js",
-		"public/js/frappe/form/footer/assign_to.js"
+		"public/js/frappe/form/footer/assign_to.js",
+		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
 		"public/css/list.css",
