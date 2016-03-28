@@ -104,4 +104,3 @@ def new_todo(description):
 		'doctype': 'ToDo',
 		'description': description
 	}).insert()
-	frappe.local.flags.commit = True

@@ -147,3 +147,10 @@ sounds = [
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]
+
+bot_parsers = [
+	'frappe.utils.bot.ShowNotificationBot',
+	'frappe.utils.bot.GetOpenListBot',
+	'frappe.utils.bot.SQLQueryBot'
+]
+

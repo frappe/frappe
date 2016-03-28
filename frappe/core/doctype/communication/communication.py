@@ -60,7 +60,6 @@ class Communication(Document):
 		elif self.communication_type in ("Chat", "Notification", "Bot"):
 			if self.reference_name == frappe.session.user:
 				message = self.as_dict()
-				print message
 				message['broadcast'] = True
 				frappe.publish_realtime('new_message', message, after_commit=True)
 			else:

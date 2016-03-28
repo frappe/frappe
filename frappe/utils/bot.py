@@ -7,64 +7,51 @@ import frappe, re, frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
 
-class BotReply(object):
-	def __init__(self):
-		self.tables = []
-		self.function = ''
-		self.fields = []
-		self.conditions = []
-		self.order_by = ''
-		self.limit = ''
-		self.setup()
+class BotParser(object):
+	'''Base class for bot parser'''
+	def __init__(self, reply, query):
+		self.query = query
+		self.reply = reply
+		self.tables = reply.tables
+		self.doctype_names = reply.doctype_names
 
-	def get_reply(self, query):
-		self.query = query.lower()
+	def has(self, *words):
+		'''return True if any of the words is present int the query'''
+		for word in words:
+			if re.search(r'\b{0}\b'.format(word), self.query):
+				return True
 
-		if self.query.endswith("?"):
-			self.query = self.query[:-1]
+	def startswith(self, *words):
+		'''return True if the query starts with any of the given words'''
+		for w in words:
+			if self.query.startswith(w):
+				return True
 
-		if self.has("todo", "to do"):
-			self.query = "open todo"
+	def strip_words(self, query, *words):
+		'''Remove the given words from the query'''
+		for word in words:
+			query = re.sub(r'\b{0}\b'.format(word), '', query)
 
-		if self.has("hello", "hi"):
-			return _("Hello {0}").format(frappe.utils.get_fullname())
+		return query.strip()
 
-		if self.has("help"):
-			return help_text.format(frappe.utils.get_fullname())
-
-		elif self.has("whatsup", "what's up", "wassup", "whats up"):
+class ShowNotificationBot(BotParser):
+	'''Show open notifications'''
+	def get_reply(self):
+		if self.has("whatsup", "what's up", "wassup", "whats up"):
 			n = get_notifications()
-			return ", ".join(["{0} [{1}](#List/{1})".format(d[1], d[0])
-				for d in sorted(n.get('open_count_doctype').items()) if d[1] > 0]) + " need your attention"
+			open_items = sorted(n.get('open_count_doctype').items())
 
-		elif self.startswith('where is', 'find item', 'locate'):
-			item = '%{0}%'.format(self.strip_words(self.query, 'where is', 'find item', 'locate'))
-			items = frappe.db.sql('''select name from `tabItem` where item_code like %(txt)s
-				or item_name like %(txt)s or description like %(txt)s''', dict(txt=item))
-
-			if items:
-				out = []
-				warehouses = frappe.get_all("Warehouse")
-				for item in items:
-					found = False
-					for warehouse in warehouses:
-						qty = frappe.db.get_value("Bin", {'item_code': item[0], 'warehouse': warehouse.name}, 'actual_qty')
-						if qty:
-							out.append(_('{0} units of [{1}](#Form/Item/{1}) found in [{2}](#Form/Warehouse/{2})').format(qty,
-								item[0], warehouse.name))
-							found = True
-
-					if not found:
-						out.append(_('[{0}](#Form/Item/{0}) is out of stock').format(item[0]))
-
-				return "\n\n".join(out)
-
+			if open_items:
+				return ("Following items need your attention:\n\n"
+					+ "\n\n".join(["{0} [{1}](#List/{1})".format(d[1], d[0])
+						for d in open_items if d[1] > 0]))
 			else:
-				return _("Did not find any item called {0}".format(item))
+				return 'Take it easy, nothing urgent needs your attention'
 
-		elif self.startswith('open', 'show open', 'list open', 'get open'):
-			self.identify_tables()
-
+class GetOpenListBot(BotParser):
+	'''Get list of open items'''
+	def get_reply(self):
+		if self.startswith('open', 'show open', 'list open', 'get open'):
 			if self.tables:
 				doctype = self.doctype_names[self.tables[0]]
 				from frappe.desk.notifications import get_notification_config
@@ -80,56 +67,47 @@ class BotReply(object):
 				else:
 					return _("Can't identify open {0}. Try something else.").format(doctype)
 
-		elif self.parse_for_sql():
-			out = []
-			for d in self.data:
-				if self.fields[0]=='name':
-					row = '[{name}](#Form/{table}/{name})'.format(name = d[0],
-						table=self.doctype_names[self.tables[0]])
-				else:
-					row = d[0]
+class SQLQueryBot(BotParser):
+	'''Try and build an SQL query from the question'''
+	def get_reply(self):
+		self.out = ''
+		self.function = ''
+		self.fields = []
+		self.conditions = []
+		self.order_by = ''
+		self.limit = ''
 
-				out.append(row)
-
-			return ', '.join(out)
-		else:
-			return _("Don't know, ask 'help'")
-
-	def parse_for_sql(self):
-		self.identify_tables()
 		if self.tables:
 			self.identify_function()
 
+		if self.out:
+			return self.out
 
 		if self.fields:
 			sql = 'select {fields} from {tables} {where} {conditions} {order_by} {limit}'.format(
 				fields = ', '.join(self.fields),
-				tables = ', '.join(['`tab{0}`'.format(t) for t in self.tables]),
+				tables = ', '.join(['`tab{0}`'.format(self.doctype_names[t]) for t in self.tables]),
 				where = 'where' if self.conditions else '',
 				conditions = (' '.join([c[0] + ' ' + c[1] for c in self.conditions])
 					if self.conditions else ''),
 				order_by = 'order by {0}'.format(self.order_by) if self.order_by else '',
 				limit = 'limit {0}'.format(self.limit) if self.limit else ''
 			)
-			self.data = frappe.db.sql(sql)
+			reply = self.format_result(frappe.db.sql(sql))
+			return reply or _("Cound not find what you were searching for")
 
-			return True
-		else:
-			return None
+	def format_result(self, data):
+		out = []
+		for d in data:
+			if self.fields[0]=='name':
+				row = '[{name}](#Form/{table}/{name})'.format(name = d[0],
+					table=self.doctype_names[self.tables[0]])
+			else:
+				row = d[0]
 
-	def setup(self):
-		self.setup_tables()
+			out.append(row)
 
-	def setup_tables(self):
-		tables = frappe.get_all("DocType", {"is_table": 0})
-		self.all_tables = [d.name.lower() for d in tables]
-		self.doctype_names = {d.name.lower():d.name for d in tables}
-
-	def identify_tables(self):
-		self.tables = []
-		for t in self.all_tables:
-			if t in self.query or t[:-1] in self.query:
-				self.tables.append(t)
+		return ', '.join(out)
 
 	def identify_function(self):
 		self.function = None
@@ -156,40 +134,93 @@ class BotReply(object):
 		elif self.has('list', 'show'):
 			self.fields.append('name')
 
-		elif self.has('find'):
+		elif self.startswith('find'):
+			table = None
 			query = self.query
 
-			query = self.strip_words(query, 'find', 'in', 'from', 'for')
+			query = self.strip_words(query, 'find')
 
-			# strip table name
-			query = self.strip_words(query, *self.tables)
-			# plurals
-			query = self.strip_words(query, *[t + 's' for t in self.tables])
+			if self.has('from'):
+				text, table = query.split('from')
 
-			text = query.strip()
-			self.fields.append('name')
+			if self.has('in'):
+				text, table = query.split('in')
 
-			self.conditions.append(('', 'name like "%{0}%"'.format(text)))
-			title_field = frappe.get_meta(self.tables[0]).title_field
-			if title_field:
-				self.conditions.append(('or', '{0} like "%{1}%"'.format(title_field, text)))
+			if table:
+				text = text.strip()
+				self.tables = self.reply.identify_tables(table)
+
+				if self.tables:
+					if 'name' not in self.fields:
+						self.fields.append('name')
+
+					self.conditions.append(('', 'name like "%{0}%"'.format(text)))
+					title_field = frappe.get_meta(self.tables[0]).title_field
+					if title_field and title_field!='name':
+						self.conditions.append(('or', '{0} like "%{1}%"'.format(title_field, text)))
+
+				else:
+					self.out = _("Could not identify {0}").format(table)
+			else:
+				self.out = _("You can find things by asking 'find orange in customers'").format(table)
+
+class BotReply(object):
+	'''Build a reply for the bot by calling all parsers'''
+	def __init__(self):
+		self.tables = []
+
+	def get_reply(self, query):
+		self.query = query.lower()
+		self.setup()
+		self.pre_process()
+
+		# basic replies
+		if self.query.split()[0] in ("hello", "hi"):
+			return _("Hello {0}").format(frappe.utils.get_fullname())
+
+		if self.query == "help":
+			return help_text.format(frappe.utils.get_fullname())
+
+		# build using parsers
+		replies = []
+		for parser in frappe.get_hooks('bot_parsers'):
+			reply = frappe.get_attr(parser)(self, query).get_reply()
+			if reply:
+				replies.append(reply)
+
+		if replies:
+			return '\n\n'.join(replies)
+
+		if not reply:
+			return _("Don't know, ask 'help'")
+
+	def setup(self):
+		self.setup_tables()
+		self.identify_tables()
+
+	def pre_process(self):
+		if self.query.endswith("?"):
+			self.query = self.query[:-1]
+
+		if self.query in ("todo", "to do"):
+			self.query = "open todo"
+
+	def setup_tables(self):
+		tables = frappe.get_all("DocType", {"is_table": 0})
+		self.all_tables = [d.name.lower() for d in tables]
+		self.doctype_names = {d.name.lower():d.name for d in tables}
+
+	def identify_tables(self, query=None):
+		if not query:
+			query = self.query
+		self.tables = []
+		for t in self.all_tables:
+			if t in query or t[:-1] in query:
+				self.tables.append(t)
+
+		return self.tables
 
 
-	def strip_words(self, query, *words):
-		for word in words:
-			query = re.sub(r'\b{0}\b'.format(word), '', query)
-
-		return query.strip()
-
-	def has(self, *words):
-		for w in words:
-			if w in self.query:
-				return True
-
-	def startswith(self, *words):
-		for w in words:
-			if self.query.startswith(w):
-				return True
 
 help_text = """Hello {0}, I am a K.I.S.S Bot, not AI, so be kind. I can try answering a few questions like,
 

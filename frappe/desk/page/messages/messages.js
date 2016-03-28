@@ -44,22 +44,22 @@ frappe.desk.pages.Messages = Class.extend({
 
 	setup_realtime: function() {
 		var me = this;
-    	frappe.realtime.on('new_message', function(comment) {
+		frappe.realtime.on('new_message', function(comment) {
 			if(comment.modified_by !== user || comment.communication_type === 'Bot') {
 				if(frappe.get_route()[0] === 'messages') {
-	    			var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
-	    			var on_broadcast_page = current_contact === user;
-	    			if ((current_contact == comment.owner)
+					var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
+					var on_broadcast_page = current_contact === user;
+					if ((current_contact == comment.owner)
 						|| (on_broadcast_page && comment.broadcast)
 						|| current_contact === 'Bot' && comment.communication_type === 'Bot') {
 
 						setTimeout(function() { me.prepend_comment(comment); }, 1000);
-	    			}
+					}
 				} else {
-		    		frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
+					frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
 				}
 			}
-    	});
+		});
 	},
 
 	prepend_comment: function(comment) {
