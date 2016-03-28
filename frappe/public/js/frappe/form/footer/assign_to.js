@@ -169,7 +169,11 @@ frappe.ui.to_do_dialog = function(opts){
 				label:__("Notify by Email"), "default":1},
 			{fieldtype: 'Column Break'},
 			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
-				options:'Low\nMedium\nHigh', 'default':'Medium'},
+				options:[
+					{value: 'Low', label: __('Low')}, 
+					{value:'Medium', label: __('Medium')},
+					{value: 'High', label: __('High')}], 
+				'default':'Medium'},
 		],
 		primary_action: function() { frappe.ui.add_assignment(opts, dialog); },
 		primary_action_label: __("Add")
