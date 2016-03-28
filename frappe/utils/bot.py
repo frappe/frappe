@@ -34,6 +34,15 @@ class BotParser(object):
 
 		return query.strip()
 
+	def format_list(self, data):
+		'''Format list as markdown'''
+		return ', '.join(['[{name}](#Form/{doctype}/{name})'.format(doctype=self.get_doctype(),
+			name=d.name) for d in data])
+
+	def get_doctype(self):
+		'''returns the doctype name from self.tables'''
+		return self.doctype_names[self.tables[0]]
+
 class ShowNotificationBot(BotParser):
 	'''Show open notifications'''
 	def get_reply(self):
@@ -53,7 +62,7 @@ class GetOpenListBot(BotParser):
 	def get_reply(self):
 		if self.startswith('open', 'show open', 'list open', 'get open'):
 			if self.tables:
-				doctype = self.doctype_names[self.tables[0]]
+				doctype = self.get_doctype()
 				from frappe.desk.notifications import get_notification_config
 				filters = get_notification_config().get('for_doctype').get(doctype, None)
 				if filters:
@@ -67,78 +76,24 @@ class GetOpenListBot(BotParser):
 				else:
 					return _("Can't identify open {0}. Try something else.").format(doctype)
 
-class SQLQueryBot(BotParser):
-	'''Try and build an SQL query from the question'''
+class ListBot(BotParser):
 	def get_reply(self):
-		self.out = ''
-		self.function = ''
-		self.fields = []
-		self.conditions = []
-		self.order_by = ''
-		self.limit = ''
+		if self.startswith('list', 'show'):
+			self.tables = self.reply.identify_tables(self.query.split(None, 1)[1])
+			if self.tables:
+				return self.format_list(frappe.get_list(self.get_doctype()))
 
-		if self.tables:
-			self.identify_function()
+class CountBot(BotParser):
+	def get_reply(self):
+		if self.startswith('how many'):
+			self.tables = self.reply.identify_tables(self.query.split(None, 1)[1])
+			if self.tables:
+				return str(frappe.db.sql('select count(*) from `tab{0}`'.format(self.get_doctype()))[0][0])
 
-		if self.out:
-			return self.out
-
-		if self.fields:
-			sql = 'select {fields} from {tables} {where} {conditions} {order_by} {limit}'.format(
-				fields = ', '.join(self.fields),
-				tables = ', '.join(['`tab{0}`'.format(self.doctype_names[t]) for t in self.tables]),
-				where = 'where' if self.conditions else '',
-				conditions = (' '.join([c[0] + ' ' + c[1] for c in self.conditions])
-					if self.conditions else ''),
-				order_by = 'order by {0}'.format(self.order_by) if self.order_by else '',
-				limit = 'limit {0}'.format(self.limit) if self.limit else ''
-			)
-			reply = self.format_result(frappe.db.sql(sql))
-			return reply or _("Cound not find what you were searching for")
-
-	def format_result(self, data):
-		out = []
-		for d in data:
-			if self.fields[0]=='name':
-				row = '[{name}](#Form/{table}/{name})'.format(name = d[0],
-					table=self.doctype_names[self.tables[0]])
-			else:
-				row = d[0]
-
-			out.append(row)
-
-		return ', '.join(out)
-
-	def identify_function(self):
-		self.function = None
-
-		if 'how many' in self.query:
-			self.fields.append('count(*)')
-
-		elif 'oldest' in self.query:
-			self.fields.append('name')
-			self.order_by = 'creation asc'
-			self.limit = '1'
-
-		elif self.has('newest', 'latest'):
-			self.fields.append('name')
-			self.order_by = 'creation desc'
-			self.limit = '1'
-
-		elif self.has('made by whom', 'who created', 'who made'):
-			self.fields.append('owner')
-
-		elif self.has('changed by whom', 'who changed', 'who updated'):
-			self.fields.append('modified_by')
-
-		elif self.has('list', 'show'):
-			self.fields.append('name')
-
-		elif self.startswith('find'):
-			table = None
-			query = self.query
-
-			query = self.strip_words(query, 'find')
+class FindBot(BotParser):
+	def get_reply(self):
+		if self.startswith('find', 'search'):
+			query = self.query.split(None, 1)[1]
 
 			if self.has('from'):
 				text, table = query.split('from')
@@ -148,16 +103,23 @@ class SQLQueryBot(BotParser):
 
 			if table:
 				text = text.strip()
-				self.tables = self.reply.identify_tables(table)
+				self.tables = self.reply.identify_tables(table.strip())
+
 
 				if self.tables:
-					if 'name' not in self.fields:
-						self.fields.append('name')
+					filters = {'name': ('like',  '%{0}%'.format(text))}
+					or_filters = None
 
-					self.conditions.append(('', 'name like "%{0}%"'.format(text)))
-					title_field = frappe.get_meta(self.tables[0]).title_field
+					title_field = frappe.get_meta(self.get_doctype()).title_field
 					if title_field and title_field!='name':
-						self.conditions.append(('or', '{0} like "%{1}%"'.format(title_field, text)))
+						or_filters = {'title': ('like',  '%{0}%'.format(text))}
+
+					data = frappe.get_list(self.get_doctype(),
+						filters=filters, or_filters=or_filters)
+					if data:
+						return self.format_list(data)
+					else:
+						return _("Could not find {0} in {1}").format(text, self.get_doctype())
 
 				else:
 					self.out = _("Could not identify {0}").format(table)
@@ -184,7 +146,12 @@ class BotReply(object):
 		# build using parsers
 		replies = []
 		for parser in frappe.get_hooks('bot_parsers'):
-			reply = frappe.get_attr(parser)(self, query).get_reply()
+			reply = None
+			try:
+				reply = frappe.get_attr(parser)(self, query).get_reply()
+			except frappe.PermissionError:
+				reply = _("Oops, you are not allowed to know that")
+
 			if reply:
 				replies.append(reply)
 

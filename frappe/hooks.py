@@ -151,6 +151,8 @@ sounds = [
 bot_parsers = [
 	'frappe.utils.bot.ShowNotificationBot',
 	'frappe.utils.bot.GetOpenListBot',
-	'frappe.utils.bot.SQLQueryBot'
+	'frappe.utils.bot.ListBot',
+	'frappe.utils.bot.FindBot',
+	'frappe.utils.bot.CountBot'
 ]
 

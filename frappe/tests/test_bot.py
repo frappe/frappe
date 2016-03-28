@@ -23,8 +23,12 @@ class TestBot(unittest.TestCase):
 
 	def test_not_found(self):
 		reply = BotReply().get_reply('find yoyo in doctypes')
-		self.assertTrue('Cound not find' in reply)
+		self.assertTrue('Could not find' in reply)
 
 	def test_list(self):
 		reply = BotReply().get_reply('list users')
 		self.assertTrue('[test@example.com]' in reply)
+
+	def test_how_many(self):
+		reply = BotReply().get_reply('how many users')
+		self.assertTrue(int(reply) > 1)
