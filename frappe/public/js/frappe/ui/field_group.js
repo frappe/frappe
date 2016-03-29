@@ -48,7 +48,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	get_field: function(fieldname) {
 		return this.fields_dict[fieldname];
 	},
-	get_values: function() {
+	get_values: function(ignore_errors) {
 		var ret = {};
 		var errors = [];
 		for(var key in this.fields_dict) {
@@ -59,10 +59,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
-				if(v!==null) ret[f.df.fieldname] = v;
+				if(!is_null(v)) ret[f.df.fieldname] = v;
 			}
 		}
-		if(errors.length) {
+		if(errors.length && !ignore_errors) {
 			msgprint('<b>' + __('Missing Values Required') + "</b><br>"
 				+ errors.join('<br>'));
 			return null;

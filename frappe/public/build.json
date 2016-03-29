@@ -81,7 +81,6 @@
 		"public/js/legacy/datatype.js",
 		"public/js/legacy/dom.js",
 		"public/js/legacy/handler.js",
-		"public/js/legacy/loaders.js",
 
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",
