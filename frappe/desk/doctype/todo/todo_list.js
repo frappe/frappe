@@ -7,6 +7,18 @@ frappe.listview_settings['ToDo'] = {
 		me.page.set_title(__("To Do"));
 
 	},
+	set_primary_action:function(doclist){
+		doclist.page.clear_primary_action();
+		doclist.page.set_primary_action(__("New"), function() {
+			frappe.prompt({fieldname:'description', fieldtype:'Text', label:'Description', reqd:1},
+				function(data) {
+					frappe.call({
+						method:'frappe.desk.doctype.todo.todo.new_todo',
+						args: data
+					})
+				}, __('New To Do'));
+		}, "octicon octicon-plus");
+	},
 	refresh: function(me) {
 		// override assigned to me by owner
 		me.page.sidebar.find(".assigned-to-me a").off("click").on("click", function() {

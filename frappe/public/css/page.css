@@ -18,9 +18,11 @@
   max-width: 50%;
   vertical-align: middle;
 }
-.page-body {
-  overflow-x: hidden;
-  min-height: calc(60vh);
+@media (min-width: 767px) {
+  .page-body {
+    overflow-x: hidden;
+    min-height: calc(60vh);
+  }
 }
 .page-title h6 {
   margin-top: -8px;
