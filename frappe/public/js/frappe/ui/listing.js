@@ -135,7 +135,6 @@ frappe.ui.Listing = Class.extend({
 			if(me.custom_new_doc) {
 				me.custom_new_doc(doctype);
 			} else {
-				var doc = frappe.model.get_new_doc(doctype);
 				if(me.filter_list) {
 					frappe.route_options = {};
 					$.each(me.filter_list.get_filters(), function(i, f) {
@@ -144,7 +143,7 @@ frappe.ui.Listing = Class.extend({
 						}
 					});
 				}
-				frappe.set_route("Form", doctype, doc.name);
+				new_doc(doctype);
 			}
 		});
 	},

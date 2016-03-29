@@ -38,6 +38,22 @@ $.extend(frappe.model, {
 			doc.__run_link_triggers = 1;
 		}
 
+		// set the name if called from a link field
+		if(frappe.route_options && frappe.route_options.name_field) {
+			frappe.model.set_name_field(doc, frappe.route_options.name_field);
+			delete frappe.route_options.name_field;
+		}
+
+		// set route options
+		if(frappe.route_options) {
+			$.each(frappe.route_options, function(fieldname, value) {
+				if(frappe.meta.has_field(fieldname)) {
+					doc.fieldname=value;
+				}
+			});
+			frappe.route_options = null;
+		}
+
 		return doc;
 	},
 
@@ -294,4 +310,23 @@ $.extend(frappe.model, {
 			_map();
 		}
 	}
-})
+});
+
+frappe.create_routes = {};
+frappe.new_doc = function (doctype, opts) {
+	frappe.model.with_doctype(doctype, function() {
+		if(frappe.create_routes[doctype]) {
+			frappe.set_route(frappe.create_routes[doctype]);
+		} else {
+			frappe.ui.form.quick_entry(doctype, function(doc) {
+				frappe.set_route('List', doctype);
+			});
+		}
+	});
+}
+
+// globals for backward compatibility
+window.new_doc = frappe.new_doc;
+window.newdoc = frappe.new_doc;
+
+

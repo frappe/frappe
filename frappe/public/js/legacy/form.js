@@ -361,7 +361,7 @@ _f.Frm.prototype.refresh = function(docname) {
 	}
 
 	cur_frm = this;
-	
+
 	if(this.docname) { // document to show
 
 		// set the doc
@@ -375,7 +375,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
-		
+
 		// set new doc name if created via link field
 		this.set_new_docname_from_link();
 
@@ -553,17 +553,6 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
-		if(frappe.route_options) {
-				$.each(frappe.route_options, function(fieldname, value) {
-					try {
-						me.set_value(fieldname, value);
-					} catch (e) {
-						// pass - see error log
-					}
-				});
-
-			frappe.route_options = null;
-		}
 
 		frappe.after_ajax(function() {
 			me.trigger_link_fields();
@@ -621,7 +610,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	if(onload) {
 		onload(newdoc);
 	}
-	loaddoc(newdoc.doctype, newdoc.name);
+	frappe.set_route('Form', newdoc.doctype, newdoc.name);
 }
 
 _f.Frm.prototype.reload_doc = function() {
@@ -677,7 +666,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 		if(frappe._from_link) {
 			if(me.doctype===frappe._from_link.df.options) {
 				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
-				
+
 				frappe._new_docname_from_link = me.docname;
 
 				setTimeout(function() { scroll(0, frappe._from_link_scrollY); }, 100);
