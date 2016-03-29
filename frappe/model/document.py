@@ -182,7 +182,8 @@ class Document(BaseDocument):
 
 		self.check_permission("create")
 		self._set_defaults()
-		self.set_docstatus_user_and_timestamp()
+		self.set_user_and_timestamp()
+		self.set_docstatus()
 		self.check_if_latest()
 		self.run_method("before_insert")
 		self.set_new_name()
@@ -192,6 +193,7 @@ class Document(BaseDocument):
 		self.flags.in_insert = True
 		self.run_before_save_methods()
 		self._validate()
+		self.set_docstatus()
 		self.flags.in_insert = False
 
 		# run validate, on update etc.
@@ -237,7 +239,8 @@ class Document(BaseDocument):
 
 		self.check_permission("write", "save")
 
-		self.set_docstatus_user_and_timestamp()
+		self.set_user_and_timestamp()
+		self.set_docstatus()
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
@@ -248,6 +251,8 @@ class Document(BaseDocument):
 
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
+			
+		self.set_docstatus()
 
 		# parent
 		if self.meta.issingle:
@@ -317,7 +322,7 @@ class Document(BaseDocument):
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
 
-	def set_docstatus_user_and_timestamp(self):
+	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
 		self.modified_by = frappe.session.user
@@ -325,17 +330,21 @@ class Document(BaseDocument):
 			self.creation = self.modified
 		if not self.owner:
 			self.owner = self.modified_by
-		if self.docstatus==None:
-			self.docstatus=0
-
+		
 		for d in self.get_all_children():
-			d.docstatus = self.docstatus
 			d.modified = self.modified
 			d.modified_by = self.modified_by
 			if not d.owner:
 				d.owner = self.owner
 			if not d.creation:
 				d.creation = self.creation
+				
+	def set_docstatus(self):
+		if self.docstatus==None:
+			self.docstatus=0
+			
+		for d in self.get_all_children():
+			d.docstatus = self.docstatus
 
 	def _validate(self):
 		self._validate_mandatory()
