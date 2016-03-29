@@ -43,16 +43,6 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		dialog.doc = doc;
 
-		// set defaults
-		mandatory.forEach(function(df) {
-			var field = dialog.get_field(df.fieldname);
-			field.doctype = doc.doctype;
-			field.docname = doc.name;
-			if(doc[df.fieldname]) {
-				field.set_value(doc[df.fieldname]);
-			}
-		});
-
 		dialog.set_primary_action(__('Save'), function() {
 			var values = dialog.get_values();
 
@@ -93,5 +83,16 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		});
 
 		dialog.show();
+
+		// set defaults
+		$.each(dialog.fields_dict, function(fieldname, field) {
+			field.doctype = doc.doctype;
+			field.docname = doc.name;
+
+			if(doc[fieldname]) {
+				field.set_input(doc[fieldname]);
+			}
+		});
+
 	});
 }
