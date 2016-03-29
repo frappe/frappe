@@ -7,7 +7,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		var doc = frappe.model.get_new_doc(doctype);
 
-		if(mandatory.length > 5) {
+		if(mandatory.length > 7) {
 			// too many fields, show form
 			frappe.set_route('Form', doctype, doc.name);
 			return;
@@ -25,6 +25,22 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			fields: mandatory,
 		});
 
+		var update_doc = function() {
+			values = dialog.get_values(true);
+			$.each(values, function(key, value) {
+				if(value) {
+					dialog.doc[key] = value;
+				}
+			});
+			return dialog.doc;
+		}
+
+		var open_doc = function() {
+			dialog.hide();
+			update_doc();
+			frappe.set_route('Form', doctype, doc.name);
+		}
+
 		dialog.doc = doc;
 
 		// set defaults
@@ -41,7 +57,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			var values = dialog.get_values();
 
 			if(values) {
-				values.doctype = doctype;
+				values = update_doc();
 				frappe.call({
 					method: "frappe.client.insert",
 					args: {
@@ -53,8 +69,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 						if(success) success(doc);
 					},
 					error: function() {
-						dialog.hide();
-						frappe.set_route('Form', doctype, doc.name);
+						open_doc();
 					},
 					freeze: true
 				});
@@ -66,15 +81,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		$link.find('.edit-full').on('click', function() {
 			// edit in form
-			var values = dialog.get_values(true);
-
-			$.each(values, function(key, value) {
-				if(value) {
-					dialog.doc[key] = value;
-				}
-			});
-			dialog.hide();
-			frappe.set_route('Form', dialog.doc.doctype, dialog.doc.name);
+			open_doc();
 		});
 
 		// ctrl+enter to save

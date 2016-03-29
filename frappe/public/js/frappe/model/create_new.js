@@ -47,7 +47,7 @@ $.extend(frappe.model, {
 		// set route options
 		if(frappe.route_options) {
 			$.each(frappe.route_options, function(fieldname, value) {
-				if(frappe.meta.has_field(fieldname)) {
+				if(frappe.meta.has_field(doctype, fieldname)) {
 					doc.fieldname=value;
 				}
 			});
@@ -319,7 +319,9 @@ frappe.new_doc = function (doctype, opts) {
 			frappe.set_route(frappe.create_routes[doctype]);
 		} else {
 			frappe.ui.form.quick_entry(doctype, function(doc) {
-				frappe.set_route('List', doctype);
+				//frappe.set_route('List', doctype);
+				show_alert('<a href="#Form/' + doc.doctype + '/' + doc.name + '">'
+					+ __('{0} {1} created', [doc.doctype, doc.name]) + '</a>');
 			});
 		}
 	});

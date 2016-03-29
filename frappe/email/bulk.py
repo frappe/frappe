@@ -259,36 +259,45 @@ def flush(from_test=False):
 		else:
 			break
 
-		frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""",
-			(email["name"],), auto_commit=auto_commit)
-		try:
-			if not from_test:
-				smtpserver.setup_email_account(email.reference_doctype)
-				smtpserver.replace_sender_in_email(email)
-				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
-
-			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
-				(email["name"],), auto_commit=auto_commit)
-
-		except (smtplib.SMTPServerDisconnected,
-				smtplib.SMTPConnectError,
-				smtplib.SMTPHeloError,
-				smtplib.SMTPAuthenticationError):
-
-			# bad connection, retry later
-			frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
-				(email["name"],), auto_commit=auto_commit)
-
-			# no need to attempt further
-			return
-
-		except Exception, e:
-			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
-				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
-
+		send_one(email, smtpserver, auto_commit)
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
 		# 	frappe.db.commit()
+
+def send_one(email, smtpserver=None, auto_commit=True, now=False):
+	'''Send bulk email with given smtpserver'''
+
+	if not smtpserver:
+		smtpserver = SMTPServer()
+
+	frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""",
+		(email.name,), auto_commit=auto_commit)
+	try:
+		if auto_commit:
+			smtpserver.setup_email_account(email.reference_doctype)
+			smtpserver.replace_sender_in_email(email)
+			smtpserver.sess.sendmail(email.sender, email.recipient, encode(email.message))
+
+		frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
+			(email.name,), auto_commit=auto_commit)
+
+	except (smtplib.SMTPServerDisconnected,
+			smtplib.SMTPConnectError,
+			smtplib.SMTPHeloError,
+			smtplib.SMTPAuthenticationError):
+
+		# bad connection, retry later
+		frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
+			(email.name,), auto_commit=auto_commit)
+
+		# no need to attempt further
+		return
+
+	except Exception, e:
+		frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
+			where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
+		if now:
+			raise e
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
