@@ -272,8 +272,17 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 	}
 }
 
-_f.Frm.prototype.call = function(opts) {
+_f.Frm.prototype.call = function(opts, args, callback) {
 	var me = this;
+	if(typeof opts==='string') {
+		// called as frm.call('do_this', {with_arg: 'arg'});
+		opts = {
+			method: opts,
+			doc: this.doc,
+			args: args,
+			callback: callback
+		};
+	}
 	if(!opts.doc) {
 		if(opts.method.indexOf(".")===-1)
 			opts.method = frappe.model.get_server_module_name(me.doctype) + "." + opts.method;

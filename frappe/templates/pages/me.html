@@ -29,10 +29,17 @@
 	</div>
 	<div class="col-sm-9">
 		<ul class="list-group" style="margin: 15px 0px;">
-			{% for opts in my_account_list -%}
-			<li class="list-group-item"><a href="{{ opts.url }}"
+			{% for item in my_account_list -%}
+			{% if item.count %}
+			<li class="list-group-item"><a href="{{ item.route }}"
                     class="no-decoration">
-                <h4>{{ opts.label }}</h4></a></li>
+                <h4>{{ _(item.title) }}
+					<span class="badge">{{ "20+" if item.count > 20 else item.count }}</label>
+				</h4>
+
+			</a></li>
+
+			{% endif %}
 			{%- endfor %}
 		</ul>
 	</div>

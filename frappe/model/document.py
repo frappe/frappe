@@ -251,7 +251,7 @@ class Document(BaseDocument):
 
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
-			
+
 		self.set_docstatus()
 
 		# parent
@@ -304,12 +304,12 @@ class Document(BaseDocument):
 
 		if self.meta.get("title_field")=="title":
 			df = self.meta.get_field(self.meta.title_field)
+
 			if df.options:
 				self.set(df.fieldname, df.options.format(**get_values()))
 			elif self.is_new() and not self.get(df.fieldname) and df.default:
 				# set default title for new transactions (if default)
 				self.set(df.fieldname, df.default.format(**get_values()))
-
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
@@ -330,7 +330,7 @@ class Document(BaseDocument):
 			self.creation = self.modified
 		if not self.owner:
 			self.owner = self.modified_by
-		
+
 		for d in self.get_all_children():
 			d.modified = self.modified
 			d.modified_by = self.modified_by
@@ -338,11 +338,11 @@ class Document(BaseDocument):
 				d.owner = self.owner
 			if not d.creation:
 				d.creation = self.creation
-				
+
 	def set_docstatus(self):
 		if self.docstatus==None:
 			self.docstatus=0
-			
+
 		for d in self.get_all_children():
 			d.docstatus = self.docstatus
 

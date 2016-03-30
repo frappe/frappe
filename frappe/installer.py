@@ -125,6 +125,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	sync_from_app(name)
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+
 	add_to_installed_apps(name)
 
 	if set_as_patched:

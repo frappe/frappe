@@ -21,10 +21,12 @@ class WebForm(WebsiteGenerator):
 		if self.is_standard and not frappe.conf.developer_mode:
 			self.use_meta_fields()
 
+
 	def validate(self):
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+
 
 	def use_meta_fields(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -117,7 +119,12 @@ class WebForm(WebsiteGenerator):
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
 
-		# back link given with back-to url argument
+		self.set_back_to_link(context)
+
+
+	def set_back_to_link(self, context):
+		'''Sets breadcrumbs, success and fail URL if
+		`back-to` argument is set'''
 		if frappe.form_dict.get('back-to'):
 			link = frappe.form_dict.get('back-to')
 			title = frappe.form_dict.get('back-to-title') or _('Back')
@@ -147,12 +154,13 @@ class WebForm(WebsiteGenerator):
 
 	def get_parents(self, context):
 		parents = None
-		if self.breadcrumbs:
+
+		if context.is_list:
+			parents = [{"title": _("My Account"), "name": "me"}]
+		elif self.breadcrumbs:
 			parents = json.loads(self.breadcrumbs)
 		elif context.parents:
 			parents = context.parents
-		elif context.is_list:
-			parents = [{"title": _("My Account"), "name": "me"}]
 
 		return parents
 

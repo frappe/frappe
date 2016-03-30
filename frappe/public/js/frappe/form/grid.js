@@ -115,9 +115,12 @@ frappe.ui.form.Grid = Class.extend({
 					}
 				}
 
-				this.make_sortable($rows);
 			} else {
 				this.wrapper.find(".grid-footer").toggle(false);
+			}
+
+			if(this.is_sortable()) {
+				this.make_sortable($rows);
 			}
 
 			this.last_display_status = this.display_status;
@@ -223,6 +226,15 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	is_editable: function() {
 		return this.display_status=="Write" && !this.static_rows
+	},
+	is_sortable: function() {
+		return this.sortable_status || this.is_editable();
+	},
+	only_sortable: function(status) {
+		if(status===undefined ? true : status) {
+			this.sortable_status = true;
+			this.static_rows = true;
+		}
 	},
 	set_multiple_add: function(link, qty) {
 		if(this.multiple_set) return;
