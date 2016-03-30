@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import cint
 from frappe.website.render import resolve_path
 from frappe import _
+from urllib import quote_plus
 
 no_cache = 1
 no_sitemap = 1
@@ -49,10 +50,12 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
 	for doc in raw_result:
 		doc.doctype = doctype
-		new_context = { "doc": doc, "meta": meta }
+		new_context = frappe._dict(doc=doc, meta=meta)
+
 		if not frappe.flags.in_test:
 			new_context["pathname"] = frappe.local.request.path.strip("/ ")
 		new_context.update(list_context)
+		set_route(new_context)
 		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
 		result.append(rendered_row)
 
@@ -61,6 +64,15 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 		"show_more": show_more,
 		"next_start": next_start
 	}
+
+def set_route(context):
+	'''Set link for the list item'''
+	if context.is_web_form:
+		context.route = "{0}?name={1}".format(context.pathname, quote_plus(context.doc.name))
+	elif hasattr(context.doc, 'get_route'):
+		context.route = context.doc.get_route()
+	else:
+		context.route = "{0}/{1}".format(context.pathname or quote_plus(context.doc.doctype), quote_plus(context.doc.name))
 
 def prepare_filters(kwargs):
 	filters = frappe._dict(kwargs)
