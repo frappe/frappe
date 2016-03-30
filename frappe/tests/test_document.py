@@ -211,8 +211,13 @@ class TestDocument(unittest.TestCase):
 		self.assertEquals(old_count + 1, new_count)
 
 		before_update = frappe.db.get_value(doctype, name, 'idx')
+
+		print frappe.cache().get_value('_link_count')
+
 		update_link_count()
 		after_update = frappe.db.get_value(doctype, name, 'idx')
+
+		print before_update, new_count, after_update
 
 		self.assertEquals(before_update + new_count, after_update)
 
