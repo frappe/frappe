@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_import": 0, 
  "allow_rename": 0, 
- "autoname": "field:title", 
+ "autoname": "", 
  "creation": "2014-09-01 14:08:48.624556", 
  "custom": 0, 
  "docstatus": 0, 
@@ -515,7 +515,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-02-22 09:38:31.955298", 
+ "modified": "2016-03-30 01:11:55.221086", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 
@@ -547,5 +547,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
- "title_field": "title"
+ "title_field": "title", 
+ "track_seen": 0
 }

@@ -15,6 +15,30 @@ def after_install():
 	# reset installed apps for re-install
 	frappe.db.set_global("installed_apps", '["frappe"]')
 
+	install_basic_docs()
+
+	from frappe.core.doctype.file.file import make_home_folder
+	make_home_folder()
+
+	import_country_and_currency()
+
+	# save default print setting
+	print_settings = frappe.get_doc("Print Settings")
+	print_settings.save()
+
+	# all roles to admin
+	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
+
+	# update admin password
+	from frappe.auth import _update_password
+	_update_password("Administrator", get_admin_password())
+
+	# setup wizard now in frappe
+	frappe.db.set_default('desktop:home_page', 'setup-wizard');
+
+	frappe.db.commit()
+
+def install_basic_docs():
 	# core users / roles
 	install_docs = [
 		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
@@ -39,32 +63,11 @@ def after_install():
 		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
-	from frappe.core.doctype.file.file import make_home_folder
-	make_home_folder()
-
 	for d in install_docs:
 		try:
 			frappe.get_doc(d).insert()
 		except frappe.NameError:
 			pass
-
-	import_country_and_currency()
-
-	# save default print setting
-	print_settings = frappe.get_doc("Print Settings")
-	print_settings.save()
-
-	# all roles to admin
-	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
-
-	# update admin password
-	from frappe.auth import _update_password
-	_update_password("Administrator", get_admin_password())
-
-	# setup wizard now in frappe
-	frappe.db.set_default('desktop:home_page', 'setup-wizard');
-
-	frappe.db.commit()
 
 def get_admin_password():
 	def ask_admin_password():

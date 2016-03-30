@@ -75,4 +75,14 @@ def get_data():
 				},
 			]
 		},
+		{
+			"label": _("Portal"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Portal Settings",
+					"label": _("Portal Settings"),
+				}
+			]
+		}
 	]
