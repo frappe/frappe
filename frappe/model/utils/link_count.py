@@ -23,7 +23,8 @@ def update_link_count():
 	link_count = frappe.cache().get_value('_link_count')
 	if link_count:
 		for key, count in link_count.iteritems():
-			frappe.db.sql('update `tab{0}` set idx = idx + %s where name=%s'.format(key[0]), (count, key[1]))
+			frappe.db.sql('update `tab{0}` set idx = idx + %s where name=%s'.format(key[0]),
+				(count, key[1]))
 
 	# reset the count
 	frappe.cache().delete_value('_link_count')

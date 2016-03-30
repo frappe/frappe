@@ -69,7 +69,7 @@ def set_route(context):
 	'''Set link for the list item'''
 	if context.is_web_form:
 		context.route = "{0}?name={1}".format(context.pathname, quote_plus(context.doc.name))
-	elif hasattr(context.doc, 'get_route'):
+	elif context.doc and getattr(context.doc, 'get_route', None):
 		context.route = context.doc.get_route()
 	else:
 		context.route = "{0}/{1}".format(context.pathname or quote_plus(context.doc.doctype), quote_plus(context.doc.name))

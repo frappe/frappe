@@ -369,7 +369,8 @@ class Database:
 		"""Returns `get_value` with fieldname='*'"""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, cache=False):
+	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
+		debug=False, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -418,6 +419,7 @@ class Database:
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
+		cache = False
 		if cache and isinstance(filters, basestring) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]

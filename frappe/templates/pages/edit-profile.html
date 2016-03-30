@@ -1,0 +1,46 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ "Edit Profile" }} {% endblock %}
+
+{% block header %}<h2>{{ _("Edit Profile") }}</h2>{% endblock %}
+
+{% block page_content %}
+<div class="user-content" style="max-width: 500px;">
+	<div class="alert alert-warning" id="message" style="display: none;"></div>
+	<form>
+		<fieldset>
+			<label>{{ _("Full Name") }}</label>
+			<input class="form-control" type="text" id="fullname" value="{{ user.full_name or "" }}">
+		</fieldset>
+		<fieldset>
+			<label>{{ _("Phone") }}</label>
+			<input class="form-control" type="text" id="phone" value="{{ user.phone or "" }}">
+		</fieldset>
+		<button id="update_user" type="submit" class="btn btn-default">{{ _("Update") }}</button>
+	</form>
+</div>
+<script>
+frappe.ready(function() {
+	$("#fullname").val(getCookie("full_name") || "");
+	$("#update_user").click(function() {
+		frappe.call({
+			method: "frappe.templates.pages.edit_profile.update_user",
+			type: "POST",
+			args: {
+				fullname: $("#fullname").val(),
+				org_name: $("#org_name").val(),
+				phone: $("#phone").val()
+			},
+			btn: this,
+			msg: $("#message"),
+			callback: function(r) {
+				if(!r.exc) $("#user-full-name").html($("#fullname").val());
+			}
+		});
+		return false;
+	})
+})
+</script>
+<!-- no-sidebar -->
+{% endblock %}
+
