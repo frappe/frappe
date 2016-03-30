@@ -18,7 +18,8 @@ def get_context(context):
 		fields=['title', 'route', 'reference_doctype'], filters={'enabled': 1}, order_by='idx asc')
 
 	for item in context.my_account_list:
-		item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
+		if item.reference_doctype:
+			item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname
