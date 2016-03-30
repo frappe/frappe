@@ -111,6 +111,7 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.error.collect_error_snapshots",
+		"frappe.model.utils.link_count.update_link_count",
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",
