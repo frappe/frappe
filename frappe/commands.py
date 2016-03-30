@@ -120,14 +120,27 @@ def _is_scheduler_enabled():
 @click.option('--db-name', help='Database name for site in case it is a new one')
 @click.option('--admin-password', help='Administrator password for new site')
 @click.option('--install-app', multiple=True, help='Install app after installation')
+@click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
+@click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
 @pass_context
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None):
+def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
 	"Restore site database from an sql file"
+	from frappe.installer import extract_sql_gzip, extract_tar_files
+	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
+	if sql_file_path.endswith('sql.gz'):
+		sql_file_path = extract_sql_gzip(os.path.abspath(sql_file_path))
 
 	site = get_single_site(context)
 	frappe.init(site=site)
 	db_name = db_name or frappe.conf.db_name or hashlib.sha1(site).hexdigest()[:10]
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
+
+	# Extract public and/or private files to the restored site, if user has given the path
+	if with_public_files:
+		extract_tar_files(site, with_public_files, 'public')
+
+	if with_private_files:
+		extract_tar_files(site, with_private_files, 'private')
 
 @click.command('reinstall')
 @pass_context
