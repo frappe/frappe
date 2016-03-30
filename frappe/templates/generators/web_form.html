@@ -262,6 +262,7 @@ frappe.ready(function() {
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: args,
+			freeze: true,
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {

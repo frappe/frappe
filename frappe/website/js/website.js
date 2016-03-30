@@ -32,6 +32,7 @@ $.extend(frappe, {
 	call: function(opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		frappe.prepare_call(opts);
+		if(opts.freeze) { frappe.freeze(); }
 		return $.ajax({
 			type: opts.type || "POST",
 			url: "/",
@@ -53,6 +54,10 @@ $.extend(frappe, {
 				}
 			}
 		}).always(function(data) {
+			if(opts.freeze) {
+				frappe.unfreeze();
+			}
+
 			// executed before statusCode functions
 			if(data.responseText) {
 				data = JSON.parse(data.responseText);
