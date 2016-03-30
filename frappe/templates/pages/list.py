@@ -40,6 +40,8 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	raw_result = _get_list(doctype=doctype, txt=txt, filters=filters,
 		limit_start=limit_start, limit_page_length=limit_page_length)
 
+	if not raw_result: return {"result": []}
+
 	show_more = (_get_list(doctype=doctype, txt=txt, filters=filters,
 		limit_start=next_start, limit_page_length=1) and True or False)
 
