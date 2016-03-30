@@ -87,7 +87,7 @@ $.extend(frappe.meta, {
 	},
 
 	sort_docfields: function(docs) {
-		return values(docs).sort(function(a, b) { return a.idx - b.idx });
+		return $.map(docs, function(d) { return d; }).sort(function(a, b) { return a.idx - b.idx });
 	},
 
 	get_docfield_copy: function(doctype, name) {

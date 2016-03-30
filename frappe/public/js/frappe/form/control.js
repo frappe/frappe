@@ -693,6 +693,8 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	set_input: function(value) {
 		this.input.checked = value ? 1 : 0;
 		this.last_value = value;
+		this.set_mandatory(value);
+		this.set_disp_area();
 	},
 	get_value: function() {
 		if (!this.$input) {

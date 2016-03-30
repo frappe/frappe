@@ -112,11 +112,6 @@ function keys(obj) {
 	for (var key in obj) mykeys[mykeys.length]=key;
 	return mykeys;
 }
-function values(obj) {
-	var myvalues=[];
-	for (var key in obj) myvalues[myvalues.length]=obj[key];
-	return myvalues;
-}
 
 function has_words(list, item) {
 	if(!item) return true;

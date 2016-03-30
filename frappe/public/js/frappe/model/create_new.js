@@ -40,7 +40,16 @@ $.extend(frappe.model, {
 
 		// set the name if called from a link field
 		if(frappe.route_options && frappe.route_options.name_field) {
-			frappe.model.set_name_field(doc, frappe.route_options.name_field);
+
+			var meta = frappe.get_meta(doctype);
+			// set title field / name as name
+			if(meta.autoname && meta.autoname.indexOf("field:")!==-1) {
+				doc[meta.autoname.substr(6)] = frappe.route_options.name_field;
+			} else if(meta.title_field) {
+				doc[meta.title_field] = frappe.route_options.name_field;
+			}
+
+
 			delete frappe.route_options.name_field;
 		}
 

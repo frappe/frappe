@@ -26,9 +26,9 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		});
 
 		var update_doc = function() {
-			values = dialog.get_values(true);
-			$.each(values, function(key, value) {
-				if(value) {
+			var data = dialog.get_values(true);
+			$.each(data, function(key, value) {
+				if(!is_null(value)) {
 					dialog.doc[key] = value;
 				}
 			});
@@ -44,9 +44,9 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		dialog.doc = doc;
 
 		dialog.set_primary_action(__('Save'), function() {
-			var values = dialog.get_values();
+			var data = dialog.get_values();
 
-			if(values) {
+			if(data) {
 				values = update_doc();
 				frappe.call({
 					method: "frappe.client.insert",
@@ -89,7 +89,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			field.doctype = doc.doctype;
 			field.docname = doc.name;
 
-			if(doc[fieldname]) {
+			if(!is_null(doc[fieldname])) {
 				field.set_input(doc[fieldname]);
 			}
 		});
