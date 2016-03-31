@@ -378,7 +378,7 @@ body {
     left: -10px;
     width: 100%;
   }
-  body[data-route^="messages"] .navbar-center {
+  body[data-route^="chat"] .navbar-center {
     display: block !important;
     position: absolute;
     top: 10px;
@@ -386,7 +386,7 @@ body {
     right: 25%;
     text-align: center;
   }
-  #page-messages .layout-side-section {
+  #page-chat .layout-side-section {
     position: relative;
     left: 0px;
     border-right: 1px solid #d1d8dd;
@@ -394,26 +394,26 @@ body {
     float: left;
     width: 76px;
   }
-  #page-messages .layout-main-section-wrapper {
+  #page-chat .layout-main-section-wrapper {
     position: absolute;
     left: 75px;
     right: 0px;
     border-left: 1px solid #d1d8dd;
     float: left;
   }
-  #page-messages .module-sidebar-item {
+  #page-chat .module-sidebar-item {
     margin: 0px;
   }
-  #page-messages .module-sidebar-item .messages-sidebar-link {
+  #page-chat .module-sidebar-item .chat-sidebar-link {
     padding: 15px;
   }
-  #page-messages .timeline-head {
+  #page-chat .timeline-head {
     padding: 15px 15px 7px;
   }
-  #page-messages .list-row {
+  #page-chat .list-row {
     padding: 7px 0px;
   }
-  #page-messages .message-row-right {
+  #page-chat .message-row-right {
     margin-top: 10px;
     text-align: left;
   }
