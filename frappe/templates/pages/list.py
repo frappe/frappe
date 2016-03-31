@@ -3,10 +3,9 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, quoted
 from frappe.website.render import resolve_path
 from frappe import _
-from urllib import quote_plus
 
 no_cache = 1
 no_sitemap = 1
@@ -68,11 +67,12 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 def set_route(context):
 	'''Set link for the list item'''
 	if context.is_web_form:
-		context.route = "{0}?name={1}".format(context.pathname, quote_plus(context.doc.name))
+		context.route = "{0}?name={1}".format(context.pathname, quoted(context.doc.name))
 	elif context.doc and getattr(context.doc, 'get_route', None):
 		context.route = context.doc.get_route()
 	else:
-		context.route = "{0}/{1}".format(context.pathname or quote_plus(context.doc.doctype), quote_plus(context.doc.name))
+		context.route = "{0}/{1}".format(context.pathname or quoted(context.doc.doctype),
+			quoted(context.doc.name))
 
 def prepare_filters(kwargs):
 	filters = frappe._dict(kwargs)
