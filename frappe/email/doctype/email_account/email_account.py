@@ -18,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
+from frappe.utils.background_jobs import enqueue
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 
 class SentEmailInInbox(Exception): pass
@@ -375,9 +376,9 @@ def pull(now=False):
 	import frappe.tasks
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
 		if now:
-			frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
+			pull_from_email_account(frappe.local.site, email_account.name)
 		else:
-			frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
+			enqueue(pull_from_email_account, frappe.local.site, email_account.name)
 
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
@@ -405,3 +406,15 @@ def notify_unreplied():
 
 				# update flag
 				comm.db_set("unread_notification_sent", 1)
+
+
+
+def pull_from_email_account(site, email_account):
+	try:
+		frappe.init(site=site)
+		frappe.connect(site=site)
+		email_account = frappe.get_doc("Email Account", email_account)
+		email_account.receive()
+		frappe.db.commit()
+	finally:
+		frappe.destroy()

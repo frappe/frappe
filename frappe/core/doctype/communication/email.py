@@ -8,7 +8,10 @@ from email.utils import formataddr, parseaddr
 from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
+from frappe.utils.scheduler import log
 import frappe.email.smtp
+import MySQLdb
+import time
 from frappe import _
 
 @frappe.whitelist()
@@ -56,7 +59,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
-	# needed for communication.notify which uses celery delay
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
@@ -84,7 +86,7 @@ def validate_email(doc):
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
-	"""Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue
+	"""Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue
 
 	:param print_html: Send given value as HTML attachment
 	:param print_format: Attach print format of parent document
@@ -105,9 +107,8 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 			recipients=recipients, cc=cc)
 	else:
 		check_bulk_limit(list(set(doc.sent_email_addresses)))
-
-		from frappe.tasks import sendmail
-		sendmail.delay(frappe.local.site, doc.name,
+		from frappe.utils.background_jobs import enqueue
+		enqueue(sendmail, queue="short", timeout=300,  communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 
@@ -349,3 +350,46 @@ def get_attach_link(doc, print_format):
 		"print_format": print_format,
 		"key": doc.get_parent_doc().get_signature()
 	})
+
+def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
+	recipients=None, cc=None, lang=None, session=None):
+	try:
+
+		if lang:
+			frappe.local.lang = lang
+
+		if session:
+			# hack to enable access to private files in PDF
+			session['data'] = frappe._dict(session['data'])
+			frappe.local.session.update(session)
+
+		# upto 3 retries
+		for i in xrange(3):
+			try:
+				communication = frappe.get_doc("Communication", communication_name)
+				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
+					recipients=recipients, cc=cc)
+
+			except MySQLdb.OperationalError, e:
+				# deadlock, try again
+				if e.args[0]==1213:
+					frappe.db.rollback()
+					time.sleep(1)
+					continue
+				else:
+					raise
+			else:
+				break
+
+	except:
+		traceback = log("frappe.core.doctype.communication.email.sendmail", frappe.as_json({
+			"communication_name": communication_name,
+			"print_html": print_html,
+			"print_format": print_format,
+			"attachments": attachments,
+			"recipients": recipients,
+			"cc": cc,
+			"lang": lang
+		}))
+		frappe.get_logger(__name__).error(traceback)
+		raise

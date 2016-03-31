@@ -1,3 +1,4 @@
+
 from __future__ import unicode_literals
 import frappe
 import logging
@@ -42,6 +43,9 @@ def setup_logging():
 					"propagate": False,
 					"filters": ["context_filter"],
 					"handlers": ["request_exception"]
+				},
+				"rq.worker": {
+					"level": "DEBUG",
 				}
 			},
 			"handlers": {

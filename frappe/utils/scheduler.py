@@ -13,18 +13,14 @@ from __future__ import unicode_literals
 import frappe
 import json
 import frappe.utils
-from frappe.utils.file_lock import create_lock, check_lock, delete_lock
+from frappe.utils import get_sites
 from datetime import datetime
+from background_jobs import enqueue, get_jobs
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-def enqueue_events(site):
+def enqueue_events(queued_jobs, site):
 	if is_scheduler_disabled():
-		return
-
-	# lock before queuing begins
-	lock = create_lock('scheduler')
-	if not lock:
 		return
 
 	nowtime = frappe.utils.now_datetime()
@@ -38,21 +34,19 @@ def enqueue_events(site):
 	out = []
 	if last:
 		last = datetime.strptime(last, DATETIME_FORMAT)
-		out = enqueue_applicable_events(site, nowtime, last)
-
-	delete_lock('scheduler')
+		out = enqueue_applicable_events(nowtime, last, queued_jobs, site=site)
 
 	return '\n'.join(out)
 
-def enqueue_applicable_events(site, nowtime, last):
+def enqueue_applicable_events(nowtime, last, queued_jobs, site):
 	nowtime_str = nowtime.strftime(DATETIME_FORMAT)
 	out = []
 
 	enabled_events = get_enabled_scheduler_events()
 
-	def trigger_if_enabled(site, event, now=False):
+	def trigger_if_enabled(event, site, now=False):
 		if event in enabled_events:
-			trigger(site, event, now=now)
+			trigger(site, event, queued_jobs, now=now)
 			_log(event)
 
 	def _log(event):
@@ -72,32 +66,37 @@ def enqueue_applicable_events(site, nowtime, last):
 			trigger_if_enabled(site, "weekly_long")
 
 		if "all" not in enabled_events:
-			trigger(site, "all")
+			trigger(site, queued_jobs, "all")
 
 		if "hourly" not in enabled_events:
-			trigger(site, "hourly")
+			trigger(site, queued_jobs, "hourly")
 
 	if nowtime.hour != last.hour:
 		trigger_if_enabled(site, "hourly")
 		trigger_if_enabled(site, "hourly_long")
 
-	trigger_if_enabled(site, "all")
+	trigger_if_enabled("all", site=site)
 
 	return out
 
-def trigger(site, event, now=False):
+def trigger(site, event, queued_jobs, now=False):
 	"""trigger method in startup.schedule_handler"""
-	from frappe.tasks import scheduler_task
-
+	if event.endswith("long"):
+		queue = 'long'
+		timeout = 1500
+	else:
+		queue = 'default'
+		timeout = 300
 	for handler in frappe.get_hooks("scheduler_events").get(event, []):
-		if not check_lock(handler):
-			if not now:
-				scheduler_task.delay(site=site, event=event, handler=handler)
-			else:
-				scheduler_task(site=site, event=event, handler=handler, now=True)
+		if not now:
+			if handler not in queued_jobs:
+				enqueue(handler, queue, timeout, event)
+		else:
+			scheduler_task(site=site, event=event, handler=handler, now=True)
 
 	if frappe.flags.in_test:
 		frappe.flags.ran_schedulers.append(event)
+
 
 def log(method, message=None):
 	"""log error in patch_log"""
@@ -167,3 +166,47 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 	else:
 		return 0, "<p>Scheduler didn't encounter any problems.</p>"
 
+
+def scheduler_task(site, event, handler, now=False):
+	traceback = ""
+	frappe.get_logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+	try:
+		if not now:
+			frappe.connect(site=site)
+		frappe.get_attr(handler)()
+
+	except Exception:
+		frappe.db.rollback()
+		traceback = log(handler, "Method: {event}, Handler: {handler}".format(event=event, handler=handler))
+		frappe.get_logger(__name__).warn(traceback)
+		raise
+
+	else:
+		frappe.db.commit()
+
+	frappe.get_logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+
+
+def enqueue_scheduler_events():
+	frappe.init('')
+	
+	jobs_per_site = get_jobs()
+	sites = get_sites()
+	
+	frappe.destroy()
+
+	for site in sites:
+		enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
+
+def enqueue_events_for_site(site, queued_jobs):
+	try:
+		frappe.init(site=site)
+		if frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
+			return
+		frappe.connect()
+		enqueue_events(queued_jobs=queued_jobs, site=site)
+	except:
+		frappe.get_logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
+		raise
+	finally:
+		frappe.destroy()

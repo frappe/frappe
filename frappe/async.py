@@ -60,16 +60,6 @@ def ping():
 	sleep(1)
 	return "pong"
 
-@frappe.whitelist()
-def get_task_status(task_id):
-	from frappe.celery_app import get_celery
-	c = get_celery()
-	a = c.AsyncResult(task_id)
-	frappe.local.response['response'] = a.result
-	return {
-		"state": a.state,
-		"progress": 0
-	}
 
 def set_task_status(task_id, status, response=None):
 	if not response:
