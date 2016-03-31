@@ -111,6 +111,7 @@ def scheduler_task(site, event, handler, now=False):
 			return
 		if not now:
 			frappe.connect(site=site)
+		frappe.flags.in_scheduler = True
 		frappe.get_attr(handler)()
 
 	except Exception:

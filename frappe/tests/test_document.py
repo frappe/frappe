@@ -210,7 +210,8 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEquals(old_count + 1, new_count)
 
-		before_update = frappe.db.get_value(doctype, name, 'idx')
+		before_update = frappe.db.sql('select idx from `tab{0}` where name=%s'.format(doctype), name)[0][0]
+		#before_update = frappe.db.get_value(doctype, name, 'idx')
 
 		update_link_count()
 
