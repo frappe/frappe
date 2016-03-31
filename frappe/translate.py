@@ -258,6 +258,8 @@ def get_messages_for_app(app):
 		for name in frappe.db.sql_list("""select name from tabDocType
 			where module in ({})""".format(modules)):
 			messages.extend(get_messages_from_doctype(name))
+			# workflow based on doctype
+			messages.extend(get_messages_from_workflow(doctype=name))
 
 		# pages
 		for name, title in frappe.db.sql("""select name, title from tabPage
@@ -275,6 +277,12 @@ def get_messages_for_app(app):
 			for i in messages:
 				if not isinstance(i, tuple):
 					raise Exception
+
+	# workflow based on app.hooks.fixtures
+	messages.extend(get_messages_from_workflow(app_name=app))
+
+	# custom fields based on app.hooks.fixtures
+	messages.extend(get_messages_from_custom_fields(app_name=app))
 
 	# app_include_files
 	messages.extend(get_all_messages_from_js_files(app))
@@ -319,10 +327,74 @@ def get_messages_from_doctype(name):
 	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
 	return messages
 
+def get_messages_from_workflow(doctype=None, app_name=None):
+	assert doctype or app_name, 'doctype or app_name should be provided'
+
+	# translations for Workflows
+	workflows = []
+	if doctype:
+		workflows = frappe.get_all('Workflow', filters={'document_type': doctype})
+	else:
+		fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
+		for fixture in fixtures:
+			if isinstance(fixture, basestring) and fixture == 'Worflow':
+				workflows = frappe.get_all('Workflow')
+				break
+			elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Workflow':
+				workflows.extend(frappe.get_all('Workflow', filters=fixture.get('filters')))
+
+	messages  = []
+	for w in workflows:
+		states = frappe.db.sql(
+			'select distinct state from `tabWorkflow Document State` where parent=%s',
+			(w['name'],), as_dict=True)
+
+		messages.extend([('Workflow: ' + w['name'], state['state']) for state in states if is_translatable(state['state'])])
+
+		states = frappe.db.sql(
+			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
+			(w['name'],), as_dict=True)
+
+		messages.extend([("Workflow: " + w['name'], states['message'])
+			for state in states if is_translatable(state['state'])])
+
+		actions = frappe.db.sql(
+			'select distinct action from `tabWorkflow Transition` where parent=%s',
+			(w['name'],), as_dict=True)
+
+		messages.extend([("Workflow: " + w['name'], action['action']) \
+			for action in actions if is_translatable(action['action'])])
+
+	return messages
+
+def get_messages_from_custom_fields(app_name):
+	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
+	custom_fields = []
+	
+	for fixture in fixtures:
+		if isinstance(fixture, basestring) and fixture == 'Custom Field':
+			custom_fields = frappe.get_all('Custom Field')
+			break
+		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
+			custom_fields.extend(frappe.get_all('Custom Field', filters=fixture.get('filters'),
+				fields=['name','label', 'description', 'fieldtype', 'options']))
+
+	messages = []
+	for cf in custom_fields:
+		for prop in ('label', 'description'):
+			if not cf.get(prop) or not is_translatable(cf[prop]):
+				continue
+			messages.append(('Custom Field - {}: {}'.format(prop, cf['name']), cf[prop]))
+		if cf['fieldtype'] == 'Selection' and cf.get('options'):
+			for option in cf['options'].split('\n'):
+				if option and 'icon' not in option and is_translatable(option):
+					messages.append(('Custom Field - Description: ' + cf['name'], option))
+
+	return messages
+
 def get_messages_from_page(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Page`"""
 	return _get_messages_from_page_or_report("Page", name)
-
 
 def get_messages_from_report(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
