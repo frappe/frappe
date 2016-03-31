@@ -48,9 +48,9 @@ class Communication(Document):
 			return
 
 		# For Mattermost notification
+		settings = frappe.get_doc("Mattermost Settings", "Notifications")
 		if (self.communication_type == "Comment" and
-			self.reference_doctype in ['Leave Application', "Salary Slip", "Material Request", "Purchase Receipt",
-									   "Purchase Order"] and \
+			self.reference_doctype in map(lambda x: x.strip(), settings.reference_doctype_list.split(',')) and \
 			(self.subject == "Submitted" or self.subject.startswith("Approved")
 			 or self.subject.endswith("Approved") or self.subject.startswith("Rejected"))):
 			frappe.tasks.send2mattermost.delay(frappe.local.site, self.reference_doctype, self.subject)

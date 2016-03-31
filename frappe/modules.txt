@@ -2,6 +2,7 @@ Core
 Website
 Workflow
 Email
+Mattermost
 Custom
 Geo
 Desk
