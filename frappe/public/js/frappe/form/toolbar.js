@@ -157,7 +157,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
-			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
+			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
 				new_doc(me.frm.doctype);}, true);
 		}
 
