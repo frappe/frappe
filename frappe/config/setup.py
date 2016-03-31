@@ -136,7 +136,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Standard Reply",
 					"description": _("Standard replies to common queries.")
-				},
+				}
+			]
+		},
+		{
+			"label": _("Mattermost"),
+			"icon": "icon-envelope",
+			"items": [
 				{
 					"type": "doctype",
 					"name": "Mattermost Settings",

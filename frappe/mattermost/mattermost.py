@@ -3,7 +3,6 @@ import logging
 import time
 import requests
 import websocket
-import frappe
 
 logger = logging.getLogger(__name__)
 

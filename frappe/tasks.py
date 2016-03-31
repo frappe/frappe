@@ -17,7 +17,7 @@ import time
 import json
 import os
 import MySQLdb
-import frappe.email.mattermost
+import frappe.mattermost.mattermost
 
 @celery_task()
 def sync_queues():
@@ -270,7 +270,7 @@ def send2mattermost(site, reference_doctype, subject):
 	team = settings.team
 	email = settings.email
 	password = settings.password
-	client = frappe.email.mattermost.MattermostClient(url, team, email, password)
+	client = frappe.mattermost.mattermost.MattermostClient(url, team, email, password)
 
 	# post message in a channel
 	channels = client.api.get_channels()
