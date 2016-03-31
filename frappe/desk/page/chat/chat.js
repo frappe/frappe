@@ -1,32 +1,27 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// TODO
-// new message popup
-
-frappe.provide('frappe.desk.pages.messages');
-
-frappe.pages.messages.on_page_load = function(parent) {
+frappe.pages.chat.on_page_load = function(parent) {
 	var page = frappe.ui.make_app_page({
 		parent: parent,
 	});
 
-	page.set_title('<span class="hidden-xs">' + __("Messages") + '</span>'
+	page.set_title('<span class="hidden-xs">' + __("Chat") + '</span>'
 		+ '<span class="hidden-sm hidden-md hidden-lg message-to"></span>');
 
-	$(".navbar-center").html(__("Messages"));
+	$(".navbar-center").html(__("Chat"));
 
-	frappe.desk.pages.messages = new frappe.desk.pages.Messages(parent);
+	frappe.pages.chat.chat = new frappe.Chat(parent);
 }
 
-frappe.pages.messages.on_page_show = function() {
+frappe.pages.chat.on_page_show = function() {
 	// clear title prefix
 	frappe.utils.set_title_prefix("");
 
 	frappe.breadcrumbs.add("Desk");
 }
 
-frappe.desk.pages.Messages = Class.extend({
+frappe.Chat = Class.extend({
 	init: function(wrapper, page) {
 		this.wrapper = wrapper;
 		this.page = wrapper.page;
@@ -46,7 +41,7 @@ frappe.desk.pages.Messages = Class.extend({
 		var me = this;
 		frappe.realtime.on('new_message', function(comment) {
 			if(comment.modified_by !== user || comment.communication_type === 'Bot') {
-				if(frappe.get_route()[0] === 'messages') {
+				if(frappe.get_route()[0] === 'chat') {
 					var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
 					var on_broadcast_page = current_contact === user;
 					if ((current_contact == comment.owner)
@@ -56,7 +51,7 @@ frappe.desk.pages.Messages = Class.extend({
 						setTimeout(function() { me.prepend_comment(comment); }, 1000);
 					}
 				} else {
-					frappe.utils.notify(__("Message from {0}", [comment.sender_full_name]), comment.content);
+					frappe.utils.notify(__("Message from {0}", [frappe.user_info(comment.owner).fullname]), comment.content);
 				}
 			}
 		});
@@ -64,23 +59,23 @@ frappe.desk.pages.Messages = Class.extend({
 
 	prepend_comment: function(comment) {
 		var $row = $('<div class="list-row"/>');
-		frappe.desk.pages.messages.list.data.unshift(comment);
-		frappe.desk.pages.messages.list.render_row($row, comment);
-		frappe.desk.pages.messages.list.$w.prepend($row);
+		frappe.pages.chat.chat.list.data.unshift(comment);
+		frappe.pages.chat.chat.list.render_row($row, comment);
+		frappe.pages.chat.chat.list.$w.prepend($row);
 	},
 
 	make_sidebar: function() {
 		var me = this;
 		return frappe.call({
 			module:'frappe.desk',
-			page:'messages',
+			page:'chat',
 			method:'get_active_users',
 			callback: function(r,rt) {
 				// sort
 				r.message.sort(function(a, b) { return cint(b.has_session) - cint(a.has_session); });
 
 				// render
-				me.page.sidebar.html(frappe.render_template("messages_sidebar", {data: r.message}));
+				me.page.sidebar.html(frappe.render_template("chat_sidebar", {data: r.message}));
 
 				// bind click
 				me.page.sidebar.find("a").on("click", function() {
@@ -105,7 +100,7 @@ frappe.desk.pages.Messages = Class.extend({
 	make_messages: function(contact) {
 		var me = this;
 
-		this.page.main.html($(frappe.render_template("messages_main", { "contact": contact })));
+		this.page.main.html($(frappe.render_template("chat_main", { "contact": contact })));
 
 		var text_area = this.page.main.find(".messages-textarea").on("focusout", function() {
 			// on touchscreen devices, scroll to top
@@ -127,7 +122,7 @@ frappe.desk.pages.Messages = Class.extend({
 			if(txt) {
 				return frappe.call({
 					module: 'frappe.desk',
-					page:'messages',
+					page:'chat',
 					method:'post',
 					args: {
 						txt: txt,
@@ -164,7 +159,7 @@ frappe.desk.pages.Messages = Class.extend({
 		this.list = new frappe.ui.Listing({
 			parent: this.page.main.find(".message-list"),
 			page: this.page,
-			method: 'frappe.desk.page.messages.messages.get_list',
+			method: 'frappe.desk.page.chat.chat.get_list',
 			args: {
 				contact: contact
 			},
@@ -172,7 +167,7 @@ frappe.desk.pages.Messages = Class.extend({
 			freeze: false,
 			render_row: function(wrapper, data) {
 				me.prepare(data);
-				var row = $(frappe.render_template("messages_row", {
+				var row = $(frappe.render_template("chat_row", {
 					data: data
 				})).appendTo(wrapper);
 				row.find(".avatar, .indicator").tooltip();
@@ -184,7 +179,7 @@ frappe.desk.pages.Messages = Class.extend({
 	delete: function(ele) {
 		$(ele).parent().css('opacity', 0.6);
 		return frappe.call({
-			method: 'frappe.desk.page.messages.messages.delete',
+			method: 'frappe.desk.page.chat.chat.delete',
 			args: {name : $(ele).attr('data-name')},
 			callback: function() {
 				$(ele).parents(".list-row:first").toggle(false);
@@ -218,6 +213,10 @@ frappe.desk.pages.Messages = Class.extend({
 
 		if(data.owner==data.reference_name && data.communication_type !== "Bot") {
 			data.is_mine = true;
+		}
+
+		if(data.owner==data.reference_name && data.communication_type === "Bot") {
+			data.owner = 'bot';
 		}
 
 		data.content = frappe.markdown(data.content);

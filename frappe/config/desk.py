@@ -22,7 +22,7 @@ def get_data():
 				},
 				{
 					"type": "page",
-					"label": _("Messages"),
+					"label": _("Chat"),
 					"name": "messages",
 					"description": _("Chat messages and other notifications."),
 					"data_doctype": "Communication"

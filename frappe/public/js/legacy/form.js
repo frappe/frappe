@@ -329,10 +329,14 @@ _f.Frm.prototype.show_web_link = function() {
 	if(!doc.__islocal && doc.__onload && doc.__onload.is_website_generator) {
 		me.web_link && me.web_link.remove();
 		if(doc.__onload.published) {
-			me.web_link = me.sidebar.add_user_action("See on Website",
-				function() {}).attr("href", "/" + doc.__onload.website_route).attr("target", "_blank");
+			me.add_web_link("/" + doc.__onload.website_route)
 		}
 	}
+}
+
+_f.Frm.prototype.add_web_link = function(path) {
+	this.web_link = this.sidebar.add_user_action("See on Website",
+		function() {}).attr("href", path).attr("target", "_blank");
 }
 
 _f.Frm.prototype.check_doc_perm = function() {

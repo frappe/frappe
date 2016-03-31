@@ -7,6 +7,14 @@ frappe.user_info = function(uid) {
 	if(!uid)
 		uid = user;
 
+	if(uid.toLowerCase()==="bot") {
+		return {
+			fullname: __("Bot"),
+			image: "/assets/frappe/images/ui/bot.png",
+			abbr: "B"
+		}
+	}
+
 	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
 		var user_info = {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
 	} else {

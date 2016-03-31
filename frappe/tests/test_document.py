@@ -210,10 +210,6 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEquals(old_count + 1, new_count)
 
-		# hack - for travis so that it does not batch idx updates (?)
-		import time
-		time.sleep(1)
-
 		before_update = frappe.db.get_value(doctype, name, 'idx')
 
 		update_link_count()

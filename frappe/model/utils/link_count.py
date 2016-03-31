@@ -24,11 +24,13 @@ def notify_link_count(doctype, name):
 def update_link_count():
 	'''increment link count in the `idx` column for the given document'''
 	link_count = frappe.cache().get_value('_link_count')
+
+	# reset the count
+	frappe.cache().delete_value('_link_count')
+
 	if link_count:
 		for key, count in link_count.iteritems():
 			if key[0] not in ignore_doctypes:
 				frappe.db.sql('update `tab{0}` set idx = idx + {1} where name=%s'.format(key[0], count),
 					key[1])
 
-	# reset the count
-	frappe.cache().delete_value('_link_count')

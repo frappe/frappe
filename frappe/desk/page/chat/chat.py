@@ -41,6 +41,7 @@ def get_list(arg=None):
 		return frappe.db.sql("""select * from `tabCommunication`
 			where
 				communication_type in ('Chat', 'Notification')
+				and comment_type != 'Bot'
 				and reference_doctype ='User'
 				and (owner=%(contact)s
 					or reference_name=%(user)s
@@ -78,7 +79,8 @@ def get_active_users():
 		# in case of administrator
 		data.append({"name": frappe.session.user, "has_session": 100})
 
-	data.append({"name": "Bot", "has_session": 100})
+	if 'System Manager' in frappe.get_roles():
+		data.append({"name": "Bot", "has_session": 100})
 
 	return data
 

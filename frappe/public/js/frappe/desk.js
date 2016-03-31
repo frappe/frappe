@@ -259,6 +259,14 @@ frappe.Application = Class.extend({
 				}
 				return false;
 			})
+			.keydown("meta+b ctrl+b", function(e) {
+				e.preventDefault();
+				var route = frappe.get_route();
+				if(route[0]==='Form' || route[0]==='List') {
+					new_doc(route[1]);
+				}
+				return false;
+			})
 			.keydown("esc", function(e) {
 				// close open grid row
 				var open_row = $(".grid-row-open");
