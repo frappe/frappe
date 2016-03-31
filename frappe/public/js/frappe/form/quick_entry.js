@@ -55,6 +55,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 					},
 					callback: function(r) {
 						dialog.hide();
+						// delete the old doc
+						frappe.model.clear_doc(dialog.doc.doctype, dialog.doc.name);
 						var doc = r.message;
 						if(success) success(doc);
 					},

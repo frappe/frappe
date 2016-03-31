@@ -49,7 +49,7 @@ def set_new_name(doc):
 			if not doc.name:
 				frappe.throw(_("Name not set via Prompt"))
 
-	if not doc.name:
+	if not doc.name or autoname=='hash':
 		doc.name = make_autoname('hash', doc.doctype)
 
 	doc.name = validate_name(doc.doctype, doc.name)
@@ -169,7 +169,7 @@ def validate_name(doctype, name, case=None, merge=False):
 	special_characters = "<>"
 	if re.findall("[{0}]+".format(special_characters), name):
 		message = ", ".join("'{0}'".format(c) for c in special_characters)
-		frappe.throw(_("Name cannot contain special characters like {0}").format(special_characters), frappe.NameError)
+		frappe.throw(_("Name cannot contain special characters like {0}").format(message), frappe.NameError)
 
 	return name
 
