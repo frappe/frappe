@@ -110,7 +110,6 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 	get_linked_docs: function() {
 		var me = this;
-
 		return frappe.call({
 			method:"frappe.desk.form.linked_with.get_linked_docs",
 			args: {
@@ -120,9 +119,19 @@ frappe.ui.form.LinkedWith = Class.extend({
 			},
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.list.$wrapper.empty();
-
-				if(keys(r.message || {}).length) {
-					$.each(keys(r.message).sort(), function(i, doctype) {
+				var result = {};
+				
+				if (me.link_for) {
+					if(r.message && r.message[me.link_for]) {
+						result[me.link_for] = r.message[me.link_for];
+					}
+				}
+				else{
+					result = r.message;
+				}
+				
+				if(keys(result || {}).length) {
+					$.each(keys(result).sort(), function(i, doctype) {
 						var listview = frappe.views.get_listview(doctype, me);
 						listview.no_delete = true;
 
@@ -130,7 +139,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 						$('<div class="panel-heading">').html(__(doctype).bold()).appendTo(wrapper);
 						var body = $('<div class="panel-body">').appendTo(wrapper);
 
-						$.each(r.message[doctype], function(i, d) {
+						$.each(result[doctype], function(i, d) {
 							d.doctype = doctype;
 							listview.render($('<div class="list-row"></div>')
 								.appendTo(body), d, me);

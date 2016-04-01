@@ -13,6 +13,7 @@ def get_linked_docs(doctype, name, linkinfo=None):
 	key = "linked_with:{doctype}:{name}".format(doctype=doctype, name=name)
 
 	results = frappe.cache().get_value(key, user=True)
+	print results
 	if results:
 		return results
 
