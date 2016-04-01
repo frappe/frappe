@@ -29,7 +29,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	show_empty_form_message: function() {
 		this.wrapper.find(".empty-form-alert").remove();
-		if(!(this.wrapper.find(".frappe-control:visible").length)) {
+		if(!(this.wrapper.find(".frappe-control:visible").length || this.wrapper.find(".section-head.collapsed").length)) {
 			$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
 				+__("This form does not have any input")+'</div>')
 			.appendTo(this.page);
@@ -78,6 +78,9 @@ frappe.ui.form.Layout = Class.extend({
 		if(this.frm) {
 			fieldobj.perm = this.frm.perm;
 		}
+
+		this.section.fields_list.push(fieldobj);
+		this.section.fields_dict[df.fieldname] = fieldobj;
 	},
 	make_page: function(df) {
 		var me = this,
@@ -183,15 +186,17 @@ frappe.ui.form.Layout = Class.extend({
 			var section = this.sections[i];
 			var df = section.df;
 			if(df && df.collapsible) {
-				if(df.collapsible_depends_on) {
-					var collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
-					var has_error = section.wrapper.find(".frappe-control.has-error").length;
+				var collapse = true;
 
-					if(collapse && has_error) {
-						collapse = false;
-					}
-					section.collapse(collapse);
+				if(df.collapsible_depends_on) {
+					collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
 				}
+
+				if (collapse && section.has_missing_mandatory()) {
+					collapse = false;
+				}
+
+				section.collapse(collapse);
 			}
 		}
 	},
@@ -404,6 +409,8 @@ frappe.ui.form.Section = Class.extend({
 		var me = this;
 		this.layout = layout;
 		this.df = df || {};
+		this.fields_list = [];
+		this.fields_dict = {};
 
 		this.make();
 		// if(this.frm)
@@ -486,6 +493,17 @@ frappe.ui.form.Section = Class.extend({
 		this.head.toggleClass("collapsed", hide);
 		this.indicator.toggleClass("octicon-chevron-down", hide);
 		this.indicator.toggleClass("octicon-chevron-up", !hide);
+	},
+	has_missing_mandatory: function() {
+		var missing_mandatory = false;
+		for (var j=0, l=this.fields_list.length; j < l; j++) {
+			var section_df = this.fields_list[j].df;
+			if (section_df.reqd && this.layout.frm.doc[section_df.fieldname]==null) {
+				missing_mandatory = true;
+				break;
+			}
+		}
+		return missing_mandatory;
 	}
 })
 
