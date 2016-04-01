@@ -145,7 +145,6 @@ select.input-sm {
     font-size: 18px;
   }
 }
-
 .module-flow {
 	float:left;
 	width: 100%;
@@ -156,7 +155,6 @@ select.input-sm {
 	background-color: #fafbfc;
 	border-bottom: 1px solid #EBEFF2;
 }
-
 .module-flow a {
 	margin-left: 5px;
 	margin-right: 5px;
