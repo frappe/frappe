@@ -8,7 +8,9 @@ from werkzeug.test import Client
 import os, re, urllib, sys
 import json
 import frappe
+import md5
 import requests
+from frappe.utils.identicon import Identicon
 
 import bleach
 import bleach_whitelist
@@ -119,8 +121,11 @@ def random_string(length):
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
 def get_gravatar(email):
-	import md5
-	return "https://secure.gravatar.com/avatar/{hash}?d=retro".format(hash=md5.md5(email).hexdigest())
+	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
+	if requests.get(gravatar_url).status_code==404:
+		return Identicon(email).base64()
+	else:
+		return gravatar_url
 
 def get_traceback():
 	"""

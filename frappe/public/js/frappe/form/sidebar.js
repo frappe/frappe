@@ -16,6 +16,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.sidebar = this.page_sidebar.add(this.offcanvas_form_sidebar);
 		this.comments = this.sidebar.find(".sidebar-comments");
 		this.user_actions = this.sidebar.find(".user-actions");
+		this.image_section = this.sidebar.find(".sidebar-image-section");
 
 		this.make_assignments();
 		this.make_attachments();
@@ -64,6 +65,7 @@ frappe.ui.form.Sidebar = Class.extend({
 				"<br>" + comment_when(this.frm.doc.creation)]));
 
 			this.refresh_like();
+			this.refresh_image();
 		}
 	},
 
@@ -144,4 +146,27 @@ frappe.ui.form.Sidebar = Class.extend({
 
 		this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
 	},
+
+	refresh_image: function() {
+		if (this.frm.image_field===undefined) {
+			for (var i in this.frm.fields) {
+				var df = this.frm.fields[i].df;
+				if (df.fieldtype == "Attach Image") {
+					this.frm.image_field = df.fieldname;
+					break;
+				}
+			}
+		}
+
+		var image_field = this.frm.image_field;
+
+		// if image field has value
+		if (image_field && this.frm.doc[image_field]) {
+			this.image_section.removeClass("hide")
+				.find(".sidebar-image").css("background-image", 'url("' + this.frm.doc[image_field] + '")');
+		} else {
+			this.image_section.addClass("hide")
+				.find(".sidebar-image").css("background-image", null);
+		}
+	}
 });
