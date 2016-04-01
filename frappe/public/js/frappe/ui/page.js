@@ -412,9 +412,8 @@ frappe.ui.Page = Class.extend({
 		var me = this;
 		$('.module-flow-section').empty();
 		if (frm.doctype) {
-			var module = frappe.get_meta(frm.doctype).module
-			console.log(module)
-			var module_flow = frappe.boot.module_flow[module][frm.doctype];
+			var module = frappe.get_meta(frm.doctype).module;
+			var module_flow = frappe.module_flow[module][frm.doctype];
 			if (module_flow){
 				if (!$('.doc-flow').length) {
 					$('<div class="module-flow"></div>').prependTo(this.module_flow.removeClass("hide"));

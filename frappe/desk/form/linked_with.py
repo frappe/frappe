@@ -9,24 +9,33 @@ import frappe.desk.form.meta
 import frappe.desk.form.load
 
 @frappe.whitelist()
-def get_linked_docs(doctype, name, linkinfo=None):
+def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	key = "linked_with:{doctype}:{name}".format(doctype=doctype, name=name)
+	
+	if isinstance(linkinfo, basestring):
+		# additional fields are added in linkinfo
+		linkinfo = json.loads(linkinfo)
+	
+	if for_doctype:
+		key = "{key}:{for_doctype}".format(key=key, for_doctype=for_doctype)
+		if linkinfo.get(for_doctype):
+			linkinfo = {for_doctype: linkinfo.get(for_doctype)}
+		else:
+			return {}
 
 	results = frappe.cache().get_value(key, user=True)
+	
 	if results:
 		return results
 
 	meta = frappe.desk.form.meta.get_meta(doctype)
 	results = {}
 
-	if isinstance(linkinfo, basestring):
-		# additional fields are added in linkinfo
-		linkinfo = json.loads(linkinfo)
-
 	if not linkinfo:
 		return results
 
 	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+	
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
@@ -35,13 +44,13 @@ def get_linked_docs(doctype, name, linkinfo=None):
 			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
 				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
 				+ ["name", "modified", "docstatus"]
-
+						
 			if link.get("add_fields"):
 				fields += link["add_fields"]
 
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf
 				and "`tab" not in sf]
-
+						
 			try:
 				if link.get("get_parent"):
 					if me and me.parent and me.parenttype == dt:
@@ -61,11 +70,9 @@ def get_linked_docs(doctype, name, linkinfo=None):
 
 				else:
 					filters = [[dt, link.get("fieldname"), '=', name]]
-
 					# dynamic link
 					if link.get("doctype_fieldname"):
 						filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-
 					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
 
 			except frappe.PermissionError:

@@ -115,23 +115,14 @@ frappe.ui.form.LinkedWith = Class.extend({
 			args: {
 				doctype: me.frm.doctype,
 				name: me.frm.docname,
-				linkinfo: me.frm.__linked_doctypes
+				linkinfo: me.frm.__linked_doctypes,
+				for_doctype: me.link_for
 			},
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.list.$wrapper.empty();
-				var result = {};
 				
-				if (me.link_for) {
-					if(r.message && r.message[me.link_for]) {
-						result[me.link_for] = r.message[me.link_for];
-					}
-				}
-				else{
-					result = r.message;
-				}
-				
-				if(keys(result || {}).length) {
-					$.each(keys(result).sort(), function(i, doctype) {
+				if(keys(r.message || {}).length) {
+					$.each(keys(r.message).sort(), function(i, doctype) {
 						var listview = frappe.views.get_listview(doctype, me);
 						listview.no_delete = true;
 
@@ -139,7 +130,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 						$('<div class="panel-heading">').html(__(doctype).bold()).appendTo(wrapper);
 						var body = $('<div class="panel-body">').appendTo(wrapper);
 
-						$.each(result[doctype], function(i, d) {
+						$.each(r.message[doctype], function(i, d) {
 							d.doctype = doctype;
 							listview.render($('<div class="list-row"></div>')
 								.appendTo(body), d, me);
