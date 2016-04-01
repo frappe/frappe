@@ -5,7 +5,9 @@ frappe.provide("frappe.ui.toolbar");
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		var header = $('header').append(frappe.render_template("navbar", {}));
+		var header = $('header').append(frappe.render_template("navbar", {
+			avatar: frappe.avatar(frappe.session.user)
+		}));
 		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
 
 		header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);

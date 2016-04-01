@@ -23,7 +23,7 @@ def get_list(arg=None):
 			and reference_doctype = 'User'
 			and reference_name = %s""", frappe.session.user)
 
-	delete_notification_count_for("Messages")
+	delete_notification_count_for("Chat")
 
 	frappe.local.flags.commit = True
 
@@ -106,7 +106,7 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 
 	d.insert(ignore_permissions=True)
 
-	delete_notification_count_for("Messages")
+	delete_notification_count_for("Chat")
 
 	if notify and cint(notify):
 		_notify(contact, txt, subject)

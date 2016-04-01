@@ -121,7 +121,7 @@ frappe.activity.Feed = Class.extend({
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user.full_name(data.owner);
-		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
+		data.avatar = frappe.avatar(data.owner);
 
 		data.icon = "icon-flag";
 

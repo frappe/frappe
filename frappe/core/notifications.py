@@ -15,7 +15,7 @@ def get_notification_config():
 		},
 		"for_other": {
 			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Messages": "frappe.core.notifications.get_unread_messages",
+			"Chat": "frappe.core.notifications.get_unread_messages",
 		}
 	}
 

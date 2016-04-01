@@ -178,6 +178,10 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   background-repeat: no-repeat;
   background-position: center center;
 }
+.form-sidebar .sidebar-image-section .standard-image {
+  font-size: 72px;
+  border-radius: 6px;
+}
 .form-sidebar .form-shared .share-doc-btn:hover,
 .form-sidebar .form-shared .share-doc-btn:focus,
 .form-sidebar .form-shared .share-doc-btn:active {

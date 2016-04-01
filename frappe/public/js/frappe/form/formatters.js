@@ -120,8 +120,7 @@ frappe.form.formatters = {
 	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
-			if(v) html+= '<span class="avatar avatar-small" \
-				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'" alt="'+ frappe.user_info(v).abbr +'"></span>';
+			if(v) html+= frappe.avatar(v);
 		});
 		return html;
 	},

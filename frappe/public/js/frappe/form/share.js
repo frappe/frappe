@@ -30,6 +30,8 @@ frappe.ui.form.Share = Class.extend({
 				users.push({
 					image: user_info.image,
 					fullname: user_info.fullname,
+					abbr: user_info.abbr,
+					color: user_info.color,
 					title: __("Shared with {0}", [user_info.fullname])
 				});
 			}

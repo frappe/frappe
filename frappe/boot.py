@@ -9,7 +9,6 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
-from frappe.utils import get_gravatar
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
@@ -114,16 +113,14 @@ def load_translations(bootinfo):
 
 def get_fullnames():
 	"""map of user fullnames"""
-	ret = frappe.db.sql("""select name,
-		concat(ifnull(first_name, ''),
-			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
+	ret = frappe.db.sql("""select name, full_name as fullname,
 			user_image as image, gender, email, username
 		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:
-		if not r.image:
-			r.image = get_gravatar()
+		# if not r.image:
+		# 	r.image = get_gravatar()
 		d[r.name] = r
 
 	return d

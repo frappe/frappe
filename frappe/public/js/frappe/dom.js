@@ -184,16 +184,6 @@ frappe.get_shade = function(color, factor) {
 		+ get_hex(get_int(color.substr(4,2)) + factor)
 }
 
-frappe.get_cookie = function(c) {
-	var clist = (document.cookie+'').split(';');
-	var cookies = {};
-	for(var i=0;i<clist.length;i++) {
-		var tmp = clist[i].split('=');
-		cookies[strip(tmp[0])] = strip($.trim(tmp.slice(1).join("=")), "\"");
-	}
-	return cookies[c];
-}
-
 frappe.dom.set_box_shadow = function(ele, spread) {
 	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
 	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')

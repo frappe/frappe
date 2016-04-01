@@ -352,3 +352,11 @@ _f.Frm.prototype.open_grid_row = function() {
 _f.Frm.prototype.is_new = function() {
 	return this.doc.__islocal;
 }
+
+_f.Frm.prototype.get_title = function() {
+	if(this.meta.title_field) {
+		return this.doc[this.meta.title_field];
+	} else {
+		return this.doc.name;
+	}
+}

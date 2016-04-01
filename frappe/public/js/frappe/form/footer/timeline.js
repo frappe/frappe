@@ -9,7 +9,7 @@ frappe.ui.form.Timeline = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{ image: frappe.user_info(user).image, fullname: user_fullname })).appendTo(this.parent);
+			{})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
@@ -172,7 +172,12 @@ frappe.ui.form.Timeline = Class.extend({
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		c.image = frappe.user_info(c.sender).image || frappe.get_gravatar(c.sender);
+		if(c.communication_medium==="Email") {
+			c.user_info = frappe.user_info(c.sender);
+		} else {
+			c.user_info = frappe.user_info(c.owner);
+		}
+
 		c.comment_on = comment_when(c.creation);
 		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 

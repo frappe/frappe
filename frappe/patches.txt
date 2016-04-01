@@ -122,3 +122,4 @@ frappe.patches.v6_20x.update_insert_after
 frappe.patches.v6_24.sync_desktop_icons
 frappe.patches.v6_20x.set_allow_draft_for_print
 frappe.patches.v6_20x.remove_roles_from_website_user
+frappe.patches.v7_0.set_user_fullname

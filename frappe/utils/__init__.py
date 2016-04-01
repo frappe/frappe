@@ -120,12 +120,17 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
-def get_gravatar(email):
+def has_gravatar(email):
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
 	if requests.get(gravatar_url).status_code==404:
-		return Identicon(email).base64()
+		return ''
 	else:
 		return gravatar_url
+
+def get_gravatar(email):
+	gravatar_url = has_gravatar(email)
+	if not gravatar_url:
+		return Identicon(email).base64()
 
 def get_traceback():
 	"""

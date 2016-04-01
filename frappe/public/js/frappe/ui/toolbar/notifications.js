@@ -83,7 +83,7 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 // default notification config
 frappe.ui.notifications.config = {
 	"ToDo": { label: __("To Do") },
-	"Messages": { label: __("Messages"), route: "messages"},
+	"Chat": { label: __("Chat"), route: "chat"},
 	"Event": { label: __("Calendar"), route: "Calendar/Event" },
 	"Likes": {
 		label: __("Likes"),

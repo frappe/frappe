@@ -159,14 +159,35 @@ frappe.ui.form.Sidebar = Class.extend({
 		}
 
 		var image_field = this.frm.image_field;
+		var image = this.frm.doc[image_field];
 
+
+		this.image_section.toggleClass('hide', image_field ? false : true);
 		// if image field has value
-		if (image_field && this.frm.doc[image_field]) {
-			this.image_section.removeClass("hide")
-				.find(".sidebar-image").css("background-image", 'url("' + this.frm.doc[image_field] + '")');
+		if (image) {
+			this.image_section
+				.find(".sidebar-image")
+				.css("background-image", 'url("' + image + '")')
+				.removeClass("hide");
+
+			this.image_section
+				.find('.sidebar-standard-image')
+				.addClass('hide');
+
 		} else {
-			this.image_section.addClass("hide")
-				.find(".sidebar-image").css("background-image", null);
+			this.image_section
+				.find(".sidebar-image")
+				.css("background-image", null)
+				.addClass("hide");
+
+			var title = this.frm.get_title();
+
+			this.image_section
+				.find('.sidebar-standard-image')
+				.removeClass('hide')
+				.find('.standard-image')
+				.css({'background-color': frappe.get_palette(title)})
+				.html(frappe.get_abbr(title));
 		}
 	}
 });

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, get_gravatar, format_datetime, now_datetime
+from frappe.utils import cint, has_gravatar, format_datetime, now_datetime
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
@@ -40,6 +40,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 		self.add_system_manager_role()
 		self.set_system_user()
+		self.set_full_name()
 		self.check_enable_disable()
 		self.update_gravatar()
 		self.ensure_unique_roles()
@@ -48,6 +49,9 @@ class User(Document):
 
 		if self.language == "Loading...":
 			self.language = None
+
+	def set_full_name(self):
+		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -132,7 +136,7 @@ class User(Document):
 
 	def update_gravatar(self):
 		if not self.user_image:
-			self.user_image = get_gravatar(self.name)
+			self.user_image = has_gravatar(self.name)
 
 	@Document.hook
 	def validate_reset_password(self):
