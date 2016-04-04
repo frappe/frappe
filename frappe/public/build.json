@@ -159,6 +159,7 @@
 		"public/js/frappe/form/print_layout.html",
 		"public/js/frappe/form/print.js",
 		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/users_in_sidebar.html",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/set_sharing.html",

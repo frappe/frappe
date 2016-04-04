@@ -121,6 +121,12 @@ def random_string(length):
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
 def has_gravatar(email):
+	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	if frappe.flags.in_upload:
+		# no gravatar if via upload
+		# since querying gravatar for every item will be slow
+		return
+
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
 	if requests.get(gravatar_url).status_code==404:
 		return ''

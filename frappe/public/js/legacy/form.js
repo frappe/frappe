@@ -458,6 +458,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			frm: this,
 			page: this.page
 		});
+		this.sidebar.make();
 
 		// header must be refreshed before client methods
 		// because add_custom_button

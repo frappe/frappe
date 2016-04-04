@@ -155,6 +155,7 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-image-section {
 		margin-top: 15px;
 		margin-bottom: 0px;
+		cursor: pointer;
 
 		.sidebar-image {
 			width: 100%;
@@ -170,6 +171,22 @@ body[data-route^="Module"] .main-menu {
 			font-size: 72px;
 			border-radius: 6px;
 		}
+
+		.sidebar-image-wrapper:after {
+		    content: '\A';
+		    position: absolute;
+		    width: 100%; height:100%;
+		    top:0; left:0;
+		    background: #fff;
+		    opacity: 0;
+		    transition: all 0.5s;
+		    -webkit-transition: all 0.6s;
+		}
+
+		.sidebar-image-wrapper:hover:after {
+		    opacity: 0.5;
+		}
+
 	}
 }
 

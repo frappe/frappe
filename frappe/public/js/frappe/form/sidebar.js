@@ -2,7 +2,6 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.make();
 	},
 
 	make: function() {
@@ -17,6 +16,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.comments = this.sidebar.find(".sidebar-comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
+		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
 
 		this.make_assignments();
 		this.make_attachments();
@@ -65,7 +65,7 @@ frappe.ui.form.Sidebar = Class.extend({
 				"<br>" + comment_when(this.frm.doc.creation)]));
 
 			this.refresh_like();
-			this.refresh_image();
+			frappe.ui.form.set_user_image(this.frm);
 		}
 	},
 
@@ -148,46 +148,5 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	refresh_image: function() {
-		if (this.frm.image_field===undefined) {
-			for (var i in this.frm.fields) {
-				var df = this.frm.fields[i].df;
-				if (df.fieldtype == "Attach Image") {
-					this.frm.image_field = df.fieldname;
-					break;
-				}
-			}
-		}
-
-		var image_field = this.frm.image_field;
-		var image = this.frm.doc[image_field];
-
-
-		this.image_section.toggleClass('hide', image_field ? false : true);
-		// if image field has value
-		if (image) {
-			this.image_section
-				.find(".sidebar-image")
-				.css("background-image", 'url("' + image + '")')
-				.removeClass("hide");
-
-			this.image_section
-				.find('.sidebar-standard-image')
-				.addClass('hide');
-
-		} else {
-			this.image_section
-				.find(".sidebar-image")
-				.css("background-image", null)
-				.addClass("hide");
-
-			var title = this.frm.get_title();
-
-			this.image_section
-				.find('.sidebar-standard-image')
-				.removeClass('hide')
-				.find('.standard-image')
-				.css({'background-color': frappe.get_palette(title)})
-				.html(frappe.get_abbr(title));
-		}
 	}
 });

@@ -402,6 +402,18 @@ def validate_fields(meta):
 			_validate_title_field_pattern(df.options)
 			_validate_title_field_pattern(df.default)
 
+	def check_image_field(meta):
+		'''check image_field exists and is of type "Attach Image"'''
+		if not meta.image_field:
+			return
+
+		df = meta.get("fields", {"fieldname": meta.image_field})
+		if not df:
+			frappe.throw(_("Image field must be a valid fieldname"), InvalidFieldNameError)
+		if df[0].fieldtype != 'Attach Image':
+			frappe.throw(_("Image field must be of type Attach Image"), InvalidFieldNameError)
+
+
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
