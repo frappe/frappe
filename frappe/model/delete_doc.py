@@ -138,7 +138,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 
 def check_permission_and_not_submitted(doc):
 	# permission
-	if frappe.session.user!="Administrator" and not doc.has_permission("delete"):
+	if not doc.flags.ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("delete"):
 		frappe.msgprint(_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name), raise_exception=True)
 
 	# check if submitted

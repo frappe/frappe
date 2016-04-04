@@ -105,7 +105,7 @@ class User(Document):
 				flags={"ignore_share_permission": True})
 		else:
 			frappe.share.remove(self.doctype, self.name, self.name,
-				flags={"ignore_share_permission": True})
+				flags={"ignore_permissions": True})
 
 	def validate_share(self, docshare):
 		if docshare.user == self.name:
@@ -321,8 +321,10 @@ class User(Document):
 		self.username = self.username.strip(" @")
 
 		if self.username_exists():
-			frappe.msgprint(_("Username {0} already exists").format(self.username))
-			self.suggest_username()
+			if self.user_type == 'System User':
+				frappe.msgprint(_("Username {0} already exists").format(self.username))
+				self.suggest_username()
+
 			self.username = ""
 
 		# should be made up of characters, numbers and underscore only
