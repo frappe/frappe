@@ -102,6 +102,9 @@ class Communication(Document):
 			if self.sender == "Administrator":
 				self.sender_full_name = self.sender
 				self.sender = frappe.db.get_value("User", "Administrator", "email")
+			elif self.sender == "Guest":
+				self.sender_full_name = self.sender
+				self.sender = None
 			else:
 				validate_email_add(self.sender, throw=True)
 				self.sender_full_name = get_fullname(self.sender)
