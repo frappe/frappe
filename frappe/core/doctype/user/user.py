@@ -105,7 +105,7 @@ class User(Document):
 				flags={"ignore_share_permission": True})
 		else:
 			frappe.share.remove(self.doctype, self.name, self.name,
-				flags={"ignore_permissions": True})
+				flags={"ignore_share_permission": True, "ignore_permissions": True})
 
 	def validate_share(self, docshare):
 		if docshare.user == self.name:
