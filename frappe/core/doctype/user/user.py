@@ -77,6 +77,19 @@ class User(Document):
 				"doctype": "UserRole",
 				"role": "System Manager"
 			})
+			
+		if self.name == 'Administrator':
+			# Administrator should always have System Manager Role
+			self.extend("user_roles", [
+				{
+					"doctype": "UserRole",
+					"role": "System Manager"
+				},
+				{
+					"doctype": "UserRole",
+					"role": "Administrator"
+				}			
+			])
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.in_insert:
