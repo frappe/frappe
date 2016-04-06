@@ -102,6 +102,9 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						if(frappe.model.is_single(item.doctype)) {
 							item.route = 'Form/' + item.doctype;
 						} else {
+							if (item.filters) {
+								frappe.route_options=item.filters;
+							}
 							item.route="List/" + item.doctype
 							//item.style = 'font-weight: 500;';
 						}
