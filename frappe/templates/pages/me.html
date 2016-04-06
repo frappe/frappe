@@ -10,7 +10,13 @@
 		<div class="your-account-info">
 			<div class="avatar avatar-large">
 				<a href="/me">
-					<img class="user-image" src="{{ user_image }}" /></a>
+					{% if user_image -%}
+						<img class="user-image" src="{{ user_image }}" /></a>
+					{% else %}
+						{% block script %}
+							<script> $('.avatar-large').append($(frappe.avatar()).find('.standard-image')) </script>
+						{% endblock %}
+					{% endif -%}
 			</div>
 			<div>
 				<h4>{{ fullname }}</h4>
