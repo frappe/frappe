@@ -169,7 +169,7 @@ _f.Frm.prototype.print_doc = function() {
 
 	this.print_preview.refresh_print_options().trigger("change");
 	this.page.set_view("print");
-	this.print_preview.set_user_lang()
+	this.print_preview.set_user_lang();
 }
 
 _f.Frm.prototype.hide_print = function() {
@@ -419,6 +419,11 @@ _f.Frm.prototype.refresh = function(docname) {
 		// if print format is shown, refresh the format
 		if(this.print_preview.wrapper.is(":visible")) {
 			this.print_preview.preview();
+		}
+
+		if(is_a_different_doc && this.show_print_first) {
+			// show print view
+			this.print_doc();
 		}
 
 		this.show_if_needs_refresh();

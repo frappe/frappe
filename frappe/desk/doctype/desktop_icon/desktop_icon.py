@@ -124,12 +124,12 @@ def add_user_icon(label, link, type, _doctype):
 			}).insert(ignore_permissions=True)
 			clear_desktop_icons_cache()
 
-			frappe.msgprint(_('Added'))
+			return 1
 
 		except Exception, e:
 			raise e
 	else:
-		frappe.msgprint(_('Already on desktop'))
+		return 1
 
 @frappe.whitelist()
 def set_order(new_order):

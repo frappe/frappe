@@ -438,6 +438,11 @@ frappe.add_to_desktop = function(label, doctype) {
 			label: label,
 			type: 'link',
 			_doctype: doctype
+		},
+		callback: function(r) {
+			if(r.message) {
+				show_alert(__("Added"));
+			}
 		}
 	});
 }

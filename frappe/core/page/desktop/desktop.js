@@ -127,39 +127,46 @@ $.extend(frappe.desktop, {
 			return;
 		}
 
-		var modules_list = frappe.user.get_desktop_items();
+		var modules_list = frappe.get_desktop_icons();
 		for (var i=0, l=modules_list.length; i < l; i++) {
 			var module = modules_list[i];
 
-			var module_doctypes = frappe.boot.notification_info.module_doctypes[module];
+			var module_doctypes = frappe.boot.notification_info.module_doctypes[module.module_name];
 
 			var sum = 0;
 			if(module_doctypes) {
 				if(frappe.boot.notification_info.open_count_doctype) {
+					// sum all doctypes for a module
 					for (var j=0, k=module_doctypes.length; j < k; j++) {
 						var doctype = module_doctypes[j];
 						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
 					}
 				}
-			} else if(frappe.boot.notification_info.open_count_module
-				&& frappe.boot.notification_info.open_count_module[module]!=null) {
-				sum = frappe.boot.notification_info.open_count_module[module];
-			}
-			if (frappe.modules[module]) {
-				var notifier = $(".module-count-" + frappe.get_module(module)._id);
-				if(notifier.length) {
-					notifier.toggle(sum ? true : false);
-					var circle = notifier.find(".circle-text");
-					var text = sum || '';
-					if(text > 99) {
-						text = '99+';
-					}
+			} else if(frappe.boot.notification_info.open_count_doctype
+				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
+				// notification count explicitly for doctype
+				sum = frappe.boot.notification_info.open_count_doctype[module.module_name];
 
-					if(circle.length) {
-						circle.html(text);
-					} else {
-						notifier.html(text);
-					}
+			} else if(frappe.boot.notification_info.open_count_module
+				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
+				// notification count explicitly for module
+				sum = frappe.boot.notification_info.open_count_module[module.module_name];
+			}
+
+			// if module found
+			var notifier = $(".module-count-" + module._id);
+			if(notifier.length) {
+				notifier.toggle(sum ? true : false);
+				var circle = notifier.find(".circle-text");
+				var text = sum || '';
+				if(text > 99) {
+					text = '99+';
+				}
+
+				if(circle.length) {
+					circle.html(text);
+				} else {
+					notifier.html(text);
 				}
 			}
 		}
