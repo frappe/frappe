@@ -3,9 +3,11 @@ frappe.ui.form.set_user_image = function(frm) {
 	var image_section = frm.sidebar.image_section;
 	var image_field = frm.meta.image_field;
 	var image = frm.doc[image_field];
+	var title_image = frm.page.$title_area.find('.title-image');
 
 
 	image_section.toggleClass('hide', image_field ? false : true);
+	title_image.toggleClass('hide', image_field ? false : true);
 
 	if(!image_field) {
 		return;
@@ -22,6 +24,11 @@ frappe.ui.form.set_user_image = function(frm) {
 			.find('.sidebar-standard-image')
 			.addClass('hide');
 
+		title_image
+			.css('background-color', '')
+			.css("background-image", 'url("' + image + '")')
+			.html('');
+
 	} else {
 		image_section
 			.find(".sidebar-image")
@@ -36,6 +43,11 @@ frappe.ui.form.set_user_image = function(frm) {
 			.find('.standard-image')
 			.css({'background-color': frappe.get_palette(title)})
 			.html(frappe.get_abbr(title));
+
+		title_image.css("background-image", '')
+			.css({'background-color': frappe.get_palette(title)})
+			.html(frappe.get_abbr(title));
+
 	}
 
 	frm.sidebar.image_wrapper.on('click', function() {

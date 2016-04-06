@@ -29,6 +29,12 @@
 	body:last-child .print-format td img {
 		width: 100% !important;
 	}
+
+	@media(max-width: 767px) {
+		.print-format {
+			padding: 0.2in;
+		}
+	}
 }
 
 @media print {
