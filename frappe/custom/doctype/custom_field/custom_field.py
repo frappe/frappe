@@ -60,8 +60,8 @@ class CustomField(Document):
 
 	def validate_insert_after(self, meta):
 		if not meta.get_field(self.insert_after):
-			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', does not exist")
-				.format(self.insert_after, self.label), frappe.DoesNotExistError)
+			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist")
+				.format(self.insert_after, self.name, self.label), frappe.DoesNotExistError)
 
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
