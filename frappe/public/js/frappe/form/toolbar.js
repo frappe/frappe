@@ -222,7 +222,9 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	get_action_status: function() {
 		var status = null;
-		if (this.can_submit()) {
+		if (this.frm.page.current_view_name==='print') {
+			status = "Edit";
+		} else if (this.can_submit()) {
 			status = "Submit";
 		} else if (this.can_save()) {
 			if (!this.frm.save_disabled) {
@@ -241,12 +243,18 @@ frappe.ui.form.Toolbar = Class.extend({
 		var me = this;
 		this.page.clear_actions();
 
-		var perm_to_check = this.frm.action_perm_type_map[status];
-		if(!this.frm.perm[0][perm_to_check]) {
-			return;
+		if(status!== 'Edit') {
+			var perm_to_check = this.frm.action_perm_type_map[status];
+			if(!this.frm.perm[0][perm_to_check]) {
+				return;
+			}
 		}
 
-		if(status == "Cancel") {
+		if(status === "Edit") {
+			this.page.set_primary_action(__("Edit"), function() {
+				me.frm.page.set_view('main');
+			}, 'octicon octicon-pencil');
+		} else if(status === "Cancel") {
 			this.page.set_secondary_action(__(status), function() {
 				me.frm.savecancel(this);
 			}, "octicon octicon-circle-slash");

@@ -397,6 +397,8 @@ frappe.ui.Page = Class.extend({
 		this.current_view_name = name;
 
 		this.views[name].toggle(true);
+
+		this.wrapper.trigger('view-change');
 	}
 });
 

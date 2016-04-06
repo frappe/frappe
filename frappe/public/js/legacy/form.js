@@ -152,9 +152,15 @@ _f.Frm.prototype.setup_drag_drop = function() {
 }
 
 _f.Frm.prototype.setup_print_layout = function() {
+	var me = this;
 	this.print_preview = new frappe.ui.form.PrintPreview({
 		frm: this
-	})
+	});
+
+	// show edit button for print view
+	this.page.wrapper.on('view-change', function() {
+		me.toolbar.set_primary_action();
+	});
 }
 
 _f.Frm.prototype.print_doc = function() {
@@ -421,7 +427,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.print_preview.preview();
 		}
 
-		if(is_a_different_doc && this.show_print_first) {
+		if(is_a_different_doc && this.doc.docstatus===1) {
 			// show print view
 			this.print_doc();
 		}

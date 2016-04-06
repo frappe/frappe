@@ -635,6 +635,9 @@ class BaseDocument(object):
 			elif meta_df:
 				print_hide = meta_df.print_hide
 
+		if fieldname=='in_words':
+			print fieldname, print_hide, meta_df.print_hide
+
 		return print_hide
 
 	def in_format_data(self, fieldname):
