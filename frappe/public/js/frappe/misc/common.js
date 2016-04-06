@@ -27,7 +27,7 @@ frappe.avatar = function(user, css_class, title) {
 		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 			<span class="avatar-frame" style="background-image: url(%(image)s)"\
 			 title="%(title)s"></span></span>', {
-				image: image,
+				image: user_info.image,
 				title: title,
 				abbr: user_info.abbr,
 				css_class: css_class
