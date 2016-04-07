@@ -575,7 +575,10 @@ _f.Frm.prototype.setnewdoc = function() {
 		});
 
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
-	})
+	});
+
+	// update seen
+	$('.list-id[data-name="'+ me.docname +'"]').addClass('seen');
 
 }
 

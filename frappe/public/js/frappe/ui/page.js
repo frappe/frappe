@@ -289,7 +289,7 @@ frappe.ui.Page = Class.extend({
 		if(!txt) txt = "";
 
 		// strip html
-		txt = txt.replace(/<[^>]*>/g, "");
+		txt = strip_html(txt);
 		this.title = txt;
 
 		frappe.utils.set_title(txt);

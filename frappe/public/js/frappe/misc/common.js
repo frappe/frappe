@@ -89,6 +89,10 @@ function replace_all(s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
+function strip_html(txt) {
+	return txt.replace(/<[^>]*>/g, "");
+}
+
 var strip = function(s, chars) {
 	if (s) {
 		var s= lstrip(s, chars)
