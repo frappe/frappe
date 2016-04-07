@@ -334,6 +334,7 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper.find(".results").toggle(true);
 		this.make_columns(columns);
 		this.make_data(result, columns);
+		this.filter_hidden_columns();
 		this.render(result, columns);
 	},
 	render: function(result, columns) {
@@ -389,13 +390,9 @@ frappe.views.QueryReport = Class.extend({
 						fieldtype: "Data"
 					};
 				}
-
+				
 				if (!df.fieldtype) df.fieldtype = "Data";
 				if (!cint(df.width)) df.width = 80;
-
-				if (df.hidden) {
-					return null;
-				}
 
 				var col = $.extend({}, df, {
 					label: df.label || (df.fieldname && __(toTitle(df.fieldname.replace(/_/g, " ")))) || "",
@@ -407,10 +404,14 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
-				col.index = i;
 
 				return col
 		}));
+	},
+	filter_hidden_columns: function() {
+		this.columns = $.map(this.columns, function(c, i) {
+			return (c.hidden==1 ? null : c);
+		});
 	},
 	get_query_report_opts: function() {
 		return frappe.query_reports[this.report_name] || {};
@@ -448,7 +449,7 @@ frappe.views.QueryReport = Class.extend({
 			} else {
 				var newrow = {};
 				for(var i=1, j=this.columns.length; i<j; i++) {
-					newrow[this.columns[i].field] = row[this.columns[i].index];
+					newrow[this.columns[i].field] = row[i-1];
 				};
 			}
 			newrow._id = row_idx + 1;
