@@ -163,7 +163,7 @@ def set_hidden_list(hidden_list, user=None):
 	else:
 		frappe.clear_cache()
 
-def set_hidden(module_name, user, hidden=1):
+def set_hidden(module_name, user=None, hidden=1):
 	'''Set module hidden property for given user. If user is not specified,
 		hide/unhide it globally'''
 	if user:

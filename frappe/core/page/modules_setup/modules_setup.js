@@ -51,6 +51,11 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 		});
 	});
 
+	// for ctrl+s
+	wrapper.save_action = function() {
+		page.btn_primary.trigger('click');
+	};
+
 	// application installer
 	if(frappe.boot.user.roles.indexOf('System Manager')!==-1) {
 		page.add_inner_button('Install Apps', function() {
@@ -79,7 +84,7 @@ frappe.reload_modules_setup_icons = function(page) {
 		},
 		freeze: true,
 		callback: function(r) {
-			page.content.find('.modules-setup-icons').replaceWith(r.message);
+			page.wrapper.find('.modules-setup-icons').replaceWith(r.message);
 		}
 	});
 }

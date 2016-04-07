@@ -70,7 +70,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 				$.each(r.values, function(i, v) {
 					var row = $(repl('<div class="row link-select-row">\
 						<div class="col-xs-4">\
-							<b><a href="#" data-value="%(name)s">%(name)s</a></b></div>\
+							<b><a href="#">%(name)s</a></b></div>\
 						<div class="col-xs-8">\
 							<span class="text-muted">%(values)s</span></div>\
 						</div>', {
@@ -78,7 +78,9 @@ frappe.ui.form.LinkSelector = Class.extend({
 							values: v.splice(1).join(", ")
 						})).appendTo(parent);
 
-					row.find("a").click(function() {
+					row.find("a")
+						.attr('data-value', v[0])
+						.click(function() {
 						var value = $(this).attr("data-value");
 						var $link = this;
 						if(me.target.is_grid) {

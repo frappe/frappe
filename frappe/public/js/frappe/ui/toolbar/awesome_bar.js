@@ -221,11 +221,17 @@ frappe.search.verbs = [
 	// reports
 	function(txt) {
 		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
-			var report_type = frappe.boot.user.all_reports[match];
+			var report = frappe.boot.user.all_reports[match];
+			var route = [];
+			if(report.report_type == "Report Builder")
+				route = ["Report", report.ref_doctype, match];
+			else 
+				route = ["query-report",  match];
+			
 			return {
 				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
 				value: __("Report {0}", [__(match)]),
-				route: [report_type=="Report Builder" ? "Report" : "query-report", match]
+				route: route
 			}
 		});
 	},

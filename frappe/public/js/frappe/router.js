@@ -32,6 +32,10 @@ frappe.route = function() {
 	frappe._cur_route = window.location.hash;
 
 	route = frappe.get_route();
+	if (route === false) {
+		return;
+	}
+
 	frappe.route_history.push(route);
 
 	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
@@ -59,6 +63,12 @@ frappe.get_route = function(route) {
 	if (parts.length > 1) {
 		var query_params = get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
+	}
+
+	// backward compatibility
+	if (route && route[0]==='Module') {
+		frappe.set_route('modules', route[1]);
+		return false;
 	}
 
 	return route;

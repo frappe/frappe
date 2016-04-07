@@ -132,6 +132,8 @@ frappe.ui.Page = Class.extend({
 			icon: icon,
 			working_label: working_label
 		});
+
+		return this.btn_primary;
 	},
 
 	set_secondary_action: function(label, click, icon, working_label) {
@@ -141,6 +143,8 @@ frappe.ui.Page = Class.extend({
 			icon: icon,
 			working_label: working_label
 		});
+
+		return this.btn_secondary;
 	},
 
 	clear_action_of: function(btn) {
