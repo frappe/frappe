@@ -309,13 +309,19 @@ class BaseDocument(object):
 			return
 
 		d = self.get_valid_dict()
+
+		# don't update name, as case might've been changed
+		name = d['name']
+		del d['name']
+
 		columns = d.keys()
+
 		try:
 			frappe.db.sql("""update `tab{doctype}`
 				set {values} where name=%s""".format(
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
-				), d.values() + [d.get("name")])
+				), d.values() + [name])
 		except Exception, e:
 			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
 				self.show_unique_validation_message(e)
