@@ -128,10 +128,14 @@ def has_gravatar(email):
 		return
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
-	if requests.get(gravatar_url).status_code==404:
+	try:
+		res = requests.get(gravatar_url)
+		if res.status_code==404:
+			return ''
+		else:
+			return gravatar_url
+	except requests.exceptions.ConnectionError:
 		return ''
-	else:
-		return gravatar_url
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
