@@ -884,7 +884,7 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def respond_as_web_page(title, html, success=None, http_status_code=None):
+def respond_as_web_page(title, html, success=None, http_status_code=None, context=None):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -898,6 +898,9 @@ def respond_as_web_page(title, html, success=None, http_status_code=None):
 	local.response['page_name'] = 'message'
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
+
+	if context:
+		local.response['context'] = context
 
 def build_match_conditions(doctype, as_condition=True):
 	"""Return match (User permissions) for given doctype as list or SQL."""

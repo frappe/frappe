@@ -16,6 +16,10 @@ def get_context(path, args=None):
 	context = build_context(context)
 	context["path"] = path
 
+	# set using frappe.respond_as_web_page
+	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
+		context.update(frappe.local.response.context)
+
 	return context
 
 def build_context(context):
