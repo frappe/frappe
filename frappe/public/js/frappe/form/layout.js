@@ -498,7 +498,7 @@ frappe.ui.form.Section = Class.extend({
 		var missing_mandatory = false;
 		for (var j=0, l=this.fields_list.length; j < l; j++) {
 			var section_df = this.fields_list[j].df;
-			if (section_df.reqd && this.layout.frm.doc[section_df.fieldname]==null) {
+			if (section_df.reqd && this.layout.doc[section_df.fieldname]==null) {
 				missing_mandatory = true;
 				break;
 			}

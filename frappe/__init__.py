@@ -460,7 +460,7 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 			doc = get_doc(doctype, doc)
 
 		for method in hooks:
-			result = call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose)
+			result = call(method, doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy
 			if not result:
 				return False
@@ -789,6 +789,9 @@ def get_attr(method_string):
 
 def call(fn, *args, **kwargs):
 	"""Call a function and match arguments."""
+	if isinstance(fn, basestring):
+		fn = get_attr(fn)
+
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:

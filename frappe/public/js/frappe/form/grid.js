@@ -31,10 +31,13 @@ frappe.ui.form.Grid = Class.extend({
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
-		$(this.wrapper).find(".grid-add-row").click(function() {
+		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			return false;
 		});
+
+		this.custom_buttons = {};
+		this.grid_buttons = this.wrapper.find('.grid-buttons');
 
 		this.setup_allow_bulk_edit();
 
@@ -344,7 +347,23 @@ frappe.ui.form.Grid = Class.extend({
 			frappe.tools.downloadify(data, null, me.df.label);
 			return false;
 		});
-
+	},
+	add_custom_button: function(label, click) {
+		// add / unhide a custom button
+		var btn = this.custom_buttons[label];
+		if(!btn) {
+			btn = $('<button class="btn btn-default btn-xs btn-custom">' + label + '</button>')
+				.css('margin-right', '10px')
+				.prependTo(this.grid_buttons)
+				.on('click', click);
+			this.custom_buttons[label] = btn;
+		} else {
+			btn.removeClass('hidden');
+		}
+	},
+	clear_custom_buttons: function() {
+		// hide all custom buttons
+		this.grid_buttons.find('.btn-custom').addClass('hidden');
 	}
 });
 

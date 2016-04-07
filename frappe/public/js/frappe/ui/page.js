@@ -288,9 +288,11 @@ frappe.ui.Page = Class.extend({
 	set_title: function(txt, icon) {
 		if(!txt) txt = "";
 
-		// strip icon
+		// strip html
+		txt = txt.replace(/<[^>]*>/g, "");
 		this.title = txt;
-		frappe.utils.set_title(txt.replace(/<[^>]*>/g, ""));
+
+		frappe.utils.set_title(txt);
 		if(icon) {
 			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}

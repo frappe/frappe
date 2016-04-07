@@ -17,7 +17,7 @@ def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_len=10, filters=None):
+	page_len=10, filters=None, as_dict=False):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
@@ -31,8 +31,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	if query and query.split()[0].lower()!="select":
 		# by method
-		frappe.response["values"] = frappe.get_attr(query)(doctype, txt,
-			searchfield, start, page_len, filters)
+		frappe.response["values"] = frappe.call(query, doctype, txt,
+			searchfield, start, page_len, filters, as_dict=as_dict)
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
@@ -89,7 +89,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				limit_page_length=page_len,
 				order_by="if(_relevance, _relevance, 99999), idx desc, modified desc".format(doctype),
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
-				as_list=True)
+				as_dict=as_dict,
+				as_list=not as_dict)
 
 			# remove _relevance from results
 			frappe.response["values"] = [r[:-1] for r in values]

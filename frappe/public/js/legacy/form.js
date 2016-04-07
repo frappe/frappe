@@ -427,7 +427,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.print_preview.preview();
 		}
 
-		if(is_a_different_doc && this.doc.docstatus===1) {
+		if(this.show_print_first && is_a_different_doc && this.doc.docstatus===1) {
 			// show print view
 			this.print_doc();
 		}
