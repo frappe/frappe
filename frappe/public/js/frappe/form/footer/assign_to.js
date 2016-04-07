@@ -49,7 +49,7 @@ frappe.ui.form.AssignTo = Class.extend({
 						<span>%(fullname)s</span>\
 					</div>\
 				</li>', info))
-					.appendTo(this.parent);
+					.insertBefore(this.parent.find('.add-assignment'));
 
 				if(d[i].owner===user) {
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
@@ -68,9 +68,9 @@ frappe.ui.form.AssignTo = Class.extend({
 				return false;
 			});
 
-			this.btn_wrapper.addClass("hide");
+			//this.btn_wrapper.addClass("hide");
 		} else {
-			this.btn_wrapper.removeClass("hide");
+			//this.btn_wrapper.removeClass("hide");
 		}
 	},
 	add: function() {
