@@ -42,13 +42,13 @@ def install_basic_docs():
 	# core users / roles
 	install_docs = [
 		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
-			'email':'admin@example.com', 'enabled':1},
+			'email':'admin@example.com', 'enabled':1,
+			'user_roles': [{'role': 'Administrator'}]
+		},
 		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
-			'email':'guest@example.com', 'enabled':1},
-		{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator',
-			'parenttype':'User', 'parentfield':'user_roles'},
-		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest',
-			'parenttype':'User', 'parentfield':'user_roles'},
+			'email':'guest@example.com', 'enabled':1,
+			'user_roles': [{'role': 'Guest'}]
+		},
 		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},

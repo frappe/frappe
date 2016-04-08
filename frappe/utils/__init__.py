@@ -122,7 +122,9 @@ def random_string(length):
 
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
-	if frappe.flags.in_upload:
+	if (frappe.flags.in_upload
+		or frappe.flags.in_install
+		or frappe.flags.in_test):
 		# no gravatar if via upload
 		# since querying gravatar for every item will be slow
 		return
