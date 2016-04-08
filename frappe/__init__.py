@@ -677,6 +677,22 @@ def get_installed_apps(sort=False, frappe_last=False):
 
 	return installed
 
+def get_doc_hooks():
+	'''Returns hooked methods for given doc. It will expand the dict tuple if required.'''
+	if not hasattr(local, 'doc_events_hooks'):
+		hooks = get_hooks('doc_events', {})
+		out = {}
+		for key, value in hooks.iteritems():
+			if isinstance(key, tuple):
+				for doctype in key:
+					append_hook(out, doctype, value)
+			else:
+				append_hook(out, key, value)
+
+		local.doc_events_hooks = out
+
+	return local.doc_events_hooks
+
 def get_hooks(hook=None, default=None, app_name=None):
 	"""Get hooks via `app/hooks.py`
 
@@ -700,19 +716,6 @@ def get_hooks(hook=None, default=None, app_name=None):
 					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
 
-	def append_hook(target, key, value):
-		if isinstance(value, dict):
-			target.setdefault(key, {})
-			for inkey in value:
-				append_hook(target[key], inkey, value[inkey])
-		else:
-			append_to_list(target, key, value)
-
-	def append_to_list(target, key, value):
-		target.setdefault(key, [])
-		if not isinstance(value, list):
-			value = [value]
-		target[key].extend(value)
 
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
@@ -723,6 +726,26 @@ def get_hooks(hook=None, default=None, app_name=None):
 		return hooks.get(hook) or (default if default is not None else [])
 	else:
 		return hooks
+
+def append_hook(target, key, value):
+	'''appends a hook to the the target dict.
+
+	If the hook key, exists, it will make it a key.
+
+	If the hook value is a dict, like doc_events, it will
+	listify the values against the key.
+	'''
+	if isinstance(value, dict):
+		# dict? make a list of values against each key
+		target.setdefault(key, {})
+		for inkey in value:
+			append_hook(target[key], inkey, value[inkey])
+	else:
+		# make a list
+		target.setdefault(key, [])
+		if not isinstance(value, list):
+			value = [value]
+		target[key].extend(value)
 
 def setup_module_map():
 	"""Rebuild map of all modules (internal)."""

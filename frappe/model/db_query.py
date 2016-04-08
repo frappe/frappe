@@ -8,7 +8,7 @@ import frappe, json
 import frappe.defaults
 import frappe.share
 import frappe.permissions
-from frappe.utils import flt, cint, getdate, get_datetime, get_time
+from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter
 from frappe import _
 from frappe.model import optional_fields
 
@@ -141,14 +141,8 @@ class DatabaseQuery(object):
 				fdict = filters
 				filters = []
 				for key, value in fdict.iteritems():
-					filters.append(self.make_filter_tuple(key, value))
+					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
-
-	def make_filter_tuple(self, key, value):
-		if isinstance(value, (list, tuple)):
-			return [self.doctype, key, value[0], value[1]]
-		else:
-			return [self.doctype, key, "=", value]
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -239,7 +233,7 @@ class DatabaseQuery(object):
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
-		f = self.get_filter(f)
+		f = get_filter(self.doctype, f)
 
 		tname = ('`tab' + f.doctype + '`')
 		if not tname in self.tables:
@@ -295,45 +289,6 @@ class DatabaseQuery(object):
 				value=value)
 
 		return condition
-
-	def get_filter(self, f):
-		"""Returns a _dict like
-
-			{
-				"doctype": "DocType",
-				"fieldname": "fieldname",
-				"operator": "=",
-				"value": "value"
-			}
-
-		"""
-		if isinstance(f, dict):
-			key, value = f.items()[0]
-			f = self.make_filter_tuple(key, value)
-
-		if not isinstance(f, (list, tuple)):
-			frappe.throw("Filter must be a tuple or list (in a list)")
-
-		if len(f) == 3:
-			f = (self.doctype, f[0], f[1], f[2])
-
-		elif len(f) != 4:
-			frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
-
-		if not f[2]:
-			# if operator is missing
-			f[2] = "="
-
-		valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
-		if f[2] not in valid_operators:
-			frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
-
-		return frappe._dict({
-			"doctype": f[0],
-			"fieldname": f[1],
-			"operator": f[2],
-			"value": f[3]
-		})
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""

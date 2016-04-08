@@ -266,6 +266,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 
 			if docstatus == 1:
 				d.submit()
+
 		except frappe.NameError:
 			pass
 

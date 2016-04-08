@@ -613,12 +613,74 @@ operator_map = {
 	"None": lambda (a, b): (not a) and True or False
 }
 
+def evaluate_filters(doc, filters):
+	'''Returns true if doc matches filters'''
+	if isinstance(filters, dict):
+		for key, value in filters.iteritems():
+			f = get_filter(None, {key:value})
+			if not compare(doc.get(f.fieldname), f.operator, f.value):
+				return False
+
+	elif isinstance(filters, (list, tuple)):
+		for d in filters:
+			f = get_filter(None, d)
+			if not compare(doc.get(f.fieldname), f.operator, f.value):
+				return False
+
+	return True
+
+
 def compare(val1, condition, val2):
 	ret = False
 	if condition in operator_map:
 		ret = operator_map[condition]((val1, val2))
 
 	return ret
+
+def get_filter(doctype, f):
+	"""Returns a _dict like
+
+		{
+			"doctype":
+			"fieldname":
+			"operator":
+			"value":
+		}
+	"""
+	if isinstance(f, dict):
+		key, value = f.items()[0]
+		f = make_filter_tuple(doctype, key, value)
+
+	if not isinstance(f, (list, tuple)):
+		frappe.throw("Filter must be a tuple or list (in a list)")
+
+	if len(f) == 3:
+		f = (doctype, f[0], f[1], f[2])
+
+	elif len(f) != 4:
+		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+
+	if not f[2]:
+		# if operator is missing
+		f[2] = "="
+
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
+	if f[2] not in valid_operators:
+		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+
+	return frappe._dict({
+		"doctype": f[0],
+		"fieldname": f[1],
+		"operator": f[2],
+		"value": f[3]
+	})
+
+def make_filter_tuple(doctype, key, value):
+	'''return a filter tuple like [doctype, key, operator, value]'''
+	if isinstance(value, (list, tuple)):
+		return [doctype, key, value[0], value[1]]
+	else:
+		return [doctype, key, "=", value]
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
