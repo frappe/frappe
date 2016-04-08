@@ -335,9 +335,11 @@ frappe.new_doc = function (doctype, opts) {
 					title = doc[title_field];
 				}
 
-				console.log(title, title_field);
-				show_alert('<a href="#Form/' + doc.doctype + '/' + doc.name + '">'
-					+ __('{0} {1} created', [doc.doctype, strip_html(title)]) + '</a>');
+				var route = frappe.get_route();
+				if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
+					show_alert('<a href="#Form/' + doc.doctype + '/' + doc.name + '">'
+						+ __('{0} {1} created', [doc.doctype, strip_html(title)]) + '</a>');
+				}
 			});
 		}
 	});

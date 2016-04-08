@@ -50,7 +50,7 @@ frappe.ui.notifications.update_notifications = function() {
 
 	// switch colour on the navbar
 	$(".navbar-new-comments")
-		.html(frappe.ui.notifications.total > 99 ? '99+' : frappe.ui.notifications.total)
+		.html(frappe.ui.notifications.total > 20 ? '20+' : frappe.ui.notifications.total)
 		.toggleClass("navbar-new-comments-true", frappe.ui.notifications.total ? true : false);
 
 }
@@ -69,7 +69,7 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 				%(count)s</span> \
 			%(label)s </a></li>', {
 				label: __(label),
-				count: count > 99 ? '99+' : count,
+				count: count > 20 ? '20+' : count,
 				data_doctype: doctype
 			});
 

@@ -87,8 +87,8 @@ def get_notifications_for_doctypes(config, notification_count):
 			else:
 				try:
 					if isinstance(condition, dict):
-						result = frappe.get_list(d, fields=["count(*)"],
-							filters=condition, as_list=True)[0][0]
+						result = len(frappe.get_list(d, fields=["name"],
+							filters=condition, limit_page_length = 21, as_list=True))
 					else:
 						result = frappe.get_attr(condition)()
 
