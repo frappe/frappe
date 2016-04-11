@@ -49,7 +49,7 @@ frappe.views.ListView = Class.extend({
 		}
 
 		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified',
-			'modified_by', '_assign', '_liked_by'],
+			'modified_by', '_assign', '_liked_by', '_seen'],
 		function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
