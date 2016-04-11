@@ -356,7 +356,7 @@ class BaseDocument(object):
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 
-		self.run_trigger('on_change')
+		self.run_method('on_change')
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
