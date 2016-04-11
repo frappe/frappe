@@ -37,6 +37,7 @@ $.extend(frappe.desktop, {
 			label: 'Explore',
 			_label: __('Explore'),
 			_id: 'Explore',
+			_doctype: '',
 			icon: 'octicon octicon-telescope',
 			color: '#7578f6',
 			link: 'modules'
@@ -71,6 +72,12 @@ $.extend(frappe.desktop, {
 				frappe.desktop.open_module($(this).parent());
 			});
 		}
+		frappe.desktop.wrapper.on("click", ".circle", function() {
+			var doctype = $(this).attr('data-doctype');
+			if(doctype) {
+				frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+			}
+		});
 	},
 
 	open_module: function(parent) {
@@ -122,7 +129,6 @@ $.extend(frappe.desktop, {
 	},
 
 	show_pending_notifications: function() {
-
 		if (!frappe.boot.notification_info.module_doctypes) {
 			return;
 		}

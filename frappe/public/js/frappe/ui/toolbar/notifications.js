@@ -103,10 +103,10 @@ frappe.ui.notifications.config = {
 
 frappe.views.show_open_count_list = function(element) {
 	var doctype = $(element).attr("data-doctype");
-	var condition = frappe.boot.notification_info.conditions[doctype];
+	var filters = frappe.ui.notifications.get_filters(doctype);
 
-	if(condition && $.isPlainObject(condition)) {
-		frappe.route_options = condition;
+	if(filters) {
+		frappe.route_options = filters;
 	}
 
 	var route = frappe.get_route();
@@ -114,5 +114,13 @@ frappe.views.show_open_count_list = function(element) {
 		frappe.pages["List/" + doctype].doclistview.refresh();
 	} else {
 		frappe.set_route("List", doctype);
+	}
+}
+
+frappe.ui.notifications.get_filters = function(doctype) {
+	var conditions = frappe.boot.notification_info.conditions[doctype];
+
+	if(conditions && $.isPlainObject(conditions)) {
+		return conditions;
 	}
 }

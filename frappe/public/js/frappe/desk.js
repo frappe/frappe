@@ -370,6 +370,10 @@ frappe.get_module = function(m, default_module) {
 		module._label = __(module.label);
 	}
 
+	if(!module._doctype) {
+		module._doctype = '';
+	}
+
 	module._setup = true;
 
 	return module;
