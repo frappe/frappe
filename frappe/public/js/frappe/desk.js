@@ -152,10 +152,10 @@ frappe.Application = Class.extend({
 	update_notification_count_in_modules: function() {
 		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
 			if(count) {
-				$('.open-notification[data-doctype="'+ doctype +'"]')
+				$('.open-notification.global[data-doctype="'+ doctype +'"]')
 					.removeClass("hide").html(count > 20 ? "20+" : count);
 			} else {
-				$('.open-notification[data-doctype="'+ doctype +'"]')
+				$('.open-notification.global[data-doctype="'+ doctype +'"]')
 					.addClass("hide");
 			}
 		});

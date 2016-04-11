@@ -161,3 +161,8 @@ def get_notification_config():
 		return config
 
 	return frappe.cache().get_value("notification_config", _get)
+
+def get_filters_for(doctype):
+	'''get open filters for doctype'''
+	config = get_notification_config()
+	return config.get('for_doctype').get(doctype, {})

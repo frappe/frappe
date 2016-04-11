@@ -42,12 +42,15 @@ frappe.ui.form.AssignTo = Class.extend({
 				info.avatar = frappe.avatar(d[i].owner);
 				info.description = d[i].description || "";
 
+				info._fullname = info.fullname;
+				if(info.fullname.length > 10) {
+					info._fullname = info.fullname.substr(0, 10) + '...';
+				}
+
 				$(repl('<li class="assignment-row">\
 					<a class="close" data-owner="%(owner)s">&times;</a>\
-					<div class="text-ellipsis" style="width: 80%">\
-						%(avatar)s\
-						<span>%(fullname)s</span>\
-					</div>\
+					%(avatar)s\
+					<span>%(_fullname)s</span>\
 				</li>', info))
 					.insertBefore(this.parent.find('.add-assignment'));
 
