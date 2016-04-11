@@ -153,7 +153,7 @@ frappe.Application = Class.extend({
 		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
 			if(count) {
 				$('.open-notification[data-doctype="'+ doctype +'"]')
-					.removeClass("hide").html(count > 99 ? "99+" : count);
+					.removeClass("hide").html(count > 20 ? "20+" : count);
 			} else {
 				$('.open-notification[data-doctype="'+ doctype +'"]')
 					.addClass("hide");

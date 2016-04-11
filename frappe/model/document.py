@@ -656,6 +656,8 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
+		self.run_method('on_change')
+
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
