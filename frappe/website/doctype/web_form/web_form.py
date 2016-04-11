@@ -250,21 +250,13 @@ def has_web_form_permission(doctype, name, ptype='read'):
 
 	elif frappe.has_website_permission(doctype, ptype=ptype, doc=name):
 		return True
-		
-	elif check_webform_perm(doctype, name):
-			return True	
 
 	elif check_webform_perm(doctype, name):
 		return True
 
 	else:
 		return False
-		
-def check_webform_perm(doctype, name):
-	doc = frappe.get_doc(doctype, name)
-	if hasattr(doc, "has_webform_permission"):
-	  if doc.has_webform_permission():
-	    return True			
+				
 
 def check_webform_perm(doctype, name):
 	doc = frappe.get_doc(doctype, name)
