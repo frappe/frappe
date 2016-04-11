@@ -13,7 +13,9 @@
 				{% for user in users %}
 				<option value="{{ user.name }}"
 					{% if user.name == frappe.user %}selected{% endif %}>
-					{{ user.first_name or "" }} {{ user.last_name or "" }} ({{ user.name }})</option>
+					<!-- {{ variable | e }} "e" or "escape(s)" will escape the characters such "<, >, &, '"
+					in the HTML text (http://jinja.pocoo.org/docs/dev/templates/#escape) -->
+					{{ user.first_name | e or "" }} {{ user.last_name | e or "" }} ({{ user.name }})</option>
 				{% endfor %}
 			</select>
 		</div>
