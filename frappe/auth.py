@@ -13,6 +13,7 @@ import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
+from frappe.translate import get_lang_code
 
 from urllib import quote
 
@@ -45,7 +46,9 @@ class HTTPRequest:
 		frappe.local.login_manager = LoginManager()
 
 		if frappe.form_dict._lang:
-			frappe.local.lang = frappe.form_dict._lang
+			lang = get_lang_code(frappe.form_dict._lang)
+			if lang:
+				frappe.local.lang = lang
 
 		self.validate_csrf_token()
 
