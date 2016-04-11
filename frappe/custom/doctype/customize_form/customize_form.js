@@ -35,6 +35,7 @@ frappe.ui.form.on("Customize Form", {
 			return frm.call({
 				method: "fetch_to_customize",
 				doc: frm.doc,
+				freeze: true,
 				callback: function(r) {
 					frm.refresh();
 					frm.trigger("setup_sortable");
