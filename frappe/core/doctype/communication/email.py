@@ -13,6 +13,7 @@ import frappe.email.smtp
 import MySQLdb
 import time
 from frappe import _
+from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -107,8 +108,8 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 			recipients=recipients, cc=cc)
 	else:
 		check_bulk_limit(list(set(doc.sent_email_addresses)))
-		from frappe.utils.background_jobs import enqueue
-		enqueue(sendmail, queue="short", timeout=300, event="email", communication_name=doc.name,
+		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
+			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 

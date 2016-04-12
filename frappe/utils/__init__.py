@@ -380,11 +380,19 @@ def is_markdown(text):
 def get_sites(sites_path=None):
 	import os
 	if not sites_path:
-		sites_path = '.'
-	return [site for site in os.listdir(sites_path)
-			if os.path.isdir(os.path.join(sites_path, site))
-				and not site in ('assets',)]
+		sites_path = getattr(frappe.local, 'sites_path', None) or '.'
 
+	sites = []
+	for site in os.listdir(sites_path):
+		path = os.path.join(sites_path, site)
+
+		if (os.path.isdir(path)
+			and not os.path.islink(path)
+			and os.path.exists(os.path.join(path, 'site_config.json'))):
+			# is a dir and has site_config.json
+			sites.append(site)
+
+	return sites
 
 def get_request_session(max_retries=3):
 	from requests.packages.urllib3.util import Retry

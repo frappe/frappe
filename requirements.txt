@@ -33,3 +33,4 @@ bleach-whitelist
 Pillow
 beautifulsoup4
 rq
+schedule

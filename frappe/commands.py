@@ -97,6 +97,8 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
 	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+	frappe.db.commit()
+
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print "*** Scheduler is", scheduler_status, "***"
 	frappe.destroy()
@@ -1012,11 +1014,16 @@ def get_version():
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
 
+@click.command('schedule')
+def start_scheduler():
+	from frappe.utils.scheduler import start_scheduler
+	start_scheduler()
 
-@click.command('start-worker')
-def start_rq_worker():
-	from frappe.utils.background_jobs import start_all_workers
-	start_all_workers()
+@click.command('worker')
+@click.option('--queue', type=str)
+def start_worker(queue):
+	from frappe.utils.background_jobs import start_worker
+	start_worker(queue)
 
 commands = [
 	new_site,
@@ -1074,5 +1081,6 @@ commands = [
 	set_config,
 	get_version,
 	new_language,
-	start_rq_worker,
+	start_worker,
+	start_scheduler,
 ]

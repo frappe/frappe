@@ -176,6 +176,27 @@ def get_site_config(sites_path=None, site_path=None):
 
 	return _dict(config)
 
+def get_conf(site=None):
+	if hasattr(local, 'conf'):
+		return local.conf
+
+	else:
+		# if no site, get from common_site_config.json
+		with init_site(site):
+			return local.conf
+
+class init_site:
+	def __init__(self, site=None):
+		'''If site==None, initialize it for empty site ('') to load common_site_config.json'''
+		self.site = site or ''
+
+	def __enter__(self):
+		init(self.site)
+		return local
+
+	def __exit__(self, type, value, traceback):
+		destroy()
+
 def destroy():
 	"""Closes connection and releases werkzeug local."""
 	if db:
@@ -191,7 +212,6 @@ def cache():
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
 		redis_server = RedisWrapper.from_url(conf.get('redis_cache')
-			or conf.get("cache_redis_server")
 			or "redis://localhost:11311")
 	return redis_server
 

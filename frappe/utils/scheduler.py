@@ -17,21 +17,66 @@ import time
 import frappe.utils
 from frappe.utils import get_sites
 from datetime import datetime
-from background_jobs import enqueue, get_jobs
-
+from background_jobs import enqueue, get_jobs, queue_timeout
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-def enqueue_events(queued_jobs, site):
-	if is_scheduler_disabled():
-		return
+def start_scheduler():
+	'''Run enqueue_events_for_all_sites every 2 minutes (default).
+	Specify scheduler_interval in seconds in common_site_config.json'''
 
+	interval = frappe.get_conf().scheduler_interval or 120
+	schedule.every(interval).seconds.do(enqueue_events_for_all_sites)
+
+	while True:
+		schedule.run_pending()
+		time.sleep(1)
+
+def enqueue_events_for_all_sites():
+	'''Loop through sites and enqueue events that are not already queued'''
+	with frappe.init_site():
+		jobs_per_site = get_jobs()
+		sites = get_sites()
+
+	for site in sites:
+		try:
+			enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
+		except:
+			# it should try to enqueue other sites
+			print frappe.get_traceback()
+
+def enqueue_events_for_site(site, queued_jobs):
+	try:
+		frappe.init(site=site)
+		if frappe.local.conf.maintenance_mode:
+			return
+
+		frappe.connect()
+		if is_scheduler_disabled():
+			return
+
+		enqueue_events(site=site, queued_jobs=queued_jobs)
+
+		# TODO this print call is a tempfix till logging is fixed!
+		print 'Queued events for site {0}'.format(site)
+		frappe.get_logger(__name__).debug('Queued events for site {0}'.format(site))
+
+	except:
+		frappe.get_logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
+		raise
+
+	finally:
+		frappe.destroy()
+
+def enqueue_events(site, queued_jobs):
 	nowtime = frappe.utils.now_datetime()
 	last = frappe.db.get_value('System Settings', 'System Settings', 'scheduler_last_event')
 
 	# set scheduler last event
 	frappe.db.begin()
-	frappe.db.set_value('System Settings', 'System Settings', 'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT), update_modified=False)
+	frappe.db.set_value('System Settings', 'System Settings',
+		'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT),
+		update_modified=False)
 	frappe.db.commit()
 
 	out = []
@@ -83,13 +128,10 @@ def enqueue_applicable_events(nowtime, last, queued_jobs, site):
 	return out
 
 def trigger(site, event, queued_jobs, now=False):
-	"""trigger method in startup.schedule_handler"""
-	if event.endswith("long"):
-		queue = 'long'
-		timeout = 1500
-	else:
-		queue = 'default'
-		timeout = 300
+	"""trigger method in hooks.scheduler_events"""
+	queue = 'long' if event.endswith('_long') else 'short'
+	timeout = queue_timeout[queue]
+
 	for handler in frappe.get_hooks("scheduler_events").get(event, []):
 		if not now:
 			if handler not in queued_jobs:
@@ -124,11 +166,14 @@ def get_enabled_scheduler_events():
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
 		return json.loads(enabled_events)
-	return ["all", "hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
+
+	return ["all", "hourly", "hourly_long", "daily", "daily_long",
+		"weekly", "weekly_long", "monthly", "monthly_long"]
 
 def is_scheduler_disabled():
 	if frappe.conf.disable_scheduler:
 		return True
+
 	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
@@ -170,7 +215,7 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 
 
 def scheduler_task(site, event, handler, now=False):
-	traceback = ""
+	'''This is a wrapper function that runs a hooks.scheduler_events method'''
 	frappe.get_logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
 		if not now:
@@ -182,42 +227,10 @@ def scheduler_task(site, event, handler, now=False):
 	except Exception:
 		frappe.db.rollback()
 		traceback = log(handler, "Method: {event}, Handler: {handler}".format(event=event, handler=handler))
-		frappe.get_logger(__name__).warn(traceback)
+		frappe.get_logger(__name__).error(traceback)
 		raise
 
 	else:
 		frappe.db.commit()
 
 	frappe.get_logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
-
-
-def enqueue_scheduler_events():
-	frappe.init('')
-
-	jobs_per_site = get_jobs()
-	sites = get_sites()
-
-	frappe.destroy()
-
-	for site in sites:
-		enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
-
-def enqueue_events_for_site(site, queued_jobs):
-	try:
-		frappe.init(site=site)
-		if frappe.local.conf.maintenance_mode or frappe.conf.disable_scheduler:
-			return
-		frappe.connect()
-		enqueue_events(queued_jobs=queued_jobs, site=site)
-	except:
-		frappe.get_logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
-		raise
-	finally:
-		frappe.destroy()
-
-def start_scheduler():
-	schedule.every(5).seconds.do(enqueue_scheduler_events)
-	while True:
-	    schedule.run_pending()
-	    time.sleep(1)
-
