@@ -4,7 +4,7 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-dashboard shaded-section" style="padding-top: 10px;"></div>')
+		this.wrapper = $('<div class="form-dashboard shaded-section"></div>')
 		.prependTo(this.frm.layout.wrapper);
 		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
 			.css("padding", "15px 30px");
@@ -13,55 +13,34 @@ frappe.ui.form.Dashboard = Class.extend({
 	reset: function() {
 		this.wrapper.toggle(false);
 		this.body.empty();
-		this.headline = null;
+		this.badge_area = $('<div class="hidden" \
+			style="padding-left: 15px; padding-right: 15px;"></div>').appendTo(this.body);
+		this.clear_headline();
 	},
 	set_headline: function(html) {
 		if(!this.headline)
 			this.headline =
-				$('<h4 class="form-headline col-md-12"></h4>').prependTo(this.body);
-		this.headline.html(html);
+				$('<h4 class="form-headline col-md-12 hidden"></h4>').prependTo(this.body);
+		this.headline.html(html).removeClass('hidden');
 		this.wrapper.toggle(true);
 	},
-	set_headline_alert: function(text, alert_class, icon) {
-		if(!alert_class) alert_class = "alert-warning";
-		this.set_headline(repl('<div class="alert %(alert_class)s">%(icon)s%(text)s</div>', {
-			"alert_class": alert_class || "",
-			"icon": icon ? '<i class="'+icon+'" /> ' : "",
-			"text": text
-		}));
-	},
-	add_doctype_badge: function(doctype, fieldname) {
-		if(frappe.model.can_read(doctype)) {
-			this.add_badge(__(doctype), doctype, function(show_open) {
-				frappe.route_options = {};
-				frappe.route_options[fieldname] = cur_frm.doc.name;
-				if(show_open) {
-					$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
-				}
-				frappe.set_route("List", doctype);
-			}).attr("data-doctype", doctype);
+	clear_headline: function() {
+		if(this.headline) {
+			this.headline.empty().addClass('hidden');
 		}
 	},
-	add_badge: function(label, doctype, onclick) {
-		var badge = $(repl('<div class="col-xs-6">\
-			<div style="margin-bottom: 10px; height: 22px;"><a data-doctype=%(doctype)s\
-				class="badge-link small">%(label)s</a>\
-				<span class="open-notification hidden" data-doctype="%(doctype)s"></span>\
-			</div></div>', {label:label, doctype:doctype}))
-				.appendTo(this.body)
-
-		badge.find(".badge-link").click(onclick);
-		badge.find('.open-notification').on('click', function() { onclick(true); })
-		this.wrapper.toggle(true);
-
-		return badge.find(".alert-badge");
+	set_headline_alert: function(text, alert_class) {
+		if(text) {
+			if(!alert_class) alert_class = "alert-warning";
+			this.set_headline(repl('<div class="alert %(alert_class)s">%(text)s</div>', {
+				"alert_class": alert_class || "",
+				"text": text
+			}));
+		} else {
+			this.clear_headline();
+		}
 	},
-	set_badge_count: function(doctype, count) {
-		$(this.wrapper)
-			.find('.open-notification[data-doctype="'+doctype+'"]')
-			.removeClass('hidden')
-			.html(cint(count));
-	},
+
 	add_progress: function(title, percent) {
 		var progress_chart = this.make_progress_chart(title);
 
@@ -103,5 +82,86 @@ frappe.ui.form.Dashboard = Class.extend({
 			.removeClass().addClass("progress-chart col-md-" + cols);
 
 		return progress_chart;
+	},
+	show_documents: function() {
+		this.reset();
+		if(this.frm.doc.__islocal)
+			return;
+
+		this.links = this.frm.doc.__onload.links;
+
+		this.render_document_list();
+		this.set_open_count();
+
+	},
+	render_document_list: function() {
+		var me = this;
+		$(frappe.render_template('form_documents',
+			{transactions: this.links.transactions}))
+			.appendTo(this.badge_area)
+
+		// bind links
+		this.badge_area.find(".badge-link").on('click', function() {
+			me.open_document_list($(this).attr('data-doctype'));
+		});
+
+		// bind open notifications
+		this.badge_area.find('.open-notification').on('click', function() {
+			me.open_document_list($(this).attr('data-doctype'), true);
+		});
+
+		this.wrapper.toggle(true);
+		this.badge_area.removeClass('hidden');
+	},
+	open_document_list: function(doctype, show_open) {
+		// show document list with filters
+		frappe.route_options = this.get_document_filter();
+		if(show_open) {
+			$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+		}
+
+		frappe.set_route("List", doctype);
+	},
+	get_document_filter: function(doctype) {
+		// return the default filter for the given document
+		// like {"customer": frm.doc.name}
+		var filter = {};
+		var fieldname = this.links.non_standard_fieldnames
+			? (this.links.non_standard_fieldnames[doctype] || this.links.fieldname)
+			: this.links.fieldname;
+		filter[fieldname] = this.frm.doc.name;
+		return filter;
+	},
+	set_open_count: function() {
+		// list all items from the transaction list
+		var items = [],
+			me = this;
+
+		this.links.transactions.forEach(function(group) {
+			group.items.forEach(function(item) { items.push(item); });
+		});
+
+		frappe.call({
+			type: "GET",
+			method: "frappe.desk.notifications.get_open_count",
+			args: {
+				doctype: this.frm.doc.doctype,
+				name: this.frm.doc.name,
+			},
+			callback: function(r) {
+				$.each(r.message, function(i, d) {
+					if(d.count) {
+						me.frm.dashboard.set_badge_count(d.name, d.count > 5 ? '5+' : d.count)
+					}
+				})
+			}
+		});
+
+	},
+	set_badge_count: function(doctype, count) {
+		$(this.wrapper)
+			.find('.open-notification[data-doctype="'+doctype+'"]')
+			.removeClass('hidden')
+			.html(cint(count));
 	}
 });

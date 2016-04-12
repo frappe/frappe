@@ -403,7 +403,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-04-07 01:35:53.935024", 
+ "modified": "2016-04-12 02:50:32.042427", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 
@@ -453,7 +453,7 @@
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "description, reference_type, reference_name", 
- "sort_order": "ASC", 
+ "sort_order": "DESC", 
  "title_field": "description", 
  "track_seen": 1
 }

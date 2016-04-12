@@ -578,8 +578,9 @@ _f.Frm.prototype.setnewdoc = function() {
 	});
 
 	// update seen
-	$('.list-id[data-name="'+ me.docname +'"]').addClass('seen');
-
+	if(this.meta.track_seen) {
+		$('.list-id[data-name="'+ me.docname +'"]').addClass('seen');
+	}
 }
 
 _f.Frm.prototype.trigger_link_fields = function() {
@@ -851,7 +852,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 
 
 _f.Frm.prototype.set_intro = function(txt, append) {
-	frappe.utils.set_intro(this, this.body, txt, append);
+	this.dashboard.set_headline_alert(txt);
+	//frappe.utils.set_intro(this, this.body, txt, append);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {

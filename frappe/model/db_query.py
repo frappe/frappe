@@ -25,7 +25,8 @@ class DatabaseQuery(object):
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
-		ignore_permissions=False, user=None, with_comment_count=False):
+		ignore_permissions=False, user=None, with_comment_count=False,
+		join='left join', distinct=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -56,6 +57,8 @@ class DatabaseQuery(object):
 		self.limit_page_length = cint(limit_page_length) if limit_page_length else None
 		self.with_childnames = with_childnames
 		self.debug = debug
+		self.join = join
+		self.distinct = distinct
 		self.as_list = as_list
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
@@ -76,6 +79,9 @@ class DatabaseQuery(object):
 
 		if args.conditions:
 			args.conditions = "where " + args.conditions
+
+		if self.distinct:
+			args.fields = 'distinct ' + args.fields
 
 		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
@@ -99,8 +105,9 @@ class DatabaseQuery(object):
 		args.tables = self.tables[0]
 
 		# left join parent, child tables
-		for tname in self.tables[1:]:
-			args.tables += " left join " + tname + " on " + tname + '.parent = ' + self.tables[0] + '.name'
+		for child in self.tables[1:]:
+			args.tables += " {join} {child} on ({child}.parent = {main}.name)".format(join=self.join,
+				child=child, main=self.tables[0])
 
 		if self.grouped_or_conditions:
 			self.conditions.append("({0})".format(" or ".join(self.grouped_or_conditions)))
@@ -110,6 +117,8 @@ class DatabaseQuery(object):
 		if self.or_conditions:
 			args.conditions += (' or ' if args.conditions else "") + \
 				 ' or '.join(self.or_conditions)
+
+		self.set_field_tables()
 
 		args.fields = ', '.join(self.fields)
 
@@ -169,6 +178,14 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			raise frappe.PermissionError, doctype
+
+	def set_field_tables(self):
+		'''If there are more than one table, the fieldname must not be ambigous.
+		If the fieldname is not explicitly mentioned, set the default table'''
+		if len(self.tables) > 1:
+			for i, f in enumerate(self.fields):
+				if '.' not in f:
+					self.fields[i] = '{0}.{1}'.format(self.tables[0], f)
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
@@ -401,11 +418,19 @@ class DatabaseQuery(object):
 
 			if not group_function_without_group_by:
 				sort_field = sort_order = None
-				if meta.sort_field:
-					sort_field = meta.sort_field
-					sort_order = meta.sort_order
+				if meta.sort_field and ',' in meta.sort_field:
+					# multiple sort given in doctype definition
+					# Example:
+					# `idx desc, modified desc`
+					# will covert to
+					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+					args.order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(self.doctype,
+						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+				else:
+					sort_field = meta.sort_field or 'modified'
+					sort_order = meta.sort_order or 'desc'
 
-				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
+					args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
 
 				# draft docs always on top
 				if meta.is_submittable:

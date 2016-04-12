@@ -109,6 +109,11 @@ $.extend(frappe.meta, {
 		return frappe.meta.docfield_map[dt][fn];
 	},
 
+	get_table_fields: function(dt) {
+		return $.map(frappe.meta.docfield_map[dt], function(d, fieldname) {
+			return d.fieldtype==='Table' ? d : null});
+	},
+
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
 			{ return d.fieldtype==="Table" && options===child_dt })

@@ -647,6 +647,8 @@ def get_filter(doctype, f):
 			"value":
 		}
 	"""
+	from frappe.model import default_fields, optional_fields
+
 	if isinstance(f, dict):
 		key, value = f.items()[0]
 		f = make_filter_tuple(doctype, key, value)
@@ -660,20 +662,29 @@ def get_filter(doctype, f):
 	elif len(f) != 4:
 		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
 
-	if not f[2]:
+	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
+
+	if not f.operator:
 		# if operator is missing
-		f[2] = "="
+		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
-	if f[2] not in valid_operators:
+	if f.operator not in valid_operators:
 		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
 
-	return frappe._dict({
-		"doctype": f[0],
-		"fieldname": f[1],
-		"operator": f[2],
-		"value": f[3]
-	})
+
+	if f.doctype and (f.fieldname not in default_fields + optional_fields):
+		# verify fieldname belongs to the doctype
+		meta = frappe.get_meta(f.doctype)
+		if not meta.has_field(f.fieldname):
+
+			# try and match the doctype name from child tables
+			for df in meta.get_table_fields():
+				if frappe.get_meta(df.options).has_field(f.fieldname):
+					f.doctype = df.options
+					break
+
+	return f
 
 def make_filter_tuple(doctype, key, value):
 	'''return a filter tuple like [doctype, key, operator, value]'''
