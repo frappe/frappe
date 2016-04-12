@@ -411,6 +411,7 @@ a.no-decoration:active {
 .web-footer {
   padding: 20px 0px;
   min-height: 140px;
+  border-top: 1px solid #ebeff2;
 }
 .carousel-control .icon {
   position: absolute;
