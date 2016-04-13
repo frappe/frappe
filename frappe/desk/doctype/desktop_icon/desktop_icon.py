@@ -69,6 +69,10 @@ def get_desktop_icons(user=None):
 				# flag for modules_setup page
 				standard_icon.hidden_in_standard = standard_icon.hidden
 
+				# if blocked, hidden too!
+				if standard_icon.blocked:
+					standard_icon.hidden = 1
+
 				user_icons.append(standard_icon)
 
 		user_blocked_modules = frappe.get_doc('User', user).get_blocked_modules()
@@ -171,9 +175,9 @@ def set_hidden(module_name, user=None, hidden=1):
 		if hidden and icon.custom:
 			frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
 			return
-		else:
-			# hidden by user
-			icon.db_set('hidden', hidden)
+
+		# hidden by user
+		icon.db_set('hidden', hidden)
 	else:
 		icon = frappe.get_doc('Desktop Icon', {'standard': 1, 'module_name': module_name})
 

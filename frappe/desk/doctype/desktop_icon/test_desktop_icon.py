@@ -16,7 +16,7 @@ class TestDesktopIcon(unittest.TestCase):
 		frappe.set_user('test@example.com')
 		frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
 		frappe.db.sql('delete from `tabBlock Module`')
-		frappe.db.sql('update `tabDesktop Icon` set hidden=0')
+		frappe.db.sql('update `tabDesktop Icon` set hidden=0, blocked=0')
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
