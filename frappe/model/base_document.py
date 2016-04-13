@@ -358,6 +358,11 @@ class BaseDocument(object):
 
 		self.run_method('on_change')
 
+	def update_modified(self):
+		'''Update modified timestamp'''
+		self.set("modified", now())
+		frappe.db.set_value(self.doctype, self.name, 'modified', self.modified, update_modified=False)
+
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
 			if df.fieldtype == "Check":

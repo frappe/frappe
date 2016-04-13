@@ -428,7 +428,7 @@ class DatabaseQuery(object):
 						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
 				else:
 					sort_field = meta.sort_field or 'modified'
-					sort_order = meta.sort_order or 'desc'
+					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
 
 					args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
 
