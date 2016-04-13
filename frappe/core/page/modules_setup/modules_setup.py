@@ -49,7 +49,7 @@ def get_user_icons(user):
 	icons = []
 	for icon in get_desktop_icons(user):
 		add = True
-		if icon.hidden_in_standard:
+		if icon.blocked:
 			add = False
 
 		if not icon.custom:

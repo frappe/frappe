@@ -15,6 +15,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "File",
+					"label": _("Files"),
+				},
+				{
+					"type": "doctype",
 					"name": "Event",
 					"label": _("Calendar"),
 					"link": "Calendar/Event",

@@ -222,7 +222,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	get_action_status: function() {
 		var status = null;
-		if (this.frm.page.current_view_name==='print') {
+		if (this.frm.page.current_view_name==='print' || this.frm.hidden) {
 			status = "Edit";
 		} else if (this.can_submit()) {
 			status = "Submit";
@@ -253,6 +253,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(status === "Edit") {
 			this.page.set_primary_action(__("Edit"), function() {
 				me.frm.page.set_view('main');
+				me.frm.set_hidden(false);
 			}, 'octicon octicon-pencil');
 		} else if(status === "Cancel") {
 			this.page.set_secondary_action(__(status), function() {

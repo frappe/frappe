@@ -14,7 +14,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.wrapper.toggle(false);
 		this.body.empty();
 		this.badge_area = $('<div class="hidden" \
-			style="padding-left: 15px; padding-right: 15px;"></div>').appendTo(this.body);
+			style="padding-left: 15px; padding-right: 15px;">\
+			<p class="text-muted small" style="margin-bottom: 0px;">'
+			+ __("Documents related to {0}", [this.frm.doc.name]) +'</p></div>').appendTo(this.body);
 		this.clear_headline();
 	},
 	set_headline: function(html) {
@@ -83,20 +85,43 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		return progress_chart;
 	},
-	show_documents: function() {
+	show_links: function() {
 		this.reset();
 		if(this.frm.doc.__islocal)
 			return;
 
-		this.links = this.frm.doc.__onload.links;
-
-		this.render_document_list();
+		if(!this.links) {
+			this.links = this.frm.doc.__onload.links;
+			this.filter_permissions();
+		}
+		this.render_links();
 		this.set_open_count();
 
 	},
-	render_document_list: function() {
+	filter_permissions: function() {
+		// filter out transactions for which the user
+		// does not have permission
+		var transactions = [];
+		this.links.transactions.forEach(function(group) {
+			var items = [];
+			group.items.forEach(function(doctype) {
+				if(frappe.model.can_read(doctype)) {
+					items.push(doctype);
+				}
+			});
+
+			// only add thie group, if there is atleast
+			// one item with permission
+			if(items.length) {
+				group.items = items;
+				transactions.push(group);
+			}
+		});
+		this.links.transactions = transactions;
+	},
+	render_links: function() {
 		var me = this;
-		$(frappe.render_template('form_documents',
+		$(frappe.render_template('form_links',
 			{transactions: this.links.transactions}))
 			.appendTo(this.badge_area)
 
@@ -151,7 +176,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			callback: function(r) {
 				$.each(r.message, function(i, d) {
 					if(d.count) {
-						me.frm.dashboard.set_badge_count(d.name, d.count > 5 ? '5+' : d.count)
+						me.frm.dashboard.set_badge_count(d.name, (d.count > 5) ? '5+' : d.count)
 					}
 				})
 			}
@@ -162,6 +187,6 @@ frappe.ui.form.Dashboard = Class.extend({
 		$(this.wrapper)
 			.find('.open-notification[data-doctype="'+doctype+'"]')
 			.removeClass('hidden')
-			.html(cint(count));
+			.html(count);
 	}
 });

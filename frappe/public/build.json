@@ -150,7 +150,7 @@
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",
 		"public/js/frappe/form/templates/form_sidebar.html",
-		"public/js/frappe/form/templates/form_documents.html",
+		"public/js/frappe/form/templates/form_links.html",
 		"public/js/frappe/views/formview.js",
 		"public/js/legacy/form.js",
 		"public/js/legacy/clientscriptAPI.js",

@@ -199,7 +199,7 @@ def get_open_count(doctype, name):
 			filters[fieldname] = name
 
 			if filters:
-				open_count = len(frappe.get_list(doctype, fields='name',
+				open_count = len(frappe.get_all(doctype, fields='name',
 					filters=filters, limit_page_length=6, distinct=True))
 				out.append({'name': doctype, 'count': open_count})
 

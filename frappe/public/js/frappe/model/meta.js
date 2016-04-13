@@ -110,7 +110,7 @@ $.extend(frappe.meta, {
 	},
 
 	get_table_fields: function(dt) {
-		return $.map(frappe.meta.docfield_map[dt], function(d, fieldname) {
+		return $.map(frappe.meta.docfield_list[dt], function(d) {
 			return d.fieldtype==='Table' ? d : null});
 	},
 

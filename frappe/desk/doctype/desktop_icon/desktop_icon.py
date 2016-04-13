@@ -8,7 +8,6 @@ import frappe
 import json
 import random
 from frappe.model.document import Document
-from frappe import _
 
 class DesktopIcon(Document):
 	def validate(self):
@@ -30,7 +29,7 @@ def get_desktop_icons(user=None):
 
 	if not user_icons:
 		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
-			'_doctype', 'idx', 'force_show', 'reverse', 'custom', 'standard']
+			'_doctype', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
 		standard_icons = frappe.db.get_all('Desktop Icon',
 			fields=fields, filters={'standard': 1})
@@ -53,7 +52,7 @@ def get_desktop_icons(user=None):
 					if standard_icon.get(key):
 						icon[key] = standard_icon.get(key)
 
-				if standard_icon.hidden:
+				if standard_icon.blocked:
 					icon.hidden = 1
 
 					# flag for modules_setup page
@@ -168,14 +167,18 @@ def set_hidden(module_name, user=None, hidden=1):
 		hide/unhide it globally'''
 	if user:
 		icon = get_user_copy(module_name, user)
+
+		if hidden and icon.custom:
+			frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
+			return
+		else:
+			# hidden by user
+			icon.db_set('hidden', hidden)
 	else:
 		icon = frappe.get_doc('Desktop Icon', {'standard': 1, 'module_name': module_name})
 
-	if hidden and icon.custom:
-		frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
-		return
-
-	icon.db_set('hidden', hidden)
+		# blocked is globally hidden
+		icon.db_set('blocked', hidden)
 
 def get_all_icons():
 	return [d.module_name for d in frappe.get_all('Desktop Icon',

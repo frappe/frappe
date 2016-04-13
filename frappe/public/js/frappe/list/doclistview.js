@@ -302,7 +302,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					// found in parent
 					doctype = me.doctype;
 				} else {
-					frappe.meta.get_table_fields(me.doctype).forEach(function(d) {
+					frappe.meta.get_table_fields(me.doctype).every(function(d) {
 						if(frappe.meta.has_field(d.options, key)) {
 							doctype = d.options;
 							return false;

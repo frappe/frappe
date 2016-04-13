@@ -26,7 +26,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	}
 
 	// render sidebar
-	page.sidebar.html(frappe.render_template('modules_sidebar', {modules: frappe.get_desktop_icons(true)}));
+	page.sidebar.html(frappe.render_template('modules_sidebar',
+		{modules: frappe.get_desktop_icons(true)}));
 
 	page.activate_link = function(link) {
 		page.last_link = link;

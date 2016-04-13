@@ -29,7 +29,7 @@ _f.frms = {};
 _f.Frm = function(doctype, parent, in_form) {
 	this.docname = '';
 	this.doctype = doctype;
-	this.display = 0;
+	this.hidden = false;
 	this.refresh_if_stale_for = 120;
 
 	var me = this;
@@ -177,6 +177,14 @@ _f.Frm.prototype.print_doc = function() {
 	this.page.set_view("print");
 	this.print_preview.set_user_lang();
 }
+
+_f.Frm.prototype.set_hidden = function(status) {
+	// set hidden if hide_first is set
+	this.hidden = status;
+	this.page.wrapper.find('.form-page').toggleClass('hidden', this.hidden);
+	this.toolbar.refresh();
+}
+
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done && this.page.current_view_name==="print") {
@@ -427,9 +435,13 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.print_preview.preview();
 		}
 
-		if(this.show_print_first && is_a_different_doc && this.doc.docstatus===1) {
-			// show print view
-			this.print_doc();
+		if(is_a_different_doc) {
+			if(this.show_print_first && this.doc.docstatus===1) {
+				// show print view
+				this.print_doc();
+			} else if(this.hide_first && !this.doc.__unsaved) {
+				this.set_hidden(true);
+			}
 		}
 
 		this.show_if_needs_refresh();

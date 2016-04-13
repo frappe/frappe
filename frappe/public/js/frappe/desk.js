@@ -379,7 +379,7 @@ frappe.get_module = function(m, default_module) {
 	return module;
 };
 
-frappe.get_desktop_icons = function(show_hidden) {
+frappe.get_desktop_icons = function(show_hidden, show_global) {
 	// filter valid icons
 	var out = [];
 
@@ -406,10 +406,13 @@ frappe.get_desktop_icons = function(show_hidden) {
 				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 			}
 		}
-		if(out && !show_hidden) {
-			if(m.hidden) out = false;
+		if(m.hidden&& !show_hidden) {
+			out = false;
 		}
-
+		if(m.blocked && !show_global) {
+			out = false;
+		}
+		console.log(module, out);
 		return out;
 	}
 
