@@ -264,8 +264,6 @@ def get_messages_for_app(app):
 		for name in frappe.db.sql_list("""select name from tabDocType
 			where module in ({})""".format(modules)):
 			messages.extend(get_messages_from_doctype(name))
-			# workflow based on doctype
-			messages.extend(get_messages_from_workflow(doctype=name))
 
 		# pages
 		for name, title in frappe.db.sql("""select name, title from tabPage
@@ -331,6 +329,10 @@ def get_messages_from_doctype(name):
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+	
+	# workflow based on doctype
+	messages.extend(get_messages_from_workflow(doctype=name))
+	
 	return messages
 
 def get_messages_from_workflow(doctype=None, app_name=None):
