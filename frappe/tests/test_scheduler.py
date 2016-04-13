@@ -9,6 +9,10 @@ from dateutil.relativedelta import relativedelta
 import frappe
 import json, time
 
+def test_timeout():
+	'''This function needs to be pickleable'''
+	time.sleep(100)
+
 class TestScheduler(TestCase):
 
 	def setUp(self):
@@ -58,7 +62,3 @@ class TestScheduler(TestCase):
 
 	def tearDown(self):
 		frappe.flags.ran_schedulers = []
-
-def test_timeout():
-	'''This function needs to be pickleable'''
-	time.sleep(100)

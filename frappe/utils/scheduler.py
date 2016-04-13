@@ -82,19 +82,19 @@ def enqueue_events(site, queued_jobs):
 	out = []
 	if last:
 		last = datetime.strptime(last, DATETIME_FORMAT)
-		out = enqueue_applicable_events(nowtime, last, queued_jobs, site=site)
+		out = enqueue_applicable_events(site, nowtime, last, queued_jobs)
 
 	return '\n'.join(out)
 
-def enqueue_applicable_events(nowtime, last, queued_jobs, site):
+def enqueue_applicable_events(site, nowtime, last, queued_jobs=()):
 	nowtime_str = nowtime.strftime(DATETIME_FORMAT)
 	out = []
 
 	enabled_events = get_enabled_scheduler_events()
 
-	def trigger_if_enabled(event, site, now=False):
+	def trigger_if_enabled(site, event):
 		if event in enabled_events:
-			trigger(site, event, queued_jobs, now=now)
+			trigger(site, event, queued_jobs)
 			_log(event)
 
 	def _log(event):
@@ -114,23 +114,25 @@ def enqueue_applicable_events(nowtime, last, queued_jobs, site):
 			trigger_if_enabled(site, "weekly_long")
 
 		if "all" not in enabled_events:
-			trigger(site, queued_jobs, "all")
+			trigger(site, "all", queued_jobs)
 
 		if "hourly" not in enabled_events:
-			trigger(site, queued_jobs, "hourly")
+			trigger(site, "hourly", queued_jobs)
 
 	if nowtime.hour != last.hour:
 		trigger_if_enabled(site, "hourly")
 		trigger_if_enabled(site, "hourly_long")
 
-	trigger_if_enabled("all", site=site)
+	trigger_if_enabled(site, "all")
 
 	return out
 
-def trigger(site, event, queued_jobs, now=False):
+def trigger(site, event, queued_jobs=(), now=False):
 	"""trigger method in hooks.scheduler_events"""
 	queue = 'long' if event.endswith('_long') else 'short'
 	timeout = queue_timeout[queue]
+	if not queued_jobs and not now:
+		queued_jobs = get_jobs(site=site, queue=queue)
 
 	for handler in frappe.get_hooks("scheduler_events").get(event, []):
 		if not now:
