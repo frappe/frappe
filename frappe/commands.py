@@ -97,6 +97,8 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
 	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+	frappe.db.commit()
+
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print "*** Scheduler is", scheduler_status, "***"
 	frappe.destroy()
@@ -483,12 +485,6 @@ def execute(context, method, args=None, kwargs=None):
 		if ret:
 			print json.dumps(ret)
 
-@click.command('celery')
-@click.argument('args')
-def celery(args):
-	"Run a celery command"
-	python = sys.executable
-	os.execv(python, [python, "-m", "frappe.celery_app"] + args.split())
 
 @click.command('trigger-scheduler-event')
 @click.argument('event')
@@ -848,29 +844,38 @@ def request(context, args):
 		finally:
 			frappe.destroy()
 
-@click.command('doctor')
-def doctor():
+@click.command('doctor') #Passing context always gets a site and if there is no use site it breaks
+@click.option('--site', help='site name')
+def doctor(site=None):
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
-	return _doctor()
+	return _doctor(site=site)
 
-@click.command('celery-doctor')
+@click.command('show-pending-jobs')
 @click.option('--site', help='site name')
-def celery_doctor(site=None):
+@pass_context
+def show_pending_jobs(context, site=None):
 	"Get diagnostic info about background workers"
-	from frappe.utils.doctor import celery_doctor as _celery_doctor
-	frappe.init('')
-	return _celery_doctor(site=site)
+	if not site:
+		try:
+			site = context.sites[0]
+		except (IndexError, TypeError):
+			print 'Please specify --site sitename'
+			return 1
 
-@click.command('purge-pending-tasks')
+	from frappe.utils.doctor import pending_jobs as _pending_jobs
+	return _pending_jobs(site=site)
+
+@click.command('purge-jobs')
 @click.option('--site', help='site name')
+@click.option('--queue', default=None, help='one of "low", "default", "high')
 @click.option('--event', default=None, help='one of "all", "weekly", "monthly", "hourly", "daily", "weekly_long", "daily_long"')
-def purge_all_tasks(site=None, event=None):
+def purge_jobs(site=None, queue=None, event=None):
 	"Purge any pending periodic tasks, if event option is not given, it will purge everything for the site"
-	from frappe.utils.doctor import purge_pending_tasks
+	from frappe.utils.doctor import purge_pending_jobs
 	frappe.init(site or '')
-	count = purge_pending_tasks(event=None, site=None)
-	print "Purged {} tasks".format(count)
+	count = purge_pending_jobs(event=event, site=site, queue=queue)
+	print "Purged {} jobs".format(count)
 
 @click.command('dump-queue-status')
 def dump_queue_status():
@@ -1009,15 +1014,17 @@ def get_version():
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
 
-# commands = [
-# 	new_site,
-# 	restore,
-# 	install_app,
-# 	run_patch,
-# 	migrate,
-# 	add_system_manager,
-# 	celery
-# ]
+@click.command('schedule')
+def start_scheduler():
+	from frappe.utils.scheduler import start_scheduler
+	start_scheduler()
+
+@click.command('worker')
+@click.option('--queue', type=str)
+def start_worker(queue):
+	from frappe.utils.background_jobs import start_worker
+	start_worker(queue)
+
 commands = [
 	new_site,
 	restore,
@@ -1041,7 +1048,6 @@ commands = [
 	build_docs,
 	reset_perms,
 	execute,
-	celery,
 	trigger_scheduler_event,
 	enable_scheduler,
 	disable_scheduler,
@@ -1062,8 +1068,8 @@ commands = [
 	serve,
 	request,
 	doctor,
-	celery_doctor,
-	purge_all_tasks,
+	show_pending_jobs,
+	purge_jobs,
 	dump_queue_status,
 	console,
 	make_app,
@@ -1074,5 +1080,7 @@ commands = [
 	drop_site,
 	set_config,
 	get_version,
-	new_language
+	new_language,
+	start_worker,
+	start_scheduler,
 ]

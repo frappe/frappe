@@ -2,11 +2,12 @@ from __future__ import unicode_literals
 
 from unittest import TestCase
 from frappe.utils.scheduler import enqueue_applicable_events
+from frappe.utils.background_jobs import enqueue
 from frappe.utils import now_datetime
 from dateutil.relativedelta import relativedelta
 
 import frappe
-import json
+import json, time
 
 class TestScheduler(TestCase):
 
@@ -44,6 +45,20 @@ class TestScheduler(TestCase):
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
 
+	def test_job_timeout(self):
+		job = enqueue(test_timeout, timeout=10)
+		count = 5
+		while count > 0:
+			count -= 1
+			time.sleep(5)
+			if job.get_status()=='failed':
+				break
+
+		self.assertTrue(job.is_failed)
+
 	def tearDown(self):
 		frappe.flags.ran_schedulers = []
 
+def test_timeout():
+	'''This function needs to be pickleable'''
+	time.sleep(100)

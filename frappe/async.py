@@ -60,16 +60,6 @@ def ping():
 	sleep(1)
 	return "pong"
 
-@frappe.whitelist()
-def get_task_status(task_id):
-	from frappe.celery_app import get_celery
-	c = get_celery()
-	a = c.AsyncResult(task_id)
-	frappe.local.response['response'] = a.result
-	return {
-		"state": a.state,
-		"progress": 0
-	}
 
 def set_task_status(task_id, status, response=None):
 	if not response:
@@ -176,7 +166,6 @@ def get_redis_server():
 	if not redis_server:
 		from redis import Redis
 		redis_server = Redis.from_url(conf.get("redis_socketio")
-			or conf.get("async_redis_server")
 			or "redis://localhost:12311")
 	return redis_server
 
