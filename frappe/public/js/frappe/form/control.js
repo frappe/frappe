@@ -117,6 +117,12 @@ frappe.ui.form.Control = Class.extend({
 			this.set_input(value);
 		}
 	},
+	set_focus: function() {
+		if(this.$input) {
+			this.$input.get(0).focus();
+			return true;
+		}
+	}
 });
 
 frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
@@ -1464,6 +1470,13 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.editor.set_input(value);
 		this.md_editor.val(value);
 		this.last_value = value;
+	},
+	set_focus: function() {
+		var editor = this.$wrapper.find('.text-editor');
+		if(editor) {
+			editor.focus();
+			return true;
+		}
 	}
 });
 

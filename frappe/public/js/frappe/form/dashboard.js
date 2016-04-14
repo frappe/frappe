@@ -4,27 +4,30 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-dashboard shaded-section"></div>')
-		.prependTo(this.frm.layout.wrapper);
-		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
-			.css("padding", "15px 30px");
+		this.wrapper = $(frappe.render_template('form_dashboard',
+			{frm: this.frm})).prependTo(this.frm.layout.wrapper);
+
+		this.headline = this.wrapper.find('.form-headline');
+		this.heatmap_area = this.wrapper.find('.form-heatmap');
+		this.stats_area = this.wrapper.find('.form-stats');
+		this.links_area = this.wrapper.find('.form-links');
+		this.transactions_area = this.links_area.find('.transactions');
 
 	},
 	reset: function() {
-		this.wrapper.toggle(false);
-		this.body.empty();
-		this.badge_area = $('<div class="hidden" \
-			style="padding-left: 15px; padding-right: 15px;">\
-			<p class="text-muted small" style="margin-bottom: 0px;">'
-			+ __("Documents related to {0}", [this.frm.doc.name]) +'</p></div>').appendTo(this.body);
+		this.wrapper.addClass('hidden');
 		this.clear_headline();
+
+		// clear links
+		this.links_area.addClass('hidden');
+		this.transactions_area.empty();
+
+		// clear stats
+		this.stats_area.empty().addClass('hidden');
 	},
 	set_headline: function(html) {
-		if(!this.headline)
-			this.headline =
-				$('<h4 class="form-headline col-md-12 hidden"></h4>').prependTo(this.body);
 		this.headline.html(html).removeClass('hidden');
-		this.wrapper.toggle(true);
+		this.show();
 	},
 	clear_headline: function() {
 		if(this.headline) {
@@ -67,7 +70,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				title="%(title)s"></div>', opts)).appendTo(progress);
 		});
 
-		this.wrapper.toggle(true);
+		this.show();
 	},
 	make_progress_chart: function(title) {
 		var progress_area = this.body.find(".progress-area");
@@ -85,6 +88,8 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		return progress_chart;
 	},
+
+	//
 	show_links: function() {
 		this.reset();
 		if(this.frm.doc.__islocal)
@@ -96,7 +101,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 		this.render_links();
 		this.set_open_count();
-
+		this.show_heatmap();
 	},
 	filter_permissions: function() {
 		// filter out transactions for which the user
@@ -123,24 +128,24 @@ frappe.ui.form.Dashboard = Class.extend({
 		var me = this;
 		$(frappe.render_template('form_links',
 			{transactions: this.links.transactions}))
-			.appendTo(this.badge_area)
+			.appendTo(this.transactions_area)
 
 		// bind links
-		this.badge_area.find(".badge-link").on('click', function() {
-			me.open_document_list($(this).attr('data-doctype'));
+		this.transactions_area.find(".badge-link").on('click', function() {
+			me.open_document_list($(this).parent().attr('data-doctype'));
 		});
 
 		// bind open notifications
-		this.badge_area.find('.open-notification').on('click', function() {
-			me.open_document_list($(this).attr('data-doctype'), true);
+		this.transactions_area.find('.open-notification').on('click', function() {
+			me.open_document_list($(this).parent().attr('data-doctype'), true);
 		});
 
-		this.wrapper.toggle(true);
-		this.badge_area.removeClass('hidden');
+		this.show();
+		this.links_area.removeClass('hidden');
 	},
 	open_document_list: function(doctype, show_open) {
 		// show document list with filters
-		frappe.route_options = this.get_document_filter();
+		frappe.route_options = this.get_document_filter(doctype);
 		if(show_open) {
 			$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
 		}
@@ -168,25 +173,70 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		frappe.call({
 			type: "GET",
-			method: "frappe.desk.notifications.get_open_count",
+			method: frappe.model.get_server_module_name(this.frm.doctype) + ".get_dashboard_data",
 			args: {
-				doctype: this.frm.doc.doctype,
 				name: this.frm.doc.name,
 			},
 			callback: function(r) {
-				$.each(r.message, function(i, d) {
-					if(d.count) {
-						me.frm.dashboard.set_badge_count(d.name, (d.count > 5) ? '5+' : d.count)
-					}
-				})
+				me.heatmap.update(r.message.timeline_data);
+				$.each(r.message.count, function(i, d) {
+					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
+				});
+				me.frm.dashboard_data = r.message;
+				me.frm.trigger('dashboard_update');
 			}
 		});
 
 	},
-	set_badge_count: function(doctype, count) {
-		$(this.wrapper)
-			.find('.open-notification[data-doctype="'+doctype+'"]')
-			.removeClass('hidden')
-			.html(count);
+	set_badge_count: function(doctype, open_count, count) {
+		var $link = $(this.transactions_area)
+			.find('.document-link[data-doctype="'+doctype+'"]');
+
+		if(open_count) {
+			$link.find('.open-notification')
+				.removeClass('hidden')
+				.html((open_count > 5) ? '5+' : open_count);
+		}
+
+		if(count) {
+			$link.find('.count')
+				.html((count > 9) ? '9+' : count);
+		}
+
+	},
+
+	// heatmap
+	show_heatmap: function() {
+		if(!this.heatmap) {
+			this.heatmap = new CalHeatMap();
+			this.heatmap.init({
+				itemSelector: "#heatmap-" + this.frm.doctype,
+				domain: "month",
+				subDomain: "day",
+				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
+				cellSize: 9,
+				cellPadding: 2,
+				domainGutter: 2,
+				range: 12,
+				domainLabelFormat: function(date) {
+					return moment(date).format("MMM").toUpperCase();
+				},
+				displayLegend: false,
+				legend: [5, 10, 15, 20]
+				// subDomainTextFormat: "%d",
+			});
+
+			// center the heatmap
+			this.heatmap_area.removeClass('hidden').find('svg').css({'margin': 'auto'});
+		}
+	},
+
+	// stats
+	add_stats: function(html) {
+		this.stats_area.html(html).removeClass('hidden');
+		this.show();
+	},
+	show: function() {
+		this.wrapper.removeClass('hidden');
 	}
 });

@@ -28,8 +28,29 @@
   border-top: 1px solid #d1d8dd;
 }
 .form-dashboard {
-  display: none;
   border-bottom: 1px solid #EBEFF2;
+}
+.form-dashboard-section {
+  padding: 15px 30px;
+  margin: 0px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.form-dashboard-section:last-child {
+  border-bottom: none;
+}
+.form-heatmap {
+  padding-top: 30px;
+}
+.form-links .document-link {
+  margin-bottom: 10px;
+  height: 22px;
+  position: relative;
+}
+.form-links .count {
+  position: absolute;
+  left: -20px;
+  top: 3px;
+  display: inline-block;
 }
 .form-section {
   margin: 0px;

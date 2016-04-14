@@ -65,14 +65,11 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 	},
 	focus_on_first_input: function() {
-		var first = $(this.body).find(':input:first');
-		if(first.length && first.attr("data-fieldtype")!="Date") {
-			try {
-				first.get(0).focus();
-			} catch(e) {
-				console.log("Dialog: unable to focus on first input: " + e);
+		this.fields_list.every(function(f) {
+			if(!in_list(['Date', 'Datetime', 'Time'], f.df.fieldtype) && f.set_focus()) {
+				return false;
 			}
-		}
+		});
 	},
 	get_primary_btn: function() {
 		return this.$wrapper.find(".modal-header .btn-primary");

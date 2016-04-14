@@ -412,7 +412,6 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		if(m.blocked && !show_global) {
 			out = false;
 		}
-		console.log(module, out);
 		return out;
 	}
 

@@ -446,13 +446,16 @@ def clear_cache(user=None, doctype=None):
 
 	frappe.local.role_permissions = {}
 
-def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False, throw=False):
+def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
+	if not doctype and doc:
+		doctype = doc.doctype
+
 	import frappe.permissions
 	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
 	if throw and not out:
