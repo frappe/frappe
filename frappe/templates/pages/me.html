@@ -1,9 +1,14 @@
 {% extends "templates/web.html" %}
 
 {% block title %}{{ _("My Account") }}{% endblock %}
+{% block header %}{{ _("My Account") }}{% endblock %}
+
+{% block page_sidebar %}
+{% include "templates/pages/web_sidebar.html" %}
+{% endblock %}
 
 {% block page_content %}
-<!-- no-sidebar -->
+<div class="content-header">{{ _("My Account") }}</div>
 <!-- no-cache -->
 <div class="row">
 	<div class="col-sm-3">
@@ -19,7 +24,7 @@
 					{% endif -%}
 			</div>
 			<div>
-				<h4>{{ fullname }}</h4>
+				
 				<ul class="list-unstyled">
 					<li><a href="/update-password">
 						<h6 class="text-muted">{{ _("Reset Password") }}</h6>
@@ -27,60 +32,19 @@
 					<li><a href="/edit-profile">
 						<h6 class="text-muted">{{ _("Edit Profile") }}</h6>
 					</a></li>
-					<li><a href="/?cmd=web_logout">
-						<h6 class="text-muted">{{ _("Logout") }}</h6>
-					</a></li>
+					
 				</ul>
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-9">
-		<ul class="list-group" style="margin: 15px 0px;">
-			{% for item in my_account_list -%}
-			{% if item.count or (not item.reference_doctype) %}
-			<li class="list-group-item">
-				<a href="{{ item.route }}" class="no-decoration"
-					{% if item.target %}target="{{ item.target }}"{% endif %}>
-				<h4>{{ _(item.title) }}
-					{% if item.reference_doctype %}
-					<span class="badge">
-						{{ "20+" if item.count > 20 else item.count }}
-					</span>
-					{% endif %}
-				</h4>
-
-			</a></li>
-
-			{% endif %}
-			{%- endfor %}
-		</ul>
+	<div class="col-sm-4">
+	    <p> 
+			<span class="label">User Name</span>
+	        <span class="value"> {{ fullname }}</span>
+		</p>
+		
 	</div>
+	<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 </div>
 {% endblock %}
 
-{% block style %}
-<style>
-.your-account-info {
-	margin: 15px 0px;
-}
-
-.my-account-list {
-	margin: 0px 0px 15px;
-}
-
-.my-account-list > li > a {
-	margin: 15px 0px;
-	display: inline-block;
-}
-
-.user-options {
-	margin-top: 15px;
-}
-
-.user-options > li > a {
-	margin: 5px 0px;
-	display: inline-block;
-}
-
-</style>
-{% endblock %}

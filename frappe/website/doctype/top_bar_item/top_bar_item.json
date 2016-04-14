@@ -57,6 +57,7 @@
    "length": 0, 
    "no_column": 0, 
    "no_copy": 0, 
+   "options": "", 
    "permlevel": 0, 
    "print_hide": 0, 
    "print_hide_if_no_value": 0, 

@@ -4,36 +4,32 @@
 			<div class="row">				
 				<div class="col-sm-6 text-left">
 					{% if facebook_share or google_plus_one or twitter_share or linked_in_share %}
-						<ul class="list-unstyled social-icons" style="float:left; width:15%">
-							<span><u>Share</u></span>
+						<ul class="list-unstyled social-icons" style="float:left;">
+							<span class="footer-group-label  text-extra-muted">Share</span>
 							{% if google_plus_one %}
-								<li><a href="https://plus.google.com/share?url={{ url }}"
-								target="_blank"><i class="icon-google-plus icon-3x"></i></a></li>
+								<li class="small"><a href="https://plus.google.com/share?url={{ url }}"
+								target="_blank">Google +</a></li>
 							{% endif %}
 							{% if twitter_share %}
-								<li><a href="https://twitter.com/intent/tweet?url={{ url }}&text={{ encoded_title }}"
-								target="_blank" ><i class="icon-twitter icon-3x"></i></a></li>
+								<li  class="small"><a href="https://twitter.com/intent/tweet?url={{ url }}&text={{ encoded_title }}"
+								target="_blank" >Twitter</a></li>
 							{% endif %}
 							{% if facebook_share %}
-								<li><a href="https://www.facebook.com/sharer.php?u={{ url }}&t={{ encoded_title }}&via={{ 											twitter_share_via }}"
-								target="_blank"><i class="icon-facebook icon-3x"></i></a></li>
+								<li  class="small"><a href="https://www.facebook.com/sharer.php?u={{ url }}&t={{ encoded_title }}&via={{ 											twitter_share_via }}"
+								target="_blank">Facebook</a></li>
 							{% endif %}
 							{% if linked_in_share %}
-								<li><a href="http://www.linkedin.com/shareArticle?mini=true&url={{ url }}&title={{ encoded_title }}"
-								target="_blank"><i class="icon-linkedin icon-3x"></i></a></li>
+								<li class="small"> <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ url }}&title={{ encoded_title }}"
+								target="_blank">Linkedin</a></li>
 							{% endif %}
 						</ul>
 					{% endif %}
-					<ul class="list-unstyled" style="float:left; width:15%">
-						{% for item in footer_items %}
-							{% if not item.url %}
-								<span><u> {{ item.label }} </u></span>
-							{% else %}
-							<li style="text-center"><a href="{{ item.url }}" {{ item.target }}
-									data-label="{{ item.label }}" class="small">{{ item.label }}</a></li>
-							{% endif %}
-						{% endfor %}
-					</ul>
+					
+					{% if footer_items -%}
+						<ul class="list-unstyled navbar-nav">
+							{% include "templates/includes/footer/footer_items.html" %}	
+						</ul>
+					{% endif %}
 				</div>
 
 				<div class="col-sm-6 text-right">

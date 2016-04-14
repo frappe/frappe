@@ -35,7 +35,9 @@
 
 .form-signin {
   max-width: 360px;
-  padding: 30px;
+  padding-right: 30px;
+  padding-left: 30px;
+  padding-top: 10px;
   margin: 0 auto;
   border-radius: 5px;
   background-color: #fff;
@@ -95,7 +97,8 @@ h5:before {
 	font-size: 36px;
     position: relative;
     text-align: center;
-	margin:20px;
+	margin-bottom:20px;
+
 }
 
 p{
@@ -104,4 +107,9 @@ p{
 .btn-login, .btn-signup, .btn-forgot {
 	background: #78D6FF;
 	color: white;
+}
+
+.content-block {
+	padding-top:10px;
+	padding-bottom:30px;
 }

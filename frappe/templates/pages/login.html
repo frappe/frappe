@@ -26,22 +26,28 @@
 		</div>
 		
 		<button class="btn btn-lg btn-default btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
-		
-		<h5><span>{{ _("Or login with") }}</span></h5>
+
+		{# {%- if social_login -%} #}
+			<h5><span>{{ _("Or login with") }}</span></h5>
 
 
-		<p class="text-center" style="margin-top: 15px">
+			<p class="text-center" style="margin-top: 15px">
+				{#{%- if facebook_login is defined %}#}
+				<a href="{{ facebook_login }}" class="no-decoration btn-social btn-facebook">
+					<i class="icon-facebook-sign icon-2x"></i></a>
+				{#{%- endif -%}
 
-			<a href="{{ facebook_login }}" class="no-decoration btn-social btn-facebook">
-				<i class="icon-facebook-sign icon-2x"></i></a>
+				{%- if google_login is defined %}#}
+				<a href="{{ google_login }}" class="no-decoration btn-social btn-google">
+					<i class="icon-google-plus-sign icon-2x"></i></a>
+				{#{%- endif -%}
 
-			<a href="{{ google_login }}" class="no-decoration btn-social btn-google">
-				<i class="icon-google-plus-sign icon-2x"></i></a>
-
-			<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
-				<i class="icon-github-sign icon-2x"></i></a>
-
-		</p>
+				{%- if github_login is defined %}#}
+				<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
+					<i class="icon-github-sign icon-2x"></i></a>
+				{#{%- endif -%}#}
+			</p>
+		{# {%- endif -%} #}
 
 		<div style="margin-top: 25px">
 		{%- if not disable_signup -%}
