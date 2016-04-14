@@ -7,6 +7,11 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		var doc = frappe.model.get_new_doc(doctype);
 
+		if(frappe.get_meta(doctype).quick_entry != 1) {
+			frappe.set_route('Form', doctype, doc.name);
+			return;
+		}
+
 		if(mandatory.length > 7) {
 			// too many fields, show form
 			frappe.set_route('Form', doctype, doc.name);

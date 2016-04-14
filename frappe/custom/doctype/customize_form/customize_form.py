@@ -22,6 +22,7 @@ doctype_properties = {
 	'default_print_format': 'Data',
 	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
+	'quick_entry': 'Check',
 	'max_attachments': 'Int'
 }
 
