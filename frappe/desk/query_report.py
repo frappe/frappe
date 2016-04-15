@@ -112,6 +112,8 @@ def add_total_row(result, columns):
 				col = col.split(":")
 				if len(col) > 1:
 					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype = fieldtype.split("/")[0]
 			else:
 				fieldtype = col.get("fieldtype")
 
