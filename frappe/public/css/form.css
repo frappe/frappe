@@ -41,6 +41,10 @@
 .form-heatmap {
   padding-top: 30px;
 }
+.progress-area {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
 .form-links .document-link {
   margin-bottom: 10px;
   height: 22px;

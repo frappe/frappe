@@ -8,6 +8,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			{frm: this.frm})).prependTo(this.frm.layout.wrapper);
 
 		this.headline = this.wrapper.find('.form-headline');
+		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
 		this.stats_area = this.wrapper.find('.form-stats');
 		this.links_area = this.wrapper.find('.form-links');
@@ -17,6 +18,9 @@ frappe.ui.form.Dashboard = Class.extend({
 	reset: function() {
 		this.wrapper.addClass('hidden');
 		this.clear_headline();
+
+		// clear progress
+		this.progress_area.empty().addClass('hidden');
 
 		// clear links
 		this.links_area.addClass('hidden');
@@ -46,46 +50,42 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 
-	add_progress: function(title, percent) {
+	add_progress: function(title, percent, message) {
 		var progress_chart = this.make_progress_chart(title);
 
 		if(!$.isArray(percent)) {
-			var width = cint(percent) < 1 ? 1 : percent;
-			var progress_class = "";
-			if(width < 10)
-				progress_class = "progress-bar-danger";
-			if(width > 99.9)
-				progress_class = "progress-bar-success";
-
-			percent = [{
-				title: title,
-				width: width,
-				progress_class: progress_class
-			}];
+			percent = this.format_percent(title, percent);
 		}
 
 		var progress = $('<div class="progress"></div>').appendTo(progress_chart);
 		$.each(percent, function(i, opts) {
-			$(repl('<div class="progress-bar %(progress_class)s" style="width: %(width)s%" \
+			$(repl('<div class="progress-bar %(progress_class)s" style="width: %(width)s" \
 				title="%(title)s"></div>', opts)).appendTo(progress);
 		});
 
+		if(message) {
+			$('<p class="text-muted small">' + message + '</p>').appendTo(this.progress_area);
+		}
+
 		this.show();
 	},
+	format_percent: function(title, percent) {
+		var width = cint(percent) < 1 ? 1 : cint(percent);
+		var progress_class = "";
+		if(width < 10)
+			progress_class = "progress-bar-danger";
+		if(width > 99.9)
+			progress_class = "progress-bar-success";
+
+		return [{
+			title: title,
+			width: width + '%',
+			progress_class: progress_class
+		}];
+	},
 	make_progress_chart: function(title) {
-		var progress_area = this.body.find(".progress-area");
-		if(!progress_area.length) {
-			progress_area = $('<div class="progress-area" style="margin-top: 10px">').appendTo(this.body);
-		}
 		var progress_chart = $('<div class="progress-chart" title="'+(title || '')+'"></div>')
-			.appendTo(progress_area);
-
-		var n_charts = progress_area.find(".progress-chart").length,
-			cols = Math.floor(12 / n_charts);
-
-		progress_area.find(".progress-chart")
-			.removeClass().addClass("progress-chart col-md-" + cols);
-
+			.appendTo(this.progress_area.removeClass('hidden'));
 		return progress_chart;
 	},
 
