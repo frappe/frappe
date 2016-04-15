@@ -13,16 +13,7 @@
 <div class="row">
 	<div class="col-sm-3">
 		<div class="your-account-info">
-			<div class="avatar avatar-large">
-				<a href="/me">
-					{% if user_image -%}
-						<img class="user-image" src="{{ user_image }}" /></a>
-					{% else %}
-						{% block script %}
-							<script> $('.avatar-large').append($(frappe.avatar()).find('.standard-image')) </script>
-						{% endblock %}
-					{% endif -%}
-			</div>
+			<span class="user-image-myaccount"></span>			
 			<div>
 				
 				<ul class="list-unstyled">
