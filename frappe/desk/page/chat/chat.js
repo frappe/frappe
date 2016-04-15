@@ -106,7 +106,7 @@ frappe.Chat = Class.extend({
 			// on touchscreen devices, scroll to top
 			// so that static navbar and page head don't overlap the textarea
 			if (frappe.dom.is_touchscreen()) {
-				frappe.ui.scroll($(this).parents(".message-box"));
+				frappe.utils.scroll_to($(this).parents(".message-box"));
 			}
 		});
 
@@ -150,7 +150,7 @@ frappe.Chat = Class.extend({
 
 		this.list.run();
 
-		scroll(0, 0);
+		frappe.utils.scroll_to();
 	},
 
 	make_message_list: function(contact) {

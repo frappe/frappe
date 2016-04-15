@@ -128,7 +128,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			this.last_display_status = this.display_status;
 			this.last_docname = this.frm.docname;
-			scroll(0, _scroll_y);
+			frappe.utils.scroll_to(_scroll_y);
 		}
 	},
 	refresh_row: function(docname) {
@@ -573,7 +573,7 @@ frappe.ui.form.GridRow = Class.extend({
 		frappe.dom.freeze("", "dark");
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
-		frappe.ui.scroll(this.wrapper, true, 15);
+		frappe.utils.scroll_to(this.wrapper, true, 15);
 		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
 		this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
 		this.set_focus();

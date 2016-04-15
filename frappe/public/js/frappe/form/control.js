@@ -323,7 +323,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			var me = this;
 			this.$input && this.$input.on("focusout", function() {
 				if (frappe.dom.is_touchscreen()) {
-					frappe.ui.scroll(me.$wrapper);
+					frappe.utils.scroll_to(me.$wrapper);
 				}
 			});
 		}

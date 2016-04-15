@@ -72,6 +72,31 @@ frappe.utils = {
 				</a></p>');
 		return content.html();
 	},
+	scroll_to: function(element, animate, additional_offset) {
+		var y = 0;
+		if(element && typeof element==='number') {
+			y = element;
+		} else if(element) {
+			var header_offset = $(".navbar").height() + $(".page-head").height();
+			var y = $(element).offset().top - header_offset - cint(additional_offset);
+		}
+
+		if(y < 0) {
+			y = 0;
+		}
+
+		// already there
+		if(y==$('body').scrollTop()) {
+			return;
+		}
+
+		if (animate!==false) {
+			$("body").animate({ scrollTop: y });
+		} else {
+			$(window).scrollTop(y);
+		}
+
+	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
 		if(typeof filters=='string') {
