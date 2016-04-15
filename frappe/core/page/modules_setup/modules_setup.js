@@ -37,8 +37,8 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	// save action
 	page.set_primary_action('Save', function() {
 		var hidden_list = [];
-		page.content.find('input[type="checkbox"]').each(function() {
-			if(!$(this).is(':checked')) {
+		page.wrapper.find('input[type="checkbox"]').each(function() {
+			if(!$(this).is(":checked")) {
 				hidden_list.push($(this).attr('data-module'));
 			}
 		});

@@ -298,21 +298,29 @@ def get_field_currency(df, doc=None):
 	if not getattr(frappe.local, "field_currency", None):
 		frappe.local.field_currency = frappe._dict()
 
-	if not frappe.local.field_currency.get((doc.doctype, doc.parent or doc.name), {}).get(df.fieldname):
+	if not (frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or
+		(doc.parent and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))):
+
+		ref_docname = doc.parent or doc.name
+
 		if ":" in cstr(df.get("options")):
 			split_opts = df.get("options").split(":")
 			if len(split_opts)==3:
 				currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
 		else:
 			currency = doc.get(df.get("options"))
-			if not currency and doc.parent:
-				currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+			if doc.parent:
+				if currency:
+					ref_docname = doc.name
+				else:
+					currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
 
 		if currency:
-			frappe.local.field_currency.setdefault((doc.doctype, doc.parent or doc.name), frappe._dict())\
+			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict())\
 				.setdefault(df.fieldname, currency)
 
-	return frappe.local.field_currency.get((doc.doctype, doc.parent or doc.name), {}).get(df.fieldname)
+	return frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or \
+		(doc.parent and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname))
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
