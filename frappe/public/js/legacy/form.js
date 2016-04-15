@@ -443,8 +443,12 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.show_print_first && this.doc.docstatus===1) {
 				// show print view
 				this.print_doc();
-			} else if(this.hide_first && !this.doc.__unsaved) {
-				this.set_hidden(true);
+			} else {
+				if(this.hide_first && !this.doc.__unsaved && !this.doc.__islocal) {
+					this.set_hidden(true);
+				} else {
+					this.set_hidden(false);
+				}
 			}
 		}
 

@@ -42,7 +42,7 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	return (not isinstance(d, (list, tuple))) and [d] or d
+	return filter(None, (not isinstance(d, (list, tuple))) and [d] or d)
 
 def is_a_user_permission_key(key):
 	return ":" not in key and key != frappe.scrub(key)
