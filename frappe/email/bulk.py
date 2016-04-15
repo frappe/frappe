@@ -101,19 +101,18 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, bulk_priority)
+			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, bulk_priority, email_account=email_account)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
 	cc=(), message_id=None, in_reply_to=None, send_after=None, bulk_priority=1, email_account=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
-	e.sender = sender
 	e.recipient = email
 	e.priority = bulk_priority
 
 	try:
-		mail = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
+		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
 			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
 
 		if message_id:
@@ -123,6 +122,7 @@ def add(email, sender, subject, formatted, text_content=None,
 			mail.set_in_reply_to(in_reply_to)
 
 		e.message = cstr(mail.as_string())
+		e.sender = mail.sender
 
 	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
@@ -264,7 +264,6 @@ def flush(from_test=False):
 		try:
 			if not from_test:
 				smtpserver.setup_email_account(email.reference_doctype)
-				smtpserver.replace_sender_in_email(email)
 				smtpserver.sess.sendmail(email["sender"], email["recipient"], encode(email["message"]))
 
 			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
