@@ -1,14 +1,14 @@
 {% extends "templates/web.html" %}
 
 {% block title %}{{ _("My Account") }}{% endblock %}
-{% block header %}{{ _("My Account") }}{% endblock %}
+{% block header %}<h1>{{ _("My Account") }}</h1>{% endblock %}
 
 {% block page_sidebar %}
 {% include "templates/pages/web_sidebar.html" %}
 {% endblock %}
 
 {% block page_content %}
-<div class="content-header">{{ _("My Account") }}</div>
+
 <!-- no-cache -->
 <div class="row">
 	<div class="col-sm-3">
