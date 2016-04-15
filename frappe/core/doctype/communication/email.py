@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails
+from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails, get_fullname
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
@@ -81,6 +81,8 @@ def validate_email(doc):
 	# validate CC
 	for email in split_emails(doc.cc):
 		validate_email_add(email, throw=True)
+
+	# validate sender
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
@@ -189,12 +191,15 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 
 	set_incoming_outgoing_accounts(doc)
 
-	if not doc.sender or cint(doc.outgoing_email_account.always_use_account_email_id_as_sender):
-		sender_name = (frappe.session.data.full_name
-			or doc.outgoing_email_account.name
-			or _("Notification"))
-		sender_email_id = doc.outgoing_email_account.email_id
-		doc.sender = formataddr([sender_name, sender_email_id])
+	if not doc.sender:
+		doc.sender = doc.outgoing_email_account.email_id
+
+	if not doc.sender_full_name:
+		doc.sender_full_name = doc.outgoing_email_account.name or _("Notification")
+
+	if doc.sender:
+		# combine for sending to get the format 'Jane <jane@example.com>'
+		doc.sender = formataddr([doc.sender_full_name, doc.sender])
 
 	doc.attachments = []
 

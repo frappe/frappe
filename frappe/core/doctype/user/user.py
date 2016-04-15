@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, get_gravatar, format_datetime, now_datetime
+from frappe.utils import cint, get_gravatar, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
@@ -196,7 +196,7 @@ class User(Document):
 
 		args.update(add_args)
 
-		sender = frappe.session.user not in STANDARD_USERS and frappe.session.user or None
+		sender = frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			message=frappe.get_template(template).render(args), as_bulk=self.flags.delay_emails)

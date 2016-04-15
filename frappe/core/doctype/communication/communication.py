@@ -9,6 +9,7 @@ from frappe.utils import validate_email_add, get_fullname, strip_html
 from frappe.model.db_schema import add_column
 from frappe.core.doctype.communication.comment import validate_comment, notify_mentions, update_comment_in_doc
 from frappe.core.doctype.communication.email import validate_email, notify, _notify, update_parent_status
+from email.utils import parseaddr
 
 exclude_from_linked_with = True
 
@@ -104,7 +105,16 @@ class Communication(Document):
 				self.sender = None
 			else:
 				validate_email_add(self.sender, throw=True)
-				self.sender_full_name = get_fullname(self.sender)
+
+				sender_name, sender_email = parseaddr(self.sender)
+
+				if not sender_name:
+					sender_name = get_fullname(sender_email)
+					if sender_name == sender_email:
+						sender_name = None
+
+				self.sender = sender_email
+				self.sender_full_name = sender_name or get_fullname(frappe.session.user)
 
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
