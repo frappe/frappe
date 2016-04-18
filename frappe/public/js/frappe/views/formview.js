@@ -26,11 +26,15 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 			});
 
 			frappe.realtime.on("new_communication", function(data) {
-				frappe.model.new_communication(data);
+				frappe.timeline.new_communication(data);
 			});
 
 			frappe.realtime.on("delete_communication", function(data) {
-				frappe.model.delete_communication(data);
+				frappe.timeline.delete_communication(data);
+			});
+
+			frappe.realtime.on('update_communication', function(data) {
+				frappe.timeline.update_communication(data);
 			});
 
 			frappe.realtime.on("doc_viewers", function(data) {
