@@ -991,9 +991,23 @@ def drop_site(site, root_login='root', root_password=None):
 	from frappe.model.db_schema import DbManager
 	from frappe.utils.backups import scheduled_backup
 
+
 	frappe.init(site=site)
 	frappe.connect()
 	scheduled_backup(ignore_files=False, force=True)
+
+	# Archived site path must be outside the bench path, since with CENTRAL v2 after migrations path
+	# to bench will change.
+	# We store the username of frappe_user in common_site_config.json.Before proceeding to drop the
+	# site check whether we are trying to execute command as frappe_user, if not then prevent from
+	# dropping the site
+	if os.getlogin() != frappe.conf.get('frappe_user'):
+		print 'Site can be dropped only by user "' + frappe.conf.get('frappe_user') + '"'
+		return
+
+	# frappe.get_site_path(*joins), will return the current site.But we are interested in its parent
+	# directory which path to common_site_config.json
+	sites_dir, site_name = os.path.split(os.path.abspath(frappe.get_site_path()))
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = make_connection(root_login, root_password)
@@ -1001,10 +1015,40 @@ def drop_site(site, root_login='root', root_password=None):
 	dbman.delete_user(db_name, get_current_host())
 	dbman.drop_database(db_name)
 
-	archived_sites_dir = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
-	if not os.path.exists(archived_sites_dir):
-		os.mkdir(archived_sites_dir)
-	move(archived_sites_dir, site)
+	# Move the site folder to archived_sites_path which will under user's home directory and write
+	# the path in common_site_config.json
+	home_dir = os.path.expanduser('~')
+
+	archived_sites_path = os.path.join(home_dir, 'archived_sites')
+	if not os.path.exists(archived_sites_path):
+		os.mkdir(archived_sites_path)
+
+	move(archived_sites_path, site)
+
+	# Write the archived_sites_path to common_site_config.json.
+	common_site_config_path = os.path.join(sites_dir, 'common_site_config.json')
+
+	if os.path.exists(common_site_config_path):
+		with open(common_site_config_path, 'r') as f:
+			config = json.load(f)
+
+		# Do not update, if we have already added archived_sites_path to common_site_config.json
+		if not hasattr(config, 'archived_sites_path'):
+			config.update(archived_sites_path=archived_sites_path)
+
+		# If archived sites not present
+		archived_sites = config.get('archived_sites')
+		if not archived_sites:
+			archived_sites = []
+
+		# Add site to the list of archived sites, if not present in the list
+		if site not in archived_sites:
+			archived_sites.append(site)
+
+		config.update(archived_sites=archived_sites)
+
+		with open(common_site_config_path, 'w') as f:
+			json.dump(config, f, indent=1, sort_keys=True)
 
 @click.command('version')
 def get_version():
