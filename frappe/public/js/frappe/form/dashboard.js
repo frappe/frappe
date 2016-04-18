@@ -90,7 +90,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	//
-	show_links: function() {
+	show_dashboard: function() {
 		this.reset();
 		if(this.frm.doc.__islocal)
 			return;

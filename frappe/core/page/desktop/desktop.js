@@ -129,10 +129,6 @@ $.extend(frappe.desktop, {
 	},
 
 	show_pending_notifications: function() {
-		if (!frappe.boot.notification_info.module_doctypes) {
-			return;
-		}
-
 		var modules_list = frappe.get_desktop_icons();
 		for (var i=0, l=modules_list.length; i < l; i++) {
 			var module = modules_list[i];

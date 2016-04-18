@@ -1,6 +1,6 @@
 <div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}">
 	{% if (data.user_content) { %}
-	<span class="pull-left avatar avatar-medium">
+	<span class="pull-left avatar avatar-medium" style="margin-top: 1px">
 		{% if(data.user_info.image) { %}
 		<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
 		{% } else { %}

@@ -172,7 +172,7 @@ frappe.ui.form.Timeline = Class.extend({
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		if(c.communication_medium==="Email") {
+		if(c.sender) {
 			c.user_info = frappe.user_info(c.sender);
 		} else {
 			c.user_info = frappe.user_info(c.owner);

@@ -447,7 +447,9 @@ _f.Frm.prototype.refresh = function(docname) {
 				if(this.hide_first && !this.doc.__unsaved && !this.doc.__islocal) {
 					this.set_hidden(true);
 				} else {
-					this.set_hidden(false);
+					if(this.hidden) {
+						this.set_hidden(false);
+					}
 				}
 			}
 		}
@@ -888,7 +890,7 @@ _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.page.inner_toolbar.empty().addClass("hide");
+	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
 }
 
@@ -943,7 +945,7 @@ _f.Frm.prototype.scroll_to_element = function() {
 
 		selector = $(selector.join(" "));
 		if (selector.length) {
-			frappe.utils.scroll_to(selector, true, 30);
+			frappe.utils.scroll_to(selector);
 		}
 	} else {
 		frappe.utils.scroll_to(0);

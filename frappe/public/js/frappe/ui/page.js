@@ -259,6 +259,10 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
+	clear_inner_toolbar: function() {
+		this.inner_toolbar.empty().addClass("hide");
+	},
+
 	//-- Sidebar --//
 
 	add_sidebar_item: function(label, action, insert_after, prepend) {

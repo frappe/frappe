@@ -41,6 +41,48 @@
 .form-heatmap {
   padding-top: 30px;
 }
+.inline-graph .inline-graph-half {
+  width: 48%;
+  display: inline-block;
+  position: relative;
+  height: 30px;
+}
+.inline-graph .inline-graph-half .inline-graph-count {
+  font-size: 10px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  padding: 0px 5px;
+  text-align: left;
+}
+.inline-graph .inline-graph-half .inline-graph-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
+}
+.inline-graph .inline-graph-half .inline-graph-bar-inner {
+  display: block;
+  float: left;
+  background-color: #d1d8dd;
+  height: 6px;
+  border-radius: 0px 3px 3px 0px;
+}
+.inline-graph .inline-graph-half .inline-graph-bar-inner.dark {
+  background-color: #36414C;
+}
+.inline-graph .inline-graph-half:first-child {
+  border-right: 1px solid #d1d8dd;
+  margin-right: -3px;
+}
+.inline-graph .inline-graph-half:first-child .inline-graph-count {
+  text-align: right;
+}
+.inline-graph .inline-graph-half:first-child .inline-graph-bar-inner {
+  float: right;
+  border-radius: 3px 0px 0px 3px;
+}
 .progress-area {
   padding-top: 15px;
   padding-bottom: 15px;
@@ -285,6 +327,7 @@
 }
 .control-label {
   margin-bottom: 5px;
+  font-weight: normal;
 }
 .like-disabled-input {
   margin-bottom: 7px;

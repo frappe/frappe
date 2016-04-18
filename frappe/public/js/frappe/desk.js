@@ -358,7 +358,7 @@ frappe.get_module = function(m, default_module) {
 	if (!module.link) module.link = "";
 
 	if (!module._id) {
-		module._id = module.link.toLowerCase().replace("/", "-");
+		module._id = module.link.toLowerCase().replace("/", "-").replace(' ', '-');
 	}
 
 

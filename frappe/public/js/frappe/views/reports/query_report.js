@@ -113,28 +113,18 @@ frappe.views.QueryReport = Class.extend({
 									report_name: me.report_name
 								},
 								callback: function(r) {
-									me.page.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
-									me.setup_filters();
 
 									var report_settings = frappe.query_reports[me.report_name];
 									me.html_format = r.message.html_format;
 									report_settings["html_format"] = r.message.html_format;
 
-									$.when(function() {
-										if (report_settings.onload) {
-											return report_settings.onload(me);
-										}
-
-									}()).then(function() {
-										me.refresh();
-									})
+									me.setup_report();
 
 								}
 							});
 						} else {
-							me.setup_filters();
-							me.refresh();
+							me.setup_report();
 						}
 					});
 				});
@@ -143,6 +133,24 @@ frappe.views.QueryReport = Class.extend({
 			var msg = __("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
 		}
+	},
+	setup_report: function() {
+		var me = this;
+		this.page.set_title(__(this.report_name));
+		this.page.clear_inner_toolbar();
+		this.setup_filters();
+
+		var report_settings = frappe.query_reports[this.report_name];
+
+		$.when(function() {
+			if (report_settings.onload) {
+				return report_settings.onload(me);
+			}
+
+		}()).then(function() {
+			me.refresh();
+		})
+
 	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
@@ -392,7 +400,7 @@ frappe.views.QueryReport = Class.extend({
 						fieldtype: "Data"
 					};
 				}
-				
+
 				if (!df.fieldtype) df.fieldtype = "Data";
 				if (!cint(df.width)) df.width = 80;
 

@@ -266,24 +266,36 @@ class Document(BaseDocument):
 		return self
 
 	def update_children(self):
-		# children
-		child_map = {}
-		ignore_children_type = self.flags.ignore_children_type or []
-
-		for d in self.get_all_children():
-			d.db_update()
-			child_map.setdefault(d.doctype, []).append(d.name)
-
+		'''update child tables'''
 		for df in self.meta.get_table_fields():
-			if df.options not in ignore_children_type:
-				cnames = child_map.get(df.options) or []
-				if cnames:
-					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
-						name not in (%s)""" % (df.options, '%s', '%s', ','.join(['%s'] * len(cnames))),
-							tuple([self.name, self.doctype] + cnames))
-				else:
-					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
-						% (df.options, '%s', '%s'), (self.name, self.doctype))
+			self.update_child_table(df.fieldname, df)
+
+	def update_child_table(self, fieldname, df=None):
+		'''sync child table for given fieldname'''
+		rows = []
+		if not df:
+			df = self.meta.get_field(fieldname)
+
+		for d in self.get(df.fieldname):
+			d.db_update()
+			rows.append(d.name)
+
+		if df.options in (self.flags.ignore_children_type or []):
+			# do not delete rows for this because of flags
+			# hack for docperm :(
+			return
+
+		if rows:
+			# delete rows that do not match the ones in the
+			# document
+			frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+				name not in (%s)""" % (df.options, '%s', '%s', ','.join(['%s'] * len(rows))),
+					tuple([self.name, self.doctype] + rows))
+		else:
+			# no rows found, delete all rows
+			frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+				% (df.options, '%s', '%s'), (self.name, self.doctype))
+
 
 	def set_new_name(self):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
