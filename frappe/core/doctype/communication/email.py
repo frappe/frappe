@@ -131,7 +131,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		attachments=doc.attachments,
 		message_id=doc.name,
 		unsubscribe_message=_("Leave this conversation"),
-		bulk=True
+		bulk=True,
+		communication=doc.name
 	)
 
 def update_parent_status(doc):
