@@ -407,12 +407,15 @@ frappe.ui.Page = Class.extend({
 		this.current_view_name = name;
 
 		this.views[name].toggle(true);
+
+		this.wrapper.trigger('view-change');
 	},
 	add_document_flow: function(frm){
 		var me = this;
 		$('.module-flow-section').empty();
 		if (frm.doctype) {
-			var module = frappe.get_meta(frm.doctype).module;
+			var module = frappe.get_meta(frm.doctype).module
+			console.log(module)
 			var module_flow = frappe.module_flow[module][frm.doctype];
 			if (module_flow){
 				if (!$('.doc-flow').length) {
@@ -460,6 +463,4 @@ frappe.ui.scroll = function(element, animate, additional_offset) {
 	} else {
 		$(window).scrollTop(top);
 	}
-		this.wrapper.trigger('view-change');
-	}
-});
+}
