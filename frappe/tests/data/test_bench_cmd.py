@@ -45,10 +45,11 @@ class TestBenchCommands(unittest.TestCase):
 		# Archived sites path and archived sites list in common_site_config.json
 		common_site_config_path = os.path.join(base_site_path, 'common_site_config.json')
 
+		print os.listdir(os.path.join(self.bench_path, 'sites')), os.listdir(self.bench_path)
+
 		with open(common_site_config_path, mode='r') as f:
 			config = json.load(f)
 
-		print config
 		# self.assertTrue(hasattr(config, 'archived_sites_path'))
 		# self.assertEqual(config.get('archived_sites_path'), os.path.join(self.home_dir, 'archived_sites'))
 		#
