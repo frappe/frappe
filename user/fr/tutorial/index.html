@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title> Tutoriel Frappe </title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		
+<style>
+
+</style>
+</head>
+<body data-path="user/fr/tutorial">
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                        <div data-html-block="hero"></div>
+                        <div class="container" data-html-block="content">
+                        
+<div class="page-container" id="page-tutorial-1" data-path="user/fr/tutorial"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+				<div class=" col-sm-12 ">
+					
+	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+	                    
+    
+    
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/fr">
+		Develop Apps with Frappe</a>
+	</li>
+	
+</ul>
+
+    
+
+	                </div>
+					
+	        		<div class="page-header-block" data-html-block="header">
+	                    <h1>Tutoriel Frappe</h1>
+	        		</div>
+                </div>
+				
+            </div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="tutorial-1" style="text-align: Left">
+	<p>Dans ce guide nous allons vous montrer comment créer une application de A à Z en utilisant <strong>Frappe</strong>. Avec un 
+exemple de gestion d'une librairie, nous allons aborder les sujets suivants:</p>
+
+<ol>
+<li>Installation</li>
+<li>Créer une nouvelle application</li>
+<li>Créer des modèles</li>
+<li>Créer des utilisateurs et des enregristrements</li>
+<li>Créer des contrôleurs</li>
+<li>Créer des vues web</li>
+<li>Configurer des Hooks et des tâches</li>
+</ol>
+
+<h2>A qui s'adresse ce tutoriel ?</h2>
+
+<p>Ce guide est à destination des développeurs familiers avec la création d'applications web. Le framework Frappe est développé
+avec Python, utilise le système de base de données MariaDB et database and HTML/CSS/Javascript pour le rendu des pages. 
+Il est donc necessaire d'être familier avec ces technologies. Si vous n'avez jamais utilisé Python auparavant, vous devriez
+suivre un tutoriel rapide avant de suivre ce guide.</p>
+
+<p>Frappe utilise le système de gestion de version git sur Github. Il est donc imporant que vous connaissiez les basiques de
+l'utilisation de git et que vous ayez un compte sur Github pour gérer vos applications.</p>
+
+<h2>Exemple</h2>
+
+<p>Dans ce guide, nous allons développer une simple application de <strong>gestion de librairie</strong>. Dans cette applications nous aurons
+les modèles suivants:</p>
+
+<ol>
+<li>Article (un livre ou tout autre produit qui peut être emprunté)</li>
+<li>Library Member (membre de la librairie)</li>
+<li>Library Transaction (prêt ou retour d'un article)</li>
+<li>Library Membership (Periode pendant laquelle un membre peut emprunter)</li>
+<li>Library Management Setting (configuration générale)</li>
+</ol>
+
+<p>L'interace utilisateur (UI) pour le libraire sera <strong>Frappe Desk</strong>, un système de rendu d'interface où les formulaires sont
+automatiquement générés depuis les modèles en appliquant rôles et permissions.</p>
+
+<p>Nous allons aussi créer des vues pour la lirairie afin que les utilisateurs puissent parcourir les articles depuis un site
+internet.</p>
+
+<p>
+
+
+    <ol>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/before.html">Avant de commencer</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/app.html">Qu'est ce qu'une application ?</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/bench.html">Installer le bench de Frappe</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/new-app.html">Créer une nouvelle application</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/setting-up-the-site.html">Configurer le site</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/start.html">Demarrer avec Bench</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/models.html">Définir des modèles</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/roles.html">Créer des rôles</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/doctypes.html">DocType</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/naming-and-linking.html">Nommage et relation entre DocType</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/doctype-directory-structure.html">Structure du repertoire d'un DocType</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/users-and-records.html">Créer des utilisateurs et des enregistrements</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/form-client-scripting.html">Form Client Scripting</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/controllers.html">Les controleurs</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/reports.html">Rapports</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/web-views.html">es vues web</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/single-doctypes.html">Les DocTypes de type Single</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/task-runner.html">Les tâches planifiées</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/fr/tutorial/conclusion.html">Conclusion</a>
+            
+        </li>
+    
+    </ol>
+</p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+
+						
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/index.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                        </div>
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.io/apps">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+    <script></script>
+
+
+	<!-- csrf_token --></body>
+</html>

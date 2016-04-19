@@ -103,9 +103,7 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.email.smtp" styl
-
-    e="text-align: Left">
+	<article class="web-page-content" id="frappe.email.smtp" style="text-align: Left">
 	<!-- title: frappe.email.smtp --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -137,20 +135,6 @@
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>__init__</b>
         <i class="text-muted">(self, login=None, password=None, server=None, port=None, use_ssl=None, append_to=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="replace_sender_in_email" href="#replace_sender_in_email" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>replace_sender_in_email</b>
-        <i class="text-muted">(self, email)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -202,7 +186,17 @@
 		frappe.email.smtp.<b>get_default_outgoing_email_account</b>
         <i class="text-muted">(raise_exception_not_set=True)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>conf should be like:
+{
+ "mail<em>server": "smtp.example.com",
+ "mail</em>port": 587,
+ "use<em>ssl": 1,
+ "mail</em>login": "emails@example.com",
+ "mail<em>password": "Super.Secret.Password",
+ "auto</em>email<em>id": "emails@example.com",
+ "email</em>sender<em>name": "Example Notifications",
+ "always</em>use<em>account</em>email<em>id</em>as_sender": 0
+}</p>
 </div>
 	<br>
 
