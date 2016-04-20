@@ -6,5 +6,9 @@
  {
   "doctype": "Role", 
   "role_name": "_Test Role 2"
+ }, 
+ {
+  "doctype": "Role", 
+  "role_name": "_Test Role 3"
  }
 ]
