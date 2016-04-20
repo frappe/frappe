@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title> Form Client Scripting </title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		
+<style>
+
+</style>
+</head>
+<body data-path="user/fr/tutorial/form-client-scripting">
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                        <div data-html-block="hero"></div>
+                        <div class="container" data-html-block="content">
+                        
+<div class="page-container" id="page-form-client-scripting-1" data-path="user/fr/tutorial/form-client-scripting"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+				<div class=" col-sm-12 ">
+					
+	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+	                    
+    
+    
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/fr/tutorial">
+		Tutoriel Frappe</a>
+	</li>
+	
+</ul>
+
+    
+
+	                </div>
+					
+	        		<div class="page-header-block" data-html-block="header">
+	                    <h1>Form Client Scripting</h1>
+	        		</div>
+                </div>
+				
+            </div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="form-client-scripting-1" style="text-align: Left">
+	<h2>Codes des formulaires</h2>
+
+<p>Jusqu'a maintenant, nous avons développé un système basique qui fonctionne parfaitement sans avoir eu besoin d'écrire une
+ seule ligne de code. Ajoutons donc quelques scripts pour rendre l'applications plus professionnelle et ajoutons des validations
+ pour éviter que les utilisateurs n'enregistrent des données invalides.</p>
+
+<h3>Les scripts coté client</h3>
+
+<p>Dans le <strong>DocType</strong> <strong>Library Transaction</strong>, nous n'avons qu'un seul champ <code>Member Name</code>. Nous n'avons pas fait 2 champs. 
+Ca pourrait être bien d'avoir deux champs, mais juste pour l'exemple, considérons que nous avons à implémenter cela. Pour ce
+faire, nous allons devoir écrire un gestionnaire d'évenements pour lorsque l'utilisateur sélectionne le champs <code>library_member</code> et accède aux données de l'utilisateur depuis le serveur en utilisant une API REST, remplisse les données dans le formaulaire.</p>
+
+<p>Pour commencer ce script, dans le repertoire <code>library_management/doctype/library_transaction</code>, créez un nouveau fichier 
+<code>library_transaction.js</code>. Ce fichier sera automatiquement executé lorsque le modèle <code>Library Transaction</code> est appelé par l'utilisateur. 
+Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais aussi écrire d'autres fonctiones.</p>
+
+<h4>library_transaction.js</h4>
+
+<pre><code>frappe.ui.form.on("Library Transaction", "library_member",
+    function(frm) {
+        frappe.call({
+            "method": "frappe.client.get",
+            args: {
+                doctype: "Library Member",
+                name: frm.doc.library_member
+            },
+            callback: function (data) {
+                frappe.model.set_value(frm.doctype,
+                    frm.docname, "member_name",
+                    data.message.first_name
+                    + (data.message.last_name ?
+                        (" " + data.message.last_name) : ""))
+            }
+        })
+    });
+</code></pre>
+
+<ol>
+<li><strong>frappe.ui.form.on(<em>doctype</em>, <em>fieldname</em>, <em>handler</em>)</strong> est utilisé pour lier un évenement au gestionnaire d'évenements
+quand la propriété <code>library_member</code> est complétée.</li>
+<li>Dans le gestionnaire, nous déclenchons un appel AJAX vers <code>frappe.client.get</code>. En réponse, nous avons l'ojet demandé sous forme d'une JSON. <a href="/frappe/user/fr/guides/integration/rest_api">En savoir plus sur l'API</a>.</li>
+<li>En utilisant <strong>frappe.model.set_value(<em>doctype</em>, <em>name</em>, <em>fieldname</em>, <em>value</em>)</strong> nous définissons la valeur dans le formulaire.</li>
+</ol>
+
+<p><strong>Note:</strong> Pour vérifier que votre script fonctionne, n'oubliez pas de recharger votre page avant de tester. 
+Les changements dans les scripts côté client ne sont pas automatiquement pris en compte quand vous êtes en mode développeur.</p>
+
+<p>{suite}</p>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+
+						
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/form-client-scripting.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                        </div>
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.io/apps">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+    <script></script>
+
+
+	<!-- csrf_token --></body>
+</html>

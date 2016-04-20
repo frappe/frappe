@@ -103,9 +103,7 @@
     	    <div class="page-content-block">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.async" styl
-
-    e="text-align: Left">
+	<article class="web-page-content" id="frappe.async" style="text-align: Left">
 	<!-- title: frappe.async --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -250,7 +248,7 @@
 		frappe.async.<b>get_redis_server</b>
         <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns memcache connection.</p>
+	<div class="docs-attr-desc"><p>returns redis_socketio connection.</p>
 </div>
 	<br>
 
@@ -312,7 +310,7 @@
         <a name="frappe.async.get_task_progress_room" href="#frappe.async.get_task_progress_room" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.async.<b>get_task_progress_room</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(task_id)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -430,7 +428,7 @@
         <a name="frappe.async.publish_realtime" href="#frappe.async.publish_realtime" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.async.<b>publish_realtime</b>
-        <i class="text-muted">(event=None, message=None, room=None, user=None, doctype=None, docname=None, after_commit=False)</i>
+        <i class="text-muted">(event=None, message=None, room=None, user=None, doctype=None, docname=None, task_id=None, after_commit=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Publish real-time updates</p>
 

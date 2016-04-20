@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title> Generators </title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		
+<style>
+
+</style>
+</head>
+<body data-path="user/en/guides/portal-development/generators">
+	<div class="offcanvas-container">
+		<div class="offcanvas">
+			<div class="offcanvas-main-section">
+				<div>
+						<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+					<span>Frappe Framework</span>
+				</a>
+				<a class="pull-right toggle-sidebar visible-xs">
+					<i class="octicon octicon-three-bars"></i>
+				</a>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                        <div data-html-block="hero"></div>
+                        <div class="container" data-html-block="content">
+                        
+<div class="page-container" id="page-generators" data-path="user/en/guides/portal-development/generators"
+    data-doctype="Web Page">
+	<div class="page-content">
+    	<div class="page-content-wrapper">
+            <div class="row">
+				<div class=" col-sm-12 ">
+					
+	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+	                    
+    
+    
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe/user/en/guides/portal-development">
+		Making Portals</a>
+	</li>
+	
+</ul>
+
+    
+
+	                </div>
+					
+	        		<div class="page-header-block" data-html-block="header">
+	                    <h1>Generators</h1>
+	        		</div>
+                </div>
+				
+            </div>
+    	    <div class="page-content-block">
+<div class="webpage-content">
+	
+	<article class="web-page-content" id="generators" style="text-align: Left">
+	<p>If every document in a table (DocType) corresponds to a web-page, you can setup generators.</p>
+
+<p>To setup a generator you must:</p>
+
+<ol>
+<li>Add fields that specify the path of the page</li>
+<li>Add a condition field to indicate whether a page is installed or not.</li>
+<li>Add the doctype name in <code>website_generators</code> in <code>hooks.py</code> of your app.</li>
+<li>Subclass the controller from <code>frappe.website.website_generator.WebsiteGenerator</code></li>
+<li>Create a template for your page</li>
+<li>Add custom properties (context) for the template</li>
+<li>Customize route and list view</li>
+</ol>
+
+<p>Let us see this with the help of an example:</p>
+
+<h2>Example</h2>
+
+<h4>1. Add fields</h4>
+
+<p>We added <code>publish</code>, <code>page_name</code>, <code>parent_website_route</code> in the DocType</p>
+
+<p><strong>Note:</strong> The fields <code>page_name</code> and <code>parent_website_route</code> are mandatory</p>
+
+<p><img src="{{ docs_base_path }}/img/generators.png" alt="Generator fields" /></p>
+
+<h4>2. Added Website Generator to Hooks</h4>
+
+<p>Since Job Opening is in <code>erpnext</code>, we have added to the list of existing generator hooks:</p>
+
+<pre><code>website_generators = ["Item Group", "Item", "Sales Partner", "Job Opening"]
+</code></pre>
+
+<p>If the <code>website_generators</code> property does not exist in your hooks.py, add it!</p>
+
+<h4>3. Controller</h4>
+
+<p>We add the <code>website</code> property to the <strong>JobOpening</strong> class in <code>job_opening.py</code></p>
+
+<p>In <code>get_context</code>, <code>parents</code> property will indicate the breadcrumbs</p>
+
+<pre><code>from frappe.website.website_generator import WebsiteGenerator
+from frappe import _
+
+# subclass from WebsiteGenerator, not Document
+class JobOpening(WebsiteGenerator):
+    website = frappe._dict(
+        template = "templates/generators/job_opening.html",
+        condition_field = "publish",
+        page_title_field = "job_title",
+    )
+
+    def get_context(self, context):
+        # show breadcrumbs
+        context.parents = [{'name': 'jobs', 'title': _('All Jobs') }]
+</code></pre>
+
+<p><strong>Note:</strong> Once you do this, you should see the "See in Website" link on the document form.</p>
+
+<h4>4. Add the template</h4>
+
+<p>Add the template in <code>erpnext/templates/generators/job_opening.html</code></p>
+
+<pre><code>{% extends "templates/web.html" %}
+
+{% block breadcrumbs %}
+    {% include "templates/includes/breadcrumbs.html" %}
+{% endblock %}
+
+{% block header %}
+&lt;h1&gt;{{ job_title }}&lt;/h1&gt;
+{% endblock %}
+
+{% block page_content %}
+
+&lt;div&gt;{{ description }}&lt;/div&gt;
+
+&lt;a class='btn btn-primary'
+    href='/job_application?job_title={{ doc.job_title }}'&gt;
+    {{ _("Apply Now") }}&lt;/a&gt;
+
+{% endblock %}
+</code></pre>
+
+<h4>5. Customizing List View</h4>
+
+<p>If you add a method <code>get_list_view</code> in the controller file (job_opening.py), you can set properties for the listview</p>
+
+<pre><code>def get_list_context(context):
+    context.title = _("Jobs")
+    context.introduction = _('Current Job Openings')
+</code></pre>
+
+	</article>
+	
+</div>
+</div>
+    	</div>
+	</div>
+</div>
+
+						
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/portal-development/generators.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                        </div>
+                    </div>
+					<footer class="docs-footer">
+						<div class="container"><div class="built-with-frappe text-center">
+                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                            <h3>By Frappe Technologies</h3>
+                        </div>
+                        <div class="text-center">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a href="https://github.com/frappe/frappe">
+                                    Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/frappe/frappe/issues">
+                                    Issues</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.github.io/frappe/license.html">
+                                    License</a>
+                                </li>
+                                <li>
+                                    <a href="https://discuss.erpnext.com">
+                                    Forum</a>
+                                </li>
+                                <li>
+                                    <a href="https://frappe.io/apps">
+                                    Frappe Apps</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+					</footer>
+				</div>
+			</div>
+			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
+			<div class="sidebar sidebar-right visible-xs">
+				<div class="sidebar-navbar-items">
+					<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+    <script></script>
+
+
+	<!-- csrf_token --></body>
+</html>
