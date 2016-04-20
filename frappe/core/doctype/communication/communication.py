@@ -11,6 +11,8 @@ from frappe.core.doctype.communication.comment import (validate_comment,
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_status)
 from frappe.utils.bot import BotReply
+from email.utils import parseaddr
+from collections import Counter
 
 exclude_from_linked_with = True
 
@@ -107,7 +109,16 @@ class Communication(Document):
 				self.sender = None
 			else:
 				validate_email_add(self.sender, throw=True)
-				self.sender_full_name = get_fullname(self.sender)
+
+				sender_name, sender_email = parseaddr(self.sender)
+
+				if not sender_name:
+					sender_name = get_fullname(sender_email)
+					if sender_name == sender_email:
+						sender_name = None
+
+				self.sender = sender_email
+				self.sender_full_name = sender_name or get_fullname(frappe.session.user)
 
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
@@ -181,6 +192,34 @@ class Communication(Document):
 				}).insert()
 				frappe.local.flags.commit = True
 
+	def set_delivery_status(self, commit=False):
+		'''Look into the status of Bulk Email linked to this Communication and set the Delivery Status of this Communication'''
+		delivery_status = None
+		status_counts = Counter(frappe.db.sql_list('''select status from `tabBulk Email` where communication=%s''', self.name))
+
+		if status_counts.get('Not Sent') or status_counts.get('Sending'):
+			delivery_status = 'Sending'
+
+		elif status_counts.get('Error'):
+			delivery_status = 'Error'
+
+		elif status_counts.get('Expired'):
+			delivery_status = 'Expired'
+
+		elif status_counts.get('Sent'):
+			delivery_status = 'Sent'
+
+		if delivery_status:
+			self.db_set('delivery_status', delivery_status)
+
+			frappe.publish_realtime('update_communication', self.as_dict(),
+				doctype=self.reference_doctype, docname=self.reference_name, after_commit=True)
+
+			# for list views and forms
+			self.notify_update()
+
+			if commit:
+				frappe.db.commit()
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""

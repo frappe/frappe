@@ -13,7 +13,7 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	content=None, reply_to=None, cc=(), email_account=None):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=None)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)
@@ -57,7 +57,7 @@ class EMail:
 		self.cc = cc or []
 		self.html_set = False
 
-		self.email_account = email_account
+		self.email_account = email_account or get_outgoing_email_account()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
@@ -156,24 +156,28 @@ class EMail:
 	def add_pdf_attachment(self, name, html, options=None):
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
-	def get_default_sender(self):
-		return  get_outgoing_email_account().default_sender
-
 	def validate(self):
 		"""validate the email ids"""
 		from frappe.utils import validate_email_add
 
 		if not self.sender:
-			self.sender = self.get_default_sender()
+			self.sender = self.email_account.default_sender
 
 		validate_email_add(strip(self.sender), True)
 		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
+
+		self.replace_sender()
 
 		self.recipients = [strip(r) for r in self.recipients]
 		self.cc = [strip(r) for r in self.cc]
 
 		for e in self.recipients + (self.cc or []):
 			validate_email_add(e, True)
+
+	def replace_sender(self):
+		if cint(self.email_account.always_use_account_email_id_as_sender):
+			sender_name, sender_email = email.utils.parseaddr(self.sender)
+			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)

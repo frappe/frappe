@@ -160,53 +160,6 @@ $.extend(frappe.model, {
 		}
 	},
 
-	new_communication: function(communication) {
-		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
-		if (docinfo && docinfo.communications) {
-			var communications = docinfo.communications;
-			var communication_exists = false;
-			for (var i=0, l=communications.length; i<l; i++) {
-				if (communications[i].name==communication.name) {
-					communication_exists = true;
-					break;
-				}
-			}
-
-			if (!communication_exists) {
-				docinfo.communications = communications.concat([communication]);
-			}
-		}
-
-		if (cur_frm.doctype === communication.reference_doctype && cur_frm.docname === communication.reference_name) {
-			cur_frm.timeline && cur_frm.timeline.refresh();
-		}
-	},
-
-	delete_communication: function(communication) {
-		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
-		if (docinfo && docinfo.communications) {
-			var communications = docinfo.communications;
-
-			var index = -1;
-			for (var i=0, l=communications.length; i<l; i++) {
-				if (communications[i].name==communication.name) {
-					index = i;
-					break;
-				}
-			}
-
-			if (index !== -1) {
-				// remove it from communications list
-				docinfo.communications.splice(index, 1);
-			}
-		}
-
-		if (cur_frm.doctype === communication.reference_doctype && cur_frm.docname === communication.reference_name) {
-			cur_frm.timeline && cur_frm.timeline.refresh();
-		}
-	},
-
-
 	get_shared: function(doctype, name) {
 		return frappe.model.get_docinfo(doctype, name).shared;
 	},

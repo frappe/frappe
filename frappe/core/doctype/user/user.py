@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, has_gravatar, format_datetime, now_datetime
+from frappe.utils import cint, get_gravatar, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
@@ -46,6 +46,7 @@ class User(Document):
 		self.ensure_unique_roles()
 		self.remove_all_roles_for_guest()
 		self.validate_username()
+		self.remove_disabled_roles()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -77,7 +78,7 @@ class User(Document):
 				"doctype": "UserRole",
 				"role": "System Manager"
 			})
-			
+
 		if self.name == 'Administrator':
 			# Administrator should always have System Manager Role
 			self.extend("user_roles", [
@@ -88,7 +89,7 @@ class User(Document):
 				{
 					"doctype": "UserRole",
 					"role": "Administrator"
-				}			
+				}
 			])
 
 	def email_new_password(self, new_password=None):
@@ -213,7 +214,7 @@ class User(Document):
 
 		args.update(add_args)
 
-		sender = frappe.session.user not in STANDARD_USERS and frappe.session.user or None
+		sender = frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			message=frappe.get_template(template).render(args), as_bulk=self.flags.delay_emails)
@@ -315,6 +316,12 @@ class User(Document):
 		if self.name == "Guest":
 			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))
 
+	def remove_disabled_roles(self):
+		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled":1})]
+		for role in list(self.get('user_roles')):
+			if role.role in disabled_roles:
+				self.get('user_roles').remove(role)
+
 	def ensure_unique_roles(self):
 		exists = []
 		for i, d in enumerate(self.get("user_roles")):
@@ -382,7 +389,7 @@ def get_timezones():
 def get_all_roles(arg=None):
 	"""return all roles"""
 	return [r[0] for r in frappe.db.sql("""select name from tabRole
-		where name not in ('Administrator', 'Guest', 'All') order by name""")]
+		where name not in ('Administrator', 'Guest', 'All') and not disabled order by name""")]
 
 @frappe.whitelist()
 def get_user_roles(arg=None):
