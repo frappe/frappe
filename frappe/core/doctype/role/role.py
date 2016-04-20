@@ -24,3 +24,4 @@ class Role(Document):
 				frappe.throw(frappe._("Standard roles cannot be disabled"))
 			else:
 				frappe.db.sql("delete from `tabUserRole` where role = %s", self.name)
+				frappe.clear_cache()
