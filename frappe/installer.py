@@ -347,36 +347,34 @@ def extract_sql_gzip(sql_gz_path):
 		print subprocess.CalledProcessError.output
 	finally:
 	# subprocess.check_call returns '0' on success. On success, return path to sql file
-		if success == 0:
-			return sql_gz_path[:-3]
+		return sql_gz_path[:-3]
 
-def extract_tar_files(site_name, file_path):
+def extract_tar_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
 
+	# While creating tar files during backup, a complete recursive structure is created.
+	# For example, <site_name>/<private>/<files>/*.*
+	# Shift to parent directory and make it as current directory and do the extraction.
+	_parent_dir = os.path.dirname(abs_site_path)
+	os.chdir(_parent_dir)
+
+	# Copy the files to the parent directory and extract
+	shutil.copy2(os.path.abspath(file_path), _parent_dir)
+
 	# Get the file name splitting the file path on
-	basepath, filename  = os.path.split(file_path)
-	extract_path = os.path.join(abs_site_path, filename)
+	filename = file_path.split('/')[-1]
+	filepath = os.path.join(_parent_dir, filename)
 
-	# Copy the files to the directory and extract
-	if not os.path.exists(extract_path):
-		shutil.copy2(os.path.abspath(file_path), abs_site_path)
-
-	# Change directory for the extraction command execution
-	os.chdir(abs_site_path)
 	try:
-		# While creating tar files during backup, a complete recursive structure is created.
-		# For example, <site_name>/<private>/<files>/*.*
-
-		# Skip folder structure and extract the archive using --strip-components=number.
-		# <http://www.gnu.org/software/tar/manual/tar.html>. '2' in our case to skip the
-		# top 2 levels in the directory structure.
-		error = subprocess.check_output(['tar', '-xvf', extract_path, '--strip-components=2'])
+		error = subprocess.check_output(['tar', 'xvf', filepath])
 	except Exception as subprocess.CalledProcessError:
 		print subprocess.CalledProcessError.output
-
-	frappe.destroy()
+	finally:
+		# On successful extraction delete the tarfile to avoid any abuse through command line
+		os.remove(filepath)
+		frappe.destroy()
 
 expected_config_for_barracuda = """[mysqld]
 innodb-file-format=barracuda
