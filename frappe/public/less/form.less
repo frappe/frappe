@@ -36,6 +36,10 @@
 	border-top: 1px solid @border-color;
 }
 
+.form-message {
+	padding: 15px;
+}
+
 .form-dashboard {
 	border-bottom: 1px solid @light-border-color;
 }
@@ -52,6 +56,10 @@
 
 .form-heatmap {
 	padding-top: 30px;
+
+	.heatmap-message {
+		margin-top: 10px;
+	}
 }
 
 .inline-graph {
@@ -110,16 +118,14 @@
 
 .form-links {
 	.document-link {
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		height: 22px;
-		position: relative;
 	}
 
 	.count {
-		position: absolute;
-		left: -20px;
-		top: 3px;
 		display: inline-block;
+		margin-left: 5px;
+		margin-right: 5px;
 	}
 }
 
@@ -127,12 +133,21 @@
 	margin: 0px;
 	padding: 15px;
 
+	h6, .h6 {
+		font-size: 11px;
+		letter-spacing: 0.4px;
+	}
+
 	.form-section-heading {
-		margin: 0px 0px 10px 0px;
+		margin: 10px 0px;
+		text-transform: uppercase;
+		color: @text-muted;
 	}
 
 	.section-head {
 		margin: 0px 0px 15px 15px;
+		text-transform: uppercase;
+		color: @text-muted;
 		cursor: pointer;
 
 		.collapse-indicator {

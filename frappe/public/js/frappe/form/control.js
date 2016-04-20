@@ -201,8 +201,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
 			this.$wrapper = $('<div class="frappe-control">\
-				<div class="form-group" style="margin: 0px">\
-					<label class="control-label" style="padding-right: 0px;"></label>\
+				<div class="form-group">\
+					<div class="clearfix">\
+						<label class="control-label" style="padding-right: 0px;"></label>\
+					</div>\
 					<div class="control-input-wrapper">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
@@ -485,11 +487,16 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 });
 
 frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
+	make: function() {
+		this._super();
+		// $(this.label_area).addClass('pull-right');
+		// $(this.disp_area).addClass('text-right');
+	},
 	make_input: function() {
 		var me = this;
 		this._super();
 		this.$input
-			.addClass("text-right")
+			// .addClass("text-right")
 			.on("focus", function() {
 				setTimeout(function() {
 					if(!document.activeElement) return;

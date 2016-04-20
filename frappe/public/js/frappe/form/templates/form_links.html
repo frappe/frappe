@@ -1,15 +1,15 @@
 <div class="form-documents">
 	{% for (var i=0; i < transactions.length; i++) { %}
 		{% if((i % 2)===0) { %}<div class="row">{% } %}
-		<div class="col-xs-6" style="padding-left: 30px;">
+		<div class="col-xs-6">
 			<h5 style="margin-top: 15px;">{{ transactions[i].label }}</h5>
 			{% for (var j=0; j < transactions[i].items.length; j++) {
 				var doctype = transactions[i].items[j]; %}
 			<div class="document-link"
 				data-doctype="{{ doctype }}">
-				<span class="text-muted small count"></span>
 				<a class="badge-link small">{{ __(doctype) }}</a>
-				<span class="open-notification hidden"></span>
+				<span class="text-muted small count"></span>
+				<span class="open-notification hidden" title="{{ __("Open {0}", [__(doctype)])}}"></span>
 			</div>
 			{% } %}
 		</div>

@@ -22,17 +22,27 @@ frappe.ui.form.Layout = Class.extend({
 		if(!this.parent && this.body)
 			this.parent = this.body;
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
+		this.message = $('<div class="form-message text-muted small hidden"></div>').appendTo(this.wrapper);
 		if(!this.fields)
 			this.fields = frappe.meta.sort_docfields(frappe.meta.docfield_map[this.doctype]);
 		this.setup_tabbing();
 		this.render();
 	},
 	show_empty_form_message: function() {
-		this.wrapper.find(".empty-form-alert").remove();
 		if(!(this.wrapper.find(".frappe-control:visible").length || this.wrapper.find(".section-head.collapsed").length)) {
-			$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
-				+__("This form does not have any input")+'</div>')
-			.appendTo(this.page);
+			this.show_message(__("This form does not have any input"));
+		}
+	},
+	show_message: function(html) {
+		if(html) {
+			if(html.substr(0, 1)!=='<') {
+				// wrap in a block
+				html = '<div>' + html + '</div>';
+			}
+			console.log(html);
+			$(html).appendTo(this.message.removeClass('hidden'));
+		} else {
+			this.message.empty().addClass('hidden');
 		}
 	},
 	render: function() {
@@ -451,8 +461,8 @@ frappe.ui.form.Section = Class.extend({
 	make_head: function() {
 		var me = this;
 		if(!this.df.collapsible) {
-			$('<div class="col-sm-12"><h4 class="form-section-heading">'
-				+ __(this.df.label) + '</h4></div>')
+			$('<div class="col-sm-12"><h6 class="form-section-heading">'
+				+ __(this.df.label) + '</h6></div>')
 			.appendTo(this.wrapper);
 		} else {
 			this.head = $('<div class="section-head"><a class="h6">'

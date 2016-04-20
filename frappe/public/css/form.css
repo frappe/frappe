@@ -27,6 +27,9 @@
 .form-page.second-page {
   border-top: 1px solid #d1d8dd;
 }
+.form-message {
+  padding: 15px;
+}
 .form-dashboard {
   border-bottom: 1px solid #EBEFF2;
 }
@@ -40,6 +43,9 @@
 }
 .form-heatmap {
   padding-top: 30px;
+}
+.form-heatmap .heatmap-message {
+  margin-top: 10px;
 }
 .inline-graph .inline-graph-half {
   width: 48%;
@@ -88,25 +94,32 @@
   padding-bottom: 15px;
 }
 .form-links .document-link {
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   height: 22px;
-  position: relative;
 }
 .form-links .count {
-  position: absolute;
-  left: -20px;
-  top: 3px;
   display: inline-block;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 .form-section {
   margin: 0px;
   padding: 15px;
 }
+.form-section h6,
+.form-section .h6 {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
 .form-section .form-section-heading {
-  margin: 0px 0px 10px 0px;
+  margin: 10px 0px;
+  text-transform: uppercase;
+  color: #8D99A6;
 }
 .form-section .section-head {
   margin: 0px 0px 15px 15px;
+  text-transform: uppercase;
+  color: #8D99A6;
   cursor: pointer;
 }
 .form-section .section-head .collapse-indicator {

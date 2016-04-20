@@ -184,7 +184,13 @@ _f.Frm.prototype.set_hidden = function(status) {
 	var form_page = this.page.wrapper.find('.form-page');
 	form_page.toggleClass('hidden', this.hidden);
 	this.toolbar.refresh();
-	if(status===false) {
+	if(status===true) {
+		msg = __('Edit {0} properties', [__(this.doctype)]);
+		this.layout.show_message('<div style="padding-left: 15px; padding-right: 15px;">\
+			<a class="text-muted" onclick="cur_frm.set_hidden(false)">' + msg + '</a></div>');
+	} else {
+		// clear message
+		this.layout.show_message();
 		frappe.utils.scroll_to(form_page);
 	}
 }
@@ -497,6 +503,9 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		// because add_custom_button
 		this.refresh_header(is_a_different_doc);
 
+		// clear layout message
+		this.layout.show_message();
+
 		// call trigger
 		this.script_manager.trigger("refresh");
 
@@ -527,7 +536,9 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 
 	$(cur_frm.wrapper).trigger('render_complete');
 
-	this.layout.show_empty_form_message();
+	if(!this.hidden) {
+		this.layout.show_empty_form_message();
+	}
 
 	this.scroll_to_element();
 }

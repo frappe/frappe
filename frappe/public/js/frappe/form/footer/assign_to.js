@@ -156,7 +156,7 @@ frappe.ui.to_do_dialog = function(opts){
 			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
 			{fieldtype: 'Section Break'},
 			{fieldtype: 'Link', fieldname:'assign_to', options:'User',
-				label:__("Assign To"), reqd:true},
+				label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
 			{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
 			{fieldtype: 'Section Break'},
 			{fieldtype: 'Column Break'},

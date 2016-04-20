@@ -71,6 +71,8 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
+	email_str = (email_str or "").strip()
+
 	if not email_str:
 		return False
 

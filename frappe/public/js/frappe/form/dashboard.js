@@ -28,6 +28,9 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		// clear stats
 		this.stats_area.empty().addClass('hidden');
+
+		// clear custom
+		this.wrapper.find('.custom').remove();
 	},
 	set_headline: function(html) {
 		this.headline.html(html).removeClass('hidden');
@@ -48,6 +51,10 @@ frappe.ui.form.Dashboard = Class.extend({
 		} else {
 			this.clear_headline();
 		}
+	},
+
+	add_section: function(html) {
+		return $('<div class="form-dashboard-section custom">'+html+'</div>').appendTo(this.wrapper);
 	},
 
 	add_progress: function(title, percent, message) {
@@ -101,7 +108,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 		this.render_links();
 		this.set_open_count();
-		this.show_heatmap();
+		this.render_heatmap();
 	},
 	filter_permissions: function() {
 		// filter out transactions for which the user
@@ -178,7 +185,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				name: this.frm.doc.name,
 			},
 			callback: function(r) {
-				me.heatmap.update(r.message.timeline_data);
+				me.heatmap && me.heatmap.update(r.message.timeline_data);
 				$.each(r.message.count, function(i, d) {
 					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
 				});
@@ -206,8 +213,8 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	// heatmap
-	show_heatmap: function() {
-		if(!this.heatmap) {
+	render_heatmap: function() {
+		if(this.show_heatmap && !this.heatmap) {
 			this.heatmap = new CalHeatMap();
 			this.heatmap.init({
 				itemSelector: "#heatmap-" + this.frm.doctype,
@@ -228,7 +235,15 @@ frappe.ui.form.Dashboard = Class.extend({
 
 			// center the heatmap
 			this.heatmap_area.removeClass('hidden').find('svg').css({'margin': 'auto'});
-		}
+
+			// message
+			var heatmap_message = this.heatmap_area.find('.heatmap-message');
+			if(this.heatmap_message) {
+				heatmap_message.removeClass('hidden').html(this.heatmap_message);
+			} else {
+				heatmap_message.addClass('hidden');
+			}
+ 		}
 	},
 
 	// stats
