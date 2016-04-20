@@ -14,8 +14,7 @@ from frappe import _
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False,
-	send_me_a_copy=False, cc=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -36,7 +35,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 	send_me_a_copy = cint(send_me_a_copy)
 
-	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not ignore_doctype_permissions:
+	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
