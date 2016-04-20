@@ -281,7 +281,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	try:
 		if auto_commit:
 			smtpserver.setup_email_account(email.reference_doctype)
-			smtpserver.replace_sender_in_email(email)
 			smtpserver.sess.sendmail(email.sender, email.recipient, encode(email.message))
 
 		frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
