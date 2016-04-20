@@ -34,6 +34,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
+	send_me_a_copy = cint(send_me_a_copy)
 
 	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not ignore_doctype_permissions:
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
@@ -60,8 +61,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
-	if send_email:
-		comm.send_me_a_copy = send_me_a_copy
+	if cint(send_email):
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
 	return {
