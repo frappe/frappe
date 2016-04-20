@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails
+from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails, get_fullname
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
@@ -14,8 +14,7 @@ from frappe import _
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False,
-	send_me_a_copy=False, cc=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -34,8 +33,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
+	send_me_a_copy = cint(send_me_a_copy)
 
-	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not ignore_doctype_permissions:
+	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not (flags or {}).get('ignore_doctype_permissions'):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
@@ -60,8 +60,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
-	if send_email:
-		comm.send_me_a_copy = send_me_a_copy
+	if cint(send_email):
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
 	return {
@@ -81,6 +80,8 @@ def validate_email(doc):
 	# validate CC
 	for email in split_emails(doc.cc):
 		validate_email_add(email, throw=True)
+
+	# validate sender
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
@@ -129,7 +130,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		attachments=doc.attachments,
 		message_id=doc.name,
 		unsubscribe_message=_("Leave this conversation"),
-		bulk=True
+		bulk=True,
+		communication=doc.name
 	)
 
 def update_parent_status(doc):
@@ -189,12 +191,15 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 
 	set_incoming_outgoing_accounts(doc)
 
-	if not doc.sender or cint(doc.outgoing_email_account.always_use_account_email_id_as_sender):
-		sender_name = (frappe.session.data.full_name
-			or doc.outgoing_email_account.name
-			or _("Notification"))
-		sender_email_id = doc.outgoing_email_account.email_id
-		doc.sender = formataddr([sender_name, sender_email_id])
+	if not doc.sender:
+		doc.sender = doc.outgoing_email_account.email_id
+
+	if not doc.sender_full_name:
+		doc.sender_full_name = doc.outgoing_email_account.name or _("Notification")
+
+	if doc.sender:
+		# combine for sending to get the format 'Jane <jane@example.com>'
+		doc.sender = formataddr([doc.sender_full_name, doc.sender])
 
 	doc.attachments = []
 

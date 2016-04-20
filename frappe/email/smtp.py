@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import smtplib
 import email.utils
-import _socket
+import _socket, sys
 from frappe.utils import cint
 from frappe import _
 
@@ -22,9 +22,11 @@ def send(email, append_to=None):
 
 	try:
 		smtpserver = SMTPServer(append_to=append_to)
-		smtpserver.replace_sender_in_email(email)
-		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
-			email.as_string())
+
+		# validate is called in as_string
+		email_body = email.as_string()
+
+		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
 
 	except smtplib.SMTPSenderRefused:
 		frappe.msgprint(_("Invalid login or password"))
@@ -56,14 +58,25 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 				frappe.OutgoingEmailError)
 
 		if email_account:
-			email_account.default_sender = email.utils.formataddr((email_account.name,
-				email_account.get("sender") or email_account.get("email_id")))
+			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
 
 	return frappe.local.outgoing_email_account[append_to or "default"]
 
 def get_default_outgoing_email_account(raise_exception_not_set=True):
+	'''conf should be like:
+		{
+		 "mail_server": "smtp.example.com",
+		 "mail_port": 587,
+		 "use_ssl": 1,
+		 "mail_login": "emails@example.com",
+		 "mail_password": "Super.Secret.Password",
+		 "auto_email_id": "emails@example.com",
+		 "email_sender_name": "Example Notifications",
+		 "always_use_account_email_id_as_sender": 0
+		}
+	'''
 	email_account = _get_email_account({"enable_outgoing": 1, "default_outgoing": 1})
 
 	if not email_account and frappe.conf.get("mail_server"):
@@ -73,9 +86,10 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"smtp_server": frappe.conf.get("mail_server"),
 			"smtp_port": frappe.conf.get("mail_port"),
 			"use_tls": cint(frappe.conf.get("use_ssl") or 0),
-			"email_id": frappe.conf.get("mail_login"),
+			"login_id": frappe.conf.get("mail_login"),
+			"email_id": frappe.conf.get("auto_email_id") or frappe.conf.get("mail_login") or 'notifications@example.com',
 			"password": frappe.conf.get("mail_password"),
-			"sender": frappe.conf.get("auto_email_id", "notifications@example.com")
+			"always_use_account_email_id_as_sender": frappe.conf.get("always_use_account_email_id_as_sender", 0)
 		})
 		email_account.from_site_config = True
 		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
@@ -87,7 +101,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		# create a stub
 		email_account = frappe.new_doc("Email Account")
 		email_account.update({
-			"sender": "notifications@example.com"
+			"email_id": "notifications@example.com"
 		})
 
 	return email_account
@@ -117,20 +131,12 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = getattr(self.email_account, "login_id", None) \
-				or self.email_account.email_id
+			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls
 			self.sender = self.email_account.email_id
-			self.always_use_account_email_id_as_sender = self.email_account.get("always_use_account_email_id_as_sender")
-
-	def replace_sender_in_email(self, email):
-		if hasattr(self, "always_use_account_email_id_as_sender") and \
-			cint(self.always_use_account_email_id_as_sender) and self.login:
-			if not email.reply_to:
-				email.reply_to = email.sender
-			email.sender = self.login
+			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 
 	@property
 	def sess(self):
@@ -172,11 +178,19 @@ class SMTPServer:
 
 			return self._sess
 
-		except _socket.error:
+		except _socket.error, e:
 			# Invalid mail server -- due to refusing connection
-			frappe.throw(_('Invalid Outgoing Mail Server or Port'))
-		except smtplib.SMTPAuthenticationError:
-			frappe.throw(_("Invalid login or password"))
+			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
+
+			type, value, traceback = sys.exc_info()
+			raise frappe.ValidationError, e, traceback
+
+		except smtplib.SMTPAuthenticationError, e:
+			frappe.msgprint(_("Invalid login or password"))
+
+			type, value, traceback = sys.exc_info()
+			raise frappe.ValidationError, e, traceback
+
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
