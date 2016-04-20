@@ -176,6 +176,7 @@ class EMail:
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
+			self.original_sender = self.sender
 			sender_name, sender_email = email.utils.parseaddr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
@@ -197,6 +198,9 @@ class EMail:
 			"CC":             ', '.join(self.cc).encode("utf-8") if self.cc else None,
 			b'X-Frappe-Site': get_url().encode('utf-8'),
 		}
+
+		if cint(self.email_account.always_use_account_email_id_as_sender) and hasattr(self, 'original_sender'):
+			headers[b'X-Original-From'] = self.original_sender.encode('utf-8')
 
 		# reset headers as values may be changed.
 		for key, val in headers.iteritems():
