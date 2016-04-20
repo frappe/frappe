@@ -46,6 +46,7 @@ class BlogPost(WebsiteGenerator):
 		clear_cache("writers")
 
 	def get_context(self, context):
+		context.show_search = True
 		# this is for double precaution. usually it wont reach this code if not published
 		if not cint(self.published):
 			raise Exception, "This blog has not been published yet!"
@@ -72,6 +73,10 @@ class BlogPost(WebsiteGenerator):
 			context.metatags["image"] = image
 
 		context.comment_list = get_comment_list(self.doctype, self.name)
+		if not context.comment_list:
+			context.comment_text = _('No comments yet')
+		else:
+			context.comment_text = _('{0} comments').format(len(context.comment_list))
 
 		context.children = get_children()
 
@@ -85,7 +90,8 @@ def get_list_context(context=None):
 		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
 		hide_filters = True,
-		children = get_children()
+		children = get_children(),
+		show_search = True
 	)
 
 	if frappe.local.form_dict.category:

@@ -8,7 +8,7 @@
 }
 
 .blue {
-	color: #78D6FF;	
+	color: #7575ff;	
 }
 
 .icon-facebook, .icon-facebook-sign{
@@ -30,7 +30,7 @@
 }
 
 #wrap {
-	background-color: #78D6FF;
+	background-color: #7575ff;
 }
 
 .form-signin {
@@ -105,7 +105,7 @@ p{
 	margin-bottom:20px;
 }
 .btn-login, .btn-signup, .btn-forgot {
-	background: #78D6FF;
+	background: #7575ff;
 	color: white;
 }
 

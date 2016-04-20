@@ -1,36 +1,36 @@
 {% extends "templates/web.html" %}
 
-{% block header %}
-<h1 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
-	{{ title }}
-</h1>
-{% endblock %}
-
 {% block breadcrumbs %}
-    {% include "templates/includes/breadcrumbs.html" %}
+   <div class="page-breadcrumbs" data-html-block="breadcrumbs">
+   	<ul class="breadcrumb">
+   		<li>
+			<a href="/blog" class="blog-header text-extra-muted">{{ blog_title or "Blog" }}</a>
+   		</li>
+   	</ul>
+   </div>
 {% endblock %}
 
 {% block page_content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
-	<p class="small text-muted blog-info">
-		<span itemprop="author">{{ blogger_info and blogger_info.full_name or full_name }}</span>,
-		<span itemprop="dateCreated">{{ updated }}</span>
-    </p>
+	<div class="blog-info">
+	<div class="text-muted blog-category">{{blog_category}}</div>
+	<div class="blog-header">
+		{{ title }}
+	</div>
+	<p class="post-by text-muted"><a href="/blog?by={{ blogger }}&by_name={{ full_name }}" class="no-decoration">
+		 BY {{ blogger_info and blogger_info.full_name or full_name }}</a> <i class="blog-dot"></i> {{ frappe.format_date(published_on) }} <i class="blog-dot"></i>{{ comment_text }}</p>
+	</div>
 	<div itemprop="articleBody" class="longform blog-text">
 	{{ content }}
 	</div>
-    <p class="text-muted blog-category">
-        <a href="/{{ parent_website_route }}" class="no-decoration">
-            {{ _("This post is filed under {0}").format(blog_category) }}</a>
-    </p>
 	<!-- end blog content -->
 </article>
 {% if blogger_info %}
+<div class="post-by text-muted" style="margin-bottom:20px;">Author</div>
 {% include "templates/includes/blog/blogger.html" %}
 {% endif %}
 <div class="blog-comments">
-	<h2>Comments</h2>
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
 
