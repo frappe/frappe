@@ -5,17 +5,13 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
-import os, re, urllib, sys
-import json
-import frappe
-import md5
-import requests
-from frappe.utils.identicon import Identicon
-
-import bleach
-import bleach_whitelist
+import os, re, urllib, sys, json, md5, requests, traceback
+import bleach, bleach_whitelist
 from html5lib.sanitizer import HTMLSanitizer
 from markdown2 import markdown as _markdown
+
+import frappe
+from frappe.utils.identicon import Identicon
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -148,13 +144,9 @@ def get_traceback():
 	"""
 		 Returns the traceback of the Exception
 	"""
-	import traceback
-	exc_type, value, tb = sys.exc_info()
-
-	trace_list = traceback.format_tb(tb, None) + \
-		traceback.format_exception_only(exc_type, value)
-	body = "Traceback (innermost last):\n" + "%-20s %s" % \
-		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
+	exc_type, exc_value, exc_tb = sys.exc_info()
+	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
+	body = "".join(cstr(t) for t in trace_list)
 
 	if frappe.logger:
 		frappe.logger.error('Db:'+(frappe.db and frappe.db.cur_db_name or '') \
