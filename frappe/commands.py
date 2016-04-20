@@ -1006,7 +1006,7 @@ def drop_site(site, root_login='root', root_password=None):
 		return
 
 	# frappe.get_site_path(*joins), will return the current site.But we are interested in its parent
-	# directory which path to common_site_config.json
+	# directory which contains common_site_config.json
 	sites_dir, site_name = os.path.split(os.path.abspath(frappe.get_site_path()))
 
 	db_name = frappe.local.conf.db_name

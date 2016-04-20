@@ -29,14 +29,18 @@ class TestBenchCommands(unittest.TestCase):
 		if os.environ.get('TRAVIS'):
 			new_site_cmd.extend(['--mariadb-root-password', 'travis'])
 
-		success = subprocess.check_output(new_site_cmd, cwd=self.bench_path)
-
-		print os.listdir(os.path.join(self.bench_path, 'sites'))
+		try:
+			success = subprocess.check_output(new_site_cmd, cwd=self.bench_path)
+		except subprocess.CalledProcessError as err:
+			print err.output
 
 		# Drop site
 		drop_site_cmd = ['bench', 'drop-site', 'test-drop.site', '--root-password', 'travis']
 
-		success = subprocess.check_output(drop_site_cmd, cwd=self.bench_path)
+		try:
+			success = subprocess.check_output(drop_site_cmd, cwd=self.bench_path)
+		except subprocess.CalledProcessError as err:
+			print err.output
 
 		# Asserts
 		# Site folder not present in the sites directory
@@ -47,14 +51,12 @@ class TestBenchCommands(unittest.TestCase):
 		# Archived sites path and archived sites list in common_site_config.json
 		common_site_config_path = os.path.join(base_site_path, 'common_site_config.json')
 
-		print os.listdir(self.bench_path)
-
 		with open(common_site_config_path, mode='r') as f:
 			config = json.load(f)
 
-		# self.assertTrue(hasattr(config, 'archived_sites_path'))
-		# self.assertEqual(config.get('archived_sites_path'), os.path.join(self.home_dir, 'archived_sites'))
-		#
-		# self.assertTrue(hasattr(config, 'archived_sites'))
-		# archived_sites = config.get('archived_sites')
-		# self.assertItemsEqual(archived_sites, 'test-drop.site')
+		self.assertTrue(hasattr(config, 'archived_sites_path'))
+		self.assertEqual(config.get('archived_sites_path'), os.path.join(self.home_dir, 'archived_sites'))
+
+		self.assertTrue(hasattr(config, 'archived_sites'))
+		archived_sites = config.get('archived_sites')
+		self.assertItemsEqual(archived_sites, 'test-drop.site')
