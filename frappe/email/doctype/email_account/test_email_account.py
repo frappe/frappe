@@ -70,7 +70,7 @@ class TestEmailAccount(unittest.TestCase):
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
-		
+
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
 
@@ -81,10 +81,9 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.receive(test_mails=test_mails)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: test_sender@example.com" in comm.content)
-		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)	
-	
-	
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
+
 	def test_incoming_attached_email_from_outlook_layers(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
 
@@ -95,9 +94,9 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.receive(test_mails=test_mails)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: test_sender@example.com" in comm.content)
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
-		
+
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",

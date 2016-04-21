@@ -6,7 +6,8 @@ import time
 import _socket, poplib, imaplib
 import frappe
 from frappe import _
-from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
+from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
+	cint, cstr, strip, markdown)
 from frappe.utils.scheduler import log
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
@@ -282,9 +283,8 @@ class Email:
 
 	def parse(self):
 		"""Walk and process multi-part email."""
-		last=[False]
 		for part in self.mail.walk():
-			self.process_part(part,last)
+			self.process_part(part)
 
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
@@ -307,66 +307,39 @@ class Email:
 		else:
 			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content), 'text/plain'
 
-	def process_part(self, part,last):
+	def process_part(self, part):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
-		charset = part.get_content_charset()
-		if not charset: charset = self.get_charset(part)
-
-		if content_type == 'message/rfc822' or last[0] == True: #test to see if within a attached message
-			if self.get_attached_message(part): #check and get for email headers
-				last[0] =False
-			else:
-				last[0] = True # within attached message headers not found repeat within message
-				
 		if content_type == 'text/plain':
-			self.text_content += self.get_payload(part, charset)
+			self.text_content += self.get_payload(part)
 
-		if content_type == 'text/html':
-			self.html_content += self.get_payload(part, charset)
+		elif content_type == 'text/html':
+			self.html_content += self.get_payload(part)
 
-		if part.get_filename():
-			self.get_attachment(part, charset)
+		elif content_type == 'message/rfc822':
+			# sent by outlook when another email is sent as an attachment to this email
+			self.show_attached_email_headers_in_content(part)
 
-	def get_attached_message(self,part):
-		list=[None]*4
-		list[0]=part.__getitem__('from')
-		list[1]=part.__getitem__('to')
-		list[2]=part.__getitem__('subject')
-		list[3]=part.__getitem__('Date')
+		elif part.get_filename():
+			self.get_attachment(part)
 
-		if None in list[:3]:#check if date returned if it didnt find a recieved field and get date from there
-			return False
-		if list[3]==None:
-			list[3] = part.__getitem__('Received')
-			temp = list[3].split(';')
-			list[3] = temp[len(temp)-1]
+	def show_attached_email_headers_in_content(self, part):
+		# get the multipart/alternative message
+		message = list(part.walk())[1]
+		headers = []
+		for key in ('From', 'To', 'Subject', 'Date'):
+			value = cstr(message.get(key))
+			if value:
+				headers.append('{label}: {value}'.format(label=_(key), value=value))
 
-		self.html_content +=  '<hr>'
-		list[0] = list[0][list[0].find("<")+1:list[0].find(">")]#From: cleaner
+		self.text_content += '\n'.join(headers)
+		self.html_content += '<hr>' + '\n'.join('<p>{0}</p>'.format(h) for h in headers)
 
-		temp =""#To: cleaner
-		for d in list[1].split(','):
-			temp += d[d.find("<")+1:d.find(">")] +','
-		list[1] = temp.strip(',')
-
-		self.text_content +=   'From: {0}\nTo: {1}\nSent: {2}\nSubject: {3}\n'.format(list[0],list[1],list[3],list[2])
-		self.html_content +=   '<p>From: {0}</p><p>To: {1}</p><p>Sent: {2}</p><p>Subject: {3}</p><br>'.format(list[0],list[1],list[3],list[2])
-
-		check = ["",False,False]# store plain text , bool for if plain text found ,bool for html found
-		if part.is_multipart() : # check if there is multipart message within header part
-			for d in part.get_payload():
-				if d.get_content_type()=='text/plain':
-					check[1] = True
-					check[0] = self.get_payload(d,d.get_content_charset())
-				if d.get_content_type()=='text/html':
-					check[2] =True
-			if check[1] and not check[2]:
-				self.html_content += '<p>'+check[0]+'</p>'
-		else: #if headers only have single plain text add to html
-			if part.get_content_type()=='text/plain':
-				self.html_content += '<p>'+self.get_payload(part, part.get_content_charset())+'</p>'
-		return True
+		if not message.is_multipart() and message.get_content_type()=='text/plain':
+			# email.parser didn't parse it!
+			text_content = self.get_payload(message)
+			self.text_content += text_content
+			self.html_content += markdown(text_content)
 
 	def get_charset(self, part):
 		"""Detect chartset."""
@@ -377,13 +350,16 @@ class Email:
 
 		return charset
 
-	def get_payload(self, part, charset):
+	def get_payload(self, part):
+		charset = self.get_charset(part)
+
 		try:
-			return unicode(part.get_payload(decode=True),str(charset),"ignore")
+			return unicode(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
 			return part.get_payload()
 
-	def get_attachment(self, part, charset):
+	def get_attachment(self, part):
+		charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
 		if fcontent:
