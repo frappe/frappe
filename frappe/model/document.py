@@ -249,6 +249,26 @@ class Document(BaseDocument):
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
 
+		# These documents cause issues during installation of Frappe / ERPNext
+		# Potentially other docs can cause issues down the road,
+		# would be good to have a global / list of docs to not track
+		# ignored_documents_from_installation = [
+		#	"Desktop Icon", "Print Settings", "DocShare", "User",
+		#	"System Settings", "About Us Settings", "Accounts Settings",
+		#	"Blog Settings", "Buying Settings", "Contact Control",
+		#	"Contact Us Settings", "Customize Form", "Dropbox Backup",
+		#	"Employee Attendance Tool", "features Setup", "HR Settings",
+		#	"Jobs Email Settings", "Manufacturing Settings", "Naming Series",
+		#	"Notification Control", "Production Planning Tool", "Rename Tool",
+		#	"Sales Email Settings", "Selling Settings", "Social Login Keys",
+		#	"Stock Settings", "Stock UOM Replace Utility", "Website Script",
+		#	"Website Settings", "Features Setup",
+		# ]
+		try:
+			old_dict = frappe.client.get(self.doctype, self.name)
+		except:
+			old_dict = None
+
 		# parent
 		if self.meta.issingle:
 			self.update_single(self.get_valid_dict())
@@ -258,7 +278,41 @@ class Document(BaseDocument):
 		self.update_children()
 		self.run_post_save_methods()
 
+		if old_dict:
+			# passing new_dict here instead of fetching in log_field_changes
+			# so that child tables can be handled recursively inside
+			# log_field_changes
+			new_dict = frappe.client.get(self.doctype, self.name)
+			self.log_field_changes(new_dict, old_dict)
+
 		return self
+
+	def log_field_changes(self, new_dict, old_dict):
+		ignored_fields = ["modified", "creation"]
+
+		# doing frappe.client.get because field comparisons can be wrong b/w
+		# comparing an object's attributes to a dict's values
+		# ex date fields are "changed" b/c it compares a unicode to date(time)
+
+		for k, v in old_dict.iteritems():
+			if new_dict[k] != old_dict[k] and k not in ignored_fields:
+				doc = {
+					"doctype": "Changed Fields",
+					"changed_doctype": new_dict['doctype'],
+					"changed_doc_name": new_dict['name'],
+					"fieldname": k,
+					"old_value": old_dict[k],
+					"new_value": new_dict[k],
+					"modified_by_user": new_dict["modified_by"],
+					"date": new_dict["modified"]
+				}
+				# can't save old/new value as list -> means child table.
+				if type(doc['old_value']) is not list:
+					history = Document(doc)
+					history.insert()
+				else:
+					for idx, entry in enumerate(doc['old_value']):
+						self.log_field_changes(doc['new_value'][idx], entry)
 
 	def update_children(self):
 		# children
