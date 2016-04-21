@@ -196,7 +196,7 @@
  "max_attachments": 0,
  "modified": "2016-04-20 08:57:09.036082",
  "modified_by": "Administrator",
- "module": "Field History",
+ "module": "Core", 
  "name": "Changed Fields",
  "name_case": "",
  "owner": "Administrator",
