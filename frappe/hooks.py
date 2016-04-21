@@ -37,6 +37,7 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
+	"assets/frappe/css/font/open-sans/open-sans.css",
 	"assets/css/frappe-web.css"
 ]
 website_route_rules = [

@@ -3,8 +3,18 @@
 @import "avatar.less";
 @import "indicator.less";
 
+html, body {
+	font-family: "Open Sans", "Helvetica Neue", Serif;
+}
+
 .navbar-brand {
 	max-width: none;
+}
+
+.navbar-default {
+	background-color: #fff;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 .user-image-wrapper {
@@ -132,14 +142,14 @@ fieldset {
 }
 
 .message-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
 	height: 100%;
-		z-index: 1040;
+	z-index: 1040;
 	background-color: #fff;
-		display: table;
+	display: table;
 }
 .message-overlay .content {
 	display: table-cell;
@@ -164,24 +174,28 @@ fieldset {
 }
 
 .page-content {
+	max-width: 720px;
+	margin: auto;
+
 	hr {
 		margin-left: -15px;
 		margin-right: -15px;
 	}
 }
 
-.page-sidebar {
-	border-left: 1px solid @border-color;
-	padding: 0px 15px;
+.web-sidebar {
 	position: relative;
-	left: -1px;
 
 	.sidebar-item {
 		margin: 0px;
-		padding: 5px 0px;
+		padding: 12px 0px;
 		border: none;
 		color: @text-muted;
 		font-size: 12px;
+
+		.badge {
+			font-weight: normal;
+		}
 	}
 
 	.sidebar-item:first-child {
@@ -200,8 +214,7 @@ fieldset {
 	}
 
 	.sidebar-item a.active {
-		color: #000;
-		font-weight: bold;
+		color: @text-color !important;
 	}
 }
 
@@ -210,6 +223,9 @@ fieldset {
 		border-top: 1px solid @border-color;
 }
 
+.footer-powered {
+	margin-top: 20px;
+}
 
 /* post and post list */
 
@@ -283,9 +299,9 @@ fieldset {
     padding: 5px 15px 15px 70px;
 }
 .comment-view {
-	background-color: #fafbfc;	
+	background-color: #fafbfc;
 	position: relative;
-	
+
 }
 
 .comment-view:before {
@@ -427,21 +443,17 @@ a.active {
 	font-size: 12px;
 }
 
-.item-list{
-	padding-top: 20px;
-}
-
 .sidebar-block, .content-block {
 	padding-top:50px;
 	padding-bottom:50px;
 }
 
-.content-header {
-	padding-bottom:20px;
+.content-block {
+	padding-left: 50px;
 }
 
-.selected-p-item {
-    color:#7575ff;
+.content-header {
+	padding-bottom:20px;
 }
 
 a:hover, a:visited, a:link, a:active
@@ -485,18 +497,16 @@ li .social-child-item {
 	margin-bottom:4px !important;
 }
 
-.blog-info{
+.blog-info {
 	text-align:center;
 	margin-top: 30px;
 }
 
-.blog-text{
+.blog-text {
 	text-align:justify;
 	padding-top: 50px;
 	padding-bottom: 50px;
 	font-size: 18px;
-	max-width:700px;
-	margin:auto;
 	p {
 		margin-bottom: 50px;
 	}

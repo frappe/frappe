@@ -1,41 +1,40 @@
 <div class="web-sidebar">
 	<div class="your-account-info-sidebar">
-		<div style="float:left;margin-right:20px;">
+		<div class="row">
+			<div class="col-xs-2">
 				<span class="user-image-sidebar"></span>
+			</div>
+			<div class="col-xs-10">
+				<div class="web-sidebar-user text-muted">{{ fullname }}</div>
+				<a href="/?cmd=web_logout">
+					<div style="margin-top:0px;" class="text-extra-muted small">
+						{{ _("Logout") }}</div>
+				</a>
+			</div>
 		</div>
-		<div>
-			<h4 style="margin-top:0px;margin-bottom:0px;">{{ fullname }}</h4>
-			<a href="/?cmd=web_logout">
-			<h6 style="margin-top:0px;" class="text-muted">{{ _("Logout") }}</h6>
-			</a>
-		</div>	
 	</div>
-	<div class="sidebar-items">	
-		<ul class="list-unstyled sidebar" style="margin: 15px 0px;">
-			<li class="item-list">
-			<a href="/me">
-			<h5>My Account
-			</h5>
-			</a>
+	<div class="sidebar-items">
+		<ul class="list-unstyled" style="margin: 30px 0px;">
+			<li class="sidebar-item">
+				<a href="/me">My Account</a>
 			</li>
 		{% for item in my_account_list -%}
 		{% if item.count or (not item.reference_doctype) %}
-			<li class="item-list">
-			<a href="{{ item.route }}"
-			{% if item.target %}target="{{ item.target }}"{% endif %}>
-			<h5>{{ _(item.title) }}
-			{% if item.reference_doctype %}
-				<span class="badge">
-					{{ "20+" if item.count > 20 else item.count }}
-				</span>
-			{% endif %}
-			</h5>
-			</a>
+			<li class="sidebar-item">
+				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
+				{% if item.target %}target="{{ item.target }}"{% endif %}>
+				{{ _(item.title) }}
+				{% if item.reference_doctype %}
+					<span class="badge">
+						{{ "20+" if item.count > 20 else item.count }}
+					</span>
+				{% endif %}
+				</a>
 			</li>
 		{% endif %}
 		{%- endfor %}
 		</ul>
-		</div>	
+		</div>
 </div>
 
 
@@ -43,7 +42,7 @@
 frappe.ready(function() {
 	$('.sidebar a').each(function(index) {
 	        if(this.href.trim() == window.location)
-	            $(this).addClass("selected-p-item");
+	            $(this).addClass("active");
 	    });
 });
 </script>

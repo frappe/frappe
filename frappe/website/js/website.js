@@ -206,7 +206,7 @@ $.extend(frappe, {
 			$(".user-image").attr("src", frappe.get_cookie("user_image"));
 
 			$('.user-image-wrapper').html(frappe.avatar(null, 'avatar-small'));
-			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-medium'));
+			$('.user-image-sidebar').html(frappe.avatar(null, 'avatar-small'));
 			$('.user-image-myaccount').html(frappe.avatar(null, 'avatar-large'));
 		}
 	},

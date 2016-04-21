@@ -1,14 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block breadcrumbs %}
-   <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-   	<ul class="breadcrumb">
-   		<li>
-			<a href="/blog" class="blog-header text-extra-muted">{{ blog_title or "Blog" }}</a>
-   		</li>
-   	</ul>
-   </div>
-{% endblock %}
+{% block header %}{{ _("Blog") }}{% endblock %}
 
 {% block page_content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">

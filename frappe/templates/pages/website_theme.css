@@ -1,4 +1,4 @@
-{%- if theme and theme.apply_style -%}
+{%- if False and theme and theme.apply_style -%}
 
 {%- set font_family_sans_serif = '"Helvetica Neue", Helvetica, Arial, sans-serif' -%}
 {%- set heading_selectors = "h1, h2, h3, h4, h5, h6" -%}

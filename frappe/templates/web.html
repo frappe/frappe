@@ -5,32 +5,34 @@
 <div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}"
 	{% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
 		<div class="page-content">
-			<div class="row {% if show_sidebar %} vert-line {% endif %}  ">
+			<div class="row {% if show_sidebar %}vert-line{% endif %}">
 				{% if show_sidebar %}
-					<div class="sidebar-block col-sm-3">
+					<div class="col-sm-3 sidebar-block">
 						{% include "templates/includes/web_sidebar.html" %}
 					</div>
 				{% endif %}
-				<div class="{% if show_sidebar %} content-block show-sidebar col-sm-9 {% else %} content-block col-sm-12 {% endif %}">
+				<div class="{% if show_sidebar %}content-block col-sm-9{% else %} content-block col-sm-12 {% endif %}">
 					<div class="page-content-wrapper">
-						<div class="row">
-						{% if self.breadcrumbs() %}
-							<div class="col-sm-6 page-breadcrumbs" data-html-block="breadcrumbs">
-							{% block breadcrumbs %}{% endblock %}
+						<div class="row page-head">
+							<div class="col-sm-8">
+								{% if self.breadcrumbs() %}
+								<div class="page-breadcrumbs">
+									{% block breadcrumbs %}{% endblock %}
+								</div>
+								{% endif %}
+								<h2>{% block header %}{% endblock %}</h2>
 							</div>
-						{% endif %}	
-						{% if show_search %}
-							<div class="col-sm-6 page-search-block pull-right" data-html-block="search-actions">
-							{% block search %}
-								{% include 'templates/includes/search_box.html' %}
-							{% endblock %}
-							</div>
-						{% endif %}
-						</div>
-						<div class="row">
-							<div class="col-sm-6 content-header">{% block header %}{% endblock %}</div>
-							<div class="col-sm-6 page-header-actions-block pull-right" data-html-block="header-actions">
-							{% block header_actions %}{% endblock %}
+							<div class="col-sm-4">
+								{% if show_search %}
+								<div class="page-search-block">
+								{% block search %}
+									{% include 'templates/includes/search_box.html' %}
+								{% endblock %}
+								</div>
+								{% endif %}
+								<div class="page-header-actions-block">
+									{% block header_actions %}{% endblock %}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -38,7 +40,7 @@
 						{%- block page_content -%}{%- endblock -%}
 					</div>
 				</div>
-			</div>		
+			</div>
 		</div>
 </div>
 {% endblock %}
