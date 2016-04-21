@@ -291,9 +291,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	bind_change_event: function() {
 		var me = this;
 		this.$input && this.$input.on("change", this.change || function(e) {
-			if(me.df.change) {
+			if(me.df.change || me.df.onchange) {
 				// onchange event specified in df
-				me.df.change.apply(this, e);
+				(me.df.change || me.df.onchange).apply(this, e);
 				return;
 			}
 			if(me.doctype && me.docname && me.get_value) {

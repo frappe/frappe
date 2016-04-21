@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 """
 
 import frappe, os, re, codecs, json
-from frappe.utils.jinja import render_include
+from frappe.model.utils import render_include
 from frappe.utils import strip
 from jinja2 import TemplateError
 import itertools, operator
@@ -329,10 +329,10 @@ def get_messages_from_doctype(name):
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
-	
+
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))
-	
+
 	return messages
 
 def get_messages_from_workflow(doctype=None, app_name=None):
@@ -378,7 +378,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 def get_messages_from_custom_fields(app_name):
 	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 	custom_fields = []
-	
+
 	for fixture in fixtures:
 		if isinstance(fixture, basestring) and fixture == 'Custom Field':
 			custom_fields = frappe.get_all('Custom Field')

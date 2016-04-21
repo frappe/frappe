@@ -10,7 +10,7 @@ from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
 from frappe.translate import make_dict_from_messages, extract_messages_from_code
-from frappe.utils.jinja import render_include
+from frappe.model.utils import render_include
 from frappe.build import html_to_js_template
 
 ######

@@ -26,7 +26,7 @@ class DatabaseQuery(object):
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
-		join='left join', distinct=False):
+		join='left join', distinct=False, start=None, page_length=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -47,6 +47,9 @@ class DatabaseQuery(object):
 			self.fields = fields
 		else:
 			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+
+		if start: limit_start = start
+		if page_length: limit_page_length = page_length
 
 		self.filters = filters or []
 		self.or_filters = or_filters or []

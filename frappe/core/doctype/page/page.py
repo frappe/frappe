@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
+from frappe.model.utils import render_include
 from frappe import conf, _
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 
@@ -96,7 +97,7 @@ class Page(Document):
 		fpath = os.path.join(path, page_name + '.js')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.script = unicode(f.read(), "utf-8")
+				self.script = render_include(f.read())
 
 		# css
 		fpath = os.path.join(path, page_name + '.css')
