@@ -2,53 +2,59 @@
 
 {% block style %}
 <style>
-{% include "templates/includes/login/login.css" %}
+	{% include "templates/includes/login/login.css" %}
 </style>
 {% endblock %}
 
 {% block page_content %}
 <!-- no-header -->
 <!-- no-sidebar -->
-<div class="login-content" style="padding-top: 30px; padding-bottom:15px">
+<div class="login-content">	
 	<form class="form-signin form-login" role="form">
-		{%- if social_login -%}
-		<h4 class="form-signin-heading text-center">{{ _("Sign in using") }}</h4>
-		<p class="text-center" style="margin-top: 15px">
-				{%- if facebook_login is defined %}
-				<a href="{{ facebook_login }}" class="grey no-decoration btn-social btn-facebook">
-				<i class="icon-facebook-sign"></i> {{ _("Facebook") }}</a>
-				{%- endif -%}
-
-				{%- if google_login is defined %}
-				<a href="{{ google_login }}" class="grey no-decoration btn-social btn-google">
-				<i class="icon-google-plus-sign"></i> {{ _("Google") }}</a>
-				{%- endif -%}
-
-				{%- if github_login is defined %}
-				<a href="{{ github_login }}" class="grey no-decoration btn-social btn-github">
-				<i class="icon-github-sign"></i> {{ _("GitHub") }}</a>
-				{%- endif -%}
-			</p>
-			<p class="text-muted text-center" style="margin: 20px 0px">{{ _("or") }}</p>
-		{%- endif -%}
+		
+		<div class="login_header">Login</div>
+		
 		<input type="text" id="login_email"
 			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
+			
 		<input type="password" id="login_password"
 			class="form-control" placeholder="{{ _('Password') }}" required>
-		<!-- <label class="checkbox">
-			<input type="checkbox" value="remember-me"> Remember me
-		</label> -->
-		<br>
+			
+		<div>	
+			<p style="float:left" class="text-center small"><input type="checkbox" value="remember-me"> Remember me </p>
+			<p style="float:right" class="text-center small"><a href="#forgot">{{ _("Forgot Password?") }}</a></p>
+		</div>
+		
 		<button class="btn btn-lg btn-default btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
-		<div style="margin-top: 15px">
-			{%- if not disable_signup -%}
-			<p class="text-center small">
-				<a href="#signup" class="grey">{{ _("Not a user yet? Sign up") }}</a>
+
+		{# {%- if social_login -%} #}
+			<h5><span>{{ _("Or login with") }}</span></h5>
+
+
+			<p class="text-center" style="margin-top: 15px">
+				{#{%- if facebook_login is defined %}#}
+				<a href="{{ facebook_login }}" class="no-decoration btn-social btn-facebook">
+					<i class="icon-facebook-sign icon-2x"></i></a>
+				{#{%- endif -%}
+
+				{%- if google_login is defined %}#}
+				<a href="{{ google_login }}" class="no-decoration btn-social btn-google">
+					<i class="icon-google-plus-sign icon-2x"></i></a>
+				{#{%- endif -%}
+
+				{%- if github_login is defined %}#}
+				<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
+					<i class="icon-github-sign icon-2x"></i></a>
+				{#{%- endif -%}#}
 			</p>
-			{%- endif -%}
+		{# {%- endif -%} #}
+
+		<div style="margin-top: 25px">
+		{%- if not disable_signup -%}
 			<p class="text-center small">
-				<a href="#forgot" class="grey">{{ _("Forgot Password?") }}</a>
+				{{ _("Dont have an account? ") }}<a class="blue" href="#signup">{{ _("Sign up.") }}</a>
 			</p>
+		{%- endif -%}
 		</div>
 	</form>
 
@@ -60,9 +66,8 @@
 		<br>
 		<button class="btn btn-lg btn-default btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
 		<p class="text-center small">
-			<br><a href="#login" class="grey">{{ _("Have an account? Login") }}</a>
+			{{ _("Have an account? ") }}<a href="#login" class="blue">{{ _("Login") }}</a>
 		</p>
-
 	</form>
 
 	<form class="form-signin form-forgot hide" role="form">
@@ -71,15 +76,14 @@
 		<br>
 		<button class="btn btn-lg btn-default btn-block btn-forgot" type="submit">{{ _("Send Password") }}</button>
 		<p class="text-center small">
-			<br><a href="#login" class="grey">{{ _("Back to Login") }}</a>
-		</p>
-
+		<br><a href="#login" class="blue">{{ _("Back to Login") }}</a>
+	</p>
 	</form>
 </div>
 {% endblock %}
 
 {% block script %}
-<script>{% include "templates/includes/login/login.js" %}</script>
+	<script>{% include "templates/includes/login/login.js" %}</script>
 {% endblock %}
 
 {% block sidebar %}{% endblock %}

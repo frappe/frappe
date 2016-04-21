@@ -62,6 +62,7 @@ class WebForm(WebsiteGenerator):
 			# TODO translate options of Select fields like Country
 
 	def get_context(self, context):
+		context.show_sidebar=True
 		from frappe.templates.pages.list import get_context as get_list_context
 
 		frappe.local.form_dict.is_web_form = 1

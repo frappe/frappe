@@ -7,13 +7,37 @@
 	width: 100%;
 }
 
+.blue {
+	color: #7575ff;	
+}
+
+.icon-facebook, .icon-facebook-sign{
+    color: #3b5998;
+}	
+.icon-google-plus, .icon-google-plus-sign{
+    color: #C63D2D;
+}
+.icon-github, .icon-github-sign{
+    color: black;
+}
+
+.icon-twitter, .icon-twitter-sign{
+    color: #00a0d1;
+}
+
+.icon-linkedin, .icon-linkedin-sign{
+    color: #4875B4;
+}
+
 #wrap {
-	background-color: #fafbfc;
+	background-color: #7575ff;
 }
 
 .form-signin {
   max-width: 360px;
-  padding: 30px;
+  padding-right: 30px;
+  padding-left: 30px;
+  padding-top: 10px;
   margin: 0 auto;
   border-radius: 5px;
   background-color: #fff;
@@ -41,4 +65,51 @@
 
 .btn-social {
 	margin: 10px;
+}
+
+h5 {
+  position: relative;
+  text-align: center;
+  margin-top:20px;
+  margin-bottom:20px;
+}
+
+h5 span {
+  background: #fff;
+  padding: 0 15px;
+  position: relative;
+  z-index: 1;
+}
+
+h5:before {
+  background: #ddd;
+  content: "";
+  display: block;
+  height: 1px;
+  position: absolute;
+    top: 50%;
+  width: 100%;
+}
+h5:before {
+  left: 0;
+}
+.login_header{
+	font-size: 36px;
+    position: relative;
+    text-align: center;
+	margin-bottom:20px;
+
+}
+
+p{
+	margin-bottom:20px;
+}
+.btn-login, .btn-signup, .btn-forgot {
+	background: #7575ff;
+	color: white;
+}
+
+.content-block {
+	padding-top:10px;
+	padding-bottom:30px;
 }

@@ -5,12 +5,21 @@
  "docstatus": 0, 
  "doctype": "Website Theme", 
  "font_size": "14px", 
+ "footer_color": "", 
+ "footer_text_color": "#808080", 
  "heading_style": "", 
- "modified": "2015-02-19 20:01:19.478005", 
+ "heading_webfont": "Open Sans", 
+ "idx": 17, 
+ "link_color": "#808080", 
+ "modified": "2016-04-12 23:46:28.476768", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Standard", 
+ "no_sidebar": 0, 
  "owner": "Administrator", 
+ "text_color": "#808080", 
+ "text_webfont": "Open Sans", 
  "theme": "Standard", 
- "website_theme_templates": []
+ "top_bar_color": "", 
+ "top_bar_text_color": "#808080"
 }

@@ -1,7 +1,9 @@
 {% extends "templates/web.html" %}
 
 {% block title %}About Us{% endblock %}
-
+{% block page_sidebar %}
+{% include "templates/pages/web_sidebar.html" %}
+{% endblock %}
 {% block page_content %}
 <!-- no-sidebar -->
 <article class="about-content">

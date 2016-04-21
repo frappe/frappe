@@ -1,36 +1,44 @@
 {% extends base_template_path %}
 
 {% block hero %}{% endblock %}
-
 {% block content %}
 <div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}"
-    {% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				{% set full_width = (self.breadcrumbs() or self.header()) and not self.header_actions() -%}
-                <div class="{% if not full_width %} col-sm-8 {% else %} col-sm-12 {% endif %}">
-					{% if self.breadcrumbs() %}
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    {% block breadcrumbs %}{% endblock %}
-	                </div>
-					{% endif %}
-	        		<div class="page-header-block" data-html-block="header">
-	                    {% block header %}{% endblock %}
-	        		</div>
-                </div>
-				{% if not full_width %}
-                <div class="col-sm-4">
-            		<div class="page-header-actions-block" data-html-block="header-actions">
-                        {% block header_actions %}{% endblock %}
-            		</div>
-                </div>
+	{% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
+		<div class="page-content">
+			<div class="row {% if show_sidebar %} vert-line {% endif %}  ">
+				{% if show_sidebar %}
+					<div class="sidebar-block col-sm-3">
+						{% include "templates/includes/web_sidebar.html" %}
+					</div>
 				{% endif %}
-            </div>
-    	    <div class="page-content-block">
-    		    {%- block page_content -%}{%- endblock -%}
-    	    </div>
-    	</div>
-	</div>
+				<div class="{% if show_sidebar %} content-block show-sidebar col-sm-9 {% else %} content-block col-sm-12 {% endif %}">
+					<div class="page-content-wrapper">
+						<div class="row">
+						{% if self.breadcrumbs() %}
+							<div class="col-sm-6 page-breadcrumbs" data-html-block="breadcrumbs">
+							{% block breadcrumbs %}{% endblock %}
+							</div>
+						{% endif %}	
+						{% if show_search %}
+							<div class="col-sm-6 page-search-block pull-right" data-html-block="search-actions">
+							{% block search %}
+								{% include 'templates/includes/search_box.html' %}
+							{% endblock %}
+							</div>
+						{% endif %}
+						</div>
+						<div class="row">
+							<div class="col-sm-6 content-header">{% block header %}{% endblock %}</div>
+							<div class="col-sm-6 page-header-actions-block pull-right" data-html-block="header-actions">
+							{% block header_actions %}{% endblock %}
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
+						{%- block page_content -%}{%- endblock -%}
+					</div>
+				</div>
+			</div>		
+		</div>
 </div>
 {% endblock %}

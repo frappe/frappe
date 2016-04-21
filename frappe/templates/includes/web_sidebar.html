@@ -1,0 +1,49 @@
+<div class="web-sidebar">
+	<div class="your-account-info-sidebar">
+		<div style="float:left;margin-right:20px;">
+				<span class="user-image-sidebar"></span>
+		</div>
+		<div>
+			<h4 style="margin-top:0px;margin-bottom:0px;">{{ fullname }}</h4>
+			<a href="/?cmd=web_logout">
+			<h6 style="margin-top:0px;" class="text-muted">{{ _("Logout") }}</h6>
+			</a>
+		</div>	
+	</div>
+	<div class="sidebar-items">	
+		<ul class="list-unstyled sidebar" style="margin: 15px 0px;">
+			<li class="item-list">
+			<a href="/me">
+			<h5>My Account
+			</h5>
+			</a>
+			</li>
+		{% for item in my_account_list -%}
+		{% if item.count or (not item.reference_doctype) %}
+			<li class="item-list">
+			<a href="{{ item.route }}"
+			{% if item.target %}target="{{ item.target }}"{% endif %}>
+			<h5>{{ _(item.title) }}
+			{% if item.reference_doctype %}
+				<span class="badge">
+					{{ "20+" if item.count > 20 else item.count }}
+				</span>
+			{% endif %}
+			</h5>
+			</a>
+			</li>
+		{% endif %}
+		{%- endfor %}
+		</ul>
+		</div>	
+</div>
+
+
+<script>
+frappe.ready(function() {
+	$('.sidebar a').each(function(index) {
+	        if(this.href.trim() == window.location)
+	            $(this).addClass("selected-p-item");
+	    });
+});
+</script>

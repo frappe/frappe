@@ -62,6 +62,9 @@ def build_context(context):
 			if hasattr(module, "get_children"):
 				context.children = module.get_children(context)
 
+	if context.show_sidebar:
+		add_sidebar_data(context)
+
 	add_metatags(context)
 
 	# determine templates to be used
@@ -70,6 +73,22 @@ def build_context(context):
 		context.base_template_path = app_base[0] if app_base else "templates/base.html"
 
 	return context
+
+def add_sidebar_data(context):
+	from frappe.utils.user import get_fullname_and_avatar
+	
+	context.my_account_list = frappe.get_all('Portal Menu Item',
+			fields=['title', 'route', 'reference_doctype'], filters={'enabled': 1}, order_by='idx asc')
+
+	for item in context.my_account_list:
+		if item.reference_doctype:
+			item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
+		
+	
+	info = get_fullname_and_avatar(frappe.session.user)
+	context["fullname"] = info.fullname
+	context["user_image"] = info.avatar
+	
 
 def add_metatags(context):
 	tags = context.get("metatags")

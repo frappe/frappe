@@ -1,3 +1,5 @@
+<div class="comment-view">
+	<div class="comment-header">{{ comment_text }}</div>
 {% if not comment_list %}
 <div class="no-comment">
 	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
@@ -5,10 +7,11 @@
 </div>
 {% endif %}
 
-<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
+<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">	
 	{% for comment in comment_list %}
 	{% include "templates/includes/comments/comment.html" %}
 	{% endfor %}
+</div>
 </div>
 
 <div class="add-comment-section">
@@ -17,9 +20,8 @@
 	</div>
 
 	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>
-		<div style="display: none;" id="comment-form">
-			<p>{{ _("Add Comment") }}</p>
+		<div id="comment-form">
+			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
@@ -35,7 +37,7 @@
 					</div>
 					<textarea class="form-control" name="comment" rows=10
 						placeholder="{{ _("Comment") }}"></textarea>
-					<p>
+					<p style="text-align:center;">
                         <button class="btn btn-primary btn-sm" id="submit-comment">
                             {{ _("Submit") }}</button>
                     </p>
@@ -60,10 +62,7 @@
 		if(n_comments > 50) {
 			$(".add-comment").toggle(false)
 				.parent().append("<div class='text-muted'>Comments are closed.</div>")
-		}
-		$(".add-comment").click(function() {
-			$(this).toggle(false);
-			$("#comment-form").toggle();
+		}		
 
             var full_name = "", user_id = "";
             if(frappe.is_user_logged_in()) {
@@ -75,7 +74,7 @@
                 }
             }
 			$("#comment-form textarea").val("");
-		})
+		
 		$("#submit-comment").click(function() {
 			var args = {
 				comment_by_fullname: $("[name='comment_by_fullname']").val(),

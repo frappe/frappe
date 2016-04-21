@@ -449,12 +449,12 @@ pre {
   color: inherit;
 }
 a.btn-primary {
-  color: #fff;
+  color: #7575ff;
 }
 a.btn-primary:hover,
 a.btn-primary:focus,
 a.btn-primary:visited {
-  color: #fff;
+  color: #7575ff;
 }
 .btn-next-wrapper {
   margin-top: 32px;

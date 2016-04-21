@@ -1,19 +1,12 @@
 {% extends "templates/web.html" %}
 
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
-
+{% block header %}<div class="blog-header text-extra-muted">{{ blog_title or "Blog" }}</div>{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block page_content %}
 <!-- no-header -->
 <!-- no-breadcrumbs -->
-{% if blog_subtitle %}
-<div class="list-hero">
-	<h1>
-		{{ blog_subtitle }}
-	</h1>
-</div>
-{% endif %}
 <div class="blog-list-content">
 	<div id="blog-list">
 		{% include "templates/includes/list/list.html" %}

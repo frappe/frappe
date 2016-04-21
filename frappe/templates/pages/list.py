@@ -52,6 +52,7 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	for doc in raw_result:
 		doc.doctype = doctype
 		new_context = frappe._dict(doc=doc, meta=meta)
+		new_context.doc = frappe.get_doc(doc)
 
 		if not frappe.flags.in_test:
 			new_context["pathname"] = frappe.local.request.path.strip("/ ")

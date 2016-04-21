@@ -3,7 +3,12 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
+from frappe.utils.user import get_fullname_and_avatar
+import frappe.templates.pages.list
+
+no_cache = 1
+no_sitemap = 1
 
 def get_context(context):
-	context.show_sidebar=True
-	return { "doc": frappe.get_doc("About Us Settings", "About Us Settings") }
+	pass
