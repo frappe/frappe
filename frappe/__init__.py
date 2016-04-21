@@ -952,6 +952,40 @@ def respond_as_web_page(title, html, success=None, http_status_code=None, contex
 	if context:
 		local.response['context'] = context
 
+def redirect_to_message(title, html, http_status_code=None, context=None):
+	"""Redirects to /message?id=random
+	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
+
+	:param title: Page title and heading.
+	:param message: Message to be shown.
+	:param http_status_code: HTTP status code.
+
+	Example Usage:
+		frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
+
+	"""
+
+	message_id = generate_hash(length=32)
+	message = {
+		'context': context or {},
+		'http_status_code': http_status_code or 200
+	}
+	message['context'].update({
+		'header': title,
+		'title': title,
+		'message': html
+	})
+
+	cache().set_value("message_id:{0}".format(message_id), message, expires_in_sec=60)
+	location = '/message?id={0}'.format(message_id)
+
+	if not getattr(local, 'is_ajax', False):
+		local.response["type"] = "redirect"
+		local.response["location"] = location
+
+	else:
+		return location
+
 def build_match_conditions(doctype, as_condition=True):
 	"""Return match (User permissions) for given doctype as list or SQL."""
 	import frappe.desk.reportview

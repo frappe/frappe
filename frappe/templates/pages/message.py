@@ -18,4 +18,18 @@ def get_context(context):
 		if hasattr(frappe.local, "message_success"):
 			message_context["success"] = frappe.local.message_success
 
+	elif frappe.local.form_dict.id:
+		message_id = frappe.local.form_dict.id
+		key = "message_id:{0}".format(message_id)
+		message = frappe.cache().get_value(key, expires=True)
+		if message:
+			message_context.update(message.get('context', {}))
+			if message.get('http_status_code'):
+				frappe.local.response['http_status_code'] = message['http_status_code']
+
+		else:
+			message_context = {
+				'message': ''
+			}
+
 	return message_context
