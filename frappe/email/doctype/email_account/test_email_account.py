@@ -71,6 +71,32 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
 
+	def test_incoming_attached_email_from_outlook_plain_text_only(self):
+		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
+			test_mails = [f.read()]
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
+
+	def test_incoming_attached_email_from_outlook_layers(self):
+		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
+			test_mails = [f.read()]
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
+
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
