@@ -2,7 +2,7 @@
 <div class="web-list-item blog-list-item">
 	<div class="row">
 	<div class="col-xs-12">
-		<div class="blog-header"><a href="/{{ post.page_name }}">{{ post.title }}</a></div>
+		<h1 class="blog-header"><a href="/{{ post.page_name }}">{{ post.title }}</a></h1>
 		<p class="post-by text-muted"><a href="/blog?by={{ post.blogger }}&by_name={{ post.full_name }}" class="no-decoration">
 			 BY {{ post.full_name }}</a> <i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }} <i class="blog-dot"></i> <a href="/{{ post.parent_website_route }}" class="no-decoration">{{ post.blog_category }}</a> <i class="blog-dot"></i> {{ post.comment_text }}</p>
 		<p class="post-description">{{ post.content }}</p>

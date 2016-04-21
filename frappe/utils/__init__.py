@@ -125,22 +125,25 @@ def has_gravatar(email):
 		or frappe.flags.in_test):
 		# no gravatar if via upload
 		# since querying gravatar for every item will be slow
-		return
+		return ''
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
 	try:
 		res = requests.get(gravatar_url)
-		if res.status_code==404:
-			return ''
-		else:
+		if res.status_code==200:
 			return gravatar_url
+		else:
+			return ''
 	except requests.exceptions.ConnectionError:
 		return ''
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
+
 	if not gravatar_url:
-		return Identicon(email).base64()
+		gravatar_url = Identicon(email).base64()
+
+	return gravatar_url
 
 def get_traceback():
 	"""

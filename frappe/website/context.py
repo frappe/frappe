@@ -14,7 +14,13 @@ def get_context(path, args=None):
 		context.update(args)
 
 	context = build_context(context)
-	context["path"] = path
+
+	if frappe.local.request:
+		# for <body data-path=""> (remove leading slash)
+		# path could be overriden in render.resolve_from_map
+		context["path"] = frappe.local.request.path[1:]
+	else:
+		context["path"] = path
 
 	# set using frappe.respond_as_web_page
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
@@ -76,19 +82,19 @@ def build_context(context):
 
 def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
-	
+
 	context.my_account_list = frappe.get_all('Portal Menu Item',
 			fields=['title', 'route', 'reference_doctype'], filters={'enabled': 1}, order_by='idx asc')
 
 	for item in context.my_account_list:
 		if item.reference_doctype:
 			item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
-		
-	
+
+
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname
 	context["user_image"] = info.avatar
-	
+
 
 def add_metatags(context):
 	tags = context.get("metatags")

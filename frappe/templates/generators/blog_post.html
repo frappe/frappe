@@ -7,9 +7,7 @@
 	<!-- begin blog content -->
 	<div class="blog-info">
 	<div class="text-muted blog-category">{{blog_category}}</div>
-	<div class="blog-header">
-		{{ title }}
-	</div>
+	<h1 class="blog-header">{{ title }}</h1>
 	<p class="post-by text-muted"><a href="/blog?by={{ blogger }}&by_name={{ full_name }}" class="no-decoration">
 		 BY {{ blogger_info and blogger_info.full_name or full_name }}</a> <i class="blog-dot"></i> {{ frappe.format_date(published_on) }} <i class="blog-dot"></i>{{ comment_text }}</p>
 	</div>
