@@ -64,14 +64,18 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value("Email Unsubscribe",
 			{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"}))
 
+		before = frappe.db.sql("""select count(name) from `tabBulk Email` where status='Not Sent'""")[0][0]
+
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name= "Administrator",
 			subject='Testing Bulk', message='This is a bulk mail!')
 
+		# this is sent async (?)
+
 		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""",
 			as_dict=1)
-		self.assertEquals(len(bulk), 1)
+		self.assertEquals(len(bulk), before + 1)
 		self.assertFalse('test@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('Unsubscribe' in bulk[0]['message'])
