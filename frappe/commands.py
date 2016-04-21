@@ -986,8 +986,8 @@ def set_config(context, key, value):
 @click.argument('site')
 @click.option('--root-login', default='root')
 @click.option('--root-password')
-@click.option('--archive-path')
-def drop_site(site, root_login='root', root_password=None, archive_path=None):
+@click.option('--archived-sites-path')
+def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
 	from frappe.installer import get_current_host, make_connection
 	from frappe.model.db_schema import DbManager
 	from frappe.utils.backups import scheduled_backup
@@ -1002,10 +1002,8 @@ def drop_site(site, root_login='root', root_password=None, archive_path=None):
 	dbman.delete_user(db_name, get_current_host())
 	dbman.drop_database(db_name)
 
-	if not archive_path:
+	if not archived_sites_path:
 		archived_sites_path = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
-	else:
-		archived_sites_path = archive_path
 
 	if not os.path.exists(archived_sites_path):
 		os.mkdir(archived_sites_path)
