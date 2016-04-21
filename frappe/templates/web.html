@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}"
 	{% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
-		<div class="page-content">
+		<div class="page-content {% if not show_sidebar %}page-max-width{% endif %}">
 			<div class="row {% if show_sidebar %}vert-line{% endif %}">
 				{% if show_sidebar %}
 					<div class="col-sm-3 sidebar-block">

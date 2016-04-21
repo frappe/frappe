@@ -9,25 +9,26 @@
 {% block page_content %}
 <!-- no-header -->
 <!-- no-sidebar -->
-<div class="login-content">	
+<div class="login-content">
 	<form class="form-signin form-login" role="form">
-		
+
 		<div class="login_header">Login</div>
-		
+
 		<input type="text" id="login_email"
 			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
-			
+
 		<input type="password" id="login_password"
 			class="form-control" placeholder="{{ _('Password') }}" required>
-			
-		<div>	
+
+		<div>
 			<p style="float:left" class="text-center small"><input type="checkbox" value="remember-me"> Remember me </p>
 			<p style="float:right" class="text-center small"><a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 		</div>
-		
-		<button class="btn btn-lg btn-default btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
 
-		{# {%- if social_login -%} #}
+		<button class="btn btn-lg btn-default btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
+		<div class='social-logins hidden'>
+
+		{%- if social_login -%}
 			<h5><span>{{ _("Or login with") }}</span></h5>
 
 
@@ -47,7 +48,9 @@
 					<i class="icon-github-sign icon-2x"></i></a>
 				{#{%- endif -%}#}
 			</p>
-		{# {%- endif -%} #}
+		{%- endif -%}
+
+	</div>
 
 		<div style="margin-top: 25px">
 		{%- if not disable_signup -%}
@@ -56,6 +59,7 @@
 			</p>
 		{%- endif -%}
 		</div>
+		<div class='padding'></div>
 	</form>
 
 	<form class="form-signin form-signup hide" role="form">

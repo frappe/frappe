@@ -78,7 +78,7 @@ html, body {
 .web-footer {
 	padding: 20px 0px;
 	min-height: 140px;
-	border-top: 1px solid #d1d8dd;
+	border-top: 1px solid @light-border-color;
 }
 
 .carousel-control .icon {
@@ -121,7 +121,7 @@ html, body {
 }
 
 .border-bottom {
-	border-bottom: 1px solid @border-color;
+	border-bottom: 1px solid @light-border-color;
 }
 
 .panel-container {
@@ -173,9 +173,12 @@ fieldset {
 	margin: auto;
 }
 
-.page-content {
-	max-width: 720px;
+.page-max-width {
+	max-width: 800px;
 	margin: auto;
+}
+
+.page-content {
 
 	hr {
 		margin-left: -15px;
@@ -220,7 +223,7 @@ fieldset {
 
 .page-footer {
 	padding: 15px 0px;
-		border-top: 1px solid @border-color;
+		border-top: 1px solid @light-border-color;
 }
 
 .footer-powered {
@@ -269,7 +272,7 @@ fieldset {
 
 .blog-footer {
 	padding: 5px 15px;
-	border-top: 1px solid @border-color;
+	border-top: 1px solid @light-border-color;
 	margin: 0px -15px -20px -15px;
 }
 
@@ -291,7 +294,7 @@ fieldset {
 .blogger {
 	padding-top: 30px;
 	padding-bottom: 15px;
-	border-top: 1px solid @border-color;
+	border-top: 1px solid @light-border-color;
 }
 
 .blog-comments,
@@ -529,6 +532,6 @@ li .social-child-item {
 }
 
 .vert-line {overflow:hidden;}
-.vert-line>div+div{border-left:1px solid #d1d8dd;}
+.vert-line>div+div{border-left:1px solid @light-border-color;}
 .vert-line>div{
         padding-bottom:2000px; margin-bottom:-2000px;}

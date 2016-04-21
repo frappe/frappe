@@ -420,7 +420,7 @@ body {
 .web-footer {
   padding: 20px 0px;
   min-height: 140px;
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #EBEFF2;
 }
 .carousel-control .icon {
   position: absolute;
@@ -458,7 +458,7 @@ body {
   }
 }
 .border-bottom {
-  border-bottom: 1px solid #d1d8dd;
+  border-bottom: 1px solid #EBEFF2;
 }
 .panel-container {
   margin-top: 35px;
@@ -501,8 +501,8 @@ fieldset {
   max-width: 970px;
   margin: auto;
 }
-.page-content {
-  max-width: 720px;
+.page-max-width {
+  max-width: 800px;
   margin: auto;
 }
 .page-content hr {
@@ -539,7 +539,7 @@ fieldset {
 }
 .page-footer {
   padding: 15px 0px;
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #EBEFF2;
 }
 .footer-powered {
   margin-top: 20px;
@@ -578,7 +578,7 @@ fieldset {
 }
 .blog-footer {
   padding: 5px 15px;
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #EBEFF2;
   margin: 0px -15px -20px -15px;
 }
 .blog-list-content .website-list .result {
@@ -596,7 +596,7 @@ fieldset {
 .blogger {
   padding-top: 30px;
   padding-bottom: 15px;
-  border-top: 1px solid #d1d8dd;
+  border-top: 1px solid #EBEFF2;
 }
 .blog-comments,
 .help-article-comments {
@@ -828,6 +828,7 @@ body {
 }
 .list-hero {
   border-bottom: 1px solid #d1d8dd;
+  border-bottom: 1px solid #EBEFF2;
   padding-top: 30px;
   padding-bottom: 10px;
 }
@@ -923,7 +924,7 @@ li .social-child-item {
   overflow: hidden;
 }
 .vert-line > div + div {
-  border-left: 1px solid #d1d8dd;
+  border-left: 1px solid #EBEFF2;
 }
 .vert-line > div {
   padding-bottom: 2000px;
