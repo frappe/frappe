@@ -11,11 +11,11 @@ frappe.template.compile = function(str, name) {
 			//console.warn("Warning: Single quotes (') may not work in templates");
 		}
 
-		// repace jinja style tags
+		// replace jinja style tags
 		str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
 
 		// {% if test %} --> {% if (test) { %}
-		str = str.replace(/{%\s?if\s?([^%]+)\s?%}/g, "{% if ($1) { %}");
+		str = str.replace(/{%\s?if\s?([^\(][^%{]+)\s?%}/g, "{% if ($1) { %}");
 
 		// {% for item in list %}
 		//       --> {% for (var i=0, len=list.length; i<len; i++) {  var item = list[i]; %}
