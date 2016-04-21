@@ -15,7 +15,7 @@ def get_context(path, args=None):
 
 	context = build_context(context)
 
-	if frappe.local.request:
+	if hasattr(frappe.local, 'request'):
 		# for <body data-path=""> (remove leading slash)
 		# path could be overriden in render.resolve_from_map
 		context["path"] = frappe.local.request.path[1:]
