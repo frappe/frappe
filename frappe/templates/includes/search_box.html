@@ -1,12 +1,13 @@
 <div class="item-search text-muted pull-right">
-	<input type="text" id="item-search" placeholder="Quick Search" autocomplete="off">	
-	<i class="octicon octicon-search"></i> 	
+	<input type="text" class="item-search-input"
+		placeholder="Search" autocomplete="off">
+	<i class="octicon octicon-search"></i>
 </div>
 <div class="clearfix pull-right" style="width:300px;">
-	<h4 class="item-search-results pull-left"></h4> 
-	<p class="pull-right"> 
-		<a style="display: none; padding-left:5px;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="Clear Search" ></a> 
-	</p> 
+	<h4 class="item-search-results pull-left"></h4>
+	<p class="pull-right">
+		<a style="display: none; padding-left:5px;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="Clear Search" ></a>
+	</p>
 </div>
 
 <script>
@@ -21,7 +22,7 @@ frappe.ready(function() {
 		window.location.href=document.URL + "?search=" + t;
 	}
 
-	$("#item-search").keyup(function() {
+	$(".item-search-input").keyup(function() {
 		clearTimeout(thread);
 		var $this = $(this); thread = setTimeout(function(){findResult($this.val())}, 1000);
 	});

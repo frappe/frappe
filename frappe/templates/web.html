@@ -15,24 +15,27 @@
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
-								{% if self.breadcrumbs() %}
+								{% if not no_breadcrumbs and self.breadcrumbs() %}
 								<div class="page-breadcrumbs">
 									{% block breadcrumbs %}{% endblock %}
 								</div>
 								{% endif %}
-								<h2>{% block header %}{% endblock %}</h2>
+								{% block header %}{% endblock %}
 							</div>
 							<div class="col-sm-4">
 								{% if show_search %}
-								<div class="page-search-block">
-								{% block search %}
-									{% include 'templates/includes/search_box.html' %}
-								{% endblock %}
-								</div>
+									<div class="page-search-block">
+									{% block search %}
+										{% include 'templates/includes/search_box.html' %}
+									{% endblock %}
+									</div>
 								{% endif %}
+
+								{% if self.header_actions() %}
 								<div class="page-header-actions-block">
 									{% block header_actions %}{% endblock %}
 								</div>
+								{% endif %}
 							</div>
 						</div>
 					</div>

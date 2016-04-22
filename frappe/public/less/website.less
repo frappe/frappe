@@ -5,6 +5,21 @@
 
 html, body {
 	font-family: "Open Sans", "Helvetica Neue", Serif;
+	color: @text-light;
+}
+
+a& {
+	color: @text-light;
+
+	&:hover,
+	&:focus,
+	&:active {
+		color: @text-color;
+	}
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 300;
 }
 
 .navbar-brand {
@@ -131,6 +146,12 @@ html, body {
 .panel-heading,
 .panel-body {
 	padding-left: 15px;
+}
+
+.page-head {
+	h1, h2 {
+		margin-top: 0px;
+	}
 }
 
 .page-header-actions-block {
@@ -523,13 +544,21 @@ li .social-child-item {
 	padding-bottom:20px;
 }
 
-#item-search {
-	position: relative;
-	outline:none;
-	border:none;
+.item-search {
+	border-bottom: 1px solid @border-color;
+
+	.item-search-input {
+		position: relative;
+		outline: none;
+		border: none;
+		margin-right: 5px;
+		padding: 7px;
+		padding-left: 0px;
+	}
 }
 
 .vert-line {overflow:hidden;}
 .vert-line>div+div{border-left:1px solid @light-border-color;}
 .vert-line>div{
         padding-bottom:2000px; margin-bottom:-2000px;}
+

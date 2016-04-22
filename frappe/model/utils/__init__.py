@@ -36,17 +36,24 @@ def render_include(content):
 	'''render {% include "app/path/filename" in js file %}'''
 
 	content = cstr(content)
-	if "{% include" in content:
-		paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
-		if not paths:
-			frappe.throw('Invalid include path')
 
-		for path in paths:
-			app, app_path = path.split('/', 1)
-			with open(frappe.get_app_path(app, app_path), 'r') as f:
-				include = unicode(f.read(), 'utf-8')
-				if path.endswith('.html'):
-					include = html_to_js_template(path, include)
-				content = re.sub(r'''{{% include\s['"]{0}['"]\s%}}'''.format(path), include, content)
+	# try 5 levels of includes
+	for i in xrange(5):
+		if "{% include" in content:
+			paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
+			if not paths:
+				frappe.throw('Invalid include path')
+
+			for path in paths:
+				app, app_path = path.split('/', 1)
+				with open(frappe.get_app_path(app, app_path), 'r') as f:
+					include = unicode(f.read(), 'utf-8')
+					if path.endswith('.html'):
+						include = html_to_js_template(path, include)
+
+					content = re.sub(r'''{{% include\s['"]{0}['"]\s%}}'''.format(path), include, content)
+
+		else:
+			break
 
 	return content
