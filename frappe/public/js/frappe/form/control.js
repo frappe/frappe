@@ -403,14 +403,15 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			this.$input.addClass(this.df.input_class);
 		}
 	},
-	set_input: function(val) {
-		this.$input && this.$input.val(this.format_for_input(val));
+	set_input: function(value) {
+		this.value = value;
+		this.$input && this.$input.val(this.format_for_input(value));
 		this.set_disp_area();
-		this.last_value = val;
-		this.set_mandatory && this.set_mandatory(val);
+		this.last_value = value;
+		this.set_mandatory && this.set_mandatory(value);
 	},
 	get_value: function() {
-		return this.$input ? this.$input.val() : undefined;
+		return this.$input && this.$input.val() || this.value;
 	},
 	format_for_input: function(val) {
 		return val==null ? "" : val;

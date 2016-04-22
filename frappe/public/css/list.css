@@ -4,6 +4,9 @@
 .result-list {
   min-height: 200px;
 }
+.sort-selector .dropdown:hover {
+  text-decoration: underline;
+}
 .list-filters {
   position: relative;
 }
