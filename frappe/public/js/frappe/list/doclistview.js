@@ -126,6 +126,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_filterable();
 		this.init_filters();
 		this.init_headers();
+		this.init_sort_selector();
 		this.init_like();
 		this.init_select_all();
 	},
@@ -201,6 +202,22 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 			});
 		}
+	},
+
+	init_sort_selector: function() {
+		var args = null;
+		var me = this;
+		if(this.listview.sort_selector) {
+			args = this.listview.sort_selector;
+		}
+		this.sort_selector = new frappe.ui.SortSelector({
+			parent: this.wrapper.find('.list-filters'),
+			doctype: this.doctype,
+			args: args,
+			change: function() {
+				me.run();
+			}
+		});
 	},
 
 	show_match_help: function() {
@@ -404,6 +421,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		$.each((this.listview.default_filters || this.listview.settings.default_filters || []), function(i, f) {
 		      args.filters.push(f);
 		});
+
+		args.order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
 
 		return args;
 	},

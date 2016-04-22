@@ -123,8 +123,16 @@ $.extend(frappe.meta, {
 	},
 
 	get_label: function(dt, fn, dn) {
-		if(fn==="owner") {
-			return "Owner";
+		var standard = {
+			'owner': __('Owner'),
+			'creation': __('Created On'),
+			'modified': __('Last Modified On'),
+			'idx': __('Idx'),
+			'name': __('Name'),
+			'modified_by': __('Last Modified By')
+		}
+		if(standard[fn]) {
+			return standard[fn];
 		} else {
 			var df = this.get_docfield(dt, fn, dn);
 			return (df ? df.label : "") || fn;

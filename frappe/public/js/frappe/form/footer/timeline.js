@@ -290,11 +290,12 @@ frappe.ui.form.Timeline = Class.extend({
 		var txt = this.input.val();
 
 		if(txt) {
-			this.insert_comment("Comment", txt, btn);
+			this.insert_comment("Comment", txt, btn, this.input);
 		}
 	},
-	insert_comment: function(comment_type, comment, btn) {
+	insert_comment: function(comment_type, comment, btn, input) {
 		var me = this;
+		if(input) input.prop('disabled', true);
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
@@ -331,6 +332,9 @@ frappe.ui.form.Timeline = Class.extend({
 					me.frm.get_docinfo().communications = comments.concat([r.message]);
 					me.refresh(true);
 				}
+			},
+			always: function() {
+				if(input) input.prop('disabled', false);
 			}
 		});
 
