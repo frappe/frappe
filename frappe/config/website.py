@@ -60,6 +60,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Homepage Settings",
+					"description": _("Settings for website homepage."),
+				},
+				{
+					"type": "doctype",
 					"name": "Website Script",
 					"description": _("Javascript to append to the head section of the page."),
 				},
