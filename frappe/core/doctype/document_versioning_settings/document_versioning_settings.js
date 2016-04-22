@@ -10,7 +10,6 @@ frappe.ui.form.on('Document Versioning Settings', {
 		});
 		cur_frm.add_custom_button("Save");
 		frappe.get_doctype_list(page);
-		console.log(frm);
 	},
 	validate: function(frm){
 		var modules = frappe.get_modules();
