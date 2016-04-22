@@ -11,14 +11,14 @@
 
 <script>
 frappe.ready(function() {
-	if(get_url_arg("q")){
-	var txt = get_url_arg("q");
+	if(get_url_arg("search")){
+	var txt = get_url_arg("search");
 	$(".item-search-results").html("Search results for : " + txt);
 	$(".clear").toggle(true);
 	}
 	var thread = null;
 	function findResult(t) {
-		window.location.href=document.URL + "&q=" + t;
+		window.location.href=document.URL + "?search=" + t;
 	}
 
 	$("#item-search").keyup(function() {

@@ -27,7 +27,7 @@
 					{% endif %}
 					
 					{% if footer_items -%}
-						<ul class="list-unstyled navbar-nav">
+						<ul class="list-unstyled navbar-nav" style="{% if facebook_share or google_plus_one or twitter_share or linked_in_share %} margin-left:65px; {%else%} margin-left:0px;{%endif%}">
 							{% include "templates/includes/footer/footer_items.html" %}	
 						</ul>
 					{% endif %}
