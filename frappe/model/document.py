@@ -249,24 +249,12 @@ class Document(BaseDocument):
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
 
-		# These documents cause issues during installation of Frappe / ERPNext
-		# Potentially other docs can cause issues down the road,
-		# would be good to have a global / list of docs to not track
-		# ignored_documents_from_installation = [
-		#	"Desktop Icon", "Print Settings", "DocShare", "User",
-		#	"System Settings", "About Us Settings", "Accounts Settings",
-		#	"Blog Settings", "Buying Settings", "Contact Control",
-		#	"Contact Us Settings", "Customize Form", "Dropbox Backup",
-		#	"Employee Attendance Tool", "features Setup", "HR Settings",
-		#	"Jobs Email Settings", "Manufacturing Settings", "Naming Series",
-		#	"Notification Control", "Production Planning Tool", "Rename Tool",
-		#	"Sales Email Settings", "Selling Settings", "Social Login Keys",
-		#	"Stock Settings", "Stock UOM Replace Utility", "Website Script",
-		#	"Website Settings", "Features Setup",
-		# ]
-		try:
-			old_dict = frappe.client.get(self.doctype, self.name)
-		except:
+		if self.is_versionable():
+			try:
+				old_dict = frappe.client.get(self.doctype, self.name)
+			except:
+				old_dict = None
+		else:
 			old_dict = None
 
 		# parent
@@ -286,6 +274,14 @@ class Document(BaseDocument):
 			self.log_field_changes(new_dict, old_dict)
 
 		return self
+
+	def is_versionable(self):
+		from frappe.client import get
+		module = frappe.model.meta.get_meta(self.doctype).as_dict()['module']
+		settings = json.loads(get(
+			"Document Versioning Settings"
+			)['stored_modules'])
+		return settings[module]
 
 	def log_field_changes(self, new_dict, old_dict):
 		ignored_fields = ["modified", "creation"]

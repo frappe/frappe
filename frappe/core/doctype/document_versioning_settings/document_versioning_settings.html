@@ -1,0 +1,33 @@
+<!-- jinja -->
+<div class="row" align="center">
+  <br>
+  Select modules to store field history.
+  You can disable specific documents in a selected module from Customize Form.
+  </br>
+  <p>Save button is missing (not sure why), so document saves upon clicking a checkbox.</p>
+  <div class="container container-fluid">
+
+    <div class="form" id="module-list" align="left">
+      {% for module in modules %}
+        <div class="col col-sm-3">
+          <br>
+            {% if module.value %}
+              <input class="select-module" id="{{ module.name }}" type="checkbox" checked=true>
+            {% else %}
+              <input class="select-module" id="{{ module.name }}" type="checkbox">
+            {% endif %}
+            {{ module.name }}
+            </input>
+          </br>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  $(".select-module").click(function(e){
+  	console.log("click");
+    cur_frm.save();
+});
+</script>
