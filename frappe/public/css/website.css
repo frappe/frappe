@@ -226,6 +226,16 @@ a.no-decoration:active {
   width: 50px;
   height: 50px;
 }
+.avatar-frame {
+  display: inline-block;
+  width: 100%;
+  height: 0;
+  padding: 50% 0px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  border-radius: 4px;
+}
 .avatar img {
   max-width: 100%;
   max-height: 100%;
@@ -242,6 +252,9 @@ a.no-decoration:active {
 }
 .avatar-small .standard-image {
   font-size: 14px;
+}
+.avatar-small .avatar-frame {
+  border-radius: 3px;
 }
 .avatar-medium {
   margin-right: 5px;
@@ -275,16 +288,6 @@ a.no-decoration:active {
   width: 100%;
   height: 0;
   padding-bottom: 100%;
-}
-.avatar-frame {
-  display: inline-block;
-  width: 100%;
-  height: 0;
-  padding: 50% 0px;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  border-radius: 4px;
 }
 .standard-image {
   width: 100%;
@@ -361,6 +364,23 @@ a.no-decoration:active {
 html,
 body {
   font-family: "Open Sans", "Helvetica Neue", Serif;
+  color: #6c7680;
+}
+a {
+  color: #6c7680;
+}
+a:hover,
+a:focus,
+a:active {
+  color: #36414C;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 300;
 }
 .navbar-brand {
   max-width: none;
@@ -466,6 +486,10 @@ body {
 .panel-heading,
 .panel-body {
   padding-left: 15px;
+}
+.page-head h1,
+.page-head h2 {
+  margin-top: 0px;
 }
 .page-header-actions-block {
   text-align: right;
@@ -915,10 +939,16 @@ li .social-child-item {
   padding-top: 30px;
   padding-bottom: 20px;
 }
-#item-search {
+.item-search {
+  border-bottom: 1px solid #d1d8dd;
+}
+.item-search .item-search-input {
   position: relative;
   outline: none;
   border: none;
+  margin-right: 5px;
+  padding: 7px;
+  padding-left: 0px;
 }
 .vert-line {
   overflow: hidden;

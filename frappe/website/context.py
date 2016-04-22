@@ -82,6 +82,7 @@ def build_context(context):
 
 def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
+	import frappe.templates.pages.list
 
 	context.my_account_list = frappe.get_all('Portal Menu Item',
 			fields=['title', 'route', 'reference_doctype'], filters={'enabled': 1}, order_by='idx asc')
@@ -89,7 +90,6 @@ def add_sidebar_data(context):
 	for item in context.my_account_list:
 		if item.reference_doctype:
 			item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
-
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname

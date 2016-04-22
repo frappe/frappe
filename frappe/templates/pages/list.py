@@ -26,8 +26,12 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	limit_start = cint(limit_start)
 	limit_page_length = 20
 	next_start = limit_start + limit_page_length
+	
+	if not txt and frappe.form_dict.search:
+		txt = frappe.form_dict.search
+		del frappe.form_dict['search']
 
-	filters = prepare_filters(kwargs)
+	filters = prepare_filters(doctype, kwargs)
 	meta = frappe.get_meta(doctype)
 	list_context = get_list_context(frappe._dict(), doctype)
 
@@ -77,19 +81,21 @@ def set_route(context):
 		context.route = "{0}/{1}".format(context.pathname or quoted(context.doc.doctype),
 			quoted(context.doc.name))
 
-def prepare_filters(kwargs):
+def prepare_filters(doctype, kwargs):
 	filters = frappe._dict(kwargs)
-
+	meta = frappe.get_meta(doctype)
+		
 	if filters.pathname:
 		# resolve additional filters from path
 		resolve_path(filters.pathname)
 		for key, val in frappe.local.form_dict.items():
-			if key in ("cmd", "pathname", "doctype", "txt", "limit_start"):
-				if key in filters:
-					del filters[key]
-
-			elif key not in filters:
+			if key not in filters:
 				filters[key] = val
+				
+	# filter the filters to include valid fields only
+	for fieldname, val in filters.items():
+		if not meta.has_field(fieldname):
+			del filters[fieldname]
 
 	if "is_web_form" in filters:
 		del filters["is_web_form"]

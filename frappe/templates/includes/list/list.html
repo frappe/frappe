@@ -9,7 +9,9 @@
             {% include "templates/includes/list/filters.html" %}
         {%- endif %} -->
 
-			{% if introduction %}<p class='lead'>{{ introduction }}{% endif %}
+		{% if introduction %}<p class='lead'>{{ introduction }}{% endif %}
+
+		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
 
     	<div class="result">
     		{% for item in result %}
