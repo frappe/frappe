@@ -103,9 +103,15 @@ frappe.ui.form.Control = Class.extend({
 	},
 	get_parsed_value: function() {
 		var me = this;
-		return this.get_value ?
-			(this.parse ? this.parse(this.get_value()) : this.get_value()) :
-			undefined;
+		if(this.get_status()==='Write') {
+			return this.get_value ?
+				(this.parse ? this.parse(this.get_value()) : this.get_value()) :
+				undefined;
+		} else if(this.get_status()==='Read') {
+			return this.value || undefined;
+		} else {
+			return undefined;
+		}
 	},
 	set_model_value: function(value) {
 		if(this.frm) {
@@ -411,7 +417,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	get_value: function() {
-		return this.$input && this.$input.val() || this.value;
+		return this.$input ? this.$input.val() : undefined;
 	},
 	format_for_input: function(val) {
 		return val==null ? "" : val;

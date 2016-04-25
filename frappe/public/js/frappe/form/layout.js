@@ -39,7 +39,6 @@ frappe.ui.form.Layout = Class.extend({
 				// wrap in a block
 				html = '<div>' + html + '</div>';
 			}
-			console.log(html);
 			$(html).appendTo(this.message.removeClass('hidden'));
 		} else {
 			this.message.empty().addClass('hidden');
