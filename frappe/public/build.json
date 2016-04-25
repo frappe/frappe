@@ -43,6 +43,7 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/cal-heatmap.css",
+		"public/css/c3.min.css",
 		"public/css/desk.css",
 		"public/css/indicator.css",
 		"public/css/avatar.css",
@@ -65,6 +66,7 @@
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/d3.min.js",
 		"public/js/lib/cal-heatmap.js",
+		"public/js/lib/c3.min.js",
 
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
