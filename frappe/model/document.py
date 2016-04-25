@@ -276,6 +276,28 @@ class Document(BaseDocument):
 		return self
 
 	def is_versionable(self):
+		# slightly odd here, may want to refactor.
+		# since custom field is for DISABLING versioning,
+		# check if the doc is not disabled (dbl negative)
+		if self.check_if_module_is_versionable():
+			if not self.check_if_doc_is_disabled():
+				return True
+
+		return False
+
+	def check_if_doc_is_disabled(self):
+		filters = json.dumps({
+			"doc_type": self.doctype,
+			"property": 'disable_versioning'
+		})
+		try:
+			properties = frappe.client.get("Property Setter", filters=filters)
+			value = properties['value']
+		except:
+			value = False
+		return value
+
+	def check_if_module_is_versionable(self):
 		from frappe.client import get
 		module = frappe.model.meta.get_meta(self.doctype).as_dict()['module']
 		try:
@@ -310,6 +332,7 @@ class Document(BaseDocument):
 				if type(doc['old_value']) is not list:
 					history = Document(doc)
 					history.insert()
+					print(history)
 				else:
 					for idx, entry in enumerate(doc['old_value']):
 						self.log_field_changes(doc['new_value'][idx], entry)

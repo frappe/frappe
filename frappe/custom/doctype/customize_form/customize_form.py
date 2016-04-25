@@ -21,7 +21,8 @@ doctype_properties = {
 	'default_print_format': 'Data',
 	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
-	'max_attachments': 'Int'
+	'max_attachments': 'Int',
+	'disable_versioning': 'Check'
 }
 
 docfield_properties = {

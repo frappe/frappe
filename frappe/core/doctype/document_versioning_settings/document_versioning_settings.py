@@ -16,9 +16,13 @@ class DocumentVersioningSettings(Document):
 def get_modules():
 	modules = frappe.db.get_all('Module def')
 	settings_doc = frappe.client.get("Document Versioning Settings")
-	settings = json.loads(settings_doc['stored_modules'])
-	for module in modules:
-		module['value'] = settings[module['name']]
+	if settings_doc['stored_modules']:
+		settings = json.loads(settings_doc['stored_modules'])
+		for module in modules:
+			module['value'] = settings[module['name']]
+	else:
+		for module in modules:
+			module['value'] = False
 	return frappe.render_template(
         'frappe/core/doctype/document_versioning_settings/document_versioning_settings.html',
 		{'modules': modules})
