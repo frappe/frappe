@@ -278,9 +278,13 @@ class Document(BaseDocument):
 	def is_versionable(self):
 		from frappe.client import get
 		module = frappe.model.meta.get_meta(self.doctype).as_dict()['module']
-		settings = json.loads(get(
-			"Document Versioning Settings"
-			)['stored_modules'])
+		try:
+			settings = json.loads(get(
+				"Document Versioning Settings"
+				)['stored_modules'])
+		except TypeError:
+			settings = {}
+			settings[module] = False
 		return settings[module]
 
 	def log_field_changes(self, new_dict, old_dict):
