@@ -155,20 +155,24 @@ def has_permission(doctype, docname, perm_type="read"):
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
 
 @frappe.whitelist()
-def get_js(src):
-	src = src.strip("/").split("/")
+def get_js(items):
+	items = json.loads(items)
+	out = []
+	for src in items:
+		src = src.strip("/").split("/")
 
-	if ".." in src:
-		frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
+		if ".." in src:
+			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
-	contentpath = os.path.join(frappe.local.sites_path, *src)
-	with open(contentpath, "r") as srcfile:
-		code = frappe.utils.cstr(srcfile.read())
+		contentpath = os.path.join(frappe.local.sites_path, *src)
+		with open(contentpath, "r") as srcfile:
+			code = frappe.utils.cstr(srcfile.read())
 
-	print code
+		if frappe.local.lang != "en":
+			messages = frappe.get_lang_dict("jsfile", contentpath)
+			messages = json.dumps(messages)
+			code += "\n\n$.extend(frappe._messages, {})".format(messages)
 
-	if frappe.local.lang != "en":
-		messages = frappe.get_lang_dict("jsfile", contentpath)
-		messages = json.dumps(messages)
-		code += "\n\n$.extend(frappe._messages, {})".format(messages)
-	return code
+		out.append(code)
+
+	return out
