@@ -501,7 +501,7 @@ def extract_messages_from_code(code, is_py=False):
 	return pos_to_line_no(messages, code)
 
 def is_translatable(m):
-	if re.search("[a-z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
+	if re.search("[a-zA-Z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
 		return True
 	return False
 
