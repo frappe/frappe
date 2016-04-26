@@ -10,6 +10,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.headline = this.wrapper.find('.form-headline');
 		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
+		this.graph_area = this.wrapper.find('.form-graph');
 		this.stats_area = this.wrapper.find('.form-stats');
 		this.links_area = this.wrapper.find('.form-links');
 		this.transactions_area = this.links_area.find('.transactions');
@@ -25,6 +26,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		// clear links
 		this.links_area.addClass('hidden');
 		this.transactions_area.empty();
+		
+		//clear graphs
+		this.graph_area.empty().addClass('hidden');
 
 		// clear stats
 		this.stats_area.empty().addClass('hidden');
@@ -251,7 +255,49 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.stats_area.html(html).removeClass('hidden');
 		this.show();
 	},
+	
+	//graphs
+	add_graph: function(data, chart_type) {
+		var chart = c3.generate({
+			bindto: '.form-graph',
+		    data: {
+		        x: 'x',
+		        columns: data,
+				type: chart_type || 'line'
+		    },
+			axis: {
+				x: {
+					type: 'timeseries',
+					tick: {
+						format: '%d-%m-%Y'
+					}
+				},
+				y: {
+					min: 0,
+					padding: {bottom: 10}
+				}
+			},
+			legend: {
+				show: false
+			},
+			padding: {
+				right: 30,
+				bottom: 30
+			},
+		});
+
+		this.chart = chart;
+		this.graph_area.removeClass('hidden');
+		this.show();
+		this.set_chart_size();		
+	},
+	
 	show: function() {
 		this.wrapper.removeClass('hidden');
+	},
+	
+	set_chart_size: function() {
+		var width = this.wrapper.width() - 80;
+		this.chart.resize({ width: width });
 	}
 });
