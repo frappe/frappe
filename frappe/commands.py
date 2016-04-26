@@ -61,7 +61,7 @@ def call_command(cmd, context):
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
 def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
-	"Install a new site"
+	"Create a new site"
 	if not db_name:
 		db_name = hashlib.sha1(site).hexdigest()[:10]
 
@@ -182,7 +182,7 @@ def install_app(context, app):
 @click.command('list-apps')
 @pass_context
 def list_apps(context):
-	"Reinstall site ie. wipe all data and start over"
+	"List apps in site"
 	site = get_single_site(context)
 	frappe.init(site=site)
 	frappe.connect()
@@ -460,7 +460,7 @@ def reset_perms(context):
 @click.option('--kwargs')
 @pass_context
 def execute(context, method, args=None, kwargs=None):
-	"execute a function"
+	"Execute a function"
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -566,7 +566,7 @@ def export_json(context, doctype, name, path):
 @click.argument('path')
 @pass_context
 def export_csv(context, doctype, path):
-	"Dump DocType as csv"
+	"Export data import template for DocType"
 	from frappe.core.page.data_import_tool import data_import_tool
 	for site in context.sites:
 		try:
@@ -579,7 +579,7 @@ def export_csv(context, doctype, path):
 @click.command('export-fixtures')
 @pass_context
 def export_fixtures(context):
-	"export fixtures"
+	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 	for site in context.sites:
 		try:
@@ -775,11 +775,11 @@ def console(context):
 	IPython.embed()
 
 @click.command('run-tests')
-@click.option('--app')
-@click.option('--doctype')
-@click.option('--test', multiple=True)
-@click.option('--driver')
-@click.option('--module')
+@click.option('--app', help="For App")
+@click.option('--doctype', help="For DocType")
+@click.option('--test', multiple=True, help="Specific test")
+@click.option('--driver', help="For Travis")
+@click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False):
@@ -855,7 +855,7 @@ def doctor(site=None):
 @click.option('--site', help='site name')
 @pass_context
 def show_pending_jobs(context, site=None):
-	"Get diagnostic info about background workers"
+	"Get diagnostic info about background jobs"
 	if not site:
 		try:
 			site = context.sites[0]
@@ -889,12 +889,14 @@ def dump_queue_status():
 @click.argument('destination')
 @click.argument('app_name')
 def make_app(destination, app_name):
+	"Creates a boilerplate app"
 	from frappe.utils.boilerplate import make_boilerplate
 	make_boilerplate(destination, app_name)
 
 @click.command('use')
 @click.argument('site')
 def _use(site, sites_path='.'):
+	"Set a default site"
 	use(site, sites_path=sites_path)
 
 def use(site, sites_path='.'):
@@ -926,6 +928,7 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 @click.argument('app')
 @pass_context
 def remove_from_installed_apps(context, app):
+	"Remove app from site's installed-apps list"
 	from frappe.installer import remove_from_installed_apps
 	for site in context.sites:
 		try:
@@ -940,6 +943,7 @@ def remove_from_installed_apps(context, app):
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @pass_context
 def uninstall(context, app, dry_run=False):
+	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
@@ -976,6 +980,7 @@ def move(dest_dir, site):
 @click.argument('value')
 @pass_context
 def set_config(context, key, value):
+	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
 	for site in context.sites:
 		frappe.init(site=site)
@@ -988,6 +993,7 @@ def set_config(context, key, value):
 @click.option('--root-password')
 @click.option('--archived-sites-path')
 def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
+	"Remove site from database and filesystem"
 	from frappe.installer import get_current_host, make_connection
 	from frappe.model.db_schema import DbManager
 	from frappe.utils.backups import scheduled_backup
@@ -1012,6 +1018,7 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 @click.command('version')
 def get_version():
+	"Show the versions of all the installed apps"
 	frappe.init('')
 	for m in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(m)
