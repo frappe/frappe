@@ -294,6 +294,7 @@ class Document(BaseDocument):
 			properties = frappe.client.get("Property Setter", filters=filters)
 			value = properties['value']
 		except:
+			# no property setter for given document, so defaults to False
 			value = False
 		return value
 
