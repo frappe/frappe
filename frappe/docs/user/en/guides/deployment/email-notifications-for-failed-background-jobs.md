@@ -1,4 +1,4 @@
-
+<!-- markdown -->
 
 <p>Frappe handles failure of jobs in the following way,</p><p>1) If a job fails, (raises exception), it's logged in Scheduler Log and&nbsp; <code>logs/worker.error.log</code>.<br>2) Keeps a lock file and would not run anymore if lock file is there.<br>3) Raises LockTimeoutError in case the lock file is more than 10 minutes old.</p>
 
