@@ -120,7 +120,7 @@ def get_fullnames():
 	d = {}
 	for r in ret:
 		# if not r.image:
-		# 	r.image = get_gravatar()
+		# 	r.image = get_gravatar(r.name)
 		d[r.name] = r
 
 	return d
