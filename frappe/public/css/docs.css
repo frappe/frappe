@@ -253,8 +253,6 @@ img {
   max-width: 100%;
 }
 .splash {
-  padding-top: 128px;
-  margin-top: -92px;
   border-bottom: 1px solid #d1d8dd;
 }
 .splash .jumbotron {
