@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.tasks </title>
+	<title> Setup Multitenancy </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="current/api/frappe.tasks">
+<body data-path="user/en/bench/guides/setup-multitenancy">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -70,147 +71,117 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-frappe.tasks" data-path="current/api/frappe.tasks"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+<div class="page-container" id="page-setup-multitenancy" data-path="user/en/bench/guides/setup-multitenancy"
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe/user/en/bench/guides">
+		Guides</a>
 	</li>
 	
 </ul>
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.tasks</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>Setup Multitenancy</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.tasks" style="text-align: Left">
-	<!-- title: frappe.tasks --><div class="dev-header">
+	<article class="web-page-content" id="setup-multitenancy" style="text-align: Left">
+	<p>Assuming that you've already got your first site running and you've performed
+the <a href="production-setup.html">production deployment steps</a>, this section explains how to host your second
+site (and more). Your first site is automatically set as default site. You can
+change it with the command,</p>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+<pre><code>bench use sitename
+</code></pre>
 
+<h2>Port based multitenancy</h2>
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/tasks.py"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+<p>DNS based multitenancy mode is enabled by default, switch it off using the command
+<code>
+    bench config dns_multitenant off
+</code></p>
 
-</div>
+<p>You can create a new site and make run it on a different port (while the first
+one runs on port 80).</p>
 
+<ul>
+<li><p>Create a new site</p>
 
+<p><code>bench new-site site2name</code></p></li>
+<li><p>Set port</p>
 
+<p><code>bench set-nginx-port site2name 82</code></p></li>
+<li><p>Re generate nginx config</p>
 
+<p><code>bench setup nginx</code></p></li>
+<li><p>Reload nginx</p>
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.tasks.get_active_queues" href="#frappe.tasks.get_active_queues" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.tasks.<b>get_active_queues</b>
-        <i class="text-muted">(app, worker)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+<p><code>sudo service nginx reload</code></p></li>
+</ul>
 
-	
+<h2>DNS based multitenancy</h2>
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.tasks.get_required_queues" href="#frappe.tasks.get_required_queues" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.tasks.<b>get_required_queues</b>
-        <i class="text-muted">(app, prefix=)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+<p>You can name your sites as the hostnames that would resolve to it. Thus, all the sites you add to the bench would run on the same port and will be automatically selected based on the hostname. </p>
 
-	
+<p>To make a new site under DNS based multitenancy, perform the following steps.</p>
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.tasks.get_workers" href="#frappe.tasks.get_workers" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.tasks.<b>get_workers</b>
-        <i class="text-muted">(app)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+<ul>
+<li><p>Create a new site</p>
 
-	
+<p><code>bench new-site site2name</code></p></li>
+<li><p>Re generate nginx config</p>
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.tasks.is_site_in_maintenance_mode" href="#frappe.tasks.is_site_in_maintenance_mode" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.tasks.<b>is_site_in_maintenance_mode</b>
-        <i class="text-muted">(queue, prefix)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+<p><code>bench setup nginx</code></p></li>
+<li><p>Reload nginx</p>
 
-	
+<p><code>sudo service nginx reload</code></p></li>
+</ul>
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.tasks.sync_worker" href="#frappe.tasks.sync_worker" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.tasks.<b>sync_worker</b>
-        <i class="text-muted">(app, worker, prefix=)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-
-
-<!-- autodoc -->
 	</article>
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
-						<!-- edit-link -->
+						
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/bench/guides/setup-multitenancy.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                         </div>
                     </div>
 					<footer class="docs-footer">
@@ -265,6 +236,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-frappe.email.bulk" data-path="current/api/email/frappe.email.bulk"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.email.bulk</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.email.bulk</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="frappe.email.bulk" style="text-align: Left">
@@ -142,7 +149,7 @@
         <a name="frappe.email.bulk.add" href="#frappe.email.bulk.add" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.bulk.<b>add</b>
-        <i class="text-muted">(email, sender, subject, formatted, text_content=None, reference_doctype=None, reference_name=None, attachments=None, reply_to=None, cc=(), message_id=None, in_reply_to=None, send_after=None, bulk_priority=1, email_account=None)</i>
+        <i class="text-muted">(email, sender, subject, formatted, text_content=None, reference_doctype=None, reference_name=None, attachments=None, reply_to=None, cc=(), message_id=None, in_reply_to=None, send_after=None, bulk_priority=1, email_account=None, communication=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>add to bulk mail queue</p>
 </div>
@@ -254,7 +261,7 @@
         <a name="frappe.email.bulk.send" href="#frappe.email.bulk.send" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.bulk.<b>send</b>
-        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False, bulk_priority=1)</i>
+        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False, bulk_priority=1, communication=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add email to sending queue (Bulk Email)</p>
 
@@ -275,7 +282,24 @@
 <li><strong><code>message_id</code></strong> -  Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.</li>
 <li><strong><code>in_reply_to</code></strong> -  Used to send the Message-Id of a received email back as In-Reply-To.</li>
 <li><strong><code>send_after</code></strong> -  Send this email after the given datetime. If value is in integer, then <code>send_after</code> will be the automatically set to no of days from current date.</li>
+<li><strong><code>communication</code></strong> -  Communication link to be set in Bulk Email record</li>
 </ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.bulk.send_one" href="#frappe.email.bulk.send_one" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.email.bulk.<b>send_one</b>
+        <i class="text-muted">(email, smtpserver=None, auto_commit=True, now=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Send bulk email with given smtpserver</p>
 </div>
 	<br>
 
@@ -306,8 +330,9 @@
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -365,6 +390,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

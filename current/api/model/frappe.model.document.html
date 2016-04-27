@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-frappe.model.document" data-path="current/api/model/frappe.model.document"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.model.document</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.model.document</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="frappe.model.document" style="text-align: Left">
@@ -225,6 +232,20 @@ all values (including child documents) from the database.</p>
 <ul>
 <li><strong><code>comment_type</code></strong> -  e.g. <code>Comment</code>. See Communication for more info.</li>
 </ul>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="add_seen" href="#add_seen" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>add_seen</b>
+        <i class="text-muted">(self, user=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>add the given/current user to list of users who have seen this document (_seen)</p>
 </div>
 	<br>
 
@@ -606,6 +627,20 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
+        <a name="reset_seen" href="#reset_seen" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>reset_seen</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Clear _seen property and set current user as seen</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="round_floats_in" href="#round_floats_in" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>round_floats_in</b>
@@ -709,9 +744,9 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
-        <a name="set_docstatus_user_and_timestamp" href="#set_docstatus_user_and_timestamp" class="text-muted small">
+        <a name="set_docstatus" href="#set_docstatus" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>set_docstatus_user_and_timestamp</b>
+		<b>set_docstatus</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -779,6 +814,20 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
+        <a name="set_user_and_timestamp" href="#set_user_and_timestamp" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_user_and_timestamp</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="submit" href="#submit" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>submit</b>
@@ -793,12 +842,26 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
+        <a name="update_child_table" href="#update_child_table" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>update_child_table</b>
+        <i class="text-muted">(self, fieldname, df=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>sync child table for given fieldname</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="update_children" href="#update_children" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>update_children</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>update child tables</p>
 </div>
 	<br>
 
@@ -938,8 +1001,9 @@ user = get_doc({
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -997,6 +1061,7 @@ user = get_doc({
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> Checking Problems In Bench </title>
+	<title> Footer Item </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="user/en/guides/deployment/checking-problems-in-bench">
+<body data-path="current/models/website/footer_item">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -70,74 +71,165 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-checking-problems-in-bench" data-path="user/en/guides/deployment/checking-problems-in-bench"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+<div class="page-container" id="page-footer_item" data-path="current/models/website/footer_item"
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/en/guides/deployment">
-		Deployment</a>
+		<a href="https://frappe.github.io/frappe/current/models/website">
+		Module website</a>
 	</li>
 	
 </ul>
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>Checking Problems In Bench</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>Footer Item</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="checking-problems-in-bench" style="text-align: Left">
-	<!-- markdown -->
+	<article class="web-page-content" id="footer_item" style="text-align: Left">
+	<!-- title: Footer Item -->
 
-<p>If you're experiencing delays in scheduled jobs or they don't seem to run, you run run the following command to diagnose the issue.</p>
 
-<p><code>bench doctor</code></p>
 
-<p>A desirable output is like below</p>
 
-<pre><code>Workers online: True
-Pending tasks 0
-Timed out locks:
-</code></pre>
 
-<p>We'll be adding more health checks soon.</p>
+<div class="dev-header">
 
+<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+	Version 6.x.x</a>
+
+
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/website/doctype/footer_item"
+		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+
+</div>
+
+
+<span class="label label-info">Child Table</span>
+
+
+    <p><b>Table Name:</b> <code>tabFooter Item</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>label</code></td>
+            <td >
+                Data</td>
+            <td >
+                Label
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>group_label</code></td>
+            <td >
+                Select</td>
+            <td >
+                Group Label
+                
+            </td>
+            <td>
+                <pre>
+Company
+Contact
+Policy</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>url</code></td>
+            <td >
+                Data</td>
+            <td >
+                URL
+                <p class="text-muted small">
+                    Link to the page you want to open. Leave blank if you want to make it a group parent.</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>target</code></td>
+            <td >
+                Select</td>
+            <td >
+                Target
+                <p class="text-muted small">
+                    Select target = "_blank" to open in a new page.</p>
+            </td>
+            <td>
+                <pre>
+target = "_blank"</pre>
+            </td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    
+    
+
+
+<!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 	</article>
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
-						
-<div class="page-container">
-	<div class="page-content">
-	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
-		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/deployment/checking-problems-in-bench.md">
-			Improve this page
-		</a>
-	</div>
-	</div>
-</div>
+						<!-- edit-link -->
                         </div>
                     </div>
 					<footer class="docs-footer">
@@ -192,6 +284,7 @@ Timed out locks:
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

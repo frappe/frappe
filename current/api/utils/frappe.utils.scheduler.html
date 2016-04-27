@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-frappe.utils.scheduler" data-path="current/api/utils/frappe.utils.scheduler"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.utils.scheduler</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.utils.scheduler</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="frappe.utils.scheduler" style="text-align: Left">
@@ -164,7 +171,7 @@
         <a name="frappe.utils.scheduler.enqueue_applicable_events" href="#frappe.utils.scheduler.enqueue_applicable_events" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.scheduler.<b>enqueue_applicable_events</b>
-        <i class="text-muted">(site, nowtime, last)</i>
+        <i class="text-muted">(site, nowtime, last, queued_jobs=())</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -180,7 +187,39 @@
         <a name="frappe.utils.scheduler.enqueue_events" href="#frappe.utils.scheduler.enqueue_events" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.scheduler.<b>enqueue_events</b>
-        <i class="text-muted">(site)</i>
+        <i class="text-muted">(site, queued_jobs)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.scheduler.enqueue_events_for_all_sites" href="#frappe.utils.scheduler.enqueue_events_for_all_sites" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.scheduler.<b>enqueue_events_for_all_sites</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Loop through sites and enqueue events that are not already queued</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.scheduler.enqueue_events_for_site" href="#frappe.utils.scheduler.enqueue_events_for_site" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.scheduler.<b>enqueue_events_for_site</b>
+        <i class="text-muted">(site, queued_jobs)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -273,6 +312,39 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.utils.scheduler.scheduler_task" href="#frappe.utils.scheduler.scheduler_task" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.scheduler.<b>scheduler_task</b>
+        <i class="text-muted">(site, event, handler, now=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>This is a wrapper function that runs a hooks.scheduler_events method</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.scheduler.start_scheduler" href="#frappe.utils.scheduler.start_scheduler" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.scheduler.<b>start_scheduler</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Run enqueue<em>events</em>for<em>all</em>sites every 2 minutes (default).
+Specify scheduler<em>interval in seconds in common</em>site_config.json</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.utils.scheduler.toggle_scheduler" href="#frappe.utils.scheduler.toggle_scheduler" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.scheduler.<b>toggle_scheduler</b>
@@ -292,9 +364,9 @@
         <a name="frappe.utils.scheduler.trigger" href="#frappe.utils.scheduler.trigger" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.scheduler.<b>trigger</b>
-        <i class="text-muted">(site, event, now=False)</i>
+        <i class="text-muted">(site, event, queued_jobs=(), now=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>trigger method in startup.schedule_handler</p>
+	<div class="docs-attr-desc"><p>trigger method in hooks.scheduler_events</p>
 </div>
 	<br>
 
@@ -307,8 +379,9 @@
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -366,6 +439,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

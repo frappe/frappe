@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-communication" data-path="current/models/core/communication"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>Communication</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>Communication</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="communication" style="text-align: Left">
@@ -274,7 +281,10 @@ Rejected
 Delayed
 Soft-Bounced
 Clicked
-Recipient Unsubscribed</pre>
+Recipient Unsubscribed
+Error
+Expired
+Sending</pre>
             </td>
         </tr>
         
@@ -751,6 +761,20 @@ Received</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="bot_reply" href="#bot_reply" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>bot_reply</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_parent_doc" href="#get_parent_doc" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_parent_doc</b>
@@ -770,7 +794,7 @@ Received</pre>
 		<b>notify</b>
         <i class="text-muted">(self, print_html=None, print_format=None, attachments=None, recipients=None, cc=None, fetched_from_email_account=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue</p>
+	<div class="docs-attr-desc"><p>Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -831,6 +855,20 @@ Received</pre>
 <li><strong><code>print_html</code></strong> -  Send given value as HTML attachment.</li>
 <li><strong><code>print_format</code></strong> -  Attach print format of parent document.</li>
 </ul>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_delivery_status" href="#set_delivery_status" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_delivery_status</b>
+        <i class="text-muted">(self, commit=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Look into the status of Bulk Email linked to this Communication and set the Delivery Status of this Communication</p>
 </div>
 	<br>
 
@@ -938,6 +976,15 @@ Received</pre>
             <li>
 
 
+<a href="https://frappe.github.io/frappe/current/models/email/bulk_email">Bulk Email</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
 <a href="https://frappe.github.io/frappe/current/models/core/communication">Communication</a>
 
 </li>
@@ -954,8 +1001,9 @@ Received</pre>
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -1013,6 +1061,7 @@ Received</pre>
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

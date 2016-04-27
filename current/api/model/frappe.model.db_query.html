@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-frappe.model.db_query" data-path="current/api/model/frappe.model.db_query"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.model.db_query</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.model.db_query</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="frappe.model.db_query" style="text-align: Left">
@@ -276,7 +283,7 @@
         <a name="execute" href="#execute" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>execute</b>
-        <i class="text-muted">(self, query=None, fields=None, filters=None, or_filters=None, docstatus=None, group_by=None, order_by=None, limit_start=False, limit_page_length=None, as_list=False, with_childnames=False, debug=False, ignore_permissions=False, user=None, with_comment_count=False)</i>
+        <i class="text-muted">(self, query=None, fields=None, filters=None, or_filters=None, docstatus=None, group_by=None, order_by=None, limit_start=False, limit_page_length=None, as_list=False, with_childnames=False, debug=False, ignore_permissions=False, user=None, with_comment_count=False, join=left join, distinct=False, start=None, page_length=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -293,27 +300,6 @@
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>extract tables from fields</p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_filter" href="#get_filter" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_filter</b>
-        <i class="text-muted">(self, f)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns a _dict like</p>
-
-<p>{
-    "doctype": "DocType",
-    "fieldname": "fieldname",
-    "operator": "=",
-    "value": "value"
-}</p>
 </div>
 	<br>
 
@@ -340,20 +326,6 @@
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_share_condition</b>
         <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="make_filter_tuple" href="#make_filter_tuple" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>make_filter_tuple</b>
-        <i class="text-muted">(self, key, value)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -408,12 +380,12 @@
     
     
 	<p class="docs-attr-name">
-        <a name="remove_user_tags" href="#remove_user_tags" class="text-muted small">
+        <a name="run_custom_query" href="#run_custom_query" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>remove_user_tags</b>
-        <i class="text-muted">(self)</i>
+		<b>run_custom_query</b>
+        <i class="text-muted">(self, query)</i>
     </p>
-	<div class="docs-attr-desc"><p>Removes optional columns like <code>_user_tags</code>, <code>_comments</code> etc. if not in table</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -422,12 +394,27 @@
     
     
 	<p class="docs-attr-name">
-        <a name="run_custom_query" href="#run_custom_query" class="text-muted small">
+        <a name="set_field_tables" href="#set_field_tables" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>run_custom_query</b>
-        <i class="text-muted">(self, query)</i>
+		<b>set_field_tables</b>
+        <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>If there are more than one table, the fieldname must not be ambigous.
+If the fieldname is not explicitly mentioned, set the default table</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_optional_columns" href="#set_optional_columns" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_optional_columns</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Removes optional columns like <code>_user_tags</code>, <code>_comments</code> etc. if not in table</p>
 </div>
 	<br>
 
@@ -458,8 +445,9 @@
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -517,6 +505,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

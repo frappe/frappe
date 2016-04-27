@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -71,14 +72,17 @@
                         <div class="container" data-html-block="content">
                         
 <div class="page-container" id="page-frappe.__init__" data-path="current/api/frappe.__init__"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
@@ -92,15 +96,18 @@
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.__init__</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.__init__</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="frappe.__init__" style="text-align: Left">
@@ -248,6 +255,27 @@
     </p>
 	<div class="docs-attr-desc"><p>Insert a new <strong>Version</strong> of the given document.
 A <strong>Version</strong> is a JSON dump of the current document state.</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.append_hook" href="#frappe.append_hook" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>append_hook</b>
+        <i class="text-muted">(target, key, value)</i>
+    </p>
+	<div class="docs-attr-desc"><p>appends a hook to the the target dict.</p>
+
+<p>If the hook key, exists, it will make it a key.</p>
+
+<p>If the hook value is a dict, like doc_events, it will
+listify the values against the key.</p>
 </div>
 	<br>
 
@@ -683,6 +711,22 @@ frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.get_conf" href="#frappe.get_conf" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>get_conf</b>
+        <i class="text-muted">(site=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.get_doc" href="#frappe.get_doc" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_doc</b>
@@ -706,6 +750,22 @@ tood.insert()
 # open an existing document
 todo = frappe.get_doc("ToDo", "TD0001")
 </code></pre>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.get_doc_hooks" href="#frappe.get_doc_hooks" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>get_doc_hooks</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns hooked methods for given doc. It will expand the dict tuple if required.</p>
 </div>
 	<br>
 
@@ -1224,7 +1284,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.has_permission" href="#frappe.has_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>has_permission</b>
-        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False, throw=False)</i>
+        <i class="text-muted">(doctype=None, ptype=read, doc=None, user=None, verbose=False, throw=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raises <code>frappe.PermissionError</code> if not permitted.</p>
 
@@ -1295,6 +1355,61 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
 	<div class="docs-attr-desc"><p>Initialize frappe for the current site. Reset thread locals <code>frappe.local</code></p>
 </div>
 	<br>
+
+	
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>init_site</b></h3>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="__enter__" href="#__enter__" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>__enter__</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="__exit__" href="#__exit__" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>__exit__</b>
+        <i class="text-muted">(self, type, value, traceback)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="__init__" href="#__init__" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>__init__</b>
+        <i class="text-muted">(self, site=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>If site==None, initialize it for empty site ('') to load common<em>site</em>config.json</p>
+</div>
+	<br>
+
+        
+    </div>
+    <hr>
 
 	
 
@@ -1498,6 +1613,34 @@ response JSON and shown in a pop-up / modal.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.redirect_to_message" href="#frappe.redirect_to_message" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>redirect_to_message</b>
+        <i class="text-muted">(title, html, http_status_code=None, context=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Redirects to /message?id=random
+Similar to respond<em>as</em>web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>title</code></strong> -  Page title and heading.</li>
+<li><strong><code>message</code></strong> -  Message to be shown.</li>
+<li><strong><code>http_status_code</code></strong> -  HTTP status code.</li>
+</ul>
+
+<p>Example Usage:
+    frappe.redirect<em>to</em>message(_('Thank you'), "</p><div><p>You will receive an email at test@example.com</p></div>")<p></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.reload_doc" href="#frappe.reload_doc" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>reload_doc</b>
@@ -1615,7 +1758,7 @@ response JSON and shown in a pop-up / modal.</p>
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, bulk=False, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False, bulk_priority=1)</i>
+        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, bulk=False, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False, bulk_priority=1, communication=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 
@@ -1639,6 +1782,7 @@ response JSON and shown in a pop-up / modal.</p>
 <li><strong><code>in_reply_to</code></strong> -  Used to send the Message-Id of a received email back as In-Reply-To.</li>
 <li><strong><code>send_after</code></strong> -  Send after the given datetime.</li>
 <li><strong><code>expose_recipients</code></strong> -  Display all recipients in the footer message - "This email was sent to"</li>
+<li><strong><code>communication</code></strong> -  Communication link to be set in Bulk Email record</li>
 </ul>
 </div>
 	<br>
@@ -1791,8 +1935,9 @@ def myfunc(param1, param2):
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -1850,6 +1995,7 @@ def myfunc(param1, param2):
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

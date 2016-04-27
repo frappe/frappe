@@ -236,6 +236,10 @@ body {
 .toggle-sidebar {
   margin-right: 15px;
 }
+.navbar-default .navbar-nav > li > a,
+.navbar-default .navbar-brand {
+  color: #8D99A6;
+}
 body {
   font-size: 16px;
   line-height: 1.65em;
@@ -445,12 +449,12 @@ pre {
   color: inherit;
 }
 a.btn-primary {
-  color: #fff;
+  color: #7575ff;
 }
 a.btn-primary:hover,
 a.btn-primary:focus,
 a.btn-primary:visited {
-  color: #fff;
+  color: #7575ff;
 }
 .btn-next-wrapper {
   margin-top: 32px;

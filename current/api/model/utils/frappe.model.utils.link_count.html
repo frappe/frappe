@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> Configuring Https </title>
+	<title> frappe.model.utils.link_count </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="user/en/guides/deployment/configuring-https">
+<body data-path="current/api/model/utils/frappe.model.utils.link_count">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -70,113 +71,106 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-configuring-https" data-path="user/en/guides/deployment/configuring-https"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+<div class="page-container" id="page-frappe.model.utils.link_count" data-path="current/api/model/utils/frappe.model.utils.link_count"
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/user/en/guides/deployment">
-		Deployment</a>
+		<a href="https://frappe.github.io/frappe/current/api/model/utils">
+		utils</a>
 	</li>
 	
 </ul>
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>Configuring Https</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.model.utils.link_count</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="configuring-https" style="text-align: Left">
-	<!-- markdown -->
+	<article class="web-page-content" id="frappe.model.utils.link_count" style="text-align: Left">
+	<!-- title: frappe.model.utils.link_count --><div class="dev-header">
 
-<h3>Get the required files</h3>
+<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+	Version 6.x.x</a>
 
-<p>You can buy a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted.</p>
 
-<p>The files required are</p>
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/model/utils/link_count.py"
+		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
-<ul>
-<li>Certificate (usually with extension .crt)</li>
-<li>Decrypted private key</li>
-</ul>
+</div>
 
-<p>If you have multiple certificates (primary and intermediate), you will have to concatenate them. For example,</p>
 
-<pre><code>cat your_certificate.crt CA.crt &gt;&gt; certificate_bundle.crt
-</code></pre>
 
-<p>Also make sure that your private key is not world readable. Generally, it is owned and readable only by root</p>
 
-<pre><code>chown root private.key
-chmod 600 private.key
-</code></pre>
 
-<h3>Move the two files to an appropriate location</h3>
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.utils.link_count.notify_link_count" href="#frappe.model.utils.link_count.notify_link_count" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.utils.link_count.<b>notify_link_count</b>
+        <i class="text-muted">(doctype, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p>updates link count for given document</p>
+</div>
+	<br>
 
-<pre><code>mkdir /etc/nginx/conf.d/ssl
-mv private.key /etc/nginx/conf.d/ssl/private.key
-mv certificate_bundle.crt /etc/nginx/conf.d/ssl/certificate_bundle.crt
-</code></pre>
+	
 
-<h3>Setup nginx config</h3>
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.utils.link_count.update_link_count" href="#frappe.model.utils.link_count.update_link_count" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.utils.link_count.<b>update_link_count</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>increment link count in the <code>idx</code> column for the given document</p>
+</div>
+	<br>
 
-<p>Set the paths to the certificate and private key for your site</p>
+	
 
-<pre><code>bench set-ssl-certificate site1.local /etc/nginx/ssl/certificate_bundle.crt
-bench set-ssl-key site1.local /etc/nginx/ssl/private.key
-</code></pre>
 
-<h3>Generate nginx config</h3>
 
-<pre><code>bench setup nginx
-</code></pre>
-
-<h3>Reload nginx</h3>
-
-<pre><code>service nginx reload
-</code></pre>
-
-<p>or</p>
-
-<pre><code>systemctl reload nginx # for CentOS 7
-</code></pre>
-
+<!-- autodoc -->
 	</article>
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
-						
-<div class="page-container">
-	<div class="page-content">
-	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
-		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/deployment/configuring-https.md">
-			Improve this page
-		</a>
-	</div>
-	</div>
-</div>
+						<!-- edit-link -->
                         </div>
                     </div>
 					<footer class="docs-footer">
@@ -231,6 +225,7 @@ bench set-ssl-key site1.local /etc/nginx/ssl/private.key
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>

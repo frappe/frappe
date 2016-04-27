@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.celery_app </title>
+	<title> frappe.utils.identicon </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="current/api/frappe.celery_app">
+<body data-path="current/api/utils/frappe.utils.identicon">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,6 +59,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
@@ -70,47 +71,53 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-frappe.celery_app" data-path="current/api/frappe.celery_app"
-    data-doctype="Web Page">
-	<div class="page-content">
-    	<div class="page-content-wrapper">
-            <div class="row">
-				<div class=" col-sm-12 ">
-					
-	                <div class="page-breadcrumbs" data-html-block="breadcrumbs">
-	                    
+<div class="page-container" id="page-frappe.utils.identicon" data-path="current/api/utils/frappe.utils.identicon"
+	data-doctype="Web Page">
+		<div class="page-content page-max-width">
+			<div class="row ">
+				
+				<div class=" content-block col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class="col-sm-8">
+								
+								<div class="page-breadcrumbs">
+									
     
     
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe/current/api/utils">
+		utils</a>
 	</li>
 	
 </ul>
 
     
 
-	                </div>
-					
-	        		<div class="page-header-block" data-html-block="header">
-	                    <h1>frappe.celery_app</h1>
-	        		</div>
-                </div>
-				
-            </div>
-    	    <div class="page-content-block">
+								</div>
+								
+								<h1>frappe.utils.identicon</h1>
+							</div>
+							<div class="col-sm-4">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.celery_app" style="text-align: Left">
-	<!-- title: frappe.celery_app --><div class="dev-header">
+	<article class="web-page-content" id="frappe.utils.identicon" style="text-align: Left">
+	<!-- title: frappe.utils.identicon --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 6.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/celery_app.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/identicon.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -121,7 +128,7 @@
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>AsyncTaskRouter</b></h3>
+	<h3 style="font-weight: normal;">Class <b>Identicon</b></h3>
     
     <p style="padding-left: 30px;"><i>Inherits from __builtin__.object</i></h4>
     
@@ -133,188 +140,81 @@
     
     
 	<p class="docs-attr-name">
-        <a name="route_for_task" href="#route_for_task" class="text-muted small">
+        <a name="__init__" href="#__init__" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>route_for_task</b>
-        <i class="text-muted">(self, task, args=None, kwargs=None)</i>
+		<b>__init__</b>
+        <i class="text-muted">(self, str_, background=#fafbfc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p><code>str_</code> is the string used to generate the identicon.
+<code>background</code> is the background of the identicon.</p>
 </div>
 	<br>
 
-        
-    </div>
-    <hr>
-
-	
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>FrappeTask</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from celery.app.task.Task</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
         
         
     
     
 	<p class="docs-attr-name">
-        <a name="run" href="#run" class="text-muted small">
+        <a name="base64" href="#base64" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>run</b>
+		<b>base64</b>
+        <i class="text-muted">(self, format=PNG)</i>
+    </p>
+	<div class="docs-attr-desc"><p>usage:  i = Identicon('xx')
+        print(i.base64())
+return: this image's base64 code
+created by: liuzheng712
+bug report: https://github.com/liuzheng712/identicons/issues</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="calculate" href="#calculate" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>calculate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Creates the identicon.
+First three bytes are used to generate the color,
+remaining bytes are used to create the drawing</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="digest" href="#digest" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>digest</b>
+        <i class="text-muted">(self, str_)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns a md5 numeric hash</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="generate" href="#generate" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>generate</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Save and show calculated identicon</p>
 </div>
 	<br>
 
         
     </div>
     <hr>
-
-	
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>SiteRouter</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from __builtin__.object</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="route_for_task" href="#route_for_task" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>route_for_task</b>
-        <i class="text-muted">(self, task, args=None, kwargs=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-    </div>
-    <hr>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.celery_task" href="#frappe.celery_app.celery_task" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>celery_task</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.get_beat_schedule" href="#frappe.celery_app.get_beat_schedule" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>get_beat_schedule</b>
-        <i class="text-muted">(conf)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.get_celery" href="#frappe.celery_app.get_celery" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>get_celery</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.get_celery_app" href="#frappe.celery_app.get_celery_app" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>get_celery_app</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.get_queue" href="#frappe.celery_app.get_queue" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>get_queue</b>
-        <i class="text-muted">(site, prefix=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.get_site_config" href="#frappe.celery_app.get_site_config" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>get_site_config</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.celery_app.run_test" href="#frappe.celery_app.run_test" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.celery_app.<b>run_test</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
 
 	
 
@@ -325,8 +225,9 @@
 	
 </div>
 </div>
-    	</div>
-	</div>
+				</div>
+			</div>
+		</div>
 </div>
 
 						<!-- edit-link -->
@@ -384,6 +285,7 @@
 		
 		>
 	API Documentation</a></li>
+	<li class="shopping-cart" style="padding-top:9px;"></li>
 	<!-- post login tools -->
 
 </ul>
