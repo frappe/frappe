@@ -86,7 +86,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					delete_email_subscribe(doc)
 
 				# check if links exist
-				if not force:
+				if not force and doc.doctype not in ("ToDo", "Communication", "DocShare", "Email Unsubscribe"):
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
@@ -165,7 +165,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")
-					.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt, 
+					.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
 					item.parent or item.name), frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):

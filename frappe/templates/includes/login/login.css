@@ -8,12 +8,12 @@
 }
 
 .blue {
-	color: #7575ff;	
+	color: #7575ff;
 }
 
 .icon-facebook, .icon-facebook-sign{
     color: #3b5998;
-}	
+}
 .icon-google-plus, .icon-google-plus-sign{
     color: #C63D2D;
 }
@@ -37,7 +37,7 @@
   max-width: 360px;
   padding-right: 30px;
   padding-left: 30px;
-  padding-top: 10px;
+  padding-top: 50px;
   margin: 0 auto;
   border-radius: 5px;
   background-color: #fff;

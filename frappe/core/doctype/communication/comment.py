@@ -39,6 +39,8 @@ def update_comment_in_doc(doc):
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
 
+	Only user created comments Communication or Comment of type Comment are saved.
+
 	`_comments` format
 
 		{
@@ -47,15 +49,19 @@ def update_comment_in_doc(doc):
 			"name": [Comment Document name]
 		}"""
 
-	if doc.communication_type != "Comment":
+	if doc.communication_type not in ("Comment", "Communication"):
 		return
 
-	if doc.reference_doctype and doc.reference_name and doc.content and doc.comment_type=="Comment":
+	if doc.communication_type == 'Comment' and doc.comment_type != 'Comment':
+		# other updates
+		return
+
+	if doc.reference_doctype and doc.reference_name and doc.content:
 		_comments = get_comments_from_parent(doc)
 		updated = False
 		for c in _comments:
 			if c.get("name")==doc.name:
-				c["comment"] = doc.content
+				c["comment"] = (doc.content[:97] + '...') if len(doc.content) > 100 else doc.content
 				updated = True
 
 		if not updated:
@@ -64,6 +70,7 @@ def update_comment_in_doc(doc):
 				"by": doc.sender or doc.owner,
 				"name": doc.name
 			})
+
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
 
 def notify_mentions(doc):
