@@ -257,14 +257,11 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 	
 	//graphs
-	add_graph: function(data, chart_type) {
+	add_graph: function(data) {
+		if(!data) data = {};
 		var chart = c3.generate({
 			bindto: '.form-graph',
-		    data: {
-		        x: 'x',
-		        columns: data,
-				type: chart_type || 'line'
-		    },
+		    data: data,
 			axis: {
 				x: {
 					type: 'timeseries',
@@ -283,7 +280,8 @@ frappe.ui.form.Dashboard = Class.extend({
 			padding: {
 				right: 30,
 				bottom: 30
-			},
+			}
+			
 		});
 
 		this.chart = chart;
