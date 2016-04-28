@@ -216,6 +216,7 @@ class EmailAccount(Document):
 
 		self.set_thread(communication, email)
 
+		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
 
 		# save attachments

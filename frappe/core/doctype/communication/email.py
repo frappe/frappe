@@ -70,7 +70,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
-	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email"):
+	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email") or doc.flags.in_receive:
 		return
 
 	# validate recipients
