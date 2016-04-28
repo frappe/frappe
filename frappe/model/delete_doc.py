@@ -86,7 +86,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					delete_email_subscribe(doc)
 
 				# check if links exist
-				if not force and doc.doctype not in ("ToDo", "Communication", "DocShare", "Email Unsubscribe"):
+				if not force:
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
