@@ -139,7 +139,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			"%s", "%s"), (json.dumps(_comments), reference_name))
 
 	except Exception, e:
-		if e.args[0] == 1054 and getattr(frappe.local, 'request'):
+		if e.args[0] == 1054 and getattr(frappe.local, 'request', None):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])
 				+ [(reference_doctype, reference_name, _comments)])
