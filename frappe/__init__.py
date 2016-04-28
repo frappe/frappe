@@ -965,7 +965,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None):
 
 	"""
 
-	message_id = generate_hash(length=32)
+	message_id = generate_hash(length=8)
 	message = {
 		'context': context or {},
 		'http_status_code': http_status_code or 200
