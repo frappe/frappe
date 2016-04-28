@@ -56,17 +56,21 @@ def update_comment_in_doc(doc):
 		# other updates
 		return
 
+	def get_content(doc):
+		return (doc.content[:97] + '...') if len(doc.content) > 100 else doc.content
+
 	if doc.reference_doctype and doc.reference_name and doc.content:
 		_comments = get_comments_from_parent(doc)
+
 		updated = False
 		for c in _comments:
 			if c.get("name")==doc.name:
-				c["comment"] = (doc.content[:97] + '...') if len(doc.content) > 100 else doc.content
+				c["comment"] = get_content(doc)
 				updated = True
 
 		if not updated:
 			_comments.append({
-				"comment": doc.content,
+				"comment": get_content(doc),
 				"by": doc.sender or doc.owner,
 				"name": doc.name
 			})
@@ -116,7 +120,10 @@ def get_comments_from_parent(doc):
 		else:
 			raise
 
-	return json.loads(_comments)
+	try:
+		return json.loads(_comments)
+	except ValueError:
+		return []
 
 def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	"""Updates `_comments` property in parent Document with given dict.
