@@ -458,24 +458,6 @@ class DatabaseQuery(object):
 			if not r.name:
 				continue
 
+			r._comment_count = 0
 			if "_comments" in r:
-				comment_count = len(json.loads(r._comments or "[]"))
-			else:
-				comment_count = cint(frappe.db.get_value("Communication",
-					filters={
-						"communication_type": "Comment",
-						"reference_doctype": self.doctype,
-						"reference_name": r.name,
-						"comment_type": "Comment"
-					},
-					fieldname="count(name)"))
-
-			communication_count = cint(frappe.db.get_value("Communication",
-				filters={
-					"communication_type": "Communication",
-					"reference_doctype": self.doctype,
-					"reference_name": r.name
-				},
-				fieldname="count(name)"))
-
-			r._comment_count = comment_count + communication_count
+				r._comment_count = len(json.loads(r._comments or "[]"))
