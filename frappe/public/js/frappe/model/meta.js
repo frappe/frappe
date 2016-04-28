@@ -52,6 +52,10 @@ $.extend(frappe.meta, {
 		}
 	},
 
+	get_field: function(dt, fn, dn) {
+		return frappe.meta.get_docfield(dt, fn, dn);
+	},
+
 	get_docfield: function(dt, fn, dn) {
 		return frappe.meta.get_docfield_copy(dt, dn)[fn];
 	},

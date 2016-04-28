@@ -188,7 +188,7 @@ $.extend(frappe.model, {
 		// if given doc, fieldname only
 		if(arguments.length===2) {
 			parentfield = doctype;
-			doctype = frappe.meta.get_field(doc.doctype, parentfield).options;
+			doctype = frappe.meta.get_field(parent_doc.doctype, parentfield).options;
 		}
 
 		// create row doc

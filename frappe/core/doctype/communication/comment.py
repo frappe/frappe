@@ -9,6 +9,7 @@ from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
 from frappe.model.db_schema import add_column
+from frappe.exceptions import ImplicitCommitError
 
 def validate_comment(doc):
 	"""Raise exception for more than 50 comments."""
@@ -138,13 +139,12 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			"%s", "%s"), (json.dumps(_comments), reference_name))
 
 	except Exception, e:
-		if e.args[0] == 1054 and frappe.local.request:
+		if e.args[0] == 1054 and getattr(frappe.local, 'request'):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])
 				+ [(reference_doctype, reference_name, _comments)])
-
 		else:
-			raise
+			raise ImplicitCommitError
 
 	else:
 		if not frappe.flags.in_patch:
