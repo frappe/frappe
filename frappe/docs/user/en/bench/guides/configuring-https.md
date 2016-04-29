@@ -1,7 +1,8 @@
-<!-- markdown -->
+# Configuring HTTPS
+
 ### Get the required files
 
-You can buy a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted.
+You can get a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted. [Here's a tutorial for using Let's Encrypt to get a free SSL Certificate](lets-encrypt-ssl-setup.html)
 
 The files required are
 
@@ -41,3 +42,5 @@ Set the paths to the certificate and private key for your site
 or
 
 	systemctl reload nginx # for CentOS 7 
+
+Now that you have configured SSL, all HTTP traffic will be redirected to HTTPS
