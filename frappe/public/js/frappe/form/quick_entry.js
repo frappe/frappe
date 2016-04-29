@@ -48,6 +48,9 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		dialog.doc = doc;
 
+		// refresh dependencies etc
+		dialog.refresh();
+
 		dialog.set_primary_action(__('Save'), function() {
 			var data = dialog.get_values();
 
