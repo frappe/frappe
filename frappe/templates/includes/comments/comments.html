@@ -1,5 +1,5 @@
 <div class="comment-view">
-	<div class="comment-header">{{ comment_text }}</div>
+	<div class="comment-header">{{ comment_text or "" }}</div>
 {% if not comment_list %}
 <div class="no-comment">
 	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
@@ -7,7 +7,7 @@
 </div>
 {% endif %}
 
-<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">	
+<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 	{% for comment in comment_list %}
 	{% include "templates/includes/comments/comment.html" %}
 	{% endfor %}
@@ -37,7 +37,7 @@
 					</div>
 					<textarea class="form-control" name="comment" rows=10
 						placeholder="{{ _("Comment") }}"></textarea>
-					<p style="text-align:center;">
+					<p style="margin-top: 15px;">
                         <button class="btn btn-primary btn-sm" id="submit-comment">
                             {{ _("Submit") }}</button>
                     </p>
@@ -62,7 +62,7 @@
 		if(n_comments > 50) {
 			$(".add-comment").toggle(false)
 				.parent().append("<div class='text-muted'>Comments are closed.</div>")
-		}		
+		}
 
             var full_name = "", user_id = "";
             if(frappe.is_user_logged_in()) {
@@ -74,7 +74,7 @@
                 }
             }
 			$("#comment-form textarea").val("");
-		
+
 		$("#submit-comment").click(function() {
 			var args = {
 				comment_by_fullname: $("[name='comment_by_fullname']").val(),
