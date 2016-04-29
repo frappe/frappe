@@ -96,7 +96,9 @@ frappe.form.formatters = {
 		return value || "";
 	},
 	Datetime: function(value) {
-		return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
+		return value ? moment(dateutil.convert_to_user_tz(value))
+			.tz(frappe.boot.sysdefaults.time_zone).format('MMMM Do YYYY, h:mm a z') : "";
+		//return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
 	},
 	Text: function(value) {
 		if(value) {

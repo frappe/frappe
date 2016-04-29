@@ -179,19 +179,22 @@ frappe.ui.form.PrintPreview = Class.extend({
 			.empty().add_options(this.print_formats);
 	},
 	with_old_style: function(opts) {
-		var me = this;
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
+		});
 	},
 	print_old_style: function() {
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(this.print_sel.val(), _p.go,
-			!this.with_letterhead());
+		var me = this;
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(me.print_sel.val(), _p.go,
+				!me.with_letterhead());
+		});
 	},
 	new_page_preview_old_style: function() {
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(this.print_sel.val(), _p.preview,
-			!this.with_letterhead());
+		var me = this;
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(me.print_sel.val(), _p.preview, !me.with_letterhead());
+		});
 	},
 	selected_format: function() {
 		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";

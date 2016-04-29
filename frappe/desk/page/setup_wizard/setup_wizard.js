@@ -27,24 +27,20 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	$(".navbar:first").toggle(false);
 	$("body").css({"padding-top":"30px"});
 
-	frappe.require("/assets/frappe/css/animate.min.css");
+	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
-	$.each(frappe.boot.setup_wizard_requires || [], function(i, path) {
-		frappe.require(path);
+	frappe.require(requires, function() {
+		frappe.wiz.run_event("before_load");
+		var wizard_settings = {
+			page_name: "setup-wizard",
+			parent: wrapper,
+			slides: frappe.wiz.slides,
+			title: __("Welcome")
+		}
+
+		frappe.wiz.wizard = new frappe.wiz.Wizard(wizard_settings);
+		frappe.wiz.run_event("after_load");
 	});
-
-	frappe.wiz.run_event("before_load");
-
-	var wizard_settings = {
-		page_name: "setup-wizard",
-		parent: wrapper,
-		slides: frappe.wiz.slides,
-		title: __("Welcome")
-	}
-
-	frappe.wiz.wizard = new frappe.wiz.Wizard(wizard_settings);
-
-	frappe.wiz.run_event("after_load");
 }
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {

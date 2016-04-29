@@ -666,13 +666,16 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 			this.plot_area.toggle(false);
 			return;
 		}
-		frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
-		frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
 
-		this.plot = $.plot(this.plot_area.toggle(true), plot_data,
-			this.get_plot_options());
+		var me = this;
+		frappe.require(['assets/frappe/js/lib/flot/jquery.flot.js',
+			'assets/frappe/js/lib/flot/jquery.flot.downsample.js'], function() {
+			me.plot = $.plot(me.plot_area.toggle(true), plot_data,
+				me.get_plot_options());
 
-		this.setup_plot_hover();
+			me.setup_plot_hover();
+		});
+
 	},
 	setup_plot_check: function() {
 		var me = this;

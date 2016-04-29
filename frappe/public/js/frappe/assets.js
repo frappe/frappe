@@ -9,7 +9,7 @@ frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	frappe.assets.execute(items);
+	frappe.assets.execute(items, callback);
 };
 
 frappe.assets = {
@@ -59,7 +59,7 @@ frappe.assets = {
 	executed_ : [],
 
 	// pass on to the handler to set
-	execute: function(items) {
+	execute: function(items, callback) {
 		var to_fetch = []
 		for(var i=0, l=items.length; i<l; i++) {
 			if(!frappe.assets.exists(items[i])) {
@@ -67,9 +67,15 @@ frappe.assets = {
 			}
 		}
 		if(to_fetch.length) {
-			frappe.assets.fetch(to_fetch);
+			frappe.assets.fetch(to_fetch, function() {
+				frappe.assets.eval_assets(items, callback);
+			});
+		} else {
+			frappe.assets.eval_assets(items, callback);
 		}
+	},
 
+	eval_assets: function(items, callback) {
 		for(var i=0, l=items.length; i<l; i++) {
 			// execute js/css if not already.
 			var path = items[i];
@@ -79,6 +85,7 @@ frappe.assets = {
 				frappe.assets.executed_.push(path)
 			}
 		}
+		callback();
 	},
 
 	// check if the asset exists in
@@ -98,7 +105,7 @@ frappe.assets = {
 	},
 
 	// load an asset via
-	fetch: function(items) {
+	fetch: function(items, callback) {
 		// this is virtual page load, only get the the source
 		// *without* the template
 
@@ -112,10 +119,10 @@ frappe.assets = {
 				$.each(items, function(i, src) {
 					frappe.assets.add(src, r.message[i]);
 				});
+				callback();
 			},
-			async: false,
 			freeze: true,
-		})
+		});
 	},
 
 	add: function(src, txt) {

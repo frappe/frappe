@@ -64,7 +64,6 @@ frappe.request.call = function(opts) {
 
 	var statusCode = {
 		200: function(data, xhr) {
-			if(typeof data === "string") data = JSON.parse(data);
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function(xhr) {
@@ -136,6 +135,25 @@ frappe.request.call = function(opts) {
 	frappe.last_request = ajax_args.data;
 
 	return $.ajax(ajax_args)
+		.done(function(data, textStatus, xhr) {
+			if(typeof data === "string") data = JSON.parse(data);
+
+			// sync attached docs
+			if(data.docs || data.docinfo) {
+				frappe.model.sync(data);
+			}
+
+			// sync translated messages
+			if(data.__messages) {
+				$.extend(frappe._messages, data.__messages);
+			}
+
+			// callbacks
+			var status_code_handler = statusCode[xhr.statusCode().status];
+			if (status_code_handler) {
+				status_code_handler(data, xhr);
+			}
+		})
 		.always(function(data, textStatus, xhr) {
 			if(typeof data==="string") {
 				data = JSON.parse(data);
@@ -147,12 +165,6 @@ frappe.request.call = function(opts) {
 			frappe.request.cleanup(opts, data);
 			if(opts.always) {
 				opts.always(data);
-			}
-		})
-		.done(function(data, textStatus, xhr) {
-			var status_code_handler = statusCode[xhr.statusCode().status];
-			if (status_code_handler) {
-				status_code_handler(data, xhr);
 			}
 		})
 		.fail(function(xhr, textStatus) {
@@ -251,12 +263,6 @@ frappe.request.cleanup = function(opts, r) {
 		console.log("========");
 	}
 
-	if(r.docs || r.docinfo) {
-		frappe.model.sync(r);
-	}
-	if(r.__messages) {
-		$.extend(frappe._messages, r.__messages);
-	}
 
 	frappe.last_response = r;
 

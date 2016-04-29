@@ -6,67 +6,69 @@ frappe.provide("frappe.activity");
 frappe.pages['activity'].on_page_load = function(wrapper) {
 	var me = this;
 
-	frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
-	frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
-
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		single_column: true
 	});
 
-	this.page = wrapper.page;
+	me.page = wrapper.page;
 
-	this.page.set_title(__("Activity"));
+	me.page.set_title(__("Activity"));
 
-	frappe.model.with_doctype("Communication", function() {
-		me.page.list = new frappe.ui.Listing({
-			hide_refresh: true,
-			page: me.page,
-			method: 'frappe.desk.page.activity.activity.get_feed',
-			parent: $("<div></div>").appendTo(me.page.main),
-			render_row: function(row, data) {
-				new frappe.activity.Feed(row, data);
-			},
-			show_filters: true,
-			doctype: "Communication",
- 			get_args: function() {
-				if (frappe.route_options && frappe.route_options.show_likes) {
-					delete frappe.route_options.show_likes;
-					return {
-						show_likes: true
+	frappe.require(['assets/frappe/js/lib/flot/jquery.flot.js',
+		'assets/frappe/js/lib/flot/jquery.flot.downsample.js'], function() {
+
+			frappe.model.with_doctype("Communication", function() {
+				me.page.list = new frappe.ui.Listing({
+					hide_refresh: true,
+					page: me.page,
+					method: 'frappe.desk.page.activity.activity.get_feed',
+					parent: $("<div></div>").appendTo(me.page.main),
+					render_row: function(row, data) {
+						new frappe.activity.Feed(row, data);
+					},
+					show_filters: true,
+					doctype: "Communication",
+		 			get_args: function() {
+						if (frappe.route_options && frappe.route_options.show_likes) {
+							delete frappe.route_options.show_likes;
+							return {
+								show_likes: true
+							}
+						} else {
+							return {}
+						}
 					}
-				} else {
-					return {}
+				});
+
+				me.page.list.run();
+
+				me.page.set_primary_action(__("Refresh"), function() {
+					me.page.list.filter_list.clear_filters();
+					me.page.list.run();
+				}, "octicon octicon-sync");
+			});
+
+			frappe.activity.render_plot(me.page);
+
+			me.page.main.on("click", ".activity-message", function() {
+				var link_doctype = $(this).attr("data-link-doctype"),
+					link_name = $(this).attr("data-link-name"),
+					doctype = $(this).attr("data-doctype"),
+					docname = $(this).attr("data-docname");
+
+				if (doctype && docname) {
+					if (link_doctype && link_name) {
+						frappe.route_options = {
+							scroll_to: { "doctype": doctype, "name": docname }
+						}
+					}
+
+					frappe.set_route(["Form", link_doctype || doctype, link_name || docname]);
 				}
-			}
-		});
-
-		me.page.list.run();
-
-		me.page.set_primary_action(__("Refresh"), function() {
-			me.page.list.filter_list.clear_filters();
-			me.page.list.run();
-		}, "octicon octicon-sync");
+			});
 	});
 
-	frappe.activity.render_plot(this.page);
-
-	this.page.main.on("click", ".activity-message", function() {
-		var link_doctype = $(this).attr("data-link-doctype"),
-			link_name = $(this).attr("data-link-name"),
-			doctype = $(this).attr("data-doctype"),
-			docname = $(this).attr("data-docname");
-
-		if (doctype && docname) {
-			if (link_doctype && link_name) {
-				frappe.route_options = {
-					scroll_to: { "doctype": doctype, "name": docname }
-				}
-			}
-
-			frappe.set_route(["Form", link_doctype || doctype, link_name || docname]);
-		}
-	});
 
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {

@@ -618,19 +618,25 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	}
 })
 
-import_timepicker = function() {
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
+import_timepicker = function(callback) {
+	frappe.require([
+		"assets/frappe/js/lib/jquery/jquery.ui.slider.min.js",
+		"assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js",
+		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css",
+		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js"
+	], callback);
 }
 
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
-		import_timepicker();
-		this._super();
-		this.$input.timepicker({
-			timeFormat: 'HH:mm:ss',
+		var me = this;
+		var _super = this._super;
+		import_timepicker(function() {
+			_super.apply(me);
+			me.$input.timepicker({
+				timeFormat: 'HH:mm:ss',
+			});
+			me.refresh();
 		});
 	}
 });
@@ -648,8 +654,12 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		this.$input.datetimepicker(this.datepicker_options);
 	},
 	make_input: function() {
-		import_timepicker();
-		this._super();
+		var me = this;
+		var _super = this._super;
+		import_timepicker(function() {
+			_super.apply(me);
+			me.refresh();
+		})
 	},
 	parse: function(value) {
 		if(value) {

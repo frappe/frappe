@@ -168,7 +168,7 @@ _f.Frm.prototype.print_doc = function() {
 		this.hide_print();
 		return;
 	}
-	if(!frappe.model.can_print(this.doc.doctype, cur_frm)) {
+	if(!frappe.model.can_print(this.doc.doctype, this)) {
 		msgprint(__("You are not allowed to print this document"));
 		return;
 	}
@@ -422,10 +422,10 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(!this.setup_done) this.setup();
 
 		// load the record for the first time, if not loaded (call 'onload')
-		cur_frm.cscript.is_onload = false;
+		this.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) {
 			var me = this;
-			cur_frm.cscript.is_onload = true;
+			this.cscript.is_onload = true;
 			this.setnewdoc();
 			$(document).trigger("form-load", [this]);
 			$(this.page.wrapper).on('hide',  function(e) {
@@ -534,7 +534,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		this.refresh_header(is_a_different_doc);
 	}
 
-	$(cur_frm.wrapper).trigger('render_complete');
+	$(this.wrapper).trigger('render_complete');
 
 	if(!this.hidden) {
 		this.layout.show_empty_form_message();
@@ -544,8 +544,8 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {
-	if(cur_frm.fields_dict[fname] && cur_frm.fields_dict[fname].refresh) {
-		cur_frm.fields_dict[fname].refresh();
+	if(this.fields_dict[fname] && this.fields_dict[fname].refresh) {
+		this.fields_dict[fname].refresh();
 		this.layout.refresh_dependency();
 	}
 }
@@ -582,13 +582,13 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
 
-		if (cur_frm.doc[fn]) {
-			cur_frm.toggle_display(fn, false);
+		if (me.doc[fn]) {
+			me.toggle_display(fn, false);
 		}
 	}
 
 	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
-		cur_frm.toggle_display("naming_series", false);
+		me.toggle_display("naming_series", false);
 	}
 }
 
@@ -914,7 +914,7 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 }
 
 _f.Frm.prototype.set_print_heading = function(txt) {
-	this.pformat[cur_frm.docname] = txt;
+	this.pformat[this.docname] = txt;
 }
 
 _f.Frm.prototype.action_perm_type_map = {

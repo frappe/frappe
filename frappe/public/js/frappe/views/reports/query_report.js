@@ -115,12 +115,13 @@ frappe.views.QueryReport = Class.extend({
 								callback: function(r) {
 									frappe.dom.eval(r.message.script || "");
 
-									var report_settings = frappe.query_reports[me.report_name];
-									me.html_format = r.message.html_format;
-									report_settings["html_format"] = r.message.html_format;
+									frappe.after_ajax(function() {
+										var report_settings = frappe.query_reports[me.report_name];
+										me.html_format = r.message.html_format;
+										report_settings["html_format"] = r.message.html_format;
 
-									me.setup_report();
-
+										me.setup_report();
+									});
 								}
 							});
 						} else {

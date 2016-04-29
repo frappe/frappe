@@ -67,6 +67,7 @@
 		"public/js/lib/d3.min.js",
 		"public/js/lib/cal-heatmap.js",
 		"public/js/lib/c3.min.js",
+		"public/js/lib/markdown.js",
 
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
