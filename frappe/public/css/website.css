@@ -555,11 +555,13 @@ fieldset {
 .web-sidebar .sidebar-item a {
   color: #8D99A6;
 }
-.web-sidebar .sidebar-item a:hover {
-  border-color: inherit;
-}
 .web-sidebar .sidebar-item a.active {
   color: #36414C !important;
+  font-weight: 500 !important;
+}
+.web-sidebar .sidebar-items {
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 .page-footer {
   padding: 15px 0px;
@@ -581,7 +583,7 @@ fieldset {
 }
 .web-list-item {
   padding: 15px 0px;
-  border-bottom: 1px solid #EBEFF2;
+  border-top: 1px solid #EBEFF2;
 }
 .web-list-item h1,
 .web-list-item h2,
@@ -598,7 +600,25 @@ fieldset {
   text-decoration: none;
 }
 .web-list-item:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid #EBEFF2;
+}
+.blog-info {
+  text-align: center;
+  margin-top: 30px;
+}
+.blog-text,
+.post-description {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  font-size: 16px;
+  line-height: 28px;
+}
+.blog-text p,
+.post-description p {
+  margin-bottom: 40px;
+}
+.blogger-name {
+  font-size: 24px;
 }
 .blog-footer {
   padding: 5px 15px;
@@ -614,24 +634,87 @@ fieldset {
 .blog-category {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 12px;
+  font-size: 10px;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+}
+.author {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  border-bottom: 1px solid #EBEFF2;
+  padding-bottom: 20px;
 }
 .blogger {
   padding-top: 30px;
   padding-bottom: 15px;
-  border-top: 1px solid #EBEFF2;
+}
+.blog-dot:before {
+  padding-right: 8px;
+  padding-left: 8px;
+  content: "\2022";
+}
+.blog-list-item {
+  margin-top: 25px;
+  margin-bottom: 25px;
+  border: none;
+}
+.post-by {
+  padding-bottom: 50px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.blog-list-item .blog-text,
+.blog-list-item .read-more-btn,
+.blog-list-item .recent-post {
+  display: none;
+}
+.blog-list-item .post-by {
+  padding-bottom: 25px;
+}
+.blog-list-item .post-description {
+  padding-top: 25px;
+}
+.blog-list-item:first-child .row .blog-header {
+  font-size: 34px;
+}
+.blog-list-item:first-child .row .post-by {
+  font-weight: 500;
+}
+.blog-list-item:first-child .row .post-description {
+  font-weight: 500;
+}
+.blog-list-item:first-child .row .blog-text {
+  display: block;
+  padding-top: 0px;
+  padding-bottom: 20px;
+}
+.blog-list-item:first-child .row .read-more-btn {
+  display: inline;
+  padding-top: 0px;
+  border-bottom: 1px dotted #d1d8dd;
+  font-size: 12px;
+}
+.blog-list-item:first-child .row .post-description {
+  padding-bottom: 25px;
+}
+.blog-list-item:first-child .row .recent-post {
+  display: block;
+  padding-top: 50px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #EBEFF2;
 }
 .blog-comments,
 .help-article-comments {
-  padding: 0px 15px 15px 85px;
+  padding: 0px 15px 15px 0px;
 }
-.comment-view {
+.blog-comments {
   background-color: #fafbfc;
   position: relative;
 }
-.comment-view:before {
+.blog-comments:before {
   content: "";
   background-color: #fafbfc;
   position: absolute;
@@ -864,6 +947,11 @@ body {
 .page-hero h1 {
   font-size: 32px;
 }
+.page-head h1 {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 24px;
+}
 .btn-next-wrapper {
   margin-top: 60px;
 }
@@ -892,27 +980,6 @@ a:link,
 a:active {
   text-decoration: none;
 }
-.blog-header {
-  font-size: 36px;
-  margin-left: -1px;
-}
-.blog-dot:before {
-  padding-right: 8px;
-  padding-left: 8px;
-  content: "\2022";
-}
-.blog-list-item {
-  margin-top: 25px;
-  margin-bottom: 25px;
-  border: none;
-}
-.post-by {
-  margin-top: -5px;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-}
 li .footer-child-item {
   margin-bottom: 4px !important;
 }
@@ -938,6 +1005,7 @@ li .social-child-item {
   font-size: 20px;
   padding-top: 30px;
   padding-bottom: 20px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .item-search {
   border-bottom: 1px solid #d1d8dd;
@@ -959,4 +1027,22 @@ li .social-child-item {
 .vert-line > div {
   padding-bottom: 2000px;
   margin-bottom: -2000px;
+}
+.shopping-cart {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding-right: 15px;
+  border-right: 1px solid #d1d8dd;
+}
+.badge-wrapper {
+  min-height: 17px;
+  min-width: 17px;
+  display: inline-block;
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+  color: #7575ff;
+  text-align: center;
+}
+.dropdown .logged-in {
+  border-left: 1px solid #d1d8dd;
 }

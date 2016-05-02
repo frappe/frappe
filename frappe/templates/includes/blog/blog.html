@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 
 {% block title %}{{ blog_title or _("Blog") }}{% endblock %}
-{% block header %}{{ blog_title or _("Blog") }}{% endblock %}
+{% block header %}<h1>{{ blog_title or _("Blog") }}</h1>{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block page_content %}

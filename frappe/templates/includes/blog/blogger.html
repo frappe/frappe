@@ -6,7 +6,7 @@
 	</div>
 	<div class="inline-block" style="width: calc(100% - 100px)">
 		<div class="blogger-name">{{ blogger_info.full_name }}</div>
-		<p class="text-muted">{{ blogger_info.bio }}</p>
+		<p class="text-muted">{%if blogger_info.bio%}{{ blogger_info.bio }}{%endif%}</p>
 		<p><a href="/blog?by={{ blogger_info.name }}&by_name={{ blogger_info.full_name }}">
 			All Posts By {{ blogger_info.full_name }}</a></p>
 	</div>

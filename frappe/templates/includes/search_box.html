@@ -15,11 +15,19 @@ frappe.ready(function() {
 	if(get_url_arg("search")){
 	var txt = get_url_arg("search");
 	$(".item-search-results").html("Search results for : " + txt);
+	$(".item-search").toggle(false);
 	$(".clear").toggle(true);
 	}
 	var thread = null;
 	function findResult(t) {
-		window.location.href=document.URL + "?search=" + t;
+		if (window.location.href.indexOf("?") > -1) 
+		{
+			window.location.href=document.URL + "&search=" + t;
+		}
+		else
+		{
+			window.location.href=document.URL + "?search=" + t;
+		}
 	}
 
 	$(".item-search-input").keyup(function() {

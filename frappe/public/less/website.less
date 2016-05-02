@@ -22,6 +22,7 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: 300;
 }
 
+
 .navbar-brand {
 	max-width: none;
 }
@@ -233,12 +234,14 @@ fieldset {
 		color: @text-muted;
 	}
 
-	.sidebar-item a:hover {
-		border-color: inherit;
-	}
-
 	.sidebar-item a.active {
 		color: @text-color !important;
+		font-weight:500 !important;
+	}
+	
+	.sidebar-items {
+		margin-top:30px;
+		margin-bottom:30px;
 	}
 }
 
@@ -268,7 +271,7 @@ fieldset {
 
 .web-list-item {
 	padding: 15px 0px;
-	border-bottom: 1px solid @light-border-color;
+	border-top: 1px solid @light-border-color;
 
 	h1, h2, h3 {
 		margin-top: 10px;
@@ -287,7 +290,26 @@ fieldset {
 // }
 
 .web-list-item:last-child {
-	border-bottom: none;
+	border-bottom: 1px solid @light-border-color;
+}
+
+.blog-info {
+	text-align:center;
+	margin-top: 30px;
+}
+
+.blog-text, .post-description {
+	padding-top: 40px;
+	padding-bottom: 40px;
+	font-size: 16px;
+	line-height: 28px;
+	p {
+		margin-bottom: 40px;
+	}
+}
+
+.blogger-name {
+	font-size:24px;
 }
 
 .blog-footer {
@@ -307,28 +329,99 @@ fieldset {
 .blog-category {
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	font-size: 12px;
+	font-size: 10px;
 	text-align: center;
-	margin-bottom: 20px;
+	margin-bottom: 30px;
+}
+
+.author {
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-size: 10px;
+	border-bottom: 1px solid @light-border-color;
+	padding-bottom:20px;
 }
 
 .blogger {
 	padding-top: 30px;
 	padding-bottom: 15px;
-	border-top: 1px solid @light-border-color;
+}
+
+.blog-dot:before{
+	padding-right:8px;
+	padding-left:8px;
+	content:"\2022";
+}
+
+.blog-list-item {
+	margin-top:25px;
+	margin-bottom:25px;
+	border:none;
+}
+
+.post-by {
+	padding-bottom: 50px;
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	border-bottom: 1px solid @light-border-color;
+}
+
+.blog-list-item {
+	.blog-text,.read-more-btn,.recent-post {
+		display: none;
+	}
+	.post-by {
+			padding-bottom: 25px;
+		}
+	.post-description{
+			padding-top: 25px;
+		}
+}
+
+.blog-list-item:first-child .row {
+	.blog-header {
+		font-size: 34px;
+	}
+	.post-by {
+		font-weight: 500;
+	}
+	.post-description {
+		font-weight: 500;
+	}
+	.blog-text {
+		display: block;
+		padding-top: 0px;
+		padding-bottom: 20px;
+	}	
+	.read-more-btn {
+		display: inline;
+		padding-top: 0px;
+		border-bottom: 1px dotted @border-color;
+		font-size: 12px;
+	}	
+	.post-description {
+		padding-bottom: 25px;
+	}
+	.recent-post {
+		display: block;
+		padding-top: 50px;
+		padding-bottom: 20px;
+		margin-bottom: 20px;
+		border-bottom: 1px solid @light-border-color;
+	}
 }
 
 .blog-comments,
 .help-article-comments {
-    padding: 0px 15px 15px 85px;
+    padding: 0px 15px 15px 0px;
 }
-.comment-view {
+.blog-comments {
 	background-color: #fafbfc;
 	position: relative;
 
 }
 
-.comment-view:before {
+.blog-comments:before {
     content:"";
     background-color:#fafbfc;
     position: absolute;
@@ -456,6 +549,12 @@ a.active {
 	}
 }
 
+.page-head h1 {
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-size: 24px;
+}
+
 .btn-next-wrapper {
 	margin-top: 60px;
 }
@@ -485,31 +584,6 @@ a.active {
 a:hover, a:visited, a:link, a:active
 {
     text-decoration: none;
-}
-
-.blog-header {
-	font-size: 36px;
-	margin-left: -1px;
-}
-
-.blog-dot:before{
-	padding-right:8px;
-	padding-left:8px;
-	content:"\2022";
-}
-
-.blog-list-item {
-	margin-top:25px;
-	margin-bottom:25px;
-	border:none;
-}
-
-.post-by {
-	margin-top: -5px;
-	margin-bottom: 4px;
-	text-transform: uppercase;
-	font-size: 12px;
-	letter-spacing: 0.5px;
 }
 
 li .footer-child-item {
@@ -542,6 +616,7 @@ li .social-child-item {
 	font-size:20px;
 	padding-top:30px;
 	padding-bottom:20px;
+	border-bottom: 1px solid @border-color;
 }
 
 .item-search {
@@ -562,3 +637,22 @@ li .social-child-item {
 .vert-line>div{
         padding-bottom:2000px; margin-bottom:-2000px;}
 
+.shopping-cart {
+	margin-top:12px;
+	margin-bottom:8px;
+	padding-right:15px;
+	border-right: 1px solid @border-color;
+}
+.badge-wrapper {
+	min-height: 17px;
+	min-width: 17px;
+	display: inline-block;
+	border: 1px solid @border-color;
+	border-radius: 3px;
+	color: #7575ff;
+	text-align:center;
+}
+
+.dropdown .logged-in {
+	border-left: 1px solid @border-color;
+}

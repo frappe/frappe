@@ -25,22 +25,20 @@
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
-					<div class="row {% if login_required %}hide{% endif %}" style="margin-bottom: 15px">
+					<div class="row {% if login_required %}hide{% endif %}">
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
-								type="text">
+							<p><input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
+								type="text"></p>
 						</div>
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by"
-								placeholder="{{ _("Your Email Id") }}" type="email">
+							<p><input class="form-control" name="comment_by"
+								placeholder="{{ _("Your Email Id") }}" type="email"></p>
 						</div>
 					</div>
-					<textarea class="form-control" name="comment" rows=10
-						placeholder="{{ _("Comment") }}"></textarea>
-					<p style="margin-top: 15px;">
-                        <button class="btn btn-primary btn-sm" id="submit-comment">
-                            {{ _("Submit") }}</button>
-                    </p>
+					<p><textarea class="form-control" name="comment" rows=10
+						placeholder="{{ _("Comment") }}"></textarea></p>
+                        <p><button class="btn btn-primary btn-sm" id="submit-comment">
+                            {{ _("Submit") }}</button></p>
 				</fieldset>
 			</form>
 		</div>

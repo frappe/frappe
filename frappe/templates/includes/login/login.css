@@ -98,7 +98,9 @@ h5:before {
     position: relative;
     text-align: center;
 	margin-bottom:20px;
-
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+	font-weight: 300;
 }
 
 p{
@@ -107,6 +109,13 @@ p{
 .btn-login, .btn-signup, .btn-forgot {
 	background: #7575ff;
 	color: white;
+}
+
+.btn-login {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 400;	
+	font-size: 14px;
 }
 
 .content-block {
