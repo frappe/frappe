@@ -1,7 +1,7 @@
 <footer class="web-footer">
 	<section class="footer-links">
 		<div class="container">
-			<div class="row">				
+			<div class="row">
 				<div class="col-sm-6 text-left">
 					{% if facebook_share or google_plus_one or twitter_share or linked_in_share %}
 						<ul class="list-unstyled small" style="float:left;">
@@ -22,13 +22,13 @@
 								<li style="margin-bottom:4px;"> <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ url }}&title={{ encoded_title }}"
 								target="_blank">Linkedin</a></li>
 							{% endif %}
-							
+
 						</ul>
 					{% endif %}
-					
+
 					{% if footer_items -%}
 						<ul class="list-unstyled navbar-nav" style="{% if facebook_share or google_plus_one or twitter_share or linked_in_share %} margin-left:65px; {%else%} margin-left:0px;{%endif%}">
-							{% include "templates/includes/footer/footer_items.html" %}	
+							{% include "templates/includes/footer/footer_items.html" %}
 						</ul>
 					{% endif %}
 				</div>
@@ -37,7 +37,6 @@
 					{% block extension %}{% include "templates/includes/footer/footer_extension.html" %}{% endblock %}
 				</div>
 			</div>
-			
 			<div class="row">
 				<div class="text-muted small col-sm-6">
 					{% if copyright %}
@@ -53,6 +52,6 @@
 					{% endblock %}
 				</div>
 			</div>
-		</div>			
+		</div>
 	</section>
 </footer>

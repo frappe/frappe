@@ -52,6 +52,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		dialog.refresh();
 
 		dialog.set_primary_action(__('Save'), function() {
+			if(dialog.working) return;
+			dialog.working = true;
 			var data = dialog.get_values();
 
 			if(data) {
@@ -73,6 +75,9 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 					},
 					error: function() {
 						open_doc();
+					},
+					always: function() {
+						dialog.working = false;
 					},
 					freeze: true
 				});
