@@ -272,6 +272,7 @@ class DatabaseQuery(object):
 			df = df[0] if df else None
 
 			if df and df.fieldtype=="Date":
+				print df.fieldname, f.value
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 

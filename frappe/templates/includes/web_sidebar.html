@@ -7,14 +7,14 @@
 			<div class="col-xs-10">
 				<div class="web-sidebar-user">{{ fullname }}</div>
 				<a href="/?cmd=web_logout">
-					<div style="margin-top:0px;" class="text-muted small">
+					<div class="text-muted small">
 						{{ _("Logout") }}</div>
 				</a>
 			</div>
 		</div>
 	</div>
 	<div class="sidebar-items">
-		<ul class="list-unstyled" style="margin: 30px 0px;">
+		<ul class="list-unstyled">
 			<li class="sidebar-item">
 				<a href="/me">My Account</a>
 			</li>
@@ -40,7 +40,7 @@
 
 <script>
 frappe.ready(function() {
-	$('.sidebar a').each(function(index) {
+	$('.sidebar-item a').each(function(index) {
 	        if(this.href.trim() == window.location)
 	            $(this).addClass("active");
 	    });
