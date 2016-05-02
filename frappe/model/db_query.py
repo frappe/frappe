@@ -286,9 +286,14 @@ class DatabaseQuery(object):
 			if isinstance(value, basestring):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
-			condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
-				tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
-				value=value)
+			if f.fieldname in ("creation", "modified"):
+				condition = '''ifnull(date_format({tname}.{fname},'%Y-%m-%d'), {fallback}) {operator} {value}'''.format(
+					tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
+					value=value)
+			else:
+				condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
+					tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
+					value=value)
 
 		return condition
 
