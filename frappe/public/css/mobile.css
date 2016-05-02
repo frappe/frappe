@@ -107,7 +107,6 @@ body {
   }
   body[data-route^="Form"] .title-text {
     margin-top: 10px;
-    margin-left: 10px;
   }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;

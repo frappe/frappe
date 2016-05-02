@@ -53,10 +53,10 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		dialog.set_primary_action(__('Save'), function() {
 			if(dialog.working) return;
-			dialog.working = true;
 			var data = dialog.get_values();
 
 			if(data) {
+				dialog.working = true;
 				values = update_doc();
 				frappe.call({
 					method: "frappe.client.insert",

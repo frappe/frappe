@@ -147,6 +147,7 @@ CREATE TABLE `tabDocType` (
   `is_submittable` int(1) NOT NULL DEFAULT 0,
   `_user_tags` varchar(255) DEFAULT NULL,
   `custom` int(1) NOT NULL DEFAULT 0,
+  `beta` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -52,7 +52,7 @@ class WebsiteSettings(Document):
 					# parent cannot have url
 					frappe.throw(_("{0} in row {1} cannot have both URL and child items").format(footer_item.parent_label,
 						footer_item.idx))
-						
+
 	def on_update(self):
 		self.clear_cache()
 
@@ -67,8 +67,6 @@ class WebsiteSettings(Document):
 
 		# clears role based home pages
 		frappe.clear_cache()
-
-
 
 def get_website_settings():
 	hooks = frappe.get_hooks()
@@ -124,7 +122,7 @@ def get_website_settings():
 		context["favicon"] = settings.favicon
 
 	return context
-	
+
 def get_items(parentfield):
 	all_top_items = frappe.db.sql("""\
 		select * from `tabTop Bar Item`
@@ -142,5 +140,5 @@ def get_items(parentfield):
 						t['child_items'] = []
 					t['child_items'].append(d)
 					break
-	return top_items		
-	
+	return top_items
+

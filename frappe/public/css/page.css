@@ -24,6 +24,9 @@
     min-height: calc(60vh);
   }
 }
+.page-title {
+  position: relative;
+}
 .page-title h6 {
   margin-top: -8px;
 }

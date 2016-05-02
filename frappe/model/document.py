@@ -288,14 +288,15 @@ class Document(BaseDocument):
 		if rows:
 			# delete rows that do not match the ones in the
 			# document
-			frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
-				name not in (%s)""" % (df.options, '%s', '%s', ','.join(['%s'] * len(rows))),
-					tuple([self.name, self.doctype] + rows))
+			frappe.db.sql("""delete from `tab{0}` where parent=%s
+				and parenttype=%s and parentfield=%s
+				and name not in ({1})""".format(df.options, ','.join(['%s'] * len(rows))),
+					[self.name, self.doctype, fieldname] + rows)
 		else:
 			# no rows found, delete all rows
-			frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
-				% (df.options, '%s', '%s'), (self.name, self.doctype))
-
+			frappe.db.sql("""delete from `tab{0}` where parent=%s
+				and parenttype=%s and parentfield=%s""".format(df.options),
+				(self.name, self.doctype, fieldname))
 
 	def set_new_name(self):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""

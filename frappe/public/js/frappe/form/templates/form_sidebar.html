@@ -7,6 +7,11 @@
 		</div>
 	</li>
 </ul>
+{% if frm.meta.beta %}
+<div class="sidebar-menu">
+	<label class="label label-warning" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental Feature") }}</label>
+</div>
+{% endif %}
 <ul class="list-unstyled sidebar-menu user-actions hide">
 	<li class="divider"></li>
 </ul>
