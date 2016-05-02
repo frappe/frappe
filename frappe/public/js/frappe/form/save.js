@@ -178,6 +178,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			},
 			always: function() {
 				frappe.ui.form.is_saving = false;
+				frappe.ui.form.update_calling_link(opts.args.doc.name);
 			}
 		})
 	};
@@ -188,3 +189,23 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		save();
 	}
 }
+
+frappe.ui.form.update_calling_link = function(name) {
+	if(frappe._from_link) {
+		// set value
+		frappe.model.set_value(frappe._from_link.doctype,
+			frappe._from_link.docname, frappe._from_link.df.fieldname, name);
+
+		// refresh field
+		frappe._from_link.refresh();
+
+		// if from form, switch
+		if(frappe._from_link.frm) {
+			frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
+			setTimeout(function() { frappe.utils.scroll_to(frappe._from_link_scrollY); }, 100);
+		}
+
+		frappe._from_link = null;
+	}
+}
+

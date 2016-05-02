@@ -404,9 +404,6 @@ _f.Frm.prototype.refresh = function(docname) {
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 
-		// set new doc name if created via link field
-		this.set_new_docname_from_link();
-
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {
 			this.check_doctype_conflict(this.docname);
@@ -461,18 +458,6 @@ _f.Frm.prototype.refresh = function(docname) {
 		}
 
 		this.show_if_needs_refresh();
-	}
-}
-
-_f.Frm.prototype.set_new_docname_from_link = function() {
-	if(frappe._from_link && frappe._new_docname_from_link) {
-		frappe.model.set_value(frappe._from_link.doctype,
-			frappe._from_link.docname, frappe._from_link.df.fieldname, frappe._new_docname_from_link);
-
-		frappe._from_link.refresh();
-
-		frappe._from_link = null;
-		frappe._new_docname_from_link = null;
 	}
 }
 
@@ -715,16 +700,6 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				on_error();
 		}
 		callback && callback(r);
-
-		if(frappe._from_link) {
-			if(me.doctype===frappe._from_link.df.options) {
-				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
-
-				frappe._new_docname_from_link = me.docname;
-
-				setTimeout(function() { frappe.utils.scroll_to(frappe._from_link_scrollY); }, 100);
-			}
-		}
 	}
 
 	if(save_action != "Update") {

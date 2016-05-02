@@ -377,6 +377,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	html_element: "input",
 	input_type: "text",
 	make_input: function() {
+		if(this.$input) return;
+
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
 			.attr("autocomplete", "off")
@@ -1256,6 +1258,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(ui.item.action) {
 					ui.item.value = "";
 					ui.item.action.apply(me);
+				}
+
+				// if remember_selected hook is set, add this value
+				// to defaults so you do not need to set it again
+				// unless it is changed.
+				if(frappe.boot.remember_selected && frappe.boot.remember_selected.indexOf(me.df.options)!==-1) {
+					frappe.boot.user.defaults[me.df.options] = ui.item.value;
 				}
 
 				if(me.frm && me.frm.doc) {

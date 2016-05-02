@@ -66,7 +66,10 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 						// delete the old doc
 						frappe.model.clear_doc(dialog.doc.doctype, dialog.doc.name);
 						var doc = r.message;
-						if(success) success(doc);
+						if(success) {
+							success(doc);
+						}
+						frappe.ui.form.update_calling_link(doc.name);
 					},
 					error: function() {
 						open_doc();

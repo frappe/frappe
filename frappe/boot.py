@@ -24,12 +24,12 @@ def get_bootinfo():
 	get_user(bootinfo)
 
 	# system info
-	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
-	bootinfo['server_date'] = frappe.utils.nowdate()
+	bootinfo.sysdefaults = frappe.defaults.get_defaults()
+	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
-		bootinfo['user_info'] = get_fullnames()
-		bootinfo['sid'] = frappe.session['sid'];
+		bootinfo.user_info = get_fullnames()
+		bootinfo.sid = frappe.session['sid'];
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
@@ -47,22 +47,23 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 
 	# ipinfo
-	if frappe.session['data'].get('ipinfo'):
-		bootinfo['ipinfo'] = frappe.session['data']['ipinfo']
+	if frappe.session.data.get('ipinfo'):
+		bootinfo.ipinfo = frappe.session['data']['ipinfo']
 
 	# add docs
-	bootinfo['docs'] = doclist
+	bootinfo.docs = doclist
 
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
+	bootinfo.remember_selected = hooks.remember_selected
 
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
-	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
-	bootinfo["lang_dict"] = get_lang_dict()
+	bootinfo.lang_dict = get_lang_dict()
 
 	return bootinfo
 

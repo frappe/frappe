@@ -252,7 +252,10 @@ frappe.Application = Class.extend({
 			})
 			.keydown("meta+s ctrl+s", function(e) {
 				e.preventDefault();
-				if(cur_frm) {
+				if(cur_dialog) {
+					// trigger primary
+					cur_dialog.get_primary_btn().trigger("click");
+				} else if(cur_frm) {
 					cur_frm.save_or_update();
 				} else if(frappe.container.page.save_action) {
 					frappe.container.page.save_action();
