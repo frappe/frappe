@@ -236,11 +236,15 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			var docfield = frappe.meta.docfield_map[c[1] || me.doctype][c[0]];
 			if(!docfield) {
 				var docfield = frappe.model.get_std_field(c[0]);
-				docfield.parent = me.doctype;
-				if(c[0]=="name") {
-					docfield.options = me.doctype;
+				if(docfield) {
+					docfield.parent = me.doctype;
+					if(c[0]=="name") {
+						docfield.options = me.doctype;
+					}
 				}
 			}
+			if(!docfield) return;
+			
 			coldef = {
 				id: c[0],
 				field: c[0],
