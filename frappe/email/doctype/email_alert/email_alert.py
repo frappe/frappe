@@ -4,7 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import re
 from frappe import _
+from jinja2 import Template
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
 from frappe.utils.jinja import validate_template
@@ -21,6 +23,16 @@ class EmailAlert(Document):
 			frappe.throw(_("Please specify which value field must be checked"))
 
 		self.validate_forbidden_types()
+		self.validate_condition()
+		
+
+	def validate_condition(self):
+		temp_doc = frappe.new_doc(self.document_type)	
+		if self.condition:
+			try:
+				eval(self.condition, get_context(temp_doc))
+			except:
+				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
 	def validate_forbidden_types(self):
 		forbidden_document_types = ("Bulk Email",)
@@ -81,7 +93,7 @@ def evaluate_alert(doc, alert, event):
 	if isinstance(alert, basestring):
 		alert = frappe.get_doc("Email Alert", alert)
 
-	context = {"doc": doc, "nowdate": nowdate}
+	context = get_context(doc)
 
 	if alert.condition:
 		if not eval(alert.condition, context):
@@ -128,3 +140,7 @@ def evaluate_alert(doc, alert, event):
 		message= frappe.render_template(alert.message, context),
 		bulk=True, reference_doctype = doc.doctype, reference_name = doc.name,
 		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)
+
+def get_context(doc):
+	return {"doc": doc, "nowdate": nowdate}
+

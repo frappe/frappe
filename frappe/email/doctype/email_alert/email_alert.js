@@ -24,9 +24,13 @@ frappe.email_alert = {
 				function(d) { return (d.fieldtype=="Date" || d.fieldtype=="Datetime") ?
 					get_select_options(d) : null; }));
 
+			var email_fields = $.map(fields,
+				function(d) { return d.options == "Email" ?
+					get_select_options(d) : null; });
+
 			// set email recipient options
 			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				frm.doc.name).options = ["owner"].concat(options);
+				frm.doc.name).options = ["owner"].concat(email_fields);
 
 		});
 	}

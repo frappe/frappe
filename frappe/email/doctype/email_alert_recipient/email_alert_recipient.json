@@ -12,7 +12,7 @@
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
-   "description": "Optional: Alert will only be sent if value is a valid email id.", 
+   "description": "", 
    "fieldname": "email_by_document_field", 
    "fieldtype": "Select", 
    "hidden": 0, 
@@ -94,15 +94,17 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2016-02-22 09:19:41.689603", 
+ "modified": "2016-05-02 08:35:43.654577", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Alert Recipient", 
  "name_case": "", 
  "owner": "Administrator", 
  "permissions": [], 
+ "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "sort_field": "modified", 
- "sort_order": "DESC"
+ "sort_order": "DESC", 
+ "track_seen": 0
 }

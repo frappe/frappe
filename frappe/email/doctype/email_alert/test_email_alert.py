@@ -48,6 +48,23 @@ class TestEmailAlert(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
 
+	def test_invalid_condition(self):
+		frappe.set_user("Administrator")
+		email_alert = frappe.new_doc("Email Alert")
+		email_alert.subject = "test"
+		email_alert.document_type = "ToDo"
+		email_alert.send_alert_on = "New"
+		email_alert.message = "test"
+
+		recipent = frappe.new_doc("Email Alert Recipient")
+		recipent.email_by_document_field = "owner"
+
+		email_alert.recipents = recipent
+		email_alert.condition = "test"
+
+		self.assertRaises(frappe.ValidationError, email_alert.save)
+
+
 	def test_value_changed(self):
 		event = frappe.new_doc("Event")
 		event.subject = "test",
