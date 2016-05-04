@@ -24,11 +24,6 @@
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
 				{{ _(item.title) }}
-				{% if item.reference_doctype %}
-					<span class="badge">
-						{{ "20+" if item.count > 20 else item.count }}
-					</span>
-				{% endif %}
 				</a>
 			</li>
 		{% endif %}
