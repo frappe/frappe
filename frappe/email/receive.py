@@ -6,7 +6,8 @@ import time
 import _socket, poplib, imaplib
 import frappe
 from frappe import _
-from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint, cstr, strip
+from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
+	cint, cstr, strip, markdown)
 from frappe.utils.scheduler import log
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
@@ -309,17 +310,36 @@ class Email:
 	def process_part(self, part):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
-		charset = part.get_content_charset()
-		if not charset: charset = self.get_charset(part)
-
 		if content_type == 'text/plain':
-			self.text_content += self.get_payload(part, charset)
+			self.text_content += self.get_payload(part)
 
-		if content_type == 'text/html':
-			self.html_content += self.get_payload(part, charset)
+		elif content_type == 'text/html':
+			self.html_content += self.get_payload(part)
 
-		if part.get_filename():
-			self.get_attachment(part, charset)
+		elif content_type == 'message/rfc822':
+			# sent by outlook when another email is sent as an attachment to this email
+			self.show_attached_email_headers_in_content(part)
+
+		elif part.get_filename():
+			self.get_attachment(part)
+
+	def show_attached_email_headers_in_content(self, part):
+		# get the multipart/alternative message
+		message = list(part.walk())[1]
+		headers = []
+		for key in ('From', 'To', 'Subject', 'Date'):
+			value = cstr(message.get(key))
+			if value:
+				headers.append('{label}: {value}'.format(label=_(key), value=value))
+
+		self.text_content += '\n'.join(headers)
+		self.html_content += '<hr>' + '\n'.join('<p>{0}</p>'.format(h) for h in headers)
+
+		if not message.is_multipart() and message.get_content_type()=='text/plain':
+			# email.parser didn't parse it!
+			text_content = self.get_payload(message)
+			self.text_content += text_content
+			self.html_content += markdown(text_content)
 
 	def get_charset(self, part):
 		"""Detect chartset."""
@@ -330,13 +350,16 @@ class Email:
 
 		return charset
 
-	def get_payload(self, part, charset):
+	def get_payload(self, part):
+		charset = self.get_charset(part)
+
 		try:
-			return unicode(part.get_payload(decode=True),str(charset),"ignore")
+			return unicode(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
 			return part.get_payload()
 
-	def get_attachment(self, part, charset):
+	def get_attachment(self, part):
+		charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
 		if fcontent:
