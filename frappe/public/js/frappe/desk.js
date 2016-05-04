@@ -29,6 +29,7 @@ frappe.Application = Class.extend({
 		this.set_favicon();
 		this.setup_keyboard_shortcuts();
 		this.set_rtl();
+		this.check_user_email();
 
 		if(frappe.boot) {
 			if(localStorage.getItem("session_last_route")) {
@@ -301,6 +302,90 @@ frappe.Application = Class.extend({
 		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
 			$('body').addClass('frappe-rtl')
 		}
+	},
+
+	check_user_email: function(){
+			var email_list =  sys_defaults.email_user_password.split(',');
+			for (u in email_list) {
+				if (email_list[u]===frappe.user.name){
+					setTimeout(this.set_password.bind(null,this,email_list[u]), 250)
+				}
+			}
+	},
+	set_password: function (parent,user) {
+		frappe.call({
+			method: 'frappe.email.get_email_awaiting',
+			args: {
+				"user": user
+			},
+			callback: function (email_account) {
+				email_account = email_account["message"];
+				if (email_account) {
+					var i = 0;
+					if (i < email_account.length) {
+						parent.email_password_prompt(parent, email_account, user, i);
+					}
+				}
+			}
+		});
+	},
+
+	email_password_prompt: function(parent,email_account,user,i) {
+		var d = new frappe.ui.Dialog({
+			title: __('Email Account setup please enter your password for: '+email_account[i][1]),
+			fields: [
+				{	'fieldname': 'password',
+					'fieldtype': 'Password',
+					'label': 'Email Account Password',
+					'reqd': 1
+				},
+				{
+					"fieldtype": "Button",
+					"label": __("Submit")
+				}
+			]
+		});
+			d.get_input("submit").on("click", function() {
+				//setup spinner
+				d.hide();
+				var s = new frappe.ui.Dialog({
+						title: __("Checking one moment"),
+					fields: [{
+                    "fieldtype": "HTML",
+                    "fieldname": "checking"
+                }]
+					});
+				s.fields_dict.checking.$wrapper.html('<i class="icon-spinner icon-spin icon-4x"></i>')
+				s.show();
+				frappe.call({
+					method: 'frappe.email.set_email_password',
+					args: {
+						"email_account": email_account[i][0],
+						"user": user,
+						"password": d.get_value("password")//values["password"]
+					},
+					callback: function (passed)
+					{
+						s.hide();
+						d.hide();//hide waiting indication
+						if (!passed["message"])
+						{
+							show_alert("Login Failed please try again", 5);
+							parent.email_password_prompt(parent, email_account, user, i)
+						}
+						else
+						{
+							if (i + 1 < email_account.length)
+							{
+								i = i + 1;
+								parent.email_password_prompt(parent, email_account, user, i)
+							}
+						}
+
+					}
+				});
+			});
+			d.show();
 	},
 
 	show_change_log: function() {

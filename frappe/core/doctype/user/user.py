@@ -46,6 +46,7 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
+		self.get_awaiting_password()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -333,6 +334,22 @@ class User(Document):
 			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
+	def get_awaiting_password(self):
+		from frappe.utils import set_default,get_defaults
+		password_list = []
+		try:
+			for x in get_defaults("email_user_password").split(","):
+				password_list.append(x)
+		except Exception:
+			pass
+
+		for accounts in self.user_emails:
+			if accounts.awaiting_password:
+				if self.name not in password_list:
+					password_list.append(self.name)
+
+		set_default("email_user_password",",".join(password_list))
+
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
 			if self.username != suggestion and not self.username_exists(suggestion):
@@ -550,3 +567,8 @@ def extract_mentions(txt):
 	"""Find all instances of @username in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
 	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
+
+@frappe.whitelist()
+def has_email_account(email):
+	return frappe.get_list("Email Account", filters={"email_id": email})
+
