@@ -50,7 +50,7 @@ email_defaults_imap = {
 };
 
 frappe.ui.form.on("Email Account", {
-	service: function(frm) {
+	/*service: function(frm) {
 		$.each(email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
@@ -79,7 +79,7 @@ frappe.ui.form.on("Email Account", {
 				(frm.doc.service ? frm.doc.service + " " : "")
 				+ toTitle(frm.doc.email_id.split("@")[0].replace(/[._]/g, " ")));
 		}
-	},
+	},*/
 	enable_incoming: function(frm) {
 		frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	},
@@ -89,11 +89,32 @@ frappe.ui.form.on("Email Account", {
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
+
+
+	},
+	before_validate:function(frm){
+		cur_frm.events.email_id();
 	},
 	refresh: function(frm) {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
+		if (frm.doc.__islocal != 1) {
+			if (frappe.route_titles["create user account"]) {
+				var user =frappe.route_titles["create user account"];
+				delete frappe.route_titles["create user account"];
+				var userdoc = frappe.get_doc("User",user);
+				frappe.model.with_doc("User", user, function (doc) { //route[2]
+					var new_row = frappe.model.add_child(userdoc, "User Emails", "user_emails");
+					new_row.email_account = cur_frm.doc.name;
+					new_row.awaiting_password = cur_frm.doc.awaiting_password;
+					new_row.email_id = cur_frm.doc.email_id;
+					new_row.idx = 0;
+					frappe.route_titles = {"unsaved": 1};
+					frappe.set_route("Form", "User",user)
+				});
+            }
+        }
 	},
 	show_gmail_message_for_less_secure_apps: function(frm) {
 		frm.dashboard.reset();
@@ -101,6 +122,46 @@ frappe.ui.form.on("Email Account", {
 			frm.dashboard.set_headline_alert('GMail will only work if you allows access for Less Secure \
 				Apps in GMail Settings. <a target="_blank" \
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
+		}
+	},
+	email_id:function(frm){
+		//pull domain and if no matching domain go create one
+		if (cur_frm.doc.email_id) {
+			frappe.call({
+				method: 'get_domain',
+				doc: cur_frm.doc,
+				args: {
+					"email_id": cur_frm.doc.email_id
+				},
+				callback: function (frm) {
+					try {
+						cur_frm.set_value("domain", frm["message"][0]["name"]);
+						cur_frm.set_value("email_server", frm["message"][0]["email_server"]);
+						cur_frm.set_value("use_imap", frm["message"][0]["use_imap"]);
+						cur_frm.set_value("smtp_server", frm["message"][0]["smtp_server"]);
+						cur_frm.set_value("use_ssl", frm["message"][0]["use_ssl"]);
+						cur_frm.set_value("use_tls", frm["message"][0]["use_tls"]);
+						cur_frm.set_value("smtp_port", frm["message"][0]["smtp_port"]);
+						cur_frm.refresh();
+					}
+					catch (Exception) {
+						frappe.confirm(
+							'Domain not configured for this account\nCreate one?',
+							function () {
+								var doc = frappe.model.get_new_doc("Domain");
+								frappe.route_options = {
+									"email_id": cur_frm.doc.email_id
+								};
+								frappe.route_titles["return to email_account"] = 1
+								frappe.set_route("Form", "Domain", doc.name);
+							},
+							function () {
+								show_alert('Domain setup is required for account')
+							}
+						)
+					}
+				}
+			});
 		}
 	},
 });

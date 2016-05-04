@@ -9,6 +9,7 @@ from frappe.utils import get_url, get_formatted_email, cint, validate_email_add,
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
+from frappe.email import set_customer_supplier
 from frappe import _
 
 @frappe.whitelist()
@@ -42,6 +43,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
 
+	contact = set_customer_supplier(sender,recipients)
 	comm = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
@@ -52,7 +54,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
-		"reference_name": name
+		"reference_name": name,
+		"supplier": contact["supplier"],
+		"customer": contact["customer"]
 	})
 	comm.insert(ignore_permissions=True)
 
