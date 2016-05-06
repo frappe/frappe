@@ -152,15 +152,10 @@ def get_traceback():
 	exc_type, exc_value, exc_tb = sys.exc_info()
 	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
 	body = "".join(cstr(t) for t in trace_list)
-
-	if frappe.logger:
-		frappe.logger.error('Db:'+(frappe.db and frappe.db.cur_db_name or '') \
-			+ ' - ' + body)
-
 	return body
 
 def log(event, details):
-	frappe.logger.info(details)
+	frappe.logger().info(details)
 
 def dict_to_str(args, sep='&'):
 	"""

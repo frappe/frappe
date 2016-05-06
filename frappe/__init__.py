@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
 from functools import wraps
-import os, importlib, inspect, logging, json
+import os, importlib, inspect, json
 
 # public
 from frappe.__version__ import __version__
@@ -381,7 +381,6 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
 				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
 
-logger = None
 whitelisted = []
 guest_methods = []
 xss_safe_methods = []
@@ -1140,20 +1139,6 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 
 	return out
 
-logging_setup_complete = False
-def get_logger(module=None, loglevel="DEBUG"):
-	from frappe.setup_logging import setup_logging
-	global logging_setup_complete
-
-	if not logging_setup_complete:
-		setup_logging()
-		logging_setup_complete = True
-
-	logger = logging.getLogger(module or "frappe")
-	logger.setLevel(logging.DEBUG)
-
-	return logger
-
 def publish_realtime(*args, **kwargs):
 	"""Publish real-time updates
 
@@ -1195,3 +1180,10 @@ def get_doctype_app(doctype):
 		return local.module_app[scrub(doctype_module)]
 
 	return local_cache("doctype_app", doctype, generator=_get_doctype_app)
+
+loggers = {}
+log_level = None
+def logger(module=None, with_more_info=True):
+	'''Returns a python logger that uses StreamHandler'''
+	from frappe.utils.logger import get_logger
+	return get_logger(module or __name__, with_more_info=with_more_info)

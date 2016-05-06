@@ -59,10 +59,10 @@ def enqueue_events_for_site(site, queued_jobs):
 
 		# TODO this print call is a tempfix till logging is fixed!
 		print 'Queued events for site {0}'.format(site)
-		frappe.get_logger(__name__).debug('Queued events for site {0}'.format(site))
+		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
 
 	except:
-		frappe.get_logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
+		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
 		raise
 
 	finally:
@@ -218,7 +218,7 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 
 def scheduler_task(site, event, handler, now=False):
 	'''This is a wrapper function that runs a hooks.scheduler_events method'''
-	frappe.get_logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+	frappe.logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
 		if not now:
 			frappe.connect(site=site)
@@ -229,10 +229,10 @@ def scheduler_task(site, event, handler, now=False):
 	except Exception:
 		frappe.db.rollback()
 		traceback = log(handler, "Method: {event}, Handler: {handler}".format(event=event, handler=handler))
-		frappe.get_logger(__name__).error(traceback)
+		frappe.logger(__name__).error(traceback)
 		raise
 
 	else:
 		frappe.db.commit()
 
-	frappe.get_logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+	frappe.logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))

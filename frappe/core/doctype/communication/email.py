@@ -397,5 +397,5 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			"cc": cc,
 			"lang": lang
 		}))
-		frappe.get_logger(__name__).error(traceback)
+		frappe.logger(__name__).error(traceback)
 		raise

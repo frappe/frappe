@@ -30,8 +30,6 @@ local_manager = LocalManager([frappe.local])
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
-logger = frappe.get_logger()
-
 class RequestContext(object):
 
 	def __init__(self, environ):
@@ -72,7 +70,7 @@ def application(request):
 			raise NotFound
 
 	except HTTPException, e:
-		logger.error('Request Error')
+		frappe.logger().error('Request Error', exc_info=True)
 		return e
 
 	except frappe.SessionStopped, e:
@@ -150,7 +148,7 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		logger.error('Request Error')
+		frappe.logger().error('Request Error', exc_info=True)
 		make_error_snapshot(e)
 
 	return response
