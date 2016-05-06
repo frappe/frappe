@@ -380,7 +380,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 300;
+  font-weight: 400;
 }
 .navbar-brand {
   max-width: none;
@@ -583,7 +583,7 @@ fieldset {
 }
 .web-list-item {
   padding: 15px 0px;
-  border-top: 1px solid #EBEFF2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
 .web-list-item h2,
@@ -599,26 +599,16 @@ fieldset {
   color: inherit !important;
   text-decoration: none;
 }
-.web-list-item:last-child {
-  border-bottom: 1px solid #EBEFF2;
-}
 .blog-info {
   text-align: center;
   margin-top: 30px;
 }
-.blog-text,
 .post-description {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  font-size: 16px;
-  line-height: 28px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
-.blog-text p,
 .post-description p {
-  margin-bottom: 40px;
-}
-.blogger-name {
-  font-size: 24px;
+  margin-bottom: 8px;
 }
 .blog-footer {
   padding: 5px 15px;
@@ -634,20 +624,18 @@ fieldset {
 .blog-category {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 10px;
   text-align: center;
   margin-bottom: 30px;
 }
 .author {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 10px;
   border-bottom: 1px solid #EBEFF2;
-  padding-bottom: 20px;
+  padding-bottom: 30px;
 }
 .blogger {
-  padding-top: 30px;
-  padding-bottom: 15px;
+  padding-top: 0px;
+  padding-bottom: 50px;
 }
 .blog-dot:before {
   padding-right: 8px;
@@ -655,56 +643,15 @@ fieldset {
   content: "\2022";
 }
 .blog-list-item {
-  margin-top: 25px;
-  margin-bottom: 25px;
-  border: none;
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
-.post-by {
-  padding-bottom: 50px;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #EBEFF2;
+.blog-list-item .blog-header {
+  font-size: 1.6em;
 }
-.blog-list-item .blog-text,
-.blog-list-item .read-more-btn,
-.blog-list-item .recent-post {
-  display: none;
-}
-.blog-list-item .post-by {
-  padding-bottom: 25px;
-}
-.blog-list-item .post-description {
-  padding-top: 25px;
-}
-.blog-list-item:first-child .row .blog-header {
-  font-size: 34px;
-}
-.blog-list-item:first-child .row .post-by {
-  font-weight: 500;
-}
-.blog-list-item:first-child .row .post-description {
-  font-weight: 500;
-}
-.blog-list-item:first-child .row .blog-text {
-  display: block;
-  padding-top: 0px;
-  padding-bottom: 20px;
-}
-.blog-list-item:first-child .row .read-more-btn {
-  display: inline;
-  padding-top: 0px;
-  border-bottom: 1px dotted #d1d8dd;
-  font-size: 12px;
-}
-.blog-list-item:first-child .row .post-description {
-  padding-bottom: 25px;
-}
-.blog-list-item:first-child .row .recent-post {
-  display: block;
-  padding-top: 50px;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #EBEFF2;
+.blog-header {
+  font-weight: 700;
+  font-size: 2em;
 }
 .blog-comments,
 .help-article-comments {
@@ -963,11 +910,14 @@ body {
   font-size: 12px;
 }
 .sidebar-block,
-.content-block {
+.page-content {
   padding-top: 50px;
   padding-bottom: 50px;
 }
-.content-block {
+.your-account-info {
+  margin-top: 50px;
+}
+.page-content {
   padding-left: 50px;
   padding-right: 50px;
 }
@@ -994,12 +944,14 @@ li .social-child-item {
   padding-top: 50px;
   padding-bottom: 50px;
   font-size: 18px;
+  line-height: 1.5;
 }
 .blog-text p {
   margin-bottom: 30px;
 }
 .blogger-name {
-  font-size: 24px;
+  margin-bottom: 0px;
+  margin-top: 0px;
 }
 .comment-header {
   font-size: 20px;
@@ -1045,4 +997,13 @@ li .social-child-item {
 }
 .dropdown .logged-in {
   border-left: 1px solid #d1d8dd;
+}
+.cart-count-badge {
+  padding: 2px 4px;
+  margin-left: 10px;
+  background-color: #EBEFF2;
+  border-radius: 10px;
+  font-weight: 500;
+  margin-top: -10px;
+  margin-right: -8px;
 }

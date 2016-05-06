@@ -20,7 +20,8 @@
 	</div>
 
 	<div class="comment-form-wrapper">
-		<div id="comment-form">
+		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>		 
+			<div style="display: none;" id="comment-form">
 			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
@@ -37,8 +38,8 @@
 					</div>
 					<p><textarea class="form-control" name="comment" rows=10
 						placeholder="{{ _("Comment") }}"></textarea></p>
-                        <p><button class="btn btn-primary btn-sm" id="submit-comment">
-                            {{ _("Submit") }}</button></p>
+                        <button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">
+                            {{ _("Submit") }}</button>
 				</fieldset>
 			</form>
 		</div>
@@ -61,7 +62,9 @@
 			$(".add-comment").toggle(false)
 				.parent().append("<div class='text-muted'>Comments are closed.</div>")
 		}
-
+		$(".add-comment").click(function() {		
+			$(this).toggle(false);		
+		 	$("#comment-form").toggle();
             var full_name = "", user_id = "";
             if(frappe.is_user_logged_in()) {
                 full_name = getCookie("full_name");
@@ -72,6 +75,7 @@
                 }
             }
 			$("#comment-form textarea").val("");
+			})
 
 		$("#submit-comment").click(function() {
 			var args = {

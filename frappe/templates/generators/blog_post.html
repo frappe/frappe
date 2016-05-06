@@ -1,23 +1,18 @@
 {% extends "templates/web.html" %}
 
-{% block breadcrumbs %}
-<div class="page-breadcrumbs" data-html-block="breadcrumbs">	                    
-	<ul class="breadcrumb">
-		<li>			
-			<a href="/blog"><h1>{{ blog_title or _("Blog") }}</h1></a>
-		</li>	
-	</ul>
-</div>
-{% endblock %}
 {% block page_content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
+	<meta  itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
 	<meta  itemprop="publisher" content="{{brand_html}}"></meta>
 	<!-- begin blog content -->
 	<div class="blog-info">
-	<div class="text-muted blog-category">{{blog_category}}</div>
-	<div itemprop="headline" class="h1 blog-header">{{ title }}</div>
-	<p class="post-by text-muted"><a href="/blog?by={{ blogger }}&by_name={{ full_name }}" class="no-decoration">
-		 By <meta  itemprop="author" content="{{ blogger_info and blogger_info.full_name or full_name }}">{{ blogger_info and blogger_info.full_name or full_name }}</meta></a> <i class="blog-dot"></i> <meta  itemprop="datePublished" content="{{ frappe.format_date(published_on) }}">{{ frappe.format_date(published_on) }}</meta> <i class="blog-dot"></i>{{ comment_text }}</p>
+	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
+	<p class="post-by text-muted small">
+		<a href="/blog?by={{ blogger }}&by_name={{ full_name }}" class="no-decoration">By {{ blogger_info and blogger_info.full_name 		or full_name }}</a>
+		<i class="blog-dot"></i> {{ frappe.format_date(published_on) }} 
+		<i class="blog-dot"></i> <a href="/{{ parent_website_route }}" class="no-decoration">{{ blog_category }}</a> 
+		<i class="blog-dot"></i> {{ comment_text }}
+	</p>
 	</div>
 	<div itemprop="articleBody" class="longform blog-text">
 	{{ content }}
@@ -25,13 +20,11 @@
 	<!-- end blog content -->
 </article>
 {% if blogger_info %}
-<div class="author text-muted">Author</div>
 {% include "templates/includes/blog/blogger.html" %}
 {% endif %}
 <div class="blog-comments">
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
-
 <script>
     frappe.ready(function() { frappe.set_search_path("/blog"); })
 </script>
