@@ -19,7 +19,7 @@ a& {
 }
 
 h1, h2, h3, h4, h5, h6 {
-	font-weight: 300;
+	font-weight: 400;
 }
 
 
@@ -201,7 +201,6 @@ fieldset {
 }
 
 .page-content {
-
 	hr {
 		margin-left: -15px;
 		margin-right: -15px;
@@ -271,7 +270,7 @@ fieldset {
 
 .web-list-item {
 	padding: 15px 0px;
-	border-top: 1px solid @light-border-color;
+	border-bottom: 1px solid @light-border-color;
 
 	h1, h2, h3 {
 		margin-top: 10px;
@@ -289,28 +288,19 @@ fieldset {
 // 	background: @panel-bg;
 // }
 
-.web-list-item:last-child {
-	border-bottom: 1px solid @light-border-color;
-}
-
 .blog-info {
 	text-align:center;
 	margin-top: 30px;
 }
 
-.blog-text, .post-description {
-	padding-top: 40px;
-	padding-bottom: 40px;
-	font-size: 16px;
-	line-height: 28px;
+.post-description {
+	padding-top: 8px;
+	padding-bottom: 8px;
 	p {
-		margin-bottom: 40px;
+		margin-bottom: 8px;
 	}
 }
 
-.blogger-name {
-	font-size:24px;
-}
 
 .blog-footer {
 	padding: 5px 15px;
@@ -329,7 +319,6 @@ fieldset {
 .blog-category {
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	font-size: 10px;
 	text-align: center;
 	margin-bottom: 30px;
 }
@@ -337,14 +326,13 @@ fieldset {
 .author {
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	font-size: 10px;
 	border-bottom: 1px solid @light-border-color;
-	padding-bottom:20px;
+	padding-bottom:30px;
 }
 
 .blogger {
-	padding-top: 30px;
-	padding-bottom: 15px;
+	padding-top: 0px;
+	padding-bottom: 50px;
 }
 
 .blog-dot:before{
@@ -354,61 +342,17 @@ fieldset {
 }
 
 .blog-list-item {
-	margin-top:25px;
-	margin-bottom:25px;
-	border:none;
-}
-
-.post-by {
-	padding-bottom: 50px;
-	font-size: 10px;
-	letter-spacing: 0.5px;
-	border-bottom: 1px solid @light-border-color;
-}
-
-.blog-list-item {
-	.blog-text,.read-more-btn,.recent-post {
-		display: none;
-	}
-	.post-by {
-			padding-bottom: 25px;
-		}
-	.post-description{
-			padding-top: 25px;
-		}
-}
-
-.blog-list-item:first-child .row {
+	margin-top:30px;
+	margin-bottom:30px;
+	
 	.blog-header {
-		font-size: 34px;
+		font-size: 1.6em;
 	}
-	.post-by {
-		font-weight: 500;
-	}
-	.post-description {
-		font-weight: 500;
-	}
-	.blog-text {
-		display: block;
-		padding-top: 0px;
-		padding-bottom: 20px;
-	}	
-	.read-more-btn {
-		display: inline;
-		padding-top: 0px;
-		border-bottom: 1px dotted @border-color;
-		font-size: 12px;
-	}	
-	.post-description {
-		padding-bottom: 25px;
-	}
-	.recent-post {
-		display: block;
-		padding-top: 50px;
-		padding-bottom: 20px;
-		margin-bottom: 20px;
-		border-bottom: 1px solid @light-border-color;
-	}
+}
+
+.blog-header {
+	font-weight: 700;
+	font-size: 2em;
 }
 
 .blog-comments,
@@ -418,7 +362,6 @@ fieldset {
 .blog-comments {
 	background-color: #fafbfc;
 	position: relative;
-
 }
 
 .blog-comments:before {
@@ -567,12 +510,14 @@ a.active {
 	font-size: 12px;
 }
 
-.sidebar-block, .content-block {
+.sidebar-block, .page-content {
 	padding-top: 50px;
 	padding-bottom: 50px;
 }
-
-.content-block {
+.your-account-info {
+	margin-top: 50px;
+}
+.page-content {
 	padding-left: 50px;
 	padding-right: 50px;
 }
@@ -603,13 +548,15 @@ li .social-child-item {
 	padding-top: 50px;
 	padding-bottom: 50px;
 	font-size: 18px;
+	line-height: 1.5;
 	p {
 		margin-bottom: 30px;
 	}
 }
 
-.blogger-name{
-	font-size:24px;
+.blogger-name {
+	margin-bottom:0px;
+	margin-top:0px;
 }
 
 .comment-header{
@@ -655,4 +602,14 @@ li .social-child-item {
 
 .dropdown .logged-in {
 	border-left: 1px solid @border-color;
+}
+
+.cart-count-badge {
+	padding: 2px 4px;
+	margin-left: 10px;
+    background-color: @light-border-color;
+    border-radius:10px;
+	font-weight: 500;
+	margin-top: -10px;
+	margin-right: -8px;
 }

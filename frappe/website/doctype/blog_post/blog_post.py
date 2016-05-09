@@ -84,7 +84,6 @@ class BlogPost(WebsiteGenerator):
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
-		page_title = _("Blog"),
 		template = "templates/includes/blog/blog.html",
 		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
