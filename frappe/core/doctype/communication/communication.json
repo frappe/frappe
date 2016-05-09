@@ -356,7 +356,7 @@
    "label": "Comment Type",
    "length": 0,
    "no_copy": 0,
-   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nBot",
+   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nBot\nRelinked",
    "permlevel": 0,
    "precision": "",
    "print_hide": 0,

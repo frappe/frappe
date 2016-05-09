@@ -61,6 +61,11 @@
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						</a>
 						{% } %}
+						
+						{% if (data.communication_medium === "Email") { %}
+						<a class="text-muted relink-link pull-right"
+                            data-name="{%= data.name %}"> &ndash; {%= __("Relink") %}</a>
+						{% } %}
 
 						{% if (data.communication_medium === "Email") { %}
 						<a class="text-muted reply-link pull-right"
