@@ -305,12 +305,14 @@ frappe.Application = Class.extend({
 	},
 
 	check_user_email: function(){
+		if (sys_defaults.email_user_password){
 			var email_list =  sys_defaults.email_user_password.split(',');
 			for (u in email_list) {
 				if (email_list[u]===frappe.user.name){
 					setTimeout(this.set_password.bind(null,this,email_list[u]), 250)
 				}
 			}
+		}
 	},
 	set_password: function (parent,user) {
 		frappe.call({
