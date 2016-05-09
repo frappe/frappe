@@ -6,8 +6,6 @@ from collections import defaultdict
 import frappe
 import os, socket
 
-logger = frappe.get_logger(__name__)
-
 default_timeout = 300
 queue_timeout = {
 	'long': 1500,
