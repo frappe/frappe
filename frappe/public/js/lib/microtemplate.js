@@ -13,6 +13,9 @@ frappe.template.compile = function(str, name) {
 
 		// replace jinja style tags
 		str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
+		
+		// {% if not test %} --> {% if (!test) { %}
+		str = str.replace(/{%\s?if\s?\s?not\s?([^\(][^%{]+)\s?%}/g, "{% if (! $1) { %}")
 
 		// {% if test %} --> {% if (test) { %}
 		str = str.replace(/{%\s?if\s?([^\(][^%{]+)\s?%}/g, "{% if ($1) { %}");
