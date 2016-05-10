@@ -242,10 +242,11 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 					# if "[401] u'Access token not found.'",
 					# it means that the user needs to again allow dropbox backup from the UI
 					# so re-raise
-
-					if (e.startswith("[401]")
+					exc_message = cstr(e)
+					if (exc_message.startswith("[401]")
 						and dropbox_client.connection_reset_count < 10
-						and e != "[401] u'Access token not found.'"):
+						and exc_message != "[401] u'Access token not found.'"):
+
 
 						# session expired, so get a new connection!
 						# [401] u"The given OAuth 2 access token doesn't exist or has expired."
