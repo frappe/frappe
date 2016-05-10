@@ -20,6 +20,13 @@ a& {
 
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
+	
+	// anchor inside header should not be styled
+	a {
+		color: inherit !important;
+		text-decoration: none;
+	}
+	
 }
 
 
@@ -269,18 +276,12 @@ fieldset {
 }
 
 .web-list-item {
-	padding: 15px 0px;
+	padding-top: 15px;
+	padding-bottom: 45px;
 	border-bottom: 1px solid @light-border-color;
 
 	h1, h2, h3 {
 		margin-top: 10px;
-	}
-
-	h1, h2, h3, h4, h5, h6 {
-		a {
-			color: inherit !important;
-			text-decoration: none;
-		}
 	}
 }
 

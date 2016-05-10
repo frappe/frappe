@@ -382,6 +382,15 @@ h5,
 h6 {
   font-weight: 400;
 }
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  color: inherit !important;
+  text-decoration: none;
+}
 .navbar-brand {
   max-width: none;
 }
@@ -582,22 +591,14 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 15px 0px;
+  padding-top: 15px;
+  padding-bottom: 45px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
 .web-list-item h2,
 .web-list-item h3 {
   margin-top: 10px;
-}
-.web-list-item h1 a,
-.web-list-item h2 a,
-.web-list-item h3 a,
-.web-list-item h4 a,
-.web-list-item h5 a,
-.web-list-item h6 a {
-  color: inherit !important;
-  text-decoration: none;
 }
 .blog-info {
   text-align: center;
