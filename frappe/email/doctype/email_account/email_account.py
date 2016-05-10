@@ -279,7 +279,7 @@ class EmailAccount(Document):
 			"message_id":email.message_id,
 			"actualdate":email.date,
 			"has_attachment": 1 if email.attachments else 0,
-			"email_seen":seen
+			"seen":seen
 		})
 
 		self.set_thread(communication, email)

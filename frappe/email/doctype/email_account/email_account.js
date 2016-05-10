@@ -92,10 +92,8 @@ frappe.ui.form.on("Email Account", {
 
 
 	},
-	before_validate:function(frm){
-		cur_frm.events.email_id();
-	},
 	refresh: function(frm) {
+		frm.events.email_id(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
@@ -111,7 +109,7 @@ frappe.ui.form.on("Email Account", {
 					new_row.email_id = cur_frm.doc.email_id;
 					new_row.idx = 0;
 					frappe.route_titles = {"unsaved": 1};
-					frappe.set_route("Form", "User",user)
+					frappe.set_route("Form", "User",user);
 				});
             }
         }
@@ -124,25 +122,28 @@ frappe.ui.form.on("Email Account", {
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
 		}
 	},
-	email_id:function(frm){
+	email_id:function(frm,norefresh){
 		//pull domain and if no matching domain go create one
 		if (cur_frm.doc.email_id) {
 			frappe.call({
 				method: 'get_domain',
 				doc: cur_frm.doc,
+				async:false,
 				args: {
 					"email_id": cur_frm.doc.email_id
 				},
 				callback: function (frm) {
 					try {
-						cur_frm.set_value("domain", frm["message"][0]["name"]);
-						cur_frm.set_value("email_server", frm["message"][0]["email_server"]);
-						cur_frm.set_value("use_imap", frm["message"][0]["use_imap"]);
-						cur_frm.set_value("smtp_server", frm["message"][0]["smtp_server"]);
-						cur_frm.set_value("use_ssl", frm["message"][0]["use_ssl"]);
-						cur_frm.set_value("use_tls", frm["message"][0]["use_tls"]);
-						cur_frm.set_value("smtp_port", frm["message"][0]["smtp_port"]);
-						cur_frm.refresh();
+						if (cur_frm.doc.domain !=frm["message"][0]["name"]) {
+							cur_frm.doc.domain = frm["message"][0]["name"]
+							cur_frm.doc.email_server= frm["message"][0]["email_server"];
+							cur_frm.doc.use_imap= frm["message"][0]["use_imap"];
+							cur_frm.doc.smtp_server= frm["message"][0]["smtp_server"];
+							cur_frm.doc.use_ssl= frm["message"][0]["use_ssl"];
+							cur_frm.doc.use_tls= frm["message"][0]["use_tls"];
+							cur_frm.doc.smtp_port = frm["message"][0]["smtp_port"];
+							cur_frm.refresh();
+						}
 					}
 					catch (Exception) {
 						frappe.confirm(
