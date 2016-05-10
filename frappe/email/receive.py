@@ -370,16 +370,30 @@ class EmailServer:
 
 	def get_seen(self,email_list):
 		self.time.append(time.time())
-		comm_list = frappe.db.sql("""select name,uid,email_seen from `tabCommunication`
+		comm_list = frappe.db.sql("""select name,uid,seen from `tabCommunication`
 			where email_account = %(email_account)s and uid is not null""",
 		              {"email_account":self.settings.email_account},as_dict=1)
 		self.time.append(time.time())
+
 		try:
 			#response, messages = self.imap.uid('fetch', '1:*', '(FLAGS)')
 			response, seen_list = self.imap.uid('search', None, "SEEN")
 			response, unseen_list = self.imap.uid('search', None, "UNSEEN")
 		except Exception,e:
+			print("failed get seen sync download")
 			return
+		self.time.append(time.time())
+		for unseen in unseen_list:
+			for msg in self.latest_messages:
+				if unseen == msg[1]:
+					msg[2] = 1
+
+			for comm in comm_list:
+				if comm.uid == unseen:
+					if comm.seen:
+						frappe.db.set_value('Communication', comm.name, 'seen', '0', update_modified=False)
+					comm_list.remove(comm)
+					break
 		self.time.append(time.time())
 		seen_list = seen_list[0].split()
 		unseen_list = unseen_list[0].split()
@@ -390,23 +404,10 @@ class EmailServer:
 
 			for comm in comm_list:
 				if comm.uid == seen:
-					if not comm.email_seen:
-						frappe.db.set_value('Communication', comm.name, 'email_seen', '1', update_modified=False)
+					if not comm.seen:
+						frappe.db.set_value('Communication', comm.name, 'seen', '1', update_modified=False)
 					comm_list.remove(comm)
 					break
-		self.time.append(time.time())
-		for unseen in unseen_list:
-			for msg in self.latest_messages:
-				if unseen == msg[1]:
-					msg[2] = 1
-
-			for comm in comm_list:
-				if comm.uid == unseen:
-					if comm.email_seen:
-						frappe.db.set_value('Communication', comm.name, 'email_seen', '0', update_modified=False)
-					comm_list.remove(comm)
-					break
-
 
 		'''
 		for item in messages:

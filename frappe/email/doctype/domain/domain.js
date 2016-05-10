@@ -9,7 +9,6 @@ frappe.ui.form.on("Domain", {
                 delete frappe.route_titles["return to email_account"];
                 //frappe.route_titles["domain"] = cur_frm.doc.domain_name;
                 frappe.set_route(route);
-
             }
         }
     }
