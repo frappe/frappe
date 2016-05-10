@@ -591,8 +591,7 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding-top: 15px;
-  padding-bottom: 45px;
+  padding: 15px 0px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -646,6 +645,7 @@ fieldset {
 .blog-list-item {
   margin-top: 30px;
   margin-bottom: 30px;
+  padding-bottom: 45px;
 }
 .blog-list-item .blog-header {
   font-size: 1.6em;
@@ -918,7 +918,7 @@ body {
 .your-account-info {
   margin-top: 50px;
 }
-.page-content {
+.page-content.with-sidebar {
   padding-left: 50px;
   padding-right: 50px;
 }
