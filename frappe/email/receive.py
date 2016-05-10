@@ -2,16 +2,15 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import time
-import _socket, poplib, imaplib
+import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
+from email_reply_parser import EmailReplyParser
+from email.header import decode_header
 import frappe
 from frappe import _
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown)
 from frappe.utils.scheduler import log
-from email_reply_parser import EmailReplyParser
-from email.header import decode_header
-from frappe.utils.file_manager import get_random_filename
+from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -252,10 +251,6 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		import email, email.utils
-		import datetime
-
-
 		self.raw = content
 		self.mail = email.message_from_string(self.raw)
 
@@ -266,13 +261,7 @@ class Email:
 		self.parse()
 		self.set_content_and_type()
 		self.set_subject()
-
-		# gmail mailing-list compatibility
-		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
-		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
-
-		self.from_email = extract_email_id(_from_email)
-		self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		self.set_from()
 
 		if self.mail["Date"]:
 			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
@@ -288,8 +277,7 @@ class Email:
 
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
-		import email.header
-		_subject = email.header.decode_header(self.mail.get("Subject", "No Subject"))
+		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
 			self.subject = self.subject.decode(_subject[0][1])
@@ -299,6 +287,20 @@ class Email:
 
 		if not self.subject:
 			self.subject = "No Subject"
+
+	def set_from(self):
+		# gmail mailing-list compatibility
+		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
+		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
+		_from_email, encoding = decode_header(_from_email)[0]
+
+		if encoding:
+			_from_email = _from_email.decode(encoding)
+		else:
+			_from_email = _from_email.decode('utf-8')
+
+		self.from_email = extract_email_id(_from_email)
+		self.from_real_name = email.utils.parseaddr(_from_email)[0]
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
@@ -345,7 +347,6 @@ class Email:
 		"""Detect chartset."""
 		charset = part.get_content_charset()
 		if not charset:
-			import chardet
 			charset = chardet.detect(str(part))['encoding']
 
 		return charset
@@ -385,7 +386,6 @@ class Email:
 
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
-		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
 		saved_attachments = []
 
 		for attachment in self.attachments:
@@ -408,7 +408,6 @@ class Email:
 
 	def get_thread_id(self):
 		"""Extract thread ID from `[]`"""
-		import re
 		l = re.findall('(?<=\[)[\w/-]+', self.subject)
 		return l and l[0] or None
 
