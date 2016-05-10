@@ -803,6 +803,7 @@ _f.Frm.prototype.amend_doc = function() {
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	this.save_disabled = true;
+	this.toolbar.current_status = null;
 	this.page.clear_primary_action();
 }
 
