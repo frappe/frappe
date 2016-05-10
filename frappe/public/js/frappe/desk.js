@@ -314,6 +314,7 @@ frappe.Application = Class.extend({
 			}
 		}
 	},
+	
 	set_password: function (parent,user) {
 		frappe.call({
 			method: 'frappe.email.get_email_awaiting',
