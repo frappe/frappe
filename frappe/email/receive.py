@@ -167,6 +167,7 @@ class EmailServer:
 
 
 	def check_uid_validity(self,email_list):
+		self.time = []
 		passed,status = self.imap.status("Inbox",'(UIDVALIDITY)')
 		if not passed:
 			return False # not sure if should error if cannot retrieve mailbox status
@@ -368,15 +369,47 @@ class EmailServer:
 				pass
 
 	def get_seen(self,email_list):
+		self.time.append(time.time())
 		comm_list = frappe.db.sql("""select name,uid,email_seen from `tabCommunication`
 			where email_account = %(email_account)s and uid is not null""",
 		              {"email_account":self.settings.email_account},as_dict=1)
+		self.time.append(time.time())
 		try:
-			response, messages = self.imap.uid('fetch', '1:*', '(FLAGS)')
+			#response, messages = self.imap.uid('fetch', '1:*', '(FLAGS)')
+			response, seen_list = self.imap.uid('search', None, "SEEN")
+			response, unseen_list = self.imap.uid('search', None, "UNSEEN")
 		except Exception,e:
 			return
-		for item in messages:
+		self.time.append(time.time())
+		seen_list = seen_list[0].split()
+		unseen_list = unseen_list[0].split()
+		for seen in seen_list:
+			for msg in self.latest_messages:
+				if seen == msg[1]:
+					msg[2] = 0
 
+			for comm in comm_list:
+				if comm.uid == seen:
+					if not comm.email_seen:
+						frappe.db.set_value('Communication', comm.name, 'email_seen', '1', update_modified=False)
+					comm_list.remove(comm)
+					break
+		self.time.append(time.time())
+		for unseen in unseen_list:
+			for msg in self.latest_messages:
+				if unseen == msg[1]:
+					msg[2] = 1
+
+			for comm in comm_list:
+				if comm.uid == unseen:
+					if comm.email_seen:
+						frappe.db.set_value('Communication', comm.name, 'email_seen', '0', update_modified=False)
+					comm_list.remove(comm)
+					break
+
+
+		'''
+		for item in messages:
 			uid = re.search(r'UID [0-9]*', item, re.U | re.I)
 			if uid:
 				uid = uid.group()[4:]
@@ -401,10 +434,10 @@ class EmailServer:
 							frappe.db.set_value('Communication', comm.name, 'email_seen', '0', update_modified=False)
 					comm_list.remove(comm)
 					break
-
-
-
+		'''
+		self.time.append(time.time())
 		frappe.db.commit()
+		#print ('get_db,fetch_server,seen,unseen: {0},{1},{2},{3}={4}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[4]-self.time[3],2),round(self.time[4]-self.time[0],2) ))
 
 
 	def push_deleted(self):
