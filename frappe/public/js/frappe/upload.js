@@ -69,9 +69,10 @@ frappe.upload = {
 			}
 
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
-			opts.args.is_private = $upload.find('.private-file input').prop('checked') ? 1 : 0;
+			opts.args.is_private = "is_private" in opts ? opts.is_private : ($upload.find('.private-file input').prop('checked')) ? 1 : 0;
 
 			var fileobj = $upload.find(":file").get(0).files[0];
+
 			frappe.upload.upload_file(fileobj, opts.args, opts);
 		});
 	},

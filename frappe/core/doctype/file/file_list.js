@@ -81,6 +81,18 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("Edit Folder"), function() {
 			frappe.set_route("Form", "File", doclist.current_folder);
 		});
+
+		doclist.page.add_menu_item(__("Import Zip-Archive"), function() {
+			// make upload dialog
+			frappe.ui.get_upload_dialog({
+				"args": {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				},
+				"is_private": 0,
+				"callback": function(attachment, r) { doclist.refresh(); },
+			});
+		});
 	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
