@@ -177,8 +177,15 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		if with_data=='Yes':
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
 
+			# sort nested set doctypes by `lft asc`
+			order_by = None
+			table_columns = frappe.db.get_table_columns(parent_doctype)
+			if 'lft' in table_columns and 'rgt' in table_columns:
+				order_by = '`tab{doctype}`.`lft` asc'.format(doctype=parent_doctype)
+
 			# get permitted data only
-			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None)
+			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None, order_by=order_by)
+
 			for doc in data:
 				op = docs_to_export.get("op")
 				names = docs_to_export.get("name")
