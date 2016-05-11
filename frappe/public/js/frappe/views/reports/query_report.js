@@ -45,7 +45,7 @@ frappe.views.QueryReport = Class.extend({
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
 			<p class="msg-box small">\
-				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
+				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
@@ -510,7 +510,7 @@ frappe.views.QueryReport = Class.extend({
 			}
 
 			// set collapsed if initial depth is specified
-			if (initial_depth && item.indent && item.indent==(initial_depth - 1)) {
+			if (initial_depth && item.indent && item.indent >=(initial_depth - 1)) {
 				item._collapsed = true;
 			}
 		}
