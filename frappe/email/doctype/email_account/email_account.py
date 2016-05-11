@@ -228,7 +228,7 @@ class EmailAccount(Document):
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 					#communication.notify(attachments=attachments, fetched_from_email_account=True)
-				
+
 			self.time.append(time.time())
 			print (self.email_account_name+': end sync setup;fetch;parse {0},{1},{2}={3}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[3]-self.time[0],2)))
 
@@ -236,7 +236,7 @@ class EmailAccount(Document):
 				raise Exception, frappe.as_json(exceptions)
 
 	def handle_bad_emails(self,email_server,uid,raw,reason):
-		if cint(email_server.settings.use_imap):#probably need to check uid validity
+		if cint(email_server.settings.use_imap):
 			import email
 			try:
 				mail = email.message_from_string(raw)
@@ -257,9 +257,10 @@ class EmailAccount(Document):
 	def insert_communication(self, raw,uid,seen):
 		email = Email(raw)
 
-		if email.from_email == self.email_id:
+		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
+			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 		contact = set_customer_supplier(email.from_email,email.To)
 
