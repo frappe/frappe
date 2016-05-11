@@ -228,11 +228,12 @@ class EmailAccount(Document):
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 					#communication.notify(attachments=attachments, fetched_from_email_account=True)
+				
+			self.time.append(time.time())
+			print (self.email_account_name+': end sync setup;fetch;parse {0},{1},{2}={3}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[3]-self.time[0],2)))
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
-			self.time.append(time.time())
-			print (self.email_account_name+': end sync setup;fetch;parse {0},{1},{2}={3}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[3]-self.time[0],2)))
 
 	def handle_bad_emails(self,email_server,uid,raw,reason):
 		if cint(email_server.settings.use_imap):#probably need to check uid validity
