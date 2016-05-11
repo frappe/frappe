@@ -82,6 +82,9 @@ class EmailAccount(Document):
 			frappe.db.sql("""update `tabUser Emails` set awaiting_password = 0
 									  where email_account = %(account)s""", {"account": self.name})
 
+		from frappe.email import ask_pass_update
+		ask_pass_update()
+
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		self.there_must_be_only_one_default()

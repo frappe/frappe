@@ -335,7 +335,7 @@ frappe.Application = Class.extend({
 
 	email_password_prompt: function(parent,email_account,user,i) {
 		var d = new frappe.ui.Dialog({
-			title: __('Email Account setup please enter your password for: '+email_account[i][1]),
+			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
 			fields: [
 				{	'fieldname': 'password',
 					'fieldtype': 'Password',
@@ -363,7 +363,7 @@ frappe.Application = Class.extend({
 				frappe.call({
 					method: 'frappe.email.set_email_password',
 					args: {
-						"email_account": email_account[i][0],
+						"email_account": email_account[i]["email_account"],
 						"user": user,
 						"password": d.get_value("password")//values["password"]
 					},
