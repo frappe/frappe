@@ -283,11 +283,12 @@ class EmailAccount(Document):
 		})
 
 		self.set_thread(communication, email)
+		# save attachments
+		communication._attachments = email.save_attachments_in_doc(communication)
 
 		communication.insert(ignore_permissions = 1)
 
-		# save attachments
-		communication._attachments = email.save_attachments_in_doc(communication)
+
 
 		# replace inline images
 

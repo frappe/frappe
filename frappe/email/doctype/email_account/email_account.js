@@ -89,8 +89,9 @@ frappe.ui.form.on("Email Account", {
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
-
-
+	},
+	validate:function(frm){
+		frm.events.email_id(frm,true);
 	},
 	refresh: function(frm) {
 		frm.events.email_id(frm);
@@ -142,7 +143,9 @@ frappe.ui.form.on("Email Account", {
 							cur_frm.doc.use_ssl= frm["message"][0]["use_ssl"];
 							cur_frm.doc.use_tls= frm["message"][0]["use_tls"];
 							cur_frm.doc.smtp_port = frm["message"][0]["smtp_port"];
-							cur_frm.refresh();
+							if (!norefresh) {
+								cur_frm.refresh();
+							}
 						}
 					}
 					catch (Exception) {
