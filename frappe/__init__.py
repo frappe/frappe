@@ -854,21 +854,40 @@ def call(fn, *args, **kwargs):
 	return fn(*args, **newargs)
 
 def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
-	"""Create a new **Property Setter** (for overriding DocType and DocField properties)."""
+	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
+
+	If doctype is not specified, it will create a property setter for all fields with the
+	given fieldname"""
 	args = _dict(args)
-	ps = get_doc({
-		'doctype': "Property Setter",
-		'doctype_or_field': args.doctype_or_field or "DocField",
-		'doc_type': args.doctype,
-		'field_name': args.fieldname,
-		'property': args.property,
-		'value': args.value,
-		'property_type': args.property_type or "Data",
-		'__islocal': 1
-	})
-	ps.flags.ignore_validate = ignore_validate
-	ps.flags.validate_fields_for_doctype = validate_fields_for_doctype
-	ps.insert()
+	if not args.doctype_or_field:
+		args.doctype_or_field = 'DocField'
+		if not args.property_type:
+			args.property_type = db.get_value('DocField',
+				{'parent': 'DocField', 'fieldname': args.property}, 'fieldtype') or 'Data'
+
+	if not args.doctype:
+		doctype_list = db.sql_list('select distinct parent from tabDocField where fieldname=%s', args.fieldname)
+	else:
+		doctype_list = [args.doctype]
+
+	for doctype in doctype_list:
+		if not args.property_type:
+			args.property_type = db.get_value('DocField',
+				{'parent': doctype, 'fieldname': args.fieldname}, 'fieldtype') or 'Data'
+
+		ps = get_doc({
+			'doctype': "Property Setter",
+			'doctype_or_field': args.doctype_or_field,
+			'doc_type': doctype,
+			'field_name': args.fieldname,
+			'property': args.property,
+			'value': args.value,
+			'property_type': args.property_type or "Data",
+			'__islocal': 1
+		})
+		ps.flags.ignore_validate = ignore_validate
+		ps.flags.validate_fields_for_doctype = validate_fields_for_doctype
+		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	"""Import a file using Data Import Tool."""

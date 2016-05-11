@@ -33,7 +33,7 @@ class TestDesktopIcon(unittest.TestCase):
 
 	def test_add_desktop_icon(self):
 		self.assertEquals(self.get_icon('User'), None)
-		add_user_icon('User', '#List/User', 'link', 'User')
+		add_user_icon('User')
 
 		icon = self.get_icon('User')
 		self.assertEquals(icon.custom, 1)
