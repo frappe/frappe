@@ -292,7 +292,7 @@ class EmailServer:
 				download_list = download_list[:dlength - num]
 
 				#####tempoary limit until python RQ arrives ################################################
-				if lcount>=6:
+				if lcount>=3:
 					download_list = []
 
 				# compress download list into ranges
