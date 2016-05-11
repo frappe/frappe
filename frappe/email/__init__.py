@@ -70,7 +70,7 @@ def get_email_awaiting(user):
 	waiting = frappe.db.sql("""select email_account,email_id
 		from `tabUser Emails`
 		where awaiting_password = 1
-		and parent = %(user)s""",{"user":user},as_list=1)
+		and parent = %(user)s""",{"user":user},as_dict=1)
 	if waiting:
 		return waiting
 	else:
@@ -92,21 +92,22 @@ def set_email_password(email_account,user,password):
 			save= account.save()
 			frappe.db.sql("""update `tabUser Emails` set awaiting_password = 0
 				where email_account = %(account)s""",{"account": email_account})
-
-			# update the sys defaults as to awaiting users
-			from frappe.utils import set_default
-			users = frappe.db.sql("""select DISTINCT(parent)
-				from `tabUser Emails`
-				where awaiting_password = 1""",as_list=1)
-
-			password_list = []
-			for u in users:
-				password_list.append(u[0])
-			set_default("email_user_password",u','.join(password_list))
-
+			ask_pass_update()
 		except Exception, e:
 			frappe.db.rollback()
 			return False
 	return True
+
+def ask_pass_update():
+	# update the sys defaults as to awaiting users
+	from frappe.utils import set_default
+	users = frappe.db.sql("""select DISTINCT(parent)
+    				from `tabUser Emails`
+    				where awaiting_password = 1""", as_list=1)
+
+	password_list = []
+	for u in users:
+		password_list.append(u[0])
+	set_default("email_user_password", u','.join(password_list))
 
 
