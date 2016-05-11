@@ -184,7 +184,8 @@ def set_content_type(response, data, path):
 		content_type, encoding = mimetypes.guess_type(path)
 		if content_type:
 			response.mimetype = content_type
-			response.charset = encoding
+			if encoding:
+				response.charset = encoding
 
 	return data
 
