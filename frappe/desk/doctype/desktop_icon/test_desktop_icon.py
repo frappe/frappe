@@ -74,7 +74,7 @@ class TestDesktopIcon(unittest.TestCase):
 	def test_re_order_desktop_icons(self):
 		icons = [d.module_name for d in get_desktop_icons()]
 		m0, m1 = icons[0], icons[1]
-		set_order([m1, m0] + icons[2:])
+		set_order([m1, m0] + icons[2:], frappe.session.user)
 
 		# reload
 		icons = [d.module_name for d in get_desktop_icons()]

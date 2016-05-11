@@ -467,7 +467,10 @@ def execute(context, method, args=None, kwargs=None):
 			frappe.connect()
 
 			if args:
-				args = eval(args)
+				try:
+					args = eval(args)
+				except NameError:
+					args = [args]
 			else:
 				args = ()
 

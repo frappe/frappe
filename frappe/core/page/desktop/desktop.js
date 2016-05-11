@@ -115,7 +115,8 @@ $.extend(frappe.desktop, {
 				frappe.call({
 					method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
 					args: {
-						'new_order': new_order
+						'new_order': new_order,
+						'user': frappe.session.user
 					},
 					quiet: true
 				});
