@@ -75,7 +75,7 @@ def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
 	if not email_str:
 		return False
-	if email_str == u'undisclosed-recipients:;':
+	if 'undisclosed-recipient' in email_str:
 		return False
 
 	elif " " in email_str and "<" not in email_str:
