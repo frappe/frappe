@@ -195,6 +195,8 @@ def append_number_if_name_exists(doc):
 			count = "1"
 
 		doc.name = "{0}-{1}".format(doc.name, count)
+		
+	return doc
 
 def de_duplicate(doctype, name):
 	original_name = name
