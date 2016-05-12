@@ -541,6 +541,7 @@ textarea.form-control {
 }
 .breadcrumb.for-file-list {
   margin-bottom: 0px;
+  padding: 18px 15px;
   border-bottom: 1px solid #d1d8dd;
   border-radius: 0px;
 }

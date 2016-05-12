@@ -599,6 +599,9 @@ fieldset {
   color: inherit !important;
   text-decoration: none;
 }
+.web-list-item:last-child {
+  border-bottom: 0px;
+}
 .blog-info {
   text-align: center;
   margin-top: 30px;
@@ -622,13 +625,11 @@ fieldset {
   background: transparent;
 }
 .blog-category {
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
   margin-bottom: 30px;
 }
 .author {
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid #EBEFF2;
   padding-bottom: 30px;
@@ -895,7 +896,6 @@ body {
   font-size: 32px;
 }
 .page-head h1 {
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 24px;
 }
@@ -905,7 +905,6 @@ body {
 .footer-group-label {
   display: inline-block;
   padding-bottom: 4px;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 12px;
 }
