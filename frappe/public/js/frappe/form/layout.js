@@ -219,7 +219,7 @@ frappe.ui.form.Layout = Class.extend({
 				fieldobj.doctype = me.doc.doctype;
 				fieldobj.docname = me.doc.name;
 				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
-					fieldobj.df.fieldname, me.frm ? me.frm.doc.name : me.doc.name);
+					fieldobj.df.fieldname, me.frm ? me.frm.doc.name : me.doc.name) || fieldobj.df;
 
 				// on form change, permissions can change
 				if(me.frm) {

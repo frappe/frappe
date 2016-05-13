@@ -4,10 +4,11 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 	frappe.model.with_doctype(doctype, function() {
 		var mandatory = $.map(frappe.get_meta(doctype).fields,
 			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
+		var meta = frappe.get_meta(doctype);
 
 		var doc = frappe.model.get_new_doc(doctype);
 
-		if(frappe.get_meta(doctype).quick_entry != 1) {
+		if(meta.quick_entry != 1) {
 			frappe.set_route('Form', doctype, doc.name);
 			return;
 		}
@@ -24,6 +25,10 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			return;
 		}
 
+		if(meta.autoname.toLowerCase()==='prompt') {
+			mandatory = [{fieldname:'__name', label:__('{0} Name', [meta.name]),
+				reqd: 1, fieldtype:'Data'}].concat(mandatory);
+		}
 
 		var dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [doctype]),
@@ -33,8 +38,12 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		var update_doc = function() {
 			var data = dialog.get_values(true);
 			$.each(data, function(key, value) {
-				if(!is_null(value)) {
-					dialog.doc[key] = value;
+				if(key==='__name') {
+					dialog.doc.name = value;
+				} else {
+					if(!is_null(value)) {
+						dialog.doc[key] = value;
+					}
 				}
 			});
 			return dialog.doc;
