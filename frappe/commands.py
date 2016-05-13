@@ -533,6 +533,87 @@ def disable_scheduler(context):
 		finally:
 			frappe.destroy()
 
+
+
+@click.command('scheduler')
+@click.option('--site', help='site name')
+@click.argument('state')
+@pass_context
+def scheduler(context, state, site=None):
+	from frappe.installer import update_site_config
+	if not site:
+		try:
+			site = context.sites[0]
+		except (IndexError, TypeError):
+			print 'Please specify --site sitename'
+			return sys.exit(1)
+	try:
+		frappe.init(site=site)
+		state = state.lower()
+		if state == 'pause':
+			update_site_config('pause_scheduler', 1)
+		elif state == 'resume':
+			update_site_config('pause_scheduler', 0)
+		elif state == 'disable':
+			update_site_config('disable_scheduler', 1)
+		elif state == 'enable':
+			update_site_config('disable_scheduler', 0)
+		else:
+			print "Invalid option\nValid options : pause/resume/enable/disable"
+	finally:
+		frappe.destroy()
+
+
+@click.command('maintenance-mode')
+@click.option('--site', help='site name')
+@click.argument('state')
+@pass_context
+def maintenance_mode(context, state, site=None):
+	from frappe.installer import update_site_config
+	if not site:
+		try:
+			site = context.sites[0]
+		except (IndexError, TypeError):
+			print 'Please specify --site sitename'
+			return sys.exit(1)
+	try:
+		frappe.init(site=site)
+		state = state.lower()
+		if state == 'on':
+			update_site_config('maintenance_mode', 1)
+		elif state == 'off':
+			update_site_config('maintenance_mode', 0)
+		else:
+			print "Invalid option\nValid options : on/off"
+	finally:
+		frappe.destroy()
+
+
+
+@click.command('ready-for-migration')
+@click.option('--site', help='site name')
+@pass_context
+def ready_for_migration(context, site=None):
+	from frappe.utils.doctor import get_pending_jobs
+	"Check if site is ready for migration"
+	if not site:
+		try:
+			site = context.sites[0]
+		except (IndexError, TypeError):
+			print 'Please specify --site sitename'
+			return sys.exit(1)
+	try:
+		frappe.init(site=site)
+		if get_pending_jobs(site=site):
+			print 'Pending jobs for site, not ready for migration'
+			return sys.exit(1)
+		else:
+			print 'No pending jobs, ready for migration'
+			return 0
+	finally:
+		frappe.destroy()
+
+
 @click.command('export-doc')
 @click.argument('doctype')
 @click.argument('docname')
@@ -1065,6 +1146,9 @@ commands = [
 	trigger_scheduler_event,
 	enable_scheduler,
 	disable_scheduler,
+	scheduler,
+	maintenance_mode,
+	ready_for_migration,
 	export_doc,
 	export_json,
 	export_csv,
