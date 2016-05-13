@@ -51,6 +51,9 @@ def enqueue_events_for_site(site, queued_jobs):
 		if frappe.local.conf.maintenance_mode:
 			return
 
+		if frappe.local.conf.pause_scheduler:
+			return
+
 		frappe.connect()
 		if is_scheduler_disabled():
 			return
