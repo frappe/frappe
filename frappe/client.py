@@ -76,7 +76,7 @@ def insert(doc=None):
 	if doc.get("parent") and doc.get("parenttype"):
 		# inserting a child record
 		parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
-		parent.append(doc)
+		parent.append(doc.get("parentfield"), doc)
 		parent.save()
 		return parent.as_dict()
 	else:
