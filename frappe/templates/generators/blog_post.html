@@ -1,16 +1,17 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
+<div class="blog-container">
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
 	<meta  itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
 	<meta  itemprop="publisher" content="{{brand_html}}"></meta>
 	<!-- begin blog content -->
 	<div class="blog-info">
 	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
-	<p class="post-by text-muted small">
+	<p class="post-by text-muted">
 		<a href="/blog?by={{ blogger }}&by_name={{ full_name }}" class="no-decoration">By {{ blogger_info and blogger_info.full_name 		or full_name }}</a>
-		<i class="blog-dot"></i> {{ frappe.format_date(published_on) }} 
-		<i class="blog-dot"></i> <a href="/{{ parent_website_route }}" class="no-decoration">{{ blog_category }}</a> 
+		<i class="blog-dot"></i> {{ frappe.format_date(published_on) }}
+		<i class="blog-dot"></i> <a href="/{{ parent_website_route }}" class="no-decoration">{{ blog_category }}</a>
 		<i class="blog-dot"></i> {{ comment_text }}
 	</p>
 	</div>
@@ -25,12 +26,17 @@
 <div class="blog-comments">
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
+</div>
 <script>
     frappe.ready(function() { frappe.set_search_path("/blog"); })
 </script>
 {% endblock %}
 {% block style %}
 <style>
+.blog-container {
+	width: 720px;
+	margin: auto;
+}
 .page-content {
 	padding-bottom: 0px;
 }

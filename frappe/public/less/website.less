@@ -20,6 +20,13 @@ a& {
 
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
+
+	// anchor inside header should not be styled
+	a {
+		color: inherit !important;
+		text-decoration: none;
+	}
+
 }
 
 
@@ -275,13 +282,6 @@ fieldset {
 	h1, h2, h3 {
 		margin-top: 10px;
 	}
-
-	h1, h2, h3, h4, h5, h6 {
-		a {
-			color: inherit !important;
-			text-decoration: none;
-		}
-	}
 }
 
 .web-list-item:last-child {
@@ -298,7 +298,6 @@ fieldset {
 }
 
 .post-description {
-	padding-top: 8px;
 	padding-bottom: 8px;
 	p {
 		margin-bottom: 8px;
@@ -344,8 +343,8 @@ fieldset {
 }
 
 .blog-list-item {
-	margin-top:30px;
-	margin-bottom:30px;
+	margin-top: 30px;
+	margin-bottom: 30px;
 
 	.blog-header {
 		font-size: 1.6em;
@@ -357,18 +356,21 @@ fieldset {
 	font-size: 2em;
 }
 
+.add-comment-section {
+	padding-bottom: 30px;
+}
+
 .blog-comments,
 .help-article-comments {
-    padding: 0px 15px 15px 0px;
 }
 .blog-comments {
-	background-color: #fafbfc;
+	background-color: @light-bg;
 	position: relative;
 }
 
 .blog-comments:before {
     content:"";
-    background-color:#fafbfc;
+    background-color: @light-bg;
     position: absolute;
     height: 100%;
     width: 4000px;
@@ -517,7 +519,8 @@ a.active {
 .your-account-info {
 	margin-top: 50px;
 }
-.page-content {
+
+.page-content.with-sidebar {
 	padding-left: 50px;
 	padding-right: 50px;
 }
@@ -559,11 +562,13 @@ li .social-child-item {
 	margin-top:0px;
 }
 
+.comment-view {
+	padding: 30px 0px;
+}
+
 .comment-header{
-	font-size:20px;
-	padding-top:30px;
 	padding-bottom:20px;
-	border-bottom: 1px solid @border-color;
+	border-bottom: 1px solid @light-border-color;
 }
 
 .item-search {

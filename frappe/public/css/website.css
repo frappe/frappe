@@ -382,6 +382,15 @@ h5,
 h6 {
   font-weight: 400;
 }
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  color: inherit !important;
+  text-decoration: none;
+}
 .navbar-brand {
   max-width: none;
 }
@@ -590,15 +599,6 @@ fieldset {
 .web-list-item h3 {
   margin-top: 10px;
 }
-.web-list-item h1 a,
-.web-list-item h2 a,
-.web-list-item h3 a,
-.web-list-item h4 a,
-.web-list-item h5 a,
-.web-list-item h6 a {
-  color: inherit !important;
-  text-decoration: none;
-}
 .web-list-item:last-child {
   border-bottom: 0px;
 }
@@ -607,7 +607,6 @@ fieldset {
   margin-top: 30px;
 }
 .post-description {
-  padding-top: 8px;
   padding-bottom: 8px;
 }
 .post-description p {
@@ -654,9 +653,8 @@ fieldset {
   font-weight: 700;
   font-size: 2em;
 }
-.blog-comments,
-.help-article-comments {
-  padding: 0px 15px 15px 0px;
+.add-comment-section {
+  padding-bottom: 30px;
 }
 .blog-comments {
   background-color: #fafbfc;
@@ -916,7 +914,7 @@ body {
 .your-account-info {
   margin-top: 50px;
 }
-.page-content {
+.page-content.with-sidebar {
   padding-left: 50px;
   padding-right: 50px;
 }
@@ -952,11 +950,12 @@ li .social-child-item {
   margin-bottom: 0px;
   margin-top: 0px;
 }
+.comment-view {
+  padding: 30px 0px;
+}
 .comment-header {
-  font-size: 20px;
-  padding-top: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #d1d8dd;
+  border-bottom: 1px solid #EBEFF2;
 }
 .item-search {
   border-bottom: 1px solid #d1d8dd;

@@ -75,7 +75,10 @@ class BlogPost(WebsiteGenerator):
 		if not context.comment_list:
 			context.comment_text = _('No comments yet')
 		else:
-			context.comment_text = _('{0} comments').format(len(context.comment_list))
+			if(len(context.comment_list)) == 1:
+				context.comment_text = _('1 comment')
+			else:
+				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
 		context.children = get_children()
 
