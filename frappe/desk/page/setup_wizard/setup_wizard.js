@@ -26,6 +26,12 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	// setup page ui
 	$(".navbar:first").toggle(false);
 	$("body").css({"padding-top":"30px"});
+	
+	if(sys_defaults.time_zone) {
+		var last_route = frappe.route_history.slice(-2, -1)[0];
+		frappe.set_route();
+		return;
+	}
 
 	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
