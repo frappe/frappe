@@ -25,7 +25,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			return;
 		}
 
-		if(meta.autoname.toLowerCase()==='prompt') {
+		if(meta.autoname && meta.autoname.toLowerCase()==='prompt') {
 			mandatory = [{fieldname:'__name', label:__('{0} Name', [meta.name]),
 				reqd: 1, fieldtype:'Data'}].concat(mandatory);
 		}
