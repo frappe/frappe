@@ -2,6 +2,7 @@
  "allow_copy": 0, 
  "allow_import": 1, 
  "allow_rename": 0, 
+ "beta": 0, 
  "creation": "2013-01-10 16:34:01", 
  "custom": 0, 
  "description": "Adds a custom field to a DocType", 
@@ -895,7 +896,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-03-03 05:10:38.033237", 
+ "modified": "2016-05-14 09:22:58.789603", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Custom Field", 
@@ -942,8 +943,10 @@
    "write": 1
   }
  ], 
+ "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "dt,label,fieldtype,options", 
- "sort_order": "ASC"
+ "sort_order": "ASC", 
+ "track_seen": 0
 }
