@@ -47,8 +47,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_fields: function() {
-		return [
+		this.from = {};
+		this.get_from();
+		var fields= [
 			{fieldtype: "Section Break"},
+			this.from ,
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
@@ -82,8 +85,34 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Select Attachments"), fieldtype:"HTML",
 				fieldname:"select_attachments"}
 		];
+		if(!fields[1]){
+			fields.splice(1,1)
+		}
+		return fields
 	},
+	get_from:function(){
+		var me = this;
+		frappe.call({
+			method: 'inbox.email_inbox.page.email_inbox.get_accounts',
+			args: {user: frappe.user["name"]},
+			async: false,
+			callback: function (list) {
+				if (list["message"]) {
+					var accounts = [];
 
+					for (var i =0;i<list["message"].length;i++)
+					{
+						accounts.push(list["message"][i]["email_id"])
+					}
+					me.from = {label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender", options: accounts}
+
+				}else {
+					me.from = false
+				}
+			}
+		})
+
+	},
 	prepare: function() {
 		this.setup_subject_and_recipients();
 		this.setup_print_language()
@@ -396,6 +425,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				print_format: print_format,
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
+				sender: form_values.sender,
 				attachments: selected_attachments,
 				_lang : me.lang_code
 			},

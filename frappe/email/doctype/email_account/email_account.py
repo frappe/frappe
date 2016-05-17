@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
+from frappe.utils.error import make_error_snapshot
 from frappe.email import set_customer_supplier
 
 
@@ -52,8 +53,8 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if self.enable_incoming and not self.append_to:
-			frappe.throw(_("Append To is mandatory for incoming mails"))
+		#if self.enable_incoming and not self.append_to:
+		#	frappe.throw(_("Append To is mandatory for incoming mails"))
 
 		if not self.awaiting_password and not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
@@ -211,26 +212,35 @@ class EmailAccount(Document):
 				self.time.append(time.time())
 
 			exceptions = []
+
 			for raw,uid,seen in incoming_mails:
 				try:
 
 					communication = self.insert_communication(raw,uid,seen)
 					#self.notify_update()
 
-				except SentEmailInInbox:
+				except SentEmailInInbox,e:
 					frappe.db.rollback()
+					make_error_snapshot(e)
 					self.handle_bad_emails(email_server, uid, raw,"sent email in inbox")
 
 
-				except Exception:
+				except Exception, e:
 					frappe.db.rollback()
+					make_error_snapshot(e)
 					self.handle_bad_emails(email_server, uid, raw,frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
-					#communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.notify(attachments=attachments, fetched_from_email_account=True)
+
+			#update attachment folder size as suspended for emails
+			try:
+				frappe.get_doc("File", 'Home/Attachments').save(ignore_permissions=True)
+			except:
+				exceptions.append(frappe.get_traceback())
 
 			self.time.append(time.time())
 			print (self.email_account_name+': end sync setup;fetch;parse {0},{1},{2}={3}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[3]-self.time[0],2)))
@@ -264,7 +274,8 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
-			raise SentEmailInInbox
+			#raise SentEmailInInbox
+			pass
 		contact = set_customer_supplier(email.from_email,email.To)
 
 		communication = frappe.get_doc({
@@ -288,12 +299,12 @@ class EmailAccount(Document):
 		})
 
 		self.set_thread(communication, email)
-		# save attachments
-		communication._attachments = email.save_attachments_in_doc(communication)
 
+		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
 
-
+		# save attachments
+		communication._attachments = email.save_attachments_in_doc(communication)
 
 		# replace inline images
 
@@ -338,7 +349,7 @@ class EmailAccount(Document):
 				sender_field = None
 
 		if in_reply_to:
-			if "@{0}".format(frappe.local.site) in in_reply_to:
+			if "{0}".format(frappe.local.site) in in_reply_to:
 
 				# reply to a communication sent from the system
 				in_reply_to, domain = in_reply_to.split("@", 1)
@@ -377,6 +388,17 @@ class EmailAccount(Document):
 
 			if parent:
 				parent = frappe.get_doc(self.append_to, parent[0].name)
+
+		if not parent:
+			# try match doctype based on subject
+			if ':' in email.subject:
+				try:
+					subject = strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*","", email.subject))
+					if ':' in subject:
+						reference_doctype,reference_name = subject.split(': ',1)
+						parent = frappe.get_doc(reference_doctype,reference_name)
+				except:
+					pass
 
 		if not parent and self.append_to and self.append_to!="Communication":
 			# no parent found, but must be tagged
