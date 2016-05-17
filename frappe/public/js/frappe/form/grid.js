@@ -510,7 +510,8 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 
 	add_visible_columns: function() {
-		var me = this;
+		var me = this,
+			focus_set = false;
 		this.make_static_display_template();
 		for(var ci in this.static_display_template) {
 			var df = this.static_display_template[ci][0],
@@ -564,11 +565,18 @@ frappe.ui.form.GridRow = Class.extend({
 								// last row, last column
 								if(cint($(this).attr('data-col-idx')) === me.static_display_template.length-1 &&
 									me.doc.idx===me.frm.doc[me.grid.df.fieldname].length) {
-									console.log('here');
-									me.grid.add_new_row(null, null, true);
+
+									setTimeout(function() {
+										me.grid.add_new_row(null, null, true);
+									}, 500);
+
 								}
 							}
 						});
+						if(!focus_set) {
+							field.$input.focus();
+							focus_set = true;
+						}
 					}
 					this.on_grid_fields_dict[df.fieldname] = field;
 				}
