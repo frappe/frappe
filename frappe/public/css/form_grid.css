@@ -54,6 +54,19 @@
   margin-left: -15px;
   float: left;
 }
+.editable-row {
+  margin-right: 15px !important;
+}
+.editable-row .row-index {
+  margin-top: 7px;
+}
+.editable-row .close {
+  padding: 3px 7px;
+  margin-right: -20px;
+}
+.editable-row .col {
+  padding: 0px 7.5px;
+}
 .row-data > .row {
   margin-left: 15px;
 }
@@ -62,6 +75,9 @@
 }
 .grid-row p {
   margin-bottom: 5px;
+}
+.grid-row .frappe-control {
+  margin-bottom: 0px;
 }
 .grid-row .col-sm-6 .editor-toolbar-text-group,
 .grid-row .col-sm-6 .editor-toolbar-align-group {

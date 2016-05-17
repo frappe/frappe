@@ -114,7 +114,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.frm) {
+		if(this.doctype && this.docname) {
 			if(frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype)) {
 				this.last_value = value;

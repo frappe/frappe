@@ -258,6 +258,9 @@ frappe.ui.form.Layout = Class.extend({
 		// in grid
 		if(doctype != me.doctype) {
 			grid_row = me.get_open_grid_row();
+			if(!grid_row || !grid_row.layout) {
+				return;
+			}
 			fields = grid_row.layout.fields_list;
 		}
 
