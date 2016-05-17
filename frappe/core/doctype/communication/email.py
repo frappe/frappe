@@ -74,7 +74,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
-	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email"):
+	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email")or doc.flags.in_receive:
 		return
 
 	# validate recipients
@@ -229,9 +229,13 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 def set_incoming_outgoing_accounts(doc):
 	doc.incoming_email_account = doc.outgoing_email_account = None
 
-	if doc.reference_doctype:
+	if not doc.incoming_email_account and doc.sender:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, "enable_incoming": 1}, "email_id")
+			{"email_id": doc.sender, "enable_incoming": 1}, "email_id")
+
+	if not doc.incoming_email_account and doc.reference_doctype:
+		doc.incoming_email_account = frappe.db.get_value("Email Account",
+			{"append_to": doc.reference_doctype, }, "email_id")
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},

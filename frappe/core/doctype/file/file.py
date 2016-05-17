@@ -95,7 +95,8 @@ class File(NestedSet):
 	def update_parent_folder_size(self):
 		"""Update size of parent folder"""
 		if self.folder and not self.is_folder: # it not home
-			frappe.get_doc("File", self.folder).save(ignore_permissions=True)
+			if self.folder != u'Home/Attachments':
+				frappe.get_doc("File", self.folder).save(ignore_permissions=True)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""

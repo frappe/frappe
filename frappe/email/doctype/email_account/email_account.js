@@ -81,7 +81,7 @@ frappe.ui.form.on("Email Account", {
 		}
 	},*/
 	enable_incoming: function(frm) {
-		frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
+		//frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	},
 	notify_if_unreplied: function(frm) {
 		frm.set_df_property("send_notification_to", "reqd", frm.doc.notify_if_unreplied);
