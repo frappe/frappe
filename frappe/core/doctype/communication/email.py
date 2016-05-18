@@ -55,8 +55,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
-		"supplier": contact["supplier"],
-		"customer": contact["customer"]
+		"timeline_doctype":contact["timeline_doctype"],
+		"timeline_name":contact["timeline_name"],
+		"timeline_label":contact["timeline_label"],
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -74,7 +75,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
-	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email")or doc.flags.in_receive:
+	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email") or doc.flags.in_receive:
 		return
 
 	# validate recipients

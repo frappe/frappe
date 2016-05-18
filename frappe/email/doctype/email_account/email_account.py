@@ -238,7 +238,8 @@ class EmailAccount(Document):
 
 			#update attachment folder size as suspended for emails
 			try:
-				frappe.get_doc("File", 'Home/Attachments').save(ignore_permissions=True)
+				folder = frappe.get_doc("File", 'Home/Attachments')
+				folder.save()
 			except:
 				exceptions.append(frappe.get_traceback())
 
@@ -289,8 +290,9 @@ class EmailAccount(Document):
 			"cc": email.CC,
 			"email_account": self.name,
 			"communication_medium": "Email",
-			"supplier":contact["supplier"],
-			"customer":contact["customer"],
+			"timeline_doctype":contact["timeline_doctype"],
+			"timeline_name":contact["timeline_name"],
+			"timeline_label":contact["timeline_label"],
 			"uid":uid,
 			"message_id":email.message_id,
 			"actualdate":email.date,
