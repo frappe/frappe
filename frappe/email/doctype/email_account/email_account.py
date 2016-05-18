@@ -243,6 +243,10 @@ class EmailAccount(Document):
 			except:
 				exceptions.append(frappe.get_traceback())
 
+			#notify if user is linked to account
+			if len(incoming_mails)>0:
+				frappe.publish_realtime('new_email', {"account":self.email_account_name,"number":len(incoming_mails)})
+
 			self.time.append(time.time())
 			print (self.email_account_name+': end sync setup;fetch;parse {0},{1},{2}={3}'.format(round(self.time[1]-self.time[0],2),round(self.time[2]-self.time[1],2),round(self.time[3]-self.time[2],2),round(self.time[3]-self.time[0],2)))
 
