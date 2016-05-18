@@ -52,20 +52,25 @@
   text-align: right;
   width: 30px;
   margin-left: -15px;
+  margin-top: 1px;
   float: left;
 }
 .editable-row {
   margin-right: 15px !important;
 }
-.editable-row .row-index {
-  margin-top: 7px;
-}
-.editable-row .close {
-  padding: 3px 7px;
-  margin-right: -20px;
-}
 .editable-row .col {
   padding: 0px 7.5px;
+}
+.grid-body .btn-open-row {
+  margin-top: -3px;
+}
+.grid-body .editable-row .row-index {
+  margin-top: 7px;
+}
+.grid-body .editable-row .btn-open-row {
+  margin-top: 0px;
+  padding: 3px 7px;
+  margin-right: -20px;
 }
 .row-data > .row {
   margin-left: 15px;

@@ -248,6 +248,24 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	// mandatory style on refresh
 	setup_update_on_refresh: function() {
 		var me = this;
+
+		var make_input = function() {
+			if(!me.has_input) {
+				me.make_input();
+				if(me.df.on_make) {
+					me.df.on_make(me);
+				}
+			}
+		}
+
+		var update_input = function() {
+			if(me.doctype && me.docname) {
+				me.set_input(me.value);
+			} else {
+				me.set_input(me.value || null);
+			}
+		}
+
 		this.$wrapper.on("refresh", function() {
 			if(me.disp_status != "None") {
 				// refresh value
@@ -259,19 +277,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
 					$(me.input_area).find("input").prop("disabled", false);
-					if(!me.has_input) {
-						me.make_input();
-						if(me.df.on_make) {
-							me.df.on_make(me);
-						}
-					};
-					if(me.doctype && me.docname) {
-						me.set_input(me.value);
-					} else {
-						me.set_input(me.value || null);
-					}
+					make_input();
+					update_input();
 				} else {
-					$(me.input_area).toggle(false);
+					if(me.only_input) {
+						// show disabled input if only_input is true
+						// since there is no disp_area
+						make_input();
+						update_input();
+					}
+					$(me.input_area).toggle(me.only_input ? true : false);
 					$(me.input_area).find("input").prop("disabled", true);
 					if (me.disp_area) {
 						me.set_disp_area();
