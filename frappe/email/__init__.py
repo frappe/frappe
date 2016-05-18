@@ -9,20 +9,20 @@ from frappe.email.smtp import send
 from frappe.utils import markdown
 
 def set_customer_supplier(sender,recipients):
-	origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
+	origin_contact = frappe.db.sql("select name,email_id,supplier,supplier_name, customer,customer_name,user from `tabContact`",as_dict=1)
 
 	for comm in origin_contact:
 		if comm["user"] is None and comm["email_id"]:
 			if (sender and sender.find(comm["email_id"]) > -1) or (
 				recipients and recipients.find(comm["email_id"]) > -1):
 				if comm["supplier"] and comm["customer"]:
-					return {"supplier": comm["supplier"], "customer": comm["customer"]}
+					return {"timeline_doctype": "Contact","timeline_name":comm["name"],"timeline_label":None}
 
 				elif comm["supplier"]:
-					return {"supplier": comm["supplier"], "customer": None}
+					return {"timeline_doctype": "Supplier","timeline_name":comm["supplier"],"timeline_label":comm["supplier_name"]}
 
 				elif comm["customer"]:
-					return {"supplier": None, "customer": comm["customer"]}
+					return {"timeline_doctype": "Customer", "timeline_name": comm["customer"],"timeline_label": comm["customer_name"]}
 	return {"supplier": None, "customer": None}
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
