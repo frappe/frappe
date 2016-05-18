@@ -91,10 +91,10 @@ frappe.ui.form.on("Email Account", {
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 	},
 	validate:function(frm){
-		frm.events.email_id(frm,true);
+		frm.events.update_domain(frm,true);
 	},
 	refresh: function(frm) {
-		frm.events.email_id(frm);
+		frm.events.update_domain(frm,true);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
@@ -123,8 +123,11 @@ frappe.ui.form.on("Email Account", {
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
 		}
 	},
-	email_id:function(frm,norefresh){
+	email_id:function(frm){
 		//pull domain and if no matching domain go create one
+		frm.events.update_domain(frm,false);
+	},
+	update_domain:function(frm,norefresh){
 		if (cur_frm.doc.email_id) {
 			frappe.call({
 				method: 'get_domain',
@@ -167,5 +170,5 @@ frappe.ui.form.on("Email Account", {
 				}
 			});
 		}
-	},
+	}
 });

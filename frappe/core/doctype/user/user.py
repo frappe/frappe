@@ -47,6 +47,7 @@ class User(Document):
 		self.validate_username()
 		self.remove_disabled_roles()
 		self.get_awaiting_password()
+		self.force_user_email_update()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -337,6 +338,12 @@ class User(Document):
 	def get_awaiting_password(self):
 		from frappe.email import ask_pass_update
 		ask_pass_update()
+
+	def force_user_email_update(self):
+		for user_email in self.user_emails:
+			if not user_email.email_id:
+				user_email.email_id = frappe.db.get_value("Email Account",{"name":user_email.email_account},"email_id")
+
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
