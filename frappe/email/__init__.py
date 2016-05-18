@@ -23,7 +23,7 @@ def set_customer_supplier(sender,recipients):
 
 				elif comm["customer"]:
 					return {"timeline_doctype": "Customer", "timeline_name": comm["customer"],"timeline_label": comm["customer_name"]}
-	return {"supplier": None, "customer": None}
+	return {"timeline_doctype": None,"timeline_name":None,"timeline_label":None}
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
 	reply_to=None, cc=(), message_id=None, in_reply_to=None):
