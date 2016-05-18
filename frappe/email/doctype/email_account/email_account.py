@@ -279,8 +279,7 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
-			#raise SentEmailInInbox
-			pass
+			raise SentEmailInInbox
 		contact = set_customer_supplier(email.from_email,email.To)
 
 		communication = frappe.get_doc({
