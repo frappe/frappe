@@ -360,3 +360,28 @@ _f.Frm.prototype.get_title = function() {
 		return this.doc.name;
 	}
 }
+
+_f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
+	// get doctype from parent
+	if(frappe.meta.docfield_map[this.doctype][fieldname]) {
+		doctype = this.doctype;
+	} else {
+		frappe.meta.get_table_fields(this.doctype).every(function(df) {
+			if(frappe.meta.docfield_map[df.options][fieldname]) {
+				doctype = df.options;
+				return false;
+			} else {
+				return true;
+			}
+		})
+	}
+
+	frappe.meta.get_docfield(doctype, fieldname, this.doc.name).formatter =
+		function(value, df, options, doc) {
+			return repl('<span class="indicator %(color)s">%(name)s</span>', {
+				color: get_color(doc),
+				name: get_text ? get_text(doc) : value
+			});
+		};
+
+}

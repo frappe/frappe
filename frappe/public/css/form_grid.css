@@ -55,11 +55,12 @@
   margin-top: 1px;
   float: left;
 }
-.editable-row {
+.grid-row > .row {
   margin-right: 15px !important;
 }
-.editable-row .col {
-  padding: 0px 7.5px;
+.grid-row > .row .col {
+  padding-left: 10px;
+  padding-right: 0px;
 }
 .grid-body .btn-open-row {
   margin-top: -3px;
@@ -71,6 +72,11 @@
   margin-top: 0px;
   padding: 3px 7px;
   margin-right: -20px;
+}
+.grid-body .editable-row input[data-fieldtype="Int"],
+.grid-body .editable-row input[data-fieldtype="Float"],
+.grid-body .editable-row input[data-fieldtype="Currency"] {
+  text-align: right;
 }
 .row-data > .row {
   margin-left: 15px;

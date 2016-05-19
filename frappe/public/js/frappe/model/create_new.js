@@ -7,7 +7,7 @@ $.extend(frappe.model, {
 	new_names: {},
 	new_name_count: {},
 
-	get_new_doc: function(doctype, parent_doc, parentfield) {
+	get_new_doc: function(doctype, parent_doc, parentfield, for_copy) {
 		frappe.provide("locals." + doctype);
 		var doc = {
 			docstatus: 0,
@@ -33,6 +33,11 @@ $.extend(frappe.model, {
 		}
 
 		frappe.model.add_to_locals(doc);
+
+		if(!for_copy) {
+			frappe.model.create_mandatory_children(doc);
+			doc.__unedited = true;
+		}
 
 		if (!parent_doc) {
 			doc.__run_link_triggers = 1;
@@ -85,6 +90,7 @@ $.extend(frappe.model, {
 
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
+
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = frappe.model.get_default_value(f, doc, parent_doc);
 				if(v) {
@@ -102,6 +108,17 @@ $.extend(frappe.model, {
 			}
 		}
 		return updated;
+	},
+
+	create_mandatory_children: function(doc) {
+		if(frappe.get_meta(doc.doctype).istable) return;
+
+		// create empty rows for mandatory table fields
+		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
+			if(df.fieldtype==='Table' && df.reqd) {
+				frappe.model.add_child(doc, df.fieldname);
+			}
+		});
 	},
 
 	get_default_value: function(df, doc, parent_doc) {
@@ -216,7 +233,7 @@ $.extend(frappe.model, {
 
 	copy_doc: function(doc, from_amend, parent_doc, parentfield) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
-		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield);
+		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield, true);
 
 		for(var key in doc) {
 			// dont copy name and blank fields

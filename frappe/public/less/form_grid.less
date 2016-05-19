@@ -67,11 +67,12 @@
 	float: left;
 }
 
-.editable-row {
+.grid-row > .row {
 	margin-right: 15px !important;
 
 	.col {
-		padding: 0px 7.5px;
+		padding-left: 10px;
+		padding-right: 0px;
 	}
 }
 
@@ -89,6 +90,10 @@
 			margin-top: 0px;
 			padding: 3px 7px;
 			margin-right: -20px;
+		}
+
+		input[data-fieldtype="Int"], input[data-fieldtype="Float"], input[data-fieldtype="Currency"] {
+			text-align: right;
 		}
 	}
 }

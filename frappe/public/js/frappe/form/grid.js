@@ -54,6 +54,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
+			me.set_focus_on_new_row();
 			return false;
 		});
 
@@ -278,6 +279,13 @@ frappe.ui.form.Grid = Class.extend({
 		}
 	},
 
+	set_focus_on_new_row: function() {
+		var me = this;
+		setTimeout(function() {
+			me.grid_rows[me.grid_rows.length - 1].row.find('input:first').focus();
+		});
+	},
+
 	make_static_display_template: function() {
 		if(this.static_display_template) return;
 
@@ -496,6 +504,7 @@ frappe.ui.form.GridRow = Class.extend({
 	init: function(opts) {
 		this.fields_dict = {};
 		this.on_grid_fields_dict = {};
+		this.on_grid_fields = [];
 		this.columns = {};
 		$.extend(this, opts);
 		this.make();
@@ -573,7 +582,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.row_index.html(this.doc ? this.doc.idx : "&nbsp;");
 		}
 
-		if(this.grid.template) {
+		if(this.grid.template && false) {
 			// rendered via template
 			this.row_data && this.row_data.empty();
 			this.row_data = $('<div class="row-data">').appendTo(this.row)
@@ -701,18 +710,14 @@ frappe.ui.form.GridRow = Class.extend({
 
 						setTimeout(function() {
 							me.grid.add_new_row(null, null, true);
+							me.grid.set_focus_on_new_row();
 						}, 500);
 					}
 				}
 			});
-			if(!this.focus_set) {
-				setTimeout(function() {
-					field.$input.focus();
-				}, 500);
-				this.focus_set = true;
-			}
 		}
 		this.on_grid_fields_dict[df.fieldname] = field;
+		this.on_grid_fields.push(field);
 
 	},
 

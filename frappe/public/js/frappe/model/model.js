@@ -313,6 +313,11 @@ $.extend(frappe.model, {
 		var doc = locals[doctype] && locals[doctype][docname];
 
 		if(doc && doc[fieldname] !== value) {
+			if(doc.__unedited && !(!doc[fieldname] && !value)) {
+				// unset unedited flag for virgin rows
+				doc.__unedited = false;
+			}
+
 			doc[fieldname] = value;
 			frappe.model.trigger(fieldname, value, doc);
 			return true;
