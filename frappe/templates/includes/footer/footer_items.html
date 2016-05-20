@@ -1,12 +1,12 @@
 {% for page in footer_items %}
 	{% if not page.parent_label -%}
-		<li style="margin-left:65px;" data-label='{{ page.label }}' {% if page.child_items %} {% endif %}>
+		<li data-label='{{ page.label }}'>
 		<a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
 		{% if page.child_items %} onclick="return false;" {% endif %}
-		{{ page.target or ''}}>				
+		{{ page.target or ''}}>
 		{%- if page.child_items -%}
-			<span class="footer-group-label text-extra-muted">{{ page.label }}<span>
-			</a>		
+			<span class="footer-group-label text-uppercase text-muted small">{{ page.label }}<span>
+			</a>
 			<ul class="list-unstyled small">
 			{%- for child in page.child_items -%}
 				<li class="footer-child-item" data-label='{{ child.label }}'>

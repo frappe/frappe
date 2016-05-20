@@ -447,7 +447,7 @@ h6 a {
   margin-left: 5px;
 }
 .web-footer {
-  padding: 20px 0px;
+  padding: 60px 0px;
   min-height: 140px;
   border-top: 1px solid #EBEFF2;
 }
@@ -576,8 +576,8 @@ fieldset {
   padding: 15px 0px;
   border-top: 1px solid #EBEFF2;
 }
-.footer-powered {
-  margin-top: 20px;
+.footer-bottom-line {
+  margin-top: 60px;
 }
 /* post and post list */
 .list-group-item {
@@ -900,12 +900,6 @@ body {
 .btn-next-wrapper {
   margin-top: 60px;
 }
-.footer-group-label {
-  display: inline-block;
-  padding-bottom: 4px;
-  letter-spacing: 0.5px;
-  font-size: 12px;
-}
 .sidebar-block,
 .page-content {
   padding-top: 50px;
@@ -927,11 +921,12 @@ a:link,
 a:active {
   text-decoration: none;
 }
-li .footer-child-item {
-  margin-bottom: 4px !important;
+.footer-group-label {
+  display: inline-block;
+  font-size: 11px;
 }
-li .social-child-item {
-  margin-bottom: 4px !important;
+li .footer-child-item {
+  margin: 15px 0px !important;
 }
 .blog-info {
   text-align: center;

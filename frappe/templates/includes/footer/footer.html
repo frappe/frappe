@@ -3,41 +3,22 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-sm-6 text-left">
-					{% if facebook_share or google_plus_one or twitter_share or linked_in_share %}
-						<ul class="list-unstyled small" style="float:left;">
-							<span class="footer-group-label text-extra-muted">Share</span>
-							{% if google_plus_one %}
-								<li style="margin-bottom:4px;"><a href="https://plus.google.com/share?url={{ url }}"
-								target="_blank">Google +</a></li>
-							{% endif %}
-							{% if twitter_share %}
-								<li style="margin-bottom:4px;"><a href="https://twitter.com/intent/tweet?url={{ url }}&text={{ encoded_title }}"
-								target="_blank" >Twitter</a></li>
-							{% endif %}
-							{% if facebook_share %}
-								<li style="margin-bottom:4px;"><a href="https://www.facebook.com/sharer.php?u={{ url }}&t={{ encoded_title }}&via={{ twitter_share_via }}"
-								target="_blank">Facebook</a></li>
-							{% endif %}
-							{% if linked_in_share %}
-								<li style="margin-bottom:4px;"> <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ url }}&title={{ encoded_title }}"
-								target="_blank">Linkedin</a></li>
-							{% endif %}
-
-						</ul>
-					{% endif %}
-
+					<div class="row">
 					{% if footer_items -%}
-						<ul class="list-unstyled navbar-nav" style="{% if facebook_share or google_plus_one or twitter_share or linked_in_share %} margin-left:65px; {%else%} margin-left:0px;{%endif%}">
-							{% include "templates/includes/footer/footer_items.html" %}
-						</ul>
+						<div class="col-sm-3">
+							<ul class="list-unstyled navbar-nav">
+								{% include "templates/includes/footer/footer_items.html" %}
+							</ul>
+						</div>
 					{% endif %}
+					</div>
 				</div>
 
 				<div class="col-sm-6 text-right">
 					{% block extension %}{% include "templates/includes/footer/footer_extension.html" %}{% endblock %}
 				</div>
 			</div>
-			<div class="row">
+			<div class="row footer-bottom-line">
 				<div class="text-muted small col-sm-6">
 					{% if copyright %}
 						&copy; {{ copyright }}

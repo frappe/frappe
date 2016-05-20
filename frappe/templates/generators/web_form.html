@@ -12,19 +12,20 @@
 
 {% block header_actions %}
   {% if params.name or params.new %}
-    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Submit") if params.new else _("Update") }}</button>
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
+    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+    		{{ _("Submit") if params.new else _("Update") }}</button>
   {% elif is_list %}
-    <a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
-    {{ _("New {0}").format(_(doc_type)) }}
-    </a>
+  	<div style="padding-bottom: 15px;">
+	    <a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
+	    {{ _("New {0}").format(_(doc_type)) }}
+	    </a>
+	</div>
   {% endif %}
 {% endblock %}
 
 {% block page_content %}
-<!-- no-sidebar -->
 <div class="introduction">
 	{% if introduction_text %}
 	<p class="lead">{{ introduction_text }}</p>
@@ -178,6 +179,7 @@
 </div>
 {%- endif %}
 {% endif %}
+<div class="padding"></div>
 {% endblock %}
 
 {% block script %}

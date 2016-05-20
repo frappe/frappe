@@ -12,6 +12,7 @@ def get_context(context):
 	user = frappe.get_doc('User', frappe.session.user)
 	user.full_name = user.get_fullname()
 	context.user = user
+	context.show_sidebar=True
 
 @frappe.whitelist()
 def update_user(fullname, phone=None):

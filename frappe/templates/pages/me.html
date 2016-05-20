@@ -10,10 +10,10 @@
 {% block page_content %}
 
 <!-- no-cache -->
-<div class="row your-account-info">
+<div class="row your-account-info" style="min-height: 400px; padding-bottom: 50px;">
 	<div class="col-sm-4">
-			<span class="user-image-myaccount"></span>			
-			<div>				
+			<span class="user-image-myaccount"></span>
+			<div>
 				<ul class="list-unstyled">
 					<li><a href="/update-password">
 						<h6 class="text-muted">{{ _("Reset Password") }}</h6>
@@ -21,16 +21,15 @@
 					<li><a href="/edit-profile">
 						<h6 class="text-muted">{{ _("Edit Profile") }}</h6>
 					</a></li>
-					
+
 				</ul>
 			</div>
 		</div>
 	<div class="col-sm-8 pull-left">
-	    <p> 
-			<span class="label">User Name</span>
-	        <span class="value"> {{ fullname }}</span>
-		</p>
-		
+		<div class="row">
+			<div class="col-xs-4 text-right text-muted">{{ _("Name") }}</div>
+			<div class="col-xs-8">{{ fullname }}</div>
+		</div>
 	</div>
 </div>
 {% endblock %}
