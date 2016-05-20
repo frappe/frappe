@@ -49,6 +49,7 @@ def get_unread_messages():
 		WHERE communication_type in ('Chat', 'Notification')
 		AND reference_doctype = 'User'
 		AND reference_name = %s
+		and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
 		AND seen=0
 		""", (frappe.session.user,))[0][0]
 
@@ -57,6 +58,7 @@ def get_unseen_likes():
 	return frappe.db.sql("""select count(*) from `tabCommunication`
 		where
 			communication_type='Comment'
+			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
 			and comment_type='Like'
 			and owner is not null and owner!=%(user)s
 			and reference_owner=%(user)s

@@ -70,6 +70,9 @@ def add_to_date(date, years=0, months=0, days=0):
 	from dateutil.relativedelta import relativedelta
 
 	as_string, as_datetime = False, False
+	if date==None:
+		date = now_datetime()
+
 	if isinstance(date, basestring):
 		as_string = True
 		if " " in date:
