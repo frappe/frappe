@@ -111,7 +111,8 @@ $.extend(frappe.model, {
 	},
 
 	create_mandatory_children: function(doc) {
-		if(frappe.get_meta(doc.doctype).istable) return;
+		var meta = frappe.get_meta(doc.doctype);
+		if(meta && meta.istable) return;
 
 		// create empty rows for mandatory table fields
 		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
