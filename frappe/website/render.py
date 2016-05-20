@@ -172,17 +172,20 @@ def resolve_from_map(path):
 
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
-		response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
+		response.mimetype = 'application/json'
+		response.charset = 'utf-8'
 		data = json.dumps(data)
 		return data
 
-	response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
+	response.mimetype = 'text/html'
+	response.charset = 'utf-8'
 
 	if "." in path:
 		content_type, encoding = mimetypes.guess_type(path)
-		if not content_type:
-			content_type = "text/html; charset: utf-8"
-		response.headers[b"Content-Type"] = content_type.encode("utf-8")
+		if content_type:
+			response.mimetype = content_type
+			if encoding:
+				response.charset = encoding
 
 	return data
 
