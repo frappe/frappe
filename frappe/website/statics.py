@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe, os
+import json
+from frappe.utils import call_hook_method
 
 def sync_statics(rebuild=False):
 	s = sync()
@@ -59,7 +61,7 @@ class sync(object):
 				self.index = indexfile.read().splitlines()
 
 	def sync_index_page(self, basepath, files, app):
-		for extn in ("md", "html"):
+		for extn in ("md", "html", "json"):
 			fname = "index." + extn
 			if fname in files:
 				self.sync_file(fname, os.path.join(basepath, fname), None, app)
@@ -69,7 +71,7 @@ class sync(object):
 		for i, page_name in enumerate(self.index):
 			if page_name in folders:
 				# for folder, sync inner index first (so that idx is set)
-				for extn in ("md", "html"):
+				for extn in ("md", "html", "json"):
 					path = os.path.join(basepath, page_name, "index." + extn)
 					if os.path.exists(path):
 						self.sync_file("index." + extn, path, i, app)
@@ -80,6 +82,8 @@ class sync(object):
 				self.sync_file(page_name + ".md", os.path.join(basepath, page_name + ".md"), i, app)
 			elif page_name + ".html" in files:
 				self.sync_file(page_name + ".html", os.path.join(basepath, page_name + ".html"), i, app)
+			elif page_name + ".json" in files:
+				self.sync_file(page_name + ".json", os.path.join(basepath, page_name + ".json"), i, app)
 			else:
 				if page_name not in folders:
 					print page_name + " not found in " + basepath
@@ -92,7 +96,10 @@ class sync(object):
 				self.sync_file(fname, os.path.join(basepath, fname), None, app)
 
 	def sync_file(self, fname, template_path, priority, app):
+		'''sync file into Web Page'''
+		title = None
 		route = os.path.relpath(template_path, self.statics_path).rsplit(".", 1)[0]
+		generated = False
 
 		if fname.rsplit(".", 1)[0]=="index" and \
 			os.path.dirname(template_path) != self.statics_path:
@@ -114,15 +121,23 @@ class sync(object):
 
 		with open(template_path, "r") as f:
 			content = unicode(f.read().strip(), "utf-8")
+			if template_path.endswith('.json'):
+				content = json.loads(content)
+				title = content.get('title')
+				content['page_name'] = page_name
+				content = call_hook_method('build_json_page', content)
+				generated = True
 
-		title = self.get_title(template_path, content)
+		if not title:
+			title = self.get_title(template_path, content)
 
 		relative_template_path = os.path.join(app, os.path.relpath(template_path, frappe.get_app_path(app)))
 		if not frappe.db.get_value("Web Page", {"template_path":relative_template_path}):
 			web_page = frappe.new_doc("Web Page")
 			web_page.page_name = page_name
 			web_page.parent_web_page = parent_web_page
-			web_page.template_path = relative_template_path
+			if not generated:
+				web_page.template_path = relative_template_path
 			web_page.main_section = content
 			web_page.title = title
 			web_page.published = published
@@ -151,6 +166,10 @@ class sync(object):
 		self.synced.append((parent_web_page, page_name))
 
 	def get_title(self, fpath, content):
+		if isinstance(content, dict):
+			# content is json
+			return content.get('title')
+
 		title = os.path.basename(fpath).rsplit(".", 1)[0]
 		if title =="index":
 			title = os.path.basename(os.path.dirname(fpath))
