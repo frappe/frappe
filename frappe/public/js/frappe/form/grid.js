@@ -263,6 +263,7 @@ frappe.ui.form.Grid = Class.extend({
 	add_new_row: function(idx, callback, show) {
 		if(this.is_editable()) {
 			var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+			d.__unedited = true;
 			this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 			this.refresh();
 

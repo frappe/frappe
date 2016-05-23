@@ -36,7 +36,6 @@ $.extend(frappe.model, {
 
 		if(!for_copy) {
 			frappe.model.create_mandatory_children(doc);
-			doc.__unedited = true;
 		}
 
 		if (!parent_doc) {

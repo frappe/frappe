@@ -188,6 +188,7 @@ frappe.RoleEditor = Class.extend({
 		});
 
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
+			me.set_roles_in_table();
 			cur_frm.dirty();
 		});
 		$(this.wrapper).find('.user-role a').click(function() {

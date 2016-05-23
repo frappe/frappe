@@ -28,8 +28,11 @@ def update_link_count():
 	if link_count:
 		for key, count in link_count.iteritems():
 			if key[0] not in ignore_doctypes:
-				frappe.db.sql('update `tab{0}` set idx = idx + {1} where name=%s'.format(key[0], count),
-					key[1])
-
+				try:
+					frappe.db.sql('update `tab{0}` set idx = idx + {1} where name=%s'.format(key[0], count),
+						key[1])
+				except Exception, e:
+					if e.args[0]!=1146: # table not found, single
+						raise e
 	# reset the count
 	frappe.cache().delete_value('_link_count')
