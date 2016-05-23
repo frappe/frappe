@@ -29,6 +29,6 @@ def get_event_conditions(doctype, filters=None):
 		filters = json.loads(filters)
 		for key in filters:
 			if filters[key]:
-				conditions += " and " + key + ' = "' + filters[key].replace('"', '\"') + '"'
+				conditions += 'and `{0}` = "{1}"'.format(frappe.db.escape(key), frappe.db.escape(filters[key]))
 
 	return conditions
