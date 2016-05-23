@@ -48,9 +48,9 @@ def get_jobs_by_queue(site=None):
 		q = get_queue(queue)
 		for job in q.jobs:
 			if not site:
-				jobs_per_queue[queue].append(job.kwargs['method'])
+				jobs_per_queue[queue].append(job.kwargs.get('method') or job.description)
 			elif job.kwargs['site'] == site:
-				jobs_per_queue[queue].append(job.kwargs['method'])
+				jobs_per_queue[queue].append(job.kwargs.get('method') or job.description)
 
 		consolidated_methods = {}
 
@@ -62,7 +62,7 @@ def get_jobs_by_queue(site=None):
 
 		job_count[queue] = len(jobs_per_queue[queue])
 		jobs_per_queue[queue] = consolidated_methods
-		
+
 
 	return jobs_per_queue, job_count
 
@@ -83,7 +83,7 @@ def get_pending_jobs(site=None):
 
 def check_number_of_workers():
 	return len(get_workers())
-	
+
 def get_running_tasks():
 	for worker in get_workers():
 		return worker.get_current_job()
@@ -93,16 +93,24 @@ def doctor(site=None):
 	"""
 	Prints diagnostic information for the scheduler
 	"""
-	workers_online = check_number_of_workers()
-	jobs_per_queue, job_count = get_jobs_by_queue(site)
+	with frappe.init_site(site):
+		workers_online = check_number_of_workers()
+		jobs_per_queue, job_count = get_jobs_by_queue(site)
+
 	print "-----Checking scheduler status-----"
-	for site in frappe.utils.get_sites():
-		frappe.init(site)
+	if site:
+		sites = [site]
+	else:
+		sites = frappe.utils.get_sites()
+
+	for s in sites:
+		frappe.init(s)
 		frappe.connect()
 		if is_scheduler_disabled():
-			print "Scheduler disabled for : "
+			print "Scheduler disabled for", s
 		frappe.destroy()
 
+	# TODO improve this
 	print "Workers online:", workers_online
 	print "-----{0} Jobs-----".format(site)
 	for queue in get_queue_list():
@@ -114,7 +122,6 @@ def doctor(site=None):
 				print "{0} : {1}".format(method, count)
 			print "------------"
 
-
 	return True
 
 def pending_jobs(site=None):
@@ -124,4 +131,4 @@ def pending_jobs(site=None):
 		if(pending_jobs[queue]):
 			print "-----Queue :{0}-----".format(queue)
 			print "\n".join(pending_jobs[queue])
-	
+

@@ -91,13 +91,17 @@ def get_jobs(site=None, queue=None, key='method'):
 		q = get_queue(queue)
 
 		for job in q.jobs:
-			if site is None:
-				# get jobs for all sites
-				jobs_per_site[job.kwargs['site']].append(job.kwargs[key])
+			if job.kwargs.get('site'):
+				if site is None:
+					# get jobs for all sites
+					jobs_per_site[job.kwargs['site']].append(job.kwargs[key])
 
-			elif job.kwargs['site'] == site:
-				# get jobs only for given site
-				jobs_per_site[site].append(job.kwargs[key])
+				elif job.kwargs['site'] == site:
+					# get jobs only for given site
+					jobs_per_site[site].append(job.kwargs[key])
+
+			else:
+				print 'No site found in job', job.__dict__
 
 	return jobs_per_site
 
