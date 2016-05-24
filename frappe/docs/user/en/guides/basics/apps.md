@@ -105,5 +105,5 @@ Download the app via git
 
 Install the app to your site
 
-    bench --site app_name install-app app_name
+    bench --site site_name install-app app_name
 
