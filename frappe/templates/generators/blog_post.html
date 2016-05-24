@@ -4,7 +4,7 @@
 <div class="blog-container">
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
 	<meta  itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
-	<meta  itemprop="publisher" content="{{brand_html}}"></meta>
+	<meta  itemprop="author" content="{{ full_name }}"></meta>
 	<!-- begin blog content -->
 	<div class="blog-info">
 	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
@@ -34,7 +34,7 @@
 {% block style %}
 <style>
 .blog-container {
-	width: 720px;
+	max-width: 720px;
 	margin: auto;
 }
 .page-content {
