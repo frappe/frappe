@@ -226,7 +226,7 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
-	frappe.db.add_index("Communication", ["status", "communcation_type"])
+	frappe.db.add_index("Communication", ["status", "communication_type"])
 	frappe.db.add_index("Communication", ["creation"])
 	frappe.db.add_index("Communication", ["modified"])
 
