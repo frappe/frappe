@@ -252,7 +252,7 @@ def flush(from_test=False):
 	frappe.db.sql("""update `tabBulk Email` set status='Expired'
 		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
-	def get_email(priority):
+	def _get_email(priority):
 		use_index=''
 		if priority:
 			use_index = 'use index (priority)'
@@ -265,10 +265,10 @@ def flush(from_test=False):
 	for i in xrange(500):
 		# indexing on multiple keys is slow, so query twice
 		# get high priority emails
-		email = get_email(1)
+		email = _get_email(1)
 		if not email:
 			# get low priority emails
-			email = get_email(0)
+			email = _get_email(0)
 
 		if not email:
 			# done, no more emails to fly
