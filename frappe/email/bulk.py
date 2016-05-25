@@ -254,7 +254,7 @@ def flush(from_test=False):
 
 	for i in xrange(500):
 		email = frappe.db.sql("""select * from `tabBulk Email` where
-			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
+			status='Not Sent' and send_after < %s
 			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)
 		if email:
 			email = email[0]

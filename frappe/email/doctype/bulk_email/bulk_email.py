@@ -6,9 +6,12 @@ import frappe
 
 from frappe.model.document import Document
 from frappe.email.bulk import send_one
+from frappe.utils import now_datetime
 
 class BulkEmail(Document):
-	pass
+	def validate(self):
+		if not self.send_after:
+			self.send_after = now_datetime()
 
 @frappe.whitelist()
 def retry_sending(name):
