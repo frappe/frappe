@@ -253,9 +253,13 @@ def flush(from_test=False):
 		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
 	def get_email(priority):
-		out = frappe.db.sql("""select * from `tabBulk Email` where
+		use_index=''
+		if priority:
+			use_index = 'use index (priority)'
+		out = frappe.db.sql("""select * from `tabBulk Email` {use_index} where
 			status='Not Sent' and send_after < %s and priority = %s
-			order by creation asc limit 1 for update""", (now_datetime(), priority), as_dict=1)
+			order by creation asc limit 1 for update""".format(use_index=use_index),
+			(now_datetime(), priority), as_dict=1)
 		return out and out[0][0] or None
 
 	for i in xrange(500):
