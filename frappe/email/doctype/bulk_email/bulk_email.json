@@ -257,7 +257,7 @@
    "read_only": 1, 
    "report_hide": 0, 
    "reqd": 0, 
-   "search_index": 0, 
+   "search_index": 1, 
    "set_only_once": 0, 
    "unique": 0
   }
@@ -272,7 +272,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-05-25 10:45:09.293669", 
+ "modified": "2016-05-25 11:36:54.912752", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Bulk Email", 

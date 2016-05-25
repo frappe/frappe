@@ -64,6 +64,7 @@ class DatabaseQuery(object):
 		self.join = join
 		self.distinct = distinct
 		self.as_list = as_list
+		self.ignore_ifnull = ignore_ifnull
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
 
