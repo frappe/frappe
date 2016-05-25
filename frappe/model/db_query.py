@@ -67,6 +67,7 @@ class DatabaseQuery(object):
 		self.ignore_ifnull = ignore_ifnull
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
+		self.debug = True
 
 		if query:
 			result = self.run_custom_query(query)
@@ -260,18 +261,23 @@ class DatabaseQuery(object):
 		column_name = '{tname}.{fname}'.format(tname=tname,
 			fname=f.fieldname)
 
+		can_be_null = True
+
 		# prepare in condition
 		if f.operator in ('in', 'not in'):
 			values = f.value
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
-			fallback = ''
+			fallback = "''"
 			value = (frappe.db.escape(v.strip(), percent=False) for v in values)
 			value = '("{0}")'.format('", "'.join(value))
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
+
+			if df and df.fieldtype=="Check":
+				can_be_null = False
 
 			if df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
@@ -303,12 +309,12 @@ class DatabaseQuery(object):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 			if f.fieldname in ("creation", "modified"):
-				column_name = "date_format({tname}.{fname},'%Y-%m-%d')".format(tname=tname,
+				column_name = "date_format({tname}.{fname}, '%Y-%m-%d')".format(tname=tname,
 					fname=f.fieldname)
 
-		if self.ignore_ifnull:
+		if self.ignore_ifnull or not can_be_null:
 			condition = '{column_name} {operator} {value}'.format(
-				column_name=column_name, fallback=fallback, operator=f.operator,
+				column_name=column_name, operator=f.operator,
 				value=value)
 		else:
 			condition = 'ifnull({column_name}, {fallback}) {operator} {value}'.format(
