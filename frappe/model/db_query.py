@@ -67,7 +67,7 @@ class DatabaseQuery(object):
 		self.ignore_ifnull = ignore_ifnull
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
-		self.debug = True
+		#self.debug = True
 
 		if query:
 			result = self.run_custom_query(query)
