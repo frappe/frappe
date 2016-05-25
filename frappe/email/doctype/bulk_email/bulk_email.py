@@ -21,3 +21,7 @@ def retry_sending(name):
 def send_now(name):
 	doc = frappe.get_doc("Bulk Email", name)
 	send_one(doc, now=True)
+
+def on_doctype_update():
+	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
+	frappe.db.add_index("Bulk Email", ["creation"])

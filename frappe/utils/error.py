@@ -192,9 +192,10 @@ def clear_old_snapshots():
 	today = datetime.datetime.now()
 
 	for file in os.listdir(path):
-		ctime = datetime.datetime.fromtimestamp(os.path.getctime(file))
+		p = os.path.join(path, file)
+		ctime = datetime.datetime.fromtimestamp(os.path.getctime(p))
 		if (today - ctime).days > 31:
-			os.remove(os.path.join(path, file))
+			os.remove(os.path.join(path, p))
 
 def get_error_snapshot_path():
 	return frappe.get_site_path('error-snapshots')
