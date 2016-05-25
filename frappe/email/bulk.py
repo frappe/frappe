@@ -260,7 +260,7 @@ def flush(from_test=False):
 			status='Not Sent' and send_after < %s and priority = %s
 			order by creation asc limit 1 for update""".format(use_index=use_index),
 			(now_datetime(), priority), as_dict=1)
-		return out and out[0][0] or None
+		return out and out[0] or None
 
 	for i in xrange(500):
 		# indexing on multiple keys is slow, so query twice
