@@ -26,7 +26,7 @@ class DatabaseQuery(object):
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
-		join='left join', distinct=False, start=None, page_length=None, limit=None):
+		join='left join', distinct=False, start=None, page_length=None, limit=None, ignore_ifnull=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -265,8 +265,12 @@ class DatabaseQuery(object):
 			values = (frappe.db.escape(v.strip(), percent=False) for v in values)
 			values = '("{0}")'.format('", "'.join(values))
 
-			condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
-				tname=tname, fname=f.fieldname, operator=f.operator, value=values)
+			if self.ignore_ifnull:
+				condition = '{tname}.{fname} {operator} {value}'.format(
+					tname=tname, fname=f.fieldname, operator=f.operator, value=values)
+			else:
+				condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
+					tname=tname, fname=f.fieldname, operator=f.operator, value=values)
 
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
