@@ -257,22 +257,18 @@ class DatabaseQuery(object):
 		if not tname in self.tables:
 			self.append_table(tname)
 
+		column_name = '{tname}.{fname}'.format(tname=tname,
+			fname=f.fieldname)
+
 		# prepare in condition
 		if f.operator in ('in', 'not in'):
 			values = f.value
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
-			values = (frappe.db.escape(v.strip(), percent=False) for v in values)
-			values = '("{0}")'.format('", "'.join(values))
-
-			if self.ignore_ifnull:
-				condition = '{tname}.{fname} {operator} {value}'.format(
-					tname=tname, fname=f.fieldname, operator=f.operator, value=values)
-			else:
-				condition = 'ifnull({tname}.{fname}, "") {operator} {value}'.format(
-					tname=tname, fname=f.fieldname, operator=f.operator, value=values)
-
+			fallback = ''
+			value = (frappe.db.escape(v.strip(), percent=False) for v in values)
+			value = '("{0}")'.format('", "'.join(value))
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
@@ -307,13 +303,17 @@ class DatabaseQuery(object):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 			if f.fieldname in ("creation", "modified"):
-				condition = '''ifnull(date_format({tname}.{fname},'%Y-%m-%d'), {fallback}) {operator} {value}'''.format(
-					tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
-					value=value)
-			else:
-				condition = 'ifnull({tname}.{fname}, {fallback}) {operator} {value}'.format(
-					tname=tname, fname=f.fieldname, fallback=fallback, operator=f.operator,
-					value=value)
+				column_name = "date_format({tname}.{fname},'%Y-%m-%d')".format(tname=tname,
+					fname=f.fieldname)
+
+		if self.ignore_ifnull:
+			condition = '{column_name} {operator} {value}'.format(
+				column_namn=column_name, fallback=fallback, operator=f.operator,
+				value=value)
+		else:
+			condition = 'ifnull({column_name}, {fallback}) {operator} {value}'.format(
+				column_name=column_name, fallback=fallback, operator=f.operator,
+				value=value)
 
 		return condition
 

@@ -10,6 +10,9 @@ from frappe.utils import now_datetime
 
 class BulkEmail(Document):
 	def validate(self):
+		if self.priority not in (0, 1):
+			frappe.throw(frappe._('Bulk Email priority must be 0 or 1'))
+
 		if not self.send_after:
 			self.send_after = now_datetime()
 
