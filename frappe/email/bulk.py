@@ -281,8 +281,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	if not smtpserver:
 		smtpserver = SMTPServer()
 
-	frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""",
-		(email.name,), auto_commit=auto_commit)
+	frappe.db.sql("""update `tabBulk Email` set status='Sending', modified=%s where name=%s""",
+		(now_datetime(), email.name), auto_commit=auto_commit)
 
 	if email.communication:
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
@@ -292,8 +292,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			smtpserver.setup_email_account(email.reference_doctype)
 			smtpserver.sess.sendmail(email.sender, email.recipient, encode(email.message))
 
-		frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""",
-			(email.name,), auto_commit=auto_commit)
+		frappe.db.sql("""update `tabBulk Email` set status='Sent', modified=%s where name=%s""",
+			(now_datetime(), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
@@ -304,8 +304,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			smtplib.SMTPAuthenticationError):
 
 		# bad connection, retry later
-		frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
-			(email.name,), auto_commit=auto_commit)
+		frappe.db.sql("""update `tabBulk Email` set status='Not Sent', modified=%s where name=%s""",
+			(now_datetime(), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
