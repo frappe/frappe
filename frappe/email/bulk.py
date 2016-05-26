@@ -11,6 +11,7 @@ from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
+from rq.timeouts import JobTimeoutException
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -305,9 +306,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	except (smtplib.SMTPServerDisconnected,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
-			smtplib.SMTPAuthenticationError):
+			smtplib.SMTPAuthenticationError,
+			JobTimeoutException):
 
-		# bad connection, retry later
+		# bad connection/timeout, retry later
 		frappe.db.sql("""update `tabBulk Email` set status='Not Sent', modified=%s where name=%s""",
 			(now_datetime(), email.name), auto_commit=auto_commit)
 
