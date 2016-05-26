@@ -40,7 +40,9 @@ frappe.views.QueryReport = Class.extend({
 	make: function() {
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
-		<div class="no-report-area msg-box no-border" style="display: none;">\
+		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
+		<div style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px">\
+			<div class="chart_area"></div>\
 		</div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
@@ -301,8 +303,7 @@ frappe.views.QueryReport = Class.extend({
 			},
 			callback: function(r) {
 				me.report_ajax = undefined;
-				me.make_results(r.message.result, r.message.columns);
-				me.set_message(r.message.message);
+				me.make_results(r.message);
 			}
 		});
 
@@ -340,15 +341,15 @@ frappe.views.QueryReport = Class.extend({
 		}
 		return filters;
 	},
-	make_results: function(result, columns) {
+	make_results: function(res) {
 		this.wrapper.find(".waiting-area, .no-report-area").empty().toggle(false);
 		this.wrapper.find(".results").toggle(true);
-		this.make_columns(columns);
-		this.make_data(result, columns);
+		this.make_columns(res.columns);
+		this.make_data(res.result, res.columns);
 		this.filter_hidden_columns();
-		this.render(result, columns);
+		this.render(res);
 	},
-	render: function(result, columns) {
+	render: function(res) {
 		this.columnFilters = {};
 		this.make_dataview();
 		this.id = frappe.dom.set_unique_id(this.wrapper.find(".result-area").addClass("slick-wrapper").get(0));
@@ -373,7 +374,11 @@ frappe.views.QueryReport = Class.extend({
 		if (this.get_query_report_opts().tree) {
 			this.setup_tree();
 		}
+		
+		this.set_message(res.message);		
+		this.setup_chart(res);
 	},
+	
 	make_columns: function(columns) {
 		var me = this;
 		var formatter = this.get_formatter();
@@ -712,11 +717,33 @@ frappe.views.QueryReport = Class.extend({
 		frappe.tools.downloadify(result, null, this.title);
 		return false;
 	},
+	
 	set_message: function(msg) {
 		if(msg) {
 			this.wrapper.find(".help-msg").html(msg).toggle(true);
 		} else {
 			this.wrapper.find(".help-msg").empty().toggle(false);
 		}
+	},
+	
+	setup_chart: function(res) {
+		var me = this;
+		this.wrapper.find(".chart_area").parent().toggle(false);
+		
+		if (this.get_query_report_opts().get_chart_data) {
+			var opts = query_report_opts.get_chart_data(res.columns, res.result);
+		} else if (res.chart) {
+			var opts = res.chart;
+		}
+		
+		$.extend(opts, {
+			wrapper: me.wrapper,
+			bind_to: ".chart_area"
+		});
+		
+		this.chart = new frappe.ui.Chart(opts);
+		if(this.chart) 
+			this.wrapper.find(".chart_area").parent().toggle(true);
+		
 	}
 })

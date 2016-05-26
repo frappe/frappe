@@ -143,7 +143,9 @@
 		"public/js/frappe/query_string.js",
 
 		"public/html/error_object.html",
-		"public/html/error_snapshot.html"
+		"public/html/error_snapshot.html",
+		
+		"public/js/frappe/ui/charts.js"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"
