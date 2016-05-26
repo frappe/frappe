@@ -70,7 +70,7 @@ def run(report_name, filters=()):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message = [], [], None
+	columns, result, message, chart = [], [], None, {}
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
@@ -86,10 +86,13 @@ def run(report_name, filters=()):
 		if report.is_standard=="Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
-
+			if len(res) > 3:
+				chart = res[3]
+	
 	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result)
 
@@ -99,7 +102,8 @@ def run(report_name, filters=()):
 	return {
 		"result": result,
 		"columns": columns,
-		"message": message
+		"message": message,
+		"chart": chart
 	}
 
 def get_report_module_dotted_path(module, report_name):
