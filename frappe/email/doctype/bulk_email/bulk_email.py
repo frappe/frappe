@@ -9,12 +9,7 @@ from frappe.email.bulk import send_one
 from frappe.utils import now_datetime
 
 class BulkEmail(Document):
-	def validate(self):
-		if self.priority not in (0, 1):
-			frappe.throw(frappe._('Bulk Email priority must be 0 or 1'))
-
-		if not self.send_after:
-			self.send_after = now_datetime()
+	pass
 
 @frappe.whitelist()
 def retry_sending(name):
@@ -30,4 +25,4 @@ def send_now(name):
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
-	frappe.db.add_index("Bulk Email", ["creation"])
+	frappe.db.add_index('Bulk Email', ('status', 'send_after', 'priority', 'creation'), 'index_bulk_flush')
