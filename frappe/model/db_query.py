@@ -20,6 +20,7 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 		self.fields = None
 		self.user = None
+		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
