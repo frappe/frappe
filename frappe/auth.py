@@ -64,7 +64,9 @@ class HTTPRequest:
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method=="POST":
-			if not frappe.local.session.data.csrf_token or frappe.local.session.data.device=="mobile":
+			if not frappe.local.session.data.csrf_token \
+				or frappe.local.session.data.device=="mobile" \
+				or frappe.conf.get('ignore_csrf', None):
 				# not via boot
 				return
 

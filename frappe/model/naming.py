@@ -30,10 +30,10 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	elif hasattr(doc, "autoname"):
+	else:
 		doc.run_method("autoname")
 
-	elif autoname:
+	if not doc.name and autoname:
 		if autoname.startswith('field:'):
 			fieldname = autoname[6:]
 			doc.name = (doc.get(fieldname) or "").strip()
@@ -195,7 +195,7 @@ def append_number_if_name_exists(doc):
 			count = "1"
 
 		doc.name = "{0}-{1}".format(doc.name, count)
-		
+
 	return doc
 
 def de_duplicate(doctype, name):
