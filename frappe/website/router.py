@@ -7,23 +7,21 @@ import frappe, os
 from frappe.website.utils import can_cache, delete_page_cache
 from frappe.model.document import get_controller
 
-def get_route_info(path):
-	sitemap_options = None
-	cache_key = "sitemap_options:{0}:{1}".format(path, frappe.local.lang)
-
+def get_page_context(path):
+	page_context = None
 	if can_cache():
-		sitemap_options_cache = frappe.cache().hget("sitemap_options", path) or {}
-		sitemap_options = sitemap_options_cache.get(frappe.local.lang, None)
+		page_context_cache = frappe.cache().hget("page_context", path) or {}
+		page_context = page_context_cache.get(frappe.local.lang, None)
 
-	if not sitemap_options:
-		sitemap_options = build_route(path)
-		if can_cache(sitemap_options.no_cache):
-			sitemap_options_cache[frappe.local.lang] = sitemap_options
-			frappe.cache().hset("sitemap_options", path, sitemap_options_cache)
+	if not page_context:
+		page_context = make_page_context(path)
+		if can_cache(page_context.no_cache):
+			page_context_cache[frappe.local.lang] = page_context
+			frappe.cache().hset("page_context", path, page_context_cache)
 
-	return sitemap_options
+	return page_context
 
-def build_route(path):
+def make_page_context(path):
 	context = resolve_route(path)
 	if not context:
 		raise frappe.DoesNotExistError
@@ -41,20 +39,22 @@ def resolve_route(path):
 	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
 	first before checking the standard pages."""
 	if path not in ("about", "contact"):
-		route = get_page_route(path)
-		if route: return route
-		return get_generator_route(path)
+		context = get_page_context_from_template(path)
+		if context:
+			return context
+		return get_page_context_from_doctype(path)
 	else:
-		route = get_generator_route(path)
-		if route: return route
-		return get_page_route(path)
+		context = get_page_context_from_doctype(path)
+		if context:
+			return context
+		return get_page_context_from_template(path)
 
-def get_page_route(path):
+def get_page_context_from_template(path):
 	found = filter(lambda p: p.page_name==path, get_pages())
 	return found[0] if found else None
 
-def get_generator_route(path):
-	generator_routes = get_generator_routes()
+def get_page_context_from_doctype(path):
+	generator_routes = get_page_context_from_doctypes()
 	if path in generator_routes:
 		route = generator_routes[path]
 		return frappe.get_doc(route.get("doctype"), route.get("name")).get_route_context()
@@ -62,7 +62,7 @@ def get_generator_route(path):
 def clear_sitemap():
 	delete_page_cache("*")
 
-def get_generator_routes():
+def get_page_context_from_doctypes():
 	routes = frappe.cache().get_value("website_generator_routes")
 	if not routes:
 		routes = {}

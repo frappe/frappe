@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import urllib
 import frappe
 from frappe.utils import get_request_site_address, get_datetime, nowdate
-from frappe.website.router import get_pages, get_generator_routes
+from frappe.website.router import get_pages, get_page_context_from_doctypes
 
 no_cache = 1
 no_sitemap = 1
@@ -23,7 +23,7 @@ def get_context(context):
 				"lastmod": nowdate()
 			})
 
-	for route, data in get_generator_routes().iteritems():
+	for route, data in get_page_context_from_doctypes().iteritems():
 		links.append({
 			"loc": urllib.basejoin(host, urllib.quote((route or "").encode("utf-8"))),
 			"lastmod": get_datetime(data.get("modified")).strftime("%Y-%m-%d")

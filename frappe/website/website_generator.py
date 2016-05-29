@@ -9,7 +9,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name, get_home_page
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
-from frappe.website.router import get_page_route, get_route_info
+from frappe.website.router import get_page_context_from_template, get_page_context
 
 class WebsiteGenerator(Document):
 	website = frappe._dict(
@@ -151,7 +151,7 @@ class WebsiteGenerator(Document):
 
 			# if no parent and not home page, then parent is home page
 			if not _parent_val and me.get_route() != home_page:
-				# parents.append(frappe._dict(name=home_page, title=get_route_info(home_page).title))
+				# parents.append(frappe._dict(name=home_page, title=get_page_context(home_page).title))
 				break
 
 			elif _parent_val:
@@ -178,7 +178,7 @@ class WebsiteGenerator(Document):
 			else:
 				# parent route is a page e.g. "blog"
 				if me.get("parent_website_route"):
-					page_route = get_page_route(me.parent_website_route)
+					page_route = get_page_context_from_template(me.parent_website_route)
 					if page_route:
 						parents.append(frappe._dict(name = page_route.name,
 							title=page_route.page_title))

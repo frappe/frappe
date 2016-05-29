@@ -5,10 +5,10 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.router import get_route_info
+from frappe.website.router import get_page_context
 
 def get_context(path, args=None):
-	context = get_route_info(path)
+	context = get_page_context(path)
 
 	if args:
 		context.update(args)
