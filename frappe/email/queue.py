@@ -10,7 +10,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
@@ -19,7 +19,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=None, send_priority=1, communication=None, now=False):
+		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -85,7 +85,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	# add to queue
 	email_queue = add(recipients, sender, subject, email_content, email_text_context, reference_doctype,
 		reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication,
-		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, expose_recipients=expose_recipients)
+		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, expose_recipients=expose_recipients, read_receipt=read_receipt)
 	if now:
 		send_one(email_queue.name, now=True)
 
@@ -104,6 +104,8 @@ def add(recipients, sender, subject, formatted, text_content=None,
 			cc=cc, email_account=email_account, expose_recipients=expose_recipients)
 
 		mail.set_message_id(message_id)
+		if read_receipt:
+			mail.msg_root["Disposition-Notification-To"] = sender
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
 
@@ -238,6 +240,9 @@ def flush(from_test=False):
 	for i in xrange(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
 
+		if cint(frappe.defaults.get_defaults().get("hold_bulk"))==1:
+			break
+		
 		if email:
 			send_one(email, smtpserver, auto_commit, from_test=from_test)
 

@@ -12,7 +12,7 @@ from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, st
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, Email
+from frappe.email.receive import EmailServer, Email, get_unique_id
 from poplib import error_proto
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
@@ -50,12 +50,13 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if self.enable_incoming and not self.append_to:
-			frappe.throw(_("Append To is mandatory for incoming mails"))
+		#if self.enable_incoming and not self.append_to:
+		#	frappe.throw(_("Append To is mandatory for incoming mails"))
 
-		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
+		if not self.awaiting_password and not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
 				self.get_incoming_server()
+				self.no_failed = 0
 
 			if self.enable_outgoing:
 				self.check_smtp()
@@ -70,6 +71,8 @@ class EmailAccount(Document):
 			valid_doctypes = [d[0] for d in get_append_to()]
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+
+		
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
@@ -87,6 +90,18 @@ class EmailAccount(Document):
 						email_account.name)
 					email_account.set(fn, 0)
 					email_account.save()
+
+	@frappe.whitelist()
+	def get_domain(self,email_id):
+		"""look-up the domain and then full"""
+		try:
+			domain = email_id.split("@")
+			return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
+			from tabDomain
+			where name = %s
+			""",domain[1],as_dict=1)
+		except Exception:
+			pass
 
 	def check_smtp(self):
 		"""Checks SMTP settings."""
@@ -106,12 +121,17 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False):
 		"""Returns logged in POP3/IMAP connection object."""
+		if frappe.cache().get_value("workers:no-internet") == True:
+			return None
 
 		args = frappe._dict({
+			"email_account":self.name,
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"use_imap": self.use_imap
+			"use_imap": self.use_imap,
+			"uid_validity":self.uid_validity,
+			"uidnext":self.uidnext
 		})
 		if self.password:
 			args.password = self.get_password()
@@ -145,32 +165,36 @@ class EmailAccount(Document):
 
 			else:
 				raise
-
+		if not in_receive:
+			if self.use_imap:
+				email_server.imap.logout()
 		# reset failed attempts count
 		self.set_failed_attempts_count(0)
 
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		'''Disable email account if 3 failed attempts found'''
-		if self.get_failed_attempts_count() == 3:
-			self.db_set("enable_incoming", 0)
-
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add({
-						'assign_to': user,
-						'doctype': self.doctype,
-						'name': self.name,
-						'description': description,
-						'priority': 'High',
-						'notify': 1
-					})
-				except assign_to.DuplicateToDoError:
-					frappe.message_log.pop()
-					pass
+		if test_internet():
+			if self.get_failed_attempts_count() > 2:
+				self.db_set("enable_incoming", 0)
+	
+				for user in get_system_managers(only_name=True):
+					try:
+						assign_to.add({
+							'assign_to': user,
+							'doctype': self.doctype,
+							'name': self.name,
+							'description': description,
+							'priority': 'High',
+							'notify': 1
+						})
+					except assign_to.DuplicateToDoError:
+						frappe.message_log.pop()
+						pass
+			else:
+				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 		else:
-			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
+			frappe.cache().set_value("workers:no-internet", True)
 
 	def set_failed_attempts_count(self, value):
 		frappe.cache().set('{0}:email-account-failed-attempts'.format(self.name), value)
@@ -187,38 +211,94 @@ class EmailAccount(Document):
 				email_server = self.get_incoming_server(in_receive=True)
 				if not email_server:
 					return
-
 				incoming_mails = email_server.get_messages()
 
 			exceptions = []
-			for raw in incoming_mails:
+
+			for msg in incoming_mails:
 				try:
-					communication = self.insert_communication(raw)
 
-				except SentEmailInInbox:
+					communication = self.insert_communication(msg)
+					#self.notify_update()
+
+				except SentEmailInInbox,e:
 					frappe.db.rollback()
+					make_error_snapshot(e)
+					if self.use_imap:
+						self.handle_bad_emails(email_server, msg[1], msg[0],"sent email in inbox")
 
-				except Exception:
+
+				except Exception, e:
 					frappe.db.rollback()
 					log('email_account.receive')
+					if self.use_imap:
+						self.handle_bad_emails(email_server, msg[1], msg[0],frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 
-					# TODO fix bug where it sends emails to 'Adminsitrator' during testing
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					if self.no_remaining == 0:
+					if communication.message_id and not communication.timeline_hide:
+						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
+						if first:
+							if first.name != communication.name:
+								communication.db_set("timeline_hide",first.name,update_modified=False)
+					
+					if self.no_remaining == '0' and not frappe.local.flags.in_test:
+						if communication.reference_doctype :
+							if not communication.timeline_hide and not communication.unread_notification_sent:
+								communication.notify(attachments=attachments, fetched_from_email_account=True)
+
+			#update attachment folder size as suspended for emails
+			try:
+				folder = frappe.get_doc("File", 'Home/Attachments')
+				folder.save()
+			except:
+				print "file attachment bug"
+				#exceptions.append(frappe.get_traceback())
+
+			#notify if user is linked to account
+			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
+				frappe.publish_realtime('new_email', {"account":self.email_account_name,"number":len(incoming_mails)})
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
 
-	def insert_communication(self, raw):
+	def handle_bad_emails(self,email_server,uid,raw,reason):
+		if cint(email_server.settings.use_imap):
+			import email
+			try:
+				mail = email.message_from_string(raw)
+
+				unique_id = get_unique_id(mail)
+				message_id = mail.__getitem__('Message-ID')
+			except Exception:
+				message_id = "can't be parsed"
+
+			unhandled_email = frappe.get_doc({
+				"doctype": "Unhandled Emails",
+				"email_account": email_server.settings.email_account,
+				"uid": uid,
+				"message_id": message_id,
+				"unique_id":unique_id,
+				"reason":reason
+			})
+			unhandled_email.save();
+			frappe.db.commit();
+
+	def insert_communication(self, msg):
+		if isinstance(msg,list):
+			raw, uid, seen = msg
+		else:
+			raw = msg
 		email = Email(raw)
 
-		if email.from_email == self.email_id:
+		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
+			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
 		communication = frappe.get_doc({
@@ -229,13 +309,22 @@ class EmailAccount(Document):
 			"sent_or_received": "Received",
 			"sender_full_name": email.from_real_name,
 			"sender": email.from_email,
-			"recipients": email.mail.get("To"),
-			"cc": email.mail.get("CC"),
+			"recipients": email.To,
+			"cc": email.CC,
 			"email_account": self.name,
-			"communication_medium": "Email"
+			"communication_medium": "Email",
+			"uid":uid,
+			"message_id":email.message_id,
+			"actualdate":email.date,
+			"has_attachment": 1 if email.attachments else 0,
+			"seen":seen,
+			"unique_id":email.unique_id
 		})
 
 		self.set_thread(communication, email)
+
+		if not self.no_remaining == 0:
+			communication.unread_notification_sent = 1
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
@@ -438,6 +527,26 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
+	if frappe.cache().get_value("workers:no-internet") == True:
+	 	if test_internet():
+	 		frappe.cache().set_value("workers:no-internet", False)
+	 	else:	
+	 		return
+	
+
+def test_internet(host="8.8.8.8", port=53, timeout=3):
+	"""
+    Host: 8.8.8.8 (google-public-dns-a.google.com)
+   OpenPort: 53/tcp
+   Service: domain (DNS/TCP)
+   """
+	try:
+		socket.setdefaulttimeout(timeout)
+		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+		return True
+	except Exception as ex:
+		print ex.message
+        return False
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
@@ -451,6 +560,7 @@ def notify_unreplied():
 					"sent_or_received": "Received",
 					"reference_doctype": email_account.append_to,
 					"unread_notification_sent": 0,
+					"email_account":email_account.name,
 					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
 					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
 				}):
@@ -469,7 +579,7 @@ def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
 
-	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
+	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1,"awaiting_password": 0}):
 		if now:
 			pull_from_email_account(email_account.name)
 
