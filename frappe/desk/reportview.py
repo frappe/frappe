@@ -7,11 +7,26 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
+from frappe.model.utils.list_settings import update_list_settings
+from frappe.utils import cint
 from frappe import _
 
 @frappe.whitelist()
 def get():
-	return compress(execute(**get_form_params()))
+	args = get_form_params()
+	data = compress(execute(**args))
+
+	# update list settings if new search
+	if not cint(args.limit_start) or cint(args.limit or args.limit_page_length) != 20:
+		list_settings = {
+			'columns': args.fields,
+			'filters': args.filters,
+			'limit': args.limit or args.limit_page_length,
+			'order_by': args.order_by
+		}
+		update_list_settings(args.doctype, list_settings)
+
+	return data
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)

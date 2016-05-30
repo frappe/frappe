@@ -39,6 +39,8 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	remove_missing_apps()
 
 	create_auth_table()
+	create_list_settings_table()
+
 	frappe.flags.in_install_db = False
 
 def get_current_host():
@@ -70,6 +72,14 @@ def create_auth_table():
 	frappe.db.sql_ddl("""create table if not exists __Auth (
 		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 		`password` VARCHAR(180) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
+
+def create_list_settings_table():
+	frappe.db.sql_ddl("""create table if not exists __ListSettings (
+		`user` VARCHAR(180) NOT NULL,
+		`doctype` VARCHAR(180) NOT NULL,
+		`data` TEXT,
+		UNIQUE(user, doctype)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 
 def import_db_from_sql(source_sql, verbose):
@@ -342,7 +352,7 @@ def check_if_ready_for_barracuda():
 def extract_sql_gzip(sql_gz_path):
 	success = -1
 	try:
-		success = subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
+		subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
 	except Exception as subprocess.CalledProcessError:
 		print subprocess.CalledProcessError.output
 	finally:

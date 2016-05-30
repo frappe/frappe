@@ -4,7 +4,6 @@
 # Search
 from __future__ import unicode_literals
 import frappe
-import frappe.desk.reportview
 from frappe.utils import cstr, unique
 
 # this is called by the Link Field
@@ -83,7 +82,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
 
-			values = frappe.desk.reportview.execute(doctype,
+			values = frappe.get_list(doctype,
 				filters=filters, fields=fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,

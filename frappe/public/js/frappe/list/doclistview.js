@@ -118,6 +118,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
+		this.init_list_settings();
 		this.setup_listview();
 		this.init_list(false);
 		this.init_menu();
@@ -129,6 +130,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_sort_selector();
 		this.init_like();
 		this.init_select_all();
+	},
+
+	init_list_settings: function() {
+		if(frappe.model.list_settings[this.doctype]) {
+			this.list_settings = frappe.model.list_settings[this.doctype];
+		} else {
+			this.list_settings = {};
+		}
 	},
 
 	init_headers: function() {
@@ -194,13 +203,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	init_filters: function() {
 		var me = this;
-		if(this.listview.settings.filters) {
-			$.each(this.listview.settings.filters, function(i, f) {
+		var set_filters = function(filters) {
+			$.each(filters, function(i, f) {
 				if(f.length===3) {
 					f = [me.doctype, f[0], f[1], f[2]]
 				}
 				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 			});
+		}
+		if(this.list_settings.filters) {
+			set_filters(this.list_settings.filters);
+		} else if(this.listview.settings.filters) {
+			set_filters(this.listview.settings.filters);
 		}
 	},
 
@@ -209,6 +223,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		if(this.listview.sort_selector) {
 			args = this.listview.sort_selector;
+		}
+
+		if(this.list_settings.order_by) {
+			// last saved settings
+			parts = this.list_settings.order_by.split(' ');
+			if(parts.length===2) {
+				args = {
+					sort_by: parts[0],
+					sort_order: parts[1]
+				}
+			}
 		}
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
@@ -234,7 +259,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	setup_listview: function() {
 		this.listview = frappe.views.get_listview(this.doctype, this);
 		this.wrapper = this.$page.find('.frappe-list-area');
-		this.page_length = 20;
+		this.page_length = this.list_settings.limit || 20;
 		this.allow_delete = true;
 	},
 	init_list: function(auto_run) {
