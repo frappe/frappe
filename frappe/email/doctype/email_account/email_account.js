@@ -50,7 +50,7 @@ frappe.email_defaults_imap = {
 };
 
 frappe.ui.form.on("Email Account", {
-	service: function(frm) {
+	/*service: function(frm) {
 		console.log(frm.doc.service, frappe.email_defaults[frm.doc.service])
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
@@ -80,9 +80,10 @@ frappe.ui.form.on("Email Account", {
 				(frm.doc.service ? frm.doc.service + " " : "")
 				+ toTitle(frm.doc.email_id.split("@")[0].replace(/[._]/g, " ")));
 		}
-	},
+	},*/
 	enable_incoming: function(frm) {
-		frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
+		frm.doc.no_remaining = null //perform full sync
+		//frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	},
 	notify_if_unreplied: function(frm) {
 		frm.set_df_property("send_notification_to", "reqd", frm.doc.notify_if_unreplied);
@@ -91,7 +92,11 @@ frappe.ui.form.on("Email Account", {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 	},
+	validate:function(frm){
+		frm.events.update_domain(frm,true);
+	},
 	refresh: function(frm) {
+		frm.events.update_domain(frm,true);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
@@ -103,4 +108,52 @@ frappe.ui.form.on("Email Account", {
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
 		}
 	},
+	email_id:function(frm){
+		//pull domain and if no matching domain go create one
+		frm.events.update_domain(frm,false);
+	},
+	update_domain:function(frm,norefresh){
+		if (cur_frm.doc.email_id) {
+			frappe.call({
+				method: 'get_domain',
+				doc: cur_frm.doc,
+				async:false,
+				args: {
+					"email_id": cur_frm.doc.email_id
+				},
+				callback: function (frm) {
+					try {
+						if (cur_frm.doc.domain !=frm["message"][0]["name"]) {
+							cur_frm.doc.domain = frm["message"][0]["name"]
+							cur_frm.doc.email_server= frm["message"][0]["email_server"];
+							cur_frm.doc.use_imap= frm["message"][0]["use_imap"];
+							cur_frm.doc.smtp_server= frm["message"][0]["smtp_server"];
+							cur_frm.doc.use_ssl= frm["message"][0]["use_ssl"];
+							cur_frm.doc.use_tls= frm["message"][0]["use_tls"];
+							cur_frm.doc.smtp_port = frm["message"][0]["smtp_port"];
+							if (!norefresh) {
+								cur_frm.refresh();
+							}
+						}
+					}
+					catch (Exception) {
+						frappe.confirm(
+							'Domain not configured for this account\nCreate one?',
+							function () {
+								var doc = frappe.model.get_new_doc("Domain");
+								frappe.route_options = {
+									"email_id": cur_frm.doc.email_id
+								};
+								frappe.route_titles["return to email_account"] = 1
+								frappe.set_route("Form", "Domain", doc.name);
+							},
+							function () {
+								show_alert('Domain setup is required for account')
+							}
+						)
+					}
+				}
+			});
+		}
+	}
 });

@@ -10,7 +10,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
@@ -19,7 +19,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=False, send_priority=1, communication=None):
+		expose_recipients=False, send_priority=1, communication=None, read_receipt=None):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -104,7 +104,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
+			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication, read_receipt=read_receipt)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
@@ -118,9 +118,9 @@ def add(email, sender, subject, formatted, text_content=None,
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
 			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
 
-		if message_id:
-			mail.set_message_id(message_id)
-
+		mail.set_message_id(message_id)
+		if read_receipt:
+			mail.msg_root["Disposition-Notification-To"] = sender
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
 
@@ -262,6 +262,9 @@ def flush(from_test=False):
 	for i in xrange(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
 
+		if cint(frappe.defaults.get_defaults().get("hold_bulk"))==1:
+			break
+		
 		if email:
 			send_one(email, smtpserver, auto_commit)
 
@@ -315,7 +318,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			smtplib.SMTPAuthenticationError,
-			JobTimeoutException):
+			frappe.ValidationError):
 
 		# bad connection/timeout, retry later
 		frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s where name=%s""",

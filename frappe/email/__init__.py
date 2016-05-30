@@ -15,7 +15,7 @@ def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=Non
 		reply_to=reply_to, cc=cc, retry=retry)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None, content=None,
-	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1):
+	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1, read_receipt=None):
 	"""send an html email as multipart with attachments and all"""
 	mail = get_email(recipients, sender, content or msg, subject, attachments=attachments,
 		reply_to=reply_to, cc=cc)
@@ -24,7 +24,9 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=
 	if in_reply_to:
 		mail.set_in_reply_to(in_reply_to)
 
-	send(mail, retry=retry)
+	if read_receipt:
+		mail.msg_root["Disposition-Notification-To"] = sender
+	send(mail, retry)
 
 def sendmail_to_system_managers(subject, content):
 	send(get_email(get_system_managers(), None, content, subject))

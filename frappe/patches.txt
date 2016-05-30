@@ -126,6 +126,7 @@ frappe.patches.v6_24.set_language_as_code
 frappe.patches.v6_20x.update_insert_after
 finally:frappe.patches.v6_24.sync_desktop_icons
 frappe.patches.v6_20x.set_allow_draft_for_print
+frappe.patches.v6_24.imap_get_unique
 frappe.patches.v6_20x.remove_roles_from_website_user
 frappe.patches.v7_0.set_user_fullname
 frappe.patches.v7_0.desktop_icons_hidden_by_admin_as_blocked
