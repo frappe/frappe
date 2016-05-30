@@ -201,6 +201,7 @@ function get_url(socket, path) {
 }
 
 function can_subscribe_doc(args) {
+	if(!args) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
 		.send({

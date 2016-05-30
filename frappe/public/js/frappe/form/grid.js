@@ -691,6 +691,7 @@ frappe.ui.form.GridRow = Class.extend({
 			df: df,
 			parent: parent,
 			only_input: true,
+			with_link_btn: true,
 			doctype: this.doc.doctype,
 			docname: this.doc.name,
 			frm: this.grid.frm
@@ -706,8 +707,7 @@ frappe.ui.form.GridRow = Class.extend({
 				// TAB
 				if(e.which==9) {
 					// last row, last column
-					if(cint($(this).attr('data-col-idx')) === me.grid.static_display_template.length-1 &&
-						me.doc.idx===me.frm.doc[me.grid.df.fieldname].length) {
+					if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
 
 						setTimeout(function() {
 							me.grid.add_new_row(null, null, true);

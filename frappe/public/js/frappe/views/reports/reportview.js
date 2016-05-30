@@ -244,7 +244,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				}
 			}
 			if(!docfield) return;
-			
+
 			coldef = {
 				id: c[0],
 				field: c[0],
