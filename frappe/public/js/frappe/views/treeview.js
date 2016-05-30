@@ -25,7 +25,9 @@ frappe.views.TreeView = Class.extend({
 	init: function(opts) {
 		var me = this;
 		
-		this.opts = opts;
+		this.opts = {};
+		this.opts.get_tree_root = true;
+		$.extend(this.opts, opts);
 		this.ctype = opts.doctype;
 		this.args = {ctype: me.ctype};
 		this.page_name = frappe.get_route_str();
@@ -34,17 +36,13 @@ frappe.views.TreeView = Class.extend({
 		this.get_permissions();
 		this.make_page();
 		this.make_filters();
-		this.get_root();
 
-		me.page.add_menu_item(__('Refresh'), function() {
-			me.make_tree();
-		});
-
-		if (!this.opts.disable_add_node) {
-			me.page.set_primary_action(__("New"), function() {
-				me.new_node();
-			}, "octicon octicon-plus")
+		if (me.opts.get_tree_root) {
+			this.get_root();
 		}
+
+		this.set_menu_item();
+		this.set_primary_action();
 	},
 	get_permissions: function(){
 		this.can_read = frappe.model.can_read(this.ctype);
@@ -62,7 +60,7 @@ frappe.views.TreeView = Class.extend({
 		frappe.container.change_to(this.page_name);
 		frappe.breadcrumbs.add(me.opts.breadcrumb || locals.DocType[me.ctype].module);
 
-		this.page.set_title(__('{0} Tree',[__(this.ctype)]));
+		this.page.set_title(me.opts.title || __('{0} Tree',[__(this.ctype)]) );
 		this.page.main.css({
 			"min-height": "300px",
 			"padding-bottom": "25px"
@@ -82,7 +80,7 @@ frappe.views.TreeView = Class.extend({
 		var me = this;
 		frappe.call({
 			method: me.get_tree_nodes,
-			args: {ctype: me.ctype},
+			args: me.args,
 			callback: function(r) {
 				if (r.message) {
 					me.root = r.message[0]["value"];
@@ -96,7 +94,7 @@ frappe.views.TreeView = Class.extend({
 		$(me.parent).find(".tree").remove()
 		this.tree = new frappe.ui.Tree({
 			parent: $(me.parent).find(".layout-main-section"),
-			label: __(me.args[me.opts.label] || me.root),
+			label: __(me.args[me.opts.root_label] || me.opts.root_label || me.root),
 			args: me.args,
 			method: me.get_tree_nodes,
 			toolbar: me.get_toolbar(),
@@ -160,22 +158,12 @@ frappe.views.TreeView = Class.extend({
 			return;
 		}
 
-		var fields = [
-			{fieldtype:'Data', fieldname: 'name_field',
-				label:__('New {0} Name',[__(me.ctype)]), reqd:true},
-			{fieldtype:'Select', fieldname:'is_group', label:__('Group Node'), options:'No\nYes',
-				description: __("Further nodes can be only created under 'Group' type nodes")}
-		]
-
-		if(me.ctype == "Sales Person") {
-			fields.splice(-1, 0, {fieldtype:'Link', fieldname:'employee', label:__('Employee'),
-				options:'Employee', description: __("Please enter Employee Id of this sales person")});
-		}
+		this.prepare_fields()
 
 		// the dialog
 		var d = new frappe.ui.Dialog({
 			title: __('New {0}',[__(me.ctype)]),
-			fields: fields
+			fields: me.fields
 		})
 
 		d.set_value("is_group", "No");
@@ -186,9 +174,9 @@ frappe.views.TreeView = Class.extend({
 			if(!v) return;
 
 			var node = me.tree.get_selected_node();
-
 			v.parent = node.label;
 			v.ctype = me.ctype;
+			$.extend(v, me.args)
 
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
@@ -204,9 +192,57 @@ frappe.views.TreeView = Class.extend({
 				}
 			});
 		});
-
 		d.show();
 	},
+	prepare_fields: function(){
+		var me = this;
+
+		this.fields = [
+			{fieldtype:'Data', fieldname: 'name_field',
+				label:__('New {0} Name',[__(me.ctype)]), reqd:true},
+			{fieldtype:'Select', fieldname:'is_group', label:__('Group Node'), options:'No\nYes',
+				description: __("Further nodes can be only created under 'Group' type nodes")}
+		]
+
+		if (me.opts.fields) {
+			me.fields = me.opts.fields;
+		}
+	},
+	set_primary_action: function(){
+		var me = this;
+		if (!this.opts.disable_add_node) {
+			me.page.set_primary_action(__("New"), function() {
+				me.new_node();
+			}, "octicon octicon-plus")
+		}
+	},
+	set_menu_item: function(){
+		var me = this;
+
+		this.menu_items = [
+			{
+				label: __('Refresh'),
+				action: function() {
+					me.make_tree();
+				}
+			}
+		]
+
+		if (me.opts.menu_items) {
+			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)
+		}
+
+		$.each(me.menu_items, function(i, menu_item){
+			var has_perm = true;
+			if(menu_item["condition"]) {
+				has_perm = eval(menu_item["condition"]);
+			}
+
+			if (has_perm) {
+				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
+			}
+		})
+	}
 });
 
 
