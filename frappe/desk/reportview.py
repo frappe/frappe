@@ -138,6 +138,16 @@ def delete_items():
 		frappe.delete_doc(doctype, d)
 
 @frappe.whitelist()
+def get_tag_catagories(doctype):
+	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
+		from `tabTag Doc Category` as docCat
+		INNER JOIN  tabTag as tag on tag.parent = docCat.parent
+		where docCat.tagdoc=%s
+		ORDER BY tag.parent asc,tag.idx""",doctype,as_dict=1)
+
+	return cat_tags
+
+@frappe.whitelist()
 def get_stats(stats, doctype):
 	"""get tag info"""
 	import json
@@ -152,6 +162,7 @@ def get_stats(stats, doctype):
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
+			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters+[tag +"= ',' or "+tag+" is null" ] ,  as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
 
