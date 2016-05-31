@@ -279,6 +279,7 @@ frappe.views.ListView = Class.extend({
 				doctype: this.doctype,
 				docname: data.name
 			},
+			sidebar_stats: me.doclistview.sidebar_stats,
 			user_tags: data._user_tags,
 			on_change: function(user_tags) {
 				data._user_tags = user_tags;

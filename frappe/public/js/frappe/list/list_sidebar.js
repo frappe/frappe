@@ -14,6 +14,7 @@ frappe.views.ListSidebar = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.get_stats();
+		this.cat_tags = [];
 	},
 	make: function() {
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
@@ -104,6 +105,9 @@ frappe.views.ListSidebar = Class.extend({
 			me.doclistview.assigned_to_me();
 		});
 	},
+	get_cat_tags:function(){
+		return this.cat_tags;
+	},
 	get_stats: function() {
 		var me = this
 		return frappe.call({
@@ -114,10 +118,36 @@ frappe.views.ListSidebar = Class.extend({
 				doctype: me.doctype
 			},
 			callback: function(r) {
-				// This gives a predictable stats order
-				$.each(me.stats, function(i, v) {
-					me.render_stat(v, (r.message || {})[v]);
-				});
+				if (me.defined_category ){
+					 me.cats = {};
+					for (i in me.defined_category){
+						if (me.cats[me.defined_category[i].category]===undefined)
+							{
+							me.cats[me.defined_category[i].category]=[me.defined_category[i].tag];
+						}else{
+
+							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
+						}
+						me.cat_tags[i]=me.defined_category[i].tag
+					}
+					me.tempstats = r.message
+					var len = me.cats.length
+					$.each(me.cats, function (i, v) {
+						me.render_stat(i, (me.tempstats || {})["_user_tags"],v);
+					});
+					$.each(me.stats, function (i, v) {
+					me.render_stat(v, (me.tempstats || {})[v]);
+					});
+				}
+				else
+				{
+					//render normal stats
+					// This gives a predictable stats order
+					$.each(me.stats, function (i, v) {
+						me.render_stat(v, (r.message || {})[v]);
+					});
+				}
+
 
 				// reload button at the end
 				// if(me.stats.length) {
@@ -134,9 +164,10 @@ frappe.views.ListSidebar = Class.extend({
 			}
 		});
 	},
-	render_stat: function(field, stat) {
+	render_stat: function(field, stat,tags) {
 		var me = this;
 		var sum = 0;
+		var stats = []
 		var label = frappe.meta.docfield_map[this.doctype][field] ?
 			frappe.meta.docfield_map[this.doctype][field].label : field;
 		var show_tags = '<a class="list-tag-preview hidden-xs" title="' + __("Show tags")
@@ -145,20 +176,53 @@ frappe.views.ListSidebar = Class.extend({
 		stat = (stat || []).sort(function(a, b) { return b[1] - a[1] });
 		$.each(stat, function(i,v) { sum = sum + v[1]; })
 
+		if(tags)
+		{
+			for (var t in tags) {
+				var nfound = -1;
+				for (var i in stat) {
+					if (tags[t] ===stat[i][0]) {
+						stats.push(stat[i]);
+						nfound = i;
+						break
+					}
+				}
+				if (nfound<0)
+				{
+					stats.push([tags[t],0])
+				}
+				else
+				{
+					me.tempstats["_user_tags"].splice(nfound,1);
+				}
+
+			}
+			field = "_user_tags"
+		}
+		else
+		{
+			stats = stat
+		}
 		var context = {
 			field: field,
-			stat: stat,
+			stat: stats,
 			sum: sum,
-			label: label==='_user_tags' ? (__("Tags") + show_tags) : __(label),
+			label: label==='_user_tags' ? (__("UnCatagorised Tags") + show_tags) : tags ? __(label)+ show_tags: __(label),
 		};
 
 		var sidebar_stat = $(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				me.set_filter(fieldname, label);
+				if (label == "No Tags") {
+					me.doclistview.filter_list.add_filter(me.doclistview.doctype, fieldname, 'not like', '%,%')
+					me.doclistview.run();
+				} else {
+					me.set_filter(fieldname, label);
+				}
 			})
 			.appendTo(this.sidebar);
+
 	},
 	reload_stats: function() {
 		this.sidebar.find(".sidebar-stat").remove();
