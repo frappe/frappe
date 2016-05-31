@@ -267,6 +267,12 @@ def get_data():
 					"type": "doctype",
 					"name": "DocType",
 					"description": _("Add custom forms.")
+				},
+				{
+					"type": "doctype",
+					"label": _("Custom Tags"),
+					"name": "Tag Category",
+					"description": _("Add your own Tag Categories")
 				}
 
 			]
