@@ -60,7 +60,6 @@ def add_comment(doc):
 
 @frappe.whitelist()
 def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
-	import frappe.desk.reportview
 
 	prev = not int(prev)
 	sort_field, sort_order = order_by.split(" ")
@@ -82,7 +81,7 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	if not order_by[0] in [f[1] for f in filters]:
 		filters.append([doctype, sort_field, condition, value])
 
-	res = frappe.desk.reportview.execute(doctype,
+	res = frappe.get_list(doctype,
 		fields = ["name"],
 		filters = filters,
 		order_by = sort_field + " " + sort_order,

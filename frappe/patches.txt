@@ -126,3 +126,4 @@ frappe.patches.v7_0.set_user_fullname
 frappe.patches.v7_0.desktop_icons_hidden_by_admin_as_blocked
 frappe.patches.v7_0.add_communication_in_doc
 frappe.patches.v7_0.update_send_after_in_bulk_email
+frappe.patches.v7_0.setup_list_settings

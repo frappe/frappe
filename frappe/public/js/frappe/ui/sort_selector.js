@@ -42,10 +42,11 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	prepare_args: function() {
 		var me = this;
-		// make from doctype if not given
-		if(!this.args && this.doctype) {
-			this.setup_from_doctype();
+		if(!this.args) {
+			this.args = {};
 		}
+
+		this.setup_from_doctype();
 
 		// if label is missing, add from options
 		if(this.args.sort_by && !this.args.sort_by_label) {
@@ -57,67 +58,73 @@ frappe.ui.SortSelector = Class.extend({
 		}
 	},
 	setup_from_doctype: function() {
-		var args = {};
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
-		if(meta.sort_field) {
-			if(meta.sort_field.indexOf(',')!==-1) {
-				parts = meta.sort_field.split(',')[0].split(' ');
-				args.sort_by = parts[0];
-				args.sort_order = parts[1];
+
+		if(!this.args.sort_by) {
+			if(meta.sort_field) {
+				if(meta.sort_field.indexOf(',')!==-1) {
+					parts = meta.sort_field.split(',')[0].split(' ');
+					this.args.sort_by = parts[0];
+					this.args.sort_order = parts[1];
+				} else {
+					this.args.sort_by = meta.sort_field;
+					this.args.sort_order = meta.sort_order.toLowerCase();
+				}
 			} else {
-				args.sort_by = meta.sort_field;
-				args.sort_order = meta.sort_order.toLowerCase();
+				// default
+				this.args.sort_by = 'modified';
+				this.args.sort_order = 'desc';
 			}
-		} else {
-			// default
-			args.sort_by = 'modified';
-			args.sort_order = 'desc';
-		}
-		args.sort_by_label = this.get_label(args.sort_by);
-
-		// default options
-		args._options = [
-			{'fieldname': 'modified'},
-		]
-
-		// title field
-		if(meta.title_field) {
-			args._options.push({'fieldname': meta.title_field});
 		}
 
-		// bold or mandatory
-		meta.fields.forEach(function(df) {
-			if(df.mandatory || df.bold) {
-				args._options.push({fieldname: df.fieldname, label: df.label});
-			}
-		});
+		if(!this.args.sort_by_label) {
+			this.args.sort_by_label = this.get_label(this.args.sort_by);
+		}
 
-		args._options.push({'fieldname': 'name'});
-		args._options.push({'fieldname': 'creation'});
-		args._options.push({'fieldname': 'idx'});
+		if(!this.args.options) {
+			// default options
+			var _options = [
+				{'fieldname': 'modified'},
+			]
 
-		// de-duplicate
-		var added = [];
-		args.options = [];
-		args._options.forEach(function(o) {
-			if(added.indexOf(o.fieldname)===-1) {
-				args.options.push(o);
-				added.push(o.fieldname);
+			// title field
+			if(meta.title_field) {
+				_options.push({'fieldname': meta.title_field});
 			}
-		});
 
-		// add missing labels
-		args.options.forEach(function(o) {
-			if(!o.label) {
-				o.label = me.get_label(o.fieldname);
-			}
-		});
+			// bold or mandatory
+			meta.fields.forEach(function(df) {
+				if(df.mandatory || df.bold) {
+					_options.push({fieldname: df.fieldname, label: df.label});
+				}
+			});
+
+			_options.push({'fieldname': 'name'});
+			_options.push({'fieldname': 'creation'});
+			_options.push({'fieldname': 'idx'});
+
+			// de-duplicate
+			var added = [];
+			this.args.options = [];
+			_options.forEach(function(o) {
+				if(added.indexOf(o.fieldname)===-1) {
+					me.args.options.push(o);
+					added.push(o.fieldname);
+				}
+			});
+
+			// add missing labels
+			this.args.options.forEach(function(o) {
+				if(!o.label) {
+					o.label = me.get_label(o.fieldname);
+				}
+			});
+		}
 
 		// set default
-		this.args = args;
-		this.sort_by = args.sort_by;
-		this.sort_order = args.sort_order;
+		this.sort_by = this.args.sort_by;
+		this.sort_order = this.args.sort_order;
 	},
 	get_label: function(fieldname) {
 		if(fieldname==='idx') {

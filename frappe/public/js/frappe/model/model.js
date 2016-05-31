@@ -33,6 +33,7 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
+	list_settings: {},
 
 	init: function() {
 		// setup refresh if the document is updated somewhere else
@@ -113,6 +114,12 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
+
+					if(r.list_settings) {
+						// remember filters and other settings from last view
+						frappe.model.list_settings[doctype] = JSON.parse(r.list_settings);
+						frappe.model.list_settings[doctype].updated_on = moment().toString();
+					}
 					callback && callback(r);
 				}
 			});
