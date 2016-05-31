@@ -52,7 +52,7 @@ frappe.ui.Listing = Class.extend({
 			this.opts.no_result_message = __('Nothing to show');
 		}
 		if(!this.opts.page_length) {
-			this.opts.page_length = 20;
+			this.opts.page_length = this.list_settings ? (this.list_settings.limit || 20) : 20;
 		}
 		this.opts._more = __("More");
 	},
@@ -174,14 +174,18 @@ frappe.ui.Listing = Class.extend({
 			if(this.onreset) this.onreset();
 		}
 
-		if(!me.opts.no_loading)
+		if(!me.opts.no_loading) {
 			me.set_working(true);
+		}
+
+		var args = this.get_call_args();
+		this.save_list_settings_locally(args);
 
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
 			freeze: (this.opts.freeze != undefined ? this.opts.freeze : true),
-			args: this.get_call_args(),
+			args: args,
 			callback: function(r) {
 				if(!me.opts.no_loading)
 					me.set_working(false);
@@ -190,6 +194,39 @@ frappe.ui.Listing = Class.extend({
 			},
 			no_spinner: this.opts.no_loading
 		});
+	},
+	save_list_settings_locally: function(args) {
+		if(this.opts.save_list_settings && this.doctype && !this.docname) {
+			// save list settings locally
+			list_settings = frappe.model.list_settings[this.doctype];
+
+			var different = false;
+
+			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {
+				// settings are dirty if filters change
+				list_settings.filters = args.filters || [];
+				different = true;
+			}
+
+			if(list_settings.order_by !== args.order_by) {
+				list_settings.order_by = args.order_by;
+				different = true;
+			}
+
+			if(list_settings.limit != args.limit_page_length) {
+				list_settings.limit = args.limit_page_length || 20
+				different = true;
+			}
+
+			// save fields in list settings
+			if(args.save_list_settings_fields) {
+				list_settings.fields = args.fields;
+			};
+
+			if(different) {
+				list_settings.updated_on = moment().toString();
+			}
+		}
 	},
 	set_working: function(flag) {
 		this.$w.find('.img-load').toggle(flag);
@@ -325,5 +362,12 @@ frappe.ui.Listing = Class.extend({
 			}
 		}
 		return this;
-	}
+	},
+	init_list_settings: function() {
+		if(frappe.model.list_settings[this.doctype]) {
+			this.list_settings = frappe.model.list_settings[this.doctype];
+		} else {
+			this.list_settings = {};
+		}
+	},
 });

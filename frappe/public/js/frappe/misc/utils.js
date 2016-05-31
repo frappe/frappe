@@ -325,6 +325,26 @@ frappe.utils = {
 		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
 
+	arrays_equal: function(arr1, arr2) {
+		if (!arr1 || !arr2) {
+			return false;
+		}
+	    if (arr1.length != arr2.length) {
+			return false;
+		}
+	    for (var i = 0; i < arr1.length; i++) {
+	        if ($.isArray(arr1[i])) {
+	            if (!frappe.utils.arrays_equal(arr1[i], arr2[i])) {
+					return false;
+				}
+	        }
+	        else if (arr1[i] !== arr2[i]) {
+				return false;
+			}
+	    }
+	    return true;
+	},
+
 	intersection: function(a, b) {
 		// from stackoverflow: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
 		/* finds the intersection of

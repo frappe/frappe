@@ -132,14 +132,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_select_all();
 	},
 
-	init_list_settings: function() {
-		if(frappe.model.list_settings[this.doctype]) {
-			this.list_settings = frappe.model.list_settings[this.doctype];
-		} else {
-			this.list_settings = {};
-		}
-	},
-
 	init_headers: function() {
 		var main = frappe.render_template("list_item_main_head", {
 			columns: this.listview.columns,
@@ -227,10 +219,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(this.list_settings.order_by) {
 			// last saved settings
-			parts = this.list_settings.order_by.split(' ');
+			var order_by = this.list_settings.order_by
+
+			if(order_by.indexOf('`.`')!==-1) {
+				// scrub table name (separted by dot), like `tabTime Log`.`modified` desc`
+				order_by = order_by.split('.')[1];
+			}
+
+			parts = order_by.split(' ');
 			if(parts.length===2) {
+				var fieldname = strip(parts[0], '`');
 				args = {
-					sort_by: parts[0],
+					sort_by: fieldname,
 					sort_order: parts[1]
 				}
 			}
@@ -267,6 +267,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		// init list
 		this.make({
 			method: 'frappe.desk.reportview.get',
+			save_list_settings: true,
 			get_args: this.get_args,
 			parent: this.wrapper,
 			freeze: true,
@@ -303,10 +304,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.listview.settings.refresh(this);
 		}
 
-		if(frappe.route_options) {
-			this.set_route_options();
-			this.run();
-		} else if(this.dirty) {
+		this.set_filters_before_run();
+		if(this.dirty) {
 			this.run();
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
@@ -316,57 +315,69 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 	},
 
-	set_route_options: function() {
+	set_filters_before_run: function() {
 		// set filters from frappe.route_options
 		// before switching pages, frappe.route_options can have pre-set filters
 		// for the list view
 		var me = this;
-		me.filter_list.clear_filters();
-		$.each(frappe.route_options, function(key, value) {
-			var doctype = null;
 
-			// if `Child DocType.fieldname`
-			if (key.indexOf(".")!==-1) {
-				doctype = key.split(".")[0];
-				key = key.split(".")[1];
-			}
+		if(frappe.route_options) {
+			this.filter_list.clear_filters();
+			$.each(frappe.route_options, function(key, value) {
+				var doctype = null;
 
-			// find the table in which the key exists
-			// for example the filter could be {"item_code": "X"}
-			// where item_code is in the child table.
+				// if `Child DocType.fieldname`
+				if (key.indexOf(".")!==-1) {
+					doctype = key.split(".")[0];
+					key = key.split(".")[1];
+				}
 
-			// we can search all tables for mapping the doctype
-			if(!doctype) {
-				if(in_list(frappe.model.std_fields_list, key)) {
-					// standard
-					doctype = me.doctype;
-				} else if(frappe.meta.has_field(me.doctype, key)) {
-					// found in parent
-					doctype = me.doctype;
-				} else {
-					frappe.meta.get_table_fields(me.doctype).every(function(d) {
-						if(frappe.meta.has_field(d.options, key)) {
-							doctype = d.options;
-							return false;
+				// find the table in which the key exists
+				// for example the filter could be {"item_code": "X"}
+				// where item_code is in the child table.
+
+				// we can search all tables for mapping the doctype
+				if(!doctype) {
+					if(in_list(frappe.model.std_fields_list, key)) {
+						// standard
+						doctype = me.doctype;
+					} else if(frappe.meta.has_field(me.doctype, key)) {
+						// found in parent
+						doctype = me.doctype;
+					} else {
+						frappe.meta.get_table_fields(me.doctype).every(function(d) {
+							if(frappe.meta.has_field(d.options, key)) {
+								doctype = d.options;
+								return false;
+							}
+						});
+
+						if(!doctype) {
+							frappe.msgprint(__('Warning: Unable to find {0} in any table related to {1}', [
+								key, __(me.doctype)]));
 						}
-					});
-
-					if(!doctype) {
-						frappe.msgprint(__('Warning: Unable to find {0} in any table related to {1}', [
-							key, __(me.doctype)]));
 					}
 				}
-			}
 
-			if(doctype) {
-				if($.isArray(value)) {
-					me.filter_list.add_filter(doctype, key, value[0], value[1]);
-				} else {
-					me.filter_list.add_filter(doctype, key, "=", value);
+				if(doctype) {
+					if($.isArray(value)) {
+						me.filter_list.add_filter(doctype, key, value[0], value[1]);
+					} else {
+						me.filter_list.add_filter(doctype, key, "=", value);
+					}
 				}
-			}
-		});
-		frappe.route_options = null;
+			});
+			frappe.route_options = null;
+			this.dirty = true;
+		} else if(this.list_settings && this.list_settings.filters
+				&& this.list_settings.updated_on != this.list_settings_updated_on) {
+			// update remembered list settings
+			this.filter_list.clear_filters();
+			this.list_settings.filters.forEach(function(f) {
+				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
+			});
+			this.dirty = true;
+		}
 	},
 
 	run: function(more) {
@@ -415,6 +426,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(this.listview.settings.post_render) {
 			this.listview.settings.post_render(this);
 		}
+
+		this.list_settings_updated_on = this.list_settings.updated_on;
 	},
 
 	make_no_result: function() {

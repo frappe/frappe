@@ -14,16 +14,24 @@ from frappe import _
 @frappe.whitelist()
 def get():
 	args = get_form_params()
+	save_list_settings_fields = False
+
+	if args.save_list_settings_fields:
+		save_list_settings_fields = True
+		del args['save_list_settings_fields']
+
 	data = compress(execute(**args))
 
 	# update list settings if new search
 	if not cint(args.limit_start) or cint(args.limit or args.limit_page_length) != 20:
 		list_settings = {
-			'columns': args.fields,
 			'filters': args.filters,
 			'limit': args.limit or args.limit_page_length,
 			'order_by': args.order_by
 		}
+		if save_list_settings_fields:
+			list_settings['fields'] = args.fields
+
 		update_list_settings(args.doctype, list_settings)
 
 	return data

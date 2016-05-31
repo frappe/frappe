@@ -118,6 +118,7 @@ $.extend(frappe.model, {
 					if(r.list_settings) {
 						// remember filters and other settings from last view
 						frappe.model.list_settings[doctype] = JSON.parse(r.list_settings);
+						frappe.model.list_settings[doctype].updated_on = moment().toString();
 					}
 					callback && callback(r);
 				}
