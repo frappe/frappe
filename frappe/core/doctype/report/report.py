@@ -20,14 +20,15 @@ class Report(Document):
 			if frappe.session.user=="Administrator" and getattr(frappe.local.conf, 'developer_mode',0)==1:
 				self.is_standard = "Yes"
 
+		if self.is_standard == "No" and frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
+			frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
+
 		if self.is_standard == "Yes" and frappe.session.user!="Administrator":
-			frappe.msgprint(_("Only Administrator can save a standard report. Please rename and save."),
-				raise_exception=True)
+			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
 		if self.report_type in ("Query Report", "Script Report") \
 			and frappe.session.user!="Administrator":
-			frappe.msgprint(_("Only Administrator allowed to create Query / Script Reports"),
-				raise_exception=True)
+			frappe.throw(_("Only Administrator allowed to create Query / Script Reports"))
 
 	def on_update(self):
 		self.export_doc()
