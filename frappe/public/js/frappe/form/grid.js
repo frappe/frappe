@@ -221,6 +221,8 @@ frappe.ui.form.Grid = Class.extend({
 					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
 				});
 
+				me.refresh();
+
 				me.frm.dirty();
 			}
 		});
