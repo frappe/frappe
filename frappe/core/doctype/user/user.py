@@ -20,7 +20,9 @@ class User(Document):
 	__new_password = None
 	def autoname(self):
 		"""set name as email id"""
-		if self.name not in STANDARD_USERS:
+		if self.get("is_admin") or self.get("is_guest"):
+			self.name = self.first_name
+		else:
 			self.email = self.email.strip()
 			self.name = self.email
 

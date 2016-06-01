@@ -35,14 +35,13 @@ class File(NestedSet):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
-		self.set_name()
 
 	def get_name_based_on_parent_folder(self):
 		path = get_breadcrumbs(self.folder)
 		folder_name = frappe.get_value("File", self.folder, "file_name")
 		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
 
-	def set_name(self):
+	def autoname(self):
 		"""Set name for folder"""
 		if self.is_folder:
 			if self.folder:
