@@ -23,6 +23,10 @@ def set_new_name(doc):
 	doc.run_method("before_naming")
 
 	autoname = frappe.get_meta(doc.doctype).autoname
+	
+	if autoname != "Prompt":
+		doc.name = None
+	
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
 		return
