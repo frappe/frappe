@@ -71,7 +71,7 @@ $.extend(frappe.model, {
 	},
 
 	make_new_doc_and_get_name: function(doctype, with_mandatory_children) {
-		return frappe.model.get_new_doc(doctype, with_mandatory_children).name;
+		return frappe.model.get_new_doc(doctype, null, null, with_mandatory_children).name;
 	},
 
 	get_new_name: function(doctype) {
