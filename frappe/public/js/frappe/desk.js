@@ -266,7 +266,7 @@ frappe.Application = Class.extend({
 				e.preventDefault();
 				var route = frappe.get_route();
 				if(route[0]==='Form' || route[0]==='List') {
-					new_doc(route[1]);
+					frappe.new_doc(route[1], true);
 				}
 				return false;
 			})

@@ -188,7 +188,7 @@ frappe.search.verbs = [
 				return {
 					label: __("New {0}", ["<b>"+match+"</b>"]),
 					value: __("New {0}", [match]),
-					onclick: function() { new_doc(match); }
+					onclick: function() { frappe.new_doc(match, true); }
 				}
 			});
 		}
@@ -225,9 +225,9 @@ frappe.search.verbs = [
 			var route = [];
 			if(report.report_type == "Report Builder")
 				route = ["Report", report.ref_doctype, match];
-			else 
+			else
 				route = ["query-report",  match];
-			
+
 			return {
 				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
 				value: __("Report {0}", [__(match)]),

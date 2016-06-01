@@ -90,7 +90,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 							frappe.set_route('Form', me.doctype, data.name);
 						},
 						onAddClick: function(dt, rowId) {
-							newdoc(me.doctype);
+							frappe.new_doc(me.doctype, true);
 						}
 					});
 				}

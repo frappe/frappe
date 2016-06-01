@@ -143,7 +143,7 @@ frappe.ui.Listing = Class.extend({
 						}
 					});
 				}
-				new_doc(doctype);
+				frappe.new_doc(doctype, true);
 			}
 		});
 	},

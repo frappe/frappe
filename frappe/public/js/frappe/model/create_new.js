@@ -7,7 +7,7 @@ $.extend(frappe.model, {
 	new_names: {},
 	new_name_count: {},
 
-	get_new_doc: function(doctype, parent_doc, parentfield, for_copy) {
+	get_new_doc: function(doctype, parent_doc, parentfield, with_mandatory_children) {
 		frappe.provide("locals." + doctype);
 		var doc = {
 			docstatus: 0,
@@ -34,7 +34,7 @@ $.extend(frappe.model, {
 
 		frappe.model.add_to_locals(doc);
 
-		if(!for_copy) {
+		if(with_mandatory_children) {
 			frappe.model.create_mandatory_children(doc);
 		}
 
@@ -70,8 +70,8 @@ $.extend(frappe.model, {
 		return doc;
 	},
 
-	make_new_doc_and_get_name: function(doctype) {
-		return frappe.model.get_new_doc(doctype).name;
+	make_new_doc_and_get_name: function(doctype, with_mandatory_children) {
+		return frappe.model.get_new_doc(doctype, with_mandatory_children).name;
 	},
 
 	get_new_name: function(doctype) {
@@ -233,7 +233,7 @@ $.extend(frappe.model, {
 
 	copy_doc: function(doc, from_amend, parent_doc, parentfield) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
-		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield, true);
+		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield);
 
 		for(var key in doc) {
 			// dont copy name and blank fields
@@ -373,6 +373,5 @@ frappe.new_doc = function (doctype, opts) {
 
 // globals for backward compatibility
 window.new_doc = frappe.new_doc;
-window.newdoc = frappe.new_doc;
 
 
