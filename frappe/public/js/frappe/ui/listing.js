@@ -315,11 +315,28 @@ frappe.ui.Listing = Class.extend({
 			}
 		}
 		else{
-			while (values.length) {
-				row = this.add_row(values[0]);
+			var cols = values.slice();
+			while (cols.length) {
+				row = this.add_row(cols[0]);
 				$("<div class='row image-view-marker'></div>").appendTo(row)
-				this.render_image_view_row(row, values.splice(0, 4), this, i);
+				this.render_image_view_row(row, cols.splice(0, 4), this, i);
 			}
+
+			// remove previous gallery container
+			this.$w.find(".blueimp-gallery").remove();
+			// append gallery div
+			var gallery = frappe.render_template("blueimp-gallery", {});
+			$(gallery).appendTo(this.$w);
+
+			var me = this
+			this.$w.find(".image-field").click(function(event){
+				opts = {
+					doctype: me.doctype,
+					docname: $(event.target).attr('data-name'),
+					container: me.$w
+				};
+				new frappe.views.ImageView(opts);
+			})			
 		}
 	},
 	update_paging: function(values) {
