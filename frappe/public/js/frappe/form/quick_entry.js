@@ -6,7 +6,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
 		var meta = frappe.get_meta(doctype);
 
-		var doc = frappe.model.get_new_doc(doctype, true);
+		var doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 		if(meta.quick_entry != 1) {
 			frappe.set_route('Form', doctype, doc.name);
