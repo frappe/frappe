@@ -23,7 +23,8 @@ doctype_properties = {
 	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
 	'quick_entry': 'Check',
-	'max_attachments': 'Int'
+	'max_attachments': 'Int',
+	'image_view': 'Check'
 }
 
 docfield_properties = {

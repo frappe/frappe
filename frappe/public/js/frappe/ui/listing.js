@@ -309,8 +309,17 @@ frappe.ui.Listing = Class.extend({
 		}
 
 		// render the rows
-		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(values[i]), values[i], this, i);
+		if(this.meta.image_view == 0){
+			for(var i=0; i < m; i++) {
+				this.render_row(this.add_row(values[i]), values[i], this, i);
+			}
+		}
+		else{
+			while (values.length) {
+				row = this.add_row(values[0]);
+				$("<div class='row image-view-marker'></div>").appendTo(row)
+				this.render_image_view_row(row, values.splice(0, 4), this, i);
+			}
 		}
 	},
 	update_paging: function(values) {
@@ -321,7 +330,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	add_row: function(row) {
 		return $('<div class="list-row">')
-			.data("data", row)
+			.data("data", this.meta.image_view == 0?row:null)
 			.appendTo(this.$w.find('.result-list'))
 			.get(0);
 	},

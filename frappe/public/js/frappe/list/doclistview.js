@@ -133,7 +133,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	init_headers: function() {
-		var main = frappe.render_template("list_item_main_head", {
+		this.header = this.meta.image_view == 0? "list_item_main_head": "image_view_item_main_head";
+		var main = frappe.render_template(this.header, {
 			columns: this.listview.columns,
 			right_column: this.listview.settings.right_column,
 			_checkbox: ((frappe.model.can_delete(this.doctype) || this.listview.settings.selectable)
@@ -445,6 +446,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
 	},
+	render_image_view_row: function(row, data) {
+		for (var i = 0; i < data.length; i++) {
+			data[i].doctype = this.doctype;
+			this.listview.render(row, data[i], this)
+		}
+	},
 	get_args: function() {
 		var args = {
 			doctype: this.doctype,
@@ -707,8 +714,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	get_checked_items: function() {
+		var me = this;
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
-			return $(e).parents(".list-row:first").data('data');
+			if(me.meta.image_view == 0){
+				return $(e).parents(".list-row:first").data('data');
+			}
+			else{
+				return $(e).parents(".image-view:first").data('data');
+			}
 		});
 	},
 
