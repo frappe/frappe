@@ -255,8 +255,8 @@ frappe.Application = Class.extend({
 				if(cur_dialog) {
 					// trigger primary
 					cur_dialog.get_primary_btn().trigger("click");
-				} else if(cur_frm) {
-					cur_frm.save_or_update();
+				} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
+					cur_frm.page.btn_primary.trigger('click');
 				} else if(frappe.container.page.save_action) {
 					frappe.container.page.save_action();
 				}
