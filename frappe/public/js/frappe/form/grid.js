@@ -214,6 +214,13 @@ frappe.ui.form.Grid = Class.extend({
 					$(this).find(".row-index").html(i + 1);
 					me.frm.doc[me.df.fieldname].push(doc);
 				});
+
+				// re-order grid-rows by name
+				me.grid_rows = [];
+				me.frm.doc[me.df.fieldname].forEach(function(d) {
+					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
+				});
+
 				me.frm.dirty();
 			}
 		});
@@ -583,6 +590,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.row_index.html(this.doc ? this.doc.idx : "&nbsp;");
 		}
 
+		// TODO: remove grid templates
 		if(this.grid.template && false) {
 			// rendered via template
 			this.row_data && this.row_data.empty();
