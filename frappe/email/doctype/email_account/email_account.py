@@ -234,7 +234,11 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+
+					if self.no_remaining == 0:
+						if communication.reference_doctype:
+							if not frappe.db.get_value("Communication", communication.message_id, "message_id"):
+								communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#update attachment folder size as suspended for emails
 			try:
@@ -339,7 +343,7 @@ class EmailAccount(Document):
 
 		If no thread id is found and `append_to` is set for the email account,
 		it will create a new parent transaction (e.g. Issue)"""
-		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
+		in_reply_to = (email.mail.get("In-Reply-To") or "")#.strip(" <>")
 		parent = None
 
 		if self.append_to:
@@ -354,10 +358,10 @@ class EmailAccount(Document):
 				sender_field = None
 
 		if in_reply_to:
-			if "{0}".format(frappe.local.site) in in_reply_to:
-
-				# reply to a communication sent from the system
-				in_reply_to, domain = in_reply_to.split("@", 1)
+			# reply to a communication sent from the system
+			origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
+			if origin:
+				in_reply_to = origin[0][0]
 
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)

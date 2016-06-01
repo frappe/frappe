@@ -183,7 +183,7 @@ class EMail:
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
 	def set_message_id(self, message_id):
-		self.msg_root["Message-Id"] = email.utils.make_msgid("{0}".format(frappe.local.site))
+		self.msg_root["Message-Id"] = message_id
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""

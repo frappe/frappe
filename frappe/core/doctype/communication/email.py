@@ -11,6 +11,7 @@ from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
 from frappe.email import set_customer_supplier
 from frappe import _
+import email.utils
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -58,6 +59,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"timeline_doctype":contact["timeline_doctype"],
 		"timeline_name":contact["timeline_name"],
 		"timeline_label":contact["timeline_label"],
+		"message_id":email.utils.make_msgid("{0}".format(frappe.local.site))
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -133,7 +135,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_doctype=doc.reference_doctype,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
-		message_id=doc.name,
+		message_id=doc.message_id,
 		unsubscribe_message=_("Leave this conversation"),
 		bulk=True,
 		communication=doc.name
@@ -263,7 +265,7 @@ def get_recipients(doc, fetched_from_email_account=False):
 
 	if recipients:
 		# exclude email accounts
-		exclude = []
+		exclude = [] #added to remove account check
 		#exclude = [d[0] for d in
 		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
 		#exclude += [d[0] for d in
@@ -290,7 +292,7 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 
 	if cc:
 		# exclude email accounts, unfollows, recipients and unsubscribes
-		exclude = []
+		exclude = [] #added to remove account check
 		#exclude = [d[0] for d in
 		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
 		#exclude += [d[0] for d in
