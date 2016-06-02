@@ -556,7 +556,7 @@ def filter_strip_join(some_list, sep):
 
 def get_url(uri=None, full_address=False):
 	"""get app url from request"""
-	host_name = frappe.local.conf.host_name
+	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
 		return uri

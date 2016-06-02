@@ -207,4 +207,3 @@ def get_full_index(route=None, doctype="Web Page", extn = False):
 		return children
 
 	return get_children(route or "")
-

@@ -95,3 +95,20 @@ class TestFile(unittest.TestCase):
 
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(frappe.ValidationError, folder.delete)
+
+	def test_file_upload_limit(self):
+		from frappe.utils.file_manager import MaxFileSizeReachedError
+		from frappe.limits import set_limits, clear_limit
+		from frappe import _dict
+
+		set_limits({'space_limit': 1, 'files_size': (1024 * 1024), 'database_size': 0, 'backup_size': 0})
+
+		# Rebuild the frappe.local.conf to take up the changes from site_config
+		frappe.local.conf = _dict(frappe.get_site_config())
+
+		self.assertRaises(MaxFileSizeReachedError, save_file, '_test_max_space.txt',
+			'This files test for max space usage', "", "", self.get_folder("Test Folder 2", "Home").name)
+
+		# Scrub the site_config and rebuild frappe.local.conf
+		clear_limit("space_limit")
+		frappe.local.conf = _dict(frappe.get_site_config())

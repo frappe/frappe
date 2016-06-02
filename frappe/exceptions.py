@@ -61,4 +61,3 @@ class UniqueValidationError(ValidationError): pass
 class AppNotInstalledError(ValidationError): pass
 class IncorrectSitePath(NotFound): pass
 class ImplicitCommitError(ValidationError): pass
-

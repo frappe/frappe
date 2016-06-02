@@ -1,0 +1,71 @@
+<div class="padding" style="max-width: 500px;">
+    <h3>Users</h3>
+    {% var users_percent = ((users / user_limit) * 100); %}
+    <div class="progress">
+        <div class="progress-bar progress-bar-{%= (users_percent < 75 ? "success" : "warning") %}" style="width: {{ users_percent }}%">
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 33%">Current Users</th>
+                <th style="width: 33%">Max Users</th>
+                <th style="width: 33%">Remaining</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{%= users %}</td>
+                <td>{%= user_limit %}</td>
+                <td class="{%= ((user_limit - users) > 1) ? "text-success" : "text-warning" %}">{%= user_limit - users %}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <h3>Disk Space</h3>
+
+    {% var database_percent = ((database_size / max) * 100); %}
+    {% var files_percent = ((files_size / max) * 100); %}
+    {% var backup_percent = ((backup_size / max) * 100); %}
+    <div class="progress">
+        <div class="progress-bar progress-bar-success" style="width: {%= database_percent %}%">
+        </div>
+        <div class="progress-bar progress-bar-info" style="width: {%= files_percent %}%">
+        </div>
+        <div class="progress-bar progress-bar-warning" style="width: {%= backup_percent %}%">
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 50%">Type</th>
+                <th style="width: 50%">Size (MB)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="indicator-right green">Database Size</span></td>
+                <td>{%= database_size %} MB</td>
+            </tr>
+            <tr>
+                <td><span class="indicator-right purple">Files Size</span></td>
+                <td>{%= files_size %} MB</td>
+            </tr>
+            <tr>
+                <td><span class="indicator-right orange">Backup Size</span></td>
+                <td>{%= backup_size %} MB</td>
+            </tr>
+            <tr>
+                <td><b>Total</b></td>
+                <td><b>{%= total %} MB</b></td>
+            </tr>
+            <tr>
+                <td><b>Available</b></td>
+                <td class="{%= ((max - total) > 50) ? "" : "text-warning" %}">
+                    <b>{%= flt(max - total, 2) %} MB</b></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -63,7 +63,9 @@ calendars = ["Event"]
 
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
-	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager"
+	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
+	"frappe.limits.check_if_expired", #Unsure of where to move
+	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
 # permissions
@@ -88,6 +90,9 @@ standard_queries = {
 }
 
 doc_events = {
+	"User": {
+		"validate": "frappe.utils.user.validate_user_limit"
+	},
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
@@ -125,6 +130,10 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 		"frappe.async.remove_old_task_logs",
+		"frappe.utils.scheduler.disable_scheduler_on_expiry",
+		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
+		"frappe.core.doctype.file.file.update_sizes"
+
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
@@ -161,3 +170,4 @@ bot_parsers = [
 	'frappe.utils.bot.CountBot'
 ]
 
+before_write_file = "frappe.core.doctype.file.file.validate_space_limit"

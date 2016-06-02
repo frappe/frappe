@@ -256,16 +256,17 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
-def update_site_config(key, value):
+def update_site_config(key, value, validate=True):
 	"""Update a value in site_config"""
 	with open(get_site_config_path(), "r") as f:
 		site_config = json.loads(f.read())
 
-	# int
-	try:
-		value = int(value)
-	except ValueError:
-		pass
+	# In case of non-int value
+	if validate:
+		try:
+			value = int(value)
+		except ValueError:
+			pass
 
 	# boolean
 	if value in ("False", "True"):

@@ -14,10 +14,15 @@ import frappe
 import json
 import schedule
 import time
+import os
 import frappe.utils
-from frappe.utils import get_sites
+from frappe.utils import get_sites, get_site_path, touch_file
 from datetime import datetime
 from background_jobs import enqueue, get_jobs, queue_timeout
+from frappe.limits import has_expired
+from frappe.utils.data import get_datetime, now_datetime
+from frappe.core.doctype.user.user import STANDARD_USERS
+from frappe.installer import update_site_config
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -218,7 +223,6 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 	else:
 		return 0, "<p>Scheduler didn't encounter any problems.</p>"
 
-
 def scheduler_task(site, event, handler, now=False):
 	'''This is a wrapper function that runs a hooks.scheduler_events method'''
 	frappe.logger(__name__).info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
@@ -239,3 +243,47 @@ def scheduler_task(site, event, handler, now=False):
 		frappe.db.commit()
 
 	frappe.logger(__name__).info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+
+
+def reset_enabled_scheduler_events(login_manager):
+	if login_manager.info.user_type == "System User":
+		try:
+			frappe.db.set_global('enabled_scheduler_events', None)
+		except MySQLdb.OperationalError, e:
+			if e.args[0]==1205:
+				frappe.get_logger().error("Error in reset_enabled_scheduler_events")
+			else:
+				raise
+		else:
+			is_dormant = frappe.conf.get('dormant')
+			if is_dormant:
+				update_site_config('dormant', 'None')
+
+def disable_scheduler_on_expiry():
+	if has_expired():
+		disable_scheduler()
+
+def restrict_scheduler_events_if_dormant():
+	if is_dormant():
+		restrict_scheduler_events()
+		update_site_config('dormant', True)
+
+def restrict_scheduler_events(*args, **kwargs):
+	val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
+	frappe.db.set_global('enabled_scheduler_events', val)
+
+
+def is_dormant(since = 345600):
+	last_active = get_datetime(get_last_active())
+	# Get now without tz info
+	now = now_datetime().replace(tzinfo=None)
+	time_since_last_active = now - last_active
+	if time_since_last_active.total_seconds() > since:  # 4 days
+		return True
+	return False
+
+def get_last_active():
+	return frappe.db.sql("""select max(ifnull(last_active, "2000-01-01 00:00:00")) from `tabUser`
+		where user_type = 'System User' and name not in ({standard_users})"""\
+		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
+		STANDARD_USERS)[0][0]
