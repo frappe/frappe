@@ -203,39 +203,10 @@ frappe.views.ListView = Class.extend({
 		}
 
 		if(this.meta.image_view == 0){
-			var main = frappe.render_template("list_item_main", {
-				data: data,
-				columns: this.columns,
-				subject: this.get_avatar_and_id(data, true),
-				list: this,
-				right_column: this.settings.right_column
-			});
-	
-			$(frappe.render_template("list_item_row", {
-				data: data,
-				main: main,
-				list: this,
-				right_column: this.settings.right_column
-			})).appendTo(row);
+			this.render_list_row(row, data);
 		}
 		else{
-			this.allowed_type = [
-				"Check", "Currency", "Data", "Date",
-				"Datetime", "Float", "Int", "Link",
-				"Percent", "Select", "Read Only", "Time"
-			];
-			img_col = $(frappe.render_template("image_view_item_row", {
-				data: data,
-				list: this,
-				columns: this.columns,
-				allowed_type: this.allowed_type,
-				item_image: data.image ? "url('" + data.image + "')" : null,
-				color: frappe.get_palette(data.item_name),
-				subject: this.get_avatar_and_id(data, true),
-				right_column: this.settings.right_column
-			}))
-			.data("data", data)
-			.appendTo($(row).find(".image-view-marker"));
+			this.render_list_image(row, data);
 		}
 
 		if(this.settings.post_render_item) {
@@ -244,6 +215,41 @@ frappe.views.ListView = Class.extend({
 
 		this.render_tags(row, data);
 
+	},
+	render_list_row: function(row, data) {
+		var main = frappe.render_template("list_item_main", {
+			data: data,
+			columns: this.columns,
+			subject: this.get_avatar_and_id(data, true),
+			list: this,
+			right_column: this.settings.right_column
+		});
+
+		$(frappe.render_template("list_item_row", {
+			data: data,
+			main: main,
+			list: this,
+			right_column: this.settings.right_column
+		})).appendTo(row);
+	},
+	render_list_image: function(row, data) {
+		this.allowed_type = [
+			"Check", "Currency", "Data", "Date",
+			"Datetime", "Float", "Int", "Link",
+			"Percent", "Select", "Read Only", "Time"
+		];
+		img_col = $(frappe.render_template("image_view_item_row", {
+			data: data,
+			list: this,
+			columns: this.columns,
+			allowed_type: this.allowed_type,
+			item_image: data.image ? "url('" + data.image + "')" : null,
+			color: frappe.get_palette(data.item_name),
+			subject: this.get_avatar_and_id(data, true),
+			right_column: this.settings.right_column
+		}))
+		.data("data", data)
+		.appendTo($(row).find(".image-view-marker"));
 	},
 	render_tags: function(row, data) {
 		var me = this;

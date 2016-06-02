@@ -38,12 +38,7 @@ frappe.views.ImageView = Class.extend({
 	},
 
 	render: function(image_list){
-		var me = this;
-
-		frappe.require(["assets/frappe/js/lib/gallery/js/blueimp-gallery.js",
-			"assets/frappe/js/lib/gallery/js/blueimp-gallery-indicator.js"], function(){
-			var gallery = blueimp.Gallery(image_list, me.get_options());
-		})
+		var gallery = blueimp.Gallery(image_list, this.get_options());
 	},
 
 	get_options: function(){
