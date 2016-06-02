@@ -881,14 +881,16 @@ frappe.ui.form.GridRow = Class.extend({
 		})
 	},
 	refresh_field: function(fieldname, txt) {
-		var column = this.columns[fieldname];
 		if(txt===undefined) {
 			var txt = frappe.format(this.doc[fieldname], this.grid.get_docfield(fieldname),
 				null, this.frm.doc);
 		}
 
 		// reset static value
-		column.static_area.html(txt || "");
+		var column = this.columns[fieldname];
+		if(column) {
+			column.static_area.html(txt || "");
+		}
 
 		// reset field value
 		if(this.on_grid_fields_dict[fieldname]) {
