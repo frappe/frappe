@@ -252,11 +252,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.stats_area.html(html).removeClass('hidden');
 		this.show();
 	},
-	
+
 	//graphs
 	setup_chart: function(opts) {
 		var me = this;
-		
+
+		this.chart_area.removeClass('hidden');
+
 		$.extend(opts, {
 			wrapper: me.wrapper,
 			bind_to: ".form-chart",
@@ -265,7 +267,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				bottom: 30
 			}
 		});
-		
+
 		this.chart = new frappe.ui.Chart(opts);
 		if(this.chart) {
 			this.show();
