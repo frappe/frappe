@@ -17,11 +17,13 @@ after_install = "frappe.utils.install.after_install"
 
 # website
 app_include_js = [
+	"assets/js/libs.min.js",
 	"assets/js/desk.min.js",
 	"assets/js/editor.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
-	"assets/js/report.min.js"
+	"assets/js/report.min.js",
+	"assets/js/d3.min.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",

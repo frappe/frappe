@@ -55,7 +55,7 @@
 		"public/css/form.css",
 		"public/css/mobile.css"
 	],
-	"js/desk.min.js": [
+	"js/libs.min.js": [
 		"public/js/lib/jquery/jquery-ui.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/tag-it.min.js",
@@ -64,11 +64,9 @@
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/d3.min.js",
-		"public/js/lib/cal-heatmap.js",
-		"public/js/lib/c3.min.js",
-		"public/js/lib/markdown.js",
-
+		"public/js/lib/markdown.js"
+	],
+	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/assets.js",
@@ -142,10 +140,12 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/html/error_object.html",
-		"public/html/error_snapshot.html",
-		
 		"public/js/frappe/ui/charts.js"
+	],
+	"js/d3.min.js": [
+		"public/js/lib/d3.min.js",
+		"public/js/lib/cal-heatmap.js",
+		"public/js/lib/c3.min.js"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"
