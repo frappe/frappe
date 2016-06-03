@@ -1090,9 +1090,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.$link = this.$input_area.find('.link-btn');
+		this.$link_open = this.$link.find('.btn-open');
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
-			me.$link.toggle(true);
+			var value = me.get_value();
+			if(value && me.get_options()) {
+				me.$link.toggle(true);
+				me.$link_open.attr('href', '#Form/' + me.get_options() + '/' + value);
+
+			}
+
 			setTimeout(function() {
 				if(!me.$input.val()) {
 					me.$input.autocomplete("search", "");
@@ -1118,13 +1125,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	setup_buttons: function() {
 		var me = this;
-
-		// open
-		this.$input_area.find(".btn-open").on("click", function() {
-			var value = me.get_value();
-			if(value && me.get_options())
-				frappe.set_route("Form", me.get_options(), value);
-		});
 
 		if(this.only_input && !this.with_link_btn) {
 			this.$input_area.find(".link-btn").remove();
