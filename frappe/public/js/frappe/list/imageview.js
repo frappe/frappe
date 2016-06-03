@@ -31,7 +31,14 @@ frappe.views.ImageView = Class.extend({
 				if(!r.message){
 					msgprint("No Images found")
 				} else{
-					me.render(r.message);
+					// filter image files from other
+					images = r.message.filter(function(image){
+						return frappe.utils.is_image_file(image.title);
+					});
+
+					if(images){
+						me.render(images);
+					}
 				}
 			}
 		});
