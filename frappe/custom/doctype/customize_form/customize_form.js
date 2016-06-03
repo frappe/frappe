@@ -82,7 +82,7 @@ frappe.ui.form.on("Customize Form", {
 
 		if(frappe.route_options) {
 			setTimeout(function() {
-				frm.set_value("doc_type", frappe.route_options.doctype);
+				frm.set_value("doc_type", frappe.route_options.doc_type);
 				frappe.route_options = null;
 			}, 1000);
 		}
