@@ -48,7 +48,6 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	get_fields: function() {
 		return [
-			{fieldtype: "Section Break"},
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
@@ -475,9 +474,8 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
 			.bind( "keydown", function(event) {
-				if (event.keyCode === $.ui.keyCode.TAB &&
-						$(this).data( "autocomplete" ) &&
-						$(this).data( "autocomplete" ).menu.active ) {
+		        if (event.keyCode === $.ui.keyCode.TAB &&
+		            $(this).autocomplete("instance").menu.active) {
 					event.preventDefault();
 				}
 			})
@@ -499,7 +497,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				},
 				appendTo: this.dialog.$wrapper,
 				focus: function() {
-					event.preventDefault();
+					return false;
 				},
 				select: function( event, ui ) {
 					var terms = split( this.value );

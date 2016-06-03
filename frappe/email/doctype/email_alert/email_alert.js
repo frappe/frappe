@@ -48,6 +48,7 @@ frappe.ui.form.on("Email Alert", {
 	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
+		frm.trigger('event');
 	},
 	document_type: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
@@ -55,5 +56,24 @@ frappe.ui.form.on("Email Alert", {
 	view_properties: function(frm) {
 		frappe.route_options = {doc_type:frm.doc.document_type};
 		frappe.set_route("Form", "Customize Form");
+	},
+	event: function(frm) {
+		if(in_list(['Days Before', 'Days After'], frm.doc.event)) {
+			frm.add_custom_button(__('Get Alerts for Today'), function() {
+				frappe.call({
+					method: 'frappe.email.doctype.email_alert.email_alert.get_documents_for_today',
+					args: {
+						email_alert: frm.doc.name
+					},
+					callback: function(r) {
+						if(r.message) {
+							msgprint(r.message);
+						} else {
+							msgprint(__('No alerts for today'));
+						}
+					}
+				});
+			});
+		}
 	}
 });

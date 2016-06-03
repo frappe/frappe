@@ -65,8 +65,9 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 	},
 	focus_on_first_input: function() {
-		this.fields_list.every(function(f) {
-			if(!in_list(['Date', 'Datetime', 'Time'], f.df.fieldtype) && f.set_focus()) {
+		$.each(this.fields_list, function(i, f) {
+			if(!in_list(['Date', 'Datetime', 'Time'], f.df.fieldtype) && f.set_focus) {
+				f.set_focus();
 				return false;
 			}
 		});

@@ -4,9 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import re
 from frappe import _
-from jinja2 import Template
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
 from frappe.utils.jinja import validate_template
@@ -24,10 +22,9 @@ class EmailAlert(Document):
 
 		self.validate_forbidden_types()
 		self.validate_condition()
-		
 
 	def validate_condition(self):
-		temp_doc = frappe.new_doc(self.document_type)	
+		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
 				eval(self.condition, get_context(temp_doc))
@@ -42,6 +39,33 @@ class EmailAlert(Document):
 
 			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
 
+	def get_documents_for_today(self):
+		'''get list of documents that will be triggered today'''
+		docs = []
+
+		diff_days = self.days_in_advance
+		if self.event=="Days After":
+			diff_days = -diff_days
+
+		for name in frappe.db.sql_list("""select name from `tab{0}` where
+			DATE(`{1}`) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(self.document_type,
+				self.date_changed), (nowdate(), diff_days or 0)):
+
+			doc = frappe.get_doc(self.document_type, name)
+
+			if self.condition and not eval(self.condition, get_context(doc)):
+				continue
+
+			docs.append(doc)
+
+		return docs
+
+@frappe.whitelist()
+def get_documents_for_today(email_alert):
+	email_alert = frappe.get_doc('Email Alert', email_alert)
+	email_alert.check_permission('read')
+	return [d.name for d in email_alert.get_documents_for_today()]
+
 def trigger_daily_alerts():
 	trigger_email_alerts(None, "daily")
 
@@ -55,19 +79,9 @@ def trigger_email_alerts(doc, method=None):
 
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
-
 			alert = frappe.get_doc("Email Alert", alert)
-
-			diff_days = alert.days_in_advance
-			if alert.event=="Days After":
-				diff_days = -diff_days
-
-			for name in frappe.db.sql_list("""select name from `tab{0}` where
-				DATE(`{1}`) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(alert.document_type, alert.date_changed),
-					(nowdate(), diff_days or 0)):
-
-				evaluate_alert(frappe.get_doc(alert.document_type, name),
-					alert, alert.event)
+			for doc in alert.get_documents_for_today():
+				evaluate_alert(doc, alert, alert.event)
 	else:
 		if method in ("on_update", "validate") and doc.flags.in_insert:
 			# don't call email alerts multiple times for inserts

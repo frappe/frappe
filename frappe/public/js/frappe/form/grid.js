@@ -279,7 +279,7 @@ frappe.ui.form.Grid = Class.extend({
 		return this.fieldinfo[fieldname];
 	},
 	set_value: function(fieldname, value, doc) {
-		if(this.display_status!=="None") {
+		if(this.display_status!=="None" && this.grid_rows_by_docname[doc.name]) {
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 		}
 	},
