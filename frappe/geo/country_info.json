@@ -791,6 +791,7 @@
   "code": "et",
   "currency_fraction": "Santim",
   "currency_fraction_units": 100,
+  "currency_name": "Ethiopian Birr",
   "currency_symbol": "Br",
   "number_format": "#,###.##",
   "timezones": [
