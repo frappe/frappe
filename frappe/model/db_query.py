@@ -11,6 +11,7 @@ import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter
 from frappe import _
 from frappe.model import optional_fields
+from frappe.model.utils.list_settings import update_list_settings
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -27,7 +28,8 @@ class DatabaseQuery(object):
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
-		join='left join', distinct=False, start=None, page_length=None, limit=None, ignore_ifnull=False):
+		join='left join', distinct=False, start=None, page_length=None, limit=None,
+		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -77,6 +79,10 @@ class DatabaseQuery(object):
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
+
+		if save_list_settings:
+			self.save_list_settings_fields = save_list_settings_fields
+			self.update_list_settings()
 
 		return result
 
@@ -479,3 +485,17 @@ class DatabaseQuery(object):
 			r._comment_count = 0
 			if "_comments" in r:
 				r._comment_count = len(json.loads(r._comments or "[]"))
+
+	def update_list_settings(self):
+		# update list settings if new search
+		if not cint(self.limit_start) or cint(self.limit or self.limit_page_length) != 20:
+			list_settings = {
+				'filters': self.filters,
+				'limit': self.limit_page_length,
+				'order_by': self.order_by
+			}
+			if self.save_list_settings_fields:
+				list_settings['fields'] = self.fields
+
+			update_list_settings(self.doctype, list_settings)
+
