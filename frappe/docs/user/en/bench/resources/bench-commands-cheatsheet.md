@@ -11,6 +11,10 @@
   * `--restart-supervisor`  restart supervisor processes after update
   * `--upgrade` Does major upgrade (Eg. ERPNext 6 -> 7)
   * `--no-backup`			  Don't take a backup before update
+* `bench backup` Backup 
+* `bench backup-all-sites` Backup all sites
+  * `--with-files` Backup site with files
+* `bench restore` Restore
 * `bench migrate` Will read JSON files and make changes to the database accordingly
 
 ###Config
