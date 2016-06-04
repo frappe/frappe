@@ -488,7 +488,7 @@ class DatabaseQuery(object):
 
 	def update_list_settings(self):
 		# update list settings if new search
-		if not cint(self.limit_start) or cint(self.limit or self.limit_page_length) != 20:
+		if not cint(self.limit_start) or cint(self.limit_page_length) != 20:
 			list_settings = {
 				'filters': self.filters,
 				'limit': self.limit_page_length,
