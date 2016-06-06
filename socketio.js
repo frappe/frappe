@@ -36,7 +36,7 @@ io.on('connection', function(socket){
 	// console.log("firing get_user_info");
 	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
 		.type('form')
-		.send({
+		.query({
 			sid: sid
 		})
 		.end(function(err, res) {
@@ -204,7 +204,7 @@ function can_subscribe_doc(args) {
 	if(!args) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
-		.send({
+		.query({
 			sid: args.sid,
 			doctype: args.doctype,
 			docname: args.docname
