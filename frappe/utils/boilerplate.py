@@ -26,13 +26,8 @@ def make_boilerplate(dest, app_name):
 		hook_val = None
 		while not hook_val:
 			hook_val = cstr(raw_input(key + ": "))
-			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
-				print "App Name must be all lowercase and without spaces"
-  				hook_val = ""
-			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
-				print "App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
-				hook_val = ""
-			elif not hook_val:
+
+			if not hook_val:
 				defaults = {
 					"app_title": app_title,
 					"app_icon": "octicon octicon-file-directory",
@@ -41,6 +36,13 @@ def make_boilerplate(dest, app_name):
 				}
 				if hook_key in defaults:
 					hook_val = defaults[hook_key]
+
+			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
+				print "App Name must be all lowercase and without spaces"
+  				hook_val = ""
+			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+				print "App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+				hook_val = ""
 
 		hooks[hook_key] = hook_val
 
