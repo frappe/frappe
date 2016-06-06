@@ -181,9 +181,13 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			callback: function(r) {
 				opts.callback && opts.callback(r);
 			},
-			always: function() {
+			always: function(r) {
 				frappe.ui.form.is_saving = false;
-				frappe.ui.form.update_calling_link(opts.args.doc.name);
+
+				var doc = r.docs && r.docs[0];
+				if(doc) {
+					frappe.ui.form.update_calling_link(doc.name);
+				}
 			}
 		})
 	};
