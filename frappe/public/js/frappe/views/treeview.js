@@ -74,6 +74,10 @@ frappe.views.TreeView = Class.extend({
 					me.args[$(this).attr("data-fieldname")] = $(this).val();
 					me.make_tree();
 				})
+			
+			if (filter.default) {
+				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");
+			}
 		})
 	},
 	get_root: function() {
@@ -98,7 +102,8 @@ frappe.views.TreeView = Class.extend({
 			args: me.args,
 			method: me.get_tree_nodes,
 			toolbar: me.get_toolbar(),
-			get_label: me.opts.get_label
+			get_label: me.opts.get_label,
+			onrender: me.opts.onrender
 		});
 	},
 	get_toolbar: function(){

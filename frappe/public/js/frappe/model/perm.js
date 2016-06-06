@@ -256,7 +256,7 @@ $.extend(frappe.perm, {
 
 	get_field_display_status: function(df, doc, perm, explain) {
 		if(!doc) {
-			return (df && cint(df.hidden)) ? "None": "Write";
+			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None": "Write";
 		}
 
 		perm = perm || frappe.perm.get_perm(doc.doctype, doc);

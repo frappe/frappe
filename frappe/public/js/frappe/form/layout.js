@@ -397,7 +397,13 @@ frappe.ui.form.Layout = Class.extend({
 		var out = null;
 		var doc = this.doc;
 
-		if (!doc) return;
+		if (!doc && this.get_values) {
+			var doc = this.get_values(true);
+		}
+		
+		if (!doc) {
+			return;
+		}
 
 		var parent = this.frm ? this.frm.doc : null;
 

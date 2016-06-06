@@ -55,6 +55,10 @@ frappe.ui.form.Control = Class.extend({
 				if(explain) console.log("By Hidden: None");
 				return "None";
 
+			} else if (cint(this.df.hidden_due_to_dependency)) {
+				if(explain) console.log("By Hidden Dependency: None");
+				return "None";
+
 			} else if (cint(this.df.read_only)) {
 				if(explain) console.log("By Read Only: Read");
 				return "Read";
