@@ -479,3 +479,35 @@ def sanitize_email(emails):
 		sanitized.append(formataddr((fullname, email_id)))
 
 	return ", ".join(sanitized)
+
+def get_site_info():
+	company_info = get_company_info()
+	frappe_info = get_frappe_info()
+	frappe_info.update(company_info)
+	return frappe_info
+
+def get_company_info():
+	from frappe.boot import get_bootinfo
+
+	if 'erpnext' not in get_bootinfo().versions:
+		return {}
+
+	# Get company data created during setup
+	company = frappe.get_all("Company", order_by="creation asc",
+		limit=1, fields=['name', 'domain'])[0]
+	
+	company_info = {'name' : company.name, 'domain': company.domain} 
+	return company_info
+
+def get_frappe_info():
+	from frappe.limits import get_limits
+	setup_complete = get_limits().get("setup_complete", False)
+	if not setup_complete:
+		return {}
+
+	users_data = frappe.get_all('User', ['first_name', 'last_name', 'user_type', 'email', 'enabled'])
+	language = frappe.db.get_single_value("System Settings", "language")
+	timezone = frappe.db.get_single_value("System Settings", "time_zone")
+
+	return {'users_data' : users_data, 'language' : language,
+			'timezone':timezone, 'setup_complete' : setup_complete }
