@@ -89,8 +89,8 @@ frappe.ui.Page = Class.extend({
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
+		this.module_flow = $('<div class="module-flow-section"></div>').appendTo(this.body);
 		this.icon_group = this.page_actions.find(".page-icon-group");
-
 	},
 
 	set_indicator: function(label, color) {
@@ -409,5 +409,57 @@ frappe.ui.Page = Class.extend({
 		this.views[name].toggle(true);
 
 		this.wrapper.trigger('view-change');
+	},
+	add_document_flow: function(frm){
+		var me = this;
+		$('.module-flow-section').empty();
+		if (frm.doctype) {
+			var module = frappe.get_meta(frm.doctype).module
+			var module_flow = frappe.module_flow[module][frm.doctype];
+			if (module_flow){
+				if (!$('.doc-flow').length) {
+					$('<div class="module-flow"></div>').prependTo(this.module_flow.removeClass("hide"));
+				}
+				
+				$.each(module_flow, function(i, doc) {
+					var doctype = doc;
+					
+					if (doc == frm.doctype) {
+						doctype = "<b>"+__(doc)+"</b>"
+					}
+					
+					$('<a data-name="'+__(doc)+'">'+__(doctype)+' </a>').on("click", function(){
+							me.get_linked_docs(frm, $(this).attr("data-name"))
+					}).appendTo('.module-flow')
+					
+					if((module_flow.length-1) != i){
+						$('<span> > </span>').appendTo('.module-flow')
+					}
+				})
+			}
+		}
+	},
+	
+	get_linked_docs: function(frm, link_for) {
+		this.linked_with = null;
+	
+		if(!this.linked_with) {
+			this.linked_with = new frappe.ui.form.LinkedWith({
+				frm: frm,
+				link_for: link_for
+			});
+		}
+		this.linked_with.show();
+		
 	}
 });
+
+frappe.ui.scroll = function(element, animate, additional_offset) {
+	var header_offset = $(".navbar").height() + $(".page-head").height();
+	var top = $(element).offset().top - header_offset - cint(additional_offset);
+	if (animate) {
+		$("html, body").animate({ scrollTop: top });
+	} else {
+		$(window).scrollTop(top);
+	}
+}

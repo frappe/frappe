@@ -110,17 +110,17 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 	get_linked_docs: function() {
 		var me = this;
-
 		return frappe.call({
 			method:"frappe.desk.form.linked_with.get_linked_docs",
 			args: {
 				doctype: me.frm.doctype,
 				name: me.frm.docname,
-				linkinfo: me.frm.__linked_doctypes
+				linkinfo: me.frm.__linked_doctypes,
+				for_doctype: me.link_for
 			},
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.list.$wrapper.empty();
-
+				
 				if(keys(r.message || {}).length) {
 					$.each(keys(r.message).sort(), function(i, doctype) {
 						var listview = frappe.views.get_listview(doctype, me);
