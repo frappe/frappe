@@ -237,7 +237,7 @@ class EmailAccount(Document):
 
 					if self.no_remaining == 0:
 						if communication.reference_doctype:
-							if not frappe.db.get_value("Communication", communication.message_id, "message_id"):
+							if not frappe.db.get_value("Communication", communication.message_id, "message_id") and not communication.unread_notification_sent:
 								communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#update attachment folder size as suspended for emails
@@ -438,6 +438,12 @@ class EmailAccount(Document):
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
+			
+		# check if message is notification and disable notifications for this message
+ 		references =email.mail.get("References")
+ 		if references:
+ 			if "notification" in references:
+ 				communication.unread_notification_sent = 1
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
