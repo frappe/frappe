@@ -384,29 +384,29 @@ class EmailServer:
 			print("failed get seen sync download")
 			return
 		self.time.append(time.time())
+		unseen_list = unseen_list[0].split()
 		for unseen in unseen_list:
 			for msg in self.latest_messages:
 				if unseen == msg[1]:
-					msg[2] = 1
+					msg[2] = 0
 
 			for comm in comm_list:
 				if comm.uid == unseen:
 					if comm.seen:
-						frappe.db.set_value('Communication', comm.name, 'seen', '0', update_modified=False)
+						frappe.db.set_value('Communication', comm.name, 'seen', 0, update_modified=False)
 					comm_list.remove(comm)
 					break
 		self.time.append(time.time())
 		seen_list = seen_list[0].split()
-		unseen_list = unseen_list[0].split()
 		for seen in seen_list:
 			for msg in self.latest_messages:
 				if seen == msg[1]:
-					msg[2] = 0
+					msg[2] = 1
 
 			for comm in comm_list:
 				if comm.uid == seen:
 					if not comm.seen:
-						frappe.db.set_value('Communication', comm.name, 'seen', '1', update_modified=False)
+						frappe.db.set_value('Communication', comm.name, 'seen', 1, update_modified=False)
 					comm_list.remove(comm)
 					break
 
