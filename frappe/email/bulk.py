@@ -119,8 +119,7 @@ def add(email, sender, subject, formatted, text_content=None,
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
 			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
 
-		if message_id:
-			mail.set_message_id(message_id)
+		mail.set_message_id(message_id)
 
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
