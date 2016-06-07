@@ -476,7 +476,9 @@ select.form-control {
   .form-page .form-control:focus {
     box-shadow: none;
   }
-  .module-flow {
+}
+
+.module-flow {
 	float:left;
 	width: 100%;
 	padding-top:15px;
@@ -485,10 +487,9 @@ select.form-control {
 	margin-bottom:20px;
 	background-color: #fafbfc;
 	border-bottom: 1px solid #EBEFF2;
-  }
-  .module-flow a {
+}
+.module-flow a {
 	margin-left: 5px;
 	margin-right: 5px;
 	font-size:12px;
-   }
 }
