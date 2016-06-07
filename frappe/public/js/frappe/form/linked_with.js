@@ -116,11 +116,11 @@ frappe.ui.form.LinkedWith = Class.extend({
 				doctype: me.frm.doctype,
 				name: me.frm.docname,
 				linkinfo: me.frm.__linked_doctypes,
-				for_doctype: me.link_for
+				for_doctype: me.for_doctype
 			},
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.list.$wrapper.empty();
-				
+
 				if(keys(r.message || {}).length) {
 					$.each(keys(r.message).sort(), function(i, doctype) {
 						var listview = frappe.views.get_listview(doctype, me);

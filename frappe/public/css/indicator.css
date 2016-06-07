@@ -48,6 +48,10 @@
 .indicator-right.darkgrey::after {
   background: #b8c2cc;
 }
+.indicator.black::before,
+.indicator-right.black::after {
+  background: #36414C;
+}
 .indicator.yellow::before,
 .indicator-right.yellow::after {
   background: #FEEF72;

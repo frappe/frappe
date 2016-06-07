@@ -693,8 +693,9 @@ class Document(BaseDocument):
 						# clear linked doctypes list
 						cache.hdel("linked_doctypes", doctype)
 
-					# delete linked with cache for all users
+					# for all users, delete linked with cache and per doctype linked with cache
 					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
+					cache.delete_value("user:*:linked_with:{doctype}:{name}:*".format(doctype=doctype, name=name))
 
 		_clear_cache(self)
 		for d in self.get_all_children():

@@ -253,6 +253,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.fields_dict = this.layout.fields_dict;
 	this.fields = this.layout.fields_list;
 
+	this.document_flow = new frappe.ui.form.DocumentFlow({
+		frm: this
+	});
+
 	this.dashboard = new frappe.ui.form.Dashboard({
 		frm: this,
 	});
@@ -341,6 +345,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		this.toolbar.refresh();
 	}
 
+	this.document_flow.refresh();
 	this.dashboard.reset();
 
 	this.clear_custom_buttons();
