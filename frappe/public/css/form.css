@@ -30,6 +30,42 @@
 .form-message {
   padding: 15px;
 }
+.document-flow-wrapper {
+  padding: 40px 15px 30px;
+  font-size: 12px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.document-flow-wrapper .document-flow {
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.document-flow-wrapper .document-flow .document-flow-link-wrapper:not(:last-child) {
+  border-top: 1px solid #b8c2cc;
+  padding-right: 60px;
+  display: inline-block;
+  margin-right: -4px;
+}
+.document-flow-wrapper .document-flow .document-flow-link {
+  margin-top: -10px;
+  display: inline-block;
+}
+.document-flow-wrapper .document-flow .document-flow-link:not(.disabled):hover .document-flow-link-label,
+.document-flow-wrapper .document-flow .document-flow-link:not(.disabled):focus .document-flow-link-label,
+.document-flow-wrapper .document-flow .document-flow-link:not(.disabled):active .document-flow-link-label {
+  text-decoration: underline;
+}
+.document-flow-wrapper .document-flow .document-flow-link-label {
+  display: inline-block;
+  margin-left: -50%;
+  margin-top: 5px;
+}
+@media (max-width: 767px) {
+  .document-flow-wrapper {
+    display: none;
+  }
+}
 .form-dashboard {
   border-bottom: 1px solid #EBEFF2;
 }

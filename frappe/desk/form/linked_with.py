@@ -9,24 +9,36 @@ import frappe.desk.form.meta
 import frappe.desk.form.load
 
 @frappe.whitelist()
-def get_linked_docs(doctype, name, linkinfo=None):
+def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	key = "linked_with:{doctype}:{name}".format(doctype=doctype, name=name)
 
+	if isinstance(linkinfo, basestring):
+		# additional fields are added in linkinfo
+		linkinfo = json.loads(linkinfo)
+
+	if for_doctype:
+		key = "{key}:{for_doctype}".format(key=key, for_doctype=for_doctype)
+
 	results = frappe.cache().get_value(key, user=True)
+
 	if results:
 		return results
 
 	meta = frappe.desk.form.meta.get_meta(doctype)
 	results = {}
 
-	if isinstance(linkinfo, basestring):
-		# additional fields are added in linkinfo
-		linkinfo = json.loads(linkinfo)
-
 	if not linkinfo:
 		return results
 
+	if for_doctype:
+		if for_doctype in linkinfo:
+			# only get linked with for this particular doctype
+			linkinfo = { for_doctype: linkinfo.get(for_doctype) }
+		else:
+			return results
+
 	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
@@ -61,11 +73,9 @@ def get_linked_docs(doctype, name, linkinfo=None):
 
 				else:
 					filters = [[dt, link.get("fieldname"), '=', name]]
-
 					# dynamic link
 					if link.get("doctype_fieldname"):
 						filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-
 					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
 
 			except frappe.PermissionError:
