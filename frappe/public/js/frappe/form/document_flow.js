@@ -20,6 +20,9 @@ frappe.ui.form.DocumentFlow = Class.extend({
 	render: function() {
 		var me = this;
 		var module = frappe.get_meta(this.frm.doctype).module
+		if (!frappe.document_flow[module]) {
+			return;
+		}
 		var doctypes = frappe.document_flow[module][this.frm.doctype];
 		if (!doctypes) {
 			return;
