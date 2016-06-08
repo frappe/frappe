@@ -308,6 +308,9 @@ class EmailAccount(Document):
 		})
 
 		self.set_thread(communication, email)
+		
+		if not self.no_remaining == 0:
+			communication.unread_notification_sent = 1
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
@@ -503,6 +506,7 @@ def notify_unreplied():
 					"sent_or_received": "Received",
 					"reference_doctype": email_account.append_to,
 					"unread_notification_sent": 0,
+					"email_account":email_account.name,
 					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
 					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
 				}):
