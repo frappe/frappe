@@ -88,13 +88,14 @@ def get_desktop_icons(user=None):
 	return user_icons
 
 @frappe.whitelist()
-def add_user_icon(_doctype, label=None, link=None, type='link'):
+def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 	'''Add a new user desktop icon to the desktop'''
 
 	if not label: label = frappe._(_doctype)
 	if not link: link = 'List/{0}'.format(_doctype)
 
-	icon_name = frappe.db.exists('Desktop Icon', {'standard': 0, 'link': link, 'owner': frappe.session.user})
+	icon_name = frappe.db.exists('Desktop Icon', {'standard': standard, 'link': link,
+		'owner': frappe.session.user})
 	if icon_name and frappe.db.get_value('Desktop Icon', icon_name, 'hidden'):
 		frappe.db.set_value('Desktop Icon', icon_name, 'hidden', 0)
 		clear_desktop_icons_cache()
@@ -127,7 +128,7 @@ def add_user_icon(_doctype, label=None, link=None, type='link'):
 				'reverse': module_icon.reverse,
 				'idx': idx + 1,
 				'custom': 1,
-				'standard': 0
+				'standard': standard
 			}).insert(ignore_permissions=True)
 			clear_desktop_icons_cache()
 
@@ -148,7 +149,15 @@ def set_order(new_order, user=None):
 			if user:
 				icon = get_user_copy(module_name, user)
 			else:
-				icon = frappe.get_doc('Desktop Icon', {'module_name': module_name, 'standard': 1})
+				name = frappe.db.get_value('Desktop Icon',
+					{'standard': 1, 'module_name': module_name})
+				if name:
+					icon = frappe.get_doc('Desktop Icon', name)
+				else:
+					# standard icon missing, create one for DocType
+					name = add_user_icon(module_name, standard=1)
+					icon = frappe.get_doc('Desktop Icon', name)
+
 			icon.db_set('idx', i)
 
 	clear_desktop_icons_cache()
