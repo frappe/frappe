@@ -302,16 +302,57 @@ frappe.ui.Listing = Class.extend({
 	},
 
 	render_list: function(values) {
-		var m = Math.min(values.length, this.page_length);
 		this.last_page = values;
 		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
 		}
 
+		this.render_rows(values);
+	},
+	render_rows: function(values) {
 		// render the rows
-		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(values[i]), values[i], this, i);
+		if(this.meta.image_view == 0){
+			var m = Math.min(values.length, this.page_length);
+			for(var i=0; i < m; i++) {
+				this.render_row(this.add_row(values[i]), values[i], this, i);
+			}
 		}
+		else {
+			var cols = values.slice();
+			while (cols.length) {
+				row = this.add_row(cols[0]);
+				$("<div class='row image-view-marker'></div>").appendTo(row);
+				this.render_image_view_row(row, cols.splice(0, 4), this, i);
+			}
+
+			this.render_image_gallery();
+		}
+	},
+	render_image_gallery: function(){
+		var me = this;
+		frappe.require(
+			[
+				"assets/frappe/js/frappe/list/imageview.js",
+				"assets/frappe/js/lib/gallery/js/blueimp-gallery.js",
+				"assets/frappe/js/lib/gallery/css/blueimp-gallery.css",
+				"assets/frappe/js/lib/gallery/js/blueimp-gallery-indicator.js",
+				"assets/frappe/js/lib/gallery/css/blueimp-gallery-indicator.css"
+			], function(){
+				// remove previous gallery container
+				me.$w.find(".blueimp-gallery").remove();
+				// append gallery div
+				var gallery = frappe.render_template("blueimp-gallery", {});
+				$(gallery).appendTo(me.$w);
+
+				me.$w.find(".image-field").click(function(event){
+					opts = {
+						doctype: me.doctype,
+						docname: $(event.target).attr('data-name'),
+						container: me.$w
+					};
+					new frappe.views.ImageView(opts);
+			});
+		});
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
@@ -321,7 +362,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	add_row: function(row) {
 		return $('<div class="list-row">')
-			.data("data", row)
+			.data("data", this.meta.image_view == 0?row:null)
 			.appendTo(this.$w.find('.result-list'))
 			.get(0);
 	},

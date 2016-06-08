@@ -124,7 +124,6 @@ frappe.views.ListView = Class.extend({
 			this.total_colspans += this.columns[1].colspan;
 		}
 
-
 		// overridden
 		var overridden = $.map(this.settings.add_columns || [], function(d) {
 			return d.content;
@@ -203,7 +202,21 @@ frappe.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		}
 
+		if(this.meta.image_view == 0){
+			this.render_list_row(row, data);
+		}
+		else{
+			this.render_list_image(row, data);
+		}
 
+		if(this.settings.post_render_item) {
+			this.settings.post_render_item(this, row, data);
+		}
+
+		this.render_tags(row, data);
+
+	},
+	render_list_row: function(row, data) {
 		var main = frappe.render_template("list_item_main", {
 			data: data,
 			columns: this.columns,
@@ -218,15 +231,26 @@ frappe.views.ListView = Class.extend({
 			list: this,
 			right_column: this.settings.right_column
 		})).appendTo(row);
-
-		if(this.settings.post_render_item) {
-			this.settings.post_render_item(this, row, data);
-		}
-
-		this.render_tags(row, data);
-
 	},
-
+	render_list_image: function(row, data) {
+		this.allowed_type = [
+			"Check", "Currency", "Data", "Date",
+			"Datetime", "Float", "Int", "Link",
+			"Percent", "Select", "Read Only", "Time"
+		];
+		img_col = $(frappe.render_template("image_view_item_row", {
+			data: data,
+			list: this,
+			columns: this.columns,
+			allowed_type: this.allowed_type,
+			item_image: data.image ? "url('" + data.image + "')" : null,
+			color: frappe.get_palette(data.item_name),
+			subject: this.get_avatar_and_id(data, true),
+			right_column: this.settings.right_column
+		}))
+		.data("data", data)
+		.appendTo($(row).find(".image-view-marker"));
+	},
 	render_tags: function(row, data) {
 		var me = this;
 		var row2 = $('<div class="tag-row">\
