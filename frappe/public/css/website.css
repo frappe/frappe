@@ -356,6 +356,10 @@ a.no-decoration:active {
 .indicator-right.darkgrey::after {
   background: #b8c2cc;
 }
+.indicator.black::before,
+.indicator-right.black::after {
+  background: #36414C;
+}
 .indicator.yellow::before,
 .indicator-right.yellow::after {
   background: #FEEF72;
@@ -949,10 +953,9 @@ li .footer-child-item {
   margin-top: 0px;
 }
 .comment-view {
-  padding: 30px 0px;
+  padding-bottom: 30px;
 }
 .comment-header {
-  padding-bottom: 20px;
   border-bottom: 1px solid #EBEFF2;
 }
 .item-search {

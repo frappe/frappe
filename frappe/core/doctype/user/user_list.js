@@ -3,7 +3,7 @@
 
 frappe.listview_settings['User'] = {
 	add_fields: ["enabled", "user_type"],
-	filters: [["enabled","=","Yes"], ["user_type","=","System User"]],
+	filters: [["enabled","=","Yes"]],
 	prepare_data: function(data) {
 		data["user_for_avatar"] = data["name"];
 	},

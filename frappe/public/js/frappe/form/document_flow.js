@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide('frappe.document_flow');
+
 frappe.ui.form.DocumentFlow = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
