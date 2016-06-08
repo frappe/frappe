@@ -75,7 +75,8 @@ class CommunicationReconciliation(Document):
 				"subject": subject,
 				"communication_medium": communication_medium,
 				"reference_owner": frappe.db.get_value(changed_list[comm]["reference_doctype"], changed_list[comm]["reference_name"], "owner"),
-				"content": content
+				"content": content,
+				"sender":frappe.session.user
 			}).insert(ignore_permissions=True)
 
 		return self.fetch()
@@ -117,7 +118,8 @@ def relink(name,reference_doctype,reference_name):
 				"subject": subject,
 				"communication_medium": frappe.db.get_value("Communication",name,"communication_medium"),
 				"reference_owner": frappe.db.get_value(dt, dn, "owner"),
-				"content": content
+				"content": content,
+				"sender":frappe.session.user
 			}).insert(ignore_permissions=True)
 
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
