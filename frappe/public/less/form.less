@@ -51,11 +51,26 @@
 		left: 50%;
 		transform: translateX(-50%);
 
+		.document-flow-link-wrapper {
+			width: 140px;
+			display: inline-block;
+		}
+
+
 		.document-flow-link-wrapper:not(:last-child) {
 			border-top: 1px solid @indicator-darkgrey;
-			padding-right: 60px;
-			display: inline-block;
+			// padding-left: 20px;
+			// padding-right: 20px;
 			margin-right: -4px;
+		}
+
+		.document-flow-link-wrapper:first-child {
+			// padding-left: 0px;
+		}
+
+		.document-flow-link-wrapper:last-child {
+			// padding-right: 0px;
+			margin-right: -140px;
 		}
 
 		.document-flow-link {
