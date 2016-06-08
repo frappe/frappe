@@ -17,7 +17,7 @@ frappe.views.ImageView = Class.extend({
 				doctype: "File",
 				fields: [
 					"file_name as title", "file_url as href",
-					"'image/*' as type", "ifnull(thumbnail_url, '') as thumbnail"
+					"'image/*' as type", "ifnull(thumbnail_url, file_url) as thumbnail"
 				],
 				filters: [
 					["File", "attached_to_doctype", "=", this.doctype],

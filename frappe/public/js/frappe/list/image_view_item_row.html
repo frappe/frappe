@@ -30,23 +30,8 @@
 			<div class="row">
 				<div class="col-xs-4">{%= list.get_indicator(data) %}</div>
 				<div class="col-xs-8 text-right">
-					<div class="hidden-xs">
-			    		<span class="list-row-modified text-muted">
-			                {%= comment_when(data.modified, true) %}
-			    		</span>
-				        {% if (data._assign_list.length) { %}
-				    		<span class="filterable"
-				                data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
-				    			{%= frappe.avatar(data._assign_list[data._assign_list.length - 1]) %}</span>
-				        {% } else { %}
-				            <span class="avatar avatar-small avatar-empty"></span>
-				        {% } %}
-				    	<span class="list-comment-count small
-							{% if(!data._comment_count) { %} text-extra-muted {% } else { %} text-muted {% } %}">
-				    		<i class="octicon octicon-comment-discussion"></i>
-				                {%= (data._comment_count > 99 ? "99+" : data._comment_count) || 0 %}
-				        </span>
-					</div>
+					<!-- comments count and assigned to section -->
+					{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
 				</div>
 			</div>
 		</div>
