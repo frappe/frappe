@@ -4,7 +4,9 @@ $.extend(cur_frm.cscript, {
 	},
 
 	refresh: function() {
-		cur_frm.disable_save();
+		if(!cur_frm.doc.allow_dropbox_access) {
+			cur_frm.disable_save();
+		}
 	},
 
 	validate_send_notifications_to: function() {
