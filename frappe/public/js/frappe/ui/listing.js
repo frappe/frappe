@@ -344,7 +344,8 @@ frappe.ui.Listing = Class.extend({
 				var gallery = frappe.render_template("blueimp-gallery", {});
 				$(gallery).appendTo(me.$w);
 
-				me.$w.find(".image-field").click(function(event){
+				me.$w.find(".zoom-view").click(function(event){
+					event.preventDefault();
 					opts = {
 						doctype: me.doctype,
 						docname: $(event.target).attr('data-name'),
