@@ -140,7 +140,10 @@ frappe.msgprint = function(msg, title) {
 }
 
 frappe.hide_msgprint = function(instant) {
-	msg_dialog.msg_area.empty();
+	// clear msgprint
+	if(msg_dialog && msg_dialog.msg_area) {
+		msg_dialog.msg_area.empty();
+	}
 	if(msg_dialog && msg_dialog.$wrapper.is(":visible")) {
 		if(instant) {
 			msg_dialog.$wrapper.removeClass("fade");

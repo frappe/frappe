@@ -2,6 +2,7 @@
  "allow_copy": 0, 
  "allow_import": 1, 
  "allow_rename": 1, 
+ "beta": 0, 
  "creation": "2014-03-11 14:55:00", 
  "custom": 0, 
  "description": "Represents a User in the system.", 
@@ -166,7 +167,7 @@
   }, 
   {
    "allow_on_submit": 0, 
-   "bold": 0, 
+   "bold": 1, 
    "collapsible": 0, 
    "fieldname": "last_name", 
    "fieldtype": "Data", 
@@ -217,7 +218,7 @@
   }, 
   {
    "allow_on_submit": 0, 
-   "bold": 0, 
+   "bold": 1, 
    "collapsible": 0, 
    "default": "1", 
    "depends_on": "eval:doc.__islocal", 
@@ -1510,6 +1511,7 @@
  "icon": "icon-user", 
  "idx": 413, 
  "image_field": "user_image", 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
  "is_submittable": 0, 
@@ -1517,7 +1519,7 @@
  "istable": 0, 
  "max_attachments": 5, 
  "menu_index": 0, 
- "modified": "2016-04-04 06:45:42.330517", 
+ "modified": "2016-06-08 12:56:23.383388", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
@@ -1564,6 +1566,7 @@
    "write": 1
   }
  ], 
+ "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "full_name", 
