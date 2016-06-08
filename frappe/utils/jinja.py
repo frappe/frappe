@@ -95,7 +95,7 @@ def get_allowed_functions_for_jenv():
 			"user": getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest",
 			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
 			"get_fullname": frappe.utils.get_fullname,
-			"get_gravatar": frappe.utils.get_gravatar,
+			"get_gravatar": frappe.utils.get_gravatar_url,
 			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
 			"render_template": frappe.render_template
 		},

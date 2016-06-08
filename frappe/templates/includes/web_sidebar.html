@@ -19,7 +19,7 @@
 				<a href="/me">My Account</a>
 			</li>
 		{% for item in my_account_list -%}
-		{% if item.count or (not item.reference_doctype) %}
+		{% if item.count or (not item.reference_doctype) or item.show_always %}
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>

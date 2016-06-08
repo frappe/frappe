@@ -29,15 +29,6 @@ frappe.user_info = function(uid) {
 	return user_info;
 }
 
-
-frappe.gravatars = {};
-frappe.get_gravatar = function(email_id) {
-	if(!frappe.gravatars[email_id]) {
-		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?d=retro";
-	}
-	return frappe.gravatars[email_id];
-}
-
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";

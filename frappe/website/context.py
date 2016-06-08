@@ -85,7 +85,7 @@ def add_sidebar_data(context):
 	import frappe.templates.pages.list
 
 	context.my_account_list = frappe.get_all('Portal Menu Item',
-			fields=['title', 'route', 'reference_doctype'], filters={'enabled': 1}, order_by='idx asc')
+			fields=['title', 'route', 'reference_doctype', 'show_always'], filters={'enabled': 1}, order_by='idx asc')
 
 	for item in context.my_account_list:
 		if item.reference_doctype:

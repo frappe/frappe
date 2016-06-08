@@ -137,6 +137,9 @@ def has_gravatar(email):
 	except requests.exceptions.ConnectionError:
 		return ''
 
+def get_gravatar_url(email):
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=md5.md5(email).hexdigest())
+
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
 
