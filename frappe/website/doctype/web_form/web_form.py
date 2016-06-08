@@ -111,7 +111,8 @@ class WebForm(WebsiteGenerator):
 			context.reference_name = context.doc.name
 
 		if self.allow_comments and frappe.form_dict.name:
-			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+			context.comment_list = get_comment_list(context.doc.doctype,
+				context.doc.name)
 
 		context.parents = self.get_parents(context)
 
@@ -257,7 +258,7 @@ def has_web_form_permission(doctype, name, ptype='read'):
 
 	else:
 		return False
-				
+
 
 def check_webform_perm(doctype, name):
 	doc = frappe.get_doc(doctype, name)

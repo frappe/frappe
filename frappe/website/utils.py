@@ -32,7 +32,7 @@ def get_comment_list(doctype, name):
 			communication_type='Comment'
 			and reference_doctype=%s
 			and reference_name=%s
-			and (comment_type is null or comment_type='Comment')
+			and (comment_type is null or comment_type in ('Comment', 'Communication'))
 			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
 		order by creation""", (doctype, name), as_dict=1) or []
 
