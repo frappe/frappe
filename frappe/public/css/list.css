@@ -213,10 +213,27 @@ table.field-info {
   padding-bottom: 0px !important;
 }
 
+.zoom-view {
+  top: 10px !important;
+  right: 10px !important;
+  width: 36px;
+  height: 36px;
+  opacity: 0;
+  font-size: 20px;
+  color: black;
+  position: absolute;
+  padding: 0px !important;
+  border-radius: 20px;
+}
+
 .image-field {
   position: relative;
 }
 
 .image-field:hover .field-info {
   opacity: 0.9;
+}
+
+.image-field:hover .zoom-view {
+  opacity: 1;
 }
