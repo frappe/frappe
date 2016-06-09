@@ -244,3 +244,52 @@
 	width: 37px;
 	text-align: left;
 }
+
+.image-view {
+  float: left;
+}
+
+.image-view-subject {
+  padding: inherit;
+}
+
+.image-view-col {
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+table.field-info {
+  opacity: 0;
+  bottom: -20px;
+  font-size: 8pt;
+  color: white;
+  background-color: #000000;
+  position: absolute;
+  padding-bottom: 0px !important;
+}
+
+.zoom-view {
+  top: 10px !important;
+  right: 10px !important;
+  width: 36px;
+  height: 36px;
+  opacity: 0;
+  font-size: 16px;
+  color: black;
+  position: absolute;
+  padding: 0px !important;
+  border-radius: 20px;
+  border: 0px;
+}
+
+.image-field {
+  position: relative;
+}
+
+.image-field:hover .field-info {
+  opacity: 0.9;
+}
+
+.image-field:hover .zoom-view {
+  opacity: 1;
+}

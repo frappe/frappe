@@ -348,7 +348,7 @@ frappe.ui.Listing = Class.extend({
 					event.preventDefault();
 					opts = {
 						doctype: me.doctype,
-						docname: $(event.target).attr('data-name'),
+						docname: $(this).parent().attr('data-name'),
 						container: me.$w
 					};
 					new frappe.views.ImageView(opts);
