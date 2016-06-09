@@ -27,6 +27,10 @@ frappe.socket = {
 			frappe.msgprint(message);
 		});
 
+		frappe.socket.socket.on('eval_js', function(message) {
+			eval(message);
+		});
+
 		frappe.socket.setup_listeners();
 		frappe.socket.setup_reconnect();
 

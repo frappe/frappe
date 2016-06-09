@@ -230,7 +230,7 @@ frappe.show_alert = function(txt, seconds) {
 		return false;
 	});
 
-	div.delay(seconds ? seconds * 1000 : 3000).fadeOut(300);
+	div.delay(seconds ? seconds * 1000 : 7000).fadeOut(300);
 	return div;
 }
 

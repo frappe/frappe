@@ -71,16 +71,10 @@
     display: none;
   }
 }
-.form-dashboard {
-  border-bottom: 1px solid #EBEFF2;
-}
 .form-dashboard-section {
   padding: 15px 30px;
   margin: 0px;
   border-bottom: 1px solid #EBEFF2;
-}
-.form-dashboard-section:last-child {
-  border-bottom: none;
 }
 .form-heatmap {
   padding-top: 30px;
@@ -427,11 +421,18 @@ select.form-control {
   font-weight: bold;
   background-color: #fffdf4;
 }
+.form-headline {
+  padding: 0px 15px;
+}
 .form-headline .alert {
   font-size: 12px;
   background-color: #fffce7;
+  font-weight: normal !important;
+  border: 0px;
+  border-radius: 0px;
   margin-bottom: 0px;
   margin: 0px -15px;
+  padding: 10px 30px;
 }
 .delivery-status-indicator {
   display: inline-block;

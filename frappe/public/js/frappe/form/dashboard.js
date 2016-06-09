@@ -42,6 +42,21 @@ frappe.ui.form.Dashboard = Class.extend({
 			this.headline.empty().addClass('hidden');
 		}
 	},
+
+	add_comment: function(text, permanent) {
+		var me = this;
+		this.set_headline_alert(text);
+		if(!permanent) {
+			setTimeout(function() {
+				me.clear_headline();
+			}, 10000);
+		}
+	},
+
+	clear_comment: function() {
+		this.clear_headline();
+	},
+
 	set_headline_alert: function(text, alert_class) {
 		if(text) {
 			if(!alert_class) alert_class = "alert-warning";
