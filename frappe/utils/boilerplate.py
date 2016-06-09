@@ -58,7 +58,8 @@ def make_boilerplate(dest, app_name):
 		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
+		f.write(encode(init_template))
 
 	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(encode(manifest_template.format(**hooks)))
@@ -115,8 +116,16 @@ recursive-include {app_name} *.svg
 recursive-include {app_name} *.txt
 recursive-exclude {app_name} *.pyc"""
 
+init_template = """# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+__version__ = '0.0.1'
+
+"""
+
 hooks_template = """# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from . import __version__ as app_version
 
 app_name = "{app_name}"
 app_title = "{app_title}"
@@ -125,7 +134,6 @@ app_description = "{app_description}"
 app_icon = "{app_icon}"
 app_color = "{app_color}"
 app_email = "{app_email}"
-app_version = "0.0.1"
 app_license = "{app_license}"
 
 # Includes in <head>
@@ -249,8 +257,15 @@ def get_data():
 setup_template = """# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
+import re, ast
 
-version = '0.0.1'
+# get version from __version__ variable in {app_name}/__init__.py
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('{app_name}/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
+
 requirements = parse_requirements("requirements.txt", session="")
 
 setup(

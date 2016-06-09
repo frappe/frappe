@@ -11,10 +11,10 @@ from functools import wraps
 import os, importlib, inspect, json
 
 # public
-from frappe.__version__ import __version__
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
+__version__ = "6.27.21"
 
 local = Local()
 
