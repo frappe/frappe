@@ -84,12 +84,20 @@ def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
 	import frappe.templates.pages.list
 
-	context.my_account_list = frappe.get_all('Portal Menu Item',
+	context.my_account_list = []
+	my_account_list = frappe.get_all('Portal Menu Item',
 			fields=['title', 'route', 'reference_doctype', 'show_always'], filters={'enabled': 1}, order_by='idx asc')
 
-	for item in context.my_account_list:
+	for item in my_account_list:
 		if item.reference_doctype:
-			item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
+			try:
+				item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
+			
+			except frappe.PermissionError:
+				pass
+
+			else:
+				context.my_account_list.append(item)
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname
