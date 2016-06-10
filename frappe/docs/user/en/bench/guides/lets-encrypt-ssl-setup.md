@@ -1,19 +1,39 @@
 # Using Let's Encrypt to setup HTTPS
 
+##Prequisites
 
-### Clone the letsencrypt repo from GitHub
+1. You need to have a DNS Multitenant Setup
+2. Your site should be accessible via a valid domain
+3. You need root permissions on your server
 
-    $ sudo git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+**Note : Let's Encrypt Certificates expire every three months**
+
+## Using Bench Command
+
+Just run: 
+
+    sudo bench setup lets-encrypt [site-name]
+
+You will be faced with several prompts, respond to them accordingly. This command will also add an entry to the crontab of the user that will attempt to renew the certificate every month.
+
+To renew certificates manually you can use: 
+
+    sudo bench renew-lets-encrypt
+
+<hr>
+
+## Manual Method
+### Download the appropriate Certbot-auto script into /opt 
+
+    https://certbot.eff.org/
 
 ### Stop nginx service
 
     $ sudo service nginx stop
 
-### Run Let's Encrypt
+### Run Certbot
 
-    $ cd /opt/letsencrypt
-
-    $ ./letsencrypt-auto certonly --standalone
+    $ ./opt/certbot-auto certonly --standalone
 
 After letsencrypt initializes, you will be prompted for some information. This exact prompts may vary depending on if you've used Let's Encrypt before, but we'll step you through the first time.
 
@@ -68,6 +88,6 @@ Restart the nginx server
 Login as root or a user with superuser privileges, run `crontab -e` and enter:
 
 
-	# renew letsencrypt certificates on 1st monday of every month and get an email if it gets executed
-	MAILTO="mail@example.com"
-	0 0 1-7 * * [ "$(date '+\%a')" = "Mon" ] && sudo service nginx stop && /opt/letsencrypt/letsencrypt-auto renew && sudo service nginx start
+    # renew letsencrypt certificates on 1st monday of every month and get an email if it gets executed
+    MAILTO="mail@example.com"
+    0 0 1-7 * * [ "$(date '+\%a')" = "Mon" ] && sudo service nginx stop && /opt/certbot-auto renew && sudo service nginx start
