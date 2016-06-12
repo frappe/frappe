@@ -155,6 +155,14 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
+		if(in_list(user_roles, "System Manager")) {
+			this.page.add_menu_item(__("Customize"), function() {
+				frappe.set_route("Form", "Customize Form", {
+					doc_type: me.frm.doctype
+				})
+			}, true);
+		}
+
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {

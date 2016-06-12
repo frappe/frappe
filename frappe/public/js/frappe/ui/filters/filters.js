@@ -310,7 +310,11 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_selected_value: function() {
-		var val = strip(this.field.get_parsed_value());
+		var val = this.field.get_parsed_value();
+
+		if(typeof val==='string') {
+			val = strip(val);
+		}
 
 		if(this.field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);

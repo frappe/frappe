@@ -21,6 +21,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			.get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
+		this.header = this.$wrapper.find(".modal-header");
 
 		// make fields (if any)
 		this._super();

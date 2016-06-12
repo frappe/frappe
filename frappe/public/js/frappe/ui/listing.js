@@ -200,6 +200,10 @@ frappe.ui.Listing = Class.extend({
 			// save list settings locally
 			list_settings = frappe.model.list_settings[this.doctype];
 
+			if(!list_settings) {
+				return
+			}
+
 			var different = false;
 
 			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {

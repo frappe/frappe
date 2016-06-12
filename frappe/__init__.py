@@ -96,6 +96,7 @@ def init(site, sites_path=None, new_site=False):
 	local.realtime_log = []
 	local.flags = _dict({
 		"ran_schedulers": [],
+		"currenty_saving": _dict(),
 		"redirect_location": "",
 		"in_install_db": False,
 		"in_install_app": False,
@@ -241,17 +242,19 @@ def log(msg):
 	from utils import cstr
 	debug_log.append(cstr(msg))
 
-def msgprint(msg, small=0, raise_exception=0, as_table=False):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
 
 	:param msg: Message.
-	:param small: [optional] Show as a floating message in the footer.
+	:param title: [optional] Message title.
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	"""
 	from utils import cstr, encode
+
+	out = _dict(message=msg)
 
 	def _raise_exception():
 		if raise_exception:
@@ -268,20 +271,29 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 		return
 
 	if as_table and type(msg) in (list, tuple):
-		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
+		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
 	if flags.print_messages:
-		print "Message: " + repr(msg).encode("utf-8")
+		print "Message: " + repr(out.msg).encode("utf-8")
 
-	message_log.append((small and '__small:' or '')+cstr(msg or ''))
+	if title:
+		out.title = title
+
+	if not indicator and raise_exception:
+		indicator = 'red'
+
+	if indicator:
+		out.indicator = indicator
+
+	message_log.append(json.dumps(out))
 	_raise_exception()
 
-def throw(msg, exc=ValidationError):
+def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc)
+	msgprint(msg, raise_exception=exc, title=title)
 
 def emit_js(js, user=False, **kwargs):
 	from frappe.async import publish_realtime
@@ -1212,3 +1224,6 @@ def logger(module=None, with_more_info=True):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
 	return get_logger(module or __name__, with_more_info=with_more_info)
+
+def get_desk_link(doctype, name):
+	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))

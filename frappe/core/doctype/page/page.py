@@ -32,7 +32,7 @@ class Page(Document):
 	def validate(self):
 		if self.is_new() and not getattr(conf,'developer_mode', 0):
 			frappe.throw(_("Not in Developer Mode"))
-		
+
 		#setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
 		if frappe.session.user!="Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
