@@ -242,7 +242,7 @@ def log(msg):
 	from utils import cstr
 	debug_log.append(cstr(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -284,6 +284,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None)
 
 	if indicator:
 		out.indicator = indicator
+
+	if alert:
+		out.alert = 1
 
 	message_log.append(json.dumps(out))
 	_raise_exception()

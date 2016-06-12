@@ -98,6 +98,11 @@ frappe.msgprint = function(msg, title) {
 		return;
 	}
 
+	if(data.alert) {
+		frappe.show_alert(data.message);
+		return;
+	}
+
 	if(!msg_dialog) {
 		msg_dialog = new frappe.ui.Dialog({
 			title: __("Message"),
