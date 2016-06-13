@@ -157,12 +157,15 @@ frappe.activity.Feed = Class.extend({
 
 frappe.activity.render_heatmap = function(page) {
 	var me = this;
-	$('<div class="heatmap"></div><hr>').prependTo(page.main);
-				
+	$('<div class="heatmap"></div><hr style="margin-bottom: 0px;">').prependTo(page.main);
+
 	frappe.call({
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
+				var legend = [];
+				var max = Math.max.apply(this, $.map(r.message, function(v) { return v }));
+				var legend = [cint(max/5), cint(max*2/5), cint(max*3/5), cint(max*4/5)];
 				heatmap = new CalHeatMap();
 				heatmap.init({
 					itemSelector: ".heatmap",
@@ -177,17 +180,17 @@ frappe.activity.render_heatmap = function(page) {
 						return moment(date).format("MMM").toUpperCase();
 					},
 					displayLegend: false,
-					legend: [5, 10, 15, 20],
+					legend: legend,
 					tooltip: true,
 					subDomainTitleFormat: {
 						empty: "{date}",
-						filled: "{count} Communications on {date}"
+						filled: "{count} actions on {date}"
 					},
 					subDomainDateFormat: "%d-%b"
 				});
-				
+
 				heatmap.update(r.message);
 			}
 		}
-	})	
+	})
 }

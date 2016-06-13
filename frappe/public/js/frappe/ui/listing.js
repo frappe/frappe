@@ -315,13 +315,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	render_rows: function(values) {
 		// render the rows
-		if(this.meta.image_view == 0){
-			var m = Math.min(values.length, this.page_length);
-			for(var i=0; i < m; i++) {
-				this.render_row(this.add_row(values[i]), values[i], this, i);
-			}
-		}
-		else {
+		if(this.meta && this.meta.image_view){
 			var cols = values.slice();
 			while (cols.length) {
 				row = this.add_row(cols[0]);
@@ -330,6 +324,11 @@ frappe.ui.Listing = Class.extend({
 			}
 
 			this.render_image_gallery();
+		} else {
+			var m = Math.min(values.length, this.page_length);
+			for(var i=0; i < m; i++) {
+				this.render_row(this.add_row(values[i]), values[i], this, i);
+			}
 		}
 	},
 	render_image_gallery: function(){
@@ -367,7 +366,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	add_row: function(row) {
 		return $('<div class="list-row">')
-			.data("data", this.meta.image_view == 0?row:null)
+			.data("data", (this.meta && this.meta.image_view) == 0 ? row : null)
 			.appendTo(this.$w.find('.result-list'))
 			.get(0);
 	},

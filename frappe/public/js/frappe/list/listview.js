@@ -202,7 +202,7 @@ frappe.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		}
 
-		if(this.meta.image_view == 0){
+		if(this.meta && this.meta.image_view == 0){
 			this.render_list_row(row, data);
 		}
 		else{

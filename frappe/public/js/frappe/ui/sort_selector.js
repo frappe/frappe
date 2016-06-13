@@ -9,6 +9,7 @@ frappe.ui.SortSelector = Class.extend({
 	//		doctype: (optional)
 	init: function(opts) {
 		$.extend(this, opts);
+		this.labels = {};
 		this.make();
 	},
 	make: function() {
@@ -45,6 +46,11 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args) {
 			this.args = {};
 		}
+		if(this.args.options) {
+			this.args.options.forEach(function(o) {
+				me.labels[o.fieldname] = o.label;
+			});
+		}
 
 		this.setup_from_doctype();
 
@@ -53,9 +59,12 @@ frappe.ui.SortSelector = Class.extend({
 			this.args.options.every(function(o) {
 				if(o.fieldname===me.args.sort_by) {
 					me.args.sort_by_label = o.label;
+					return false;
 				}
+				return true;
 			});
 		}
+
 	},
 	setup_from_doctype: function() {
 		var me = this;
@@ -130,7 +139,8 @@ frappe.ui.SortSelector = Class.extend({
 		if(fieldname==='idx') {
 			return __("Most Used");
 		} else {
-			return frappe.meta.get_label(this.doctype, fieldname);
+			return this.labels[fieldname]
+				|| frappe.meta.get_label(this.doctype, fieldname);
 		}
 	}
 })

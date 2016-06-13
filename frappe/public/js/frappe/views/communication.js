@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Add Reply") + ": " + (this.subject || ""),
+			title: (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: "Send",

@@ -57,7 +57,8 @@ $.extend(frappe.meta, {
 	},
 
 	get_docfield: function(doctype, fieldname, name) {
-		return frappe.meta.get_docfield_copy(doctype, name)[fieldname];
+		var fields_dict = frappe.meta.get_docfield_copy(doctype, name);
+		return fields_dict ? fields_dict[fieldname] : null;
 	},
 
 	set_formatter: function(doctype, fieldname, name, formatter) {
