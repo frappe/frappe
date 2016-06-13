@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
+from frappe.utils.password import rename_password
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
@@ -56,6 +57,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	new_doc.run_method("after_rename", old, new, merge)
 
 	rename_versions(doctype, old, new)
+
+	if not merge:
+		rename_password(doctype, old, new)
 
 	# update user_permissions
 	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='User Permission'

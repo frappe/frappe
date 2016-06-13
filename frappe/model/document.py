@@ -366,6 +366,7 @@ class Document(BaseDocument):
 		self._validate_constants()
 		self._validate_length()
 		self._sanitize_content()
+		self._save_passwords()
 
 		children = self.get_all_children()
 		for d in children:
@@ -373,6 +374,7 @@ class Document(BaseDocument):
 			d._validate_constants()
 			d._validate_length()
 			d._sanitize_content()
+			d._save_passwords()
 
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc

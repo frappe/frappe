@@ -96,7 +96,7 @@ class EmailAccount(Document):
 
 			server = SMTPServer(login = getattr(self, "login_id", None) \
 					or self.email_id,
-				password = self.password,
+				password = self.get_password(),
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
 				use_ssl = cint(self.use_tls)
@@ -109,7 +109,7 @@ class EmailAccount(Document):
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"password": self.password,
+			"password": self.get_password(),
 			"use_imap": self.use_imap
 		}
 

@@ -14,6 +14,7 @@ from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
+from frappe.utils.password import check_password
 
 from urllib import quote
 
@@ -188,12 +189,11 @@ class LoginManager:
 
 	def check_password(self, user, pwd):
 		"""check password"""
-		user = frappe.db.sql("""select `user` from __Auth where `user`=%s
-			and `password`=password(%s)""", (user, pwd))
-		if not user:
+		try:
+			# returns user in correct case
+			return check_password(user, pwd)
+		except frappe.AuthenticationError:
 			self.fail('Incorrect password')
-		else:
-			return user[0][0] # in correct case
 
 	def fail(self, message):
 		frappe.local.response['message'] = message
@@ -289,12 +289,6 @@ class CookieManager:
 		expires = datetime.datetime.now() + datetime.timedelta(days=-1)
 		for key in set(self.to_delete):
 			response.set_cookie(key, "", expires=expires)
-
-def _update_password(user, password):
-	frappe.db.sql("""insert into __Auth (user, `password`)
-		values (%s, password(%s))
-		on duplicate key update `password`=password(%s)""", (user,
-		password, password))
 
 @frappe.whitelist()
 def get_logged_user():

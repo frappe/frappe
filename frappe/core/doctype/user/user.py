@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
-from frappe.auth import _update_password
+from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
 from frappe.utils.user import get_system_managers
 import frappe.permissions
@@ -18,6 +18,11 @@ from frappe.model.document import Document
 
 class User(Document):
 	__new_password = None
+
+	def __setup__(self):
+		# because it is handled separately
+		self.flags.ignore_save_passwords = True
+
 	def autoname(self):
 		"""set name as email id"""
 		if self.get("is_admin") or self.get("is_guest"):
@@ -158,12 +163,17 @@ class User(Document):
 	def validate_reset_password(self):
 		pass
 
-	def reset_password(self):
+	def reset_password(self, send_email=False):
 		from frappe.utils import random_string, get_url
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
-		self.password_reset_mail(get_url("/update-password?key=" + key))
+		link = get_url("/update-password?key=" + key)
+
+		if send_email:
+			self.password_reset_mail(link)
+
+		return link
 
 	def get_other_system_managers(self):
 		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
@@ -187,10 +197,7 @@ class User(Document):
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import random_string, get_url
 
-		key = random_string(32)
-		self.db_set("reset_password_key", key)
-		link = get_url("/update-password?key=" + key)
-
+		link = self.reset_password()
 		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
 			{"link": link, "site_url": get_url()})
 
@@ -236,9 +243,6 @@ class User(Document):
 		self.enabled = 0
 		if getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
-
-		# delete their password
-		frappe.db.sql("""delete from __Auth where user=%s""", (self.name,))
 
 		# delete todos
 		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.name,))
@@ -288,10 +292,6 @@ class User(Document):
 		frappe.db.sql("""\
 			update `tabUser` set email=%s
 			where name=%s""", (newdn, newdn))
-
-		# update __Auth table
-		if not merge:
-			frappe.db.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -411,6 +411,7 @@ def update_password(new_password, key=None, old_password=None):
 		user = frappe.db.get_value("User", {"reset_password_key":key})
 		if not user:
 			return _("Cannot Update: Incorrect / Expired Link.")
+
 	elif old_password:
 		# verify old password
 		frappe.local.login_manager.check_password(frappe.session.user, old_password)
@@ -474,7 +475,7 @@ def reset_password(user):
 	try:
 		user = frappe.get_doc("User", user)
 		user.validate_reset_password()
-		user.reset_password()
+		user.reset_password(send_email=True)
 
 		return _("Password reset instructions have been sent to your email")
 
