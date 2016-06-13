@@ -334,3 +334,8 @@ def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabBulk Email` where
 		datediff(now(), creation) > 31""")
+
+def prevent_bulk_email_delete(doc, method):
+	from frappe.limits import get_limits
+	if frappe.session.user != 'Administrator' and get_limits().get('block_bulk_email_delete'):
+		frappe.throw(_('Only Administrator can delete Bulk Email'))

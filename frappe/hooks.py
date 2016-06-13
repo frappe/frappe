@@ -14,6 +14,11 @@ app_email = "info@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
+extend_bootinfo = "frappe.limits.load_limits"
+
+page_js = {
+	"setup-wizard": "public/js/frappe/setup_wizard.js"
+}
 
 # website
 app_include_js = [
@@ -23,7 +28,8 @@ app_include_js = [
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
 	"assets/js/report.min.js",
-	"assets/js/d3.min.js"
+	"assets/js/d3.min.js",
+	"assets/frappe/js/frappe/toolbar.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
@@ -64,7 +70,7 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
 	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
-	"frappe.limits.check_if_expired", #Unsure of where to move
+	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
@@ -92,6 +98,9 @@ standard_queries = {
 doc_events = {
 	"User": {
 		"validate": "frappe.utils.user.validate_user_limit"
+	},
+	"Bulk Email": {
+		"on_trash": "frappe.email.bulk.prevent_bulk_email_delete"
 	},
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
@@ -170,4 +179,6 @@ bot_parsers = [
 	'frappe.utils.bot.CountBot'
 ]
 
+setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
+setup_wizard_success = "frappe.desk.page.setup_wizard.setup_wizard.set_setup_complete"
 before_write_file = "frappe.core.doctype.file.file.validate_space_limit"

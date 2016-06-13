@@ -360,9 +360,6 @@ def validate_space_limit(file_size):
 
 	frappe_limits = get_limits()
 
-	if not frappe_limits:
-		return
-
 	if not frappe_limits.has_key('space_limit'):
 		return
 
