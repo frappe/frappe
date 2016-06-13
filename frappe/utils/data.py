@@ -712,9 +712,19 @@ def expand_relative_urls(html):
 		if not to_expand[2].startswith("/"):
 			to_expand[2] = "/" + to_expand[2]
 		to_expand.insert(2, url)
+
+		if 'url' in to_expand[0] and to_expand[1].startswith('(') and to_expand[-1].endswith(')'):
+			# background-image: url('/assets/...') - workaround for wkhtmltopdf print-media-type
+			to_expand.append(' !important')
+
 		return "".join(to_expand)
 
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
+	html = re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
+
+	# background-image: url('/assets/...')
+	html = re.sub('(:[\s]?url)(\([\'"]?)([^\)]*)([\'"]?\))', _expand_relative_urls, html)
+
+	return html
 
 def quoted(url):
 	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))

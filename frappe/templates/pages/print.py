@@ -60,7 +60,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		no_letterhead = cint(no_letterhead)
 
 	elif no_letterhead is None:
-		no_letterhead = not cint(print_settings.with_letthead)
+		no_letterhead = not cint(print_settings.with_letterhead)
 
 	doc.flags.in_print = True
 
