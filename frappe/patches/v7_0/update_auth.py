@@ -22,13 +22,21 @@ def execute():
 		meta = frappe.get_meta(doctype)
 
 		for df in meta.get('fields', {'fieldtype': 'Password'}):
-			for d in frappe.db.sql('''select name, `{fieldname}` from `tab{doctype}`
-				where `{fieldname}` is not null'''.format(fieldname=df.fieldname, doctype=doctype), as_dict=True):
+			if meta.issingle:
+				password = frappe.db.get_value(doctype, doctype, df.fieldname)
+				if password:
+					set_encrypted_password(doctype, doctype, password, fieldname=df.fieldname)
+					frappe.db.set_value(doctype, doctype, df.fieldname, '*'*len(password))
 
-				set_encrypted_password(doctype, d.name, d.get(df.fieldname), fieldname=df.fieldname)
+			else:
+				for d in frappe.db.sql('''select name, `{fieldname}` from `tab{doctype}`
+					where `{fieldname}` is not null'''.format(fieldname=df.fieldname, doctype=doctype), as_dict=True):
 
-			frappe.db.sql('''update `tab{doctype}` set `{fieldname}`=repeat("*", char_length(`{fieldname}`))'''
-				.format(doctype=doctype, fieldname=df.fieldname))
+					set_encrypted_password(doctype, d.name, d.get(df.fieldname), fieldname=df.fieldname)
+
+				frappe.db.sql('''update `tab{doctype}` set `{fieldname}`=repeat("*", char_length(`{fieldname}`))'''
+					.format(doctype=doctype, fieldname=df.fieldname))
+
 			frappe.db.commit()
 
 	frappe.db.sql_ddl('''drop table `__OldAuth`''')
