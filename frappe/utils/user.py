@@ -6,6 +6,9 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _dict
 import frappe.share
+from frappe import _
+
+class MaxUsersReachedError(frappe.ValidationError): pass
 
 class UserPermissions:
 	"""
@@ -203,11 +206,11 @@ class UserPermissions:
 
 		d.all_reports = self.get_all_reports()
 		return d
-		
+
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport 
+		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
 		    where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)), as_dict=1)
-			
+
 		return frappe._dict((d.name, d) for d in reports)
 
 def get_user_fullname(user):
@@ -291,6 +294,7 @@ def is_website_user():
 def is_system_user(username):
 	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})
 
+
 def get_users():
 	from frappe.core.doctype.user.user import get_system_users
 	users = []
@@ -303,3 +307,36 @@ def get_users():
 		})
 
 	return users
+
+
+def validate_user_limit(doc, method):
+	"""
+		This is called using validate hook, because welcome email is sent in on_update.
+		We don't want welcome email sent if max users are exceeded.
+	"""
+	from frappe.limits import get_limits
+	from frappe.core.doctype.user.user import get_total_users
+	frappe_limits = get_limits()
+
+	if doc.user_type == "Website User":
+		return
+
+	if not doc.enabled:
+		# don't validate max users when saving a disabled user
+		return
+
+	user_limit = frappe_limits.get("user_limit") if frappe_limits else None
+
+	if not user_limit:
+		return
+
+	total_users = get_total_users()
+
+	if doc.is_new():
+		# get_total_users gets existing users in database
+		# a new record isn't inserted yet, so adding 1
+		total_users += 1
+
+	if total_users > user_limit:
+		frappe.throw(_("Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan."),
+			MaxUsersReachedError)

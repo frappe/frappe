@@ -8,21 +8,21 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import frappe, frappe.utils
-from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
-from frappe import _
-
-from frappe.utils.nestedset import NestedSet
-from frappe.utils import strip
+import frappe
 import json
 import urllib
-from PIL import Image, ImageOps
-import os
+import os, subprocess
 import requests
 import requests.exceptions
 import StringIO
 import mimetypes, imghdr
-from frappe.utils import get_files_path
+
+from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
+from frappe import _
+from frappe.utils.nestedset import NestedSet
+from frappe.limits import get_limits, set_limits
+from frappe.utils import strip, get_url, get_files_path, flt
+from PIL import Image, ImageOps
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -351,3 +351,67 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
+
+def validate_space_limit(file_size):
+	"""Stop from writing file if max space limit is reached"""
+	from frappe.installer import update_site_config
+	from frappe.utils import cint
+	from frappe.utils.file_manager import MaxFileSizeReachedError
+
+	frappe_limits = get_limits()
+
+	if not frappe_limits:
+		return
+
+	if not frappe_limits.has_key('space_limit'):
+		return
+
+	# In Gigabytes
+	space_limit = flt(flt(frappe_limits['space_limit']) * 1024, 2)
+
+	# in Kilobytes
+	used_space = flt(frappe_limits['files_size']) + flt(frappe_limits['backup_size']) + flt(frappe_limits['database_size'])
+	file_size = file_size / (1024.0**2)
+
+	# Stop from attaching file
+	if flt(used_space + file_size, 2) > space_limit:
+		frappe.throw(_("You have exceeded the max space of {0} for your plan. {1} or {2}.").format(
+			"<b>{0}MB</b>".format(cint(space_limit)) if (space_limit < 1024) else "<b>{0}GB</b>".format(frappe_limits['space_limit']),
+			'<a href="#usage-info">{0}</a>'.format(_("Click here to check your usage")),
+			'<a href="#upgrade">{0}</a>'.format(_("upgrade to a higher plan")),
+		), MaxFileSizeReachedError)
+
+	# update files size in frappe subscription
+	new_files_size = flt(frappe_limits['files_size']) + file_size
+	set_limits({'files_size': file_size})
+
+def update_sizes():
+	from frappe.installer import update_site_config
+	# public files
+	files_path = frappe.get_site_path("public", "files")
+	files_size = flt(subprocess.check_output(['du', '-ms', files_path]).split()[0])
+
+	# private files
+	files_path = frappe.get_site_path("private", "files")
+	if os.path.exists(files_path):
+		files_size += flt(subprocess.check_output(['du', '-ms', files_path]).split()[0])
+
+	# backups
+	backup_path = frappe.get_site_path("private", "backups")
+	backup_size = subprocess.check_output(['du', '-ms', backup_path]).split()[0]
+
+	database_size = get_database_size()
+
+	set_limits({'files_size': files_size,
+				'backup_size': backup_size,
+				'database_size': database_size})
+
+def get_database_size():
+	db_name = frappe.conf.db_name
+
+	# This query will get the database size in MB
+	db_size = frappe.db.sql('''
+		SELECT table_schema "database_name", sum( data_length + index_length ) / 1024 / 1024 "database_size"
+		FROM information_schema.TABLES WHERE table_schema = %s GROUP BY table_schema''', db_name, as_dict=True)
+
+	return db_size[0].get('database_size')

@@ -3,8 +3,14 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
+import requests
 
 from frappe.model.delete_doc import delete_doc
+from frappe.utils.data import today, add_to_date
+from frappe import _dict
+from frappe.limits import SiteExpiredError, set_limits, clear_limit
+from frappe.utils import get_url
+from frappe.installer import update_site_config
 
 test_records = frappe.get_test_records('User')
 
@@ -72,3 +78,40 @@ class TestUser(unittest.TestCase):
 		me.add_roles("System Manager")
 
 		self.assertTrue("System Manager" in [d.role for d in me.get("user_roles")])
+
+	def test_user_limit_for_site(self):
+		from frappe.core.doctype.user.user import get_total_users
+
+		set_limits({'user_limit': get_total_users()})
+
+		# reload site config
+		from frappe import _dict
+		frappe.local.conf = _dict(frappe.get_site_config())
+
+		# Create a new user
+		user = frappe.new_doc('User')
+		user.email = 'test_max_users@example.com'
+		user.first_name = 'Test_max_user'
+
+		self.assertRaises(frappe.utils.user.MaxUsersReachedError, user.add_roles, 'System Manager')
+
+		if frappe.db.exists('User', 'test_max_users@example.com'):
+			frappe.delete_doc('User', 'test_max_users@example.com')
+
+		# Clear the user limit
+		clear_limit('user_limit')
+
+	def test_site_expiry(self):
+		set_limits({'expiry': add_to_date(today(), days=-1)})
+		frappe.local.conf = _dict(frappe.get_site_config())
+
+		frappe.db.commit()
+
+		res = requests.post(get_url(), params={'cmd': 'login', 'usr': 'test@example.com', 'pwd': 'testpassword',
+			'device': 'desktop'})
+
+		# While site is expired status code returned is 417 Failed Expectation
+		self.assertEqual(res.status_code, 417)
+
+		clear_limit("expiry")
+		frappe.local.conf = _dict(frappe.get_site_config())

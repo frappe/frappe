@@ -371,13 +371,17 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
+@click.option('--as-dict', is_flag=True, default=False)
 @pass_context
-def set_config(context, key, value):
+def set_config(context, key, value, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
+	import ast
+	if as_dict:
+		value = ast.literal_eval(value)
 	for site in context.sites:
 		frappe.init(site=site)
-		update_site_config(key, value)
+		update_site_config(key, value, validate=False)
 		frappe.destroy()
 
 @click.command('version')
