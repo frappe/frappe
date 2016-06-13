@@ -57,8 +57,12 @@ def update_password(user, pwd, doctype='User', fieldname='password'):
 		{ 'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': pwd, 'salt': salt })
 
 def delete_all_passwords_for(doctype, name):
-	frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
-		{ 'doctype': doctype, 'name': name })
+	try:
+		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
+			{ 'doctype': doctype, 'name': name })
+	except Exception, e:
+		if e.args[0]!=1054:
+			raise
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
