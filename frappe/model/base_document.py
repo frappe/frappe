@@ -12,6 +12,7 @@ from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
 from frappe.model.db_schema import type_map, varchar_len
+from frappe.utils.password import get_decrypted_password, set_encrypted_password
 
 _classes = {}
 
@@ -569,6 +570,29 @@ class BaseDocument(object):
 				sanitized_value = sanitize_html(value)
 
 			self.set(fieldname, sanitized_value)
+
+	def _save_passwords(self):
+		'''Save password field values in __Auth table'''
+		if self.flags.ignore_save_passwords:
+			return
+
+		for df in self.meta.get('fields', {'fieldtype': 'Password'}):
+			new_password = self.get(df.fieldname)
+			if new_password and not self.is_dummy_password(new_password):
+				# is not a dummy password like '*****'
+				set_encrypted_password(self.doctype, self.name, new_password, df.fieldname)
+
+				# set dummy password like '*****'
+				self.set(df.fieldname, '*'*len(new_password))
+
+	def get_password(self, fieldname='password', raise_exception=True):
+		if not self.is_dummy_password(self.get(fieldname)):
+			return self.get(fieldname)
+
+		return get_decrypted_password(self.doctype, self.name, fieldname, raise_exception=raise_exception)
+
+	def is_dummy_password(self, pwd):
+		return ''.join(set(pwd))=='*'
 
 	def precision(self, fieldname, parentfield=None):
 		"""Returns float precision for a particular field (or get global default).

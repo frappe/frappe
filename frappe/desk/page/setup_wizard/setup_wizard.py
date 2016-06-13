@@ -9,6 +9,7 @@ from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
+from frappe.utils.password import update_password
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -79,8 +80,7 @@ def update_user_name(args):
 		doc.flags.no_welcome_mail = True
 		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
-		from frappe.auth import _update_password
-		_update_password(args.get("email"), args.get("password"))
+		update_password(args.get("email"), args.get("password"))
 
 	else:
 		args['name'] = frappe.session.user

@@ -34,3 +34,4 @@ Pillow
 beautifulsoup4
 rq
 schedule
+cryptography

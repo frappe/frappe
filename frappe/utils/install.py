@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import getpass
+from frappe.utils.password import update_password
 
 def before_install():
 	frappe.reload_doc("core", "doctype", "docfield")
@@ -30,8 +31,7 @@ def after_install():
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
 
 	# update admin password
-	from frappe.auth import _update_password
-	_update_password("Administrator", get_admin_password())
+	update_password("Administrator", get_admin_password())
 
 	# setup wizard now in frappe
 	frappe.db.set_default('desktop:home_page', 'setup-wizard');

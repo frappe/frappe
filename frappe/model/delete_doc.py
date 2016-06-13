@@ -8,6 +8,7 @@ import frappe.model.meta
 from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
 from frappe.utils.file_manager import remove_all
+from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
 
@@ -35,6 +36,9 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# delete attachments
 		remove_all(doctype, name)
+
+		# delete passwords
+		delete_all_passwords_for(doctype, name)
 
 		doc = None
 		if doctype=="DocType":

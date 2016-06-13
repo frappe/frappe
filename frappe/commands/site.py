@@ -316,6 +316,7 @@ def move(dest_dir, site):
 def set_admin_password(context, admin_password):
 	"Set Administrator password for a site"
 	import getpass
+	from frappe.utils.password import update_password
 
 	for site in context.sites:
 		try:
@@ -325,8 +326,7 @@ def set_admin_password(context, admin_password):
 				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
 
 			frappe.connect()
-			frappe.db.sql("""update __Auth set `password`=password(%s)
-				where user='Administrator'""", (admin_password,))
+			update_password('Administrator', admin_password)
 			frappe.db.commit()
 			admin_password = None
 		finally:

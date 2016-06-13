@@ -78,6 +78,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		}
 	'''
 	email_account = _get_email_account({"enable_outgoing": 1, "default_outgoing": 1})
+	if email_account:
+		email_account.password = email_account.get_password()
 
 	if not email_account and frappe.conf.get("mail_server"):
 		# from site_config.json

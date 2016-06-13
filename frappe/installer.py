@@ -16,6 +16,7 @@ from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render, statics
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
+from frappe.utils.password import create_auth_table
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
@@ -67,12 +68,6 @@ def create_database_and_user(force, verbose):
 
 	# close root connection
 	frappe.db.close()
-
-def create_auth_table():
-	frappe.db.sql_ddl("""create table if not exists __Auth (
-		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
-		`password` VARCHAR(180) NOT NULL
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 
 def create_list_settings_table():
 	frappe.db.sql_ddl("""create table if not exists __ListSettings (
