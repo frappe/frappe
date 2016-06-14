@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> Configuring Https </title>
+	<title> Configuring HTTPS </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -59,7 +59,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
@@ -73,10 +73,9 @@
                         
 <div class="page-container" id="page-configuring-https" data-path="user/en/bench/guides/configuring-https"
 	data-doctype="Web Page">
-		<div class="page-content page-max-width">
 			<div class="row ">
 				
-				<div class=" content-block col-sm-12 ">
+				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
@@ -98,7 +97,7 @@
 
 								</div>
 								
-								<h1>Configuring Https</h1>
+								<h1>Configuring HTTPS</h1>
 							</div>
 							<div class="col-sm-4">
 								
@@ -111,11 +110,9 @@
 <div class="webpage-content">
 	
 	<article class="web-page-content" id="configuring-https" style="text-align: Left">
-	<!-- markdown -->
+	<h3>Get the required files</h3>
 
-<h3>Get the required files</h3>
-
-<p>You can buy a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted.</p>
+<p>You can get a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted. <a href="lets-encrypt-ssl-setup.html">Here's a tutorial for using Let's Encrypt to get a free SSL Certificate</a></p>
 
 <p>The files required are</p>
 
@@ -165,13 +162,14 @@ bench set-ssl-key site1.local /etc/nginx/ssl/private.key
 <pre><code>systemctl reload nginx # for CentOS 7
 </code></pre>
 
+<p>Now that you have configured SSL, all HTTP traffic will be redirected to HTTPS</p>
+
 	</article>
 	
 </div>
 </div>
 				</div>
 			</div>
-		</div>
 </div>
 
 						
@@ -239,7 +237,7 @@ bench set-ssl-key site1.local /etc/nginx/ssl/private.key
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>

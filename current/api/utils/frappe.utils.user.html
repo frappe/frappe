@@ -59,7 +59,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
@@ -73,10 +73,9 @@
                         
 <div class="page-container" id="page-frappe.utils.user" data-path="current/api/utils/frappe.utils.user"
 	data-doctype="Web Page">
-		<div class="page-content page-max-width">
 			<div class="row ">
 				
-				<div class=" content-block col-sm-12 ">
+				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
@@ -125,6 +124,21 @@
 
 
 
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>MaxUsersReachedError</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.exceptions.ValidationError</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+    </div>
+    <hr>
+
+	
 
 	
         
@@ -470,6 +484,23 @@ quirks:
 
 	
 
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.user.validate_user_limit" href="#frappe.utils.user.validate_user_limit" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.user.<b>validate_user_limit</b>
+        <i class="text-muted">(doc, method)</i>
+    </p>
+	<div class="docs-attr-desc"><p>This is called using validate hook, because welcome email is sent in on_update.
+We don't want welcome email sent if max users are exceeded.</p>
+</div>
+	<br>
+
+	
+
 
 
 <!-- autodoc -->
@@ -479,7 +510,6 @@ quirks:
 </div>
 				</div>
 			</div>
-		</div>
 </div>
 
 						<!-- edit-link -->
@@ -537,7 +567,7 @@ quirks:
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
