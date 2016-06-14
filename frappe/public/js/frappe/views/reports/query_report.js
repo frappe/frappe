@@ -374,11 +374,11 @@ frappe.views.QueryReport = Class.extend({
 		if (this.get_query_report_opts().tree) {
 			this.setup_tree();
 		}
-		
-		this.set_message(res.message);		
+
+		this.set_message(res.message);
 		this.setup_chart(res);
 	},
-	
+
 	make_columns: function(columns) {
 		var me = this;
 		var formatter = this.get_formatter();
@@ -717,7 +717,7 @@ frappe.views.QueryReport = Class.extend({
 		frappe.tools.downloadify(result, null, this.title);
 		return false;
 	},
-	
+
 	set_message: function(msg) {
 		if(msg) {
 			this.wrapper.find(".help-msg").html(msg).toggle(true);
@@ -725,25 +725,25 @@ frappe.views.QueryReport = Class.extend({
 			this.wrapper.find(".help-msg").empty().toggle(false);
 		}
 	},
-	
+
 	setup_chart: function(res) {
 		var me = this;
 		this.wrapper.find(".chart_area").parent().toggle(false);
-		
+
 		if (this.get_query_report_opts().get_chart_data) {
-			var opts = query_report_opts.get_chart_data(res.columns, res.result);
+			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
 		} else if (res.chart) {
 			var opts = res.chart;
 		}
-		
+
 		$.extend(opts, {
 			wrapper: me.wrapper,
 			bind_to: ".chart_area"
 		});
-		
+
 		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) 
+		if(this.chart)
 			this.wrapper.find(".chart_area").parent().toggle(true);
-		
+
 	}
 })

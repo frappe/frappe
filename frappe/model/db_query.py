@@ -319,7 +319,7 @@ class DatabaseQuery(object):
 				column_name = "date_format({tname}.{fname}, '%Y-%m-%d')".format(tname=tname,
 					fname=f.fieldname)
 
-		if self.ignore_ifnull or not can_be_null:
+		if self.ignore_ifnull or not can_be_null or (value and f.operator in ('=', 'like')):
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)
