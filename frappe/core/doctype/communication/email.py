@@ -5,7 +5,8 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails, get_fullname
+from frappe.utils import (get_url, get_formatted_email, cint,
+	validate_email_add, split_emails, now, time_diff_in_seconds)
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 from frappe.utils.scheduler import log
@@ -152,6 +153,9 @@ def update_parent_status(doc):
 
 		if to_status in status_field.options.splitlines():
 			parent.db_set("status", to_status)
+
+	update_mins_to_first_communication(parent, doc)
+	parent.run_method('notify_communication', doc)
 
 	parent.notify_update()
 
@@ -399,3 +403,12 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 		}))
 		frappe.logger(__name__).error(traceback)
 		raise
+
+def update_mins_to_first_communication(parent, communication):
+	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
+		if frappe.db.get_all('User', filters={'email': communication.sender,
+			'user_type': 'System User', 'enabled': 1}, limit=1):
+			first_responded_on = now()
+			if parent.meta.has_field('first_responded_on'):
+				parent.db_set('first_responded_on', first_responded_on)
+			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
