@@ -59,7 +59,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
@@ -73,10 +73,9 @@
                         
 <div class="page-container" id="page-desktop_icon" data-path="current/models/desk/desktop_icon"
 	data-doctype="Web Page">
-		<div class="page-content page-max-width">
 			<div class="row ">
 				
-				<div class=" content-block col-sm-12 ">
+				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
@@ -447,7 +446,7 @@ query-report</pre>
         <a name="frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon" href="#frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.doctype.desktop_icon.desktop_icon.<b>add_user_icon</b>
-        <i class="text-muted">(label, link, type, _doctype)</i>
+        <i class="text-muted">(_doctype, label=None, link=None, type=link, standard=0)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add a new user desktop icon to the desktop</p>
 </div>
@@ -563,6 +562,24 @@ query-report</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.desk.doctype.desktop_icon.desktop_icon.set_desktop_icons" href="#frappe.desk.doctype.desktop_icon.desktop_icon.set_desktop_icons" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.doctype.desktop_icon.desktop_icon.<b>set_desktop_icons</b>
+        <i class="text-muted">(visible_list)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Resets all lists and makes only the given one standard,
+if the desktop icon does not exist and the name is a DocType, then will create
+an icon for the doctype</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.desk.doctype.desktop_icon.desktop_icon.set_hidden" href="#frappe.desk.doctype.desktop_icon.desktop_icon.set_hidden" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.doctype.desktop_icon.desktop_icon.<b>set_hidden</b>
@@ -603,9 +620,9 @@ It will also set the rest of the icons as shown (<code>hidden</code> = 0)</p>
         <a name="frappe.desk.doctype.desktop_icon.desktop_icon.set_order" href="#frappe.desk.doctype.desktop_icon.desktop_icon.set_order" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.doctype.desktop_icon.desktop_icon.<b>set_order</b>
-        <i class="text-muted">(new_order)</i>
+        <i class="text-muted">(new_order, user=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>set new order by duplicating user icons</p>
+	<div class="docs-attr-desc"><p>set new order by duplicating user icons (if user is set) or set global order</p>
 </div>
 	<br>
 
@@ -657,7 +674,6 @@ It will also set the rest of the icons as shown (<code>hidden</code> = 0)</p>
 </div>
 				</div>
 			</div>
-		</div>
 </div>
 
 						<!-- edit-link -->
@@ -715,7 +731,7 @@ It will also set the rest of the icons as shown (<code>hidden</code> = 0)</p>
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>

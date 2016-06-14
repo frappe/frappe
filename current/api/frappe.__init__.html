@@ -59,7 +59,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
@@ -73,10 +73,9 @@
                         
 <div class="page-container" id="page-frappe.__init__" data-path="current/api/frappe.__init__"
 	data-doctype="Web Page">
-		<div class="page-content page-max-width">
 			<div class="row ">
 				
-				<div class=" content-block col-sm-12 ">
+				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
@@ -555,6 +554,22 @@ listify the values against the key.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.emit_js" href="#frappe.emit_js" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>emit_js</b>
+        <i class="text-muted">(js, user=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.errprint" href="#frappe.errprint" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>errprint</b>
@@ -715,6 +730,22 @@ frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_conf</b>
         <i class="text-muted">(site=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.get_desk_link" href="#frappe.get_desk_link" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>get_desk_link</b>
+        <i class="text-muted">(doctype, name)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -932,22 +963,6 @@ frappe.get_list("ToDo", fields="*", filters = [["modified", "&gt;", "2014-01-01"
 # filter as a list of dicts
 frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 </code></pre>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.get_logger" href="#frappe.get_logger" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.<b>get_logger</b>
-        <i class="text-muted">(module=None, loglevel=DEBUG)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -1480,12 +1495,31 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.logger" href="#frappe.logger" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>logger</b>
+        <i class="text-muted">(module=None, with_more_info=True)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns a python logger that uses StreamHandler</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.make_property_setter" href="#frappe.make_property_setter" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>make_property_setter</b>
         <i class="text-muted">(args, ignore_validate=False, validate_fields_for_doctype=True)</i>
     </p>
 	<div class="docs-attr-desc"><p>Create a new <strong>Property Setter</strong> (for overriding DocType and DocField properties).</p>
+
+<p>If doctype is not specified, it will create a property setter for all fields with the
+given fieldname</p>
 </div>
 	<br>
 
@@ -1499,7 +1533,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.msgprint" href="#frappe.msgprint" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>msgprint</b>
-        <i class="text-muted">(msg, small=0, raise_exception=0, as_table=False)</i>
+        <i class="text-muted">(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Print a message to the user (via HTTP response).
 Messages are sent in the <code>__server_messages</code> property in the
@@ -1509,7 +1543,7 @@ response JSON and shown in a pop-up / modal.</p>
 
 <ul>
 <li><strong><code>msg</code></strong> -  Message.</li>
-<li><strong><code>small</code></strong> -  [optional] Show as a floating message in the footer.</li>
+<li><strong><code>title</code></strong> -  [optional] Message title.</li>
 <li><strong><code>raise_exception</code></strong> -  [optional] Raise given exception and show message.</li>
 <li><strong><code>as_table</code></strong> -  [optional] If <code>msg</code> is a list of lists, render as HTML table.</li>
 </ul>
@@ -1867,7 +1901,7 @@ Similar to respond<em>as</em>web_page, but used to 'redirect' and show message p
         <a name="frappe.throw" href="#frappe.throw" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>throw</b>
-        <i class="text-muted">(msg, exc=<class 'frappe.exceptions.ValidationError'>)</i>
+        <i class="text-muted">(msg, exc=<class 'frappe.exceptions.ValidationError'>, title=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Throw execption and show message (<code>msgprint</code>).</p>
 
@@ -1937,7 +1971,6 @@ def myfunc(param1, param2):
 </div>
 				</div>
 			</div>
-		</div>
 </div>
 
 						<!-- edit-link -->
@@ -1995,7 +2028,7 @@ def myfunc(param1, param2):
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>

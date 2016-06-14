@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.setup_logging </title>
+	<title> frappe.limits </title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -26,7 +26,7 @@
 
 </style>
 </head>
-<body data-path="current/api/frappe.setup_logging">
+<body data-path="current/api/frappe.limits">
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">
@@ -59,7 +59,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
@@ -71,12 +71,11 @@
                         <div data-html-block="hero"></div>
                         <div class="container" data-html-block="content">
                         
-<div class="page-container" id="page-frappe.setup_logging" data-path="current/api/frappe.setup_logging"
+<div class="page-container" id="page-frappe.limits" data-path="current/api/frappe.limits"
 	data-doctype="Web Page">
-		<div class="page-content page-max-width">
 			<div class="row ">
 				
-				<div class=" content-block col-sm-12 ">
+				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
@@ -98,7 +97,7 @@
 
 								</div>
 								
-								<h1>frappe.setup_logging</h1>
+								<h1>frappe.limits</h1>
 							</div>
 							<div class="col-sm-4">
 								
@@ -110,14 +109,14 @@
 					<div class="page_content">
 <div class="webpage-content">
 	
-	<article class="web-page-content" id="frappe.setup_logging" style="text-align: Left">
-	<!-- title: frappe.setup_logging --><div class="dev-header">
+	<article class="web-page-content" id="frappe.limits" style="text-align: Left">
+	<!-- title: frappe.limits --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 6.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/setup_logging.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/limits.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -128,27 +127,13 @@
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>ContextFilter</b></h3>
+	<h3 style="font-weight: normal;">Class <b>SiteExpiredError</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from logging.Filter</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.exceptions.ValidationError</i></h4>
     
-    <div class="docs-attr-desc"><p>This is a filter which injects request information (if available) into the log.</p>
+    <div class="docs-attr-desc"><p></p>
 </div>
     <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="filter" href="#filter" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>filter</b>
-        <i class="text-muted">(self, record)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
         
     </div>
     <hr>
@@ -160,10 +145,76 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.setup_logging.setup_logging" href="#frappe.setup_logging.setup_logging" class="text-muted small">
+        <a name="frappe.limits.check_if_expired" href="#frappe.limits.check_if_expired" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.setup_logging.<b>setup_logging</b>
+		frappe.limits.<b>check_if_expired</b>
         <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>check if account is expired. If expired, do not allow login</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.limits.clear_limit" href="#frappe.limits.clear_limit" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.limits.<b>clear_limit</b>
+        <i class="text-muted">(limit)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.limits.get_limits</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.limits.get_limits" href="#frappe.limits.get_limits" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.limits.<b>get_limits</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.limits.has_expired" href="#frappe.limits.has_expired" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.limits.<b>has_expired</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.limits.set_limits" href="#frappe.limits.set_limits" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.limits.<b>set_limits</b>
+        <i class="text-muted">(limits)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -180,7 +231,6 @@
 </div>
 				</div>
 			</div>
-		</div>
 </div>
 
 						<!-- edit-link -->
@@ -238,7 +288,7 @@
 		
 		>
 	API Documentation</a></li>
-	<li class="shopping-cart" style="padding-top:9px;"></li>
+	
 	<!-- post login tools -->
 
 </ul>
