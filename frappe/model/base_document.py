@@ -586,7 +586,7 @@ class BaseDocument(object):
 				self.set(df.fieldname, '*'*len(new_password))
 
 	def get_password(self, fieldname='password', raise_exception=True):
-		if not self.is_dummy_password(self.get(fieldname)):
+		if not self.get(fieldname) or self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
 
 		return get_decrypted_password(self.doctype, self.name, fieldname, raise_exception=raise_exception)
