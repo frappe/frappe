@@ -70,6 +70,11 @@ def rename_password(doctype, old_name, new_name):
 		where doctype=%(doctype)s and name=%(old_name)s""",
 		{ 'doctype': doctype, 'new_name': new_name, 'old_name': old_name })
 
+def rename_password_field(doctype, old_fieldname, new_fieldname):
+	frappe.db.sql('''update `__Auth` set fieldname=%(new_fieldname)s
+		where doctype=%(doctype)s and fieldname=%(old_fieldname)s''',
+		{ 'doctype': doctype, 'old_fieldname': old_fieldname, 'new_fieldname': new_fieldname })
+
 def create_auth_table():
 	# same as Framework.sql
 	frappe.db.sql_ddl("""create table if not exists __Auth (
