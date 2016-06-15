@@ -117,28 +117,7 @@ def get_communications(doctype, name, start=0, limit=20):
 
 
 def _get_communications(doctype, name, start=0, limit=20):
-	match_conditions = get_feed_match_conditions()
-	communications = frappe.db.sql("""select name, communication_type,
-			communication_medium, comment_type,
-			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
-			timeline_doctype, timeline_name,
-			reference_doctype, reference_name,
-			link_doctype, link_name,
-			"Communication" as doctype
-		from tabCommunication
-		where
-			communication_type in ("Communication", "Comment")
-			and (
-				(reference_doctype=%(doctype)s and reference_name=%(name)s)
-				or (timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-			)
-			and (comment_type is null or comment_type != 'Update')
-			{match_conditions}
-		order by creation desc limit %(start)s, %(limit)s"""
-			.format(match_conditions=("and " + match_conditions) if match_conditions else ""),
-			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
-			as_dict=True)
-
+	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type=="Communication":
 			c.attachments = json.dumps(frappe.get_all("File",
@@ -149,6 +128,42 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 		elif c.communication_type=="Comment" and c.comment_type=="Comment":
 			c.content = frappe.utils.markdown(c.content)
+
+	return communications
+
+def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=None,
+	group_by=None, as_dict=True):
+	'''Returns list of communications for a given document'''
+	if not fields:
+		fields = '''name, communication_type,
+			communication_medium, comment_type,
+			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
+			timeline_doctype, timeline_name,
+			reference_doctype, reference_name,
+			link_doctype, link_name,
+			"Communication" as doctype'''
+
+	conditions = '''communication_type in ("Communication", "Comment")
+			and (
+				(reference_doctype=%(doctype)s and reference_name=%(name)s)
+				or (timeline_doctype=%(doctype)s
+					and timeline_name=%(name)s
+					and communication_type="Comment"
+					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted"))
+			)
+			and (comment_type is null or comment_type != 'Update')'''
+
+	if after:
+		# find after a particular date
+		conditions+= ' and creation > {0}'.format(after)
+
+	communications = frappe.db.sql("""select {fields}
+		from tabCommunication
+		where {conditions} {group_by}
+		order by creation desc limit %(start)s, %(limit)s""".format(
+			fields = fields, conditions=conditions, group_by=group_by or ""),
+			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
+			as_dict=as_dict)
 
 	return communications
 
