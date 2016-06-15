@@ -267,6 +267,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 
 		this.$wrapper.on("refresh", function() {
+			if(me.only_input) {
+				// show disabled input if only_input is true
+				// since there is no disp_area
+				make_input();
+				update_input();
+			}
+
 			if(me.disp_status != "None") {
 				// refresh value
 				if(me.doctype && me.docname) {
@@ -280,12 +287,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					make_input();
 					update_input();
 				} else {
-					if(me.only_input) {
-						// show disabled input if only_input is true
-						// since there is no disp_area
-						make_input();
-						update_input();
-					}
 					$(me.input_area).toggle(me.only_input ? true : false);
 					$(me.input_area).find("input").prop("disabled", true);
 					if (me.disp_area) {
