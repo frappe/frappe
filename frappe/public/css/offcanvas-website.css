@@ -20,6 +20,7 @@ body {
 .sidebar-padding {
   padding: 12px 14px;
 }
+.offcanvas .sidebar .sidebar-menu > li > .btn-group,
 .offcanvas .sidebar .sidebar-menu > li > a,
 .offcanvas .sidebar .dropdown-menu > li > a {
   padding: 12px 14px;

@@ -20,6 +20,7 @@ body {
 .sidebar-padding {
   padding: 12px 14px;
 }
+.offcanvas .sidebar .sidebar-menu > li > .btn-group,
 .offcanvas .sidebar .sidebar-menu > li > a,
 .offcanvas .sidebar .dropdown-menu > li > a {
   padding: 12px 14px;
@@ -81,7 +82,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   font-size: 12px;
   padding-right: 0px;
 }
-.layout-side-section .divider {
+.layout-side-section > .divider {
   display: none !important;
 }
 .layout-side-section .sidebar-menu > li > a {
@@ -112,7 +113,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   font-size: 10px;
   margin-top: 0px;
 }
-.sidebar-menu li {
+.sidebar-menu > li {
   position: relative;
   margin-bottom: 7px;
 }
