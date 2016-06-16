@@ -50,12 +50,22 @@ frappe.ui.form.set_user_image = function(frm) {
 
 	}
 
+}
+
+frappe.ui.form.setup_user_image_event = function(frm) {
+	// re-draw image on change of user image
+	if(frm.meta.image_field) {
+		frappe.ui.form.on(frm.doctype, frm.meta.image_field, function(frm) {
+			frappe.ui.form.set_user_image(frm);
+		});
+	}
+
+	// bind click on image_wrapper
 	frm.sidebar.image_wrapper.on('click', function() {
 		var field = frm.get_field(frm.meta.image_field);
 		if(!field.$input) {
 			field.make_input();
 		}
 		field.$input.trigger('click');
-	})
-
+	});
 }

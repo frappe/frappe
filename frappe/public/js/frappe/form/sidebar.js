@@ -26,6 +26,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_like();
 
 		this.bind_events();
+		frappe.ui.form.setup_user_image_event(this.frm);
 
 		this.refresh();
 

@@ -36,6 +36,9 @@ frappe.ui.form.Control = Class.extend({
 
 	make_wrapper: function() {
 		this.$wrapper = $("<div class='frappe-control'></div>").appendTo(this.parent);
+
+		// alias
+		this.wrapper = this.$wrapper;
 	},
 
 	toggle: function(show) {
@@ -83,6 +86,11 @@ frappe.ui.form.Control = Class.extend({
 	get_doc: function() {
 		return this.doctype && this.docname
 			&& locals[this.doctype] && locals[this.doctype][this.docname] || {};
+	},
+	get_model_value: function() {
+		if(this.doc) {
+			return this.doc[this.df.fieldname];
+		}
 	},
 	set_value: function(value) {
 		this.parse_validate_and_set_in_model(value);
@@ -814,20 +822,25 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.has_input = true;
 
 		this.$value.find(".close").on("click", function() {
-			if(me.frm) {
-				me.frm.attachments.remove_attachment_by_filename(me.value, function() {
-					me.parse_validate_and_set_in_model(null);
-					me.refresh();
-				});
-			} else {
-				me.dataurl = null;
-				me.fileobj = null;
-				me.set_input(null);
-				me.refresh();
-			}
+			me.clear_attachment();
 		})
 	},
+	clear_attachment: function() {
+		var me = this;
+		if(this.frm) {
+			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
+				me.parse_validate_and_set_in_model(null);
+				me.refresh();
+			});
+		} else {
+			this.dataurl = null;
+			this.fileobj = null;
+			this.set_input(null);
+			this.refresh();
+		}
+	},
 	onclick: function() {
+		var me = this;
 		if(this.doc) {
 			var doc = this.doc.parent && frappe.model.get_doc(this.doc.parenttype, this.doc.parent) || this.doc;
 			if (doc.__islocal) {
@@ -842,6 +855,12 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 					{fieldtype:"HTML", fieldname:"upload_area"},
 					{fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
 					{fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+					{fieldtype:"Button", fieldname:"clear",
+						label:__("Clear Attachment"), click: function() {
+							me.clear_attachment();
+							me.dialog.hide();
+						}
+					},
 				]
 			});
 		}
@@ -864,6 +883,9 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			select.toggle(false);
 		}
 		select.$input.val("");
+
+		// show button if attachment exists
+		this.dialog.get_field('clear').$wrapper.toggle(this.get_model_value() ? true : false);
 
 		this.set_upload_options();
 		frappe.upload.make(this.upload_options);
