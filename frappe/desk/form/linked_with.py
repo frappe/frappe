@@ -26,12 +26,16 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 	meta = frappe.desk.form.meta.get_meta(doctype)
 	results = {}
-	
+
 	if not linkinfo:
 		return results
-	
+
 	if for_doctype:
-		get_previous_document_link(doctype, linkinfo, for_doctype)
+		links = frappe.get_doc(doctype, name).get_link_filters(for_doctype)
+
+		if links:
+			linkinfo = links
+
 		if for_doctype in linkinfo:
 			# only get linked with for this particular doctype
 			linkinfo = { for_doctype: linkinfo.get(for_doctype) }
@@ -56,7 +60,10 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 				and "`tab" not in sf]
 				
 			try:
-				if link.get("get_parent"):
+				if link.get("filters"):
+					ret = frappe.get_list(doctype=dt, fields=fields, filters=link.get("filters"))
+
+				elif link.get("get_parent"):
 					if me and me.parent and me.parenttype == dt:
 						ret = frappe.get_list(doctype=dt, fields=fields,
 							filters=[[dt, "name", '=', me.parent]])
@@ -79,19 +86,9 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 						if link.get("doctype_fieldname"):
 							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
 						ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
+
 					else:
 						ret = None
-				
-				if link.get("search_in_child_doctype"):
-					if not ret:
-						ret = []
-
-					prev_links = frappe.db.sql("""select %s from `tab%s` where name in
-						(select %s from `tab%s` where parent = '%s')
-					"""%(', '.join(fields), for_doctype, link.get("previous_doctype_fieldname"),
-						link.get("search_in_child_doctype"), name), as_dict=1)
-
-					ret.extend(prev_links)
 
 			except frappe.PermissionError:
 				if frappe.local.message_log:
@@ -205,14 +202,3 @@ def get_dynamic_linked_fields(doctype):
 					}
 
 	return ret
-	
-def get_previous_document_link(doctype, linkinfo, for_doctype):
-	for df in frappe.desk.form.meta.get_meta("{doctype} Item".format(doctype=doctype)).fields:
-		if for_doctype == df.options:
-			if not linkinfo.get(for_doctype):
-				linkinfo[for_doctype] = {}
-				
-			linkinfo[for_doctype].update({
-				"search_in_child_doctype": "{doctype} Item".format(doctype=doctype),
-				"previous_doctype_fieldname": df.fieldname
-			})
