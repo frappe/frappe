@@ -34,3 +34,4 @@ beautifulsoup4
 rq
 schedule
 cryptography
+zxcvbn
