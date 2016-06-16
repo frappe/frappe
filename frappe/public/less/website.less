@@ -3,18 +3,26 @@
 @import "avatar.less";
 @import "indicator.less";
 
-html, body {
-	font-family: "Open Sans", "Helvetica Neue", Serif;
-	color: @text-light;
+// html, body {
+// 	font-family: "Open Sans", "Helvetica Neue", Serif;
+// 	color: @text-light;
+// }
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont,
+	    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+	    "Fira Sans", "Droid Sans", "Helvetica Neue",
+	    sans-serif;
+		color: @text-color;
 }
 
 a& {
-	color: @text-light;
+	color: @text-color;
 
 	&:hover,
 	&:focus,
 	&:active {
-		color: @text-color;
+		text-decoration: underline;
 	}
 }
 
