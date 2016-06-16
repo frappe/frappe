@@ -8,7 +8,7 @@ frappe.ui.form.DocumentFlow = Class.extend({
 		$.extend(this, opts);
 
 		this.module = frappe.get_meta(this.frm.doctype).module
-		if (!frappe.document_flow[this.module]) {
+		if (!frappe.document_flow || !frappe.document_flow[this.module]) {
 			return;
 		}
 		this.doctypes = frappe.document_flow[this.module][this.frm.doctype];

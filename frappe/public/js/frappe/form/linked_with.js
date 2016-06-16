@@ -123,6 +123,17 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 				if(keys(r.message || {}).length) {
 					$.each(keys(r.message).sort(), function(i, doctype) {
+
+						if (Object.keys(locals.DocType).indexOf(doctype)=== -1) {
+							frappe.model.with_doctype(doctype, function() {
+								if (frappe.listview_settings[doctype]) {
+									// add additional fields to __linked_doctypes
+									me.frm.__linked_doctypes[doctype] = {}
+									me.frm.__linked_doctypes[doctype].add_fields = frappe.listview_settings[doctype].add_fields;
+								}
+							}, /*async*/ false);
+						}
+
 						var listview = frappe.views.get_listview(doctype, me);
 						listview.no_delete = true;
 
