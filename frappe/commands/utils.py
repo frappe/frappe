@@ -146,6 +146,20 @@ def execute(context, method, args=None, kwargs=None):
 			print json.dumps(ret)
 
 
+@click.command('add-bulk-email')
+@click.argument('email')
+@pass_context
+def add_bulk_email(context, email):
+	"Add an email to the Bulk Email queue"
+	site = get_site(context)
+	with frappe.init_site(site):
+		frappe.connect()
+		kwargs = json.loads(email)
+		kwargs['as_bulk'] = True
+		frappe.sendmail(**kwargs)
+		frappe.db.commit()
+
+
 @click.command('export-doc')
 @click.argument('doctype')
 @click.argument('docname')
@@ -394,6 +408,7 @@ def get_version():
 			print "{0} {1}".format(m, module.__version__)
 
 commands = [
+	add_bulk_email,
 	build,
 	build_website,
 	clear_cache,
