@@ -245,6 +245,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "depends_on": "eval: doc.image_field", 
+   "default": 0,
    "fieldname": "image_view", 
    "fieldtype": "Check", 
    "hidden": 0, 
