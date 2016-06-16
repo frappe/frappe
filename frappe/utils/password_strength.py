@@ -50,7 +50,7 @@ def get_feedback (score, sequence):
 		feedback = {
 			"warning": "",
 			"suggestions":[
-				_("Add another word or two. Uncommon words are better.")
+				_("Better add a few more letters or another word")
 			],
 		}
 	return feedback
@@ -68,40 +68,39 @@ def get_match_feedback(match, is_sole_match):
 	def fun_spatial():
 		if match["turns"] == 1:
 			feedback ={
-				"warning": _('Straight rows of keys are easy to guess.'),
+				"warning": _('Straight rows of keys are easy to guess'),
 				"suggestions":[
-					 _("Use a longer keyboard pattern with more turns.")
+					 _("Try to use a longer keyboard pattern with more turns")
 				],
 			}
 		else:
 			feedback ={
-				"warning": _('Short keyboard patterns are easy to guess.'),
+				"warning": _('Short keyboard patterns are easy to guess'),
 				"suggestions":[
-					 _("Use a longer keyboard pattern with more turns.")
+					 _("Make use of longer keyboard patterns")
 				],
 			}
 		return feedback
 	def fun_repeat():
 		if len(match["repeated_char"]) == 1:
 			feedback ={
-				"warning": _('Repeats like "aaa" are easy to guess.'),
+				"warning": _('Repeats like "aaa" are easy to guess'),
 				"suggestions":[
-					_("Avoid repeated words and characters.")
+					_("Let's avoid repeated words and characters")
 				],
 			}
 		else:
 			feedback ={
 					"warning": _('Repeats like "abcabcabc" are only slightly harder to guess than "abc"'),
 					"suggestions":[
-						_("Avoid repeated words and characters.")
+							_("Try to avoid repeated words and characters")
 						],
 					}
 		return feedback
 	def fun_sequence():
 		return {
-			"warning": _("Sequences like abc or 6543 are easy to guess."),
 			"suggestions":[
-				_("Avoid sequences.")
+				_("Avoid sequences like abc or 6543 as they are easy to guess")
 			],
 		}
 	def fun_regex():
