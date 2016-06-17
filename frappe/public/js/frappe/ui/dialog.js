@@ -44,10 +44,11 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				me.display = false;
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
-					if(frappe.ui.open_dialogs.length)
+					if(frappe.ui.open_dialogs.length) {
 						cur_dialog = frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1];
-					else
+					} else {
 						cur_dialog = null;
+					}
 				}
 				me.onhide && me.onhide();
 			})

@@ -49,7 +49,11 @@ def get_print_format_doc(print_format_name, meta):
 	if print_format_name == "Standard":
 		return None
 	else:
-		return frappe.get_doc("Print Format", print_format_name)
+		try:
+			return frappe.get_doc("Print Format", print_format_name)
+		except frappe.DoesNotExistError:
+			# if old name, return standard!
+			return None
 
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
