@@ -181,7 +181,16 @@ frappe.views.TreeView = Class.extend({
 			var node = me.tree.get_selected_node();
 			v.parent = node.label;
 			v.ctype = me.ctype;
-			$.extend(v, me.args)
+
+			if(node.root) {
+				v.is_root = 1;
+				v.parent_account = null;
+			} else {
+				v.is_root = 0;
+				v.root_type = null;
+			}
+			
+			$.extend(me.args, v)
 
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
