@@ -410,7 +410,11 @@ class EmailAccount(Document):
 						reference_doctype,reference_name = subject.split(': ',1)
 						parent = frappe.get_doc(reference_doctype,reference_name)
 				except:
-					pass
+					try:
+						ref = re.search("((?<=New Leave Application: ).*(?= - Employee:))",email.subject).group(0)
+						parent = frappe.get_doc("Leave Application",ref)
+					except:
+						pass
 
 		if not parent and self.append_to and self.append_to!="Communication":
 			# no parent found, but must be tagged
