@@ -127,6 +127,7 @@ class Database:
 						frappe.errprint(query % values)
 					except TypeError:
 						frappe.errprint([query, values])
+
 				if (frappe.conf.get("logging") or False)==2:
 					frappe.log("<<<< query")
 					frappe.log(query)
@@ -145,10 +146,20 @@ class Database:
 					frappe.log(">>>>")
 
 				self._cursor.execute(query)
+
 		except Exception, e:
 			# ignore data definition errors
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
+
+			elif e.args[0]==2006:
+				# mysql has gone away
+				self.connect()
+				return self.sql(query=query, values=values,
+					as_dict=as_dict, as_list=as_list, formatted=formatted,
+					debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8,
+					auto_commit=auto_commit, update=update)
+
 			else:
 				raise
 
