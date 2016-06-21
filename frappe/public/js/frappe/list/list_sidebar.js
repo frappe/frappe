@@ -31,6 +31,10 @@ frappe.views.ListSidebar = Class.extend({
 		if(frappe.views.calendar[this.doctype]) {
 			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
 		}
+		
+		if(frappe.treeview_settings[this.doctype]) {
+			this.sidebar.find(".tree-link").removeClass("hide");
+		}
 	},
 	setup_reports: function() {
 		// add reports linked to this doctype to the dropdown
