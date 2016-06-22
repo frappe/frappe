@@ -171,6 +171,7 @@ frappe.Application = Class.extend({
 		user_roles = frappe.boot.user.roles;
 		user_email = frappe.boot.user.email;
 		sys_defaults = frappe.boot.sysdefaults;
+		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 	},
 	sync_pages: function() {
 		// clear cached pages if timestamp is not found
