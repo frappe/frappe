@@ -100,7 +100,16 @@ $.extend(frappe, {
 		}
 
 		if (data._server_messages) {
-			var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
+			var server_messages = JSON.parse(data._server_messages || '[]');
+			server_messages = $.map(server_messages, function(v) {
+				// temp fix for messages sent as dict
+				try {
+					return JSON.parse(v).message;
+				} catch (e) {
+					return v;
+				}
+			}).join('<br>');
+
 			if(opts.error_msg) {
 				$(opts.error_msg).html(server_messages).toggle(true);
 			} else {
