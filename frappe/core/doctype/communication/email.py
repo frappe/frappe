@@ -191,8 +191,10 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 
 	:param print_html: Send given value as HTML attachment.
 	:param print_format: Attach print format of parent document."""
+	
+	view_link = frappe.utils.cint(frappe.db.get_value("Print Settings", "Print Settings", "attach_view_link"))
 
-	if print_format:
+	if print_format and view_link:
 		doc.content += get_attach_link(doc, print_format)
 
 	set_incoming_outgoing_accounts(doc)
