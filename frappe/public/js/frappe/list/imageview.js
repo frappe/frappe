@@ -45,7 +45,51 @@ frappe.views.ImageView = Class.extend({
 	},
 
 	render: function(image_list){
-		var gallery = blueimp.Gallery(image_list, this.get_options());
+		this.gallery = null;
+		this.gallery = blueimp.Gallery(image_list, this.get_options());
+		this.setup_navigation();
+	},
+
+	setup_navigation: function(){
+		// extend gallery library to enable document navigation using UP / Down arrow key
+		var me = this;
+		var args = {}
+	
+		$.extend(me.gallery, {
+			nextSlides:function(){
+				args.offset = 1;
+				me.navigate(args)
+			},
+
+			prevSlides:function(){
+				args.offset = -1;
+				me.navigate(args)
+			}
+		});
+	},
+
+	navigate: function(args){
+		var index = 0;
+		var me = this;
+		var last_idx = cur_list.data.length - 1;
+
+		$.each(cur_list.data, function(idx, doc){
+			if(doc.name == me.docname){
+				if(idx == last_idx && args.offset == 1){
+					index = 0
+				} else if(idx == 0 && args.offset == -1) {
+					index = last_idx
+				} else {
+					index = idx + args.offset
+				}
+				me.docname = cur_list.data[index].name;
+				return false;
+			}
+		});
+		this.gallery.close();
+		window.setTimeout(function(){
+			me.get_images(this.doctype, this.docname)
+		}, 500);
 	},
 
 	get_options: function(){
