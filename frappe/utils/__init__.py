@@ -479,3 +479,46 @@ def sanitize_email(emails):
 		sanitized.append(formataddr((fullname, email_id)))
 
 	return ", ".join(sanitized)
+
+def get_site_info():
+	import json
+
+	name, domain = get_company_info()
+	wizard_completed = get_setup_wizard_completion()
+	users = get_users_for_site()
+
+	site_info = {
+		'name': name,
+		'domain': domain,
+		'wizard_completed': wizard_completed,
+		'users': users
+	}
+
+	return site_info
+
+def get_company_info():
+	'''Returns information related to company like name, domain etc.'''
+	from frappe.boot import get_bootinfo
+
+	# Impossible situation, but still to safe, check whether ERPNext is installed on the site.
+	if 'erpnext' not in get_bootinfo().versions:
+		return '', ''
+
+	companies = frappe.get_all("Company", order_by="creation asc")
+	if companies:
+		company_name = companies[0].name
+
+	domain = frappe.db.get_value("Company", company_name, "domain")
+
+	return company_name, domain
+
+def get_setup_wizard_completion():
+	'''Returns whether setup wizard was completed for the site'''
+	if frappe.db.get_default('desktop:home_page') == 'desktop':
+		return True
+
+	return False
+
+def get_users_for_site():
+	'''Returns all the users for a given site'''
+	return frappe.get_all('User', ['first_name', 'last_name', 'user_type', 'email', 'enabled'])
