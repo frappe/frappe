@@ -355,8 +355,7 @@ class EmailAccount(Document):
 				reference_name = communication.reference_name,
 				message_id = communication.name,
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
-				unsubscribe_message = _("Leave this conversation"),
-				bulk=True)
+				unsubscribe_message = _("Leave this conversation"))
 
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""
@@ -398,7 +397,7 @@ def notify_unreplied():
 					# if status is still open
 					frappe.sendmail(recipients=email_account.get_unreplied_notification_emails(),
 						content=comm.content, subject=comm.subject, doctype= comm.reference_doctype,
-						name=comm.reference_name, bulk=True)
+						name=comm.reference_name)
 
 				# update flag
 				comm.db_set("unread_notification_sent", 1)

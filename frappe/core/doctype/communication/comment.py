@@ -104,8 +104,7 @@ def notify_mentions(doc):
 			recipients=recipients,
 			sender=frappe.session.user,
 			subject=subject,
-			message=message,
-			bulk=True
+			message=message
 		)
 
 def get_comments_from_parent(doc):

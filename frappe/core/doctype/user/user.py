@@ -189,19 +189,21 @@ class User(Document):
 			(self.first_name and " " or '') + (self.last_name or '')
 
 	def password_reset_mail(self, link):
-		self.send_login_mail(_("Password Reset"), "templates/emails/password_reset.html", {"link": link})
+		self.send_login_mail(_("Password Reset"),
+			"templates/emails/password_reset.html", {"link": link}, now=True)
 
 	def password_update_mail(self, password):
-		self.send_login_mail(_("Password Update"), "templates/emails/password_update.html", {"new_password": password})
+		self.send_login_mail(_("Password Update"),
+			"templates/emails/password_update.html", {"new_password": password}, now=True)
 
 	def send_welcome_mail_to_user(self):
-		from frappe.utils import random_string, get_url
+		from frappe.utils import get_url
 
 		link = self.reset_password()
 		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
 			{"link": link, "site_url": get_url()})
 
-	def send_login_mail(self, subject, template, add_args):
+	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
 		from frappe.utils.user import get_user_fullname
 		from frappe.utils import get_url
@@ -226,7 +228,8 @@ class User(Document):
 		sender = frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
-			message=frappe.get_template(template).render(args), as_bulk=self.flags.delay_emails)
+			message=frappe.get_template(template).render(args),
+			delayed=now if now!=None else self.flags.delay_emails)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
@@ -607,7 +610,7 @@ def notifify_admin_access_to_system_manager(login_manager=None):
 		)
 
 		frappe.sendmail(recipients=get_system_managers(), subject=_("Administrator Logged In"),
-			message=message, bulk=True)
+			message=message)
 
 def extract_mentions(txt):
 	"""Find all instances of @username in the string.

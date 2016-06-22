@@ -124,7 +124,7 @@ doc_events = {
 
 scheduler_events = {
 	"all": [
-		"frappe.email.bulk.flush",
+		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.error.collect_error_snapshots",
@@ -132,7 +132,7 @@ scheduler_events = {
 		'frappe.model.utils.list_settings.sync_list_settings'
 	],
 	"daily": [
-		"frappe.email.bulk.clear_outbox",
+		"frappe.email.queue.clear_outbox",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
