@@ -99,7 +99,7 @@ doc_events = {
 	"User": {
 		"validate": "frappe.utils.user.validate_user_limit"
 	},
-	"Bulk Email": {
+	"Email Queue": {
 		"on_trash": "frappe.email.bulk.prevent_bulk_email_delete"
 	},
 	"*": {

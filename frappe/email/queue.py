@@ -338,4 +338,4 @@ def clear_outbox():
 def prevent_bulk_email_delete(doc, method):
 	from frappe.limits import get_limits
 	if frappe.session.user != 'Administrator' and get_limits().get('block_bulk_email_delete'):
-		frappe.throw(_('Only Administrator can delete Bulk Email'))
+		frappe.throw(_('Only Administrator can delete Email Queue'))
