@@ -125,7 +125,11 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	html = frappe.get_template(context.template).render(context)
+
+	if context.source:
+		html = frappe.render_template(context.source, context)
+	elif context.template:
+		html = frappe.get_template(context.template).render(context)
 
 	# html = frappe.get_template(context.base_template_path).render(context)
 

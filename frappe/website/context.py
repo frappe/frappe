@@ -26,13 +26,18 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
+	# print frappe.as_json(context)
+
 	return context
 
 def build_context(context):
-	"""get_context method of doc or module is supposed to render content templates and push it into context"""
+	"""get_context method of doc or module is supposed to render
+		content templates and push it into context"""
 	context = frappe._dict(context)
+
 	if not "url_prefix" in context:
 		context.url_prefix = ""
+
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
@@ -92,7 +97,7 @@ def add_sidebar_data(context):
 		if item.reference_doctype:
 			try:
 				item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
-			
+
 			except frappe.PermissionError:
 				pass
 

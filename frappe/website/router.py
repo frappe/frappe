@@ -89,41 +89,142 @@ def get_page_context_from_doctypes():
 	return routes
 
 def get_pages():
-	pages = frappe.cache().get_value("_website_pages")
+	pages = frappe.cache().get_value("_website_pages") if can_cache() else []
+
 	if not pages:
 		pages = []
 		for app in frappe.get_installed_apps():
 			app_path = frappe.get_app_path(app)
+
+			# old
 			path = os.path.join(app_path, "templates", "pages")
-			if os.path.exists(path):
-				for fname in os.listdir(path):
-					fname = frappe.utils.cstr(fname)
-					page_name, extn = fname.rsplit(".", 1)
-					if extn in ("html", "xml", "js", "css"):
-						route_page_name = page_name if extn=="html" else fname
+			pages += get_pages_from_path(path, app, app_path)
 
-						# add website route
-						route = frappe._dict()
-						route.page_or_generator = "Page"
-						route.template = os.path.relpath(os.path.join(path, fname), app_path)
-						route.name = route.page_name = route_page_name
-						controller_path = os.path.join(path, page_name.replace("-", "_") + ".py")
-
-						if os.path.exists(controller_path):
-							controller = app + "." + os.path.relpath(controller_path,
-								app_path).replace(os.path.sep, ".")[:-3]
-							route.controller = controller
-
-							for fieldname in ("page_title", "no_sitemap"):
-								try:
-									route[fieldname] = frappe.get_attr(controller + "." + fieldname)
-								except AttributeError:
-									pass
-
-						pages.append(route)
+			# new
+			path = os.path.join(app_path, "www")
+			pages += get_pages_from_path(path, app, app_path)
 
 		frappe.cache().set_value("_website_pages", pages)
 	return pages
+
+def get_pages_from_path(path, app, app_path):
+	pages = []
+	if os.path.exists(path):
+		for basepath, folders, files in os.walk(path):
+			# add missing __init__.py
+			if not '__init__.py' in files:
+				open(os.path.join(basepath, '__init__.py'), 'a').close()
+
+			for fname in files:
+				fname = frappe.utils.cstr(fname)
+				page_name, extn = fname.rsplit(".", 1)
+				if extn in ('js', 'css') and os.path.exists(os.path.join(basepath, fname + '.html')):
+					# js, css is linked to html, skip
+					continue
+
+				if extn in ("html", "xml", "js", "css", "md"):
+					pages.append(get_page_info(path, basepath, app, app_path, fname))
+					# print frappe.as_json(pages[-1])
+
+	return pages
+
+def get_page_info(path, basepath, app, app_path, fname):
+	'''Load page info'''
+	page_name, extn = fname.rsplit(".", 1)
+
+	# add website route
+	page_info = frappe._dict()
+
+	page_info.basename = page_name if extn in ('html', 'md') else fname
+	page_info.page_or_generator = "Page"
+
+	page_info.template = os.path.relpath(os.path.join(basepath, fname), app_path)
+
+	if page_info.basename == 'index' and basepath != path:
+		page_info.basename = ''
+
+	page_info.name = page_info.page_name = os.path.join(os.path.relpath(basepath, path),
+		page_info.basename).strip('/').strip('.').strip('/')
+
+	page_info.controller_path = os.path.join(basepath, page_name.replace("-", "_") + ".py")
+
+	# get the source
+	page_info.source = get_source(page_info, basepath)
+
+	# extract properties from HTML comments
+	if page_info.only_content:
+		load_properties(page_info)
+
+	# controller
+	controller = app + "." + os.path.relpath(page_info.controller_path,
+		app_path).replace(os.path.sep, ".")[:-3]
+	page_info.controller = controller
+
+	return page_info
+
+
+def get_source(page_info, basepath):
+	'''Get the HTML source of the template'''
+	from markdown2 import markdown
+	jenv = frappe.get_jenv()
+	source = jenv.loader.get_source(jenv, page_info.template)[0]
+	html = ''
+
+	if page_info.template.endswith('.md'):
+		source = markdown(source)
+
+	# if only content
+	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
+		if ('</body>' not in source) and ('{% block' not in source):
+			page_info.only_content = True
+			js, css = '', ''
+
+			js_path = os.path.join(basepath, page_info.basename + '.js')
+			if os.path.exists(js_path):
+				js = unicode(open(js_path, 'r').read(), 'utf-8')
+
+			css_path = os.path.join(basepath, page_info.basename + '.css')
+			if os.path.exists(css_path):
+				js = unicode(open(css_path, 'r').read(), 'utf-8')
+
+			html = '{% extends "templates/web.html" %}'
+
+			if css:
+				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
+
+			html += '\n{% block page_content %}\n' + source + '\n{% endblock %}'
+
+			if js:
+				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
+		else:
+			html = source
+
+	return html
+
+def load_properties(page_info):
+	'''Load properties like no_cache, title from raw'''
+	import re
+	if "<!-- title:" in page_info.source:
+		page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
+	else:
+		page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
+
+	if not '{% block title %}' in page_info.source:
+		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
+
+	if "<!-- no-breadcrumbs -->" in page_info.source:
+		page_info.no_breadcrumbs = 1
+
+	if "<!-- no-header -->" in page_info.source:
+		page_info.no_header = 1
+	else:
+		# every page needs a header
+		# add missing header if there is no <h1> tag
+		if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
+			page_info.source += '\n{% block header %}<h1>' + page_info.title + '</h1>{% endblock %}'
+
+	if "<!-- no-cache -->" in page_info.source:
+		page_info.no_cache = 1
 
 def process_generators(func):
 	for app in frappe.get_installed_apps():

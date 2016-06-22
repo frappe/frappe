@@ -14,7 +14,7 @@ import importlib
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
-from frappe.website import render, statics
+from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.utils.password import create_auth_table
 
@@ -208,7 +208,6 @@ def remove_app(app_name, dry_run=False):
 def post_install(rebuild_website=False):
 	if rebuild_website:
 		render.clear_cache()
-		statics.sync().start()
 
 	init_singles()
 	frappe.db.commit()

@@ -65,35 +65,6 @@ def destroy_all_sessions(context):
 		finally:
 			frappe.destroy()
 
-@click.command('sync-www')
-@click.option('--force', help='Rebuild all pages', is_flag=True, default=False)
-@pass_context
-def sync_www(context, force=False):
-	"Sync files from static pages from www directory to Web Pages"
-	from frappe.website import statics
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			statics.sync_statics(rebuild=force)
-			frappe.db.commit()
-		finally:
-			frappe.destroy()
-
-@click.command('build-website')
-@pass_context
-def build_website(context):
-	"Sync statics and clear cache"
-	from frappe.website import render, statics
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			render.clear_cache()
-			statics.sync(verbose=context.verbose).start(rebuild=True)
-			frappe.db.commit()
-		finally:
-			frappe.destroy()
 
 @click.command('reset-perms')
 @pass_context
@@ -409,7 +380,6 @@ def get_version():
 
 commands = [
 	build,
-	build_website,
 	clear_cache,
 	clear_website_cache,
 	console,
@@ -429,7 +399,6 @@ commands = [
 	run_tests,
 	serve,
 	set_config,
-	sync_www,
 	watch,
 	_bulk_rename,
 	add_to_email_queue,

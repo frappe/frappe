@@ -2,9 +2,9 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re, os, json, imp
+import frappe, re
 import requests, requests.exceptions
-from frappe.utils import strip_html, markdown
+from frappe.utils import strip_html
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
@@ -26,9 +26,6 @@ class WebPage(WebsiteGenerator):
 		return self.title
 
 	def validate(self):
-		if self.template_path and not getattr(self, "from_website_sync"):
-			frappe.throw(frappe._("Cannot edit templated page"))
-
 		# avoid recursive parent_web_page.
 		if self.parent_web_page == self.page_name:
 			self.parent_web_page = ""
@@ -48,33 +45,19 @@ class WebPage(WebsiteGenerator):
 		context.children = self.get_children()
 		context.parents = self.get_parents(context)
 
-		if self.template_path:
-			# render dynamic context (if .py file exists)
+		context.update({
+			"style": self.css or "",
+			"script": self.javascript or "",
+			"header": self.header,
+			"title": self.title,
+			"text_align": self.text_align,
+		})
 
-			# get absolute template path considering first fragment as app name
-			if not self.template_path.startswith(os.sep):
-				split_path = self.template_path.split(os.sep)
+		if self.description:
+			context.setdefault("metatags", {})["description"] = self.description
 
-				self.template_path = os.path.join(frappe.get_app_path(split_path[0]), *split_path[1:])
-
-			context = self.get_dynamic_context(frappe._dict(context))
-
-			# load content from template
-			self.get_static_content(context)
-		else:
-			context.update({
-				"style": self.css or "",
-				"script": self.javascript or "",
-				"header": self.header,
-				"title": self.title,
-				"text_align": self.text_align,
-			})
-
-			if self.description:
-				context.setdefault("metatags", {})["description"] = self.description
-
-			if not self.show_title:
-				context["no_header"] = 1
+		if not self.show_title:
+			context["no_header"] = 1
 
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
@@ -183,60 +166,11 @@ class WebPage(WebsiteGenerator):
 			context.main_section = parts1[0] + parts2[1]
 			context.hero = parts2[0]
 
-	def get_static_content(self, context):
-		with open(self.template_path, "r") as contentfile:
-			context.main_section = unicode(contentfile.read(), 'utf-8')
-
-			self.check_for_redirect(context)
-
-			if not context.title:
-				context.title = self.name.replace("-", " ").replace("_", " ").title()
-
-			self.render_dynamic(context)
-
-			if self.template_path.endswith(".md"):
-				if context.main_section:
-					lines = context.main_section.splitlines()
-					first_line = lines[0].strip()
-
-					if first_line.startswith("# "):
-						context.title = first_line[2:]
-						context.main_section = "\n".join(lines[1:])
-
-					context.main_section = markdown(context.main_section, sanitize=False)
-
-		for extn in ("js", "css"):
-			fpath = self.template_path.rsplit(".", 1)[0] + "." + extn
-			if os.path.exists(fpath):
-				with open(fpath, "r") as f:
-					context["style" if extn=="css" else "script"] = f.read()
-
 	def check_for_redirect(self, context):
 		if "<!-- redirect:" in context.main_section:
 			frappe.local.flags.redirect_location = \
 				context.main_section.split("<!-- redirect:")[1].split("-->")[0].strip()
 			raise frappe.Redirect
-
-	def get_dynamic_context(self, context):
-		"update context from `.py` and load sidebar from `_sidebar.json` if either exists"
-		basename = os.path.basename(self.template_path).rsplit(".", 1)[0]
-		module_path = os.path.join(os.path.dirname(self.template_path),
-			frappe.scrub(basename) + ".py")
-
-		if os.path.exists(module_path):
-			module = imp.load_source(basename, module_path)
-			if hasattr(module, "get_context"):
-				ret = module.get_context(context)
-				if ret:
-					context = ret
-
-		# sidebar?
-		sidebar_path = os.path.join(os.path.dirname(self.template_path), "_sidebar.json")
-		if os.path.exists(sidebar_path):
-			with open(sidebar_path, "r") as f:
-				context.children = json.loads(f.read())
-
-		return context
 
 	def set_metatags(self, context):
 		context.metatags = {
