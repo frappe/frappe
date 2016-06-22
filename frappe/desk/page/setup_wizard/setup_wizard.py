@@ -10,6 +10,7 @@ from frappe.translate import (set_default_language, get_dict,
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
+from werkzeug.useragents import UserAgent
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -146,3 +147,75 @@ def load_languages():
 		"default_language": get_language_from_code(frappe.local.lang),
 		"languages": sorted(get_lang_dict().keys())
 	}
+
+
+def prettify_args(args):
+	# remove attachments
+	for key, val in args.items():
+		if isinstance(val, basestring) and "data:image" in val:
+			filename = val.split("data:image", 1)[0].strip(", ")
+			size = round((len(val) * 3 / 4) / 1048576.0, 2)
+			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
+
+	pretty_args = []
+	for key in sorted(args):
+		pretty_args.append("{} = {}".format(key, args[key]))
+	return pretty_args
+
+def email_setup_wizard_exception(traceback, args):
+	from frappe.limits import get_limits
+	frappe_limits = get_limits()
+
+	if not frappe_limits.get('setup_wizard_exception_email'):
+		return
+
+	pretty_args = prettify_args(args)
+
+	if frappe.local.request:
+		user_agent = UserAgent(frappe.local.request.headers.get('User-Agent', ''))
+
+	else:
+		user_agent = frappe._dict()
+
+	message = """
+#### Basic Information
+
+- **Site:** {site}
+- **User:** {user}
+- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
+- **Browser Languages**: `{accept_languages}`
+
+---
+
+#### Traceback
+
+<pre>{traceback}</pre>
+
+---
+
+#### Setup Wizard Arguments
+
+<pre>{args}</pre>
+
+---
+
+#### Request Headers
+
+<pre>{headers}</pre>""".format(
+		site=frappe.local.site,
+		traceback=traceback,
+		args="\n".join(pretty_args),
+		user=frappe.session.user,
+		user_agent=user_agent,
+		headers=frappe.local.request.headers,
+		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
+
+	frappe.sendmail(recipients=frappe_limits.get('setup_wizard_exception_email'),
+		sender=frappe.session.user,
+		subject="Exception in Setup Wizard - {}".format(frappe.local.site),
+		message=message)
+
+
+def set_setup_complete(*args):
+	from frappe.limits import set_limits
+	set_limits({'setup_complete' : 1 , 'creation': frappe.utils.today()})

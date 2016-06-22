@@ -353,7 +353,7 @@ def set_limit(context, site, limit, value):
 		else:
 			limit += '_limit'
 			# Space can be float, while other should be integers
-			val = float(value) if limit == 'space_limit' else int(value)
+			value = float(value) if limit == 'space_limit' else int(value)
 
 		set_limits({limit : value})
 

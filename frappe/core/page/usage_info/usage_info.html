@@ -1,6 +1,10 @@
-<div class="padding" style="max-width: 500px;">
-    <h3>Users</h3>
+<div class="padding" style="max-width: 800px;">
+
+    {% if user_limit %}
     {% var users_percent = ((users / user_limit) * 100); %}
+    <h3>Users</h3>
+
+
     <div class="progress">
         <div class="progress-bar progress-bar-{%= (users_percent < 75 ? "success" : "warning") %}" style="width: {{ users_percent }}%">
         </div>
@@ -23,6 +27,70 @@
         </tbody>
     </table>
     <br>
+    {% endif %}
+
+
+
+    {% if expiry %}
+    <h3>Expiration</h3>
+    {% var days_remaining = total_days - used_days %}
+    {% var date_percent = (( used_days / total_days) * 100); %}
+
+    <div class="progress">
+        <div class="progress-bar progress-bar-{%= (date_percent < 75 ? "success" : "warning") %}" style="width: {{ date_percent }}%">
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 33%">Creation Date</th>
+                <th style="width: 33%">Expiry Date</th>
+                <th style="width: 33%">Days Remaining</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{%= creation %}</td>
+                <td>{%= expiry %}</td>
+                <td class="{%= (days_remaining < 10) ? "text-success" : "text-warning" %}">{%= days_remaining %}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    {% endif %}
+
+
+    {% if email_limit %}
+    <h3>Emails</h3>
+
+    {% var email_percent = (( bulk_count / email_limit ) * 100); %}
+    {% var emails_remaining = (email_limit - bulk_count) %}
+
+    <div class="progress">
+        <div class="progress-bar progress-bar-{%= (email_percent < 75 ? "success" : "warning") %}" style="width: {{ email_percent }}%">
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 33%">Emails Used</th>
+                <th style="width: 33%">Total Emails</th>
+                <th style="width: 33%">Emails Left</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{%= bulk_count %}</td>
+                <td>{%= email_limit %}</td>
+                <td class="{%= (emails_remaining < 100) ? "text-success" : "text-warning" %}">{%= emails_remaining %}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    {% endif %}
+
     <h3>Disk Space</h3>
 
     {% var database_percent = ((database_size / max) * 100); %}
@@ -61,11 +129,15 @@
                 <td><b>Total</b></td>
                 <td><b>{%= total %} MB</b></td>
             </tr>
+            {% if max %}
             <tr>
                 <td><b>Available</b></td>
                 <td class="{%= ((max - total) > 50) ? "" : "text-warning" %}">
                     <b>{%= flt(max - total, 2) %} MB</b></td>
             </tr>
+            {% endif %}
+
         </tbody>
     </table>
+
 </div>
