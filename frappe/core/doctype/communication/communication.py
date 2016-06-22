@@ -161,7 +161,7 @@ class Communication(Document):
 
 	def notify(self, print_html=None, print_format=None, attachments=None,
 		recipients=None, cc=None, fetched_from_email_account=False):
-		"""Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue
+		"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 		:param print_html: Send given value as HTML attachment
 		:param print_format: Attach print format of parent document
@@ -193,9 +193,9 @@ class Communication(Document):
 				frappe.local.flags.commit = True
 
 	def set_delivery_status(self, commit=False):
-		'''Look into the status of Bulk Email linked to this Communication and set the Delivery Status of this Communication'''
+		'''Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication'''
 		delivery_status = None
-		status_counts = Counter(frappe.db.sql_list('''select status from `tabBulk Email` where communication=%s''', self.name))
+		status_counts = Counter(frappe.db.sql_list('''select status from `tabEmail Queue` where communication=%s''', self.name))
 
 		if status_counts.get('Not Sent') or status_counts.get('Sending'):
 			delivery_status = 'Sending'

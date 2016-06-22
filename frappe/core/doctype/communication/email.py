@@ -8,7 +8,7 @@ from email.utils import formataddr, parseaddr
 from frappe.utils import (get_url, get_formatted_email, cint,
 	validate_email_add, split_emails, time_diff_in_seconds)
 from frappe.utils.file_manager import get_file
-from frappe.email.bulk import check_bulk_limit
+from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 import frappe.email.smtp
 import MySQLdb
@@ -89,7 +89,7 @@ def validate_email(doc):
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
-	"""Calls a delayed task 'sendmail' that enqueus email in Bulk Email queue
+	"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 	:param print_html: Send given value as HTML attachment
 	:param print_format: Attach print format of parent document
@@ -109,7 +109,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 		doc._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc)
 	else:
-		check_bulk_limit(list(set(doc.sent_email_addresses)))
+		check_email_limit(list(set(doc.sent_email_addresses)))
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
 			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
@@ -133,7 +133,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		attachments=doc.attachments,
 		message_id=doc.name,
 		unsubscribe_message=_("Leave this conversation"),
-		bulk=True,
+		delayed=True,
 		communication=doc.name
 	)
 
@@ -191,7 +191,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 
 	:param print_html: Send given value as HTML attachment.
 	:param print_format: Attach print format of parent document."""
-	
+
 	view_link = frappe.utils.cint(frappe.db.get_value("Print Settings", "Print Settings", "attach_view_link"))
 
 	if print_format and view_link:

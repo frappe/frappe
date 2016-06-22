@@ -32,7 +32,7 @@ class EmailAlert(Document):
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
 	def validate_forbidden_types(self):
-		forbidden_document_types = ("Bulk Email",)
+		forbidden_document_types = ("Email Queue",)
 		if (self.document_type in forbidden_document_types
 			or frappe.get_meta(self.document_type).istable):
 			# currently email alerts don't work on child tables as events are not fired for each record of child table
@@ -151,8 +151,7 @@ def evaluate_alert(doc, alert, event):
 		subject = frappe.render_template(alert.subject, context)
 
 	frappe.sendmail(recipients=recipients, subject=subject,
-		message= frappe.render_template(alert.message, context),
-		bulk=True, reference_doctype = doc.doctype, reference_name = doc.name,
+		message= frappe.render_template(alert.message, context), reference_doctype = doc.doctype, reference_name = doc.name,
 		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)
 
 def get_context(doc):

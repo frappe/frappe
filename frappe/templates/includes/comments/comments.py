@@ -49,7 +49,7 @@ def add_comment(args=None):
 	message += "<p><a href='{0}/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 		page_name, _("View it in your browser"))
 
-	from frappe.email.bulk import send
+	from frappe.email.queue import send
 
 	send(recipients=recipients,
 		subject = _("New comment on {0} {1}").format(doc.doctype, doc.name),

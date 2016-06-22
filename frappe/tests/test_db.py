@@ -26,4 +26,4 @@ class TestDB(unittest.TestCase):
 
 	def test_multiple_queries(self):
 		# implicit commit
-		self.assertRaises(frappe.SQLError, frappe.db.sql, """select name from `tabUser`; truncate `tabBulk Email`""")
+		self.assertRaises(frappe.SQLError, frappe.db.sql, """select name from `tabUser`; truncate `tabEmail Queue`""")

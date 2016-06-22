@@ -1,1 +1,0 @@
-Emails to be sent asynchronously via the scheduler. Emails remain in Bulk Email for a month before they are deleted (to check mail quotas)

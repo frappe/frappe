@@ -14,13 +14,13 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
-class BulkLimitCrossedError(frappe.ValidationError): pass
+class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=False, bulk_priority=1, communication=None):
-	"""Add email to sending queue (Bulk Email)
+		expose_recipients=False, send_priority=1, communication=None):
+	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
 	:param sender: Email sender.
@@ -28,18 +28,18 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param message: Email message.
 	:param reference_doctype: Reference DocType of caller document.
 	:param reference_name: Reference name of caller document.
-	:param bulk_priority: Priority for bulk email, default 1.
-	:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.bulk.unsubscribe`.
+	:param send_priority: Priority for Email Queue, default 1.
+	:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.queue.unsubscribe`.
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
-	:param communication: Communication link to be set in Bulk Email record
+	:param communication: Communication link to be set in Email Queue record
 	"""
 	if not unsubscribe_method:
-		unsubscribe_method = "/api/method/frappe.email.bulk.unsubscribe"
+		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
 
 	if not recipients:
 		return
@@ -54,7 +54,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
 
-	check_bulk_limit(recipients)
+	check_email_limit(recipients)
 
 	formatted = get_formatted_html(subject, message, email_account=email_account)
 
@@ -104,15 +104,15 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, bulk_priority, email_account=email_account, communication=communication)
+			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, in_reply_to=None, send_after=None, bulk_priority=1, email_account=None, communication=None):
-	"""add to bulk mail queue"""
-	e = frappe.new_doc('Bulk Email')
+	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None):
+	"""Add to Email Queue"""
+	e = frappe.new_doc('Email Queue')
 	e.recipient = email
-	e.priority = bulk_priority
+	e.priority = send_priority
 
 	try:
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
@@ -137,8 +137,8 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.send_after = send_after
 	e.insert(ignore_permissions=True)
 
-def check_bulk_limit(recipients):
-	# if using settings from site_config.json, check bulk limit
+def check_email_limit(recipients):
+	# if using settings from site_config.json, check email limit
 	# No limit for own email settings
 	smtp_server = SMTPServer()
 
@@ -147,14 +147,14 @@ def check_bulk_limit(recipients):
 		or frappe.flags.in_test):
 
 		# get count of mails sent this month
-		this_month = frappe.db.sql("""select count(name) from `tabBulk Email` where
+		this_month = frappe.db.sql("""select count(name) from `tabEmail Queue` where
 			status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
 
-		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
+		monthly_email_limit = frappe.conf.get('monthly_email_limit') or 500
 
-		if (this_month + len(recipients)) > monthly_bulk_mail_limit:
-			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_bulk_mail_limit),
-				BulkLimitCrossedError)
+		if (this_month + len(recipients)) > monthly_email_limit:
+			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_email_limit),
+				EmailLimitCrossedError)
 
 def get_unsubscribe_link(reference_doctype, reference_name,
 	email, recipients, expose_recipients, show_as_cc,
@@ -241,21 +241,21 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	# additional check
-	check_bulk_limit([])
+	check_email_limit([])
 
 	auto_commit = not from_test
 	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	frappe.db.sql("""update `tabBulk Email` set status='Expired'
+	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
 		where datediff(curdate(), creation) > 7 and status='Not Sent'""", auto_commit=auto_commit)
 
 	smtpserver = SMTPServer()
 
 	for i in xrange(500):
 		# don't use for update here, as it leads deadlocks
-		email = frappe.db.sql('''select * from `tabBulk Email`
+		email = frappe.db.sql('''select * from `tabEmail Queue`
 			where status='Not Sent' and (send_after is null or send_after < %(now)s)
 			order by priority desc, creation asc
 			limit 1''', { 'now': now_datetime() }, as_dict=True)
@@ -272,15 +272,15 @@ def flush(from_test=False):
 		# 	frappe.db.commit()
 
 def send_one(email, smtpserver=None, auto_commit=True, now=False):
-	'''Send bulk email with given smtpserver'''
+	'''Send Email Queue with given smtpserver'''
 
-	status = frappe.db.sql('''select status from `tabBulk Email` where name=%s for update''', email.name)[0][0]
+	status = frappe.db.sql('''select status from `tabEmail Queue` where name=%s for update''', email.name)[0][0]
 	if status != 'Not Sent':
 		# rollback to release lock and return
 		frappe.db.rollback()
 		return
 
-	frappe.db.sql("""update `tabBulk Email` set status='Sending', modified=%s where name=%s""",
+	frappe.db.sql("""update `tabEmail Queue` set status='Sending', modified=%s where name=%s""",
 		(now_datetime(), email.name), auto_commit=auto_commit)
 
 	if email.communication:
@@ -292,7 +292,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			smtpserver.setup_email_account(email.reference_doctype)
 			smtpserver.sess.sendmail(email.sender, email.recipient, encode(email.message))
 
-		frappe.db.sql("""update `tabBulk Email` set status='Sent', modified=%s where name=%s""",
+		frappe.db.sql("""update `tabEmail Queue` set status='Sent', modified=%s where name=%s""",
 			(now_datetime(), email.name), auto_commit=auto_commit)
 
 		if email.communication:
@@ -305,7 +305,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			JobTimeoutException):
 
 		# bad connection/timeout, retry later
-		frappe.db.sql("""update `tabBulk Email` set status='Not Sent', modified=%s where name=%s""",
+		frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s where name=%s""",
 			(now_datetime(), email.name), auto_commit=auto_commit)
 
 		if email.communication:
@@ -317,7 +317,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	except Exception, e:
 		frappe.db.rollback()
 
-		frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s
+		frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
 			where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 		if email.communication:
@@ -328,14 +328,14 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 
 		else:
 			# log to scheduler log
-			log('frappe.email.bulk.flush', unicode(e))
+			log('frappe.email.queue.flush', unicode(e))
 
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
-	frappe.db.sql("""delete from `tabBulk Email` where
+	frappe.db.sql("""delete from `tabEmail Queue` where
 		datediff(now(), creation) > 31""")
 
-def prevent_bulk_email_delete(doc, method):
+def prevent_email_queue_delete(doc, method):
 	from frappe.limits import get_limits
 	if frappe.session.user != 'Administrator' and get_limits().get('block_bulk_email_delete'):
-		frappe.throw(_('Only Administrator can delete Bulk Email'))
+		frappe.throw(_('Only Administrator can delete Email Queue'))

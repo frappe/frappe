@@ -1,4 +1,7 @@
-frappe.ui.form.on("Bulk Email", {
+// Copyright (c) 2016, Frappe Technologies and contributors
+// For license information, please see license.txt
+
+frappe.ui.form.on("Email Queue", {
 	refresh: function(frm) {
 		if (frm.doc.status==="Not Sent") {
 			frm.add_custom_button("Send Now", function() {

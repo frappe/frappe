@@ -131,7 +131,6 @@ def _notify(contact, txt, subject=None):
 				"from": get_fullname(frappe.session.user),
 				"message": txt,
 				"link": get_url()
-			}),
-			bulk=True)
+			}))
 	except frappe.OutgoingEmailError:
 		pass

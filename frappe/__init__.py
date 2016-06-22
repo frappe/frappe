@@ -7,7 +7,6 @@ globals attached to frappe module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-from functools import wraps
 import os, importlib, inspect, json
 
 # public
@@ -252,7 +251,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	"""
-	from utils import cstr, encode
+	from utils import encode
 
 	out = _dict(message=msg)
 
@@ -355,11 +354,11 @@ def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
-		as_markdown=False, bulk=False, reference_doctype=None, reference_name=None,
+		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False,
-		bulk_priority=1, communication=None):
+		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
+		send_priority=1, communication=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -368,8 +367,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param subject: Email Subject.
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
-	:param bulk: Send via scheduled email sender **Bulk Email**. Don't send immediately.
-	:param bulk_priority: Priority for bulk email, default 1.
+	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
+	:param send_priority: Priority for Email Queue, default 1.
 	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
 	:param reference_name: (or `name`) Append as communication to this document name.
 	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
@@ -380,17 +379,17 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
-	:param communication: Communication link to be set in Bulk Email record
+	:param communication: Communication link to be set in Email Queue record
 	"""
 
-	if bulk or as_bulk:
-		import frappe.email.bulk
-		frappe.email.bulk.send(recipients=recipients, sender=sender,
+	if delayed:
+		import frappe.email.queue
+		frappe.email.queue.send(recipients=recipients, sender=sender,
 			subject=subject, message=content or message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
-			send_after=send_after, expose_recipients=expose_recipients, bulk_priority=bulk_priority, communication=communication)
+			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
 	else:
 		import frappe.email
 		if as_markdown:
@@ -918,7 +917,6 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
 	import copy
-	from frappe.model import optional_fields, default_fields
 
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):

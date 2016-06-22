@@ -35,7 +35,7 @@ def check_if_expired():
 	# if expired, stop user from logging in
 	expires_on = formatdate(get_limits().get("expiry"))
 	support_email = get_limits().get("support_email") or _("your provider")
-	
+
 	frappe.throw(_("""Your subscription expired on {0}.
 		To extend please send an email to {1}""").format(expires_on, support_email),
 		SiteExpiredError)
@@ -72,7 +72,7 @@ def get_expiry_message():
 def get_limits():
 	limits = frappe.get_conf().get("limits") or {}
 	day = frappe.utils.add_months(frappe.utils.today(), -1)
-	limits["bulk_count"] = frappe.db.count("Bulk Email", filters={'creation': ['>', day]})
+	limits["emails_sent"] = frappe.db.count("Email Queue", filters={'creation': ['>', day]})
 	return limits
 
 
