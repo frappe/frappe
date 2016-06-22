@@ -72,7 +72,7 @@ def get_expiry_message():
 def get_limits():
 	limits = frappe.get_conf().get("limits") or {}
 	day = frappe.utils.add_months(frappe.utils.today(), -1)
-	limits["bulk_count"] = frappe.db.count("Email Queue", filters={'creation': ['>', day]})
+	limits["emails_sent"] = frappe.db.count("Email Queue", filters={'creation': ['>', day]})
 	return limits
 
 

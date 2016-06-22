@@ -367,7 +367,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param subject: Email Subject.
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
-	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately.
+	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
 	:param send_priority: Priority for Email Queue, default 1.
 	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
 	:param reference_name: (or `name`) Append as communication to this document name.

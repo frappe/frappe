@@ -335,7 +335,7 @@ def clear_outbox():
 	frappe.db.sql("""delete from `tabEmail Queue` where
 		datediff(now(), creation) > 31""")
 
-def prevent_bulk_email_delete(doc, method):
+def prevent_email_queue_delete(doc, method):
 	from frappe.limits import get_limits
 	if frappe.session.user != 'Administrator' and get_limits().get('block_bulk_email_delete'):
 		frappe.throw(_('Only Administrator can delete Email Queue'))

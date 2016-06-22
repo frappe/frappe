@@ -100,7 +100,7 @@ doc_events = {
 		"validate": "frappe.utils.user.validate_user_limit"
 	},
 	"Email Queue": {
-		"on_trash": "frappe.email.bulk.prevent_bulk_email_delete"
+		"on_trash": "frappe.email.queue.prevent_email_queue_delete"
 	},
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
