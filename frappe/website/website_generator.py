@@ -117,7 +117,7 @@ class WebsiteGenerator(Document):
 						where parent_website_route like %s""".format(self.doctype),
 						(old_route, self.get_route(), now(), frappe.session.user, old_route + "%"))
 
-	def get_route_context(self):
+	def get_page_info(self):
 		route = frappe._dict()
 		route.update({
 			"doc": self,

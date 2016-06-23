@@ -50,61 +50,79 @@ def resolve_route(path):
 		return get_page_context_from_template(path)
 
 def get_page_context_from_template(path):
-	found = filter(lambda p: p.page_name==path, get_pages())
-	return found[0] if found else None
+	'''Return page_info from path'''
+	for app in frappe.get_installed_apps():
+		app_path = frappe.get_app_path(app)
+
+		for start in ('www', 'templates/pages'):
+			search_path = os.path.join(app_path, start, path)
+			options = (search_path, search_path + '.html', search_path + '.md',
+				search_path + '/index.html', search_path + '/index.md')
+			for o in options:
+				if os.path.exists(o) and not os.path.isdir(o):
+					return get_page_info(o, app, app_path=app_path)
+
+	return None
 
 def get_page_context_from_doctype(path):
-	generator_routes = get_page_context_from_doctypes()
-	if path in generator_routes:
-		route = generator_routes[path]
-		return frappe.get_doc(route.get("doctype"), route.get("name")).get_route_context()
+	page_info = get_page_info_from_doctypes(path)
+	if page_info:
+		return frappe.get_doc(page_info.get("doctype"), page_info.get("name")).get_page_info()
 
 def clear_sitemap():
 	delete_page_cache("*")
 
-def get_page_context_from_doctypes():
+def get_all_page_context_from_doctypes():
+	'''Get all doctype generated routes (for sitemap.xml)'''
 	routes = frappe.cache().get_value("website_generator_routes")
 	if not routes:
-		routes = {}
-		for app in frappe.get_installed_apps():
-			for doctype in frappe.get_hooks("website_generators", app_name = app):
-				condition = ""
-				route_column_name = "page_name"
-				controller = get_controller(doctype)
-				meta = frappe.get_meta(doctype)
-
-				if meta.get_field("parent_website_route"):
-					route_column_name = """concat(ifnull(parent_website_route, ""),
-						if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
-
-				if controller.website.condition_field:
-					condition ="where {0}=1".format(controller.website.condition_field)
-
-				for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
-						{2}""".format(route_column_name, doctype, condition), as_dict=True):
-					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
-
+		routes = get_page_info_from_doctypes()
 		frappe.cache().set_value("website_generator_routes", routes)
 
 	return routes
 
+def get_page_info_from_doctypes(path=None):
+	routes = {}
+	for app in frappe.get_installed_apps():
+		for doctype in frappe.get_hooks("website_generators", app_name = app):
+			condition = ""
+			values = []
+			route_column_name = "page_name"
+			controller = get_controller(doctype)
+			meta = frappe.get_meta(doctype)
+
+			if meta.get_field("parent_website_route"):
+				route_column_name = """concat(ifnull(parent_website_route, ""),
+					if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
+
+			if controller.website.condition_field:
+				condition ="where {0}=1".format(controller.website.condition_field)
+
+			if path:
+				condition += ' {0} {1}=%s limit 1'.format(('and' if 'where' in condition else 'where'),
+					route_column_name)
+				values.append(path)
+
+			for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
+					{2}""".format(route_column_name, doctype, condition), values=values, as_dict=True):
+				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+
+				# just want one path, return it!
+				if path:
+					return routes[r.route]
+
+	return routes
+
 def get_pages():
-	pages = frappe.cache().get_value("_website_pages") if can_cache() else []
+	'''Get all pages. Called for docs / sitemap'''
+	pages = []
+	for app in frappe.get_installed_apps():
+		app_path = frappe.get_app_path(app)
 
-	if not pages:
-		pages = []
-		for app in frappe.get_installed_apps():
-			app_path = frappe.get_app_path(app)
-
-			# old
-			path = os.path.join(app_path, "templates", "pages")
+		for start in ('templates/pages', 'www'):
+			path = os.path.join(app_path, start)
 			pages += get_pages_from_path(path, app, app_path)
 
-			# new
-			path = os.path.join(app_path, "www")
-			pages += get_pages_from_path(path, app, app_path)
-
-		frappe.cache().set_value("_website_pages", pages)
 	return pages
 
 def get_pages_from_path(path, app, app_path):
@@ -123,13 +141,22 @@ def get_pages_from_path(path, app, app_path):
 					continue
 
 				if extn in ("html", "xml", "js", "css", "md"):
-					pages.append(get_page_info(path, basepath, app, app_path, fname))
+					pages.append(get_page_info(path, app, basepath, app_path, fname))
 					# print frappe.as_json(pages[-1])
 
 	return pages
 
-def get_page_info(path, basepath, app, app_path, fname):
+def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 	'''Load page info'''
+	if not fname:
+		fname = os.path.basename(path)
+
+	if not app_path:
+		app_path = frappe.get_app_path(app)
+
+	if not basepath:
+		basepath = os.path.dirname(path)
+
 	page_name, extn = fname.rsplit(".", 1)
 
 	# add website route
@@ -140,25 +167,27 @@ def get_page_info(path, basepath, app, app_path, fname):
 
 	page_info.template = os.path.relpath(os.path.join(basepath, fname), app_path)
 
-	if page_info.basename == 'index' and basepath != path:
-		page_info.basename = ''
+	if page_info.basename == 'index':
+		page_info.basename = os.path.dirname(path).strip('.').strip('/')
 
 	page_info.name = page_info.page_name = os.path.join(os.path.relpath(basepath, path),
-		page_info.basename).strip('/').strip('.').strip('/')
+		page_info.basename).strip('.').strip('/')
 
+	# controller
 	page_info.controller_path = os.path.join(basepath, page_name.replace("-", "_") + ".py")
+
+	if os.path.exists(page_info.controller_path):
+		controller = app + "." + os.path.relpath(page_info.controller_path,
+			app_path).replace(os.path.sep, ".")[:-3]
+		page_info.controller = controller
 
 	# get the source
 	page_info.source = get_source(page_info, basepath)
 
-	# extract properties from HTML comments
 	if page_info.only_content:
+		# extract properties from HTML comments
 		load_properties(page_info)
 
-	# controller
-	controller = app + "." + os.path.relpath(page_info.controller_path,
-		app_path).replace(os.path.sep, ".")[:-3]
-	page_info.controller = controller
 
 	return page_info
 

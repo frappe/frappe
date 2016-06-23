@@ -63,7 +63,7 @@ class WebForm(WebsiteGenerator):
 
 	def get_context(self, context):
 		context.show_sidebar=True
-		from frappe.templates.pages.list import get_context as get_list_context
+		from frappe.www.list import get_context as get_list_context
 
 		frappe.local.form_dict.is_web_form = 1
 		context.params = frappe.form_dict
@@ -267,7 +267,7 @@ def check_webform_perm(doctype, name):
 			return True
 
 def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
-	from frappe.templates.pages.list import get_list
+	from frappe.www.list import get_list
 	if not filters:
 		filters = {}
 

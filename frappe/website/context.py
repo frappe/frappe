@@ -87,7 +87,7 @@ def build_context(context):
 
 def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
-	import frappe.templates.pages.list
+	import frappe.www.list
 
 	context.my_account_list = []
 	my_account_list = frappe.get_all('Portal Menu Item',
@@ -96,7 +96,7 @@ def add_sidebar_data(context):
 	for item in my_account_list:
 		if item.reference_doctype:
 			try:
-				item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
+				item.count = len(frappe.www.list.get(item.reference_doctype).get('result'))
 
 			except frappe.PermissionError:
 				pass

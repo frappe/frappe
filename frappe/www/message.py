@@ -27,9 +27,4 @@ def get_context(context):
 			if message.get('http_status_code'):
 				frappe.local.response['http_status_code'] = message['http_status_code']
 
-		else:
-			message_context = {
-				'message': ''
-			}
-
 	return message_context

@@ -1,6 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title or _("Message") }}{% endblock %}
 
 {% block header %}
 	{% if header is defined -%}
@@ -12,7 +12,7 @@
 
 <div class="message-content" style="min-height: 200px;">
 	<div>
-		{{ message }}
+		{{ message or _("No Message") }}
 	</div>
 </div>
 {% endblock %}
