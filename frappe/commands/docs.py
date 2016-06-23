@@ -4,6 +4,28 @@ import os
 import frappe
 from frappe.commands import pass_context
 
+
+@click.command('write-docs')
+@pass_context
+@click.argument('app')
+@click.option('--target', default=None)
+@click.option('--local', default=False, is_flag=True, help='Run app locally')
+def write_docs(context, app, target=None, local=False):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+
+	if not target:
+		target = os.path.abspath(os.path.join("..", "docs", app))
+
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			make = setup_docs(app)
+			make.make_docs(target, local)
+		finally:
+			frappe.destroy()
+
 @click.command('build-docs')
 @pass_context
 @click.argument('app')
@@ -51,5 +73,6 @@ def _build_docs_once(site, app, docs_version, target, local, only_content_update
 		frappe.destroy()
 
 commands = [
-	build_docs
+	build_docs,
+	write_docs,
 ]

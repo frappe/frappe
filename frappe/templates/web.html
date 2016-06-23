@@ -14,9 +14,11 @@
 					<div class="page-content-wrapper">
 						<div class="row page-head">
 							<div class="col-sm-8">
-								{% if not no_breadcrumbs and self.breadcrumbs() %}
+								{% if not no_breadcrumbs and parents %}
 								<div class="page-breadcrumbs">
-									{% block breadcrumbs %}{% endblock %}
+									{% block breadcrumbs %}
+									{% include 'templates/includes/breadcrumbs.html' %}
+									{% endblock %}
 								</div>
 								{% endif %}
 								{% block header %}{% endblock %}

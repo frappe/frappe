@@ -118,7 +118,7 @@ def get_jloader():
 	if not frappe.local.jloader:
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		apps = frappe.get_installed_apps(sort=True)
+		apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 
 		apps.reverse()
 

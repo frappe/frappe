@@ -55,7 +55,9 @@ def get_page_context_from_template(path):
 	for app in frappe.get_installed_apps():
 		app_path = frappe.get_app_path(app)
 
-		for start in ('www', 'templates/pages'):
+		folders = frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
+
+		for start in folders:
 			search_path = os.path.join(app_path, start, path)
 			options = (search_path, search_path + '.html', search_path + '.md',
 				search_path + '/index.html', search_path + '/index.md')
@@ -111,10 +113,14 @@ def get_pages():
 	'''Get all pages. Called for docs / sitemap'''
 	pages = {}
 	frappe.local.flags.in_get_all_pages = True
-	for app in frappe.get_installed_apps():
+
+	folders = frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
+	apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps()
+
+	for app in apps:
 		app_path = frappe.get_app_path(app)
 
-		for start in ('templates/pages', 'www'):
+		for start in folders:
 			path = os.path.join(app_path, start)
 			pages.update(get_pages_from_path(path, app, app_path))
 	frappe.local.flags.in_get_all_pages = False
@@ -166,7 +172,7 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 	page_info.template = os.path.relpath(os.path.join(basepath, fname), app_path)
 
 	if page_info.basename == 'index':
-		page_info.basename = os.path.dirname(path).strip('.').strip('/')
+		page_info.basename = ""
 
 	page_info.route = page_info.name = page_info.page_name = os.path.join(os.path.relpath(basepath, path),
 		page_info.basename).strip('/.')
@@ -180,16 +186,15 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 		page_info.controller = controller
 
 	# get the source
-	page_info.source = get_source(page_info)
+	setup_source(page_info)
 
 	if page_info.only_content:
 		# extract properties from HTML comments
 		load_properties(page_info)
 
-
 	return page_info
 
-def get_source(page_info):
+def setup_source(page_info):
 	'''Get the HTML source of the template'''
 	from markdown2 import markdown
 	jenv = frappe.get_jenv()
@@ -225,46 +230,52 @@ def get_source(page_info):
 		else:
 			html = source
 
+	page_info.source = html
+
 	# show table of contents
 	setup_index(page_info)
 
-	return html
-
 def setup_index(page_info):
+	'''Build page sequence from index.txt'''
+	if page_info.basename=='index':
+		# load index.txt if loading all pages
+		index_txt_path = os.path.join(page_info.basepath, 'index.txt')
+		if os.path.exists(index_txt_path):
+			page_info.index = open(index_txt_path, 'r').read().splitlines()
+
+def make_toc(context, out):
 	'''Insert full index (table of contents) for {index} tag'''
 	from frappe.website.utils import get_full_index
-	if page_info.basename=='index':
-		if frappe.local.flags.in_get_all_pages:
-			# load index.txt if loading all pages
-			index_txt_path = os.path.join(page_info.basepath, 'index.txt')
-			if os.path.exists(index_txt_path):
-				page_info.index = open(index_txt_path, 'r').read().splitlines()
+	if '{index}' in out:
+		html = frappe.get_template("templates/includes/full_index.html").render({
+			"full_index": get_full_index(),
+			"url_prefix": context.url_prefix or "/",
+			"route": context.route
+		})
 
-		elif '\n{index}' in page_info.source:
-			html = frappe.get_template("templates/includes/full_index.html").render({
-				"full_index": get_full_index(),
-				"url_prefix": None
-			})
-			page_info.source.replace('{index}', html)
+		out = out.replace('{index}', html)
 
-	if (not frappe.local.flags.in_get_all_pages) and ('\n{next}' in page_info.source):
+	if '{next}' in out:
 		# insert next link
 		next_item = None
 		children_map = get_full_index()
-		parent_route = os.path.dirname(page_info.route)
+		parent_route = os.path.dirname(context.route)
 		children = children_map[parent_route]
 
 		if parent_route and children:
 			for i, c in enumerate(children):
-				if c.route == page_info.route and i < (len(children) - 1):
+				if c.route == context.route and i < (len(children) - 1):
 					next_item = children[i+1]
+					next_item.url_prefix = context.url_prefix or "/"
 
 		if next_item:
-			html = ('<p class="btn-next-wrapper">'+_("Next")\
-				+': <a class="btn-next" href="{route}.html">{title}</a></p>').format(**next_item)
+			if next_item.route and next_item.title:
+				html = ('<p class="btn-next-wrapper">'+_("Next")\
+					+': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>').format(**next_item)
 
-			page_info.source.replace('{next}', html)
+				out = out.replace('{next}', html)
 
+	return out
 
 
 def load_properties(page_info):

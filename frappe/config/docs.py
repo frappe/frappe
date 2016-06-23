@@ -22,7 +22,7 @@ ERP for managing small and medium sized businesses.
 
 [Get started with the Tutorial](https://frappe.github.io/frappe/user/)
 """
-docs_version = "6.x.x"
+docs_version = "7.x.x"
 
 def get_context(context):
 	context.top_bar_items = [

@@ -8,10 +8,12 @@ from frappe.website.doctype.website_settings.website_settings import get_website
 from frappe.website.router import get_page_context
 
 def get_context(path, args=None):
-	context = get_page_context(path)
-
-	if args:
-		context.update(args)
+	if args and args.source:
+		context = args
+	else:
+		context = get_page_context(path)
+		if args:
+			context.update(args)
 
 	context = build_context(context)
 

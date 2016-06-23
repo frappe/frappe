@@ -185,7 +185,7 @@ def abs_url(path):
 def get_full_index(route=None, extn = False):
 	"""Returns full index of the website for www upto the n-th level"""
 	if not frappe.local.flags.children_map:
-		from frappe.websites.router import get_pages
+		from frappe.website.router import get_pages
 		children_map = {}
 		pages = get_pages()
 
