@@ -15,15 +15,3 @@ class TestWebPage(unittest.TestCase):
 		resolve_route("test-web-page-1")
 		resolve_route("test-web-page-1/test-web-page-2")
 		resolve_route("test-web-page-1/test-web-page-3")
-
-	def test_check_rename(self):
-		web_page = frappe.get_doc("Web Page", "test-web-page-1")
-		web_page.parent_website_route = "test-web-page-4"
-		web_page.save()
-
-		resolve_route("test-web-page-4/test-web-page-1/test-web-page-2")
-
-		web_page.parent_website_route = ""
-		web_page.save()
-
-		resolve_route("test-web-page-1/test-web-page-2")

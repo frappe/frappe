@@ -100,7 +100,7 @@ class WebForm(WebsiteGenerator):
 
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"name": self.get_route(), "title": self.title }]
+			context.parents = [{"name": self.route, "title": self.title }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)

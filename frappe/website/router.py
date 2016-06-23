@@ -6,6 +6,7 @@ import frappe, os
 
 from frappe.website.utils import can_cache, delete_page_cache
 from frappe.model.document import get_controller
+from frappe import _
 
 def get_page_context(path):
 	page_context = None
@@ -87,24 +88,17 @@ def get_page_info_from_doctypes(path=None):
 		for doctype in frappe.get_hooks("website_generators", app_name = app):
 			condition = ""
 			values = []
-			route_column_name = "page_name"
 			controller = get_controller(doctype)
-			meta = frappe.get_meta(doctype)
-
-			if meta.get_field("parent_website_route"):
-				route_column_name = """concat(ifnull(parent_website_route, ""),
-					if(ifnull(parent_website_route, "")="", "", "/"), page_name)"""
 
 			if controller.website.condition_field:
 				condition ="where {0}=1".format(controller.website.condition_field)
 
 			if path:
-				condition += ' {0} {1}=%s limit 1'.format(('and' if 'where' in condition else 'where'),
-					route_column_name)
+				condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
 				values.append(path)
 
-			for r in frappe.db.sql("""select {0} as route, name, modified from `tab{1}`
-					{2}""".format(route_column_name, doctype, condition), values=values, as_dict=True):
+			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
+					{1}""".format(doctype, condition), values=values, as_dict=True):
 				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
 				# just want one path, return it!
@@ -115,18 +109,20 @@ def get_page_info_from_doctypes(path=None):
 
 def get_pages():
 	'''Get all pages. Called for docs / sitemap'''
-	pages = []
+	pages = {}
+	frappe.local.flags.in_get_all_pages = True
 	for app in frappe.get_installed_apps():
 		app_path = frappe.get_app_path(app)
 
 		for start in ('templates/pages', 'www'):
 			path = os.path.join(app_path, start)
-			pages += get_pages_from_path(path, app, app_path)
+			pages.update(get_pages_from_path(path, app, app_path))
+	frappe.local.flags.in_get_all_pages = False
 
 	return pages
 
 def get_pages_from_path(path, app, app_path):
-	pages = []
+	pages = {}
 	if os.path.exists(path):
 		for basepath, folders, files in os.walk(path):
 			# add missing __init__.py
@@ -141,7 +137,8 @@ def get_pages_from_path(path, app, app_path):
 					continue
 
 				if extn in ("html", "xml", "js", "css", "md"):
-					pages.append(get_page_info(path, app, basepath, app_path, fname))
+					page_info = get_page_info(path, app, basepath, app_path, fname)
+					pages[page_info.route] = page_info
 					# print frappe.as_json(pages[-1])
 
 	return pages
@@ -163,6 +160,7 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 	page_info = frappe._dict()
 
 	page_info.basename = page_name if extn in ('html', 'md') else fname
+	page_info.basepath = basepath
 	page_info.page_or_generator = "Page"
 
 	page_info.template = os.path.relpath(os.path.join(basepath, fname), app_path)
@@ -170,8 +168,8 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 	if page_info.basename == 'index':
 		page_info.basename = os.path.dirname(path).strip('.').strip('/')
 
-	page_info.name = page_info.page_name = os.path.join(os.path.relpath(basepath, path),
-		page_info.basename).strip('.').strip('/')
+	page_info.route = page_info.name = page_info.page_name = os.path.join(os.path.relpath(basepath, path),
+		page_info.basename).strip('/.')
 
 	# controller
 	page_info.controller_path = os.path.join(basepath, page_name.replace("-", "_") + ".py")
@@ -182,7 +180,7 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 		page_info.controller = controller
 
 	# get the source
-	page_info.source = get_source(page_info, basepath)
+	page_info.source = get_source(page_info)
 
 	if page_info.only_content:
 		# extract properties from HTML comments
@@ -191,8 +189,7 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 
 	return page_info
 
-
-def get_source(page_info, basepath):
+def get_source(page_info):
 	'''Get the HTML source of the template'''
 	from markdown2 import markdown
 	jenv = frappe.get_jenv()
@@ -208,11 +205,11 @@ def get_source(page_info, basepath):
 			page_info.only_content = True
 			js, css = '', ''
 
-			js_path = os.path.join(basepath, page_info.basename + '.js')
+			js_path = os.path.join(page_info.basepath, page_info.basename + '.js')
 			if os.path.exists(js_path):
 				js = unicode(open(js_path, 'r').read(), 'utf-8')
 
-			css_path = os.path.join(basepath, page_info.basename + '.css')
+			css_path = os.path.join(page_info.basepath, page_info.basename + '.css')
 			if os.path.exists(css_path):
 				js = unicode(open(css_path, 'r').read(), 'utf-8')
 
@@ -228,7 +225,47 @@ def get_source(page_info, basepath):
 		else:
 			html = source
 
+	# show table of contents
+	setup_index(page_info)
+
 	return html
+
+def setup_index(page_info):
+	'''Insert full index (table of contents) for {index} tag'''
+	from frappe.website.utils import get_full_index
+	if page_info.basename=='index':
+		if frappe.local.flags.in_get_all_pages:
+			# load index.txt if loading all pages
+			index_txt_path = os.path.join(page_info.basepath, 'index.txt')
+			if os.path.exists(index_txt_path):
+				page_info.index = open(index_txt_path, 'r').read().splitlines()
+
+		elif '\n{index}' in page_info.source:
+			html = frappe.get_template("templates/includes/full_index.html").render({
+				"full_index": get_full_index(),
+				"url_prefix": None
+			})
+			page_info.source.replace('{index}', html)
+
+	if (not frappe.local.flags.in_get_all_pages) and ('\n{next}' in page_info.source):
+		# insert next link
+		next_item = None
+		children_map = get_full_index()
+		parent_route = os.path.dirname(page_info.route)
+		children = children_map[parent_route]
+
+		if parent_route and children:
+			for i, c in enumerate(children):
+				if c.route == page_info.route and i < (len(children) - 1):
+					next_item = children[i+1]
+
+		if next_item:
+			html = ('<p class="btn-next-wrapper">'+_("Next")\
+				+': <a class="btn-next" href="{route}.html">{title}</a></p>').format(**next_item)
+
+			page_info.source.replace('{next}', html)
+
+
 
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''

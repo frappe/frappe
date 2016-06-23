@@ -131,3 +131,4 @@ frappe.patches.v7_0.update_send_after_in_bulk_email
 frappe.patches.v7_0.setup_list_settings
 execute:frappe.db.sql('''delete from `tabSingles` where doctype="Email Settings"''') # 2016-06-13
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
+frappe.patches.v7_0.re_route

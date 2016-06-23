@@ -982,7 +982,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None, contex
 	local.message = html
 	local.message_success = success
 	local.response['type'] = 'page'
-	local.response['page_name'] = 'message'
+	local.response['route'] = 'message'
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 

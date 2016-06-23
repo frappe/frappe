@@ -8,10 +8,9 @@ from frappe.utils import strip_html
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import find_first_image, get_comment_list, get_full_index
+from frappe.website.utils import find_first_image, get_comment_list
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
-from frappe import _
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -19,19 +18,10 @@ class WebPage(WebsiteGenerator):
 		template = "templates/generators/web_page.html",
 		condition_field = "published",
 		page_title_field = "title",
-		parent_website_route_field = "parent_web_page"
 	)
 
 	def get_feed(self):
 		return self.title
-
-	def validate(self):
-		# avoid recursive parent_web_page.
-		if self.parent_web_page == self.page_name:
-			self.parent_web_page = ""
-			self.parent_website_route = ""
-
-		super(WebPage, self).validate()
 
 	def get_context(self, context):
 		# if static page, get static content
@@ -40,10 +30,6 @@ class WebPage(WebsiteGenerator):
 
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
-
-		# for sidebar and breadcrumbs
-		context.children = self.get_children()
-		context.parents = self.get_parents(context)
 
 		context.update({
 			"style": self.css or "",
@@ -62,7 +48,6 @@ class WebPage(WebsiteGenerator):
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)
-		self.add_index(context)
 
 		return context
 
@@ -113,48 +98,6 @@ class WebPage(WebsiteGenerator):
 		# if title not set, set title from header
 		if not context.title and context.header:
 			context.title = strip_html(context.header)
-
-	def add_index(self, context):
-		"""Add index, next button if `{index}`, `{next}` is present."""
-		# table of contents
-
-		extn = ""
-		if context.page_links_with_extn:
-			extn = ".html"
-
-		if "{index}" in context.main_section and context.get("children") and len(context.children):
-			full_index = get_full_index(context.pathname, extn = extn)
-
-			if full_index:
-				html = frappe.get_template("templates/includes/full_index.html").render({
-					"full_index": full_index,
-					"url_prefix": context.url_prefix
-				})
-
-				context.main_section = context.main_section.replace("{index}", html)
-
-		# next and previous
-		if "{next}" in context.main_section:
-			next_item = self.get_next()
-			next_item.extn = "" if self.has_children(next_item.name) else extn
-			if next_item and next_item.page_name:
-				if context.relative_links:
-					if next_item.next_parent:
-						next_item.name = "../" + next_item.page_name or ""
-					else:
-						next_item.name = next_item.page_name or ""
-				else:
-					if next_item and next_item.name and next_item.name[0]!="/":
-						next_item.name = "/" + next_item.name
-
-				if not next_item.title:
-					next_item.title = ""
-				html = ('<p class="btn-next-wrapper">'+_("Next")\
-					+': <a class="btn-next" href="{name}{extn}">{title}</a></p>').format(**next_item)
-			else:
-				html = ""
-
-			context.main_section = context.main_section.replace("{next}", html)
 
 	def add_hero(self, context):
 		"""Add a hero element if specified in content or hooks.

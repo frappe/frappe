@@ -153,15 +153,6 @@ class setup_docs(object):
 
 		self.update_index_txt(self.docs_path)
 
-	def sync_docs(self):
-		"""Sync docs from /docs folder to **Web Page**.
-
-		Called as `bench --site [sitename] sync-docs [appname]`
-		"""
-		frappe.db.sql("delete from `tabWeb Page`")
-		sync = frappe.website.statics.sync()
-		sync.start(path="docs", rebuild=True, apps = [self.app])
-
 	def make_docs(self, target, local = False):
 		self.target = target
 		self.local = local

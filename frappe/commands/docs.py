@@ -4,55 +4,6 @@ import os
 import frappe
 from frappe.commands import pass_context
 
-@click.command('make-docs')
-@pass_context
-@click.argument('app')
-@click.argument('docs_version')
-def make_docs(context, app, docs_version):
-	"Setup docs in target folder of target app"
-	from frappe.utils.setup_docs import setup_docs
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			make = setup_docs(app)
-			make.build(docs_version)
-		finally:
-			frappe.destroy()
-
-@click.command('sync-docs')
-@pass_context
-@click.argument('app')
-def sync_docs(context, app):
-	"Sync docs from /docs folder into the database (Web Page)"
-	from frappe.utils.setup_docs import setup_docs
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			make = setup_docs(app)
-			make.sync_docs()
-		finally:
-			frappe.destroy()
-
-
-@click.command('write-docs')
-@pass_context
-@click.argument('app')
-@click.argument('target')
-@click.option('--local', default=False, is_flag=True, help='Run app locally')
-def write_docs(context, app, target, local=False):
-	"Setup docs in target folder of target app"
-	from frappe.utils.setup_docs import setup_docs
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			make = setup_docs(app)
-			make.make_docs(target, local)
-		finally:
-			frappe.destroy()
-
 @click.command('build-docs')
 @pass_context
 @click.argument('app')
@@ -93,7 +44,6 @@ def _build_docs_once(site, app, docs_version, target, local, only_content_update
 
 		if not only_content_updated:
 			make.build(docs_version)
-			make.sync_docs()
 
 		make.make_docs(target, local)
 
@@ -101,8 +51,5 @@ def _build_docs_once(site, app, docs_version, target, local, only_content_update
 		frappe.destroy()
 
 commands = [
-	build_docs,
-	make_docs,
-	sync_docs,
-	write_docs,
+	build_docs
 ]

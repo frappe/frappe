@@ -26,7 +26,7 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	limit_start = cint(limit_start)
 	limit_page_length = 20
 	next_start = limit_start + limit_page_length
-	
+
 	if not txt and frappe.form_dict.search:
 		txt = frappe.form_dict.search
 		del frappe.form_dict['search']
@@ -75,8 +75,8 @@ def set_route(context):
 	'''Set link for the list item'''
 	if context.is_web_form:
 		context.route = "{0}?name={1}".format(context.pathname, quoted(context.doc.name))
-	elif context.doc and getattr(context.doc, 'get_route', None):
-		context.route = context.doc.get_route()
+	elif context.doc and getattr(context.doc, 'route', None):
+		context.route = context.doc.route
 	else:
 		context.route = "{0}/{1}".format(context.pathname or quoted(context.doc.doctype),
 			quoted(context.doc.name))
@@ -84,14 +84,14 @@ def set_route(context):
 def prepare_filters(doctype, kwargs):
 	filters = frappe._dict(kwargs)
 	meta = frappe.get_meta(doctype)
-		
+
 	if filters.pathname:
 		# resolve additional filters from path
 		resolve_path(filters.pathname)
 		for key, val in frappe.local.form_dict.items():
 			if key not in filters:
 				filters[key] = val
-				
+
 	# filter the filters to include valid fields only
 	for fieldname, val in filters.items():
 		if not meta.has_field(fieldname):

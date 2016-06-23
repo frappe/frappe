@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import os, urllib
+import urllib
 from frappe.utils import escape_html, get_request_site_address, now, cstr
 
 no_cache = 1
@@ -15,12 +15,12 @@ def get_context(context):
 	host = get_request_site_address()
 
 	blog_list = frappe.db.sql("""\
-		select page_name as name, published_on, modified, title, content from `tabBlog Post`
+		select route as name, published_on, modified, title, content from `tabBlog Post`
 		where ifnull(published,0)=1
 		order by published_on desc limit 20""", as_dict=1)
 
 	for blog in blog_list:
-		blog_page = cstr(urllib.quote(blog.name.encode("utf-8"))) + ".html"
+		blog_page = cstr(urllib.quote(blog.route.encode("utf-8")))
 		blog.link = urllib.basejoin(host, blog_page)
 		blog.content = escape_html(blog.content or "")
 

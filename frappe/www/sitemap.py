@@ -16,7 +16,7 @@ def get_context(context):
 	"""generate the sitemap XML"""
 	host = get_request_site_address()
 	links = []
-	for page in get_pages():
+	for route, page in get_pages().iteritems():
 		if not page.no_sitemap:
 			links.append({
 				"loc": urllib.basejoin(host, urllib.quote(page.name.encode("utf-8"))),
