@@ -343,5 +343,14 @@ frappe.ready(function() {
 	})
 	{% endif %}
 });
+
+{% if script is defined %}
+{{ script }}
+{% endif %}
+
 </script>
+{% endblock %}
+
+{% block style %}
+{% if style is defined %}<style>{{ style }}</style>{% endif %}
 {% endblock %}

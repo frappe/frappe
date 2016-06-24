@@ -289,7 +289,7 @@ def get_enabled_system_users():
 		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
 
 def is_website_user():
-	return frappe.get_user().doc.user_type == "Website User"
+	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"
 
 def is_system_user(username):
 	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})

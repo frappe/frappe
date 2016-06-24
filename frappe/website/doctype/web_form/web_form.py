@@ -2,9 +2,9 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
-from frappe import _
+from frappe import _, scrub
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
@@ -21,12 +21,14 @@ class WebForm(WebsiteGenerator):
 		if self.is_standard and not frappe.conf.developer_mode:
 			self.use_meta_fields()
 
-
 	def validate(self):
+		super(WebForm, self).validate()
+
+		self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
+
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
-
 
 	def use_meta_fields(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -60,6 +62,42 @@ class WebForm(WebsiteGenerator):
 					df.hidden = 1
 
 			# TODO translate options of Select fields like Country
+
+	# export
+	def on_update(self):
+		"""
+			Writes the .txt for this page and if write_content is checked,
+			it will write out a .html file
+		"""
+		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
+			from frappe.modules.export_file import export_to_files
+			from frappe.modules import get_module_path, scrub
+			import os
+
+			# json
+			export_to_files(record_list=[['Web Form', self.name]])
+
+			# write files
+			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
+
+			# js
+			if not os.path.exists(path + '.js'):
+				with open(path + '.js', 'w') as f:
+					f.write("""frappe.ready(function() {
+	// bind events here
+})""")
+
+			# py
+			if not os.path.exists(path + '.py'):
+				with open(path + '.py', 'w') as f:
+					f.write("""from __future__ import unicode_literals
+
+import frappe
+
+def get_context(context):
+	# do your magic here
+	pass
+""")
 
 	def get_context(self, context):
 		context.show_sidebar=True
@@ -121,8 +159,32 @@ class WebForm(WebsiteGenerator):
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
 
+		self.add_custom_context_and_script(context)
+
 		self.set_back_to_link(context)
 
+	def add_custom_context_and_script(self, context):
+		'''Update context from module if standard and append script'''
+		if self.is_standard:
+			module_name = "{app}.{module}.web_form.{name}.{name}".format(
+					app = frappe.local.module_app[scrub(self.module)],
+					module = scrub(self.module),
+					name = scrub(self.name)
+			)
+			print module_name
+			module = frappe.get_module(module_name)
+			new_context = module.get_context(context)
+
+			if new_context:
+				context.update(new_context)
+
+			js_path = os.path.join(os.path.dirname(module.__file__), scrub(self.name) + '.js')
+			if os.path.exists(js_path):
+				context.script = open(js_path, 'r').read()
+
+			css_path = os.path.join(os.path.dirname(module.__file__), scrub(self.name) + '.css')
+			if os.path.exists(css_path):
+				context.style = open(css_path, 'r').read()
 
 	def set_back_to_link(self, context):
 		'''Sets breadcrumbs, success and fail URL if
