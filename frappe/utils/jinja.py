@@ -105,7 +105,7 @@ def get_allowed_functions_for_jenv():
 			"get_controller": get_controller
 		},
 		"get_visible_columns": \
-			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
+			frappe.get_attr("frappe.www.print.get_visible_columns"),
 		"_": frappe._,
 		"get_shade": get_shade,
 		"scrub": scrub,
@@ -118,7 +118,7 @@ def get_jloader():
 	if not frappe.local.jloader:
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		apps = frappe.get_installed_apps(sort=True)
+		apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 
 		apps.reverse()
 

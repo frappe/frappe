@@ -127,7 +127,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 
 	frappe.db.commit()
 	frappe.response['type'] = 'page'
-	frappe.response['page_name'] = 'message.html'
+	frappe.response['route'] = 'message.html'
 
 def backup_to_dropbox():
 	if not frappe.db:

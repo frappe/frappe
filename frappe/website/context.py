@@ -8,10 +8,12 @@ from frappe.website.doctype.website_settings.website_settings import get_website
 from frappe.website.router import get_page_context
 
 def get_context(path, args=None):
-	context = get_page_context(path)
-
-	if args:
-		context.update(args)
+	if args and args.source:
+		context = args
+	else:
+		context = get_page_context(path)
+		if args:
+			context.update(args)
 
 	context = build_context(context)
 
@@ -26,13 +28,18 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
+	# print frappe.as_json(context)
+
 	return context
 
 def build_context(context):
-	"""get_context method of doc or module is supposed to render content templates and push it into context"""
+	"""get_context method of doc or module is supposed to render
+		content templates and push it into context"""
 	context = frappe._dict(context)
+
 	if not "url_prefix" in context:
 		context.url_prefix = ""
+
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
@@ -82,7 +89,7 @@ def build_context(context):
 
 def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
-	import frappe.templates.pages.list
+	import frappe.www.list
 
 	context.my_account_list = []
 	my_account_list = frappe.get_all('Portal Menu Item',
@@ -91,8 +98,8 @@ def add_sidebar_data(context):
 	for item in my_account_list:
 		if item.reference_doctype:
 			try:
-				item.count = len(frappe.templates.pages.list.get(item.reference_doctype).get('result'))
-			
+				item.count = len(frappe.www.list.get(item.reference_doctype).get('result'))
+
 			except frappe.PermissionError:
 				pass
 

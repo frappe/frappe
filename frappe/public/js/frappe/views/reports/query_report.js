@@ -283,7 +283,12 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 
 		this.wrapper.find(".results").toggle(false);
-		var filters = this.get_values(true);
+		try {
+			var filters = this.get_values(true);
+		} catch(e) {
+			// don't run report
+			return;
+		}
 
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			__("Loading Report") + "...");
@@ -337,8 +342,12 @@ frappe.views.QueryReport = Class.extend({
 		if(raise && mandatory_fields.length) {
 			this.wrapper.find(".waiting-area").empty().toggle(false);
 			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
-			throw "Filters required";
+			if(raise) {
+				console.log('filter missing: ' + mandatory_fields);
+				throw "Filters required";
+			}
 		}
+
 		return filters;
 	},
 	make_results: function(res) {

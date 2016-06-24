@@ -33,7 +33,7 @@ def set_field_property(filters, key, value):
 	frappe.db.commit()
 
 def render_include(content):
-	'''render {% include "app/path/filename" in js file %}'''
+	'''render {% raw %}{% include "app/path/filename" %}{% endraw %} in js file'''
 
 	content = cstr(content)
 

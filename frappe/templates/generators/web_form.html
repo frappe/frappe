@@ -147,7 +147,7 @@
 	<div class="row">
 		<div class="col-sm-9">
 			<p class="text-muted">
-				<a class="btn btn-default btn-sm" href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''	}}/{{ doc.page_name }}" target="_blank">
+				<a class="btn btn-default btn-sm" href="{{ doc.route }}" target="_blank">
 					{{ web_page_link_text }}</a>
 			</p>
 		</div>
@@ -343,5 +343,14 @@ frappe.ready(function() {
 	})
 	{% endif %}
 });
+
+{% if script is defined %}
+{{ script }}
+{% endif %}
+
 </script>
+{% endblock %}
+
+{% block style %}
+{% if style is defined %}<style>{{ style }}</style>{% endif %}
 {% endblock %}

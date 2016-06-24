@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 
@@ -16,5 +15,6 @@ class BlogCategory(WebsiteGenerator):
 		clear_cache()
 
 	def validate(self):
-		self.parent_website_route = "blog"
+		if not self.route:
+			self.route = 'blog/' + self.scrub(self.name)
 		super(BlogCategory, self).validate()
