@@ -17,7 +17,7 @@ class WebsiteGenerator(Document):
 	)
 
 	def autoname(self):
-		if self.meta.autoname != "hash":
+		if not self.name and self.meta.autoname != "hash":
 			self.name = self.make_route()
 
 	def onload(self):
