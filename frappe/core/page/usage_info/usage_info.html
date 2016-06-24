@@ -1,6 +1,6 @@
 <div class="padding" style="max-width: 800px;">
 
-    {% if user_limit %}
+    {% if (typeof user_limit !== "undefined" ) %}
     {% var users_percent = ((users / user_limit) * 100); %}
     <h3>Users</h3>
 
@@ -31,7 +31,7 @@
 
 
 
-    {% if expiry %}
+    {% if (typeof expiry !== "undefined" ) %}
     <h3>Expiration</h3>
     {% var days_remaining = total_days - used_days %}
     {% var date_percent = (( used_days / total_days) * 100); %}
@@ -61,11 +61,11 @@
     {% endif %}
 
 
-    {% if email_limit %}
+    {% if (typeof email_limit !== "undefined" ) %}
     <h3>Emails</h3>
 
-    {% var email_percent = (( bulk_count / email_limit ) * 100); %}
-    {% var emails_remaining = (email_limit - bulk_count) %}
+    {% var email_percent = (( emails_sent / email_limit ) * 100); %}
+    {% var emails_remaining = (email_limit - emails_sent) %}
 
     <div class="progress">
         <div class="progress-bar progress-bar-{%= (email_percent < 75 ? "success" : "warning") %}" style="width: {{ email_percent }}%">
@@ -82,7 +82,7 @@
         </thead>
         <tbody>
             <tr>
-                <td>{%= bulk_count %}</td>
+                <td>{%= emails_sent %}</td>
                 <td>{%= email_limit %}</td>
                 <td class="{%= (emails_remaining < 100) ? "text-success" : "text-warning" %}">{%= emails_remaining %}</td>
             </tr>
@@ -93,9 +93,11 @@
 
     <h3>Disk Space</h3>
 
+    {% if (typeof max !== "undefined" ) %}
     {% var database_percent = ((database_size / max) * 100); %}
     {% var files_percent = ((files_size / max) * 100); %}
     {% var backup_percent = ((backup_size / max) * 100); %}
+
     <div class="progress">
         <div class="progress-bar progress-bar-success" style="width: {%= database_percent %}%">
         </div>
@@ -104,6 +106,8 @@
         <div class="progress-bar progress-bar-warning" style="width: {%= backup_percent %}%">
         </div>
     </div>
+    {% endif %}
+    
 
     <table class="table table-bordered">
         <thead>
@@ -129,7 +133,7 @@
                 <td><b>Total</b></td>
                 <td><b>{%= total %} MB</b></td>
             </tr>
-            {% if max %}
+            {% if (typeof max !== "undefined" ) %}
             <tr>
                 <td><b>Available</b></td>
                 <td class="{%= ((max - total) > 50) ? "" : "text-warning" %}">

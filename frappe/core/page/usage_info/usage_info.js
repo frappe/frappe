@@ -6,14 +6,17 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 	});
 
 	frappe.call({
-		method: "frappe.limits.get_limits",
+		method: "frappe.limits.get_usage_data",
 		callback: function(r) {
 			var doc = r.message;
 			if(!doc.database_size) doc.database_size = 26;
 			if(!doc.files_size) doc.files_size = 1;
 			if(!doc.backup_size) doc.backup_size = 1;
 
-			doc.max = flt(doc.space_limit * 1024);
+			if(typeof doc.space_limit !== "undefined")
+			{
+				doc.max = flt(doc.space_limit * 1024);
+			}
 			doc.total = (doc.database_size + doc.files_size + doc.backup_size);
 			doc.users = keys(frappe.boot.user_info).length - 2;
 			doc.today = frappe.datetime.get_today()
