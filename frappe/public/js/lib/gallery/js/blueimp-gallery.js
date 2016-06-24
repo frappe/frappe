@@ -373,13 +373,11 @@
 
     nextSlides: function() {
       // next set of images
-      console.log("next slide")
       this.next()
     },
 
     prevSlides: function() {
       // prev set of images
-      console.log("prev slide")
       this.prev()
     },
 
