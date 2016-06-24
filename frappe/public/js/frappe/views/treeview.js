@@ -28,8 +28,8 @@ frappe.views.TreeView = Class.extend({
 		this.opts = {};
 		this.opts.get_tree_root = true;
 		$.extend(this.opts, opts);
-		this.ctype = opts.doctype;
-		this.args = {ctype: me.ctype};
+		this.doctype = opts.doctype;
+		this.args = {doctype: me.doctype};
 		this.page_name = frappe.get_route_str();
 		this.get_tree_nodes =  me.opts.get_tree_nodes || "frappe.desk.treeview.get_children";
 
@@ -45,11 +45,11 @@ frappe.views.TreeView = Class.extend({
 		this.set_primary_action();
 	},
 	get_permissions: function(){
-		this.can_read = frappe.model.can_read(this.ctype);
-		this.can_create = frappe.boot.user.can_create.indexOf(this.ctype) !== -1 ||
-					frappe.boot.user.in_create.indexOf(this.ctype) !== -1;
-		this.can_write = frappe.model.can_write(this.ctype);
-		this.can_delete = frappe.model.can_delete(this.ctype);
+		this.can_read = frappe.model.can_read(this.doctype);
+		this.can_create = frappe.boot.user.can_create.indexOf(this.doctype) !== -1 ||
+					frappe.boot.user.in_create.indexOf(this.doctype) !== -1;
+		this.can_write = frappe.model.can_write(this.doctype);
+		this.can_delete = frappe.model.can_delete(this.doctype);
 	},
 	make_page: function() {
 		var me = this;
@@ -58,9 +58,9 @@ frappe.views.TreeView = Class.extend({
 
 		this.page = this.parent.page;
 		frappe.container.change_to(this.page_name);
-		frappe.breadcrumbs.add(me.opts.breadcrumb || locals.DocType[me.ctype].module);
+		frappe.breadcrumbs.add(me.opts.breadcrumb || locals.DocType[me.doctype].module);
 
-		this.page.set_title(me.opts.title || __('{0} Tree',[__(this.ctype)]) );
+		this.page.set_title(me.opts.title || __('{0} Tree',[__(this.doctype)]) );
 		this.page.main.css({
 			"min-height": "300px",
 			"padding-bottom": "25px"
@@ -119,7 +119,7 @@ frappe.views.TreeView = Class.extend({
 						return !node.root && me.can_read;
 					},
 					click: function(node) {
-						frappe.set_route("Form", me.ctype, node.label);
+						frappe.set_route("Form", me.doctype, node.label);
 					}
 				},
 				{
@@ -134,7 +134,7 @@ frappe.views.TreeView = Class.extend({
 					label:__("Rename"),
 					condition: function(node) { return !node.root && me.can_write; },
 					click: function(node) {
-						frappe.model.rename_doc(me.ctype, node.label, function(new_name) {
+						frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
 							node.$a.html(new_name);
 						});
 					},
@@ -144,7 +144,7 @@ frappe.views.TreeView = Class.extend({
 					label:__("Delete"),
 					condition: function(node) { return !node.root && me.can_delete; },
 					click: function(node) {
-						frappe.model.delete_doc(me.ctype, node.label, function() {
+						frappe.model.delete_doc(me.doctype, node.label, function() {
 							node.parent.remove();
 						});
 					},
@@ -167,7 +167,7 @@ frappe.views.TreeView = Class.extend({
 
 		// the dialog
 		var d = new frappe.ui.Dialog({
-			title: __('New {0}',[__(me.ctype)]),
+			title: __('New {0}',[__(me.doctype)]),
 			fields: me.fields
 		})
 
@@ -180,7 +180,7 @@ frappe.views.TreeView = Class.extend({
 
 			var node = me.tree.get_selected_node();
 			v.parent = node.label;
-			v.ctype = me.ctype;
+			v.doctype = me.doctype;
 
 			if(node.root) {
 				v.is_root = 1;
@@ -213,7 +213,7 @@ frappe.views.TreeView = Class.extend({
 
 		this.fields = [
 			{fieldtype:'Data', fieldname: 'name_field',
-				label:__('New {0} Name',[__(me.ctype)]), reqd:true},
+				label:__('New {0} Name',[__(me.doctype)]), reqd:true},
 			{fieldtype:'Select', fieldname:'is_group', label:__('Group Node'), options:'No\nYes',
 				description: __("Further nodes can be only created under 'Group' type nodes")}
 		]
