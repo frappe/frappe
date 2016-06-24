@@ -119,8 +119,8 @@ $.extend(frappe, {
 
 		if(data.exc) {
 			if(opts.btn) {
-				$(opts.btn).addClass("btn-danger");
-				setTimeout(function() { $(opts.btn).removeClass("btn-danger"); }, 1000);
+				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
+				setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
 			}
 			try {
 				var err = JSON.parse(data.exc);
@@ -134,8 +134,8 @@ $.extend(frappe, {
 
 		} else{
 			if(opts.btn) {
-				$(opts.btn).addClass("btn-success");
-				setTimeout(function() { $(opts.btn).removeClass("btn-success"); }, 1000);
+				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
+				setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
 			}
 		}
 		if(opts.msg && data.message) {
