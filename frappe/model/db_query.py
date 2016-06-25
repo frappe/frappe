@@ -360,7 +360,7 @@ class DatabaseQuery(object):
 
 			if role_permissions.get("if_owner", {}).get("read"):
 				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
-					frappe.db.escape(frappe.session.user, percent=False)))
+					frappe.db.escape(self.user, percent=False)))
 
 		if as_condition:
 			conditions = ""
