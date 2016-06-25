@@ -4,12 +4,20 @@
 
 from __future__ import unicode_literals
 import frappe
-
+from frappe import _
 from frappe.model.document import Document
 from frappe.email.queue import send_one
+from frappe.limits import get_limits
 
 class EmailQueue(Document):
-	pass
+	def on_trash(self):
+		self.prevent_email_queue_delete()
+
+	def prevent_email_queue_delete(self):
+		'''If email limit is set, don't allow users to delete Email Queue record'''
+		if get_limits().emails and frappe.session.user != 'Administrator':
+			frappe.throw(_('Only Administrator can delete Email Queue'))
+
 
 @frappe.whitelist()
 def retry_sending(name):

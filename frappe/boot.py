@@ -12,6 +12,7 @@ import frappe.desk.desk_page
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
+from frappe.limits import get_limits, get_expiry_message
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -64,6 +65,10 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.lang_dict = get_lang_dict()
+
+	# limits
+	bootinfo.limits = get_limits()
+	bootinfo.expiry_message = get_expiry_message()
 
 	return bootinfo
 

@@ -147,14 +147,17 @@ def check_email_limit(recipients):
 		or frappe.flags.in_test):
 
 		# get count of mails sent this month
-		this_month = frappe.db.sql("""select count(name) from `tabEmail Queue` where
-			status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
+		this_month = get_emails_sent_this_month()
 
-		monthly_email_limit = frappe.conf.get('monthly_email_limit') or 500
+		monthly_email_limit = frappe.conf.get('limits', {}).get('emails') or 500
 
 		if (this_month + len(recipients)) > monthly_email_limit:
 			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_email_limit),
 				EmailLimitCrossedError)
+
+def get_emails_sent_this_month():
+	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
+		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
 
 def get_unsubscribe_link(reference_doctype, reference_name,
 	email, recipients, expose_recipients, show_as_cc,
@@ -334,8 +337,3 @@ def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabEmail Queue` where
 		datediff(now(), creation) > 31""")
-
-def prevent_email_queue_delete(doc, method):
-	from frappe.limits import get_limits
-	if frappe.session.user != 'Administrator' and get_limits().get('block_bulk_email_delete'):
-		frappe.throw(_('Only Administrator can delete Email Queue'))

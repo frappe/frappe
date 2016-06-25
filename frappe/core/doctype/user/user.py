@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.model.document import Document
 from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
@@ -11,10 +12,11 @@ from frappe.utils.user import get_system_managers
 import frappe.permissions
 import frappe.share
 import re
+from frappe.limits import get_limits
 
 STANDARD_USERS = ("Guest", "Administrator")
 
-from frappe.model.document import Document
+class MaxUsersReachedError(frappe.ValidationError): pass
 
 class User(Document):
 	__new_password = None
@@ -54,6 +56,7 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
+		self.validate_user_limit()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -382,6 +385,34 @@ class User(Document):
 	def get_blocked_modules(self):
 		"""Returns list of modules blocked for that user"""
 		return [d.module for d in self.block_modules] if self.block_modules else []
+
+	def validate_user_limit(self):
+		'''
+			Validate if user limit has been reached for System Users
+			Checked in 'Validate' event as we don't want welcome email sent if max users are exceeded.
+		'''
+
+		if self.user_type == "Website User":
+			return
+
+		if not self.enabled:
+			# don't validate max users when saving a disabled user
+			return
+
+		limits = get_limits()
+		if not limits.users:
+			# no limits defined
+			return
+
+		total_users = get_total_users()
+		if self.is_new():
+			# get_total_users gets existing users in database
+			# a new record isn't inserted yet, so adding 1
+			total_users += 1
+
+		if total_users > limits.users:
+			frappe.throw(_("Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan."),
+				MaxUsersReachedError)
 
 @frappe.whitelist()
 def get_timezones():

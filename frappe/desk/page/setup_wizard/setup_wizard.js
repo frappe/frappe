@@ -421,7 +421,7 @@ function load_frappe_slides() {
 	},
 
 
-	frappe.wiz.user= {
+	frappe.wiz.user = {
 		app_name: "frappe",
 		title: __("The First User: You"),
 		icon: "icon-user",
@@ -465,5 +465,8 @@ frappe.wiz.on("before_load", function() {
 	// add welcome slide
 	frappe.wiz.add_slide(frappe.wiz.welcome);
 	frappe.wiz.add_slide(frappe.wiz.region);
-	frappe.wiz.add_slide(frappe.wiz.user);
+
+	if (!(frappe.boot.limits && frappe.boot.limits.users===1)) {
+		frappe.wiz.add_slide(frappe.wiz.user);
+	}
 });

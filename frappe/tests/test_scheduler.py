@@ -7,7 +7,7 @@ from frappe.utils.scheduler import (enqueue_applicable_events, restrict_schedule
 from frappe import _dict
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import now_datetime, today, add_days, add_to_date
-from frappe.limits import set_limits, clear_limit
+from frappe.limits import update_limits, clear_limit
 
 import frappe
 import json, time
@@ -56,7 +56,7 @@ class TestScheduler(TestCase):
 	def test_restrict_scheduler_events(self):
 		frappe.set_user("Administrator")
 		user = frappe.get_doc("User", "Administrator")
-		dormant_date = add_days(today(), -5) 
+		dormant_date = add_days(today(), -5)
 		user.last_active = dormant_date
 		user.save()
 
@@ -69,7 +69,7 @@ class TestScheduler(TestCase):
 
 
 	def test_disable_scheduler_on_expiry(self):
-		set_limits({'expiry': add_to_date(today(), days=-1)})
+		update_limits({'expiry': add_to_date(today(), days=-1)})
 		frappe.local.conf = _dict(frappe.get_site_config())
 
 		user = frappe.new_doc('User')

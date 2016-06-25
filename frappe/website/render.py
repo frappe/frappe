@@ -56,7 +56,7 @@ def render(path, http_status_code=None):
 
 		except frappe.Redirect, e:
 			return build_response(path, "", 301, {
-				"Location": frappe.flags.redirect_location,
+				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
 				"Cache-Control": "no-store, no-cache, must-revalidate"
 			})
 

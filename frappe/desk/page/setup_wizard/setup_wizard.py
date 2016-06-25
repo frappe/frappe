@@ -163,10 +163,7 @@ def prettify_args(args):
 	return pretty_args
 
 def email_setup_wizard_exception(traceback, args):
-	from frappe.limits import get_limits
-	frappe_limits = get_limits()
-
-	if not frappe_limits.get('setup_wizard_exception_email'):
+	if not frappe.local.conf.setup_wizard_exception_email:
 		return
 
 	pretty_args = prettify_args(args)
@@ -210,12 +207,8 @@ def email_setup_wizard_exception(traceback, args):
 		headers=frappe.local.request.headers,
 		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
 
-	frappe.sendmail(recipients=frappe_limits.get('setup_wizard_exception_email'),
+	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
 		subject="Exception in Setup Wizard - {}".format(frappe.local.site),
 		message=message)
 
-
-def set_setup_complete(*args):
-	from frappe.limits import set_limits
-	set_limits({'setup_complete' : 1 , 'creation': frappe.utils.today()})

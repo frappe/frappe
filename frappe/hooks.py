@@ -14,7 +14,6 @@ app_email = "info@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
-extend_bootinfo = "frappe.limits.load_limits"
 
 page_js = {
 	"setup-wizard": "public/js/frappe/setup_wizard.js"
@@ -96,12 +95,6 @@ standard_queries = {
 }
 
 doc_events = {
-	"User": {
-		"validate": "frappe.utils.user.validate_user_limit"
-	},
-	"Email Queue": {
-		"on_trash": "frappe.email.queue.prevent_email_queue_delete"
-	},
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
@@ -141,7 +134,7 @@ scheduler_events = {
 		"frappe.async.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
-		"frappe.core.doctype.file.file.update_sizes"
+		"frappe.limits.update_space_usage"
 
 	],
 	"daily_long": [
@@ -180,5 +173,4 @@ bot_parsers = [
 ]
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
-setup_wizard_success = "frappe.desk.page.setup_wizard.setup_wizard.set_setup_complete"
-before_write_file = "frappe.core.doctype.file.file.validate_space_limit"
+before_write_file = "frappe.limits.validate_space_limit"

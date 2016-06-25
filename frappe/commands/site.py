@@ -4,8 +4,7 @@ import hashlib, os
 import frappe
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
-from frappe.commands import get_site
-from frappe.limits import set_limits, get_limits
+from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 
 @click.command('new-site')
@@ -345,18 +344,19 @@ def set_limit(context, site, limit, value):
 		site = get_site(context)
 
 	with frappe.init_site(site):
-		if limit == 'expiry':
+		if limit=='expiry':
 			try:
 				datetime.datetime.strptime(value, '%Y-%m-%d')
 			except ValueError:
 				raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+
+		elif limit=='space':
+			value = float(value)
+
 		else:
-			limit += '_limit'
-			# Space can be float, while other should be integers
-			value = float(value) if limit == 'space_limit' else int(value)
+			value = int(value)
 
-		set_limits({limit : value})
-
+		update_limits({ limit : value })
 
 @click.command('clear-limit')
 @click.option('--site', help='site name')
@@ -369,14 +369,11 @@ def clear_limit(context, site, limit):
 		site = get_site(context)
 
 	with frappe.init_site(site):
-		if not limit == 'expiry':
-			limit += '_limit'
-
 		_clear_limit(limit)
 
 		# Remove limits from the site_config, if it's empty
-		cur_limits = get_limits()
-		if not cur_limits:
+		limits = get_limits()
+		if not limits:
 			update_site_config('limits', 'None', validate=False)
 
 

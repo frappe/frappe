@@ -6,32 +6,24 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 	});
 
 	frappe.call({
-		method: "frappe.limits.get_usage_data",
+		method: "frappe.limits.get_usage_info",
 		callback: function(r) {
-			var doc = r.message;
-			if(!doc.database_size) doc.database_size = 26;
-			if(!doc.files_size) doc.files_size = 1;
-			if(!doc.backup_size) doc.backup_size = 1;
-
-			if(typeof doc.space_limit !== "undefined")
-			{
-				doc.max = flt(doc.space_limit * 1024);
+			var usage_info = r.message;
+			if (!usage_info) {
+				// nothing to show
+				// TODO improve this
+				return;
 			}
-			doc.total = (doc.database_size + doc.files_size + doc.backup_size);
-			doc.users = keys(frappe.boot.user_info).length - 2;
-			doc.today = frappe.datetime.get_today()
-			doc.total_days = frappe.datetime.get_day_diff(doc.expiry, doc.creation)
-			doc.used_days = frappe.datetime.get_day_diff(doc.today, doc.creation)
 
 			$(frappe.render_template("usage_info", doc)).appendTo(page.main);
 
-		var btn_text = doc.user_limit == 1 ? __("Upgrade") : __("Renew / Upgrade");
+			var btn_text = usage_info.limits.users == 1 ? __("Upgrade") : __("Renew / Upgrade");
 
-		if(doc.limits_upgrade_link) {
-			page.set_primary_action(btn_text, function() {
-				frappe.set_route("upgrade");
-			});
-		}
+			if(usage_info.upgrade_link) {
+				page.set_primary_action(btn_text, function() {
+					window.open(usage_info.upgrade_link);
+				});
+			}
 		}
 	});
 
