@@ -32,6 +32,8 @@ def setup_complete(args):
 			frappe.get_attr(method)(args)
 
 		frappe.db.set_default('desktop:home_page', 'desktop')
+		frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+
 		frappe.db.commit()
 		frappe.clear_cache()
 	except:
@@ -58,12 +60,13 @@ def update_system_settings(args):
 
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
+		"country": args.get("country"),
 		"language": args.get("language"),
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
-		'enable_scheduler': 1 if not frappe.flags.in_test else 0
+		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 	})
 	system_settings.save()
 

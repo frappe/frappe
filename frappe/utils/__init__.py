@@ -479,3 +479,31 @@ def sanitize_email(emails):
 		sanitized.append(formataddr((fullname, email_id)))
 
 	return ", ".join(sanitized)
+
+def get_site_info():
+	from frappe.utils.user import get_system_managers
+
+	# only get system users
+	users = frappe.get_all('User', filters={'user_type': 'System User'},
+		fields=['name', 'first_name', 'last_name', 'enabled',
+			'last_login', 'last_active', 'language', 'time_zone'])
+	system_managers = get_system_managers(only_name=True)
+	for u in users:
+		# tag system managers
+		u.is_system_manager = 1 if u.name in system_managers else 0
+
+	system_settings = frappe.db.get_singles_dict('System Settings')
+
+	site_info = {
+		'users': users,
+		'country': system_settings.country,
+		'language': system_settings.language or 'english',
+		'time_zone': system_settings.time_zone,
+		'setup_complete': cint(system_settings.setup_complete)
+	}
+
+	# from other apps
+	for method_name in frappe.get_hooks('get_site_info'):
+		site_info.update(frappe.get_attr(method_name)(site_info) or {})
+
+	return frappe.as_json(site_info)
