@@ -64,6 +64,7 @@ def get_bootinfo():
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
+	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
 	bootinfo.lang_dict = get_lang_dict()
 
 	# limits

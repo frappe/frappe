@@ -208,6 +208,12 @@ frappe.search.verbs = [
 					value: __(match),
 					route:["Form", match, match]
 				}
+			} else if(in_list(frappe.boot.treeviews, match)) {
+				return {
+					label: __("{0} Tree", ["<b>"+__(match)+"</b>"]),
+					value: __(match),
+					route:["Tree", match]
+				}
 			} else {
 				return {
 					label: __("{0} List", ["<b>"+__(match)+"</b>"]),
