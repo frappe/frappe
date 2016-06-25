@@ -159,7 +159,7 @@ def validate_space_limit(file_size):
 
 	file_size = file_size / (1024.0 ** 2)
 
-	if flt(usage.total + file_size, 2) > space_limit:
+	if flt(flt(usage.total) + file_size, 2) > space_limit:
 		# Stop from attaching file
 		frappe.throw(_("You have exceeded the max space of {0} for your plan. {1}.").format(
 			"<b>{0}MB</b>".format(cint(space_limit)) if (space_limit < 1024) else "<b>{0}GB</b>".format(limits.space),

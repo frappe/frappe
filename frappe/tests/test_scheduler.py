@@ -61,6 +61,8 @@ class TestScheduler(TestCase):
 		user.save()
 
 		restrict_scheduler_events_if_dormant()
+		frappe.local.conf = _dict(frappe.get_site_config())
+
 		self.assertFalse("all" in get_enabled_scheduler_events())
 		self.assertTrue(frappe.conf.get('dormant', False))
 
@@ -72,16 +74,18 @@ class TestScheduler(TestCase):
 		update_limits({'expiry': add_to_date(today(), days=-1)})
 		frappe.local.conf = _dict(frappe.get_site_config())
 
-		user = frappe.new_doc('User')
-		user.email = 'test_scheduler@example.com'
-		user.first_name = 'Test_scheduler'
-		user.add_roles('System Manager')
+		if not frappe.db.exists('User', 'test_scheduler@example.com'):
+			user = frappe.new_doc('User')
+			user.email = 'test_scheduler@example.com'
+			user.first_name = 'Test_scheduler'
+			user.save()
+			user.add_roles('System Manager')
 
 		frappe.db.commit()
-
 		frappe.set_user("test_scheduler@example.com")
 
 		disable_scheduler_on_expiry()
+
 		ss = frappe.get_doc("System Settings")
 		self.assertFalse(ss.enable_scheduler)
 

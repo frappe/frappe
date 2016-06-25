@@ -15,6 +15,7 @@ import json
 import schedule
 import time
 import os
+import MySQLdb
 import frappe.utils
 from frappe.utils import get_sites, get_site_path, touch_file
 from datetime import datetime
@@ -190,6 +191,7 @@ def toggle_scheduler(enable):
 	ss = frappe.get_doc("System Settings")
 	ss.enable_scheduler = 1 if enable else 0
 	ss.flags.ignore_mandatory = True
+	ss.flags.ignore_permissions = True
 	ss.save()
 
 def enable_scheduler():
@@ -271,7 +273,6 @@ def restrict_scheduler_events_if_dormant():
 def restrict_scheduler_events(*args, **kwargs):
 	val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
 	frappe.db.set_global('enabled_scheduler_events', val)
-
 
 def is_dormant(since = 345600):
 	last_active = get_datetime(get_last_active())

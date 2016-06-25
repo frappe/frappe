@@ -11,6 +11,7 @@ from frappe import _dict
 from frappe.limits import SiteExpiredError, update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.installer import update_site_config
+from frappe.core.doctype.user.user import MaxUsersReachedError
 
 test_records = frappe.get_test_records('User')
 
@@ -93,7 +94,7 @@ class TestUser(unittest.TestCase):
 		user.email = 'test_max_users@example.com'
 		user.first_name = 'Test_max_user'
 
-		self.assertRaises(frappe.utils.user.MaxUsersReachedError, user.add_roles, 'System Manager')
+		self.assertRaises(MaxUsersReachedError, user.add_roles, 'System Manager')
 
 		if frappe.db.exists('User', 'test_max_users@example.com'):
 			frappe.delete_doc('User', 'test_max_users@example.com')

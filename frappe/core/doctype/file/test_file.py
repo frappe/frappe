@@ -104,9 +104,10 @@ class TestFile(unittest.TestCase):
 		update_limits({
 			'space': 1,
 			'space_usage': {
-				'files_size': (1024 * 1024),
+				'files_size': (1024 ** 2),
 				'database_size': 0,
-				'backup_size': 0
+				'backup_size': 0,
+				'total': (1024 ** 2)
 			}
 		})
 
