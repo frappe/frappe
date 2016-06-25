@@ -124,14 +124,10 @@ def get_limits():
 	'''
 	return frappe._dict(frappe.local.conf.limits or {})
 
-def update_limits(key, value):
+def update_limits(limits_dict):
 	'''Add/Update limit in site_config'''
 	limits = get_limits()
-	if isinstance(key, dict):
-		limits.update(key)
-	else:
-		limits[key] = value
-
+	limits.update(limits_dict)
 	update_site_config("limits", limits, validate=False)
 	frappe.conf.limits = limits
 
