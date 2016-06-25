@@ -45,7 +45,7 @@ class FormMeta(Meta):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template"):
+			"__form_grid_templates", "__listview_template", "__tree_js"):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -63,6 +63,7 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '.css'), "__css")
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
+		self._add_code(_get_path(self.name + '_tree.js'), '__tree_js')
 
 		listview_template = _get_path(self.name + '_list.html')
 		if os.path.exists(listview_template):
@@ -70,6 +71,7 @@ class FormMeta(Meta):
 
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_code_via_hook("doctype_list_js", "__list_js")
+		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_custom_script()
 		self.add_html_templates(path)
 

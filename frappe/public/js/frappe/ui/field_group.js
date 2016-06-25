@@ -14,19 +14,28 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		})
 	},
 	make: function() {
+		var me = this;
 		if(this.fields) {
 			this._super();
 			this.refresh();
 			// set default
-			$.each(this.fields_list, function(i, f) {
-				if(f.df["default"]) {
-					f.set_input(f.df["default"]);
+			$.each(this.fields_list, function(i, field) {
+				if(field.df["default"]) {
+					field.set_input(field.df["default"]);
 				}
-
 			})
+
 			if(!this.no_submit_on_enter) {
 				this.catch_enter_as_submit();
 			}
+
+			$(this.body).find('input').on('change', function() {
+				me.refresh_dependency();
+			})
+						
+			$(this.body).find('select').on("change", function() {
+				me.refresh_dependency();
+			})
 		}
 	},
 	first_button: false,
@@ -77,6 +86,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var f = this.fields_dict[key];
 		if(f) {
 			f.set_input(val);
+			this.refresh_dependency();
 		}
 	},
 	set_input: function(key, val) {
@@ -96,5 +106,5 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				f.set_input(f.df['default'] || '');
 			}
 		}
-	},
+	}
 });

@@ -137,6 +137,9 @@ $.extend(frappe.model, {
 		if(meta.__map_js) {
 			eval(meta.__map_js);
 		}
+		if(meta.__tree_js) {
+			eval(meta.__tree_js);
+		}
 	},
 
 	with_doc: function(doctype, name, callback) {
