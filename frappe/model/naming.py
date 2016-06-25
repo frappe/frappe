@@ -24,7 +24,7 @@ def set_new_name(doc):
 
 	autoname = frappe.get_meta(doc.doctype).autoname
 
-	if autoname != "Prompt" and not frappe.flags.in_import and not frappe.flags.in_test:
+	if autoname != "Prompt" and not frappe.flags.in_import:
 		doc.name = None
 
 	if getattr(doc, "amended_from", None):
