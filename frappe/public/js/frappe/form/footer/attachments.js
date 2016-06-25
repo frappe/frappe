@@ -209,9 +209,10 @@ frappe.ui.form.Attachments = Class.extend({
 frappe.ui.get_upload_dialog = function(opts){
 	dialog = new frappe.ui.Dialog({
 	    title: __('Upload Attachment'),
+		no_focus: true,
 	    fields: [
 			{fieldtype: "Section Break"},
-			{"fieldtype": "Link" , "fieldname": "file" , "label": "File", "options": "File"},
+			{"fieldtype": "Link" , "fieldname": "file" , "label": __("Select uploaded file"), "options": "File"},
 	    ],
 	});
 
@@ -219,6 +220,7 @@ frappe.ui.get_upload_dialog = function(opts){
 	btn.removeClass("btn-primary").addClass("btn-default");
 
 	dialog.show();
+	var upload_area = $('<div style="padding-bottom: 25px;"></div>').prependTo(dialog.body);
 
 	var fd = dialog.fields_dict;
 	$(fd.file.input).change(function() {
@@ -237,7 +239,7 @@ frappe.ui.get_upload_dialog = function(opts){
 	    });
 	});
 	frappe.upload.make({
-		parent: dialog.body,
+		parent: upload_area,
 		args: opts.args,
 		callback: function(attachment, r) {
 			dialog.hide();

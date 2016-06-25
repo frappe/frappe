@@ -23,11 +23,11 @@ class WebsiteGenerator(Document):
 	def onload(self):
 		self.get("__onload").update({
 			"is_website_generator": True,
-			"published": self.website_published()
+			"published": self.is_website_published()
 		})
 
 	def validate(self):
-		if not self.route:
+		if self.is_website_published() and not self.route:
 			self.route = self.make_route()
 
 		self.route = self.route.strip('/.')
@@ -53,7 +53,8 @@ class WebsiteGenerator(Document):
 	def on_trash(self):
 		self.clear_cache()
 
-	def website_published(self):
+	def is_website_published(self):
+		"""Return true if published in website"""
 		if self.website.condition_field:
 			return self.get(self.website.condition_field) and True or False
 		else:
