@@ -30,7 +30,8 @@ class WebsiteGenerator(Document):
 		if self.is_website_published() and not self.route:
 			self.route = self.make_route()
 
-		self.route = self.route.strip('/.')
+		if self.route:
+			self.route = self.route.strip('/.')
 
 	def make_route(self):
 		return self.scrub(self.get(self.website.page_title_field or "name"))
