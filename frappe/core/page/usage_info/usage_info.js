@@ -15,7 +15,7 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 				return;
 			}
 
-			$(frappe.render_template("usage_info", doc)).appendTo(page.main);
+			$(frappe.render_template("usage_info", usage_info)).appendTo(page.main);
 
 			var btn_text = usage_info.limits.users == 1 ? __("Upgrade") : __("Renew / Upgrade");
 

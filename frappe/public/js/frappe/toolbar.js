@@ -37,17 +37,18 @@ $(document).on("toolbar_setup", function() {
 
 frappe.get_form_sidebar_extension = function() {
 	var limits = frappe.boot.limits;
-	if (!limits.usage) { limits.usage = {}; }
-	var usage = limits.usage;
+	var usage = limits.space_usage;
+	if (!usage) {
+		return '';
+	}
 
 	if(!usage.sidebar_usage_html) {
 		if (limits.space) {
-			usage.total_used = flt(usage.database_size) + flt(usage.backup_size) + flt(usage.files_size);
-			usage.total_used_percent = cint(usage.total_used / flt(limits.space * 1024) * 100);
+			usage.total_used_percent = cint(usage.total / flt(limits.space * 1024) * 100);
 
 			var template = '<ul class="list-unstyled sidebar-menu">\
 				<li class="usage-stats">\
-			        <a href="#usage-info" class="text-muted">{{ usage.total_used }}MB ({{ usage.total_used_percent }}%) used</a></li>\
+			        <a href="#usage-info" class="text-muted">{{ usage.total }}MB ({{ usage.total_used_percent }}%) used</a></li>\
 			</ul>';
 			usage.sidebar_usage_html = frappe.render(template, { 'usage': usage }, "form_sidebar_usage");
 

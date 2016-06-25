@@ -334,7 +334,7 @@ def set_admin_password(context, admin_password):
 
 @click.command('set-limit')
 @click.option('--site', help='site name')
-@click.argument('limit', type=click.Choice(['email', 'space', 'user', 'expiry']))
+@click.argument('limit', type=click.Choice(['emails', 'space', 'users', 'expiry']))
 @click.argument('value')
 @pass_context
 def set_limit(context, site, limit, value):
@@ -360,7 +360,7 @@ def set_limit(context, site, limit, value):
 
 @click.command('clear-limit')
 @click.option('--site', help='site name')
-@click.argument('limit', type=click.Choice(['email', 'space', 'user', 'expiry']))
+@click.argument('limit', type=click.Choice(['emails', 'space', 'users', 'expiry']))
 @pass_context
 def clear_limit(context, site, limit):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""

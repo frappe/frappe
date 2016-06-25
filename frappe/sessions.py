@@ -90,6 +90,7 @@ def get():
 	from frappe.desk.notifications import \
 		get_notification_info_for_boot, get_notifications
 	from frappe.boot import get_bootinfo
+	from frappe.limits import get_limits, get_expiry_message
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
@@ -128,6 +129,10 @@ def get():
 
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["disable_async"] = frappe.conf.disable_async
+
+	# limits
+	bootinfo.limits = get_limits()
+	bootinfo.expiry_message = get_expiry_message()
 
 	return bootinfo
 

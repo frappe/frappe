@@ -87,12 +87,13 @@ def get_usage_info():
 
 	usage_info = frappe._dict({
 		'limits': limits,
-		'enabled_users': get_enabled_system_users(),
+		'enabled_users': len(get_enabled_system_users()),
 		'emails_sent': get_emails_sent_this_month(),
 		'space_usage': limits.space_usage['total'],
 	})
 
 	if limits.expiry:
+		usage_info['expires_on'] = formatdate(limits.expiry)
 		usage_info['days_to_expiry'] = (getdate(limits.expiry) - getdate()).days
 
 	if limits.upgrade_link:
@@ -109,8 +110,8 @@ def get_upgrade_link(upgrade_link):
 		'fullname': get_fullname()
 	})
 
-	parts.query = urllib.urlencode(params)
-	url = urlparse.urlunparse(parts)
+	query = urllib.urlencode(params, doseq=True)
+	url = urlparse.urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 	return url
 
 def get_limits():
@@ -192,7 +193,7 @@ def update_space_usage():
 def get_folder_size(path):
 	'''Returns folder size in MB if it exists'''
 	if os.path.exists(path):
-		return flt(subprocess.check_output(['du', '-ms', path]).split()[0])
+		return flt(subprocess.check_output(['du', '-ms', path]).split()[0], 2)
 
 def get_database_size():
 	'''Returns approximate database size in MB'''
@@ -203,4 +204,4 @@ def get_database_size():
 		SELECT table_schema "database_name", sum( data_length + index_length ) / 1024 / 1024 "database_size"
 		FROM information_schema.TABLES WHERE table_schema = %s GROUP BY table_schema''', db_name, as_dict=True)
 
-	return db_size[0].get('database_size')
+	return flt(db_size[0].get('database_size'), 2)

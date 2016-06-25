@@ -482,9 +482,10 @@ def sanitize_email(emails):
 
 def get_site_info():
 	from frappe.utils.user import get_system_managers
+	from frappe.core.doctype.user.user import STANDARD_USERS
 
 	# only get system users
-	users = frappe.get_all('User', filters={'user_type': 'System User'},
+	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
 		fields=['name', 'first_name', 'last_name', 'enabled',
 			'last_login', 'last_active', 'language', 'time_zone'])
 	system_managers = get_system_managers(only_name=True)
@@ -506,4 +507,5 @@ def get_site_info():
 	for method_name in frappe.get_hooks('get_site_info'):
 		site_info.update(frappe.get_attr(method_name)(site_info) or {})
 
-	return frappe.as_json(site_info)
+	# dumps -> loads to prevent datatype conflicts
+	return json.loads(frappe.as_json(site_info))
