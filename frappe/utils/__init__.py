@@ -483,6 +483,7 @@ def sanitize_email(emails):
 def get_site_info():
 	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import STANDARD_USERS
+	from frappe.email.queue import get_emails_sent_this_month
 
 	# only get system users
 	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
@@ -494,13 +495,21 @@ def get_site_info():
 		u.is_system_manager = 1 if u.name in system_managers else 0
 
 	system_settings = frappe.db.get_singles_dict('System Settings')
+	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
 
 	site_info = {
 		'users': users,
 		'country': system_settings.country,
 		'language': system_settings.language or 'english',
 		'time_zone': system_settings.time_zone,
-		'setup_complete': cint(system_settings.setup_complete)
+		'setup_complete': cint(system_settings.setup_complete),
+
+		# usage
+		'emails_sent': get_emails_sent_this_month(),
+		'space_used': flt((space_usage.total or 0) / 1024.0, 2),
+		'database_size': space_usage.database_size,
+		'backup_size': space_usage.backup_size,
+		'files_size': space_usage.files_size
 	}
 
 	# from other apps

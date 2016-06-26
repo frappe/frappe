@@ -107,7 +107,7 @@ def get_upgrade_link(upgrade_link):
 	params.update({
 		'site': frappe.local.site,
 		'email': frappe.session.user,
-		'fullname': get_fullname()
+		'full_name': get_fullname()
 	})
 
 	query = urllib.urlencode(params, doseq=True)
@@ -180,9 +180,9 @@ def update_space_usage():
 	database_size = get_database_size()
 
 	usage = {
-		'files_size': files_size,
-		'backup_size': backup_size,
-		'database_size': database_size,
+		'files_size': flt(files_size, 2),
+		'backup_size': flt(backup_size, 2),
+		'database_size': flt(database_size, 2),
 		'total': flt(flt(files_size) + flt(backup_size) + flt(database_size), 2)
 	}
 
