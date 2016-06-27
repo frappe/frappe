@@ -31,6 +31,11 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 		return results
 
 	if for_doctype:
+		links = frappe.get_doc(doctype, name).get_link_filters(for_doctype)
+
+		if links:
+			linkinfo = links
+
 		if for_doctype in linkinfo:
 			# only get linked with for this particular doctype
 			linkinfo = { for_doctype: linkinfo.get(for_doctype) }
@@ -53,9 +58,12 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf
 				and "`tab" not in sf]
-
+				
 			try:
-				if link.get("get_parent"):
+				if link.get("filters"):
+					ret = frappe.get_list(doctype=dt, fields=fields, filters=link.get("filters"))
+
+				elif link.get("get_parent"):
 					if me and me.parent and me.parenttype == dt:
 						ret = frappe.get_list(doctype=dt, fields=fields,
 							filters=[[dt, "name", '=', me.parent]])
@@ -68,15 +76,19 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					# dynamic link
 					if link.get("doctype_fieldname"):
 						filters.append([link.get('child_doctype'), link.get("doctype_fieldname"), "=", doctype])
-
+						
 					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
-
+					
 				else:
-					filters = [[dt, link.get("fieldname"), '=', name]]
-					# dynamic link
-					if link.get("doctype_fieldname"):
-						filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
+					if link.get("fieldname"):
+						filters = [[dt, link.get("fieldname"), '=', name]]
+						# dynamic link
+						if link.get("doctype_fieldname"):
+							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
+						ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
+
+					else:
+						ret = None
 
 			except frappe.PermissionError:
 				if frappe.local.message_log:
@@ -86,9 +98,8 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			if ret:
 				results[dt] = ret
-
+			
 	frappe.cache().set_value(key, results, user=True)
-
 	return results
 
 @frappe.whitelist()
