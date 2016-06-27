@@ -371,6 +371,16 @@
       }
     },
 
+    nextSlides: function() {
+      // next set of images
+      this.next()
+    },
+
+    prevSlides: function() {
+      // prev set of images
+      this.prev()
+    },
+
     play: function (time) {
       var that = this
       window.clearTimeout(this.timeout)
@@ -839,7 +849,7 @@
         case 38: // Up
           if (this.options.enableKeyboardNavigation) {
             this.preventDefault(event)
-            console.log("UP Key")
+            this.nextSlides()
           }
           break
         case 39: // Right
@@ -851,7 +861,7 @@
         case 40: // Down
           if (this.options.enableKeyboardNavigation) {
             this.preventDefault(event)
-            console.log("Down Key")
+            this.prevSlides()
           }
           break
       }
