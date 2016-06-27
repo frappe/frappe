@@ -109,6 +109,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
+		this.make_save_as();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
 
@@ -600,6 +601,45 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			}, true);
 		}
 	},
+	
+	// save as
+	make_save_as: function() {
+		var me = this;
+		if(frappe.user.is_report_manager()) {
+			this.page.add_menu_item(__('Save as'), function() {
+				var name = prompt(__('Select Report Name'));
+				if(!name) {
+					return;
+					}
+
+				// callback
+				return frappe.call({
+					method: 'frappe.desk.reportview.save_report',
+					args: {
+						name: name,
+						doctype: me.doctype,
+						json: JSON.stringify({
+							filters: me.filter_list.get_filters(),
+							columns: me.columns,
+							sort_by: me.sort_by_select.val(),
+							sort_order: me.sort_order_select.val(),
+							sort_by_next: me.sort_by_next_select.val(),
+							sort_order_next: me.sort_order_next_select.val()
+						})
+					},
+					callback: function(r) {
+						if(r.exc) {
+							msgprint(__("Report was not saved (there were errors)"));
+							return;
+						}
+						if(r.message != me.docname)
+							frappe.set_route('Report', me.doctype, r.message);
+					}
+				});
+			}, true);
+		}
+	},
+	
 
 	make_delete: function() {
 		var me = this;
