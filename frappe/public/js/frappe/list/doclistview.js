@@ -622,7 +622,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					print_format = args.print_sel ? args.print_sel:default_print_format;
 
 					var json_string = JSON.stringify(docname);
-					var w = window.open("/api/method/frappe.templates.pages.print.download_multi_pdf?"
+					var w = window.open("/api/method/frappe.www.print.download_multi_pdf?"
 						+"doctype="+encodeURIComponent(me.doctype)
 						+"&name="+encodeURIComponent(json_string)
 						+"&format="+encodeURIComponent(print_format)

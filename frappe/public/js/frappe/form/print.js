@@ -65,7 +65,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.wrapper.find(".btn-download-pdf").click(function() {
 			if(!me.is_old_style()) {
 				var w = window.open(
-					frappe.urllib.get_full_url("/api/method/frappe.templates.pages.print.download_pdf?"
+					frappe.urllib.get_full_url("/api/method/frappe.www.print.download_pdf?"
 					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 					+"&name="+encodeURIComponent(me.frm.doc.name)
 					+"&format="+me.selected_format()
@@ -144,7 +144,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	get_print_html: function(callback) {
 		frappe.call({
-			method: "frappe.templates.pages.print.get_html_and_style",
+			method: "frappe.www.print.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
