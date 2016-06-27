@@ -138,14 +138,15 @@ def list_apps(context):
 @click.argument('email')
 @click.option('--first-name')
 @click.option('--last-name')
+@click.option('--send-welcome-email', default=False, is_flag=True)
 @pass_context
-def add_system_manager(context, email, first_name, last_name):
+def add_system_manager(context, email, first_name, last_name, send_welcome_email):
 	"Add a new system manager to a site"
 	import frappe.utils.user
 	for site in context.sites:
 		frappe.connect(site=site)
 		try:
-			frappe.utils.user.add_system_manager(email, first_name, last_name)
+			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()

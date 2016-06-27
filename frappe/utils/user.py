@@ -244,7 +244,7 @@ def get_system_managers(only_name=False):
 def add_role(user, role):
 	frappe.get_doc("User", user).add_roles(role)
 
-def add_system_manager(email, first_name=None, last_name=None):
+def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False):
 	# add user
 	user = frappe.new_doc("User")
 	user.update({
@@ -253,7 +253,8 @@ def add_system_manager(email, first_name=None, last_name=None):
 		"enabled": 1,
 		"first_name": first_name or email,
 		"last_name": last_name,
-		"user_type": "System User"
+		"user_type": "System User",
+		"send_welcome_email": 1 if send_welcome_email else 0
 	})
 	user.insert()
 

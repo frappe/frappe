@@ -260,6 +260,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			if flags.rollback_on_exception:
 				db.rollback()
 			import inspect
+
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception, encode(msg)
 			else:

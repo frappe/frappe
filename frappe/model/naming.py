@@ -22,9 +22,9 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname
+	autoname = frappe.get_meta(doc.doctype).autoname or ""
 
-	if autoname != "Prompt" and not frappe.flags.in_import:
+	if autoname.lower() != "prompt" and not frappe.flags.in_import:
 		doc.name = None
 
 	if getattr(doc, "amended_from", None):
@@ -48,10 +48,10 @@ def set_new_name(doc):
 			set_name_by_naming_series(doc)
 		elif "#" in autoname:
 			doc.name = make_autoname(autoname)
-		elif autoname=='Prompt':
+		elif autoname.lower()=='prompt':
 			# set from __newname in save.py
 			if not doc.name:
-				frappe.throw(_("Name not set via Prompt"))
+				frappe.throw(_("Name not set via prompt"))
 
 	if not doc.name or autoname=='hash':
 		doc.name = make_autoname('hash', doc.doctype)
