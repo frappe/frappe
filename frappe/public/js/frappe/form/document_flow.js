@@ -72,15 +72,13 @@ frappe.ui.form.DocumentFlow = Class.extend({
 				frm_docname: me.frm.docname
 			},
 			callback: function(r){
-				if (!r.exc) {
-					$.each(me.doctypes, function(i, doctype) {
-						if (r.message[doctype] && me.frm.doctype!=doctype) {
-							me.wrapper.find("[data-doctype='"+doctype+"']a .indicator")
-								.removeClass("darkgrey")
-								.addClass("black")
-						}
-					})
-				}
+				$.each(me.doctypes, function(i, doctype) {
+					if (r.message[doctype] && me.frm.doctype!=doctype) {
+						me.wrapper.find("[data-doctype='"+doctype+"']a .indicator")
+							.removeClass("darkgrey")
+							.addClass("black")
+					}
+				})
 			}
 		})
 	}
