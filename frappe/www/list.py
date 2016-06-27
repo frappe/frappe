@@ -21,10 +21,10 @@ def get_context(context):
 	context.update(get(**frappe.local.form_dict))
 
 @frappe.whitelist(allow_guest=True)
-def get(doctype, txt=None, limit_start=0, **kwargs):
+def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
-	limit_page_length = 20
+	limit_page_length = limit
 	next_start = limit_start + limit_page_length
 
 	if not txt and frappe.form_dict.search:

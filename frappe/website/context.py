@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
@@ -43,9 +44,6 @@ def build_context(context):
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
-	if context.show_sidebar:
-		add_sidebar_data(context)
-
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
@@ -80,6 +78,9 @@ def build_context(context):
 
 	add_metatags(context)
 
+	if context.show_sidebar:
+		add_sidebar_data(context)
+
 	# determine templates to be used
 	if not context.base_template_path:
 		app_base = frappe.get_hooks("base_template")
@@ -91,20 +92,14 @@ def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
 	import frappe.www.list
 
-	context.my_account_list = []
-	my_account_list = frappe.get_all('Portal Menu Item',
+	sidebar_items = json.loads(frappe.cache().get('sidebar_items') or '[]')
+	if not sidebar_items:
+		sidebar_items = frappe.get_all('Portal Menu Item',
 			fields=['title', 'route', 'reference_doctype', 'show_always'], filters={'enabled': 1}, order_by='idx asc')
+		frappe.cache().set('portal_menu_items', json.dumps(sidebar_items))
 
-	for item in my_account_list:
-		if item.reference_doctype:
-			try:
-				item.count = len(frappe.www.list.get(item.reference_doctype).get('result'))
-
-			except frappe.PermissionError:
-				pass
-
-			else:
-				context.my_account_list.append(item)
+	if not context.sidebar_menu:
+		context.sidebar_menu = sidebar_items
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname

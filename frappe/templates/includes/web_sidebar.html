@@ -18,15 +18,13 @@
 			<li class="sidebar-item">
 				<a href="/me">My Account</a>
 			</li>
-		{% for item in my_account_list -%}
-		{% if item.count or (not item.reference_doctype) or item.show_always %}
+		{% for item in sidebar_menu -%}
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
 				{{ _(item.title) }}
 				</a>
 			</li>
-		{% endif %}
 		{%- endfor %}
 		</ul>
 		</div>
