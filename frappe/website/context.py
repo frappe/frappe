@@ -43,6 +43,9 @@ def build_context(context):
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
+	if context.show_sidebar:
+		add_sidebar_data(context)
+
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
@@ -74,9 +77,6 @@ def build_context(context):
 
 			if hasattr(module, "get_children"):
 				context.children = module.get_children(context)
-
-	if context.show_sidebar:
-		add_sidebar_data(context)
 
 	add_metatags(context)
 
