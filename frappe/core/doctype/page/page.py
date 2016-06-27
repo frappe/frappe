@@ -40,9 +40,12 @@ class Page(Document):
 	# export
 	def on_update(self):
 		"""
-			Writes the .txt for this page and if write_content is checked,
+			Writes the .json for this page and if write_content is checked,
 			it will write out a .html file
 		"""
+		if self.flags.do_not_update_json:
+			return
+
 		from frappe.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self, "roles")
 
