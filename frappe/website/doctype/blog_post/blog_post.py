@@ -84,8 +84,10 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
-		context.category = frappe.db.get_value("Blog Category", context.doc.blog_category, ["title", "route"], as_dict=1)
-		context.parents = [{"title": context.category.title, "name": context.category.route}]
+		context.category = frappe.db.get_value("Blog Category",
+			context.doc.blog_category, ["title", "route"], as_dict=1)
+		context.parents = [{"title": context.category.title, "name":
+			context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -178,7 +180,8 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 			post.comment_text = _('{0} comments').format(str(post.comments))
 
 		post.avatar = post.avatar or ""
-		post.blog_category_route = frappe.db.get_value('Blog Post', post.blog_category, 'route')
+		post.category = frappe.db.get_value('Blog Category', post.blog_category,
+			['route', 'title'], as_dict=True)
 
 		if (not "http:" in post.avatar or "https:" in post.avatar) and not post.avatar.startswith("/"):
 			post.avatar = "/" + post.avatar

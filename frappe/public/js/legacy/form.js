@@ -365,7 +365,7 @@ _f.Frm.prototype.show_web_link = function() {
 
 _f.Frm.prototype.add_web_link = function(path) {
 	this.web_link = this.sidebar.add_user_action("See on Website",
-		function() {}).attr("href", path).attr("target", "_blank");
+		function() {}).attr("href", this.doc.route).attr("target", "_blank");
 }
 
 _f.Frm.prototype.check_doc_perm = function() {

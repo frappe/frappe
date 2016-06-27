@@ -8,7 +8,7 @@
 				<a href="/blog?by={{ post.blogger }}&by_name={{ post.full_name }}" class="no-decoration">By {{ post.full_name }}</a>
 				<i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }}
 				<i class="blog-dot"></i>
-				<a href="/{{ post.blog_category_route }}" class="no-decoration">{{ post.blog_category }}</a>
+				<a href="/{{ post.category.route }}" class="no-decoration">{{ post.category.title }}</a>
 				<i class="blog-dot"></i> {{ post.comment_text }}
 			</p>
 		</div>

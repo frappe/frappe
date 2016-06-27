@@ -58,6 +58,7 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
+		self.validate_website()
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -72,6 +73,18 @@ class DocType(Document):
 			self.document_type = "Document"
 		if self.document_type=="Master":
 			self.document_type = "Setup"
+
+	def validate_website(self):
+		"""Ensure that website generator has field 'route'"""
+		from frappe.model.base_document import get_controller
+		try:
+			controller = get_controller(self.name)
+		except:
+			controller = None
+
+		if controller and controller.website:
+			if not 'route' in [d.fieldname for d in self.fields]:
+				frappe.throw('Field "route" is mandatory for Website Generator pages', title='Missing Field')
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
