@@ -82,7 +82,7 @@ class DocType(Document):
 		except:
 			controller = None
 
-		if controller and controller.website:
+		if controller and getattr(controller, 'website', None):
 			if not 'route' in [d.fieldname for d in self.fields]:
 				frappe.throw('Field "route" is mandatory for Website Generator pages', title='Missing Field')
 
