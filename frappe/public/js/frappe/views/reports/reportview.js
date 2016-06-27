@@ -561,28 +561,29 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	// save
 	make_save: function() {
-		var report = this;
+		var me = this;
 		if(frappe.user.is_report_manager()) {
 			this.page.add_menu_item(__('Save'), function() {
 				// name
-				if(report.docname) {
-					var name = report.docname
-				} else {
+				if(me.docname) {
+					var name = me.docname
+					}
+				else {
 					var name = prompt(__('Select Report Name'));
 					if(!name) {
 						return;
+						}
 					}
-				}
 
 				// callback
-				return save_report(report, name)
-			}, true);
+				return me.save_report(name)
+				}, true);
 		}
 	},
 	
 	// save as
 	make_save_as: function() {
-		var report = this;
+		var me = this;
 		if(frappe.user.is_report_manager()) {
 			this.page.add_menu_item(__('Save as'), function() {
 				var name = prompt(__('Select Report Name'));
@@ -591,10 +592,39 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					}
 
 				// callback
-				return save_report(report, name)
+				return me.save_report(name)
 				}, true);
 		}
 	},
+	
+	save_report: function(name) {
+		var me = this;
+		console.log(me.columns)
+		frappe.call({
+			method: 'frappe.desk.reportview.save_report',
+			args: {
+				name: name,
+				doctype: me.doctype,
+				json: JSON.stringify({
+					filters: me.filter_list.get_filters(),
+					columns: me.columns,
+					sort_by: me.sort_by_select.val(),
+					sort_order: me.sort_order_select.val(),
+					sort_by_next: me.sort_by_next_select.val(),
+					sort_order_next: me.sort_order_next_select.val()
+				})
+			},
+			callback: function(r) {
+				if(r.exc) {
+					msgprint(__("Report was not saved (there were errors)"));
+					return;
+				}
+				if(r.message != me.docname)
+					frappe.set_route('Report', me.doctype, r.message);
+			}
+		});
+	},
+	
 	
 	make_delete: function() {
 		var me = this;
@@ -735,29 +765,3 @@ frappe.ui.ColumnPicker = Class.extend({
 		this.list.run();
 	}
 });
-
-save_report = function(report, name) {
-	frappe.call({
-		method: 'frappe.desk.reportview.save_report',
-		args: {
-			name: name,
-			doctype: report.doctype,
-			json: JSON.stringify({
-				filters: report.filter_list.get_filters(),
-				columns: report.columns,
-				sort_by: report.sort_by_select.val(),
-				sort_order: report.sort_order_select.val(),
-				sort_by_next: report.sort_by_next_select.val(),
-				sort_order_next: report.sort_order_next_select.val()
-			})
-		},
-		callback: function(r) {
-			if(r.exc) {
-				msgprint(__("Report was not saved (there were errors)"));
-				return;
-			}
-			if(r.message != report.docname)
-				frappe.set_route('Report', report.doctype, r.message);
-		}
-	});
-}
