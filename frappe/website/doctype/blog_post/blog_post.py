@@ -19,6 +19,11 @@ class BlogPost(WebsiteGenerator):
 		page_title_field = "title"
 	)
 
+	def make_route(self):
+		if not self.route:
+			return 'blog/' + frappe.db.get_value('Blog Category', self.blog_category,
+				'route') + '/' + self.scrub(self.title)
+
 	def get_feed(self):
 		return self.title
 

@@ -1,3 +1,5 @@
+/* login-css */
+
 .page-sidebar, #wrap-footer, .page-header {
 	display: none;
 }
@@ -114,6 +116,6 @@ p{
 .btn-login {
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: 400;	
+    font-weight: 400;
 	font-size: 14px;
 }

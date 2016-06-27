@@ -1,5 +1,7 @@
-window.disable_signup = {{ disable_signup and "true" or "false" }};
+// login.js
+// don't remove this line (used in test)
 
+window.disable_signup = {{ disable_signup and "true" or "false" }};
 
 window.login = {};
 

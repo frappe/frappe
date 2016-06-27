@@ -18,7 +18,7 @@ class WebsiteGenerator(Document):
 
 	def autoname(self):
 		if not self.name and self.meta.autoname != "hash":
-			self.name = self.make_route()
+			self.name = self.scrub(self.get(self.website.page_title_field or "title"))
 
 	def onload(self):
 		self.get("__onload").update({
@@ -69,7 +69,6 @@ class WebsiteGenerator(Document):
 			"ref_doctype":self.doctype,
 			"idx": self.idx,
 			"docname": self.name,
-			"route": route,
 			"controller": get_module_name(self.doctype, self.meta.module),
 		})
 

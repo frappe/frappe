@@ -17,9 +17,9 @@ from frappe.translate import guess_language
 
 class PageNotFoundError(Exception): pass
 
-def render(path, http_status_code=None):
+def render(path=None, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path.strip("/ "))
+	path = resolve_path(frappe.local.request.path.strip('/ '))
 	data = None
 
 	# if in list of already known 404s, send it
