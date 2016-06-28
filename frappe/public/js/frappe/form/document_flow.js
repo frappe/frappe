@@ -46,8 +46,11 @@ frappe.ui.form.DocumentFlow = Class.extend({
 				return false;
 			}
 		});
-		
-		this.mark_completed_flow()
+
+		if (!this.frm.doc.__islocal) {
+			this.mark_completed_flow()
+		}
+
 	},
 
 	get_linked_docs: function(for_doctype) {
@@ -63,7 +66,6 @@ frappe.ui.form.DocumentFlow = Class.extend({
 	
 	mark_completed_flow: function() {
 		var me = this;
-				
 		frappe.call({
 			method: "frappe.desk.form.document_flow.get_document_completion_status",
 			args: {
