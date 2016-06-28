@@ -58,7 +58,7 @@ $.extend(frappe.model, {
 		}
 
 		// set route options
-		if(frappe.route_options) {
+		if(frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function(fieldname, value) {
 				if(frappe.meta.has_field(doctype, fieldname)) {
 					doc[fieldname]=value;
