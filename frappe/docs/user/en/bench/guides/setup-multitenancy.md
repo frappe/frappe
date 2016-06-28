@@ -11,13 +11,12 @@ change it with the command,
 Port based multitenancy
 -----------------------
 
-DNS based multitenancy mode is enabled by default, switch it off using the command
-```
-	bench config dns_multitenant off
-```
-
 You can create a new site and make run it on a different port (while the first
 one runs on port 80).
+
+* Switch off DNS based multitenancy (once)
+
+	`bench config dns_multitenant off`
 
 * Create a new site
 
@@ -42,6 +41,10 @@ DNS based multitenancy
 You can name your sites as the hostnames that would resolve to it. Thus, all the sites you add to the bench would run on the same port and will be automatically selected based on the hostname. 
 
 To make a new site under DNS based multitenancy, perform the following steps.
+
+* Switch on DNS based multitenancy (once)
+	
+	`bench config dns_multitenant on`
 
 * Create a new site
 
