@@ -15,9 +15,15 @@
 	</div>
 	<div class="sidebar-items">
 		<ul class="list-unstyled">
+			{% if sidebar_title %}
+				<li class="title">
+					{{ sidebar_title }}
+				</li>
+			{% else %}
 			<li class="sidebar-item">
 				<a href="/me">My Account</a>
 			</li>
+			{% endif %}
 		{% for item in sidebar_items -%}
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
