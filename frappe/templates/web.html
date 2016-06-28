@@ -6,14 +6,14 @@
 	{% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
 			<div class="row {% if show_sidebar %}vert-line{% endif %}">
 				{% if show_sidebar %}
-					<div class="col-sm-3 sidebar-block">
+					<div class="col-sm-3 sidebar-block hidden-xs">
 						{% include "templates/includes/web_sidebar.html" %}
 					</div>
 				{% endif %}
 				<div class="{% if show_sidebar %}page-content with-sidebar col-sm-9{% else %} page-content col-sm-12 {% endif %}">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								{% if not no_breadcrumbs and parents %}
 								<div class="page-breadcrumbs">
 									{% block breadcrumbs %}
@@ -23,7 +23,7 @@
 								{% endif %}
 								{% block header %}{% endblock %}
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								{% if show_search %}
 									<div class="page-search-block">
 									{% block search %}

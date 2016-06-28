@@ -102,6 +102,7 @@
 }
 .toggle-sidebar {
   margin-right: 15px;
+  border: 0;
 }
 .navbar-default .navbar-nav > li > a,
 .navbar-default .navbar-brand {

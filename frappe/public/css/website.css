@@ -579,7 +579,6 @@ fieldset {
   font-weight: 500 !important;
 }
 .web-sidebar .sidebar-items {
-  margin-top: 30px;
   margin-bottom: 30px;
 }
 .web-sidebar .sidebar-items .title {
@@ -596,6 +595,14 @@ fieldset {
 /* post and post list */
 .list-group-item {
   border-radius: 0px !important;
+}
+.no-results {
+  text-align: center;
+}
+.no-results .octicon-telescope {
+  display: block;
+  padding: 10px;
+  padding-top: 20px;
 }
 .website-list {
   min-height: 200px;
@@ -927,6 +934,15 @@ body {
   padding-left: 50px;
   padding-right: 50px;
 }
+@media screen and (max-width: 480px) {
+  .page-content {
+    padding-top: 20px;
+  }
+  .page-content.with-sidebar {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
 .content-header {
   padding-bottom: 20px;
 }
@@ -969,6 +985,7 @@ li .footer-child-item {
 }
 .item-search {
   border-bottom: 1px solid #d1d8dd;
+  width: 100%;
 }
 .item-search .item-search-input {
   position: relative;
@@ -977,6 +994,10 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
+  width: 95px;
+}
+.item-search i {
+  padding: 10px 10px 10px 0;
 }
 .vert-line {
   overflow: hidden;
