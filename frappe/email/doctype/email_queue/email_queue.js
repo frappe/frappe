@@ -6,7 +6,7 @@ frappe.ui.form.on("Email Queue", {
 		if (frm.doc.status==="Not Sent") {
 			frm.add_custom_button("Send Now", function() {
 				frappe.call({
-					method: 'frappe.email.doctype.bulk_email.bulk_email.send_now',
+					method: 'frappe.email.doctype.email_queue.email_queue.send_now',
 					args: {
 						name: frm.doc.name
 					},
