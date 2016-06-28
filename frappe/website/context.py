@@ -98,8 +98,8 @@ def add_sidebar_data(context):
 			fields=['title', 'route', 'reference_doctype', 'show_always'], filters={'enabled': 1}, order_by='idx asc')
 		frappe.cache().set('portal_menu_items', json.dumps(sidebar_items))
 
-	if not context.sidebar_menu:
-		context.sidebar_menu = sidebar_items
+	if not context.sidebar_items:
+		context.sidebar_items = sidebar_items
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname

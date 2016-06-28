@@ -24,7 +24,7 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 frappe.views.TreeView = Class.extend({
 	init: function(opts) {
 		var me = this;
-		
+
 		this.opts = {};
 		this.opts.get_tree_root = true;
 		$.extend(this.opts, opts);
@@ -74,7 +74,7 @@ frappe.views.TreeView = Class.extend({
 					me.args[$(this).attr("data-fieldname")] = $(this).val();
 					me.make_tree();
 				})
-			
+
 			if (filter.default) {
 				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");
 			}
@@ -189,9 +189,9 @@ frappe.views.TreeView = Class.extend({
 				v.is_root = 0;
 				v.root_type = null;
 			}
-			
+
 			$.extend(me.args, v)
-			
+
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
 				args: me.args,
@@ -235,11 +235,17 @@ frappe.views.TreeView = Class.extend({
 
 		this.menu_items = [
 			{
+				label: __('View List'),
+				action: function() {
+					frappe.set_route('List', me.doctype);
+				}
+			},
+			{
 				label: __('Refresh'),
 				action: function() {
 					me.make_tree();
 				}
-			}
+			},
 		]
 
 		if (me.opts.menu_items) {
@@ -261,7 +267,7 @@ frappe.views.TreeView = Class.extend({
 
 
 
-		
+
 
 
 
