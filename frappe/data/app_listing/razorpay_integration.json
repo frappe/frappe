@@ -1,0 +1,14 @@
+{
+	"app_url": "https://frappe.github.io/razorpay_integration",
+	"app_name": "razorpay_integration",
+	"app_icon": "octicon octicon-credit-card",
+	"app_color": "#179bd7",
+	"app_description": "Accept Payment via Razorpay",
+	"app_publisher": "Frappe",
+	"app_email": "hello@frappe.io",
+	"repo_url": "https://github.com/frappe/razorpay_integration.git",
+	"app_title": "Razorpay Integation",
+	"app_version": "1.0.0",
+	"app_category": "Integrations",
+	"featured": 1
+}
