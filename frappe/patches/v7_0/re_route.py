@@ -15,8 +15,8 @@ def update_routes(doctypes):
 			condition = 'where {0}=1'.format(c.website.condition_field)
 
 		try:
-			frappe.db.sql("""update `tab{0}` set route = concat(ifnull(parent_website_route, ""),
+			frappe.db.sql("""update ignore `tab{0}` set route = concat(ifnull(parent_website_route, ""),
 				if(ifnull(parent_website_route, "")="", "", "/"), page_name) {1}""".format(d, condition))
 
 		except Exception, e:
-			if e.args[0]!=1054: raise e
+			if e.args[0]!=1054: raise
