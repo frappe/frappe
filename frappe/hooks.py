@@ -97,7 +97,10 @@ standard_queries = {
 doc_events = {
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+		"validate": [
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+			"frappe.email.doctype.email_group.email_group.restrict_email_group"
+		],	
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",

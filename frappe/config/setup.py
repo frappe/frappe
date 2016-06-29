@@ -137,6 +137,21 @@ def get_data():
 					"name": "Standard Reply",
 					"description": _("Standard replies to common queries.")
 				},
+				{
+					"type": "doctype",
+					"name": "Newsletter",
+					"description": _("Newsletters to contacts, leads."),
+				},
+				{
+					"type": "doctype",
+					"name": "Email Group",
+					"description": _("Email Group List"),
+				},
+				{
+					"type": "doctype",
+					"name": "Email Group Member",
+					"description": _("Email Group Member List"),
+				},
 			]
 		},
 		{
