@@ -403,6 +403,9 @@ $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
 	$('.dropdown-toggle').dropdown();
 
+	$.extend(frappe, getCookies());
+	frappe.session = {'user': frappe.user_id};
+
 	frappe.datetime.refresh_when();
 	frappe.trigger_ready();
 	frappe.bind_filters();
