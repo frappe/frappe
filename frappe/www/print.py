@@ -26,7 +26,11 @@ def get_context(context):
 				<pre>%s</pre>""" % repr(frappe.form_dict)
 		}
 
-	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+	if frappe.form_dict.doc:
+		doc = frappe.form_dict.doc
+	else:
+		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+
 	meta = frappe.get_meta(doc.doctype)
 
 	print_format = get_print_format_doc(None, meta = meta)

@@ -1129,7 +1129,7 @@ def format_value(value, df, doc=None, currency=None):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
 
-def get_print(doctype, name, print_format=None, style=None, html=None, as_pdf=False):
+def get_print(doctype, name, print_format=None, style=None, html=None, as_pdf=False, doc=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1144,6 +1144,7 @@ def get_print(doctype, name, print_format=None, style=None, html=None, as_pdf=Fa
 	local.form_dict.name = name
 	local.form_dict.format = print_format
 	local.form_dict.style = style
+	local.form_dict.doc = doc
 
 	if not html:
 		html = build_page("print")
@@ -1153,7 +1154,7 @@ def get_print(doctype, name, print_format=None, style=None, html=None, as_pdf=Fa
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1166,12 +1167,12 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False
