@@ -37,4 +37,11 @@ frappe.ready(function() {
 			$(".website-list .more-block").addClass("hide");
 		}
 	};
+	
+	if($('.web-sidebar:visible').length === 0)
+	{
+		$('.page-head h1').addClass('list-head').click(function(){
+			window.history.back();
+	 	});
+	}
 });

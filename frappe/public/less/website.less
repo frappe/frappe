@@ -255,7 +255,7 @@ fieldset {
 	}
 
 	.sidebar-items {
-		margin-top:30px;
+		// margin-top:30px;
 		margin-bottom:30px;
 		.title{
 			font-size: 14px; 
@@ -277,6 +277,25 @@ fieldset {
 
 .list-group-item {
 	border-radius: 0px !important;
+}
+
+.no-results  {
+	text-align: center;
+	
+	.octicon-telescope {
+ 		display: block;
+		padding: 10px;
+		padding-top: 20px;
+	}
+}
+
+.list-head {
+	cursor: pointer;
+	&:before {
+		font-family: 'Octicons';
+		content: '\f0a4';
+		padding-right: 5px;
+	}
 }
 
 .website-list {
@@ -523,13 +542,24 @@ a.active {
 	padding-bottom: 50px;
 }
 .your-account-info {
-	margin-top: 50px;
+	margin-top: 30px;
 }
 
 .page-content.with-sidebar {
 	padding-left: 50px;
 	padding-right: 50px;
 }
+
+@media screen and (max-width: 480px) {
+	.page-content {
+		padding-top: 20px;
+	}
+	.page-content.with-sidebar {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+}
+
 
 .content-header {
 	padding-bottom:20px;
@@ -581,6 +611,7 @@ li .footer-child-item {
 
 .item-search {
 	border-bottom: 1px solid @border-color;
+	width: 100%;
 
 	.item-search-input {
 		position: relative;
@@ -589,6 +620,10 @@ li .footer-child-item {
 		margin-right: 5px;
 		padding: 7px;
 		padding-left: 0px;
+		width: 80px;
+	}
+	i {
+		padding: 10px 10px 10px 0;
 	}
 }
 

@@ -235,7 +235,8 @@ body {
   display: inline-block;
 }
 .toggle-sidebar {
-  margin-right: 15px;
+  margin-right: 10px;
+  border: none !important;
 }
 .navbar-default .navbar-nav > li > a,
 .navbar-default .navbar-brand {

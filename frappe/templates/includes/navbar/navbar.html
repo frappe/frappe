@@ -2,10 +2,12 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="{{ url_prefix }}{{ home_page or "/" }}">
+				<!-- <a class="navbar-brand ellipsis" href="{{ url_prefix }}{{ home_page or "/" }}"> -->
+				<a class="navbar-brand ellipsis"
+					 href="{{ url_prefix }}{% if frappe.user=="Guest" %} {{ home_page or "/"}} {% else %} /me {% endif %}">
 					<span>{{ brand_html or (frappe.get_hooks("brand_html") or ["Home"])[0] }}</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
 				</a>
 			</div>
