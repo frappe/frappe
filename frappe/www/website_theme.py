@@ -8,7 +8,7 @@ from frappe.website.utils import get_shade
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
 no_sitemap = 1
-base_template_path = "templates/pages/website_theme.css"
+base_template_path = "templates/www/website_theme.css"
 
 default_properties = {
 	"background_color": "#ffffff",

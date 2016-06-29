@@ -7,7 +7,7 @@ import urllib
 from frappe.utils import escape_html, get_request_site_address, now, cstr
 
 no_cache = 1
-base_template_path = "templates/pages/rss.xml"
+base_template_path = "templates/www/rss.xml"
 
 def get_context(context):
 	"""generate rss feed"""

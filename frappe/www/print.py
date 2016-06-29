@@ -14,7 +14,7 @@ from frappe.utils.pdf import get_pdf
 no_cache = 1
 no_sitemap = 1
 
-base_template_path = "templates/pages/print.html"
+base_template_path = "templates/www/print.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):

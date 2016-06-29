@@ -7,7 +7,7 @@ from frappe.utils import strip
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
 no_sitemap = 1
-base_template_path = "templates/pages/website_script.js"
+base_template_path = "templates/www/website_script.js"
 
 def get_context(context):
 	context.javascript = frappe.db.get_single_value('Website Script', 'javascript')

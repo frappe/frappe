@@ -10,7 +10,7 @@ from frappe.website.router import get_pages, get_all_page_context_from_doctypes
 
 no_cache = 1
 no_sitemap = 1
-base_template_path = "templates/pages/sitemap.xml"
+base_template_path = "templates/www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
