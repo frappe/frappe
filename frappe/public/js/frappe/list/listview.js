@@ -327,7 +327,7 @@ frappe.views.ListView = Class.extend({
 		data._name_encoded = encodeURIComponent(data.name);
 		data._submittable = frappe.model.is_submittable(this.doctype);
 
-		data._title = data[this.title_field || "name"] || data["name"];
+		data._title = strip_html(data[this.title_field || "name"] || data["name"]);
 		data._full_title = data._title;
 
 		if(data._title.length > 40) {
