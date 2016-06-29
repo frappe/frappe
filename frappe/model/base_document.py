@@ -565,9 +565,8 @@ class BaseDocument(object):
 						or (self.docstatus==1 and not df.get("allow_on_submit"))):
 				continue
 
-
 			else:
-				sanitized_value = sanitize_html(value)
+				sanitized_value = sanitize_html(value, linkify=df.fieldtype=='Text Editor')
 
 			self.set(fieldname, sanitized_value)
 

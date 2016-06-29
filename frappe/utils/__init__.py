@@ -423,7 +423,7 @@ def watch(path, handler=None, debug=True):
 		observer.stop()
 	observer.join()
 
-def sanitize_html(html):
+def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
@@ -446,6 +446,9 @@ def sanitize_html(html):
 		styles=bleach_whitelist.all_styles,
 		strip_comments=False)
 
+	if linkify:
+		escaped_html = bleach.linkify(escaped_html)
+
 	return escaped_html
 
 def is_json(text):
@@ -458,12 +461,12 @@ def is_json(text):
 	else:
 		return True
 
-def markdown(text, sanitize=True):
+def markdown(text, sanitize=True, linkify=True):
 	html = _markdown(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
-		html = sanitize_html(html)
+		html = sanitize_html(html, linkify=linkify)
 
 	return html
 
