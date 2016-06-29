@@ -37,4 +37,29 @@ frappe.ready(function() {
 			$(".website-list .more-block").addClass("hide");
 		}
 	};
+	
+	function getBootstrapEnvironment() {
+	    var envs = ['xs', 'sm', 'md', 'lg'];
+
+	    var $el = $('<div>');
+	    $el.appendTo($('body'));
+
+	    for (var i = envs.length - 1; i >= 0; i--) {
+	        var env = envs[i];
+
+	        $el.addClass('hidden-'+env);
+	        if ($el.is(':hidden')) {
+	            $el.remove();
+	            return env;
+	        }
+	    }
+	}
+	
+	if(getBootstrapEnvironment() === "xs")
+	{
+		$('.page-head h1').addClass('list-head').click(function(){
+			window.history.back();
+	 	});
+	}    
+	    
 });

@@ -604,6 +604,14 @@ fieldset {
   padding: 10px;
   padding-top: 20px;
 }
+.list-head {
+  cursor: pointer;
+}
+.list-head:before {
+  font-family: 'Octicons';
+  content: '\f0a4';
+  padding-right: 5px;
+}
 .website-list {
   min-height: 200px;
   padding-bottom: 15px;
@@ -928,7 +936,7 @@ body {
   padding-bottom: 50px;
 }
 .your-account-info {
-  margin-top: 50px;
+  margin-top: 30px;
 }
 .page-content.with-sidebar {
   padding-left: 50px;

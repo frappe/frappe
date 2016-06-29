@@ -1,4 +1,15 @@
-<div class="row your-account-info" style="min-height: 400px; padding-bottom: 50px;">
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Profile") }}{% endblock %}
+{% block header %}<h1>{{ _("Profile") }}</h1>{% endblock %}
+
+{% block page_sidebar %}
+{% include "templates/pages/web_sidebar.html" %}
+{% endblock %}
+
+{% block page_content %}
+
+<div class="row your-account-info {% if pathname=="me" %} hidden-xs {% endif %} " style="min-height: 400px; padding-bottom: 50px;">
 	<div class="col-sm-4">
 			<span class="user-image-myaccount"></span>
 			<div>
@@ -20,3 +31,5 @@
 		</div>
 	</div>
 </div>
+
+{% endblock %}
