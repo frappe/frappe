@@ -18,7 +18,7 @@
     		{{ _("Submit") if params.new else _("Update") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}?new=1" class="btn btn-primary btn-new btn-sm">
+	    <a href="/{{ pathname + args }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
 	    {{ _("New {0}").format(_(doc_type)) }}
 	    </a>
 	</div>

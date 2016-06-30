@@ -107,6 +107,10 @@ def get_context(context):
 		context.params = frappe.form_dict
 		logged_in = frappe.session.user != "Guest"
 
+		args, delimeter = make_route_string(frappe.local.form_dict)
+		context.args = args
+		context.delimeter = delimeter
+
 		# check permissions
 		if not logged_in and frappe.form_dict.name:
 			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
@@ -316,3 +320,14 @@ def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
 	filters["owner"] = frappe.session.user
 
 	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)
+
+def make_route_string(parameters):
+	route_string = ""
+	delimeter = '?'
+	if isinstance(parameters,dict):
+		for key in parameters:
+			if key != "is_web_form":
+				per_parameter_path = delimeter + key + "=" + parameters[key]
+				route_string = route_string + per_parameter_path
+				delimeter = '&'
+	return (route_string,delimeter)
