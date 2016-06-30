@@ -7,7 +7,6 @@ Call from command line:
 """
 
 import os, json, frappe, shutil, re
-import frappe.website.statics
 from frappe.website.context import get_context
 from frappe.utils import markdown
 

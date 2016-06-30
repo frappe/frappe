@@ -133,8 +133,8 @@ def convert_utc_to_user_timezone(utc_timestamp):
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
-	if getattr(frappe.local, "current_date", None):
-		return getdate(frappe.local.current_date).strftime(DATE_FORMAT) + " " + \
+	if frappe.flags.current_date:
+		return getdate(frappe.flags.current_date).strftime(DATE_FORMAT) + " " + \
 			now_datetime().strftime(TIME_FORMAT)
 	else:
 		return now_datetime().strftime(DATETIME_FORMAT)

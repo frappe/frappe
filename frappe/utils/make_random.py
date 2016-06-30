@@ -25,7 +25,7 @@ def add_random_children(doc, fieldname, rows, randomize, unique=None):
 		else:
 			doc.append(fieldname, d)
 
-def get_random(doctype, filters=None):
+def get_random(doctype, filters=None, doc=False):
 	condition = []
 	if filters:
 		for key, val in filters.items():
@@ -38,7 +38,12 @@ def get_random(doctype, filters=None):
 	out = frappe.db.sql("""select name from `tab%s` %s
 		order by RAND() limit 0,1""" % (doctype, condition))
 
-	return out and out[0][0] or None
+	out = out and out[0][0] or None
+
+	if doc and out:
+		return frappe.get_doc(doctype, out)
+	else:
+		return out
 
 def can_make(doctype):
 	return random.random() < settings.prob.get(doctype, settings.prob["default"])["make"]

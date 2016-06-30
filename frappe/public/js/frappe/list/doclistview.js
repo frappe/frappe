@@ -351,6 +351,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 								doctype = d.options;
 								return false;
 							}
+							return true;
 						});
 
 						if(!doctype) {

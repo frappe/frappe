@@ -63,7 +63,7 @@ frappe.ui.form.DocumentFlow = Class.extend({
 
 		this.linked_with[for_doctype].show();
 	},
-	
+
 	mark_completed_flow: function() {
 		var me = this;
 		frappe.call({
@@ -74,6 +74,9 @@ frappe.ui.form.DocumentFlow = Class.extend({
 				frm_docname: me.frm.docname
 			},
 			callback: function(r){
+				if(!r.message) {
+					return;
+				}
 				$.each(me.doctypes, function(i, doctype) {
 					if (r.message[doctype] && me.frm.doctype!=doctype) {
 						me.wrapper.find("[data-doctype='"+doctype+"']a .indicator")
