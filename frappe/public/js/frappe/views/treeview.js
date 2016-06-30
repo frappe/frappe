@@ -14,7 +14,6 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 				msgprint(__("Tree view not available for {0}", [route[1]] ));
 				return false;
 			}
-
 			$.extend(options, frappe.treeview_settings[route[1]] || {});
 			new frappe.views.TreeView(options);
 		});
@@ -69,6 +68,10 @@ frappe.views.TreeView = Class.extend({
 	make_filters: function(){
 		var me = this;
 		$.each(this.opts.filters || [], function(i, filter){
+			if(frappe.route_options && frappe.route_options[filter.fieldname]) {
+				filter.default = frappe.route_options[filter.fieldname]
+			}
+			
 			me.page.add_field(filter).$input
 				.change(function() {
 					me.args[$(this).attr("data-fieldname")] = $(this).val();
