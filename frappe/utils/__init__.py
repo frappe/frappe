@@ -496,6 +496,7 @@ def get_site_info():
 	for u in users:
 		# tag system managers
 		u.is_system_manager = 1 if u.name in system_managers else 0
+		u.full_name = get_fullname(u.name)
 
 	system_settings = frappe.db.get_singles_dict('System Settings')
 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
