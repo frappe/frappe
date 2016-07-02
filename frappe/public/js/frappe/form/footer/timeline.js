@@ -170,7 +170,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		if(!c.sender) c.sender = this.frm.doc.owner;
 
-		if(c.sender.indexOf("<")!==-1) {
+		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
