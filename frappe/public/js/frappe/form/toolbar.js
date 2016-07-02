@@ -162,6 +162,13 @@ frappe.ui.form.Toolbar = Class.extend({
 					doc_type: me.frm.doctype
 				})
 			}, true);
+
+			if (frappe.boot.developer_mode===1 && me.frm.meta.issingle) {
+				// edit doctype
+				this.page.add_menu_item(__("Edit DocType"), function() {
+					frappe.set_route('Form', 'DocType', me.frm.doctype);
+				}, true);
+			}
 		}
 
 		// New

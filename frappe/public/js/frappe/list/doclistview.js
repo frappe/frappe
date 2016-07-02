@@ -538,7 +538,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			frappe.add_to_desktop(me.doctype, me.doctype);
 		}, true);
 
-		if (frappe.boot.developer_mode===1) {
+		if (in_list(user_roles, "System Manager") && frappe.boot.developer_mode===1) {
 			// edit doctype
 			this.page.add_menu_item(__("Edit DocType"), function() {
 				frappe.set_route('Form', 'DocType', me.doctype);

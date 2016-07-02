@@ -422,6 +422,9 @@ textarea.form-control {
 .form-control {
   position: relative;
 }
+.form-control input {
+  padding: 6px 10px 8px;
+}
 .link-field.ui-front {
   z-index: inherit;
 }
