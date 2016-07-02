@@ -28,8 +28,8 @@ email_defaults = {
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.yandex.com",
-		"smtp_port": 465,
-		"use_tls": 0
+		"smtp_port": 587,
+		"use_tls": 1
 	},
 };
 
