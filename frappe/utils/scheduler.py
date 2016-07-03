@@ -66,8 +66,6 @@ def enqueue_events_for_site(site, queued_jobs):
 
 		enqueue_events(site=site, queued_jobs=queued_jobs)
 
-		# TODO this print call is a tempfix till logging is fixed!
-		print 'Queued events for site {0}'.format(site)
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
 
 	except:
@@ -176,7 +174,10 @@ def log(method, message=None):
 def get_enabled_scheduler_events():
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
-		return json.loads(enabled_events)
+		if isinstance(enabled_events, basestring):
+			enabled_events = json.loads(enabled_events)
+
+		return enabled_events
 
 	return ["all", "hourly", "hourly_long", "daily", "daily_long",
 		"weekly", "weekly_long", "monthly", "monthly_long"]
