@@ -66,8 +66,6 @@ def enqueue_events_for_site(site, queued_jobs):
 
 		enqueue_events(site=site, queued_jobs=queued_jobs)
 
-		# TODO this print call is a tempfix till logging is fixed!
-		print 'Queued events for site {0}'.format(site)
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
 
 	except:
