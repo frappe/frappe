@@ -135,8 +135,10 @@ def update_limits(limits_dict):
 def clear_limit(key):
 	'''Remove a limit option from site_config'''
 	limits = get_limits()
-	if key in limits:
-		del limits[key]
+	to_clear = [key] if isinstance(key, basestring) else key
+	for key in to_clear:
+		if key in limits:
+			del limits[key]
 
 	update_site_config("limits", limits, validate=False)
 	frappe.conf.limits = limits

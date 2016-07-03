@@ -332,47 +332,70 @@ def set_admin_password(context, admin_password):
 		finally:
 			frappe.destroy()
 
-
 @click.command('set-limit')
 @click.option('--site', help='site name')
-@click.argument('limit', type=click.Choice(['emails', 'space', 'users', 'expiry',
-	'support_email', 'support_chat', 'upgrade_link']))
+@click.argument('limit')
 @click.argument('value')
 @pass_context
 def set_limit(context, site, limit, value):
 	"""Sets user / space / email limit for a site"""
+	_set_limits(context, site, ((limit, value),))
+
+@click.command('set-limits')
+@click.option('--site', help='site name')
+@click.option('--limit', 'limits', type=(unicode, unicode), multiple=True)
+@pass_context
+def set_limits(context, site, limits):
+	_set_limits(context, site, limits)
+
+def _set_limits(context, site, limits):
 	import datetime
+
+	if not limits:
+		return
+
 	if not site:
 		site = get_site(context)
 
 	with frappe.init_site(site):
-		if limit=='expiry':
-			try:
-				datetime.datetime.strptime(value, '%Y-%m-%d')
-			except ValueError:
-				raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+		new_limits = {}
+		for limit, value in limits:
+			if limit not in ('emails', 'space', 'users', 'expiry',
+				'support_email', 'support_chat', 'upgrade_link'):
+				frappe.throw('Invalid limit {0}'.format(limit))
 
-		elif limit=='space':
-			value = float(value)
+			if limit=='expiry':
+				try:
+					datetime.datetime.strptime(value, '%Y-%m-%d')
+				except ValueError:
+					raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-		elif limit in ('users', 'emails'):
-			value = int(value)
+			elif limit=='space':
+				value = float(value)
 
-		update_limits({ limit : value })
+			elif limit in ('users', 'emails'):
+				value = int(value)
 
-@click.command('clear-limit')
+			new_limits[limit] = value
+
+		update_limits(new_limits)
+
+@click.command('clear-limits')
 @click.option('--site', help='site name')
-@click.argument('limit', type=click.Choice(['emails', 'space', 'users', 'expiry',
+@click.argument('limits', nargs=-1, type=click.Choice(['emails', 'space', 'users', 'expiry',
 	'support_email', 'support_chat', 'upgrade_link']))
 @pass_context
-def clear_limit(context, site, limit):
+def clear_limits(context, site, limits):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""
 	from frappe.limits import clear_limit as _clear_limit
+	if not limits:
+		return
+
 	if not site:
 		site = get_site(context)
 
 	with frappe.init_site(site):
-		_clear_limit(limit)
+		_clear_limit(limits)
 
 		# Remove limits from the site_config, if it's empty
 		limits = get_limits()
@@ -396,6 +419,7 @@ commands = [
 	set_admin_password,
 	uninstall,
 	set_limit,
-	clear_limit,
+	set_limits,
+	clear_limits,
 	_use,
 ]
