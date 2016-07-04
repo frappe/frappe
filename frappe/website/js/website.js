@@ -371,6 +371,7 @@ $(document).ready(function() {
 	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
+	$(".logged-in").toggleClass("hide", logged_in ? false : true);
 
 	frappe.bind_navbar_search();
 
@@ -390,8 +391,9 @@ $(document).ready(function() {
 	});
 
 	// switch to app link
-	if(getCookie("system_user")==="yes") {
+	if(getCookie("system_user")==="yes" && logged_in) {
 		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
+		$(".navbar-header .dropdown .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
 	}
 
 	frappe.render_user();

@@ -75,7 +75,7 @@ def get_website_settings():
 		'footer_items': get_items('footer_items'),
 		"post_login": [
 			{"label": "My Account", "url": "/me"},
-			{"class": "divider"},
+#			{"class": "divider"},
 			{"label": "Logout", "url": "/?cmd=web_logout"}
 		]
 	})
