@@ -81,7 +81,9 @@ def get_required_queues(app, prefix=''):
 	ret = []
 	for site in get_sites():
 		ret.append('{}{}'.format(prefix, site))
-	ret.append(app.conf['CELERY_DEFAULT_QUEUE'])
+	if not prefix:
+		# default queue only for shortjob workers
+		ret.append(app.conf['CELERY_DEFAULT_QUEUE'])
 	return ret
 
 def is_site_in_maintenance_mode(queue, prefix):
