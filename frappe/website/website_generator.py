@@ -15,6 +15,10 @@ class WebsiteGenerator(Document):
 	website = frappe._dict(
 		page_title_field = "name"
 	)
+	
+	def __init__(*args, **kwargs):
+		self.route = None
+		super(WebsiteGenerator, self).__init__(*args, **kwargs)
 
 	def autoname(self):
 		if not self.name and self.meta.autoname != "hash":
