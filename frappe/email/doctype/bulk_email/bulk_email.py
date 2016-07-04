@@ -15,3 +15,7 @@ def retry_sending(name):
 	if doc and doc.status == "Error":
 		doc.status = "Not Sent"
 		doc.save(ignore_permissions=True)
+
+def on_doctype_update():
+	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
+	frappe.db.add_index('Bulk Email', ('status', 'send_after', 'priority', 'creation'), 'index_bulk_flush')
