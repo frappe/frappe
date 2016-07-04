@@ -16,7 +16,7 @@ class WebsiteGenerator(Document):
 		page_title_field = "name"
 	)
 	
-	def __init__(*args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		self.route = None
 		super(WebsiteGenerator, self).__init__(*args, **kwargs)
 
