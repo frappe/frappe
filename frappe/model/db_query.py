@@ -29,7 +29,8 @@ class DatabaseQuery(object):
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
-		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False):
+		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False,
+		update=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -70,6 +71,7 @@ class DatabaseQuery(object):
 		self.ignore_ifnull = ignore_ifnull
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
+		self.update = update
 		#self.debug = True
 
 		if query:
@@ -99,7 +101,7 @@ class DatabaseQuery(object):
 		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
 
-		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug)
+		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -277,13 +279,13 @@ class DatabaseQuery(object):
 				values = values.split(",")
 
 			fallback = "''"
-			value = (frappe.db.escape(v.strip(), percent=False) for v in values)
+			value = (frappe.db.escape((v or '').strip(), percent=False) for v in values)
 			value = '("{0}")'.format('", "'.join(value))
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
-			if df and df.fieldtype=="Check":
+			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
 			if df and df.fieldtype=="Date":
@@ -319,7 +321,8 @@ class DatabaseQuery(object):
 				column_name = "date_format({tname}.{fname}, '%Y-%m-%d')".format(tname=tname,
 					fname=f.fieldname)
 
-		if self.ignore_ifnull or not can_be_null or (value and f.operator in ('=', 'like')):
+		if (self.ignore_ifnull or not can_be_null
+			or (f.value and f.operator in ('=', 'like')) or 'ifnull(' in column_name.lower()):
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)

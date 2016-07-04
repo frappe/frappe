@@ -130,7 +130,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		// filter out transactions for which the user
 		// does not have permission
 		var transactions = [];
-		this.links.transactions.forEach(function(group) {
+		(this.links.transactions || []).forEach(function(group) {
 			var items = [];
 			group.items.forEach(function(doctype) {
 				if(frappe.model.can_read(doctype)) {
