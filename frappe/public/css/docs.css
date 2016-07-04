@@ -236,10 +236,6 @@ body {
 }
 .toggle-sidebar {
   margin-right: 15px;
-<<<<<<< HEAD
-=======
-  border-color: #fff;
->>>>>>> 08ff129... added dropdown, disabled offcanvas in portal
 }
 .navbar-default .navbar-nav > li > a,
 .navbar-default .navbar-brand {
