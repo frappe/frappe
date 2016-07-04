@@ -387,7 +387,7 @@ def get_sites(sites_path=None):
 			# is a dir and has site_config.json
 			sites.append(site)
 
-	return sites
+	return sorted(sites)
 
 def get_request_session(max_retries=3):
 	from requests.packages.urllib3.util import Retry
