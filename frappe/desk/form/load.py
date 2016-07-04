@@ -195,4 +195,5 @@ def get_badge_info(doctypes, filters):
 
 def run_onload(doc):
 	doc.set("__onload", frappe._dict())
+	doc.set_onload('links', doc.meta.get_links_setup())
 	doc.run_method("onload")

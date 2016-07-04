@@ -86,19 +86,52 @@
 	}
 
 	.editable-row {
+
+		padding: 0px 10px;
+		margin-bottom: -1px;
+
 		.row-index {
 			margin-top: 7px;
 		}
 
 		.btn-open-row {
 			margin-top: 0px;
-			padding: 3px 7px;
+			padding: 5px 17px;
 			margin-right: -20px;
+		}
+
+		.field-area {
+			margin-right: -11px;
+			margin-top: -1px;
+		}
+
+		.form-control {
+			border-radius: 0px;
+			padding-top: 9px;
+			padding-bottom: 9px;
+			height: 38px;
+		}
+
+		.form-control:focus {
+			border-color: @text-muted;
+			z-index: 2;
+		}
+
+		.has-error .form-control {
+			z-index: 1;
+			&:focus {
+				border-color: @indicator-red;
+			}
+		}
+
+		.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+			background-color: @light-bg;
 		}
 
 		input[data-fieldtype="Int"], input[data-fieldtype="Float"], input[data-fieldtype="Currency"] {
 			text-align: right;
 		}
+
 	}
 }
 

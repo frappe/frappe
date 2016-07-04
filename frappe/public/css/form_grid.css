@@ -68,13 +68,42 @@
 .grid-body .btn-open-row {
   margin-top: -3px;
 }
+.grid-body .editable-row {
+  padding: 0px 10px;
+  margin-bottom: -1px;
+}
 .grid-body .editable-row .row-index {
   margin-top: 7px;
 }
 .grid-body .editable-row .btn-open-row {
   margin-top: 0px;
-  padding: 3px 7px;
+  padding: 5px 17px;
   margin-right: -20px;
+}
+.grid-body .editable-row .field-area {
+  margin-right: -11px;
+  margin-top: -1px;
+}
+.grid-body .editable-row .form-control {
+  border-radius: 0px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  height: 38px;
+}
+.grid-body .editable-row .form-control:focus {
+  border-color: #8D99A6;
+  z-index: 2;
+}
+.grid-body .editable-row .has-error .form-control {
+  z-index: 1;
+}
+.grid-body .editable-row .has-error .form-control:focus {
+  border-color: #ff5858;
+}
+.grid-body .editable-row .form-control[disabled],
+.grid-body .editable-row .form-control[readonly],
+.grid-body .editable-row fieldset[disabled] .form-control {
+  background-color: #fafbfc;
 }
 .grid-body .editable-row input[data-fieldtype="Int"],
 .grid-body .editable-row input[data-fieldtype="Float"],

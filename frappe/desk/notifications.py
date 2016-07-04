@@ -177,8 +177,10 @@ def get_open_count(doctype, name):
 	:param transactions: List of transactions (json/dict)
 	:param filters: optional filters (json/list)'''
 
+	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
-	links = frappe.get_meta(doctype).get_links_setup()
+	meta = frappe.get_meta(doctype)
+	links = meta.get_links_setup()
 
 	# compile all items in a list
 	items = []
@@ -203,5 +205,12 @@ def get_open_count(doctype, name):
 		data['count'] = total
 		out.append(data)
 
-	return out
+	out = {
+		'count': out,
+	}
 
+	module = frappe.get_meta_module(doctype)
+	if hasattr(module, 'get_timeline_data'):
+		out['timeline_data'] = module.get_timeline_data(doctype, name)
+
+	return out

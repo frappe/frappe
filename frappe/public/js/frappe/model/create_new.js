@@ -320,25 +320,22 @@ $.extend(frappe.model, {
 				title: __("Get From ") + __(opts.source_doctype),
 				fields: [
 					{
-						"fieldtype": "Link",
-						"label": __(opts.source_doctype),
-						"fieldname": opts.source_doctype,
-						"options": opts.source_doctype,
-						"get_query": opts.get_query,
-						reqd:1},
-					{
-						"fieldtype": "Button",
-						"label": __("Get"),
-						click: function() {
-							var values = d.get_values();
-							if(!values)
-								return;
-							opts.source_name = values[opts.source_doctype];
-							d.hide();
-							_map();
-						}
-					}
+						fieldtype: "Link",
+						label: __(opts.source_doctype),
+						fieldname: opts.source_doctype,
+						options: opts.source_doctype,
+						get_query: opts.get_query,
+						reqd:1
+					},
 				]
+			});
+			d.set_primary_action(__('Get Items'), function() {
+				var values = d.get_values();
+				if(!values)
+					return;
+				opts.source_name = values[opts.source_doctype];
+				d.hide();
+				_map();
 			})
 			d.show();
 		} else if(opts.source_name) {

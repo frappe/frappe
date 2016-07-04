@@ -194,10 +194,13 @@ frappe.ui.form.Dashboard = Class.extend({
 			group.items.forEach(function(item) { items.push(item); });
 		});
 
+		method = this.links.method || 'frappe.desk.notifications.get_open_count';
+
 		frappe.call({
 			type: "GET",
-			method: frappe.model.get_server_module_name(this.frm.doctype) + ".get_dashboard_data",
+			method: method,
 			args: {
+				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
 			},
 			callback: function(r) {
