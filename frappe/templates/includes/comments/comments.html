@@ -110,9 +110,10 @@
 					} else {
 						$(r.message).appendTo("#comment-list");
 						$(".no-comment, .add-comment").toggle(false);
-						$("#comment-form")
-							.replaceWith('<div class="text-muted">Thank you for your comment!</div>')
+						$("#comment-form").toggle();
 					}
+					$(".add-comment").text('{{ _("Add Another Comment") }}');
+					$(".add-comment").toggle();
 				}
 			})
 
