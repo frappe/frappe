@@ -188,19 +188,19 @@ def get_open_count(doctype, name):
 		items.extend(group.get('items'))
 
 	out = []
-	for doctype in items:
-		filters = get_filters_for(doctype)
-		fieldname = links.get('non_standard_fieldnames', {}).get(doctype, links.fieldname)
-		data = {'name': doctype}
+	for d in items:
+		filters = get_filters_for(d)
+		fieldname = links.get('non_standard_fieldnames', {}).get(d, links.fieldname)
+		data = {'name': d}
 		if filters:
 			# get the fieldname for the current document
 			# we only need open documents related to the current document
 			filters[fieldname] = name
-			total = len(frappe.get_all(doctype, fields='name',
+			total = len(frappe.get_all(d, fields='name',
 				filters=filters, limit=6, distinct=True, ignore_ifnull=True))
 			data['open_count'] = total
 
-		total = len(frappe.get_all(doctype, fields='name',
+		total = len(frappe.get_all(d, fields='name',
 			filters={fieldname: name}, limit=10, distinct=True, ignore_ifnull=True))
 		data['count'] = total
 		out.append(data)
