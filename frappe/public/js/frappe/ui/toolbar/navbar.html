@@ -9,12 +9,17 @@
 			</ul>
 		</div>
 		<div class="navbar-center text-ellipsis" style="display: none;"></div>
-		<ul class="nav navbar-nav navbar-right visible-xs visible-sm">
-			<li>
-				<a class="toggle-navbar-new-comments" title="{%= __("Unread Messages") %}">
+
+		<ul class="nav navbar-nav navbar-right">
+			<div class="dropdown dropdown-navbar-new-comments">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 					<span class="navbar-new-comments">0</span></a>
-			</li>
+				</a>
+				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">
+				</ul>
+			</div>
 		</ul>
+
 		<div class="hidden-xs hidden-sm">
 			<ul class="nav navbar-nav navbar-right">
 				<li class="dropdown">
@@ -47,13 +52,6 @@
 	                        {%= __("Logout") %}</a></li>
 	                </ul>
 				</li>
-	            <li class="dropdown">
-	    			<a class="dropdown-toggle" href="#" data-toggle="dropdown"
-	    				title="{%= __("Unread Messages") %}"
-	    				onclick="return false;"><span class="navbar-new-comments">0</span></a>
-	    			<ul class="dropdown-menu" id="navbar-notification" role="menu" style="max-height: 480px; overflow-y: auto;">
-	    			</ul>
-	            </li>
 	        </ul>
 	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
 	          <div class="form-group form-group-sm ui-front">
