@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
@@ -18,10 +18,10 @@ def create_lock(name):
 	else:
 		return False
 
-def check_lock(path):
+def check_lock(path, timeout=600):
 	if not os.path.exists(path):
 		return False
-	if time() - os.path.getmtime(path) > 600:
+	if time() - os.path.getmtime(path) > timeout:
 		raise LockTimeoutError(path)
 	return True
 
