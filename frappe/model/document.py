@@ -873,7 +873,7 @@ class Document(BaseDocument):
 
 	def set_onload(self, key, value):
 		if not self.get("__onload"):
-			self.set("__onload", {})
+			self.set("__onload", frappe._dict())
 		self.get("__onload")[key] = value
 
 	def update_timeline_doc(self):
