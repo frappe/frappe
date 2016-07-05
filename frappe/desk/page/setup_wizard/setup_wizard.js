@@ -465,8 +465,5 @@ frappe.wiz.on("before_load", function() {
 	// add welcome slide
 	frappe.wiz.add_slide(frappe.wiz.welcome);
 	frappe.wiz.add_slide(frappe.wiz.region);
-
-	if (!(frappe.boot.limits && frappe.boot.limits.users===1)) {
-		frappe.wiz.add_slide(frappe.wiz.user);
-	}
+	frappe.wiz.add_slide(frappe.wiz.user);
 });

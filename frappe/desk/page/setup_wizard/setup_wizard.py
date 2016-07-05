@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
-from frappe.utils import strip
+from frappe.utils import strip, cint
+from frappe import _
 from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
 from frappe.geo.country_info import get_country_info
@@ -16,6 +17,10 @@ from werkzeug.useragents import UserAgent
 def setup_complete(args):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
+
+	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		frappe.throw(_('Setup already complete'))
+
 	args = process_args(args)
 
 	try:
@@ -31,12 +36,12 @@ def setup_complete(args):
 		for method in frappe.get_hooks("setup_wizard_complete"):
 			frappe.get_attr(method)(args)
 
-		frappe.db.set_default('desktop:home_page', 'desktop')
-		frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+		disable_future_access()
 
 		frappe.db.commit()
 		frappe.clear_cache()
 	except:
+		frappe.db.rollback()
 		if args:
 			traceback = frappe.get_traceback()
 			for hook in frappe.get_hooks("setup_wizard_exception"):
@@ -47,6 +52,7 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
+
 
 def update_system_settings(args):
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -126,6 +132,19 @@ def add_all_roles_to(name):
 			d = user.append("user_roles")
 			d.role = role[0]
 	user.save()
+
+def disable_future_access():
+	frappe.db.set_default('desktop:home_page', 'desktop')
+	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+
+	if not frappe.flags.in_test:
+		# remove all roles and add 'Administrator' to prevent future access
+		page = frappe.get_doc('Page', 'setup-wizard')
+		page.roles = []
+		page.append('roles', {'role': 'Administrator'})
+		page.flags.do_not_update_json = True
+		page.flags.ignore_permissions = True
+		page.save()
 
 @frappe.whitelist()
 def load_messages(language):
@@ -213,5 +232,7 @@ def email_setup_wizard_exception(traceback, args):
 	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
 		subject="Exception in Setup Wizard - {}".format(frappe.local.site),
-		message=message)
+		message=message,
+		delayed=False)
+
 

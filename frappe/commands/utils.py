@@ -103,7 +103,7 @@ def execute(context, method, args=None, kwargs=None):
 				args = ()
 
 			if kwargs:
-				kwargs = eval(args)
+				kwargs = eval(kwargs)
 			else:
 				kwargs = {}
 
