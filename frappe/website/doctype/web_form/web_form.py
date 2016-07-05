@@ -138,7 +138,7 @@ def get_context(context):
 
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"name": self.route, "title": self.title }]
+			context.parents = [{"route": self.route, "title": self.title }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
@@ -160,8 +160,6 @@ def get_context(context):
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
-
-		self.set_back_to_link(context)
 
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
@@ -186,22 +184,6 @@ def get_context(context):
 			if os.path.exists(css_path):
 				context.style = open(css_path, 'r').read()
 
-	def set_back_to_link(self, context):
-		'''Sets breadcrumbs, success and fail URL if
-		`back-to` argument is set'''
-		if frappe.form_dict.get('back-to'):
-			link = frappe.form_dict.get('back-to')
-			title = frappe.form_dict.get('back-to-title') or _('Back')
-
-			# breadcrumbs
-			context.parents = [{'name': link, 'title': title }]
-
-			# success
-			context.success_url = link
-			context.cancel_url = link
-
-		return context
-
 	def get_layout(self):
 		layout = []
 		for df in self.web_form_fields:
@@ -221,8 +203,6 @@ def get_context(context):
 
 		if context.is_list:
 			parents = [{"title": _("My Account"), "name": "me"}]
-		elif self.breadcrumbs:
-			parents = json.loads(self.breadcrumbs)
 		elif context.parents:
 			parents = context.parents
 
