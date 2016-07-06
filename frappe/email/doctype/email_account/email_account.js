@@ -1,5 +1,5 @@
 email_defaults = {
-	"GMail": {
+	"Gmail": {
 		"email_server": "pop.gmail.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
@@ -34,7 +34,7 @@ email_defaults = {
 };
 
 email_defaults_imap = {
-	"GMail": {
+	"Gmail": {
 		"email_server": "imap.gmail.com"
 	},
 	"Outlook.com": {
@@ -97,9 +97,9 @@ frappe.ui.form.on("Email Account", {
 	},
 	show_gmail_message_for_less_secure_apps: function(frm) {
 		frm.dashboard.reset();
-		if(frm.doc.service==="GMail") {
-			frm.dashboard.set_headline_alert('GMail will only work if you allows access for Less Secure \
-				Apps in GMail Settings. <a target="_blank" \
+		if(frm.doc.service==="Gmail") {
+			frm.dashboard.set_headline_alert('Gmail will only work if you allow access for less secure \
+				apps in Gmail settings. <a target="_blank" \
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
 		}
 	},
