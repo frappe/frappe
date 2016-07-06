@@ -173,7 +173,7 @@ class BotReply(object):
 			self.query = "open todo"
 
 	def setup_tables(self):
-		tables = frappe.get_all("DocType", {"is_table": 0})
+		tables = frappe.get_all("DocType", {"istable": 0})
 		self.all_tables = [d.name.lower() for d in tables]
 		self.doctype_names = {d.name.lower():d.name for d in tables}
 
