@@ -6,6 +6,7 @@ from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
+from frappe.utils import touch_file, get_site_path
 
 @click.command('new-site')
 @click.argument('site')
@@ -23,12 +24,17 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 		db_name = hashlib.sha1(site).hexdigest()[:10]
 
 	frappe.init(site=site, new_site=True)
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
-def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
-	"Install a new Frappe site"
+def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
+	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
+	"""Install a new Frappe site"""
+
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
 	import frappe.utils.scheduler
@@ -41,24 +47,27 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	except:
 		enable_scheduler = False
 
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
 	make_site_dirs()
-	_install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
 
-	if frappe.conf.get("install_apps"):
-		for app in frappe.conf.install_apps:
+	try:
+		installing = touch_file(get_site_path('locks', 'installing.lock'))
+
+		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
+			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
+
+		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (install_apps or [])
+		for app in apps_to_install:
 			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
-	if install_apps:
-		for app in install_apps:
-			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
+		frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+		frappe.db.commit()
 
-	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
-	frappe.db.commit()
+		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+		print "*** Scheduler is", scheduler_status, "***"
 
-	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-	print "*** Scheduler is", scheduler_status, "***"
-	frappe.destroy()
+	finally:
+		os.remove(installing)
+		frappe.destroy()
 
 @click.command('restore')
 @click.argument('sql-file-path')

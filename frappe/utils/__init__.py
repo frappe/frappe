@@ -318,7 +318,7 @@ def get_disk_usage():
 def touch_file(path):
 	with open(path, 'a'):
 		os.utime(path, None)
-	return True
+	return path
 
 def get_test_client():
 	from frappe.app import application

@@ -36,16 +36,15 @@ class DatabaseQuery(object):
 
 		# fitlers and fields swappable
 		# its hard to remember what comes first
-		if isinstance(fields, dict):
-			# if fields is given as dict, its probably filters
-			self.filters = fields
-			fields = None
+		if (isinstance(fields, dict)
+			or (isinstance(fields, list) and fields and isinstance(fields[0], list))):
+			# if fields is given as dict/list of list, its probably filters
+			filters, fields = fields, filters
 
-		if self.fields and isinstance(filters, list) \
+		elif fields and isinstance(filters, list) \
 			and len(filters) > 1 and isinstance(filters[0], basestring):
 			# if `filters` is a list of strings, its probably fields
-			self.fields = filters
-			filters = None
+			filters, fields = fields, filters
 
 		if fields:
 			self.fields = fields
