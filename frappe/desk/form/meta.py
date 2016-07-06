@@ -40,12 +40,13 @@ class FormMeta(Meta):
 			self.load_print_formats()
 			self.load_workflows()
 			self.load_templates()
+			self.load_dashboard()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template", "__tree_js"):
+			"__form_grid_templates", "__listview_template", "__tree_js", '__dashboard'):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -163,6 +164,9 @@ class FormMeta(Meta):
 				messages = extract_messages_from_code(content)
 				messages = make_dict_from_messages(messages)
 				self.get("__messages").update(messages, as_value=True)
+
+	def load_dashboard(self):
+		self.set('__dashboard', self.get_dashboard_data())
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

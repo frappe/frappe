@@ -180,7 +180,7 @@ def get_open_count(doctype, name):
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
 	meta = frappe.get_meta(doctype)
-	links = meta.get_links_setup()
+	links = meta.get_dashboard_data()
 
 	# compile all items in a list
 	items = []

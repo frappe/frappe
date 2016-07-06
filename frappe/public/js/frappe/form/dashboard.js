@@ -25,7 +25,6 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		// clear links
 		this.links_area.addClass('hidden');
-		this.transactions_area.empty();
 
 		// clear stats
 		this.stats_area.empty().addClass('hidden');
@@ -112,25 +111,44 @@ frappe.ui.form.Dashboard = Class.extend({
 		return progress_chart;
 	},
 
-	//
-	show_dashboard: function() {
+	refresh: function() {
 		this.reset();
-		if(this.frm.doc.__islocal)
+		if(this.frm.doc.__islocal) {
 			return;
+		}
 
-		if(!this.links) {
-			this.links = this.frm.doc.__onload.links;
+		if(!this.data) {
+			this.data = this.frm.meta.__dashboard;
 			this.filter_permissions();
 		}
-		this.render_links();
-		this.set_open_count();
-		this.render_heatmap();
+
+		var show = false;
+
+		if(this.data && (this.data.transactions || []).length) {
+			if(this.data.docstatus && this.frm.doc.docstatus !== this.data.docstatus) {
+				// limited docstatus
+				return;
+			}
+			this.render_links();
+			this.set_open_count();
+			show = true;
+		}
+
+		if(this.data.heatmap) {
+			this.render_heatmap();
+			show = true;
+		}
+
+		if(show) {
+			this.show();
+		}
 	},
+
 	filter_permissions: function() {
 		// filter out transactions for which the user
 		// does not have permission
 		var transactions = [];
-		(this.links.transactions || []).forEach(function(group) {
+		(this.data.transactions || []).forEach(function(group) {
 			var items = [];
 			group.items.forEach(function(doctype) {
 				if(frappe.model.can_read(doctype)) {
@@ -145,12 +163,17 @@ frappe.ui.form.Dashboard = Class.extend({
 				transactions.push(group);
 			}
 		});
-		this.links.transactions = transactions;
+		this.data.transactions = transactions;
 	},
 	render_links: function() {
 		var me = this;
+		this.links_area.removeClass('hidden');
+		if(this.data_rendered) {
+			return;
+		}
+
 		$(frappe.render_template('form_links',
-			{transactions: this.links.transactions}))
+			{transactions: this.data.transactions}))
 			.appendTo(this.transactions_area)
 
 		// bind links
@@ -163,8 +186,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			me.open_document_list($(this).parent().attr('data-doctype'), true);
 		});
 
-		this.show();
-		this.links_area.removeClass('hidden');
+		this.data_rendered = true;
 	},
 	open_document_list: function(doctype, show_open) {
 		// show document list with filters
@@ -179,22 +201,26 @@ frappe.ui.form.Dashboard = Class.extend({
 		// return the default filter for the given document
 		// like {"customer": frm.doc.name}
 		var filter = {};
-		var fieldname = this.links.non_standard_fieldnames
-			? (this.links.non_standard_fieldnames[doctype] || this.links.fieldname)
-			: this.links.fieldname;
+		var fieldname = this.data.non_standard_fieldnames
+			? (this.data.non_standard_fieldnames[doctype] || this.data.fieldname)
+			: this.data.fieldname;
 		filter[fieldname] = this.frm.doc.name;
 		return filter;
 	},
 	set_open_count: function() {
+		if(!this.data.transactions) {
+			return;
+		}
+
 		// list all items from the transaction list
 		var items = [],
 			me = this;
 
-		this.links.transactions.forEach(function(group) {
+		this.data.transactions.forEach(function(group) {
 			group.items.forEach(function(item) { items.push(item); });
 		});
 
-		method = this.links.method || 'frappe.desk.notifications.get_open_count';
+		method = this.data.method || 'frappe.desk.notifications.get_open_count';
 
 		frappe.call({
 			type: "GET",
@@ -204,7 +230,9 @@ frappe.ui.form.Dashboard = Class.extend({
 				name: this.frm.doc.name,
 			},
 			callback: function(r) {
-				me.heatmap && me.heatmap.update(r.message.timeline_data);
+				if(r.message.timeline_data) {
+					me.update_heatmap(r.message.timeline_data);
+				}
 				$.each(r.message.count, function(i, d) {
 					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
 				});
@@ -231,9 +259,15 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	},
 
+	update_heatmap: function(data) {
+		if(this.heatmap) {
+			this.heatmap.update(data);
+		}
+	},
+
 	// heatmap
 	render_heatmap: function() {
-		if(this.show_heatmap && !this.heatmap) {
+		if(!this.heatmap) {
 			this.heatmap = new CalHeatMap();
 			this.heatmap.init({
 				itemSelector: "#heatmap-" + this.frm.doctype,
@@ -257,8 +291,8 @@ frappe.ui.form.Dashboard = Class.extend({
 
 			// message
 			var heatmap_message = this.heatmap_area.find('.heatmap-message');
-			if(this.heatmap_message) {
-				heatmap_message.removeClass('hidden').html(this.heatmap_message);
+			if(this.data.heatmap_message) {
+				heatmap_message.removeClass('hidden').html(this.data.heatmap_message);
 			} else {
 				heatmap_message.addClass('hidden');
 			}

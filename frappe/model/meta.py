@@ -263,17 +263,18 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
-	def get_links_setup(self):
-		'''Returns setup for documents related to this doctype.
+	def get_dashboard_data(self):
+		'''Returns dashboard setup related to this doctype.
 
-		This method will return the `links_setup` property in the
-		`[doctype]_links.py` file in the doctype folder'''
+		This method will return the `data` property in the
+		`[doctype]_dashboard.py` file in the doctype folder'''
 		try:
-			module = load_doctype_module(self.name, suffix='_links')
-			return frappe._dict(module.links)
+			module = load_doctype_module(self.name, suffix='_dashboard')
+			data = frappe._dict(module.data)
 		except ImportError:
-			return frappe._dict()
+			data = frappe._dict()
 
+		return data
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),

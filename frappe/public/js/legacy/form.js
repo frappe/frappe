@@ -346,7 +346,14 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 	}
 
 	this.document_flow.refresh();
-	this.dashboard.reset();
+	this.dashboard.refresh();
+
+	if(this.meta.is_submittable &&
+		! this.is_dirty() &&
+		! this.is_new() &&
+		this.doc.docstatus===0) {
+		this.dashboard.add_comment(__('Submit this document to confirm'), true);
+	}
 
 	this.clear_custom_buttons();
 
@@ -827,11 +834,6 @@ _f.Frm.prototype.save_or_update = function() {
 	}
 }
 
-_f.get_value = function(dt, dn, fn) {
-	if(locals[dt] && locals[dt][dn])
-		return locals[dt][dn][fn];
-}
-
 _f.Frm.prototype.dirty = function() {
 	this.doc.__unsaved = 1;
 	$(this.wrapper).trigger('dirty');
@@ -840,6 +842,15 @@ _f.Frm.prototype.dirty = function() {
 _f.Frm.prototype.get_docinfo = function() {
 	return frappe.model.docinfo[this.doctype][this.docname];
 }
+
+_f.Frm.prototype.is_dirty = function() {
+	return this.doc.__unsaved;
+}
+
+_f.Frm.prototype.is_new = function() {
+	return this.doc.__islocal;
+}
+
 
 _f.Frm.prototype.reload_docinfo = function(callback) {
 	var me = this;
