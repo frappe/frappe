@@ -7,8 +7,7 @@ frappe.ui.notifications.update_notifications = function() {
 	var other = keys(frappe.boot.notification_info.open_count_other).sort();
 
 	// clear toolbar / sidebar notifications
-	frappe.ui.notifications.navbar_notification = $("#navbar-notification").empty();
-	frappe.ui.notifications.sidebar_notification = $("#sidebar-notification").empty();
+	frappe.ui.notifications.dropdown_notification = $("#dropdown-notification").empty();
 
 	// add these first.
 	frappe.ui.notifications.add_notification("Comment");
@@ -24,8 +23,7 @@ frappe.ui.notifications.update_notifications = function() {
 	// add a divider
 	if(frappe.ui.notifications.total) {
 		var divider = '<li class="divider"></li>';
-		frappe.ui.notifications.navbar_notification.append($(divider));
-		frappe.ui.notifications.sidebar_notification.append($(divider));
+		frappe.ui.notifications.dropdown_notification.append($(divider));
 	}
 
 	// add to toolbar and sidebar
@@ -36,7 +34,7 @@ frappe.ui.notifications.update_notifications = function() {
 	});
 
 	// set click events
-	$("#navbar-notification a, #sidebar-notification a").on("click", function() {
+	$("#dropdown-notification a").on("click", function() {
 		var doctype = $(this).attr("data-doctype");
 		var config = frappe.ui.notifications.config[doctype] || {};
 		if (config.route) {
@@ -73,8 +71,7 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 				data_doctype: doctype
 			});
 
-		frappe.ui.notifications.navbar_notification.append($(notification_row));
-		frappe.ui.notifications.sidebar_notification.append($(notification_row));
+		frappe.ui.notifications.dropdown_notification.append($(notification_row));
 
 		frappe.ui.notifications.total += count;
 	}

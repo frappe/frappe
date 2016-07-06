@@ -161,6 +161,13 @@ body {
   margin-right: 3px;
   border-radius: 4px;
 }
+.dropdown-navbar-new-comments > a {
+  border: 0;
+  margin-left: 15px;
+}
+.dropdown-navbar-new-comments .dropdown-menu {
+  margin-top: 0;
+}
 .navbar-new-comments {
   display: inline-block;
   min-width: 24px;
