@@ -440,7 +440,6 @@ def sanitize_html(html, linkify=False):
 		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
 	attributes = {"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes}
 	styles = bleach_whitelist.all_styles
-	protocols = ['http', 'https', 'mailto']
 	strip_comments = False
 
 	# retuns html with escaped tags, escaped orphan >, <, etc.
@@ -452,7 +451,6 @@ def sanitize_html(html, linkify=False):
 			allowed_elements = tags
 			allowed_attributes = attributes
 			allowed_css_properties = styles
-			allowed_protocols = protocols
 			strip_disallowed_elements = False
 			strip_html_comments = strip_comments
 
