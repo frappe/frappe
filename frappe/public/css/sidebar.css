@@ -249,6 +249,59 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .layout-side-section .list-sidebar {
   margin-top: -15px;
 }
+@media (max-width: 991px) {
+  .layout-side-section .list-sidebar {
+    margin-top: 0;
+    position: fixed;
+    background: white;
+    top: 0;
+    left: 0;
+    transform: translateX(-110%);
+    z-index: 9999;
+    box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 40%;
+    padding: 25px;
+    display: block !important;
+    transition: transform 300ms ease-in-out;
+  }
+  .layout-side-section .list-sidebar i.octicon-x {
+    margin: -12px;
+    padding: 12px;
+  }
+  .layout-side-section .list-sidebar div.close-sidebar {
+    opacity: 0;
+    transition: opacity 300ms ease 200ms;
+  }
+  .layout-side-section .list-sidebar.opened {
+    transform: translateX(0);
+  }
+  .layout-side-section .list-sidebar.opened div.close-sidebar {
+    opacity: 0.5;
+    background: #000;
+    position: fixed;
+    top: 0;
+    right: -150%;
+    width: 150%;
+    height: 100%;
+    z-index: 9998;
+  }
+  .layout-side-section .list-sidebar .reports-dropdown {
+    margin: 10px 0;
+  }
+  .layout-side-section .list-sidebar .reports-dropdown li:not(.divider) {
+    padding: 10px 0;
+  }
+}
+@media (max-width: 767px) {
+  .layout-side-section .list-sidebar {
+    width: 70%;
+  }
+  .layout-side-section .list-sidebar.opened div.close-sidebar {
+    right: -42.857%;
+    width: 42.857%;
+  }
+}
 .sidebar-left .list-sidebar .stat-label,
 .sidebar-left .list-sidebar .stat-no-records {
   padding: 12px 14px;
