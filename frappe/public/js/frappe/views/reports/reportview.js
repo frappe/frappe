@@ -134,7 +134,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		// pre-select mandatory columns
 		var me = this;
 		var columns = [];
-		if(this.list_settings.fields) {
+		if(this.list_settings.fields && !this.docname) {
 			this.list_settings.fields.forEach(function(field) {
 				var coldef = me.get_column_info_from_field(field);
 				if(!in_list(['_seen', '_comments', '_user_tags', '_assign', '_liked_by', 'docstatus'], coldef[0])) {
@@ -158,17 +158,22 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	// preset columns and filters from saved info
 	set_columns_and_filters: function(opts) {
 		var me = this;
-		if(opts.columns) this.columns = opts.columns;
-		if(opts.filters) $.each(opts.filters, function(i, f) {
-			// f = [doctype, fieldname, condition, value]
-			var df = frappe.meta.get_docfield(f[0], f[1]);
-			if (df && df.fieldtype == "Check") {
-				var value = f[3] ? "Yes" : "No";
-			} else {
-				var value = f[3];
-			}
-			me.filter_list.add_filter(f[0], f[1], f[2], value);
-		});
+		this.filter_list.clear_filters();
+		if(opts.columns) {
+			this.columns = opts.columns;
+		}
+		if(opts.filters) {
+			$.each(opts.filters, function(i, f) {
+				// f = [doctype, fieldname, condition, value]
+				var df = frappe.meta.get_docfield(f[0], f[1]);
+				if (df && df.fieldtype == "Check") {
+					var value = f[3] ? "Yes" : "No";
+				} else {
+					var value = f[3];
+				}
+				me.filter_list.add_filter(f[0], f[1], f[2], value);
+			});
+		}
 
 		// first sort
 		if(opts.sort_by) this.sort_by_select.val(opts.sort_by);
@@ -188,8 +193,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			});
 			frappe.route_options = null;
 			return true;
-		} else if(this.list_settings && this.list_settings.filters &&
-			(this.list_settings.updated_on != this.list_settings_updated_on)) {
+		} else if(this.list_settings
+			&& this.list_settings.filters
+			&& !this.docname
+			&& (this.list_settings.updated_on != this.list_settings_updated_on)) {
 			// list settings (previous settings)
 			this.filter_list.clear_filters();
 			$.each(this.list_settings.filters, function(i, f) {
@@ -567,7 +574,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			this.page.add_menu_item(__('Save As'), function() { me.save_report('save_as') }, true);
 		}
 	},
-		
+
 	save_report: function(save_type) {
 		var me = this;
 
@@ -596,7 +603,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						frappe.set_route('Report', me.doctype, r.message);
 				}
 			});
-			
+
 		}
 
 		if(me.docname && save_type == "save") {
@@ -608,7 +615,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 
 	},
-	
+
 	make_delete: function() {
 		var me = this;
 		if(this.can_delete) {

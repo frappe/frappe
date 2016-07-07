@@ -30,7 +30,8 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
-		if(!frappe.meta.has_field(doctype, fieldname)
+		if(doctype && fieldname
+			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !in_list(frappe.model.std_fields_list, fieldname)) {
 			frappe.msgprint({
 				message: __('Filter {0} missing', [fieldname.bold()]),
