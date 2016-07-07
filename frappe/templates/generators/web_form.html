@@ -189,7 +189,9 @@ frappe.ready(function() {
 		window.success_message = "{{ success_message or "" }}";
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	var $form = $("form[data-web-form='{{ name }}']");
-
+	var params = "{{ params }}"
+	params = JSON.parse(params.replace(/'/g, '"').replace(/u/g, ""))
+	
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
 		var $input = $(this);
@@ -259,6 +261,8 @@ frappe.ready(function() {
 
 			args[$input.attr("name")] = val;
 		});
+		
+		$.extend(args, params)
 
 		frappe.call({
 			type: "POST",
