@@ -96,11 +96,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	# determine template
 	if print_format:
-		if print_format.standard=="Yes" or print_format.custom_format:
-			template = jenv.from_string(get_print_format(doc.doctype,
-				print_format))
-
-		elif print_format.format_data:
+		if print_format.format_data:
 			# set format data
 			format_data = json.loads(print_format.format_data)
 			for df in format_data:
@@ -112,6 +108,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 			doc.format_data_map = format_data_map
 
 			template = "standard"
+			
+		elif print_format.standard=="Yes" or print_format.custom_format:
+			template = jenv.from_string(get_print_format(doc.doctype,
+				print_format))
 
 		else:
 			# fallback
