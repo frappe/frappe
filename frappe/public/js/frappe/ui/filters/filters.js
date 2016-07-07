@@ -30,6 +30,17 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
+		if(!frappe.meta.has_field(doctype, fieldname)
+			&& !in_list(frappe.model.std_fields_list, fieldname)) {
+			frappe.msgprint({
+				message: __('Filter {0} missing', [fieldname.bold()]),
+				title: 'Invalid Filter',
+				indicator: 'red'
+			});
+			return;
+		}
+
+
 		this.$w.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
 
@@ -149,6 +160,7 @@ frappe.ui.Filter = Class.extend({
 
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
+			if(!me.field) return;
 			var condition = $(this).val();
 			if(in_list(["in", "like", "not in", "not like"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);

@@ -25,6 +25,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		// clear links
 		this.links_area.addClass('hidden');
+		this.links_area.find('.count, .open-notification').addClass('hidden');
 
 		// clear stats
 		this.stats_area.empty().addClass('hidden');
@@ -254,6 +255,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		if(count) {
 			$link.find('.count')
+				.removeClass('hidden')
 				.html((count > 9) ? '9+' : count);
 		}
 

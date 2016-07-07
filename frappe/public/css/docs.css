@@ -168,6 +168,19 @@ body {
 .dropdown-navbar-new-comments .dropdown-menu {
   margin-top: 0;
 }
+@media (max-width: 767px) {
+  .dropdown-navbar-new-comments.open .dropdown-menu {
+    position: absolute;
+    border-top: 1px solid rgba(0, 0, 0, 0.14902);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    background-color: #fff;
+    right: 0;
+    left: auto;
+  }
+  .dropdown-navbar-new-comments.open .dropdown-menu > li > a {
+    padding: 12px;
+  }
+}
 .navbar-new-comments {
   display: inline-block;
   min-width: 24px;
