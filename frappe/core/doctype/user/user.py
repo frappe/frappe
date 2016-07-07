@@ -555,6 +555,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
 		from `tabUser`
 		where enabled=1
+			and user_type = 'System User'
 			and docstatus < 2
 			and name not in ({standard_users})
 			and ({key} like %s
