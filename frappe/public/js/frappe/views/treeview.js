@@ -101,7 +101,7 @@ frappe.views.TreeView = Class.extend({
 		$(me.parent).find(".tree").remove()
 		this.tree = new frappe.ui.Tree({
 			parent: $(me.parent).find(".layout-main-section"),
-			label: __(me.args[me.opts.root_label] || me.opts.root_label || me.root),
+			label: me.args[me.opts.root_label] || me.opts.root_label || me.root,
 			args: me.args,
 			method: me.get_tree_nodes,
 			toolbar: me.get_toolbar(),
