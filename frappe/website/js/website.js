@@ -187,7 +187,7 @@ $.extend(frappe, {
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
-			method: "frappe.templates.www.contact.send_message",
+			method: "frappe.www.contact.send_message",
 			btn: btn,
 			args: opts,
 			callback: opts.callback
