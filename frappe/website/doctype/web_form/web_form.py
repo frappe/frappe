@@ -169,7 +169,7 @@ def get_context(context):
 					module = scrub(self.module),
 					name = scrub(self.name)
 			)
-
+			print module_name
 			module = frappe.get_module(module_name)
 			new_context = module.get_context(context)
 
