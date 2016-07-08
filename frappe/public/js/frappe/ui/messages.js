@@ -93,7 +93,10 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.message instanceof Array) {
-		data.message = $.map(data.message, function(m) { return '<p>' + m + '</p>'}).join('');
+		data.message.forEach(function(m) {
+			frappe.msgprint(m);
+		});
+		return;
 	}
 
 	if(data.alert) {

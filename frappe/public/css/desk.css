@@ -319,6 +319,11 @@ a.form-link {
 textarea.form-control {
   height: 120px;
 }
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+  background-color: #fafbfc;
+}
 .link-select-row {
   padding: 5px;
   border-bottom: 1px solid #EBEFF2;

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import
 import click
-import hashlib, os
+import hashlib, os, sys
 import frappe
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
@@ -83,6 +83,13 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	"Restore site database from an sql file"
 	from frappe.installer import extract_sql_gzip, extract_tar_files
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
+
+	if not os.path.exists(sql_file_path):
+		sql_file_path = '../' + sql_file_path
+		if not os.path.exists(sql_file_path):
+			print 'Invalid path {0}' + sql_file_path[3:]
+			sys.exit(1)
+
 	if sql_file_path.endswith('sql.gz'):
 		sql_file_path = extract_sql_gzip(os.path.abspath(sql_file_path))
 

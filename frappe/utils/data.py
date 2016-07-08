@@ -176,7 +176,10 @@ def get_time(time_str):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
 		return time_str
-	return parser.parse(time_str).time()
+	else:
+		if isinstance(time_str, datetime.timedelta):
+			time_str = str(time_str)
+		return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):

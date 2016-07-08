@@ -460,12 +460,13 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
-		frappe.local.cache = {}
+		local.cache = {}
+		local.new_doc_templates = {}
 
-		for fn in frappe.get_hooks("clear_cache"):
+		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
-	frappe.local.role_permissions = {}
+	local.role_permissions = {}
 
 def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False):
 	"""Raises `frappe.PermissionError` if not permitted.

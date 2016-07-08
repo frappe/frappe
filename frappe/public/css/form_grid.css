@@ -108,11 +108,6 @@
 .grid-body .editable-row .has-error .form-control:focus {
   border-color: #ff5858;
 }
-.grid-body .editable-row .form-control[disabled],
-.grid-body .editable-row .form-control[readonly],
-.grid-body .editable-row fieldset[disabled] .form-control {
-  background-color: #fafbfc;
-}
 .grid-body .editable-row input[data-fieldtype="Int"],
 .grid-body .editable-row input[data-fieldtype="Float"],
 .grid-body .editable-row input[data-fieldtype="Currency"] {

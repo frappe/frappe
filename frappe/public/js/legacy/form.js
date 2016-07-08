@@ -365,7 +365,7 @@ _f.Frm.prototype.show_web_link = function() {
 	if(!doc.__islocal && doc.__onload && doc.__onload.is_website_generator) {
 		me.web_link && me.web_link.remove();
 		if(doc.__onload.published) {
-			me.add_web_link("/" + doc.__onload.website_route)
+			me.add_web_link("/" + doc.route)
 		}
 	}
 }
