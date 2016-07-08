@@ -26,13 +26,6 @@ frappe.ui.form.Grid = Class.extend({
 				this.template = this.frm.meta.__form_grid_templates[this.df.fieldname];
 		}
 
-		// set rows editable if less that 4 fields and no text, image, button, html field
-		if(this.meta.fields.length < 4 && !has_common(['Text', 'Small Text', 'Image',
-			'Text Editor', 'HTML', 'Section Break', 'Column Break'],
-			$.map(this.meta.fields, function(f) { return f.fieldtype }))) {
-				this.on_grid_editing = true;
-		}
-
 		this.is_grid = true;
 	},
 
@@ -42,7 +35,7 @@ frappe.ui.form.Grid = Class.extend({
 		} else if(this.editable_fields) {
 			return true;
 		} else {
-			return this.on_grid_editing;
+			return this.meta.editable_grid;
 		}
 	},
 	make: function() {
@@ -620,9 +613,13 @@ frappe.ui.form.GridRow = Class.extend({
 				// remove row
 				if(!this.remove_row) {
 					this.remove_row = $('<a class="close pull-right btn-open-row">\
-						<span class="octicon octicon-chevron-down"</a>')
+						<span class="octicon octicon-chevron-down"></span></a>')
 						.appendTo(this.row)
 						.on('click', function() { me.toggle_view(); return false; });
+
+					if(this.row.width() < 400) {
+						this.remove_row.css({'padding-right': '3px'});
+					}
 				}
 			}
 		}

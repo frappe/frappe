@@ -88,14 +88,12 @@ frappe.msgprint = function(msg, title) {
 		}
 	}
 
+	if(!data.indicator) {
+		data.indicator = 'blue';
+	}
 
 	if(data.message instanceof Array) {
-		$.each(data.message, function(i,v) {
-			if(v) {
-				msgprint(v);
-			}
-		})
-		return;
+		data.message = $.map(data.message, function(m) { return '<p>' + m + '</p>'}).join('');
 	}
 
 	if(data.alert) {

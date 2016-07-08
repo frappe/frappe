@@ -25,7 +25,7 @@
   margin: 0px;
 }
 .data-row textarea {
-  height: 40px !important;
+  height: 40px;
 }
 .grid-body {
   background-color: #fff;
@@ -76,9 +76,17 @@
   margin-top: 7px;
 }
 .grid-body .editable-row .btn-open-row {
-  margin-top: 0px;
-  padding: 5px 17px;
+  margin: -10px -4px;
+  padding: 15px 6px;
   margin-right: -20px;
+}
+.grid-body .editable-row .checkbox {
+  margin: 0px;
+  margin-right: -7px;
+  text-align: center;
+}
+.grid-body .editable-row textarea {
+  height: none;
 }
 .grid-body .editable-row .field-area {
   margin-right: -11px;

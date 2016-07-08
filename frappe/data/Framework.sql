@@ -112,6 +112,7 @@ CREATE TABLE `tabDocType` (
   `search_fields` varchar(255) DEFAULT NULL,
   `issingle` int(1) NOT NULL DEFAULT 0,
   `istable` int(1) NOT NULL DEFAULT 0,
+  `editable_grid` int(1) NOT NULL DEFAULT 1,
   `module` varchar(255) DEFAULT NULL,
   `app` varchar(255) DEFAULT NULL,
   `autoname` varchar(255) DEFAULT NULL,
