@@ -613,12 +613,12 @@ frappe.ui.form.GridRow = Class.extend({
 				// remove row
 				if(!this.remove_row) {
 					this.remove_row = $('<a class="close pull-right btn-open-row">\
-						<span class="octicon octicon-chevron-down"></span></a>')
+						<span class="octicon octicon-triangle-down"></span></a>')
 						.appendTo(this.row)
 						.on('click', function() { me.toggle_view(); return false; });
 
 					if(this.row.width() < 400) {
-						this.remove_row.css({'padding-right': '3px'});
+						this.remove_row.css({'padding-right': '1px'});
 					}
 				}
 			}

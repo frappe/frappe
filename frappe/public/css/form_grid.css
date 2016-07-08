@@ -86,7 +86,7 @@
   text-align: center;
 }
 .grid-body .editable-row textarea {
-  height: none;
+  height: 38px !important;
 }
 .grid-body .editable-row .field-area {
   margin-right: -11px;
