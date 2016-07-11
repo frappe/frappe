@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _, scrub
+from frappe.utils import cstr
 from frappe.utils.file_manager import save_file, remove_file_by_url
-from frappe.website.utils import get_comment_list, cstr
+from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
