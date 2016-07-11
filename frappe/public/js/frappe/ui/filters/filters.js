@@ -12,14 +12,14 @@ frappe.ui.FilterList = Class.extend({
 		var me = this;
 		// show filters
 		this.$w.find('.new-filter').bind('click', function() {
-			me.add_filter();
+			me.add_filter(me.doctype, 'name');
 		});
 	},
 
 	show_filters: function() {
 		this.$w.find('.show_filters').toggle();
 		if(!this.filters.length) {
-			this.add_filter();
+			this.add_filter(this.doctype, 'name');
 			this.filters[0].$w.find(".filter_field input").focus();
 		}
 	},
