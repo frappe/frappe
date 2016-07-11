@@ -535,10 +535,10 @@ frappe.ui.form.GridRow = Class.extend({
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
 		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
 			.on("click", function() {
-				me.toggle_view();
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
 					// pass
 				} else {
+					me.toggle_view();
 					return false;
 				}
 			});
@@ -600,7 +600,8 @@ frappe.ui.form.GridRow = Class.extend({
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
 			this.row_index = $('<div class="row-index">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
-				.appendTo(this.row);
+				.appendTo(this.row)
+				.on('click', function() { me.toggle_view(); });
 		} else {
 			this.row_index.html(this.doc ? this.doc.idx : "&nbsp;");
 		}
