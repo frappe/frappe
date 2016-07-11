@@ -10,7 +10,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		}));
 		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
 
-		header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);
+		// header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);
+		header.find(".toggle-sidebar").on("click", function () {
+			var list_sidebar = $('.layout-side-section .list-sidebar');
+			list_sidebar.addClass('opened');
+			list_sidebar.find('.reports-dropdown').removeClass('dropdown-menu').addClass('list-unstyled');
+			list_sidebar.find('.dropdown-toggle').addClass('text-muted').find('.caret').addClass('hidden-xs');
+		});
 
 		header.find(".toggle-navbar-new-comments").on("click", function() {
 			$(".offcanvas").toggleClass("active-right").removeClass("active-left");
