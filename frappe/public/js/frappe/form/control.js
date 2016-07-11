@@ -72,7 +72,7 @@ frappe.ui.form.Control = Class.extend({
 			frappe.model.get_doc(this.doctype, this.docname), this.perm || (this.frm && this.frm.perm), explain);
 
 		// hide if no value
-		if (this.doctype && status==="Read"
+		if (this.doctype && status==="Read" && !this.only_input
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
 			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
 				if(explain) console.log("By Hide Read-only, null fields: None");
@@ -279,13 +279,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 
 		this.$wrapper.on("refresh", function() {
-			if(me.only_input) {
-				// show disabled input if only_input is true
-				// since there is no disp_area
-				make_input();
-				update_input();
-			}
-
 			if(me.disp_status != "None") {
 				// refresh value
 				if(me.doctype && me.docname) {
@@ -299,11 +292,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					make_input();
 					update_input();
 				} else {
-					$(me.input_area).toggle(me.only_input ? true : false);
-					$(me.input_area).find("input").prop("disabled", true);
-					if (me.disp_area) {
-						me.set_disp_area();
-						$(me.disp_area).toggle(true);
+					if(me.only_input) {
+						make_input();
+						update_input();
+						me.$input && me.$input.prop("disabled", true);
+					} else {
+						$(me.input_area).toggle(false);
+						if (me.disp_area) {
+							me.set_disp_area();
+							$(me.disp_area).toggle(true);
+						}
 					}
 				}
 

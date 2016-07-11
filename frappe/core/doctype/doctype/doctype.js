@@ -17,7 +17,7 @@ cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 		cur_frm.toggle_enable("custom", 0);
 	}
 
-	if(!frappe.boot.developer_mode && !doc.custom) {
+	if((!frappe.boot.developer_mode && !doc.custom) || (frappe.session.user != 'Administrator')) {
 		// make the document read-only
 		cur_frm.set_read_only();
 	}
