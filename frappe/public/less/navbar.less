@@ -35,6 +35,40 @@
 	border-radius: 4px;
 }
 
+@media (max-width: 991px) {
+	.navbar-desk {
+		width: 60% !important;
+
+		& ~ ul > li {
+			float: left;
+			width: 50px;
+		}
+	}
+	.dropdown-navbar-new-comments > a {
+		padding: 8px 0 !important;
+		margin-left: 0 !important;
+	}
+}
+
+#searchModal {
+	.modal-dialog, .modal-content {
+		background: transparent;
+	}
+	.modal-header {
+		background: #fff;
+		display: table;
+		width: 100%;
+
+		form, button {
+			display: table-cell;
+			vertical-align: middle;
+		}
+		button {
+			height: 30px;
+		}
+	}
+}
+
 .dropdown-navbar-new-comments {
 	& > a {
 		border: 0;

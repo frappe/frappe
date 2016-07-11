@@ -357,6 +357,7 @@ fieldset[disabled] .form-control {
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
+  z-index: 1041;
 }
 .ui-autocomplete a {
   transition: none;
