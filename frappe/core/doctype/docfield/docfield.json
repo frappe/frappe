@@ -3,10 +3,13 @@
  "allow_import": 0, 
  "allow_rename": 0, 
  "autoname": "hash", 
+ "beta": 0, 
  "creation": "2013-02-22 01:27:33", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
+ "document_type": "Setup", 
+ "editable_grid": 1, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -1006,19 +1009,22 @@
  "hide_heading": 0, 
  "hide_toolbar": 0, 
  "idx": 1, 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 1, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2016-03-22 15:18:41.237995", 
+ "modified": "2016-07-11 03:25:57.882851", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 
  "owner": "Administrator", 
  "permissions": [], 
+ "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
- "sort_order": "ASC"
+ "sort_order": "ASC", 
+ "track_seen": 0
 }
