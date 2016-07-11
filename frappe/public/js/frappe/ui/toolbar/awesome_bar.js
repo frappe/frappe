@@ -79,7 +79,7 @@ frappe.search = {
 			.autocomplete(opts).data('ui-autocomplete')._renderItem =
 				frappe.search.render_item;
 
-		$("#sidebar-search")
+		$("#modal-search")
 			.on("focus", open_recent)
 			.autocomplete(opts).data('ui-autocomplete')._renderItem =
 				frappe.search.render_item;
