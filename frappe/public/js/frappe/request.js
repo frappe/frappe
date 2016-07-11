@@ -67,11 +67,12 @@ frappe.request.call = function(opts) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function(xhr) {
-			msgprint(__("You have been logged out"));
+			msgprint({message:__("You have been logged out"), indicator: 'red'});
 			frappe.app.logout();
 		},
 		404: function(xhr) {
-			msgprint(__("Not found"));
+			msgprint({title:__("Not found"), indicator:'red',
+				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
 			if (xhr.responseJSON && xhr.responseJSON._server_messages) {
@@ -84,15 +85,17 @@ frappe.request.call = function(opts) {
 			}
 
 			frappe.utils.play_sound("error");
-			msgprint(__("Not permitted"));
+			msgprint({title:__("Not permitted"), indicator:'red',
+				message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
 		},
 		508: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
+			msgprint({title:__('Please try again'), indicator:'red',
+				message:__("Another transaction is blocking this one. Please try again in a few seconds.")});
 		},
 		413: function(data, xhr) {
-			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
-				[(frappe.boot.max_file_size || 5242880) / 1048576]));
+			msgprint({indicator:'red', title:__('File too big'), message:__("File size exceeded the maximum allowed size of {0} MB",
+				[(frappe.boot.max_file_size || 5242880) / 1048576])});
 		},
 		417: function(xhr) {
 			var r = xhr.responseJSON;
@@ -112,7 +115,7 @@ frappe.request.call = function(opts) {
 		},
 		500: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint(__("Server Error: Please check your server logs or contact tech support."))
+			msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
 		},
@@ -304,7 +307,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 
-		var msg_dialog = msgprint(error_message);
+		var msg_dialog = msgprint({message:error_message, indicator:'red'});
 
 		msg_dialog.msg_area.find(".report-btn")
 			.toggle(error_report_email ? true : false)
