@@ -4,7 +4,7 @@
 	{{ key }}="{{ value }}" {% endfor %}{% endif %}>
 	{% if options -%}
 	{% for option in options -%}
-    {% set option_value = option.value if option is missing else option %}
+    {% set option_value = option.value if option is mapping else option %}
 	<option value="{{ option_value }}"
         {{  "selected" if value == option_value else "" }}>{{ _(option.label if option is mapping else option) }}</option>
 	{%- endfor %}
