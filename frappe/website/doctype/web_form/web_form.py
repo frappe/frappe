@@ -6,7 +6,7 @@ import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _, scrub
 from frappe.utils.file_manager import save_file, remove_file_by_url
-from frappe.website.utils import get_comment_list
+from frappe.website.utils import get_comment_list, cstr
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 
 class WebForm(WebsiteGenerator):
@@ -324,10 +324,9 @@ def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
 def make_route_string(parameters):
 	route_string = ""
 	delimeter = '?'
-	if isinstance(parameters,dict):
+	if isinstance(parameters, dict):
 		for key in parameters:
 			if key != "is_web_form":
-				per_parameter_path = delimeter + key + "=" + parameters[key]
-				route_string = route_string + per_parameter_path
+				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
 				delimeter = '&'
 	return (route_string,delimeter)
