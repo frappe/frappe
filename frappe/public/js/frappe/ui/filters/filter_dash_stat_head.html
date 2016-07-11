@@ -1,0 +1,30 @@
+<div class="filter-dash-item" style="">
+	<h6 class="h6 filter-label" data-name="{%= label %}">{%= label %}
+		{%  if(type==="Date" || type==="Datetime"){ %}
+			</h6>
+			<!--<i class="icon-calendar date-range-picker " data-name="{%= field %}" style="font-size:400%;padding: 20px"/>-->
+			<input type="text" autocomplete="off" class="input-with-feedback form-control date-range-picker {%=field%}-filter" style="margin-top:20px;"data-name="{%= field %}">
+			{% } else { %}
+		<span class="dropdown search-dropdown hide">
+			<i class="dropdown-toggle icon-search " data-toggle="dropdown" style="padding-left:5px"/>
+			<div class="dropdown-menu">
+				<form >
+				<input class="search-dashboard" type="text" autocomplete="off" class="input-with-feedback form-control"style="width:200px;"/>
+				</form>
+			</div>
+		</span>
+		<span class="dropdown">
+			<i class="pull-right dropdown-toggle filter-sort-active icon-sort-by-attributes-alt" style="padding-right: 15px" data-toggle="dropdown"/>
+			<ul class="dropdown-menu">
+				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-alphabet"/><label>Alphabetically Ascending</label></li>
+				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-alphabet-alt" /><label>Alphabetically Descending</label></li>
+				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-attributes"/><label>Numerically Ascending</label></li>
+				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-attributes-alt"/><label>Numerically Descending</label></li>
+			</ul>
+		</span>
+    </h6>
+	<ul class="list-unstyled sidebar-menu filter-stat" data-name="{%= label %}">
+
+    </ul>
+	{% } %}
+</div>

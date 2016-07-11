@@ -161,7 +161,8 @@ frappe.ui.Listing = Class.extend({
 			listobj: this,
 			$parent: this.wrapper.find('.list-filters').toggle(true),
 			doctype: this.doctype,
-			filter_fields: this.filter_fields
+			filter_fields: this.filter_fields,
+			default_filters:this.default_filters? this.default_filters: this.listview?this.listview.settings.default_filters:[]
 		});
 		if(frappe.model.is_submittable(this.doctype)) {
 			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
@@ -407,36 +408,37 @@ frappe.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(fieldname, label, doctype) {
-		if(!doctype) doctype = this.doctype;
+	set_filter: function(fieldname, label, no_run,no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = filter.field.get_parsed_value();
+			var v = cstr(filter.field.get_parsed_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
-				return this;
+				return false
+
+			} else if(no_duplicate) {
+				filter.set_values(this.doctype, fieldname, "=", label);
 			} else {
 				// second filter set for this field
-				if(fieldname=='_user_tags') {
+				if(fieldname=='_user_tags' || fieldname=="_liked_by")  {
 					// and for tags
-					this.filter_list.add_filter(doctype, fieldname,
-						'like', '%' + label + '%');
+					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 				} else {
 					// or for rest using "in"
-					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
+					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
 				}
 			}
 		} else {
 			// no filter for this item,
 			// setup one
 			if(['_user_tags', '_comments', '_assign', '_liked_by'].indexOf(fieldname)!==-1) {
-				this.filter_list.add_filter(doctype, fieldname,
-					'like', '%' + label + '%');
+				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 			} else {
-				this.filter_list.add_filter(doctype, fieldname, '=', label);
+				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
 			}
 		}
-		return this;
+		if(!no_run)
+			this.run();
 	},
 	init_list_settings: function() {
 		if(frappe.model.list_settings[this.doctype]) {

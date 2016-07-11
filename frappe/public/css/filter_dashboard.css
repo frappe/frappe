@@ -1,0 +1,61 @@
+.date-range-picker{
+    font-size:85%;
+}
+.list-filter-dashboard{
+    height:204px;
+    overflow-x:auto;
+}
+.filter-label{
+    margin:0px;
+    font-weight: bold;
+}
+.filter-dashboard-items{
+    height: 187px;
+}
+.filter-dash-item{
+    width:180px;
+    padding-left:5px;
+    padding-right:5px;
+    float:left;
+    height:187px;
+    border-right:1px solid #d1d8dd;
+}
+.filter-dash-item:after{
+    /*top:-10px;*/
+}
+.filter-sort{
+    font-size:1.5em;
+}
+.filter-sort-item{
+    padding: 5px;
+}
+.filter-sort-item:hover{
+    color: #262626;
+    text-decoration: none;
+    background-color: #f0f4f7;
+}
+.filter-stat{
+    overflow-y:scroll;
+    overflow-x:hidden;
+    height: 172px;
+    margin:0px;
+}
+.selected{
+    vertical-align: 10%;
+    font-size: 1.2em;
+}
+.filter-sort-item>label{
+    float:right;
+}
+.filter-stat-link>.badge{
+    position: absolute;
+    float:right;
+}
+.filter-stat-link>.stat{
+    width:135px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.filter-dash-controls>.filter-label{
+    padding-bottom: 5px;
+}

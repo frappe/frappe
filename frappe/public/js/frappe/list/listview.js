@@ -78,11 +78,6 @@ frappe.views.ListView = Class.extend({
 				} else {
 					add_field(d.fieldname);
 				}
-
-				if(d.fieldtype=="Select") {
-					if(me.stats.indexOf(d.fieldname)===-1) me.stats.push(d.fieldname);
-				}
-
 				// currency field for symbol (multi-currency)
 				if(d.fieldtype=="Currency" && d.options) {
 					if(d.options.indexOf(":")!=-1) {

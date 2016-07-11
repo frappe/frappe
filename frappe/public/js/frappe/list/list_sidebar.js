@@ -115,51 +115,33 @@ frappe.views.ListSidebar = Class.extend({
 			method: 'frappe.desk.reportview.get_stats',
 			args: {
 				stats: me.stats,
-				doctype: me.doctype
+				doctype: me.doctype,
+				filters:me.default_filters
 			},
 			callback: function(r) {
 				if (me.defined_category ){
 					 me.cats = {};
+					//structure the tag categories
 					for (i in me.defined_category){
-						if (me.cats[me.defined_category[i].category]===undefined)
-							{
+						if (me.cats[me.defined_category[i].category]===undefined){
 							me.cats[me.defined_category[i].category]=[me.defined_category[i].tag];
 						}else{
-
 							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
 						}
 						me.cat_tags[i]=me.defined_category[i].tag
 					}
-					me.tempstats = r.message
-					var len = me.cats.length
+					me.tempstats = r.message;
+					var len = me.cats.length;
 					$.each(me.cats, function (i, v) {
 						me.render_stat(i, (me.tempstats || {})["_user_tags"],v);
 					});
-					$.each(me.stats, function (i, v) {
-					me.render_stat(v, (me.tempstats || {})[v]);
-					});
+					me.render_stat("_user_tags", (me.tempstats || {})["_user_tags"]);
 				}
 				else
 				{
 					//render normal stats
-					// This gives a predictable stats order
-					$.each(me.stats, function (i, v) {
-						me.render_stat(v, (r.message || {})[v]);
-					});
+					me.render_stat("_user_tags", (r.message|| {})["_user_tags"]);
 				}
-
-
-				// reload button at the end
-				// if(me.stats.length) {
-				// 	$('<a class="small text-muted">'+__('Refresh Stats')+'</a>')
-				// 		.css({"margin-top":"15px", "display":"inline-block"})
-				// 		.click(function() {
-				// 			me.reload_stats();
-				// 			return false;
-				// 		}).appendTo($('<div class="stat-wrapper">')
-				// 			.appendTo(me.sidebar));
-				// }
-
 				me.doclistview.set_sidebar_height();
 			}
 		});
@@ -195,7 +177,6 @@ frappe.views.ListSidebar = Class.extend({
 				{
 					me.tempstats["_user_tags"].splice(nfound,1);
 				}
-
 			}
 			field = "_user_tags"
 		}
@@ -207,9 +188,8 @@ frappe.views.ListSidebar = Class.extend({
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: label==='_user_tags' ? (__("UnCatagorised Tags") + show_tags) : tags ? __(label)+ show_tags: __(label),
+			label: field==='_user_tags' ?  tags ? __(label)+ show_tags:(__("UnCatagorised Tags") + show_tags): __(label),
 		};
-
 		var sidebar_stat = $(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
 				var fieldname = $(this).attr('data-field');
@@ -222,7 +202,30 @@ frappe.views.ListSidebar = Class.extend({
 				}
 			})
 			.appendTo(this.sidebar);
+	},
+	set_fieldtype: function(df, fieldtype) {
 
+		// scrub
+		if(df.fieldname=="docstatus") {
+			df.fieldtype="Select",
+			df.options=[
+				{value:0, label:"Draft"},
+				{value:1, label:"Submitted"},
+				{value:2, label:"Cancelled"},
+			]
+		} else if(df.fieldtype=='Check') {
+			df.fieldtype='Select';
+			df.options=[{value:0,label:'No'},
+				{value:1,label:'Yes'}]
+		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
+			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
+			df.fieldtype = 'Data';
+		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
+			df.fieldtype = 'Data';
+		}
+		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
+			df.options = null;
+		}
 	},
 	reload_stats: function() {
 		this.sidebar.find(".sidebar-stat").remove();

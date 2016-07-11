@@ -148,23 +148,55 @@ def get_tag_catagories(doctype):
 	return cat_tags
 
 @frappe.whitelist()
-def get_stats(stats, doctype):
+def get_stats(stats, doctype,filters=[]):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
 		tagcount = execute(doctype, fields=[tag, "count(*)"],
-			filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters+[tag +"= ',' or "+tag+" is null" ] ,  as_list=True)[0][1]])
+			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters +["({0} = ',' or {0} is null)".format(tag)],  as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
+
+	return stats
+
+@frappe.whitelist()
+def get_dash(stats, doctype,filters=[]):
+	"""get tag info"""
+	import json
+	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
+	stats = {}
+
+	columns = frappe.db.get_table_columns(doctype)
+	for tag in tags:
+		if not tag["name"] in columns: continue
+		tagcount = []
+		if tag["type"] not in ['Date', 'Datetime']:
+			tagcount = execute(doctype, fields=[tag["name"], "count(*)"],
+				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]], group_by = tag["name"], as_list = True)
+
+		if tag["type"] not in ['Check','Select','Date','Datetime']:
+			stats[tag["name"]] = list(tagcount)
+			if stats[tag["name"]]:
+				data =["No Data",execute(doctype, fields=[tag["name"], "count(*)"], filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],  as_list=True)[0][1]]
+				if data and data[1]!=0:
+
+					stats[tag["name"]].append(data)
+		else:
+			stats[tag["name"]] = tagcount
 
 	return stats
 
