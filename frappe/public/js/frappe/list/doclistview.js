@@ -313,7 +313,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.init_headers();
 			this.dirty = true;
 		}
-
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -321,6 +320,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.set_filters_before_run();
 		if(this.dirty) {
 			this.run();
+			if (this.clean_dash != true) {
+				this.filter_list.reload_stats();
+			}
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
@@ -375,7 +377,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-
+		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
@@ -861,43 +863,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					stats: me.listview.stats,
 					defined_category : me.defined_category,
 					parent: me.$page.find('.layout-side-section'),
-					set_filter: function(fieldname, label) {
-						me.set_filter(fieldname, label);
+					set_filter: function(fieldname, label,norun,noduplicates) {
+						me.set_filter(fieldname, label,norun,noduplicates);
 					},
+					default_filters:me.listview.settings.default_filters,
 					page: me.page,
 					doclistview: me
 				})
 			}
 		})
-	},
-	set_filter: function(fieldname, label, no_run) {
-		var filter = this.filter_list.get_filter(fieldname);
-		if(filter) {
-			var v = cstr(filter.field.get_parsed_value());
-			if(v.indexOf(label)!=-1) {
-				// already set
-				return false;
-			} else {
-				// second filter set for this field
-				if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-				} else {
-					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
-				}
-			}
-		} else {
-			// no filter for this item,
-			// setup one
-			if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
-			}
-		}
-		if(!no_run)
-			this.run();
 	},
 	call_for_selected_items: function(method, args) {
 		var me = this;

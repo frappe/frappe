@@ -194,6 +194,8 @@
 		"public/css/list.css",
 		"public/css/tag-it.css",
 		"public/css/calendar.css"
+		"public/css/daterangepicker.css",
+		"public/css/filter_dashboard.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
@@ -201,6 +203,10 @@
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
+		"public/js/frappe/ui/filters/filter_dash.html",
+		"public/js/frappe/ui/filters/filter_dash_stats.html",
+		"public/js/frappe/ui/filters/filter_dash_stat_head.html",
+		"public/js/lib/daterangepicker.js",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",
