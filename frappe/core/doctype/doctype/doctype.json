@@ -1153,7 +1153,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-07-08 04:38:09.088871", 
+ "modified": "2016-07-11 14:24:21.223885", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
@@ -1164,7 +1164,7 @@
    "apply_user_permissions": 0, 
    "cancel": 0, 
    "create": 1, 
-   "delete": 0, 
+   "delete": 1, 
    "email": 1, 
    "export": 0, 
    "if_owner": 0, 
@@ -1200,7 +1200,7 @@
    "write": 1
   }
  ], 
- "quick_entry": 1, 
+ "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "module", 
