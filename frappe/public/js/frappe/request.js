@@ -300,8 +300,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
 		var error_message = '<div>\
 			<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre>'
-			+'<p class="text-right"><a class="btn btn-default report-btn">\
-				<i class="icon-fixed-width icon-envelope"></i> '
+			+'<p class="text-right"><a class="btn btn-primary btn-sm report-btn">'
 			+ __("Report this issue") + '</a></p>'
 			+'</div>';
 
