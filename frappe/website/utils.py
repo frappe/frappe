@@ -201,7 +201,7 @@ def get_full_index(route=None, extn = False):
 				new_children = []
 				for name in page_info.index:
 					child_route = page_info.route + '/' + name
-					if pages[child_route]:
+					if child_route in pages:
 						new_children.append(pages[child_route])
 
 				# add remaining pages not in index.txt
