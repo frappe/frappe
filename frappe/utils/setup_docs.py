@@ -348,7 +348,7 @@ class setup_docs(object):
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
-						target = target_path_fragment))
+						target = context.template))
 
 			if not os.path.exists(os.path.dirname(target_filename)):
 				os.makedirs(os.path.dirname(target_filename))
@@ -437,7 +437,7 @@ edit_link = '''
 	<div class="page-content">
 	<div class="edit-container text-center">
 		<i class="icon icon-smile"></i>
-		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">
+		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/{target}">
 			Improve this page
 		</a>
 	</div>

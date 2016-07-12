@@ -238,7 +238,7 @@ def setup_source(page_info):
 
 def setup_index(page_info):
 	'''Build page sequence from index.txt'''
-	if page_info.basename=='index':
+	if page_info.basename=='':
 		# load index.txt if loading all pages
 		index_txt_path = os.path.join(page_info.basepath, 'index.txt')
 		if os.path.exists(index_txt_path):
@@ -284,6 +284,8 @@ def load_properties(page_info):
 	import re
 	if "<!-- title:" in page_info.source:
 		page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
+	elif "<h1>" in page_info.source:
+		page_info.title = re.findall('<h1>([^>]*)</h1>', page_info.source)[0].strip()
 	else:
 		page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
 
