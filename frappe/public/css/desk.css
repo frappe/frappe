@@ -238,6 +238,7 @@ a.form-link {
   border-radius: 2px;
   padding: 3px;
   display: none;
+  z-index: 3;
 }
 .link-primary {
   color: #5E64FF;

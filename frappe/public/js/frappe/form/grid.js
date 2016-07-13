@@ -8,6 +8,11 @@ frappe.ui.form.get_open_grid_form = function() {
 frappe.ui.form.close_grid_form = function() {
 	var open_form = frappe.ui.form.get_open_grid_form();
 	open_form && open_form.hide_form();
+
+	// hide editable row too
+	if(frappe.ui.form.editable_row) {
+		frappe.ui.form.editable_row.toggle_editable_row(false);
+	}
 }
 
 
@@ -47,7 +52,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
-			me.set_focus_on_new_row();
+			me.set_focus_on_row();
 			return false;
 		});
 
@@ -299,12 +304,15 @@ frappe.ui.form.Grid = Class.extend({
 		}
 	},
 
-	set_focus_on_new_row: function() {
+	set_focus_on_row: function(idx) {
 		var me = this;
+		if(!idx) {
+			idx = me.grid_rows.length - 1;
+		}
 		setTimeout(function() {
-			me.grid_rows[me.grid_rows.length - 1].row
+			me.grid_rows[idx].row
 				.find('input,textarea,select').filter(':visible:first').focus();
-		});
+		}, 100);
 	},
 
 	setup_visible_columns: function() {
@@ -527,6 +535,7 @@ frappe.ui.form.GridRow = Class.extend({
 		this.on_grid_fields_dict = {};
 		this.on_grid_fields = [];
 		this.columns = {};
+		this.columns_list = [];
 		$.extend(this, opts);
 		this.make();
 	},
@@ -547,6 +556,11 @@ frappe.ui.form.GridRow = Class.extend({
 		if(this.doc) {
 			this.set_data();
 		}
+	},
+	set_data: function() {
+		this.wrapper.data({
+			"doc": this.doc
+		})
 	},
 	set_row_index: function() {
 		if(this.doc) {
@@ -607,26 +621,31 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 
 		this.setup_columns();
-
-		if(this.grid.allow_on_grid_editing()) {
-			this.row.toggleClass('editable-row', this.grid.is_editable());
-			if(this.doc) {
-				// remove row
-				if(!this.remove_row) {
-					this.remove_row = $('<a class="close pull-right btn-open-row">\
-						<span class="octicon octicon-triangle-down"></span></a>')
-						.appendTo(this.row)
-						.on('click', function() { me.toggle_view(); return false; });
-
-					if(this.row.width() < 400) {
-						this.remove_row.css({'padding-right': '1px'});
-					}
-				}
-			}
-		}
+		this.add_open_form_button();
 
 		if(this.doc) {
 			$(this.frm.wrapper).trigger("grid-row-render", [this]);
+		}
+	},
+
+	make_editable: function() {
+		this.row.toggleClass('editable-row', this.grid.is_editable());
+	},
+
+	add_open_form_button: function() {
+		var me = this;
+		if(this.doc) {
+			// remove row
+			if(!this.open_form_button) {
+				this.open_form_button = $('<a class="close pull-right btn-open-row">\
+					<span class="octicon octicon-triangle-down"></span></a>')
+					.appendTo(this.row)
+					.on('click', function() { me.toggle_view(); return false; });
+
+				if(this.row.width() < 400) {
+					this.open_form_button.css({'padding-right': '1px'});
+				}
+			}
 		}
 	},
 
@@ -653,48 +672,86 @@ frappe.ui.form.GridRow = Class.extend({
 				this.refresh_field(df.fieldname, txt);
 			}
 
-			// show static for field based on
-			// whether grid is editable
-			if(this.grid.is_editable() && this.on_grid_fields_dict[df.fieldname] && this.doc) {
-				column.static_area.toggle(false);
-				column.field_area.toggle(true);
-			} else {
-				column.static_area.toggle(true);
-				column.field_area && column.field_area.toggle(false);
-			}
 		}
 
 	},
 
 	make_column: function(df, colsize, txt, ci) {
-		var add_class = '';
-		if(!this.grid.allow_on_grid_editing() || !this.doc) {
-			add_class = ' grid-static-col ' +
-				((["Text", "Small Text"].indexOf(df.fieldtype)===-1) ?
-					" grid-overflow-ellipsis" : " grid-overflow-no-ellipsis");
-		}
+		var	me = this;
+		var add_class = ((["Text", "Small Text"].indexOf(df.fieldtype)!==-1) ?
+			" grid-overflow-no-ellipsis" : "");
 		add_class += (["Int", "Currency", "Float", "Percent"].indexOf(df.fieldtype)!==-1) ?
 			" text-right": "";
+		add_class += (["Check"].indexOf(df.fieldtype)!==-1) ?
+			" text-center": "";
 
-		$col = $('<div class="col col-xs-'+colsize+add_class+'"></div>')
+		$col = $('<div class="col grid-static-col col-xs-'+colsize+' '+add_class+'"></div>')
 			.attr("data-fieldname", df.fieldname)
 			.data("df", df)
-			.appendTo(this.row);
+			.appendTo(this.row)
+			.on('click', function() {
+				if(frappe.ui.form.editable_row===me) {
+					return;
+				}
+				out = me.toggle_editable_row();
+				var col = this;
+				setTimeout(function() {
+					$(col).find(':input:first').focus();
+				}, 500);
+				return out;
+			});
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
 		$col.static_area = $('<div class="static-area"></div>').appendTo($col).html(txt);
+		$col.df = df;
+		$col.column_index = ci;
 
 		this.columns[df.fieldname] = $col;
-
-		if(this.grid.allow_on_grid_editing() && this.doc) {
-			this.make_control($col.field_area, df, ci);
-		}
+		this.columns_list.push($col);
 
 		return $col;
 	},
 
-	make_control: function(parent, df, ci) {
+	toggle_editable_row: function(show) {
 		var me = this;
+		// show static for field based on
+		// whether grid is editable
+		if(this.grid.is_editable() && this.doc && show !== false) {
+
+			// disable other editale row
+			if(frappe.ui.form.editable_row
+				&& frappe.ui.form.editable_row !== this) {
+				frappe.ui.form.editable_row.toggle_editable_row(false);
+			};
+
+			this.row.toggleClass('editable-row', true);
+
+			// setup controls
+			this.columns_list.forEach(function(column) {
+				me.make_control(column);
+				column.static_area.toggle(false);
+				column.field_area.toggle(true);
+			});
+			frappe.ui.form.editable_row = this;
+			return false;
+		} else {
+			this.row.toggleClass('editable-row', false);
+			this.columns_list.forEach(function(column) {
+				column.static_area.toggle(true);
+				column.field_area && column.field_area.toggle(false);
+			});
+			frappe.ui.form.editable_row = null;
+		}
+	},
+
+
+	make_control: function(column) {
+		if(column.field) return;
+
+		var me = this,
+			parent = column.field_area,
+			df = column.df;
+
 		var field = frappe.ui.form.make_control({
 			df: df,
 			parent: parent,
@@ -710,21 +767,53 @@ frappe.ui.form.GridRow = Class.extend({
 		field.refresh();
 		if(field.$input) {
 			field.$input.addClass('input-sm');
-			field.$input.attr('data-col-idx', ci).attr('placeholder', __(df.label));
+			field.$input.attr('data-col-idx', column.column_index).attr('placeholder', __(df.label));
 			field.$input.on('keydown', function(e) {
+				var values = me.frm.doc[me.grid.df.fieldname];
+				var fieldname = $(this).attr('data-fieldname');
 				// TAB
-				if(e.which==9) {
-					// last row, last column
+				if(e.which==TAB) {
+					// last column
 					if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
-
 						setTimeout(function() {
-							me.grid.add_new_row(null, null, true);
-							me.grid.set_focus_on_new_row();
+							if(me.doc.idx === values.length) {
+								// last row
+								me.grid.add_new_row(null, null, true);
+								me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
+								me.grid.set_focus_on_row();
+							} else {
+								me.grid.grid_rows[me.doc.idx].toggle_editable_row();
+								me.grid.set_focus_on_row(me.doc.idx+1);
+							}
 						}, 500);
 					}
+				} else if(e.which==UP_ARROW) {
+					if(me.doc.idx > 1) {
+						var prev = me.grid.grid_rows[me.doc.idx-2];
+						prev.toggle_editable_row();
+						setTimeout(function() {
+							var input = prev.columns[fieldname].field.$input;
+							if(input) {
+								input.focus();
+							}
+						}, 400)
+					}
+				} else if(e.which==DOWN_ARROW) {
+					if(me.doc.idx < values.length) {
+						var next = me.grid.grid_rows[me.doc.idx];
+						next.toggle_editable_row();
+						setTimeout(function() {
+							var input = next.columns[fieldname].field.$input;
+							if(input) {
+								input.focus();
+							}
+						}, 400)
+					}
 				}
+
 			});
 		}
+		column.field = field;
 		this.on_grid_fields_dict[df.fieldname] = field;
 		this.on_grid_fields.push(field);
 
@@ -769,42 +858,24 @@ frappe.ui.form.GridRow = Class.extend({
 		return this;
 	},
 	show_form: function() {
-		if(!this.form_panel) {
-			this.form_panel = $('<div class="form-in-grid"></div>')
-				.appendTo(this.wrapper);
+		if(!this.grid_form) {
+			this.grid_form = new frappe.ui.form.GridRowForm({
+				row: this
+			});
 		}
-		this.render_form();
+		this.grid_form.render();
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 		frappe.dom.freeze("", "dark");
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
-		if(!frappe.dom.is_element_in_viewport) {
+		if(!frappe.dom.is_element_in_viewport(this.wrapper)) {
 			frappe.utils.scroll_to(this.wrapper, true, 15);
 		}
 		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
 		this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
-		this.set_focus();
-	},
-	set_focus: function() {
-		// wait for animation and then focus on the first row
-		var me = this;
-		setTimeout(function() {
-			if(me.frm.doc.docstatus===0) {
-				var first = me.form_area.find(":input:first");
-				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
-					try {
-						first.get(0).focus();
-					} catch(e) {
-						//
-					}
-				}
-			}
-		}, 500);
 	},
 	hide_form: function() {
-		// if(this.form_panel)
-		// 	this.form_panel.toggle(false);
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
 		this.render_row();
@@ -822,68 +893,6 @@ frappe.ui.form.GridRow = Class.extend({
 		} else {
 			this.grid.add_new_row(null, null, true);
 		}
-	},
-	toggle_add_delete_button_display: function($parent) {
-		$parent.find(".grid-delete-row, .grid-insert-row, .grid-append-row")
-			.toggle(this.grid.is_editable());
-	},
-	render_form: function() {
-		var me = this;
-		this.make_form();
-		this.form_area.empty();
-
-		this.layout = new frappe.ui.form.Layout({
-			fields: this.docfields,
-			body: this.form_area,
-			no_submit_on_enter: true,
-			frm: this.frm,
-		});
-		this.layout.make();
-
-		this.fields = this.layout.fields;
-		this.fields_dict = this.layout.fields_dict;
-
-		this.layout.refresh(this.doc);
-
-		// copy get_query to fields
-		for(var fieldname in (this.grid.fieldinfo || {})) {
-			var fi = this.grid.fieldinfo[fieldname];
-			$.extend(me.fields_dict[fieldname], fi);
-		}
-
-		this.toggle_add_delete_button_display(this.wrapper);
-
-		this.grid.open_grid_row = this;
-	},
-	make_form: function() {
-		if(!this.form_area) {
-			$(frappe.render_template("grid_form", {grid:this})).appendTo(this.form_panel);
-			this.form_area = this.wrapper.find(".form-area");
-			this.set_row_index();
-			this.set_form_events();
-		}
-	},
-	set_form_events: function() {
-		var me = this;
-		this.form_panel.find(".grid-delete-row")
-			.click(function() { me.remove(); return false; })
-		this.form_panel.find(".grid-insert-row")
-			.click(function() { me.insert(true); return false; })
-		this.form_panel.find(".grid-append-row")
-			.click(function() {
-				me.toggle_view(false);
-				me.grid.add_new_row(me.doc.idx+1, null, true);
-				return false;
-		})
-		this.form_panel.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
-			me.toggle_view();
-			return false;
-		});
-	},
-	set_data: function() {
-		this.wrapper.data({
-			"doc": this.doc
-		})
 	},
 	refresh_field: function(fieldname, txt) {
 		if(txt===undefined) {
@@ -942,5 +951,89 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	toggle_editable: function(fieldname, editable) {
 		this.set_field_property(fieldname, 'read_only', editable ? 0 : 1);
+	},
+});
+
+frappe.ui.form.GridRowForm = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+		this.wrapper = $('<div class="form-in-grid"></div>')
+			.appendTo(this.row.wrapper);
+
+	},
+	render: function() {
+		var me = this;
+		this.make_form();
+		this.form_area.empty();
+
+		this.layout = new frappe.ui.form.Layout({
+			fields: this.row.docfields,
+			body: this.form_area,
+			no_submit_on_enter: true,
+			frm: this.row.frm,
+		});
+		this.layout.make();
+
+		this.fields = this.layout.fields;
+		this.fields_dict = this.layout.fields_dict;
+
+		this.layout.refresh(this.row.doc);
+
+		// copy get_query to fields
+		for(var fieldname in (this.row.grid.fieldinfo || {})) {
+			var fi = this.row.grid.fieldinfo[fieldname];
+			$.extend(me.fields_dict[fieldname], fi);
+		}
+
+		this.toggle_add_delete_button_display(this.wrapper);
+
+		this.row.grid.open_grid_row = this;
+
+		this.set_focus();
+	},
+	make_form: function() {
+		if(!this.form_area) {
+			$(frappe.render_template("grid_form", {grid:this})).appendTo(this.wrapper);
+			this.form_area = this.wrapper.find(".form-area");
+			this.row.set_row_index();
+			this.set_form_events();
+		}
+	},
+	set_form_events: function() {
+		var me = this;
+		this.wrapper.find(".grid-delete-row")
+			.click(function() { me.row.remove(); return false; })
+		this.wrapper.find(".grid-insert-row")
+			.click(function() { me.row.insert(true); return false; })
+		this.wrapper.find(".grid-append-row")
+			.click(function() {
+				me.row.toggle_view(false);
+				me.row.grid.add_new_row(me.doc.idx+1, null, true);
+				return false;
+		})
+		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
+			me.row.toggle_view();
+			return false;
+		});
+	},
+	toggle_add_delete_button_display: function($parent) {
+		$parent.find(".grid-delete-row, .grid-insert-row, .grid-append-row")
+			.toggle(this.row.grid.is_editable());
+	},
+	set_focus: function() {
+		// wait for animation and then focus on the first row
+		var me = this;
+		setTimeout(function() {
+			if(me.row.frm.doc.docstatus===0) {
+				var first = me.form_area.find(":input:first");
+				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						//
+					}
+				}
+			}
+		}, 500);
 	},
 });

@@ -19,6 +19,9 @@ frappe.settings.no_history = 1;
 
 // constants
 var NEWLINE = '\n';
+var TAB = 9;
+var UP_ARROW = 38;
+var DOWN_ARROW = 40;
 
 // user
 var user=null;

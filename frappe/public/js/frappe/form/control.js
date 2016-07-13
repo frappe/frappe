@@ -1109,7 +1109,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			<input type="text" class="input-with-feedback form-control" autocomplete="off">\
 			<span class="link-btn">\
 				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
-					<i class="icon-link"></i></a>\
+					<i class="octicon octicon-arrow-right"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
@@ -1118,21 +1118,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$link_open = this.$link.find('.btn-open');
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
-			var value = me.get_value();
-			if(value && me.get_options()) {
-				me.$link.toggle(true);
-				me.$link_open.attr('href', '#Form/' + me.get_options() + '/' + value);
-
-			}
-
 			setTimeout(function() {
+				if(me.$input.val() && me.get_options()) {
+					me.$link.toggle(true);
+					me.$link_open.attr('href', '#Form/' + me.get_options() + '/' + me.$input.val());
+				}
+
 				if(!me.$input.val()) {
 					me.$input.autocomplete("search", "");
 				}
 			}, 500);
 		});
 		this.$input.on("blur", function() {
-			setTimeout(function() { me.$link.toggle(false); }, 500);
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(function() {
+				me.$link.toggle(false);
+			}, 500);
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
