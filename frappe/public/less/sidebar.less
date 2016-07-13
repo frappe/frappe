@@ -271,7 +271,7 @@ body[data-route^="Module"] .main-menu {
 			width: 40%;
 			padding: 25px;
 			display: block !important;
-			transition: transform 300ms ease-in-out;
+			transition: transform 200ms ease-in-out;
 
 			&.opened {
 				transform: translateX(0);
@@ -306,6 +306,17 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-menu {
 		@media (max-width: 991px) {
 			margin: 0;
+		}
+	}
+
+	.module-sidebar-nav {
+		@media (max-width: 991px) {
+			padding-left: 0;
+			padding-right: 0;
+
+			.module-link {
+				padding-left: 25px;
+			}
 		}
 	}
 }

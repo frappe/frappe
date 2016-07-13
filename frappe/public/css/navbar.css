@@ -46,6 +46,11 @@
     margin-left: 0 !important;
   }
 }
+@media (max-width: 767px) {
+  .navbar-desk {
+    width: 60% !important;
+  }
+}
 #searchModal .modal-dialog,
 #searchModal .modal-content {
   background: transparent;

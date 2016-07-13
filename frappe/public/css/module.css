@@ -37,6 +37,12 @@
   }
 }
 @media (max-width: 767px) {
+  .module-body {
+    margin-top: 0;
+    border-top: 1px solid transparent;
+  }
+}
+@media (max-width: 767px) {
   .module-section {
     border: none;
   }

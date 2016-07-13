@@ -34,6 +34,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		page.wrapper.find('.module-sidebar-item.active, .module-link.active').removeClass('active');
 		$(link).addClass('active').parent().addClass("active");
 		show_section($(link).attr('data-name'));
+		$('.module-sidebar-nav').trigger('close_sidebar');
 	}
 
 	var show_section = function(module_name) {
@@ -63,12 +64,12 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		page.set_title(__(m.label));
 		page.main.html(frappe.render_template('modules_section', m));
 
-		if(frappe.utils.is_xs() || frappe.utils.is_sm()) {
-			// call this after a timeout, becuase a refresh will set the page to the top
-			setTimeout(function() {
-				$(document).scrollTop($('.module-body').offset().top - 100);
-			}, 100);
-		}
+		// if(frappe.utils.is_xs() || frappe.utils.is_sm()) {
+		// 	// call this after a timeout, becuase a refresh will set the page to the top
+		// 	setTimeout(function() {
+		// 		$(document).scrollTop($('.module-body').offset().top - 150);
+		// 	}, 100);
+		// }
 
 		//setup_section_toggle();
 		frappe.app.update_notification_count_in_modules();

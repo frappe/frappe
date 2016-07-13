@@ -279,6 +279,18 @@ body {
   }
   body[data-route=""] .navbar .navbar-home,
   body[data-route="desktop"] .navbar .navbar-home {
+    padding: 8px 10px;
+  }
+  body[data-route=""] .navbar .navbar-home:before,
+  body[data-route="desktop"] .navbar .navbar-home:before {
+    display: none;
+  }
+  body[data-route=""] .navbar .navbar-home img,
+  body[data-route="desktop"] .navbar .navbar-home img {
+    margin-top: 0;
+  }
+  body[data-route=""] .toggle-sidebar,
+  body[data-route="desktop"] .toggle-sidebar {
     display: none !important;
   }
   .linked-with-dialog {

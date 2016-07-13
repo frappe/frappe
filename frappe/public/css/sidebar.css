@@ -263,7 +263,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
     width: 40%;
     padding: 25px;
     display: block !important;
-    transition: transform 300ms ease-in-out;
+    transition: transform 200ms ease-in-out;
   }
   .layout-side-section .overlay-sidebar.opened {
     transform: translateX(0);
@@ -294,6 +294,15 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 @media (max-width: 991px) {
   .layout-side-section .sidebar-menu {
     margin: 0;
+  }
+}
+@media (max-width: 991px) {
+  .layout-side-section .module-sidebar-nav {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .layout-side-section .module-sidebar-nav .module-link {
+    padding-left: 25px;
   }
 }
 .sidebar-left .list-sidebar .stat-label,
