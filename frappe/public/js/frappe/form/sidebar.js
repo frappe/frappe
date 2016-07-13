@@ -8,7 +8,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		var sidebar_content = frappe.render_template("form_sidebar", {doctype: this.frm.doctype, frm:this.frm});
 
 		this.offcanvas_form_sidebar = $(".offcanvas .form-sidebar").html(sidebar_content);
-		this.page_sidebar = $('<div class="form-sidebar hidden-xs hidden-sm"></div>')
+		this.page_sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 

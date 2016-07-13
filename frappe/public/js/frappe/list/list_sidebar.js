@@ -19,20 +19,9 @@ frappe.views.ListSidebar = Class.extend({
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
 
 		this.offcanvas_list_sidebar = $(".offcanvas .list-sidebar").html(sidebar_content);
-		this.page_sidebar = $('<div class="list-sidebar hidden-xs hidden-sm"></div>')
-			.html('<i class="octicon octicon-x close-sidebar visible-xs visible-sm pull-right"></i>')
-			.append('<div class="close-sidebar visible-xs visible-sm"></div>')
-			.append(sidebar_content)
+		this.page_sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
+			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
-
-		this.page_sidebar.find(".close-sidebar").click(function() {
-			var list_sidebar = $('.layout-side-section .list-sidebar');
-			list_sidebar.removeClass('opened');
-			list_sidebar.find('.dropdown-toggle').removeClass('text-muted');
-			setTimeout(function() {
-				list_sidebar.find('.reports-dropdown').addClass('dropdown-menu');
-			}, 300);
-		});
 
 		this.sidebar = this.page_sidebar.add(this.offcanvas_list_sidebar);
 

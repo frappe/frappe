@@ -255,59 +255,57 @@ body[data-route^="Module"] .main-menu {
 	margin-top: -15px;
 }
 
-.layout-side-section .list-sidebar {
-	@media (max-width: 991px) {
-		margin-top: 0;
-		position: fixed;
-		background: white;
-		top: 0;
-		left: 0;
-		transform: translateX(-110%);
-		z-index: 9999;
-		box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
-		height: 100%;
-		width: 40%;
-		padding: 25px;
-		display: block !important;
-		transition: transform 300ms ease-in-out;
+.layout-side-section {
 
-		i.octicon-x {
-			margin: -12px;
-			padding: 12px;
-		}
+	.overlay-sidebar {
+		@media (max-width: 991px) {
+			margin-top: 0 !important;
+			position: fixed;
+			background: white;
+			top: 0;
+			left: 0;
+			transform: translateX(-110%);
+			z-index: 9999;
+			box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
+			height: 100%;
+			width: 40%;
+			padding: 25px;
+			display: block !important;
+			transition: transform 300ms ease-in-out;
 
-		div.close-sidebar {
-			opacity: 0;
-			transition: opacity 300ms ease 200ms;
-		}
+			&.opened {
+				transform: translateX(0);
+				overflow-y: auto;
+			}
 
-		&.opened {
-			transform: translateX(0);
-			div.close-sidebar {
-				opacity: 0.5;
-				background: #000;
-				position: fixed;
-				top: 0;
-				right: -150%;
-				width: 150%;
-				height: 100%;
-				z-index: 9998;
+			.reports-dropdown {
+				margin: 10px 0;
+
+				li:not(.divider) {
+					padding: 10px 0;
+				}
 			}
 		}
 
-		.reports-dropdown {
-			margin: 10px 0;
-
-			li:not(.divider) {
-				padding: 10px 0;
-			}
+		@media (max-width: 767px) {
+			width: 70%;
 		}
 	}
-	@media (max-width: 767px) {
-		width: 70%;
-		&.opened div.close-sidebar {
-			right: -42.857%;
-			width: 42.857%;
+
+	div.close-sidebar {
+		position: fixed;
+		top: 0;
+		right: 0;
+		opacity: 0.3;
+		background: #000;
+		z-index: 1041;
+		height: 100%;
+		width: 100%;
+	}
+
+	.sidebar-menu {
+		@media (max-width: 991px) {
+			margin: 0;
 		}
 	}
 }
