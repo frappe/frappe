@@ -4,7 +4,10 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
+from frappe.utils import validate_email_add
 from frappe.model.document import Document
+from email.utils import parseaddr
 
 class EmailGroup(Document):
 	def onload(self):
@@ -90,10 +93,10 @@ def add_subscribers(name, email_list):
 def restrict_email_group(doc, method):
 	from frappe.limits import get_limits
 
-	email_group_limit = get_limits().get('newsletter_recipients')
+	email_group_limit = get_limits().get('email_group_limit')
 	if not email_group_limit:
 		return
 
-	nl = frappe.get_doc("Email Group", doc.email_group)
-	if nl.get_total_subscribers() >= email_group_limit:
+	email_group = frappe.get_doc("Email Group", doc.email_group)
+	if email_group.get_total_subscribers() >= email_group_limit:
 		frappe.throw(_("Please Upgrade to add more than {0} subscribers").format(email_group_limit))
