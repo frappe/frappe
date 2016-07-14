@@ -19,9 +19,9 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 
 			var btn_text = usage_info.limits.users == 1 ? __("Upgrade") : __("Renew / Upgrade");
 
-			if(usage_info.upgrade_link) {
+			if(usage_info.upgrade_url) {
 				page.set_primary_action(btn_text, function() {
-					window.open(usage_info.upgrade_link);
+					window.open(usage_info.upgrade_url);
 				});
 			}
 		}

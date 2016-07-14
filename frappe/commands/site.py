@@ -377,7 +377,7 @@ def _set_limits(context, site, limits):
 		new_limits = {}
 		for limit, value in limits:
 			if limit not in ('emails', 'space', 'users', 'expiry',
-				'support_email', 'support_chat', 'upgrade_link'):
+				'support_email', 'support_chat', 'upgrade_url'):
 				frappe.throw('Invalid limit {0}'.format(limit))
 
 			if limit=='expiry':
@@ -399,7 +399,7 @@ def _set_limits(context, site, limits):
 @click.command('clear-limits')
 @click.option('--site', help='site name')
 @click.argument('limits', nargs=-1, type=click.Choice(['emails', 'space', 'users', 'expiry',
-	'support_email', 'support_chat', 'upgrade_link']))
+	'support_email', 'support_chat', 'upgrade_url']))
 @pass_context
 def clear_limits(context, site, limits):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""

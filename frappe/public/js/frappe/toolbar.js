@@ -8,7 +8,15 @@ $(document).on("toolbar_setup", function() {
 	var limits = frappe.boot.limits;
 
 	if(frappe.boot.expiry_message) {
-		frappe.msgprint(frappe.boot.expiry_message)
+		var expiry_message_shown = localStorage.expiry_message_shown;
+
+		// if message is more than a day old, show message again
+		if (!(expiry_message_shown
+				&& (new Date() - new Date(expiry_message_shown) < 86400000))) {
+
+			localStorage.expiry_message_shown = new Date();
+			frappe.msgprint(frappe.boot.expiry_message);
+		}
 	}
 
 	if(limits.support_email || limits.support_chat) {

@@ -21,13 +21,11 @@ def check_if_expired():
 	expires_on = formatdate(limits.get("expiry"))
 	support_email = limits.get("support_email")
 
-	if limits.upgrade_link:
-		upgrade_link = get_upgrade_link(limits.upgrade_link)
-		upgrade_link = '<a href="{upgrade_link}" target="_blank">{click_here}</a>'.format(upgrade_link=upgrade_link, click_here=_('click here'))
-		message = _("""Your subscription expired on {0}. To extend your subscription, {1}.""").format(expires_on, upgrade_link)
+	if limits.upgrade_url:
+		message = _("""Your subscription expired on {0}. To renew, {1}.""").format(expires_on, get_upgrade_link(limits.upgrade_url))
 
 	elif support_email:
-		message = _("""Your subscription expired on {0}. To extend your subscription, please send an email to {1}.""").format(expires_on, support_email)
+		message = _("""Your subscription expired on {0}. To renew, please send an email to {1}.""").format(expires_on, support_email)
 
 	else:
 		message = _("""Your subscription expired on {0}""").format(expires_on)
@@ -51,7 +49,8 @@ def get_expiry_message():
 	if "System Manager" not in frappe.get_roles():
 		return ""
 
-	if not get_limits().get("expiry"):
+	limits = get_limits()
+	if not limits.expiry:
 		return ""
 
 	expires_on = getdate(get_limits().get("expiry"))
@@ -59,18 +58,22 @@ def get_expiry_message():
 
 	message = ""
 	if today > expires_on:
-		message = _("Your subscription has expired")
+		message = _("Your subscription has expired.")
 	else:
 		days_to_expiry = (expires_on - today).days
 
 		if days_to_expiry == 0:
-			message = _("Your subscription will expire today")
+			message = _("Your subscription will expire today.")
 
 		elif days_to_expiry == 1:
-			message = _("Your subscription will expire tomorrow")
+			message = _("Your subscription will expire tomorrow.")
 
 		elif days_to_expiry <= EXPIRY_WARNING_DAYS:
-			message = _("Your subscription will expire on") + " " + formatdate(expires_on)
+			message = _("Your subscription will expire on {0}.").format(formatdate(expires_on))
+
+	if message and limits.upgrade_url:
+		upgrade_link = get_upgrade_link(limits.upgrade_url)
+		message += ' ' + _('To renew, {0}.').format(upgrade_link)
 
 	return message
 
@@ -106,13 +109,13 @@ def get_usage_info():
 		usage_info['expires_on'] = formatdate(limits.expiry)
 		usage_info['days_to_expiry'] = (getdate(limits.expiry) - getdate()).days
 
-	if limits.upgrade_link:
-		usage_info['upgrade_link'] = get_upgrade_link(limits.upgrade_link)
+	if limits.upgrade_url:
+		usage_info['upgrade_url'] = get_upgrade_url(limits.upgrade_url)
 
 	return usage_info
 
-def get_upgrade_link(upgrade_link):
-	parts = urlparse.urlsplit(upgrade_link)
+def get_upgrade_url(upgrade_url):
+	parts = urlparse.urlsplit(upgrade_url)
 	params = dict(urlparse.parse_qsl(parts.query))
 	params.update({
 		'site': frappe.local.site,
@@ -123,6 +126,11 @@ def get_upgrade_link(upgrade_link):
 	query = urllib.urlencode(params, doseq=True)
 	url = urlparse.urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 	return url
+
+def get_upgrade_link(upgrade_url, label=None):
+	upgrade_url = get_upgrade_url(upgrade_url)
+	upgrade_link = '<a href="{upgrade_url}" target="_blank">{click_here}</a>'.format(upgrade_url=upgrade_url, click_here=label or _('click here'))
+	return upgrade_link
 
 def get_limits():
 	'''
