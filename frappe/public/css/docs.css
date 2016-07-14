@@ -305,19 +305,19 @@ img {
   margin: 0 auto;
   max-width: 870px;
 }
-.page-container .page-content ol > li,
-.page-container .page-content ul > li {
+.page-container .webpage-content ol > li,
+.page-container .webpage-content ul > li {
   margin: 13px auto;
 }
-.page-container .page-content ol > li li,
-.page-container .page-content ul > li li {
+.page-container .webpage-content ol > li li,
+.page-container .webpage-content ul > li li {
   margin: 4px auto;
 }
-.page-container .page-content ol li ol {
+.page-container .webpage-content ol li ol {
   list-style-type: disc;
 }
-.page-container .page-content ul,
-.page-container .page-content ol {
+.page-container .webpage-content ul,
+.page-container .webpage-content ol {
   margin-bottom: 32px;
 }
 @media (min-width: 768px) {
@@ -520,7 +520,7 @@ p {
   margin-top: 24px;
   font-size: 16px;
 }
-.docs-footer img.frappe-bird-grey {
+.docs-footer img.frappe-bird {
   width: 40px;
   height: 40px;
   background: #fff;

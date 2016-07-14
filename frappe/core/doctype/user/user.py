@@ -232,7 +232,7 @@ class User(Document):
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			message=frappe.get_template(template).render(args),
-			delayed=now if now!=None else self.flags.delay_emails)
+			delayed=(not now) if now!=None else self.flags.delay_emails)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
