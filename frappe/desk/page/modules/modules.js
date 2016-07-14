@@ -140,6 +140,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 frappe.pages['modules'].on_page_show = function(wrapper) {
 	var route = frappe.get_route();
+	$("body").attr("data-sidebar", 1);
 	if(route.length > 1) {
 		// activate section based on route
 		frappe.modules_page.activate_link(
