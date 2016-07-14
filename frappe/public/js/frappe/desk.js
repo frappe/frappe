@@ -72,7 +72,11 @@ frappe.Application = Class.extend({
 		});
 
 		frappe.realtime.on("version-update", function() {
-			var dialog = frappe.msgprint(__("The application has been updated to a new version, please refresh this page"));
+			var dialog = frappe.msgprint({
+				message:__("The application has been updated to a new version, please refresh this page"),
+				indicator: 'green',
+				title: 'Version Updated'
+			});
 			dialog.set_primary_action("Refresh", function() {
 				location.reload(true);
 			});
