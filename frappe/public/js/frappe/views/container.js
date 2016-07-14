@@ -19,7 +19,13 @@ frappe.views.Container = Class.extend({
 
 		$(document).on("page-change", function() {
 			// set data-route in body
-			$("body").attr("data-route", frappe.get_route_str());
+			var route_str = frappe.get_route_str();
+			$("body").attr("data-route", route_str);
+			var has_sidebar = false;
+			if(frappe.ui.pages[route_str] && !frappe.ui.pages[route_str].single_column) {
+				has_sidebar = true;
+			}
+			$("body").attr("data-sidebar", has_sidebar ? 1 : 0);
 		});
 
 		$(document).bind('rename', function(event, dt, old_name, new_name) {

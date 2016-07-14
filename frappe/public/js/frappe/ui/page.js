@@ -19,6 +19,8 @@ frappe.ui.make_app_page = function(opts) {
 	return opts.parent.page;
 }
 
+frappe.ui.pages = {};
+
 frappe.ui.Page = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -29,7 +31,7 @@ frappe.ui.Page = Class.extend({
 		this.views = {};
 
 		this.make();
-
+		frappe.ui.pages[frappe.get_route_str()] = this;
 	},
 
 	make: function() {
