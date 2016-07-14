@@ -954,12 +954,6 @@ body {
 .content-header {
   padding-bottom: 20px;
 }
-a:hover,
-a:visited,
-a:link,
-a:active {
-  text-decoration: none;
-}
 .footer-group-label {
   display: inline-block;
   font-size: 11px;

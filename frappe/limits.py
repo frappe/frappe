@@ -18,19 +18,21 @@ def check_if_expired():
 		return
 
 	limits = get_limits()
-	# if expired, stop user from logging in
 	expires_on = formatdate(limits.get("expiry"))
-	support_email = limits.get("support_email") or _("your provider")
+	support_email = limits.get("support_email")
 
 	if limits.upgrade_link:
 		upgrade_link = get_upgrade_link(limits.upgrade_link)
-		frappe.throw(_("""Your subscription expired on {0}.
-		To extend please upgrade from here: {1}""").format(expires_on, upgrade_link),
-		SiteExpiredError)
+		upgrade_link = '<a href="{upgrade_link}" target="_blank">{click_here}</a>'.format(upgrade_link=upgrade_link, click_here=_('click here'))
+		message = _("""Your subscription expired on {0}. To extend your subscription, {1}.""").format(expires_on, upgrade_link)
+
+	elif support_email:
+		message = _("""Your subscription expired on {0}. To extend your subscription, please send an email to {1}.""").format(expires_on, support_email)
+
 	else:
-		frappe.throw(_("""Your subscription expired on {0}.
-		To extend please send an email to {1}""").format(expires_on, support_email),
-		SiteExpiredError)
+		message = _("""Your subscription expired on {0}""").format(expires_on)
+
+	frappe.throw(message, SiteExpiredError)
 
 def has_expired():
 	if frappe.session.user=="Administrator":
