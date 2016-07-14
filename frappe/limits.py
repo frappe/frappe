@@ -4,7 +4,7 @@ from frappe import _
 from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
-from frappe.utils.user import get_enabled_system_users
+from frappe.utils.user import get_enabled_system_users, get_system_managers
 import os, subprocess, urlparse, urllib
 
 class SiteExpiredError(frappe.ValidationError):
@@ -16,13 +16,23 @@ def check_if_expired():
 	"""check if account is expired. If expired, do not allow login"""
 	if not has_expired():
 		return
-	# if expired, stop user from logging in
-	expires_on = formatdate(get_limits().get("expiry"))
-	support_email = get_limits().get("support_email") or _("your provider")
 
-	frappe.throw(_("""Your subscription expired on {0}.
-		To extend please send an email to {1}""").format(expires_on, support_email),
-		SiteExpiredError)
+	limits = get_limits()
+	expires_on = formatdate(limits.get("expiry"))
+	support_email = limits.get("support_email")
+
+	if limits.upgrade_link:
+		upgrade_link = get_upgrade_link(limits.upgrade_link)
+		upgrade_link = '<a href="{upgrade_link}" target="_blank">{click_here}</a>'.format(upgrade_link=upgrade_link, click_here=_('click here'))
+		message = _("""Your subscription expired on {0}. To extend your subscription, {1}.""").format(expires_on, upgrade_link)
+
+	elif support_email:
+		message = _("""Your subscription expired on {0}. To extend your subscription, please send an email to {1}.""").format(expires_on, support_email)
+
+	else:
+		message = _("""Your subscription expired on {0}""").format(expires_on)
+
+	frappe.throw(message, SiteExpiredError)
 
 def has_expired():
 	if frappe.session.user=="Administrator":
