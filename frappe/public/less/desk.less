@@ -198,16 +198,21 @@ textarea.form-control {
 	}
 
 	.ui-state-active {
-		background-color: @brand-primary !important;
-		color: #fff !important;
+		background-color: @btn-bg !important;
+		color: @text-color !important;
 		text-shadow: none !important;
+		border: none;
+
+		.small {
+			color: #555 !important;
+		}
 	}
 }
 
 .ui-menu .ui-menu-item {
-	padding: 7px;
 	font-size: @text-medium;
 	a {
+		padding: 9px 11.8px !important;
 		text-decoration: none;
 	}
 }

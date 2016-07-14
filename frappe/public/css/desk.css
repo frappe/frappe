@@ -385,15 +385,20 @@ fieldset[disabled] .form-control {
 }
 .ui-datepicker .ui-state-active,
 .ui-autocomplete .ui-state-active {
-  background-color: #5E64FF !important;
-  color: #fff !important;
+  background-color: #F0F4F7 !important;
+  color: #36414C !important;
   text-shadow: none !important;
+  border: none;
+}
+.ui-datepicker .ui-state-active .small,
+.ui-autocomplete .ui-state-active .small {
+  color: #555 !important;
 }
 .ui-menu .ui-menu-item {
-  padding: 7px;
   font-size: 12px;
 }
 .ui-menu .ui-menu-item a {
+  padding: 9px 11.8px !important;
   text-decoration: none;
 }
 @media (min-width: 768px) {
