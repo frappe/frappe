@@ -174,7 +174,7 @@ frappe.views.TreeView = Class.extend({
 			fields: me.fields
 		})
 
-		d.set_value("is_group", "No");
+		d.set_value("is_group", 0);
 		// create
 		d.set_primary_action(__("Create New"), function() {
 			var btn = this;
@@ -217,7 +217,7 @@ frappe.views.TreeView = Class.extend({
 		this.fields = [
 			{fieldtype:'Data', fieldname: 'name_field',
 				label:__('New {0} Name',[__(me.doctype)]), reqd:true},
-			{fieldtype:'Select', fieldname:'is_group', label:__('Group Node'), options:'No\nYes',
+			{fieldtype:'Check', fieldname:'is_group', label:__('Group Node'),
 				description: __("Further nodes can be only created under 'Group' type nodes")}
 		]
 

@@ -11,7 +11,7 @@ def get_children():
 	parent = frappe.form_dict.get("parent") or ""
 
 	return frappe.db.sql("""select name as value,
-		if(is_group='Yes', 1, 0) as expandable
+		is_group as expandable
 		from `tab{ctype}`
 		where docstatus < 2
 		and ifnull(`{parent_field}`,'') = %s
