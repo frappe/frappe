@@ -157,19 +157,21 @@ $.extend(frappe.desktop, {
 			}
 
 			// if module found
-			var notifier = $(".module-count-" + module._id);
-			if(notifier.length) {
-				notifier.toggle(sum ? true : false);
-				var circle = notifier.find(".circle-text");
-				var text = sum || '';
-				if(text > 20) {
-					text = '20+';
-				}
+			if(module._id.indexOf('/')===-1) {
+				var notifier = $(".module-count-" + module._id);
+				if(notifier.length) {
+					notifier.toggle(sum ? true : false);
+					var circle = notifier.find(".circle-text");
+					var text = sum || '';
+					if(text > 20) {
+						text = '20+';
+					}
 
-				if(circle.length) {
-					circle.html(text);
-				} else {
-					notifier.html(text);
+					if(circle.length) {
+						circle.html(text);
+					} else {
+						notifier.html(text);
+					}
 				}
 			}
 		}
