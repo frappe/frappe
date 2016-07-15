@@ -52,8 +52,27 @@ $.extend(frappe.meta, {
 		}
 	},
 
-	get_docfield: function(dt, fn, dn) {
-		return frappe.meta.get_docfield_copy(dt, dn)[fn];
+	get_field: function(doctype, fieldname, name) {
+		return frappe.meta.get_docfield(doctype, fieldname, name);
+	},
+
+	get_docfield: function(doctype, fieldname, name) {
+		var fields_dict = frappe.meta.get_docfield_copy(doctype, name);
+		return fields_dict ? fields_dict[fieldname] : null;
+	},
+
+	set_formatter: function(doctype, fieldname, name, formatter) {
+		frappe.meta.get_docfield(doctype, fieldname, name).formatter = formatter;
+	},
+
+	set_indicator_formatter: function(doctype, fieldname, name, get_text, get_color) {
+		frappe.meta.get_docfield(doctype, fieldname, name).formatter =
+			function(value, df, options, doc) {
+				return repl('<span class="indicator %(color)s">%(name)s</span>', {
+					color: get_color(),
+					name: get_text()
+				});
+			};
 	},
 
 	get_docfields: function(doctype, name, filters) {
@@ -87,7 +106,7 @@ $.extend(frappe.meta, {
 	},
 
 	sort_docfields: function(docs) {
-		return values(docs).sort(function(a, b) { return a.idx - b.idx });
+		return $.map(docs, function(d) { return d; }).sort(function(a, b) { return a.idx - b.idx });
 	},
 
 	get_docfield_copy: function(doctype, name) {
@@ -109,6 +128,11 @@ $.extend(frappe.meta, {
 		return frappe.meta.docfield_map[dt][fn];
 	},
 
+	get_table_fields: function(dt) {
+		return $.map(frappe.meta.docfield_list[dt], function(d) {
+			return d.fieldtype==='Table' ? d : null});
+	},
+
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
 			{ return d.fieldtype==="Table" && options===child_dt })
@@ -118,8 +142,16 @@ $.extend(frappe.meta, {
 	},
 
 	get_label: function(dt, fn, dn) {
-		if(fn==="owner") {
-			return "Owner";
+		var standard = {
+			'owner': __('Owner'),
+			'creation': __('Created On'),
+			'modified': __('Last Modified On'),
+			'idx': __('Idx'),
+			'name': __('Name'),
+			'modified_by': __('Last Modified By')
+		}
+		if(standard[fn]) {
+			return standard[fn];
 		} else {
 			var df = this.get_docfield(dt, fn, dn);
 			return (df ? df.label : "") || fn;
@@ -133,7 +165,7 @@ $.extend(frappe.meta, {
 		var print_formats = frappe.get_list("Print Format", {doc_type: doctype})
 			.sort(function(a, b) { return (a > b) ? 1 : -1; });
 		$.each(print_formats, function(i, d) {
-			if(!in_list(print_format_list, d.name))
+			if(!in_list(print_format_list, d.name) && in_list(['Server', 'Client'], d.print_format_type))
 				print_format_list.push(d.name);
 		});
 

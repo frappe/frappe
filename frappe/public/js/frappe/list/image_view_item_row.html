@@ -1,0 +1,44 @@
+<div class="col-xs-6 col-sm-4 col-md-3 doclist-row has-checkbox image-view text-ellipsis">
+	<div class="row">
+		<div class="col-xs-12 image-view-col">
+			{%= subject %}
+		</div>
+	</div>
+	<!-- Image -->
+	<div class="row">
+		<div class="col-xs-12 image-view-col" align="center">
+			<a data-name="{{ data.name }}" title="{{ data.name }}" href="#Form/{{ data.doctype }}/{{ data.name }}">
+				<div class="pos-item-image image-field" data-name="{{ data.name }}" style="{% if (item_image) { %} background-image: {%= item_image %}; {% }
+				 	else { %} background-color: {{ color }}; {% } %} border: 0px;">
+					{% if (!item_image) { %}{%= frappe.get_abbr(data.name) %}{% } %}
+					<button class="btn btn-info zoom-view">
+						<i class="icon-zoom-in"></i>
+					</button>
+					<table class="table table-condensed field-info">
+						{% for (var i=0, l=columns.length; i < l; i++ ) {
+						var col = columns[i], value=data[col.fieldname]; %}
+						{% if(in_list(allowed_type, col.fieldtype)) { %}
+						<tr>
+							<td align="right" width="40%">{%= col.title %}</td>
+							<td align="left" width="60%">{%= value %}</td>
+						</tr>
+						{% } %}
+						{% } %}
+					</table>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class="row">
+		<!-- comment -->
+		<div class="col-xs-12 image-view-col">
+			<div class="row">
+				<div class="col-xs-4">{%= list.get_indicator(data) %}</div>
+				<div class="col-xs-8 text-right">
+					<!-- comments count and assigned to section -->
+					{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -57,7 +57,7 @@ class TestPermissions(unittest.TestCase):
 		ss.save()
 
 	def test_basic_permission(self):
-		post = frappe.get_doc("Blog Post", "_test-blog-post")
+		post = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(post.has_permission("read"))
 
 	def test_user_permissions_in_doc(self):
@@ -68,11 +68,11 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		post = frappe.get_doc("Blog Post", "_test-blog-post")
+		post = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertFalse(post.has_permission("read"))
 		self.assertFalse(get_doc_permissions(post).get("read"))
 
-		post1 = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		post1 = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertTrue(post1.has_permission("read"))
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
@@ -84,8 +84,8 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 		names = [d.name for d in frappe.get_list("Blog Post", fields=["name", "blog_category"])]
 
-		self.assertTrue("_test-blog-post-1" in names)
-		self.assertFalse("_test-blog-post" in names)
+		self.assertTrue("-test-blog-post-1" in names)
+		self.assertFalse("-test-blog-post" in names)
 
 	def test_default_values(self):
 		frappe.permissions.add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
@@ -103,10 +103,10 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		post = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		post = frappe.get_doc("Blog Post", "-test-blog-post-2")
 		self.assertTrue(post.has_permission("read"))
 
-		post1 = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		post1 = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertFalse(post1.has_permission("read"))
 
 	def test_user_link_match_report(self):
@@ -119,19 +119,19 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 
 		names = [d.name for d in frappe.get_list("Blog Post", fields=["name", "owner"])]
-		self.assertTrue("_test-blog-post-2" in names)
-		self.assertFalse("_test-blog-post-1" in names)
+		self.assertTrue("-test-blog-post-2" in names)
+		self.assertFalse("-test-blog-post-1" in names)
 
 	def test_set_user_permissions(self):
 		frappe.set_user("test1@example.com")
-		add("test2@example.com", "Blog Post", "_test-blog-post")
+		add("test2@example.com", "Blog Post", "-test-blog-post")
 
 	def test_not_allowed_to_set_user_permissions(self):
 		frappe.set_user("test2@example.com")
 
 		# this user can't add user permissions
 		self.assertRaises(frappe.PermissionError, add,
-			"test2@example.com", "Blog Post", "_test-blog-post")
+			"test2@example.com", "Blog Post", "-test-blog-post")
 
 	def test_read_if_explicit_user_permissions_are_set(self):
 		self.set_user_permission_doctypes(["Blog Post"])
@@ -141,44 +141,44 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 
 		# user can only access permitted blog post
-		doc = frappe.get_doc("Blog Post", "_test-blog-post")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
 
 		# and not this one
-		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertFalse(doc.has_permission("read"))
 
 	def test_not_allowed_to_remove_user_permissions(self):
 		self.test_set_user_permissions()
-		defname = get_permissions("test2@example.com", "Blog Post", "_test-blog-post")[0].name
+		defname = get_permissions("test2@example.com", "Blog Post", "-test-blog-post")[0].name
 
 		frappe.set_user("test2@example.com")
 
 		# user cannot remove their own user permissions
 		self.assertRaises(frappe.PermissionError, remove,
-			"test2@example.com", defname, "Blog Post", "_test-blog-post")
+			"test2@example.com", defname, "Blog Post", "-test-blog-post")
 
 	def test_user_permissions_based_on_blogger(self):
 		frappe.set_user("test2@example.com")
-		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertTrue(doc.has_permission("read"))
 
 		self.set_user_permission_doctypes(["Blog Post"])
 
 		frappe.set_user("test1@example.com")
-		add("test2@example.com", "Blog Post", "_test-blog-post")
+		add("test2@example.com", "Blog Post", "-test-blog-post")
 
 		frappe.set_user("test2@example.com")
-		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertFalse(doc.has_permission("read"))
 
-		doc = frappe.get_doc("Blog Post", "_test-blog-post")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
 
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
-		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		doc.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		blog_post.get_field("title").set_only_once = 0
@@ -195,10 +195,10 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.model.meta.clear_cache("Blog Post")
 
-		doc = frappe.get_doc("Blog Post", "_test-blog-post")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertFalse(doc.has_permission("read"))
 
-		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-2")
 		self.assertTrue(doc.has_permission("read"))
 
 		frappe.model.meta.clear_cache("Blog Post")

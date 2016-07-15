@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 from frappe.model import no_value_fields
+from frappe.utils.password import rename_password_field
 
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
@@ -33,6 +34,10 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 
 		update_reports(doctype, old_fieldname, new_fieldname)
 		update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
+
+		if new_field.fieldtype == "Password":
+			rename_password_field(doctype, old_fieldname, new_fieldname)
+
 
 	# update in property setter
 	update_property_setters(doctype, old_fieldname, new_fieldname)

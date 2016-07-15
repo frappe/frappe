@@ -5,11 +5,16 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 import json
 from email.utils import formataddr, parseaddr
-from frappe.utils import get_url, get_formatted_email, cint, validate_email_add, split_emails, get_fullname
+from frappe.utils import (get_url, get_formatted_email, cint,
+	validate_email_add, split_emails, time_diff_in_seconds)
 from frappe.utils.file_manager import get_file
-from frappe.email.bulk import check_bulk_limit
+from frappe.email.queue import check_email_limit
+from frappe.utils.scheduler import log
 import frappe.email.smtp
+import MySQLdb
+import time
 from frappe import _
+from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -56,7 +61,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
-	# needed for communication.notify which uses celery delay
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
@@ -85,7 +89,7 @@ def validate_email(doc):
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, fetched_from_email_account=False):
-	"""Calls a delayed celery task 'sendmail' that enqueus email in Bulk Email queue
+	"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 	:param print_html: Send given value as HTML attachment
 	:param print_format: Attach print format of parent document
@@ -105,10 +109,9 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 		doc._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc)
 	else:
-		check_bulk_limit(list(set(doc.sent_email_addresses)))
-
-		from frappe.tasks import sendmail
-		sendmail.delay(frappe.local.site, doc.name,
+		check_email_limit(list(set(doc.sent_email_addresses)))
+		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
+			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
 
@@ -130,7 +133,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		attachments=doc.attachments,
 		message_id=doc.name,
 		unsubscribe_message=_("Leave this conversation"),
-		bulk=True,
+		delayed=True,
 		communication=doc.name
 	)
 
@@ -150,6 +153,9 @@ def update_parent_status(doc):
 
 		if to_status in status_field.options.splitlines():
 			parent.db_set("status", to_status)
+
+	update_mins_to_first_communication(parent, doc)
+	parent.run_method('notify_communication', doc)
 
 	parent.notify_update()
 
@@ -186,7 +192,9 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 	:param print_html: Send given value as HTML attachment.
 	:param print_format: Attach print format of parent document."""
 
-	if print_format:
+	view_link = frappe.utils.cint(frappe.db.get_value("Print Settings", "Print Settings", "attach_view_link"))
+
+	if print_format and view_link:
 		doc.content += get_attach_link(doc, print_format)
 
 	set_incoming_outgoing_accounts(doc)
@@ -354,3 +362,55 @@ def get_attach_link(doc, print_format):
 		"print_format": print_format,
 		"key": doc.get_parent_doc().get_signature()
 	})
+
+def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
+	recipients=None, cc=None, lang=None, session=None):
+	try:
+
+		if lang:
+			frappe.local.lang = lang
+
+		if session:
+			# hack to enable access to private files in PDF
+			session['data'] = frappe._dict(session['data'])
+			frappe.local.session.update(session)
+
+		# upto 3 retries
+		for i in xrange(3):
+			try:
+				communication = frappe.get_doc("Communication", communication_name)
+				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
+					recipients=recipients, cc=cc)
+
+			except MySQLdb.OperationalError, e:
+				# deadlock, try again
+				if e.args[0]==1213:
+					frappe.db.rollback()
+					time.sleep(1)
+					continue
+				else:
+					raise
+			else:
+				break
+
+	except:
+		traceback = log("frappe.core.doctype.communication.email.sendmail", frappe.as_json({
+			"communication_name": communication_name,
+			"print_html": print_html,
+			"print_format": print_format,
+			"attachments": attachments,
+			"recipients": recipients,
+			"cc": cc,
+			"lang": lang
+		}))
+		frappe.logger(__name__).error(traceback)
+		raise
+
+def update_mins_to_first_communication(parent, communication):
+	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
+		if frappe.db.get_all('User', filters={'email': communication.sender,
+			'user_type': 'System User', 'enabled': 1}, limit=1):
+			first_responded_on = communication.creation
+			if parent.meta.has_field('first_responded_on'):
+				parent.db_set('first_responded_on', first_responded_on)
+			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)

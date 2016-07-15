@@ -70,6 +70,9 @@ def add_to_date(date, years=0, months=0, days=0):
 	from dateutil.relativedelta import relativedelta
 
 	as_string, as_datetime = False, False
+	if date==None:
+		date = now_datetime()
+
 	if isinstance(date, basestring):
 		as_string = True
 		if " " in date:
@@ -130,8 +133,8 @@ def convert_utc_to_user_timezone(utc_timestamp):
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
-	if getattr(frappe.local, "current_date", None):
-		return getdate(frappe.local.current_date).strftime(DATE_FORMAT) + " " + \
+	if frappe.flags.current_date:
+		return getdate(frappe.flags.current_date).strftime(DATE_FORMAT) + " " + \
 			now_datetime().strftime(TIME_FORMAT)
 	else:
 		return now_datetime().strftime(DATETIME_FORMAT)
@@ -173,7 +176,10 @@ def get_time(time_str):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
 		return time_str
-	return parser.parse(time_str).time()
+	else:
+		if isinstance(time_str, datetime.timedelta):
+			time_str = str(time_str)
+		return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
@@ -553,7 +559,7 @@ def filter_strip_join(some_list, sep):
 
 def get_url(uri=None, full_address=False):
 	"""get app url from request"""
-	host_name = frappe.local.conf.host_name
+	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
 		return uri
@@ -613,12 +619,85 @@ operator_map = {
 	"None": lambda (a, b): (not a) and True or False
 }
 
+def evaluate_filters(doc, filters):
+	'''Returns true if doc matches filters'''
+	if isinstance(filters, dict):
+		for key, value in filters.iteritems():
+			f = get_filter(None, {key:value})
+			if not compare(doc.get(f.fieldname), f.operator, f.value):
+				return False
+
+	elif isinstance(filters, (list, tuple)):
+		for d in filters:
+			f = get_filter(None, d)
+			if not compare(doc.get(f.fieldname), f.operator, f.value):
+				return False
+
+	return True
+
+
 def compare(val1, condition, val2):
 	ret = False
 	if condition in operator_map:
 		ret = operator_map[condition]((val1, val2))
 
 	return ret
+
+def get_filter(doctype, f):
+	"""Returns a _dict like
+
+		{
+			"doctype":
+			"fieldname":
+			"operator":
+			"value":
+		}
+	"""
+	from frappe.model import default_fields, optional_fields
+
+	if isinstance(f, dict):
+		key, value = f.items()[0]
+		f = make_filter_tuple(doctype, key, value)
+
+	if not isinstance(f, (list, tuple)):
+		frappe.throw("Filter must be a tuple or list (in a list)")
+
+	if len(f) == 3:
+		f = (doctype, f[0], f[1], f[2])
+
+	elif len(f) != 4:
+		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+
+	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
+
+	if not f.operator:
+		# if operator is missing
+		f.operator = "="
+
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
+	if f.operator not in valid_operators:
+		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+
+
+	if f.doctype and (f.fieldname not in default_fields + optional_fields):
+		# verify fieldname belongs to the doctype
+		meta = frappe.get_meta(f.doctype)
+		if not meta.has_field(f.fieldname):
+
+			# try and match the doctype name from child tables
+			for df in meta.get_table_fields():
+				if frappe.get_meta(df.options).has_field(f.fieldname):
+					f.doctype = df.options
+					break
+
+	return f
+
+def make_filter_tuple(doctype, key, value):
+	'''return a filter tuple like [doctype, key, operator, value]'''
+	if isinstance(value, (list, tuple)):
+		return [doctype, key, value[0], value[1]]
+	else:
+		return [doctype, key, "=", value]
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
@@ -636,9 +715,19 @@ def expand_relative_urls(html):
 		if not to_expand[2].startswith("/"):
 			to_expand[2] = "/" + to_expand[2]
 		to_expand.insert(2, url)
+
+		if 'url' in to_expand[0] and to_expand[1].startswith('(') and to_expand[-1].endswith(')'):
+			# background-image: url('/assets/...') - workaround for wkhtmltopdf print-media-type
+			to_expand.append(' !important')
+
 		return "".join(to_expand)
 
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
+	html = re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
+
+	# background-image: url('/assets/...')
+	html = re.sub('(:[\s]?url)(\([\'"]?)([^\)]*)([\'"]?\))', _expand_relative_urls, html)
+
+	return html
 
 def quoted(url):
 	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))

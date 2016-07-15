@@ -16,7 +16,7 @@ class TestDesktopIcon(unittest.TestCase):
 		frappe.set_user('test@example.com')
 		frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
 		frappe.db.sql('delete from `tabBlock Module`')
-		frappe.db.sql('update `tabDesktop Icon` set hidden=0')
+		frappe.db.sql('update `tabDesktop Icon` set hidden=0, blocked=0')
 
 	def tearDown(self):
 		frappe.set_user('Administrator')
@@ -33,7 +33,7 @@ class TestDesktopIcon(unittest.TestCase):
 
 	def test_add_desktop_icon(self):
 		self.assertEquals(self.get_icon('User'), None)
-		add_user_icon('User', '#List/User', 'link', 'User')
+		add_user_icon('User')
 
 		icon = self.get_icon('User')
 		self.assertEquals(icon.custom, 1)
@@ -74,7 +74,7 @@ class TestDesktopIcon(unittest.TestCase):
 	def test_re_order_desktop_icons(self):
 		icons = [d.module_name for d in get_desktop_icons()]
 		m0, m1 = icons[0], icons[1]
-		set_order([m1, m0] + icons[2:])
+		set_order([m1, m0] + icons[2:], frappe.session.user)
 
 		# reload
 		icons = [d.module_name for d in get_desktop_icons()]

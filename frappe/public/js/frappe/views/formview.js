@@ -64,7 +64,7 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 				// make a new doc and set it
 				var new_str = __("New") + " ";
 				if(dn && dn.substr(0, new_str.length)==new_str) {
-					var new_name = frappe.model.make_new_doc_and_get_name(dt);
+					var new_name = frappe.model.make_new_doc_and_get_name(dt, true);
 					if(new_name===dn) {
 						me.load(dt, dn);
 					} else {

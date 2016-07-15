@@ -10,7 +10,7 @@ from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
 from frappe.translate import make_dict_from_messages, extract_messages_from_code
-from frappe.utils.jinja import render_include
+from frappe.model.utils import render_include
 from frappe.build import html_to_js_template
 
 ######
@@ -40,12 +40,13 @@ class FormMeta(Meta):
 			self.load_print_formats()
 			self.load_workflows()
 			self.load_templates()
+			self.load_dashboard()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template"):
+			"__form_grid_templates", "__listview_template", "__tree_js", '__dashboard'):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -63,6 +64,7 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '.css'), "__css")
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
+		self._add_code(_get_path(self.name + '_tree.js'), '__tree_js')
 
 		listview_template = _get_path(self.name + '_list.html')
 		if os.path.exists(listview_template):
@@ -70,6 +72,7 @@ class FormMeta(Meta):
 
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_code_via_hook("doctype_list_js", "__list_js")
+		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_custom_script()
 		self.add_html_templates(path)
 
@@ -161,6 +164,9 @@ class FormMeta(Meta):
 				messages = extract_messages_from_code(content)
 				messages = make_dict_from_messages(messages)
 				self.get("__messages").update(messages, as_value=True)
+
+	def load_dashboard(self):
+		self.set('__dashboard', self.get_dashboard_data())
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

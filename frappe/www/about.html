@@ -1,0 +1,45 @@
+{% extends "templates/web.html" %}
+
+{% block title %}About Us{% endblock %}
+{% block page_sidebar %}
+{% include "templates/pages/web_sidebar.html" %}
+{% endblock %}
+{% block page_content %}
+
+<article class="about-content">
+	{{ doc.company_introduction or """<p>Some Introduction about your company that you would
+			like your website visitor to know.
+			More people than you think will read your About page.
+			People always like to know who the are doing business with.
+			Be authentic and avoid using jargon like 'value added services' etc.
+			Be sure to update your company history and
+			list of key team members in Website > About Us Settings</p>""" }}
+
+	{% if doc.get({"doctype":"Company History"}) %}
+	<h3>{{ doc.company_history_heading or "Company History" }}</h3>
+	{% for d in doc.get({"doctype":"Company History"}) %}
+	<div class="row">
+		<span class="col-md-2"><h4 style="margin:0px;">{{ d.year }}</h4></span>
+		<span class="col-md-10"><p>{{ d.highlight }}</p></span>
+	</div>
+	{% endfor %}
+	{% endif %}
+
+	{% if doc.get({"doctype":"About Us Team Member"}) %}
+	<h3>{{ doc.team_members_heading or "Team Members" }}</h3>
+	{% for d in doc.get({"doctype":"About Us Team Member"}) %}
+	<div class="row" itemscope itemtype="http://schema.org/Person">
+		<span class="col-md-2">
+			<div class="avatar avatar-large">
+				<img class="avatar" src="{{ d.image_link }}" style="" itemprop="image">
+			</div>
+		</span>
+		<span class="col-md-10"><h4 itemprop="name">{{ d.full_name }}</h4>
+			<p itemprop="description">{{ d.bio }}</p>
+		</span>
+	</div>
+	{% endfor %}
+	{% endif %}
+	{{ doc.footer or "" }}
+</article>
+{% endblock %}

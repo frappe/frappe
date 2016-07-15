@@ -11,10 +11,6 @@ from frappe.utils.user import get_enabled_system_users
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 class Event(Document):
-	def get_route(self):
-		"""for test-case"""
-		return "/Event/" + self.name
-
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
@@ -66,7 +62,7 @@ def send_event_digest():
 				+ frappe._("Daily Event Digest is sent for Calendar Events where reminders are set.")+'</p>'
 
 			frappe.sendmail(recipients=user.email, subject=frappe._("Upcoming Events for Today"),
-				content = text, bulk=True)
+				content = text)
 
 @frappe.whitelist()
 def get_events(start, end, user=None, for_reminder=False):

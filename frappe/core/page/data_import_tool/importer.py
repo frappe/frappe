@@ -21,6 +21,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""
 	frappe.flags.mute_emails = True
+	frappe.flags.in_import = True
+
 	# extra input params
 	params = json.loads(frappe.form_dict.get("params") or '{}')
 
@@ -114,7 +116,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									d[fieldname] = getdate(parse_date(d[fieldname])) if d[fieldname] else None
 								elif fieldtype == "Datetime":
 									if d[fieldname]:
-										_date, _time = d[fieldname].split(" ")
+										_date, _time = d[fieldname].split()
 										_date = parse_date(d[fieldname])
 										d[fieldname] = get_datetime(_date + " " + _time)
 									else:
@@ -275,6 +277,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.db.commit()
 
 	frappe.flags.mute_emails = False
+	frappe.flags.in_import = False
 
 	return {"messages": ret, "error": error}
 

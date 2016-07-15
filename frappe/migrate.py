@@ -10,7 +10,7 @@ import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
 from frappe.sessions import clear_global_cache
 from frappe.desk.notifications import clear_notifications
-from frappe.website import statics, render
+from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 
 def migrate(verbose=True, rebuild_website=False):
@@ -30,13 +30,10 @@ def migrate(verbose=True, rebuild_website=False):
 	frappe.translate.clear_cache()
 	sync_fixtures()
 	sync_desktop_icons()
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
 	# syncs statics
 	render.clear_cache()
-	if rebuild_website:
-		statics.sync(verbose=verbose).start(True)
-	else:
-		statics.sync_statics()
 
 	frappe.db.commit()
 

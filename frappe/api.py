@@ -6,7 +6,6 @@ import json
 import frappe
 import frappe.handler
 import frappe.client
-import frappe.desk.reportview
 from frappe.utils.response import build_response
 from frappe import _
 

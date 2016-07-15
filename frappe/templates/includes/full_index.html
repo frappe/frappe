@@ -1,12 +1,14 @@
-{% macro make_item_list(item_list) %}
+{% macro make_item_list(route, children_map) %}
     <ol>
-    {% for item in item_list %}
+    {% for item in children_map[route] %}
         <li>
-            <a href="{{ url_prefix }}{{ item.url }}">{{ item.title }}</a>
-            {% if item.children %}{{ make_item_list(item.children) }}{% endif %}
+            <a href="{{ url_prefix }}{{ item.route }}">{{ item.title }}</a>
+            {% if children_map[item.route] %}
+				{{ make_item_list(item.route, children_map) }}
+			{% endif %}
         </li>
     {% endfor %}
     </ol>
 {% endmacro %}
 
-{{ make_item_list(full_index) }}
+{{ make_item_list(route, full_index) }}

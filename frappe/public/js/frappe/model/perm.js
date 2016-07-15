@@ -75,7 +75,7 @@ $.extend(frappe.perm, {
 			}
 
 			// apply permissions from shared
-			if(docinfo.shared) {
+			if(docinfo && docinfo.shared) {
 				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
 					if(s.user===user) {
@@ -256,7 +256,7 @@ $.extend(frappe.perm, {
 
 	get_field_display_status: function(df, doc, perm, explain) {
 		if(!doc) {
-			return (df && cint(df.hidden)) ? "None": "Write";
+			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None": "Write";
 		}
 
 		perm = perm || frappe.perm.get_perm(doc.doctype, doc);

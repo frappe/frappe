@@ -20,6 +20,7 @@ body {
 .sidebar-padding {
   padding: 12px 14px;
 }
+.offcanvas .sidebar .sidebar-menu > li > .btn-group,
 .offcanvas .sidebar .sidebar-menu > li > a,
 .offcanvas .sidebar .dropdown-menu > li > a {
   padding: 12px 14px;
@@ -86,24 +87,27 @@ body {
     position: relative;
   }
   body[data-route^="Form"] .page-title h1 {
-    margin-top: 14px;
+    margin-top: 12px;
   }
   body[data-route^="Form"] .page-title .indicator {
-    display: block;
-    margin-top: -9px;
-    margin-bottom: 3px;
+    display: inline-block;
+    margin-top: 12px;
   }
   body[data-route^="Form"] .page-actions {
-    padding-top: 10px !important;
+    padding-top: 20px !important;
     padding-bottom: 0px !important;
     padding-left: 0px !important;
   }
   body[data-route^="Form"] .page-head .sub-heading {
+    font-weight: normal;
+    font-size: 10px;
     display: block;
     position: absolute;
-    bottom: -30px;
-    right: 5px;
+    right: 140px;
     min-width: 200px;
+  }
+  body[data-route^="Form"] .title-text {
+    margin-top: 10px;
   }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;
@@ -275,7 +279,26 @@ body {
   }
   body[data-route=""] .navbar .navbar-home,
   body[data-route="desktop"] .navbar .navbar-home {
+    padding: 8px 10px;
+  }
+  body[data-route=""] .navbar .navbar-home:before,
+  body[data-route="desktop"] .navbar .navbar-home:before {
+    display: none;
+  }
+  body[data-route=""] .navbar .navbar-home img,
+  body[data-route="desktop"] .navbar .navbar-home img {
+    margin-top: 0;
+  }
+  body[data-route=""] .toggle-sidebar,
+  body[data-route="desktop"] .toggle-sidebar {
     display: none !important;
+  }
+  body[data-sidebar="0"] .toggle-sidebar {
+    display: none !important;
+  }
+  body[data-sidebar="0"] #navbar-breadcrumbs,
+  body[data-sidebar="0"] .navbar-home {
+    margin-left: 15px !important;
   }
   .linked-with-dialog {
     width: 100% !important;
@@ -378,7 +401,7 @@ body {
     left: -10px;
     width: 100%;
   }
-  body[data-route^="messages"] .navbar-center {
+  body[data-route^="chat"] .navbar-center {
     display: block !important;
     position: absolute;
     top: 10px;
@@ -386,7 +409,7 @@ body {
     right: 25%;
     text-align: center;
   }
-  #page-messages .layout-side-section {
+  #page-chat .layout-side-section {
     position: relative;
     left: 0px;
     border-right: 1px solid #d1d8dd;
@@ -394,26 +417,26 @@ body {
     float: left;
     width: 76px;
   }
-  #page-messages .layout-main-section-wrapper {
+  #page-chat .layout-main-section-wrapper {
     position: absolute;
     left: 75px;
     right: 0px;
     border-left: 1px solid #d1d8dd;
     float: left;
   }
-  #page-messages .module-sidebar-item {
+  #page-chat .module-sidebar-item {
     margin: 0px;
   }
-  #page-messages .module-sidebar-item .messages-sidebar-link {
+  #page-chat .module-sidebar-item .chat-sidebar-link {
     padding: 15px;
   }
-  #page-messages .timeline-head {
+  #page-chat .timeline-head {
     padding: 15px 15px 7px;
   }
-  #page-messages .list-row {
+  #page-chat .list-row {
     padding: 7px 0px;
   }
-  #page-messages .message-row-right {
+  #page-chat .message-row-right {
     margin-top: 10px;
     text-align: left;
   }
@@ -426,7 +449,7 @@ body {
   #page-setup-wizard .setup-wizard-slide .form {
     border: none;
   }
-  body[data-route^="Form"] .page-title .indicator {
-    margin-top: 1px;
+  body[data-route^="Form"] .page-head .sub-heading {
+    right: 90px;
   }
 }

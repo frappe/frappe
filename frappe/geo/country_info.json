@@ -2088,9 +2088,11 @@
  },
  "Serbia": {
   "code": "rs",
+  "currency": "RSD",
   "currency_fraction": "Para",
   "currency_fraction_units": 100,
-  "currency_symbol": "\u0434\u0438\u043d. or din.",
+  "currency_name": "Serbian Dinar",
+  "currency_symbol": "\u0434\u0438\u043d.",
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Belgrade"

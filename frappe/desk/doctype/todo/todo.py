@@ -97,3 +97,10 @@ def has_permission(doc, user):
 		return True
 	else:
 		return doc.owner==user or doc.assigned_by==user
+
+@frappe.whitelist()
+def new_todo(description):
+	frappe.get_doc({
+		'doctype': 'ToDo',
+		'description': description
+	}).insert()

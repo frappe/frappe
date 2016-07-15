@@ -8,7 +8,7 @@ from frappe.utils import cstr
 from frappe.model import default_fields
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
-		postprocess=None, ignore_permissions=False):
+		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
@@ -30,42 +30,43 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	row_exists_for_parentfield = {}
 
 	# children
-	for df in source_doc.meta.get_table_fields():
-		source_child_doctype = df.options
-		table_map = table_maps.get(source_child_doctype)
+	if not ignore_child_tables:
+		for df in source_doc.meta.get_table_fields():
+			source_child_doctype = df.options
+			table_map = table_maps.get(source_child_doctype)
 
-		# if table_map isn't explicitly specified check if both source and target have the same fieldname and same table options and both of them don't have no_copy
-		if not table_map:
-			target_df = target_doc.meta.get_field(df.fieldname)
-			if target_df:
-				target_child_doctype = target_df.options
-				if target_df and target_child_doctype==source_child_doctype and not df.no_copy and not target_df.no_copy:
-					table_map = {
-						"doctype": target_child_doctype
-					}
+			# if table_map isn't explicitly specified check if both source and target have the same fieldname and same table options and both of them don't have no_copy
+			if not table_map:
+				target_df = target_doc.meta.get_field(df.fieldname)
+				if target_df:
+					target_child_doctype = target_df.options
+					if target_df and target_child_doctype==source_child_doctype and not df.no_copy and not target_df.no_copy:
+						table_map = {
+							"doctype": target_child_doctype
+						}
 
-		if table_map:
-			for source_d in source_doc.get(df.fieldname):
-				if "condition" in table_map:
-					if not table_map["condition"](source_d):
+			if table_map:
+				for source_d in source_doc.get(df.fieldname):
+					if "condition" in table_map:
+						if not table_map["condition"](source_d):
+							continue
+
+					target_child_doctype = table_map["doctype"]
+					target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
+
+					# does row exist for a parentfield?
+					if target_parentfield not in row_exists_for_parentfield:
+						row_exists_for_parentfield[target_parentfield] = (True
+							if target_doc.get(target_parentfield) else False)
+
+					if table_map.get("add_if_empty") and \
+						row_exists_for_parentfield.get(target_parentfield):
 						continue
 
-				target_child_doctype = table_map["doctype"]
-				target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
+					if table_map.get("filter") and table_map.get("filter")(source_d):
+						continue
 
-				# does row exist for a parentfield?
-				if target_parentfield not in row_exists_for_parentfield:
-					row_exists_for_parentfield[target_parentfield] = (True
-						if target_doc.get(target_parentfield) else False)
-
-				if table_map.get("add_if_empty") and \
-					row_exists_for_parentfield.get(target_parentfield):
-					continue
-
-				if table_map.get("filter") and table_map.get("filter")(source_d):
-					continue
-
-				map_child_doc(source_d, target_doc, table_map, source_doc)
+					map_child_doc(source_d, target_doc, table_map, source_doc)
 
 	if postprocess:
 		postprocess(source_doc, target_doc)

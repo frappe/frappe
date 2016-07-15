@@ -19,17 +19,60 @@ frappe.views.ListSidebar = Class.extend({
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
 
 		this.offcanvas_list_sidebar = $(".offcanvas .list-sidebar").html(sidebar_content);
-		this.page_sidebar = $('<div class="list-sidebar hidden-xs hidden-sm"></div>')
+		this.page_sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
 		this.sidebar = this.page_sidebar.add(this.offcanvas_list_sidebar);
 
+		this.setup_reports();
 		this.setup_assigned_to_me();
 
 		if(frappe.views.calendar[this.doctype]) {
 			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
 		}
+		
+		if(frappe.treeview_settings[this.doctype]) {
+			this.sidebar.find(".tree-link").removeClass("hide");
+		}
+	},
+	setup_reports: function() {
+		// add reports linked to this doctype to the dropdown
+		var me = this;
+		var added = [];
+		var dropdown = this.page.sidebar.find('.reports-dropdown');
+		var divider = false;
+
+		var add_reports = function(reports) {
+			$.each(reports, function(name, r) {
+				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
+					var report_type = r.report_type==='Report Builder'
+						? 'Report/' + r.ref_doctype : 'query-report';
+					var route = r.route || report_type + '/' + r.name;
+
+					if(added.indexOf(route)===-1) {
+						// don't repeat
+						added.push(route);
+
+						if(!divider) {
+							$('<li role="separator" class="divider"></li>').appendTo(dropdown);
+							divider = true;
+						}
+
+						$('<li><a href="#'+ route + '">'
+							+ __(r.name)+'</a></li>').appendTo(dropdown);
+					}
+				}
+			});
+		}
+
+		// from reference doctype
+		if(this.doclistview.listview.settings.reports) {
+			add_reports(this.doclistview.listview.settings.reports)
+		}
+
+		// from specially tagged reports
+		add_reports(frappe.boot.user.all_reports || []);
 	},
 	setup_assigned_to_me: function() {
 		var me = this;

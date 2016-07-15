@@ -53,7 +53,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro %}
 
 {%- macro render_field_with_label(df, doc) -%}
-		<div class="row" {{ fieldmeta(df) }}>
+		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 			<div class="col-xs-5 text-right">
 				{% if df.fieldtype not in ("Image","HTML") and
 					doc.get(df.fieldname) != None %}

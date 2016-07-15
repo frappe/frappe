@@ -42,9 +42,9 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("delete from `tabBulk Email`")
+		frappe.db.sql("delete from `tabEmail Queue`")
 		notify_unreplied()
-		self.assertTrue(frappe.db.get_value("Bulk Email", {"reference_doctype": comm.reference_doctype,
+		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
@@ -71,18 +71,44 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
 
+	def test_incoming_attached_email_from_outlook_plain_text_only(self):
+		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
+			test_mails = [f.read()]
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
+
+	def test_incoming_attached_email_from_outlook_layers(self):
+		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
+			test_mails = [f.read()]
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
+
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
 			send_email=True, sender="test_sender@example.com")
 
-		mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+		mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
 		frappe.flags.sent_mail = None
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
-			content="test mail 001", subject="test-mail-001")
+			content="test mail 001", subject="test-mail-001", delayed=False)
 
 		sent_mail = email.message_from_string(frappe.flags.sent_mail)
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
@@ -93,7 +119,7 @@ class TestEmailAccount(unittest.TestCase):
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
 			name="_Test Email Account 1", print_format="Standard", send_email=True)
 
-		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
@@ -105,7 +131,7 @@ class TestEmailAccount(unittest.TestCase):
 			recipients="test_receiver@example.com", sender="test@example.com",
 			send_email=True)["name"]
 
-		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()

@@ -1,17 +1,16 @@
 .print-heading {
-	text-align: right;
-	text-transform: uppercase;
-	font-color: #888;
-	font-weight: bold;
-	padding-bottom: 7px;
-	margin-bottom: 15px;
-	border-bottom: 3px solid #aaa;
+	padding-bottom: 20px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #d1d8dd;
 }
 
-.print-format table.table-bordered {
-	border-top: 3px solid #aaa;
+.print-heading h2 {
+	font-size: 24px;
 }
 
 .print-format th {
 	background-color: #eee !important;
+	border-bottom: 0px !important;
 }
+
+/* modern format: don't remove this line */

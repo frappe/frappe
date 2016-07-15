@@ -151,9 +151,12 @@ function get_currency_symbol(currency) {
 var global_number_format = null;
 function get_number_format(currency) {
 	if(!global_number_format) {
-		global_number_format = frappe.boot.sysdefaults.number_format
-			|| frappe.model.get_value(":Currency", frappe.boot.sysdefaults.currency, "number_format")
-			|| "#,###.##";
+		if (frappe.boot && frappe.boot.sysdefaults) {
+			global_number_format = frappe.boot.sysdefaults.number_format
+				|| frappe.model.get_value(":Currency", frappe.boot.sysdefaults.currency, "number_format");
+		}
+
+		global_number_format = global_number_format || "#,###.##";
 	}
 
 	var number_format;
@@ -191,21 +194,14 @@ function roundNumber(num, precision) {
 }
 
 function precision(fieldname, doc) {
-	if(!doc) doc = cur_frm.doc;
-	var df = frappe.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
-	if(!df) console.log(fieldname + ": could not find docfield in method precision()");
-	return frappe.meta.get_field_precision(df, doc);
-}
-
-var lstrip = function(s, chars) {
-	if(!chars) chars = ['\n', '\t', ' '];
-	// strip left
-	var first_char = s.substr(0,1);
-	while(in_list(chars, first_char)) {
-		var s = s.substr(1);
-		first_char = s.substr(0,1);
+	if(cur_frm){
+		if(!doc) doc = cur_frm.doc;
+		var df = frappe.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
+		if(!df) console.log(fieldname + ": could not find docfield in method precision()");
+		return frappe.meta.get_field_precision(df, doc);
+	}else{
+		return frappe.boot.sysdefaults.float_precision
 	}
-	return s;
 }
 
 function in_list(list, item) {
@@ -223,14 +219,14 @@ function remainder(numerator, denominator, precision) {
 	} else {
 		var _remainder = numerator % denominator;
 	}
-	
+
 	return flt(_remainder, precision);
 };
 
 function round_based_on_smallest_currency_fraction(value, currency, precision) {
-	var smallest_currency_fraction_value = flt(frappe.model.get_value(":Currency", 
+	var smallest_currency_fraction_value = flt(frappe.model.get_value(":Currency",
 		currency, "smallest_currency_fraction_value"))
-	
+
 	if(smallest_currency_fraction_value) {
 		var remainder_val = remainder(value, smallest_currency_fraction_value, precision);
 		if(remainder_val > (smallest_currency_fraction_value / 2)) {

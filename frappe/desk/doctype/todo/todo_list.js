@@ -7,6 +7,7 @@ frappe.listview_settings['ToDo'] = {
 		me.page.set_title(__("To Do"));
 
 	},
+	hide_name_column: true,
 	refresh: function(me) {
 		// override assigned to me by owner
 		me.page.sidebar.find(".assigned-to-me a").off("click").on("click", function() {

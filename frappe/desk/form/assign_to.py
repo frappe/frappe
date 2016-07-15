@@ -43,8 +43,8 @@ def add(args=None):
 	else:
 		from frappe.utils import nowdate
 
-		if args.get("re_assign"):
-			remove_from_todo_if_already_assigned(args['doctype'], args['name'])
+		# if args.get("re_assign"):
+		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",
@@ -157,5 +157,5 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	arg["parenttype"] = "Assignment"
 
-	from frappe.desk.page.messages import messages
-	messages.post(**arg)
+	from frappe.desk.page.chat import chat
+	chat.post(**arg)

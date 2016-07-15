@@ -5,22 +5,14 @@
 // will try and get from localStorge if latest are available
 // depends on frappe.versions to manage versioning
 
-frappe.require = function(items) {
+frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	var l = items.length;
-
-	for(var i=0; i< l; i++) {
-		var src = items[i];
-		frappe.assets.execute(src);
-	}
+	frappe.assets.execute(items, callback);
 };
 
 frappe.assets = {
-	// keep track of executed assets
-	executed_ : {},
-
 	check: function() {
 		// if version is different then clear localstorage
 		if(window._version_number != localStorage.getItem("_version_number")) {
@@ -62,6 +54,77 @@ frappe.assets = {
 		console.log("localStorage cleared");
 	},
 
+
+	// keep track of executed assets
+	executed_ : [],
+
+	// pass on to the handler to set
+	execute: function(items, callback) {
+		var to_fetch = []
+		for(var i=0, l=items.length; i<l; i++) {
+			if(!frappe.assets.exists(items[i])) {
+				to_fetch.push(items[i]);
+			}
+		}
+		if(to_fetch.length) {
+			frappe.assets.fetch(to_fetch, function() {
+				frappe.assets.eval_assets(items, callback);
+			});
+		} else {
+			frappe.assets.eval_assets(items, callback);
+		}
+	},
+
+	eval_assets: function(items, callback) {
+		for(var i=0, l=items.length; i<l; i++) {
+			// execute js/css if not already.
+			var path = items[i];
+			if(frappe.assets.executed_.indexOf(path)===-1) {
+				// execute
+				frappe.assets.handler[frappe.assets.extn(path)](frappe.assets.get(path), path);
+				frappe.assets.executed_.push(path)
+			}
+		}
+		callback();
+	},
+
+	// check if the asset exists in
+	// localstorage
+	exists: function(src) {
+		if(frappe.assets.executed_.indexOf(src)!== -1) {
+			return true;
+		}
+		if(frappe.boot.developer_mode) {
+			return false;
+		}
+		if(frappe.assets.get(src)) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+
+	// load an asset via
+	fetch: function(items, callback) {
+		// this is virtual page load, only get the the source
+		// *without* the template
+
+		frappe.call({
+			type: "GET",
+			method:"frappe.client.get_js",
+			args: {
+				"items": items
+			},
+			callback: function(r) {
+				$.each(items, function(i, src) {
+					frappe.assets.add(src, r.message[i]);
+				});
+				callback();
+			},
+			freeze: true,
+		});
+	},
+
 	add: function(src, txt) {
 		if('localStorage' in window) {
 			try {
@@ -72,45 +135,6 @@ frappe.assets = {
 				frappe.assets.set(src, txt);
 			}
 		}
-	},
-
-	// pass on to the handler to set
-	execute: function(src) {
-		if(!frappe.assets.exists(src)) {
-			frappe.assets.load(src);
-		}
-		var type = frappe.assets.extn(src);
-		if(frappe.assets.handler[type]) {
-			frappe.assets.handler[type](frappe.assets.get(src), src);
-			frappe.assets.executed_[src] = 1;
-		}
-	},
-
-	// load an asset via
-	load: function(src) {
-		// this is virtual page load, only get the the source
-		// *without* the template
-
-		frappe.call({
-			type: "GET",
-			method:"frappe.client.get_js",
-			args: {
-				"src": src
-			},
-			callback: function(r) {
-				frappe.assets.add(src, r.message);
-			},
-			async: false,
-			freeze: true,
-		})
-	},
-
-	// check if the asset exists in
-	// localstorage
-	exists: function(src) {
-		if(frappe.assets.get(src)
-				&& (frappe.boot ? !frappe.boot.developer_mode : true))
-			return true;
 	},
 
 	get: function(src) {

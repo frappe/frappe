@@ -19,6 +19,8 @@ frappe.ui.make_app_page = function(opts) {
 	return opts.parent.page;
 }
 
+frappe.ui.pages = {};
+
 frappe.ui.Page = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -29,7 +31,7 @@ frappe.ui.Page = Class.extend({
 		this.views = {};
 
 		this.make();
-
+		frappe.ui.pages[frappe.get_route_str()] = this;
 	},
 
 	make: function() {
@@ -90,7 +92,6 @@ frappe.ui.Page = Class.extend({
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
 		this.icon_group = this.page_actions.find(".page-icon-group");
-
 	},
 
 	set_indicator: function(label, color) {
@@ -259,6 +260,10 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
+	clear_inner_toolbar: function() {
+		this.inner_toolbar.empty().addClass("hide");
+	},
+
 	//-- Sidebar --//
 
 	add_sidebar_item: function(label, action, insert_after, prepend) {
@@ -292,9 +297,11 @@ frappe.ui.Page = Class.extend({
 	set_title: function(txt, icon) {
 		if(!txt) txt = "";
 
-		// strip icon
+		// strip html
+		txt = strip_html(txt);
 		this.title = txt;
-		frappe.utils.set_title(txt.replace(/<[^>]*>/g, ""));
+
+		frappe.utils.set_title(txt);
 		if(icon) {
 			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}
@@ -401,7 +408,9 @@ frappe.ui.Page = Class.extend({
 		this.current_view_name = name;
 
 		this.views[name].toggle(true);
-	}
+
+		this.wrapper.trigger('view-change');
+	},
 });
 
 frappe.ui.scroll = function(element, animate, additional_offset) {
@@ -412,5 +421,4 @@ frappe.ui.scroll = function(element, animate, additional_offset) {
 	} else {
 		$(window).scrollTop(top);
 	}
-
-};
+}

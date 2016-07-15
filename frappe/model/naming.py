@@ -22,7 +22,11 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	autoname = frappe.get_meta(doc.doctype).autoname
+	autoname = frappe.get_meta(doc.doctype).autoname or ""
+
+	if autoname.lower() != "prompt" and not frappe.flags.in_import:
+		doc.name = None
+
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
 		return
@@ -30,10 +34,10 @@ def set_new_name(doc):
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
 
-	elif hasattr(doc, "autoname"):
+	else:
 		doc.run_method("autoname")
 
-	elif autoname:
+	if not doc.name and autoname:
 		if autoname.startswith('field:'):
 			fieldname = autoname[6:]
 			doc.name = (doc.get(fieldname) or "").strip()
@@ -44,12 +48,12 @@ def set_new_name(doc):
 			set_name_by_naming_series(doc)
 		elif "#" in autoname:
 			doc.name = make_autoname(autoname)
-		elif autoname=='Prompt':
+		elif autoname.lower()=='prompt':
 			# set from __newname in save.py
 			if not doc.name:
-				frappe.throw(_("Name not set via Prompt"))
+				frappe.throw(_("Name not set via prompt"))
 
-	if not doc.name:
+	if not doc.name or autoname=='hash':
 		doc.name = make_autoname('hash', doc.doctype)
 
 	doc.name = validate_name(doc.doctype, doc.name)
@@ -169,7 +173,7 @@ def validate_name(doctype, name, case=None, merge=False):
 	special_characters = "<>"
 	if re.findall("[{0}]+".format(special_characters), name):
 		message = ", ".join("'{0}'".format(c) for c in special_characters)
-		frappe.throw(_("Name cannot contain special characters like {0}").format(special_characters), frappe.NameError)
+		frappe.throw(_("Name cannot contain special characters like {0}").format(message), frappe.NameError)
 
 	return name
 
@@ -195,6 +199,8 @@ def append_number_if_name_exists(doc):
 			count = "1"
 
 		doc.name = "{0}-{1}".format(doc.name, count)
+
+	return doc
 
 def de_duplicate(doctype, name):
 	original_name = name

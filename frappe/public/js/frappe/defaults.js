@@ -19,7 +19,7 @@ frappe.defaults = {
 				// Use User Permission value when only when it has a single value
 				d = d[0];
 			} else {
-				d = defaults[frappe.model.scrub(key)];
+				d = defaults[key] || defaults[frappe.model.scrub(key)];
 			}
 		}
 		if(!$.isArray(d)) d = [d];

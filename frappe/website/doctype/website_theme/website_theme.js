@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.require('assets/frappe/js/lib/jscolor/jscolor.js');
 
 frappe.provide("frappe.website_theme");
 $.extend(frappe.website_theme, {
@@ -10,10 +9,12 @@ $.extend(frappe.website_theme, {
 });
 
 frappe.ui.form.on("Website Theme", "onload_post_render", function(frm) {
-	$.each(frappe.website_theme.color_variables, function(i, v) {
-		$(frm.fields_dict[v].input).addClass('color {required:false,hash:true}');
+	frappe.require('assets/frappe/js/lib/jscolor/jscolor.js', function() {
+		$.each(frappe.website_theme.color_variables, function(i, v) {
+			$(frm.fields_dict[v].input).addClass('color {required:false,hash:true}');
+		});
+		jscolor.bind();
 	});
-	jscolor.bind();
 });
 
 frappe.ui.form.on("Website Theme", "refresh", function(frm) {

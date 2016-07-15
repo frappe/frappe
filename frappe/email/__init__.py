@@ -32,15 +32,22 @@ def get_contact_list(doctype, fieldname, txt):
 	"""Returns contacts (from autosuggest)"""
 	txt = txt.replace('%', '')
 
+	def get_users():
+		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
+			('%' + txt + '%')))
 	try:
-		return filter(None, frappe.db.sql_list('select `{0}` from `tab{1}` where `{0}` like %s'.format(fieldname, doctype),
+		out = filter(None, frappe.db.sql_list('select `{0}` from `tab{1}` where `{0}` like %s'.format(fieldname, doctype),
 			'%' + txt + '%'))
+		if out:
+			out = get_users()
 	except Exception, e:
 		if e.args[0]==1146:
 			# no Contact, use User
-			return filter(None, frappe.db.sql_list('select email from tabUser where email like %s', ('%' + txt + '%')))
+			out = get_users()
 		else:
 			raise
+
+	return out
 
 def get_system_managers():
 	return frappe.db.sql_list("""select parent FROM tabUserRole
