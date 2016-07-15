@@ -130,6 +130,9 @@ def enqueue_applicable_events(site, nowtime, last, queued_jobs=()):
 		trigger_if_enabled(site, "hourly")
 		trigger_if_enabled(site, "hourly_long")
 
+		if "all" not in enabled_events:
+			trigger(site, "all", queued_jobs)
+
 	trigger_if_enabled(site, "all")
 
 	return out
@@ -272,7 +275,7 @@ def restrict_scheduler_events_if_dormant():
 		update_site_config('dormant', True)
 
 def restrict_scheduler_events(*args, **kwargs):
-	val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
+	val = json.dumps(["hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
 	frappe.db.set_global('enabled_scheduler_events', val)
 
 def is_dormant(since = 345600):
