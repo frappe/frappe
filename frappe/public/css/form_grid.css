@@ -101,6 +101,9 @@
 .grid-body .editable-row input[data-fieldtype="Currency"] {
   text-align: right;
 }
+.grid-body .grid-static-col[data-fieldtype="Code"] .static-area {
+  margin-top: -10px;
+}
 @media (max-width: 767px) {
   .grid-body .btn-open-row {
     margin-top: 0px;
