@@ -688,6 +688,7 @@ frappe.ui.form.GridRow = Class.extend({
 
 		$col = $('<div class="col grid-static-col col-xs-'+colsize+' '+add_class+'"></div>')
 			.attr("data-fieldname", df.fieldname)
+			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
 			.on('click', function() {
