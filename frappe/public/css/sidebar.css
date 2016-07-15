@@ -249,6 +249,62 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .layout-side-section .list-sidebar {
   margin-top: -15px;
 }
+@media (max-width: 991px) {
+  .layout-side-section .overlay-sidebar {
+    margin-top: 0 !important;
+    position: fixed;
+    background: white;
+    top: 0;
+    left: 0;
+    transform: translateX(-110%);
+    z-index: 9999;
+    box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 40%;
+    padding: 25px;
+    display: block !important;
+    transition: transform 200ms ease-in-out;
+  }
+  .layout-side-section .overlay-sidebar.opened {
+    transform: translateX(0);
+    overflow-y: auto;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown {
+    margin: 10px 0;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown li:not(.divider) {
+    padding: 10px 0;
+  }
+}
+@media (max-width: 767px) {
+  .layout-side-section .overlay-sidebar {
+    width: 70%;
+  }
+}
+.layout-side-section div.close-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  opacity: 0.3;
+  background: #000;
+  z-index: 1041;
+  height: 100%;
+  width: 100%;
+}
+@media (max-width: 991px) {
+  .layout-side-section .sidebar-menu {
+    margin: 0;
+  }
+}
+@media (max-width: 991px) {
+  .layout-side-section .module-sidebar-nav {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .layout-side-section .module-sidebar-nav .module-link {
+    padding-left: 25px;
+  }
+}
 .sidebar-left .list-sidebar .stat-label,
 .sidebar-left .list-sidebar .stat-no-records {
   padding: 12px 14px;

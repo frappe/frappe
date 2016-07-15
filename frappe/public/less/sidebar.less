@@ -255,6 +255,72 @@ body[data-route^="Module"] .main-menu {
 	margin-top: -15px;
 }
 
+.layout-side-section {
+
+	.overlay-sidebar {
+		@media (max-width: 991px) {
+			margin-top: 0 !important;
+			position: fixed;
+			background: white;
+			top: 0;
+			left: 0;
+			transform: translateX(-110%);
+			z-index: 9999;
+			box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
+			height: 100%;
+			width: 40%;
+			padding: 25px;
+			display: block !important;
+			transition: transform 200ms ease-in-out;
+
+			&.opened {
+				transform: translateX(0);
+				overflow-y: auto;
+			}
+
+			.reports-dropdown {
+				margin: 10px 0;
+
+				li:not(.divider) {
+					padding: 10px 0;
+				}
+			}
+		}
+
+		@media (max-width: 767px) {
+			width: 70%;
+		}
+	}
+
+	div.close-sidebar {
+		position: fixed;
+		top: 0;
+		right: 0;
+		opacity: 0.3;
+		background: #000;
+		z-index: 1041;
+		height: 100%;
+		width: 100%;
+	}
+
+	.sidebar-menu {
+		@media (max-width: 991px) {
+			margin: 0;
+		}
+	}
+
+	.module-sidebar-nav {
+		@media (max-width: 991px) {
+			padding-left: 0;
+			padding-right: 0;
+
+			.module-link {
+				padding-left: 25px;
+			}
+		}
+	}
+}
+
 .sidebar-left .list-sidebar {
 	.stat-label,
 	.stat-no-records {

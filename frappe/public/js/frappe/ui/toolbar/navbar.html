@@ -1,6 +1,6 @@
 <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 	<div class="container">
-		<div class="navbar-header">
+		<div class="navbar-header navbar-desk">
 			<a class="navbar-brand toggle-sidebar visible-xs visible-sm">
 				<i class="octicon octicon-three-bars"></i>
 			</a>
@@ -11,48 +11,65 @@
 		<div class="navbar-center text-ellipsis" style="display: none;"></div>
 
 		<ul class="nav navbar-nav navbar-right">
-			<div class="dropdown dropdown-navbar-new-comments">
+			<li class="visible-xs">
+				<a class="navbar-search-button" href="#" data-toggle="modal" data-target="#search-modal"><i class="octicon octicon-search"></i></a>
+			</li>
+			<li class="dropdown dropdown-navbar-user">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
+					onclick="return false;">
+				{{ avatar }}
+                <span class="text-ellipsis toolbar-user-fullname hidden-xs hidden-sm">
+					{%= frappe.user.full_name() %}</span>
+                <b class="caret hidden-xs hidden-sm"></b></a>
+				<ul class="dropdown-menu" id="toolbar-user" role="menu">
+					<li class="navbar-set-desktop-icons"><a href="#modules_setup">
+					    {%= __("Set Desktop Icons") %}</a></li>
+					<li><a href="#Form/User/{%= encodeURIComponent(user) %}">
+					    {%= __("My Settings") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
+					    {%= __("Reload") %}</a></li>
+					<li><a href="/index" target="_blank">
+						{%= __("View Website") %}</a></li>
+					<li class="divider"></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
+						{%= __("About") %}</a></li>
+					<li><a href="https://frappe.io" target="_blank" data-link="docs">
+						{%= __("Documentation") %}</a></li>
+					<li><a href="https://discuss.erpnext.com" target="_blank">
+					{%= __("Forums") %}</a></li>
+					<li><a href="https://github.com/frappe/frappe/issues" target="_blank" data-link="issues">
+						{%= __("Report an Issue") %}</a></li>
+					<li class="divider"></li>
+					<li><a href="#" onclick="return frappe.app.logout();">
+						{%= __("Logout") %}</a></li>
+				</ul>
+			</li>
+			<li class="dropdown dropdown-navbar-new-comments">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-					<span class="navbar-new-comments">0</span></a>
+					<span class="navbar-new-comments">0</span>
 				</a>
 				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">
 				</ul>
-			</div>
+			</li>
 		</ul>
 
-		<div class="hidden-xs hidden-sm">
-			<ul class="nav navbar-nav navbar-right">
-				<li class="dropdown">
-					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
-						onclick="return false;">
-					{{ avatar }}
-	                <span class="text-ellipsis toolbar-user-fullname">
-						{%= frappe.user.full_name() %}</span>
-	                <b class="caret"></b></a>
-					<ul class="dropdown-menu" id="toolbar-user" role="menu">
-	                    <li class="navbar-set-desktop-icons"><a href="#modules_setup">
-	                        {%= __("Set Desktop Icons") %}</a></li>
-	                    <li><a href="#Form/User/{%= encodeURIComponent(user) %}">
-	                        {%= __("My Settings") %}</a></li>
-	    				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
-	                        {%= __("Reload") %}</a></li>
-	        			<li><a href="/index" target="_blank">
-	                        {%= __("View Website") %}</a></li>
-	                    <li class="divider"></li>
-	    				<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
-	    					{%= __("About") %}</a></li>
-	    				<li><a href="https://frappe.io" target="_blank" data-link="docs">
-	    					{%= __("Documentation") %}</a></li>
-	    				<li><a href="https://discuss.erpnext.com" target="_blank">
-	    					{%= __("Forums") %}</a></li>
-	    				<li><a href="https://github.com/frappe/frappe/issues" target="_blank" data-link="issues">
-	    					{%= __("Report an Issue") %}</a></li>
-	                    <li class="divider"></li>
-	        			<li><a href="#" onclick="return frappe.app.logout();">
-	                        {%= __("Logout") %}</a></li>
-	                </ul>
-				</li>
-	        </ul>
+		<div id="search-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog" style="height: 50px;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<form role="search" onsubmit="return false;">
+							<div class="input-group" style="width: 100%">
+								<input id="modal-search" type="text" class="form-control"
+								placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
+							</div>
+						</form>
+						<button type="button" class="close" data-dismiss="modal"><i class="octicon octicon-x"></i></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="hidden-xs">
 	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
 	          <div class="form-group form-group-sm ui-front">
 	            <input id="navbar-search" type="text" class="form-control"

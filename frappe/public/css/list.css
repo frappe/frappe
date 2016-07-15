@@ -23,6 +23,11 @@
   padding-bottom: 4px;
   padding-right: 120px;
 }
+@media (max-width: 767px) {
+  .set-filters {
+    padding-right: 80px;
+  }
+}
 .set-filters .btn {
   margin-bottom: 10px;
 }
