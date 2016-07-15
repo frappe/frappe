@@ -86,6 +86,9 @@ def remove_old_task_logs():
 def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
+def publish_progress(percent, title=None, doctype=None, docname=None):
+	publish_realtime('progress', {'percent': percent, 'title': title},
+		user=frappe.session.user, doctype=doctype, docname=docname)
 
 def publish_realtime(event=None, message=None, room=None,
 	user=None, doctype=None, docname=None, task_id=None,

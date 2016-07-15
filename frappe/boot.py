@@ -36,7 +36,8 @@ def get_bootinfo():
 	load_desktop_icons(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
+	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
+		where issingle=1""")
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)

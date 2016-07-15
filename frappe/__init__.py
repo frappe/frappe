@@ -1180,6 +1180,17 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 
 	return out
 
+def publish_progress(*args, **kwargs):
+	"""Show the user progress for a long request
+
+	:param percent: Percent progress
+	:param title: Title
+	:param doctype: Optional, for DocType
+	:param name: Optional, for Document name
+	"""
+	import frappe.async
+	return frappe.async.publish_progress(*args, **kwargs)
+
 def publish_realtime(*args, **kwargs):
 	"""Publish real-time updates
 

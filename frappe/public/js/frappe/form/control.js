@@ -421,6 +421,13 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.has_input = true;
 		this.bind_change_event();
 		this.bind_focusout();
+
+		// somehow this event does not bubble up to document
+		// after v7, if you can debug, remove this
+		this.$input.keydown("ctrl+s meta+s", function(e) {
+			e.preventDefault();
+			frappe.app && frappe.app.trigger_primary_action();
+		});
 	},
 	set_input_attributes: function() {
 		this.$input

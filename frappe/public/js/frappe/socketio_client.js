@@ -31,6 +31,16 @@ frappe.socket = {
 			eval(message);
 		});
 
+		frappe.socket.socket.on('progress', function(data) {
+			if(data.percent) {
+				if(data.percent==100) {
+					frappe.hide_progress();
+				} else {
+					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
+				}
+			}
+		});
+
 		frappe.socket.setup_listeners();
 		frappe.socket.setup_reconnect();
 

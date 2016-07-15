@@ -6,7 +6,7 @@ frappe.start_app = function() {
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
-	$.extend(frappe.app, new frappe.Application());
+	frappe.app = new frappe.Application();
 }
 
 $(document).ready(function() {
@@ -249,22 +249,28 @@ frappe.Application = Class.extend({
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	},
 
+	trigger_primary_action: function() {
+		if(cur_dialog) {
+			// trigger primary
+			cur_dialog.get_primary_btn().trigger("click");
+		} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
+			cur_frm.page.btn_primary.trigger('click');
+		} else if(frappe.container.page.save_action) {
+			frappe.container.page.save_action();
+		}
+	},
+
 	setup_keyboard_shortcuts: function() {
+		var me = this;
+
 		$(document)
 			.keydown("meta+g ctrl+g", function(e) {
-				$("#navbar-search").focus()
+				$("#navbar-search").focus();
 				return false;
 			})
 			.keydown("meta+s ctrl+s", function(e) {
 				e.preventDefault();
-				if(cur_dialog) {
-					// trigger primary
-					cur_dialog.get_primary_btn().trigger("click");
-				} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
-					cur_frm.page.btn_primary.trigger('click');
-				} else if(frappe.container.page.save_action) {
-					frappe.container.page.save_action();
-				}
+				me.trigger_primary_action();
 				return false;
 			})
 			.keydown("meta+b ctrl+b", function(e) {

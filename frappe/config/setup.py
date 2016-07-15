@@ -110,6 +110,13 @@ def get_data():
 					"hide_count": True
 				},
 				{
+					"type": "doctype",
+					"name": "Bulk Update",
+					"label": _("Bulk Update"),
+					"description": _("Update many values at one time."),
+					"hide_count": True
+				},
+				{
 					"type": "page",
 					"name": "backups",
 					"label": _("Download Backups"),
