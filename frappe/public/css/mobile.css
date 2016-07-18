@@ -109,6 +109,11 @@ body {
     margin: 0px;
     display: inline-block;
   }
+  #navbar-breadcrumbs li {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
     display: inline-block;
