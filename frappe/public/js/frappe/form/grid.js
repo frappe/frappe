@@ -753,6 +753,12 @@ frappe.ui.form.GridRow = Class.extend({
 			parent = column.field_area,
 			df = column.df;
 
+
+		// no text editor in grid
+		if (df.fieldtype=='Text Editor') {
+			df.fieldtype = 'Text';
+		}
+
 		var field = frappe.ui.form.make_control({
 			df: df,
 			parent: parent,

@@ -30,8 +30,7 @@ def read_csv_content_from_attached_file(doc):
 		fname, fcontent = get_file(fileid)
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
 	except Exception:
-		frappe.msgprint(_("Unable to open attached file. Please try again."))
-		raise Exception
+		frappe.throw(_("Unable to open attached file. Did you export it as CSV?"), title=_('Invalid CSV Format'))
 
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
