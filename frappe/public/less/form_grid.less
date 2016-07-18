@@ -13,6 +13,7 @@
 }
 
 .grid-row {
+	padding: 0px 15px;
 	border-bottom: 1px solid @border-color;
 	.transition(.2s);
 }
@@ -23,10 +24,6 @@
 
 .rows .grid-row .data-row, .rows .grid-row .grid-footer-toolbar, .grid-form-heading {
 	cursor: pointer;
-}
-
-.data-row.row {
-	margin: 0px;
 }
 
 .data-row textarea {
@@ -74,13 +71,12 @@
 
 .row-index {
 	text-align: right;
-	width: 40px;
-	margin-left: -7px;
-	float: left;
 }
 
 .grid-row > .row {
-	margin-right: 15px !important;
+	.col:last-child {
+		margin-right: -10px;
+	}
 
 	.col {
 		padding-left: 10px;
@@ -90,9 +86,7 @@
 
 .grid-body {
 	.btn-open-row {
-		margin: -10px;
-		padding: 10px;
-		padding-top: 15px;
+		padding-top: 5px;
 	}
 
 	.editable-row {
@@ -204,6 +198,7 @@
 	opacity: 1;
 	height: auto;
 	overflow: visible;
+	margin: 0px -15px;
 }
 
 .grid-form-heading {

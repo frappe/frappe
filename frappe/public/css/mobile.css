@@ -56,26 +56,6 @@ body {
   background-color: #F0F4F7;
 }
 @media (max-width: 991px) {
-  input[type='checkbox'] {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #d1d8dd;
-    display: inline-block;
-  }
-  input[type='checkbox']:checked {
-    background: #3b99fc;
-    border-color: #3b99fc;
-  }
-  input.list-select-all {
-    margin-top: 0px;
-  }
-  .input-area input[type='checkbox'] {
-    margin-top: 2px;
-    margin-left: -23px;
-  }
   .intro-area,
   .footnote-area {
     padding: 15px;

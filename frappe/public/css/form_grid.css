@@ -8,6 +8,7 @@
   font-weight: bold;
 }
 .grid-row {
+  padding: 0px 15px;
   border-bottom: 1px solid #d1d8dd;
   -webkit-transition: 0.2s;
   -o-transition: 0.2s;
@@ -20,9 +21,6 @@
 .rows .grid-row .grid-footer-toolbar,
 .grid-form-heading {
   cursor: pointer;
-}
-.data-row.row {
-  margin: 0px;
 }
 .data-row textarea {
   height: 40px;
@@ -57,21 +55,16 @@
 }
 .row-index {
   text-align: right;
-  width: 40px;
-  margin-left: -7px;
-  float: left;
 }
-.grid-row > .row {
-  margin-right: 15px !important;
+.grid-row > .row .col:last-child {
+  margin-right: -10px;
 }
 .grid-row > .row .col {
   padding-left: 10px;
   padding-right: 10px;
 }
 .grid-body .btn-open-row {
-  margin: -10px;
-  padding: 10px;
-  padding-top: 15px;
+  padding-top: 5px;
 }
 .grid-body .editable-row .grid-static-col {
   padding: 0px !important;
@@ -157,6 +150,7 @@
   opacity: 1;
   height: auto;
   overflow: visible;
+  margin: 0px -15px;
 }
 .grid-form-heading {
   padding: 10px 15px;

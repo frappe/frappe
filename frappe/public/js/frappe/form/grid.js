@@ -357,7 +357,7 @@ frappe.ui.form.Grid = Class.extend({
 					}
 
 					total_colsize += df.colsize
-					if(total_colsize > 12)
+					if(total_colsize > 11)
 						return false;
 					this.visible_columns.push([df, df.colsize]);
 				}
@@ -365,11 +365,11 @@ frappe.ui.form.Grid = Class.extend({
 
 		// redistribute if total-col size is less than 12
 		var passes = 0;
-		while(total_colsize < 12 && passes < 12) {
+		while(total_colsize < 11 && passes < 12) {
 			for(var i in this.visible_columns) {
 				var df = this.visible_columns[i][0];
 				var colsize = this.visible_columns[i][1];
-				if(colsize > 1 && colsize < 12
+				if(colsize > 1 && colsize < 11
 					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
 
 					if (passes < 3 && ["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype)!==-1) {
@@ -381,7 +381,7 @@ frappe.ui.form.Grid = Class.extend({
 					total_colsize++;
 				}
 
-				if(total_colsize >= 12)
+				if(total_colsize > 10)
 					break;
 			}
 			passes++;
@@ -613,7 +613,7 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
-			this.row_index = $('<div class="row-index">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
+			this.row_index = $('<div class="row-index col col-xs-1">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
 				.appendTo(this.row)
 				.on('click', function() { me.toggle_view(); });
 		} else {
@@ -637,13 +637,14 @@ frappe.ui.form.GridRow = Class.extend({
 		if(this.doc) {
 			// remove row
 			if(!this.open_form_button) {
-				this.open_form_button = $('<a class="close pull-right btn-open-row">\
+				this.open_form_button = $('<a class="close btn-open-row">\
 					<span class="octicon octicon-triangle-down"></span></a>')
-					.appendTo(this.row)
+					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
 					.on('click', function() { me.toggle_view(); return false; });
 
 				if(this.row.width() < 400) {
-					this.open_form_button.css({'padding-right': '1px'});
+					// narrow
+					this.open_form_button.css({'margin-right': '-2px'});
 				}
 			}
 		}
