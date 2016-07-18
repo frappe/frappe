@@ -55,7 +55,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
 
-		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (install_apps or [])
+		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:
 			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
