@@ -282,14 +282,18 @@ def make_toc(context, out):
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''
 	import re
-	if "<!-- title:" in page_info.source:
-		page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
-	elif "<h1>" in page_info.source:
-		page_info.title = re.findall('<h1>([^>]*)</h1>', page_info.source)[0].strip()
-	else:
-		page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
 
-	if not '{% block title %}' in page_info.source:
+	if not page_info.title:
+		if "<!-- title:" in page_info.source:
+			page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
+		elif "<h1>" in page_info.source:
+			match = re.findall('<h1>([^>]*)</h1>', page_info.source)
+			if match:
+				page_info.title = match[0].strip()
+		else:
+			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
+
+	if page_info.title and not '{% block title %}' in page_info.source:
 		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:

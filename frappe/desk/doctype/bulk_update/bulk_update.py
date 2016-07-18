@@ -22,7 +22,7 @@ def update(doctype, field, value, condition='', limit=500):
 	if ';' in condition:
 		frappe.throw('; not allowed in condition')
 
-	items = frappe.db.sql_list('select name from `tab{0}`{1} limit 0, {2}'.format(doctype,
+	items = frappe.db.sql_list('''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype,
 		condition, limit), debug=1)
 	n = len(items)
 
