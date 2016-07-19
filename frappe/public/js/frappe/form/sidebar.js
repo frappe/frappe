@@ -7,12 +7,10 @@ frappe.ui.form.Sidebar = Class.extend({
 	make: function() {
 		var sidebar_content = frappe.render_template("form_sidebar", {doctype: this.frm.doctype, frm:this.frm});
 
-		this.offcanvas_form_sidebar = $(".offcanvas .form-sidebar").html(sidebar_content);
-		this.page_sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
+		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.sidebar = this.page_sidebar.add(this.offcanvas_form_sidebar);
 		this.comments = this.sidebar.find(".sidebar-comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
@@ -37,7 +35,6 @@ frappe.ui.form.Sidebar = Class.extend({
 
 		// scroll to comments
 		this.comments.on("click", function() {
-			$(".offcanvas").removeClass("active-left active-right");
 			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".form-comments"), true);
 		});
 
