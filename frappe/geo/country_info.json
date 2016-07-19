@@ -50,9 +50,11 @@
  },
  "Angola": {
   "code": "ao",
+  "currency": "KZ",
   "currency_fraction": "C\u00eantimo",
   "currency_fraction_units": 100,
-  "currency_symbol": "Kz",
+  "currency_symbol": "AOA",
+  "currency_name": "Kwanza",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Luanda"
