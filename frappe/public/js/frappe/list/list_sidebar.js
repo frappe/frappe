@@ -27,6 +27,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.setup_reports();
 		this.setup_assigned_to_me();
+		this.setup_list_view_switching();
 
 		if(frappe.views.calendar[this.doctype]) {
 			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
@@ -83,6 +84,32 @@ frappe.views.ListSidebar = Class.extend({
 		this.offcanvas_list_sidebar.find(".assigned-to-me a").on("click", function() {
 			me.doclistview.assigned_to_me();
 		});
+	},
+	setup_list_view_switching: function() {
+		var me = this;
+		if(this.doclistview.meta.image_field) {
+			this.page.sidebar.find(".switch-list-view").removeClass("hide");
+			
+			var label = this.doclistview.meta.image_view ? "List View": "Image View";
+			this.page.sidebar.find(".switch-list-view a").html(label)
+
+			var switch_list_view = function(view) {
+				var image_view = 0
+				if(view == "Image View")
+					image_view = 1
+
+				me.doclistview.meta.image_view = image_view;
+				me.doclistview.refresh(true);
+			};
+
+			this.page.sidebar.find(".switch-list-view a").on("click", function() {
+				switch_list_view(label)
+			});
+
+			this.offcanvas_list_sidebar.find(".switch-list-view a").on("click", function() {
+				switch_list_view(label)
+			});
+		}
 	},
 	get_stats: function() {
 		var me = this

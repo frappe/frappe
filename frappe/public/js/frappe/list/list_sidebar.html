@@ -19,6 +19,9 @@
     <li class="assigned-to-me">
         <a>{%= __("Assigned To Me") %}</a>
     </li>
+    <li class="hide switch-list-view">
+        <a>{%= __("Image View") %}</a>
+    </li>
     {% if(frappe.help.has_help(doctype)) { %}
     <li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
     {% } %}
