@@ -104,11 +104,10 @@ def get_context(context):
 		context.show_sidebar=True
 		from frappe.www.list import get_context as get_list_context
 
-		frappe.local.form_dict.is_web_form = 1
-		context.params = frappe.form_dict
+		frappe.form_dict.is_web_form = 1
 		logged_in = frappe.session.user != "Guest"
 
-		args, delimeter = make_route_string(frappe.local.form_dict)
+		args, delimeter = make_route_string(frappe.form_dict)
 		context.args = args
 		context.delimeter = delimeter
 
@@ -125,7 +124,7 @@ def get_context(context):
 		if self.login_required and logged_in:
 			if self.allow_edit:
 				if self.allow_multiple:
-					if not context.params.name and not context.params.new:
+					if not frappe.form_dict.name and not frappe.form_dict.new:
 						frappe.form_dict.doctype = self.doc_type
 						get_list_context(context)
 						context.is_list = True

@@ -11,11 +11,11 @@
 {% endblock %}
 
 {% block header_actions %}
-  {% if params.name or params.new %}
+  {% if frappe.form_dict.name or frappe.form_dict.new %}
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Submit") if params.new else _("Update") }}</button>
+    		{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname + args }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
@@ -143,7 +143,7 @@
 <div class="form-message text-muted hide"></div>
 <form role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
-	{% if params.name and web_page_link_text %}
+	{% if frappe.form_dict.name and web_page_link_text %}
 	<div class="row">
 		<div class="col-sm-9">
 			<p class="text-muted">
@@ -155,8 +155,8 @@
 	{% endif %}
 	<input type="hidden" name="web_form" value="{{ name }}">
 	<input type="hidden" name="doctype" value="{{ doc_type }}">
-	{% if params.name -%}
-	<input type="hidden" name="name" value="{{ params.name }}">
+	{% if frappe.form_dict.name -%}
+	<input type="hidden" name="name" value="{{ frappe.form_dict.name }}">
 	{%- endif %}
 
 		{% for section in layout %}
@@ -171,7 +171,7 @@
 		</div>
 		{% endfor %}
 </form>
-{% if allow_comments and not params.new -%}
+{% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
 	<br><br>
 	<h3>{{ _("Comments") }}</h3>
@@ -276,7 +276,10 @@ frappe.ready(function() {
 							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
 							.removeClass("hide");
                     } else {
-						window.location.href = "{{ success_url }}";
+						frappe.msgprint(__('Successfully Updated. Redirecting...'));
+						setTimeout(function() {
+							window.location.href = "{{ success_url }}";
+						}, 3000);
 				    }
 			    }
 		    },
