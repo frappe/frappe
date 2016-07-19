@@ -162,7 +162,6 @@ frappe.views.ListSidebar = Class.extend({
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				me.set_filter(fieldname, label);
-				return false;
 			})
 			.appendTo(this.sidebar);
 	},
