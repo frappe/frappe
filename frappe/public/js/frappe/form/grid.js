@@ -465,6 +465,7 @@ frappe.ui.form.Grid = Class.extend({
 						});
 
 						me.frm.refresh_field(me.df.fieldname);
+						frappe.msgprint({message:__('Table updated'), title:__('Success'), indicator:'green'})
 
 					}, __("Edit via Upload"), __("Update"));
 				return false;

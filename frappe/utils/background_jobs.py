@@ -34,6 +34,7 @@ def enqueue(method, queue='default', timeout=300, event=None,
 	return q.enqueue_call(execute_job, timeout=timeout,
 		kwargs={
 			"site": frappe.local.site,
+			"user": frappe.session.user,
 			"method": method,
 			"event": event,
 			"job_name": job_name or cstr(method),
@@ -41,12 +42,14 @@ def enqueue(method, queue='default', timeout=300, event=None,
 			"kwargs": kwargs
 		})
 
-def execute_job(site, method, event, job_name, kwargs, async=True, retry=0):
+def execute_job(site, method, event, job_name, kwargs, user=None, async=True, retry=0):
 	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''
 	from frappe.utils.scheduler import log
 
 	if async:
 		frappe.connect(site)
+		if user:
+			frappe.set_user(user)
 
 	if isinstance(method, basestring):
 		method_name = method

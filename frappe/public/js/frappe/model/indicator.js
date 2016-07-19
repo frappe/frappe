@@ -12,6 +12,18 @@ frappe.get_indicator = function(doc, doctype) {
 	var is_submittable = frappe.model.is_submittable(doctype),
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
+	if(doc.docstatus==3) {
+		return [__("Queued for saving"), "orange", "docstatus,=,3"];
+	}
+
+	if(doc.docstatus==4) {
+		return [__("Queued for submission"), "orange", "docstatus,=,4"];
+	}
+
+	if(doc.docstatus==5) {
+		return [__("Queued for cancellation"), "orange", "docstatus,=,5"];
+	}
+
 	// workflow
 	if(workflow_fieldname) {
 		var value = doc[workflow_fieldname];

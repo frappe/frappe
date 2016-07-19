@@ -359,6 +359,10 @@ class BaseDocument(object):
 
 		self.run_method('on_change')
 
+	def db_get(self, fieldname):
+		'''get database vale for this fieldname'''
+		return frappe.db.get_value(self.doctype, self.name, fieldname)
+
 	def update_modified(self):
 		'''Update modified timestamp'''
 		self.set("modified", now())

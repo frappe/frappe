@@ -288,9 +288,12 @@ frappe.ui.Filter = Class.extend({
 		if(df.fieldname=="docstatus") {
 			df.fieldtype="Select",
 			df.options=[
-				{value:0, label:"Draft"},
-				{value:1, label:"Submitted"},
-				{value:2, label:"Cancelled"},
+				{value:0, label:__("Draft")},
+				{value:1, label:__("Submitted")},
+				{value:2, label:__("Cancelled")},
+				{value:3, label:__("Queued for saving")},
+				{value:4, label:__("Queued for submission")},
+				{value:5, label:__("Queued for cancellation")},
 			]
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';

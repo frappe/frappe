@@ -17,48 +17,9 @@ END_LINE = '<!-- frappe: end-file -->'
 TASK_LOG_MAX_AGE = 86400  # 1 day in seconds
 redis_server = None
 
-def handler(f):
-	cmd = f.__module__ + '.' + f.__name__
-
-	def run(args, set_in_response=True, hijack_std=False):
-		from frappe.tasks import run_async_task
-		from frappe.handler import execute_cmd
-		if frappe.conf.disable_async:
-			return execute_cmd(cmd, from_async=True)
-		args = frappe._dict(args)
-		task = run_async_task.delay(site=frappe.local.site,
-			user=(frappe.session and frappe.session.user) or 'Administrator', cmd=cmd,
-									form_dict=args, hijack_std=hijack_std)
-		if set_in_response:
-			frappe.local.response['task_id'] = task.id
-		return task.id
-
-	@wraps(f)
-	def queue(*args, **kwargs):
-		task_id = run(frappe.local.form_dict, set_in_response=True)
-		return {
-			"status": "queued",
-			"task_id": task_id
-		}
-
-	queue.async = True
-	queue.queue = f
-	queue.run = run
-	frappe.whitelisted.append(f)
-	frappe.whitelisted.append(queue)
-	return queue
-
-
 @frappe.whitelist()
 def get_pending_tasks_for_doc(doctype, docname):
 	return frappe.db.sql_list("select name from `tabAsync Task` where status in ('Queued', 'Running') and reference_doctype=%s and reference_name=%s", (doctype, docname))
-
-
-@handler
-def ping():
-	from time import sleep
-	sleep(1)
-	return "pong"
 
 
 def set_task_status(task_id, status, response=None):
@@ -110,6 +71,9 @@ def publish_realtime(event=None, message=None, room=None,
 			event = "task_progress"
 		else:
 			event = "global"
+
+	if event=='msgprint' and not user:
+		user = frappe.session.user
 
 	if not room:
 		if not task_id and hasattr(frappe.local, "task_id"):

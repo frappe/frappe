@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str
+from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
@@ -166,6 +167,23 @@ class Document(BaseDocument):
 		frappe.msgprint(msg)
 		raise frappe.PermissionError(msg)
 
+	def lock(self):
+		'''Will set docstatus to 3 + the current docstatus and mark it as queued
+
+		3 = queued for saving
+		4 = queued for submission
+		5 = queued for cancellation
+		'''
+		self.db_set('docstatus', 3 + self.docstatus, update_modified = False)
+
+	def unlock(self):
+		'''set the original docstatus at the time it was locked in the controller'''
+		current_docstatus = self.db_get('docstatus') - 4
+		if current_docstatus < 0:
+			current_docstatus = 0
+
+		self.db_set('docstatus', current_docstatus, update_modified = False)
+
 	def insert(self, ignore_permissions=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
@@ -219,7 +237,11 @@ class Document(BaseDocument):
 
 		return self
 
-	def save(self, ignore_permissions=None):
+	def save(self, *args, **kwargs):
+		"""Wrapper for _save"""
+		self._save(*args, **kwargs)
+
+	def _save(self, ignore_permissions=None):
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -491,7 +513,15 @@ class Document(BaseDocument):
 		- Save (0) > Save (0)
 		- Save (0) > Submit (1)
 		- Submit (1) > Submit (1)
-		- Submit (1) > Cancel (2)"""
+		- Submit (1) > Cancel (2)
+
+		If docstatus is > 2, it will throw exception as document is deemed queued
+		"""
+
+		if self.docstatus > 2:
+			frappe.throw(_('This document is currently queued for execution. Please try again'),
+				title=_('Document Queued'), indicator='red')
+
 		if not self.docstatus:
 			self.docstatus = 0
 		if docstatus==0:
@@ -611,16 +641,26 @@ class Document(BaseDocument):
 		return f
 
 	@whitelist.__func__
-	def submit(self):
+	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
 		self.save()
 
 	@whitelist.__func__
-	def cancel(self):
+	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
 		self.save()
+
+	@whitelist.__func__
+	def submit(self):
+		"""Submit the document. Sets `docstatus` = 1, then saves."""
+		self._submit()
+
+	@whitelist.__func__
+	def cancel(self):
+		"""Cancel the document. Sets `docstatus` = 2, then saves."""
+		self._cancel()
 
 	def delete(self):
 		"""Delete document."""
@@ -902,3 +942,42 @@ class Document(BaseDocument):
 					"timeline_doctype": timeline_doctype,
 					"timeline_name": timeline_name
 				})
+
+	def queue_action(self, action, **kwargs):
+		'''Run an action in background. If the action has an inner function,
+		like _submit for submit, it will call that instead'''
+
+		if action in ('save', 'submit', 'cancel'):
+			# set docstatus explicitly again due to inconsistent action
+			self.docstatus = {'save':0, 'submit':1, 'cancel': 2}[action]
+		else:
+			raise 'Action must be one of save, submit, cancel'
+
+		# call _submit instead of submit, so you can override submit to call
+		# run_delayed based on some action
+		# See: Stock Reconciliation
+		if hasattr(self, '_' + action):
+			action = '_' + action
+
+		self.lock()
+		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,
+			action=action, **kwargs)
+
+def execute_action(doctype, name, action, **kwargs):
+	'''Execute an action on a document (called by background worker)'''
+	doc = frappe.get_doc(doctype, name)
+	doc.unlock()
+	try:
+		getattr(doc, action)(**kwargs)
+	except frappe.ValidationError:
+		# add a comment (?)
+		doc.add_comment('Comment',
+			_('Action Failed') + '<br><br>' + json.loads(frappe.local.message_log[-1]).get('message'))
+
+		doc.notify_update()
+	except Exception:
+		# add a comment (?)
+		doc.add_comment('Comment',
+			_('Action Failed') + '<pre><code>' + frappe.get_traceback() + '</pre></code>')
+
+		doc.notify_update()
