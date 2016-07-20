@@ -231,6 +231,14 @@ a.form-link {
   font-weight: bold;
   font-size: 102%;
 }
+a[disabled="disabled"] {
+  color: #8D99A6;
+  text-decoration: none;
+  cursor: default;
+}
+a[disabled="disabled"]:hover {
+  text-decoration: none;
+}
 .link-btn {
   position: absolute;
   top: 2px;

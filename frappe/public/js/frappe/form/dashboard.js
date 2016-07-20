@@ -119,8 +119,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 
 		if(!this.data) {
-			this.data = this.frm.meta.__dashboard;
-			this.filter_permissions();
+			this.init_data();
 		}
 
 		var show = false;
@@ -143,6 +142,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(show) {
 			this.show();
 		}
+	},
+
+	init_data: function() {
+		this.data = this.frm.meta.__dashboard || {};
+		if(!this.data.transactions) this.data.transactions = [];
+		if(!this.data.internal_links) this.data.internal_links = {};
+		this.filter_permissions();
 	},
 
 	filter_permissions: function() {
@@ -192,10 +198,14 @@ frappe.ui.form.Dashboard = Class.extend({
 	open_document_list: function($link, show_open) {
 		// show document list with filters
 		var doctype = $link.attr('data-doctype'),
-			names = $link.attr('data-names')
+			names = $link.attr('data-names') || [];
 
-		if(names) {
-			frappe.route_options = {'name': ['in', names]};
+		if(this.data.internal_links[doctype]) {
+			if(names.length) {
+				frappe.route_options = {'name': ['in', names]};
+			} else {
+				return false;
+			}
 		} else {
 			frappe.route_options = this.get_document_filter(doctype);
 			if(show_open) {
@@ -248,12 +258,12 @@ frappe.ui.form.Dashboard = Class.extend({
 				});
 
 				// update from internal links
-				$.each(me.data.internal_links || {}, function(doctype, link) {
+				$.each(me.data.internal_links, function(doctype, link) {
 					var table_fieldname = link[0], link_fieldname = link[1];
 					var names = [];
 					(me.frm.doc[table_fieldname] || []).forEach(function(d) {
 						var value = d[link_fieldname];
-						if(names.indexOf(value)===-1) {
+						if(value && names.indexOf(value)===-1) {
 							names.push(value);
 						}
 					});
@@ -282,7 +292,13 @@ frappe.ui.form.Dashboard = Class.extend({
 				.html((count > 9) ? '9+' : count);
 		}
 
-		$link.attr('data-names', names ? names.join(',') : '');
+		if(this.data.internal_links[doctype]) {
+			if(names && names.length) {
+				$link.attr('data-names', names ? names.join(',') : '');
+			} else {
+				$link.find('a').attr('disabled', true);
+			}
+		}
 	},
 
 	update_heatmap: function(data) {

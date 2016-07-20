@@ -12,6 +12,16 @@ a.form-link {
 	font-size: 102%;
 }
 
+a[disabled="disabled"] {
+	color: @text-muted;
+	text-decoration: none;
+	cursor: default;
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
 .link-btn {
 	position: absolute;
 	top: 2px;
