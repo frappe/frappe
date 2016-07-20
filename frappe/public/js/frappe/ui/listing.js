@@ -320,6 +320,7 @@ frappe.ui.Listing = Class.extend({
 			while (cols.length) {
 				row = this.add_row(cols[0]);
 				$("<div class='row image-view-marker'></div>").appendTo(row);
+				$(row).addClass('no-hover');
 				this.render_image_view_row(row, cols.splice(0, 4), this, i);
 			}
 

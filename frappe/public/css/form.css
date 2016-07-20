@@ -71,10 +71,20 @@
     display: none;
   }
 }
+.form-dashboard {
+  background-color: #fafbfc;
+  border-bottom: 1px solid #d1d8dd;
+}
+.form-documents h6 {
+  margin-top: 15px;
+}
 .form-dashboard-section {
   padding: 15px 30px;
   margin: 0px;
   border-bottom: 1px solid #EBEFF2;
+}
+.form-dashboard-section:last-child {
+  border-bottom: none;
 }
 .form-heatmap {
   padding-top: 30px;
@@ -137,24 +147,23 @@
   margin-left: 5px;
   margin-right: 5px;
 }
+h6.uppercase,
+.h6.uppercase {
+  font-size: 11px;
+  font-weight: normal;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #8D99A6;
+}
 .form-section {
   margin: 0px;
   padding: 15px;
 }
-.form-section h6,
-.form-section .h6 {
-  font-size: 11px;
-  letter-spacing: 0.4px;
-}
 .form-section .form-section-heading {
   margin: 10px 0px;
-  text-transform: uppercase;
-  color: #8D99A6;
 }
 .form-section .section-head {
   margin: 0px 0px 15px 15px;
-  text-transform: uppercase;
-  color: #8D99A6;
   cursor: pointer;
 }
 .form-section .section-head .collapse-indicator {

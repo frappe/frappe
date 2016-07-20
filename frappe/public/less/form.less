@@ -101,7 +101,12 @@
 }
 
 .form-dashboard {
-	//border-bottom: 1px solid @light-border-color;
+	background-color: @light-bg;
+	border-bottom: 1px solid @border-color;
+}
+
+.form-documents h6 {
+	margin-top: 15px;
 }
 
 .form-dashboard-section {
@@ -111,7 +116,7 @@
 }
 
 .form-dashboard-section:last-child {
-	// border-bottom: none;
+	border-bottom: none;
 }
 
 .form-heatmap {
@@ -189,25 +194,25 @@
 	}
 }
 
+h6.uppercase, .h6.uppercase {
+	font-size: 11px;
+	font-weight: normal;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	color: @text-muted;
+}
+
 .form-section {
 	margin: 0px;
 	padding: 15px;
 
-	h6, .h6 {
-		font-size: 11px;
-		letter-spacing: 0.4px;
-	}
 
 	.form-section-heading {
 		margin: 10px 0px;
-		text-transform: uppercase;
-		color: @text-muted;
 	}
 
 	.section-head {
 		margin: 0px 0px 15px 15px;
-		text-transform: uppercase;
-		color: @text-muted;
 		cursor: pointer;
 
 		.collapse-indicator {
