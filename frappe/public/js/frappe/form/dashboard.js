@@ -179,21 +179,28 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		// bind links
 		this.transactions_area.find(".badge-link").on('click', function() {
-			me.open_document_list($(this).parent().attr('data-doctype'));
+			me.open_document_list($(this).parent());
 		});
 
 		// bind open notifications
 		this.transactions_area.find('.open-notification').on('click', function() {
-			me.open_document_list($(this).parent().attr('data-doctype'), true);
+			me.open_document_list($(this).parent(), true);
 		});
 
 		this.data_rendered = true;
 	},
-	open_document_list: function(doctype, show_open) {
+	open_document_list: function($link, show_open) {
 		// show document list with filters
-		frappe.route_options = this.get_document_filter(doctype);
-		if(show_open) {
-			$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+		var doctype = $link.attr('data-doctype'),
+			names = $link.attr('data-names')
+
+		if(names) {
+			frappe.route_options = {'name': ['in', names]};
+		} else {
+			frappe.route_options = this.get_document_filter(doctype);
+			if(show_open) {
+				$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+			}
 		}
 
 		frappe.set_route("List", doctype);
@@ -234,16 +241,32 @@ frappe.ui.form.Dashboard = Class.extend({
 				if(r.message.timeline_data) {
 					me.update_heatmap(r.message.timeline_data);
 				}
+
+				// update badges
 				$.each(r.message.count, function(i, d) {
 					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
 				});
+
+				// update from internal links
+				$.each(me.data.internal_links || {}, function(doctype, link) {
+					var table_fieldname = link[0], link_fieldname = link[1];
+					var names = [];
+					(me.frm.doc[table_fieldname] || []).forEach(function(d) {
+						var value = d[link_fieldname];
+						if(names.indexOf(value)===-1) {
+							names.push(value);
+						}
+					});
+					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
+				});
+
 				me.frm.dashboard_data = r.message;
 				me.frm.trigger('dashboard_update');
 			}
 		});
 
 	},
-	set_badge_count: function(doctype, open_count, count) {
+	set_badge_count: function(doctype, open_count, count, names) {
 		var $link = $(this.transactions_area)
 			.find('.document-link[data-doctype="'+doctype+'"]');
 
@@ -259,6 +282,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				.html((count > 9) ? '9+' : count);
 		}
 
+		$link.attr('data-names', names ? names.join(',') : '');
 	},
 
 	update_heatmap: function(data) {

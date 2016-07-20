@@ -83,12 +83,12 @@ frappe.views.ListSidebar = Class.extend({
 		if(this.doclistview.meta.image_field) {
 			this.page.sidebar.find(".switch-list-view").removeClass("hide");
 
-			var label = this.doclistview.meta.image_view ? "List View": "Image View";
+			var label = this.doclistview.meta.image_view ? __("Show List"): __("Show Images");
 			this.page.sidebar.find(".switch-list-view a").html(label)
 
 			var switch_list_view = function(view) {
 				var image_view = 0
-				if(view == "Image View")
+				if(view == __("Show Images"))
 					image_view = 1
 
 				me.doclistview.meta.image_view = image_view;
