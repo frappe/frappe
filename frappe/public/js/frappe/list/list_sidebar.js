@@ -29,7 +29,7 @@ frappe.views.ListSidebar = Class.extend({
 		if(frappe.views.calendar[this.doctype]) {
 			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
 		}
-		
+
 		if(frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
@@ -82,7 +82,7 @@ frappe.views.ListSidebar = Class.extend({
 		var me = this;
 		if(this.doclistview.meta.image_field) {
 			this.page.sidebar.find(".switch-list-view").removeClass("hide");
-			
+
 			var label = this.doclistview.meta.image_view ? "List View": "Image View";
 			this.page.sidebar.find(".switch-list-view a").html(label)
 
@@ -101,10 +101,6 @@ frappe.views.ListSidebar = Class.extend({
 			};
 
 			this.page.sidebar.find(".switch-list-view a").on("click", function() {
-				switch_list_view(label)
-			});
-
-			this.offcanvas_list_sidebar.find(".switch-list-view a").on("click", function() {
 				switch_list_view(label)
 			});
 		}
