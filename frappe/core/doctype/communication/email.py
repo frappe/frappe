@@ -148,7 +148,7 @@ def update_parent_status(doc):
 
 	status_field = parent.meta.get_field("status")
 
-	if status_field and "Open" in (status_field.options or "").split("\n"):
+	if status_field and "Replied" in (status_field.options or "").split("\n"):
 		to_status = "Open" if doc.sent_or_received=="Received" else "Replied"
 
 		if to_status in status_field.options.splitlines():
