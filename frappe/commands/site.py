@@ -167,6 +167,20 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 		finally:
 			frappe.destroy()
 
+
+@click.command('disable-user')
+@click.argument('email')
+@pass_context
+def disable_user(context, email):
+	site = get_site(context)
+	with frappe.init_site(site):
+		frappe.connect()
+		user = frappe.get_doc("User", email)
+		user.enabled = 0
+		user.save(ignore_permissions=True)
+		frappe.db.commit() 
+
+
 @click.command('migrate')
 @click.option('--rebuild-website', help="Rebuild webpages after migration")
 @pass_context
@@ -437,5 +451,6 @@ commands = [
 	set_limit,
 	set_limits,
 	clear_limits,
+	disable_user,
 	_use,
 ]
