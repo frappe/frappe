@@ -61,9 +61,9 @@ class Meta(Document):
 		super(Meta, self).__init__("DocType", doctype)
 		self.process()
 
-	def load_from_db(self):
+	def reload(self):
 		try:
-			super(Meta, self).load_from_db()
+			super(Meta, self).reload()
 		except frappe.DoesNotExistError:
 			if self.doctype=="DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))

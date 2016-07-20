@@ -350,7 +350,9 @@ class BaseDocument(object):
 
 	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
-		if update_modified:
+		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
+			# don't update modified timestamp if called from post save methods
+			# like on_update or on_submit
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 

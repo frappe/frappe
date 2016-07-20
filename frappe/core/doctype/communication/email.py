@@ -148,10 +148,10 @@ def update_parent_status(doc):
 
 	status_field = parent.meta.get_field("status")
 
-	if status_field and "Open" in (status_field.options or "").split("\n"):
+	if status_field:
 		to_status = "Open" if doc.sent_or_received=="Received" else "Replied"
 
-		if to_status in status_field.options.splitlines():
+		if to_status in (status_field.options or '').splitlines():
 			parent.db_set("status", to_status)
 
 	update_mins_to_first_communication(parent, doc)

@@ -12,8 +12,6 @@ def savedocs(doc, action):
 		doc = frappe.get_doc(json.loads(doc))
 		set_local_name(doc)
 
-		frappe.local.flags.currently_saving = frappe._dict(doctype=doc.doctype, name=doc.name)
-
 		# action
 		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 
@@ -31,9 +29,6 @@ def savedocs(doc, action):
 		run_onload(doc)
 		frappe.get_user().update_recent(doc.doctype, doc.name)
 		send_updated_docs(doc)
-
-		frappe.local.flags.currently_saving = None
-
 	except Exception:
 		if not frappe.local.message_log:
 			frappe.msgprint(frappe._('Did not save'))
