@@ -22,14 +22,10 @@
 	<div class="centered splash" style="width: 200px; height: 200px;">
         <img src="{{ splash_image or "/assets/frappe/images/frappe-bird-thin.svg" }}">
     </div>
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<header></header>
-				<div id="body_div"></div>
-				<footer></footer>
-			</div>
-		</div>
+	<div class="main-section">
+		<header></header>
+		<div id="body_div"></div>
+		<footer></footer>
 	</div>
 
 	<!-- hack! load background image asap, before desktop is rendered -->

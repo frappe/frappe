@@ -18,14 +18,14 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
 
-			var offcanvas_container = $('body').find('.offcanvas-container');
-			offcanvas_container.css("overflow-y", "hidden");
+			var scroll_container = $('html');
+			scroll_container.css("overflow-y", "hidden");
 
 			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
 			layout_side_section.on("click", "a", close_sidebar);
 
 			function close_sidebar(e) {
-				offcanvas_container.css("overflow-y", "visible");
+				scroll_container.css("overflow-y", "");
 
 				layout_side_section.find(".close-sidebar").fadeOut(function() {
 					overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
