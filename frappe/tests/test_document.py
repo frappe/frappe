@@ -147,7 +147,7 @@ class TestDocument(unittest.TestCase):
 		d.meta.get_field("starts_on").allow_on_submit = 0
 
 		# when comparing date(2014, 1, 1) and "2014-01-01"
-		d.load_from_db()
+		d.reload()
 		d.starts_on = "2014-01-01"
 		d.validate_update_after_submit()
 
@@ -164,7 +164,7 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
@@ -174,7 +174,7 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = '<div>Test</div>'
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
@@ -184,7 +184,7 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = '<div style="color: red;">Test</div>'
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)

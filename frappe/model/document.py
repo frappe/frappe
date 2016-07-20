@@ -374,6 +374,8 @@ class Document(BaseDocument):
 			if not d.creation:
 				d.creation = self.creation
 
+		frappe.flags.currently_saving.append((self.doctype, self.name))
+
 	def set_docstatus(self):
 		if self.docstatus==None:
 			self.docstatus=0
@@ -719,6 +721,9 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+
+		if (self.doctype, self.name) in frappe.flags.currently_saving:
+			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
 		self.latest = None
 

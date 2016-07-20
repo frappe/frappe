@@ -95,7 +95,7 @@ def init(site, sites_path=None, new_site=False):
 	local.realtime_log = []
 	local.flags = _dict({
 		"ran_schedulers": [],
-		"currenty_saving": _dict(),
+		"currently_saving": [],
 		"redirect_location": "",
 		"in_install_db": False,
 		"in_install_app": False,
