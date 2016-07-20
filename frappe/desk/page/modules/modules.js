@@ -34,7 +34,6 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		page.wrapper.find('.module-sidebar-item.active, .module-link.active').removeClass('active');
 		$(link).addClass('active').parent().addClass("active");
 		show_section($(link).attr('data-name'));
-		$('.module-sidebar-nav').trigger('close_sidebar');
 	}
 
 	var show_section = function(module_name) {

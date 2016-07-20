@@ -1,11 +1,30 @@
 @import "variables.less";
 @import "mixins.less";
-@import "offcanvas.less";
+
+html {
+	min-height: 100%;
+}
+
+body {
+	height: 100%;
+	 // The html and body elements cannot have any padding or margin. 
+	margin: 0px;
+	padding: 0px !important;
+}
+
+html,
+body {
+	overflow-x: hidden;  //Prevent scroll on narrow devices 
+}
 
 .hide-form-sidebar {
 	.form-sidebar {
 		display: none !important;
 	}
+}
+
+.sidebar-padding {
+	padding: 12px 14px;
 }
 
 body[data-route=""] .main-menu,

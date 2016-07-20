@@ -8,9 +8,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		var header = $('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
-		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
 
-		// header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
 			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
@@ -20,26 +18,20 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
 
-			var offcanvas_container = $('body').find('.offcanvas-container');
-			offcanvas_container.css("overflow-y", "hidden");
+			var scroll_container = $('html');
+			scroll_container.css("overflow-y", "hidden");
 
 			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
+			layout_side_section.on("click", "a", close_sidebar);
 
-			$('.module-sidebar-nav').on('close_sidebar', close_sidebar);
-
-			function close_sidebar() {
-				overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
-				offcanvas_container.css("overflow-y", "visible");
+			function close_sidebar(e) {
+				scroll_container.css("overflow-y", "");
 
 				layout_side_section.find(".close-sidebar").fadeOut(function() {
+					overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
 					overlay_sidebar.find('.reports-dropdown').addClass('dropdown-menu');
 				});
 			}
-		});
-
-		header.find(".toggle-navbar-new-comments").on("click", function() {
-			$(".offcanvas").toggleClass("active-right").removeClass("active-left");
-			return false;
 		});
 
 		$(document).on("notification-update", function() {
@@ -83,10 +75,6 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.get_menu(menu) : menu;
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
-	},
-	toggle_left_sidebar: function() {
-		$(".offcanvas").toggleClass("active-left").removeClass("active-right");
-		return false;
 	}
 });
 

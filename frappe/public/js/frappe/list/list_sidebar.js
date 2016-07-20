@@ -18,12 +18,9 @@ frappe.views.ListSidebar = Class.extend({
 	make: function() {
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
 
-		this.offcanvas_list_sidebar = $(".offcanvas .list-sidebar").html(sidebar_content);
-		this.page_sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
+		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
-
-		this.sidebar = this.page_sidebar.add(this.offcanvas_list_sidebar);
 
 		this.setup_reports();
 		this.setup_assigned_to_me();
@@ -78,10 +75,6 @@ frappe.views.ListSidebar = Class.extend({
 	setup_assigned_to_me: function() {
 		var me = this;
 		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
-			me.doclistview.assigned_to_me();
-		});
-
-		this.offcanvas_list_sidebar.find(".assigned-to-me a").on("click", function() {
 			me.doclistview.assigned_to_me();
 		});
 	},
@@ -169,7 +162,6 @@ frappe.views.ListSidebar = Class.extend({
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				me.set_filter(fieldname, label);
-				return false;
 			})
 			.appendTo(this.sidebar);
 	},
