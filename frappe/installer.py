@@ -347,8 +347,8 @@ def check_if_ready_for_barracuda():
 def extract_sql_gzip(sql_gz_path):
 	try:
 		success = subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
-	except subprocess.CalledProcessError:
-		raise subprocess.CalledProcessError
+	except:
+		raise
 
 	path = sql_gz_path[:-3] if success else None
 
@@ -368,8 +368,8 @@ def extract_tar_files(site_name, file_path, folder_name):
 
 	try:
 		subprocess.check_output(['tar', 'xvf', tar_path, '--strip', '2'], cwd=abs_site_path)
-	except subprocess.CalledProcessError:
-		raise subprocess.CalledProcessError
+	except:
+		raise
 	finally:
 		frappe.destroy()
 
