@@ -88,7 +88,7 @@ def get_usage_info():
 		# no limits!
 		return
 
-	limits.space = limits.space * 1024.0 # to MB
+	limits.space = (limits.space or 0) * 1024.0 # to MB
 	if not limits.space_usage:
 		# hack! to show some progress
 		limits.space_usage = {
