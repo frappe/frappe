@@ -93,7 +93,7 @@ def add_subscribers(name, email_list):
 def restrict_email_group(doc, method):
 	from frappe.limits import get_limits
 
-	email_group_limit = get_limits().get('email_group_limit')
+	email_group_limit = get_limits().get('email_group')
 	if not email_group_limit:
 		return
 
