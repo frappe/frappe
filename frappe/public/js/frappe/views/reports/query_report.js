@@ -168,7 +168,7 @@ frappe.views.QueryReport = Class.extend({
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
-
+			
 			frappe.render_grid({content:content, title:__(this.report_name)});
 		} else {
 			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
