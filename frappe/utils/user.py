@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _dict
 import frappe.share
-from frappe import _
 
 class UserPermissions:
 	"""
