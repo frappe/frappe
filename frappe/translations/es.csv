@@ -1686,7 +1686,7 @@ DocType: DocField,Fold,Plegar
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +468,Ascending,Ascendente
 apps/frappe/frappe/print/doctype/print_format/print_format.py +18,Standard Print Format cannot be updated,El formato de impresión estándar no se puede actualizar
 apps/frappe/frappe/integrations/doctype/dropbox_backup/dropbox_backup.js +12,Please specify,"Por favor, especifique"
-DocType: Communication,Bot,Larva del moscardón
+DocType: Communication,Bot,Robot
 DocType: Page,Page Name,Nombre de la página
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +167,Help: Field Properties,Ayuda: Propiedades del campo
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +86,Importing...,Importación ...
