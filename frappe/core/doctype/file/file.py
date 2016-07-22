@@ -8,21 +8,20 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import frappe, frappe.utils
-from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
-from frappe import _
-
-from frappe.utils.nestedset import NestedSet
-from frappe.utils import strip
+import frappe
 import json
 import urllib
-from PIL import Image, ImageOps
 import os
 import requests
 import requests.exceptions
 import StringIO
 import mimetypes, imghdr
-from frappe.utils import get_files_path
+
+from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
+from frappe import _
+from frappe.utils.nestedset import NestedSet
+from frappe.utils import strip, get_files_path
+from PIL import Image, ImageOps
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -35,14 +34,13 @@ class File(NestedSet):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
-		self.set_name()
 
 	def get_name_based_on_parent_folder(self):
 		path = get_breadcrumbs(self.folder)
 		folder_name = frappe.get_value("File", self.folder, "file_name")
 		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
 
-	def set_name(self):
+	def autoname(self):
 		"""Set name for folder"""
 		if self.is_folder:
 			if self.folder:
@@ -352,3 +350,4 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
+

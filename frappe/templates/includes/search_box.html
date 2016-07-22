@@ -1,0 +1,37 @@
+<div class="item-search text-muted pull-right">
+	<input type="text" class="item-search-input"
+		placeholder="Search" autocomplete="off">
+	<i class="octicon octicon-search pull-right" style='cursor: pointer;'></i>
+</div>
+<div class="clearfix pull-right" style="width:100%;">
+	<h5 class="item-search-results text-muted" style="margin-right: 30px;"></h5>
+	<p class="pull-right" style="margin-top: -28px;">
+		<a style="display: none;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="Clear Search" ></a>
+	</p>
+</div>
+
+<script>
+frappe.ready(function() {
+	if(get_url_arg("search")) {
+		var txt = get_url_arg("search");
+		$(".item-search-results").html("{{ _('Search results for') }}: " + txt);
+		$(".item-search").toggle(false);
+		$(".clear").toggle(true);
+	}
+	var thread = null;
+	function find_result(t) {
+		var search_link = "{{ search_link or '' }}" || location.pathname;
+		window.location.href=search_link + "?search=" + t;
+	}
+
+	$(".item-search-input").keyup(function(e) {
+		if(e.which===13) {
+			find_result($(this).val());
+		}
+	});
+	$('.octicon-search').on('click', function() {
+		find_result($(".item-search-input").val());
+	})
+	$(".form-search").on("submit", function() { return false; });
+});
+</script>

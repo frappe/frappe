@@ -9,7 +9,7 @@ def execute():
 		("desk", ("feed", "event", "event_role", "todo", "note")),
 		("custom", ("custom_field", "custom_script", "customize_form",
 			 "customize_form_field", "property_setter")),
-		("email", ("bulk_email", "email_alert", "email_alert_recipient", "standard_reply")),
+		("email", ("email_queue", "email_alert", "email_alert_recipient", "standard_reply")),
 		("geo", ("country", "currency")),
 		("print", ("letter_head", "print_format", "print_settings"))
 	)

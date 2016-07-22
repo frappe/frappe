@@ -6,28 +6,32 @@ import frappe, json
 from frappe.desk.form.load import run_onload
 
 @frappe.whitelist()
-def savedocs():
+def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	try:
-		doc = frappe.get_doc(json.loads(frappe.form_dict.doc))
+		doc = frappe.get_doc(json.loads(doc))
 		set_local_name(doc)
 
 		# action
-		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[frappe.form_dict.action]
-		try:
-			doc.save()
-		except frappe.NameError, e:
-			doctype, name, original_exception = e if isinstance(e, tuple) else (doc.doctype or "", doc.name or "", None)
-			frappe.msgprint(frappe._("{0} {1} already exists").format(doctype, name))
-			raise
+		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
+
+		if doc.docstatus==1:
+			doc.submit()
+		else:
+			try:
+				doc.save()
+			except frappe.NameError, e:
+				doctype, name, original_exception = e if isinstance(e, tuple) else (doc.doctype or "", doc.name or "", None)
+				frappe.msgprint(frappe._("{0} {1} already exists").format(doctype, name))
+				raise
 
 		# update recent documents
 		run_onload(doc)
 		frappe.get_user().update_recent(doc.doctype, doc.name)
 		send_updated_docs(doc)
-
 	except Exception:
-		frappe.msgprint(frappe._('Did not save'))
+		if not frappe.local.message_log:
+			frappe.msgprint(frappe._('Did not save'))
 		frappe.errprint(frappe.utils.get_traceback())
 		raise
 

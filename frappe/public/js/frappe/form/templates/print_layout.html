@@ -1,0 +1,33 @@
+<div class="form-print-wrapper">
+	<div class="print-toolbar row">
+		<div class="col-xs-2">
+			<select class="print-preview-select input-sm form-control"></select></div>
+		<div class="col-xs-2">
+			<select class="languages input-sm form-control"></select></div>
+		<div class="col-xs-2">
+			<div class="checkbox small" style="margin-top: 7px; margin-bottom: 0px;">
+                <label>
+                    <input type="checkbox" class="print-letterhead text-muted" style="margin-top: 1px;"/>
+                    {%= __("Letter Head") %}</label>
+            </div>
+        </div>
+		<div class="col-xs-6 text-right">
+            <!-- <a class="close btn-print-close" style="margin-top: 2px; margin-left: 10px;">&times;</a> -->
+            <div class="btn-group">
+                <a class="btn-print-print btn-sm btn btn-default">
+                    <strong>{%= __("Print") %}</strong></a>
+    			<a class="btn-print-edit btn-sm btn btn-default">
+                    {%= __("Customize") %}</a>
+    			<a class="btn-print-preview btn-sm btn btn-default">
+                    {%= __("Full Page") %}</a>
+    			<a class="btn-download-pdf btn-sm btn btn-default">
+                    {%= __("PDF") %}</a>
+            </div>
+		</div>
+	</div>
+	<div class="print-preview-wrapper">
+        <div class="print-preview">
+		    <div class="print-format"></div>
+        </div>
+    </div>
+</div>

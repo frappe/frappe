@@ -9,6 +9,7 @@ from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
 from frappe.model.db_schema import add_column
+from frappe.exceptions import ImplicitCommitError
 
 def validate_comment(doc):
 	"""Raise exception for more than 50 comments."""
@@ -39,6 +40,8 @@ def update_comment_in_doc(doc):
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
 
+	Only user created comments Communication or Comment of type Comment are saved.
+
 	`_comments` format
 
 		{
@@ -47,23 +50,32 @@ def update_comment_in_doc(doc):
 			"name": [Comment Document name]
 		}"""
 
-	if doc.communication_type != "Comment":
+	if doc.communication_type not in ("Comment", "Communication"):
 		return
 
-	if doc.reference_doctype and doc.reference_name and doc.content and doc.comment_type=="Comment":
+	if doc.communication_type == 'Comment' and doc.comment_type != 'Comment':
+		# other updates
+		return
+
+	def get_content(doc):
+		return (doc.content[:97] + '...') if len(doc.content) > 100 else doc.content
+
+	if doc.reference_doctype and doc.reference_name and doc.content:
 		_comments = get_comments_from_parent(doc)
+
 		updated = False
 		for c in _comments:
 			if c.get("name")==doc.name:
-				c["comment"] = doc.content
+				c["comment"] = get_content(doc)
 				updated = True
 
 		if not updated:
 			_comments.append({
-				"comment": doc.content,
+				"comment": get_content(doc),
 				"by": doc.sender or doc.owner,
 				"name": doc.name
 			})
+
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
 
 def notify_mentions(doc):
@@ -92,8 +104,7 @@ def notify_mentions(doc):
 			recipients=recipients,
 			sender=frappe.session.user,
 			subject=subject,
-			message=message,
-			bulk=True
+			message=message
 		)
 
 def get_comments_from_parent(doc):
@@ -109,7 +120,10 @@ def get_comments_from_parent(doc):
 		else:
 			raise
 
-	return json.loads(_comments)
+	try:
+		return json.loads(_comments)
+	except ValueError:
+		return []
 
 def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	"""Updates `_comments` property in parent Document with given dict.
@@ -124,18 +138,18 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			"%s", "%s"), (json.dumps(_comments), reference_name))
 
 	except Exception, e:
-		if e.args[0] == 1054 and frappe.local.request:
+		if e.args[0] == 1054 and getattr(frappe.local, 'request', None):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])
 				+ [(reference_doctype, reference_name, _comments)])
-
 		else:
-			raise
+			raise ImplicitCommitError
 
 	else:
-		reference_doc = frappe.get_doc(reference_doctype, reference_name)
-		if getattr(reference_doc, "get_route", None):
-			clear_cache(reference_doc.get_route())
+		if not frappe.flags.in_patch:
+			reference_doc = frappe.get_doc(reference_doctype, reference_name)
+			if getattr(reference_doc, "route", None):
+				clear_cache(reference_doc.route)
 
 def add_info_comment(**kwargs):
 	kwargs.update({

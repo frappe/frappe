@@ -17,7 +17,6 @@ werkzeug
 semantic_version
 rauth>=0.6.2
 requests
-celery
 redis
 selenium
 -e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
@@ -32,3 +31,7 @@ bleach
 bleach-whitelist
 Pillow
 beautifulsoup4
+rq
+schedule
+cryptography
+zxcvbn

@@ -203,11 +203,11 @@ class UserPermissions:
 
 		d.all_reports = self.get_all_reports()
 		return d
-		
+
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport 
+		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
 		    where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)), as_dict=1)
-			
+
 		return frappe._dict((d.name, d) for d in reports)
 
 def get_user_fullname(user):
@@ -243,7 +243,7 @@ def get_system_managers(only_name=False):
 def add_role(user, role):
 	frappe.get_doc("User", user).add_roles(role)
 
-def add_system_manager(email, first_name=None, last_name=None):
+def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False):
 	# add user
 	user = frappe.new_doc("User")
 	user.update({
@@ -252,7 +252,8 @@ def add_system_manager(email, first_name=None, last_name=None):
 		"enabled": 1,
 		"first_name": first_name or email,
 		"last_name": last_name,
-		"user_type": "System User"
+		"user_type": "System User",
+		"send_welcome_email": 1 if send_welcome_email else 0
 	})
 	user.insert()
 
@@ -286,10 +287,11 @@ def get_enabled_system_users():
 		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
 
 def is_website_user():
-	return frappe.get_user().doc.user_type == "Website User"
+	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"
 
 def is_system_user(username):
 	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})
+
 
 def get_users():
 	from frappe.core.doctype.user.user import get_system_users

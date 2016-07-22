@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-import os, json, sys
+import os, json, sys, subprocess, shutil
 import frappe
 import frappe.database
 import getpass
@@ -14,8 +14,9 @@ import importlib
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
-from frappe.website import render, statics
+from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
+from frappe.utils.password import create_auth_table
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
@@ -39,6 +40,8 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	remove_missing_apps()
 
 	create_auth_table()
+	create_list_settings_table()
+
 	frappe.flags.in_install_db = False
 
 def get_current_host():
@@ -66,10 +69,12 @@ def create_database_and_user(force, verbose):
 	# close root connection
 	frappe.db.close()
 
-def create_auth_table():
-	frappe.db.sql_ddl("""create table if not exists __Auth (
-		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
-		`password` VARCHAR(180) NOT NULL
+def create_list_settings_table():
+	frappe.db.sql_ddl("""create table if not exists __ListSettings (
+		`user` VARCHAR(180) NOT NULL,
+		`doctype` VARCHAR(180) NOT NULL,
+		`data` TEXT,
+		UNIQUE(user, doctype)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 
 def import_db_from_sql(source_sql, verbose):
@@ -125,6 +130,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	sync_from_app(name)
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+
 	add_to_installed_apps(name)
 
 	if set_as_patched:
@@ -201,7 +208,6 @@ def remove_app(app_name, dry_run=False):
 def post_install(rebuild_website=False):
 	if rebuild_website:
 		render.clear_cache()
-		statics.sync().start()
 
 	init_singles()
 	frappe.db.commit()
@@ -244,16 +250,17 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
-def update_site_config(key, value):
+def update_site_config(key, value, validate=True):
 	"""Update a value in site_config"""
 	with open(get_site_config_path(), "r") as f:
 		site_config = json.loads(f.read())
 
-	# int
-	try:
-		value = int(value)
-	except ValueError:
-		pass
+	# In case of non-int value
+	if validate:
+		try:
+			value = int(value)
+		except ValueError:
+			pass
 
 	# boolean
 	if value in ("False", "True"):
@@ -336,6 +343,43 @@ def check_if_ready_for_barracuda():
 			print "="*80
 			sys.exit(1)
 			# raise Exception, "MariaDB needs to be configured!"
+
+def extract_sql_gzip(sql_gz_path):
+	success = -1
+	try:
+		subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
+	except Exception as subprocess.CalledProcessError:
+		print subprocess.CalledProcessError.output
+	finally:
+	# subprocess.check_call returns '0' on success. On success, return path to sql file
+		return sql_gz_path[:-3]
+
+def extract_tar_files(site_name, file_path, folder_name):
+	# Need to do frappe.init to maintain the site locals
+	frappe.init(site=site_name)
+	abs_site_path = os.path.abspath(frappe.get_site_path())
+
+	# While creating tar files during backup, a complete recursive structure is created.
+	# For example, <site_name>/<private>/<files>/*.*
+	# Shift to parent directory and make it as current directory and do the extraction.
+	_parent_dir = os.path.dirname(abs_site_path)
+	os.chdir(_parent_dir)
+
+	# Copy the files to the parent directory and extract
+	shutil.copy2(os.path.abspath(file_path), _parent_dir)
+
+	# Get the file name splitting the file path on
+	filename = file_path.split('/')[-1]
+	filepath = os.path.join(_parent_dir, filename)
+
+	try:
+		error = subprocess.check_output(['tar', 'xvf', filepath])
+	except Exception as subprocess.CalledProcessError:
+		print subprocess.CalledProcessError.output
+	finally:
+		# On successful extraction delete the tarfile to avoid any abuse through command line
+		os.remove(filepath)
+		frappe.destroy()
 
 expected_config_for_barracuda = """[mysqld]
 innodb-file-format=barracuda

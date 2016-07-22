@@ -1,0 +1,114 @@
+<div class="padding" style="max-width: 800px;">
+	{% if limits.expiry %}
+		<h3>{{ __("Expires in {0} days", [days_to_expiry]) }}</h3>
+		{{ __("Renew before: {0}", [expires_on]) }}
+		<br><br>
+	{% endif %}
+
+	{% if limits.users %}
+	    {% var users_percent = ((enabled_users / limits.users) * 100); %}
+	    <h3>{{ __("Users") }}</h3>
+
+	    <div class="progress">
+	        <div class="progress-bar progress-bar-{%= (users_percent < 75 ? "success" : "warning") %}" style="width: {{ users_percent }}%">
+	        </div>
+	    </div>
+
+	    <table class="table table-bordered">
+	        <thead>
+	            <tr>
+	                <th style="width: 33%">{{ __("Current Users") }}</th>
+	                <th style="width: 33%">{{ __("Max Users") }}</th>
+	                <th style="width: 33%">{{ __("Remaining") }}</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <tr>
+	                <td>{%= enabled_users %}</td>
+	                <td>{%= limits.users %}</td>
+	                <td class="{%= users_percent < 75 ? "" : "text-warning" %}">{%= limits.users - enabled_users %}</td>
+	            </tr>
+	        </tbody>
+	    </table>
+	    <br>
+	{% endif %}
+
+	{% if limits.emails %}
+	    <h3>{{ __("Emails sent this month") }}</h3>
+
+	    {% var email_percent = (( emails_sent / limits.emails ) * 100); %}
+	    {% var emails_remaining = (limits.emails - emails_sent) %}
+
+	    <div class="progress">
+	        <div class="progress-bar progress-bar-{%= (email_percent < 75 ? "success" : "warning") %}" style="width: {{ email_percent }}%">
+	        </div>
+	    </div>
+
+	    <table class="table table-bordered">
+	        <thead>
+	            <tr>
+	                <th style="width: 33%">{{ __("Emails Sent") }}</th>
+	                <th style="width: 33%">{{ __("Max Emails") }}</th>
+	                <th style="width: 33%">{{ __("Remaining") }}</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <tr>
+	                <td>{%= emails_sent %}</td>
+	                <td>{%= limits.emails %}</td>
+	                <td class="{%= (email_percent < 75) ? "" : "text-warning" %}">{%= emails_remaining %}</td>
+	            </tr>
+	        </tbody>
+	    </table>
+	    <br>
+	{% endif %}
+
+	{% if limits.space %}
+	    <h3>{{ __("Space usage") }}</h3>
+
+	    {% var database_percent = ((limits.space_usage.database_size / limits.space) * 100); %}
+	    {% var files_percent = ((limits.space_usage.files_size / limits.space) * 100); %}
+	    {% var backup_percent = ((limits.space_usage.backup_size / limits.space) * 100); %}
+
+	    <div class="progress">
+	        <div class="progress-bar progress-bar-success" style="width: {%= database_percent %}%">
+	        </div>
+	        <div class="progress-bar progress-bar-info" style="width: {%= files_percent %}%">
+	        </div>
+	        <div class="progress-bar progress-bar-warning" style="width: {%= backup_percent %}%">
+	        </div>
+	    </div>
+
+	    <table class="table table-bordered">
+	        <thead>
+	            <tr>
+	                <th style="width: 50%">{{ __("Type") }} </th>
+	                <th style="width: 50%">{{ __("Size (MB)") }}</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <tr>
+	                <td><span class="indicator-right green">{{ __("Database Size") }}</span></td>
+	                <td>{%= limits.space_usage.database_size %} MB</td>
+	            </tr>
+	            <tr>
+	                <td><span class="indicator-right purple">{{ __("Files Size") }}</span></td>
+	                <td>{%= limits.space_usage.files_size %} MB</td>
+	            </tr>
+	            <tr>
+	                <td><span class="indicator-right orange">{{ __("Backup Size") }}</span></td>
+	                <td>{%= limits.space_usage.backup_size %} MB</td>
+	            </tr>
+	            <tr>
+	                <td><b>{{ __("Total") }}</b></td>
+	                <td><b>{%= limits.space_usage.total %} MB</b></td>
+	            </tr>
+	            <tr>
+	                <td><b>{{ __("Remaining") }}</b></td>
+	                <td class="{%= ((limits.space - limits.space_usage.total) > 50) ? "" : "text-warning" %}">
+	                    <b>{%= flt(limits.space - limits.space_usage.total, 2) %} MB</b></td>
+	            </tr>
+	        </tbody>
+	    </table>
+	{% endif %}
+</div>

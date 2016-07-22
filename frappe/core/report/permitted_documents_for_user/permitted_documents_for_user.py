@@ -9,11 +9,19 @@ from frappe.permissions import check_admin_or_system_manager
 from frappe.model.db_schema import type_map
 
 def execute(filters=None):
-	user, doctype = filters.get("user"), filters.get("doctype")
+	user, doctype, show_permissions = filters.get("user"), filters.get("doctype"), filters.get("show_permissions")
 	validate(user, doctype)
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
+
+	if show_permissions:
+ 		columns = columns + ["Read", "Write", "Create", "Delete", "Submit", "Cancel", "Amend", "Print", "Email",
+ 		                     "Report", "Import", "Export", "Share"]
+ 		data = list(data)
+ 		for i,item in enumerate(data):
+ 			temp = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, item[0]), False,user)
+ 			data[i] = item+(temp.get("read"),temp.get("write"),temp.get("create"),temp.get("delete"),temp.get("submit"),temp.get("cancel"),temp.get("amend"),temp.get("print"),temp.get("email"),temp.get("report"),temp.get("import"),temp.get("export"),temp.get("share"),)
 
 	return columns, data
 

@@ -14,7 +14,7 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 integer_docfield_properties = ("reqd", "search_index", "in_list_view", "permlevel",
 	"hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide",
 	"in_filter", "no_copy", "print_hide", "unique")
-optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by")
+optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 
 def rename(doctype, old, new, debug=False):
 	import frappe.model.rename_doc

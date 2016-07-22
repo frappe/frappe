@@ -29,6 +29,12 @@
 	body:last-child .print-format td img {
 		width: 100% !important;
 	}
+
+	@media(max-width: 767px) {
+		.print-format {
+			padding: 0.2in;
+		}
+	}
 }
 
 @media print {
@@ -36,6 +42,36 @@
 		margin-left: 1px;
 		margin-right: 1px;
 	}
+}
+
+.data-field {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.important .value {
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.important label {
+	line-height: 1.8;
+	margin: 0px;
+}
+
+.table {
+	margin: 20px 0px;
+}
+
+.square-image {
+	width: 100%;
+	height: 0;
+	padding: 50% 0;
+	/*background-size: contain;*/
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center;
+	border-radius: 4px;
 }
 
 .pdf-variables,
@@ -55,7 +91,7 @@
 }
 
 .print-heading {
-	border-bottom: 2px solid #aaa;
+	border-bottom: 1px solid #aaa;
 	margin-bottom: 10px;
 }
 

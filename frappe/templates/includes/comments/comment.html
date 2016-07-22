@@ -4,13 +4,12 @@
 			<img itemprop="thumbnailUrl" src="{{ frappe.get_gravatar(comment.sender) }}" />
 		</div>
 	</div>
-	<div class="inline-block" style="width: calc(100% - 100px)">
-		<h4 itemprop="name">{{ comment.sender_full_name }}
-		<br>
-		<small class="text-muted">
-			<span itemprop="commentTime">{{ comment.creation|global_date_format }}</span>
-		</small>
-		</h4>
+	<div class="inline-block" style="width: calc(100% - 50px)">
+		<h6 itemprop="name">{{ comment.sender_full_name }}
+			<span class="text-muted pull-right" itemprop="commentTime">
+				{{ comment.creation|global_date_format }}
+			</span>
+		</h6>
 		<div itemprop="commentText">{{ comment.content|markdown }}</div>
 	</div>
 </div>

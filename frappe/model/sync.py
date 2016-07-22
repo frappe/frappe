@@ -54,7 +54,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
-	document_type = ['doctype', 'page', 'report', 'print_format', 'website_theme']
+	document_type = ['doctype', 'page', 'report', 'print_format', 'website_theme', 'web_form']
 	for doctype in document_type:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):

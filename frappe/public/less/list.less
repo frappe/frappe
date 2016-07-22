@@ -8,6 +8,22 @@
 	min-height: 200px;
 }
 
+.sort-selector {
+	.dropdown:hover {
+		text-decoration: underline;
+	}
+}
+
+.list-filters {
+	position: relative;
+
+	.sort-selector {
+		position: absolute;
+		top: 15px;
+		right: 15px;
+	}
+}
+
 .show_filters {
 	padding: 15px 15px 0px;
 	border-bottom: 1px solid @border-color;
@@ -15,6 +31,11 @@
 
 .set-filters {
 	padding-bottom: 4px;
+	padding-right: 120px;
+
+	@media (max-width: @screen-xs) {
+		padding-right: 80px;
+	}
 }
 
 .set-filters .btn {
@@ -85,7 +106,11 @@
 }
 
 .list-row:hover, .grid-row:hover {
-	background: @panel-bg;
+	background-color: @panel-bg;
+}
+
+.no-hover:hover {
+	background-color: transparent !important;
 }
 
 .list-row:last-child {
@@ -197,6 +222,10 @@
 	font-weight: bold;
 }
 
+.list-id.seen {
+	font-weight: normal;
+}
+
 .list-col {
 	height: 20px;
 }
@@ -223,4 +252,62 @@
 	display: inline-block;
 	width: 37px;
 	text-align: left;
+}
+
+.image-view {
+  float: left;
+}
+
+.image-view-subject {
+  padding: inherit;
+}
+
+.image-view-col {
+  padding-bottom: 5px;
+  padding-top: 5px;
+
+  a {
+	  text-decoration: none !important;
+  }
+}
+
+table.field-info {
+  opacity: 0;
+  bottom: -20px;
+  font-size: 8pt;
+  color: white;
+  background-color: @text-color;
+  position: absolute;
+  padding-bottom: 0px !important;
+  border: 0px;
+}
+
+table.field-info tr td {
+    border: none !important;
+}
+
+.zoom-view {
+  top: 10px !important;
+  right: 10px !important;
+  width: 36px;
+  height: 36px;
+  opacity: 0;
+  font-size: 16px;
+  color: @text-color;
+  position: absolute;
+  padding: 0px !important;
+  border-radius: 5px;
+  border: 0px;
+}
+
+.image-field {
+  position: relative;
+}
+
+.image-field:hover .field-info {
+  opacity: 0.7;
+}
+
+.image-field:hover .zoom-view {
+  opacity: 0.6;
 }

@@ -33,7 +33,7 @@ frappe.ui.form.on("ToDo", {
 				}, null, "btn-default");
 			}
 			frm.add_custom_button(__("New"), function() {
-				newdoc("ToDo")
+				frappe.new_doc("ToDo")
 			}, null, "btn-default");
 		}
 	}

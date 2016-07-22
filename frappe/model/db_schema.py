@@ -190,7 +190,7 @@ class DbTable:
 	def get_index_definitions(self):
 		ret = []
 		for key, col in self.columns.items():
-			if col.set_index and col.fieldtype in type_map and \
+			if col.set_index and not col.unique and col.fieldtype in type_map and \
 					type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
@@ -210,6 +210,13 @@ class DbTable:
 				fl.append({
 					"fieldname": fieldname,
 					"fieldtype": "Text"
+				})
+
+			# add _seen column if track_seen
+			if getattr(self.meta, 'track_seen', False):
+				fl.append({
+					'fieldname': '_seen',
+					'fieldtype': 'Text'
 				})
 
 		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
@@ -568,7 +575,7 @@ def get_definition(fieldtype, precision=None, length=None):
 
 	if size:
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
-			size = '18,9'
+			size = '21,9'
 
 		if coltype == "varchar" and length:
 			size = length

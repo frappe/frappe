@@ -1,3 +1,4 @@
 tutorial
+bench
 guides
 videos

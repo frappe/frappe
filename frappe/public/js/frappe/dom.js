@@ -36,6 +36,23 @@ frappe.dom = {
 		});
 		return div.innerHTML;
 	},
+	is_element_in_viewport: function (el) {
+
+	    //special bonus for those using jQuery
+	    if (typeof jQuery === "function" && el instanceof jQuery) {
+	        el = el[0];
+	    }
+
+	    var rect = el.getBoundingClientRect();
+
+	    return (
+	        rect.top >= 0 &&
+	        rect.left >= 0 &&
+	        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+	        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+	    );
+	},
+
 	set_style: function(txt, id) {
 		if(!txt) return;
 
@@ -184,16 +201,6 @@ frappe.get_shade = function(color, factor) {
 		+ get_hex(get_int(color.substr(4,2)) + factor)
 }
 
-frappe.get_cookie = function(c) {
-	var clist = (document.cookie+'').split(';');
-	var cookies = {};
-	for(var i=0;i<clist.length;i++) {
-		var tmp = clist[i].split('=');
-		cookies[strip(tmp[0])] = strip($.trim(tmp.slice(1).join("=")), "\"");
-	}
-	return cookies[c];
-}
-
 frappe.dom.set_box_shadow = function(ele, spread) {
 	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
 	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
@@ -282,3 +289,4 @@ frappe.dom.set_box_shadow = function(ele, spread) {
         return this;
     }
 })(jQuery);
+

@@ -15,7 +15,7 @@ frappe.ready(function() {
 
 		btn.prop("disabled", true);
 		return $.ajax({
-			url:"/api/method/frappe.templates.pages.list.get",
+			url:"/api/method/frappe.www.list.get",
 			data: data,
 			statusCode: {
 				200: function(data) {
@@ -37,4 +37,11 @@ frappe.ready(function() {
 			$(".website-list .more-block").addClass("hide");
 		}
 	};
+	
+	if($('.navbar-header .navbar-toggle:visible').length === 1)
+	{
+		$('.page-head h1').addClass('list-head').click(function(){
+			window.history.back();
+	 	});
+	}
 });

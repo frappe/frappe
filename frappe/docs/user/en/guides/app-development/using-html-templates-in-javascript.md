@@ -14,8 +14,7 @@ To render a template,
 
 From `erpnext/public/js/templates/address_list.js`
 
-
-	<p><button class="btn btn-sm btn-default btn-address">
+	{% raw %}<p><button class="btn btn-sm btn-default btn-address">
 	    <i class="icon-plus"></i> New Address</button></p>
 	{% for(var i=0, l=addr_list.length; i<l; i++) { %}
 	    <hr>
@@ -34,7 +33,7 @@ From `erpnext/public/js/templates/address_list.js`
 	{% } %}
 	{% if(!addr_list.length) { %}
 	<p class="text-muted">{%= __("No address added yet.") %}</p>
-	{% } %}
+	{% } %}{% endraw %}
 
 
 

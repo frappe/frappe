@@ -18,10 +18,10 @@ frappe.standard_pages["test-runner"] = function() {
 		return;
 	}
 
-	frappe.require("assets/frappe/js/lib/jquery/qunit.js");
-	frappe.require("assets/frappe/js/lib/jquery/qunit.css");
+	var requires = ["assets/frappe/js/lib/jquery/qunit.js",
+		"assets/frappe/js/lib/jquery/qunit.css"].concat(route.splice(1).join("/"));
 
-	QUnit.load();
-
-	frappe.require(route.splice(1).join("/"));
+	frappe.require(requires, function() {
+		QUnit.load();
+	});
 }

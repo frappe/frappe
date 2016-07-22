@@ -71,7 +71,7 @@ def run_all_tests(app=None, verbose=False, profile=False):
 				filename = cstr(filename)
 				if filename.startswith("test_") and filename.endswith(".py"):
 					# print filename[:-3]
-					_add_test(path, filename, verbose, test_suite=test_suite)
+					_add_test(app, path, filename, verbose, test_suite=test_suite)
 
 	if profile:
 		pr = cProfile.Profile()
@@ -133,14 +133,22 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 	return out
 
 
-def _add_test(path, filename, verbose, test_suite=None):
+def _add_test(app, path, filename, verbose, test_suite=None):
 	import os, imp
 
 	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
 		# in /doctype/doctype/boilerplate/
 		return
 
-	module = imp.load_source(filename[:-3], os.path.join(path, filename))
+	app_path = frappe.get_pymodule_path(app)
+	relative_path = os.path.relpath(path, app_path)
+	if relative_path=='.':
+		module_name = app
+	else:
+		module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
+			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
+
+	module = frappe.get_module(module_name)
 
 	if getattr(module, "selenium_tests", False) and not frappe.conf.run_selenium_tests:
 		return
@@ -266,6 +274,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 
 			if docstatus == 1:
 				d.submit()
+
 		except frappe.NameError:
 			pass
 

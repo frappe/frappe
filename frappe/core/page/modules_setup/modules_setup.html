@@ -15,10 +15,13 @@
 					{% if user.name == frappe.user %}selected{% endif %}>
 					<!-- {{ variable | e }} "e" or "escape(s)" will escape the characters such "<, >, &, '"
 					in the HTML text (http://jinja.pocoo.org/docs/dev/templates/#escape) -->
-					{{ user.first_name | e or "" }} {{ user.last_name | e or "" }} ({{ user.name }})</option>
+					{{ (user.first_name or "") | e }} {{ (user.last_name or "") | e }} ({{ user.name }})</option>
 				{% endfor %}
 			</select>
 		</div>
+	</div>
+	<div class="block-warning hidden">
+		<div class="alert alert-warning small" style="margin: 0px; margin-top: 15px;">{{ _("Global Settings: Users will only be able to choose checked icons") }}</div>
 	</div>
 </div>
 {% endif %}

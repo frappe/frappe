@@ -4,8 +4,8 @@ If every document in a table (DocType) corresponds to a web-page, you can setup 
 
 To setup a generator you must:
 
-1. Add fields that specify the path of the page
-2. Add a condition field to indicate whether a page is installed or not.
+1. Add a field `route` that specifies the route of the page
+2. Add a condition field to indicate whether a page is viewable or not.
 3. Add the doctype name in `website_generators` in `hooks.py` of your app.
 4. Subclass the controller from `frappe.website.website_generator.WebsiteGenerator`
 5. Create a template for your page
@@ -18,9 +18,9 @@ Let us see this with the help of an example:
 
 #### 1. Add fields
 
-We added `publish`, `page_name`, `parent_website_route` in the DocType
+We added `published`, `route` in the DocType
 
-**Note:** The fields `page_name` and `parent_website_route` are mandatory
+**Note:** The field `route` is mandatory
 
 ![Generator fields]({{ docs_base_path }}/img/generators.png)
 
@@ -45,7 +45,7 @@ In `get_context`, `parents` property will indicate the breadcrumbs
 	class JobOpening(WebsiteGenerator):
 		website = frappe._dict(
 			template = "templates/generators/job_opening.html",
-			condition_field = "publish",
+			condition_field = "published",
 			page_title_field = "job_title",
 		)
 

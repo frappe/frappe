@@ -110,19 +110,30 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 	get_linked_docs: function() {
 		var me = this;
-
 		return frappe.call({
 			method:"frappe.desk.form.linked_with.get_linked_docs",
 			args: {
 				doctype: me.frm.doctype,
 				name: me.frm.docname,
-				linkinfo: me.frm.__linked_doctypes
+				linkinfo: me.frm.__linked_doctypes,
+				for_doctype: me.for_doctype
 			},
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.list.$wrapper.empty();
 
 				if(keys(r.message || {}).length) {
 					$.each(keys(r.message).sort(), function(i, doctype) {
+
+						if (Object.keys(locals.DocType).indexOf(doctype)=== -1) {
+							frappe.model.with_doctype(doctype, function() {
+								if (frappe.listview_settings[doctype]) {
+									// add additional fields to __linked_doctypes
+									me.frm.__linked_doctypes[doctype] = {}
+									me.frm.__linked_doctypes[doctype].add_fields = frappe.listview_settings[doctype].add_fields;
+								}
+							}, /*async*/ false);
+						}
+
 						var listview = frappe.views.get_listview(doctype, me);
 						listview.no_delete = true;
 

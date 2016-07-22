@@ -17,14 +17,14 @@ def add_comment(args=None):
 			'comment_by_fullname': '',
 			'reference_doctype': '',
 			'reference_name': '',
-			'page_name': '',
+			'route': '',
 		}
 	"""
 
 	if not args:
 		args = frappe.local.form_dict
 
-	page_name = args.get("page_name")
+	route = args.get("route")
 
 	doc = frappe.get_doc(args["reference_doctype"], args["reference_name"])
 	comment = doc.add_comment("Comment", args["comment"], comment_by=args["comment_by"])
@@ -33,7 +33,7 @@ def add_comment(args=None):
 	comment.save()
 
 	# since comments are embedded in the page, clear the web cache
-	clear_cache(page_name)
+	clear_cache(route)
 
 	# notify commentors
 	commentors = [d[0] for d in frappe.db.sql("""select sender from `tabCommunication`
@@ -47,9 +47,9 @@ def add_comment(args=None):
 
 	message = _("{0} by {1}").format(frappe.utils.markdown(args.get("comment")), comment.sender_full_name)
 	message += "<p><a href='{0}/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
-		page_name, _("View it in your browser"))
+		route, _("View it in your browser"))
 
-	from frappe.email.bulk import send
+	from frappe.email.queue import send
 
 	send(recipients=recipients,
 		subject = _("New comment on {0} {1}").format(doc.doctype, doc.name),

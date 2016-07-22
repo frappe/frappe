@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
+from frappe.model.utils import render_include
 from frappe import conf, _
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 
@@ -31,7 +32,7 @@ class Page(Document):
 	def validate(self):
 		if self.is_new() and not getattr(conf,'developer_mode', 0):
 			frappe.throw(_("Not in Developer Mode"))
-		
+
 		#setting ignore_permissions via update_setup_wizard_access (setup_wizard.py)
 		if frappe.session.user!="Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
@@ -39,9 +40,12 @@ class Page(Document):
 	# export
 	def on_update(self):
 		"""
-			Writes the .txt for this page and if write_content is checked,
+			Writes the .json for this page and if write_content is checked,
 			it will write out a .html file
 		"""
+		if self.flags.do_not_update_json:
+			return
+
 		from frappe.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self, "roles")
 
@@ -98,7 +102,7 @@ class Page(Document):
 		fpath = os.path.join(path, page_name + '.js')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.script = unicode(f.read(), "utf-8")
+				self.script = render_include(f.read())
 
 		# css
 		fpath = os.path.join(path, page_name + '.css')

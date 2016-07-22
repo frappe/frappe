@@ -15,25 +15,31 @@ def get_notification_config():
 		},
 		"for_other": {
 			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Messages": "frappe.core.notifications.get_unread_messages",
+			"Chat": "frappe.core.notifications.get_unread_messages",
 		}
 	}
 
-def get_things_todo():
+def get_things_todo(as_list=False):
 	"""Returns a count of incomplete todos"""
-	return frappe.get_list("ToDo",
-		fields=["count(*)"],
+	data = frappe.get_list("ToDo",
+		fields=["name", "description"] if as_list else "count(*)",
 		filters=[["ToDo", "status", "=", "Open"]],
 		or_filters=[["ToDo", "owner", "=", frappe.session.user],
 			["ToDo", "assigned_by", "=", frappe.session.user]],
-		as_list=True)[0][0]
+		as_list=True)
 
-def get_todays_events():
+	if as_list:
+		return data
+	else:
+		return data[0][0]
+
+def get_todays_events(as_list=False):
 	"""Returns a count of todays events in calendar"""
 	from frappe.desk.doctype.event.event import get_events
 	from frappe.utils import nowdate
 	today = nowdate()
-	return len(get_events(today, today))
+	events = get_events(today, today)
+	return events if as_list else len(events)
 
 def get_unread_messages():
 	"returns unread (docstatus-0 messages for a user)"
@@ -43,6 +49,7 @@ def get_unread_messages():
 		WHERE communication_type in ('Chat', 'Notification')
 		AND reference_doctype = 'User'
 		AND reference_name = %s
+		and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
 		AND seen=0
 		""", (frappe.session.user,))[0][0]
 
@@ -51,6 +58,7 @@ def get_unseen_likes():
 	return frappe.db.sql("""select count(*) from `tabCommunication`
 		where
 			communication_type='Comment'
+			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
 			and comment_type='Like'
 			and owner is not null and owner!=%(user)s
 			and reference_owner=%(user)s

@@ -1,0 +1,12 @@
+<div class="document-flow">
+	{% for dt in doctypes %}
+	<span class="document-flow-link-wrapper">
+		<a data-doctype="{{ dt }}"
+			class="document-flow-link {% if (dt===frm.doctype) { %} strong disabled {% } %} "
+			style="color: inherit;">
+			<span class="indicator {% if (dt===frm.doctype) { %} blue {% } else { %} darkgrey {% } %}"></span><br>
+			<span class="document-flow-link-label">{{ __(dt) }}</span>
+		</a>
+	</span>
+	{% endfor %}
+</div>

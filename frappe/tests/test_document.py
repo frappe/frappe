@@ -98,7 +98,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_permission(self):
 		frappe.set_user("Guest")
-		d = self.assertRaises(frappe.PermissionError, self.test_insert)
+		self.assertRaises(frappe.PermissionError, self.test_insert)
 		frappe.set_user("Administrator")
 
 	def test_permission_single(self):
@@ -147,7 +147,7 @@ class TestDocument(unittest.TestCase):
 		d.meta.get_field("starts_on").allow_on_submit = 0
 
 		# when comparing date(2014, 1, 1) and "2014-01-01"
-		d.load_from_db()
+		d.reload()
 		d.starts_on = "2014-01-01"
 		d.validate_update_after_submit()
 
@@ -164,7 +164,7 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = xss.replace('<', '&lt;').replace('>', '&gt;')
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
@@ -174,7 +174,7 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = '<div>Test</div>'
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
@@ -184,8 +184,38 @@ class TestDocument(unittest.TestCase):
 		escaped_xss = '<div style="color: red;">Test</div>'
 		d.subject += xss
 		d.save()
-		d.load_from_db()
+		d.reload()
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
+
+	def test_link_count(self):
+		from frappe.model.utils.link_count import update_link_count
+
+		update_link_count()
+
+		doctype, name = 'User', 'test@example.com'
+
+		d = self.test_insert()
+		d.ref_type = doctype
+		d.ref_name = name
+
+		link_count = frappe.cache().get_value('_link_count') or {}
+		old_count = link_count.get((doctype, name)) or 0
+
+		d.save()
+
+		link_count = frappe.cache().get_value('_link_count') or {}
+		new_count = link_count.get((doctype, name)) or 0
+
+		self.assertEquals(old_count + 1, new_count)
+
+		frappe.db.commit()
+		before_update = frappe.db.get_value(doctype, name, 'idx')
+
+		update_link_count()
+
+		after_update = frappe.db.get_value(doctype, name, 'idx')
+
+		self.assertEquals(before_update + new_count, after_update)
 

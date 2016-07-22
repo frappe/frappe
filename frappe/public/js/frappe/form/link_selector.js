@@ -2,7 +2,6 @@
 // MIT License. See license.txt
 
 frappe.ui.form.LinkSelector = Class.extend({
-	_help: __("Dialog box to select a Link Value"),
 	init: function(opts) {
 		/* help: Options: doctype, get_query, target */
 		$.extend(this, opts);
@@ -49,7 +48,6 @@ frappe.ui.form.LinkSelector = Class.extend({
 	search: function() {
 		var args = {
 				txt: this.dialog.fields_dict.txt.get_value(),
-				doctype: this.doctype,
 				searchfield: "name"
 			},
 			me = this;
@@ -65,57 +63,52 @@ frappe.ui.form.LinkSelector = Class.extend({
 					this.target.fieldinfo[this.fieldname].get_query(cur_frm.doc));
 		}
 
-		return frappe.call({
-			method: "frappe.desk.search.search_widget",
-			type: "GET",
-			args: args,
-			callback: function(r) {
-				var parent = me.dialog.fields_dict.results.$wrapper;
-				parent.empty();
-				if(r.values.length) {
-					$.each(r.values, function(i, v) {
-						var row = $(repl('<div class="row link-select-row">\
-							<div class="col-xs-4">\
-								<b><a href="#">%(name)s</a></b></div>\
-							<div class="col-xs-8">\
-								<span class="text-muted">%(values)s</span></div>\
-							</div>', {
-								name: v[0],
-								values: v.splice(1).join(", ")
-							})).appendTo(parent);
+		frappe.link_search(this.doctype, args, function(r) {
+			var parent = me.dialog.fields_dict.results.$wrapper;
+			parent.empty();
+			if(r.values.length) {
+				$.each(r.values, function(i, v) {
+					var row = $(repl('<div class="row link-select-row">\
+						<div class="col-xs-4">\
+							<b><a href="#">%(name)s</a></b></div>\
+						<div class="col-xs-8">\
+							<span class="text-muted">%(values)s</span></div>\
+						</div>', {
+							name: v[0],
+							values: v.splice(1).join(", ")
+						})).appendTo(parent);
 
-						row.find("a")
-							.attr('data-value', v[0])
-							.click(function() {
-								var value = $(this).attr("data-value");
-								var $link = this;
-								if(me.target.is_grid) {
-									// set in grid
-									me.set_in_grid(value);
-								} else {
-									if(me.target.doctype)
-										me.target.parse_validate_and_set_in_model(value);
-									else {
-										me.target.set_input(value);
-										me.target.$input.trigger("change");
-									}
-									me.dialog.hide();
-								}
-								return false;
-							});
+					row.find("a")
+						.attr('data-value', v[0])
+						.click(function() {
+						var value = $(this).attr("data-value");
+						var $link = this;
+						if(me.target.is_grid) {
+							// set in grid
+							me.set_in_grid(value);
+						} else {
+							if(me.target.doctype)
+								me.target.parse_validate_and_set_in_model(value);
+							else {
+								me.target.set_input(value);
+								me.target.$input.trigger("change");
+							}
+							me.dialog.hide();
+						}
+						return false;
 					})
-				} else {
-					$('<div class="alert alert-info">' + __("No Results")
-						+ (frappe.model.can_read(me.doctype) ?
-							('. <a class="new-doc">'
-							+ __("Make a new") + " " + __(me.doctype) + "</a>") : '')
-						+ '</div>').appendTo(parent).find(".new-doc").click(function() {
-							cur_frm.new_doc(me.doctype, me.target);
-						});
-				}
-			},
-			btn: this.dialog.get_primary_btn()
-		});
+				})
+			} else {
+				$('<div class="alert alert-info">' + __("No Results")
+					+ (frappe.model.can_read(me.doctype) ?
+						('. <a class="new-doc">'
+						+ __("Make a new") + " " + __(me.doctype) + "</a>") : '')
+					+ '</div>').appendTo(parent).find(".new-doc").click(function() {
+						me.target.new_doc();
+					});
+			}
+		}, this.dialog.get_primary_btn());
+
 	},
 	set_in_grid: function(value) {
 		var me = this, updated = false;
@@ -147,4 +140,27 @@ frappe.ui.form.LinkSelector = Class.extend({
 			show_alert(__("{0} added", [value]));
 		}
 	}
-})
+});
+
+frappe.link_search = function(doctype, args, callback, btn) {
+	if(!args) {
+		args: {
+			txt: ''
+		}
+	}
+	args.doctype = doctype;
+	if(!args.searchfield) {
+		args.searchfield = 'name';
+	}
+
+	frappe.call({
+		method: "frappe.desk.search.search_widget",
+		type: "GET",
+		args: args,
+		callback: function(r) {
+			callback && callback(r);
+		},
+		btn: btn
+	});
+}
+

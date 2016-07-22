@@ -1,16 +1,16 @@
 {%- set post = doc -%}
-<div class="row web-list-item">
-	<div class="col-xs-12">
-		<h3><a href="/{{ post.page_name }}">{{ post.title }}</a></h3>
-		<p class="post-description">{{ post.content }}</p>
-		<p class="text-muted small post-meta">
-			<a href="/blog?by={{ post.blogger }}&by_name={{ post.full_name }}" class="no-decoration">
-				{{ post.full_name }}</a> / {{ frappe.format_date(post.published_on) }} /
-            <a href="/{{ post.parent_website_route }}" class="no-decoration">{{ post.blog_category }}</a> /
-                {{ post.comment_text }}</p>
+<div class="web-list-item blog-list-item">
+	<div class="row">
+		<div class="col-xs-12">
+			<h1 class="blog-header"><a href="/{{ post.route }}">{{ post.title }}</a></h1>
+			<p class="post-description">{{ post.intro }}</p>
+			<p class="post-by text-muted small">
+				<a href="/blog?by={{ post.blogger }}&by_name={{ post.full_name }}" class="no-decoration">By {{ post.full_name }}</a>
+				<i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }}
+				<i class="blog-dot"></i>
+				<a href="/{{ post.category.route }}" class="no-decoration">{{ post.category.title }}</a>
+				<i class="blog-dot"></i> {{ post.comment_text }}
+			</p>
+		</div>
 	</div>
-    <!-- <div class="col-xs-2 text-center text-muted">
-        <h1 class="blog-day" style="margin-bottom: 5px;">{{ post.day }}</h1>
-        <div class="small">{{ post.month }} {{ post.year }}</div>
-    </div> -->
 </div>

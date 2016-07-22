@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import frappe, os
+import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
 
 def make_boilerplate(dest, app_name):
@@ -17,7 +17,7 @@ def make_boilerplate(dest, app_name):
 	hooks = frappe._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
-	for key in ("App Title (defaut: {0})".format(app_title),
+	for key in ("App Title (default: {0})".format(app_title),
 		"App Description", "App Publisher", "App Email",
 		"App Icon (default 'octicon octicon-file-directory')",
 		"App Color (default 'grey')",
@@ -26,10 +26,8 @@ def make_boilerplate(dest, app_name):
 		hook_val = None
 		while not hook_val:
 			hook_val = cstr(raw_input(key + ": "))
-			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
-				print "App Name must be all lowercase and without spaces"
-				hook_val = ""
-			elif not hook_val:
+
+			if not hook_val:
 				defaults = {
 					"app_title": app_title,
 					"app_icon": "octicon octicon-file-directory",
@@ -38,6 +36,13 @@ def make_boilerplate(dest, app_name):
 				}
 				if hook_key in defaults:
 					hook_val = defaults[hook_key]
+
+			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
+				print "App Name must be all lowercase and without spaces"
+  				hook_val = ""
+			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
+				print "App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+				hook_val = ""
 
 		hooks[hook_key] = hook_val
 

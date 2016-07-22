@@ -9,7 +9,9 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	page.content = $(frappe.templates.modules_setup).appendTo(page.body);
 
 	page.content.find('select[name="setup_for"]').on('change', function() {
-		page.content.find('select[name="user"]').toggle($(this).val() !== "everyone");
+		var val = $(this).val();
+		page.content.find('select[name="user"]').toggle(val !== "everyone");
+		page.content.find('.block-warning').toggleClass('hidden', val !== 'everyone');
 		frappe.reload_modules_setup_icons(page);
 	});
 

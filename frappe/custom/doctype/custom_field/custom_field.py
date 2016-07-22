@@ -60,8 +60,8 @@ class CustomField(Document):
 
 	def validate_insert_after(self, meta):
 		if not meta.get_field(self.insert_after):
-			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', does not exist")
-				.format(self.insert_after, self.label), frappe.DoesNotExistError)
+			frappe.throw(_("Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist")
+				.format(self.insert_after, self.name, self.label), frappe.DoesNotExistError)
 
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
@@ -80,15 +80,16 @@ def create_custom_field_if_values_exist(doctype, df):
 
 
 def create_custom_field(doctype, df):
+	df = frappe._dict(df)
 	if not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
 		frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
-			"permlevel": df.get("permlevel") or 0,
-			"label": df.get("label"),
-			"fieldname": df.get("fieldname"),
-			"fieldtype": df.get("fieldtype"),
-			"options": df.get("options"),
-			"insert_after": df.get("insert_after"),
-			"print_hide": df.get("print_hide")
+			"permlevel": df.permlevel or 0,
+			"label": df.label,
+			"fieldname": df.fieldname or df.label.lower().replace(' ', '_'),
+			"fieldtype": df.fieldtype,
+			"options": df.options,
+			"insert_after": df.insert_after,
+			"print_hide": df.print_hide
 		}).insert()

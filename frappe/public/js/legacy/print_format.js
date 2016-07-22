@@ -42,6 +42,10 @@ _p.preview = function(html) {
 	return w
 }
 
+_f.get_value = function(dt, dn, fn) {
+	if(locals[dt] && locals[dt][dn])
+		return locals[dt][dn][fn];
+}
 
 // _p can be referenced as this inside $.extend
 $.extend(_p, {

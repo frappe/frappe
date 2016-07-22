@@ -182,9 +182,9 @@ frappe.views.GridReport = Class.extend({
 			me.refresh();
 		});
 
-		// plot check
-		if(this.setup_plot_check)
-			this.setup_plot_check();
+		// chart check
+		if(this.setup_chart_check)
+			this.setup_chart_check();
 	},
 	set_filter: function(key, value) {
 		var filters = this.filter_inputs[key];
@@ -354,10 +354,10 @@ frappe.views.GridReport = Class.extend({
 		this.prepare_data();
 		this.round_off_data();
 		this.prepare_data_view();
-		// plot might need prepared data
+		// chart might need prepared data
 		show_alert("Updated", 2);
 		this.render();
-		this.render_plot && this.render_plot();
+		this.setup_chart && this.setup_chart();
 	},
 	setup_dataview_columns: function() {
 		this.dataview_columns = $.map(this.columns, function(col) {
@@ -366,9 +366,10 @@ frappe.views.GridReport = Class.extend({
 	},
 	make: function() {
 		var me = this;
+		this.chart_id = 'chart-' + cstr(cint(Math.random() * 10000000000));
 
-		// plot wrapper
-		this.plot_area = $('<div class="plot"></div>').appendTo(this.wrapper);
+		// chart wrapper
+		this.chart_area = $('<div class="chart" id="'+ this.chart_id +'"></div>').appendTo(this.wrapper);
 
 		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
@@ -515,7 +516,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	check_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<input type="checkbox" data-id="%(id)s" \
-			class="plot-check" %(checked)s>', {
+			class="chart-check" %(checked)s>', {
 				"id": dataContext.id,
 				"checked": dataContext.checked ? 'checked="checked"' : ""
 			})
@@ -660,24 +661,25 @@ frappe.views.GridReport = Class.extend({
 });
 
 frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
-	render_plot: function() {
-		var plot_data = this.get_plot_data ? this.get_plot_data() : null;
-		if(!plot_data) {
-			this.plot_area.toggle(false);
+	setup_chart: function() {
+		var me = this;
+		if (in_list(["Daily", "Weekly"], this.filter_inputs.range.val())) {
+			this.wrapper.find("#" + me.chart_id).toggle(false);
 			return;
 		}
-		frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
-		frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
-
-		this.plot = $.plot(this.plot_area.toggle(true), plot_data,
-			this.get_plot_options());
-
-		this.setup_plot_hover();
+		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
+		
+		this.chart = new frappe.ui.Chart({
+			wrapper: me.wrapper,
+			bind_to: "#" + me.chart_id,
+			data: chart_data
+		});
 	},
-	setup_plot_check: function() {
+
+	setup_chart_check: function() {
 		var me = this;
 		me.wrapper.bind('make', function() {
-			me.wrapper.on("click", ".plot-check", function() {
+			me.wrapper.on("click", ".chart-check", function() {
 				var checked = $(this).prop("checked");
 				var id = $(this).attr("data-id");
 				if(me.item_by_name) {
@@ -689,81 +691,36 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 						if(d.id==id) d.checked = checked;
 					});
 				}
-				me.render_plot();
+				me.setup_chart();
 			});
 		});
 	},
-	setup_plot_hover: function() {
+
+	get_chart_data: function() {
 		var me = this;
-		this.tooltip_id = frappe.dom.set_unique_id();
-		function showTooltip(x, y, contents) {
-			$('<div id="' + me.tooltip_id + '">' + contents + '</div>').css( {
-				position: 'absolute',
-				display: 'none',
-				top: y + 5,
-				left: x + 5,
-				border: '1px solid #fdd',
-				padding: '2px',
-				'background-color': '#fee',
-				opacity: 0.80
-			}).appendTo("body").fadeIn(200);
-		}
-
-		this.previousPoint = null;
-		this.wrapper.find('.plot').bind("plothover", function (event, pos, item) {
-			if (item) {
-				if (me.previousPoint != item.dataIndex) {
-					me.previousPoint = item.dataIndex;
-
-					$("#" + me.tooltip_id).remove();
-					showTooltip(item.pageX, item.pageY,
-						me.get_tooltip_text(item.series.label, item.datapoint[0], item.datapoint[1]));
-				}
+		
+		var plottable_cols = [];
+		$.each(me.columns, function(idx, col) {
+			if(col.formatter==me.currency_formatter && !col.hidden && col.plot!==false) {
+				plottable_cols.push(col.field);
 			}
-			else {
-				$("#" + me.tooltip_id).remove();
-				me.previousPoint = null;
-			}
-	    });
-
-	},
-	get_tooltip_text: function(label, x, y) {
-		var date = dateutil.obj_to_user(new Date(x));
-	 	var value = format_number(y);
-		return value + " on " + date;
-	},
-	get_plot_data: function() {
-		var data = [];
-		var me = this;
+		})
+		
+		var data = {
+			x: 'x',
+			'columns': [['x'].concat(plottable_cols)]
+		};
+		
 		$.each(this.data, function(i, item) {
 			if (item.checked) {
-				data.push({
-					label: item.name,
-					data: $.map(me.columns, function(col, idx) {
-						if(col.formatter==me.currency_formatter && !col.hidden && col.plot!==false) {
-							return me.get_plot_points(item, col, idx)
-						}
-					}),
-					points: {show: true},
-					lines: {show: true, fill: true},
-				});
-
-				// prepend opening
-				data[data.length-1].data = [[dateutil.str_to_obj(me.from_date).getTime(),
-					item.opening]].concat(data[data.length-1].data);
+				var data_points = [item.name];
+				$.each(plottable_cols, function(idx, col) {
+					data_points.push(item[col]);
+				})
+				data["columns"].push(data_points);
 			}
 		});
-
-		return data.length ? data : false;
-	},
-	get_plot_options: function() {
-		return {
-			grid: { hoverable: true, clickable: true },
-			xaxis: { mode: "time",
-				min: dateutil.str_to_obj(this.from_date).getTime(),
-				max: dateutil.str_to_obj(this.to_date).getTime() },
-			series: { downsample: { threshold: 1000 } }
-		}
+		return data
 	}
 });
 

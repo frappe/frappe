@@ -1,0 +1,93 @@
+{% extends "templates/web.html" %}
+
+{% block style %}
+<style>
+	{% include "templates/includes/login/login.css" %}
+</style>
+{% endblock %}
+
+{% block page_content %}
+<!-- {{ for_test }} -->
+
+<div class="login-content">
+	<form class="form-signin form-login" role="form">
+
+		<div class="login_header">Login</div>
+
+		<input type="text" id="login_email"
+			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
+
+		<input type="password" id="login_password"
+			class="form-control" placeholder="{{ _('Password') }}" required>
+
+		<div>
+			<!-- <p style="float:left" class="text-center small"><input type="checkbox" value="remember-me"> Remember me </p> -->
+			<p style="float:right" class="text-center small"><a href="#forgot">{{ _("Forgot Password?") }}</a></p>
+		</div>
+
+		<button class="btn btn-lg btn-default btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
+		<div class='social-logins'>
+
+		{%- if social_login -%}
+			<h5><span>{{ _("Or login with") }}</span></h5>
+
+
+			<p class="text-center" style="margin-top: 15px">
+				{%- if facebook_login is defined %}
+				<a href="{{ facebook_login }}" class="no-decoration btn-social btn-facebook">
+					<i class="icon-facebook-sign icon-2x"></i></a>
+				{%- endif -%}
+
+				{%- if google_login is defined %}
+				<a href="{{ google_login }}" class="no-decoration btn-social btn-google">
+					<i class="icon-google-plus-sign icon-2x"></i></a>
+				{%- endif -%}
+
+				{%- if github_login is defined %}
+				<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
+					<i class="icon-github-sign icon-2x"></i></a>
+				{%- endif -%}
+			</p>
+		{%- endif -%}
+
+	</div>
+
+		<div style="margin-top: 25px">
+		{%- if not disable_signup -%}
+			<p class="text-center small">
+				{{ _("Dont have an account? ") }}<a class="blue" href="#signup">{{ _("Sign up.") }}</a>
+			</p>
+		{%- endif -%}
+		</div>
+		<div class='padding'></div>
+	</form>
+
+	<form class="form-signin form-signup hide" role="form">
+		<input type="text" id="signup_fullname"
+			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
+		<input type="email" id="signup_email"
+			class="form-control" placeholder="{{ _('Email Id') }}" required>
+		<br>
+		<button class="btn btn-lg btn-default btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
+		<p class="text-center small">
+			{{ _("Have an account? ") }}<a href="#login" class="blue">{{ _("Login") }}</a>
+		</p>
+	</form>
+
+	<form class="form-signin form-forgot hide" role="form">
+		<input type="email" id="forgot_email"
+			class="form-control" placeholder="{{ _('Email Id') }}" required autofocus>
+		<br>
+		<button class="btn btn-lg btn-default btn-block btn-forgot" type="submit">{{ _("Send Password") }}</button>
+		<p class="text-center small">
+		<br><a href="#login" class="blue">{{ _("Back to Login") }}</a>
+	</p>
+	</form>
+</div>
+{% endblock %}
+
+{% block script %}
+	<script>{% include "templates/includes/login/login.js" %}</script>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

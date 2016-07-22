@@ -4,7 +4,9 @@ $.extend(cur_frm.cscript, {
 	},
 
 	refresh: function() {
-		cur_frm.disable_save();
+		if(!cur_frm.doc.allow_dropbox_access) {
+			cur_frm.disable_save();
+		}
 	},
 
 	validate_send_notifications_to: function() {
@@ -32,6 +34,13 @@ $.extend(cur_frm.cscript, {
 					}
 				}
 			});
+		}
+	},
+
+	send_backups_to_dropbox: function() {
+		// on disable, save the form
+		if (!cur_frm.doc.send_backups_to_dropbox) {
+			cur_frm.save();
 		}
 	}
 });

@@ -3,7 +3,7 @@
 
 frappe.db = {
 	get_value: function(doctype, filters, fieldname, callback) {
-		frm.call({
+		frappe.call({
 			method: "frappe.client.get_value",
 			args: {
 				doctype: doctype,

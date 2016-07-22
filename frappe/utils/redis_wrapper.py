@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, re, copy
+import redis, frappe, re
 import cPickle as pickle
 from frappe.utils import cstr
 
@@ -125,6 +125,10 @@ class RedisWrapper(redis.Redis):
 			super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
+
+	def hgetall(self, name):
+		return {key: pickle.loads(value) for key, value in
+			super(redis.Redis, self).hgetall(self.make_key(name)).iteritems()}
 
 	def hget(self, name, key, generator=None):
 		if not name in frappe.local.cache:

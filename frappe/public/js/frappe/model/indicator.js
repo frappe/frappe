@@ -7,10 +7,22 @@ frappe.get_indicator = function(doc, doctype) {
 
 	if(!doctype) doctype = doc.doctype;
 
-	var _get_indicator = frappe.listview_settings[doctype]
-			&& frappe.listview_settings[doctype].get_indicator,
-		is_submittable = frappe.model.is_submittable(doctype),
+	var settings = frappe.listview_settings[doctype] || {};
+
+	var is_submittable = frappe.model.is_submittable(doctype),
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
+
+	if(doc.docstatus==3) {
+		return [__("Queued for saving"), "orange", "docstatus,=,3"];
+	}
+
+	if(doc.docstatus==4) {
+		return [__("Queued for submission"), "orange", "docstatus,=,4"];
+	}
+
+	if(doc.docstatus==5) {
+		return [__("Queued for cancellation"), "orange", "docstatus,=,5"];
+	}
 
 	// workflow
 	if(workflow_fieldname) {
@@ -26,7 +38,7 @@ frappe.get_indicator = function(doc, doctype) {
 		}
 	}
 
-	if(is_submittable && doc.docstatus==0) {
+	if(is_submittable && doc.docstatus==0 && !settings.has_indicator_for_draft) {
 		return [__("Draft"), "red", "docstatus,=,0"];
 	}
 
@@ -34,8 +46,8 @@ frappe.get_indicator = function(doc, doctype) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
 	}
 
-	if(_get_indicator) {
-		var indicator = _get_indicator(doc);
+	if(settings.get_indicator) {
+		var indicator = settings.get_indicator(doc);
 		if(indicator) return indicator;
 	}
 

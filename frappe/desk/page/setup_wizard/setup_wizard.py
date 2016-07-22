@@ -4,16 +4,23 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
-from frappe.utils import strip
+from frappe.utils import strip, cint
+from frappe import _
 from frappe.translate import (set_default_language, get_dict,
 	get_lang_dict, send_translations, get_language_from_code)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
+from frappe.utils.password import update_password
+from werkzeug.useragents import UserAgent
 
 @frappe.whitelist()
 def setup_complete(args):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
+
+	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		frappe.throw(_('Setup already complete'))
+
 	args = process_args(args)
 
 	try:
@@ -29,10 +36,12 @@ def setup_complete(args):
 		for method in frappe.get_hooks("setup_wizard_complete"):
 			frappe.get_attr(method)(args)
 
-		frappe.db.set_default('desktop:home_page', 'desktop')
+		disable_future_access()
+
 		frappe.db.commit()
 		frappe.clear_cache()
 	except:
+		frappe.db.rollback()
 		if args:
 			traceback = frappe.get_traceback()
 			for hook in frappe.get_hooks("setup_wizard_exception"):
@@ -43,6 +52,7 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
+
 
 def update_system_settings(args):
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -56,12 +66,13 @@ def update_system_settings(args):
 
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
+		"country": args.get("country"),
 		"language": args.get("language"),
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
-		'enable_scheduler': 1 if not frappe.flags.in_test else 0
+		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 	})
 	system_settings.save()
 
@@ -79,8 +90,7 @@ def update_user_name(args):
 		doc.flags.no_welcome_mail = True
 		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
-		from frappe.auth import _update_password
-		_update_password(args.get("email"), args.get("password"))
+		update_password(args.get("email"), args.get("password"))
 
 	else:
 		args['name'] = frappe.session.user
@@ -123,6 +133,19 @@ def add_all_roles_to(name):
 			d.role = role[0]
 	user.save()
 
+def disable_future_access():
+	frappe.db.set_default('desktop:home_page', 'desktop')
+	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+
+	if not frappe.flags.in_test:
+		# remove all roles and add 'Administrator' to prevent future access
+		page = frappe.get_doc('Page', 'setup-wizard')
+		page.roles = []
+		page.append('roles', {'role': 'Administrator'})
+		page.flags.do_not_update_json = True
+		page.flags.ignore_permissions = True
+		page.save()
+
 @frappe.whitelist()
 def load_messages(language):
 	"""Load translation messages for given language from all `setup_wizard_requires`
@@ -146,3 +169,70 @@ def load_languages():
 		"default_language": get_language_from_code(frappe.local.lang),
 		"languages": sorted(get_lang_dict().keys())
 	}
+
+
+def prettify_args(args):
+	# remove attachments
+	for key, val in args.items():
+		if isinstance(val, basestring) and "data:image" in val:
+			filename = val.split("data:image", 1)[0].strip(", ")
+			size = round((len(val) * 3 / 4) / 1048576.0, 2)
+			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
+
+	pretty_args = []
+	for key in sorted(args):
+		pretty_args.append("{} = {}".format(key, args[key]))
+	return pretty_args
+
+def email_setup_wizard_exception(traceback, args):
+	if not frappe.local.conf.setup_wizard_exception_email:
+		return
+
+	pretty_args = prettify_args(args)
+
+	if frappe.local.request:
+		user_agent = UserAgent(frappe.local.request.headers.get('User-Agent', ''))
+
+	else:
+		user_agent = frappe._dict()
+
+	message = """
+#### Basic Information
+
+- **Site:** {site}
+- **User:** {user}
+- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
+- **Browser Languages**: `{accept_languages}`
+
+---
+
+#### Traceback
+
+<pre>{traceback}</pre>
+
+---
+
+#### Setup Wizard Arguments
+
+<pre>{args}</pre>
+
+---
+
+#### Request Headers
+
+<pre>{headers}</pre>""".format(
+		site=frappe.local.site,
+		traceback=traceback,
+		args="\n".join(pretty_args),
+		user=frappe.session.user,
+		user_agent=user_agent,
+		headers=frappe.local.request.headers,
+		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
+
+	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
+		sender=frappe.session.user,
+		subject="Exception in Setup Wizard - {}".format(frappe.local.site),
+		message=message,
+		delayed=False)
+
+

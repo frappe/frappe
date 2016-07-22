@@ -4,102 +4,371 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-dashboard"></div>')
-		.prependTo(this.frm.layout.wrapper);
-		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
-			.css("padding", "15px 30px");
+		this.wrapper = $(frappe.render_template('form_dashboard',
+			{frm: this.frm})).prependTo(this.frm.layout.wrapper);
+
+		this.headline = this.wrapper.find('.form-headline');
+		this.progress_area = this.wrapper.find(".progress-area");
+		this.heatmap_area = this.wrapper.find('.form-heatmap');
+		this.chart_area = this.wrapper.find('.form-chart');
+		this.stats_area = this.wrapper.find('.form-stats');
+		this.links_area = this.wrapper.find('.form-links');
+		this.transactions_area = this.links_area.find('.transactions');
 
 	},
 	reset: function() {
-		this.wrapper.toggle(false);
-		this.body.empty();
-		this.headline = null;
+		this.wrapper.addClass('hidden');
+		this.clear_headline();
+
+		// clear progress
+		this.progress_area.empty().addClass('hidden');
+
+		// clear links
+		this.links_area.addClass('hidden');
+		this.links_area.find('.count, .open-notification').addClass('hidden');
+
+		// clear stats
+		this.stats_area.empty().addClass('hidden');
+
+		// clear custom
+		this.wrapper.find('.custom').remove();
 	},
 	set_headline: function(html) {
-		if(!this.headline)
-			this.headline =
-				$('<h4 class="form-headline col-md-12"></h4>').prependTo(this.body);
-		this.headline.html(html);
-		this.wrapper.toggle(true);
+		this.headline.html(html).removeClass('hidden');
+		this.show();
 	},
-	set_headline_alert: function(text, alert_class, icon) {
-		if(!alert_class) alert_class = "alert-warning";
-		this.set_headline(repl('<div class="alert %(alert_class)s">%(icon)s%(text)s</div>', {
-			"alert_class": alert_class || "",
-			"icon": icon ? '<i class="'+icon+'" /> ' : "",
-			"text": text
-		}));
-	},
-	add_doctype_badge: function(doctype, fieldname) {
-		if(frappe.model.can_read(doctype)) {
-			this.add_badge(__(doctype), doctype, function() {
-				frappe.route_options = {};
-				frappe.route_options[fieldname] = cur_frm.doc.name;
-				frappe.set_route("List", doctype);
-			}).attr("data-doctype", doctype);
+	clear_headline: function() {
+		if(this.headline) {
+			this.headline.empty().addClass('hidden');
 		}
 	},
-	add_badge: function(label, doctype, onclick) {
-		var badge = $(repl('<div class="col-md-4">\
-			<div class="alert-badge">\
-				<a class="badge-link h6 text-muted">%(label)s\
-				<span class="badge" style="margin-left: 10px; font-size: 12px;">-</span></a>\
-			</div></div>', {label:label}))
-				.appendTo(this.body)
 
-		badge.find(".badge-link").click(onclick);
-		this.wrapper.toggle(true);
-
-		return badge.find(".alert-badge");
-	},
-	set_badge_count: function(data) {
+	add_comment: function(text, permanent) {
 		var me = this;
-		$.each(data, function(doctype, count) {
-			$(me.wrapper)
-				.find(".alert-badge[data-doctype='"+doctype+"'] .badge")
-				.html(cint(count));
-		});
+		this.set_headline_alert(text);
+		if(!permanent) {
+			setTimeout(function() {
+				me.clear_headline();
+			}, 10000);
+		}
 	},
-	add_progress: function(title, percent) {
+
+	clear_comment: function() {
+		this.clear_headline();
+	},
+
+	set_headline_alert: function(text, alert_class) {
+		if(text) {
+			if(!alert_class) alert_class = "alert-warning";
+			this.set_headline(repl('<div class="alert %(alert_class)s">%(text)s</div>', {
+				"alert_class": alert_class || "",
+				"text": text
+			}));
+		} else {
+			this.clear_headline();
+		}
+	},
+
+	add_section: function(html) {
+		return $('<div class="form-dashboard-section custom">'+html+'</div>').appendTo(this.wrapper);
+	},
+
+	add_progress: function(title, percent, message) {
 		var progress_chart = this.make_progress_chart(title);
 
 		if(!$.isArray(percent)) {
-			var width = cint(percent) < 1 ? 1 : percent;
-			var progress_class = "";
-			if(width < 10)
-				progress_class = "progress-bar-danger";
-			if(width > 99.9)
-				progress_class = "progress-bar-success";
-
-			percent = [{
-				title: title,
-				width: width,
-				progress_class: progress_class
-			}];
+			percent = this.format_percent(title, percent);
 		}
 
 		var progress = $('<div class="progress"></div>').appendTo(progress_chart);
 		$.each(percent, function(i, opts) {
-			$(repl('<div class="progress-bar %(progress_class)s" style="width: %(width)s%" \
+			$(repl('<div class="progress-bar %(progress_class)s" style="width: %(width)s" \
 				title="%(title)s"></div>', opts)).appendTo(progress);
 		});
 
-		this.wrapper.toggle(true);
+		if(message) {
+			$('<p class="text-muted small">' + message + '</p>').appendTo(this.progress_area);
+		}
+
+		this.show();
+	},
+	format_percent: function(title, percent) {
+		var width = cint(percent) < 1 ? 1 : cint(percent);
+		var progress_class = "";
+		if(width < 10)
+			progress_class = "progress-bar-danger";
+		if(width > 99.9)
+			progress_class = "progress-bar-success";
+
+		return [{
+			title: title,
+			width: width + '%',
+			progress_class: progress_class
+		}];
 	},
 	make_progress_chart: function(title) {
-		var progress_area = this.body.find(".progress-area");
-		if(!progress_area.length) {
-			progress_area = $('<div class="progress-area" style="margin-top: 10px">').appendTo(this.body);
-		}
 		var progress_chart = $('<div class="progress-chart" title="'+(title || '')+'"></div>')
-			.appendTo(progress_area);
-
-		var n_charts = progress_area.find(".progress-chart").length,
-			cols = Math.floor(12 / n_charts);
-
-		progress_area.find(".progress-chart")
-			.removeClass().addClass("progress-chart col-md-" + cols);
-
+			.appendTo(this.progress_area.removeClass('hidden'));
 		return progress_chart;
+	},
+
+	refresh: function() {
+		this.reset();
+		if(this.frm.doc.__islocal) {
+			return;
+		}
+
+		if(!this.data) {
+			this.init_data();
+		}
+
+		var show = false;
+
+		if(this.data && (this.data.transactions || []).length) {
+			if(this.data.docstatus && this.frm.doc.docstatus !== this.data.docstatus) {
+				// limited docstatus
+				return;
+			}
+			this.render_links();
+			this.set_open_count();
+			show = true;
+		}
+
+		if(this.data.heatmap) {
+			this.render_heatmap();
+			show = true;
+		}
+
+		if(show) {
+			this.show();
+		}
+	},
+
+	init_data: function() {
+		this.data = this.frm.meta.__dashboard || {};
+		if(!this.data.transactions) this.data.transactions = [];
+		if(!this.data.internal_links) this.data.internal_links = {};
+		this.filter_permissions();
+	},
+
+	filter_permissions: function() {
+		// filter out transactions for which the user
+		// does not have permission
+		var transactions = [];
+		(this.data.transactions || []).forEach(function(group) {
+			var items = [];
+			group.items.forEach(function(doctype) {
+				if(frappe.model.can_read(doctype)) {
+					items.push(doctype);
+				}
+			});
+
+			// only add thie group, if there is atleast
+			// one item with permission
+			if(items.length) {
+				group.items = items;
+				transactions.push(group);
+			}
+		});
+		this.data.transactions = transactions;
+	},
+	render_links: function() {
+		var me = this;
+		this.links_area.removeClass('hidden');
+		if(this.data_rendered) {
+			return;
+		}
+
+		$(frappe.render_template('form_links',
+			{transactions: this.data.transactions}))
+			.appendTo(this.transactions_area)
+
+		// bind links
+		this.transactions_area.find(".badge-link").on('click', function() {
+			me.open_document_list($(this).parent());
+		});
+
+		// bind open notifications
+		this.transactions_area.find('.open-notification').on('click', function() {
+			me.open_document_list($(this).parent(), true);
+		});
+
+		this.data_rendered = true;
+	},
+	open_document_list: function($link, show_open) {
+		// show document list with filters
+		var doctype = $link.attr('data-doctype'),
+			names = $link.attr('data-names') || [];
+
+		if(this.data.internal_links[doctype]) {
+			if(names.length) {
+				frappe.route_options = {'name': ['in', names]};
+			} else {
+				return false;
+			}
+		} else {
+			frappe.route_options = this.get_document_filter(doctype);
+			if(show_open) {
+				$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+			}
+		}
+
+		frappe.set_route("List", doctype);
+	},
+	get_document_filter: function(doctype) {
+		// return the default filter for the given document
+		// like {"customer": frm.doc.name}
+		var filter = {};
+		var fieldname = this.data.non_standard_fieldnames
+			? (this.data.non_standard_fieldnames[doctype] || this.data.fieldname)
+			: this.data.fieldname;
+		filter[fieldname] = this.frm.doc.name;
+		return filter;
+	},
+	set_open_count: function() {
+		if(!this.data.transactions) {
+			return;
+		}
+
+		// list all items from the transaction list
+		var items = [],
+			me = this;
+
+		this.data.transactions.forEach(function(group) {
+			group.items.forEach(function(item) { items.push(item); });
+		});
+
+		method = this.data.method || 'frappe.desk.notifications.get_open_count';
+
+		frappe.call({
+			type: "GET",
+			method: method,
+			args: {
+				doctype: this.frm.doctype,
+				name: this.frm.doc.name,
+			},
+			callback: function(r) {
+				if(r.message.timeline_data) {
+					me.update_heatmap(r.message.timeline_data);
+				}
+
+				// update badges
+				$.each(r.message.count, function(i, d) {
+					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
+				});
+
+				// update from internal links
+				$.each(me.data.internal_links, function(doctype, link) {
+					var table_fieldname = link[0], link_fieldname = link[1];
+					var names = [];
+					(me.frm.doc[table_fieldname] || []).forEach(function(d) {
+						var value = d[link_fieldname];
+						if(value && names.indexOf(value)===-1) {
+							names.push(value);
+						}
+					});
+					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
+				});
+
+				me.frm.dashboard_data = r.message;
+				me.frm.trigger('dashboard_update');
+			}
+		});
+
+	},
+	set_badge_count: function(doctype, open_count, count, names) {
+		var $link = $(this.transactions_area)
+			.find('.document-link[data-doctype="'+doctype+'"]');
+
+		if(open_count) {
+			$link.find('.open-notification')
+				.removeClass('hidden')
+				.html((open_count > 5) ? '5+' : open_count);
+		}
+
+		if(count) {
+			$link.find('.count')
+				.removeClass('hidden')
+				.html((count > 9) ? '9+' : count);
+		}
+
+		if(this.data.internal_links[doctype]) {
+			if(names && names.length) {
+				$link.attr('data-names', names ? names.join(',') : '');
+			} else {
+				$link.find('a').attr('disabled', true);
+			}
+		}
+	},
+
+	update_heatmap: function(data) {
+		if(this.heatmap) {
+			this.heatmap.update(data);
+		}
+	},
+
+	// heatmap
+	render_heatmap: function() {
+		if(!this.heatmap) {
+			this.heatmap = new CalHeatMap();
+			this.heatmap.init({
+				itemSelector: "#heatmap-" + this.frm.doctype,
+				domain: "month",
+				subDomain: "day",
+				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
+				cellSize: 9,
+				cellPadding: 2,
+				domainGutter: 2,
+				range: 12,
+				domainLabelFormat: function(date) {
+					return moment(date).format("MMM").toUpperCase();
+				},
+				displayLegend: false,
+				legend: [5, 10, 15, 20]
+				// subDomainTextFormat: "%d",
+			});
+
+			// center the heatmap
+			this.heatmap_area.removeClass('hidden').find('svg').css({'margin': 'auto'});
+
+			// message
+			var heatmap_message = this.heatmap_area.find('.heatmap-message');
+			if(this.data.heatmap_message) {
+				heatmap_message.removeClass('hidden').html(this.data.heatmap_message);
+			} else {
+				heatmap_message.addClass('hidden');
+			}
+ 		}
+	},
+
+	// stats
+	add_stats: function(html) {
+		this.stats_area.html(html).removeClass('hidden');
+		this.show();
+	},
+
+	//graphs
+	setup_chart: function(opts) {
+		var me = this;
+
+		this.chart_area.removeClass('hidden');
+
+		$.extend(opts, {
+			wrapper: me.wrapper,
+			bind_to: ".form-chart",
+			padding: {
+				right: 30,
+				bottom: 30
+			}
+		});
+
+		this.chart = new frappe.ui.Chart(opts);
+		if(this.chart) {
+			this.show();
+			this.chart.set_chart_size(me.wrapper.width() - 60);
+		}
+	},
+	show: function() {
+		this.wrapper.removeClass('hidden');
 	}
 });

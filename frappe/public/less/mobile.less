@@ -1,29 +1,23 @@
 @import "variables.less";
 @import "mixins.less";
-@import "offcanvas.less";
+
+html {
+	min-height: 100%;
+}
+
+body {
+	height: 100%;
+	 // The html and body elements cannot have any padding or margin. 
+	margin: 0px;
+	padding: 0px !important;
+}
+
+html,
+body {
+	overflow-x: hidden;  //Prevent scroll on narrow devices 
+}
 
 @media(max-width: 991px) {
-	input[type='checkbox'] {
-	    -webkit-appearance:none;
-	    width: 12px;
-	    height: 12px;
-	    background: white;
-	    border-radius: 6px;
-	    border: 1px solid @border-color;
-		display: inline-block;
-	}
-	input[type='checkbox']:checked {
-	    background: @checkbox-color;
-		border-color: @checkbox-color;
-	}
-	input.list-select-all {
-		margin-top: 0px;
-	}
-	.input-area input[type='checkbox'] {
-		margin-top: 2px;
-		margin-left: -23px;
-	}
-
 	.intro-area,
 	.footnote-area {
 		padding: 15px;
@@ -39,27 +33,32 @@
 
 	body[data-route^="Form"] {
 		.page-title h1 {
-			margin-top: 14px;
+			margin-top: 12px;
 		}
 
 		.page-title .indicator {
-			display: block;
-			margin-top: -9px;
-			margin-bottom: 3px;
+			display: inline-block;
+			margin-top: 12px;
 		}
 
 		.page-actions {
-			padding-top: 10px !important;
+			padding-top: 20px !important;
 			padding-bottom: 0px !important;
 			padding-left: 0px !important;
 		}
 
 		.page-head .sub-heading {
+			font-weight: normal;
+			font-size: 10px;
 			display: block;
 			position: absolute;
-			bottom: -30px;
-			right: 5px;
+			right: 140px;
 			min-width: 200px;
+		}
+
+		.title-text {
+			margin-top: 10px;
+			//margin-left: 10px;
 		}
 	}
 
@@ -88,6 +87,12 @@
 	#navbar-breadcrumbs {
 		margin: 0px;
 		display: inline-block;
+
+		li {
+			max-width: 150px;
+			white-space: nowrap;
+			overflow: hidden;
+		}
 	}
 
 	#navbar-breadcrumbs > li,
@@ -108,8 +113,6 @@
 	.navbar-nav {
 		margin: 0px;
 	}
-
-	.offcanvas-mobile-mixin();
 
 	.sidebar .form-group {
 		margin-bottom: 0px;
@@ -188,7 +191,27 @@
 	body[data-route=""],
 	body[data-route="desktop"] {
 		.navbar .navbar-home {
+			// display: none !important;
+			padding: 8px 10px;
+			&:before {
+				display: none;
+			}
+			img {
+				margin-top: 0;
+			}
+		}
+
+		.toggle-sidebar {
 			display: none !important;
+		}
+	}
+
+	body[data-sidebar="0"] {
+		.toggle-sidebar {
+			display: none !important;
+		}
+		#navbar-breadcrumbs, .navbar-home {
+			margin-left: 15px !important;
 		}
 	}
 
@@ -325,12 +348,12 @@
 		}
 	}
 
-	// messages
-	body[data-route^="messages"] {
+	// chat
+	body[data-route^="chat"] {
 		.navbar-center-show;
 	}
 
-	#page-messages {
+	#page-chat {
 		.layout-side-section {
 			position: relative;
 			left: 0px;
@@ -353,7 +376,7 @@
 		.module-sidebar-item {
 			margin: 0px;
 
-			.messages-sidebar-link {
+			.chat-sidebar-link {
 				padding: 15px;
 			}
 		}
@@ -387,8 +410,8 @@
 	}
 
 	body[data-route^="Form"] {
-		.page-title .indicator {
-			margin-top: 1px;
+		.page-head .sub-heading {
+			right: 90px;
 		}
 	}
 }
