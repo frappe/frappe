@@ -32,14 +32,14 @@ class TestScheduler(TestCase):
 
 		# maintain last_event and next_event on the same day
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
-		next_event = last_event + relativedelta(minute=30)
+		next_event = last_event + relativedelta(minutes=30)
 
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertFalse("all" in frappe.flags.ran_schedulers)
 
 		# maintain last_event and next_event on the same day
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
-		next_event = last_event + relativedelta(hour=2)
+		next_event = last_event + relativedelta(hours=2)
 
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
