@@ -93,6 +93,8 @@ class EmailAccount(Document):
 		if self.enable_outgoing:
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
+			if not self.password:
+				frappe.throw(_("{0} is required").format("Password"))	
 
 			server = SMTPServer(login = getattr(self, "login_id", None) \
 					or self.email_id,
@@ -105,6 +107,9 @@ class EmailAccount(Document):
 
 	def get_server(self, in_receive=False):
 		"""Returns logged in POP3 connection object."""
+		if not self.password:
+			frappe.throw(_("{0} is required").format("Password"))
+			
 		args = {
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
