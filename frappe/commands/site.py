@@ -111,6 +111,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 @pass_context
 def reinstall(context):
 	"Reinstall site ie. wipe all data and start over"
+	click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
 	site = get_site(context)
 	try:
 		frappe.init(site=site)
@@ -180,7 +181,7 @@ def disable_user(context, email):
 		user = frappe.get_doc("User", email)
 		user.enabled = 0
 		user.save(ignore_permissions=True)
-		frappe.db.commit() 
+		frappe.db.commit()
 
 
 @click.command('migrate')
