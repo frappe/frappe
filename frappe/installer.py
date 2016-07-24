@@ -345,41 +345,35 @@ def check_if_ready_for_barracuda():
 			# raise Exception, "MariaDB needs to be configured!"
 
 def extract_sql_gzip(sql_gz_path):
-	success = -1
 	try:
-		subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
-	except Exception as subprocess.CalledProcessError:
-		print subprocess.CalledProcessError.output
-	finally:
-	# subprocess.check_call returns '0' on success. On success, return path to sql file
-		return sql_gz_path[:-3]
+		success = subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
+	except:
+		raise
+
+	path = sql_gz_path[:-3] if success else None
+
+	return path
 
 def extract_tar_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
 	frappe.init(site=site_name)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
 
-	# While creating tar files during backup, a complete recursive structure is created.
-	# For example, <site_name>/<private>/<files>/*.*
-	# Shift to parent directory and make it as current directory and do the extraction.
-	_parent_dir = os.path.dirname(abs_site_path)
-	os.chdir(_parent_dir)
-
 	# Copy the files to the parent directory and extract
-	shutil.copy2(os.path.abspath(file_path), _parent_dir)
+	shutil.copy2(os.path.abspath(file_path), abs_site_path)
 
 	# Get the file name splitting the file path on
-	filename = file_path.split('/')[-1]
-	filepath = os.path.join(_parent_dir, filename)
+	tar_name = os.path.split(file_path)[1]
+	tar_path = os.path.join(abs_site_path, tar_name)
 
 	try:
-		error = subprocess.check_output(['tar', 'xvf', filepath])
-	except Exception as subprocess.CalledProcessError:
-		print subprocess.CalledProcessError.output
+		subprocess.check_output(['tar', 'xvf', tar_path, '--strip', '2'], cwd=abs_site_path)
+	except:
+		raise
 	finally:
-		# On successful extraction delete the tarfile to avoid any abuse through command line
-		os.remove(filepath)
 		frappe.destroy()
+
+	return tar_path
 
 expected_config_for_barracuda = """[mysqld]
 innodb-file-format=barracuda

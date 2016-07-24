@@ -76,7 +76,7 @@ class File(NestedSet):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
 			self.file_size = self.get_folder_size()
-			frappe.db.set_value("File", self.name, "file_size", self.file_size)
+			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
 				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
@@ -93,7 +93,7 @@ class File(NestedSet):
 	def update_parent_folder_size(self):
 		"""Update size of parent folder"""
 		if self.folder and not self.is_folder: # it not home
-			frappe.get_doc("File", self.folder).save(ignore_permissions=True)
+			frappe.get_doc("File", self.folder).set_folder_size()
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""

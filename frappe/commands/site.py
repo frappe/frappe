@@ -100,15 +100,22 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
-		extract_tar_files(site, with_public_files, 'public')
+		public = extract_tar_files(site, with_public_files, 'public')
+		os.remove(public)
 
 	if with_private_files:
-		extract_tar_files(site, with_private_files, 'private')
+		private = extract_tar_files(site, with_private_files, 'private')
+		os.remove(private)
 
 @click.command('reinstall')
+@click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context):
+def reinstall(context, yes=False):
 	"Reinstall site ie. wipe all data and start over"
+
+	if not yes:
+		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
+
 	site = get_site(context)
 	try:
 		frappe.init(site=site)
@@ -178,7 +185,7 @@ def disable_user(context, email):
 		user = frappe.get_doc("User", email)
 		user.enabled = 0
 		user.save(ignore_permissions=True)
-		frappe.db.commit() 
+		frappe.db.commit()
 
 
 @click.command('migrate')
