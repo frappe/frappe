@@ -68,6 +68,7 @@ def get_desktop_icons(user=None):
 
 				# if blocked, hidden too!
 				if standard_icon.blocked:
+					standard_icon.hidden = 1
 					standard_icon.hidden_in_standard = 1
 
 				user_icons.append(standard_icon)
