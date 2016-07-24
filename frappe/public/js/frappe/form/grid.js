@@ -718,7 +718,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var me = this;
 		// show static for field based on
 		// whether grid is editable
-		if(this.grid.is_editable() && this.doc && show !== false) {
+		if(this.grid.allow_on_grid_editing() && this.grid.is_editable() && this.doc && show !== false) {
 
 			// disable other editale row
 			if(frappe.ui.form.editable_row
