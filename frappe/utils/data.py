@@ -568,8 +568,20 @@ def get_url(uri=None, full_address=False):
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
 			host_name = protocol + frappe.local.request.host
+
 		elif frappe.local.site:
-			host_name = "http://{}".format(frappe.local.site)
+			protocol = 'http://'
+
+			if frappe.local.conf.ssl_certificate:
+				protocol = 'https://'
+
+			elif frappe.local.conf.wildcard:
+				domain = frappe.local.conf.wildcard.get('domain')
+				if domain and frappe.local.site.endswith(domain) and frappe.local.conf.wildcard.get('ssl_certificate'):
+					protocol = 'https://'
+
+			host_name = protocol + frappe.local.site
+
 		else:
 			host_name = frappe.db.get_value("Website Settings", "Website Settings",
 				"subdomain")
