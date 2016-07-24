@@ -155,6 +155,12 @@ def has_permission(doctype, docname, perm_type="read"):
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
 
 @frappe.whitelist()
+def get_password(doctype, name, fieldname):
+	frappe.only_for("System Manager")
+	return frappe.get_doc(doctype, name).get_password(fieldname)
+
+
+@frappe.whitelist()
 def get_js(items):
 	items = json.loads(items)
 	out = []
