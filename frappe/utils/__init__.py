@@ -127,7 +127,12 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=md5.md5(email).hexdigest())
+	if not isinstance(email, unicode):
+		email = unicode(email, 'utf-8')
+
+	hexdigest = md5.md5(email).hexdigest()
+
+	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:
 		res = requests.get(gravatar_url)
 		if res.status_code==200:
