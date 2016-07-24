@@ -108,10 +108,14 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		os.remove(private)
 
 @click.command('reinstall')
+@click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context):
+def reinstall(context, yes=False):
 	"Reinstall site ie. wipe all data and start over"
-	click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
+
+	if not yes:
+		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
+
 	site = get_site(context)
 	try:
 		frappe.init(site=site)

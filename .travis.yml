@@ -21,7 +21,7 @@ install:
 script:
   - cd ~/frappe-bench
   - bench use test_site
-  - bench reinstall
+  - bench reinstall --yes
   - bench build
   - bench start &
   - sleep 10
