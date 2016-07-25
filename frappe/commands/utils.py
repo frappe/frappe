@@ -118,17 +118,21 @@ def execute(context, method, args=None, kwargs=None):
 
 
 @click.command('add-to-email-queue')
-@click.argument('email')
+@click.argument('email-path')
 @pass_context
-def add_to_email_queue(context, email):
+def add_to_email_queue(context, email_path):
 	"Add an email to the Email Queue"
 	site = get_site(context)
-	with frappe.init_site(site):
-		frappe.connect()
-		kwargs = json.loads(email)
-		kwargs['delayed'] = True
-		frappe.sendmail(**kwargs)
-		frappe.db.commit()
+
+	if os.path.isdir(email_path):
+		with frappe.init_site(site):
+			frappe.connect()
+			for email in os.listdir(email_path):
+				with open(os.path.join(email_path, email)) as email_data: 
+					kwargs = json.load(email_data)
+					kwargs['delayed'] = True
+					frappe.sendmail(**kwargs)
+					frappe.db.commit()
 
 
 @click.command('export-doc')
