@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 """
 
 import frappe, os, re, codecs, json
-from frappe.model.utils import render_include
+from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip
 from jinja2 import TemplateError
 import itertools, operator
@@ -431,7 +431,8 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 	return messages
 
 def get_server_messages(app):
-	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules inside an app"""
+	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules
+		inside an app"""
 	messages = []
 	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
 		for dontwalk in (".git", "public", "locale"):
@@ -487,7 +488,7 @@ def extract_messages_from_code(code, is_py=False):
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
 	try:
 		code = render_include(code)
-	except TemplateError:
+	except (TemplateError, ImportError, InvalidIncludePath):
 		# Exception will occur when it encounters John Resig's microtemplating code
 		pass
 

@@ -23,7 +23,7 @@ def render(path=None, http_status_code=None):
 	data = None
 
 	# if in list of already known 404s, send it
-	if can_cache() and frappe.cache().hget('website_404', path):
+	if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
 		data = render_page('404')
 		http_status_code = 404
 
@@ -41,7 +41,7 @@ def render(path=None, http_status_code=None):
 				frappe.local.form_dict.doctype = doctype
 			else:
 				# 404s are expensive, cache them!
-				frappe.cache().hset('website_404', path, True)
+				frappe.cache().hset('website_404', frappe.request.url, True)
 				data = render_page('404')
 				http_status_code = 404
 
