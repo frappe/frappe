@@ -9,6 +9,7 @@
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Setup", 
+ "editable_grid": 0, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -120,7 +121,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-06-27 12:25:12.502119", 
+ "modified": "2016-07-25 05:24:23.923106", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Category", 
@@ -167,7 +168,7 @@
    "write": 0
   }
  ], 
- "quick_entry": 0, 
+ "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "sort_order": "DESC", 

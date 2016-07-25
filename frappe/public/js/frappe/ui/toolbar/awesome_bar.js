@@ -165,12 +165,15 @@ frappe.search = {
 			_item = __(item).toLowerCase().replace(/-/g, " ");
 			if(txt===_item || _item.indexOf(txt) !== -1) {
 				var option = process(item);
-				option.match = item;
 
-				if(prepend) {
-					frappe.search.options = [option].concat(frappe.search.options);
-				} else {
-					frappe.search.options.push(option);
+				if(option) {
+					option.match = item;
+
+					if(prepend) {
+						frappe.search.options = [option].concat(frappe.search.options);
+					} else {
+						frappe.search.options.push(option);
+					}
 				}
 			}
 		});
@@ -275,12 +278,16 @@ frappe.search.verbs = [
 	// modules
 	function(txt) {
 		frappe.search.find(keys(frappe.modules), txt, function(match) {
+			var module = frappe.modules[match];
+
+			if(module._doctype) return;
+
 			ret = {
 				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
 				value: __("Open {0}", [__(match)]),
 			}
-			if(frappe.modules[match].link) {
-				ret.route = [frappe.modules[match].link];
+			if(module.link) {
+				ret.route = [module.link];
 			} else {
 				ret.route = ["Module", match];
 			}

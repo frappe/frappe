@@ -3,10 +3,12 @@
  "allow_import": 0, 
  "allow_rename": 1, 
  "autoname": "field:role_name", 
+ "beta": 0, 
  "creation": "2013-01-08 15:50:01", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
+ "editable_grid": 0, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -65,13 +67,14 @@
  "hide_toolbar": 0, 
  "icon": "icon-bookmark", 
  "idx": 1, 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-04-20 12:54:08.406706", 
+ "modified": "2016-07-25 05:24:24.406260", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Role", 
@@ -138,7 +141,7 @@
    "write": 0
   }
  ], 
- "quick_entry": 0, 
+ "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "sort_order": "ASC", 

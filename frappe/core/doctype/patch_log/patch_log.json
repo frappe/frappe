@@ -3,12 +3,14 @@
  "allow_import": 0, 
  "allow_rename": 0, 
  "autoname": "PATCHLOG.#####", 
+ "beta": 0, 
  "creation": "2013-01-17 11:36:45", 
  "custom": 0, 
  "description": "List of patches executed", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "System", 
+ "editable_grid": 0, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -39,13 +41,14 @@
  "hide_toolbar": 0, 
  "icon": "icon-cog", 
  "idx": 1, 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-02-22 09:31:31.854246", 
+ "modified": "2016-07-25 05:24:24.847433", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Patch Log", 
@@ -72,6 +75,8 @@
    "write": 0
   }
  ], 
+ "quick_entry": 1, 
  "read_only": 0, 
- "read_only_onload": 0
+ "read_only_onload": 0, 
+ "track_seen": 0
 }

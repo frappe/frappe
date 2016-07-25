@@ -22,6 +22,7 @@ hi	हिंदी
 hr	hrvatski
 hu	magyar
 id	Indonesia
+is	íslenska
 it	italiano
 ja	日本語
 km	ភាសាខ្មែរ

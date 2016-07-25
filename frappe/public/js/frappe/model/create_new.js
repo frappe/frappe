@@ -308,8 +308,7 @@ frappe.new_doc = function (doctype, opts) {
 
 				var route = frappe.get_route();
 				if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
-					show_alert('<a href="#Form/' + doc.doctype + '/' + doc.name + '">'
-						+ __('{0} {1} created', [doc.doctype, strip_html(title)]) + '</a>');
+					frappe.set_route('Form', doc.doctype, doc.name);
 				}
 			});
 		}
