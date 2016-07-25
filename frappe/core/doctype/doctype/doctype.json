@@ -10,6 +10,7 @@
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Document", 
+ "editable_grid": 0, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -398,7 +399,7 @@
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
-   "description": "<a>Naming Options</a>", 
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li></ol>", 
    "fieldname": "autoname", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -1153,7 +1154,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-07-11 14:24:21.223885", 
+ "modified": "2016-07-25 12:18:27.724194", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
