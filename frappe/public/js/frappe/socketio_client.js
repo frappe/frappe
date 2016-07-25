@@ -17,6 +17,9 @@ frappe.socket = {
 		else if (window.location.protocol == "http:") {
 			frappe.socket.socket = io.connect(frappe.socket.get_host());
 		}
+		else if (window.location.protocol == "file:") {
+			frappe.socket.socket = io.connect(window.localStorage.server);
+		}
 
 		if (!frappe.socket.socket) {
 			console.log("Unable to connect to " + frappe.socket.get_host());
