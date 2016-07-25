@@ -12,7 +12,7 @@
 
 Just run: 
 
-    sudo bench setup lets-encrypt [site-name]
+    sudo -H bench setup lets-encrypt [site-name]
 
 You will be faced with several prompts, respond to them accordingly. This command will also add an entry to the crontab of the user that will attempt to renew the certificate every month.
 
