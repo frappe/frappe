@@ -239,7 +239,7 @@ class Document(BaseDocument):
 
 	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
-		self._save(*args, **kwargs)
+		return self._save(*args, **kwargs)
 
 	def _save(self, ignore_permissions=None):
 		"""Save the current document in the database in the **DocType**'s table or
