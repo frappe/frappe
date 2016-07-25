@@ -120,7 +120,8 @@ def get_upgrade_url(upgrade_url):
 	params.update({
 		'site': frappe.local.site,
 		'email': frappe.session.user,
-		'full_name': get_fullname()
+		'full_name': get_fullname(),
+		'country': frappe.db.get_value("System Settings", "System Settings", 'country')
 	})
 
 	query = urllib.urlencode(params, doseq=True)
