@@ -119,7 +119,7 @@ apps/frappe/frappe/config/desk.py +26,Event and other calendars.,事件和其他
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +677,Drag to sort columns,拖动进行排序的列
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,宽度可以设置为px像素或%百分比。
 apps/frappe/frappe/public/js/frappe/form/print.js +99,Start,开始
-DocType: User,First Name,姓
+DocType: User,First Name,名
 apps/frappe/frappe/core/doctype/file/file.py +148,Cannot delete Home and Attachments folders,无法删除首页和附件的文件夹
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,权限基于什么角色，他们被分配在用户得到应用。
 apps/frappe/frappe/public/js/frappe/views/communication.js +373,You are not allowed to send emails related to this document,你不允许发送与此文档相关的电子邮件
@@ -224,7 +224,7 @@ DocType: Top Bar Item,Parent Label,父标签
 apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.",您的问题已收到。我们将尽快回复邮件。如果您有任何其他的信息，请回覆此邮件。
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,权限会自动转换为标准报表和搜索。
 DocType: Event,Repeat Till,重复直到
-apps/frappe/frappe/core/doctype/file/file_list.js +176,New,新
+apps/frappe/frappe/core/doctype/file/file_list.js +176,New,新建
 DocType: System Settings,Loading...,载入中...
 DocType: DocField,Password,密码
 DocType: Blogger,Will be used in url (usually first name).,会用作URL链接(通常是姓)。
@@ -343,7 +343,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +120,
 apps/frappe/frappe/model/document.py +546,Cannot change docstatus from 1 to 0,不能将文档状态由1改为0
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +38,Welcome,欢迎
 apps/frappe/frappe/desk/page/applications/applications.js +95,Installed Apps,已安装的应用程序
-DocType: Communication,Open,开
+DocType: Communication,Open,打开
 DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,定义针对状态的行动，下一步操作和允许的角色。
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",一种最佳的做法是，不要给不同的角色分配同样的权限规则，而是向同一用户分配多个角色。
 DocType: Web Form,Message to be displayed on successful completion,成功后显示的消息
@@ -1032,7 +1032,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +44,Logout,注销
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,在更高级别的权限是现场级的权限。所有领域都对他们权限级别设置，并在该权限适用于该领域中定义的规则。要隐藏或使某些领域的只读某些角色，这是在的情况下非常有用。
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",如果这些说明没有帮助，请在Github提交你的建议。
 DocType: Workflow State,bookmark,书签
-DocType: Note,Note,注
+DocType: Note,Note,笔记
 apps/frappe/frappe/public/html/error_snapshot.html +32,Error Report,错误报告
 apps/frappe/frappe/email/queue.py +100,This email was sent to you as CC,此电子邮件发送给您的CC
 apps/frappe/frappe/core/doctype/doctype/doctype.py +437,Timeline field must be a valid fieldname,时间轴场必须是有效的字段名
