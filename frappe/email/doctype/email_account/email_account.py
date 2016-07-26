@@ -114,7 +114,7 @@ class EmailAccount(Document):
 			"use_imap": self.use_imap
 		}
 		if self.password:
-			args.password = self.get_password()
+			args.update({"password": self.get_password()})
 
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
