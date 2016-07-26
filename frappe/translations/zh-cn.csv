@@ -98,7 +98,7 @@ DocType: Error Snapshot,Friendly Title,友情标题
 DocType: Newsletter,Email Sent?,邮件已发送？
 apps/frappe/frappe/desk/form/save.py +50,Did not cancel,没有取消
 DocType: Workflow State,plus,加
-apps/frappe/frappe/config/desktop.py +19,File Manager,文件管理员
+apps/frappe/frappe/config/desktop.py +19,File Manager,文件管理
 DocType: Scheduler Log,Scheduler Log,计划任务日志
 apps/frappe/frappe/public/js/frappe/misc/user.js +58,You,你
 DocType: Website Theme,lowercase,lowercase
@@ -874,7 +874,7 @@ DocType: Email Alert,Send alert if date matches this field's value,如果日期�
 DocType: Workflow,Transitions,转换
 DocType: User,Login After,登录后
 DocType: Print Format,Monospace,等宽
-apps/frappe/frappe/config/setup.py +165,Printing,印花
+apps/frappe/frappe/config/setup.py +165,Printing,打印
 DocType: Workflow State,thumbs-up,竖起大拇指
 DocType: DocPerm,DocPerm,文档权限
 apps/frappe/frappe/core/doctype/doctype/doctype.py +332,Precision should be between 1 and 6,精度应为1和6之间
@@ -1032,7 +1032,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +44,Logout,注销
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,在更高级别的权限是现场级的权限。所有领域都对他们权限级别设置，并在该权限适用于该领域中定义的规则。要隐藏或使某些领域的只读某些角色，这是在的情况下非常有用。
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",如果这些说明没有帮助，请在Github提交你的建议。
 DocType: Workflow State,bookmark,书签
-DocType: Note,Note,笔记
+DocType: Note,Note,便笺
 apps/frappe/frappe/public/html/error_snapshot.html +32,Error Report,错误报告
 apps/frappe/frappe/email/queue.py +100,This email was sent to you as CC,此电子邮件发送给您的CC
 apps/frappe/frappe/core/doctype/doctype/doctype.py +437,Timeline field must be a valid fieldname,时间轴场必须是有效的字段名
@@ -2009,3 +2009,13 @@ apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,您的登�
 DocType: Dropbox Backup,Send Notifications To,将通知发给
 DocType: Translation,"If your data is in HTML, please copy paste the exact HTML code with the tags.",如果你的数据是HTML，请复制粘贴的标签准确的HTML代码。
 DocType: DocField,Ignore User Permissions,忽略用户权限
+DocType: File,Files,文件
+DocType: File,File,文件
+apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +215,Select uploaded file,选择要上传的文件
+apps/frappe/frappe/public/js/frappe/model/meta.js +148,Last Modified On,最近修改
+apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +140,Most Used,使用最多
+apps/frappe/frappe/config/website.py +84,Portal Settings,门户设置
+DocType: Email Group,Email Group,邮件组
+DocType: Email Group Member,Email Group Member,邮件组成员
+apps/frappe/frappe/config/setup.py +115,Bulk Update,批量更新
+apps/frappe/frappe/desk/page/chat/chat_main.html +12,Ctrl + Enter to post,按Ctrl + Enter提交
