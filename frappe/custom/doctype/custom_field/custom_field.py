@@ -47,7 +47,7 @@ class CustomField(Document):
 
 		# update the schema
 		if (self.fieldname not in frappe.db.get_table_columns(self.dt)
-			or self._old_fieldtype != self.fieldtype):
+			or getattr(self, "_old_fieldtype", None) != self.fieldtype):
 			from frappe.model.db_schema import updatedb
 			updatedb(self.dt)
 
