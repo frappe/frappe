@@ -106,13 +106,13 @@ class EmailAccount(Document):
 
 	def get_server(self, in_receive=False):
 		"""Returns logged in POP3 connection object."""
-			
-		args = {
+
+		args = frappe._dict({
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap
-		}
+		})
 		if self.password:
 			args.password = self.get_password()
 
