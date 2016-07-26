@@ -5,6 +5,8 @@
 
 frappe.provide("frappe.form.formatters");
 
+frappe.form.link_formatters = {};
+
 frappe.form.formatters = {
 	_right: function(value, options) {
 		if(options && options.inline) {
@@ -60,11 +62,16 @@ frappe.form.formatters = {
 			return '<i class="icon-ban-circle text-extra-muted" style="margin-right: 3px;"></i>';
 		}
 	},
-	Link: function(value, docfield, options) {
+	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		if(value && value.match(/^['"].*['"]$/)) {
-			return value.replace(/^.(.*).$/, "$1");
+			value.replace(/^.(.*).$/, "$1");
 		}
+
+		if(frappe.form.link_formatters[doctype]) {
+			value = frappe.form.link_formatters[doctype](value, doc);
+		}
+
 		if(options && options.for_print) {
 			return value;
 		}
