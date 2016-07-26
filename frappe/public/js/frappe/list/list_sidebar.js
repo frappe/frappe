@@ -96,6 +96,8 @@ frappe.views.ListSidebar = Class.extend({
 				// clear and render the headers again while switching
 				me.doclistview.page.main.find(".list-headers").empty();
 				me.doclistview.init_headers();
+				me.doclistview.init_like();
+				me.doclistview.init_select_all();
 
 				me.doclistview.refresh(true);
 			};

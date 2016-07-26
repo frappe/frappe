@@ -33,6 +33,8 @@ class CustomField(Document):
 		if not self.idx:
 			self.idx = len(fieldnames) + 1
 
+		self._old_fieldtype = self.db_get('fieldtype')
+
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
@@ -44,9 +46,10 @@ class CustomField(Document):
 			validate_fields_for_doctype(self.dt)
 
 		# update the schema
-		# if not frappe.flags.in_test:
-		from frappe.model.db_schema import updatedb
-		updatedb(self.dt)
+		if (self.fieldname not in frappe.db.get_table_columns(self.dt)
+			or getattr(self, "_old_fieldtype", None) != self.fieldtype):
+			from frappe.model.db_schema import updatedb
+			updatedb(self.dt)
 
 	def on_trash(self):
 		# delete property setter entries

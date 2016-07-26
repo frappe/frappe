@@ -93,30 +93,28 @@ class EmailAccount(Document):
 		if self.enable_outgoing:
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
-			if not self.password:
-				frappe.throw(_("{0} is required").format("Password"))	
 
 			server = SMTPServer(login = getattr(self, "login_id", None) \
 					or self.email_id,
-				password = self.get_password(),
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
 				use_ssl = cint(self.use_tls)
 			)
+			if self.password:
+				server.password = self.get_password()
 			server.sess
 
 	def get_server(self, in_receive=False):
 		"""Returns logged in POP3 connection object."""
-		if not self.password:
-			frappe.throw(_("{0} is required").format("Password"))
 			
 		args = {
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"password": self.get_password(),
 			"use_imap": self.use_imap
 		}
+		if self.password:
+			args.password = self.get_password()
 
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))

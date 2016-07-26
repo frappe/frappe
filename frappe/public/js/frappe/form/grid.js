@@ -779,6 +779,7 @@ frappe.ui.form.GridRow = Class.extend({
 				.attr('data-col-idx', column.column_index)
 				.attr('placeholder', __(df.label));
 		}
+		this.set_arrow_keys(field);
 		column.field = field;
 		this.on_grid_fields_dict[df.fieldname] = field;
 		this.on_grid_fields.push(field);

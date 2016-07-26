@@ -15,7 +15,7 @@ class WebsiteGenerator(Document):
 	website = frappe._dict(
 		page_title_field = "name"
 	)
-	
+
 	def __init__(self, *args, **kwargs):
 		self.route = None
 		super(WebsiteGenerator, self).__init__(*args, **kwargs)
@@ -35,7 +35,7 @@ class WebsiteGenerator(Document):
 			self.route = self.make_route()
 
 		if self.route:
-			self.route = self.route.strip('/.')
+			self.route = self.route.strip('/.')[:140]
 
 	def make_route(self):
 		return self.scrub(self.get(self.website.page_title_field or "name"))
