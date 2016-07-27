@@ -68,13 +68,14 @@ frappe.form.formatters = {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
+		if(options && options.for_print) {
+			return value;
+		}
+
 		if(frappe.form.link_formatters[doctype]) {
 			value = frappe.form.link_formatters[doctype](value, doc);
 		}
 
-		if(options && options.for_print) {
-			return value;
-		}
 		if(!value) {
 			return "";
 		}
