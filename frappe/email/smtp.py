@@ -29,10 +29,10 @@ def send(email, append_to=None):
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
 
 	except smtplib.SMTPSenderRefused:
-		frappe.msgprint(_("Invalid login or password"))
+		frappe.throw(_("Invalid login or password"), title='Email Failed')
 		raise
 	except smtplib.SMTPRecipientsRefused:
-		frappe.msgprint(_("Invalid recipient address"))
+		frappe.msgprint(_("Invalid recipient address"), title='Email Failed')
 		raise
 
 def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
