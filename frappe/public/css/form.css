@@ -92,6 +92,12 @@
 .form-heatmap .heatmap-message {
   margin-top: 10px;
 }
+@media (max-width: 991px) {
+  .form-heatmap {
+    overflow: hidden;
+    overflow-x: scroll;
+  }
+}
 .inline-graph .inline-graph-half {
   width: 48%;
   display: inline-block;
