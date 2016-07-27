@@ -13,7 +13,7 @@ import os, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = "7.0.6"
+__version__ = "7.0.8"
 
 local = Local()
 
