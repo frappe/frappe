@@ -35,7 +35,7 @@ class WebsiteGenerator(Document):
 			self.route = self.make_route()
 
 		if self.route:
-			self.route = self.route.strip('/.')[:140]
+			self.route = self.route.strip('/.')[:139]
 
 	def make_route(self):
 		return self.scrub(self.get(self.website.page_title_field or "name"))
@@ -49,7 +49,7 @@ class WebsiteGenerator(Document):
 		clear_cache(self.route)
 
 	def scrub(self, text):
-		return quoted(cleanup_page_name(text).replace('_', '-'))
+		return cleanup_page_name(text).replace('_', '-')
 
 	def get_parents(self, context):
 		'''Return breadcrumbs'''
