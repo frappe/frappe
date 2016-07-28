@@ -57,16 +57,18 @@
 }
 #search-modal .modal-header {
   background: #fff;
-  display: table;
   width: 100%;
 }
-#search-modal .modal-header form,
-#search-modal .modal-header button {
-  display: table-cell;
+#search-modal .modal-header form {
   vertical-align: middle;
 }
 #search-modal .modal-header button {
-  height: 30px;
+  line-height: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 9;
+  padding: 9px;
 }
 .dropdown-navbar-new-comments > a {
   border: 0;
