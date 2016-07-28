@@ -511,8 +511,8 @@ class BaseDocument(object):
 					else:
 						reference = "{0} {1}".format(_(self.doctype), self.name)
 
-					frappe.throw(_("{0}: '{1}' will get truncated, as max characters allowed is {2}")\
-						.format(reference, _(df.label), max_length), frappe.CharacterLengthExceededError)
+					frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
+						.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
