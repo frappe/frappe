@@ -405,7 +405,8 @@ fieldset[disabled] .form-control {
 .ui-menu .ui-menu-item {
   font-size: 12px;
 }
-.ui-menu .ui-menu-item a {
+.ui-menu .ui-menu-item a,
+.ui-menu .ui-menu-item div {
   padding: 9px 11.8px !important;
   text-decoration: none;
 }

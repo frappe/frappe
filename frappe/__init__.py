@@ -13,7 +13,7 @@ import os, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = "7.0.8"
+__version__ = "7.0.9"
 
 local = Local()
 
@@ -296,7 +296,7 @@ def throw(msg, exc=ValidationError, title=None):
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
 	from frappe.async import publish_realtime
