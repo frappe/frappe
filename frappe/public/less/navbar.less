@@ -69,15 +69,19 @@
 	}
 	.modal-header {
 		background: #fff;
-		display: table;
 		width: 100%;
 
-		form, button {
-			display: table-cell;
+		form {
 			vertical-align: middle;
 		}
+
 		button {
-			height: 30px;
+			line-height: 0;
+			position: absolute;
+			right: 0;
+			top: 0;
+			z-index: 9;
+			padding: 9px;
 		}
 	}
 }

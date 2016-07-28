@@ -288,7 +288,6 @@ body[data-route^="Module"] .main-menu {
 			box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
 			height: 100%;
 			width: 40%;
-			padding: 25px;
 			display: block !important;
 			transition: transform 200ms ease-in-out;
 
@@ -297,11 +296,35 @@ body[data-route^="Module"] .main-menu {
 				overflow-y: auto;
 			}
 
+			.divider {
+				height: 1px;
+				background-color: #d8dfe5;
+				opacity: 0.7;
+			}
+
+			li:not(.divider):not(.tagit-new):not(.module-sidebar-item) {
+				padding: 10px 15px;
+			}
+
+			.modified-by, .created-by {
+				margin: 0;
+			}
+
+			.badge {
+				top: 9px;
+				right: 15px;
+			}
+
 			.reports-dropdown {
-				margin: 10px 0;
+				margin-top: 10px;
+				margin-bottom: -10px;
 
 				li:not(.divider) {
-					padding: 10px 0;
+					padding: 12.5px 0 !important;
+				}
+
+				li.divider {
+					height: 0;
 				}
 			}
 		}
@@ -334,7 +357,7 @@ body[data-route^="Module"] .main-menu {
 			padding-right: 0;
 
 			.module-link {
-				padding-left: 25px;
+				padding: 15px 15px 15px 25px;
 			}
 		}
 	}
