@@ -63,6 +63,11 @@ def export_json(doctype, path, filters=None, name=None):
 		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
+
+	dirname = os.path.dirname(path)
+	if not os.path.exists(dirname):
+		path = os.path.join('..', path)
+
 	with open(path, "w") as outfile:
 		outfile.write(frappe.as_json(out))
 

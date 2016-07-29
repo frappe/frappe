@@ -128,7 +128,7 @@ def add_to_email_queue(context, email_path):
 		with frappe.init_site(site):
 			frappe.connect()
 			for email in os.listdir(email_path):
-				with open(os.path.join(email_path, email)) as email_data: 
+				with open(os.path.join(email_path, email)) as email_data:
 					kwargs = json.load(email_data)
 					kwargs['delayed'] = True
 					frappe.sendmail(**kwargs)
@@ -152,10 +152,10 @@ def export_doc(context, doctype, docname):
 
 @click.command('export-json')
 @click.argument('doctype')
-@click.argument('name')
 @click.argument('path')
+@click.option('--name', help='Export only one document')
 @pass_context
-def export_json(context, doctype, name, path):
+def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
 	from frappe.core.page.data_import_tool import data_import_tool
 	for site in context.sites:
