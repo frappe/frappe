@@ -201,7 +201,7 @@ frappe.views.QueryReport = Class.extend({
 		formData.append("blob", blob);
 
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", '/api/method/frappe.www.print.report_to_pdf');
+		xhr.open("POST", '/api/method/frappe.utils.print_format.report_to_pdf');
 		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 		xhr.responseType = "arraybuffer";
 

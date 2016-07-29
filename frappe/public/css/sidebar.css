@@ -219,7 +219,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
     box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
     height: 100%;
     width: 40%;
-    padding: 25px;
     display: block !important;
     transition: transform 200ms ease-in-out;
   }
@@ -227,11 +226,31 @@ body[data-route^="Module"] .main-menu .form-sidebar {
     transform: translateX(0);
     overflow-y: auto;
   }
+  .layout-side-section .overlay-sidebar .divider {
+    height: 1px;
+    background-color: #d8dfe5;
+    opacity: 0.7;
+  }
+  .layout-side-section .overlay-sidebar li:not(.divider):not(.tagit-new):not(.module-sidebar-item) {
+    padding: 10px 15px;
+  }
+  .layout-side-section .overlay-sidebar .modified-by,
+  .layout-side-section .overlay-sidebar .created-by {
+    margin: 0;
+  }
+  .layout-side-section .overlay-sidebar .badge {
+    top: 9px;
+    right: 15px;
+  }
   .layout-side-section .overlay-sidebar .reports-dropdown {
-    margin: 10px 0;
+    margin-top: 10px;
+    margin-bottom: -10px;
   }
   .layout-side-section .overlay-sidebar .reports-dropdown li:not(.divider) {
-    padding: 10px 0;
+    padding: 12.5px 0 !important;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown li.divider {
+    height: 0;
   }
 }
 @media (max-width: 767px) {
@@ -260,7 +279,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
     padding-right: 0;
   }
   .layout-side-section .module-sidebar-nav .module-link {
-    padding-left: 25px;
+    padding: 15px 15px 15px 25px;
   }
 }
 .sidebar-left .list-sidebar .stat-label,

@@ -7,13 +7,13 @@ globals attached to frappe module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-import os, importlib, inspect, json
+import os, sys, importlib, inspect, json
 
 # public
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = "7.0.9"
+__version__ = "7.0.10"
 
 local = Local()
 
@@ -755,6 +755,9 @@ def get_hooks(hook=None, default=None, app_name=None):
 					# if app is not installed while restoring
 					# ignore it
 					pass
+				print 'Could not find app "{0}"'.format(app_name)
+				if not request:
+					sys.exit(1)
 				raise
 			for key in dir(app_hooks):
 				if not key.startswith("_"):
