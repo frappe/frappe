@@ -3,6 +3,7 @@
 		"is_default": 1,
 		"is_global": 1,
 		"doctype": "Email Account",
+		"domain":"example.com",
 		"append_to": "ToDo",
 		"email_account_name": "_Test Email Account 1",
 		"enable_outgoing": 1,

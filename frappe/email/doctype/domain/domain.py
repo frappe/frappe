@@ -5,8 +5,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import validate_email_add
-
+from frappe.utils import validate_email_add ,cint
+import imaplib,poplib,smtplib
 
 class Domain(Document):
 	def autoname(self):
@@ -22,21 +22,39 @@ class Domain(Document):
 			return
 
 		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
-			email_account = frappe.get_doc({
-				"doctype": "Email Account",
-				"email_server": self.email_server,
-				"email_id": self.email_id,
-				"password": self.password,
-				"enable_incoming":1,
-				"use_ssl": self.use_ssl,
-				"use_imap": self.use_imap,
-				"enable_outgoing":1,
-				"use_tls":self.use_tls,
-				"smtp_server":self.smtp_server,
-				"smtp_port":self.smtp_port
-			})
-			email_account.get_server()
-			email_account.check_smtp()
+			try:
+				if self.use_imap:
+					if self.use_ssl:
+						test = imaplib.IMAP4_SSL(self.email_server)
+					else:
+						test = imaplib.IMAP4(self.email_server)
+
+				else:
+					if self.use_ssl:
+						test = poplib.POP3_SSL(self.email_server)
+					else:
+						test = poplib.POP3(self.email_server)
+
+			except Exception:
+				frappe.throw("Incoming email account not correct")
+				return None
+			finally:
+				try:
+					if self.use_imap:
+						test.logout()
+					else:
+						test.quit()
+				except Exception:
+					pass
+			try:
+				if not self.smtp_port:
+					self.port = 587
+				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'),cint(self.port) or None)
+				sess.quit()
+			except Exception:
+				frappe.throw("Outgoing email account not correct")
+				return None
+		return
 
 	def on_update(self):
 		"""update all email accounts using this domain"""

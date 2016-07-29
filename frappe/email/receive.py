@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import time ,re
+import time ,re ,hashlib
 import _socket, poplib, imaplib
 import frappe
 from frappe import _
@@ -46,8 +46,8 @@ class EmailServer:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
-				#self.imap = Timed_IMAP4_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
-				self.imap = imaplib.IMAP4_SSL(self.settings.host)
+				self.imap = Timed_IMAP4_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+				#self.imap = imaplib.IMAP4_SSL(self.settings.host)
 			else:
 				self.imap = Timed_IMAP4(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
 			self.imap.login(self.settings.username, self.settings.password)
@@ -92,6 +92,17 @@ class EmailServer:
 			else:
 				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
 				raise
+	def get_status(self):
+		passed, status = self.imap.status("Inbox", "(UIDNEXT UIDVALIDITY)")
+		match = re.search(r"(?<=UIDVALIDITY )[0-9]*", status[0], re.U | re.I)
+		if match:
+			uid_validity = match.group(0)
+		match = re.search(r"(?<=UIDNEXT )[0-9]*", status[0], re.U | re.I)
+		if match:
+			uidnext = match.group(0)
+		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext, update_modified=False)
+		self.settings.newuidnext = uidnext
+		return uid_validity
 
 	def get_messages(self):
 		"""Returns new email messages in a list."""
@@ -107,6 +118,7 @@ class EmailServer:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
+			uid_validity = self.get_status()
 
 			email_list = self.get_new_mails()
 
@@ -117,7 +129,7 @@ class EmailServer:
 			self.max_total_size = 5 * self.max_email_size
 			if cint(self.settings.use_imap):
 				#try:
-				if self.check_uid_validity(email_list):
+				if self.check_uid_validity(email_list,uid_validity):
 					self.get_imap_messages(email_list)
 					self.sync_flags(email_list)
 					self.get_seen(email_list)
@@ -167,56 +179,63 @@ class EmailServer:
 		return self.latest_messages
 
 
-	def check_uid_validity(self,email_list):
+	def check_uid_validity(self,email_list,uid_validity):
 		self.time = []
-		passed,status = self.imap.status("Inbox",'(UIDVALIDITY)')
-		if not passed:
-			return False # not sure if should error if cannot retrieve mailbox status
-		else:#status is ok
-			if self.settings.uid_validity:
-				if self.settings.uid_validity == status[0]:
-					return True
-				else:
-					#validity changed
-					self.rebuild_uid(status,email_list)
-					return True
+		if self.settings.uid_validity:
+			if self.settings.uid_validity == uid_validity:
+				return True
+			else:
+				#validity changed
+				self.settings.no_remaining = None
+				self.rebuild_uid(uid_validity)
+				return True
 
-			else:#if email account settings is blank
-				uid_list = frappe.db.sql("""select uid
-						from tabCommunication
-						where email_account = %(email_account)s and uid is not Null
-						order by uid
-				""",{"email_account":self.settings.email_account},as_list=1)
-				new_uid_list = []
-				for i in uid_list:
-					new_uid_list.append(i[0])
+		else:#if email account settings is blank
+			uid_list = frappe.db.sql("""select uid
+					from tabCommunication
+					where email_account = %(email_account)s and uid is not Null
+					order by uid
+			""",{"email_account":self.settings.email_account},as_list=1)
+			new_uid_list = []
+			for i in uid_list:
+				new_uid_list.append(i[0])
 
-				if new_uid_list:#if email account
-					self.rebuild_uid(status,email_list)
-					return True
-				else:# if no uid and no emails with uid
-					frappe.db.set_value("Email Account",self.settings.email_account,"uid_validity",status[0])
-					frappe.db.commit()
-					return True
+			if new_uid_list:#if email account
+				self.rebuild_uid(uid_validity)
+				return True
+			else:# if no uid and no emails with uid
+				frappe.db.set_value("Email Account",self.settings.email_account,"uid_validity",uid_validity)
+				frappe.db.commit()
+				return True
 
-	def rebuild_uid(self,status,email_list):
-		uid_list = frappe.db.sql("""select name,uid ,message_id
-	    				from tabCommunication
-	    				where email_account = %(email_account)s and uid is not Null
+	def rebuild_uid(self,uid_validity):
+		uid_list = frappe.db.sql("""select name,uid ,unique_id
+	    				from `tabCommunication`
+	    				where email_account = %(email_account)s and unique_id is not Null and sent_or_received = 'Received'
 	    				#order by uid
 	    			""", {"email_account": self.settings.email_account}, as_dict=1)
 
-		email_list = map(int, email_list)
-		from itertools import count, groupby
-		G = (list(x) for _, x in groupby(email_list, lambda x, c=count(): next(c) - x))
-		message_meta = ",".join(":".join(map(str, (g[0], g[-1])[:len(g)])) for g in G)
+		unhandled_uid_list = frappe.db.sql("""select name,uid ,unique_id
+		    				from `tabUnhandled Emails`
+		    				where email_account = %(email_account)s and unique_id is not Null
+		    				#order by uid
+		    			""", {"email_account": self.settings.email_account}, as_dict=1)
+
+		#email_list = map(int, email_list)
+		#from itertools import count, groupby
+		#G = (list(x) for _, x in groupby(email_list, lambda x, c=count(): next(c) - x))
+		#message_meta = ",".join(":".join(map(str, (g[0], g[-1])[:len(g)])) for g in G)
 
 		message_list = []
-		messages = self.imap.uid('fetch', message_meta, '(BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])')
-		if messages[0] == 'OK':
+		#get message-id's to link new uid's to
+		"""
+		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])')
+		#format data into list
+ 		if messages[0] == 'OK':
 			for i, item in enumerate(messages[1]):
 				if isinstance(item, tuple):
 					message = ""
+					#add items into a single string to deal with hotmail returning uid on the 2nd half
 					for m in item:
 						message += u' ' + m
 						message += messages[1][i + 1]
@@ -224,53 +243,103 @@ class EmailServer:
 					if message_id:
 						message_id = message_id.group()[12:]
 					else:
-						break
+						continue
 					uid = re.search(r'UID [0-9]*', message, re.U | re.I)
 					if uid:
 						uid = uid.group()[4:]
 					else:
 						break
 					message_list.append([uid, message_id])
+		"""
+		import email
+		#messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (FROM TO ENVELOPE-TO DATE RECEIVED)])')
+		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER])')
+		for i, item in enumerate(messages[1]):
+			if isinstance(item, tuple):
+				# '''
+				# check for uid appended to the end
+				uid = re.search(r'UID [0-9]*', messages[1][i + 1], re.U | re.I)
+				if uid:
+					uid = uid.group()[4:]
+				else:
+					uid = ""
+
+				# check for uid at start
+				if not uid:
+					# for m in item:
+					uid = re.search(r'UID [0-9]*', messages[1][i][0], re.U | re.I)
+					if uid:
+						uid = uid.group()[4:]
+					else:
+						uid = ""
+						continue
+				mail = email.message_from_string(item[1])
+				#unique_id = hashlib.md5((mail.get("X-Original-From") or mail["From"]) + (mail.get("To") or mail.get("Envelope-to")) + ( mail.get("Received") or mail["Date"])).hexdigest()
+				unique_id = get_unique_id(mail)
+				message_list.append([uid, unique_id])
 		# clear out
 		frappe.db.sql("""update `tabCommunication`
 	    				set uid = NULL
 	    			where email_account = %(email_account)s
 	    			""", {"email_account": self.settings.email_account})
+		frappe.db.sql("""update `tabUnhandled Emails`
+			    				set uid = NULL
+			    			where email_account = %(email_account)s
+			    			""", {"email_account": self.settings.email_account})
 
 		# write new uid
 		new_uid = []
 		for old in uid_list:
 			for new in message_list:
-				if old["message_id"] == new[1]:
+				if old["unique_id"] == new[1]:
 					frappe.db.sql("""update `tabCommunication`
 	    											set uid = %(uid)s
 	    										where name = %(name)s
 	    										""", {"name": old["name"],
 					                                  "uid": new[0]})
+					break
+		for old in unhandled_uid_list:
+			for new in message_list:
+				if old["unique_id"] == new[1]:
+					frappe.db.sql("""update `tabUnhandled Emails`
+			    											set uid = %(uid)s
+			    										where name = %(name)s
+			    										""", {"name": old["name"],
+					                                          "uid": new[0]})
+					break
 
-		frappe.db.set_value("Email Account", self.settings.email_account, "uid_validity", status[0])
+		frappe.db.set_value("Email Account", self.settings.email_account, "uid_validity", uid_validity)
+		frappe.db.set_value("Email Account", self.settings.email_account, "no_remaining", None)
 		frappe.db.commit()
 
-	def get_imap_messages(self,email_list):
-		#compare stored uid to new uid list to dl any missing messages
-		uid_list = frappe.db.sql("""select uid
-					from tabCommunication
-					where email_account = %(email_account)s and uid is not Null
-					order by uid
-		""",{"email_account":self.settings.email_account},as_list=1)
-		uid_list = uid_list + (frappe.db.sql("""select uid
-					from `tabUnhandled Emails`
-					where email_account = %(email_account)s and uid is not Null
-					order by uid
-		""",{"email_account":self.settings.email_account},as_list=1))
-		new_uid_list = []
-		for i in uid_list:
-			new_uid_list.append(i[0])
 
-		download_list = []
-		for new in email_list:
-			if new not in new_uid_list:
+
+	def get_imap_messages(self,email_list):
+		if self.settings.no_remaining == 0 and self.settings.uidnext:
+			download_list = []
+			for new in email_list:
 				download_list.append(cint(new))
+		else:
+			#compare stored uid to new uid list to dl any missing messages
+			uid_list = frappe.db.sql("""select uid
+						from tabCommunication
+						where email_account = %(email_account)s and uid is not Null
+						order by uid
+			""",{"email_account":self.settings.email_account},as_list=1)
+			uid_list = uid_list + (frappe.db.sql("""select uid
+						from `tabUnhandled Emails`
+						where email_account = %(email_account)s and uid is not Null
+						order by uid
+			""",{"email_account":self.settings.email_account},as_list=1))
+			new_uid_list = []
+			for i in uid_list:
+				new_uid_list.append(i[0])
+
+			download_list = []
+			for new in email_list:
+				if new not in new_uid_list:
+					download_list.append(cint(new))
+
 		from itertools import count, groupby
 		num = 50
 
@@ -339,7 +408,6 @@ class EmailServer:
 								self.latest_messages.append([item[1],uid,1])
 
 					# set number of email remaining to be synced TEMPTEMPTEMPTEMPTEMP################################################################
-
 					frappe.db.set_value("Email Account", self.settings.email_account, "no_remaining",dl_length-len(self.latest_messages),update_modified = False)
 					frappe.db.commit()
 				print(lcount)
@@ -449,7 +517,10 @@ class EmailServer:
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
 			self.imap.select("Inbox")
-			response, message = self.imap.uid('search', None, "ALL")
+			if self.settings.no_remaining ==0 and self.settings.uidnext:
+				response, message = imap.uid('search', 'UID',str(self.settings.uidnext) + ":" + self.settings.newuidnext)
+			else:
+				response, message = self.imap.uid('search', None, "ALL")
 			email_list =  message[0].split()
 		else:
 			email_list = self.pop.list()[1]
@@ -541,6 +612,23 @@ class EmailServer:
 
 		return error_msg
 
+
+def get_unique_id(mail):
+	hash = hashlib.sha1()
+	# loop though headers to make unique id looping used to resolve encoding issue of adding together
+	for h in mail._headers:
+		if h[0] != 'Content-Type':  # skip variable boundaries
+			try:
+				temp = decode_header(h[1])
+				decoded = ''.join(
+					[d[0].decode(d[1]).encode('ascii', 'ignore') if d[1] is not None else d[0] for d in temp])
+				cleaned = re.sub(r"\s+", u"", decoded,
+				                 flags=re.UNICODE)  # gmail fix as returns different whitespace if download only headers
+				hash.update(cleaned)
+			except:
+				pass
+	return hash.hexdigest()
+
 class Email:
 	"""Wrapper for an email."""
 	def __init__(self, content):
@@ -562,6 +650,11 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.message_id = self.mail.__getitem__('Message-ID')
+		#self.unique_id = hashlib.md5((self.mail.get("X-Original-From") or self.mail["From"])+(self.mail.get("To") or self.mail.get("Envelope-to"))+(self.mail.get("Received") or self.mail["Date"] )).hexdigest()
+
+
+
+		self.unique_id = get_unique_id(self.mail)
 
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'

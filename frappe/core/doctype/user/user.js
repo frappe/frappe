@@ -79,14 +79,19 @@ frappe.ui.form.on('User', {
 			}
 		}
 
-		var found =0
-		for (var i = 0;i<cur_frm.doc.user_emails.length;i++){
-			if (cur_frm.doc.email==cur_frm.doc.user_emails[i].email_id){
-				found = 1;
+		if (frm.doc.user_emails){
+			var found =0
+			for (var i = 0;i<frm.doc.user_emails.length;i++){
+				if (frm.doc.email==frm.doc.user_emails[i].email_id){
+					found = 1;
+				}
 			}
+			frm.get_field("create_user_email").df.hidden = found;
+			frm.refresh_field("create_user_email");
+		}else{
+			frm.get_field("create_user_email").df.hidden = 1
 		}
-		cur_frm.get_field("create_user_email").df.hidden = found;
-		cur_frm.refresh_field("create_user_email");
+		frm.refresh_field("create_user_email");
 
 		if (frappe.route_titles["unsaved"]===1){
 			delete frappe.route_titles["unsaved"];

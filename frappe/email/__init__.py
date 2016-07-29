@@ -89,7 +89,7 @@ def set_email_password(email_account,user,password):
 		account.set("password",password)
 		try:
 			validate = account.validate()
-			save= account.save()
+			save= account.save(ignore_permissions=True)
 			frappe.db.sql("""update `tabUser Emails` set awaiting_password = 0
 				where email_account = %(account)s""",{"account": email_account})
 			ask_pass_update()
