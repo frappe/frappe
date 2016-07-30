@@ -20,7 +20,7 @@ To enable these signups, you need to have **Client ID** and **Client Secret** fr
 1. Click on Apps (topbar) > New App, fill in the form.
 1. Go to Settings > Basic, set the **Contact Email** and save the changes.
 1. Go to Settings > Advanced, find the field **Valid OAuth redirect URIs**, and enter:    
-    **http://{{ yoursite }}/api/method/frappe.templates.pages.login.login\_via\_facebook**
+    **http://{{ yoursite }}/api/method/frappe.www.login.login\_via\_facebook**
 1. Save the changes in Advance tab.
 1. Go to Status & Review and switch on "Do you want to make this app and all its live features available to the general public?"
 1. Go to Dashboard, click on the show button besides App Secret, and copy the App ID and App Secret into **Desktop > Website > Setup > Social Login Keys**
@@ -40,7 +40,7 @@ To enable these signups, you need to have **Client ID** and **Client Secret** fr
     - Web Application
     - Authorized JavaScript origins as **http://{{ yoursite }}**  
 	- Authorized redirect URI as  
-	    **http://{{ yoursite }}/api/method/frappe.templates.pages.login.login\_via\_google**
+	    **http://{{ yoursite }}/api/method/frappe.www.login.login\_via\_google**
 1. Go to the section **Client ID for web application** and copy the Client ID and Client Secret into **Desktop > Website > Setup > Social Login Keys**
 
 <div class="embed-responsive embed-responsive-16by9">
@@ -56,7 +56,7 @@ To enable these signups, you need to have **Client ID** and **Client Secret** fr
 1. Fill the form with:
     - Homepage URL as **http://{{ yoursite }}**  
 	- Authorization callback URL as  
-	    **http://{{ yoursite }}/api/method/frappe.templates.pages.login.login\_via\_github**
+	    **http://{{ yoursite }}/api/method/frappe.www.login.login\_via\_github**
 1. Click on Register application.
 1. Copy the generated Client ID and Client Secret into **Desktop > Website > Setup > Social Login Keys**
 
