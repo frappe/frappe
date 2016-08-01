@@ -275,18 +275,21 @@ def flush(from_test=False):
 def make_cache_queue():
 	'''cache values in queue before sendign'''
 	cache = frappe.cache()
-	cache.delete_value('cache_email_queue')
 
-	for l in frappe.db.sql('''select name from `tabEmail Queue`
+	emails = frappe.db.sql('''select name from `tabEmail Queue`
 		where status='Not Sent' and (send_after is null or send_after < %(now)s)
 		order by priority desc, creation asc
-		limit 500''', { 'now': now_datetime() }):
-		cache.lpush('cache_email_queue', l[0])
+		limit 500''', { 'now': now_datetime() })
+
+	cache.delete_value('cache_email_queue')
+	for e in emails:
+		cache.lpush('cache_email_queue', e[0])
 
 def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
 
-	email = frappe.db.sql('''select name, status, communication, message, sender, recipient
+	email = frappe.db.sql('''select name, status, communication,
+		message, sender, recipient, reference_doctype,
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
 	if email.status != 'Not Sent':
 		# rollback to release lock and return
