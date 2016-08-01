@@ -12,11 +12,12 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 install:
-  - sudo apt-get purge -y mysql-common
+  - sudo apt-get purge -y mysql-common mysql-server mysql-client
   #- wget https://raw.githubusercontent.com/frappe/bench/master/install_scripts/setup_frappe.sh
   #- sudo bash setup_frappe.sh --skip-setup-bench --mysql-root-password travis --bench-branch develop
+  # TODO Replace with proper urls later on
   - wget https://raw.githubusercontent.com/shreyasp/bench/fix/travis/playbooks/install.py
-  - sudo python install.py --develop --run-travis --user travis --repo-url https://github.com/shreyasp/bench --bench-branch fix/travis
+  - sudo python install.py --develop --user travis --repo-url https://github.com/shreyasp/bench --bench-branch fix/travis --without-bench-setup
   - sudo pip install -e ~/bench
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
@@ -32,6 +33,6 @@ script:
   - bench --verbose run-tests --driver Firefox
 
 before_script:
-  - mysql -e 'create database test_frappe'
+  - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
