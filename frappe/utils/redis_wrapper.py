@@ -120,6 +120,9 @@ class RedisWrapper(redis.Redis):
 	def lpush(self, key, value):
 		super(redis.Redis, self).lpush(self.make_key(key), value)
 
+	def rpush(self, key, value):
+		super(redis.Redis, self).rpush(self.make_key(key), value)
+
 	def lpop(self, key):
 		return super(redis.Redis, self).lpop(self.make_key(key))
 
@@ -179,4 +182,5 @@ class RedisWrapper(redis.Redis):
 			return super(redis.Redis, self).hkeys(self.make_key(name))
 		except redis.exceptions.ConnectionError:
 			return []
+
 

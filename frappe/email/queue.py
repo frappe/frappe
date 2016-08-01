@@ -254,9 +254,6 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
-		where datediff(curdate(), creation) > 7 and status='Not Sent'""", auto_commit=auto_commit)
-
 	smtpserver = SMTPServer()
 
 	make_cache_queue()
@@ -281,9 +278,10 @@ def make_cache_queue():
 		order by priority desc, creation asc
 		limit 500''', { 'now': now_datetime() })
 
+	# reset value
 	cache.delete_value('cache_email_queue')
 	for e in emails:
-		cache.lpush('cache_email_queue', e[0])
+		cache.rpush('cache_email_queue', e[0])
 
 def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
@@ -350,3 +348,6 @@ def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabEmail Queue` where
 		datediff(now(), creation) > 31""")
+
+	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
+		where datediff(curdate(), creation) > 7 and status='Not Sent'""")
