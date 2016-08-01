@@ -37,10 +37,10 @@ frappe.ui.form.Grid = Class.extend({
 	allow_on_grid_editing: function() {
 		if(frappe.utils.is_xs()) {
 			return false;
-		} else if(this.editable_fields) {
+		} else if(this.meta.editable_grid) {
 			return true;
 		} else {
-			return this.meta.editable_grid;
+			return false;
 		}
 	},
 	make: function() {
@@ -552,7 +552,11 @@ frappe.ui.form.GridRow = Class.extend({
 				}
 			});
 
-		this.render_row();
+		if(this.grid.template && !this.grid.meta.editable_grid) {
+			this.render_template();
+		} else {
+			this.render_row();
+		}
 		if(this.doc) {
 			this.set_data();
 		}
@@ -600,12 +604,40 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 		// re write columns
 		this.visible_columns = null;
-		this.render_row(true);
+
+		if(this.grid.template && !this.grid.meta.editable_grid) {
+			this.render_template();
+		} else {
+			this.render_row(true);
+		}
 
 		// refersh form fields
 		if(this.grid_form) {
 			this.grid_form.layout && this.grid_form.layout.refresh(this.doc);
 		}
+	},
+	render_template: function() {
+		if(this.row_display) {
+			this.row_display.remove();
+		}
+		var index_html = '';
+
+		// row index
+		if(this.doc) {
+			if(!this.row_index) {
+				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
+					margin-right: -20px;"></div>').appendTo(this.row);
+			}
+			this.row_index.html(this.doc.idx);
+		}
+
+		this.row_display = $('<div class="row-data template-row">'+
+			+'</div>').appendTo(this.row)
+			.html(frappe.render(this.grid.template, {
+				doc: this.doc ? frappe.get_format_helper(this.doc) : null,
+				frm: this.frm,
+				row: this
+			}));
 	},
 	render_row: function(refresh) {
 		var me = this;
@@ -893,7 +925,7 @@ frappe.ui.form.GridRow = Class.extend({
 	hide_form: function() {
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
-		this.render_row();
+		this.refresh();
 		cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");
 	},
