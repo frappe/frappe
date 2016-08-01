@@ -117,6 +117,12 @@ class RedisWrapper(redis.Redis):
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]
 
+	def lpush(self, key, value):
+		super(redis.Redis, self).lpush(self.make_key(key), value)
+
+	def lpop(self, key):
+		return super(redis.Redis, self).lpop(self.make_key(key))
+
 	def hset(self, name, key, value):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
