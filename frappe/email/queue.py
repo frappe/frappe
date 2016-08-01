@@ -289,7 +289,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select name, status, communication,
-		message, sender, recipient, reference_doctype,
+		message, sender, recipient, reference_doctype
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
 	if email.status != 'Not Sent':
 		# rollback to release lock and return
