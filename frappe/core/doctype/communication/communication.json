@@ -356,7 +356,7 @@
    "label": "Comment Type", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared", 
+   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nUpdated\nSubmitted\nCancelled\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared",
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -1193,7 +1193,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1,
    "cancel": 0, 
    "create": 1, 
    "delete": 1, 
@@ -1208,7 +1208,8 @@
    "role": "All", 
    "set_user_permissions": 0, 
    "share": 0, 
-   "submit": 0, 
+   "submit": 0,
+   "user_permission_doctypes": "[\"Email Account\"]",
    "write": 1
   }, 
   {

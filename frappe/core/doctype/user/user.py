@@ -48,9 +48,26 @@ class User(Document):
 		self.remove_disabled_roles()
 		self.get_awaiting_password()
 		self.force_user_email_update()
+		self.user_emails_to_permissions()
 
 		if self.language == "Loading...":
 			self.language = None
+
+	def user_emails_to_permissions(self):
+		#get list of user permissions
+		from frappe.core.page.user_permissions.user_permissions import get_permissions
+		permissions = set([x.defvalue for x in get_permissions(self.name,"Email Account")])
+		user_emails = set([x.email_account for x in self.user_emails])
+
+		#compare vs user emails
+		add = user_emails - permissions
+		remove = permissions - user_emails
+
+		#set the difference
+		for r in remove:
+			frappe.permissions.remove_user_permission("Email Account", r, self.name)
+		for a in add:
+			frappe.permissions.add_user_permission("Email Account", a, self.name, with_message=True)
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
