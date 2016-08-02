@@ -247,6 +247,7 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	# additional check
+	cache = frappe.cache()
 	check_email_limit([])
 
 	auto_commit = not from_test
@@ -258,13 +259,11 @@ def flush(from_test=False):
 
 	make_cache_queue()
 
-	for i in xrange(500):
-		email = frappe.cache().lpop('cache_email_queue')
+	for i in xrange(cache.llen('cache_email_queue')):
+		email = cache.lpop('cache_email_queue')
 
-		if not email:
-			break
-
-		send_one(email, smtpserver, auto_commit)
+		if email:
+			send_one(email, smtpserver, auto_commit)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
