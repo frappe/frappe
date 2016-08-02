@@ -127,7 +127,7 @@ class RedisWrapper(redis.Redis):
 		return super(redis.Redis, self).lpop(self.make_key(key))
 
 	def llen(self, key):
-		super(redis.Redis, self).llen(self.make_key(key))
+		return super(redis.Redis, self).llen(self.make_key(key))
 
 	def hset(self, name, key, value):
 		if not name in frappe.local.cache:
