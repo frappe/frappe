@@ -686,17 +686,8 @@ fieldset {
   padding-bottom: 30px;
 }
 .blog-comments {
-  background-color: #fafbfc;
   position: relative;
-}
-.blog-comments:before {
-  content: "";
-  background-color: #fafbfc;
-  position: absolute;
-  height: 100%;
-  width: 100vw;
-  left: calc((100vw - 100%)/ -2);
-  z-index: -1;
+  border-top: 1px solid #d1d8dd;
 }
 .blog-comment-row {
   margin: 0px -15px;

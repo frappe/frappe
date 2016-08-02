@@ -25,19 +25,23 @@ def get_secret():
 
 def verify_request():
 	"""Verify if the incoming signed request if it is correct."""
-	query_string = frappe.request.query_string if hasattr(frappe.request, "query_string") \
-		else frappe.local.flags.signed_query_string
+	query_string = frappe.local.flags.signed_query_string or \
+		getattr(frappe.request, 'query_string', None) \
 
-	params, signature = query_string.split("&_signature=")
+	valid = False
 
-	given_signature = hmac.new(params.encode("utf-8"))
+	if '&_signature=' in query_string:
+		params, signature = query_string.split("&_signature=")
 
-	given_signature.update(get_secret())
-	valid = signature == given_signature.hexdigest()
+		given_signature = hmac.new(params.encode("utf-8"))
+
+		given_signature.update(get_secret())
+		valid = signature == given_signature.hexdigest()
 
 	if not valid:
 		frappe.respond_as_web_page(_("Invalid Link"),
 			_("This link is invalid or expired. Please make sure you have pasted correctly."))
+
 	return valid
 
 def get_url(cmd, params, nonce=None, secret=None):

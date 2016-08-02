@@ -37,7 +37,7 @@ class Newsletter(Document):
 			self.validate_send()
 
 			# using default queue with a longer timeout as this isn't a scheduled task
-			enqueue(send_newsletter, queue='default', timeout=1500, event='send_newsletter', newsletter=self.name)
+			enqueue(send_newsletter, queue='default', timeout=3000, event='send_newsletter', newsletter=self.name)
 
 		else:
 			self.queue_all()
