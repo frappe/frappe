@@ -44,7 +44,6 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/frappe/css/font/open-sans/open-sans.css",
 	"assets/css/frappe-web.css"
 ]
 website_route_rules = [
@@ -99,7 +98,7 @@ doc_events = {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"validate": [
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],	
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
