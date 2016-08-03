@@ -28,7 +28,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 		dbman.create_database(db_name)
 
 	else:
-		frappe.local.db = make_connection(root_login, root_password)
+		frappe.local.db = get_root_connection(root_login, root_password)
 		frappe.local.session = frappe._dict({'user':'Administrator'})
 		create_database_and_user(force, verbose)
 
@@ -44,25 +44,23 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.flags.in_install_db = False
 
-def get_current_host():
-	return frappe.db.sql("select user()")[0][0].split('@')[1]
 
 def create_database_and_user(force, verbose):
 	db_name = frappe.local.conf.db_name
 	dbman = DbManager(frappe.local.db)
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name, get_current_host())
+		dbman.delete_user(db_name)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
-	dbman.create_user(db_name, frappe.conf.db_password, get_current_host())
+	dbman.create_user(db_name, frappe.conf.db_password)
 	if verbose: print "Created user %s" % db_name
 
 	dbman.create_database(db_name)
 	if verbose: print "Created database %s" % db_name
 
-	dbman.grant_all_privileges(db_name, db_name, get_current_host())
+	dbman.grant_all_privileges(db_name, db_name)
 	dbman.flush_privileges()
 	if verbose: print "Granted privileges to user %s and database %s" % (db_name, db_name)
 
@@ -85,14 +83,17 @@ def import_db_from_sql(source_sql, verbose):
 	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
 	if verbose: print "Imported from database %s" % source_sql
 
-def make_connection(root_login, root_password):
-	if root_login:
-		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+def get_root_connection(root_login='root', root_password=None):
+	if not frappe.local.flags.root_connection:
+		if root_login:
+			if not root_password:
+				root_password = frappe.conf.get("root_password") or None
 
-		if not root_password:
-			root_password = getpass.getpass("MySQL root password: ")
-	return frappe.database.Database(user=root_login, password=root_password)
+			if not root_password:
+				root_password = getpass.getpass("MySQL root password: ")
+		frappe.local.flags.root_connection = frappe.database.Database(user=root_login, password=root_password)
+
+	return frappe.local.flags.root_connection
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.clear_cache()
@@ -188,7 +189,7 @@ def remove_app(app_name, dry_run=False):
 
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
-					
+
 		# remove reports
 		for report in frappe.get_list("Report", filters={"module": module_name}):
 			print "removing {0}...".format(report.name)

@@ -303,7 +303,7 @@ def uninstall(context, app, dry_run=False):
 @click.option('--archived-sites-path')
 def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
 	"Remove site from database and filesystem"
-	from frappe.installer import get_current_host, make_connection
+	from frappe.installer import get_root_connection
 	from frappe.model.db_schema import DbManager
 	from frappe.utils.backups import scheduled_backup
 
@@ -312,9 +312,9 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 	scheduled_backup(ignore_files=False, force=True)
 
 	db_name = frappe.local.conf.db_name
-	frappe.local.db = make_connection(root_login, root_password)
+	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
-	dbman.delete_user(db_name, get_current_host())
+	dbman.delete_user(db_name)
 	dbman.drop_database(db_name)
 
 	if not archived_sites_path:
