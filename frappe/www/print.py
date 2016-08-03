@@ -19,10 +19,10 @@ standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
 	"""Build context for print"""
-	if not frappe.form_dict.doctype or not frappe.form_dict.name:
+	if not ((frappe.form_dict.doctype and frappe.form_dict.name) or frappe.form_dict.doc):
 		return {
 			"body": """<h1>Error</h1>
-				<p>Parameters doctype, name and format required</p>
+				<p>Parameters doctype and name required</p>
 				<pre>%s</pre>""" % repr(frappe.form_dict)
 		}
 
