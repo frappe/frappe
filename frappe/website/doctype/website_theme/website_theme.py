@@ -73,8 +73,6 @@ def add_website_theme(context):
 			if website_theme.bootstrap:
 				bootstrap = website_theme.bootstrap
 
-			context.no_sidebar = website_theme.no_sidebar
-
 			context.web_include_css = context.web_include_css + ["website_theme.css"]
 
 	context.web_include_css = [bootstrap] + context.web_include_css
