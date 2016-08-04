@@ -20,12 +20,9 @@ from frappe.utils import touch_file, get_site_path
 @click.option('--install-app', multiple=True, help='Install app after installation')
 def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
 	"Create a new site"
-	if not db_name:
-		db_name = hashlib.sha1(site).hexdigest()[:10]
-
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(None, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 
 	if len(frappe.utils.get_sites()) == 1:
@@ -34,6 +31,9 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
 	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
 	"""Install a new Frappe site"""
+
+	if not db_name:
+		db_name = hashlib.sha1(site).hexdigest()[:16]
 
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
@@ -95,8 +95,10 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	site = get_site(context)
 	frappe.init(site=site)
-	db_name = db_name or frappe.conf.db_name or hashlib.sha1(site).hexdigest()[:10]
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path, force=context.force)
+	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
+		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+		verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path,
+		force=context.force)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
@@ -131,7 +133,8 @@ def reinstall(context, yes=False):
 		frappe.destroy()
 
 	frappe.init(site=site)
-	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True, install_apps=installed)
+	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True,
+		install_apps=installed)
 
 @click.command('install-app')
 @click.argument('app')
