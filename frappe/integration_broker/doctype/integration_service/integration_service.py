@@ -6,12 +6,13 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.background_jobs import enqueue, get_jobs
 
 class IntegrationService(Document):
 	def validate(self):
 		self.install_events()
 		parameters = self.get_parameters()
-		for d in self.get_controller()._parameters:
+		for d in self.get_controller().parameters_template:
 			if d.reqd and not parameters.get(d.fieldname):
 				frappe.throw(_('Parameter {0} is mandatory').format(d.label), title=_('Missing Parameter'))
 			
@@ -33,7 +34,7 @@ class IntegrationService(Document):
 
 	def install_events(self):
 		'''Install events for controller'''
-		for d in self.get_controller()._events:
+		for d in self.get_controller().events:
 			if not frappe.db.exists('Integration Event', d.event):
 				event = frappe.new_doc('Integration Event')
 				event.update(d)
@@ -47,7 +48,7 @@ class IntegrationService(Document):
 
 	def setup_events_and_parameters(self):
 		self.parameters = []
-		for d in self.get_controller()._parameters:
+		for d in self.get_controller().parameters_template:
 			self.parameters.append({'label': d.label})
 
 		self.events = []
@@ -58,8 +59,8 @@ class IntegrationService(Document):
 def get_events_and_parameters(service):
 	controller = get_integration_controller(service, setup=False)
 	return {
-		'events': controller._events,
-		'parameters': controller._parameters
+		'events': controller.events,
+		'parameters': controller.parameters_template
 	}
 		
 def get_integration_controller(service_name, setup=True):
@@ -72,7 +73,7 @@ def get_integration_controller(service_name, setup=True):
 			controller = controller_module.Controller(setup=setup)
 			
 			# make default properites and frappe._dictify
-			for key in ('_events', '_parameters'):
+			for key in ('events', 'parameters_template'):
 				tmp = []
 				for d in getattr(controller, key, []):
 					tmp.append(frappe._dict(d))
@@ -97,4 +98,13 @@ def get_integration_services():
 		services.extend(frappe.get_hooks("integration_services", app_name = app))
 	
 	return services
+
+def trigger_integration_service_events():
+	for service in frappe.get_all("Integration Service", filters={"enabled": 1}, fields=["name"]):
+		controller = get_integration_controller(service.name, setup=False)
 		
+		for job in controller.scheduled_jobs:
+			for event, handlers in job.items():
+				for handler in handlers:
+					if handler not in get_jobs():
+						enqueue(handler, queue='short', event=event)
