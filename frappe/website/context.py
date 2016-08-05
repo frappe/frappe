@@ -41,6 +41,9 @@ def build_context(context):
 	if not "url_prefix" in context:
 		context.url_prefix = ""
 
+	if context.url_prefix and context.url_prefix[-1]!='/':
+		context.url_prefix += '/'
+
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
