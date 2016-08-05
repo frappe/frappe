@@ -108,7 +108,8 @@ class Communication(Document):
 				self.sender_full_name = self.sender
 				self.sender = None
 			else:
-				validate_email_add(self.sender, throw=True)
+				if self.sent_or_received=='Sent':
+					validate_email_add(self.sender, throw=True)
 
 				sender_name, sender_email = parseaddr(self.sender)
 
