@@ -39,6 +39,8 @@ class User(Document):
 				fields=['module_name'], filters={'standard': 1})])
 
 	def validate(self):
+		self.check_demo()
+
 		self.in_insert = self.get("__islocal")
 
 		# clear new password
@@ -60,6 +62,10 @@ class User(Document):
 
 		if self.language == "Loading...":
 			self.language = None
+
+	def check_demo(self):
+		if frappe.session.user == 'demo@erpnext.com':
+			frappe.throw('Cannot change user details in demo. Please signup for a new account at https://erpnext.com', title='Not Allowed')
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
