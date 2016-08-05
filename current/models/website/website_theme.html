@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> Website Theme </title>
+	<title>Website Theme</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -21,26 +21,46 @@
 		type="image/x-icon">
     
 
-		
-<style>
-
-</style>
-</head>
+		</head>
 <body data-path="current/models/website/website_theme">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-						<header>
+	<div class="main-section">
+		<div>
+				<header>
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
-				</a>
+				</a> -->
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
 			</div>
 			<div class="hidden-xs">
 				
@@ -68,38 +88,36 @@
 		</div>
 	</nav>
 </header><div class="hero-and-content">
-                        <div data-html-block="hero"></div>
-                        <div class="container" data-html-block="content">
-                        
-<div class="page-container" id="page-website_theme" data-path="current/models/website/website_theme"
-	data-doctype="Web Page">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-current/models/website/website_theme" data-path="{{ pathname }}"
+	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								
 								<div class="page-breadcrumbs">
 									
-    
-    
+									
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/models/website">
+		<a href="https://frappe.github.io/frappe//current/models/website">
 		Module website</a>
 	</li>
 	
 </ul>
 
-    
-
+									
 								</div>
 								
 								<h1>Website Theme</h1>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								
 
 								
@@ -107,10 +125,7 @@
 						</div>
 					</div>
 					<div class="page_content">
-<div class="webpage-content">
-	
-	<article class="web-page-content" id="website_theme" style="text-align: Left">
-	<!-- title: Website Theme -->
+<!-- title: Website Theme -->
 
 
 
@@ -119,7 +134,7 @@
 <div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+	Version 7.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/website/doctype/website_theme"
@@ -190,8 +205,7 @@
                 Check</td>
             <td >
                 Apply Style
-                <p class="text-muted small">
-                    This must be checked if the below style settings are applicable</p>
+                
             </td>
             <td></td>
         </tr>
@@ -247,6 +261,18 @@
         
         <tr >
             <td>8</td>
+            <td ><code>apply_text_styles</code></td>
+            <td >
+                Check</td>
+            <td >
+                Apply Text Styles
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
             <td ><code>font_size</code></td>
             <td >
                 Select</td>
@@ -267,7 +293,7 @@
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>10</td>
             <td ><code>text_webfont</code></td>
             <td >
                 Data</td>
@@ -280,7 +306,7 @@
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>11</td>
             <td ><code>heading_webfont</code></td>
             <td >
                 Data</td>
@@ -288,18 +314,6 @@
                 Google Font (Heading)
                 <p class="text-muted small">
                     Add the name of a "Google Web Font" e.g. "Open Sans"</p>
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>11</td>
-            <td ><code>column_break_18</code></td>
-            <td class="info">
-                Column Break</td>
-            <td >
-                
-                
             </td>
             <td></td>
         </tr>
@@ -330,6 +344,18 @@
         
         <tr >
             <td>14</td>
+            <td ><code>column_break_18</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>15</td>
             <td ><code>heading_style</code></td>
             <td >
                 Select</td>
@@ -343,18 +369,6 @@ UPPERCASE
 Title Case
 lowercase</pre>
             </td>
-        </tr>
-        
-        <tr class="info">
-            <td>15</td>
-            <td ><code>section_break_8</code></td>
-            <td >
-                Section Break</td>
-            <td >
-                
-                
-            </td>
-            <td></td>
         </tr>
         
         <tr >
@@ -383,30 +397,6 @@ lowercase</pre>
         
         <tr >
             <td>18</td>
-            <td ><code>no_sidebar</code></td>
-            <td >
-                Check</td>
-            <td >
-                Hide Sidebar
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>19</td>
-            <td ><code>column_break_11</code></td>
-            <td class="info">
-                Column Break</td>
-            <td >
-                
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>20</td>
             <td ><code>footer_color</code></td>
             <td >
                 Data</td>
@@ -418,7 +408,7 @@ lowercase</pre>
         </tr>
         
         <tr >
-            <td>21</td>
+            <td>19</td>
             <td ><code>footer_text_color</code></td>
             <td >
                 Data</td>
@@ -430,19 +420,19 @@ lowercase</pre>
         </tr>
         
         <tr class="info">
-            <td>22</td>
+            <td>20</td>
             <td ><code>section_break_4</code></td>
             <td >
                 Section Break</td>
             <td >
-                
+                Background
                 
             </td>
             <td></td>
         </tr>
         
         <tr >
-            <td>23</td>
+            <td>21</td>
             <td ><code>background_color</code></td>
             <td >
                 Data</td>
@@ -454,7 +444,7 @@ lowercase</pre>
         </tr>
         
         <tr >
-            <td>24</td>
+            <td>22</td>
             <td ><code>column_break_6</code></td>
             <td class="info">
                 Column Break</td>
@@ -466,7 +456,7 @@ lowercase</pre>
         </tr>
         
         <tr >
-            <td>25</td>
+            <td>23</td>
             <td ><code>background_image</code></td>
             <td >
                 Attach Image</td>
@@ -479,7 +469,7 @@ lowercase</pre>
         </tr>
         
         <tr class="info">
-            <td>26</td>
+            <td>24</td>
             <td ><code>section_break_21</code></td>
             <td >
                 Section Break</td>
@@ -491,7 +481,7 @@ lowercase</pre>
         </tr>
         
         <tr >
-            <td>27</td>
+            <td>25</td>
             <td ><code>css</code></td>
             <td >
                 Code</td>
@@ -503,7 +493,7 @@ lowercase</pre>
         </tr>
         
         <tr >
-            <td>28</td>
+            <td>26</td>
             <td ><code>js</code></td>
             <td >
                 Code</td>
@@ -739,75 +729,46 @@ lowercase</pre>
 <!-- autodoc -->
 <!-- jinja -->
 <!-- static -->
-	</article>
-	
-</div>
 </div>
 				</div>
 			</div>
 </div>
 
-						<!-- edit-link -->
-                        </div>
-                    </div>
-					<footer class="docs-footer">
-						<div class="container"><div class="built-with-frappe text-center">
-                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
-                            <h3>By Frappe Technologies</h3>
-                        </div>
-                        <div class="text-center">
-                            <ul class="list-unstyled">
-                                <li>
-                                    <a href="https://github.com/frappe/frappe">
-                                    Source</a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/frappe/frappe/issues">
-                                    Issues</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.github.io/frappe/license.html">
-                                    License</a>
-                                </li>
-                                <li>
-                                    <a href="https://discuss.erpnext.com">
-                                    Forum</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.io/apps">
-                                    Frappe Apps</a>
-                                </li>
-                            </ul>
-                        </div>
+				<!-- edit-link -->
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
 
-                    </div>
-					</footer>
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				<div class="sidebar-navbar-items">
-					<ul class="nav navbar-nav navbar-left">
-</ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
-	<a href="/#"
-		
-		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
-	<a href="https://frappe.github.io/frappe/user"
-		
-		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
-	<a href="https://frappe.github.io/frappe/current"
-		
-		>
-	API Documentation</a></li>
-	
-	<!-- post login tools -->
-
-</ul>
-				</div>
-			</div>
+            </div>
+			</footer>
 		</div>
 	</div>
 
@@ -820,8 +781,6 @@ lowercase</pre>
 	<script>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
-    <script></script>
-
 
 	<!-- csrf_token --></body>
 </html>

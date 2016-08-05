@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.model.document </title>
+	<title>frappe.model.document</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -21,26 +21,46 @@
 		type="image/x-icon">
     
 
-		
-<style>
-
-</style>
-</head>
+		</head>
 <body data-path="current/api/model/frappe.model.document">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-						<header>
+	<div class="main-section">
+		<div>
+				<header>
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
-				</a>
+				</a> -->
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
 			</div>
 			<div class="hidden-xs">
 				
@@ -68,38 +88,36 @@
 		</div>
 	</nav>
 </header><div class="hero-and-content">
-                        <div data-html-block="hero"></div>
-                        <div class="container" data-html-block="content">
-                        
-<div class="page-container" id="page-frappe.model.document" data-path="current/api/model/frappe.model.document"
-	data-doctype="Web Page">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-current/api/model/frappe.model.document" data-path="{{ pathname }}"
+	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								
 								<div class="page-breadcrumbs">
 									
-    
-    
+									
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api/model">
+		<a href="https://frappe.github.io/frappe//current/api/model">
 		model</a>
 	</li>
 	
 </ul>
 
-    
-
+									
 								</div>
 								
 								<h1>frappe.model.document</h1>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								
 
 								
@@ -107,13 +125,10 @@
 						</div>
 					</div>
 					<div class="page_content">
-<div class="webpage-content">
-	
-	<article class="web-page-content" id="frappe.model.document" style="text-align: Left">
-	<!-- title: frappe.model.document --><div class="dev-header">
+<!-- title: frappe.model.document --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+	Version 7.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/model/document.py"
@@ -163,12 +178,64 @@ all values (including child documents) from the database.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="_cancel" href="#_cancel" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>_cancel</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Cancel the document. Sets <code>docstatus</code> = 2, then saves.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="_save" href="#_save" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>_save</b>
+        <i class="text-muted">(self, ignore_permissions=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Save the current document in the database in the <strong>DocType</strong>'s table or
+<code>tabSingles</code> (for single types).</p>
+
+<p>This will check for user permissions and execute
+<code>validate</code> before updating, <code>on_update</code> after updating triggers.</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>ignore_permissions</code></strong> -  Do not check permissions if True.</li>
+</ul>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="_set_defaults" href="#_set_defaults" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>_set_defaults</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="_submit" href="#_submit" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>_submit</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Submit the document. Sets <code>docstatus</code> = 1, then saves.</p>
 </div>
 	<br>
 
@@ -281,6 +348,8 @@ Valid transitions are (number in brackets is <code>docstatus</code>):</p>
 <li>Submit (1) &gt; Submit (1)</li>
 <li>Submit (1) &gt; Cancel (2)</li>
 </ul>
+
+<p>If docstatus is &gt; 2, it will throw exception as document is deemed queued</p>
 </div>
 	<br>
 
@@ -584,12 +653,45 @@ from fields</p>
     
     
 	<p class="docs-attr-name">
+        <a name="lock" href="#lock" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>lock</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Will set docstatus to 3 + the current docstatus and mark it as queued</p>
+
+<p>3 = queued for saving
+4 = queued for submission
+5 = queued for cancellation</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="notify_update" href="#notify_update" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>notify_update</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Publish realtime that the current document is modified</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="queue_action" href="#queue_action" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>queue_action</b>
+        <i class="text-muted">(self, action)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Run an action in background. If the action has an inner function,
+like _submit for submit, it will call that instead</p>
 </div>
 	<br>
 
@@ -722,19 +824,9 @@ from fields</p>
         <a name="save" href="#save" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>save</b>
-        <i class="text-muted">(self, ignore_permissions=None)</i>
+        <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Save the current document in the database in the <strong>DocType</strong>'s table or
-<code>tabSingles</code> (for single types).</p>
-
-<p>This will check for user permissions and execute
-<code>validate</code> before updating, <code>on_update</code> after updating triggers.</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>ignore_permissions</code></strong> -  Do not check permissions if True.</li>
-</ul>
+	<div class="docs-attr-desc"><p>Wrapper for _save</p>
 </div>
 	<br>
 
@@ -833,6 +925,20 @@ from fields</p>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Submit the document. Sets <code>docstatus</code> = 1, then saves.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="unlock" href="#unlock" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>unlock</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>set the original docstatus at the time it was locked in the controller</p>
 </div>
 	<br>
 
@@ -960,6 +1066,22 @@ else throw Exception.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.model.document.execute_action" href="#frappe.model.document.execute_action" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.model.document.<b>execute_action</b>
+        <i class="text-muted">(doctype, name, action)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Execute an action on a document (called by background worker)</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.model.document.get_doc" href="#frappe.model.document.get_doc" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.model.document.<b>get_doc</b>
@@ -996,75 +1118,46 @@ user = get_doc({
 
 
 <!-- autodoc -->
-	</article>
-	
-</div>
 </div>
 				</div>
 			</div>
 </div>
 
-						<!-- edit-link -->
-                        </div>
-                    </div>
-					<footer class="docs-footer">
-						<div class="container"><div class="built-with-frappe text-center">
-                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
-                            <h3>By Frappe Technologies</h3>
-                        </div>
-                        <div class="text-center">
-                            <ul class="list-unstyled">
-                                <li>
-                                    <a href="https://github.com/frappe/frappe">
-                                    Source</a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/frappe/frappe/issues">
-                                    Issues</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.github.io/frappe/license.html">
-                                    License</a>
-                                </li>
-                                <li>
-                                    <a href="https://discuss.erpnext.com">
-                                    Forum</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.io/apps">
-                                    Frappe Apps</a>
-                                </li>
-                            </ul>
-                        </div>
+				<!-- edit-link -->
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
 
-                    </div>
-					</footer>
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				<div class="sidebar-navbar-items">
-					<ul class="nav navbar-nav navbar-left">
-</ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
-	<a href="/#"
-		
-		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
-	<a href="https://frappe.github.io/frappe/user"
-		
-		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
-	<a href="https://frappe.github.io/frappe/current"
-		
-		>
-	API Documentation</a></li>
-	
-	<!-- post login tools -->
-
-</ul>
-				</div>
-			</div>
+            </div>
+			</footer>
 		</div>
 	</div>
 
@@ -1077,8 +1170,6 @@ user = get_doc({
 	<script>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
-    <script></script>
-
 
 	<!-- csrf_token --></body>
 </html>

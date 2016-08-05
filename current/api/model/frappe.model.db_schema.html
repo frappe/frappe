@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.model.db_schema </title>
+	<title>frappe.model.db_schema</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -21,26 +21,46 @@
 		type="image/x-icon">
     
 
-		
-<style>
-
-</style>
-</head>
+		</head>
 <body data-path="current/api/model/frappe.model.db_schema">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-						<header>
+	<div class="main-section">
+		<div>
+				<header>
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
-				</a>
+				</a> -->
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
 			</div>
 			<div class="hidden-xs">
 				
@@ -68,38 +88,36 @@
 		</div>
 	</nav>
 </header><div class="hero-and-content">
-                        <div data-html-block="hero"></div>
-                        <div class="container" data-html-block="content">
-                        
-<div class="page-container" id="page-frappe.model.db_schema" data-path="current/api/model/frappe.model.db_schema"
-	data-doctype="Web Page">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-current/api/model/frappe.model.db_schema" data-path="{{ pathname }}"
+	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								
 								<div class="page-breadcrumbs">
 									
-    
-    
+									
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api/model">
+		<a href="https://frappe.github.io/frappe//current/api/model">
 		model</a>
 	</li>
 	
 </ul>
 
-    
-
+									
 								</div>
 								
 								
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								
 
 								
@@ -107,13 +125,10 @@
 						</div>
 					</div>
 					<div class="page_content">
-<div class="webpage-content">
-	
-	<article class="web-page-content" id="frappe.model.db_schema" style="text-align: Left">
-	<!-- title: frappe.model.db_schema --><div class="dev-header">
+<!-- title: frappe.model.db_schema --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+	Version 7.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/model/db_schema.py"
@@ -259,7 +274,7 @@
         <a name="create_user" href="#create_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>create_user</b>
-        <i class="text-muted">(self, user, password, host)</i>
+        <i class="text-muted">(self, user, password, host=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -273,7 +288,7 @@
         <a name="delete_user" href="#delete_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>delete_user</b>
-        <i class="text-muted">(self, target, host)</i>
+        <i class="text-muted">(self, target, host=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -315,6 +330,20 @@
         <a name="flush_privileges" href="#flush_privileges" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>flush_privileges</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_current_host" href="#get_current_host" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>get_current_host</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -385,7 +414,7 @@
         <a name="grant_all_privileges" href="#grant_all_privileges" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>grant_all_privileges</b>
-        <i class="text-muted">(self, target, user, host)</i>
+        <i class="text-muted">(self, target, user, host=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -399,7 +428,7 @@
         <a name="grant_select_privilges" href="#grant_select_privilges" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>grant_select_privilges</b>
-        <i class="text-muted">(self, db, table, user, host)</i>
+        <i class="text-muted">(self, db, table, user, host=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -707,75 +736,46 @@
 
 
 <!-- autodoc -->
-	</article>
-	
-</div>
 </div>
 				</div>
 			</div>
 </div>
 
-						<!-- edit-link -->
-                        </div>
-                    </div>
-					<footer class="docs-footer">
-						<div class="container"><div class="built-with-frappe text-center">
-                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
-                            <h3>By Frappe Technologies</h3>
-                        </div>
-                        <div class="text-center">
-                            <ul class="list-unstyled">
-                                <li>
-                                    <a href="https://github.com/frappe/frappe">
-                                    Source</a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/frappe/frappe/issues">
-                                    Issues</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.github.io/frappe/license.html">
-                                    License</a>
-                                </li>
-                                <li>
-                                    <a href="https://discuss.erpnext.com">
-                                    Forum</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.io/apps">
-                                    Frappe Apps</a>
-                                </li>
-                            </ul>
-                        </div>
+				<!-- edit-link -->
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
 
-                    </div>
-					</footer>
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				<div class="sidebar-navbar-items">
-					<ul class="nav navbar-nav navbar-left">
-</ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
-	<a href="/#"
-		
-		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
-	<a href="https://frappe.github.io/frappe/user"
-		
-		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
-	<a href="https://frappe.github.io/frappe/current"
-		
-		>
-	API Documentation</a></li>
-	
-	<!-- post login tools -->
-
-</ul>
-				</div>
-			</div>
+            </div>
+			</footer>
 		</div>
 	</div>
 
@@ -788,8 +788,6 @@
 	<script>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
-    <script></script>
-
 
 	<!-- csrf_token --></body>
 </html>

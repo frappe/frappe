@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> frappe.__init__ </title>
+	<title>frappe.__init__</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -21,26 +21,46 @@
 		type="image/x-icon">
     
 
-		
-<style>
-
-</style>
-</head>
+		</head>
 <body data-path="current/api/frappe.__init__">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-						<header>
+	<div class="main-section">
+		<div>
+				<header>
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
-				</a>
+				</a> -->
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
 			</div>
 			<div class="hidden-xs">
 				
@@ -68,38 +88,36 @@
 		</div>
 	</nav>
 </header><div class="hero-and-content">
-                        <div data-html-block="hero"></div>
-                        <div class="container" data-html-block="content">
-                        
-<div class="page-container" id="page-frappe.__init__" data-path="current/api/frappe.__init__"
-	data-doctype="Web Page">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-current/api/frappe.__init__" data-path="{{ pathname }}"
+	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								
 								<div class="page-breadcrumbs">
 									
-    
-    
+									
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
+		<a href="https://frappe.github.io/frappe//current/api">
 		Frappe Framework API</a>
 	</li>
 	
 </ul>
 
-    
-
+									
 								</div>
 								
 								<h1>frappe.__init__</h1>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								
 
 								
@@ -107,13 +125,10 @@
 						</div>
 					</div>
 					<div class="page_content">
-<div class="webpage-content">
-	
-	<article class="web-page-content" id="frappe.__init__" style="text-align: Left">
-	<!-- title: frappe.__init__ --><div class="dev-header">
+<!-- title: frappe.__init__ --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+	Version 7.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/__init__.py"
@@ -320,7 +335,23 @@ listify the values against the key.</p>
         <a name="frappe.attach_print" href="#frappe.attach_print" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>attach_print</b>
-        <i class="text-muted">(doctype, name, file_name=None, print_format=None, style=None, html=None)</i>
+        <i class="text-muted">(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.bold" href="#frappe.bold" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>bold</b>
+        <i class="text-muted">(text)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -477,13 +508,13 @@ listify the values against the key.</p>
 		frappe.<b>create_folder</b>
         <i class="text-muted">(path, with_init=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Create a folder in the given path and add an <code>__init__.py</code> file (optional).</p>
+	<div class="docs-attr-desc"><p>Create a folder in the given path and add an <code><a href="http://__init__.py" rel="nofollow">__init__.py</a></code> file (optional).</p>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
 <li><strong><code>path</code></strong> -  Folder path.</li>
-<li><strong><code>with_init</code></strong> -  Create <code>__init__.py</code> in the new folder.</li>
+<li><strong><code>with_init</code></strong> -  Create <code><a href="http://__init__.py" rel="nofollow">__init__.py</a></code> in the new folder.</li>
 </ul>
 </div>
 	<br>
@@ -860,7 +891,7 @@ todo = frappe.get_doc("ToDo", "TD0001")
 		frappe.<b>get_hooks</b>
         <i class="text-muted">(hook=None, default=None, app_name=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Get hooks via <code>app/hooks.py</code></p>
+	<div class="docs-attr-desc"><p>Get hooks via <code>app/<a href="http://hooks.py" rel="nofollow">hooks.py</a></code></p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -1079,7 +1110,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.get_print" href="#frappe.get_print" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>get_print</b>
-        <i class="text-muted">(doctype, name, print_format=None, style=None, html=None, as_pdf=False)</i>
+        <i class="text-muted">(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get Print Format for given document.</p>
 
@@ -1603,6 +1634,31 @@ response JSON and shown in a pop-up / modal.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.publish_progress" href="#frappe.publish_progress" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>publish_progress</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Show the user progress for a long request</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>percent</code></strong> -  Percent progress</li>
+<li><strong><code>title</code></strong> -  Title</li>
+<li><strong><code>doctype</code></strong> -  Optional, for DocType</li>
+<li><strong><code>name</code></strong> -  Optional, for Document name</li>
+</ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.publish_realtime" href="#frappe.publish_realtime" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>publish_realtime</b>
@@ -1792,7 +1848,7 @@ Similar to respond<em>as</em>web_page, but used to 'redirect' and show message p
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, bulk=False, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, as_bulk=False, send_after=None, expose_recipients=False, bulk_priority=1, communication=None)</i>
+        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 
@@ -1804,8 +1860,8 @@ Similar to respond<em>as</em>web_page, but used to 'redirect' and show message p
 <li><strong><code>subject</code></strong> -  Email Subject.</li>
 <li><strong><code>message</code></strong> -  (or <code>content</code>) Email Content.</li>
 <li><strong><code>as_markdown</code></strong> -  Convert content markdown to HTML.</li>
-<li><strong><code>bulk</code></strong> -  Send via scheduled email sender <strong>Bulk Email</strong>. Don't send immediately.</li>
-<li><strong><code>bulk_priority</code></strong> -  Priority for bulk email, default 1.</li>
+<li><strong><code>delayed</code></strong> -  Send via scheduled email sender <strong>Email Queue</strong>. Don't send immediately. Default is true</li>
+<li><strong><code>send_priority</code></strong> -  Priority for Email Queue, default 1.</li>
 <li><strong><code>reference_doctype</code></strong> -  (or <code>doctype</code>) Append as communication to this DocType.</li>
 <li><strong><code>reference_name</code></strong> -  (or <code>name</code>) Append as communication to this document name.</li>
 <li><strong><code>unsubscribe_method</code></strong> -  Unsubscribe url with options email, doctype, name. e.g. <code>/api/method/unsubscribe</code></li>
@@ -1816,7 +1872,7 @@ Similar to respond<em>as</em>web_page, but used to 'redirect' and show message p
 <li><strong><code>in_reply_to</code></strong> -  Used to send the Message-Id of a received email back as In-Reply-To.</li>
 <li><strong><code>send_after</code></strong> -  Send after the given datetime.</li>
 <li><strong><code>expose_recipients</code></strong> -  Display all recipients in the footer message - "This email was sent to"</li>
-<li><strong><code>communication</code></strong> -  Communication link to be set in Bulk Email record</li>
+<li><strong><code>communication</code></strong> -  Communication link to be set in Email Queue record</li>
 </ul>
 </div>
 	<br>
@@ -1965,75 +2021,46 @@ def myfunc(param1, param2):
 
 
 <!-- autodoc -->
-	</article>
-	
-</div>
 </div>
 				</div>
 			</div>
 </div>
 
-						<!-- edit-link -->
-                        </div>
-                    </div>
-					<footer class="docs-footer">
-						<div class="container"><div class="built-with-frappe text-center">
-                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
-                            <h3>By Frappe Technologies</h3>
-                        </div>
-                        <div class="text-center">
-                            <ul class="list-unstyled">
-                                <li>
-                                    <a href="https://github.com/frappe/frappe">
-                                    Source</a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/frappe/frappe/issues">
-                                    Issues</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.github.io/frappe/license.html">
-                                    License</a>
-                                </li>
-                                <li>
-                                    <a href="https://discuss.erpnext.com">
-                                    Forum</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.io/apps">
-                                    Frappe Apps</a>
-                                </li>
-                            </ul>
-                        </div>
+				<!-- edit-link -->
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
 
-                    </div>
-					</footer>
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				<div class="sidebar-navbar-items">
-					<ul class="nav navbar-nav navbar-left">
-</ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
-	<a href="/#"
-		
-		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
-	<a href="https://frappe.github.io/frappe/user"
-		
-		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
-	<a href="https://frappe.github.io/frappe/current"
-		
-		>
-	API Documentation</a></li>
-	
-	<!-- post login tools -->
-
-</ul>
-				</div>
-			</div>
+            </div>
+			</footer>
 		</div>
 	</div>
 
@@ -2046,8 +2073,6 @@ def myfunc(param1, param2):
 	<script>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
-    <script></script>
-
 
 	<!-- csrf_token --></body>
 </html>

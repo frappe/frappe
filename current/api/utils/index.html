@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title> utils </title>
+	<title>utils</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -21,26 +21,46 @@
 		type="image/x-icon">
     
 
-		
-<style>
-
-</style>
-</head>
+		</head>
 <body data-path="current/api/utils">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-						<header>
+	<div class="main-section">
+		<div>
+				<header>
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe/">
+				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<a class="pull-right toggle-sidebar visible-xs">
+				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
 					<i class="octicon octicon-three-bars"></i>
-				</a>
+				</a> -->
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
 			</div>
 			<div class="hidden-xs">
 				
@@ -68,38 +88,36 @@
 		</div>
 	</nav>
 </header><div class="hero-and-content">
-                        <div data-html-block="hero"></div>
-                        <div class="container" data-html-block="content">
-                        
-<div class="page-container" id="page-utils-1" data-path="current/api/utils"
-	data-doctype="Web Page">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-current/api/utils" data-path="{{ pathname }}"
+	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8">
+							<div class="col-sm-8 col-xs-6">
 								
 								<div class="page-breadcrumbs">
 									
-    
-    
+									
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe/current/api">
+		<a href="https://frappe.github.io/frappe//current/api">
 		Frappe Framework API</a>
 	</li>
 	
 </ul>
 
-    
-
+									
 								</div>
 								
 								<h1>utils</h1>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-4 col-xs-6">
 								
 
 								
@@ -107,16 +125,13 @@
 						</div>
 					</div>
 					<div class="page_content">
-<div class="webpage-content">
-	
-	<article class="web-page-content" id="utils-1" style="text-align: Left">
-	<!-- title: utils -->
+<!-- title: utils -->
 
 
 <div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 6.x.x</a>
+	Version 7.x.x</a>
 
 
 	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/utils"
@@ -132,187 +147,202 @@
     <ol>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.jinja.html">frappe.utils.jinja</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.autodoc">frappe.utils.autodoc</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.csvutils.html">frappe.utils.csvutils</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.background_jobs">frappe.utils.background_jobs</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.file_lock.html">frappe.utils.file_lock</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.backups">frappe.utils.backups</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.password.html">frappe.utils.password</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.bench_helper">frappe.utils.bench_helper</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.formatters.html">frappe.utils.formatters</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.boilerplate">frappe.utils.boilerplate</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.momentjs.html">frappe.utils.momentjs</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.bot">frappe.utils.bot</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.testutils.html">frappe.utils.testutils</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.change_log">frappe.utils.change_log</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.pdf.html">frappe.utils.pdf</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.csvutils">frappe.utils.csvutils</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.minify.html">frappe.utils.minify</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.data">frappe.utils.data</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.identicon.html">frappe.utils.identicon</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.dateutils">frappe.utils.dateutils</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.file_manager.html">frappe.utils.file_manager</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.doctor">frappe.utils.doctor</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.data.html">frappe.utils.data</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.error">frappe.utils.error</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.doctor.html">frappe.utils.doctor</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.file_lock">frappe.utils.file_lock</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.bench_helper.html">frappe.utils.bench_helper</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.file_manager">frappe.utils.file_manager</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.boilerplate.html">frappe.utils.boilerplate</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.fixtures">frappe.utils.fixtures</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.response.html">frappe.utils.response</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.formatters">frappe.utils.formatters</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.change_log.html">frappe.utils.change_log</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.help">frappe.utils.help</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.install.html">frappe.utils.install</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils">frappe.utils</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.oauth.html">frappe.utils.oauth</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.identicon">frappe.utils.identicon</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.bot.html">frappe.utils.bot</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.image">frappe.utils.image</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.dateutils.html">frappe.utils.dateutils</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.install">frappe.utils.install</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.sel.html">frappe.utils.sel</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.jinja">frappe.utils.jinja</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.redis_wrapper.html">frappe.utils.redis_wrapper</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.logger">frappe.utils.logger</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.scheduler.html">frappe.utils.scheduler</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.make_random">frappe.utils.make_random</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.background_jobs.html">frappe.utils.background_jobs</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.minify">frappe.utils.minify</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.setup_docs.html">frappe.utils.setup_docs</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.momentjs">frappe.utils.momentjs</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.error.html">frappe.utils.error</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.nestedset">frappe.utils.nestedset</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.html">frappe.utils</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.oauth">frappe.utils.oauth</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.fixtures.html">frappe.utils.fixtures</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.password">frappe.utils.password</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.autodoc.html">frappe.utils.autodoc</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.password_strength">frappe.utils.password_strength</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.nestedset.html">frappe.utils.nestedset</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.pdf">frappe.utils.pdf</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.backups.html">frappe.utils.backups</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.print_format">frappe.utils.print_format</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.user.html">frappe.utils.user</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.redis_wrapper">frappe.utils.redis_wrapper</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.image.html">frappe.utils.image</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.response">frappe.utils.response</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.logger.html">frappe.utils.logger</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.scheduler">frappe.utils.scheduler</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.verified_command.html">frappe.utils.verified_command</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.sel">frappe.utils.sel</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.make_random.html">frappe.utils.make_random</a>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.setup_docs">frappe.utils.setup_docs</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.testutils">frappe.utils.testutils</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.user">frappe.utils.user</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/current/api/utils/frappe.utils.verified_command">frappe.utils.verified_command</a>
             
         </li>
     
@@ -320,75 +350,46 @@
 
 
 <!-- autodoc -->
-	</article>
-	
-</div>
 </div>
 				</div>
 			</div>
 </div>
 
-						<!-- edit-link -->
-                        </div>
-                    </div>
-					<footer class="docs-footer">
-						<div class="container"><div class="built-with-frappe text-center">
-                            <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
-                            <h3>By Frappe Technologies</h3>
-                        </div>
-                        <div class="text-center">
-                            <ul class="list-unstyled">
-                                <li>
-                                    <a href="https://github.com/frappe/frappe">
-                                    Source</a>
-                                </li>
-                                <li>
-                                    <a href="https://github.com/frappe/frappe/issues">
-                                    Issues</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.github.io/frappe/license.html">
-                                    License</a>
-                                </li>
-                                <li>
-                                    <a href="https://discuss.erpnext.com">
-                                    Forum</a>
-                                </li>
-                                <li>
-                                    <a href="https://frappe.io/apps">
-                                    Frappe Apps</a>
-                                </li>
-                            </ul>
-                        </div>
+				<!-- edit-link -->
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
 
-                    </div>
-					</footer>
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				<div class="sidebar-navbar-items">
-					<ul class="nav navbar-nav navbar-left">
-</ul>
-<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
-	<a href="/#"
-		
-		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
-	<a href="https://frappe.github.io/frappe/user"
-		
-		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
-	<a href="https://frappe.github.io/frappe/current"
-		
-		>
-	API Documentation</a></li>
-	
-	<!-- post login tools -->
-
-</ul>
-				</div>
-			</div>
+            </div>
+			</footer>
 		</div>
 	</div>
 
@@ -401,8 +402,6 @@
 	<script>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
-    <script></script>
-
 
 	<!-- csrf_token --></body>
 </html>
