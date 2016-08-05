@@ -1,17 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-cur_frm.cscript.onload = function(doc) {
-	return frappe.call({
-		method: "frappe.email.doctype.newsletter.newsletter.get_lead_options",
-		type: "GET",
-		callback: function(r) {
-			set_field_options("lead_source", r.message.sources.join("\n"))
-			set_field_options("lead_status", r.message.statuses.join("\n"))
-		}
-	});
-}
-
 cur_frm.cscript.refresh = function(doc) {
 	erpnext.toggle_naming_series();
 	if(!doc.__islocal && !cint(doc.email_sent) && !doc.__unsaved

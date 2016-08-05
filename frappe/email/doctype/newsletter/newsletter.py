@@ -78,15 +78,6 @@ class Newsletter(Document):
 			throw(_("Please save the Newsletter before sending"))
 		check_email_limit(self.recipients)
 
-@frappe.whitelist()
-def get_lead_options():
-	return {
-		"sources": ["All"] + filter(None,
-			frappe.db.sql_list("""select distinct source from tabLead""")),
-		"statuses": ["All"] + filter(None,
-			frappe.db.sql_list("""select distinct status from tabLead"""))
-	}
-
 
 @frappe.whitelist(allow_guest=True)
 def unsubscribe(email, name):
