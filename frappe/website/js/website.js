@@ -377,7 +377,8 @@ $(document).ready(function() {
 	// switch to app link
 	if(getCookie("system_user")==="yes" && logged_in) {
 		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
-		$(".navbar-header .dropdown .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
+		$(".navbar-header .dropdown:not(.dropdown-submenu) > .dropdown-menu")
+			.append('<li><a href="/desk">Switch To Desk</a></li>');
 	}
 
 	frappe.render_user();
@@ -388,6 +389,12 @@ $(document).ready(function() {
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
 	$('.dropdown-toggle').dropdown();
+
+	//multilevel dropdown fix
+	$('.dropdown-menu .dropdown-submenu .dropdown-toggle').on('click', function (e) {
+		e.stopPropagation();
+		$(this).parent().parent().parent().addClass('open');
+	})
 
 	$.extend(frappe, getCookies());
 	frappe.session = {'user': frappe.user_id};

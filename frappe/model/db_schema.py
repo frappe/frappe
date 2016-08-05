@@ -459,6 +459,8 @@ class DbManager:
  		if db:
  			self.db = db
 
+	def get_current_host(self):
+		return self.db.sql("select user()")[0][0].split('@')[1]
 
 	def get_variables(self,regex):
 		"""
@@ -480,8 +482,11 @@ class DbManager:
 
 		return [t[0] for t in self.db.sql("SHOW TABLES")]
 
-	def create_user(self, user, password, host):
+	def create_user(self, user, password, host=None):
 		#Create user if it doesn't exist.
+		if not host:
+			host = self.get_current_host()
+
 		try:
 			if password:
 				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
@@ -490,8 +495,9 @@ class DbManager:
 		except Exception:
 			raise
 
-	def delete_user(self, target, host):
-	# delete user if exists
+	def delete_user(self, target, host=None):
+		if not host:
+			host = self.get_current_host()
 		try:
 			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
 		except Exception, e:
@@ -504,15 +510,21 @@ class DbManager:
 		if target in self.get_database_list():
 			self.drop_database(target)
 
-		self.db.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
+		self.db.sql("CREATE DATABASE `%s` ;" % target)
 
 	def drop_database(self,target):
 		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 
-	def grant_all_privileges(self, target, user, host):
+	def grant_all_privileges(self, target, user, host=None):
+		if not host:
+			host = self.get_current_host()
+
 		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
-	def grant_select_privilges(self, db, table, user, host):
+	def grant_select_privilges(self, db, table, user, host=None):
+		if not host:
+			host = self.get_current_host()
+
 		if table:
 			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'%s';" % (db, table, user, host))
 		else:
