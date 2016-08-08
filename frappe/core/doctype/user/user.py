@@ -36,7 +36,7 @@ class User(Document):
 	def onload(self):
 		self.set_onload('all_modules',
 			[m.module_name for m in frappe.db.get_all('Desktop Icon',
-				fields=['module_name'], filters={'standard': 1})])
+				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
 
 	def validate(self):
 		self.check_demo()
