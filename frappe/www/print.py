@@ -9,7 +9,7 @@ from frappe import _
 from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils import cint, strip_html
-from frappe.utils.pdf import get_pdf
+from markdown2 import markdown
 
 no_cache = 1
 no_sitemap = 1
@@ -108,7 +108,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 			doc.format_data_map = format_data_map
 
 			template = "standard"
-			
+
 		elif print_format.standard=="Yes" or print_format.custom_format:
 			template = jenv.from_string(get_print_format(doc.doctype,
 				print_format))
@@ -125,6 +125,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		template = jenv.get_template(standard_format)
 
 	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
+
+	convert_markdown(doc, meta)
+
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
@@ -142,6 +145,14 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		html += trigger_print_script
 
 	return html
+
+def convert_markdown(doc, meta):
+	'''Convert text field values to markdown if necessary'''
+	for field in meta.fields:
+		if field.fieldtype=='Text Editor':
+			value = doc.get(field.fieldname)
+			if value and '<!-- markdown -->' in value:
+				doc.set(field.fieldname, markdown(value))
 
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,

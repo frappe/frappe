@@ -468,7 +468,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		      args.filters.push(f);
 		});
 
-		args.order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
+		args.order_by = '`tab' + this.doctype + '`.`' + this.sort_selector.sort_by + '` ' + this.sort_selector.sort_order;
 
 		return args;
 	},

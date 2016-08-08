@@ -8,7 +8,7 @@
 	  	data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 	    <span class="dropdown-text">{{ __(sort_by_label) }}</span>
 	  </a>
-	  <ul class="dropdown-menu">
+	  <ul class="dropdown-menu" style="max-height: 300px; overflow-y: scroll;">
 		{% for value in options %}
 	    <li><a class="option" data-value="{{ value.fieldname }}">
 			{{ __(value.label) }}</a></li>
