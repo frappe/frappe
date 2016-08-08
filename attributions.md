@@ -12,7 +12,6 @@
 - JQuery Time Picker, MIT License, (c) 2013 Trent Richardson, http://trentrichardson.com/examples/timepicker
 - JQuery Hotkeys Plugin, MIT License, (c) 2010, John Resig
 - prettydate.js, MIT License, (c) 2011, John Resig
-- jquery.flot.downsample, MIT License, (c) 2013, Sveinn Steinarsson
 - JQuery Resize Event, MIT License, (c) 2010 "Cowboy" Ben Alman
 - excanvas.js, Apache License Version 2.0, (c) 2006 Google Inc
 - showdown.js - Javascript Markdown, BSD-style Open Source License, (c) 2007 John Fraser

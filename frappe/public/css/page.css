@@ -18,9 +18,14 @@
   max-width: 50%;
   vertical-align: middle;
 }
-.page-body {
-  overflow-x: hidden;
-  min-height: calc(60vh);
+@media (min-width: 767px) {
+  .page-body {
+    overflow-x: hidden;
+    min-height: calc(60vh);
+  }
+}
+.page-title {
+  position: relative;
 }
 .page-title h6 {
   margin-top: -8px;
@@ -36,6 +41,20 @@
   max-width: 75%;
   display: inline-block;
   vertical-align: middle;
+}
+.page-title .title-image {
+  display: inline-block;
+  width: 46px;
+  height: 0;
+  padding: 23px 0;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+  line-height: 0;
+  float: left;
 }
 .editable-title .title-text {
   cursor: pointer;
@@ -113,7 +132,7 @@ select.input-sm {
 }
 @media (max-width: 767px) {
   .page-actions {
-    width: 105px;
+    max-width: 150px;
     float: right;
   }
   .page-title {

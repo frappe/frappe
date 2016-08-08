@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-import os, json, sys
+import os, json, sys, subprocess, shutil
 import frappe
 import frappe.database
 import getpass
@@ -14,8 +14,9 @@ import importlib
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
-from frappe.website import render, statics
+from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
+from frappe.utils.password import create_auth_table
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
@@ -27,7 +28,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 		dbman.create_database(db_name)
 
 	else:
-		frappe.local.db = make_connection(root_login, root_password)
+		frappe.local.db = get_root_connection(root_login, root_password)
 		frappe.local.session = frappe._dict({'user':'Administrator'})
 		create_database_and_user(force, verbose)
 
@@ -39,37 +40,39 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	remove_missing_apps()
 
 	create_auth_table()
+	create_list_settings_table()
+
 	frappe.flags.in_install_db = False
 
-def get_current_host():
-	return frappe.db.sql("select user()")[0][0].split('@')[1]
 
 def create_database_and_user(force, verbose):
 	db_name = frappe.local.conf.db_name
 	dbman = DbManager(frappe.local.db)
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name, get_current_host())
+		dbman.delete_user(db_name)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
-	dbman.create_user(db_name, frappe.conf.db_password, get_current_host())
+	dbman.create_user(db_name, frappe.conf.db_password)
 	if verbose: print "Created user %s" % db_name
 
 	dbman.create_database(db_name)
 	if verbose: print "Created database %s" % db_name
 
-	dbman.grant_all_privileges(db_name, db_name, get_current_host())
+	dbman.grant_all_privileges(db_name, db_name)
 	dbman.flush_privileges()
 	if verbose: print "Granted privileges to user %s and database %s" % (db_name, db_name)
 
 	# close root connection
 	frappe.db.close()
 
-def create_auth_table():
-	frappe.db.sql_ddl("""create table if not exists __Auth (
-		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
-		`password` VARCHAR(180) NOT NULL
+def create_list_settings_table():
+	frappe.db.sql_ddl("""create table if not exists __ListSettings (
+		`user` VARCHAR(180) NOT NULL,
+		`doctype` VARCHAR(180) NOT NULL,
+		`data` TEXT,
+		UNIQUE(user, doctype)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 
 def import_db_from_sql(source_sql, verbose):
@@ -80,14 +83,17 @@ def import_db_from_sql(source_sql, verbose):
 	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
 	if verbose: print "Imported from database %s" % source_sql
 
-def make_connection(root_login, root_password):
-	if root_login:
-		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+def get_root_connection(root_login='root', root_password=None):
+	if not frappe.local.flags.root_connection:
+		if root_login:
+			if not root_password:
+				root_password = frappe.conf.get("root_password") or None
 
-		if not root_password:
-			root_password = getpass.getpass("MySQL root password: ")
-	return frappe.database.Database(user=root_login, password=root_password)
+			if not root_password:
+				root_password = getpass.getpass("MySQL root password: ")
+		frappe.local.flags.root_connection = frappe.database.Database(user=root_login, password=root_password)
+
+	return frappe.local.flags.root_connection
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.clear_cache()
@@ -125,6 +131,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	sync_from_app(name)
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+
 	add_to_installed_apps(name)
 
 	if set_as_patched:
@@ -155,10 +163,10 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False):
+def remove_app(app_name, dry_run=False, yes=False):
 	"""Delete app and all linked to the app's module with the app."""
 
-	if not dry_run:
+	if not dry_run and not yes:
 		confirm = raw_input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
 		if confirm!="y":
 			return
@@ -173,7 +181,7 @@ def remove_app(app_name, dry_run=False):
 	for module_name in frappe.get_module_list(app_name):
 		for doctype in frappe.get_list("DocType", filters={"module": module_name},
 			fields=["name", "issingle"]):
-			print "removing {0}...".format(doctype.name)
+			print "removing DocType {0}...".format(doctype.name)
 			# drop table
 
 			if not dry_run:
@@ -182,7 +190,21 @@ def remove_app(app_name, dry_run=False):
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
+		# remove reports
+		for report in frappe.get_list("Report", filters={"module": module_name}):
+			print "removing {0}...".format(report.name)
+			if not dry_run:
+				frappe.delete_doc("Report", report.name)
+
+		for page in frappe.get_list("Page", filters={"module": module_name}):
+			print "removing Page {0}...".format(page.name)
+			# drop table
+
+			if not dry_run:
+				frappe.delete_doc("Page", page.name)
+
 		print "removing Module {0}...".format(module_name)
+
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
 
@@ -201,7 +223,6 @@ def remove_app(app_name, dry_run=False):
 def post_install(rebuild_website=False):
 	if rebuild_website:
 		render.clear_cache()
-		statics.sync().start()
 
 	init_singles()
 	frappe.db.commit()
@@ -244,16 +265,17 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
-def update_site_config(key, value):
+def update_site_config(key, value, validate=True):
 	"""Update a value in site_config"""
 	with open(get_site_config_path(), "r") as f:
 		site_config = json.loads(f.read())
 
-	# int
-	try:
-		value = int(value)
-	except ValueError:
-		pass
+	# In case of non-int value
+	if validate:
+		try:
+			value = int(value)
+		except ValueError:
+			pass
 
 	# boolean
 	if value in ("False", "True"):
@@ -336,6 +358,37 @@ def check_if_ready_for_barracuda():
 			print "="*80
 			sys.exit(1)
 			# raise Exception, "MariaDB needs to be configured!"
+
+def extract_sql_gzip(sql_gz_path):
+	try:
+		success = subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
+	except:
+		raise
+
+	path = sql_gz_path[:-3] if success else None
+
+	return path
+
+def extract_tar_files(site_name, file_path, folder_name):
+	# Need to do frappe.init to maintain the site locals
+	frappe.init(site=site_name)
+	abs_site_path = os.path.abspath(frappe.get_site_path())
+
+	# Copy the files to the parent directory and extract
+	shutil.copy2(os.path.abspath(file_path), abs_site_path)
+
+	# Get the file name splitting the file path on
+	tar_name = os.path.split(file_path)[1]
+	tar_path = os.path.join(abs_site_path, tar_name)
+
+	try:
+		subprocess.check_output(['tar', 'xvf', tar_path, '--strip', '2'], cwd=abs_site_path)
+	except:
+		raise
+	finally:
+		frappe.destroy()
+
+	return tar_path
 
 expected_config_for_barracuda = """[mysqld]
 innodb-file-format=barracuda

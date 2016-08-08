@@ -17,6 +17,9 @@ frappe.socket = {
 		else if (window.location.protocol == "http:") {
 			frappe.socket.socket = io.connect(frappe.socket.get_host());
 		}
+		else if (window.location.protocol == "file:") {
+			frappe.socket.socket = io.connect(window.localStorage.server);
+		}
 
 		if (!frappe.socket.socket) {
 			console.log("Unable to connect to " + frappe.socket.get_host());
@@ -25,6 +28,20 @@ frappe.socket = {
 
 		frappe.socket.socket.on('msgprint', function(message) {
 			frappe.msgprint(message);
+		});
+
+		frappe.socket.socket.on('eval_js', function(message) {
+			eval(message);
+		});
+
+		frappe.socket.socket.on('progress', function(data) {
+			if(data.percent) {
+				if(data.percent==100) {
+					frappe.hide_progress();
+				} else {
+					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
+				}
+			}
 		});
 
 		frappe.socket.setup_listeners();

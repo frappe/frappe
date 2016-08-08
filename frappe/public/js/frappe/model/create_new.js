@@ -7,7 +7,7 @@ $.extend(frappe.model, {
 	new_names: {},
 	new_name_count: {},
 
-	get_new_doc: function(doctype, parent_doc, parentfield) {
+	get_new_doc: function(doctype, parent_doc, parentfield, with_mandatory_children) {
 		frappe.provide("locals." + doctype);
 		var doc = {
 			docstatus: 0,
@@ -34,15 +34,44 @@ $.extend(frappe.model, {
 
 		frappe.model.add_to_locals(doc);
 
+		if(with_mandatory_children) {
+			frappe.model.create_mandatory_children(doc);
+		}
+
 		if (!parent_doc) {
 			doc.__run_link_triggers = 1;
+		}
+
+		// set the name if called from a link field
+		if(frappe.route_options && frappe.route_options.name_field) {
+
+			var meta = frappe.get_meta(doctype);
+			// set title field / name as name
+			if(meta.autoname && meta.autoname.indexOf("field:")!==-1) {
+				doc[meta.autoname.substr(6)] = frappe.route_options.name_field;
+			} else if(meta.title_field) {
+				doc[meta.title_field] = frappe.route_options.name_field;
+			}
+
+
+			delete frappe.route_options.name_field;
+		}
+
+		// set route options
+		if(frappe.route_options && !doc.parent) {
+			$.each(frappe.route_options, function(fieldname, value) {
+				if(frappe.meta.has_field(doctype, fieldname)) {
+					doc[fieldname]=value;
+				}
+			});
+			frappe.route_options = null;
 		}
 
 		return doc;
 	},
 
-	make_new_doc_and_get_name: function(doctype) {
-		return frappe.model.get_new_doc(doctype).name;
+	make_new_doc_and_get_name: function(doctype, with_mandatory_children) {
+		return frappe.model.get_new_doc(doctype, null, null, with_mandatory_children).name;
 	},
 
 	get_new_name: function(doctype) {
@@ -60,6 +89,7 @@ $.extend(frappe.model, {
 
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
+
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = frappe.model.get_default_value(f, doc, parent_doc);
 				if(v) {
@@ -79,6 +109,18 @@ $.extend(frappe.model, {
 		return updated;
 	},
 
+	create_mandatory_children: function(doc) {
+		var meta = frappe.get_meta(doc.doctype);
+		if(meta && meta.istable) return;
+
+		// create empty rows for mandatory table fields
+		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
+			if(df.fieldtype==='Table' && df.reqd) {
+				frappe.model.add_child(doc, df.fieldname);
+			}
+		});
+	},
+
 	get_default_value: function(df, doc, parent_doc) {
 		var user_permissions = frappe.defaults.get_user_permissions();
 		var meta = frappe.get_meta(doc.doctype);
@@ -96,6 +138,9 @@ $.extend(frappe.model, {
 
 			// 2 - look in user defaults
 			var user_default = frappe.defaults.get_user_default(df.fieldname);
+			if(!user_default && df.fieldtype==='Link') {
+				user_default = frappe.defaults.get_user_default(df.options);
+			}
 			var is_allowed_user_default = user_default &&
 				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
 
@@ -160,6 +205,12 @@ $.extend(frappe.model, {
 	},
 
 	add_child: function(parent_doc, doctype, parentfield, idx) {
+		// if given doc, fieldname only
+		if(arguments.length===2) {
+			parentfield = doctype;
+			doctype = frappe.meta.get_field(parent_doc.doctype, parentfield).options;
+		}
+
 		// create row doc
 		idx = idx ? idx - 0.1 : (parent_doc[parentfield] || []).length + 1;
 
@@ -238,60 +289,33 @@ $.extend(frappe.model, {
 				}
 			}
 		})
-	},
+	}
+});
 
-	map_current_doc: function(opts) {
-		if(opts.get_query_filters) {
-			opts.get_query = function() {
-				return {filters: opts.get_query_filters};
-			}
-		}
-		var _map = function() {
-			return frappe.call({
-				// Sometimes we hit the limit for URL length of a GET request
-				// as we send the full target_doc. Hence this is a POST request.
-				type: "POST",
-				method: opts.method,
-				args: {
-					"source_name": opts.source_name,
-					"target_doc": cur_frm.doc
-				},
-				callback: function(r) {
-					if(!r.exc) {
-						var doc = frappe.model.sync(r.message);
-						cur_frm.refresh();
-					}
+frappe.create_routes = {};
+frappe.new_doc = function (doctype, opts) {
+	frappe.model.with_doctype(doctype, function() {
+		if(frappe.create_routes[doctype]) {
+			frappe.set_route(frappe.create_routes[doctype]);
+		} else {
+			frappe.ui.form.quick_entry(doctype, function(doc) {
+				//frappe.set_route('List', doctype);
+				var title = doc.name;
+				var title_field = frappe.get_meta(doc.doctype).title_field;
+				if (title_field) {
+					title = doc[title_field];
+				}
+
+				var route = frappe.get_route();
+				if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
+					frappe.set_route('Form', doc.doctype, doc.name);
 				}
 			});
 		}
-		if(opts.source_doctype) {
-			var d = new frappe.ui.Dialog({
-				title: __("Get From ") + __(opts.source_doctype),
-				fields: [
-					{
-						"fieldtype": "Link",
-						"label": __(opts.source_doctype),
-						"fieldname": opts.source_doctype,
-						"options": opts.source_doctype,
-						"get_query": opts.get_query,
-						reqd:1},
-					{
-						"fieldtype": "Button",
-						"label": __("Get"),
-						click: function() {
-							var values = d.get_values();
-							if(!values)
-								return;
-							opts.source_name = values[opts.source_doctype];
-							d.hide();
-							_map();
-						}
-					}
-				]
-			})
-			d.show();
-		} else if(opts.source_name) {
-			_map();
-		}
-	}
-})
+	});
+}
+
+// globals for backward compatibility
+window.new_doc = frappe.new_doc;
+
+

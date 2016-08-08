@@ -1,19 +1,12 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ blog_title or "Blog" }}{% endblock %}
-
+{% block title %}{{ blog_title or _("Blog") }}{% endblock %}
+{% block header %}<h1>{{ blog_title or _("Blog") }}</h1>{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block page_content %}
 <!-- no-header -->
 <!-- no-breadcrumbs -->
-{% if blog_subtitle %}
-<div class="list-hero">
-	<h1>
-		{{ blog_subtitle }}
-	</h1>
-</div>
-{% endif %}
 <div class="blog-list-content">
 	<div id="blog-list">
 		{% include "templates/includes/list/list.html" %}
@@ -23,12 +16,4 @@
 
 {% block script %}
 <script>{% include "templates/includes/list/list.js" %}</script>
-{% endblock %}
-
-{% block style %}
-<style>
-.page-content {
-	padding: 0px;
-}
-</style>
 {% endblock %}

@@ -1,16 +1,25 @@
 {
- "apply_style": 1, 
+ "apply_style": 0, 
+ "apply_text_styles": 0, 
  "creation": "2015-02-19 13:37:33.925909", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "Website Theme", 
  "font_size": "14px", 
+ "footer_color": "", 
+ "footer_text_color": "", 
  "heading_style": "", 
- "modified": "2015-02-19 20:01:19.478005", 
+ "heading_webfont": "", 
+ "idx": 17, 
+ "link_color": "", 
+ "modified": "2016-08-03 06:59:24.539564", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Standard", 
  "owner": "Administrator", 
+ "text_color": "", 
+ "text_webfont": "", 
  "theme": "Standard", 
- "website_theme_templates": []
+ "top_bar_color": "", 
+ "top_bar_text_color": ""
 }

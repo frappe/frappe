@@ -16,9 +16,13 @@ class BlogPost(WebsiteGenerator):
 		condition_field = "published",
 		template = "templates/generators/blog_post.html",
 		order_by = "published_on desc",
-		parent_website_route_field = "blog_category",
 		page_title_field = "title"
 	)
+
+	def make_route(self):
+		if not self.route:
+			return frappe.db.get_value('Blog Category', self.blog_category,
+				'route') + '/' + self.scrub(self.title)
 
 	def get_feed(self):
 		return self.title
@@ -72,20 +76,27 @@ class BlogPost(WebsiteGenerator):
 			context.metatags["image"] = image
 
 		context.comment_list = get_comment_list(self.doctype, self.name)
+		if not context.comment_list:
+			context.comment_text = _('No comments yet')
+		else:
+			if(len(context.comment_list)) == 1:
+				context.comment_text = _('1 comment')
+			else:
+				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
-		context.children = get_children()
-
-		category = frappe.db.get_value("Blog Category", context.doc.blog_category, ["title", "page_name"], as_dict=1)
-		context.parents = [{"title": category.title, "name": "blog/{0}".format(category.page_name)}]
+		context.category = frappe.db.get_value("Blog Category",
+			context.doc.blog_category, ["title", "route"], as_dict=1)
+		context.parents = [{"title": context.category.title, "name":
+			context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
-		page_title = _("Blog"),
 		template = "templates/includes/blog/blog.html",
 		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
 		hide_filters = True,
-		children = get_children()
+		children = get_children(),
+		show_search = True
 	)
 
 	if frappe.local.form_dict.category:
@@ -102,7 +113,7 @@ def get_list_context(context=None):
 	return list_context
 
 def get_children():
-	return frappe.db.sql("""select concat("blog/", page_name) as name,
+	return frappe.db.sql("""select route as name,
 		title from `tabBlog Category`
 		where published = 1
 		and exists (select name from `tabBlog Post`
@@ -110,14 +121,14 @@ def get_children():
 		order by title asc""", as_dict=1)
 
 def clear_blog_cache():
-	for blog in frappe.db.sql_list("""select page_name from
+	for blog in frappe.db.sql_list("""select route from
 		`tabBlog Post` where ifnull(published,0)=1"""):
 		clear_cache(blog)
 
 	clear_cache("writers")
 
-def get_blog_category(page_name):
-	return frappe.db.get_value("Blog Category", {"page_name": page_name }) or page_name
+def get_blog_category(route):
+	return frappe.db.get_value("Blog Category", {"route": route }) or route
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20):
 	conditions = []
@@ -135,10 +146,10 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	query = """\
 		select
-			t1.title, t1.name, t1.blog_category, t1.parent_website_route, t1.published_on,
-				concat(t1.parent_website_route, "/", t1.page_name) as page_name,
+			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on,
 				t1.published_on as creation,
-				ifnull(t1.blog_intro, t1.content) as content,
+				t1.content as content,
+				ifnull(t1.blog_intro, t1.content) as intro,
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabCommunication`
 					where
@@ -160,7 +171,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	for post in posts:
 		post.published = global_date_format(post.creation)
-		post.content = strip_html_tags(post.content[:140])
+		post.content = strip_html_tags(post.content[:340])
 		if not post.comments:
 			post.comment_text = _('No comments yet')
 		elif post.comments==1:
@@ -169,6 +180,8 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 			post.comment_text = _('{0} comments').format(str(post.comments))
 
 		post.avatar = post.avatar or ""
+		post.category = frappe.db.get_value('Blog Category', post.blog_category,
+			['route', 'title'], as_dict=True)
 
 		if (not "http:" in post.avatar or "https:" in post.avatar) and not post.avatar.startswith("/"):
 			post.avatar = "/" + post.avatar

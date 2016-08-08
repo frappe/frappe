@@ -6,14 +6,14 @@ import frappe
 
 def execute():
 	try:
-		frappe.db.sql("alter table `tabBulk Email` change `ref_docname` `reference_name` varchar(255)")
+		frappe.db.sql("alter table `tabEmail Queue` change `ref_docname` `reference_name` varchar(255)")
 	except Exception, e:
 		if e.args[0] not in (1054, 1060):
 			raise
 
 	try:
-		frappe.db.sql("alter table `tabBulk Email` change `ref_doctype` `reference_doctype` varchar(255)")
+		frappe.db.sql("alter table `tabEmail Queue` change `ref_doctype` `reference_doctype` varchar(255)")
 	except Exception, e:
 		if e.args[0] not in (1054, 1060):
 			raise
-	frappe.reload_doctype("Bulk Email")
+	frappe.reload_doctype("Email Queue")

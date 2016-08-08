@@ -12,14 +12,14 @@ frappe.ui.FilterList = Class.extend({
 		var me = this;
 		// show filters
 		this.$w.find('.new-filter').bind('click', function() {
-			me.add_filter();
+			me.add_filter(me.doctype, 'name');
 		});
 	},
 
 	show_filters: function() {
 		this.$w.find('.show_filters').toggle();
 		if(!this.filters.length) {
-			this.add_filter();
+			this.add_filter(this.doctype, 'name');
 			this.filters[0].$w.find(".filter_field input").focus();
 		}
 	},
@@ -30,6 +30,18 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
+		if(doctype && fieldname
+			&& !frappe.meta.has_field(doctype, fieldname)
+			&& !in_list(frappe.model.std_fields_list, fieldname)) {
+			frappe.msgprint({
+				message: __('Filter {0} missing', [fieldname.bold()]),
+				title: 'Invalid Filter',
+				indicator: 'red'
+			});
+			return;
+		}
+
+
 		this.$w.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
 
@@ -149,6 +161,7 @@ frappe.ui.Filter = Class.extend({
 
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
+			if(!me.field) return;
 			var condition = $(this).val();
 			if(in_list(["in", "like", "not in", "not like"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
@@ -275,9 +288,12 @@ frappe.ui.Filter = Class.extend({
 		if(df.fieldname=="docstatus") {
 			df.fieldtype="Select",
 			df.options=[
-				{value:0, label:"Draft"},
-				{value:1, label:"Submitted"},
-				{value:2, label:"Cancelled"},
+				{value:0, label:__("Draft")},
+				{value:1, label:__("Submitted")},
+				{value:2, label:__("Cancelled")},
+				{value:3, label:__("Queued for saving")},
+				{value:4, label:__("Queued for submission")},
+				{value:5, label:__("Queued for cancellation")},
 			]
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
@@ -311,6 +327,10 @@ frappe.ui.Filter = Class.extend({
 
 	get_selected_value: function() {
 		var val = this.field.get_parsed_value();
+
+		if(typeof val==='string') {
+			val = strip(val);
+		}
 
 		if(this.field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
@@ -443,9 +463,9 @@ frappe.ui.FieldSelect = Class.extend({
 	},
 	val: function(value) {
 		if(value===undefined) {
-			return this.get_value()
+			return this.get_value();
 		} else {
-			this.set_value(value)
+			this.set_value(value);
 		}
 	},
 	clear: function() {

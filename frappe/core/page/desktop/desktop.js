@@ -37,6 +37,7 @@ $.extend(frappe.desktop, {
 			label: 'Explore',
 			_label: __('Explore'),
 			_id: 'Explore',
+			_doctype: '',
 			icon: 'octicon octicon-telescope',
 			color: '#7578f6',
 			link: 'modules'
@@ -71,6 +72,12 @@ $.extend(frappe.desktop, {
 				frappe.desktop.open_module($(this).parent());
 			});
 		}
+		frappe.desktop.wrapper.on("click", ".circle", function() {
+			var doctype = $(this).attr('data-doctype');
+			if(doctype) {
+				frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+			}
+		});
 	},
 
 	open_module: function(parent) {
@@ -108,7 +115,8 @@ $.extend(frappe.desktop, {
 				frappe.call({
 					method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
 					args: {
-						'new_order': new_order
+						'new_order': new_order,
+						'user': frappe.session.user
 					},
 					quiet: true
 				});
@@ -122,37 +130,41 @@ $.extend(frappe.desktop, {
 	},
 
 	show_pending_notifications: function() {
-
-		if (!frappe.boot.notification_info.module_doctypes) {
-			return;
-		}
-
-		var modules_list = frappe.user.get_desktop_items();
+		var modules_list = frappe.get_desktop_icons();
 		for (var i=0, l=modules_list.length; i < l; i++) {
 			var module = modules_list[i];
 
-			var module_doctypes = frappe.boot.notification_info.module_doctypes[module];
+			var module_doctypes = frappe.boot.notification_info.module_doctypes[module.module_name];
 
 			var sum = 0;
 			if(module_doctypes) {
 				if(frappe.boot.notification_info.open_count_doctype) {
+					// sum all doctypes for a module
 					for (var j=0, k=module_doctypes.length; j < k; j++) {
 						var doctype = module_doctypes[j];
 						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
 					}
 				}
+			} else if(frappe.boot.notification_info.open_count_doctype
+				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
+				// notification count explicitly for doctype
+				sum = frappe.boot.notification_info.open_count_doctype[module.module_name];
+
 			} else if(frappe.boot.notification_info.open_count_module
-				&& frappe.boot.notification_info.open_count_module[module]!=null) {
-				sum = frappe.boot.notification_info.open_count_module[module];
+				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
+				// notification count explicitly for module
+				sum = frappe.boot.notification_info.open_count_module[module.module_name];
 			}
-			if (frappe.modules[module]) {
-				var notifier = $(".module-count-" + frappe.get_module(module)._id);
+
+			// if module found
+			if(module._id.indexOf('/')===-1) {
+				var notifier = $(".module-count-" + module._id);
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
 					var circle = notifier.find(".circle-text");
 					var text = sum || '';
-					if(text > 99) {
-						text = '99+';
+					if(text > 20) {
+						text = '20+';
 					}
 
 					if(circle.length) {

@@ -1,17 +1,20 @@
 {% if top_bar_items -%}
 <ul class="nav navbar-nav navbar-left">
 	{%- for page in top_bar_items -%}
-	{% if not page.parent_label and not page.right -%}
-	{% include "templates/includes/navbar/navbar_link.html" %}
-	{%- endif -%}
+		{% if not page.parent_label and not page.right -%}
+			{% include "templates/includes/navbar/navbar_link.html" %}
+		{%- endif -%}
 	{%- endfor %}
 </ul>
 {%- endif %}
 <ul class="nav navbar-nav navbar-right">
 	{%- for page in top_bar_items -%}
-	{% if not page.parent_label and page.right -%}
-	{% include "templates/includes/navbar/navbar_link.html" %}
-	{%- endif -%}
+		{% if not page.parent_label and page.right -%}
+			{% include "templates/includes/navbar/navbar_link.html" %}
+		{%- endif -%}
 	{%- endfor %}
+	{% if not only_static %}
+		{% block navbar_right_extension %}{% endblock %}
+	{% endif %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 </ul>

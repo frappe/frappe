@@ -1,3 +1,6 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
 a {
   cursor: pointer;
 }
@@ -109,7 +112,6 @@ a.badge-hover:active .badge {
 }
 .msgprint {
   margin: 15px 0px;
-  text-align: center;
 }
 .msgprint pre {
   text-align: left;

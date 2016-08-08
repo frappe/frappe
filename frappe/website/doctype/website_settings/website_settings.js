@@ -34,6 +34,9 @@ $.extend(cur_frm.cscript, {
 		if(item.parentfield === "top_bar_items") {
 			this.set_parent_label_options();
 		}
+		else if(item.parentfield === "footer_items") {
+			this.set_parent_label_options_footer();
+		}
 	},
 
 	parent_label: function(doc, cdt, cdn) {
@@ -50,6 +53,15 @@ $.extend(cur_frm.cscript, {
 
 		if($(cur_frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
 			cur_frm.fields_dict.top_bar_items.grid.refresh();
+		}
+	},
+	
+	set_parent_label_options_footer: function() {
+		frappe.meta.get_docfield("Top Bar Item", "parent_label", cur_frm.docname).options =
+			this.get_parent_options("footer_items");
+
+		if($(cur_frm.fields_dict.footer_items.grid.wrapper).find(".grid-row-open")) {
+			cur_frm.fields_dict.footer_items.grid.refresh();
 		}
 	},
 

@@ -9,7 +9,6 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
-from frappe.utils import get_gravatar
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
@@ -25,19 +24,20 @@ def get_bootinfo():
 	get_user(bootinfo)
 
 	# system info
-	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
-	bootinfo['server_date'] = frappe.utils.nowdate()
+	bootinfo.sysdefaults = frappe.defaults.get_defaults()
+	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
-		bootinfo['user_info'] = get_fullnames()
-		bootinfo['sid'] = frappe.session['sid'];
+		bootinfo.user_info = get_fullnames()
+		bootinfo.sid = frappe.session['sid'];
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_icons(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where issingle=1""")
+	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
+		where issingle=1""")
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -48,22 +48,24 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 
 	# ipinfo
-	if frappe.session['data'].get('ipinfo'):
-		bootinfo['ipinfo'] = frappe.session['data']['ipinfo']
+	if frappe.session.data.get('ipinfo'):
+		bootinfo.ipinfo = frappe.session['data']['ipinfo']
 
 	# add docs
-	bootinfo['docs'] = doclist
+	bootinfo.docs = doclist
 
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
+	bootinfo.remember_selected = hooks.remember_selected
 
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
-	bootinfo['versions'] = {k: v['version'] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
-	bootinfo["lang_dict"] = get_lang_dict()
+	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
+	bootinfo.lang_dict = get_lang_dict()
 
 	return bootinfo
 
@@ -114,16 +116,14 @@ def load_translations(bootinfo):
 
 def get_fullnames():
 	"""map of user fullnames"""
-	ret = frappe.db.sql("""select name,
-		concat(ifnull(first_name, ''),
-			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
+	ret = frappe.db.sql("""select name, full_name as fullname,
 			user_image as image, gender, email, username
 		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:
-		if not r.image:
-			r.image = get_gravatar(r.name)
+		# if not r.image:
+		# 	r.image = get_gravatar(r.name)
 		d[r.name] = r
 
 	return d
@@ -164,4 +164,4 @@ def load_print(bootinfo, doclist):
 	load_print_css(bootinfo, print_settings)
 
 def load_print_css(bootinfo, print_settings):
-	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)
+	bootinfo.print_css = frappe.get_attr("frappe.www.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)

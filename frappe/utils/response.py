@@ -107,7 +107,7 @@ def json_handler(obj):
 
 def as_page():
 	"""print web page"""
-	return render(frappe.response['page_name'], http_status_code=frappe.response.get("http_status_code"))
+	return render(frappe.response['route'], http_status_code=frappe.response.get("http_status_code"))
 
 def redirect():
 	return werkzeug.utils.redirect(frappe.response.location)

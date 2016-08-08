@@ -20,11 +20,25 @@ frappe.search = {
 				frappe.search.options.sort(function(a, b) {
 					return (a.match || "").length - (b.match || "").length; });
 
-				frappe.search.add_recent("");
-
+				frappe.search.add_recent(txt || "");
 				frappe.search.add_help();
 
-				response(frappe.search.options);
+				// de-duplicate
+				var out = [], routes = [];
+				frappe.search.options.forEach(function(option) {
+					if(option.route) {
+						var str_route = (typeof option.route==='string') ?
+							 option.route : option.route.join('/');
+						if(routes.indexOf(str_route)===-1) {
+							out.push(option);
+							routes.push(str_route);
+						}
+					} else {
+						out.push(option);
+					}
+ 				});
+
+				response(out);
 			},
 			open: function(event, ui) {
 				frappe.search.autocomplete_open = event.target;
@@ -65,7 +79,7 @@ frappe.search = {
 			.autocomplete(opts).data('ui-autocomplete')._renderItem =
 				frappe.search.render_item;
 
-		$("#sidebar-search")
+		$("#modal-search")
 			.on("focus", open_recent)
 			.autocomplete(opts).data('ui-autocomplete')._renderItem =
 				frappe.search.render_item;
@@ -110,7 +124,7 @@ frappe.search = {
 			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
 				&& !in_list(frappe.boot.single_types, doctype)
 				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
-					"Currency", "Page Role", "Print Format"], doctype)) {
+					"Currency", "Page Role", "Print Format", "Report"], doctype)) {
 
 				var values = frappe.utils.remove_nulls(frappe.utils.unique(
 					keys(locals[doctype]).concat(frappe.search.recent[doctype] || [])
@@ -122,7 +136,7 @@ frappe.search = {
 						value: __(doctype) + " " + match,
 						route: ["Form", doctype, match]
 					}
-				});
+				}, true);
 			}
 		}
 	},
@@ -146,13 +160,21 @@ frappe.search = {
 			frappe.search.recent[d[0]].push(d[1]);
 		}
 	},
-	find: function(list, txt, process) {
+	find: function(list, txt, process, prepend) {
 		$.each(list, function(i, item) {
 			_item = __(item).toLowerCase().replace(/-/g, " ");
 			if(txt===_item || _item.indexOf(txt) !== -1) {
 				var option = process(item);
-				option.match = item;
-				frappe.search.options.push(option);
+
+				if(option) {
+					option.match = item;
+
+					if(prepend) {
+						frappe.search.options = [option].concat(frappe.search.options);
+					} else {
+						frappe.search.options.push(option);
+					}
+				}
 			}
 		});
 	}
@@ -188,7 +210,7 @@ frappe.search.verbs = [
 				return {
 					label: __("New {0}", ["<b>"+match+"</b>"]),
 					value: __("New {0}", [match]),
-					onclick: function() { new_doc(match); }
+					onclick: function() { frappe.new_doc(match, true); }
 				}
 			});
 		}
@@ -208,6 +230,12 @@ frappe.search.verbs = [
 					value: __(match),
 					route:["Form", match, match]
 				}
+			} else if(in_list(frappe.boot.treeviews, match)) {
+				return {
+					label: __("{0} Tree", ["<b>"+__(match)+"</b>"]),
+					value: __(match),
+					route:["Tree", match]
+				}
 			} else {
 				return {
 					label: __("{0} List", ["<b>"+__(match)+"</b>"]),
@@ -225,9 +253,9 @@ frappe.search.verbs = [
 			var route = [];
 			if(report.report_type == "Report Builder")
 				route = ["Report", report.ref_doctype, match];
-			else 
+			else
 				route = ["query-report",  match];
-			
+
 			return {
 				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
 				value: __("Report {0}", [__(match)]),
@@ -250,12 +278,16 @@ frappe.search.verbs = [
 	// modules
 	function(txt) {
 		frappe.search.find(keys(frappe.modules), txt, function(match) {
+			var module = frappe.modules[match];
+
+			if(module._doctype) return;
+
 			ret = {
 				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
 				value: __("Open {0}", [__(match)]),
 			}
-			if(frappe.modules[match].link) {
-				ret.route = [frappe.modules[match].link];
+			if(module.link) {
+				ret.route = [module.link];
 			} else {
 				ret.route = ["Module", match];
 			}

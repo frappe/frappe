@@ -11,7 +11,7 @@ from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format',
-	"Website Theme"]
+	"Website Theme", 'Web Form']
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -51,26 +51,27 @@ def get_doctype_module(doctype):
 	return frappe.cache().get_value("doctype_modules", make_modules_dict)[doctype]
 
 doctype_python_modules = {}
-def load_doctype_module(doctype, module=None, prefix=""):
+def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	"""Returns the module object for given doctype."""
 	if not module:
 		module = get_doctype_module(doctype)
 
 	app = get_module_app(module)
 
-	key = (app, doctype, prefix)
+	key = (app, doctype, prefix, suffix)
 
 	if key not in doctype_python_modules:
-		doctype_python_modules[key] = frappe.get_module(get_module_name(doctype, module, prefix))
+		doctype_python_modules[key] = frappe.get_module(get_module_name(doctype, module, prefix, suffix))
 
 	return doctype_python_modules[key]
 
-def get_module_name(doctype, module, prefix="", app=None):
-	return '{app}.{module}.doctype.{doctype}.{prefix}{doctype}'.format(\
+def get_module_name(doctype, module, prefix="", suffix="", app=None):
+	return '{app}.{module}.doctype.{doctype}.{prefix}{doctype}{suffix}'.format(\
 		app = scrub(app or get_module_app(module)),
 		module = scrub(module),
 		doctype = scrub(doctype),
-		prefix=prefix)
+		prefix=prefix,
+		suffix=suffix)
 
 def get_module_app(module):
 	return frappe.local.module_app[scrub(module)]

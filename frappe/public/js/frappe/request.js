@@ -64,15 +64,15 @@ frappe.request.call = function(opts) {
 
 	var statusCode = {
 		200: function(data, xhr) {
-			if(typeof data === "string") data = JSON.parse(data);
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function(xhr) {
-			msgprint(__("You have been logged out"));
+			msgprint({message:__("You have been logged out"), indicator: 'red'});
 			frappe.app.logout();
 		},
 		404: function(xhr) {
-			msgprint(__("Not found"));
+			msgprint({title:__("Not found"), indicator:'red',
+				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
 			if (xhr.responseJSON && xhr.responseJSON._server_messages) {
@@ -85,15 +85,17 @@ frappe.request.call = function(opts) {
 			}
 
 			frappe.utils.play_sound("error");
-			msgprint(__("Not permitted"));
+			msgprint({title:__("Not permitted"), indicator:'red',
+				message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
 		},
 		508: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint(__("Another transaction is blocking this one. Please try again in a few seconds."));
+			msgprint({title:__('Please try again'), indicator:'red',
+				message:__("Another transaction is blocking this one. Please try again in a few seconds.")});
 		},
 		413: function(data, xhr) {
-			msgprint(__("File size exceeded the maximum allowed size of {0} MB",
-				[(frappe.boot.max_file_size || 5242880) / 1048576]));
+			msgprint({indicator:'red', title:__('File too big'), message:__("File size exceeded the maximum allowed size of {0} MB",
+				[(frappe.boot.max_file_size || 5242880) / 1048576])});
 		},
 		417: function(xhr) {
 			var r = xhr.responseJSON;
@@ -113,7 +115,7 @@ frappe.request.call = function(opts) {
 		},
 		500: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint(__("Server Error: Please check your server logs or contact tech support."))
+			msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
 		},
@@ -136,6 +138,25 @@ frappe.request.call = function(opts) {
 	frappe.last_request = ajax_args.data;
 
 	return $.ajax(ajax_args)
+		.done(function(data, textStatus, xhr) {
+			if(typeof data === "string") data = JSON.parse(data);
+
+			// sync attached docs
+			if(data.docs || data.docinfo) {
+				frappe.model.sync(data);
+			}
+
+			// sync translated messages
+			if(data.__messages) {
+				$.extend(frappe._messages, data.__messages);
+			}
+
+			// callbacks
+			var status_code_handler = statusCode[xhr.statusCode().status];
+			if (status_code_handler) {
+				status_code_handler(data, xhr);
+			}
+		})
 		.always(function(data, textStatus, xhr) {
 			if(typeof data==="string") {
 				data = JSON.parse(data);
@@ -147,12 +168,6 @@ frappe.request.call = function(opts) {
 			frappe.request.cleanup(opts, data);
 			if(opts.always) {
 				opts.always(data);
-			}
-		})
-		.done(function(data, textStatus, xhr) {
-			var status_code_handler = statusCode[xhr.statusCode().status];
-			if (status_code_handler) {
-				status_code_handler(data, xhr);
 			}
 		})
 		.fail(function(xhr, textStatus) {
@@ -219,8 +234,9 @@ frappe.request.cleanup = function(opts, r) {
 
 	// show messages
 	if(r._server_messages && !opts.silent) {
-		r._server_messages = JSON.parse(r._server_messages)
-		msgprint(r._server_messages);
+		r._server_messages = JSON.parse(r._server_messages);
+		frappe.hide_msgprint();
+		frappe.msgprint(r._server_messages);
 	}
 
 	// show errors
@@ -251,12 +267,6 @@ frappe.request.cleanup = function(opts, r) {
 		console.log("========");
 	}
 
-	if(r.docs || r.docinfo) {
-		frappe.model.sync(r);
-	}
-	if(r.__messages) {
-		$.extend(frappe._messages, r.__messages);
-	}
 
 	frappe.last_response = r;
 
@@ -290,14 +300,13 @@ frappe.request.report_error = function(xhr, request_opts) {
 		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
 		var error_message = '<div>\
 			<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre>'
-			+'<p class="text-right"><a class="btn btn-default report-btn">\
-				<i class="icon-fixed-width icon-envelope"></i> '
+			+'<p class="text-right"><a class="btn btn-primary btn-sm report-btn">'
 			+ __("Report this issue") + '</a></p>'
 			+'</div>';
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 
-		var msg_dialog = msgprint(error_message);
+		var msg_dialog = msgprint({message:error_message, indicator:'red'});
 
 		msg_dialog.msg_area.find(".report-btn")
 			.toggle(error_report_email ? true : false)

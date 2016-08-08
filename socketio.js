@@ -36,7 +36,7 @@ io.on('connection', function(socket){
 	// console.log("firing get_user_info");
 	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
 		.type('form')
-		.send({
+		.query({
 			sid: sid
 		})
 		.end(function(err, res) {
@@ -171,11 +171,13 @@ function get_task_room(socket, task_id) {
 }
 
 function get_site_name(socket) {
-	if (conf.default_site) {
-		return conf.default_site;
-	}
-	else if (socket.request.headers['x-frappe-site-name']) {
+	if (socket.request.headers['x-frappe-site-name']) {
 		return get_hostname(socket.request.headers['x-frappe-site-name']);
+	}
+	else if (['localhost', '127.0.0.1'].indexOf(socket.request.headers.host) !== -1
+		&& conf.default_site) {
+		// from currentsite.txt since host is localhost
+		return conf.default_site;
 	}
 	else if (socket.request.headers.origin) {
 		return get_hostname(socket.request.headers.origin);
@@ -201,9 +203,10 @@ function get_url(socket, path) {
 }
 
 function can_subscribe_doc(args) {
+	if(!args) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
-		.send({
+		.query({
 			sid: args.sid,
 			doctype: args.doctype,
 			docname: args.docname

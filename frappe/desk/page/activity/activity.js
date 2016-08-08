@@ -6,17 +6,14 @@ frappe.provide("frappe.activity");
 frappe.pages['activity'].on_page_load = function(wrapper) {
 	var me = this;
 
-	frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
-	frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
-
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		single_column: true
 	});
 
-	this.page = wrapper.page;
+	me.page = wrapper.page;
 
-	this.page.set_title(__("Activity"));
+	me.page.set_title(__("Activity"));
 
 	frappe.model.with_doctype("Communication", function() {
 		me.page.list = new frappe.ui.Listing({
@@ -49,9 +46,9 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 		}, "octicon octicon-sync");
 	});
 
-	frappe.activity.render_plot(this.page);
+	frappe.activity.render_heatmap(me.page);
 
-	this.page.main.on("click", ".activity-message", function() {
+	me.page.main.on("click", ".activity-message", function() {
 		var link_doctype = $(this).attr("data-link-doctype"),
 			link_name = $(this).attr("data-link-name"),
 			doctype = $(this).attr("data-doctype"),
@@ -121,7 +118,7 @@ frappe.activity.Feed = Class.extend({
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user.full_name(data.owner);
-		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
+		data.avatar = frappe.avatar(data.owner);
 
 		data.icon = "icon-flag";
 
@@ -158,94 +155,42 @@ frappe.activity.Feed = Class.extend({
 	}
 });
 
-frappe.activity.render_plot = function(page) {
-	page.plot_wrapper = $('<div class="plot-wrapper"><div class="plot"></div></div>')
-		.prependTo(page.main)
-		.find(".plot");
+frappe.activity.render_heatmap = function(page) {
+	var me = this;
+	$('<div class="heatmap"></div><hr style="margin-bottom: 0px;">').prependTo(page.main);
 
 	frappe.call({
-		method: "frappe.desk.page.activity.activity.get_months_activity",
+		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
-			var plot_data = [{
-				data: $.map(r.message, function(v, i) {
-					var d = dateutil.str_to_obj(v[0]);
-					return [[d.getTime(), v[1]]];
-				})
-			}];
+			if(r.message) {
+				var legend = [];
+				var max = Math.max.apply(this, $.map(r.message, function(v) { return v }));
+				var legend = [cint(max/5), cint(max*2/5), cint(max*3/5), cint(max*4/5)];
+				heatmap = new CalHeatMap();
+				heatmap.init({
+					itemSelector: ".heatmap",
+					domain: "month",
+					subDomain: "day",
+					start: moment().subtract(1, 'year').add(1, 'month').toDate(),
+					cellSize: 9,
+					cellPadding: 2,
+					domainGutter: 2,
+					range: 12,
+					domainLabelFormat: function(date) {
+						return moment(date).format("MMM").toUpperCase();
+					},
+					displayLegend: false,
+					legend: legend,
+					tooltip: true,
+					subDomainTitleFormat: {
+						empty: "{date}",
+						filled: "{count} actions on {date}"
+					},
+					subDomainDateFormat: "%d-%b"
+				});
 
-			var plot_options = frappe.activity.get_plot_options();
-
-			page.plot = $.plot(page.plot_wrapper.empty(), plot_data, plot_options);
-
-			frappe.activity.setup_plot_hover(page);
-		}
-	});
-};
-
-frappe.activity.get_plot_options = function(data) {
-	return {
-		grid: {
-			hoverable: true,
-			clickable: true,
-			borderWidth: 1,
-			borderColor: "#d1d8dd"
-		},
-		xaxis: {
-			mode: "time",
-			timeformat: "%d-%b",
-			minTickSize: [1, "day"],
-			monthNames: [__("Jan"), __("Feb"), __("Mar"), __("Apr"), __("May"), __("Jun"),
-				__("Jul"), __("Aug"), __("Sep"), __("Oct"), __("Nov"), __("Dec")],
-			tickLength: 0
-		},
-		yaxis: {tickLength: 0},
-		series: {
-			downsample: { threshold: 1000 },
-			bars: {
-				show: true,
-				fill: true,
-				barWidth: 43200000,
-				align: "center",
-				fillColor: "#FCF8E3"
-			}
-		},
-		colors: ["#ffa00a"]
-	}
-};
-
-frappe.activity.setup_plot_hover = function(page) {
-	var tooltip_id = frappe.dom.set_unique_id();
-
-	function showTooltip(x, y, contents) {
-		$('<div id="' + tooltip_id + '" class="small">' + contents + '</div>').css( {
-			position: 'absolute',
-			display: 'none',
-			top: y - 30,
-			left: x - 10,
-			border: '1px solid #ffa00a',
-			padding: '2px',
-			'background-color': '#ffa00a',
-			color: "#FCF8E3"
-		}).appendTo("body").fadeIn(200);
-	}
-
-	previousPoint = null;
-	page.plot_wrapper.bind("plothover", function (event, pos, item) {
-		if (item) {
-			if (previousPoint != item.dataIndex) {
-				previousPoint = item.dataIndex;
-
-				$("#" + tooltip_id).remove();
-
-				var date = dateutil.obj_to_user(new Date(item.datapoint[0]));
-				var tooltip_text = __("{0} on {1}", ["<strong>" + (item.datapoint[1] || 0) + "</strong>", date]);
-
-				showTooltip(item.pageX, item.pageY, tooltip_text);
+				heatmap.update(r.message);
 			}
 		}
-		else {
-			$("#" + tooltip_id).remove();
-			previousPoint = null;
-		}
-    });
+	})
 }

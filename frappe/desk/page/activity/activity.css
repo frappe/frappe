@@ -51,18 +51,6 @@
 	z-index: 1;
 }
 
-#page-activity .plot-wrapper {
-	padding: 20px 15px;
-	border-bottom: 1px solid #d1d8dd;
-	text-align: center;
-}
-
-#page-activity .plot {
-	height: 140px !important;
-	width: 97% !important;
-	margin: auto;
-}
-
 #page-activity .list-filters {
 	display: none !important;
 }
@@ -70,4 +58,12 @@
 #page-activity .octicon-heart {
 	color: #ff5858;
 	margin: 0px 5px;
+}
+
+.heatmap {
+  padding-top: 30px;
+}
+
+.heatmap svg {
+	margin: auto;
 }

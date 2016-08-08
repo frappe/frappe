@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from frappe import _
 import os, frappe
 from datetime import datetime
-from frappe.utils import cstr, get_url
+from frappe.utils import cstr, get_url, now_datetime
 
 #Global constants
 verbose = 0
@@ -59,13 +59,14 @@ class BackupGenerator:
 
 	def set_backup_file_name(self):
 		import random
-		todays_date = "".join(str(datetime.date(datetime.today())).split("-"))
-		random_number = str(int(random.random()*99999999))
+
+		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
+		random_string = frappe.generate_hash(length=8)
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "_" + random_number + "_database.sql.gz"
-		for_public_files = todays_date + "_" + random_number + "_files.tar"
-		for_private_files = todays_date + "_" + random_number + "_private_files.tar"
+		for_db = todays_date + "_" + random_string + "_database.sql.gz"
+		for_public_files = todays_date + "_" + random_string + "_files.tar"
+		for_private_files = todays_date + "_" + random_string + "_private_files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:

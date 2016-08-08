@@ -5,6 +5,8 @@
 
 frappe.provide("frappe.form.formatters");
 
+frappe.form.link_formatters = {};
+
 frappe.form.formatters = {
 	_right: function(value, options) {
 		if(options && options.inline) {
@@ -60,14 +62,20 @@ frappe.form.formatters = {
 			return '<i class="icon-ban-circle text-extra-muted" style="margin-right: 3px;"></i>';
 		}
 	},
-	Link: function(value, docfield, options) {
+	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		if(value && value.match(/^['"].*['"]$/)) {
-			return value.replace(/^.(.*).$/, "$1");
+			value.replace(/^.(.*).$/, "$1");
 		}
+
 		if(options && options.for_print) {
 			return value;
 		}
+
+		if(frappe.form.link_formatters[doctype]) {
+			value = frappe.form.link_formatters[doctype](value, doc);
+		}
+
 		if(!value) {
 			return "";
 		}
@@ -96,7 +104,15 @@ frappe.form.formatters = {
 		return value || "";
 	},
 	Datetime: function(value) {
-		return value ? dateutil.str_to_user(dateutil.convert_to_user_tz(value)) : "";
+		if(value) {
+			var m = moment(dateutil.convert_to_user_tz(value));
+			if(frappe.boot.sysdefaults.time_zone) {
+				m = m.tz(frappe.boot.sysdefaults.time_zone);
+			}
+			return m.format('MMMM Do YYYY, h:mm a z');
+		} else {
+			return "";
+		}
 	},
 	Text: function(value) {
 		if(value) {
@@ -120,8 +136,7 @@ frappe.form.formatters = {
 	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
-			if(v) html+= '<span class="avatar avatar-small" \
-				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'" alt="'+ frappe.user_info(v).abbr +'"></span>';
+			if(v) html+= frappe.avatar(v);
 		});
 		return html;
 	},

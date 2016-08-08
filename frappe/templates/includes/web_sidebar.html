@@ -1,0 +1,47 @@
+<div class="web-sidebar">
+	<!-- <div class="your-account-info-sidebar">
+		<div class="row">
+			<div class="col-xs-2">
+				<span class="user-image-sidebar"></span>
+			</div>
+			<div class="col-xs-10">
+				<div class="web-sidebar-user">{{ fullname }}</div>
+				<a href="/?cmd=web_logout">
+					<div class="text-muted small">
+						{{ _("Logout") }}</div>
+				</a>
+			</div>
+		</div>
+	</div> -->
+	<div class="sidebar-items">
+		<ul class="list-unstyled">
+			{% if sidebar_title %}
+				<li class="title">
+					{{ sidebar_title }}
+				</li>
+			{% else %}
+			<li class="sidebar-item">
+				<a href="/me">My Account</a>
+			</li>
+			{% endif %}
+		{% for item in sidebar_items -%}
+			<li class="sidebar-item">
+				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
+				{% if item.target %}target="{{ item.target }}"{% endif %}>
+				{{ _(item.title) }}
+				</a>
+			</li>
+		{%- endfor %}
+		</ul>
+		</div>
+</div>
+
+
+<script>
+frappe.ready(function() {
+	$('.sidebar-item a').each(function(index) {
+	        if(this.href.trim() == window.location)
+	            $(this).addClass("active");
+	    });
+});
+</script>

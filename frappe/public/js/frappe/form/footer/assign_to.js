@@ -1,11 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// assign to is lined to todo
-// refresh - load todos
-// create - new todo
-// delete to do
-
 frappe.provide("frappe.ui.form");
 
 frappe.ui.form.AssignTo = Class.extend({
@@ -44,19 +39,20 @@ frappe.ui.form.AssignTo = Class.extend({
 			for(var i=0; i<d.length; i++) {
 				var info = frappe.user_info(d[i].owner);
 				info.owner = d[i].owner;
-				info.image = frappe.user_info(d[i].owner).image;
+				info.avatar = frappe.avatar(d[i].owner);
 				info.description = d[i].description || "";
+
+				info._fullname = info.fullname;
+				if(info.fullname.length > 10) {
+					info._fullname = info.fullname.substr(0, 10) + '...';
+				}
 
 				$(repl('<li class="assignment-row">\
 					<a class="close" data-owner="%(owner)s">&times;</a>\
-					<div class="text-ellipsis" style="width: 80%">\
-						<div class="avatar avatar-small">\
-							<img class="media-object" src="%(image)s" alt="%(fullname)s">\
-						</div>\
-						<span>%(fullname)s</span>\
-					</div>\
+					%(avatar)s\
+					<span>%(_fullname)s</span>\
 				</li>', info))
-					.appendTo(this.parent);
+					.insertBefore(this.parent.find('.add-assignment'));
 
 				if(d[i].owner===user) {
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
@@ -75,9 +71,9 @@ frappe.ui.form.AssignTo = Class.extend({
 				return false;
 			});
 
-			this.btn_wrapper.addClass("hide");
+			//this.btn_wrapper.addClass("hide");
 		} else {
-			this.btn_wrapper.removeClass("hide");
+			//this.btn_wrapper.removeClass("hide");
 		}
 	},
 	add: function() {
@@ -160,7 +156,7 @@ frappe.ui.to_do_dialog = function(opts){
 			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
 			{fieldtype: 'Section Break'},
 			{fieldtype: 'Link', fieldname:'assign_to', options:'User',
-				label:__("Assign To"), reqd:true},
+				label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
 			{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
 			{fieldtype: 'Section Break'},
 			{fieldtype: 'Column Break'},
@@ -169,7 +165,11 @@ frappe.ui.to_do_dialog = function(opts){
 				label:__("Notify by Email"), "default":1},
 			{fieldtype: 'Column Break'},
 			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
-				options:'Low\nMedium\nHigh', 'default':'Medium'},
+				options:[
+					{value: 'Low', label: __('Low')},
+					{value:'Medium', label: __('Medium')},
+					{value: 'High', label: __('High')}],
+				'default':'Medium'},
 		],
 		primary_action: function() { frappe.ui.add_assignment(opts, dialog); },
 		primary_action_label: __("Add")

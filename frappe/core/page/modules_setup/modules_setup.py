@@ -17,6 +17,7 @@ def update(hidden_list, user=None):
 
 def get_context(context):
 	context.icons = get_user_icons(frappe.session.user)
+	context.user = frappe.session.user
 
 	if 'System Manager' in frappe.get_roles():
 		context.users = frappe.db.get_all('User', filters={'user_type': 'System User', 'enabled': 1},
@@ -35,7 +36,7 @@ def get_module_icons_html(user=None):
 		icons = get_user_icons(user)
 
 	return frappe.render_template('frappe/core/page/modules_setup/includes/module_icons.html',
-		{'icons': icons})
+		{'icons': icons, 'user': user})
 
 def get_user_icons(user):
 	'''Get user icons for module setup page'''

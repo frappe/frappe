@@ -5,14 +5,33 @@ frappe.provide("frappe.ui.toolbar");
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		var header = $('header').append(frappe.render_template("navbar", {}));
-		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
+		var header = $('header').append(frappe.render_template("navbar", {
+			avatar: frappe.avatar(frappe.session.user)
+		}));
 
-		header.find(".toggle-sidebar").on("click", frappe.ui.toolbar.toggle_left_sidebar);
+		header.find(".toggle-sidebar").on("click", function () {
+			var layout_side_section = $('.layout-side-section');
+			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
+			overlay_sidebar.addClass('opened');
+			overlay_sidebar.find('.reports-dropdown').removeClass('dropdown-menu').addClass('list-unstyled');
+			overlay_sidebar.find('.dropdown-toggle').addClass('text-muted').find('.caret').addClass('hidden-xs hidden-sm');
 
-		header.find(".toggle-navbar-new-comments").on("click", function() {
-			$(".offcanvas").toggleClass("active-right").removeClass("active-left");
-			return false;
+			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
+
+			var scroll_container = $('html');
+			scroll_container.css("overflow-y", "hidden");
+
+			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
+			layout_side_section.on("click", "a", close_sidebar);
+
+			function close_sidebar(e) {
+				scroll_container.css("overflow-y", "");
+
+				layout_side_section.find(".close-sidebar").fadeOut(function() {
+					overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
+					overlay_sidebar.find('.reports-dropdown').addClass('dropdown-menu');
+				});
+			}
 		});
 
 		$(document).on("notification-update", function() {
@@ -56,10 +75,6 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.get_menu(menu) : menu;
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
-	},
-	toggle_left_sidebar: function() {
-		$(".offcanvas").toggleClass("active-left").removeClass("active-right");
-		return false;
 	}
 });
 

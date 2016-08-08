@@ -1,11 +1,30 @@
 @import "variables.less";
 @import "mixins.less";
-@import "offcanvas.less";
+
+html {
+	min-height: 100%;
+}
+
+body {
+	height: 100%;
+	 // The html and body elements cannot have any padding or margin. 
+	margin: 0px;
+	padding: 0px !important;
+}
+
+html,
+body {
+	overflow-x: hidden;  //Prevent scroll on narrow devices 
+}
 
 .hide-form-sidebar {
 	.form-sidebar {
 		display: none !important;
 	}
+}
+
+.sidebar-padding {
+	padding: 12px 14px;
 }
 
 body[data-route=""] .main-menu,
@@ -38,7 +57,7 @@ body[data-route^="Module"] .main-menu {
 
 	padding-right: 0px;
 
-	.divider {
+	> .divider {
 		display: none !important;
 	}
 
@@ -79,7 +98,7 @@ body[data-route^="Module"] .main-menu {
 		margin-top: 0px;
 	}
 
-	li {
+	> li {
 		position: relative;
 		margin-bottom: 7px;
 	}
@@ -151,6 +170,43 @@ body[data-route^="Module"] .main-menu {
 		font-size: 16px;
 		cursor: pointer;
 	}
+
+	.sidebar-image-section {
+		margin-top: 15px;
+		margin-bottom: 0px;
+		cursor: pointer;
+
+		.sidebar-image {
+			width: 100%;
+			height: 0;
+			padding-bottom: 100%;
+			border-radius: 6px;
+			background-size: cover;
+			background-repeat: no-repeat;
+			background-position: center center;
+		}
+
+		.standard-image {
+			font-size: 72px;
+			border-radius: 6px;
+		}
+
+		.sidebar-image-wrapper:after {
+		    content: '\A';
+		    position: absolute;
+		    width: 100%; height:100%;
+		    top:0; left:0;
+		    background: #fff;
+		    opacity: 0;
+		    transition: all 0.5s;
+		    -webkit-transition: all 0.6s;
+		}
+
+		.sidebar-image-wrapper:hover:after {
+		    opacity: 0.5;
+		}
+
+	}
 }
 
 .form-sidebar .form-shared .share-doc-btn& {
@@ -216,6 +272,95 @@ body[data-route^="Module"] .main-menu {
 
 .layout-side-section .list-sidebar {
 	margin-top: -15px;
+}
+
+.layout-side-section {
+
+	.overlay-sidebar {
+		@media (max-width: 991px) {
+			margin-top: 0 !important;
+			position: fixed;
+			background: white;
+			top: 0;
+			left: 0;
+			transform: translateX(-110%);
+			z-index: 9999;
+			box-shadow: 5px 0 25px 0px rgba(0,0,0,0.3);
+			height: 100%;
+			width: 40%;
+			display: block !important;
+			transition: transform 200ms ease-in-out;
+
+			&.opened {
+				transform: translateX(0);
+				overflow-y: auto;
+			}
+
+			.divider {
+				height: 1px;
+				background-color: #d8dfe5;
+				opacity: 0.7;
+			}
+
+			li:not(.divider):not(.tagit-new):not(.module-sidebar-item) {
+				padding: 10px 15px;
+			}
+
+			.modified-by, .created-by {
+				margin: 0;
+			}
+
+			.badge {
+				top: 9px;
+				right: 15px;
+			}
+
+			.reports-dropdown {
+				margin-top: 10px;
+				margin-bottom: -10px;
+
+				li:not(.divider) {
+					padding: 12.5px 0 !important;
+				}
+
+				li.divider {
+					height: 0;
+				}
+			}
+		}
+
+		@media (max-width: 767px) {
+			width: 70%;
+		}
+	}
+
+	div.close-sidebar {
+		position: fixed;
+		top: 0;
+		right: 0;
+		opacity: 0.3;
+		background: #000;
+		z-index: 1041;
+		height: 100%;
+		width: 100%;
+	}
+
+	.sidebar-menu {
+		@media (max-width: 991px) {
+			margin: 0;
+		}
+	}
+
+	.module-sidebar-nav {
+		@media (max-width: 991px) {
+			padding-left: 0;
+			padding-right: 0;
+
+			.module-link {
+				padding: 15px 15px 15px 25px;
+			}
+		}
+	}
 }
 
 .sidebar-left .list-sidebar {

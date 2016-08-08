@@ -38,3 +38,7 @@ Example:
 - `developer_mode`: If developer mode is set, DocType changes are automatically updated in files.
 - `disable_website_cache`: Don't cache website pages.
 - `logging`: writes logs if **1**, writes queries also if set to **2**.
+
+### Others
+
+- `robots_txt`: Path to robots.txt file to be rendered when going to frappe-site.com/robots.txt

@@ -1,0 +1,22 @@
+{
+ "content": null, 
+ "creation": "2016-06-02 18:14:53.475842", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2016-06-02 18:14:53.475842", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "usage-info", 
+ "owner": "Administrator", 
+ "page_name": "usage-info", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Usage Info"
+}

@@ -12,77 +12,81 @@ make_test_records("Email Account")
 class TestEmail(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Unsubscribe`""")
-		frappe.db.sql("""delete from `tabBulk Email`""")
+		frappe.db.sql("""delete from `tabEmail Queue`""")
 
 	def test_send(self):
 		from frappe.email import sendmail
 		sendmail('test@example.com', subject='Test Mail', msg="Test Content")
 
-	def test_bulk(self, send_after=None):
-		from frappe.email.bulk import send
+	def test_email_queue(self, send_after=None):
+		from frappe.email.queue import send
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name='Administrator',
-			subject='Testing Bulk', message='This is a bulk mail!', send_after=send_after)
+			subject='Testing Queue', message='This mail is queued!', send_after=send_after)
 
-		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
-		self.assertEquals(len(bulk), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('Unsubscribe' in bulk[0]['message'])
+		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 2)
+		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('Unsubscribe' in email_queue[0]['message'])
 
 	def test_flush(self):
-		self.test_bulk(send_after = 1)
-		from frappe.email.bulk import flush
+		self.test_email_queue(send_after = 1)
+		from frappe.email.queue import flush
 		flush(from_test=True)
-		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Sent'""", as_dict=1)
-		self.assertEquals(len(bulk), 0)
+		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 0)
 
 	def test_send_after(self):
-		self.test_bulk()
-		from frappe.email.bulk import flush
+		self.test_email_queue()
+		from frappe.email.queue import flush
 		flush(from_test=True)
-		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Sent'""", as_dict=1)
-		self.assertEquals(len(bulk), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
+		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 2)
+		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
 
 	def test_expired(self):
-		self.test_bulk()
-		frappe.db.sql("update `tabBulk Email` set creation='2010-01-01 12:00:00'")
-		from frappe.email.bulk import flush
-		flush(from_test=True)
-		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Expired'""", as_dict=1)
-		self.assertEquals(len(bulk), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
+		self.test_email_queue()
+		frappe.db.sql("update `tabEmail Queue` set creation=DATE_SUB(curdate(), interval 8 day)")
+		from frappe.email.queue import clear_outbox
+		clear_outbox()
+		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Expired'""", as_dict=1)
+		self.assertEquals(len(email_queue), 2)
+		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
 
 	def test_unsubscribe(self):
-		from frappe.email.bulk import unsubscribe, send
+		from frappe.email.queue import unsubscribe, send
 		unsubscribe(doctype="User", name="Administrator", email="test@example.com")
 
 		self.assertTrue(frappe.db.get_value("Email Unsubscribe",
 			{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"}))
 
+		before = frappe.db.sql("""select count(name) from `tabEmail Queue` where status='Not Sent'""")[0][0]
+
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name= "Administrator",
-			subject='Testing Bulk', message='This is a bulk mail!')
+			subject='Testing Email Queue', message='This is mail is queued!')
 
-		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""",
+		# this is sent async (?)
+
+		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""",
 			as_dict=1)
-		self.assertEquals(len(bulk), 1)
-		self.assertFalse('test@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
-		self.assertTrue('Unsubscribe' in bulk[0]['message'])
+		self.assertEquals(len(email_queue), before + 1)
+		self.assertFalse('test@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
+		self.assertTrue('Unsubscribe' in email_queue[0]['message'])
 
-	def test_bulk_limit(self):
-		from frappe.email.bulk import send, BulkLimitCrossedError
-		self.assertRaises(BulkLimitCrossedError, send,
+	def test_email_queue_limit(self):
+		from frappe.email.queue import send, EmailLimitCrossedError
+		self.assertRaises(EmailLimitCrossedError, send,
 			recipients=['test@example.com']*1000,
 			sender="admin@example.com",
 			reference_doctype = "User", reference_name="Administrator",
-			subject='Testing Bulk', message='This is a bulk mail!')
+			subject='Testing Email Queue', message='This email is queued!')
 
 	def test_image_parsing(self):
 		import re

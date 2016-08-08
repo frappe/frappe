@@ -1,3 +1,6 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
 a {
   cursor: pointer;
 }
@@ -109,7 +112,6 @@ a.badge-hover:active .badge {
 }
 .msgprint {
   margin: 15px 0px;
-  text-align: center;
 }
 .msgprint pre {
   text-align: left;
@@ -229,6 +231,14 @@ a.form-link {
   font-weight: bold;
   font-size: 102%;
 }
+a[disabled="disabled"] {
+  color: #8D99A6;
+  text-decoration: none;
+  cursor: default;
+}
+a[disabled="disabled"]:hover {
+  text-decoration: none;
+}
 .link-btn {
   position: absolute;
   top: 2px;
@@ -236,6 +246,7 @@ a.form-link {
   border-radius: 2px;
   padding: 3px;
   display: none;
+  z-index: 3;
 }
 .link-primary {
   color: #5E64FF;
@@ -317,6 +328,11 @@ a.form-link {
 textarea.form-control {
   height: 120px;
 }
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+  background-color: #fafbfc;
+}
 .link-select-row {
   padding: 5px;
   border-bottom: 1px solid #EBEFF2;
@@ -350,6 +366,7 @@ textarea.form-control {
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
+  z-index: 1041;
 }
 .ui-autocomplete a {
   transition: none;
@@ -376,13 +393,22 @@ textarea.form-control {
 }
 .ui-datepicker .ui-state-active,
 .ui-autocomplete .ui-state-active {
-  background-color: #5E64FF !important;
-  color: #fff !important;
+  background-color: #F0F4F7 !important;
+  color: #36414C !important;
   text-shadow: none !important;
+  border: none;
+}
+.ui-datepicker .ui-state-active .small,
+.ui-autocomplete .ui-state-active .small {
+  color: #555 !important;
 }
 .ui-menu .ui-menu-item {
-  padding: 7px;
   font-size: 12px;
+}
+.ui-menu .ui-menu-item .ui-menu-item-wrapper {
+  padding: 9px 11.8px !important;
+  text-decoration: none;
+  margin: 0;
 }
 @media (min-width: 768px) {
   .video-modal {
@@ -420,6 +446,9 @@ textarea.form-control {
 .form-control {
   position: relative;
 }
+.form-control input {
+  padding: 6px 10px 8px;
+}
 .link-field.ui-front {
   z-index: inherit;
 }
@@ -448,6 +477,7 @@ textarea.form-control {
   padding: 0 8px;
   color: #fff;
   border-radius: 10px;
+  cursor: pointer;
 }
 /* on small screens, show only icons on top */
 @media (max-width: 767px) {
@@ -480,7 +510,9 @@ textarea.form-control {
   margin-top: 7px;
 }
 .message-box .timeline-head {
-  padding-top: 30px;
+  padding: 30px;
+  border: 0px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .page-only-label {
   margin-top: 5px;
@@ -538,6 +570,7 @@ textarea.form-control {
 }
 .breadcrumb.for-file-list {
   margin-bottom: 0px;
+  padding: 18px 15px;
   border-bottom: 1px solid #d1d8dd;
   border-radius: 0px;
 }

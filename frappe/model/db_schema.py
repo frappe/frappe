@@ -190,7 +190,7 @@ class DbTable:
 	def get_index_definitions(self):
 		ret = []
 		for key, col in self.columns.items():
-			if col.set_index and col.fieldtype in type_map and \
+			if col.set_index and not col.unique and col.fieldtype in type_map and \
 					type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
@@ -210,6 +210,13 @@ class DbTable:
 				fl.append({
 					"fieldname": fieldname,
 					"fieldtype": "Text"
+				})
+
+			# add _seen column if track_seen
+			if getattr(self.meta, 'track_seen', False):
+				fl.append({
+					'fieldname': '_seen',
+					'fieldtype': 'Text'
 				})
 
 		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
@@ -452,6 +459,8 @@ class DbManager:
  		if db:
  			self.db = db
 
+	def get_current_host(self):
+		return self.db.sql("select user()")[0][0].split('@')[1]
 
 	def get_variables(self,regex):
 		"""
@@ -473,8 +482,11 @@ class DbManager:
 
 		return [t[0] for t in self.db.sql("SHOW TABLES")]
 
-	def create_user(self, user, password, host):
+	def create_user(self, user, password, host=None):
 		#Create user if it doesn't exist.
+		if not host:
+			host = self.get_current_host()
+
 		try:
 			if password:
 				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
@@ -483,8 +495,9 @@ class DbManager:
 		except Exception:
 			raise
 
-	def delete_user(self, target, host):
-	# delete user if exists
+	def delete_user(self, target, host=None):
+		if not host:
+			host = self.get_current_host()
 		try:
 			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
 		except Exception, e:
@@ -497,15 +510,21 @@ class DbManager:
 		if target in self.get_database_list():
 			self.drop_database(target)
 
-		self.db.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
+		self.db.sql("CREATE DATABASE `%s` ;" % target)
 
 	def drop_database(self,target):
 		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 
-	def grant_all_privileges(self, target, user, host):
+	def grant_all_privileges(self, target, user, host=None):
+		if not host:
+			host = self.get_current_host()
+
 		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
-	def grant_select_privilges(self, db, table, user, host):
+	def grant_select_privilges(self, db, table, user, host=None):
+		if not host:
+			host = self.get_current_host()
+
 		if table:
 			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'%s';" % (db, table, user, host))
 		else:
@@ -568,7 +587,7 @@ def get_definition(fieldtype, precision=None, length=None):
 
 	if size:
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
-			size = '18,9'
+			size = '21,9'
 
 		if coltype == "varchar" and length:
 			size = length

@@ -15,13 +15,20 @@ app_email = "info@frappe.io"
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
+page_js = {
+	"setup-wizard": "public/js/frappe/setup_wizard.js"
+}
+
 # website
 app_include_js = [
+	"assets/js/libs.min.js",
 	"assets/js/desk.min.js",
 	"assets/js/editor.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
-	"assets/js/report.min.js"
+	"assets/js/report.min.js",
+	"assets/js/d3.min.js",
+	"assets/frappe/js/frappe/toolbar.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
@@ -60,7 +67,9 @@ calendars = ["Event"]
 
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
-	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager"
+	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
+	"frappe.limits.check_if_expired",
+	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
 # permissions
@@ -87,7 +96,9 @@ standard_queries = {
 doc_events = {
 	"*": {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+		"validate": [
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
@@ -102,24 +113,34 @@ doc_events = {
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
-	}
+	},
+	"Email Group Member": {
+		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
+	},
+
 }
 
 scheduler_events = {
 	"all": [
-		"frappe.email.bulk.flush",
+		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.error.collect_error_snapshots",
+		"frappe.model.utils.link_count.update_link_count",
+		'frappe.model.utils.list_settings.sync_list_settings'
 	],
 	"daily": [
-		"frappe.email.bulk.clear_outbox",
+		"frappe.email.queue.clear_outbox",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 		"frappe.async.remove_old_task_logs",
+		"frappe.utils.scheduler.disable_scheduler_on_expiry",
+		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
+		"frappe.limits.update_space_usage"
+
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
@@ -147,3 +168,14 @@ sounds = [
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 ]
+
+bot_parsers = [
+	'frappe.utils.bot.ShowNotificationBot',
+	'frappe.utils.bot.GetOpenListBot',
+	'frappe.utils.bot.ListBot',
+	'frappe.utils.bot.FindBot',
+	'frappe.utils.bot.CountBot'
+]
+
+setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
+before_write_file = "frappe.limits.validate_space_limit"

@@ -75,8 +75,8 @@ def insert(doc=None):
 
 	if doc.get("parent") and doc.get("parenttype"):
 		# inserting a child record
-		parent = frappe.get_doc(doc.parenttype, doc.parent)
-		parent.append(doc)
+		parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
+		parent.append(doc.get("parentfield"), doc)
 		parent.save()
 		return parent.as_dict()
 	else:
@@ -155,18 +155,30 @@ def has_permission(doctype, docname, perm_type="read"):
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
 
 @frappe.whitelist()
-def get_js(src):
-	src = src.strip("/").split("/")
+def get_password(doctype, name, fieldname):
+	frappe.only_for("System Manager")
+	return frappe.get_doc(doctype, name).get_password(fieldname)
 
-	if ".." in src:
-		frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
-	contentpath = os.path.join(frappe.local.sites_path, *src)
-	with open(contentpath, "r") as srcfile:
-		code = frappe.utils.cstr(srcfile.read())
+@frappe.whitelist()
+def get_js(items):
+	items = json.loads(items)
+	out = []
+	for src in items:
+		src = src.strip("/").split("/")
 
-	if frappe.local.lang != "en":
-		messages = frappe.get_lang_dict("jsfile", contentpath)
-		messages = json.dumps(messages)
-		code += "\n\n$.extend(frappe._messages, {})".format(messages)
-	return code
+		if ".." in src:
+			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
+
+		contentpath = os.path.join(frappe.local.sites_path, *src)
+		with open(contentpath, "r") as srcfile:
+			code = frappe.utils.cstr(srcfile.read())
+
+		if frappe.local.lang != "en":
+			messages = frappe.get_lang_dict("jsfile", contentpath)
+			messages = json.dumps(messages)
+			code += "\n\n$.extend(frappe._messages, {})".format(messages)
+
+		out.append(code)
+
+	return out

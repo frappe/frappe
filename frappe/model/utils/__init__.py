@@ -2,8 +2,12 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
-from frappe import _
+import frappe
+from frappe.utils import cstr
+from frappe.build import html_to_js_template
+import re
+
+
 """
 Model utilities, unclassified functions
 """
@@ -16,3 +20,43 @@ def set_default(doc, key):
 	frappe.db.sql("""update `tab%s` set `is_default`=0
 		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"),
 		(doc.get(key), doc.name))
+
+def set_field_property(filters, key, value):
+	'''utility set a property in all fields of a particular type'''
+	docs = [frappe.get_doc('DocType', d.parent) for d in \
+		frappe.get_all("DocField", fields=['parent'], filters=filters)]
+
+	for d in docs:
+		d.get('fields', filters)[0].set(key, value)
+		d.save()
+		print 'Updated {0}'.format(d.name)
+
+	frappe.db.commit()
+
+class InvalidIncludePath(frappe.ValidationError): pass
+
+def render_include(content):
+	'''render {% raw %}{% include "app/path/filename" %}{% endraw %} in js file'''
+
+	content = cstr(content)
+
+	# try 5 levels of includes
+	for i in xrange(5):
+		if "{% include" in content:
+			paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
+			if not paths:
+				frappe.throw('Invalid include path', InvalidIncludePath)
+
+			for path in paths:
+				app, app_path = path.split('/', 1)
+				with open(frappe.get_app_path(app, app_path), 'r') as f:
+					include = unicode(f.read(), 'utf-8')
+					if path.endswith('.html'):
+						include = html_to_js_template(path, include)
+
+					content = re.sub(r'''{{% include\s['"]{0}['"]\s%}}'''.format(path), include, content)
+
+		else:
+			break
+
+	return content

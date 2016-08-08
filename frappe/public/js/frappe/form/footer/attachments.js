@@ -208,18 +208,38 @@ frappe.ui.form.Attachments = Class.extend({
 
 frappe.ui.get_upload_dialog = function(opts){
 	dialog = new frappe.ui.Dialog({
-		title: __('Upload Attachment'),
+	    title: __('Upload Attachment'),
+		no_focus: true,
+	    fields: [
+			{fieldtype: "Section Break"},
+			{"fieldtype": "Link" , "fieldname": "file" , "label": __("Select uploaded file"), "options": "File"},
+	    ],
 	});
 
 	var btn = dialog.set_primary_action(__("Attach"));
 	btn.removeClass("btn-primary").addClass("btn-default");
 
 	dialog.show();
+	var upload_area = $('<div style="padding-bottom: 25px;"></div>').prependTo(dialog.body);
 
-	$(dialog.body).empty();
-
+	var fd = dialog.fields_dict;
+	$(fd.file.input).change(function() {
+	    frappe.call({
+			'method': 'frappe.client.get_value',
+			'args': {
+			'doctype': 'File',
+			'fieldname': 'file_url',
+			  'filters': {
+			      'name': dialog.get_value("file")
+			    }
+			},
+			callback: function(r){
+			    dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
+			}
+	    });
+	});
 	frappe.upload.make({
-		parent: dialog.body,
+		parent: upload_area,
 		args: opts.args,
 		callback: function(attachment, r) {
 			dialog.hide();

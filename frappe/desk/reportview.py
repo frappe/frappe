@@ -11,7 +11,11 @@ from frappe import _
 
 @frappe.whitelist()
 def get():
-	return compress(execute(**get_form_params()))
+	args = get_form_params()
+	args.save_list_settings = True
+	data = compress(execute(**args))
+
+	return data
 
 def execute(doctype, *args, **kwargs):
 	return DatabaseQuery(doctype).execute(*args, **kwargs)

@@ -1,0 +1,19 @@
+<div class="sort-selector pull-right">
+	<button class="btn btn-default btn-xs pull-right btn-order"
+		data-value="{{ sort_order }}" style="margin-left: 10px;">
+			<span class="octicon text-muted octicon-arrow-{{
+				sort_order==="desc" ? "down" : "up" }}"></span></button>
+	<div class="dropdown pull-right">
+	  <a class="text-muted dropdown-toggle small"
+	  	data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+	    <span class="dropdown-text">{{ __(sort_by_label) }}</span>
+	  </a>
+	  <ul class="dropdown-menu" style="max-height: 300px; overflow-y: scroll;">
+		{% for value in options %}
+	    <li><a class="option" data-value="{{ value.fieldname }}">
+			{{ __(value.label) }}</a></li>
+		{% endfor %}
+	  </ul>
+
+	</div>
+</div>

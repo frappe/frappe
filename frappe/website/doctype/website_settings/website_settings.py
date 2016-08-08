@@ -39,9 +39,19 @@ class WebsiteSettings(Document):
 						top_bar_item.idx))
 
 	def validate_footer_items(self):
-		"""clear parent label in footer"""
+		"""validate url in top bar items"""
 		for footer_item in self.get("footer_items"):
-			footer_item.parent_label = None
+			if footer_item.parent_label:
+				parent_label_item = self.get("footer_items", {"label": footer_item.parent_label})
+
+				if not parent_label_item:
+					# invalid item
+					frappe.throw(_("{0} does not exist in row {1}").format(footer_item.parent_label, footer_item.idx))
+
+				elif not parent_label_item[0] or parent_label_item[0].url:
+					# parent cannot have url
+					frappe.throw(_("{0} in row {1} cannot have both URL and child items").format(footer_item.parent_label,
+						footer_item.idx))
 
 	def on_update(self):
 		self.clear_cache()
@@ -58,36 +68,14 @@ class WebsiteSettings(Document):
 		# clears role based home pages
 		frappe.clear_cache()
 
-
 def get_website_settings():
 	hooks = frappe.get_hooks()
-
-	all_top_items = frappe.db.sql("""\
-		select * from `tabTop Bar Item`
-		where parent='Website Settings' and parentfield='top_bar_items'
-		order by idx asc""", as_dict=1)
-
-	top_items = [d for d in all_top_items if not d['parent_label']]
-
-	# attach child items to top bar
-	for d in all_top_items:
-		if d['parent_label']:
-			for t in top_items:
-				if t['label']==d['parent_label']:
-					if not 'child_items' in t:
-						t['child_items'] = []
-					t['child_items'].append(d)
-					break
-
 	context = frappe._dict({
-		'top_bar_items': top_items,
-		'footer_items': frappe.db.sql("""\
-			select * from `tabTop Bar Item`
-			where parent='Website Settings' and parentfield='footer_items'
-			order by idx asc""", as_dict=1),
+		'top_bar_items': get_items('top_bar_items'),
+		'footer_items': get_items('footer_items'),
 		"post_login": [
 			{"label": "My Account", "url": "/me"},
-			{"class": "divider"},
+#			{"class": "divider"},
 			{"label": "Logout", "url": "/?cmd=web_logout"}
 		]
 	})
@@ -134,4 +122,23 @@ def get_website_settings():
 		context["favicon"] = settings.favicon
 
 	return context
+
+def get_items(parentfield):
+	all_top_items = frappe.db.sql("""\
+		select * from `tabTop Bar Item`
+		where parent='Website Settings' and parentfield= %s
+		order by idx asc""", parentfield, as_dict=1)
+
+	top_items = [d for d in all_top_items if not d['parent_label']]
+
+	# attach child items to top bar
+	for d in all_top_items:
+		if d['parent_label']:
+			for t in top_items:
+				if t['label']==d['parent_label']:
+					if not 'child_items' in t:
+						t['child_items'] = []
+					t['child_items'].append(d)
+					break
+	return top_items
 

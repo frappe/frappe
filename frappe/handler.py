@@ -117,22 +117,6 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
-
-@frappe.whitelist()
-def get_async_task_status(task_id):
-	from frappe.celery_app import get_celery
-	c = get_celery()
-	a = c.AsyncResult(task_id)
-	frappe.local.response['response'] = a.result
-	return {
-		"state": a.state,
-		"progress": 0
-	}
-
 @frappe.whitelist()
 def ping():
-	return "pong"
-
-@frappe.async.handler
-def async_ping():
 	return "pong"

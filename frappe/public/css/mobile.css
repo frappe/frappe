@@ -3,78 +3,14 @@ html {
 }
 body {
   height: 100%;
-  /* The html and body elements cannot have any padding or margin. */
   margin: 0px;
   padding: 0px !important;
 }
 html,
 body {
   overflow-x: hidden;
-  /* Prevent scroll on narrow devices */
-}
-.offcanvas-main-section-overlay {
-  display: none;
-  cursor: pointer;
-  opacity: 0.5;
-}
-.sidebar-padding {
-  padding: 12px 14px;
-}
-.offcanvas .sidebar .sidebar-menu > li > a,
-.offcanvas .sidebar .dropdown-menu > li > a {
-  padding: 12px 14px;
-  display: block;
-  whitespace: nowrap;
-  transition: 0.2s;
-  text-decoration: none !important;
-}
-.offcanvas .sidebar .dropdown-menu {
-  padding: 0px;
-  font-size: inherit;
-}
-.offcanvas .sidebar .dropdown-menu > li > a {
-  padding-left: 28px;
-}
-.offcanvas .sidebar .divider {
-  height: 1px;
-  overflow: hidden;
-  background-color: #EBEFF2;
-  width: 100%;
-  margin: 0px;
-}
-.offcanvas .sidebar .badge {
-  right: 15px !important;
-  top: 11px !important;
-}
-.offcanvas .sidebar .sidebar-menu > li > a:hover,
-.offcanvas .sidebar .dropdown-menu > li > a:hover,
-.offcanvas .sidebar .sidebar-menu > li > a:focus,
-.offcanvas .sidebar .dropdown-menu > li > a:focus,
-.offcanvas .sidebar .sidebar-menu > li > a:active,
-.offcanvas .sidebar .dropdown-menu > li > a:active {
-  background-color: #F0F4F7;
 }
 @media (max-width: 991px) {
-  input[type='checkbox'] {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #d1d8dd;
-    display: inline-block;
-  }
-  input[type='checkbox']:checked {
-    background: #3b99fc;
-    border-color: #3b99fc;
-  }
-  input.list-select-all {
-    margin-top: 0px;
-  }
-  .input-area input[type='checkbox'] {
-    margin-top: 2px;
-    margin-left: -23px;
-  }
   .intro-area,
   .footnote-area {
     padding: 15px;
@@ -86,24 +22,27 @@ body {
     position: relative;
   }
   body[data-route^="Form"] .page-title h1 {
-    margin-top: 14px;
+    margin-top: 12px;
   }
   body[data-route^="Form"] .page-title .indicator {
-    display: block;
-    margin-top: -9px;
-    margin-bottom: 3px;
+    display: inline-block;
+    margin-top: 12px;
   }
   body[data-route^="Form"] .page-actions {
-    padding-top: 10px !important;
+    padding-top: 20px !important;
     padding-bottom: 0px !important;
     padding-left: 0px !important;
   }
   body[data-route^="Form"] .page-head .sub-heading {
+    font-weight: normal;
+    font-size: 10px;
     display: block;
     position: absolute;
-    bottom: -30px;
-    right: 5px;
+    right: 140px;
     min-width: 200px;
+  }
+  body[data-route^="Form"] .title-text {
+    margin-top: 10px;
   }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;
@@ -125,6 +64,11 @@ body {
     margin: 0px;
     display: inline-block;
   }
+  #navbar-breadcrumbs li {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
     display: inline-block;
@@ -140,61 +84,6 @@ body {
   }
   .navbar-nav {
     margin: 0px;
-  }
-  .offcanvas {
-    transition: 0.25s;
-  }
-  .offcanvas-main-section-overlay {
-    bottom: 0;
-    position: fixed;
-  }
-  .offcanvas-container,
-  .offcanvas,
-  .offcanvas-main-section {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-  }
-  .offcanvas.active-left,
-  .offcanvas.active-right {
-    position: fixed;
-  }
-  .offcanvas.active-left .offcanvas-main-section-overlay,
-  .offcanvas.active-right .offcanvas-main-section-overlay {
-    z-index: 1031;
-    display: block;
-    bottom: 0;
-  }
-  .offcanvas.active-left {
-    -webkit-transform: translate3d(75%, 0, 0);
-    transform: translate3d(75%, 0, 0);
-  }
-  .offcanvas.active-right {
-    -webkit-transform: translate3d(-75%, 0, 0);
-    transform: translate3d(-75%, 0, 0);
-  }
-  .offcanvas .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    width: 75%;
-    /* 9 columns */
-    overflow-x: hidden;
-    overflow-y: auto;
-    font-size: 12px;
-  }
-  .offcanvas .sidebar-right {
-    left: 100%;
-    border-left: 1px solid #d1d8dd;
-  }
-  .offcanvas .sidebar-left {
-    right: 100%;
-    border-right: 1px solid #d1d8dd;
-  }
-  .offcanvas .sidebar-menu {
-    margin-bottom: 0;
   }
   .sidebar .form-group {
     margin-bottom: 0px;
@@ -275,7 +164,26 @@ body {
   }
   body[data-route=""] .navbar .navbar-home,
   body[data-route="desktop"] .navbar .navbar-home {
+    padding: 8px 10px;
+  }
+  body[data-route=""] .navbar .navbar-home:before,
+  body[data-route="desktop"] .navbar .navbar-home:before {
+    display: none;
+  }
+  body[data-route=""] .navbar .navbar-home img,
+  body[data-route="desktop"] .navbar .navbar-home img {
+    margin-top: 0;
+  }
+  body[data-route=""] .toggle-sidebar,
+  body[data-route="desktop"] .toggle-sidebar {
     display: none !important;
+  }
+  body[data-sidebar="0"] .toggle-sidebar {
+    display: none !important;
+  }
+  body[data-sidebar="0"] #navbar-breadcrumbs,
+  body[data-sidebar="0"] .navbar-home {
+    margin-left: 15px !important;
   }
   .linked-with-dialog {
     width: 100% !important;
@@ -378,7 +286,7 @@ body {
     left: -10px;
     width: 100%;
   }
-  body[data-route^="messages"] .navbar-center {
+  body[data-route^="chat"] .navbar-center {
     display: block !important;
     position: absolute;
     top: 10px;
@@ -386,7 +294,7 @@ body {
     right: 25%;
     text-align: center;
   }
-  #page-messages .layout-side-section {
+  #page-chat .layout-side-section {
     position: relative;
     left: 0px;
     border-right: 1px solid #d1d8dd;
@@ -394,26 +302,26 @@ body {
     float: left;
     width: 76px;
   }
-  #page-messages .layout-main-section-wrapper {
+  #page-chat .layout-main-section-wrapper {
     position: absolute;
     left: 75px;
     right: 0px;
     border-left: 1px solid #d1d8dd;
     float: left;
   }
-  #page-messages .module-sidebar-item {
+  #page-chat .module-sidebar-item {
     margin: 0px;
   }
-  #page-messages .module-sidebar-item .messages-sidebar-link {
+  #page-chat .module-sidebar-item .chat-sidebar-link {
     padding: 15px;
   }
-  #page-messages .timeline-head {
+  #page-chat .timeline-head {
     padding: 15px 15px 7px;
   }
-  #page-messages .list-row {
+  #page-chat .list-row {
     padding: 7px 0px;
   }
-  #page-messages .message-row-right {
+  #page-chat .message-row-right {
     margin-top: 10px;
     text-align: left;
   }
@@ -426,7 +334,7 @@ body {
   #page-setup-wizard .setup-wizard-slide .form {
     border: none;
   }
-  body[data-route^="Form"] .page-title .indicator {
-    margin-top: 1px;
+  body[data-route^="Form"] .page-head .sub-heading {
+    right: 90px;
   }
 }

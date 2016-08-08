@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
-from frappe import _
+from frappe import _, scrub
+from frappe.utils import cstr
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
@@ -22,6 +23,10 @@ class WebForm(WebsiteGenerator):
 			self.use_meta_fields()
 
 	def validate(self):
+		super(WebForm, self).validate()
+
+		self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
+
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
@@ -59,12 +64,52 @@ class WebForm(WebsiteGenerator):
 
 			# TODO translate options of Select fields like Country
 
-	def get_context(self, context):
-		from frappe.templates.pages.list import get_context as get_list_context
+	# export
+	def on_update(self):
+		"""
+			Writes the .txt for this page and if write_content is checked,
+			it will write out a .html file
+		"""
+		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
+			from frappe.modules.export_file import export_to_files
+			from frappe.modules import get_module_path, scrub
+			import os
 
-		frappe.local.form_dict.is_web_form = 1
-		context.params = frappe.form_dict
+			# json
+			export_to_files(record_list=[['Web Form', self.name]])
+
+			# write files
+			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
+
+			# js
+			if not os.path.exists(path + '.js'):
+				with open(path + '.js', 'w') as f:
+					f.write("""frappe.ready(function() {
+	// bind events here
+})""")
+
+			# py
+			if not os.path.exists(path + '.py'):
+				with open(path + '.py', 'w') as f:
+					f.write("""from __future__ import unicode_literals
+
+import frappe
+
+def get_context(context):
+	# do your magic here
+	pass
+""")
+
+	def get_context(self, context):
+		context.show_sidebar=True
+		from frappe.www.list import get_context as get_list_context
+
+		frappe.form_dict.is_web_form = 1
 		logged_in = frappe.session.user != "Guest"
+
+		args, delimeter = make_route_string(frappe.form_dict)
+		context.args = args
+		context.delimeter = delimeter
 
 		# check permissions
 		if not logged_in and frappe.form_dict.name:
@@ -79,7 +124,7 @@ class WebForm(WebsiteGenerator):
 		if self.login_required and logged_in:
 			if self.allow_edit:
 				if self.allow_multiple:
-					if not context.params.name and not context.params.new:
+					if not frappe.form_dict.name and not frappe.form_dict.new:
 						frappe.form_dict.doctype = self.doc_type
 						get_list_context(context)
 						context.is_list = True
@@ -97,17 +142,19 @@ class WebForm(WebsiteGenerator):
 
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"name": self.get_route(), "title": self.title }]
+			context.parents = [{"route": self.route, "title": self.title }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 			context.title = context.doc.get(context.doc.meta.get_title_field())
+			context.doc.add_seen()
 
 			context.reference_doctype = context.doc.doctype
 			context.reference_name = context.doc.name
 
 		if self.allow_comments and frappe.form_dict.name:
-			context.comment_list = get_comment_list(context.doc.doctype, context.doc.name)
+			context.comment_list = get_comment_list(context.doc.doctype,
+				context.doc.name)
 
 		context.parents = self.get_parents(context)
 
@@ -116,7 +163,30 @@ class WebForm(WebsiteGenerator):
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
 
-		return context
+		self.add_custom_context_and_script(context)
+
+	def add_custom_context_and_script(self, context):
+		'''Update context from module if standard and append script'''
+		if self.is_standard:
+			module_name = "{app}.{module}.web_form.{name}.{name}".format(
+					app = frappe.local.module_app[scrub(self.module)],
+					module = scrub(self.module),
+					name = scrub(self.name)
+			)
+			print module_name
+			module = frappe.get_module(module_name)
+			new_context = module.get_context(context)
+
+			if new_context:
+				context.update(new_context)
+
+			js_path = os.path.join(os.path.dirname(module.__file__), scrub(self.name) + '.js')
+			if os.path.exists(js_path):
+				context.script = open(js_path, 'r').read()
+
+			css_path = os.path.join(os.path.dirname(module.__file__), scrub(self.name) + '.css')
+			if os.path.exists(css_path):
+				context.style = open(css_path, 'r').read()
 
 	def get_layout(self):
 		layout = []
@@ -134,12 +204,11 @@ class WebForm(WebsiteGenerator):
 
 	def get_parents(self, context):
 		parents = None
-		if self.breadcrumbs:
-			parents = json.loads(self.breadcrumbs)
+
+		if context.is_list:
+			parents = [{"title": _("My Account"), "name": "me"}]
 		elif context.parents:
 			parents = context.parents
-		elif context.is_list:
-			parents = [{"title": _("My Account"), "name": "me"}]
 
 		return parents
 
@@ -230,14 +299,34 @@ def has_web_form_permission(doctype, name, ptype='read'):
 	elif frappe.has_website_permission(doctype, ptype=ptype, doc=name):
 		return True
 
+	elif check_webform_perm(doctype, name):
+		return True
+
 	else:
 		return False
 
+
+def check_webform_perm(doctype, name):
+	doc = frappe.get_doc(doctype, name)
+	if hasattr(doc, "has_webform_permission"):
+		if doc.has_webform_permission():
+			return True
+
 def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
-	from frappe.templates.pages.list import get_list
+	from frappe.www.list import get_list
 	if not filters:
 		filters = {}
 
 	filters["owner"] = frappe.session.user
 
 	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)
+
+def make_route_string(parameters):
+	route_string = ""
+	delimeter = '?'
+	if isinstance(parameters, dict):
+		for key in parameters:
+			if key != "is_web_form":
+				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
+				delimeter = '&'
+	return (route_string,delimeter)

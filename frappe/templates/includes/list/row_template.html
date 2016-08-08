@@ -1,10 +1,7 @@
 {% set doc = frappe.get_doc(doc) %}
 {% set subject = doc.get(meta.title_field or "name") %}
-{% set route = ((is_web_form is defined and is_web_form and "{0}?name={1}".format(pathname, doc.name))
-		or (doc.get_route and doc.get_route())
-		or "{0}/{1}".format(pathname or doc.doctype, doc.name)) %}
 <div class="web-list-item">
-    <a class="no-decoration" href="/{{ route | urlencode }}">
+    <a class="no-decoration" href="/{{ route }}">
         <p>{{ subject }}</p>
     </a>
 </div>

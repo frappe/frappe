@@ -23,6 +23,8 @@ frappe.ui.form.Viewers = Class.extend({
 			users.push({
 				image: user_info.image,
 				fullname: user_info.fullname,
+				abbr: user_info.abbr,
+				color: user_info.color,
 				title: __("{0} is currently viewing this document", [user_info.fullname])
 			});
 

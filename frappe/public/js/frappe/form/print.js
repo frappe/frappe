@@ -64,12 +64,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		this.wrapper.find(".btn-download-pdf").click(function() {
 			if(!me.is_old_style()) {
-				var w = window.open("/api/method/frappe.templates.pages.print.download_pdf?"
+				var w = window.open(
+					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
 					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 					+"&name="+encodeURIComponent(me.frm.doc.name)
 					+"&format="+me.selected_format()
 					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-					+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
+					+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
@@ -130,20 +131,20 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	new_page_preview: function(printit) {
 		var me = this;
-		var w = window.open("/print?"
+		var w = window.open(frappe.urllib.get_full_url("/print?"
 			+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 			+"&name="+encodeURIComponent(me.frm.doc.name)
 			+(printit ? "&trigger_print=1" : "")
 			+"&format="+me.selected_format()
 			+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-			+(me.lang_code ? ("&_lang="+me.lang_code) : ""));
+			+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
 		if(!w) {
 			msgprint(__("Please enable pop-ups")); return;
 		}
 	},
 	get_print_html: function(callback) {
 		frappe.call({
-			method: "frappe.templates.pages.print.get_html_and_style",
+			method: "frappe.www.print.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
@@ -178,19 +179,22 @@ frappe.ui.form.PrintPreview = Class.extend({
 			.empty().add_options(this.print_formats);
 	},
 	with_old_style: function(opts) {
-		var me = this;
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
+		});
 	},
 	print_old_style: function() {
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(this.print_sel.val(), _p.go,
-			!this.with_letterhead());
+		var me = this;
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(me.print_sel.val(), _p.go,
+				!me.with_letterhead());
+		});
 	},
 	new_page_preview_old_style: function() {
-		frappe.require("/assets/js/print_format_v3.min.js");
-		_p.build(this.print_sel.val(), _p.preview,
-			!this.with_letterhead());
+		var me = this;
+		frappe.require("/assets/js/print_format_v3.min.js", function() {
+			_p.build(me.print_sel.val(), _p.preview, !me.with_letterhead());
+		});
 	},
 	selected_format: function() {
 		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";

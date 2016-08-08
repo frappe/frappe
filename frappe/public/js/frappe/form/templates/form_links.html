@@ -1,0 +1,21 @@
+<div class="form-documents">
+	<h5 style="margin: 5px 0px;">Related Documents</h5>
+	{% for (var i=0; i < transactions.length; i++) { %}
+		{% if((i % 2)===0) { %}<div class="row">{% } %}
+		<div class="col-xs-6">
+			<h6 class="uppercase">{{ transactions[i].label }}</h5>
+			{% for (var j=0; j < transactions[i].items.length; j++) {
+				var doctype = transactions[i].items[j]; %}
+			<div class="document-link"
+				data-doctype="{{ doctype }}">
+				<a class="badge-link small">{{ __(doctype) }}</a>
+				<span class="text-muted small count"></span>
+				<span class="open-notification hidden" title="{{ __("Open {0}", [__(doctype)])}}"></span>
+			</div>
+			{% } %}
+		</div>
+		{% if((i % 2)===1) { %}</div>{% } %}
+	{% } %}
+	<!-- finally, close one-column row -->
+	{% if((i % 2)===0) { %}</div>{% } %}
+</div>

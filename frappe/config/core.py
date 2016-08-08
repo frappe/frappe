@@ -48,7 +48,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Bulk Email",
+					"name": "Email Queue",
 					"description": _("Background Email Queue"),
 				},
 				{

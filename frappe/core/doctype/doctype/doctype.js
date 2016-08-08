@@ -5,11 +5,11 @@
 // Menu Display
 // -------------
 
-$(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-		$(grid_row.row).css({"font-weight": "bold"});
-	}
-})
+// $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
+// 	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
+// 		$(grid_row.row).css({"font-weight": "bold"});
+// 	}
+// })
 
 cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 	if(doc.__islocal && (user !== "Administrator" || !frappe.boot.developer_mode)) {
