@@ -4,11 +4,10 @@
 	  <div class="checkbox">
 	    <label>
 	      <input type="checkbox" data-module="{{ icon.module_name }}"
-					{% if not icon.hidden %}checked{% endif %}>
+					{% if not (icon.hidden if user else icon.blocked) %}checked{% endif %}>
 					{{ _(icon.label or icon.module_name) }}
 	    </label>
 	  </div>
-
 	</div>
 {% endfor %}
 </div>

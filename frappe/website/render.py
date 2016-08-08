@@ -17,43 +17,53 @@ from frappe.translate import guess_language
 
 class PageNotFoundError(Exception): pass
 
-def render(path, http_status_code=None):
+def render(path=None, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path.strip("/ "))
+	path = resolve_path(path or frappe.local.request.path.strip('/ '))
+	data = None
 
-	try:
-		data = render_page_by_language(path)
-	except frappe.DoesNotExistError, e:
-		doctype, name = get_doctype_from_path(path)
-		if doctype and name:
-			path = "print"
-			frappe.local.form_dict.doctype = doctype
-			frappe.local.form_dict.name = name
-		elif doctype:
-			path = "list"
-			frappe.local.form_dict.doctype = doctype
-		else:
-			path = "404"
-			http_status_code = e.http_status_code
+	# if in list of already known 404s, send it
+	if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
+		data = render_page('404')
+		http_status_code = 404
 
+	else:
 		try:
-			data = render_page(path)
+			data = render_page_by_language(path)
+		except frappe.DoesNotExistError, e:
+			doctype, name = get_doctype_from_path(path)
+			if doctype and name:
+				path = "print"
+				frappe.local.form_dict.doctype = doctype
+				frappe.local.form_dict.name = name
+			elif doctype:
+				path = "list"
+				frappe.local.form_dict.doctype = doctype
+			else:
+				# 404s are expensive, cache them!
+				frappe.cache().hset('website_404', frappe.request.url, True)
+				data = render_page('404')
+				http_status_code = 404
+
+			if not data:
+				try:
+					data = render_page(path)
+				except frappe.PermissionError, e:
+					data, http_status_code = render_403(e, path)
+
 		except frappe.PermissionError, e:
 			data, http_status_code = render_403(e, path)
 
-	except frappe.PermissionError, e:
-		data, http_status_code = render_403(e, path)
+		except frappe.Redirect, e:
+			return build_response(path, "", 301, {
+				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
+				"Cache-Control": "no-store, no-cache, must-revalidate"
+			})
 
-	except frappe.Redirect, e:
-		return build_response(path, "", 301, {
-			"Location": frappe.flags.redirect_location,
-			"Cache-Control": "no-store, no-cache, must-revalidate"
-		})
-
-	except Exception:
-		path = "error"
-		data = render_page(path)
-		http_status_code = 500
+		except Exception:
+			path = "error"
+			data = render_page(path)
+			http_status_code = 500
 
 	data = add_csrf_token(data)
 
@@ -125,7 +135,11 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	html = frappe.get_template(context.template).render(context)
+
+	if context.source:
+		html = frappe.render_template(context.source, context)
+	elif context.template:
+		html = frappe.get_template(context.template).render(context)
 
 	# html = frappe.get_template(context.base_template_path).render(context)
 
@@ -195,7 +209,8 @@ def clear_cache(path=None):
 	if not path:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		frappe.cache().delete_value("_website_pages")
+		frappe.cache().delete_value("website_404")
+		frappe.cache().delete_value("portal_menu_items")
 		frappe.cache().delete_value("home_page")
 
 	for method in frappe.get_hooks("website_clear_cache"):

@@ -8,16 +8,18 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this;
 
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.min.css');
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.min.js');
+		frappe.require([
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		], function() {
+			frappe.model.with_doctype(route[1], function() {
+				var options = {
+					doctype: route[1]
+				};
+				$.extend(options, frappe.views.calendar[route[1]] || {});
 
-		frappe.model.with_doctype(route[1], function() {
-			var options = {
-				doctype: route[1]
-			};
-			$.extend(options, frappe.views.calendar[route[1]] || {});
-
-			frappe.views.calendars[route[1]] = new frappe.views.Calendar(options);
+				frappe.views.calendars[route[1]] = new frappe.views.Calendar(options);
+			});
 		});
 	}
 });

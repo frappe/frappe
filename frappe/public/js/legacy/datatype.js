@@ -75,47 +75,11 @@ var crop = function(s, len) {
 		return s;
 }
 
-var strip = function(s, chars) {
-	if (s) {
-		var s= lstrip(s, chars)
-		s = rstrip(s, chars);
-		return s;
-	}
-}
-
-var rstrip = function(s, chars) {
-	if(!chars) chars = ['\n', '\t', ' '];
-	var last_char = s.substr(s.length-1);
-	while(in_list(chars, last_char)) {
-		var s = s.substr(0, s.length-1);
-		last_char = s.substr(s.length-1);
-	}
-	return s;
-}
-
-function repl(s, dict) {
-	if(s==null)return '';
-	for(key in dict) {
-		s = s.split("%("+key+")s").join(dict[key]);
-	}
-	return s;
-}
-
-var $r = repl;
-
-function replace_all(s, t1, t2) {
-	return s.split(t1).join(t2);
-}
 
 function keys(obj) {
 	var mykeys=[];
 	for (var key in obj) mykeys[mykeys.length]=key;
 	return mykeys;
-}
-function values(obj) {
-	var myvalues=[];
-	for (var key in obj) myvalues[myvalues.length]=obj[key];
-	return myvalues;
 }
 
 function has_words(list, item) {

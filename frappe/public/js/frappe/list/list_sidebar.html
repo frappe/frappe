@@ -3,11 +3,25 @@
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	<li class="divider"></li>
-    <li><a href="#Report/{%= doctype %}">{%= __("Report") %}</a></li>
+	<li>
+		<div class="btn-group">
+		  <a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		    {{ __("Reports") }} <span class="caret"></span>
+		  </a>
+		  <ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
+		    <li><a href="#Report/{{ doctype }}">{{ __("Report Builder") }}</a></li>
+		  </ul>
+		</div>
+	</li>
+	<li class="divider"></li>
+	<li class="hide tree-link"><a href="#Tree/{%= doctype %}">{%= __("Tree") %}</a></li>
     <li class="hide calendar-link"><a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
     <li class="hide gantt-link"><a href="#Gantt/{%= doctype %}">{%= __("Gantt") %}</a></li>
     <li class="assigned-to-me">
         <a>{%= __("Assigned To Me") %}</a>
+    </li>
+    <li class="hide switch-list-view">
+        <a>{%= __("Show Images") %}</a>
     </li>
     {% if(frappe.help.has_help(doctype)) { %}
     <li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>

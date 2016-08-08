@@ -8,21 +8,20 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import frappe, frappe.utils
-from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
-from frappe import _
-
-from frappe.utils.nestedset import NestedSet
-from frappe.utils import strip
+import frappe
 import json
 import urllib
-from PIL import Image, ImageOps
 import os
 import requests
 import requests.exceptions
 import StringIO
 import mimetypes, imghdr
-from frappe.utils import get_files_path
+
+from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
+from frappe import _
+from frappe.utils.nestedset import NestedSet
+from frappe.utils import strip, get_files_path
+from PIL import Image, ImageOps
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -35,14 +34,13 @@ class File(NestedSet):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
-		self.set_name()
 
 	def get_name_based_on_parent_folder(self):
 		path = get_breadcrumbs(self.folder)
 		folder_name = frappe.get_value("File", self.folder, "file_name")
 		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
 
-	def set_name(self):
+	def autoname(self):
 		"""Set name for folder"""
 		if self.is_folder:
 			if self.folder:
@@ -78,7 +76,7 @@ class File(NestedSet):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
 			self.file_size = self.get_folder_size()
-			frappe.db.set_value("File", self.name, "file_size", self.file_size)
+			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
 				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
@@ -95,7 +93,7 @@ class File(NestedSet):
 	def update_parent_folder_size(self):
 		"""Update size of parent folder"""
 		if self.folder and not self.is_folder: # it not home
-			frappe.get_doc("File", self.folder).save(ignore_permissions=True)
+			frappe.get_doc("File", self.folder).set_folder_size()
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -352,3 +350,4 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
+

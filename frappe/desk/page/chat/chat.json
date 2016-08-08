@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2012-06-14 18:44:56",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "",
+ "idx": 1,
+ "modified": "2016-03-31 02:02:13.503910",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "chat",
+ "owner": "Administrator",
+ "page_name": "chat",
+ "roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "title": "Chat"
+}

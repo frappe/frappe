@@ -4,15 +4,14 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.desk.reportview import execute as runreport
 from frappe.utils import getdate
 
 def execute(filters=None):
 	priority_map = {"High": 3, "Medium": 2, "Low": 1}
 
-	todo_list = runreport(doctype="ToDo", fields=["name", "date", "description",
+	todo_list = frappe.get_list('ToDo', fields=["name", "date", "description",
 		"priority", "reference_type", "reference_name", "assigned_by", "owner"],
-		filters=[["ToDo", "status", "=", "Open"]])
+		filters={'status': 'Open'})
 
 	todo_list.sort(key=lambda todo: (priority_map.get(todo.priority, 0),
 		todo.date and getdate(todo.date) or getdate("1900-01-01")), reverse=True)

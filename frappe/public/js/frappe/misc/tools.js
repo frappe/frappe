@@ -34,7 +34,6 @@ frappe.tools.downloadify = function(data, roles, title) {
 
 frappe.markdown = function(txt) {
 	if(!frappe.md2html) {
-		frappe.require('assets/frappe/js/lib/markdown.js');
 		frappe.md2html = new Showdown.converter();
 	}
 

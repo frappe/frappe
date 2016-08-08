@@ -1,0 +1,14 @@
+{% extends "templates/web.html" %}
+
+{%- block title -%}{{_("Not Found")}}{%- endblock -%}
+
+{%- block header -%}
+<h1 class="text-danger" style="margin-top: 100px;">{{_("Page missing or moved")}}</h1>
+{%- endblock -%}
+
+{% block page_content %}
+
+<div class="404-content" style="margin-bottom: 100px;">
+	<p>{{_("We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.")}}</p>
+</div>
+{% endblock %}

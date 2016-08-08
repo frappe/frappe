@@ -44,7 +44,7 @@ def update_nsm(doc):
 	doc.set(opf, p)
 	frappe.db.set_value(doc.doctype, doc.name, opf, p or '')
 
-	doc.load_from_db()
+	doc.reload()
 
 def update_add_node(doc, parent, parent_field):
 	"""

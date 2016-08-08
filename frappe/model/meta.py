@@ -3,6 +3,18 @@
 
 # metadata
 
+'''
+Load metadata (DocType) class
+
+Example:
+
+	meta = frappe.get_meta('User')
+	if meta.has_field('first_name'):
+		print "DocType" table has field "first_name"
+
+
+'''
+
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, cint
@@ -10,6 +22,7 @@ from frappe.model import integer_docfield_properties, default_fields, no_value_f
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
+from frappe.modules import load_doctype_module
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -92,11 +105,16 @@ class Meta(Document):
 		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
 
 	def get_field(self, fieldname):
+		'''Return docfield from meta'''
 		if not self._fields:
 			for f in self.get("fields"):
 				self._fields[f.fieldname] = f
 
 		return self._fields.get(fieldname)
+
+	def has_field(self, fieldname):
+		'''Returns True if fieldname exists'''
+		return True if self.get_field(fieldname) else False
 
 	def get_label(self, fieldname):
 		return self.get_field(fieldname).label
@@ -244,6 +262,19 @@ class Meta(Document):
 					self.high_permlevel_fields.append(df)
 
 		return self.high_permlevel_fields
+
+	def get_dashboard_data(self):
+		'''Returns dashboard setup related to this doctype.
+
+		This method will return the `data` property in the
+		`[doctype]_dashboard.py` file in the doctype folder'''
+		try:
+			module = load_doctype_module(self.name, suffix='_dashboard')
+			data = frappe._dict(module.data)
+		except ImportError:
+			data = frappe._dict()
+
+		return data
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),

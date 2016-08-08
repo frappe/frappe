@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Add Reply") + ": " + (this.subject || ""),
+			title: (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: "Send",
@@ -48,7 +48,6 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	get_fields: function() {
 		return [
-			{fieldtype: "Section Break"},
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
@@ -139,7 +138,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
-			var prepend_reply = function() {
+
+			var prepend_reply = function(reply_html) {
 				if(me.reply_added===standard_reply) {
 					return;
 				}
@@ -149,30 +149,27 @@ frappe.views.CommunicationComposer = Class.extend({
 				parts = content.split('<!-- salutation-ends -->');
 
 				if(parts.length===2) {
-					content = [parts[0], frappe.standard_replies[standard_reply],
-						"<br>", parts[1]];
+					content = [reply_html, "<br>", parts[1]];
 				} else {
-					content = [frappe.standard_replies[standard_reply],
-						"<br>", content];
+					content = [reply_html, "<br>", content];
 				}
 
 				content_field.set_input(content.join(''));
 
 				me.reply_added = standard_reply;
 			}
-			if(frappe.standard_replies[standard_reply]) {
-				prepend_reply();
-			} else {
-				$.ajax({
-					url:"/api/resource/Standard Reply/" + standard_reply,
-					statusCode: {
-						200: function(data) {
-							frappe.standard_replies[standard_reply] = data.data.response;
-							prepend_reply();
-						}
-					}
-				});
-			}
+
+			frappe.call({
+				method: 'frappe.email.doctype.standard_reply.standard_reply.get_standard_reply',
+				args: {
+					template_name: standard_reply,
+					doc: me.frm.doc
+				},
+				callback: function(r) {
+					prepend_reply(r.message);
+				}
+			});
+
 		});
 	},
 
@@ -477,9 +474,8 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
 			.bind( "keydown", function(event) {
-				if (event.keyCode === $.ui.keyCode.TAB &&
-						$(this).data( "autocomplete" ) &&
-						$(this).data( "autocomplete" ).menu.active ) {
+		        if (event.keyCode === $.ui.keyCode.TAB &&
+		            $(this).autocomplete("instance").menu.active) {
 					event.preventDefault();
 				}
 			})
@@ -501,7 +497,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				},
 				appendTo: this.dialog.$wrapper,
 				focus: function() {
-					event.preventDefault();
+					return false;
 				},
 				select: function( event, ui ) {
 					var terms = split( this.value );

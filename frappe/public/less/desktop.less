@@ -90,6 +90,7 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	text-align: center;
 	text-shadow: none;
 	letter-spacing: normal;
+	cursor: pointer;
 }
 
 .app-icon:hover path {
@@ -223,4 +224,13 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	h4 {
 		display: inline-block;
 	}
+}
+
+.navbar-set-desktop-icons {
+	display: none;
+}
+
+body[data-route=""] .navbar-set-desktop-icons,
+body[data-route="desktop"] .navbar-set-desktop-icons {
+	display: block;
 }

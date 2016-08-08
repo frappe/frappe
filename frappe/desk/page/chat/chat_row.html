@@ -1,0 +1,36 @@
+<div class="row message-row small">
+	<div class="col-sm-9">
+		<div class="media">
+			{% if (data.is_public) { %}
+			<span class="pull-left hidden-xs" title="{{ __("Public") }}">
+				<i class="octicon octicon-rss text-muted" style="margin-top: 3px;"></i></span>
+			{% } else { %}
+			<span class="pull-left hidden-xs"
+				style="width: 20px; height: 16px; display: inline-block;"></span>
+			{% } %}
+			<div class="pull-left hidden-xs">
+				<span class="avatar avatar-small" title="{%= frappe.user.full_name(data.owner) %} ">
+					<img class="media-object {{ data.is_system_message ? "grayscale" : "" }}"
+								src="{%= frappe.user.image(data.owner) %}">
+				</span>
+			</div>
+			<div class="media-body {{ data.is_system_message ? "system-message" : "" }} message-bubble {{ data.is_mine ? "my-message" : "" }}">
+				{%= data.content %}
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-3 text-right message-row-right">
+		<div class="text-muted">
+			<span class="hidden-sm hidden-md hidden-lg">
+				{%= frappe.user.full_name(data.owner) %},
+			</span>
+			{%= comment_when(data.modified) %}
+		</div>
+		{% if (data.owner==user) { %}
+		<div>
+			<a class="delete text-extra-muted" data-name="{%= data.name %}"
+				onclick="frappe.desk.pages.messages.delete(this)">Delete</a>
+		</div>
+		{% } %}
+	</div>
+</div>

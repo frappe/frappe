@@ -6,8 +6,7 @@ Call from command line:
 
 """
 
-import os, json, frappe, shutil
-import frappe.website.statics
+import os, json, frappe, shutil, re
 from frappe.website.context import get_context
 from frappe.utils import markdown
 
@@ -17,6 +16,10 @@ class setup_docs(object):
 			and templates at `templates/autodoc`
 		"""
 		self.app = app
+
+		frappe.local.flags.web_pages_folders = ['docs',]
+		frappe.local.flags.web_pages_apps = [self.app,]
+
 		self.hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = self.hooks.get("app_title")[0]
 		self.setup_app_context()
@@ -153,15 +156,6 @@ class setup_docs(object):
 
 		self.update_index_txt(self.docs_path)
 
-	def sync_docs(self):
-		"""Sync docs from /docs folder to **Web Page**.
-
-		Called as `bench --site [sitename] sync-docs [appname]`
-		"""
-		frappe.db.sql("delete from `tabWeb Page`")
-		sync = frappe.website.statics.sync()
-		sync.start(path="docs", rebuild=True, apps = [self.app])
-
 	def make_docs(self, target, local = False):
 		self.target = target
 		self.local = local
@@ -277,41 +271,38 @@ class setup_docs(object):
 		"""render templates and write files to target folder"""
 		frappe.local.flags.home_page = "index"
 
+		from frappe.website.router import get_pages, make_toc
+		pages = get_pages()
+
 		# clear the user, current folder in target
 		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
 		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
 
 		cnt = 0
-		for page in frappe.db.sql("""select parent_website_route,
-			page_name from `tabWeb Page` where ifnull(template_path, '')!=''""", as_dict=True):
-
-			if page.parent_website_route:
-				path = page.parent_website_route + "/" + page.page_name
-			else:
-				path = page.page_name
-
+		for path, context in pages.iteritems():
 			print "Writing {0}".format(path)
 
 			# set this for get_context / website libs
 			frappe.local.path = path
 
-			context = {
+			context.update({
 				"page_links_with_extn": True,
 				"relative_links": True,
 				"docs_base_url": self.docs_base_url,
 				"url_prefix": self.docs_base_url,
-			}
+			})
 
 			context.update(self.app_context)
 
 			context = get_context(path, context)
 
-			target_path_fragment = context.template_path.split('/docs/', 1)[1]
-			target_filename = os.path.join(self.target, target_path_fragment)
+			if context.basename:
+				target_path_fragment = context.route + '.html'
+			else:
+				# index.html
+				target_path_fragment = context.route + '/index.html'
 
-			# rename .md files to .html
-			if target_filename.rsplit(".", 1)[1]=="md":
-				target_filename = target_filename[:-3] + ".html"
+			target_filename = os.path.join(self.target, target_path_fragment.strip('/'))
 
 			context.brand_html = context.top_bar_items = context.favicon = None
 
@@ -333,13 +324,23 @@ class setup_docs(object):
 			context.top_bar_items = [{"label": '<i class="octicon octicon-search"></i>', "url": "#",
 				"right": 1}] + context.top_bar_items
 
+			context.parents = []
+			parent_route = os.path.dirname(context.route)
+			if pages[parent_route]:
+				context.parents = [pages[parent_route]]
+
 			if not context.favicon:
 				context.favicon = "/assets/img/favicon.ico"
 
 			context.only_static = True
 			context.base_template_path = "templates/autodoc/base_template.html"
 
-			html = frappe.get_template("templates/generators/web_page.html").render(context)
+			if '<code>' in context.source:
+				context.source = re.sub('\<code\>(.*)\</code\>', '<code>{% raw %}\g<1>{% endraw %}</code>', context.source)
+
+			html = frappe.render_template(context.source, context)
+
+			html = make_toc(context, html)
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
@@ -347,7 +348,7 @@ class setup_docs(object):
 						source_link = self.docs_config.source_link,
 						app_name = self.app,
 						branch = context.app.branch,
-						target = target_path_fragment))
+						target = context.template))
 
 			if not os.path.exists(os.path.dirname(target_filename)):
 				os.makedirs(os.path.dirname(target_filename))
@@ -436,7 +437,7 @@ edit_link = '''
 	<div class="page-content">
 	<div class="edit-container text-center">
 		<i class="icon icon-smile"></i>
-		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/docs/{target}">
+		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/{target}">
 			Improve this page
 		</a>
 	</div>

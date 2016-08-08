@@ -78,6 +78,7 @@ body[data-route="desktop"] .navbar-default {
   text-align: center;
   text-shadow: none;
   letter-spacing: normal;
+  cursor: pointer;
 }
 .app-icon:hover path {
   fill: #fff;
@@ -177,4 +178,11 @@ body[data-route="desktop"] .navbar-default {
 }
 .desktop-list-item h4 {
   display: inline-block;
+}
+.navbar-set-desktop-icons {
+  display: none;
+}
+body[data-route=""] .navbar-set-desktop-icons,
+body[data-route="desktop"] .navbar-set-desktop-icons {
+  display: block;
 }

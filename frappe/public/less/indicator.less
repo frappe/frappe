@@ -55,6 +55,11 @@
     background: @indicator-darkgrey;
 }
 
+.indicator.black::before,
+.indicator-right.black::after {
+    background: @text-color;
+}
+
 .indicator.yellow::before,
 .indicator-right.yellow::after {
     background: @indicator-yellow;
@@ -63,4 +68,10 @@
 .indicator.light-blue::before,
 .indicator-right.light-blue::after {
     background: @indicator-light-blue;
+}
+
+.modal-header .indicator {
+	float: left;
+	margin-top: 7.5px;
+	margin-right: 3px;
 }

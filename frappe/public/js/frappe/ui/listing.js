@@ -52,7 +52,7 @@ frappe.ui.Listing = Class.extend({
 			this.opts.no_result_message = __('Nothing to show');
 		}
 		if(!this.opts.page_length) {
-			this.opts.page_length = 20;
+			this.opts.page_length = this.list_settings ? (this.list_settings.limit || 20) : 20;
 		}
 		this.opts._more = __("More");
 	},
@@ -135,7 +135,6 @@ frappe.ui.Listing = Class.extend({
 			if(me.custom_new_doc) {
 				me.custom_new_doc(doctype);
 			} else {
-				var doc = frappe.model.get_new_doc(doctype);
 				if(me.filter_list) {
 					frappe.route_options = {};
 					$.each(me.filter_list.get_filters(), function(i, f) {
@@ -144,7 +143,7 @@ frappe.ui.Listing = Class.extend({
 						}
 					});
 				}
-				frappe.set_route("Form", doctype, doc.name);
+				frappe.new_doc(doctype, true);
 			}
 		});
 	},
@@ -175,14 +174,18 @@ frappe.ui.Listing = Class.extend({
 			if(this.onreset) this.onreset();
 		}
 
-		if(!me.opts.no_loading)
+		if(!me.opts.no_loading) {
 			me.set_working(true);
+		}
+
+		var args = this.get_call_args();
+		this.save_list_settings_locally(args);
 
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
 			freeze: (this.opts.freeze != undefined ? this.opts.freeze : true),
-			args: this.get_call_args(),
+			args: args,
 			callback: function(r) {
 				if(!me.opts.no_loading)
 					me.set_working(false);
@@ -191,6 +194,43 @@ frappe.ui.Listing = Class.extend({
 			},
 			no_spinner: this.opts.no_loading
 		});
+	},
+	save_list_settings_locally: function(args) {
+		if(this.opts.save_list_settings && this.doctype && !this.docname) {
+			// save list settings locally
+			list_settings = frappe.model.list_settings[this.doctype];
+
+			if(!list_settings) {
+				return
+			}
+
+			var different = false;
+
+			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {
+				// settings are dirty if filters change
+				list_settings.filters = args.filters || [];
+				different = true;
+			}
+
+			if(list_settings.order_by !== args.order_by) {
+				list_settings.order_by = args.order_by;
+				different = true;
+			}
+
+			if(list_settings.limit != args.limit_page_length) {
+				list_settings.limit = args.limit_page_length || 20
+				different = true;
+			}
+
+			// save fields in list settings
+			if(args.save_list_settings_fields) {
+				list_settings.fields = args.fields;
+			};
+
+			if(different) {
+				list_settings.updated_on = moment().toString();
+			}
+		}
 	},
 	set_working: function(flag) {
 		this.$w.find('.img-load').toggle(flag);
@@ -266,16 +306,58 @@ frappe.ui.Listing = Class.extend({
 	},
 
 	render_list: function(values) {
-		var m = Math.min(values.length, this.page_length);
 		this.last_page = values;
 		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
 		}
 
+		this.render_rows(values);
+	},
+	render_rows: function(values) {
 		// render the rows
-		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(values[i]), values[i], this, i);
+		if(this.meta && this.meta.image_view){
+			var cols = values.slice();
+			while (cols.length) {
+				row = this.add_row(cols[0]);
+				$("<div class='row image-view-marker'></div>").appendTo(row);
+				$(row).addClass('no-hover');
+				this.render_image_view_row(row, cols.splice(0, 4), this, i);
+			}
+
+			this.render_image_gallery();
+		} else {
+			var m = Math.min(values.length, this.page_length);
+			for(var i=0; i < m; i++) {
+				this.render_row(this.add_row(values[i]), values[i], this, i);
+			}
 		}
+	},
+	render_image_gallery: function(){
+		var me = this;
+		frappe.require(
+			[
+				"assets/frappe/js/frappe/list/imageview.js",
+				"assets/frappe/js/lib/gallery/js/blueimp-gallery.js",
+				"assets/frappe/js/lib/gallery/css/blueimp-gallery.css",
+				"assets/frappe/js/lib/gallery/js/blueimp-gallery-indicator.js",
+				"assets/frappe/js/lib/gallery/css/blueimp-gallery-indicator.css"
+			], function(){
+				// remove previous gallery container
+				me.$w.find(".blueimp-gallery").remove();
+				// append gallery div
+				var gallery = frappe.render_template("blueimp-gallery", {});
+				$(gallery).appendTo(me.$w);
+
+				me.$w.find(".zoom-view").click(function(event){
+					event.preventDefault();
+					opts = {
+						doctype: me.doctype,
+						docname: $(this).parent().attr('data-name'),
+						container: me.$w
+					};
+					new frappe.views.ImageView(opts);
+			});
+		});
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
@@ -285,7 +367,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	add_row: function(row) {
 		return $('<div class="list-row">')
-			.data("data", row)
+			.data("data", (this.meta && this.meta.image_view) == 0 ? row : null)
 			.appendTo(this.$w.find('.result-list'))
 			.get(0);
 	},
@@ -326,5 +408,12 @@ frappe.ui.Listing = Class.extend({
 			}
 		}
 		return this;
-	}
+	},
+	init_list_settings: function() {
+		if(frappe.model.list_settings[this.doctype]) {
+			this.list_settings = frappe.model.list_settings[this.doctype];
+		} else {
+			this.list_settings = {};
+		}
+	},
 });

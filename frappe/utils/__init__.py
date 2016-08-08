@@ -5,15 +5,13 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
-import os, re, urllib, sys
-import json
-import frappe
-import requests
-
-import bleach
-import bleach_whitelist
+import os, re, urllib, sys, json, md5, requests, traceback
+import bleach, bleach_whitelist
 from html5lib.sanitizer import HTMLSanitizer
 from markdown2 import markdown as _markdown
+
+import frappe
+from frappe.utils.identicon import Identicon
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -73,6 +71,8 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
+	email_str = (email_str or "").strip()
+
 	if not email_str:
 		return False
 
@@ -118,30 +118,52 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
+def has_gravatar(email):
+	'''Returns gravatar url if user has set an avatar at gravatar.com'''
+	if (frappe.flags.in_import
+		or frappe.flags.in_install
+		or frappe.flags.in_test):
+		# no gravatar if via upload
+		# since querying gravatar for every item will be slow
+		return ''
+
+	if not isinstance(email, unicode):
+		email = unicode(email, 'utf-8')
+
+	hexdigest = md5.md5(email).hexdigest()
+
+	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
+	try:
+		res = requests.get(gravatar_url)
+		if res.status_code==200:
+			return gravatar_url
+		else:
+			return ''
+	except requests.exceptions.ConnectionError:
+		return ''
+
+def get_gravatar_url(email):
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=md5.md5(email).hexdigest())
+
 def get_gravatar(email):
-	import md5
-	return "https://secure.gravatar.com/avatar/{hash}?d=retro".format(hash=md5.md5(email).hexdigest())
+	gravatar_url = has_gravatar(email)
+
+	if not gravatar_url:
+		gravatar_url = Identicon(email).base64()
+
+	return gravatar_url
 
 def get_traceback():
 	"""
 		 Returns the traceback of the Exception
 	"""
-	import traceback
-	exc_type, value, tb = sys.exc_info()
-
-	trace_list = traceback.format_tb(tb, None) + \
-		traceback.format_exception_only(exc_type, value)
-	body = "Traceback (innermost last):\n" + "%-20s %s" % \
-		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
-
-	if frappe.logger:
-		frappe.logger.error('Db:'+(frappe.db and frappe.db.cur_db_name or '') \
-			+ ' - ' + body)
-
+	exc_type, exc_value, exc_tb = sys.exc_info()
+	trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
+	body = "".join(cstr(t) for t in trace_list)
 	return body
 
 def log(event, details):
-	frappe.logger.info(details)
+	frappe.logger().info(details)
 
 def dict_to_str(args, sep='&'):
 	"""
@@ -301,7 +323,7 @@ def get_disk_usage():
 def touch_file(path):
 	with open(path, 'a'):
 		os.utime(path, None)
-	return True
+	return path
 
 def get_test_client():
 	from frappe.app import application
@@ -358,11 +380,19 @@ def is_markdown(text):
 def get_sites(sites_path=None):
 	import os
 	if not sites_path:
-		sites_path = '.'
-	return [site for site in os.listdir(sites_path)
-			if os.path.isdir(os.path.join(sites_path, site))
-				and not site in ('assets',)]
+		sites_path = getattr(frappe.local, 'sites_path', None) or '.'
 
+	sites = []
+	for site in os.listdir(sites_path):
+		path = os.path.join(sites_path, site)
+
+		if (os.path.isdir(path)
+			and not os.path.islink(path)
+			and os.path.exists(os.path.join(path, 'site_config.json'))):
+			# is a dir and has site_config.json
+			sites.append(site)
+
+	return sorted(sites)
 
 def get_request_session(max_retries=3):
 	from requests.packages.urllib3.util import Retry
@@ -398,7 +428,7 @@ def watch(path, handler=None, debug=True):
 		observer.stop()
 	observer.join()
 
-def sanitize_html(html):
+def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
@@ -411,15 +441,25 @@ def sanitize_html(html):
 	elif is_json(html):
 		return html
 
-	whitelisted_tags = (HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements
+	tags = (HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements
 		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
+	attributes = {"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes}
+	styles = bleach_whitelist.all_styles
+	strip_comments = False
 
 	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html,
-		tags=whitelisted_tags,
-		attributes={"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes},
-		styles=bleach_whitelist.all_styles,
-		strip_comments=False)
+	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
+
+	if linkify:
+		# based on bleach.clean
+		class s(bleach.BleachSanitizer):
+			allowed_elements = tags
+			allowed_attributes = attributes
+			allowed_css_properties = styles
+			strip_disallowed_elements = False
+			strip_html_comments = strip_comments
+
+		escaped_html = bleach.linkify(escaped_html, tokenizer=s)
 
 	return escaped_html
 
@@ -433,12 +473,12 @@ def is_json(text):
 	else:
 		return True
 
-def markdown(text, sanitize=True):
+def markdown(text, sanitize=True, linkify=True):
 	html = _markdown(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
-		html = sanitize_html(html)
+		html = sanitize_html(html, linkify=linkify)
 
 	return html
 
@@ -454,3 +494,44 @@ def sanitize_email(emails):
 		sanitized.append(formataddr((fullname, email_id)))
 
 	return ", ".join(sanitized)
+
+def get_site_info():
+	from frappe.utils.user import get_system_managers
+	from frappe.core.doctype.user.user import STANDARD_USERS
+	from frappe.email.queue import get_emails_sent_this_month
+
+	# only get system users
+	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
+		fields=['name', 'first_name', 'last_name', 'enabled',
+			'last_login', 'last_active', 'language', 'time_zone'])
+	system_managers = get_system_managers(only_name=True)
+	for u in users:
+		# tag system managers
+		u.is_system_manager = 1 if u.name in system_managers else 0
+		u.full_name = get_fullname(u.name)
+
+	system_settings = frappe.db.get_singles_dict('System Settings')
+	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
+
+	site_info = {
+		'users': users,
+		'country': system_settings.country,
+		'language': system_settings.language or 'english',
+		'time_zone': system_settings.time_zone,
+		'setup_complete': cint(system_settings.setup_complete),
+		'scheduler_enabled': system_settings.enable_scheduler,
+
+		# usage
+		'emails_sent': get_emails_sent_this_month(),
+		'space_used': flt((space_usage.total or 0) / 1024.0, 2),
+		'database_size': space_usage.database_size,
+		'backup_size': space_usage.backup_size,
+		'files_size': space_usage.files_size
+	}
+
+	# from other apps
+	for method_name in frappe.get_hooks('get_site_info'):
+		site_info.update(frappe.get_attr(method_name)(site_info) or {})
+
+	# dumps -> loads to prevent datatype conflicts
+	return json.loads(frappe.as_json(site_info))

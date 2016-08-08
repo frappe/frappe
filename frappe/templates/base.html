@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{% block title %} {{ title }} {% endblock %}</title>
+	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
 	<meta name="generator" content="frappe">
 
     {% block favicon %}
@@ -46,48 +46,36 @@
     </script>
 </head>
 <body data-path="{{ path }}">
-	<div class="offcanvas-container">
-		<div class="offcanvas">
-			<div class="offcanvas-main-section">
-				<div>
-					{%- block banner -%}
-					{% include "templates/includes/banner_extension.html" ignore missing %}
-						{% if banner_html -%}
-						<header class="container">{{ banner_html or "" }}</header>
-						{%- endif %}
-					{%- endblock -%}
+	<div class="main-section">
+		<div>
+			{%- block banner -%}
+			{% include "templates/includes/banner_extension.html" ignore missing %}
+				{% if banner_html -%}
+				<header class="container">{{ banner_html or "" }}</header>
+				{%- endif %}
+			{%- endblock -%}
 
-					{%- block navbar -%}
-                        {% include "templates/includes/navbar/navbar.html" %}
-                    {%- endblock -%}
-                    <div class="hero-and-content">
-                        <div data-html-block="hero">
-    					{%- block hero -%}{%- endblock -%}
-                        </div>
-                        <div class="container" data-html-block="content">
-                        {% block content %}{% endblock %}
-                        </div>
-                    </div>
-					{%- if footer is defined -%}
-					<footer class="page-footer">
-						<div class="container">
-							{{ footer }}
-						</div>
-					</footer>
-					{%- endif -%}
+			{%- block navbar -%}
+                {% include "templates/includes/navbar/navbar.html" %}
+            {%- endblock -%}
+            <div class="hero-and-content">
+                <div data-html-block="hero">
+				{%- block hero -%}{%- endblock -%}
+                </div>
+                <div class="container" data-html-block="content">
+                {% block content %}{% endblock %}
+                </div>
+            </div>
+			{%- if footer is defined -%}
+			<footer class="page-footer">
+				<div class="container">
+					{{ footer }}
 				</div>
-				<div>
-					{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
-				</div>
-			</div>
-			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
-			<div class="sidebar sidebar-right visible-xs">
-				{% block offcanvas_sidebar -%}
-				<div class="sidebar-navbar-items">
-					{% include "templates/includes/navbar/navbar_items.html" %}
-				</div>
-				{%- endblock %}
-			</div>
+			</footer>
+			{%- endif -%}
+		</div>
+		<div>
+			{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
 		</div>
 	</div>
 

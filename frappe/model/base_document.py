@@ -8,9 +8,11 @@ from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetim
 	sanitize_html, sanitize_email)
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
+from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes
 from frappe.model.db_schema import type_map, varchar_len
+from frappe.utils.password import get_decrypted_password, set_encrypted_password
 
 _classes = {}
 
@@ -348,12 +350,25 @@ class BaseDocument(object):
 
 	def db_set(self, fieldname, value, update_modified=True):
 		self.set(fieldname, value)
-		if update_modified:
+		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
+			# don't update modified timestamp if called from post save methods
+			# like on_update or on_submit
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
+
+		self.run_method('on_change')
+
+	def db_get(self, fieldname):
+		'''get database vale for this fieldname'''
+		return frappe.db.get_value(self.doctype, self.name, fieldname)
+
+	def update_modified(self):
+		'''Update modified timestamp'''
+		self.set("modified", now())
+		frappe.db.set_value(self.doctype, self.name, 'modified', self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
@@ -409,6 +424,7 @@ class BaseDocument(object):
 		for df in (self.meta.get_link_fields()
 				 + self.meta.get("fields", {"fieldtype":"Dynamic Link"})):
 			docname = self.get(df.fieldname)
+
 			if docname:
 				if df.fieldtype=="Link":
 					doctype = df.options
@@ -425,6 +441,8 @@ class BaseDocument(object):
 					value = doctype
 
 				setattr(self, df.fieldname, value)
+
+				notify_link_count(doctype, docname)
 
 				if not value:
 					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
@@ -465,7 +483,7 @@ class BaseDocument(object):
 					value, comma_options))
 
 	def _validate_constants(self):
-		if frappe.flags.in_import or self.is_new():
+		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
 
 		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": 1})]
@@ -493,8 +511,8 @@ class BaseDocument(object):
 					else:
 						reference = "{0} {1}".format(_(self.doctype), self.name)
 
-					frappe.throw(_("{0}: '{1}' will get truncated, as max characters allowed is {2}")\
-						.format(reference, _(df.label), max_length), frappe.CharacterLengthExceededError)
+					frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
+						.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -553,11 +571,33 @@ class BaseDocument(object):
 						or (self.docstatus==1 and not df.get("allow_on_submit"))):
 				continue
 
-
 			else:
-				sanitized_value = sanitize_html(value)
+				sanitized_value = sanitize_html(value, linkify=df.fieldtype=='Text Editor')
 
 			self.set(fieldname, sanitized_value)
+
+	def _save_passwords(self):
+		'''Save password field values in __Auth table'''
+		if self.flags.ignore_save_passwords:
+			return
+
+		for df in self.meta.get('fields', {'fieldtype': 'Password'}):
+			new_password = self.get(df.fieldname)
+			if new_password and not self.is_dummy_password(new_password):
+				# is not a dummy password like '*****'
+				set_encrypted_password(self.doctype, self.name, new_password, df.fieldname)
+
+				# set dummy password like '*****'
+				self.set(df.fieldname, '*'*len(new_password))
+
+	def get_password(self, fieldname='password', raise_exception=True):
+		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
+			return self.get(fieldname)
+
+		return get_decrypted_password(self.doctype, self.name, fieldname, raise_exception=raise_exception)
+
+	def is_dummy_password(self, pwd):
+		return ''.join(set(pwd))=='*'
 
 	def precision(self, fieldname, parentfield=None):
 		"""Returns float precision for a particular field (or get global default).

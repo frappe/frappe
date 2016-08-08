@@ -12,6 +12,16 @@ a.form-link {
 	font-size: 102%;
 }
 
+a[disabled="disabled"] {
+	color: @text-muted;
+	text-decoration: none;
+	cursor: default;
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
 .link-btn {
 	position: absolute;
 	top: 2px;
@@ -19,6 +29,7 @@ a.form-link {
 	border-radius: 2px;
 	padding: 3px;
 	display: none;
+	z-index: 3;
 }
 
 .link-primary& {
@@ -121,6 +132,11 @@ textarea.form-control {
 	height: 120px;
 }
 
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+	background-color: @light-bg;
+}
+
+
 .link-select-row {
 	padding: 5px;
 	border-bottom: 1px solid @light-border-color;
@@ -161,6 +177,7 @@ textarea.form-control {
 	max-height: 200px;
 	overflow-y: auto;
 	overflow-x: hidden;
+	z-index: 1041;
 }
 
 .ui-autocomplete a {
@@ -191,15 +208,24 @@ textarea.form-control {
 	}
 
 	.ui-state-active {
-		background-color: @brand-primary !important;
-		color: #fff !important;
+		background-color: @btn-bg !important;
+		color: @text-color !important;
 		text-shadow: none !important;
+		border: none;
+
+		.small {
+			color: #555 !important;
+		}
 	}
 }
 
 .ui-menu .ui-menu-item {
-	padding: 7px;
 	font-size: @text-medium;
+	.ui-menu-item-wrapper{
+		padding: 9px 11.8px !important;
+		text-decoration: none;
+		margin: 0;
+	}
 }
 
 
@@ -248,9 +274,46 @@ textarea.form-control {
 }
 
 // fixes datepicker z-index issue
+
 .form-control {
 	position: relative;
+
+	input {
+		// for vertically aligned text in inputs
+		padding: 6px 10px 8px;
+	}
 }
+
+// .form-page {
+// 	.form-group {
+// 		margin: 20px 0px;
+// 	}
+//
+// 	input.form-control, select.form-control {
+// 		position: relative;
+// 		box-shadow: none;
+// 		border: none;
+// 		padding: 0px;
+// 		border-bottom: 1px solid transparent;
+// 		border-radius: 0;
+// 		background-color: inherit;
+// 		font-size: 16px;
+// 	}
+// 	input.form-control:focus, select.form-control:focus {
+// 		box-shadow: none;
+// 		border-color: @text-color;
+// 	}
+//
+// 	.control-label {
+// 		margin-bottom: 3px;
+// 	}
+//
+// 	.frappe-control:not([data-fieldtype*="Text"]) {
+// 		.control-value {
+// 			font-size: 16px;
+// 		}
+// 	}
+// }
 
 .link-field.ui-front {
 	z-index: inherit;
@@ -286,6 +349,7 @@ textarea.form-control {
     padding:0 8px;
     color:#fff;
     border-radius:10px;
+	cursor: pointer;
 }
 
 /* on small screens, show only icons on top */
@@ -327,7 +391,9 @@ textarea.form-control {
 	}
 
 	.timeline-head {
-		padding-top: 30px;
+		padding: 30px;
+		border: 0px;
+		border-bottom: 1px solid @border-color;
 	}
 }
 
@@ -399,6 +465,7 @@ textarea.form-control {
 
 .breadcrumb.for-file-list {
 	margin-bottom: 0px;
+	padding: 18px 15px;
 	border-bottom: 1px solid @border-color;
 	border-radius: 0px;
 }

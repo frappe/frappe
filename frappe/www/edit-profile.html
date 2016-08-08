@@ -1,0 +1,62 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ "Edit Profile" }} {% endblock %}
+
+{% block header %}<h2>{{ _("Edit Profile") }}</h2>{% endblock %}
+
+{% block page_content %}
+<div class="user-content" style="max-width: 500px; padding: 50px 0px;">
+	<div class="alert alert-warning message" style="display: none;"></div>
+	<form role = "form">
+		<fieldset>
+			<label>{{ _("Full Name") }}</label>
+			<input class="form-control" type="text" id="fullname" value="{{ user.full_name or "" }}">
+		</fieldset>
+		<fieldset>
+			<label>{{ _("Phone") }}</label>
+			<input class="form-control" type="text" id="phone" value="{{ user.phone or "" }}">
+		</fieldset>
+		<button type="submit" class="btn btn-default" id="update_user">{{ _("Update") }}</button>
+	</form>
+</div>
+
+<script type="text/javascript">
+
+frappe.ready(function(){
+	$("#update_user").on("click",function(){
+		var name = document.getElementById("fullname").value;
+		var phone = document.getElementById("phone").value;
+
+		frappe.call({
+			type: "POST",
+			method: "frappe.www.edit_profile.update_user",
+			btn: $("#update_user"),
+			args: {
+				fullname: name,
+				phone: phone
+			},
+			callback: function(r) {
+				if(r.message) {
+					frappe.msgprint(__(r.message));
+					setTimeout(function() {
+						window.location.href = "/edit-profile";
+					},2000);
+				}
+				if(r.exc) {
+					frappe.msgprint(r.exc);
+					setTimeout(function() {
+						window.location.href = "/me";
+					},2000);
+				}
+				
+			}
+
+		});
+		return false;
+
+	});
+
+});
+</script>
+
+{% endblock %}

@@ -4,6 +4,8 @@
 			<div class="col-md-7 col-sm-8 col-xs-6 page-title">
 				<!-- title -->
 				<h1>
+						<div class="title-image hide hidden-md hidden-lg">
+						</div>
 						<div class="text-ellipsis title-text"></div>
 						<span class="indicator hide"></span>
 				</h1>
@@ -29,7 +31,10 @@
 				<div class="btn-group actions-btn-group hide">
 						<button type="button" class="btn btn-primary btn-sm dropdown-toggle"
 								data-toggle="dropdown" aria-expanded="false">
-						{%= __("Actions") %} <span class="caret"></span>
+								<span class="hidden-xs">
+									{%= __("Actions") %} <span class="caret"></span>
+								</span>
+								<span class="visible-xs octicon octicon-check"></span>
 						</button>
 						<ul class="dropdown-menu" role="menu">
 						</ul>

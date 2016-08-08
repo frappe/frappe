@@ -1,3 +1,5 @@
+<div class="comment-view">
+	<div class="comment-header">{{ comment_text or "" }}</div>
 {% if not comment_list %}
 <div class="no-comment">
 	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
@@ -10,6 +12,7 @@
 	{% include "templates/includes/comments/comment.html" %}
 	{% endfor %}
 </div>
+</div>
 
 <div class="add-comment-section">
 	<div class="text-muted hidden login-required">
@@ -18,27 +21,25 @@
 
 	<div class="comment-form-wrapper">
 		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>
-		<div style="display: none;" id="comment-form">
-			<p>{{ _("Add Comment") }}</p>
+			<div style="display: none;" id="comment-form">
+			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
-					<div class="row {% if login_required %}hide{% endif %}" style="margin-bottom: 15px">
+					<div class="row {% if login_required %}hide{% endif %}">
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
-								type="text">
+							<p><input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
+								type="text"></p>
 						</div>
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by"
-								placeholder="{{ _("Your Email Id") }}" type="email">
+							<p><input class="form-control" name="comment_by"
+								placeholder="{{ _("Your Email Id") }}" type="email"></p>
 						</div>
 					</div>
-					<textarea class="form-control" name="comment" rows=10
-						placeholder="{{ _("Comment") }}"></textarea>
-					<p>
-                        <button class="btn btn-primary btn-sm" id="submit-comment">
+					<p><textarea class="form-control" name="comment" rows=10
+						placeholder="{{ _("Comment") }}"></textarea></p>
+                        <button class="btn btn-primary btn-sm" id="submit-comment" style="margin-top:10px">
                             {{ _("Submit") }}</button>
-                    </p>
 				</fieldset>
 			</form>
 		</div>
@@ -63,8 +64,7 @@
 		}
 		$(".add-comment").click(function() {
 			$(this).toggle(false);
-			$("#comment-form").toggle();
-
+		 	$("#comment-form").toggle();
             var full_name = "", user_id = "";
             if(frappe.is_user_logged_in()) {
                 full_name = getCookie("full_name");
@@ -75,7 +75,8 @@
                 }
             }
 			$("#comment-form textarea").val("");
-		})
+			})
+
 		$("#submit-comment").click(function() {
 			var args = {
 				comment_by_fullname: $("[name='comment_by_fullname']").val(),
@@ -84,7 +85,7 @@
 				reference_doctype: "{{ reference_doctype or doctype }}",
 				reference_name: "{{ reference_name or name }}",
 				comment_type: "Comment",
-				page_name: "{{ pathname }}",
+				route: "{{ pathname }}",
 			}
 
 			if(!args.comment_by_fullname || !args.comment_by || !args.comment) {
@@ -109,9 +110,10 @@
 					} else {
 						$(r.message).appendTo("#comment-list");
 						$(".no-comment, .add-comment").toggle(false);
-						$("#comment-form")
-							.replaceWith('<div class="text-muted">Thank you for your comment!</div>')
+						$("#comment-form").toggle();
 					}
+					$(".add-comment").text('{{ _("Add Another Comment") }}');
+					$(".add-comment").toggle();
 				}
 			})
 

@@ -107,7 +107,6 @@ frappe.ModuleEditor = Class.extend({
 	make: function() {
 		var me = this;
 		this.frm.doc.__onload.all_modules.forEach(function(m) {
-			// TODO: add checkbox
 			$(repl('<div class="col-sm-6"><div class="checkbox">\
 				<label><input type="checkbox" class="block-module-check" data-module="%(module)s">\
 				%(module)s</label></div></div>', {module: m})).appendTo(me.wrapper);
@@ -188,6 +187,7 @@ frappe.RoleEditor = Class.extend({
 		});
 
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
+			me.set_roles_in_table();
 			cur_frm.dirty();
 		});
 		$(this.wrapper).find('.user-role a').click(function() {

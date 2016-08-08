@@ -17,7 +17,7 @@ frappe.wiz = {
 
 	run_event: function(event) {
 		$.each(frappe.wiz.events[event] || [], function(i, fn) {
-			fn(frappe.wiz.wizard);
+			fn();
 		});
 	}
 }
@@ -27,29 +27,32 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	$(".navbar:first").toggle(false);
 	$("body").css({"padding-top":"30px"});
 
-	frappe.require("/assets/frappe/css/animate.min.css");
+	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
-	$.each(frappe.boot.setup_wizard_requires || [], function(i, path) {
-		frappe.require(path);
+	frappe.require(requires, function() {
+		frappe.wiz.run_event("before_load");
+		var wizard_settings = {
+			page_name: "setup-wizard",
+			parent: wrapper,
+			slides: frappe.wiz.slides,
+			title: __("Welcome")
+		}
+
+		frappe.wizard = new frappe.wiz.Wizard(wizard_settings);
+		frappe.wiz.run_event("after_load");
+
+		// frappe.wizard.values = test_values_edu;
+
+		var route = frappe.get_route();
+		if(route) {
+			frappe.wizard.show(route[1]);
+		}
 	});
-
-	frappe.wiz.run_event("before_load");
-
-	var wizard_settings = {
-		page_name: "setup-wizard",
-		parent: wrapper,
-		slides: frappe.wiz.slides,
-		title: __("Welcome")
-	}
-
-	frappe.wiz.wizard = new frappe.wiz.Wizard(wizard_settings);
-
-	frappe.wiz.run_event("after_load");
 }
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 	if(frappe.get_route()[1]) {
-		frappe.wiz.wizard.show(frappe.get_route()[1]);
+		frappe.wizard && frappe.wizard.show(frappe.get_route()[1]);
 	}
 }
 
@@ -59,6 +62,7 @@ frappe.wiz.Wizard = Class.extend({
 		this.make();
 		this.slides;
 		this.slide_dict = {};
+		this.values = {};
 		this.welcomed = true;
 		frappe.set_route("setup-wizard/0");
 	},
@@ -85,8 +89,12 @@ frappe.wiz.Wizard = Class.extend({
 			return;
 		}
 		id = cint(id);
-		if(this.current_slide && this.current_slide.id===id)
+		if(this.current_slide && this.current_slide.id===id) {
 			return;
+		}
+
+		this.update_values();
+
 		if(!this.slide_dict[id]) {
 			this.slide_dict[id] = new frappe.wiz.WizardSlide($.extend(this.slides[id], {wiz:this, id:id}));
 			this.slide_dict[id].make();
@@ -106,8 +114,10 @@ frappe.wiz.Wizard = Class.extend({
 	get_values: function() {
 		var values = {};
 		$.each(this.slide_dict, function(id, slide) {
-			$.extend(values, slide.values)
-		})
+			if(slide.values) {
+				$.extend(values, slide.values);
+			}
+		});
 		return values;
 	},
 	working_html: function() {
@@ -130,11 +140,11 @@ frappe.wiz.Wizard = Class.extend({
 
 	on_complete: function() {
 		var me = this;
-		var values = me.get_values();
-		me.show_working();
+		this.update_values();
+		this.show_working();
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
-			args: {args: values},
+			args: {args: this.values},
 			callback: function(r) {
 				me.show_complete();
 				if(frappe.wiz.welcome_page) {
@@ -151,8 +161,56 @@ frappe.wiz.Wizard = Class.extend({
 				};
 			}
 		});
-	}
+	},
 
+	update_values: function() {
+		this.values = $.extend(this.values, this.get_values());
+	},
+
+	refresh_slides: function() {
+		// reset all slides so that labels are translated
+		var me = this;
+		if(this.in_refresh_slides) {
+			return;
+		}
+		this.in_refresh_slides = true;
+
+		if(!this.current_slide.set_values()) {
+			return;
+		}
+
+		this.update_values();
+
+		frappe.wiz.slides = [];
+		frappe.wiz.run_event("before_load");
+
+		// remove slides listed in remove_app_slides
+		var new_slides = [];
+		frappe.wiz.slides.forEach(function(slide) {
+			if(frappe.wiz.domain) {
+				var domains = slide.domains;
+				if (domains.indexOf('all') !== -1 ||
+					domains.indexOf(frappe.wiz.domain.toLowerCase()) !== -1) {
+					new_slides.push(slide);
+				}
+			} else {
+				new_slides.push(slide);
+			}
+		})
+		frappe.wiz.slides = new_slides;
+
+		this.slides = frappe.wiz.slides;
+		frappe.wiz.run_event("after_load");
+
+		// re-render all slides
+		this.slide_dict = {};
+
+		var current_id = this.current_slide.id;
+		this.current_slide.destroy();
+
+		this.show(current_id);
+		this.in_refresh_slides = false;
+	}
 });
 
 frappe.wiz.WizardSlide = Class.extend({
@@ -193,53 +251,86 @@ frappe.wiz.WizardSlide = Class.extend({
 			$(this.body).html(this.html);
 		}
 
-		if(this.id > 0) {
-			this.$prev = this.$body.find('.prev-btn').removeClass("hide")
-				.click(function() {
-					frappe.set_route(me.wiz.page_name, me.id-1 + "");
-				})
-				.css({"margin-right": "10px"});
-			}
-		if(this.id+1 < this.wiz.slides.length) {
-			this.$next = this.$body.find('.next-btn').removeClass("hide")
-				.click(function() {
-					me.values = me.form.get_values();
-					if(me.values===null)
-						return;
-					if(me.validate && !me.validate())
-						return;
-					frappe.set_route(me.wiz.page_name, me.id+1 + "");
-				})
-		} else {
-			this.$complete = this.$body.find('.complete-btn').removeClass("hide")
-				.click(function() {
-					me.values = me.form.get_values();
-					if(me.values===null)
-						return;
-					if(me.validate && !me.validate())
-						return;
-					me.wiz.on_complete(me.wiz);
-				})
-		}
+		this.set_init_values();
+		this.make_prev_next_buttons();
 
 		if(this.onload) {
 			this.onload(this);
 		}
 
 	},
+	set_init_values: function() {
+		var me = this;
+		// set values from frappe.wiz.values
+		if(frappe.wizard.values && this.fields) {
+			this.fields.forEach(function(f) {
+				var value = frappe.wizard.values[f.fieldname];
+				if(value) {
+					me.get_field(f.fieldname).set_input(value);
+				}
+			});
+		}
+	},
+
+	set_values: function() {
+		this.values = this.form.get_values();
+		if(this.values===null) {
+			return false;
+		}
+		if(this.validate && !this.validate()) {
+			return false;
+		}
+		return true;
+	},
+
+	make_prev_next_buttons: function() {
+		var me = this;
+
+		// prev
+		if(this.id > 0) {
+			this.$prev = this.$body.find('.prev-btn').removeClass("hide")
+				.click(function() {
+					frappe.set_route(me.wiz.page_name, me.id-1 + "");
+				})
+				.css({"margin-right": "10px"});
+		}
+
+		// next or complete
+		if(this.id+1 < this.wiz.slides.length) {
+			this.$next = this.$body.find('.next-btn').removeClass("hide")
+				.click(function() {
+					if(me.set_values()) {
+						frappe.set_route(me.wiz.page_name, me.id+1 + "");
+					}
+				});
+		} else {
+			this.$complete = this.$body.find('.complete-btn').removeClass("hide")
+				.click(function() {
+					if(me.set_values()) {
+						me.wiz.on_complete(me.wiz);
+					}
+				});
+		}
+	},
 	get_input: function(fn) {
 		return this.form.get_input(fn);
 	},
 	get_field: function(fn) {
 		return this.form.get_field(fn);
-	}
+	},
+	destroy: function() {
+		this.$body.remove();
+		if(frappe.wizard.current_slide===this) {
+			frappe.wizard.current_slide = null;
+		}
+	},
 });
 
 function load_frappe_slides() {
 	// language selection
 	frappe.wiz.welcome = {
 		name: "welcome",
-		app_name: "frappe",
+		domains: ["all"],
 		title: __("Welcome"),
 		icon: "icon-world",
 		help: __("Let's prepare the system for first use."),
@@ -298,36 +389,8 @@ function load_frappe_slides() {
 						language: lang
 					},
 					callback: function(r) {
-						// TODO save values!
 						frappe.wiz._from_load_messages = true;
-
-						// reset all slides so that labels are translated
-						frappe.wiz.slides = [];
-						frappe.wiz.run_event("before_load");
-
-						// remove slides listed in remove_app_slides
-						for (var app in frappe.wiz.remove_app_slides) {
-							var new_slides = []
-							for (var i in frappe.wiz.slides) {
-								if (frappe.wiz.slides[i].app_name != frappe.wiz.remove_app_slides[app]) {
-									new_slides.push(frappe.wiz.slides[i]);
-								}
-							}
-							frappe.wiz.slides = new_slides;
-						}
-
-						frappe.wiz.wizard.slides = frappe.wiz.slides;
-						frappe.wiz.run_event("after_load");
-
-						// re-render all slides
-						$.each(slide.wiz.slide_dict, function(id, s) {
-							$.extend(s, frappe.wiz.slides[id]);
-							s.make();
-						});
-
-						// select is re-made after language change
-						var select = slide.get_field("language");
-						select.set_input(lang);
+						frappe.wizard.refresh_slides();
 					}
 				});
 			});
@@ -336,7 +399,7 @@ function load_frappe_slides() {
 
 	// region selection
 	frappe.wiz.region = {
-		app_name: "frappe",
+		domains: ["all"],
 		title: __("Region"),
 		icon: "icon-flag",
 		help: __("Select your Country, Time Zone and Currency"),
@@ -350,21 +413,30 @@ function load_frappe_slides() {
 		],
 
 		onload: function(slide) {
-			frappe.call({
-				method:"frappe.geo.country_info.get_country_timezone_info",
-				callback: function(data) {
-					frappe.wiz.region.data = data.message;
-					frappe.wiz.region.setup_fields(slide);
-					frappe.wiz.region.bind_events(slide);
-				}
-			});
+			var _setup = function() {
+				frappe.wiz.region.setup_fields(slide);
+				frappe.wiz.region.bind_events(slide);
+			};
+
+			if(frappe.wiz.regional_data) {
+				_setup();
+			} else {
+				frappe.call({
+					method:"frappe.geo.country_info.get_country_timezone_info",
+					callback: function(data) {
+						frappe.wiz.regional_data = data.message;
+						_setup();
+					}
+				});
+			}
 		},
 		css_class: "single-column",
 		setup_fields: function(slide) {
-			var data = frappe.wiz.region.data;
+			var data = frappe.wiz.regional_data;
 
 			slide.get_input("country").empty()
 				.add_options([""].concat(keys(data.country_info).sort()));
+
 
 			slide.get_input("currency").empty()
 				.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
@@ -373,16 +445,28 @@ function load_frappe_slides() {
 			slide.get_input("timezone").empty()
 				.add_options([""].concat(data.all_timezones));
 
-			if (data.default_country) {
-				slide.set_input("country", data.default_country);
+			// set values if present
+			if(frappe.wizard.values.country) {
+				slide.get_field("country").set_input(frappe.wizard.values.country);
+			} else if (data.default_country) {
+				slide.get_field("country").set_input(data.default_country);
 			}
+
+			if(frappe.wizard.values.currency) {
+				slide.get_field("currency").set_input(frappe.wizard.values.currency);
+			}
+
+			if(frappe.wizard.values.timezone) {
+				slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+			}
+
 		},
 
 		bind_events: function(slide) {
 			slide.get_input("country").on("change", function() {
 				var country = slide.get_input("country").val();
 				var $timezone = slide.get_input("timezone");
-				var data = frappe.wiz.region.data;
+				var data = frappe.wiz.regional_data;
 
 				$timezone.empty();
 
@@ -425,8 +509,8 @@ function load_frappe_slides() {
 	},
 
 
-	frappe.wiz.user= {
-		app_name: "frappe",
+	frappe.wiz.user = {
+		domains: ["all"],
 		title: __("The First User: You"),
 		icon: "icon-user",
 		fields: [

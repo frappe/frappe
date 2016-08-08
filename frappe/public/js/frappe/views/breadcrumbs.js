@@ -63,7 +63,11 @@ frappe.breadcrumbs = {
 			if(breadcrumbs.doctype==="User" && frappe.user.is_module("Setup")===-1) {
 				// no user listview for non-system managers
 			} else {
-				route = (cur_frm && cur_frm.list_route) || ("List/" + breadcrumbs.doctype)
+				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
+					route = 'Tree/' + breadcrumbs.doctype;
+				} else {
+					route = 'List/' + breadcrumbs.doctype;
+				}
 				$(repl('<li><a href="#%(route)s">%(label)s</a></li>',
 					{route: route, label: __(breadcrumbs.doctype)}))
 					.appendTo($breadcrumbs);

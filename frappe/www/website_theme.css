@@ -1,0 +1,83 @@
+{%- if theme and theme.apply_style -%}
+
+{%- set font_family_sans_serif = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif' -%}
+{%- set heading_selectors = "h1, h2, h3, h4, h5, h6" -%}
+
+{{ theme.webfont_import or "" }}
+
+body {
+	{# background #}
+	{% if theme.background_image -%}
+		background: url("{{ theme.background_image }}") repeat;
+
+	{%- else -%}
+		background-color: {{ theme.background_color }};
+		background-image: none;
+
+	{%- endif %}
+
+	{# text #}
+	{% if theme.apply_text_styles %}
+		{% if theme.text_webfont -%}
+			font-family: "{{ theme.text_webfont }}", {{ font_family_sans_serif }};
+
+		{%- endif %}
+
+		{% if theme.font_size -%}
+			font-size: {{ theme.font_size }};
+		{%- endif %}
+
+		color: {{ theme.text_color }};
+	{% endif %}
+}
+
+{# links #}
+{% if theme.apply_text_styles %}
+a {
+	color: {{ theme.link_color }};
+}
+
+a:hover,
+a:focus,
+a:active {
+	color: {{ get_shade(theme.link_color, 25) }};
+}
+
+{# headings #}
+{% if theme.heading_webfont -%}
+	{{ heading_selectors }} {
+		font-family: "{{ theme.heading_webfont }}", {{ font_family_sans_serif }};
+	}
+{%- endif %}
+
+{% if theme.heading_style -%}
+	{{ heading_selectors }} {
+		text-transform: {{ theme.heading_style }};
+	}
+{%- endif %}
+{% endif %}
+
+{% include "frappe/templates/includes/website_theme/navbar.css" %}
+
+{% include "frappe/templates/includes/website_theme/footer.css" %}
+
+{# borders #}
+/*.page-content {
+	border-right: 1px solid {{ theme.border_color }};
+}
+
+.page-sidebar {
+	border-left: 1px solid {{ theme.border_color }};
+}
+*/
+.page-footer {
+	border-top: 1px solid {{ theme.border_color }};
+}
+
+.border-color {
+	border-color: {{ theme.border_color }};
+}
+
+{% if theme.css -%} {{ theme.css }} {%- endif %}
+
+{%- endif -%}

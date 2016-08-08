@@ -19,7 +19,7 @@ def get_oauth2_providers():
 				"base_url": "https://www.googleapis.com",
 			},
 
-			"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_google",
+			"redirect_uri": "/api/method/frappe.www.login.login_via_google",
 
 			"auth_url_data": {
 				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
@@ -38,7 +38,7 @@ def get_oauth2_providers():
 				"base_url": "https://api.github.com/"
 			},
 
-			"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_github",
+			"redirect_uri": "/api/method/frappe.www.login.login_via_github",
 
 			# relative to base_url
 			"api_endpoint": "user"
@@ -52,7 +52,7 @@ def get_oauth2_providers():
 				"base_url": "https://graph.facebook.com"
 			},
 
-			"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_facebook",
+			"redirect_uri": "/api/method/frappe.www.login.login_via_facebook",
 
 			"auth_url_data": {
 				"display": "page",

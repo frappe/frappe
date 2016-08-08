@@ -48,4 +48,13 @@ def get_months_activity():
 			and date(creation) > subdate(curdate(), interval 1 month)
 		group by date(creation)
 		order by creation asc""", as_list=1)
-
+	
+@frappe.whitelist()
+def get_heatmap_data():
+	return dict(frappe.db.sql("""select unix_timestamp(date(creation)), count(name)
+		from `tabCommunication`
+		where
+			communication_type in ("Communication", "Comment")
+			and date(creation) > subdate(curdate(), interval 1 year)
+		group by date(creation)
+		order by creation asc"""))

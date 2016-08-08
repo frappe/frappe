@@ -1,0 +1,64 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ heading or "Contact Us"}}{% endblock %}
+
+{% block page_content %}
+
+<div class="contact-content">
+	<div class="row">
+		<div class="col-md-8">
+			{{ introduction or "" }}<br>
+			<p id="contact-alert" class="alert alert-warning"
+				style="display: none;">&nbsp;</p>
+			<div class="form-group">
+				<select name="subject" class="form-control">
+				{% if query_options -%}
+					{% for option in query_options.split("\n") -%}
+					<option value="{{ option }}">{{ option }}</option>
+					{%- endfor %}
+				{% else %}
+					<option value="General">General</option>
+				{% endif %}
+				</select>
+			</div>
+			<div class="form-group">
+				<input class="form-control" name="email" type="text"
+				placeholder="Your Email Address" />
+			</div>
+			<div class="form-group">
+				<textarea rows="10" name="message" class="form-control"></textarea>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-primary btn-send">Send</button>
+			</div>
+		</div>
+		{% if address_title %}
+		<div class="col-md-3 col-md-offset-1 alert alert-warning"
+				itemscope itemtype="http://schema.org/PostalAddress">
+			<h4><i class="icon-map-marker"></i> {{ address_title }}</h4>
+			{% if address_line1 %}
+				<span itemprop="streetAddress">{{ address_line1 }}</span><br>
+			{% endif %}
+			{% if address_line2 %}
+				<span itemprop="streetAddress">{{ address_line2 }}</span><br>
+			{% endif %}
+			{% if city %}
+				<span itemprop="addressLocality">{{ city }}</span><br>
+			{% endif %}
+			{% if state %}
+				<span itemprop="addressRegion">{{ state }}</span><br>
+			{% endif %}
+			{% if pincode %}
+				<span itemprop="postalCode">{{ pincode }}</span><br>
+			{% endif %}
+			{% if country %}
+				<span itemprop="addressCountry">{{ country }}</span><br>
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+</div>
+<script>
+	{% include "templates/includes/contact.js" %}
+</script>
+{% endblock %}

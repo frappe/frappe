@@ -26,12 +26,15 @@ frappe.confirm = function(message, ifyes, ifno) {
 		],
 		primary_action_label: __("Yes"),
 		primary_action: function() {
-			ifyes();
+			if(ifyes) ifyes();
 			d.hide();
 		},
 		secondary_action_label: __("No")
 	});
 	d.show();
+
+	// flag, used to bind "okay" on enter
+	d.confirm_dialog = true;
 
 	// no if closed without primary action
 	if(ifno) {
@@ -74,21 +77,31 @@ var msg_dialog=null;
 frappe.msgprint = function(msg, title) {
 	if(!msg) return;
 
-	if(msg instanceof Array) {
-		$.each(msg, function(i,v) {
-			if(v) {
-				msgprint(v);
-			}
-		})
+	if($.isPlainObject(msg)) {
+		var data = msg;
+	} else {
+		// passed as JSON
+		if(typeof msg==='string' && msg.substr(0,1)==='{') {
+			var data = JSON.parse(msg);
+		} else {
+			var data = {'message': msg, 'title': title};
+		}
+	}
+
+	if(!data.indicator) {
+		data.indicator = 'blue';
+	}
+
+	if(data.message instanceof Array) {
+		data.message.forEach(function(m) {
+			frappe.msgprint(m);
+		});
 		return;
 	}
 
-	if(typeof(msg)!='string')
-		msg = JSON.stringify(msg);
-
-	// small message
-	if(msg.substr(0,8)=='__small:') {
-		show_alert(msg.substr(8)); return;
+	if(data.alert) {
+		frappe.show_alert(data.message);
+		return;
 	}
 
 	if(!msg_dialog) {
@@ -112,17 +125,35 @@ frappe.msgprint = function(msg, title) {
 		msg_dialog.clear = function() {
 			msg_dialog.msg_area.empty();
 		}
+
+		msg_dialog.indicator = msg_dialog.header.find('.indicator');
 	}
 
-	if(msg.search(/<br>|<p>|<li>/)==-1)
-		msg = replace_newlines(msg);
+	if(data.message.search(/<br>|<p>|<li>/)==-1)
+		msg = replace_newlines(data.message);
 
-	msg_dialog.set_title(title || __('Message'))
 
+	var msg_exists = msg_dialog.msg_area.html();
+
+	if(data.title || !msg_exists) {
+		// set title only if it is explicitly given
+		// and no existing title exists
+		msg_dialog.set_title(data.title || __('Message'))
+	}
+
+	// show / hide indicator
+	if(data.indicator) {
+		msg_dialog.indicator.removeClass().addClass('indicator ' + data.indicator);
+	} else {
+		msg_dialog.indicator.removeClass().addClass('hidden');
+	}
+
+	if(msg_exists) {
+		msg_dialog.msg_area.append("<hr>");
 	// append a <hr> if another msg already exists
-	if(msg_dialog.msg_area.html()) msg_dialog.msg_area.append("<hr>");
+	}
 
-	msg_dialog.msg_area.append(msg);
+	msg_dialog.msg_area.append(data.message);
 	msg_dialog.loading_indicator.addClass("hide");
 
 	msg_dialog.show_loading = function() {
@@ -137,6 +168,10 @@ frappe.msgprint = function(msg, title) {
 }
 
 frappe.hide_msgprint = function(instant) {
+	// clear msgprint
+	if(msg_dialog && msg_dialog.msg_area) {
+		msg_dialog.msg_area.empty();
+	}
 	if(msg_dialog && msg_dialog.$wrapper.is(":visible")) {
 		if(instant) {
 			msg_dialog.$wrapper.removeClass("fade");
@@ -207,7 +242,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-function show_alert(txt, seconds) {
+frappe.show_alert = function(txt, seconds) {
 	if(!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
@@ -223,6 +258,9 @@ function show_alert(txt, seconds) {
 		return false;
 	});
 
-	div.delay(seconds ? seconds * 1000 : 3000).fadeOut(300);
+	div.delay(seconds ? seconds * 1000 : 7000).fadeOut(300);
 	return div;
 }
+
+// for backward compatibility
+var show_alert = frappe.show_alert;

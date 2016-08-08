@@ -33,6 +33,7 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
+	list_settings: {},
 
 	init: function() {
 		// setup refresh if the document is updated somewhere else
@@ -113,6 +114,12 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
+
+					if(r.list_settings) {
+						// remember filters and other settings from last view
+						frappe.model.list_settings[doctype] = JSON.parse(r.list_settings);
+						frappe.model.list_settings[doctype].updated_on = moment().toString();
+					}
 					callback && callback(r);
 				}
 			});
@@ -129,6 +136,9 @@ $.extend(frappe.model, {
 		}
 		if(meta.__map_js) {
 			eval(meta.__map_js);
+		}
+		if(meta.__tree_js) {
+			eval(meta.__tree_js);
 		}
 	},
 
@@ -313,6 +323,11 @@ $.extend(frappe.model, {
 		var doc = locals[doctype] && locals[doctype][docname];
 
 		if(doc && doc[fieldname] !== value) {
+			if(doc.__unedited && !(!doc[fieldname] && !value)) {
+				// unset unedited flag for virgin rows
+				doc.__unedited = false;
+			}
+
 			doc[fieldname] = value;
 			frappe.model.trigger(fieldname, value, doc);
 			return true;
@@ -524,7 +539,7 @@ $.extend(frappe.model, {
 			}
 		}
 		return all;
-	}
+	},
 });
 
 // legacy

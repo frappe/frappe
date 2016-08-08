@@ -29,7 +29,7 @@ _f.frms = {};
 _f.Frm = function(doctype, parent, in_form) {
 	this.docname = '';
 	this.doctype = doctype;
-	this.display = 0;
+	this.hidden = false;
 	this.refresh_if_stale_for = 120;
 
 	var me = this;
@@ -114,6 +114,7 @@ _f.Frm.prototype.setup = function() {
 			frm: this,
 			parent: $('<div>').appendTo(this.page.main.parent())
 		})
+		$("body").attr("data-sidebar", 1);	
 	}
 	this.setup_drag_drop();
 
@@ -152,9 +153,15 @@ _f.Frm.prototype.setup_drag_drop = function() {
 }
 
 _f.Frm.prototype.setup_print_layout = function() {
+	var me = this;
 	this.print_preview = new frappe.ui.form.PrintPreview({
 		frm: this
-	})
+	});
+
+	// show edit button for print view
+	this.page.wrapper.on('view-change', function() {
+		me.toolbar.set_primary_action();
+	});
 }
 
 _f.Frm.prototype.print_doc = function() {
@@ -162,19 +169,33 @@ _f.Frm.prototype.print_doc = function() {
 		this.hide_print();
 		return;
 	}
-	if(!frappe.model.can_print(this.doc.doctype, cur_frm)) {
+	if(!frappe.model.can_print(this.doc.doctype, this)) {
 		msgprint(__("You are not allowed to print this document"));
 		return;
 	}
 
-	if(this.doc.docstatus==2)  {
-		msgprint(__("Cannot print cancelled documents"));
-		return;
-	}
 	this.print_preview.refresh_print_options().trigger("change");
 	this.page.set_view("print");
-	this.print_preview.set_user_lang()
+	this.print_preview.set_user_lang();
 }
+
+_f.Frm.prototype.set_hidden = function(status) {
+	// set hidden if hide_first is set
+	this.hidden = status;
+	var form_page = this.page.wrapper.find('.form-page');
+	form_page.toggleClass('hidden', this.hidden);
+	this.toolbar.refresh();
+	if(status===true) {
+		msg = __('Edit {0} properties', [__(this.doctype)]);
+		this.layout.show_message('<div style="padding-left: 15px; padding-right: 15px;">\
+			<a class="text-muted" onclick="cur_frm.set_hidden(false)">' + msg + '</a></div>');
+	} else {
+		// clear message
+		this.layout.show_message();
+		frappe.utils.scroll_to(form_page);
+	}
+}
+
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done && this.page.current_view_name==="print") {
@@ -232,6 +253,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 
 	this.fields_dict = this.layout.fields_dict;
 	this.fields = this.layout.fields_list;
+
+	this.document_flow = new frappe.ui.form.DocumentFlow({
+		frm: this
+	});
 
 	this.dashboard = new frappe.ui.form.Dashboard({
 		frm: this,
@@ -321,7 +346,15 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		this.toolbar.refresh();
 	}
 
-	this.dashboard.reset();
+	this.document_flow.refresh();
+	this.dashboard.refresh();
+
+	if(this.meta.is_submittable &&
+		! this.is_dirty() &&
+		! this.is_new() &&
+		this.doc.docstatus===0) {
+		this.dashboard.add_comment(__('Submit this document to confirm'), true);
+	}
 
 	this.clear_custom_buttons();
 
@@ -333,10 +366,14 @@ _f.Frm.prototype.show_web_link = function() {
 	if(!doc.__islocal && doc.__onload && doc.__onload.is_website_generator) {
 		me.web_link && me.web_link.remove();
 		if(doc.__onload.published) {
-			me.web_link = me.sidebar.add_user_action("See on Website",
-				function() {}).attr("href", "/" + doc.__onload.website_route).attr("target", "_blank");
+			me.add_web_link("/" + doc.route)
 		}
 	}
+}
+
+_f.Frm.prototype.add_web_link = function(path) {
+	this.web_link = this.sidebar.add_user_action("See on Website",
+		function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 }
 
 _f.Frm.prototype.check_doc_perm = function() {
@@ -357,7 +394,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) &&
 			!this.meta.istable) {
-				scroll(0, 0);
+				frappe.utils.scroll_to(0);
 				this.hide_print();
 			}
 			frappe.ui.form.close_grid_form();
@@ -365,7 +402,7 @@ _f.Frm.prototype.refresh = function(docname) {
 	}
 
 	cur_frm = this;
-	
+
 	if(this.docname) { // document to show
 
 		// set the doc
@@ -379,9 +416,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
-		
-		// set new doc name if created via link field
-		this.set_new_docname_from_link();
 
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {
@@ -398,10 +432,10 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(!this.setup_done) this.setup();
 
 		// load the record for the first time, if not loaded (call 'onload')
-		cur_frm.cscript.is_onload = false;
+		this.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) {
 			var me = this;
-			cur_frm.cscript.is_onload = true;
+			this.cscript.is_onload = true;
 			this.setnewdoc();
 			$(document).trigger("form-load", [this]);
 			$(this.page.wrapper).on('hide',  function(e) {
@@ -421,19 +455,22 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.print_preview.preview();
 		}
 
+		if(is_a_different_doc) {
+			if(this.show_print_first && this.doc.docstatus===1) {
+				// show print view
+				this.print_doc();
+			} else {
+				if(this.hide_first && !this.doc.__unsaved && !this.doc.__islocal) {
+					this.set_hidden(true);
+				} else {
+					if(this.hidden) {
+						this.set_hidden(false);
+					}
+				}
+			}
+		}
+
 		this.show_if_needs_refresh();
-	}
-}
-
-_f.Frm.prototype.set_new_docname_from_link = function() {
-	if(frappe._from_link && frappe._new_docname_from_link) {
-		frappe.model.set_value(frappe._from_link.doctype,
-			frappe._from_link.docname, frappe._from_link.df.fieldname, frappe._new_docname_from_link);
-
-		frappe._from_link.refresh();
-
-		frappe._from_link = null;
-		frappe._new_docname_from_link = null;
 	}
 }
 
@@ -458,10 +495,14 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			frm: this,
 			page: this.page
 		});
+		this.sidebar.make();
 
 		// header must be refreshed before client methods
 		// because add_custom_button
 		this.refresh_header(is_a_different_doc);
+
+		// clear layout message
+		this.layout.show_message();
 
 		// call trigger
 		this.script_manager.trigger("refresh");
@@ -491,16 +532,18 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		this.refresh_header(is_a_different_doc);
 	}
 
-	$(cur_frm.wrapper).trigger('render_complete');
+	$(this.wrapper).trigger('render_complete');
 
-	this.layout.show_empty_form_message();
+	if(!this.hidden) {
+		this.layout.show_empty_form_message();
+	}
 
 	this.scroll_to_element();
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {
-	if(cur_frm.fields_dict[fname] && cur_frm.fields_dict[fname].refresh) {
-		cur_frm.fields_dict[fname].refresh();
+	if(this.fields_dict[fname] && this.fields_dict[fname].refresh) {
+		this.fields_dict[fname].refresh();
 		this.layout.refresh_dependency();
 	}
 }
@@ -537,13 +580,13 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
 
-		if (cur_frm.doc[fn]) {
-			cur_frm.toggle_display(fn, false);
+		if (me.doc[fn]) {
+			me.toggle_display(fn, false);
 		}
 	}
 
 	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
-		cur_frm.toggle_display("naming_series", false);
+		me.toggle_display("naming_series", false);
 	}
 }
 
@@ -557,25 +600,18 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
-		if(frappe.route_options) {
-				$.each(frappe.route_options, function(fieldname, value) {
-					try {
-						me.set_value(fieldname, value);
-					} catch (e) {
-						// pass - see error log
-					}
-				});
-
-			frappe.route_options = null;
-		}
 
 		frappe.after_ajax(function() {
 			me.trigger_link_fields();
 		});
 
 		frappe.breadcrumbs.add(me.meta.module, me.doctype)
-	})
+	});
 
+	// update seen
+	if(this.meta.track_seen) {
+		$('.list-id[data-name="'+ me.docname +'"]').addClass('seen');
+	}
 }
 
 _f.Frm.prototype.trigger_link_fields = function() {
@@ -625,7 +661,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	if(onload) {
 		onload(newdoc);
 	}
-	loaddoc(newdoc.doctype, newdoc.name);
+	frappe.set_route('Form', newdoc.doctype, newdoc.name);
 }
 
 _f.Frm.prototype.reload_doc = function() {
@@ -661,9 +697,9 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	if(!save_action) save_action = "Save";
 	this.validate_form_action(save_action);
 
-	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
-		scroll(0, 0);
-
+	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
+		frappe.utils.scroll_to(0);
+	}
 	var after_save = function(r) {
 		if(!r.exc) {
 			if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
@@ -677,16 +713,6 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				on_error();
 		}
 		callback && callback(r);
-
-		if(frappe._from_link) {
-			if(me.doctype===frappe._from_link.df.options) {
-				frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
-				
-				frappe._new_docname_from_link = me.docname;
-
-				setTimeout(function() { scroll(0, frappe._from_link_scrollY); }, 100);
-			}
-		}
 	}
 
 	if(save_action != "Update") {
@@ -790,6 +816,7 @@ _f.Frm.prototype.amend_doc = function() {
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	this.save_disabled = true;
+	this.toolbar.current_status = null;
 	this.page.clear_primary_action();
 }
 
@@ -808,11 +835,6 @@ _f.Frm.prototype.save_or_update = function() {
 	}
 }
 
-_f.get_value = function(dt, dn, fn) {
-	if(locals[dt] && locals[dt][dn])
-		return locals[dt][dn][fn];
-}
-
 _f.Frm.prototype.dirty = function() {
 	this.doc.__unsaved = 1;
 	$(this.wrapper).trigger('dirty');
@@ -821,6 +843,15 @@ _f.Frm.prototype.dirty = function() {
 _f.Frm.prototype.get_docinfo = function() {
 	return frappe.model.docinfo[this.doctype][this.docname];
 }
+
+_f.Frm.prototype.is_dirty = function() {
+	return this.doc.__unsaved;
+}
+
+_f.Frm.prototype.is_new = function() {
+	return this.doc.__islocal;
+}
+
 
 _f.Frm.prototype.reload_docinfo = function(callback) {
 	var me = this;
@@ -847,7 +878,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 
 
 _f.Frm.prototype.set_intro = function(txt, append) {
-	frappe.utils.set_intro(this, this.body, txt, append);
+	this.dashboard.set_headline_alert(txt);
+	//frappe.utils.set_intro(this, this.body, txt, append);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
@@ -862,7 +894,7 @@ _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.page.inner_toolbar.empty().addClass("hide");
+	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
 }
 
@@ -875,7 +907,7 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 }
 
 _f.Frm.prototype.set_print_heading = function(txt) {
-	this.pformat[cur_frm.docname] = txt;
+	this.pformat[this.docname] = txt;
 }
 
 _f.Frm.prototype.action_perm_type_map = {
@@ -917,7 +949,9 @@ _f.Frm.prototype.scroll_to_element = function() {
 
 		selector = $(selector.join(" "));
 		if (selector.length) {
-			frappe.ui.scroll(selector, true, 30);
+			frappe.utils.scroll_to(selector);
 		}
+	} else {
+		frappe.utils.scroll_to(0);
 	}
 }

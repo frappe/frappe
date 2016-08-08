@@ -40,12 +40,15 @@ frappe.views.QueryReport = Class.extend({
 	make: function() {
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
-		<div class="no-report-area msg-box no-border" style="display: none;">\
+		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
+		<div style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px">\
+			<div class="chart_area"></div>\
 		</div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
-				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
+				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
@@ -112,28 +115,19 @@ frappe.views.QueryReport = Class.extend({
 									report_name: me.report_name
 								},
 								callback: function(r) {
-									me.page.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
-									me.setup_filters();
 
-									var report_settings = frappe.query_reports[me.report_name];
-									me.html_format = r.message.html_format;
-									report_settings["html_format"] = r.message.html_format;
+									frappe.after_ajax(function() {
+										var report_settings = frappe.query_reports[me.report_name];
+										me.html_format = r.message.html_format;
+										report_settings["html_format"] = r.message.html_format;
 
-									$.when(function() {
-										if (report_settings.onload) {
-											return report_settings.onload(me);
-										}
-
-									}()).then(function() {
-										me.refresh();
-									})
-
+										me.setup_report();
+									});
 								}
 							});
 						} else {
-							me.setup_filters();
-							me.refresh();
+							me.setup_report();
 						}
 					});
 				});
@@ -143,12 +137,30 @@ frappe.views.QueryReport = Class.extend({
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
 		}
 	},
+	setup_report: function() {
+		var me = this;
+		this.page.set_title(__(this.report_name));
+		this.page.clear_inner_toolbar();
+		this.setup_filters();
+
+		var report_settings = frappe.query_reports[this.report_name];
+
+		$.when(function() {
+			if (report_settings.onload) {
+				return report_settings.onload(me);
+			}
+
+		}()).then(function() {
+			me.refresh();
+		})
+
+	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		
+
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
@@ -163,7 +175,7 @@ frappe.views.QueryReport = Class.extend({
 			msgprint(__("You are not allowed to make PDF for this report"));
 			return false;
 		}
-		
+
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
@@ -189,7 +201,7 @@ frappe.views.QueryReport = Class.extend({
 		formData.append("blob", blob);
 
 		var xhr = new XMLHttpRequest();
-		xhr.open("POST", '/api/method/frappe.templates.pages.print.report_to_pdf');
+		xhr.open("POST", '/api/method/frappe.utils.print_format.report_to_pdf');
 		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 		xhr.responseType = "arraybuffer";
 
@@ -271,7 +283,12 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 
 		this.wrapper.find(".results").toggle(false);
-		var filters = this.get_values(true);
+		try {
+			var filters = this.get_values(true);
+		} catch(e) {
+			// don't run report
+			return;
+		}
 
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			__("Loading Report") + "...");
@@ -291,7 +308,7 @@ frappe.views.QueryReport = Class.extend({
 			},
 			callback: function(r) {
 				me.report_ajax = undefined;
-				me.make_results(r.message.result, r.message.columns);
+				me.make_results(r.message);
 			}
 		});
 
@@ -325,19 +342,23 @@ frappe.views.QueryReport = Class.extend({
 		if(raise && mandatory_fields.length) {
 			this.wrapper.find(".waiting-area").empty().toggle(false);
 			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
-			throw "Filters required";
+			if(raise) {
+				console.log('filter missing: ' + mandatory_fields);
+				throw "Filters required";
+			}
 		}
+
 		return filters;
 	},
-	make_results: function(result, columns) {
+	make_results: function(res) {
 		this.wrapper.find(".waiting-area, .no-report-area").empty().toggle(false);
 		this.wrapper.find(".results").toggle(true);
-		this.make_columns(columns);
-		this.make_data(result, columns);
+		this.make_columns(res.columns);
+		this.make_data(res.result, res.columns);
 		this.filter_hidden_columns();
-		this.render(result, columns);
+		this.render(res);
 	},
-	render: function(result, columns) {
+	render: function(res) {
 		this.columnFilters = {};
 		this.make_dataview();
 		this.id = frappe.dom.set_unique_id(this.wrapper.find(".result-area").addClass("slick-wrapper").get(0));
@@ -362,7 +383,11 @@ frappe.views.QueryReport = Class.extend({
 		if (this.get_query_report_opts().tree) {
 			this.setup_tree();
 		}
+
+		this.set_message(res.message);
+		this.setup_chart(res);
 	},
+
 	make_columns: function(columns) {
 		var me = this;
 		var formatter = this.get_formatter();
@@ -390,7 +415,7 @@ frappe.views.QueryReport = Class.extend({
 						fieldtype: "Data"
 					};
 				}
-				
+
 				if (!df.fieldtype) df.fieldtype = "Data";
 				if (!cint(df.width)) df.width = 80;
 
@@ -510,7 +535,7 @@ frappe.views.QueryReport = Class.extend({
 			}
 
 			// set collapsed if initial depth is specified
-			if (initial_depth && item.indent && item.indent==(initial_depth - 1)) {
+			if (initial_depth && item.indent && item.indent>=(initial_depth - 1)) {
 				item._collapsed = true;
 			}
 		}
@@ -700,5 +725,34 @@ frappe.views.QueryReport = Class.extend({
 		this.title = this.report_name;
 		frappe.tools.downloadify(result, null, this.title);
 		return false;
+	},
+
+	set_message: function(msg) {
+		if(msg) {
+			this.wrapper.find(".help-msg").html(msg).toggle(true);
+		} else {
+			this.wrapper.find(".help-msg").empty().toggle(false);
+		}
+	},
+
+	setup_chart: function(res) {
+		var me = this;
+		this.wrapper.find(".chart_area").parent().toggle(false);
+
+		if (this.get_query_report_opts().get_chart_data) {
+			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
+		} else if (res.chart) {
+			var opts = res.chart;
+		}
+
+		$.extend(opts, {
+			wrapper: me.wrapper,
+			bind_to: ".chart_area"
+		});
+
+		this.chart = new frappe.ui.Chart(opts);
+		if(this.chart)
+			this.wrapper.find(".chart_area").parent().toggle(true);
+
 	}
 })

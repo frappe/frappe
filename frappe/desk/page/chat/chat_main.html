@@ -1,0 +1,35 @@
+<div class="message-box">
+    <div class="media timeline-head">
+    	<span class="pull-left avatar avatar-medium hidden-xs">
+    		<img class="media-object" src="{%= frappe.user.image() %}">
+    	</span>
+    	<div class="media-body">
+    		<textarea style="height: 120px" style="margin-top: 10px;"
+    			class="form-control messages-textarea"></textarea>
+    	</div>
+		<div style="padding-top: 15px;">
+			<span class="text-muted small hidden-xs"
+				style="margin-left: 45px;">{{ __("Ctrl + Enter to post") }}</span>
+    		<button class="pull-right btn btn-primary btn-sm btn-post" data-contact="{%= contact %}">
+    			{%= __("Post") %}
+    		</button>
+			{% if (contact === user) { %}
+                <span class="pull-right"
+                    style="margin-top: 4px; margin-right: 10px;">
+            		<i class="octicon octicon-rss"></i>
+                    <span class="text-muted small">{%= __("Public") %}</span>
+                </span>
+			{% } %}
+            <div class="pull-right checkbox text-muted small"
+				style="margin-right: 15px; margin-top: 7px;">
+			    <label>
+    				<input type="checkbox" class="is-email"
+    					style="margin-top: 1px">
+    				{%= __("Email") %}
+    			</label>
+            </div>
+			<div class="clearfix"></div>
+		</div>
+    </div>
+</div>
+<div class="message-list"></div>

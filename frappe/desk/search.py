@@ -4,7 +4,6 @@
 # Search
 from __future__ import unicode_literals
 import frappe
-import frappe.desk.reportview
 from frappe.utils import cstr, unique
 
 # this is called by the Link Field
@@ -17,7 +16,7 @@ def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_len=50, filters=None):
+	page_len=10, filters=None, as_dict=False):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
@@ -31,8 +30,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 	if query and query.split()[0].lower()!="select":
 		# by method
-		frappe.response["values"] = frappe.get_attr(query)(doctype, txt,
-			searchfield, start, page_len, filters)
+		frappe.response["values"] = frappe.call(query, doctype, txt,
+			searchfield, start, page_len, filters, as_dict=as_dict)
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
@@ -83,13 +82,13 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
 
-			values = frappe.desk.reportview.execute(doctype,
+			values = frappe.get_list(doctype,
 				filters=filters, fields=fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,
-				order_by="if(_relevance, _relevance, 99999), modified desc".format(doctype),
+				order_by="if(_relevance, _relevance, 99999), idx desc, modified desc".format(doctype),
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
-				as_list=True)
+				as_list=not as_dict)
 
 			# remove _relevance from results
 			frappe.response["values"] = [r[:-1] for r in values]

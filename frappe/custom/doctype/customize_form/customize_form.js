@@ -35,6 +35,7 @@ frappe.ui.form.on("Customize Form", {
 			return frm.call({
 				method: "fetch_to_customize",
 				doc: frm.doc,
+				freeze: true,
 				callback: function(r) {
 					frm.refresh();
 					frm.trigger("setup_sortable");
@@ -44,6 +45,7 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_sortable: function(frm) {
+		frm.page.body.find('.highlight').removeClass('highlight');
 		frm.doc.fields.forEach(function(f, i) {
 			var data_row = frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"] .data-row');
 
@@ -81,7 +83,7 @@ frappe.ui.form.on("Customize Form", {
 
 		if(frappe.route_options) {
 			setTimeout(function() {
-				frm.set_value("doc_type", frappe.route_options.doctype);
+				frm.set_value("doc_type", frappe.route_options.doc_type);
 				frappe.route_options = null;
 			}, 1000);
 		}

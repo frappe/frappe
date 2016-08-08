@@ -161,11 +161,12 @@ frappe.upload = {
 			"method": "uploadfile",
 			args: args,
 			callback: function(r) {
-				if(!r._server_messages)
+				if(!r._server_messages) {
 					msgbox.hide();
+				}
 				if(r.exc) {
 					// if no onerror, assume callback will handle errors
-					opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
+					opts.onerror ? opts.onerror(r) : opts.callback(null, r);
 					return;
 				}
 				var attachment = r.message;

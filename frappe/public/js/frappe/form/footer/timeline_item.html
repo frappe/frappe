@@ -1,7 +1,12 @@
 <div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}">
 	{% if (data.user_content) { %}
-	<span class="pull-left avatar avatar-medium">
-		<div class="avatar-frame" style="background-image: url({%= data.image %})"></div>
+	<span class="pull-left avatar avatar-medium" style="margin-top: 1px">
+		{% if(data.user_info.image) { %}
+		<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+		{% } else { %}
+		<div class="standard-image" style="background-color: {{ data.user_info.color }}">
+			{{ data.user_info.abbr }}</div>
+		{% } %}
 	</span>
 	{% } %}
 
@@ -89,7 +94,7 @@
 						{% if(data.link_doctype && data.link_name) { %}
 						<a href="#Form/{%= data.link_doctype %}/{%= data.link_name %}">
 						{% } %}
-	                        {%= data.content %}
+	                        {%= __(data.content) %}
 						{% if(data.link_doctype && data.link_name) { %}
 						</a>
 						{% } %}
@@ -110,7 +115,7 @@
 					</span>
 					{% } else { %}
                     	<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
-						{%= data.content %}
+						{%= __(data.content) %}
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							 &ndash;
 							 <a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">

@@ -11,7 +11,7 @@ frappe.ui.form.Timeline = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{ image: frappe.user_info(user).image, fullname: user_fullname })).appendTo(this.parent);
+			{})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
@@ -170,11 +170,16 @@ frappe.ui.form.Timeline = Class.extend({
 
 		if(!c.sender) c.sender = this.frm.doc.owner;
 
-		if(c.sender.indexOf("<")!==-1) {
+		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		c.image = frappe.user_info(c.sender).image || frappe.get_gravatar(c.sender);
+		if(c.sender) {
+			c.user_info = frappe.user_info(c.sender);
+		} else {
+			c.user_info = frappe.user_info(c.owner);
+		}
+
 		c.comment_on = comment_when(c.creation);
 		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 
@@ -285,11 +290,12 @@ frappe.ui.form.Timeline = Class.extend({
 		var txt = this.input.val();
 
 		if(txt) {
-			this.insert_comment("Comment", txt, btn);
+			this.insert_comment("Comment", txt, btn, this.input);
 		}
 	},
-	insert_comment: function(comment_type, comment, btn) {
+	insert_comment: function(comment_type, comment, btn, input) {
 		var me = this;
+		if(input) input.prop('disabled', true);
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
@@ -326,6 +332,9 @@ frappe.ui.form.Timeline = Class.extend({
 					me.frm.get_docinfo().communications = comments.concat([r.message]);
 					me.refresh(true);
 				}
+			},
+			always: function() {
+				if(input) input.prop('disabled', false);
 			}
 		});
 

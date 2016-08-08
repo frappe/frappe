@@ -12,10 +12,11 @@
 	</i>
 	<span class="likes-count">{{ (_liked_by.length > 9 ? "9+" : _liked_by.length) || "" }}</span>
 </span>
-<a class="grey list-id"
-    style="margin-right: 7px;"
+<a class="grey list-id {{ css_seen }}"
+	data-name="{{ _name }}"
+    style="margin-right: 7px; margin-left: -8px;"
 	href="#Form/{{ _doctype_encoded }}/{{ _name_encoded }}"
-    title="{{ _full_title }}">{{ _title }}</a>
+    title="{{ _full_title }}">{{ strip_html(_title) }}</a>
 {% if (_workflow && !_without_workflow) { %}
 <span class="label label-{{ _workflow.style }} filterable"
     data-filter="{{ _workflow.fieldname }},=,{{ _workflow.value }}">

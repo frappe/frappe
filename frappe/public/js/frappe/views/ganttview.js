@@ -6,25 +6,25 @@ frappe.provide("frappe.views.calendar");
 frappe.views.GanttFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this;
+		me.doctype = route[1];
 
-		frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
-		frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
+		frappe.require(['assets/frappe/js/lib/jQuery.Gantt/css/style.css',
+			'assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js'], function() {
 
-		this.doctype = route[1];
+			frappe.model.with_doctype(me.doctype, function() {
+				var page = me.make_page();
+				$(page).on("show", function() {
+					page.ganttview.set_filters_from_route_options();
+				});
 
-		frappe.model.with_doctype(this.doctype, function() {
-			var page = me.make_page();
-			$(page).on("show", function() {
-				page.ganttview.set_filters_from_route_options();
+				var options = {
+					doctype: me.doctype,
+					parent: page
+				};
+				$.extend(options, frappe.views.calendar[me.doctype] || {});
+
+				page.ganttview = new frappe.views.Gantt(options);
 			});
-
-			var options = {
-				doctype: me.doctype,
-				parent: page
-			};
-			$.extend(options, frappe.views.calendar[me.doctype] || {});
-
-			page.ganttview = new frappe.views.Gantt(options);
 		});
 	}
 });
@@ -90,7 +90,7 @@ frappe.views.Gantt = frappe.views.CalendarBase.extend({
 							frappe.set_route('Form', me.doctype, data.name);
 						},
 						onAddClick: function(dt, rowId) {
-							newdoc(me.doctype);
+							frappe.new_doc(me.doctype, true);
 						}
 					});
 				}

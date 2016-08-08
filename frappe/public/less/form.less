@@ -36,17 +36,184 @@
 	border-top: 1px solid @border-color;
 }
 
+.form-message {
+	padding: 15px;
+}
+
+.document-flow-wrapper {
+	padding: 40px 15px 30px;
+	font-size: @text-medium;
+	border-bottom: 1px solid @light-border-color;
+
+	.document-flow {
+		display: inline-block;
+		position: relative;
+		left: 50%;
+		transform: translateX(-50%);
+
+		.document-flow-link-wrapper {
+			width: 140px;
+			display: inline-block;
+		}
+
+
+		.document-flow-link-wrapper:not(:last-child) {
+			border-top: 1px solid @indicator-darkgrey;
+			// padding-left: 20px;
+			// padding-right: 20px;
+			margin-right: -4px;
+		}
+
+		.document-flow-link-wrapper:first-child {
+			// padding-left: 0px;
+		}
+
+		.document-flow-link-wrapper:last-child {
+			// padding-right: 0px;
+			margin-right: -140px;
+		}
+
+		.document-flow-link {
+			margin-top: -10px;
+			display: inline-block;
+		}
+
+		.document-flow-link:not(.disabled):hover,
+		.document-flow-link:not(.disabled):focus,
+		.document-flow-link:not(.disabled):active {
+			.document-flow-link-label {
+				text-decoration: underline;
+			}
+		}
+
+		.document-flow-link-label {
+			display: inline-block;
+			margin-left: -50%;
+			margin-top: 5px;
+		}
+	}
+}
+
+@media(max-width: @screen-xs) {
+	.document-flow-wrapper {
+		display: none;
+	}
+}
+
 .form-dashboard {
-	display: none;
+	background-color: @light-bg;
 	border-bottom: 1px solid @border-color;
+}
+
+.form-documents h6 {
+	margin-top: 15px;
+}
+
+.form-dashboard-section {
+	padding: 15px 30px;
+	margin: 0px;
+	border-bottom: 1px solid @light-border-color;
+}
+
+.form-dashboard-section:last-child {
+	border-bottom: none;
+}
+
+.form-heatmap {
+	padding-top: 30px;
+
+	.heatmap-message {
+		margin-top: 10px;
+	}
+
+	@media (max-width: @screen-sm) {
+		overflow: hidden;
+		overflow-x: scroll;
+	}
+}
+
+.inline-graph {
+	.inline-graph-half {
+		width: 48%;
+		display: inline-block;
+		position: relative;
+		height: 30px;
+
+		.inline-graph-count {
+			font-size: 10px;
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 3px;
+			padding: 0px 5px;
+			text-align: left;
+		}
+		.inline-graph-bar {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 20px;
+		}
+		.inline-graph-bar-inner {
+			display: block;
+			float: left;
+			background-color: @border-color;
+			height: 6px;
+			border-radius: 0px 3px 3px 0px;
+		}
+		.inline-graph-bar-inner.dark {
+			background-color: @text-color;
+		}
+
+	}
+	.inline-graph-half:first-child {
+		border-right: 1px solid @border-color;
+		margin-right: -3px;
+
+		.inline-graph-count {
+			text-align: right;
+		}
+
+		.inline-graph-bar-inner {
+			float: right;
+			border-radius: 3px 0px 0px 3px;
+		}
+	}
+}
+
+.progress-area {
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+.form-links {
+	.document-link {
+		margin-bottom: 5px;
+		height: 22px;
+	}
+
+	.count {
+		display: inline-block;
+		margin-left: 5px;
+		margin-right: 5px;
+	}
+}
+
+h6.uppercase, .h6.uppercase {
+	font-size: 11px;
+	font-weight: normal;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	color: @text-muted;
 }
 
 .form-section {
 	margin: 0px;
 	padding: 15px;
 
+
 	.form-section-heading {
-		margin: 0px 0px 10px 0px;
+		margin: 10px 0px;
 	}
 
 	.section-head {
@@ -324,6 +491,7 @@
 
 .control-label {
 	margin-bottom: 5px;
+	font-weight: normal;
 }
 
 .like-disabled-input {
@@ -382,11 +550,19 @@ select.form-control {
 	background-color: @extra-light-yellow;
 }
 
+.form-headline {
+	padding: 0px 15px;
+}
+
 .form-headline .alert {
 	font-size: @text-medium;
 	background-color: @light-yellow;
+	font-weight: normal !important;
+	border: 0px;
+	border-radius: 0px;
 	margin-bottom: 0px;
 	margin: 0px -15px;
+	padding: 10px 30px;
 }
 
 .delivery-status-indicator {

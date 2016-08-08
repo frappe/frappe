@@ -3,11 +3,13 @@
  "allow_import": 0, 
  "allow_rename": 0, 
  "autoname": "hash", 
+ "beta": 0, 
  "creation": "2013-02-22 01:27:32", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Setup", 
+ "editable_grid": 1, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -847,18 +849,21 @@
  "hide_heading": 0, 
  "hide_toolbar": 0, 
  "idx": 1, 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2016-02-22 09:11:53.773635", 
+ "modified": "2016-07-11 03:27:58.928043", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form Field", 
  "owner": "Administrator", 
  "permissions": [], 
+ "quick_entry": 0, 
  "read_only": 0, 
- "read_only_onload": 0
+ "read_only_onload": 0, 
+ "track_seen": 0
 }

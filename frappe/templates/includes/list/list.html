@@ -1,6 +1,7 @@
 {% if not result -%}
-    <div class="text-muted" style="min-height: 200px;">
-    	{{ no_result_message or _("Nothing to show") }}
+    <div class="text-muted no-results" style="min-height: 300px;">
+				<i class="mega-octicon octicon-telescope"></i>
+    		{{ no_result_message or _("Nothing to show") }}
     </div>
 {% else %}
     <div class="website-list" data-doctype="{{ doctype }}"
@@ -9,7 +10,9 @@
             {% include "templates/includes/list/filters.html" %}
         {%- endif %} -->
 
-			{% if introduction %}<p class='lead'>{{ introduction }}{% endif %}
+		{% if introduction %}<p class='lead'>{{ introduction }}{% endif %}
+
+		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
 
     	<div class="result">
     		{% for item in result %}

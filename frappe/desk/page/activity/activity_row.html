@@ -7,10 +7,7 @@
 		data-link-doctype="{{ link_doctype }}"
 		data-link-name="{{ link_name }}"
 		title="{%= by %} / {%= dateutil.str_to_user(creation) %}">
-		<span class="avatar avatar-small">
-			<div class="avatar-frame" style="background-image: url({{ imgsrc }});"></div>
-			<!-- <img src="{%= imgsrc %}"> -->
-		</span>
+		{{ avatar }}
 		<span class="small">
 		{% if (feed_type==="Login") { %}
 			{%= __("Logged in") %}

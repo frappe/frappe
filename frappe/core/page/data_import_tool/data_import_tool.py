@@ -63,6 +63,11 @@ def export_json(doctype, path, filters=None, name=None):
 		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
+
+	dirname = os.path.dirname(path)
+	if not os.path.exists(dirname):
+		path = os.path.join('..', path)
+
 	with open(path, "w") as outfile:
 		outfile.write(frappe.as_json(out))
 
@@ -89,6 +94,7 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
 			frappe.flags.mute_emails = True
 			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True, pre_process=pre_process)
 			frappe.flags.mute_emails = False
+			frappe.db.commit()
 		elif f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit, pre_process=pre_process)
 			frappe.db.commit()

@@ -1,0 +1,25 @@
+{% for page in footer_items %}
+	{% if not page.parent_label -%}
+		<li data-label='{{ page.label }}'>
+		<a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
+		{% if page.child_items %} onclick="return false;" {% endif %}
+		{{ page.target or ''}}>
+		{%- if page.child_items -%}
+			<span class="footer-group-label text-uppercase text-muted small">{{ page.label }}<span>
+			</a>
+			<ul class="list-unstyled small">
+			{%- for child in page.child_items -%}
+				<li class="footer-child-item" data-label='{{ child.label }}'>
+					<a {% if child.indent %} style="padding-left: {{((child.indent|int)+1)*15 }}px"{% endif %}
+					href="{{ child.url | abs_url }}" {{ child.target or '' }}>{{ child.label }}</a>
+				</li>
+			{%- endfor -%}
+			</ul>
+		{%- else -%}
+		<span class="footer-group-label text-extra-muted">{{ page.label }}<span>
+		</a>
+		{%- endif -%}
+		</li>
+	{%- endif -%}
+{% endfor %}
+
