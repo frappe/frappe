@@ -285,16 +285,17 @@ def remove_from_installed_apps(context, app):
 
 @click.command('uninstall-app')
 @click.argument('app')
+@click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
 @pass_context
-def uninstall(context, app, dry_run=False):
+def uninstall(context, app, dry_run=False, yes=False):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app, dry_run)
+			remove_app(app, dry_run, yes)
 		finally:
 			frappe.destroy()
 

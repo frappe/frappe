@@ -410,6 +410,29 @@ class Document(BaseDocument):
 		for d in children:
 			d._extract_images_from_text_editor()
 
+	def apply_fieldlevel_read_permissions(self):
+		'''Remove values the user is not allowed to read (called when loading in desk)'''
+		has_higher_permlevel = False
+		for p in self.get_permissions():
+			if p.permlevel > 0:
+				has_higher_permlevel = True
+				break
+
+		if not has_higher_permlevel:
+			return
+
+		has_access_to = self.get_permlevel_access('read')
+
+		for df in self.meta.fields:
+			if not df.permlevel in has_access_to:
+				self.set(df.fieldname, None)
+
+		for table_field in self.meta.get_table_fields():
+			for df in frappe.get_meta(table_field.options):
+				if not df.permlevel in has_access_to:
+					for child in self.get(table_field.fieldname) or []:
+						child.set(df.fieldname, None)
+
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		if self.flags.ignore_permissions or frappe.flags.in_install:
@@ -428,18 +451,18 @@ class Document(BaseDocument):
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-	def get_permlevel_access(self):
+	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
 			user_roles = frappe.get_roles()
 			self._has_access_to = []
 			for perm in self.get_permissions():
-				if perm.role in user_roles and perm.permlevel > 0 and perm.write:
+				if perm.role in user_roles and perm.permlevel > 0 and perm.get(permission_type):
 					if perm.permlevel not in self._has_access_to:
 						self._has_access_to.append(perm.permlevel)
 
 		return self._has_access_to
 
-	def has_permlevel_access_to(self, fieldname, df=None):
+	def has_permlevel_access_to(self, fieldname, df=None, permission_type='read'):
 		if not df:
 			df = self.meta.get_field(fieldname)
 
