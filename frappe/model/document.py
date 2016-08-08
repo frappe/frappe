@@ -424,12 +424,12 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access('read')
 
 		for df in self.meta.fields:
-			if not df.permlevel in has_access_to:
+			if df.permlevel and not df.permlevel in has_access_to:
 				self.set(df.fieldname, None)
 
 		for table_field in self.meta.get_table_fields():
-			for df in frappe.get_meta(table_field.options):
-				if not df.permlevel in has_access_to:
+			for df in frappe.get_meta(table_field.options).fields or []:
+				if df.permlevel and not df.permlevel in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
 						child.set(df.fieldname, None)
 
