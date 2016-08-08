@@ -428,7 +428,7 @@ class Document(BaseDocument):
 				self.set(df.fieldname, None)
 
 		for table_field in self.meta.get_table_fields():
-			for df in frappe.get_meta(table_field.options):
+			for df in frappe.get_meta(table_field.options).fields or []:
 				if not df.permlevel in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
 						child.set(df.fieldname, None)
