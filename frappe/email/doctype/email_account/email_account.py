@@ -132,6 +132,8 @@ class EmailAccount(Document):
 
 	def get_server(self, in_receive=False):
 		"""Returns logged in POP3 connection object."""
+		if frappe.cache().get_value("workers:no-internet") == True:
+			return None
 		args = {
 			"email_account":self.name,
 			"host": self.email_server,
@@ -140,7 +142,8 @@ class EmailAccount(Document):
 			"password": self.password,
 			"use_imap": self.use_imap,
 			"uid_validity":self.uid_validity,
-			"uidnext":self.uidnext
+			"uidnext":self.uidnext,
+			"no_remaining":self.no_remaining
 		}
 
 		if not args.get("host"):
@@ -178,22 +181,24 @@ class EmailAccount(Document):
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		self.db_set("enable_incoming", 0)
+		if frappe.utils.test_internet():
+			self.db_set("enable_incoming", 0)
 
-		for user in get_system_managers(only_name=True):
-			try:
-				assign_to.add({
-					'assign_to': user,
-					'doctype': self.doctype,
-					'name': self.name,
-					'description': description,
-					'priority': 'High',
-					'notify': 1
-				})
-			except assign_to.DuplicateToDoError:
-				frappe.message_log.pop()
-				pass
-
+			for user in get_system_managers(only_name=True):
+				try:
+					assign_to.add({
+						'assign_to': user,
+						'doctype': self.doctype,
+						'name': self.name,
+						'description': description,
+						'priority': 'High',
+						'notify': 1
+					})
+				except assign_to.DuplicateToDoError:
+					frappe.message_log.pop()
+					pass
+		else:
+			frappe.cache().set_value("workers:no-internet", True)
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -237,10 +242,10 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
-
-					if self.no_remaining == 0:
- 						if communication.reference_doctype:
- 							if not frappe.db.get_value("Communication", communication.message_id, "message_id") and not communication.unread_notification_sent:
+					
+					if self.no_remaining == '0':
+						if communication.reference_doctype:
+							if not communication.timeline_hide and not communication.unread_notification_sent:
 								communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#update attachment folder size as suspended for emails
@@ -296,6 +301,9 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 		contact = set_customer_supplier(email.from_email,email.To)
+		if email.message_id:
+			timeline_hide =  frappe.db.get_value("Communication", {"message_id":email.message_id}, "name")
+			#frappe.db.sql("select name from tabCommunication where message_id =  %(message_id)s limit 1",{"message_id":email.message_id})
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -316,12 +324,13 @@ class EmailAccount(Document):
 			"actualdate":email.date,
 			"has_attachment": 1 if email.attachments else 0,
 			"seen":seen,
-			"unique_id":email.unique_id
+			"unique_id":email.unique_id,
+			"timeline_hide": timeline_hide
 		})
 
 		self.set_thread(communication, email)
 
-		if not self.no_remaining == 0:
+		if not self.no_remaining == '0':
 			communication.unread_notification_sent = 1
 
 		communication.flags.in_receive = True
@@ -374,9 +383,9 @@ class EmailAccount(Document):
 
 		if in_reply_to:
 			# reply to a communication sent from the system
- 			origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
- 			if origin:
- 				in_reply_to = origin[0][0]
+			origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
+			if origin:
+				in_reply_to = origin[0][0]
 
 				if frappe.db.exists("Communication", in_reply_to):
 					parent = frappe.get_doc("Communication", in_reply_to)
@@ -503,11 +512,31 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	import frappe.tasks
+	if frappe.cache().get_value("workers:no-internet") == True:
+		if frappe.utils.test_internet():
+			frappe.cache().set_value("workers:no-internet", False)
+		else:	
+			return
+	
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1,"awaiting_password": 0}):
 		if now:
 			frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)
 		else:
 			frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
+
+def test_internet(host="8.8.8.8", port=53, timeout=3):
+	"""
+	Host: 8.8.8.8 (google-public-dns-a.google.com)
+   OpenPort: 53/tcp
+   Service: domain (DNS/TCP)
+   """
+	try:
+		socket.setdefaulttimeout(timeout)
+		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+		return True
+	except Exception as ex:
+		print ex.message
+		return False
 
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications

@@ -92,17 +92,6 @@ class EmailServer:
 			else:
 				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
 				raise
-	def get_status(self):
-		passed, status = self.imap.status("Inbox", "(UIDNEXT UIDVALIDITY)")
-		match = re.search(r"(?<=UIDVALIDITY )[0-9]*", status[0], re.U | re.I)
-		if match:
-			uid_validity = match.group(0)
-		match = re.search(r"(?<=UIDNEXT )[0-9]*", status[0], re.U | re.I)
-		if match:
-			uidnext = match.group(0)
-		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext, update_modified=False)
-		self.settings.newuidnext = uidnext
-		return uid_validity
 
 	def get_messages(self):
 		"""Returns new email messages in a list."""
@@ -118,9 +107,10 @@ class EmailServer:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
-			uid_validity = self.get_status()
-
-			email_list = self.get_new_mails()
+			if cint(self.settings.use_imap):
+				uid_validity = self.get_status()
+			else:
+				email_list = self.get_new_mails()
 
 
 			# size limits
@@ -129,10 +119,12 @@ class EmailServer:
 			self.max_total_size = 5 * self.max_email_size
 			if cint(self.settings.use_imap):
 				#try:
-				if self.check_uid_validity(email_list,uid_validity):
-					self.get_imap_messages(email_list)
-					self.sync_flags(email_list)
-					self.get_seen(email_list)
+				if self.check_uid_validity(uid_validity):
+					email_list = self.get_new_mails()
+					if email_list:
+						self.get_imap_messages(email_list)
+					self.sync_flags()
+					self.get_seen()
 					self.push_deleted()
 
 				else:
@@ -178,8 +170,36 @@ class EmailServer:
 
 		return self.latest_messages
 
+	def get_status(self):
+		passed, status = self.imap.status("Inbox", "(UIDNEXT UIDVALIDITY)")
+		match = re.search(r"(?<=UIDVALIDITY )[0-9]*", status[0], re.U | re.I)
+		if match:
+			uid_validity = match.group(0)
+		match = re.search(r"(?<=UIDNEXT )[0-9]*", status[0], re.U | re.I)
+		if match:
+			uidnext = match.group(0)
+		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext, update_modified=False)
+		self.settings.newuidnext = uidnext
+		return uid_validity
 
-	def check_uid_validity(self,email_list,uid_validity):
+	def get_new_mails(self):
+		"""Return list of new mails"""
+		if cint(self.settings.use_imap):
+			self.imap.select("Inbox")
+			if self.settings.no_remaining == '0' and self.settings.uidnext:
+				if self.settings.uidnext == self.settings.newuidnext:
+					return False
+				else:
+					response, message = self.imap.uid('search', 'UID',str(self.settings.uidnext) + ":" + self.settings.newuidnext)
+			else:
+				response, message = self.imap.uid('search', None, "ALL")
+			email_list =  message[0].split()
+		else:
+			email_list = self.pop.list()[1]
+
+		return email_list
+
+	def check_uid_validity(self,uid_validity):
 		self.time = []
 		if self.settings.uid_validity:
 			if self.settings.uid_validity == uid_validity:
@@ -221,10 +241,6 @@ class EmailServer:
 		    				#order by uid
 		    			""", {"email_account": self.settings.email_account}, as_dict=1)
 
-		#email_list = map(int, email_list)
-		#from itertools import count, groupby
-		#G = (list(x) for _, x in groupby(email_list, lambda x, c=count(): next(c) - x))
-		#message_meta = ",".join(":".join(map(str, (g[0], g[-1])[:len(g)])) for g in G)
 
 		message_list = []
 		#get message-id's to link new uid's to
@@ -315,7 +331,7 @@ class EmailServer:
 
 
 	def get_imap_messages(self,email_list):
-		if self.settings.no_remaining == 0 and self.settings.uidnext:
+		if self.settings.no_remaining == '0' and self.settings.uidnext:
 			download_list = []
 			for new in email_list:
 				download_list.append(cint(new))
@@ -417,7 +433,7 @@ class EmailServer:
 
 					#send all emails to received emails to be processed by another worker then clear emails
 					#self.latest_messages = []
-	def sync_flags(self,email_list):
+	def sync_flags(self):
 		#get flags from email flag queue + join them to the matching email account and uid
 		queue = frappe.db.sql("""select que.name,comm.uid,que.action,que.flag from tabCommunication as comm,`tabEmail Flag Queue` as que
 			where comm.name = que.comm_name and comm.uid is not null and comm.email_account=%(email_account)s""",{"email_account":self.settings.email_account},as_dict=1)
@@ -425,19 +441,14 @@ class EmailServer:
 
 		for item in queue:
 			try:
-				if item.uid in email_list:
-					#if item.action ==1:
-					#	action = '+FLAG'
-					#push flags
-					#self.imap.uid('STORE', uid, '+FLAGS', '(\Deleted)')
-					self.imap.uid('STORE', item.uid, item.action, item.flag)#'(\seen)')#item.uid, item.action,item.flag)
+				self.imap.uid('STORE', item.uid, item.action, item.flag)
 					#delete flag matching email account
 				frappe.delete_doc("Email Flag Queue",item["name"])
 			except Exception,e:
 				#need to do
 				pass
 
-	def get_seen(self,email_list):
+	def get_seen(self):
 		self.time.append(time.time())
 		comm_list = frappe.db.sql("""select name,uid,seen from `tabCommunication`
 			where email_account = %(email_account)s and uid is not null""",
@@ -512,20 +523,6 @@ class EmailServer:
 
 	def push_deleted(self):
 		pass
-
-	def get_new_mails(self):
-		"""Return list of new mails"""
-		if cint(self.settings.use_imap):
-			self.imap.select("Inbox")
-			if self.settings.no_remaining ==0 and self.settings.uidnext:
-				response, message = imap.uid('search', 'UID',str(self.settings.uidnext) + ":" + self.settings.newuidnext)
-			else:
-				response, message = self.imap.uid('search', None, "ALL")
-			email_list =  message[0].split()
-		else:
-			email_list = self.pop.list()[1]
-
-		return email_list
 
 	def retrieve_message(self, message_meta, msg_num=None):
 		incoming_mail = None
