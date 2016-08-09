@@ -305,3 +305,7 @@ a.close:focus {
 .layout-side-section .module-sidebar-nav {
   margin-top: 15px;
 }
+
+.sidebar-image {
+  background-size: 100% 100% !important;
+}
