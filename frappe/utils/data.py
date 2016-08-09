@@ -114,6 +114,10 @@ def now_datetime():
 	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
 
+def get_eta(from_time, percent_complete):
+	diff = time_diff(now_datetime(), from_time).total_seconds()
+	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
+
 def _get_time_zone():
 	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
 

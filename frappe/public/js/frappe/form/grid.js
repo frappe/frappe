@@ -291,12 +291,17 @@ frappe.ui.form.Grid = Class.extend({
 			this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 			this.refresh();
 
-			if(show && !this.allow_on_grid_editing()) {
+			if(show) {
 				if(idx) {
+					// always open inserted rows
 					this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
 						.toggle_view(true, callback);
 				} else {
-					this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+					if(!this.allow_on_grid_editing()) {
+						// open last row only if on-grid-editing is disabled
+						this.wrapper.find(".grid-row:last").data("grid_row")
+							.toggle_view(true, callback);
+					}
 				}
 			}
 
