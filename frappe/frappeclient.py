@@ -58,6 +58,12 @@ class FrappeClient(object):
 			data={"data":frappe.as_json(doc)}, verify=self.verify)
 		return self.post_process(res)
 
+	def insert_many(self, docs):
+		return self.post_request({
+			"cmd": "frappe.client.insert_many",
+			"docs": frappe.as_json(docs)
+		})
+
 	def update(self, doc):
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
 		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify)

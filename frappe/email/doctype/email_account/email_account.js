@@ -1,5 +1,5 @@
-email_defaults = {
-	"Gmail": {
+frappe.email_defaults = {
+	"GMail": {
 		"email_server": "pop.gmail.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
@@ -33,8 +33,8 @@ email_defaults = {
 	},
 };
 
-email_defaults_imap = {
-	"Gmail": {
+frappe.email_defaults_imap = {
+	"GMail": {
 		"email_server": "imap.gmail.com"
 	},
 	"Outlook.com": {
@@ -51,11 +51,12 @@ email_defaults_imap = {
 
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
-		$.each(email_defaults[frm.doc.service], function(key, value) {
+		console.log(frm.doc.service, frappe.email_defaults[frm.doc.service])
+		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
 		if (frm.doc.use_imap) {
-			$.each(email_defaults_imap[frm.doc.service], function(key, value) {
+			$.each(frappe.email_defaults_imap[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
 			});
 		}
@@ -63,12 +64,12 @@ frappe.ui.form.on("Email Account", {
 	},
 	use_imap: function(frm) {
 		if (frm.doc.use_imap) {
-			$.each(email_defaults_imap[frm.doc.service], function(key, value) {
+			$.each(frappe.email_defaults_imap[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
 			});
 		}
 		else{
-			$.each(email_defaults[frm.doc.service], function(key, value) {
+			$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
 			});
 		}
