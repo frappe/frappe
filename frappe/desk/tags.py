@@ -69,6 +69,21 @@ def get_tags(doctype, txt):
 
 	return sorted(filter(lambda t: t and txt in t, list(set(tags))))
 
+@frappe.whitelist()
+def add_tag_to_doc(dt,dn,tag): 
+	DocTags(dt).add(dn,tag)			
+	return tag
+
+@frappe.whitelist()
+def remove_tag_from_doc(dt,dn,tag): 
+	DocTags(dt).remove(dn,tag)		
+	return tag
+
+@frappe.whitelist()
+def update_tag_list(dt,dn,tags):
+	tl = tags.split(',')
+	DocTags(dt).update(dn,tl)
+
 class DocTags:
 	"""Tags for a particular doctype"""
 	def __init__(self, dt):
