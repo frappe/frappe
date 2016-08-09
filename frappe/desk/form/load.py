@@ -133,6 +133,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 				or (timeline_doctype=%(doctype)s and timeline_name=%(name)s)
 			)
 			and (comment_type is null or comment_type != 'Update')
+			and timeline_hide is null
 			{match_conditions}
 		order by creation desc limit %(start)s, %(limit)s"""
 			.format(match_conditions=("and " + match_conditions) if match_conditions else ""),
