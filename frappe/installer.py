@@ -346,13 +346,11 @@ def check_if_ready_for_barracuda():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		success = subprocess.check_output(['gzip', '-d', '-v', '-f', sql_gz_path])
+		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
 	except:
 		raise
 
-	path = sql_gz_path[:-3] if success else None
-
-	return path
+	return sql_gz_path[:-3]
 
 def extract_tar_files(site_name, file_path, folder_name):
 	# Need to do frappe.init to maintain the site locals
