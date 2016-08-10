@@ -53,5 +53,5 @@ tr	Türk
 uk	українська
 ur	اردو
 vi	việt
-zh-cn	簡體中文
+zh-cn	简体中文
 zh-tw	正體中文
