@@ -149,7 +149,7 @@ def update_limits(limits_dict):
 	limits = get_limits()
 	limits.update(limits_dict)
 	update_site_config("limits", limits, validate=False)
-	frappe.conf.limits = limits
+	frappe.local.conf.limits = limits
 
 def clear_limit(key):
 	'''Remove a limit option from site_config'''

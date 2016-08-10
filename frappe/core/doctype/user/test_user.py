@@ -102,6 +102,59 @@ class TestUser(unittest.TestCase):
 		# Clear the user limit
 		clear_limit('users')
 
+	def test_user_limit_for_site_with_simultaneous_sessions(self):
+		from frappe.core.doctype.user.user import get_total_users
+
+		clear_limit('users')
+
+		# make sure this user counts
+		user = frappe.get_doc('User', 'test@example.com')
+		user.add_roles('Website Manager')
+		user.save()
+
+		update_limits({'users': get_total_users()})
+
+		user.simultaneous_sessions = user.simultaneous_sessions + 1
+
+		self.assertRaises(MaxUsersReachedError, user.save)
+
+		# Clear the user limit
+		clear_limit('users')
+
+	# def test_deny_multiple_sessions(self):
+	# 	clear_limit('users')
+	#
+	# 	# allow one session
+	# 	user = frappe.get_doc('User', 'test@example.com')
+	# 	user.simultaneous_sessions = 1
+	# 	user.new_password = 'testpassword'
+	# 	user.save()
+	#
+	# 	def test_request(conn):
+	# 		value = conn.get_value('User', 'first_name', {'name': 'test@example.com'})
+	# 		self.assertTrue('first_name' in value)
+	#
+	# 	from frappe.frappeclient import FrappeClient
+	# 	update_site_config('deny_multiple_sessions', 0)
+	#
+	# 	print 'conn1'
+	# 	conn1 = FrappeClient(get_url(), "test@example.com", "testpassword", verify=False)
+	# 	test_request(conn1)
+	#
+	# 	print 'conn2'
+	# 	conn2 = FrappeClient(get_url(), "test@example.com", "testpassword", verify=False)
+	# 	test_request(conn2)
+	#
+	# 	update_site_config('deny_multiple_sessions', 1)
+	#
+	# 	print 'conn3'
+	#
+	# 	conn3 = FrappeClient(get_url(), "test@example.com", "testpassword", verify=False)
+	# 	test_request(conn3)
+	#
+	# 	# first connection should fail
+	# 	test_request(conn1)
+
 	def test_site_expiry(self):
 		update_limits({'expiry': add_to_date(today(), days=-1)})
 		frappe.local.conf = _dict(frappe.get_site_config())

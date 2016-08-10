@@ -291,6 +291,9 @@ def update_site_config(key, value, validate=True):
 	with open(get_site_config_path(), "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
+	if frappe.local.conf:
+		frappe.local.conf[key] = value
+
 def get_site_config_path():
 	return os.path.join(frappe.local.site_path, "site_config.json")
 
