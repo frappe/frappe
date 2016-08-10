@@ -17,7 +17,6 @@ def test_timeout():
 	time.sleep(100)
 
 class TestScheduler(TestCase):
-
 	def setUp(self):
 		frappe.db.set_global('enabled_scheduler_events', "")
 
@@ -63,10 +62,8 @@ class TestScheduler(TestCase):
 
 	def test_restrict_scheduler_events(self):
 		frappe.set_user("Administrator")
-		user = frappe.get_doc("User", "Administrator")
 		dormant_date = add_days(today(), -5)
-		user.last_active = dormant_date
-		user.save()
+		frappe.db.sql('update tabUser set last_active=%s', dormant_date)
 
 		restrict_scheduler_events_if_dormant()
 		frappe.local.conf = _dict(frappe.get_site_config())

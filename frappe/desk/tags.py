@@ -35,23 +35,15 @@ def check_user_tags(dt):
 			DocTags(dt).setup()
 
 @frappe.whitelist()
-def add_tag():
+def add_tag(tag, dt, dn, color=None):
 	"adds a new tag to a record, and creates the Tag master"
-
-	f = frappe.local.form_dict
-	tag, color = f.get('tag'), f.get('color')
-	dt, dn = f.get('dt'), f.get('dn')
-
 	DocTags(dt).add(dn, tag)
 
 	return tag
 
 @frappe.whitelist()
-def remove_tag():
+def remove_tag(tag, dt, dn):
 	"removes tag from the record"
-	f = frappe.local.form_dict
-	tag, dt, dn = f.get('tag'), f.get('dt'), f.get('dn')
-
 	DocTags(dt).remove(dn, tag)
 
 

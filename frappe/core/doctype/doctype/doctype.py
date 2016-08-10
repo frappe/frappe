@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import re
+import re, copy
 import MySQLdb
 import frappe
 from frappe import _
@@ -311,7 +311,7 @@ def validate_fields(meta):
 			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
 
 	def check_in_list_view(d):
-		if d.in_list_view and (d.fieldtype in no_value_fields):
+		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
 	def check_dynamic_link_options(d):
@@ -441,6 +441,10 @@ def validate_fields(meta):
 			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
 
 	fields = meta.get("fields")
+	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	if meta.istable:
+		not_allowed_in_list_view.remove('Button')
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:

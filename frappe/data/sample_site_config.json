@@ -2,6 +2,13 @@
  "db_name": "testdb",
  "db_password": "password",
  "mute_emails": true,
+ 
+  "limits": {
+  	"emails": 1500,
+	"space": 0.157,
+  	"expiry": "2016-07-25",
+  	"users": 1
+  }
 
  "developer_mode": 1,
  "auto_cache_clear": true,

@@ -134,7 +134,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   height: 0;
   padding-bottom: 100%;
   border-radius: 6px;
-  background-size: cover;
+  background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: center center;
 }

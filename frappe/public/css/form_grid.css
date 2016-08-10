@@ -104,8 +104,19 @@
 .grid-body .editable-row input[data-fieldtype="Currency"] {
   text-align: right;
 }
+.grid-body .grid-static-col[data-fieldtype="Button"] .field-area {
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.grid-body .grid-static-col[data-fieldtype="Button"] .field-area button {
+  height: 27px;
+}
 .grid-body .grid-static-col[data-fieldtype="Code"] .static-area {
-  margin-top: -10px;
+  margin-top: -5px;
+}
+.grid-body .grid-static-col[data-fieldtype="Code"] .static-area pre {
+  background: none;
+  border: none;
 }
 @media (max-width: 767px) {
   .grid-body .btn-open-row {

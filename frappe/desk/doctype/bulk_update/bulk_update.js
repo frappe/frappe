@@ -21,6 +21,8 @@ frappe.ui.form.on('Bulk Update', {
 	},
 	document_type: function(frm) {
 		// set field options
+		if(!frm.doc.document_type) return;
+
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			var options = $.map(frappe.get_meta(frm.doc.document_type).fields,
 				function(d) {

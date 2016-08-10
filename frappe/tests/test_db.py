@@ -11,7 +11,7 @@ class TestDB(unittest.TestCase):
 	def test_get_value(self):
 		self.assertEquals(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
 		self.assertEquals(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
-		self.assertEquals(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Administrator")
+		self.assertNotEquals(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
 		self.assertEquals(frappe.db.get_value("User", {"name": ["<", "B"]}), "Administrator")
 		self.assertEquals(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 
