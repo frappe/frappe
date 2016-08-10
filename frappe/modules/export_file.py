@@ -30,9 +30,6 @@ def write_document_file(doc, record_module=None, create_init=None):
 			for fieldname in frappe.model.default_fields:
 				if fieldname in d:
 					del d[fieldname]
-			for fieldname in d.keys():
-				if d[fieldname] == 0 or d[fieldname] == "":
-					del d[fieldname]
 
 	module = record_module or get_module_name(doc)
 	if create_init is None:
