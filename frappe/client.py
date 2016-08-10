@@ -84,6 +84,29 @@ def insert(doc=None):
 		return doc.as_dict()
 
 @frappe.whitelist()
+def insert_many(docs=None):
+	if isinstance(docs, basestring):
+		docs = json.loads(docs)
+
+	out = []
+
+	if len(docs) > 200:
+		frappe.throw(_('Only 200 inserts allowed in one request'))
+
+	for doc in docs:
+		if doc.get("parent") and doc.get("parenttype"):
+			# inserting a child record
+			parent = frappe.get_doc(doc.get("parenttype"), doc.get("parent"))
+			parent.append(doc.get("parentfield"), doc)
+			parent.save()
+			out.append(parent.name)
+		else:
+			doc = frappe.get_doc(doc).insert()
+			out.append(doc.name)
+
+	return out
+
+@frappe.whitelist()
 def save(doc):
 	if isinstance(doc, basestring):
 		doc = json.loads(doc)
