@@ -3,4 +3,4 @@ frappe.listview_settings['{doctype}'] = {{
 	filters:[["status","=", "Open"]]
 }};
 
-//@ sourceURL={classname}_listview.js
+//# sourceURL={classname}_listview.js
