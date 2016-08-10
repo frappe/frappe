@@ -54,6 +54,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_help: function () {
 
+		$(".dropdown-help .dropdown-toggle").on("click", function () {
+			$(".dropdown-help input").focus();
+		});
+
 		$(".dropdown-help .dropdown-menu").on("click", "input, button", function (e) {
 			e.stopPropagation();
 		});
@@ -98,31 +102,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					text: keywords
 				},
 				callback: function (r) {
-
 					var results = r.message || [];
 					var converter = new Showdown.converter();
-
-					var result_html = "<h4 style='padding: 0 12px;'>Showing results for '" + keywords + "' </h4>";
+					var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
 
 					for (var i = 0, l = results.length; i < l; i++) {
-
-						var path = results[i][0];
-						var content = results[i][1];
-						var content_html = converter.makeHtml(content);
-
-						var title = (function (path) {
-							path = path.split('/').pop();
-							path = path.substr(0, path.lastIndexOf('.')) || path;
-							return path.replace(/-?\w*/g, function(txt) {
-								if(txt.charAt(0) === '-')
-									txt = txt.slice(1);
-								return ' ' + txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-							});
-						})(path);
-
+						var title = results[i][0];
+						var intro = results[i][1];
 						result_html +=	"<div class='search-result'>" +
-											"<a href='#' class='h4'>" + title + "</a>" +
-											"<div style='display: none'>" + content_html + "</div>" +
+											"<a href='#' class='h4' data-index='"+i+"'>" + title + "</a>" +
+											"<p>" + intro + "</p>" +
 										"</div>";
 					}
 
@@ -131,11 +120,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					}
 
 					var $help_modal = frappe.get_modal("Help", result_html).modal("show");
-					$help_modal.find(".modal-dialog").css("width", "768px");
+					$help_modal.addClass("help-modal");
 
-					$(".search-result").on("click", function (e) {
-						e.preventDefault();
-						$(this).find("div").fadeToggle("300");
+					$(".search-result").on("click", "a", function (e) {
+						var i = $(this).attr("data-index");
+						var title = results[i][0];
+						var content = results[i][2];
+						var content_html = converter.makeHtml(content);
+						var $result_modal = frappe.get_modal(title, content_html).modal("show");
+						$result_modal.addClass("help-modal");
 					});
 				}
 			});

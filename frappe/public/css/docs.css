@@ -194,13 +194,6 @@
 .navbar-default .navbar-brand {
   color: #8D99A6;
 }
-.search-result {
-  margin-bottom: 10px;
-  padding: 8px 12px;
-}
-.search-result a {
-  color: #5E64FF;
-}
 body {
   font-size: 16px;
   line-height: 1.65em;
@@ -531,12 +524,6 @@ p {
   padding: 8px 40px;
   border: 1px solid #d1d8dd;
   border-radius: 15px;
-}
-.screenshot {
-  border: 1px solid #d1d8dd;
-  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
-  margin: 8px 0px;
-  max-width: 100%;
 }
 hr {
   margin: 48px 0px 30px;

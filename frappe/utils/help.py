@@ -9,6 +9,8 @@ from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
 import os
+import re
+from markdown2 import markdown
 
 help_db_name = '_frappe_help'
 
@@ -42,13 +44,13 @@ class HelpDatabase(object):
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
-			self.db.sql('''create table help(path text, content text, fulltext(content))
+			self.db.sql('''create table help(path text, content text, title text, intro text, fulltext(content))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4''')
 
 	def search(self, words):
-		return self.db.sql('select path, content from help where match(content) against (%s) limit 10', words)
+		return self.db.sql('select title, intro, content from help where match(content) against (%s) limit 10', words)
 
 	def sync_pages(self):
 		self.db.sql('truncate help')
@@ -59,8 +61,25 @@ class HelpDatabase(object):
 					for fname in files:
 						if fname.rsplit('.', 1)[-1] in ('md', 'html'):
 							fpath = os.path.join(basepath, fname)
+							print fpath
 							with open(fpath, 'r') as f:
+								title = self.get_title(fname)
+								content = frappe.render_template(unicode(f.read(), 'utf-8'),
+									{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
+								intro = self.get_intro(content)
 								#relpath = os.path.relpath(fpath, '../apps/{app}'.format(app=app))
-								self.db.sql('''insert into help(path, content)
-									values (%s, %s)''', (fpath, f.read()))
+								self.db.sql('''insert into help(path, content, title, intro)
+									values (%s, %s, %s, %s)''', (fpath, content, title, intro))
+
+	def get_title(self, filename):
+		filename = filename.rsplit('.', 1)[0]
+		return re.sub(r"-", " ", filename.title())
+
+	def get_intro(self, content):
+		html = markdown(content)
+		if '<p>' in html:
+			intro = html.split('<p>', 1)[1].split('</p>', 1)[0]
+		else:
+			intro = ""
+		return intro
 

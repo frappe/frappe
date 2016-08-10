@@ -588,3 +588,33 @@ fieldset[disabled] .form-control {
 .liked-by-popover li {
   margin: 15px 0px;
 }
+.screenshot {
+  border: 1px solid #d1d8dd;
+  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
+  margin: 8px 0px;
+  max-width: 100%;
+}
+.help-modal .modal-dialog {
+  width: 768px;
+}
+.help-modal .modal-body {
+  padding: 15px 27px;
+}
+@media (max-width: 767px) {
+  .help-modal .modal-dialog {
+    width: auto;
+  }
+  .help-modal .modal-content {
+    height: auto !important;
+  }
+  .help-modal iframe {
+    height: auto;
+    width: 100%;
+  }
+}
+.search-result {
+  margin-bottom: 24px;
+}
+.search-result a {
+  color: #5E64FF;
+}

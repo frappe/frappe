@@ -449,3 +449,43 @@ textarea.form-control {
 		margin: 15px 0px;
 	}
 }
+
+.screenshot {
+	border: 1px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 8px 0px;
+	max-width: 100%;
+}
+
+.help-modal {
+	.modal-dialog {
+		width: 768px;
+	}
+
+	.modal-body {
+		padding: 15px 27px;
+	}
+
+	@media (max-width: @screen-xs) {
+		.modal-dialog {
+			width: auto;
+		}
+
+		.modal-content {
+			height: auto !important;
+		}
+
+		iframe {
+			height: auto;
+			width: 100%;
+		}
+	}
+}
+
+.search-result {
+	a {
+		color: @brand-primary;
+	}
+
+	margin-bottom: 24px;
+}
