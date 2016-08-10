@@ -7,4 +7,4 @@ frappe.ui.form.on('{doctype}', {{
 	}}
 }});
 
-//@ sourceURL={classname}.js
+//# sourceURL={classname}.js
