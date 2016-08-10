@@ -825,50 +825,52 @@ frappe.ui.form.GridRow = Class.extend({
 
 	set_arrow_keys: function(field) {
 		var me = this;
-		field.$input.on('keydown', function(e) {
-			var values = me.frm.doc[me.grid.df.fieldname];
-			var fieldname = $(this).attr('data-fieldname');
-			// TAB
-			if(e.which==TAB) {
-				// last column
-				if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
-					setTimeout(function() {
-						if(me.doc.idx === values.length) {
-							// last row
-							me.grid.add_new_row(null, null, true);
-							me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
-							me.grid.set_focus_on_row();
-						} else {
-							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
-							me.grid.set_focus_on_row(me.doc.idx+1);
-						}
-					}, 500);
+		if(field.$input) {
+			field.$input.on('keydown', function(e) {
+				var values = me.frm.doc[me.grid.df.fieldname];
+				var fieldname = $(this).attr('data-fieldname');
+				// TAB
+				if(e.which==TAB) {
+					// last column
+					if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
+						setTimeout(function() {
+							if(me.doc.idx === values.length) {
+								// last row
+								me.grid.add_new_row(null, null, true);
+								me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
+								me.grid.set_focus_on_row();
+							} else {
+								me.grid.grid_rows[me.doc.idx].toggle_editable_row();
+								me.grid.set_focus_on_row(me.doc.idx+1);
+							}
+						}, 500);
+					}
+				} else if(e.which==UP_ARROW) {
+					if(me.doc.idx > 1) {
+						var prev = me.grid.grid_rows[me.doc.idx-2];
+						prev.toggle_editable_row();
+						setTimeout(function() {
+							var input = prev.columns[fieldname].field.$input;
+							if(input) {
+								input.focus();
+							}
+						}, 400)
+					}
+				} else if(e.which==DOWN_ARROW) {
+					if(me.doc.idx < values.length) {
+						var next = me.grid.grid_rows[me.doc.idx];
+						next.toggle_editable_row();
+						setTimeout(function() {
+							var input = next.columns[fieldname].field.$input;
+							if(input) {
+								input.focus();
+							}
+						}, 400)
+					}
 				}
-			} else if(e.which==UP_ARROW) {
-				if(me.doc.idx > 1) {
-					var prev = me.grid.grid_rows[me.doc.idx-2];
-					prev.toggle_editable_row();
-					setTimeout(function() {
-						var input = prev.columns[fieldname].field.$input;
-						if(input) {
-							input.focus();
-						}
-					}, 400)
-				}
-			} else if(e.which==DOWN_ARROW) {
-				if(me.doc.idx < values.length) {
-					var next = me.grid.grid_rows[me.doc.idx];
-					next.toggle_editable_row();
-					setTimeout(function() {
-						var input = next.columns[fieldname].field.$input;
-						if(input) {
-							input.focus();
-						}
-					}, 400)
-				}
-			}
 
-		});
+			});
+		}
 	},
 
 	get_open_form: function() {
