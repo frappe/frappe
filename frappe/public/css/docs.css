@@ -98,7 +98,9 @@
 }
 @media (max-width: 767px) {
   .dropdown-help .dropdown-menu {
-    width: 300px !important;
+    position: fixed !important;
+    top: 40px;
+    width: 100% !important;
   }
 }
 @media (max-width: 767px) {
