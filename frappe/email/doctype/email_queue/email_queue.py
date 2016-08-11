@@ -28,8 +28,7 @@ def retry_sending(name):
 
 @frappe.whitelist()
 def send_now(name):
-	doc = frappe.get_doc("Email Queue", name)
-	send_one(doc, now=True)
+	send_one(name, now=True)
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
