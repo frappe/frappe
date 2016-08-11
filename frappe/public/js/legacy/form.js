@@ -273,7 +273,7 @@ _f.Frm.prototype.email_doc = function(message) {
 	new frappe.views.CommunicationComposer({
 		doc: this.doc,
 		frm: this,
-		subject: __(this.meta.name) + ': ' + this.docname,
+		subject: __(this.meta.name) + ': ' + (this.doctype=="ToDo"?this.page.title:this.docname),
 		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 		attach_document_print: true,
 		message: message,
