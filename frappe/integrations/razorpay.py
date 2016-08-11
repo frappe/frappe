@@ -55,11 +55,11 @@ class Controller(IntegrationController):
 	def get_settings(self):
 		return frappe._dict(self.get_parameters())
 	
-	def make_integration_request(self, data):
+	def create_request(self, data):
 		self.data = frappe._dict(data)
 
 		try:
-			self.integration_request = super(Controller, self).make_integration_request(self.data, "Host", \
+			self.integration_request = super(Controller, self).create_request(self.data, "Host", \
 				self.service_name)
 			return self.authorize_payment()
 
@@ -92,7 +92,7 @@ class Controller(IntegrationController):
 				redirect_to = frappe.get_doc(self.data.reference_doctype, self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
 			
 			return {
-				"redirect_to": redirect_to or "razorpay-payment-success",
+				"redirect_to": redirect_to or "payment-success",
 				"status": 200
 			}
 

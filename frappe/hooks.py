@@ -129,7 +129,7 @@ scheduler_events = {
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots"
+		"frappe.utils.error.collect_error_snapshots",
 		"frappe.integration_broker.doctype.integration_service.integration_service.trigger_integration_service_events"
 	],
 	"daily": [
@@ -185,3 +185,6 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
+
+
+integration_services = ["PayPal", "Razorpay"]

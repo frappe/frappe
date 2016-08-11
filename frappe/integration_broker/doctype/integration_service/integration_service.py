@@ -94,7 +94,7 @@ class IntegrationService(Document):
 	def put_request(url, auth=None, data=None):
 		pass
 	
-	def make_integration_request(self, data, integration_type, service_name, name=None):
+	def create_request(self, data, integration_type, service_name, name=None):
 		if not isinstance(data, basestring):
 			data = json.dumps(data)
 	

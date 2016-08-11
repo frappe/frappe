@@ -87,7 +87,7 @@ class Controller(IntegrationController):
 			"correlation_id": response.get("CORRELATIONID")[0]
 		})
 		
-		self.integration_request = self.make_integration_request(kwargs, "Remote", self.service_name, response.get("TOKEN")[0])
+		self.integration_request = self.create_request(kwargs, "Remote", self.service_name, response.get("TOKEN")[0])
 		
 		return return_url.format(kwargs["token"])
 
@@ -100,7 +100,7 @@ class Controller(IntegrationController):
 			"PAYMENTREQUEST_0_AMT": amount,
 			"PAYMENTREQUEST_0_CURRENCYCODE": currency,
 			"returnUrl": get_url("/api/method/frappe.integrations.paypal.get_express_checkout_details"),
-			"cancelUrl": get_url("/paypal-express-cancel")
+			"cancelUrl": get_url("/payment-cancel")
 		})
 		
 		params = urlencode(params)
@@ -171,10 +171,10 @@ def confirm_payment(token):
 		if data.get("reference_doctype") and data.get("reference_docname"):
 			redirect_to = frappe.get_doc(data.get("reference_doctype"), data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 
-		redirect_to = redirect_to or get_url("/razorpay-payment-success")
+		redirect_to = redirect_to or get_url("/payment-success")
 
 	else:
-		redirect_to = get_url("/paypal-express-failed")
+		redirect_to = get_url("/payment-failed")
 
 	# this is done so that functions called via hooks can update flags.redirect_to
 	if redirect:
