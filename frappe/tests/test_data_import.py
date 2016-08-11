@@ -76,12 +76,13 @@ class TestDataImport(unittest.TestCase):
 	def test_import_with_children(self):
 		exporter.get_template("Event", all_doctypes="Yes", with_data="No")
 		content = read_csv_content(frappe.response.result)
+
 		content.append([None] * len(content[-2]))
-		content[-1][2] = "__Test Event"
+		content[-1][2] = "__Test Event with children"
 		content[-1][3] = "Private"
 		content[-1][4] = "2014-01-01 10:00:00.000000"
 		content[-1][content[15].index("role")] = "System Manager"
 		importer.upload(content)
 
-		ev = frappe.get_doc("Event", {"subject":"__Test Event"})
+		ev = frappe.get_doc("Event", {"subject":"__Test Event with children"})
 		self.assertTrue("System Manager" in [d.role for d in ev.roles])

@@ -13,7 +13,7 @@ frappe.template.compile = function(str, name) {
 
 		// replace jinja style tags
 		str = str.replace(/{{/g, "{%=").replace(/}}/g, "%}");
-		
+
 		// {% if not test %} --> {% if (!test) { %}
 		str = str.replace(/{%\s?if\s?\s?not\s?([^\(][^%{]+)\s?%}/g, "{% if (! $1) { %}")
 
@@ -22,7 +22,13 @@ frappe.template.compile = function(str, name) {
 
 		// {% for item in list %}
 		//       --> {% for (var i=0, len=list.length; i<len; i++) {  var item = list[i]; %}
-		str = str.replace(/{%\s?for\s([a-z]+)\sin\s([a-z]+)\s?%}/g, "{% for (var i=0, len=$2.length; i<len; i++) { var $1 = $2[i]; %}");
+		function replacer(match, p1, p2, offset, string) {
+			var i = frappe.utils.get_random(3);
+			var len = frappe.utils.get_random(3);
+			return "{% for (var "+i+"=0, "+len+"="+p2+".length; "+i+"<"+len+"; "+i+"++) { var "
+				+p1+" = "+p2+"["+i+"]; %}";
+		}
+		str = str.replace(/{%\s?for\s([a-z]+)\sin\s([a-z._]+)\s?%}/g, replacer);
 
 		// {% endfor %} --> {% } %}
 		str = str.replace(/{%\s?endif\s?%}/g, "{% }; %}");
@@ -46,7 +52,7 @@ frappe.template.compile = function(str, name) {
 	          .split("\r").join("\\'")
 	      + "');}return _p.join('');";
 
-  		frappe.template.debug[str] = fn_str;
+		  frappe.template.debug[name] = fn_str;
 		try {
 			frappe.template.compiled[key] = new Function("obj", fn_str);
 		} catch (e) {
