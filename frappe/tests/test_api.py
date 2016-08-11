@@ -12,15 +12,7 @@ class TestAPI(unittest.TestCase):
 		frappe.db.sql('delete from `tabToDo` where description like "Test API%"')
 		frappe.db.commit()
 
-		host = get_url()
-
-		if not host.startswith('http'):
-			host = 'http://' + host
-
-		if not host.endswith(':8000'):
-			host = host + ':8000'
-
-		server = FrappeClient(host, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 
 		server.insert_many([
 			{"doctype": "ToDo", "description": "Test API 1"},

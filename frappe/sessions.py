@@ -57,15 +57,21 @@ def clear_sessions(user=None, keep_current=False, device=None):
 	if not device:
 		device = frappe.session.data.device or "desktop"
 
-	for sid in frappe.db.sql_list("""select sid from tabSessions where user=%s and device=%s""", (user, device)):
-		if keep_current and frappe.session.sid==sid:
-			continue
-		else:
-			delete_session(sid)
+	simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
+
+	condition = ''
+	if keep_current:
+		condition = ' and sid != "{0}"'.format(frappe.session.sid)
+
+	limit = simultaneous_sessions - 1
+
+	for i, sid in enumerate(frappe.db.sql_list("""select sid from tabSessions
+		where user=%s and device=%s {condition}
+		order by lastupdate desc limit {limit}, 100""".format(condition=condition, limit=limit),
+		(user, device))):
+		delete_session(sid)
 
 def delete_session(sid=None, user=None):
-	if not user:
-		user = hasattr(frappe.local, "session") and frappe.session.user or "Guest"
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
@@ -298,7 +304,7 @@ class Session:
 		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
-		delete_session(self.sid, user=self.user)
+		delete_session(self.sid)
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""

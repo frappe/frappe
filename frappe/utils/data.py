@@ -570,7 +570,7 @@ def get_url(uri=None, full_address=False):
 
 	if not host_name:
 		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
+			protocol = 'https://' if 'https' == frappe.get_request_header('X-Forwarded-Proto', "") else 'http://'
 			host_name = protocol + frappe.local.request.host
 
 		elif frappe.local.site:
@@ -589,16 +589,21 @@ def get_url(uri=None, full_address=False):
 		else:
 			host_name = frappe.db.get_value("Website Settings", "Website Settings",
 				"subdomain")
-			if host_name and "http" not in host_name:
-				host_name = "http://" + host_name
 
 			if not host_name:
 				host_name = "http://localhost"
+
+	if host_name and not (host_name.startswith("http://") or host_name.startswith("https://")):
+		host_name = "http://" + host_name
 
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
 	url = urllib.basejoin(host_name, uri) if uri else host_name
+
+	# add port if not added
+	if frappe.conf.webserver_port and not url.rsplit(':', 1)[-1].isdigit():
+		url = url + ':' + str(frappe.conf.webserver_port)
 
 	return url
 
