@@ -46,7 +46,8 @@ class IntegrationService(Document):
 		pass
 
 	def enable_service(self):
-		self.get_controller().enable(self.parameters, self.use_test_account)
+		if not self.flags.ignore_mandatory:
+			self.get_controller().enable(self.parameters, self.use_test_account)
 
 	def setup_events_and_parameters(self):
 		self.parameters = []
