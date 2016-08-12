@@ -6,6 +6,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	});
 
 	frappe.modules_page = page;
+	frappe.module_links = {};
 	page.section_data = {};
 
 	page.wrapper.find('.page-head h1').css({'padding-left': '15px'});
@@ -49,7 +50,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 				callback: function(r) {
 					m = frappe.get_module(module_name);
 					m.data = r.message.data;
-					process_data(m.data);
+					process_data(module_name, m.data);
 					page.section_data[module_name] = m;
 					render_section(m);
 				},
@@ -89,12 +90,16 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	}
 
-	var process_data = function(data) {
+	var process_data = function(module_name, data) {
+		frappe.module_links[module_name] = [];
 		data.forEach(function(section) {
 			section.items.forEach(function(item) {
 				item.style = '';
 				if(item.type==="doctype") {
 					item.doctype = item.name;
+
+					// map of doctypes that belong to a module
+					frappe.module_links[module_name].push(item.name);
 				}
 				if(!item.route) {
 					if(item.link) {

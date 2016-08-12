@@ -45,7 +45,7 @@ frappe.markdown = function(txt) {
 	var whitespace_len = 0,
 		first_line = txt.split("\n")[0];
 
-	while([" ", "\n", "\t"].indexOf(first_line.substr(0,1))!== -1) {
+	while(["\n", "\t"].indexOf(first_line.substr(0,1))!== -1) {
 		whitespace_len++;
 		first_line = first_line.substr(1);
 	}
