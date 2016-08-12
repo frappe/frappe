@@ -36,8 +36,12 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		if(frappe.route_history.length > 1) {
 			var prev_route = frappe.route_history[frappe.route_history.length-2];
 			if(prev_route[0]==="modules") {
-				// save the last page from the breadcrumb was accessed
-				frappe.breadcrumbs.set_doctype_module(frappe.get_route()[1], prev_route[1]);
+				var doctype = frappe.get_route()[1],
+					module = prev_route[1];
+				if(frappe.module_links[module] && in_list(frappe.module_links[module], doctype)) {
+					// save the last page from the breadcrumb was accessed
+					frappe.breadcrumbs.set_doctype_module(doctype, module);
+				}
 			}
 		}
 	},
