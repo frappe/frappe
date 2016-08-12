@@ -170,7 +170,7 @@ frappe.upload = {
 					return;
 				}
 				var attachment = r.message;
-				opts.callback(attachment, r);
+				opts.callback && opts.callback(attachment, r);
 				$(document).trigger("upload_complete", attachment);
 			},
 			error: function(r) {

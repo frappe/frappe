@@ -34,28 +34,65 @@ frappe.DataImportTool = Class.extend({
 		$(frappe.render_template("data_import_main", this)).appendTo(this.page.main);
 
 		this.select = this.page.main.find("select.doctype");
+		this.select_columns = this.page.main.find('.select-columns');
 		this.select.on("change", function() {
 			me.doctype = $(this).val();
-			me.page.main.find(".export-import-section").toggleClass(!!me.doctype);
-			if(me.doctype) {
-				me.set_btn_links();
-				// set button links
-			}
-		});
-	},
-	set_btn_links: function() {
-		var doctype = encodeURIComponent(this.doctype);
-		this.page.main.find(".btn-download-template").attr("href",
-			"/api/method/frappe.core.page.data_import_tool.exporter.get_template?"
-			+ "doctype=" + doctype
-			+ "&parent_doctype=" + doctype
-			+ "&with_data=No&all_doctypes=Yes");
+			frappe.model.with_doctype(me.doctype, function() {
+				me.page.main.find(".export-import-section").toggleClass(!!me.doctype);
+				if(me.doctype) {
 
-		this.page.main.find(".btn-download-data").attr("href",
-			"/api/method/frappe.core.page.data_import_tool.exporter.get_template?"
+					// render select columns
+					var doctype_list = [frappe.get_doc('DocType', me.doctype)];
+					frappe.meta.get_table_fields(me.doctype).forEach(function(df) {
+						doctype_list.push(frappe.get_doc('DocType', df.options));
+					});
+
+					$(frappe.render_template("data_import_tool_columns", {doctype_list: doctype_list}))
+						.appendTo(me.select_columns.empty());
+				}
+			});
+		});
+
+		this.page.main.find('.btn-select-all').on('click', function() {
+			me.select_columns.find('.select-column-check').prop('checked', true);
+		});
+
+		this.page.main.find('.btn-unselect-all').on('click', function() {
+			me.select_columns.find('.select-column-check').prop('checked', false);
+		});
+
+		this.page.main.find('.btn-select-mandatory').on('click', function() {
+			me.select_columns.find('.select-column-check').prop('checked', false);
+			me.select_columns.find('.select-column-check[data-reqd="1"]').prop('checked', true);
+		});
+
+		this.page.main.find(".btn-download-template").on('click', function() {
+			window.open(me.get_export_url(false));
+		});
+
+		this.page.main.find(".btn-download-data").on('click', function() {
+			window.open(me.get_export_url(true));
+		});
+
+	},
+	get_export_url: function(with_data) {
+		var doctype = this.select.val();
+		var columns = {};
+
+		this.select_columns.find('.select-column-check:checked').each(function() {
+			var _doctype = $(this).attr('data-doctype');
+			var _fieldname = $(this).attr('data-fieldname');
+			if(!columns[_doctype]) {
+				columns[_doctype] = [];
+			}
+			columns[_doctype].push(_fieldname);
+		});
+
+		return "/api/method/frappe.core.page.data_import_tool.exporter.get_template?"
 			+ "doctype=" + doctype
 			+ "&parent_doctype=" + doctype
-			+ "&with_data=Yes&all_doctypes=Yes");
+			+ "&select_columns=" + JSON.stringify(columns)
+			+ "&with_data="+ (with_data ? 'Yes' : 'No')+"&all_doctypes=Yes";
 	},
 	make_upload: function() {
 		var me = this;

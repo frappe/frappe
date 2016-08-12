@@ -14,19 +14,32 @@
             <br>
         </div>
     </div>
-    <div class="export-import-section hide">
-        <div class="row" style="max-width: 700px;">
+    <div class="export-import-section hide"  style="max-width: 700px;">
+		<h4>{{ __("1. Select Columns") }}</h4>
+        <p>
+			<a class="btn btn-default btn-xs btn-select-all" style="margin-right: 7px;">
+            {%= __("Select All") %}</a>
+			<a class="btn btn-default btn-xs btn-select-mandatory" style="margin-right: 7px;">
+            {%= __("Select Mandatory") %}</a>
+			<a class="btn btn-default btn-xs btn-unselect-all">
+            {%= __("Unselect All") %}</a>
+		</p>
+		<div class="select-columns">
+		</div>
+		<br>
+		<h4>{{ __("2. Download") }}</h4>
+		<div class="row">
             <div class="col-sm-4">
-                <p><a class="btn btn-default btn-sm btn-download-template">
+                <p><a class="btn btn-primary btn-xs btn-download-template">
                     {%= __("Download Blank Template") %}</a></p>
             </div>
             <div class="col-sm-8">
                 <h6 class="text-muted">{%= __("Recommended for inserting new records.") %}</h6>
             </div>
         </div>
-        <div class="row" style="max-width: 700px;">
+        <div class="row">
             <div class="col-sm-4">
-                <p><a class="btn btn-default btn-sm btn-download-data">
+                <p><a class="btn btn-primary btn-xs btn-download-data">
                     {%= __("Download with Data") %}</a></p>
             </div>
             <div class="col-sm-8">
@@ -35,12 +48,17 @@
         </div>
     </div>
     <div>
-        <hr>
+        <hr style="margin-top: 50px;">
         <h3>{%= __("Import") %}</h3>
         <p class="text-muted">{%= __("Update the template and save in CSV (Comma Separate Values) format before attaching.") %}</p>
         <div class="row">
             <div class="col-md-6">
+				<br>
+				<h4>{{ __("1. Select File") }}</h4>
                 <div class="upload-area"></div>
+				<br>
+
+				<h4>{{ __("2. Upload") }}</h4>
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="always_insert">
