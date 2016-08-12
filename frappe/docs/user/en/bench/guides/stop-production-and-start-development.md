@@ -12,7 +12,7 @@ Remove supervisor and nginx configs
 Stop running services
 
 	sudo service nginx stop
-	sudo service supervisord stop
+	sudo service supervisor stop
 	
 Setup procfile again and start bench
 
