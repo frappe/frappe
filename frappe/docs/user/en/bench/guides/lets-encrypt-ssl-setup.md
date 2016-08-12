@@ -16,6 +16,14 @@ Just run:
 
 You will be faced with several prompts, respond to them accordingly. This command will also add an entry to the crontab of the user that will attempt to renew the certificate every month.
 
+### Custom Domains
+
+You can setup Let's Encrypt for [custom domains](adding-custom-domains.html) as well. Just use the `--custom-domain` option
+
+    sudo -H bench setup lets-encrypt [site-name] --custom-domain [custom-domain] 
+
+### Renew Certificates 
+
 To renew certificates manually you can use: 
 
     sudo bench renew-lets-encrypt

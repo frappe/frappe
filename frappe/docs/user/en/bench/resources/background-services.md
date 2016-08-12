@@ -17,14 +17,14 @@ Frappe Processes
 	Werkzeug WSGI server is used and in production, gunicorn (automatically
 	configured in supervisor) is used.
 
-* Celery Worker Processes
+* Redis Worker Processes
 
 	* The Celery worker processes execute background jobs in the Frappe system.
 	These processes are automatically started when `bench start` is run and
 	for production are configured in supervisor configuration.
 
-* Celery Worker Beat Process
+* Scheduler Process
 
-	* The Celery worker beat process schedules enqeueing of scheduled jobs in the
+	* The Scheduler process schedules enqeueing of scheduled jobs in the
 	Frappe system. This process is automatically started when `bench start` is
 	run and for production are configured in supervisor configuration.
