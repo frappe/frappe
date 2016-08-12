@@ -161,7 +161,7 @@ class TestUser(unittest.TestCase):
 
 		frappe.db.commit()
 
-		res = requests.post(get_url(), params={'cmd': 'login', 'usr': 'test@example.com', 'pwd': 'testpassword',
+		res = requests.post(get_url()+':8000', params={'cmd': 'login', 'usr': 'test@example.com', 'pwd': 'testpassword',
 			'device': 'desktop'})
 
 		# While site is expired status code returned is 417 Failed Expectation

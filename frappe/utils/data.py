@@ -601,10 +601,6 @@ def get_url(uri=None, full_address=False):
 
 	url = urllib.basejoin(host_name, uri) if uri else host_name
 
-	# add port if not added
-	if frappe.conf.webserver_port and not url.rsplit(':', 1)[-1].isdigit():
-		url = url + ':' + str(frappe.conf.webserver_port)
-
 	return url
 
 def get_host_name():

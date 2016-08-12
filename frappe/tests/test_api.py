@@ -12,7 +12,7 @@ class TestAPI(unittest.TestCase):
 		frappe.db.sql('delete from `tabToDo` where description like "Test API%"')
 		frappe.db.commit()
 
-		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url()+":8000", "Administrator", "admin", verify=False)
 
 		server.insert_many([
 			{"doctype": "ToDo", "description": "Test API 1"},
