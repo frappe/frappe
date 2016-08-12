@@ -109,6 +109,10 @@ def extract_images_from_html(doc, content):
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
+
+			# decode filename
+			if not isinstance(filename, unicode):
+				filename = unicode(filename, 'utf-8')
 		else:
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
