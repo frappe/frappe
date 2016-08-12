@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 
-import frappe, json, os
+import frappe, json
 from frappe import _
 import frappe.permissions
 import re
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, cint, flt, formatdate, format_datetime
+from frappe.utils import cstr, formatdate, format_datetime
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 reflags = {
@@ -22,8 +22,10 @@ reflags = {
 }
 
 @frappe.whitelist()
-def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
+def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None):
 	all_doctypes = all_doctypes=="Yes"
+	if select_columns:
+		select_columns = json.loads(select_columns);
 	docs_to_export = {}
 	if doctype:
 		if isinstance(doctype, basestring):
@@ -84,6 +86,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 
 			append_field_column(frappe._dict({
 				"fieldname": "name",
+				"parent": dt,
 				"label": "ID",
 				"fieldtype": "Data",
 				"reqd": 1,
@@ -105,16 +108,27 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 
 		column_start_end[dt].end = len(columns) + 1
 
-	def append_field_column(docfield, mandatory):
-		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
-			and (docfield.fieldname not in ('parenttype', 'trash_reason')) and not docfield.hidden:
-			tablerow.append("")
-			fieldrow.append(docfield.fieldname)
-			labelrow.append(_(docfield.label))
-			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
-			typerow.append(docfield.fieldtype)
-			inforow.append(getinforow(docfield))
-			columns.append(docfield.fieldname)
+	def append_field_column(docfield, for_mandatory):
+		if not docfield:
+			return
+		if for_mandatory and not docfield.reqd:
+			return
+		if not for_mandatory and docfield.reqd:
+			return
+		if docfield.fieldname in ('parenttype', 'trash_reason'):
+			return
+		if docfield.hidden:
+			return
+		if select_columns and docfield.fieldname not in select_columns.get(docfield.parent, []):
+			return
+
+		tablerow.append("")
+		fieldrow.append(docfield.fieldname)
+		labelrow.append(_(docfield.label))
+		mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
+		typerow.append(docfield.fieldtype)
+		inforow.append(getinforow(docfield))
+		columns.append(docfield.fieldname)
 
 	def append_empty_field_column():
 		tablerow.append("~")
@@ -237,6 +251,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	typerow = [_('Type:'), 'Data (text)']
 	inforow = [_('Info:'), '']
 	columns = [key]
+
+
 
 	build_field_columns(doctype)
 	if all_doctypes:

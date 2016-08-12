@@ -64,6 +64,7 @@ frappe.form.formatters = {
 	},
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
+		var original_value = value;
 		if(value && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
@@ -85,7 +86,7 @@ frappe.form.formatters = {
 		} else if(docfield && doctype) {
 			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s" data-doctype="%(doctype)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
-				name: encodeURIComponent(value),
+				name: encodeURIComponent(original_value),
 				label: __(options && options.label || value)
 			});
 		} else {

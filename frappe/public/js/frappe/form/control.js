@@ -842,6 +842,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
 				me.parse_validate_and_set_in_model(null);
 				me.refresh();
+				me.frm.save();
 			});
 		} else {
 			this.dataurl = null;
@@ -918,6 +919,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				if(selected) {
 					me.parse_validate_and_set_in_model(selected);
 					me.dialog.hide();
+					me.frm.save();
 				} else {
 					msgprint(__("Please attach a file or set a URL"));
 				}
@@ -988,6 +990,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.parse_validate_and_set_in_model(attachment.file_url);
 			this.refresh();
 			this.frm.attachments.update_attachment(attachment);
+			this.frm.save();
 		} else {
 			this.value = this.get_value();
 			this.refresh();
