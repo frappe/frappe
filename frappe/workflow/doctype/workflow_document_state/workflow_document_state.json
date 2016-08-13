@@ -35,7 +35,7 @@
    "reqd": 1, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "tooltip": "the status of it", 
+   "tooltip": "", 
    "unique": 0, 
    "width": "160px"
   }, 
