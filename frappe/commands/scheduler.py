@@ -125,11 +125,14 @@ def doctor(site=None):
 @pass_context
 def show_pending_jobs(context, site=None):
 	"Get diagnostic info about background jobs"
+	from frappe.utils.doctor import pending_jobs as _pending_jobs
 	if not site:
 		site = get_site(context)
 
-	from frappe.utils.doctor import pending_jobs as _pending_jobs
-	return _pending_jobs(site=site)
+	with frappe.init_site(site):
+		pending_jobs = _pending_jobs(site=site)
+
+	return pending_jobs
 
 @click.command('purge-jobs')
 @click.option('--site', help='site name')
