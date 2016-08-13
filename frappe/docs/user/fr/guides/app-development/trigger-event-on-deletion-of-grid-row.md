@@ -1,22 +1,45 @@
 
-To trigger an event when a row from a grid has been deleted, you need to add a handler the `fieldname_remove` event, where fieldname is the fieldname of the grid (Table)
+To trigger an event when a row from a Child Table has been deleted (when user clicks on `delete` button), you need to add a handler the `fieldname_remove` event to Child Table, where fieldname is the fieldname of the Child Table in Parent Table decloration. 
 
-<h3>Example for add</h3>
+For example: 
 
-<p>Recalculate totals when a Journal Entry row has been added</p>
+Assuming that your parent DocType is named `Item` has a Table Field linked to `Item Color` DocType with decloration name `color`. 
 
-	frappe.ui.form.on("Journal Entry Account", "accounts_add", function(frm){
-    		cur_frm.cscript.update_totals(frm.doc);
-	});
+In order to "catch" the delete event:
 
-<!-- markdown -->
+```javascript
+  frappe.ui.form.on('Item Color', 
+     color_remove: function(frm) {
+        // You code here 
+        // If you console.log(frm.doc.color) you will get the remaining color list
+     }
+  );
+```
 
-<h3>Example for delete</h3>
+The same process is used to trigger the add event (when user clicks on `add row` button):
+```javascript
+  frappe.ui.form.on('Item Color', 
+     color_remove: function(frm) {
+        // Your code here 
+        // If you console.log(frm.doc.color) you will get the remaining color list
+     },
+     color_add: function(frm) {
+       // Your code here
+     }
+  );
+```
 
-<p>Recalculate totals when a Journal Entry row has been deleted</p>
+Notice that the handling is be made on Child DocType Table `form.ui.on` and not on Parent Doctype so a minimal full example is: 
 
-	frappe.ui.form.on("Journal Entry Account", "accounts_remove", function(frm){
-    		cur_frm.cscript.update_totals(frm.doc);
-	});
 
-<!-- markdown -->
+```javascript 
+   frappe.ui.form.on('Item',{
+   	// Your client side handling for Item 
+   });
+   
+   frappe.ui.form.on('Item Color', 
+     color_remove: function(frm) {
+        // Delete is trigger here
+     }
+  );
+```
