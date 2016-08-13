@@ -54,7 +54,9 @@ docfield_properties = {
 	'default': 'Text',
 	'precision': 'Select',
 	'read_only': 'Check',
-	'length': 'Int'
+	'length': 'Int',
+        'tooltip': 'Text',
+        'tooltiplink': 'Data'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),

@@ -9,6 +9,7 @@
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Setup", 
+ "editable_grid": 0, 
  "fields": [
   {
    "allow_on_submit": 0, 
@@ -890,13 +891,14 @@
  "hide_toolbar": 0, 
  "icon": "icon-glass", 
  "idx": 1, 
+ "image_view": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-05-14 09:22:58.789603", 
+ "modified": "2016-08-12 13:59:09.422304", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Custom Field", 

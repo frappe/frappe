@@ -17,7 +17,7 @@ frappe.ui.form.Control = Class.extend({
 
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
-			frappe.boot.developer_mode===0 && this.$wrapper) {
+			frappe.boot.developer_mode===1 && this.$wrapper) {
 				this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 
@@ -221,7 +221,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			this.$wrapper = $('<div class="frappe-control">\
 				<div class="form-group">\
 					<div class="clearfix">\
-						<label class="control-label" style="padding-right: 0px;"></label>\
+						<label class="control-label" style="padding-right: 0px;"></label><p>fuck you</p>\
 					</div>\
 					<div class="control-input-wrapper">\
 						<div class="control-input"></div>\
@@ -309,7 +309,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				me.set_label();
 				me.set_mandatory(me.value);
 				me.set_bold();
-				me.set_popover();
 			}
 			return false;
 		});
@@ -397,13 +396,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		if(this.disp_area) {
 			$(this.disp_area).toggleClass("bold", !!this.df.bold);
 		}
-	},
-	set_popover: function() {
-		$(this.label_area).attr("data-toggle","popover");
-		//$(this.label_area).attr("data-html","true");
-		//$(this.label_area).attr("data-placement","auto");
-		//$(this.label_area).attr("trigger","click");
-		$(this.label_area).attr("data-content","this is just a test");
 	}
 });
 
