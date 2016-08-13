@@ -57,12 +57,12 @@ frappe.breadcrumbs = {
 						.appendTo($breadcrumbs);
 				}
 			}
-
 		}
+		console.log(frappe.get_doc('DocType', breadcrumbs.doctype, 'issingle'))
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
 			if(breadcrumbs.doctype==="User"
 				&& frappe.user.is_module("Setup")===-1
-				|| frappe.get_doc('DocType', breadcrumbs.doctype, 'issingle')) {
+				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {
 				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
