@@ -17,7 +17,7 @@ frappe.ui.form.Control = Class.extend({
 
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
-			frappe.boot.developer_mode===0 && this.$wrapper) {
+			frappe.boot.developer_mode===1 && this.$wrapper) {
 				this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 
