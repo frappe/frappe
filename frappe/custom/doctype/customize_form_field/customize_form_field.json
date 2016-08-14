@@ -216,6 +216,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
+   "tooltip": "A small rectangular pop-up window that displays a brief description and help information when the label is clicked or touched.", 
+   "tooltiplink": "", 
    "unique": 0
   }, 
   {
@@ -241,6 +243,7 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
+   "tooltip": "A web link to the help manual to access useful information about this field.", 
    "unique": 0
   }, 
   {
@@ -906,7 +909,7 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2016-08-12 14:13:03.406890", 
+ "modified": "2016-08-14 16:15:38.961754", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form Field", 

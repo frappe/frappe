@@ -403,7 +403,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		//$(this.label_area).attr("data-html","true");
 		//$(this.label_area).attr("data-placement","auto");
 		//$(this.label_area).attr("trigger","click");
-		$(this.label_area).attr("data-content","this is just a test");
+		if (this.df.tooltip) {
+		    var tip=__(this.df.tooltip);
+		    if (this.df.tooltiplink){
+			tip = tip + "<a target='_blank' href=" + __(this.df.tooltiplink) + "><br><strong>" + __("More") + "</strong></a>";
+		    }
+		    $(this.label_area).attr("data-content",tip);
+		}
 	}
 });
 

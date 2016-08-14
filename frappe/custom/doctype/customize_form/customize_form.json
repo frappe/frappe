@@ -236,8 +236,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "tooltip": "IS IT IMAGE", 
-   "tooltiplink": "TEST WEB SITE", 
+   "tooltip": "", 
+   "tooltiplink": "", 
    "unique": 0
   }, 
   {
@@ -502,7 +502,7 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-08-11 18:39:33.760725", 
+ "modified": "2016-08-14 17:17:23.766938", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form", 
