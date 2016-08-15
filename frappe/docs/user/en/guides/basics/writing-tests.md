@@ -1,6 +1,6 @@
 # Writing Tests
 
-### Introduction
+## 1.Introduction
 
 Frappe provides some basic tooling to quickly write automated tests. There are some basic rules:
 
@@ -11,9 +11,30 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 1. Tests can be executed using `bench run-tests`
 1. For non-DocType tests, you can write simple unittests and prefix your file names with `test_`.
 
-### Tests for a DocType
+---
 
-#### Writing DocType Tests:
+## 2. Running Tests
+
+This function will build all the test dependencies and run your tests.
+
+bench run-tests 
+	
+### Options:
+
+	--app [App Name]
+	--doctype [DocType]
+	--test [Specific Test]
+	--module [Run a particular module that has tests]
+	--profile [Runs a Python profiler on the test]
+	
+### Example:
+
+
+---
+
+## 3. Tests for a DocType
+
+### 3.1. Writing DocType Tests:
 
 1. Records that are used for testing are stored in a file `test_records.json` in the doctype folder. [For example see the Event Tests](https://github.com/frappe/frappe/blob/develop/frappe/core/doctype/event/test_records.json).
 1. Test cases are in a file named `test_[doctype].py`
@@ -86,23 +107,8 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 			self.assertTrue("_Test Event 3" in subjects)
 			self.assertFalse("_Test Event 2" in subjects)
 
-#### Running Tests
 
-To run a test for a doctype
-
-	bench run-tests --doctype [doctype]
-
-This function will build all the test dependencies and run your tests.
-
-### Running All Tests
-
-To run all tests:
-
-	bench run-tests
-
----
-
-## Client Side Testing (Using Selenium)
+## 3. Client Side Testing (Using Selenium)
 
 > This feature is still under development.
 
