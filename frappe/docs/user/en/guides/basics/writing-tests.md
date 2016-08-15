@@ -1,4 +1,4 @@
-# Writing Tests
+# Writing Tests Guide
 
 ## 1.Introduction
 
@@ -27,8 +27,11 @@ bench run-tests
 	--module [Run a particular module that has tests]
 	--profile [Runs a Python profiler on the test]
 	
-### Example:
-
+#### 2.1 Example for app:
+#### 2.2 Example for doctype:
+#### 2.3 Example for test:
+#### 2.4 Example for module:
+#### 2.5 Example for profile:
 
 ---
 
@@ -108,7 +111,7 @@ bench run-tests
 			self.assertFalse("_Test Event 2" in subjects)
 
 
-## 3. Client Side Testing (Using Selenium)
+## 4. Client Side Testing (Using Selenium)
 
 > This feature is still under development.
 
