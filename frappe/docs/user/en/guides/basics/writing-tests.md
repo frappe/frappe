@@ -18,7 +18,11 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 This function will build all the test dependencies and run your tests.
 You should run tests from "frappe_bench" folder.
 
-bench run-tests 
+	bench run-tests 
+
+If you need more information about test execution - you can use verbose log level for bench.
+
+	bench --verbose run-tests
 	
 ### Options:
 
@@ -29,7 +33,7 @@ bench run-tests
 	--profile [Runs a Python profiler on the test]
 	
 #### 2.1. Example for app:
-All application are located in folder: "~/frappe-bench/apps". 
+All applications are located in folder: "~/frappe-bench/apps". 
 We can run tests for each application.
 
 	- frappe-bench/apps/erpnext/
@@ -42,8 +46,35 @@ We can run tests for each application.
 
 
 #### 2.2. Example for doctype:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost"
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.008s
+	
+	OK
+
 #### 2.3. Example for test:
 #### 2.4. Example for module:
+If we want to run tests in the module:
+
+	/home/frappe/frappe-bench/apps/erpnext/erpnext/support/doctype/issue/test_issue.py
+	
+We should use module name like this (related to application folder)
+
+	erpnext.support.doctype.issue.test_issue
+	
+EXAMPLE:
+	
+	frappe@erpnext:~/frappe-bench$ bench run-tests --module "erpnext.stock.doctype.stock_entry.test_stock_entry"
+	...........................
+	----------------------------------------------------------------------
+	Ran 27 tests in 30.549s
+
+	
+
+
+
 #### 2.5. Example for profile:
 
 ---
