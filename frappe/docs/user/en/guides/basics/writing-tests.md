@@ -16,7 +16,7 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 ## 2. Running Tests
 
 This function will build all the test dependencies and run your tests.
-You should run tests from "frappe_bench" folder.
+You should run tests from "frappe_bench" folder. Without options all tests will be run.
 
 	bench run-tests 
 
@@ -72,9 +72,6 @@ EXAMPLE:
 	Ran 27 tests in 30.549s
 
 	
-
-
-
 #### 2.5. Example for profile:
 
 ---
