@@ -11,8 +11,6 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 1. Tests can be executed using `bench run-tests`
 1. For non-DocType tests, you can write simple unittests and prefix your file names with `test_`.
 
----
-
 ## 2. Running Tests
 
 This function will build all the test dependencies and run your tests.
@@ -98,12 +96,8 @@ We should use module name like this (related to application folder)
 	        1    0.000    0.000    0.003    0.003 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:386(_validate)
 	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/database.py:77(sql)
 	      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
-	       12    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:649(run_method)
-	       12    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:830(composer)
-	        1    0.000    0.000    0.002    0.002 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:616(_validate_links)
-	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/env/local/lib/python2.7/site-packages/MySQLdb/cursors.py:164(execute)
+	       12    0.000    0.000    0.002    0.000 
 
----
 
 ## 3. Tests for a DocType
 
