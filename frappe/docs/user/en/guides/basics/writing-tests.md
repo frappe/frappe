@@ -26,11 +26,11 @@ If you need more information about test execution - you can use verbose log leve
 	
 ### Options:
 
-	--app [App Name]
-	--doctype [DocType]
-	--test [Specific Test]
-	--module [Run a particular module that has tests]
-	--profile [Runs a Python profiler on the test]
+	--app <AppName>
+	--doctype <DocType>
+	--test <SpecificTest>
+	--module <Module> (Run a particular module that has tests)
+	--profile (Runs a Python profiler on the test)
 	
 #### 2.1. Example for app:
 All applications are located in folder: "~/frappe-bench/apps". 
@@ -55,6 +55,15 @@ We can run tests for each application.
 	OK
 
 #### 2.3. Example for test:
+Run a specific case in User:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype User --test test_get_value
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.005s
+	
+	OK
+
 #### 2.4. Example for module:
 If we want to run tests in the module:
 
@@ -64,7 +73,7 @@ We should use module name like this (related to application folder)
 
 	erpnext.support.doctype.issue.test_issue
 	
-EXAMPLE:
+#####EXAMPLE:
 	
 	frappe@erpnext:~/frappe-bench$ bench run-tests --module "erpnext.stock.doctype.stock_entry.test_stock_entry"
 	...........................
@@ -73,6 +82,26 @@ EXAMPLE:
 
 	
 #### 2.5. Example for profile:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost" --profile
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.010s
+	
+	OK
+	         9133 function calls (8912 primitive calls) in 0.011 seconds
+	
+	   Ordered by: cumulative time
+	
+	   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+	        2    0.000    0.000    0.008    0.004 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:187(insert)
+	        1    0.000    0.000    0.003    0.003 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:386(_validate)
+	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/database.py:77(sql)
+	      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
+	       12    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:649(run_method)
+	       12    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:830(composer)
+	        1    0.000    0.000    0.002    0.002 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:616(_validate_links)
+	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/env/local/lib/python2.7/site-packages/MySQLdb/cursors.py:164(execute)
 
 ---
 
