@@ -167,6 +167,39 @@ frappe.ui.Listing = Class.extend({
 		this.$w.find('.no-result').toggle(false);
 		this.start = 0;
 	},
+
+	set_filters_from_route_options: function() {
+		var me = this;
+		this.filter_list.clear_filters();
+		$.each(frappe.route_options, function(key, value) {
+			var doctype = null;
+
+			// if `Child DocType.fieldname`
+			if (key.indexOf(".")!==-1) {
+				doctype = key.split(".")[0];
+				key = key.split(".")[1];
+			}
+
+			// find the table in which the key exists
+			// for example the filter could be {"item_code": "X"}
+			// where item_code is in the child table.
+
+			// we can search all tables for mapping the doctype
+			if(!doctype) {
+				doctype = frappe.meta.get_doctype_for_field(me.doctype, key);
+			}
+
+			if(doctype) {
+				if($.isArray(value)) {
+					me.filter_list.add_filter(doctype, key, value[0], value[1]);
+				} else {
+					me.filter_list.add_filter(doctype, key, "=", value);
+				}
+			}
+		});
+		frappe.route_options = null;
+	},
+
 	run: function(more) {
 		var me = this;
 		if(!more) {

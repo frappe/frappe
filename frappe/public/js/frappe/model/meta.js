@@ -133,6 +133,31 @@ $.extend(frappe.meta, {
 			return d.fieldtype==='Table' ? d : null});
 	},
 
+	get_doctype_for_field: function(doctype, key) {
+		var out = null;
+		if(in_list(frappe.model.std_fields_list, key)) {
+			// standard
+			out = doctype;
+		} else if(frappe.meta.has_field(doctype, key)) {
+			// found in parent
+			out = doctype;
+		} else {
+			frappe.meta.get_table_fields(doctype).every(function(d) {
+				if(frappe.meta.has_field(d.options, key)) {
+					out = d.options;
+					return false;
+				}
+				return true;
+			});
+
+			if(!out) {
+				frappe.msgprint(__('Warning: Unable to find {0} in any table related to {1}', [
+					key, __(doctype)]));
+			}
+		}
+		return out;
+	},
+
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
 			{ return d.fieldtype==="Table" && options===child_dt })

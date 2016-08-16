@@ -58,7 +58,6 @@ frappe.breadcrumbs = {
 				}
 			}
 		}
-		console.log(frappe.get_doc('DocType', breadcrumbs.doctype, 'issingle'))
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
 			if(breadcrumbs.doctype==="User"
 				&& frappe.user.is_module("Setup")===-1
