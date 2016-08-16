@@ -217,7 +217,7 @@ def setup_source(page_info):
 
 			css_path = os.path.join(page_info.basepath, page_info.basename + '.css')
 			if os.path.exists(css_path):
-				js = unicode(open(css_path, 'r').read(), 'utf-8')
+				css = unicode(open(css_path, 'r').read(), 'utf-8')
 
 			html = '{% extends "templates/web.html" %}'
 
