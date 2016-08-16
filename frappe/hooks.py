@@ -125,9 +125,11 @@ scheduler_events = {
 		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.utils.error.collect_error_snapshots",
+	],
+	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
-		'frappe.model.utils.list_settings.sync_list_settings'
+		'frappe.model.utils.list_settings.sync_list_settings',
+		"frappe.utils.error.collect_error_snapshots"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -139,8 +141,7 @@ scheduler_events = {
 		"frappe.async.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
-		"frappe.limits.update_space_usage"
-
+		"frappe.limits.update_space_usage",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"

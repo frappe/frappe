@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 	where patch1, patch2 is module name
 """
-import frappe, os, frappe.permissions
+import frappe, frappe.permissions
 
 class PatchError(Exception): pass
 
@@ -20,11 +20,19 @@ def run_all():
 	"""run all pending patches"""
 	executed = [p[0] for p in frappe.db.sql("""select patch from `tabPatch Log`""")]
 
+	frappe.flags.final_patches = []
 	for patch in get_all_patches():
 		if patch and (patch not in executed):
 			if not run_single(patchmodule = patch):
 				log(patch + ': failed: STOPPED')
 				raise PatchError(patch)
+
+	# patches to be run in the end
+	for patch in frappe.flags.final_patches:
+		patch = patch.replace('finally:', '')
+		if not run_single(patchmodule = patch):
+			log(patch + ': failed: STOPPED')
+			raise PatchError(patch)
 
 def get_all_patches():
 	patches = []
@@ -62,11 +70,15 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		log('Executing {patch} in {site} ({db})'.format(patch=patchmodule or str(methodargs),
 			site=frappe.local.site, db=frappe.db.cur_db_name))
 		if patchmodule:
-			if patchmodule.startswith("execute:"):
-				exec patchmodule.split("execute:")[1] in globals()
+			if patchmodule.startswith("finally:"):
+				# run run patch at the end
+				frappe.flags.final_patches.append(patchmodule)
 			else:
-				frappe.get_attr(patchmodule.split()[0] + ".execute")()
-			update_patch_log(patchmodule)
+				if patchmodule.startswith("execute:"):
+					exec patchmodule.split("execute:")[1] in globals()
+				else:
+					frappe.get_attr(patchmodule.split()[0] + ".execute")()
+				update_patch_log(patchmodule)
 		elif method:
 			method(**methodargs)
 
@@ -87,6 +99,9 @@ def update_patch_log(patchmodule):
 
 def executed(patchmodule):
 	"""return True if is executed"""
+	if patchmodule.startswith('finally:'):
+		# patches are saved without the finally: tag
+		patchmodule = patchmodule.replace('finally:', '')
 	done = frappe.db.get_value("Patch Log", {"patch": patchmodule})
 	# if done:
 	# 	print "Patch %s already executed in %s" % (patchmodule, frappe.db.cur_db_name)
