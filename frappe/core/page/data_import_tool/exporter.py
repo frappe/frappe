@@ -74,8 +74,12 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	def build_field_columns(dt):
 		meta = frappe.get_meta(dt)
 
-		tablecolumns = filter(None,
-			[(meta.get_field(f[0]) or None) for f in frappe.db.sql('desc `tab%s`' % dt)])
+		# build list of valid docfields
+		tablecolumns = []
+		for f in frappe.db.sql('desc `tab%s`' % dt):
+			field = meta.get_field(f[0])
+			if field and ((select_columns and f[0] in select_columns[dt]) or not select_columns):
+				tablecolumns.append(field)
 
 		tablecolumns.sort(lambda a, b: int(a.idx - b.idx))
 
@@ -101,8 +105,13 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		for docfield in tablecolumns:
 			append_field_column(docfield, False)
 
+		# if there is one column, add a blank column (?)
+		if len(columns)-column_start_end[dt].start == 1:
+			append_empty_field_column()
+
 		# append DocType name
 		tablerow[column_start_end[dt].start + 1] = dt
+
 		if dt!=doctype:
 			tablerow[column_start_end[dt].start + 2] = doctype_parentfield[dt]
 
@@ -176,17 +185,18 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			if len(row_group) < rowidx + 1:
 				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
-			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
-				df = meta.get_field(c)
-				fieldtype = df.fieldtype if df else "Data"
-				value = d.get(c, "")
-				if value:
-					if fieldtype == "Date":
-						value = formatdate(value)
-					elif fieldtype == "Datetime":
-						value = format_datetime(value)
+			if column_start_end.get(dt):
+				for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
+					df = meta.get_field(c)
+					fieldtype = df.fieldtype if df else "Data"
+					value = d.get(c, "")
+					if value:
+						if fieldtype == "Date":
+							value = formatdate(value)
+						elif fieldtype == "Datetime":
+							value = format_datetime(value)
 
-				row[column_start_end[dt].start + i + 1] = value
+					row[column_start_end[dt].start + i + 1] = value
 
 		if with_data=='Yes':
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
@@ -258,7 +268,9 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	if all_doctypes:
 		for d in child_doctypes:
 			append_empty_field_column()
-			build_field_columns(d)
+			if (select_columns and select_columns.get(d, None)) or not select_columns:
+				# if atleast one column is selected for this doctype
+				build_field_columns(d)
 
 	add_field_headings()
 	add_data()
