@@ -495,6 +495,16 @@ def sanitize_email(emails):
 
 	return ", ".join(sanitized)
 
+def get_installed_apps_info():
+	out = []
+	for app in frappe.get_installed_apps():
+		out.append({
+			'app_name': app,
+			'version': getattr(frappe.get_module(app), '__version__', 'Unknown')
+		})
+
+	return out
+
 def get_site_info():
 	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import STANDARD_USERS
@@ -514,6 +524,7 @@ def get_site_info():
 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
 
 	site_info = {
+		'installed_apps': get_installed_apps_info(),
 		'users': users,
 		'country': system_settings.country,
 		'language': system_settings.language or 'english',
