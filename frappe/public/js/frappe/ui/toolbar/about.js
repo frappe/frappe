@@ -13,7 +13,7 @@ frappe.ui.misc.about = function() {
 		<h4>Installed Apps</h4>\
 		<div id='about-app-versions'>Loading versions...</div>\
 		<hr>\
-		<p class='text-muted'>&copy; 2015 Frappe Technologies Pvt. Ltd and contributors </p> \
+		<p class='text-muted'>&copy; 2016 Frappe Technologies Pvt. Ltd and contributors </p> \
 		</div>", frappe.app));
 
 		frappe.ui.misc.about_dialog = d;
