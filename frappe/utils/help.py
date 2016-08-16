@@ -24,6 +24,10 @@ def sync():
 def get_help(text):
 	return HelpDatabase().search(text)
 
+@frappe.whitelist()
+def get_help_content(path):
+	return HelpDatabase().get_content(path)
+
 class HelpDatabase(object):
 	def __init__(self):
 		self.make_database()
@@ -50,7 +54,10 @@ class HelpDatabase(object):
 				CHARACTER SET=utf8mb4''')
 
 	def search(self, words):
-		return self.db.sql('select title, intro, content from help where match(content) against (%s) limit 10', words)
+		return self.db.sql('select title, intro, path from help where match(content) against (%s) limit 10', words)
+
+	def get_content(self, path):
+		return self.db.sql('select content from help where path like "{path}%"'.format(path=path))
 
 	def sync_pages(self):
 		self.db.sql('truncate help')
@@ -61,19 +68,23 @@ class HelpDatabase(object):
 					for fname in files:
 						if fname.rsplit('.', 1)[-1] in ('md', 'html'):
 							fpath = os.path.join(basepath, fname)
-							print fpath
 							with open(fpath, 'r') as f:
-								title = self.get_title(fname)
+								title = self.get_title(basepath, fname)
 								content = frappe.render_template(unicode(f.read(), 'utf-8'),
 									{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 								intro = self.get_intro(content)
+								content = self.build_content(content, fpath)
 								#relpath = os.path.relpath(fpath, '../apps/{app}'.format(app=app))
 								self.db.sql('''insert into help(path, content, title, intro)
 									values (%s, %s, %s, %s)''', (fpath, content, title, intro))
 
-	def get_title(self, filename):
-		filename = filename.rsplit('.', 1)[0]
-		return re.sub(r"-", " ", filename.title())
+	def get_title(self, basepath, filename):
+		if 'index' in filename:
+			title = basepath.rsplit('/', 1)[-1].title()
+		else:
+			title = filename.rsplit('.', 1)[0]
+			title = title.title().replace("-", " ")
+		return title
 
 	def get_intro(self, content):
 		html = markdown(content)
@@ -83,3 +94,22 @@ class HelpDatabase(object):
 			intro = ""
 		return intro
 
+	def build_content(self, content, path):
+		if '{index}' in content:
+			path = path.rsplit("/", 1)[0]
+			index_path = os.path.join(path, "index.txt")
+			if os.path.exists(index_path):
+				with open(index_path, 'r') as f:
+					lines = f.read().split('\n')
+					html = "<ol class='index-links'>"
+					for line in lines:
+						fpath = os.path.join(path, line)
+						title = line.title().replace("-", " ")
+						if title:
+							html += "<li><a data-path='{fpath}'> {title} </a></li>".format(fpath=fpath, title=title)
+					content = content.replace('{index}', html)
+
+		if '{next}' in content:
+			content = content.replace('{next}', '')
+
+		return content

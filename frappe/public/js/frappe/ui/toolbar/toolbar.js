@@ -79,7 +79,17 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
-			var links = frappe.help.help_links[frappe.get_route_str()] || [];
+
+			var route = frappe.get_route_str();
+			var breadcrumbs = route.split("/");
+
+			var links = [];
+			for (var i = 0; i < breadcrumbs.length; i++) {
+				var r = route.split("/", i + 1);
+				var key = r.join("/");
+				var help_links = frappe.help.help_links[key] || [];
+				links = $.merge(links, help_links);
+			}
 
 			if(links.length === 0) {
 				$help_links.prev().hide();
@@ -94,6 +104,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		});
 
+		var $help_modal = frappe.get_modal("Help", "");
+		$help_modal.addClass('help-modal');
+
+		var $result_modal = frappe.get_modal("", "");
+		$result_modal.addClass("help-modal");
+
 		function show_help_results(keywords) {
 
 			frappe.call({
@@ -103,14 +119,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				},
 				callback: function (r) {
 					var results = r.message || [];
-					var converter = new Showdown.converter();
 					var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
 
 					for (var i = 0, l = results.length; i < l; i++) {
 						var title = results[i][0];
 						var intro = results[i][1];
+						var fpath = results[i][2];
+
 						result_html +=	"<div class='search-result'>" +
-											"<a href='#' class='h4' data-index='"+i+"'>" + title + "</a>" +
+											"<a href='#' class='h4' data-path='"+fpath+"'>" + title + "</a>" +
 											"<p>" + intro + "</p>" +
 										"</div>";
 					}
@@ -119,16 +136,30 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 						result_html += "<p class='padding'>No results found</p>";
 					}
 
-					var $help_modal = frappe.get_modal("Help", result_html).modal("show");
-					$help_modal.addClass("help-modal");
+					$help_modal.find('.modal-body').html(result_html);
+					$help_modal.modal('show');
+				}
+			});
 
-					$(".search-result").on("click", "a", function (e) {
-						var i = $(this).attr("data-index");
-						var title = results[i][0];
-						var content = results[i][2];
-						var content_html = converter.makeHtml(content);
-						var $result_modal = frappe.get_modal(title, content_html).modal("show");
-						$result_modal.addClass("help-modal");
+			$(document).on("click", ".help-modal a", function (e) {
+				console.log('clicked')
+				e.preventDefault();
+				var converter = new Showdown.converter();
+				var path = $(this).attr("data-path");
+				if(path) {
+					var title = $(this).text();
+					frappe.call({
+						method: "frappe.utils.help.get_help_content",
+						args: {
+							path: path
+						},
+						callback: function (r) {
+							var content = r.message[0][0];
+							var content_html = converter.makeHtml(content);
+							$result_modal.find('.modal-title').text(title);
+							$result_modal.find('.modal-body').html(content_html);
+							$result_modal.modal('show');
+						}
 					});
 				}
 			});

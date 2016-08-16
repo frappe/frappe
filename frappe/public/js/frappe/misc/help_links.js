@@ -29,10 +29,6 @@ frappe.help.help_links['Form/System Settings'] = [
 	{ label: 'System Settings', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/system-settings' },
 ]
 
-frappe.help.help_links['Form/System Settings/System Settings'] = [
-	{ label: 'System Settings', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/system-settings' },
-]
-
 frappe.help.help_links['modules_setup'] = [
 	{ label: 'Show or Hide Desktop Icons', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/module-settings' },
 ]
@@ -50,6 +46,6 @@ frappe.help.help_links['Form/Print Settings'] = [
 ]
 
 frappe.help.help_links['print-format-builder'] = [
-	{ label: 'Print Format Builders', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/print/print-format-builder' },
+	{ label: 'Print Format Builder', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/print/print-format-builder' },
 ]
 

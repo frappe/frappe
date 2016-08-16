@@ -594,6 +594,9 @@ fieldset[disabled] .form-control {
   margin: 8px 0px;
   max-width: 100%;
 }
+.help-modal a {
+  color: #5E64FF;
+}
 .help-modal .modal-dialog {
   width: 768px;
 }
@@ -614,7 +617,4 @@ fieldset[disabled] .form-control {
 }
 .search-result {
   margin-bottom: 24px;
-}
-.search-result a {
-  color: #5E64FF;
 }
