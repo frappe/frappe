@@ -58,6 +58,7 @@ class EmailAccount(Document):
 				self.get_server()
 				self.no_failed = 0
 
+
 			if self.enable_outgoing:
 				self.check_smtp()
 
@@ -131,7 +132,8 @@ class EmailAccount(Document):
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
 			"uid_validity":self.uid_validity,
-			"uidnext":self.uidnext
+			"uidnext":self.uidnext,
+			"no_remaining":self.no_remaining
 		})
 		if self.password:
 			args.password = self.get_password()
@@ -159,8 +161,12 @@ class EmailAccount(Document):
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
-				self.handle_incoming_connect_error(description=description)
-
+				if test_internet():
+					self.db_set("no_failed", self.no_failed + 1)
+					if self.no_failed > 2:
+						self.handle_incoming_connect_error(description=description)
+				else:
+					frappe.cache().set_value("workers:no-internet", True)
 				return None
 
 			else:
@@ -176,6 +182,20 @@ class EmailAccount(Document):
 	def handle_incoming_connect_error(self, description):
 		if test_internet():
 			if self.get_failed_attempts_count() > 2:
+		self.db_set("enable_incoming", 0)
+		for user in get_system_managers(only_name=True):
+			try:
+				assign_to.add({
+					'assign_to': user,
+					'doctype': self.doctype,
+					'name': self.name,
+					'description': description,
+					'priority': 'High',
+					'notify': 1
+				})
+			except assign_to.DuplicateToDoError:
+				frappe.message_log.pop()
+				pass
 				self.db_set("enable_incoming", 0)
 	
 				for user in get_system_managers(only_name=True):
@@ -239,7 +259,7 @@ class EmailAccount(Document):
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 
-					if self.no_remaining == 0:
+					if communication.message_id and not communication.timeline_hide:
 					if communication.message_id and not communication.timeline_hide:
 						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
 						if first:
@@ -293,6 +313,7 @@ class EmailAccount(Document):
 			raw, uid, seen = msg
 		else:
 			raw = msg
+			seen = uid = None
 		email = Email(raw)
 
 		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
@@ -300,7 +321,7 @@ class EmailAccount(Document):
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
-
+		
 		communication = frappe.get_doc({
 			"doctype": "Communication",
 			"subject": email.subject,
@@ -322,7 +343,7 @@ class EmailAccount(Document):
 
 		self.set_thread(communication, email)
 
-		if not self.no_remaining == 0:
+		if not self.no_remaining == '0':
 			communication.unread_notification_sent = 1
 
 		communication.flags.in_receive = True
@@ -361,7 +382,6 @@ class EmailAccount(Document):
 		it will create a new parent transaction (e.g. Issue)"""
 		in_reply_to = (email.mail.get("In-Reply-To") or "")
 		parent = None
-
 		if self.append_to:
 			# set subject_field and sender_field
 			meta_module = frappe.get_meta_module(self.append_to)
@@ -375,10 +395,37 @@ class EmailAccount(Document):
 		matched = False
 		if in_reply_to:
 			# reply to a communication sent from the system
- 			origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
+			reply_found = frappe.db.get_value("Communication", {"message_id": in_reply_to}, ["name","reference_doctype","reference_name"],as_dict=1)
 				matched = True
 			if email.message_id:
 				first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"],as_dict=1)
+				communication.reference_doctype = reply_found.reference_doctype
+				communication.reference_name = reply_found.reference_name
+		if email.message_id:
+			first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"],as_dict=1)
+			
+			
+			'''origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
+			if origin:
+				in_reply_to = origin[0][0]
+
+				if frappe.db.exists("Communication", in_reply_to):
+					parent = frappe.get_doc("Communication", in_reply_to)
+
+					# set in_reply_to of current communication
+					communication.in_reply_to = in_reply_to
+
+					if parent.reference_name:
+						parent = frappe.get_doc(parent.reference_doctype,
+							parent.reference_name)
+			'''
+		
+			if first:
+				#set timeline hide to parent doc so are linked
+				communication.timeline_hide = first.name
+				communication.reference_doctype = first.reference_doctype
+				communication.reference_name = first.reference_name
+		else:
 			
 				if first:
 					#set timeline hide to parent doc so are linked
@@ -476,7 +523,7 @@ class EmailAccount(Document):
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
-				message_id = communication.name,
+				#message_id = communication.name,
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = _("Leave this conversation"))
 
@@ -499,15 +546,15 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
 	if frappe.cache().get_value("workers:no-internet") == True:
-	 	if test_internet():
-	 		frappe.cache().set_value("workers:no-internet", False)
-	 	else:	
-	 		return
+		if test_internet():
+			frappe.cache().set_value("workers:no-internet", False)
+		else:	
+			return
 	
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""
-    Host: 8.8.8.8 (google-public-dns-a.google.com)
+	Host: 8.8.8.8 (google-public-dns-a.google.com)
    OpenPort: 53/tcp
    Service: domain (DNS/TCP)
    """
@@ -517,7 +564,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		return True
 	except Exception as ex:
 		print ex.message
-        return False
+		return False
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""

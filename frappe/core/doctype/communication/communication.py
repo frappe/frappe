@@ -48,25 +48,25 @@ class Communication(Document):
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
 			return
+		if not self.timeline_hide:
+			if self.communication_type in ("Communication", "Comment"):
+				# send new comment to listening clients
+				frappe.publish_realtime('new_communication', self.as_dict(),
+				    doctype=self.reference_doctype, docname=self.reference_name,
+				    after_commit=True)
 
-		if self.communication_type in ("Communication", "Comment"):
-			# send new comment to listening clients
-			frappe.publish_realtime('new_communication', self.as_dict(),
-				doctype= self.reference_doctype, docname = self.reference_name,
-				after_commit=True)
+				if self.communication_type == "Comment":
+					notify_mentions(self)
 
-			if self.communication_type == "Comment":
-				notify_mentions(self)
-
-		elif self.communication_type in ("Chat", "Notification", "Bot"):
-			if self.reference_name == frappe.session.user:
-				message = self.as_dict()
-				message['broadcast'] = True
-				frappe.publish_realtime('new_message', message, after_commit=True)
-			else:
-				# reference_name contains the user who is addressed in the messages' page comment
-				frappe.publish_realtime('new_message', self.as_dict(),
-					user=self.reference_name, after_commit=True)
+			elif self.communication_type in ("Chat", "Notification", "Bot"):
+				if self.reference_name == frappe.session.user:
+					message = self.as_dict()
+					message['broadcast'] = True
+					frappe.publish_realtime('new_message', message, after_commit=True)
+				else:
+					# reference_name contains the user who is addressed in the messages' page comment
+					frappe.publish_realtime('new_message', self.as_dict(),
+					    user=self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
@@ -118,7 +118,7 @@ class Communication(Document):
 						sender_name = None
 
 				self.sender = sender_email
-				self.sender_full_name = sender_name or get_fullname(frappe.session.user)
+				self.sender_full_name = sender_name #or get_fullname(frappe.session.user) #makes sender as administrator if not found
 
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""

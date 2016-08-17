@@ -1054,7 +1054,7 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0 
+   "unique": 0
   }
  ], 
  "hide_heading": 0, 
@@ -1067,7 +1067,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-08-16 11:47:33.326276",  
+ "modified": "2016-08-16 11:47:33.326276", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
