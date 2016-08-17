@@ -43,8 +43,8 @@ def add(args=None):
 	else:
 		from frappe.utils import nowdate
 
-		if args.get("re_assign"):
-			remove_from_todo_if_already_assigned(args['doctype'], args['name'])
+		#if args.get("re_assign"):
+		#	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",

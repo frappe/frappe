@@ -152,7 +152,7 @@ def update_parent_status(doc):
 
 	status_field = parent.meta.get_field("status")
 
-	if status_field and "Open" in (status_field.options or "").split("\n"):
+	if status_field and "Replied" in (status_field.options or "").split("\n"):
 		to_status = "Open" if doc.sent_or_received=="Received" else "Replied"
 
 		if to_status in status_field.options.splitlines():
@@ -176,8 +176,9 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 		original_recipients, recipients = recipients, []
 
 		# send email to the sender of the previous email in the thread which this email is a reply to
-		if doc.previous_email_sender:
-			recipients.append(doc.previous_email_sender)
+		#provides erratic results and can send external 
+		#if doc.previous_email_sender:
+		#	recipients.append(doc.previous_email_sender)
 
 		# cc that was received in the email
 		original_cc = split_emails(doc.cc)
@@ -258,10 +259,10 @@ def get_recipients(doc, fetched_from_email_account=False):
 	# [EDGE CASE] doc.recipients can be None when an email is sent as BCC
 	recipients = split_emails(doc.recipients)
 
-	if fetched_from_email_account and doc.in_reply_to:
+	#if fetched_from_email_account and doc.in_reply_to:
 		# add sender of previous reply
-		doc.previous_email_sender = frappe.db.get_value("Communication", doc.in_reply_to, "sender")
-		recipients.append(doc.previous_email_sender)
+		#doc.previous_email_sender = frappe.db.get_value("Communication", doc.in_reply_to, "sender")
+		#recipients.append(doc.previous_email_sender)
 
 	if recipients:
 		# exclude email accounts

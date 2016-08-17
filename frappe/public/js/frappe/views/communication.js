@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Add Reply") + ": " + (this.subject || ""),
+			title: this.forward?__("Forward")+ ": " + (this.subject || ""):__("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: "Send",
@@ -52,14 +52,14 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields= [
 			{fieldtype: "Section Break"},
 			this.from ,
-			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
+			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
-			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
+			{label:__("CC"), fieldtype:"Data", fieldname:"cc",length:524288},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
-				fieldname:"subject"},
+				fieldname:"subject",length:524288},
 			{fieldtype: "Section Break"},
 			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content"},
@@ -85,7 +85,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Select Attachments"), fieldtype:"HTML",
 				fieldname:"select_attachments"}
 		];
-		if(!fields[1]){
+		if(!fields[1]){//removes from if doesnt have assigned email
 			fields.splice(1,1)
 		}
 		return fields
@@ -123,6 +123,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_last_edited_communication();
 		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
+		if(this.dialog.fields_dict.sender) {
+		$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
+		}
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();
 	},
@@ -130,11 +133,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_subject_and_recipients: function() {
 		this.subject = this.subject || "";
 
-		if(!this.recipients && this.last_email) {
+		if(!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
 		}
 
-		if(!this.recipients) {
+		if(!this.forward && !this.recipients) {
 			this.recipients = this.frm && this.frm.timeline.get_recipient();
 		}
 
@@ -249,7 +252,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_print_language: function() {
 		var me = this;
-		var doc = cur_frm.doc;
+		var doc = this.doc || cur_frm.doc;
 		var fields = this.dialog.fields_dict;
 
 		//Load default print language from doctype

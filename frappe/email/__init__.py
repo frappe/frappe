@@ -34,8 +34,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=
 	reply_to=None, cc=(), message_id=None, in_reply_to=None):
 	"""send an html email as multipart with attachments and all"""
 	mail = get_email(recipients, sender, content or msg, subject, attachments=attachments, reply_to=reply_to, cc=cc)
-	if message_id:
-		mail.set_message_id(message_id)
+	mail.set_message_id(message_id)
 	if in_reply_to:
 		mail.set_in_reply_to(in_reply_to)
 

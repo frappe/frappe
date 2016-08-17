@@ -10,7 +10,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -283,7 +283,8 @@ def flush(from_test=False):
 		except (smtplib.SMTPServerDisconnected,
 				smtplib.SMTPConnectError,
 				smtplib.SMTPHeloError,
-				smtplib.SMTPAuthenticationError):
+				smtplib.SMTPAuthenticationError,
+				frappe.ValidationError):
 
 			# bad connection, retry later
 			frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",

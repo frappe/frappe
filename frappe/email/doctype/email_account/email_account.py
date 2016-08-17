@@ -59,6 +59,7 @@ class EmailAccount(Document):
 		if not self.awaiting_password and not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
 				self.get_server()
+				self.no_failed = 0
 
 
 			if self.enable_outgoing:
@@ -169,8 +170,12 @@ class EmailAccount(Document):
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
-				self.handle_incoming_connect_error(description=description)
-
+				if test_internet():
+					self.db_set("no_failed", self.no_failed + 1)
+					if self.no_failed > 2:
+						self.handle_incoming_connect_error(description=description)
+				else:
+					frappe.cache().set_value("workers:no-internet", True)
 				return None
 
 			else:
@@ -178,27 +183,25 @@ class EmailAccount(Document):
 		if not in_receive:
 			if self.use_imap:
 				email_server.imap.logout()
+		if self.no_failed >0:
+			self.db_set("no_failed", 0)
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		if frappe.utils.test_internet():
-			self.db_set("enable_incoming", 0)
-
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add({
-						'assign_to': user,
-						'doctype': self.doctype,
-						'name': self.name,
-						'description': description,
-						'priority': 'High',
-						'notify': 1
-					})
-				except assign_to.DuplicateToDoError:
-					frappe.message_log.pop()
-					pass
-		else:
-			frappe.cache().set_value("workers:no-internet", True)
+		self.db_set("enable_incoming", 0)
+		for user in get_system_managers(only_name=True):
+			try:
+				assign_to.add({
+					'assign_to': user,
+					'doctype': self.doctype,
+					'name': self.name,
+					'description': description,
+					'priority': 'High',
+					'notify': 1
+				})
+			except assign_to.DuplicateToDoError:
+				frappe.message_log.pop()
+				pass
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -242,6 +245,12 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
+
+					if communication.message_id and not communication.timeline_hide:
+						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
+						if first:
+							if first.name != communication.name:
+								communication.db_set("timeline_hide",first.name,update_modified=False)
 					
 					if self.no_remaining == '0':
 						if communication.reference_doctype:
@@ -293,6 +302,7 @@ class EmailAccount(Document):
 			raw, uid, seen = msg
 		else:
 			raw = msg
+			seen = uid = None
 		email = Email(raw)
 
 		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
@@ -301,10 +311,7 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 		contact = set_customer_supplier(email.from_email,email.To)
-		if email.message_id:
-			timeline_hide =  frappe.db.get_value("Communication", {"message_id":email.message_id}, "name")
-			#frappe.db.sql("select name from tabCommunication where message_id =  %(message_id)s limit 1",{"message_id":email.message_id})
-
+		
 		communication = frappe.get_doc({
 			"doctype": "Communication",
 			"subject": email.subject,
@@ -324,8 +331,7 @@ class EmailAccount(Document):
 			"actualdate":email.date,
 			"has_attachment": 1 if email.attachments else 0,
 			"seen":seen,
-			"unique_id":email.unique_id,
-			"timeline_hide": timeline_hide
+			"unique_id":email.unique_id
 		})
 
 		self.set_thread(communication, email)
@@ -369,7 +375,6 @@ class EmailAccount(Document):
 		it will create a new parent transaction (e.g. Issue)"""
 		in_reply_to = (email.mail.get("In-Reply-To") or "")
 		parent = None
-
 		if self.append_to:
 			# set subject_field and sender_field
 			meta_module = frappe.get_meta_module(self.append_to)
@@ -383,7 +388,17 @@ class EmailAccount(Document):
 
 		if in_reply_to:
 			# reply to a communication sent from the system
-			origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
+			reply_found = frappe.db.get_value("Communication", {"message_id": in_reply_to}, ["name","reference_doctype","reference_name"],as_dict=1)
+			if reply_found:
+				# set in_reply_to of current communication
+				communication.in_reply_to = reply_found.name
+				communication.reference_doctype = reply_found.reference_doctype
+				communication.reference_name = reply_found.reference_name
+		if email.message_id:
+			first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"],as_dict=1)
+			
+			
+			'''origin = frappe.db.sql("select name from tabCommunication where message_id = %s",in_reply_to,as_list=1)
 			if origin:
 				in_reply_to = origin[0][0]
 
@@ -396,76 +411,84 @@ class EmailAccount(Document):
 					if parent.reference_name:
 						parent = frappe.get_doc(parent.reference_doctype,
 							parent.reference_name)
-
-		if not parent and self.append_to and sender_field:
-			if subject_field:
-				# try and match by subject and sender
-				# if sent by same sender with same subject,
-				# append it to old coversation
-				subject = strip(re.sub("^\s*(Re|RE)[^:]*:\s*", "", email.subject))
-
-				parent = frappe.db.get_all(self.append_to, filters={
-					sender_field: email.from_email,
-					subject_field: ("like", "%{0}%".format(subject)),
-					"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
-				}, fields="name")
-
-				# match only subject field
-				# when the from_email is of a user in the system
-				# and subject is atleast 10 chars long
-				if not parent and len(subject) > 10 and is_system_user(email.from_email):
+			'''
+		
+			if first:
+				#set timeline hide to parent doc so are linked
+				communication.timeline_hide = first.name
+				communication.reference_doctype = first.reference_doctype
+				communication.reference_name = first.reference_name
+		else:
+			
+			if not parent and self.append_to and sender_field:
+				if subject_field:
+					# try and match by subject and sender
+					# if sent by same sender with same subject,
+					# append it to old coversation
+					subject = strip(re.sub("^\s*(Re|RE)[^:]*:\s*", "", email.subject))
+	
 					parent = frappe.db.get_all(self.append_to, filters={
+						sender_field: email.from_email,
 						subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 					}, fields="name")
-
-			if parent:
-				parent = frappe.get_doc(self.append_to, parent[0].name)
-
-		if not parent:
-			# try match doctype based on subject
-			if ':' in email.subject:
-				try:
-					subject = strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*","", email.subject))
-					if ':' in subject:
-						reference_doctype,reference_name = subject.split(': ',1)
-						parent = frappe.get_doc(reference_doctype,reference_name)
-				except:
+	
+					# match only subject field
+					# when the from_email is of a user in the system
+					# and subject is atleast 10 chars long
+					if not parent and len(subject) > 10 and is_system_user(email.from_email):
+						parent = frappe.db.get_all(self.append_to, filters={
+							subject_field: ("like", "%{0}%".format(subject)),
+							"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+						}, fields="name")
+	
+				if parent:
+					parent = frappe.get_doc(self.append_to, parent[0].name)
+	
+			if not parent:
+				# try match doctype based on subject
+				if ':' in email.subject:
 					try:
-						ref = re.search("((?<=New Leave Application: ).*(?= - Employee:))",email.subject).group(0)
-						parent = frappe.get_doc("Leave Application",ref)
+						subject = strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*","", email.subject))
+						if ':' in subject:
+							reference_doctype,reference_name = subject.split(': ',1)
+							parent = frappe.get_doc(reference_doctype,reference_name)
 					except:
-						pass
-
-		if not parent and self.append_to and self.append_to!="Communication":
-			# no parent found, but must be tagged
-			# insert parent type doc
-			parent = frappe.new_doc(self.append_to)
-
-			if subject_field:
-				parent.set(subject_field, email.subject)
-
-			if sender_field:
-				parent.set(sender_field, email.from_email)
-
-			parent.flags.ignore_mandatory = True
-
-			try:
-				parent.insert(ignore_permissions=True)
-			except frappe.DuplicateEntryError:
-				# try and find matching parent
-				parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
-				if parent_name:
-					parent.name = parent_name
-				else:
-					parent = None
-
-			# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
-			communication.is_first = True
-
-		if parent:
-			communication.reference_doctype = parent.doctype
-			communication.reference_name = parent.name
+						try:
+							ref = re.search("((?<=New Leave Application: ).*(?= - Employee:))",email.subject).group(0)
+							parent = frappe.get_doc("Leave Application",ref)
+						except:
+							pass
+	
+			if not parent and self.append_to and self.append_to!="Communication":
+				# no parent found, but must be tagged
+				# insert parent type doc
+				parent = frappe.new_doc(self.append_to)
+	
+				if subject_field:
+					parent.set(subject_field, email.subject)
+	
+				if sender_field:
+					parent.set(sender_field, email.from_email)
+	
+				parent.flags.ignore_mandatory = True
+	
+				try:
+					parent.insert(ignore_permissions=True)
+				except frappe.DuplicateEntryError:
+					# try and find matching parent
+					parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
+					if parent_name:
+						parent.name = parent_name
+					else:
+						parent = None
+	
+				# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
+				communication.is_first = True
+	
+			if parent:
+				communication.reference_doctype = parent.doctype
+				communication.reference_name = parent.name
 
 		# check if message is notification and disable notifications for this message
 		references =email.mail.get("References")
@@ -486,7 +509,7 @@ class EmailAccount(Document):
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
-				message_id = communication.name,
+				#message_id = communication.name,
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = _("Leave this conversation"),
 				bulk=True)
@@ -513,7 +536,7 @@ def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	import frappe.tasks
 	if frappe.cache().get_value("workers:no-internet") == True:
-		if frappe.utils.test_internet():
+		if test_internet():
 			frappe.cache().set_value("workers:no-internet", False)
 		else:	
 			return

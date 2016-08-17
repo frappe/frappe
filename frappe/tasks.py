@@ -227,7 +227,8 @@ def sendmail(site, communication_name, print_html=None, print_format=None, attac
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
-				communication.message_id = None
+				if communication.sent_or_received == "Received":
+					communication.message_id = None
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 
