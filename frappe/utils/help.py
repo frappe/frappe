@@ -57,7 +57,7 @@ class HelpDatabase(object):
 		return self.db.sql('select title, intro, path from help where match(content) against (%s) limit 10', words)
 
 	def get_content(self, path):
-		return self.db.sql('select content from help where path like "{path}%"'.format(path=path))
+		return self.db.sql('select content from help where path like "%{path}%"'.format(path=path))
 
 	def sync_pages(self):
 		self.db.sql('truncate help')
@@ -72,8 +72,8 @@ class HelpDatabase(object):
 								title = self.get_title(basepath, fname)
 								content = frappe.render_template(unicode(f.read(), 'utf-8'),
 									{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
-								intro = self.get_intro(content)
 								content = self.build_content(content, fpath)
+								intro = self.get_intro(content)
 								#relpath = os.path.relpath(fpath, '../apps/{app}'.format(app=app))
 								self.db.sql('''insert into help(path, content, title, intro)
 									values (%s, %s, %s, %s)''', (fpath, content, title, intro))
@@ -88,10 +88,11 @@ class HelpDatabase(object):
 
 	def get_intro(self, content):
 		html = markdown(content)
+		intro = ""
 		if '<p>' in html:
 			intro = html.split('<p>', 1)[1].split('</p>', 1)[0]
-		else:
-			intro = ""
+		if 'Duration' in html:
+			intro = "Help Video: " + intro
 		return intro
 
 	def build_content(self, content, path):

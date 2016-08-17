@@ -9,30 +9,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			avatar: frappe.avatar(frappe.session.user)
 		}));
 
-		header.find(".toggle-sidebar").on("click", function () {
-			var layout_side_section = $('.layout-side-section');
-			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
-			overlay_sidebar.addClass('opened');
-			overlay_sidebar.find('.reports-dropdown').removeClass('dropdown-menu').addClass('list-unstyled');
-			overlay_sidebar.find('.dropdown-toggle').addClass('text-muted').find('.caret').addClass('hidden-xs hidden-sm');
-
-			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
-
-			var scroll_container = $('html');
-			scroll_container.css("overflow-y", "hidden");
-
-			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
-			layout_side_section.on("click", "a", close_sidebar);
-
-			function close_sidebar(e) {
-				scroll_container.css("overflow-y", "");
-
-				layout_side_section.find(".close-sidebar").fadeOut(function() {
-					overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
-					overlay_sidebar.find('.reports-dropdown').addClass('dropdown-menu');
-				});
-			}
-		});
+		this.setup_sidebar();
 
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
@@ -50,6 +27,43 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		frappe.search.setup();
+	},
+
+	setup_sidebar: function () {
+
+		var header = $('header');
+		header.find(".toggle-sidebar").on("click", function () {
+			var layout_side_section = $('.layout-side-section');
+			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
+
+			overlay_sidebar.addClass('opened');
+			overlay_sidebar.find('.reports-dropdown')
+				.removeClass('dropdown-menu')
+				.addClass('list-unstyled');
+			overlay_sidebar.find('.dropdown-toggle')
+				.addClass('text-muted').find('.caret')
+				.addClass('hidden-xs hidden-sm');
+
+			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
+
+			var scroll_container = $('html');
+			scroll_container.css("overflow-y", "hidden");
+
+			layout_side_section.find(".close-sidebar").on('click', close_sidebar);
+			layout_side_section.on("click", "a", close_sidebar);
+
+			function close_sidebar(e) {
+				scroll_container.css("overflow-y", "");
+
+				layout_side_section.find(".close-sidebar").fadeOut(function() {
+					overlay_sidebar.removeClass('opened')
+						.find('.dropdown-toggle')
+						.removeClass('text-muted');
+					overlay_sidebar.find('.reports-dropdown')
+						.addClass('dropdown-menu');
+				});
+			}
+		});
 	},
 
 	setup_help: function () {
@@ -92,16 +106,29 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 
 			if(links.length === 0) {
-				$help_links.prev().hide();
+				$help_links.next().hide();
 			}
 			else {
-				$help_links.prev().show();
+				$help_links.next().show();
 			}
 
 			for (var i = 0; i < links.length; i++) {
 				var link = links[i];
-				$("<a>", { href: link.url, text: link.label, target: "_blank" }).appendTo($help_links);
+				var url = link.url;
+				var data_path = url.slice(url.indexOf('/user'));
+				if(data_path.lastIndexOf('.')){
+					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
+				}
+
+				$("<a>", {
+					href: link.url,
+					text: link.label,
+					target: "_blank",
+					"data-path": data_path
+				}).appendTo($help_links);
 			}
+
+			$help_links.on('click', 'a', show_results);
 		});
 
 		var $help_modal = frappe.get_modal("Help", "");
@@ -110,8 +137,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		var $result_modal = frappe.get_modal("", "");
 		$result_modal.addClass("help-modal");
 
-		function show_help_results(keywords) {
+		$(document).on("click", ".help-modal a", show_results);
 
+		function show_help_results(keywords) {
 			frappe.call({
 				method: "frappe.utils.help.get_help",
 				args: {
@@ -140,32 +168,30 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					$help_modal.modal('show');
 				}
 			});
-
-			$(document).on("click", ".help-modal a", function (e) {
-				console.log('clicked')
-				e.preventDefault();
-				var converter = new Showdown.converter();
-				var path = $(this).attr("data-path");
-				if(path) {
-					var title = $(this).text();
-					frappe.call({
-						method: "frappe.utils.help.get_help_content",
-						args: {
-							path: path
-						},
-						callback: function (r) {
-							var content = r.message[0][0];
-							var content_html = converter.makeHtml(content);
-							$result_modal.find('.modal-title').text(title);
-							$result_modal.find('.modal-body').html(content_html);
-							$result_modal.modal('show');
-						}
-					});
-				}
-			});
 		}
-	}
 
+		function show_results(e) {
+			var converter = new Showdown.converter();
+			var path = $(this).attr("data-path");
+			if(path) {
+				e.preventDefault();
+				var title = $(this).text();
+				frappe.call({
+					method: "frappe.utils.help.get_help_content",
+					args: {
+						path: path
+					},
+					callback: function (r) {
+						var content = r.message[0][0];
+						var content_html = converter.makeHtml(content);
+						$result_modal.find('.modal-title').text(title);
+						$result_modal.find('.modal-body').html(content_html);
+						$result_modal.modal('show');
+					}
+				});
+			}
+		}
+	},
 });
 
 $.extend(frappe.ui.toolbar, {
