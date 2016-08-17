@@ -73,7 +73,7 @@ frappe.ui.form.on("Communication Reconciliation item", {
 		if (origional[cur_frm.cur_grid.doc.idx-1].reference_name!=cur_frm.cur_grid.doc.reference_name) {
 			cur_frm.cur_grid.row.css("font-weight", "Bold")
 			var grid =cur_frm.cur_grid.doc
-			changed[grid.name]= {"name":grid.name,"reference_doctype":grid.reference_doctype,"reference_name":grid.reference_name}
+			changed[grid.name]= {"name":grid.name,"reference_doctype":grid.reference_doctype,"reference_name":grid.reference_name,"timeline_label":grid.timeline_label}
 		}else {
 			cur_frm.cur_grid.row.css("font-weight", "normal")
 			delete changed[cur_frm.cur_grid.doc.name]

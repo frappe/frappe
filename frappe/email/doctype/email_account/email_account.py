@@ -58,6 +58,7 @@ class EmailAccount(Document):
 				self.get_incoming_server()
 				self.no_failed = 0
 
+
 			if self.enable_outgoing:
 				self.check_smtp()
 
@@ -131,7 +132,8 @@ class EmailAccount(Document):
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
 			"uid_validity":self.uid_validity,
-			"uidnext":self.uidnext
+			"uidnext":self.uidnext,
+			"no_remaining":self.no_remaining
 		})
 		if self.password:
 			args.password = self.get_password()
@@ -159,8 +161,12 @@ class EmailAccount(Document):
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
-				self.handle_incoming_connect_error(description=description)
-
+				if test_internet():
+					self.db_set("no_failed", self.no_failed + 1)
+					if self.no_failed > 2:
+						self.handle_incoming_connect_error(description=description)
+				else:
+					frappe.cache().set_value("workers:no-internet", True)
 				return None
 
 			else:
@@ -176,6 +182,20 @@ class EmailAccount(Document):
 	def handle_incoming_connect_error(self, description):
 		if test_internet():
 			if self.get_failed_attempts_count() > 2:
+		self.db_set("enable_incoming", 0)
+		for user in get_system_managers(only_name=True):
+			try:
+				assign_to.add({
+					'assign_to': user,
+					'doctype': self.doctype,
+					'name': self.name,
+					'description': description,
+					'priority': 'High',
+					'notify': 1
+				})
+			except assign_to.DuplicateToDoError:
+				frappe.message_log.pop()
+				pass
 				self.db_set("enable_incoming", 0)
 	
 				for user in get_system_managers(only_name=True):
@@ -239,7 +259,7 @@ class EmailAccount(Document):
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 
-					if self.no_remaining == 0:
+					if communication.message_id and not communication.timeline_hide:
 					if communication.message_id and not communication.timeline_hide:
 						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
 						if first:
@@ -293,6 +313,7 @@ class EmailAccount(Document):
 			raw, uid, seen = msg
 		else:
 			raw = msg
+			seen = uid = None
 		email = Email(raw)
 
 		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
@@ -300,7 +321,7 @@ class EmailAccount(Document):
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
-
+		
 		communication = frappe.get_doc({
 			"doctype": "Communication",
 			"subject": email.subject,
@@ -323,7 +344,7 @@ class EmailAccount(Document):
 
 		self.set_thread(communication, email)
 
-		if not self.no_remaining == 0:
+		if not self.no_remaining == '0':
 			communication.unread_notification_sent = 1
 
 		communication.flags.in_receive = True
@@ -528,15 +549,15 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
 	if frappe.cache().get_value("workers:no-internet") == True:
-	 	if test_internet():
-	 		frappe.cache().set_value("workers:no-internet", False)
-	 	else:	
-	 		return
+		if test_internet():
+			frappe.cache().set_value("workers:no-internet", False)
+		else:	
+			return
 	
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""
-    Host: 8.8.8.8 (google-public-dns-a.google.com)
+	Host: 8.8.8.8 (google-public-dns-a.google.com)
    OpenPort: 53/tcp
    Service: domain (DNS/TCP)
    """
@@ -546,7 +567,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		return True
 	except Exception as ex:
 		print ex.message
-        return False
+		return False
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
