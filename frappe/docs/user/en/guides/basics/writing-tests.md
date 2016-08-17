@@ -1,6 +1,6 @@
-# Writing Tests
+# Writing Tests Guide
 
-### Introduction
+## 1.Introduction
 
 Frappe provides some basic tooling to quickly write automated tests. There are some basic rules:
 
@@ -11,9 +11,97 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 1. Tests can be executed using `bench run-tests`
 1. For non-DocType tests, you can write simple unittests and prefix your file names with `test_`.
 
-### Tests for a DocType
+## 2. Running Tests
 
-#### Writing DocType Tests:
+This function will build all the test dependencies and run your tests.
+You should run tests from "frappe_bench" folder. Without options all tests will be run.
+
+	bench run-tests 
+
+If you need more information about test execution - you can use verbose log level for bench.
+
+	bench --verbose run-tests
+	
+### Options:
+
+	--app <AppName>
+	--doctype <DocType>
+	--test <SpecificTest>
+	--module <Module> (Run a particular module that has tests)
+	--profile (Runs a Python profiler on the test)
+	
+#### 2.1. Example for app:
+All applications are located in folder: "~/frappe-bench/apps". 
+We can run tests for each application.
+
+	- frappe-bench/apps/erpnext/
+	- frappe-bench/apps/erpnext_demo
+	- frappe-bench/apps/frappe
+
+	bench run-tests --app erpnext
+	bench run-tests --app erpnext_demo
+	bench run-tests --app frappe
+
+
+#### 2.2. Example for doctype:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost"
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.008s
+	
+	OK
+
+#### 2.3. Example for test:
+Run a specific case in User:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype User --test test_get_value
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.005s
+	
+	OK
+
+#### 2.4. Example for module:
+If we want to run tests in the module:
+
+	/home/frappe/frappe-bench/apps/erpnext/erpnext/support/doctype/issue/test_issue.py
+	
+We should use module name like this (related to application folder)
+
+	erpnext.support.doctype.issue.test_issue
+	
+#####EXAMPLE:
+	
+	frappe@erpnext:~/frappe-bench$ bench run-tests --module "erpnext.stock.doctype.stock_entry.test_stock_entry"
+	...........................
+	----------------------------------------------------------------------
+	Ran 27 tests in 30.549s
+
+	
+#### 2.5. Example for profile:
+
+	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost" --profile
+	.
+	----------------------------------------------------------------------
+	Ran 1 test in 0.010s
+	
+	OK
+	         9133 function calls (8912 primitive calls) in 0.011 seconds
+	
+	   Ordered by: cumulative time
+	
+	   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+	        2    0.000    0.000    0.008    0.004 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:187(insert)
+	        1    0.000    0.000    0.003    0.003 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:386(_validate)
+	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/database.py:77(sql)
+	      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
+	       12    0.000    0.000    0.002    0.000 
+
+
+## 3. Tests for a DocType
+
+### 3.1. Writing DocType Tests:
 
 1. Records that are used for testing are stored in a file `test_records.json` in the doctype folder. [For example see the Event Tests](https://github.com/frappe/frappe/blob/develop/frappe/core/doctype/event/test_records.json).
 1. Test cases are in a file named `test_[doctype].py`
@@ -86,23 +174,8 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 			self.assertTrue("_Test Event 3" in subjects)
 			self.assertFalse("_Test Event 2" in subjects)
 
-#### Running Tests
 
-To run a test for a doctype
-
-	bench run-tests --doctype [doctype]
-
-This function will build all the test dependencies and run your tests.
-
-### Running All Tests
-
-To run all tests:
-
-	bench run-tests
-
----
-
-## Client Side Testing (Using Selenium)
+## 4. Client Side Testing (Using Selenium)
 
 > This feature is still under development.
 
