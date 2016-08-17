@@ -54,7 +54,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			})
 			.on("shown.bs.modal", function() {
 				// focus on first input
-				if(frappe.utils.is_mobile()) {
+				if(frappe.is_mobile()) {
 					$("#body_div").toggle(false);
 					me.body_hidden = true;
 				}

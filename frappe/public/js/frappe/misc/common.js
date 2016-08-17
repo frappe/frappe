@@ -237,5 +237,7 @@ frappe.palette = [
 	['#428B46', 1]
 ]
 
-
+frappe.is_mobile = function() {
+	return $(document).width() < 768;
+}
 
