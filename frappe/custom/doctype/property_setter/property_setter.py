@@ -50,6 +50,9 @@ class PropertySetter(Document):
 				(self.field_name, self.doc_type), as_dict = 1)[0]
 
 	def on_update(self):
+		if frappe.flags.in_patch:
+			self.flags.validate_fields_for_doctype = False
+
 		if not self.flags.ignore_validate and self.flags.validate_fields_for_doctype:
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.doc_type)

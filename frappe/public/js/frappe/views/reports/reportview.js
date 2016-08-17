@@ -187,11 +187,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	set_route_filters: function(first_load) {
 		var me = this;
 		if(frappe.route_options) {
-			me.filter_list.clear_filters();
-			$.each(frappe.route_options, function(key, value) {
-				me.filter_list.add_filter(me.doctype, key, "=", value);
-			});
-			frappe.route_options = null;
+			this.set_filters_from_route_options();
 			return true;
 		} else if(this.list_settings
 			&& this.list_settings.filters

@@ -5,55 +5,27 @@ If you're experiencing delays in scheduled jobs or they don't seem to run, you c
 ### `bench doctor`
 
 This will output the following in order:
-- Worker Status
 - Scheduler Status per site
+- Number of Workers
 - Pending Tasks
-- Timed out locks
+
 
 Desirable output:
 
-	Workers online: True
-	Pending tasks 0
-	Timed out locks:
+	Workers online: 0
+	-----None Jobs-----
 
-
-### `bench celery-doctor`
+### `bench --site [site-name] show-pending-jobs`
 
 This will output the following in order:
-- Queue Status
-- Running Tasks
+- Queue
+- Tasks within Queue
 
 Desirable output:
 
-	Queue Status
-	------------
-	[
-	 {
-	  "total": 0
-	 }
-	]
-
-	Running Tasks
-	------------
-	{
-	 "async@erpnext": [],
-	 "longjobs@erpnext": [],
-	 "jobs@erpnext": []
-	}
+	-----Pending Jobs-----
 
 
-### `bench dump-queue-status`
+### `bench purge-jobs`
 
-This will output detailed diagnostic information for task queues in JSON
-
-Desirable output:
-
-
-	[
-	 {
-	  "total": 0
-	 }
-	]
-	Pending Tasks Queue
-	--------------------
-
+This will remove all pending jobs from all queues
