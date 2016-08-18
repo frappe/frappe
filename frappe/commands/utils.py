@@ -171,7 +171,7 @@ def export_json(context, doctype, path, name=None):
 @click.argument('path')
 @pass_context
 def export_csv(context, doctype, path):
-	"Export data import template for DocType"
+	"Export data import template with data for DocType"
 	from frappe.core.page.data_import_tool import data_import_tool
 	for site in context.sites:
 		try:

@@ -33,6 +33,9 @@ frappe.template.compile = function(str, name) {
 		// {% endfor %} --> {% } %}
 		str = str.replace(/{%\s?endif\s?%}/g, "{% }; %}");
 
+		// {% else %} --> {% } else { %}
+		str = str.replace(/{%\s?else\s?%}/g, "{% } else { %}");
+
 		// {% endif %} --> {% } %}
 		str = str.replace(/{%\s?endfor\s?%}/g, "{% }; %}");
 

@@ -1,0 +1,26 @@
+<div style="padding: 20px;" class="list-jobs">
+	{% if jobs.length %}
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th style="width: 20%">Queue</th>
+				<th>Job</th>
+				<th style="width: 20%">Created</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for j in jobs %}
+			<tr>
+				<td>{{ j.queue }}</td>
+				<td><span class="indicator {{ j.color }}" title="{{ j.status }}">
+					{{ frappe.utils.encode_tags(j.job_name) }}</span></td>
+				<td>{{ j.creation }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p class="text-muted">No pending or failed jobs for this site</p>
+	{% endif %}
+	<p class="text-muted">Last refreshed {{ frappe.datetime.now_datetime() }}</p>
+</div>

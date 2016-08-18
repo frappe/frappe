@@ -52,6 +52,11 @@ def get_data():
 					"description": _("Background Email Queue"),
 				},
 				{
+					"type": "page",
+					"label": _("Background Jobs"),
+					"name": "background_jobs",
+				},
+				{
 					"type": "doctype",
 					"name": "Error Snapshot",
 					"description": _("A log of request errors"),
