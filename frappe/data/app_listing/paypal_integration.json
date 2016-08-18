@@ -7,7 +7,7 @@
 	"app_publisher": "Frappe",
 	"app_email": "hello@frappe.io",
 	"repo_url": "https://github.com/frappe/paypal_integration.git",
-	"app_title": "Paypal Integation",
+	"app_title": "Paypal Integration",
 	"app_version": "1.0.0",
 	"app_category": "Integrations",
   "featured": 1
