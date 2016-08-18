@@ -32,9 +32,6 @@ frappe.utils = {
 		}
 		return true;
 	},
-	is_mobile: function() {
-		return frappe.utils.is_xs();
-	},
 	is_xs: function() {
 		return $(document).width() < 768;
 	},
