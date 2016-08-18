@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from rq import Queue
+from rq import Queue, Worker
 from frappe.utils.background_jobs import get_redis_conn
 from frappe.utils import format_datetime
 
@@ -16,17 +16,29 @@ colors = {
 
 @frappe.whitelist()
 def get_info():
-	queues = Queue.all(get_redis_conn())
+	conn = get_redis_conn()
+	queues = Queue.all(conn)
+	workers = Worker.all(conn)
 	jobs = []
+
+	def add_job(j, name):
+		if j.kwargs.get('site')==frappe.local.site:
+			jobs.append({
+				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
+					or str(j.kwargs.get('job_name')),
+				'status': j.status, 'queue': name,
+				'creation': format_datetime(j.created_at),
+				'color': colors[j.status]
+			})
+
+	for w in workers:
+		j = w.get_current_job()
+		if j:
+			add_job(j, w.name)
+
 	for q in queues:
-		for j in q.get_jobs():
-			if j.kwargs.get('site')==frappe.local.site:
-				jobs.append({
-					'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
-						or str(j.kwargs.get('job_name')),
-					'status': j.status, 'queue': str(q.name),
-					'creation': format_datetime(j.created_at),
-					'color': colors[j.status]
-				})
+		if q.name != 'failed':
+			for j in q.get_jobs():
+				add_job(j, q.name)
 
 	return jobs
