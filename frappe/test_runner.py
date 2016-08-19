@@ -5,45 +5,71 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest, json
+import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, StringIO, pstats
 
-def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False):
-	frappe.flags.print_messages = verbose
-	frappe.flags.in_test = True
 
-	if not frappe.db:
-		frappe.connect()
+unittest_runner = unittest.TextTestRunner
 
-	# if not frappe.conf.get("db_name").startswith("test_"):
-	# 	raise Exception, 'db_name must start with "test_"'
+def xmlrunner_wrapper(output):
+	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
+	def _runner(*args, **kwargs):
+		kwargs['output'] = output
+		return xmlrunner.XMLTestRunner(*args, **kwargs)
+	return _runner
 
-	# workaround! since there is no separate test db
-	frappe.clear_cache()
-	frappe.utils.scheduler.disable_scheduler()
-	set_test_email_config()
+def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False, junit_xml_output=None):
+	global unittest_runner
 
-	if verbose:
-		print 'Running "before_tests" hooks'
-	for fn in frappe.get_hooks("before_tests", app_name=app):
-		frappe.get_attr(fn)()
-
-	if doctype:
-		ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
-	elif module:
-		ret = run_tests_for_module(module, verbose, tests, profile)
+	xmloutput_fh = None
+	if junit_xml_output:
+		xmloutput_fh = open(junit_xml_output, 'w')
+		unittest_runner = xmlrunner_wrapper(xmloutput_fh)
 	else:
-		ret = run_all_tests(app, verbose, profile)
+		unittest_runner = unittest.TextTestRunner
+	
+	try:	
+		frappe.flags.print_messages = verbose
+		frappe.flags.in_test = True
 
-	frappe.db.commit()
+		if not frappe.db:
+			frappe.connect()
 
-	# workaround! since there is no separate test db
-	frappe.clear_cache()
+		# if not frappe.conf.get("db_name").startswith("test_"):
+		# 	raise Exception, 'db_name must start with "test_"'
 
-	return ret
+		# workaround! since there is no separate test db
+		frappe.clear_cache()
+		frappe.utils.scheduler.disable_scheduler()
+		set_test_email_config()
+
+		if verbose:
+			print 'Running "before_tests" hooks'
+		for fn in frappe.get_hooks("before_tests", app_name=app):
+			frappe.get_attr(fn)()
+
+		if doctype:
+			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
+		elif module:
+			ret = run_tests_for_module(module, verbose, tests, profile)
+		else:
+			ret = run_all_tests(app, verbose, profile)
+
+		frappe.db.commit()
+
+		# workaround! since there is no separate test db
+		frappe.clear_cache()
+		return ret
+
+	finally:
+		if xmloutput_fh:
+			xmloutput_fh.flush()
+			xmloutput_fh.close()
+
 
 def set_test_email_config():
 	frappe.conf.update({
@@ -77,7 +103,7 @@ def run_all_tests(app=None, verbose=False, profile=False):
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
 	if profile:
 		pr.disable()
@@ -121,7 +147,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
 	if profile:
 		pr.disable()
