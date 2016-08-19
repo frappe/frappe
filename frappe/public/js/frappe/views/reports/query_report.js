@@ -41,9 +41,7 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px">\
-			<div class="chart_area"></div>\
-		</div>\
+		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
@@ -53,6 +51,7 @@ frappe.views.QueryReport = Class.extend({
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
 
+		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
 	},
 	make_toolbar: function() {
@@ -142,6 +141,7 @@ frappe.views.QueryReport = Class.extend({
 		this.page.set_title(__(this.report_name));
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
+		this.chart_area.toggle(false);
 
 		var report_settings = frappe.query_reports[this.report_name];
 
@@ -298,6 +298,8 @@ frappe.views.QueryReport = Class.extend({
 			// abort previous request
 			this.report_ajax.abort();
 		}
+
+		this.chart_area.toggle(false);
 
 		this.report_ajax = frappe.call({
 			method: "frappe.desk.query_report.run",
@@ -736,23 +738,23 @@ frappe.views.QueryReport = Class.extend({
 	},
 
 	setup_chart: function(res) {
-		var me = this;
-		this.wrapper.find(".chart_area").parent().toggle(false);
+		this.chart_area.toggle(false);
 
 		if (this.get_query_report_opts().get_chart_data) {
 			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
 		} else if (res.chart) {
 			var opts = res.chart;
+		} else {
+			return;
 		}
 
 		$.extend(opts, {
-			wrapper: me.wrapper,
-			bind_to: ".chart_area"
+			wrapper: this.chart_area,
 		});
 
 		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart)
-			this.wrapper.find(".chart_area").parent().toggle(true);
-
+		if(this.chart) {
+			this.chart_area.toggle(true);
+		}
 	}
 })

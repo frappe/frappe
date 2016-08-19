@@ -354,8 +354,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.removeClass('hidden');
 
 		$.extend(opts, {
-			wrapper: me.wrapper,
-			bind_to: ".form-chart",
+			wrapper: me.wrapper.find('.form-chart'),
 			padding: {
 				right: 30,
 				bottom: 30

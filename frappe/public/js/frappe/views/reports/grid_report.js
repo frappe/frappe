@@ -366,10 +366,9 @@ frappe.views.GridReport = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.chart_id = 'chart-' + cstr(cint(Math.random() * 10000000000));
 
 		// chart wrapper
-		this.chart_area = $('<div class="chart" id="'+ this.chart_id +'"></div>').appendTo(this.wrapper);
+		this.chart_area = $('<div class="chart"></div>').appendTo(this.wrapper);
 
 		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
@@ -664,14 +663,13 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 	setup_chart: function() {
 		var me = this;
 		if (in_list(["Daily", "Weekly"], this.filter_inputs.range.val())) {
-			this.wrapper.find("#" + me.chart_id).toggle(false);
+			this.chart_area.toggle(false);
 			return;
 		}
 		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
-		
+
 		this.chart = new frappe.ui.Chart({
-			wrapper: me.wrapper,
-			bind_to: "#" + me.chart_id,
+			wrapper: this.chart_area,
 			data: chart_data
 		});
 	},
@@ -698,19 +696,19 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 
 	get_chart_data: function() {
 		var me = this;
-		
+
 		var plottable_cols = [];
 		$.each(me.columns, function(idx, col) {
 			if(col.formatter==me.currency_formatter && !col.hidden && col.plot!==false) {
 				plottable_cols.push(col.field);
 			}
 		})
-		
+
 		var data = {
 			x: 'x',
 			'columns': [['x'].concat(plottable_cols)]
 		};
-		
+
 		$.each(this.data, function(i, item) {
 			if (item.checked) {
 				var data_points = [item.name];
