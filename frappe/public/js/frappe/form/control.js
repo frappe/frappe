@@ -309,6 +309,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				me.set_label();
 				me.set_mandatory(me.value);
 				me.set_bold();
+				me.set_popover();
 			}
 			return false;
 		});
@@ -395,6 +396,19 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		if(this.disp_area) {
 			$(this.disp_area).toggleClass("bold", !!this.df.bold);
+		}
+	},
+	set_popover: function() {
+		$(this.label_area).attr("data-toggle","popover");
+		//$(this.label_area).attr("data-html","true");
+		//$(this.label_area).attr("data-placement","auto");
+		//$(this.label_area).attr("trigger","click");
+		if (this.df.tooltip) {
+		    var tip=__(this.df.tooltip);
+		    if (this.df.tooltiplink){
+			tip = tip + "<a target='_blank' href=" + __(this.df.tooltiplink) + "><br><strong>" + __("More") + "</strong></a>";
+		    }
+		    $(this.label_area).attr("data-content",tip);
 		}
 	}
 });
