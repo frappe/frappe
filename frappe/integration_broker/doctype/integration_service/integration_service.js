@@ -10,6 +10,11 @@ frappe.ui.form.on('Integration Service', {
 			}
 		})
 	},
+	refresh: function(frm){
+		if (frm.doc.service){
+			frm.events.load_js_resouce(frm);
+		}
+	},
 	service: function(frm) {
 		frappe.call({
 			method: 'frappe.integration_broker.doctype.integration_service.integration_service.get_events_and_parameters',
@@ -19,7 +24,7 @@ frappe.ui.form.on('Integration Service', {
 			callback: function(r) {
 				frm.clear_table('parameters');
 				r.message.parameters.forEach(function(d) {
-					frm.add_child('parameters', {'label': d.label, 'fieldname': d.fieldname})
+					frm.add_child('parameters', {'label': d.label, 'fieldname': d.fieldname, 'value': d.value})
 				});
 
 				frm.clear_table('events');
@@ -31,4 +36,21 @@ frappe.ui.form.on('Integration Service', {
 			}
 		});
 	},
+	load_js_resouce: function(frm){
+		frappe.call({
+			method: 'frappe.integration_broker.doctype.integration_service.integration_service.get_js_resouce',
+			args: {
+				'service': frm.doc.service
+			},
+			callback: function(r) {
+				if (r.message.js){
+					frappe.require(r.message.js, function(){
+						service_name = frm.doc.service.toLowerCase().replace(/ /g, "_");
+						frappe.integration_service[service_name].load(frm)
+					})
+				}
+			
+			}
+		})
+	}
 });

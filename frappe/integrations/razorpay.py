@@ -25,7 +25,7 @@ class Controller(IntegrationController):
 	]
 	
 	scheduled_jobs = [
-		{"daily": ["frappe.integrations.razorpay.capture_payment"]}
+		{"all": ["frappe.integrations.razorpay.capture_payment"]}
 	]
 	
 	supported_currencies = ["INR"]

@@ -52,12 +52,12 @@ class IntegrationService(Document):
 	def setup_events_and_parameters(self):
 		self.parameters = []
 		for d in self.get_controller().parameters_template:
-			self.parameters.append({'label': d.label})
+			self.parameters.append({'label': d.label, "value": d.value})
 
 		self.events = []
 		for d in self.get_controller()._events:
 			self.parameters.append({'event': d.event, 'enabled': d.enabled})
-	
+
 	#rest request handler
 	def get_request(self, url, auth=None, data=None):
 		if not auth:
@@ -117,7 +117,14 @@ def get_events_and_parameters(service):
 	controller = get_integration_controller(service, setup=False)
 	return {
 		'events': controller.events,
-		'parameters': controller.parameters_template
+		'parameters': controller.parameters_template,
+	}
+
+@frappe.whitelist()
+def get_js_resouce(service):
+	controller = get_integration_controller(service, setup=False)
+	return {
+		"js": getattr(controller, "_js", "")
 	}
 		
 def get_integration_controller(service_name, setup=True):

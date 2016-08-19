@@ -49,12 +49,12 @@ class Controller(IntegrationController):
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
 	
 	def get_paypal_params_and_url(self, use_test_account):
-		payapl_settings = frappe._dict(self.get_settings())
+		paypal_settings = frappe._dict(self.get_settings())
 		
 		params = {
-			"USER": payapl_settings.api_username,
-			"PWD": payapl_settings.api_password,
-			"SIGNATURE": payapl_settings.signature,
+			"USER": paypal_settings.api_username,
+			"PWD": paypal_settings.api_password,
+			"SIGNATURE": paypal_settings.signature,
 			"VERSION": "98",
 			"METHOD": "GetPalDetails"
 		}
