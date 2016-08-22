@@ -341,10 +341,11 @@ frappe.ui.form.Dashboard = Class.extend({
  		}
 	},
 
-	// stats
-	add_stats: function(html) {
-		this.stats_area.html(html).removeClass('hidden');
+	add_indicator: function(label, color) {
 		this.show();
+		this.stats_area.removeClass('hidden');
+		return $('<div class="col-sm-3"><span class="indicator '+color+'">'
+			+label+'</span></div>').appendTo(this.stats_area);
 	},
 
 	//graphs
