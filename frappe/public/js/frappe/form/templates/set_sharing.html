@@ -45,7 +45,7 @@
     <div class="row">
         <div class="col-xs-6 input-wrapper-add-share"></div>
         <div class="col-xs-2"><input type="checkbox" class="add-share-read" name="read"></div>
-        <div class="col-xs-2"><input type="checkbox" class="add-share-write" name="write"></div>
+        <div class="col-xs-2"><input type="checkbox" class="add-share-write" name="write" {% if (!frm.perm[0].write){ %} disabled="disabled"{% } %}></div>
         <div class="col-xs-2"><input type="checkbox" class="add-share-share" name="share"></div>
     </div>
     <p>
