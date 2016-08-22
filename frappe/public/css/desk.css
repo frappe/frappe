@@ -603,6 +603,16 @@ fieldset[disabled] .form-control {
 .help-modal .modal-body {
   padding: 15px 27px;
 }
+.help-modal .parent-link {
+  line-height: 4em;
+}
+.help-modal .parent-link:before {
+  font-family: 'Octicons';
+  content: '\f0a4';
+}
+.help-modal .edit-container {
+  padding-bottom: 12px;
+}
 @media (max-width: 767px) {
   .help-modal .modal-dialog {
     width: auto;
