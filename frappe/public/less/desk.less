@@ -449,3 +449,56 @@ textarea.form-control {
 		margin: 15px 0px;
 	}
 }
+
+.screenshot {
+	border: 1px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 8px 0px;
+	max-width: 100%;
+}
+
+.help-modal {
+	a {
+		color: @brand-primary;
+	}
+
+	.modal-dialog {
+		width: 768px;
+	}
+
+	.modal-body {
+		padding: 15px 27px;
+	}
+
+	.parent-link {
+		line-height: 4em;
+
+		&:before {
+			font-family: 'Octicons';
+			content: '\f0a4';
+		}
+	}
+
+	.edit-container {
+		padding-bottom: 12px;
+	}
+
+	@media (max-width: @screen-xs) {
+		.modal-dialog {
+			width: auto;
+		}
+
+		.modal-content {
+			height: auto !important;
+		}
+
+		iframe {
+			height: auto;
+			width: 100%;
+		}
+	}
+}
+
+.search-result {
+	margin-bottom: 24px;
+}

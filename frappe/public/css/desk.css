@@ -102,6 +102,12 @@ kbd {
   font-size: 12px;
   border-radius: 0px 0px 4px 4px;
 }
+.dropdown-menu .dropdown-header {
+  padding: 3px 14px;
+  font-size: 11px;
+  font-weight: 200;
+  padding-top: 12px;
+}
 .dropdown-menu .divider {
   margin: 0px;
 }
@@ -581,4 +587,44 @@ fieldset[disabled] .form-control {
 }
 .liked-by-popover li {
   margin: 15px 0px;
+}
+.screenshot {
+  border: 1px solid #d1d8dd;
+  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
+  margin: 8px 0px;
+  max-width: 100%;
+}
+.help-modal a {
+  color: #5E64FF;
+}
+.help-modal .modal-dialog {
+  width: 768px;
+}
+.help-modal .modal-body {
+  padding: 15px 27px;
+}
+.help-modal .parent-link {
+  line-height: 4em;
+}
+.help-modal .parent-link:before {
+  font-family: 'Octicons';
+  content: '\f0a4';
+}
+.help-modal .edit-container {
+  padding-bottom: 12px;
+}
+@media (max-width: 767px) {
+  .help-modal .modal-dialog {
+    width: auto;
+  }
+  .help-modal .modal-content {
+    height: auto !important;
+  }
+  .help-modal iframe {
+    height: auto;
+    width: 100%;
+  }
+}
+.search-result {
+  margin-bottom: 24px;
 }
