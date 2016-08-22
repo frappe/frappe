@@ -1,3 +1,0 @@
-# Data Management
-
-{index}

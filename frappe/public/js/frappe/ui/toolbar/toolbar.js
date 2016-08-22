@@ -187,11 +187,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 						path: path
 					},
 					callback: function (r) {
-						if(r.message){
-							var title = r.message[0][0];
-							var content = r.message[0][1];
-							$result_modal.find('.modal-title').html("<span>" + title + "</span>");
-							$result_modal.find('.modal-body').html(content);
+						if(r.message && r.message.title) {
+							$result_modal.find('.modal-title').html("<span>"
+								+ r.message.title + "</span>");
+							$result_modal.find('.modal-body').html(r.message.content);
 							$result_modal.modal('show');
 						}
 					}

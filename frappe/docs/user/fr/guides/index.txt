@@ -1,7 +1,0 @@
-basics
-app-development
-deployment
-reports-and-printing
-portal-development
-data
-integration
