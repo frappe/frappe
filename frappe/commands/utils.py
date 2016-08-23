@@ -284,8 +284,9 @@ def console(context):
 @click.option('--driver', help="For Travis")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False):
+def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
 	"Run tests"
 	import frappe.test_runner
 	from frappe.utils import sel
@@ -299,7 +300,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 
 	try:
 		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-			force=context.force, profile=profile)
+			force=context.force, profile=profile, junit_xml_output=junit_xml_output)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:

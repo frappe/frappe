@@ -36,3 +36,4 @@ schedule
 cryptography
 zxcvbn
 psutil
+unittest-xml-reporting
