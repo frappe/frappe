@@ -316,10 +316,6 @@ class DatabaseQuery(object):
 			if isinstance(value, basestring):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
-			if f.fieldname in ("creation", "modified"):
-				column_name = "date_format({tname}.{fname}, '%Y-%m-%d')".format(tname=tname,
-					fname=f.fieldname)
-
 		if (self.ignore_ifnull or not can_be_null
 			or (f.value and f.operator in ('=', 'like')) or 'ifnull(' in column_name.lower()):
 			condition = '{column_name} {operator} {value}'.format(
