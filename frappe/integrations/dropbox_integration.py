@@ -3,8 +3,9 @@ from frappe import _
 from frappe.integration_broker.integration_controller import IntegrationController
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, encode)
-import os
+import os, json
 from frappe.utils.backups import new_backup
+from frappe.utils.background_jobs import enqueue
 
 ignore_list = [".DS_Store"]
 
@@ -15,34 +16,47 @@ class Controller(IntegrationController):
 			"label": "App Access Key",
 			'fieldname': 'app_access_key',
 			'reqd': 1,
-			'value': ''
+			'default': ''
 		},
 		{
 			"label": "App Secret Key",
 			'fieldname': 'app_secret_key',
 			'reqd': 1,
-			'value': ''
+			'default': ''
 		},
 		{
 			"label": "Dropbox Access Key",
 			'fieldname': 'dropbox_access_key',
 			'reqd': 1,
-			'value': '****'
+			'default': '****'
 		},
 		{
 			"label": "Dropbox Secret Key",
 			'fieldname': 'dropbox_access_secret',
 			'reqd': 1,
-			'value': '****'
+			'default': '****'
+		},
+		{
+			"label": "Backup Frequency",
+			"fieldname": "backup_frequency",
+			"options": "\nDaily\nWeekly",
+			"default": "",
+			"reqd": 1,
+			"show_in_dialog": True,
+			"fieldtype":'Select'
 		}
+		
 	]
 	
-	_js = "assets/frappe/js/dropbox_integration.js"
+	js = "assets/frappe/js/dropbox_integration.js"
 	
 	scheduled_jobs = [
 		{
-			"daily": [
-				"frappe.integrations.dropbox_integration.take_backups_dropbox"
+			"daily_long": [
+				"frappe.integrations.dropbox_integration.take_backups_daily"
+			],
+			"weekly_long": [
+				"frappe.integrations.dropbox_integration.take_backups_weekly"
 			]
 		}
 	]
@@ -140,7 +154,25 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 
 # backup process
 @frappe.whitelist()
-def take_backups_dropbox():
+def take_backup():
+	"Enqueue longjob for taking backup to dropbox"
+	enqueue("frappe.integrations.dropbox_integration.take_backup_to_dropbox", queue='long')
+	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+
+def take_backups_daily():
+	take_backups_if("Daily")
+
+def take_backups_weekly():
+	take_backups_if("Weekly")
+
+def take_backups_if(freq):
+	custom_settings_json = frappe.db.get_value("Dropbox Backup", None, "custom_settings_json")
+	if custom_settings_json:
+		custom_settings_json = json.loads(custom_settings_json)
+		if custom_settings_json["backup_frequency"] == freq:
+			take_backup_to_dropbox()
+
+def take_backup_to_dropbox():
 	did_not_upload, error_log = [], []
 	try:
 		if cint(frappe.db.get_value("Integration Service", "Dropbox Integration", "enabled")):

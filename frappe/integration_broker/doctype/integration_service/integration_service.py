@@ -15,7 +15,7 @@ class IntegrationService(Document):
 		self.install_events()
 		parameters = self.get_parameters()
 		for d in self.get_controller().parameters_template:
-			if d.reqd and not parameters.get(d.fieldname):
+			if (d.reqd and not d.show_in_dialog) and not parameters.get(d.fieldname):
 				frappe.throw(_('Parameter {0} is mandatory').format(d.label), title=_('Missing Parameter'))
 			
 	def on_update(self):
@@ -124,7 +124,7 @@ def get_events_and_parameters(service):
 def get_js_resouce(service):
 	controller = get_integration_controller(service, setup=False)
 	return {
-		"js": getattr(controller, "_js", "")
+		"js": getattr(controller, "js", "")
 	}
 		
 def get_integration_controller(service_name, setup=True):
