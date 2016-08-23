@@ -317,8 +317,9 @@ class DatabaseQuery(object):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 			if f.fieldname in ("creation", "modified"):
-				column_name = "date_format({tname}.{fname}, '%Y-%m-%d')".format(tname=tname,
+				column_name = "date_format({tname}.{fname}, '%Y-%m-%d %H:%i:%S.%f')".format(tname=tname,
 					fname=f.fieldname)
+				value = '"{0}"'.format(get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 		if (self.ignore_ifnull or not can_be_null
 			or (f.value and f.operator in ('=', 'like')) or 'ifnull(' in column_name.lower()):
