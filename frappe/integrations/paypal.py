@@ -10,6 +10,27 @@ from urllib import urlencode
 from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
+"""
+API usage:
+
+Get payement url via get_checkout_url()
+
+example:
+	get_checkout_url(**{
+		"amount": 600,
+		"title": "Payment for bill : 111",
+		"description": "payment via cart",
+		"reference_doctype": "Payment Request",
+		"reference_docname": "PR0001",
+		"payer_email": "NuranVerkleij@example.com",
+		"payer_name": "Nuran Verkleij",
+		"order_id": "111",
+		"currency": "USD"
+	})
+
+"""
+
+
 class Controller(IntegrationController):
 	service_name = 'PayPal'
 	parameters_template = [
@@ -92,7 +113,6 @@ class Controller(IntegrationController):
 		return return_url.format(kwargs["token"])
 
 	def execute_set_express_checkout(self, amount, currency, use_test_account):
-		print amount, currency, use_test_account
 		params, url = self.get_paypal_params_and_url(use_test_account)
 		params.update({
 			"METHOD": "SetExpressCheckout",

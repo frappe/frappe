@@ -21,6 +21,8 @@ def execute():
 				setup_integration_service(app_details)
 				if app_details["remove"]:
 					uninstall_app(app_details["app_name"])
+
+				frappe.delete_doc("DocType", "Dropbox Backup")
 			except Exception:
 				pass
 

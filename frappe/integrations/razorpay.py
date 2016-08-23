@@ -9,6 +9,26 @@ import urllib, json
 from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
+"""
+API usage:
+
+Get payement url via get_checkout_url()
+
+example:
+	get_checkout_url(**{
+		"amount": 1000,
+		"title": "Payment for bill : 111",
+		"description": "payment via cart",
+		"reference_doctype": "Payment Request",
+		"reference_docname": "PR0001",
+		"payer_email": "NuranVerkleij@example.com",
+		"payer_name": "Nuran Verkleij",
+		"order_id": "111",
+		"currency": "INR"
+	})
+
+"""
+
 class Controller(IntegrationController):
 	service_name = 'Razorpay'
 	parameters_template = [
@@ -123,3 +143,14 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+
+@frappe.whitelist(allow_guest=True, xss_safe=True)
+def get_checkout_url(**kwargs):
+	try:
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = Controller().get_payment_url(**kwargs)
+	except Exception:
+		frappe.respond_as_web_page(_("Something went wrong"),
+			_("Looks like something is wrong with this site's Razorpay configuration. Don't worry! No payment has been made."),
+			success=False,
+			http_status_code=frappe.ValidationError.http_status_code)
