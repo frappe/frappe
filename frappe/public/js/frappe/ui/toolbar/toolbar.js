@@ -85,7 +85,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		$("#input-help + span").on("click", function () {
-			var keywords = $(this).val();
+			var keywords = $("#input-help").val();
 			show_help_results(keywords);
 			$(this).val("");
 		});

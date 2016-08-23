@@ -54,13 +54,14 @@ class HelpDatabase(object):
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
 			self.db.sql('''create table help(
-				path text,
+				path varchar(255),
 				content text,
 				title text,
 				intro text,
 				full_path text,
 				fulltext(title),
-				fulltext(content))
+				fulltext(content),
+				fulltext(path))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4''')
@@ -75,9 +76,6 @@ class HelpDatabase(object):
 			where path like "{path}%" order by path desc limit 1'''
 		result = None
 
-		if not path.startswith('/user'):
-			path = '%' + path
-
 		if not path.endswith('index'):
 			result = self.db.sql(query.format(path=os.path.join(path, 'index')))
 
@@ -88,10 +86,17 @@ class HelpDatabase(object):
 
 	def sync_pages(self):
 		self.db.sql('truncate help')
+		doc_contents = '<ol>'
 		for app in os.listdir('../apps'):
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):
+				try:
+					app_name = frappe.get_attr('{app}.__title__'.format(app=app)) or app
+					doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
+						app=app, app_name=app_name)
+				except Exception, e:
+					pass
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
 					for fname in files:
@@ -102,11 +107,16 @@ class HelpDatabase(object):
 									{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 								relpath = self.get_out_path(fpath)
-								content = self.make_content(content, fpath)
+								relpath = relpath.replace("user", app)
+								content = markdown(content)
 								title = self.make_title(basepath, fname, content)
 								intro = self.make_intro(content)
+								content = self.make_content(content, fpath, relpath)
 								self.db.sql('''insert into help(path, content, title, intro, full_path)
 									values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+		doc_contents += "</ol>"
+		self.db.sql('''insert into help(path, content, title, intro, full_path) values (%s, %s, %s, %s, %s)''',
+			('/documentation/index', doc_contents, 'Documentation', '', ''))
 
 
 	def make_title(self, basepath, filename, html):
@@ -126,8 +136,10 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, content, path):
-		html = markdown(content)
+	def make_content(self, html, path, relpath):
+
+		if '<h1>' in html:
+			html = html.split('</h1>', 1)[1]
 
 		if '{next}' in html:
 			html = html.replace('{next}', '')
@@ -156,9 +168,9 @@ class HelpDatabase(object):
 					if '.' in data_path:
 						data_path = data_path[: data_path.rindex('.')]
 					if data_path:
-						link['data-path'] = data_path
+						link['data-path'] = data_path.replace("user", app_name)
 
-		parent = self.get_parent(path)
+		parent = self.get_parent(relpath)
 		if parent:
 			parent_tag = soup.new_tag('a')
 			parent_tag.string = parent['title']
@@ -223,10 +235,17 @@ class HelpDatabase(object):
 			child_path = child_path[: child_path.rindex('index')]
 		if child_path[-1] == '/':
 			child_path = child_path[:-1]
+		child_path = child_path[: child_path.rindex('/')]
 
-		parent_path = self.get_out_path(child_path[: child_path.rindex('/')] + "/index")
-
-		out = self.get_content(parent_path)
+		out = None
+		if child_path:
+			parent_path = child_path + "/index"
+			out = self.get_content(parent_path)
+		#if parent is documentation root
+		else:
+			parent_path = "/documentation/index"
+			out = {}
+			out['title'] = "Documentation"
 
 		if not out:
 			return None
