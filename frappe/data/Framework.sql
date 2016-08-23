@@ -42,6 +42,7 @@ CREATE TABLE `tabDocField` (
   `ignore_user_permissions` int(1) NOT NULL DEFAULT 0,
   `width` varchar(255) DEFAULT NULL,
   `print_width` varchar(255) DEFAULT NULL,
+  `columns` int(11) NOT NULL DEFAULT 0,
   `default` text,
   `description` text,
   `in_filter` int(1) NOT NULL DEFAULT 0,

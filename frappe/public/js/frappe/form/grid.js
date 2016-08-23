@@ -338,27 +338,24 @@ frappe.ui.form.Grid = Class.extend({
 				throw 'field not found: ' + _df.fieldname;
 			}
 
-			// map columns
-			if(_df.columns) {
-				df.colsize = _df.columns;
-			}
-
 			if(!df.hidden
 				&& (this.editable_fields || df.in_list_view)
 				&& this.frm.get_perm(df.permlevel, "read")
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
-					if(!df.colsize) {
-						var colsize = 2;
-						switch(df.fieldtype) {
-							case "Text":
-							case "Small Text":
-								colsize = 3;
+					if(df.columns) {
+						df.colsize=df.columns;
+					}	
+					else {
+						var colsize=2;
+						switch(df.fieldtype){
+							case"Text":
+							case"Small Text":
+								colsize=3;
 								break;
-							case "Check":
-								colsize = 1;
-								break;
-						}
-						df.colsize = colsize;
+							case"Check":
+								colsize=1
+							}
+							df.colsize=colsize
 					}
 
 					total_colsize += df.colsize
