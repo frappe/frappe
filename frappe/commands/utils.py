@@ -384,13 +384,16 @@ def get_version():
 			print "{0} {1}".format(m, module.__version__)
 
 @click.command('setup-help')
-def setup_help():
+@click.option('--mariadb_root_password')
+def setup_help(mariadb_root_password=None):
 	"Make a database for help documentation"
 	frappe.local.flags = frappe._dict()
 	frappe.local.flags.in_setup_help = True
 	frappe.local.flags.in_install = True
 	frappe.local.lang = 'en'
 	frappe.local.conf = frappe.get_site_config(sites_path='.')
+	if mariadb_root_password:
+		frappe.local.conf.root_password = mariadb_root_password
 	from frappe.utils.help import sync
 	sync()
 
