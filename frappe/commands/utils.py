@@ -383,6 +383,16 @@ def get_version():
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
 
+@click.command('setup-help')
+def setup_help():
+	"Make a database for help documentation"
+	frappe.local.flags = frappe._dict()
+	frappe.local.flags.in_setup_help = True
+	frappe.local.lang = 'en'
+	frappe.local.conf = frappe.get_site_config(sites_path='.')
+	from frappe.utils.help import sync
+	sync()
+
 commands = [
 	build,
 	clear_cache,
@@ -407,4 +417,5 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
+	setup_help
 ]

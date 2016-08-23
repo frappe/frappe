@@ -168,11 +168,11 @@ def get_full_dict(lang):
 
 	:param lang: Language Code, e.g. `hi`
 	"""
-	if not lang:
+	if not lang or lang=='en':
 		return {}
 
 	# found in local, return!
-	if frappe.local.lang_full_dict is not None:
+	if getattr(frappe.local, 'lang_full_dict', None) is not None:
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -192,6 +192,9 @@ def load_lang(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
+
+	if lang=='en':
+		return {}
 
 	out = frappe.cache().hget("lang_full_dict", lang)
 	if not out:

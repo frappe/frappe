@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+import hashlib
 
 from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
@@ -32,10 +33,12 @@ def get_help_content(path):
 
 class HelpDatabase(object):
 	def __init__(self):
-		self.help_db_name = '_frappe_help'
+		bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
+		self.help_db_name = hashlib.sha224(bench_name).hexdigest()[:15]
 
 	def make_database(self):
 		dbman = DbManager(get_root_connection())
+		dbman.drop_database(self.help_db_name)
 
 		# make database
 		if not self.help_db_name in dbman.get_database_list():
@@ -61,7 +64,7 @@ class HelpDatabase(object):
 				full_path text,
 				fulltext(title),
 				fulltext(content),
-				fulltext(path))
+				index (path))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4''')
@@ -95,8 +98,9 @@ class HelpDatabase(object):
 					app_name = frappe.get_attr('{app}.__title__'.format(app=app)) or app
 					doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
 						app=app, app_name=app_name)
-				except Exception, e:
+				except Exception:
 					pass
+
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
 					for fname in files:

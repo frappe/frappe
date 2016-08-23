@@ -487,13 +487,10 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		try:
-			if password:
-				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
-			else:
-				self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
-		except Exception:
-			raise
+		if password:
+			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
+		else:
+			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
 
 	def delete_user(self, target, host=None):
 		if not host:
@@ -519,7 +516,8 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
+			user, host))
 
 	def grant_select_privilges(self, db, table, user, host=None):
 		if not host:
