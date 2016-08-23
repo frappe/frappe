@@ -337,6 +337,8 @@ class DatabaseQuery(object):
 		self.match_filters = []
 		self.match_conditions = []
 		only_if_shared = False
+		if not self.user:
+			self.user = frappe.session.user
 
 		if not self.tables: self.extract_tables()
 
