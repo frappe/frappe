@@ -85,7 +85,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		$("#input-help + span").on("click", function () {
-			var keywords = $(this).val();
+			var keywords = $("#input-help").val();
 			show_help_results(keywords);
 			$(this).val("");
 		});
@@ -115,10 +115,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			for (var i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
+				var app_name = url.split('//', 2)[1].split('/', 2)[1];
+				console.log(app_name)
 				var data_path = url.slice(url.indexOf('/user'));
 				if(data_path.lastIndexOf('.')){
 					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
 				}
+				data_path = data_path.replace('user', app_name);
 
 				$("<a>", {
 					href: link.url,
