@@ -30,6 +30,15 @@
 							</a>
 						{% } %}
 					</span>
+			{% if(data.communication_type==="Communication") { %}
+						<span title="{%=data.subject%}" class="hidden-xs">
+						&ndash;
+						{% if (data.subject.length > 40){
+							data.subject = data.subject.substr(0,37)+"...";
+							} %}
+						{%= data.subject %}
+						</span>
+						{% } %}
                     <span class="text-muted" style="font-weight: normal;">
                         &ndash; {%= data.comment_on %}</span>
                     {% if(data.communication_type==="Communication") { %}
