@@ -79,7 +79,7 @@
 .dropdown-help .dropdown-menu {
   width: 350px !important;
   max-height: 440px;
-  overflow: scroll;
+  overflow: auto;
 }
 .dropdown-help .dropdown-menu .input-group {
   width: 100%;
