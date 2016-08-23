@@ -77,9 +77,6 @@ def build(no_compress=False, verbose=False):
 	for target, sources in get_build_maps().iteritems():
 		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
 
-	shutil.copy(os.path.join(os.path.dirname(os.path.abspath(frappe.__file__)), 'data', 'languages.txt'), frappe.local.sites_path)
-	# reset_app_html()
-
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
 	# framework js and css files

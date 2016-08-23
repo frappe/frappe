@@ -276,7 +276,7 @@ frappe.ready(function() {
 							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
 							.removeClass("hide");
                     } else {
-						frappe.msgprint(__('Successfully Updated. Redirecting...'));
+						frappe.msgprint(__('Successfully Updated'));
 						setTimeout(function() {
 							window.location.href = "{{ success_url }}";
 						}, 3000);

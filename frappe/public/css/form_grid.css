@@ -39,6 +39,7 @@
 }
 .grid-body .data-row {
   font-size: 12px;
+  overflow: hidden;
 }
 .grid-empty,
 .list-loading {

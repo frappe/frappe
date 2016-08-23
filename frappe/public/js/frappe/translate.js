@@ -26,9 +26,3 @@ frappe.get_languages = function() {
 	}
 	return frappe.languages;
 };
-
-frappe.setup_language_field = function(frm, fieldname) {
-	if (!fieldname) fieldname = 'language';
-	frm.set_df_property(fieldname, "options", [''].concat(frappe.get_languages()) || ["", "english"]);
-	frm.get_field(fieldname).set_input(frm.doc[fieldname] || '');
-}
