@@ -1319,8 +1319,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				// if remember_selected hook is set, add this value
 				// to defaults so you do not need to set it again
 				// unless it is changed.
-				if(frappe.boot.remember_selected && frappe.boot.remember_selected.indexOf(me.df.options)!==-1) {
-					frappe.boot.user.defaults[me.df.options] = ui.item.value;
+				if(frappe.boot.remember_selected 
+						&& frappe.boot.remember_selected.indexOf(me.df.options)!==-1) {
+					frappe.boot.user.last_selected_values[me.df.options] = ui.item.value;
 				}
 
 				if(me.frm && me.frm.doc) {
