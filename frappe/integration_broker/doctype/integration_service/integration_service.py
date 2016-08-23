@@ -12,7 +12,6 @@ from frappe.utils import get_request_session
 
 class IntegrationService(Document):
 	def validate(self):
-		self.install_events()
 		parameters = self.get_parameters()
 		for d in self.get_controller().parameters_template:
 			if (d.reqd and not d.show_in_dialog) and not parameters.get(d.fieldname):
@@ -33,14 +32,6 @@ class IntegrationService(Document):
 		for d in self.parameters:
 			parameters[d.fieldname] = d.value
 		return parameters
-
-	def install_events(self):
-		'''Install events for controller'''
-		for d in self.get_controller().events:
-			if not frappe.db.exists('Integration Event', d.event):
-				event = frappe.new_doc('Integration Event')
-				event.update(d)
-				event.insert()
 
 	def install_fixtures(self):
 		pass
