@@ -70,7 +70,7 @@ def get_allowed_functions_for_jenv():
 			# only allow functions
 			datautils[key] = obj
 
-	if "_" in frappe.local.form_dict:
+	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
 
 	out = {
@@ -80,15 +80,11 @@ def get_allowed_functions_for_jenv():
 			"get_url": frappe.utils.get_url,
 			"format_value": frappe.format_value,
 			"format_date": frappe.utils.data.global_date_format,
-			"form_dict": frappe.local.form_dict,
+			"form_dict": getattr(frappe.local, 'form_dict', {}),
 			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
-			"db": {
-				"get_value": frappe.db.get_value,
-				"get_default": frappe.db.get_default,
-			},
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			"utils": datautils,
@@ -113,6 +109,10 @@ def get_allowed_functions_for_jenv():
 	if not frappe.flags.in_setup_help:
 		out['date_format'] = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
+		out["db"] = {
+			"get_value": frappe.db.get_value,
+			"get_default": frappe.db.get_default,
+		}
 
 	return out
 

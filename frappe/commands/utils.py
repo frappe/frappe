@@ -388,6 +388,7 @@ def setup_help():
 	"Make a database for help documentation"
 	frappe.local.flags = frappe._dict()
 	frappe.local.flags.in_setup_help = True
+	frappe.local.flags.in_install = True
 	frappe.local.lang = 'en'
 	frappe.local.conf = frappe.get_site_config(sites_path='.')
 	from frappe.utils.help import sync

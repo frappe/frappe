@@ -94,12 +94,9 @@ class HelpDatabase(object):
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):
-				try:
-					app_name = frappe.get_attr('{app}.__title__'.format(app=app)) or app
-					doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
-						app=app, app_name=app_name)
-				except Exception:
-					pass
+				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
+				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
+					app=app, app_name=app_name)
 
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
