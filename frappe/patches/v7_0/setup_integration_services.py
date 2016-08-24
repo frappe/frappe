@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.exceptions import DataError
 from frappe.utils.password import get_decrypted_password
+import json
 
 app_list = [
 	{"app_name": "razorpay_integration", "service_name": "Razorpay", "doctype": "Razorpay Settings", "remove": True},
@@ -27,31 +28,35 @@ def execute():
 				pass
 
 def setup_integration_service(app_details):
-	settings = get_app_settings(app_details)
+	settings, custom_settings = get_app_settings(app_details)
 	if not settings:
 		raise DataError
-	
+
 	if frappe.db.exists("Integration Service", app_details["service_name"]):
 		integration_service = frappe.get_doc("Integration Service", app_details["service_name"])
 	else:
 		integration_service = frappe.new_doc("Integration Service")
 		integration_service.service = app_details["service_name"]
-	
+
 	integration_service.enabled = 1
 	integration_service.set("parameters", [])
 	integration_service.extend("parameters", settings)
+	integration_service.custom_settings_json = json.dumps(custom_settings) if custom_settings else ''
 	integration_service.flags.ignore_mandatory = True
 	integration_service.save(ignore_permissions=True)
 
 def get_app_settings(app_details):
 	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
-	
+
 	parameters = []
 	doctype = docname = app_details["doctype"]
-	
-	settings = get_parameters(app_details)
+
+	app_settings = get_parameters(app_details)
+	settings = app_settings["settings"]
+	custom_settings = app_settings.get("custom_settings") or None
+
 	controller = get_integration_controller(app_details["service_name"], setup=False)
-	
+
 	for d in controller.parameters_template:
 		if settings.get(d.fieldname):
 			if ''.join(set(settings.get(d.fieldname))) == '*':
@@ -59,7 +64,7 @@ def get_app_settings(app_details):
 
 			parameters.append({'label': d.label, 'fieldname': d.fieldname, "value": settings.get(d.fieldname)})
 
-	return parameters
+	return parameters, custom_settings
 
 def uninstall_app(app_name):
 	from frappe.installer import remove_from_installed_apps
@@ -67,17 +72,19 @@ def uninstall_app(app_name):
 
 def get_parameters(app_details):
 	if app_details["service_name"] == "Razorpay":
-		return frappe.get_doc(app_details["doctype"])
+		return {"settings": frappe.get_doc(app_details["doctype"])}
 
 	elif app_details["service_name"] == "PayPal":
 		if frappe.conf.paypal_username and frappe.conf.paypal_password and frappe.conf.paypal_signature:
 			return {
-				"api_username": frappe.conf.paypal_username,
-				"api_password": frappe.conf.paypal_password,
-				"signature": frappe.conf.paypal_signature
+				"settings": {
+					"api_username": frappe.conf.paypal_username,
+					"api_password": frappe.conf.paypal_password,
+					"signature": frappe.conf.paypal_signature
+				}
 			}
 		else:
-			return frappe.get_doc(app_details["doctype"])
+			return {"settings": frappe.get_doc(app_details["doctype"])}
 
 	elif app_details["service_name"] == "Dropbox Integration":
 		doc = frappe.get_doc(app_details["doctype"])
@@ -86,8 +93,13 @@ def get_parameters(app_details):
 			raise DataError
 
 		return {
-			"app_access_key": frappe.conf.dropbox_access_key,
-			"app_secret_key": frappe.conf.dropbox_secret_key,
-			"dropbox_access_key": doc.dropbox_access_key,
-			"dropbox_access_secret": doc.dropbox_access_secret
+			"settings": {
+				"app_access_key": frappe.conf.dropbox_access_key,
+				"app_secret_key": frappe.conf.dropbox_secret_key,
+				"dropbox_access_key": doc.dropbox_access_key,
+				"dropbox_access_secret": doc.dropbox_access_secret
+			},
+			"custom_settings": {
+				"backup_frequency": doc.upload_backups_to_dropbox
+			}
 		}
