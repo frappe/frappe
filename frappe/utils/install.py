@@ -23,6 +23,9 @@ def after_install():
 
 	import_country_and_currency()
 
+	from frappe.core.doctype.language.language import sync_languages
+	sync_languages()
+
 	# save default print setting
 	print_settings = frappe.get_doc("Print Settings")
 	print_settings.save()
