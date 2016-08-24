@@ -107,9 +107,9 @@ def get_allowed_functions_for_jenv():
 	}
 
 	if not frappe.flags.in_setup_help:
-		out['date_format'] = frappe.db.get_default("date_format") or "yyyy-mm-dd"
-		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
-		out["db"] = {
+		out['frappe']['date_format'] = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		out['frappe']['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
+		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
 			"get_default": frappe.db.get_default,
 		}
