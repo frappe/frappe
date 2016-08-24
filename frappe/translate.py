@@ -168,7 +168,7 @@ def get_full_dict(lang):
 
 	:param lang: Language Code, e.g. `hi`
 	"""
-	if not lang or lang=='en':
+	if not lang:
 		return {}
 
 	# found in local, return!
@@ -201,7 +201,7 @@ def load_lang(lang, apps=None):
 		out = {}
 		for app in (apps or frappe.get_all_apps(True)):
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			out.update(get_translation_dict_from_file(path, lang, app))
+			out.update(get_translation_dict_from_file(path, lang, app) or {})
 
 		if '-' in lang:
 			parent = lang.split('-')[0]
@@ -209,7 +209,7 @@ def load_lang(lang, apps=None):
 
 		frappe.cache().hset("lang_full_dict", lang, out)
 
-	return out
+	return out or {}
 
 def get_translation_dict_from_file(path, lang, app):
 	"""load translation dict from given path"""

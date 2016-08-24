@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import unittest, json
+import unittest, json, sys
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
@@ -31,8 +31,8 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 		unittest_runner = xmlrunner_wrapper(xmloutput_fh)
 	else:
 		unittest_runner = unittest.TextTestRunner
-	
-	try:	
+
+	try:
 		frappe.flags.print_messages = verbose
 		frappe.flags.in_test = True
 
@@ -116,6 +116,10 @@ def run_all_tests(app=None, verbose=False, profile=False):
 
 def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
 	module = frappe.db.get_value("DocType", doctype, "module")
+	if not module:
+		print 'Invalid doctype {0}'.format(doctype)
+		sys.exit(1)
+
 	test_module = get_module_name(doctype, module, "test_")
 	if force:
 		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
@@ -160,7 +164,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 
 
 def _add_test(app, path, filename, verbose, test_suite=None):
-	import os, imp
+	import os
 
 	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
 		# in /doctype/doctype/boilerplate/
