@@ -265,9 +265,12 @@ def make_site_config(db_name=None, db_password=None, site_config=None):
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
-def update_site_config(key, value, validate=True):
+def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
-	with open(get_site_config_path(), "r") as f:
+	if not site_config_path:
+		site_config_path = get_site_config_path()
+
+	with open(site_config_path, "r") as f:
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
@@ -288,7 +291,7 @@ def update_site_config(key, value, validate=True):
 	else:
 		site_config[key] = value
 
-	with open(get_site_config_path(), "w") as f:
+	with open(site_config_path, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 	if frappe.local.conf:

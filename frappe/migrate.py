@@ -13,6 +13,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 from frappe.core.doctype.language.language import sync_languages
+import frappe.utils.help
 
 def migrate(verbose=True, rebuild_website=False):
 	'''Migrate all apps to the latest version, will:
@@ -39,6 +40,10 @@ def migrate(verbose=True, rebuild_website=False):
 	render.clear_cache()
 
 	frappe.db.commit()
+
+	if not frappe.conf.get('global_help_setup'):
+		# sync help if not set as global
+		frappe.utils.help.sync()
 
 	clear_notifications()
 

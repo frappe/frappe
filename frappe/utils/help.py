@@ -33,10 +33,16 @@ def get_help_content(path):
 
 class HelpDatabase(object):
 	def __init__(self):
-		bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
-		self.help_db_name = hashlib.sha224(bench_name).hexdigest()[:15]
+		self.global_help_setup = frappe.conf.get('global_help_setup')
+		if self.global_help_setup:
+			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
+			self.help_db_name = hashlib.sha224(bench_name).hexdigest()[:15]
 
 	def make_database(self):
+		'''make database for global help setup'''
+		if not self.global_help_setup:
+			return
+
 		dbman = DbManager(get_root_connection())
 		dbman.drop_database(self.help_db_name)
 
@@ -52,7 +58,10 @@ class HelpDatabase(object):
 			dbman.flush_privileges()
 
 	def connect(self):
-		self.db = Database(user=self.help_db_name, password=self.help_db_name)
+		if self.global_help_setup:
+			self.db = Database(user=self.help_db_name, password=self.help_db_name)
+		else:
+			self.db = frappe.db
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
