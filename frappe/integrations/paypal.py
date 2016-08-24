@@ -207,8 +207,7 @@ def update_integration_request_status(token, data, status, error=False):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
 	try:
-		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = Controller().get_payment_url(**kwargs)
+		return Controller().get_payment_url(**kwargs)
 	except Exception:
 		frappe.respond_as_web_page(_("Something went wrong"),
 			_("Looks like something is wrong with this site's Paypal configuration. Don't worry! No payment has been made from your Paypal account."),
