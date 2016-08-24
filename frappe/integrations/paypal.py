@@ -11,25 +11,55 @@ from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
 """
-API usage:
+1. Get paypal controller,
+	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+	controller = get_integration_controller("PayPal", setup=False)
 
-Get payement url via get_checkout_url()
+2. check whether transaction currency supported by payment gateway,
+Controller().validate_transaction_currency(currency)
+
+3. Get checkout url via controller or api, this will redirect you to payment page of particular gateway.
+
+payment_details = {
+	"amount": 600,
+	"title": "Payment for bill : 111",
+	"description": "payment via cart",
+	"reference_doctype": "Payment Request",
+	"reference_docname": "PR0001",
+	"payer_email": "NuranVerkleij@example.com",
+	"payer_name": "Nuran Verkleij",
+	"order_id": "111",
+	"currency": "USD"
+}
+
+Via API
+---------
+Get payement url via get_checkout_url(**kwargs)
 
 example:
-	get_checkout_url(**{
-		"amount": 600,
-		"title": "Payment for bill : 111",
-		"description": "payment via cart",
-		"reference_doctype": "Payment Request",
-		"reference_docname": "PR0001",
-		"payer_email": "NuranVerkleij@example.com",
-		"payer_name": "Nuran Verkleij",
-		"order_id": "111",
-		"currency": "USD"
-	})
+	from frappe.integration.paypal import get_checkout_url
+	get_checkout_url(**payment_details)
+
+Via Controller
+---------------
+Get payment url via get_payment_url(**kwargs)
+
+example:
+	controller().get_payment_url(**payment_details)
+
+4.To handle a callback of payment, you need to write `on_payment_authorized` 
+in reference document.
+
+example:
+	def on_payment_authorized(payment_satus):
+		"your code to handle callback"
+
+parameter description
+---------------------
+payment_satus - payment gateway will put payment status on callback.
+For paypal payment status parameter is one from: [Completed, Cancelled, Failed]
 
 """
-
 
 class Controller(IntegrationController):
 	service_name = 'PayPal'
@@ -191,10 +221,10 @@ def confirm_payment(token):
 		if data.get("reference_doctype") and data.get("reference_docname"):
 			redirect_to = frappe.get_doc(data.get("reference_doctype"), data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 
-		redirect_to = redirect_to or get_url("/payment-success")
+		redirect_to = redirect_to or get_url("/integrations/payment-success")
 
 	else:
-		redirect_to = get_url("/payment-failed")
+		redirect_to = get_url("/integrations/payment-failed")
 
 	# this is done so that functions called via hooks can update flags.redirect_to
 	if redirect:

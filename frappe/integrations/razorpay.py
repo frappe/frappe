@@ -10,22 +10,52 @@ from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
 """
-API usage:
+1. Get razorpay controller,
+	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+	controller = get_integration_controller("Razorpay", setup=False)
 
-Get payement url via get_checkout_url()
+2. check whether transaction currency supported by payment gateway,
+Controller().validate_transaction_currency(currency)
+
+3. Get checkout url via controller or api, this will redirect you to payment page of particular gateway.
+
+payment_details = {
+	"amount": 600,
+	"title": "Payment for bill : 111",
+	"description": "payment via cart",
+	"reference_doctype": "Payment Request",
+	"reference_docname": "PR0001",
+	"payer_email": "NuranVerkleij@example.com",
+	"payer_name": "Nuran Verkleij",
+	"order_id": "111",
+	"currency": "INR"
+}
+
+Via API
+---------
+Get payement url via get_checkout_url(**kwargs)
 
 example:
-	get_checkout_url(**{
-		"amount": 1000,
-		"title": "Payment for bill : 111",
-		"description": "payment via cart",
-		"reference_doctype": "Payment Request",
-		"reference_docname": "PR0001",
-		"payer_email": "NuranVerkleij@example.com",
-		"payer_name": "Nuran Verkleij",
-		"order_id": "111",
-		"currency": "INR"
-	})
+	from frappe.integration.razorpay import get_checkout_url
+	get_checkout_url(**payment_details)
+
+Via Controller
+---------------
+Get payment url via get_payment_url(**kwargs)
+
+example:
+	controller().get_payment_url(**payment_details)
+
+4.To handle a callback of payment, you need to write `on_payment_authorized`
+in reference document.
+
+example:
+	def on_payment_authorized(payment_satus):
+		"your code to handle callback"
+
+parameter description
+---------------------
+payment_satus - payment gateway will put payment status on callback. For razorpay payment status is Authorized
 
 """
 
@@ -70,7 +100,7 @@ class Controller(IntegrationController):
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
 	
 	def get_payment_url(self, **kwargs):
-		return get_url("./razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
+		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
 	
 	def get_settings(self):
 		return frappe._dict(self.get_parameters())

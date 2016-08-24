@@ -47,9 +47,9 @@ class Controller(IntegrationController):
 		}
 		
 	]
-	
+
 	js = "assets/frappe/js/dropbox_integration.js"
-	
+
 	scheduled_jobs = [
 		{
 			"daily_long": [
@@ -83,7 +83,7 @@ class Controller(IntegrationController):
 			raise Exception(_("Please set Dropbox access keys in your site config"))
 
 		sess = session.DropboxSession(parameters["app_access_key"], parameters["app_secret_key"], "app_folder")
-		
+
 		return sess
 
 #get auth token
@@ -92,17 +92,17 @@ class Controller(IntegrationController):
 def get_dropbox_authorize_url():
 	sess = Controller().get_dropbox_session()
 	request_token = sess.obtain_request_token()
-	
+
 	setup_parameter({
 		"dropbox_access_key": request_token.key,
 		"dropbox_access_secret": request_token.secret
 	})
-	
+
 	return_address = get_request_site_address(True) \
 		+ "?cmd=frappe.integrations.dropbox_integration.dropbox_callback"
 
 	url = sess.build_authorize_url(request_token, return_address)
-	
+
 	return {
 		"url": url,
 		"dropbox_access_key": request_token.key,
@@ -117,40 +117,31 @@ def setup_parameter(request_token):
 				parameter.db_update()
 
 	frappe.db.commit()
-				
+
 @frappe.whitelist(allow_guest=True)
 def dropbox_callback(oauth_token=None, not_approved=False):
 	parameters = Controller().get_parameters()
 	if not not_approved:
 		if parameters["dropbox_access_key"]==oauth_token:
-			allowed = 1
-			message = "Dropbox access allowed."
-
 			sess = Controller().get_dropbox_session()
 			sess.set_request_token(parameters["dropbox_access_key"], parameters["dropbox_access_secret"])
 			access_token = sess.obtain_access_token()
-			
+
 			setup_parameter({
 				"dropbox_access_key": access_token.key,
 				"dropbox_access_secret": access_token.secret
 			})
 
+			frappe.db.commit()
 		else:
-			allowed = 0
-			message = "Illegal Access Token Please try again."
+			frappe.respond_as_web_page(_("Dropbox Approval"), _("Illegal Access Token Please try again. <p>Please close this window.</p"),
+				success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 	else:
-		allowed = 0
-		message = "Dropbox Access not approved."
+		frappe.respond_as_web_page(_("Dropbox Approval"), _("Dropbox Access not approved. <p>Please close this window.</p"),
+			success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 
-	frappe.local.message_title = "Dropbox Approval"
-	frappe.local.message = "<h3>%s</h3><p>Please close this window.</p>" % message
-
-	if allowed:
-		frappe.local.message_success = True
-
-	frappe.db.commit()
-	frappe.response['type'] = 'page'
-	frappe.response['route'] = 'message.html'
+	frappe.respond_as_web_page(_("Dropbox Approval"), _("Dropbox access allowed. <p>Please close this window.</p"),
+		success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 
 # backup process
 @frappe.whitelist()
@@ -224,19 +215,19 @@ def backup_to_dropbox():
 	# upload files to files folder
 	did_not_upload = []
 	error_log = []
-	
+
 	dropbox_client = upload_from_folder(get_files_path(), "/files", dropbox_client, did_not_upload, error_log)
 	dropbox_client = upload_from_folder(get_files_path(is_private=1), "/private/files", dropbox_client, did_not_upload, error_log)
-	
+
 	frappe.connect()
-	
+
 	return did_not_upload, list(set(error_log))
 
 def get_dropbox_client(previous_dropbox_client=None):
 	from dropbox import client
 
 	sess = Controller().get_dropbox_session()
-		
+
 	parameters = Controller().get_parameters()
 	sess.set_token(parameters["dropbox_access_key"], parameters["dropbox_access_secret"])
 

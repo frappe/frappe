@@ -88,7 +88,7 @@ frappe.ui.form.on('Integration Service', {
 					form.events.setup_dialog(form);
 				});
 
-				frm.events.show_additional_properties(frm);
+				frm.events.show_additional_properties(frm)
 			}
 		});
 	},
@@ -111,8 +111,8 @@ frappe.ui.form.on('Integration Service', {
 
 			frm.set_value("custom_settings_json", JSON.stringify(v));
 			frm.refresh_field("custom_settings_json");
-			frm.save();
 			d.hide();
+			frm.events.show_additional_properties(frm);
 		})
 
 		d.show();
@@ -139,47 +139,7 @@ frappe.ui.form.on('Integration Service', {
 			var df = d;
 			$row = $("<tr>").appendTo($(table_wrapper).find("tbody"));
 			$("<td>").appendTo($row).html(__(d.label));
-
-			//In column for value we are adding two divs field_area and static_area to make grid editable
-			//ref: grid.js
-			d.col = $("<td>").appendTo($row)
-			d.col.field_area = $('<div class="field-area"></div>').appendTo(d.col).toggle(false);
-
-			d.col.static_area = $('<div class="static-area"></div>')
-				.appendTo(d.col)
-				.html(frm.settings[d.fieldname])
-				.css("padding", frm.settings[d.fieldname] ? 0 : 7)
-				.click(function(){
-					frm.events.make_input(frm, df, d.col.field_area);
-					d.col.field_area.toggle(true);
-					d.col.static_area.toggle(false);
-				});
-		})
-	},
-
-	make_input:function(frm, df, parent){
-		var field = frappe.ui.form.make_control({
-			df: df,
-			parent: parent,
-			only_input: true,
-			with_link_btn: true,
-			frm: this.frm
-		});
-
-		field.refresh();
-
-		if(field.$input) {
-			field.$input.addClass('input-sm');
-		}
-
-		field.set_input(frm.settings[df.fieldname])
-
-		field.$input.on("change", function(){
-			frm.settings[df.fieldname] = $(this).val();
-			frm.set_value("custom_settings_json", JSON.stringify(frm.settings))
-			df.col.field_area.toggle(false);
-			df.col.static_area.toggle(true);
-			frm.events.show_additional_properties(frm);
+			$("<td>").appendTo($row).html(frm.settings[d.fieldname]);
 		})
 	}
 });
