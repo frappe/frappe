@@ -677,6 +677,9 @@ def get_bench_dir():
 	return os.path.join(frappe.__file__, '..', '..', '..', '..')
 
 def rename_language(old_name, new_name):
+	if not frappe.db.exists('Language', new_name):
+		return
+
 	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
 	if language_in_system_settings == old_name:
 		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
