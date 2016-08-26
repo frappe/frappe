@@ -52,7 +52,6 @@
 
 .grid-body .data-row {
 	font-size: 12px;
-	overflow: hidden;
 }
 
 .grid-empty, .list-loading {
@@ -146,12 +145,16 @@
 		}
 	}
 
-	.grid-static-col[data-fieldtype="Code"] .static-area {
-		margin-top: -5px;
+	.grid-static-col[data-fieldtype="Code"] {
+		overflow: hidden;
 
-		pre {
-			background: none;
-			border: none;
+		.static-area {
+			margin-top: -5px;
+
+			pre {
+				background: none;
+				border: none;
+			}
 		}
 	}
 
