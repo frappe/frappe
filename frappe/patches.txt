@@ -101,7 +101,6 @@ frappe.patches.v5_0.modify_session
 frappe.patches.v5_0.expire_old_scheduler_logs
 execute:frappe.permissions.reset_perms("DocType")
 execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'")
-frappe.patches.v5_3.rename_chinese_languages
 frappe.patches.v6_0.communication_status_and_permission
 frappe.patches.v6_0.make_task_log_folder
 frappe.patches.v6_0.document_type_rename
@@ -110,13 +109,10 @@ frappe.patches.v6_2.ignore_user_permissions_if_missing
 execute:frappe.db.sql("delete from tabSessions where user is null")
 frappe.patches.v6_2.rename_backup_manager
 execute:frappe.delete_doc("DocType", "Backup Manager")
-frappe.patches.v6_4.rename_bengali_language
 execute:frappe.db.sql("""update `tabCommunication` set parenttype=null, parent=null, parentfield=null""") #2015-10-22
 execute:frappe.permissions.reset_perms("Web Page")
 frappe.patches.v6_6.user_last_active
-frappe.patches.v6_6.rename_slovak_language
 frappe.patches.v6_6.fix_file_url
-frappe.patches.v6_9.rename_burmese_language
 frappe.patches.v6_11.rename_field_in_email_account
 execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
 frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
