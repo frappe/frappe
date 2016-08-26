@@ -92,15 +92,23 @@ frappe.ui.Listing = Class.extend({
 
 		// next page
 		this.$w.find('.btn-more').click(function() {
-			me.run({append: true });
+			me.run(true);
 		});
 
 		this.$w.find(".btn-group-paging .btn").click(function() {
 			me.page_length = cint($(this).attr("data-value"));
 			me.$w.find(".btn-group-paging .btn-info").removeClass("btn-info");
 			$(this).addClass("btn-info");
-			me.run({append: true});
+
+			// always reset when changing list page length
+			me.run();
 		});
+
+		// select the correct page length
+		if(this.opts.page_length != 20) {
+			this.$w.find(".btn-group-paging .btn-info").removeClass("btn-info");
+			this.$w.find(".btn-group-paging .btn[data-value='"+ this.opts.page_length +"']").addClass('btn-info');
+		}
 
 		// title
 		if(this.title) {
@@ -297,7 +305,7 @@ frappe.ui.Listing = Class.extend({
 	render_results: function(r) {
 		if(this.start===0) this.clear();
 
-		this.$w.find('.list-paging-area, .list-loading').toggle(false);
+		this.$w.find('.btn-more, .list-loading').toggle(false);
 
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
@@ -394,7 +402,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
-			this.$w.find('.list-paging-area').toggle(true);
+			this.$w.find('.btn-more').toggle(true);
 			this.start += this.page_length;
 		}
 	},
