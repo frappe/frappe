@@ -2,7 +2,7 @@
   padding: 15px;
 }
 .result-list {
-  min-height: 200px;
+  min-height: 400px;
 }
 .sort-selector .dropdown:hover {
   text-decoration: underline;

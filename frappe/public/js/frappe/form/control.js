@@ -424,10 +424,6 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 
 		// somehow this event does not bubble up to document
 		// after v7, if you can debug, remove this
-		this.$input.keydown("ctrl+s meta+s", function(e) {
-			e.preventDefault();
-			frappe.app && frappe.app.trigger_primary_action();
-		});
 	},
 	set_input_attributes: function() {
 		this.$input
@@ -1319,7 +1315,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				// if remember_selected hook is set, add this value
 				// to defaults so you do not need to set it again
 				// unless it is changed.
-				if(frappe.boot.remember_selected 
+				if(frappe.boot.remember_selected
 						&& frappe.boot.remember_selected.indexOf(me.df.options)!==-1) {
 					frappe.boot.user.last_selected_values[me.df.options] = ui.item.value;
 				}
@@ -1438,7 +1434,9 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	make_input: function() {
 		this._super();
-		$(this.input_area).find("textarea").css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+		$(this.input_area).find("textarea")
+			.allowTabs()
+			.css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
 	}
 });
 
