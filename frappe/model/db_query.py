@@ -11,7 +11,7 @@ import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter
 from frappe import _
 from frappe.model import optional_fields
-from frappe.model.utils.list_settings import update_list_settings
+from frappe.model.utils.list_settings import get_list_settings, update_list_settings
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -488,14 +488,13 @@ class DatabaseQuery(object):
 
 	def update_list_settings(self):
 		# update list settings if new search
-		if not cint(self.limit_start) or cint(self.limit_page_length) != 20:
-			list_settings = {
-				'filters': self.filters,
-				'limit': self.limit_page_length,
-				'order_by': self.order_by
-			}
-			if self.save_list_settings_fields:
-				list_settings['fields'] = self.fields
+		list_settings = json.loads(get_list_settings(self.doctype) or '{}')
+		list_settings['filters'] = self.filters
+		list_settings['limit'] = self.limit_page_length
+		list_settings['order_by'] = self.order_by
 
-			update_list_settings(self.doctype, list_settings)
+		if self.save_list_settings_fields:
+			list_settings['fields'] = self.fields
+
+		update_list_settings(self.doctype, list_settings)
 
