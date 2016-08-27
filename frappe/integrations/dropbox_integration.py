@@ -35,18 +35,20 @@ class Controller(IntegrationController):
 			'fieldname': 'dropbox_access_secret',
 			'reqd': 1,
 			'default': '****'
-		},
+		}
+	]
+	
+	custom_settings = [
 		{
 			"label": "Backup Frequency",
 			"fieldname": "backup_frequency",
 			"options": "\nDaily\nWeekly",
 			"default": "",
 			"reqd": 1,
-			"show_in_dialog": True,
 			"fieldtype":'Select'
 		}
-		
 	]
+	
 
 	js = "assets/frappe/js/dropbox_integration.js"
 

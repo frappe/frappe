@@ -26,9 +26,7 @@ frappe.ui.form.on('Integration Service', {
 			callback: function(r) {
 				frm.clear_table('parameters');
 				r.message.parameters.forEach(function(d) {
-					if (!d.show_in_dialog) {
-						frm.add_child('parameters', {'label': d.label, 'fieldname': d.fieldname, 'value': d.default})
-					}
+					frm.add_child('parameters', {'label': d.label, 'fieldname': d.fieldname, 'value': d.default});
 				});
 
 				frm.clear_table('events');
@@ -71,17 +69,15 @@ frappe.ui.form.on('Integration Service', {
 		$(wrapper).append("<a class='label-area small additional_settings'> Additional Settings </a>");
 
 		frappe.call({
-			method: "frappe.integration_broker.doctype.integration_service.integration_service.get_events_and_parameters",
+			method: "frappe.integration_broker.doctype.integration_service.integration_service.get_custom_settings",
 			args: {
 				'service': frm.doc.service
 			},
 			callback: function(r){
 				frm.fields = [];
 
-				r.message.parameters.forEach(function(d) {
-					if (d.show_in_dialog) {
-						frm.fields.push(d);
-					}
+				r.message.custom_settings.forEach(function(d) {
+					frm.fields.push(d);
 				})
 
 				$(wrapper).find(".additional_settings").click(function(){
