@@ -15,6 +15,13 @@ class Note(Document):
 		self.print_heading = self.name
 		self.sub_heading = ""
 
+@frappe.whitelist()
+def mark_as_seen(note):
+	note = frappe.get_doc('Note', note)
+	if frappe.session.user not in [d.user for d in note.seen_by]:
+		note.append('seen_by', {'user': frappe.session.user})
+		note.save()
+
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 

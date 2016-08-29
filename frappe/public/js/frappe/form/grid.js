@@ -344,7 +344,7 @@ frappe.ui.form.Grid = Class.extend({
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
 					if(df.columns) {
 						df.colsize=df.columns;
-					}	
+					}
 					else {
 						var colsize=2;
 						switch(df.fieldtype){
