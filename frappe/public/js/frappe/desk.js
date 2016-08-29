@@ -27,7 +27,7 @@ frappe.Application = Class.extend({
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
-		this.setup_keyboard_shortcuts();
+		frappe.ui.keys.setup();
 		this.set_rtl();
 
 		if(frappe.boot) {
@@ -251,77 +251,6 @@ frappe.Application = Class.extend({
 		} else if(frappe.container.page.save_action) {
 			frappe.container.page.save_action();
 		}
-	},
-
-	setup_keyboard_shortcuts: function() {
-		var me = this;
-
-		$(document)
-			.keydown("meta+g ctrl+g", function(e) {
-				$("#navbar-search").focus();
-				return false;
-			})
-			.keydown("meta+s ctrl+s", function(e) {
-				e.preventDefault();
-				me.trigger_primary_action();
-				return false;
-			})
-			.keydown("meta+b ctrl+b", function(e) {
-				e.preventDefault();
-				var route = frappe.get_route();
-				if(route[0]==='Form' || route[0]==='List') {
-					frappe.new_doc(route[1], true);
-				}
-				return false;
-			})
-			.keydown("esc", function(e) {
-				// close open grid row
-				var open_row = $(".grid-row-open");
-				if(open_row.length) {
-					var grid_row = open_row.data("grid_row");
-					grid_row.toggle_view(false);
-					return false;
-				}
-
-				// close open dialog
-				if(cur_dialog && !cur_dialog.no_cancel_flag) {
-					cur_dialog.cancel();
-					return false;
-				}
-			})
-			.keydown("return", function() {
-				if(cur_dialog && cur_dialog.confirm_dialog) {
-					cur_dialog.get_primary_btn().trigger('click');
-				}
-			})
-			.keydown("ctrl+down meta+down", function(e) {
-				var open_row = $(".grid-row-open");
-				if(open_row.length) {
-					var grid_row = open_row.data("grid_row");
-					grid_row.toggle_view(false, function() { grid_row.open_next() });
-					return false;
-				}
-			})
-			.keydown("ctrl+up meta+up", function(e) {
-				var open_row = $(".grid-row-open");
-				if(open_row.length) {
-					var grid_row = open_row.data("grid_row");
-					grid_row.toggle_view(false, function() { grid_row.open_prev() });
-					return false;
-				}
-			})
-			.keydown("ctrl+n meta+n", function(e) {
-				var open_row = $(".grid-row-open");
-				if(open_row.length) {
-					var grid_row = open_row.data("grid_row");
-					grid_row.toggle_view(false, function() { grid_row.grid.add_new_row(grid_row.doc.idx, null, true); });
-					return false;
-				}
-			})
-			.keydown("ctrl+shift+r meta+shift+r", function(e) {
-				frappe.ui.toolbar.clear_cache();
-			});
-
 	},
 
 	set_rtl: function () {

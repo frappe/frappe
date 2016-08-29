@@ -1063,7 +1063,7 @@ frappe.ui.form.GridRowForm = Class.extend({
 		this.wrapper.find(".grid-append-row")
 			.click(function() {
 				me.row.toggle_view(false);
-				me.row.grid.add_new_row(me.doc.idx+1, null, true);
+				me.row.grid.add_new_row(me.row.doc.idx+1, null, true);
 				return false;
 		})
 		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
