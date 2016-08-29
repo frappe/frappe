@@ -69,13 +69,6 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 		share.flags.ignore_permissions = True
 		share.set(permission_to, value)
 
-		if not value:
-			# un-set higher-order permissions too
-			if permission_to=="read":
-				share.read = share.write = share.share = 0
-			elif permission_to=="write":
-				share.write = share.share = 0
-
 		share.save()
 
 		if not (share.read or share.write or share.share):
