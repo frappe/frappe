@@ -24,14 +24,40 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.setup_reports();
 		this.setup_assigned_to_me();
-		this.setup_list_view_switching();
+		this.setup_views();
+
+	},
+	setup_views: function() {
+		var show_list_link = false;
 
 		if(frappe.views.calendar[this.doctype]) {
-			this.sidebar.find(".calendar-link, .gantt-link").removeClass("hide");
+			this.sidebar.find(".calendar-link").removeClass("hide");
+			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
+			show_list_link = true;
 		}
 
 		if(frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
+		}
+
+		this.current_view = 'List';
+		var route = frappe.get_route();
+		if(route.length > 2 && (route[2]==='Gantt' || route[2]==='Image')) {
+			this.current_view = route[2];
+		}
+
+		// disable link for current view
+		this.sidebar.find('.list-link[data-view="'+ this.current_view +'"] a')
+			.attr('disabled', 'disabled').addClass('disabled');
+
+		// show image link if image_view
+		if(this.doclistview.meta.image_field) {
+			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
+			show_list_link = true;
+		}
+
+		if(show_list_link) {
+			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
 		}
 	},
 	setup_reports: function() {
@@ -77,35 +103,6 @@ frappe.views.ListSidebar = Class.extend({
 		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
 			me.doclistview.assigned_to_me();
 		});
-	},
-	setup_list_view_switching: function() {
-		var me = this;
-		if(this.doclistview.meta.image_field) {
-			this.page.sidebar.find(".switch-list-view").removeClass("hide");
-
-			var label = this.doclistview.meta.image_view ? __("Show List"): __("Show Images");
-			this.page.sidebar.find(".switch-list-view a").html(label)
-
-			var switch_list_view = function(view) {
-				var image_view = 0
-				if(view == __("Show Images"))
-					image_view = 1
-
-				me.doclistview.meta.image_view = image_view;
-
-				// clear and render the headers again while switching
-				me.doclistview.page.main.find(".list-headers").empty();
-				me.doclistview.init_headers();
-				me.doclistview.init_like();
-				me.doclistview.init_select_all();
-
-				me.doclistview.refresh(true);
-			};
-
-			this.page.sidebar.find(".switch-list-view a").on("click", function() {
-				switch_list_view(label)
-			});
-		}
 	},
 	get_stats: function() {
 		var me = this

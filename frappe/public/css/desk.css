@@ -45,7 +45,7 @@ a.disabled,
 a.disabled:hover {
   color: #888;
   cursor: default;
-  text-decoration: none;
+  text-decoration: none !important;
 }
 a.grey,
 .sidebar-section a,

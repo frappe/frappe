@@ -214,12 +214,7 @@ frappe.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		}
 
-		if(this.meta && this.meta.image_view == 0){
-			this.render_list_row(row, data);
-		}
-		else{
-			this.render_list_image(row, data);
-		}
+		this['render_row_' + this.doclistview.current_view](row, data);
 
 		if(this.settings.post_render_item) {
 			this.settings.post_render_item(this, row, data);
@@ -228,7 +223,7 @@ frappe.views.ListView = Class.extend({
 		this.render_tags(row, data);
 
 	},
-	render_list_row: function(row, data) {
+	render_row_List: function(row, data) {
 		var main = frappe.render_template("list_item_main", {
 			data: data,
 			columns: this.columns,
@@ -244,7 +239,7 @@ frappe.views.ListView = Class.extend({
 			right_column: this.settings.right_column
 		})).appendTo(row);
 	},
-	render_list_image: function(row, data) {
+	render_row_Image: function(row, data) {
 		this.allowed_type = [
 			"Check", "Currency", "Data", "Date",
 			"Datetime", "Float", "Int", "Link",
@@ -290,7 +285,7 @@ frappe.views.ListView = Class.extend({
 				//me.render_timestamp_and_comments(row, data);
 			}
 		});
-		tag_editor.$w.on("click", ".tagit-label", function() {
+		tag_editor.wrapper.on("click", ".tagit-label", function() {
 			me.doclistview.set_filter("_user_tags",
 				$(this).text());
 		});
