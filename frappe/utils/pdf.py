@@ -49,7 +49,7 @@ def prepare_options(html, options):
 		'background': None,
 		'images': None,
 		'quiet': None,
-		'no-outline': None,
+		# 'no-outline': None,
 		'encoding': "UTF-8",
 
 		# defaults
