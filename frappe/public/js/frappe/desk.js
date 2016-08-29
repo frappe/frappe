@@ -57,6 +57,8 @@ frappe.Application = Class.extend({
 
 		if (frappe.boot.change_log && frappe.boot.change_log.length) {
 			this.show_change_log();
+		} else {
+			this.show_notes();
 		}
 
 		// ask to allow notifications
@@ -260,6 +262,7 @@ frappe.Application = Class.extend({
 	},
 
 	show_change_log: function() {
+		var me = this;
 		var d = frappe.msgprint(
 			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
 			__("Updated To New Version")
@@ -269,8 +272,33 @@ frappe.Application = Class.extend({
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
+			me.show_notes();
 		};
-	}
+	},
+
+	show_notes: function() {
+		var me = this;
+		if(frappe.boot.notes.length) {
+			frappe.boot.notes.forEach(function(note) {
+				if(!note.seen) {
+					var d = frappe.msgprint({message:note.content, title:note.title});
+					d.keep_open = true;
+					d.custom_onhide = function() {
+						note.seen = true;
+						frappe.call({
+							method: "frappe.desk.doctype.note.note.mark_as_seen",
+							args: {
+								note: note.name
+							}
+						});
+						// next note
+						me.show_notes();
+
+					}
+				}
+			})
+		}
+	},
 });
 
 frappe.get_module = function(m, default_module) {
