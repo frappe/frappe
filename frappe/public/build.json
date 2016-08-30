@@ -141,7 +141,10 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js"
+		"public/js/frappe/ui/charts.js",
+		
+		"public/html/error_object.html",
+		"public/html/error_snapshot.html"
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",
