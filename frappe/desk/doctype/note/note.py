@@ -11,6 +11,12 @@ class Note(Document):
 		import re
 		self.name = re.sub("[%'\"#*?`]", "", self.title.strip())
 
+	def validate(self):
+		if self.notify_on_login and not self.expire_notification_on:
+
+			# expire this notification in a week (default)
+			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
+
 	def before_print(self):
 		self.print_heading = self.name
 		self.sub_heading = ""
