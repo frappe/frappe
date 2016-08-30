@@ -149,7 +149,8 @@ class EmailAccount(Document):
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		self.db_set("enable_incoming", 0)
+		if cint(self.get("disable_on_failure")):
+			self.db_set("enable_incoming", 0)
 
 		for user in get_system_managers(only_name=True):
 			try:
