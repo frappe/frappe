@@ -14,6 +14,7 @@
 		"enable_auto_reply": 1,
 		"auto_reply_message": "",
 		"enable_incoming": 1,
+		"disable_on_failure": 1,
 		"notify_if_unreplied": 1,
 		"unreplied_for_mins": 20,
 		"send_notification_to": "test_unreplied@example.com",

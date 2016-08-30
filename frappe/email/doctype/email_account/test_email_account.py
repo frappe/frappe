@@ -98,6 +98,17 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("From: \"Microsoft Outlook\" &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
 
+	def test_incoming_disable_on_failure(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+
+		email_account.handle_incoming_connect_error('There is an issue during connecting')
+		self.assertEquals(email_account.enable_incoming, 0)
+
+		email_account.db_set("enable_incoming", 1)
+		email_account.db_set("disable_on_failure", 0)
+		email_account.handle_incoming_connect_error('There is an other issue during connecting')
+		self.assertEquals(email_account.enable_incoming, 1)
+
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
