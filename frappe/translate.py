@@ -205,7 +205,9 @@ def load_lang(lang, apps=None):
 
 		if '-' in lang:
 			parent = lang.split('-')[0]
-			out = load_lang(parent).update(out)
+			parent_out = load_lang(parent)
+			parent_out.update(out)
+			out = parent_out
 
 		frappe.cache().hset("lang_full_dict", lang, out)
 
