@@ -65,18 +65,27 @@ class Controller(IntegrationController):
 		{
 			"label": "API Key",
 			'fieldname': 'api_key',
+			'fieldtype': "Data",
 			'reqd': 1
 		},
 		{
 			"label": "API Secret",
 			'fieldname': 'api_secret',
+			'fieldtype': "Password",
 			'reqd': 1
 		}
 	]
 	
+	# do also changes in razorpay.js scheduler job helper
 	scheduled_jobs = [
-		{"all": ["frappe.integrations.razorpay.capture_payment"]}
+		{
+			"all": [
+				"frappe.integrations.razorpay.capture_payment"
+			]
+		}
 	]
+	
+	js = "assets/frappe/js/integrations/razorpay.js"
 	
 	supported_currencies = ["INR"]
 	
@@ -103,7 +112,13 @@ class Controller(IntegrationController):
 		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
 	
 	def get_settings(self):
-		return frappe._dict(self.get_parameters())
+		if hasattr(self, "parameters"):
+			return frappe._dict(self.parameters)
+
+		custom_settings_json = frappe.db.get_value("Integration Service", "Razorpay", "custom_settings_json", debug=1)
+		
+		if custom_settings_json:
+			return frappe._dict(json.loads(custom_settings_json))
 	
 	def create_request(self, data):
 		self.data = frappe._dict(data)

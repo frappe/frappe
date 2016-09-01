@@ -28,7 +28,8 @@ def execute():
 				pass
 
 def setup_integration_service(app_details):
-	settings, custom_settings = get_app_settings(app_details)
+	settings = get_app_settings(app_details)
+
 	if not settings:
 		raise DataError
 
@@ -39,21 +40,18 @@ def setup_integration_service(app_details):
 		integration_service.service = app_details["service_name"]
 
 	integration_service.enabled = 1
-	integration_service.set("parameters", [])
-	integration_service.extend("parameters", settings)
-	integration_service.custom_settings_json = json.dumps(custom_settings) if custom_settings else ''
+	integration_service.custom_settings_json = json.dumps(settings) if settings else ''
 	integration_service.flags.ignore_mandatory = True
 	integration_service.save(ignore_permissions=True)
 
 def get_app_settings(app_details):
 	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 
-	parameters = []
+	parameters = {}
 	doctype = docname = app_details["doctype"]
 
 	app_settings = get_parameters(app_details)
 	settings = app_settings["settings"]
-	custom_settings = app_settings.get("custom_settings") or None
 
 	controller = get_integration_controller(app_details["service_name"], setup=False)
 
@@ -62,9 +60,9 @@ def get_app_settings(app_details):
 			if ''.join(set(settings.get(d.fieldname))) == '*':
 				setattr(settings, d.fieldname, get_decrypted_password(doctype, docname, d.fieldname, raise_exception=True))
 
-			parameters.append({'label': d.label, 'fieldname': d.fieldname, "value": settings.get(d.fieldname)})
+			parameters.update({d.fieldname : settings.get(d.fieldname)})
 
-	return parameters, custom_settings
+	return parameters
 
 def uninstall_app(app_name):
 	from frappe.installer import remove_from_installed_apps
@@ -97,9 +95,7 @@ def get_parameters(app_details):
 				"app_access_key": frappe.conf.dropbox_access_key,
 				"app_secret_key": frappe.conf.dropbox_secret_key,
 				"dropbox_access_key": doc.dropbox_access_key,
-				"dropbox_access_secret": doc.dropbox_access_secret
-			},
-			"custom_settings": {
+				"dropbox_access_secret": doc.dropbox_access_secret,
 				"backup_frequency": doc.upload_backups_to_dropbox
 			}
 		}

@@ -16,29 +16,30 @@ class Controller(IntegrationController):
 			"label": "App Access Key",
 			'fieldname': 'app_access_key',
 			'reqd': 1,
-			'default': ''
+			'default': '',
+			'fieldtype': "Data"
 		},
 		{
 			"label": "App Secret Key",
 			'fieldname': 'app_secret_key',
 			'reqd': 1,
-			'default': ''
+			'default': '',
+			'fieldtype': "Password"
 		},
 		{
 			"label": "Dropbox Access Key",
 			'fieldname': 'dropbox_access_key',
 			'reqd': 1,
-			'default': '****'
+			'default': '****',
+			'fieldtype': "Password"
 		},
 		{
 			"label": "Dropbox Secret Key",
 			'fieldname': 'dropbox_access_secret',
 			'reqd': 1,
-			'default': '****'
-		}
-	]
-	
-	custom_settings = [
+			'default': '****',
+			'fieldtype': "Password"
+		},
 		{
 			"label": "Backup Frequency",
 			"fieldname": "backup_frequency",
@@ -48,10 +49,10 @@ class Controller(IntegrationController):
 			"fieldtype":'Select'
 		}
 	]
-	
 
-	js = "assets/frappe/js/dropbox_integration.js"
+	js = "assets/frappe/js/integrations/dropbox_integration.js"
 
+	# do also changes in dropbox_integration.js scheduler job helper
 	scheduled_jobs = [
 		{
 			"daily_long": [
@@ -79,8 +80,7 @@ class Controller(IntegrationController):
 			from dropbox import session
 		except:
 			raise Exception(_("Please install dropbox python module"))
-
-		parameters = self.get_parameters()
+		parameters = frappe._dict(self.parameters)
 		if not (parameters["app_access_key"] or parameters["app_secret_key"]):
 			raise Exception(_("Please set Dropbox access keys in your site config"))
 
@@ -89,16 +89,18 @@ class Controller(IntegrationController):
 		return sess
 
 #get auth token
-
 @frappe.whitelist()
 def get_dropbox_authorize_url():
+	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
+	Controller.parameters = json.loads(doc.custom_settings_json)
+
 	sess = Controller().get_dropbox_session()
 	request_token = sess.obtain_request_token()
 
 	setup_parameter({
 		"dropbox_access_key": request_token.key,
 		"dropbox_access_secret": request_token.secret
-	})
+	}, doc)
 
 	return_address = get_request_site_address(True) \
 		+ "?cmd=frappe.integrations.dropbox_integration.dropbox_callback"
@@ -111,17 +113,23 @@ def get_dropbox_authorize_url():
 		"dropbox_access_secret": request_token.secret
 	}
 
-def setup_parameter(request_token):
+def setup_parameter(request_token, doc):
+	parameters = Controller().parameters
+	
 	for key in ["dropbox_access_key", "dropbox_access_secret"]:
 		for parameter in Controller().parameters:
-			if key == parameter.fieldname:
-				parameter.value = request_token[key]
-				parameter.db_update()
+			if key == parameter:
+				parameters[key] = request_token[key]
 
+	doc.custom_settings_json = json.dumps(parameters)
+	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 
 @frappe.whitelist(allow_guest=True)
 def dropbox_callback(oauth_token=None, not_approved=False):
+	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
+	Controller.parameters = json.loads(doc.custom_settings_json)
+
 	parameters = Controller().get_parameters()
 	if not not_approved:
 		if parameters["dropbox_access_key"]==oauth_token:
@@ -132,7 +140,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 			setup_parameter({
 				"dropbox_access_key": access_token.key,
 				"dropbox_access_secret": access_token.secret
-			})
+			}, doc)
 
 			frappe.db.commit()
 		else:
@@ -227,6 +235,8 @@ def backup_to_dropbox():
 
 def get_dropbox_client(previous_dropbox_client=None):
 	from dropbox import client
+	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
+	Controller.parameters = json.loads(doc.custom_settings_json)
 
 	sess = Controller().get_dropbox_session()
 

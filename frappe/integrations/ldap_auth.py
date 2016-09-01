@@ -1,5 +1,5 @@
 import frappe
-import ldap
+import ldap, json
 from frappe.integration_broker.integration_controller import IntegrationController
 from frappe import _
 from frappe.utils import cstr, cint
@@ -11,25 +11,26 @@ class Controller(IntegrationController):
 			"label": "LDAP Server Url",
 			"fieldname": "ldap_server_url",
 			"reqd": 1,
+			"fieldtype": "Data"
 		},
 		{
 			"label": "Organizational Unit",
 			"fieldname": "organizational_unit",
 			"reqd": 1,
+			"fieldtype": "Data"
 		},
 		{
 			"label": "Base Distinguished Name (DN)",
 			"fieldname": "base_dn",
 			"reqd": 1,
+			"fieldtype": "Data"
 		},
 		{
 			"label": "Password for Base DN",
 			"fieldname": "password",
 			"reqd": 1,
-		}
-	]
-
-	custom_settings = [
+			"fieldtype": "Password"
+		},
 		{
 			"label": "Sync frequency from ldap to frappe",
 			"fieldname": "sync_frequency",
@@ -38,7 +39,9 @@ class Controller(IntegrationController):
 			"options": "\nDaily\nWeekly",
 		}
 	]
-
+	
+	js = "assets/frappe/js/integrations/ldap_auth.js"
+	
 	def enable(self, parameters, use_test_account=0):
 		self.parameters = parameters
 		self.validate_ldap_credentails()
@@ -53,16 +56,17 @@ class Controller(IntegrationController):
 			frappe.throw("Incorrect UserId or Password")
 
 	def get_settings(self):
-		return frappe._dict(self.get_parameters())
+		return frappe._dict(self.parameters)
 
 def get_ldap_settings():
-	settings = Controller().get_settings()
-
-	return settings.update({
-		"enabled": cint(frappe.db.get_value("Integration Service", "LDAP Auth", "enabled")),
+	doc = frappe.get_doc("Integration Service", "LDAP Auth")
+	settings = json.loads(doc.custom_settings_json)
+	settings.update({
+		"enabled": cint(doc.enabled),
 		"method": "frappe.integrations.ldap_auth.login"
 	})
-
+	return settings
+	
 @frappe.whitelist(allow_guest=True)
 def login():
 	#### LDAP LOGIN LOGIC #####
@@ -72,12 +76,6 @@ def login():
 	frappe.local.login_manager.user = user.name
 	frappe.local.login_manager.post_login()
 
-	# redirect!
-	# frappe.local.response["type"] = "redirect"
-#
-# 	# the #desktop is added to prevent a facebook redirect bug
-# 	frappe.local.response["location"] = "/desk#desktop" if frappe.local.response.get('message') == 'Logged In' else "/"
-
 	# because of a GET request!
 	frappe.db.commit()
 
@@ -86,11 +84,11 @@ def authenticate_ldap_user(user=None, password=None):
 	params = {}
 	settings = get_ldap_settings()
 	conn = ldap.initialize(settings.get('ldap_server_url'))
-
+	print settings
 	try:
 		# simple_bind_s is synchronous binding to server, it takes two param  DN and password
 		conn.simple_bind_s(settings.get("base_dn"), settings.get("password"))
-		
+		print "here"
 		#search for surnames beginning with a
 		#available options for how deep a search you want.
 		#LDAP_SCOPE_BASE, LDAP_SCOPE_ONELEVEL,LDAP_SCOPE_SUBTREE,

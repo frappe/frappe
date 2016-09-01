@@ -3,6 +3,12 @@ frappe.provide("frappe.integration_service")
 frappe.integration_service.dropbox_integration = {
 	load: function(frm) {
 		new frappe.integration_service.DropboxIntegration(frm)
+	},
+	scheduler_job_helper: function(){
+		return  {
+			"Daily": "Take backup of database and files to dropbox on daily basis",
+			"Weekly": "Take backup of database and files to dropbox on weekly basis"
+		}
 	}
 }
 

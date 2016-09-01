@@ -10,4 +10,3 @@ class IntegrationController(IntegrationService):
 		'''Load the current controller data if setup is true'''
 		if setup:
 			super(IntegrationController, self).__init__('Integration Service', self.service_name)
-	

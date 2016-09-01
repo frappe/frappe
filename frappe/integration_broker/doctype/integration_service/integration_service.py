@@ -10,13 +10,7 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 import json, urlparse
 from frappe.utils import get_request_session
 
-class IntegrationService(Document):
-	def validate(self):
-		parameters = self.get_parameters()
-		for d in self.get_controller().parameters_template:
-			if d.reqd and not parameters.get(d.fieldname):
-				frappe.throw(_('Parameter {0} is mandatory').format(d.label), title=_('Missing Parameter'))
-			
+class IntegrationService(Document):		
 	def on_update(self):
 		if self.enabled:
 			self.enable_service()
@@ -29,16 +23,16 @@ class IntegrationService(Document):
 
 	def get_parameters(self):
 		parameters = {}
-		for d in self.parameters:
-			parameters[d.fieldname] = d.value
-		return parameters
+		if self.custom_settings_json:
+			parameters = json.loads(self.custom_settings_json)
+		return parameters	
 
 	def install_fixtures(self):
 		pass
 
 	def enable_service(self):
 		if not self.flags.ignore_mandatory:
-			self.get_controller().enable(self.parameters, self.use_test_account)
+			self.get_controller().enable(self.get_parameters(), self.use_test_account)
 
 	def setup_events_and_parameters(self):
 		self.parameters = []
@@ -105,18 +99,10 @@ class IntegrationService(Document):
 		return integration_request
 
 @frappe.whitelist()
-def get_events_and_parameters(service):
+def get_service_parameters(service):
 	controller = get_integration_controller(service, setup=False)
 	return {
-		'events': controller.events,
 		'parameters': controller.parameters_template,
-	}
-
-@frappe.whitelist()
-def get_custom_settings(service):
-	controller = get_integration_controller(service, setup=False)
-	return {
-		"custom_settings": controller.custom_settings
 	}
 
 @frappe.whitelist()

@@ -67,19 +67,24 @@ class Controller(IntegrationController):
 		{
 			"label": "API Username",
 			'fieldname': 'api_username',
+			'fieldtype': 'Data',
 			'reqd': 1
 		},
 		{
 			"label": "API Password",
 			'fieldname': 'api_password',
+			'fieldtype': "Password",
 			'reqd': 1
 		},
 		{
 			"label": "Signature",
 			"fieldname": "signature",
+			'fieldtype': "Data",
 			"reqd": 1
 		}
 	]
+	
+	js = "assets/frappe/js/integrations/paypal.js"
 	
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
 		"TWD", "NZD", "NOK", "PHP", "PLN", "GBP", "RUB", "SGD", "SEK", "CHF", "THB", "TRY", "USD"]
@@ -90,11 +95,8 @@ class Controller(IntegrationController):
 		self.validate_paypal_credentails(use_test_account)
 	
 	def get_settings(self):
-		if hasattr(self, "parameters"):
-			return frappe._dict(self.get_parameters())
-		else:
-			return frappe.get_doc("Integration Service", self.service_name).get_parameters()
-	
+		return frappe._dict(self.parameters)
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
@@ -119,13 +121,18 @@ class Controller(IntegrationController):
 		params = urlencode(params)
 
 		try:
-			self.post_request(url=url, data=params.encode("utf-8"))
+			res = self.post_request(url=url, data=params.encode("utf-8"))
+
+			if res["ACK"][0] == "Failure":
+				raise Exception
+
 		except Exception:
 			frappe.throw(_("Invalid payment gateway credentials"))
 
 	def get_payment_url(self, **kwargs):
-		use_test_account = frappe.db.get_value("Integration Service", self.service_name, "use_test_account")
-		
+		use_test_account, custom_settings_json = frappe.db.get_value("Integration Service", self.service_name, ["use_test_account", "custom_settings_json"])
+		self.parameters = json.loads(custom_settings_json)
+
 		response = self.execute_set_express_checkout(kwargs["amount"], kwargs["currency"], use_test_account)
 		
 		if use_test_account:
@@ -163,7 +170,8 @@ class Controller(IntegrationController):
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
-	use_test_account = frappe.db.get_value("Integration Service", "PayPal", "use_test_account")
+	use_test_account, custom_settings_json = frappe.db.get_value("Integration Service", "PayPal", ["use_test_account", "custom_settings_json"])
+	Controller.parameters = json.loads(custom_settings_json)
 	
 	params, url = Controller().get_paypal_params_and_url(use_test_account)
 	params.update({
