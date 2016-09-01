@@ -81,7 +81,9 @@ class HelpDatabase(object):
 
 	def search(self, words):
 		self.connect()
-		return self.db.sql('select title, intro, path from help where match(content) against (%s) limit 10', words)
+		return self.db.sql('''
+			select title, intro, path from help where title like '%{term}%' union
+			select title, intro, path from help where match(content) against ('{term}') limit 10'''.format(term=words))
 
 	def get_content(self, path):
 		self.connect()
