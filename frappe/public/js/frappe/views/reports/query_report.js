@@ -272,10 +272,10 @@ frappe.views.QueryReport = Class.extend({
 		frappe.route_options = null;
 	},
 	set_filters_by_name: function() {
-		this.filters_by_name = {};
+		frappe.query_report_filters_by_name = {};
 
 		for(var i in this.filters) {
-			this.filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
+			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
 	},
 	refresh: function() {

@@ -22,7 +22,7 @@ class TestReport(unittest.TestCase):
 		data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
 		self.assertEquals(data[0][0], 'Name')
 		self.assertEquals(data[0][1], 'Module')
-		self.assertTrue('Auto Email Report' in [d[0] for d in data])
+		self.assertTrue('User' in [d[0] for d in data])
 
 # test standard report with child table
 user_activity_report = '''

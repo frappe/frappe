@@ -50,13 +50,13 @@ class Report(Document):
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
 
-	def get_data(self, filters=None, limit=None):
+	def get_data(self, filters=None, limit=None, user=None):
 		'''Run the report'''
 		out = []
 
 		if self.report_type in ('Query Report', 'Script Report'):
 			# query and script reports
-			data = frappe.desk.query_report.run(self.name, filters=filters)
+			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
 			out.append([d.split(':')[0] for d in data.get('columns')])
 			out += data.get('result')
 		else:
@@ -74,7 +74,7 @@ class Report(Document):
 				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
 
 			result = frappe.get_list(self.ref_doctype, fields = [_format([c[1], c[0]]) for c in columns],
-				filters=filters, order_by = order_by, as_list=True, limit=limit)
+				filters=filters, order_by = order_by, as_list=True, limit=limit, user=user)
 
 			meta = frappe.get_meta(self.ref_doctype)
 
