@@ -434,27 +434,92 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	render_rows_Gantt: function(values) {
-		var gantt_area = $('<svg style="height: 500px; width: 2000px;"></svg>')
-			.appendTo(this.wrapper.find('.result-list'));
+		var gantt_area = $('<svg height="400" width="6000"></svg>')
+			.appendTo(this.wrapper.find('.result-list').css("overflow", "scroll"));
 		var id = frappe.dom.set_unique_id(gantt_area);
 		var me = this;
 		var field_map = frappe.views.calendar[this.doctype].field_map;
 
-		frappe.require("assets/frappe/js/lib/snap.svg-min.js", function() {
+		var view_modes;
+		frappe.require(["assets/frappe/js/lib/snap.svg-min.js", "assets/frappe/css/gantt.css"], function() {
 			me.gantt = new Gantt({
-				parent_selector: '#' + id
+				parent_selector: '#' + id,
+				bar: {
+					height: 20,
+					color: "#b8c2cc",
+					progress_color: "#a3a3ff",
+					hover_color: "#8D99A6",
+					hover_progress_color: "#7575ff"
+				},
+				events: {
+					bar_on_click: function (task) {
+						frappe.set_route('Form', task.doctype, task.id);
+					},
+					bar_on_datechange: function(task, start, end) {
+						update_date(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
+							update_date(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
+								show_alert("Saved", 1);
+							});
+						});
+					},
+					on_viewmode_change: function(mode) {
+						me.list_settings.view_mode = mode;
+					}
+				}
 			});
 
+			view_modes = me.gantt.opts.valid_view_modes || [];
 			values.forEach(function(item) {
 				me.gantt.add_task({
 					start: item[field_map.start],
 					end: item[field_map.end],
 					name: item[field_map.title],
-					id: item[field_map.id]
+					id: item[field_map.id],
+					doctype: me.doctype,
+					progress: item.progress
 				});
 			})
 			me.gantt.render();
+
+			var dropdown = "<div class='dropdown pull-right'>" +
+				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
+				"<span class='dropdown-text'>Day</span><i class='caret'></i></a>" +
+				"<ul class='dropdown-menu'></ul>" +
+				"</div>";
+
+			var dropdown_list = "";
+			view_modes.forEach(function(view_mode) {
+				dropdown_list += "<li>" + 
+					"<a class='option' data-value='"+view_mode+"'>" +
+					view_mode + "</a></li>";
+			})
+			var $dropdown = $(dropdown)
+			$dropdown.find(".dropdown-menu")
+				.append(dropdown_list);
+
+			me.$page.find(".list-row-right").css("margin-top", 0).html($dropdown)
+
+			$dropdown.on("click", ".option", function() {
+				var mode = $(this).data('value');
+				me.gantt.set_view_mode(mode)
+				$dropdown.find(".dropdown-text").text(mode);
+			})
 		});
+
+		function update_date(id, fieldname, value, callback) {
+			frappe.call({
+				method: "frappe.client.set_value",
+				args: {
+					doctype: me.doctype,
+					name: id,
+					fieldname: fieldname,
+					value: value
+				},
+				callback: function(r) {
+					callback();
+				}
+			});
+		}
 	},
 
 	render_row: function(row, data) {

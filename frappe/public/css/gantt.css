@@ -1,38 +1,78 @@
-.gantt,
-.gantt2 {
-  border: none !important;
-  border-radius: none !important;
-  margin: 0px auto !important;
+.gantt #grid .grid-background {
+  fill: none;
 }
-.gantt *,
-.gantt2 * {
-  -webkit-box-sizing: content-box;
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
+.gantt #grid .grid-header {
+  fill: #fff;
+  stroke: #e0e0e0;
+  stroke-width: 1.4;
 }
-.fn-gantt .leftPanel,
-.fn-gantt .leftPanel .row0,
-.fn-gantt .leftPanel .name,
-.fn-gantt .leftPanel .desc,
-.fn-gantt .dataPanel,
-.fn-gantt .day,
-.fn-gantt .date,
-.fn-gantt .rightPanel .month,
-.fn-gantt .rightPanel .year {
-  border-color: #d1d8dd !important;
+.gantt #grid .row-odd {
+  fill: #ffffff;
 }
-.fn-gantt .navigate {
-  border: none !important;
+.gantt #grid .row-even {
+  fill: #f5f5f5;
 }
-.fn-gantt .leftPanel .name,
-.fn-gantt .leftPanel .desc,
-.fn-gantt .spacer,
-.fn-gantt .wd,
-.fn-gantt .rightPanel .month,
-.fn-gantt .rightPanel .year,
-.fn-gantt .bottom {
-  background-color: #F7FAFC !important;
+.gantt #grid .row-line {
+  stroke: #EBEFF2;
 }
-.fn-gantt .today {
-  background-color: #D9F6FF !important;
+.gantt #grid .tick {
+  stroke: #aaa;
+  stroke-width: 0.2;
+}
+.gantt #grid .tick.thick {
+  stroke-width: 0.4;
+}
+.gantt #arrow {
+  fill: none;
+  stroke: #333;
+  stroke-width: 1.4;
+}
+.gantt .bar {
+  fill: #b8c2cc;
+  stroke: #8D99A6;
+  stroke-width: 0;
+  transition: stroke-width 0.3s ease;
+}
+.gantt .bar-label {
+  fill: #fff;
+  dominant-baseline: central;
+  text-anchor: middle;
+  font-size: 12px;
+  font-weight: lighter;
+  letter-spacing: 0.8px;
+}
+.gantt .bar-label.big {
+  fill: #555;
+  text-anchor: start;
+}
+.gantt .handle {
+  fill: #ddd;
+  cursor: ew-resize;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease;
+}
+.gantt .bar-wrapper {
+  cursor: pointer;
+}
+.gantt .bar-wrapper:hover .bar {
+  stroke-width: 2;
+}
+.gantt .bar-wrapper:hover .handle {
+  visibility: visible;
+  opacity: 1;
+}
+.gantt .bar-wrapper.active .bar {
+  stroke-width: 2;
+}
+.gantt .primary-text,
+.gantt .secondary-text {
+  font-size: 12px;
+  text-anchor: middle;
+}
+.gantt .primary-text {
+  fill: #999;
+}
+.gantt .secondary-text {
+  fill: #555;
 }
