@@ -60,8 +60,11 @@ def get_script(report_name):
 	}
 
 @frappe.whitelist()
-def run(report_name, filters=()):
+def run(report_name, filters=None):
 	report = get_report_doc(report_name)
+
+	if not filters:
+		filters = []
 
 	if filters and isinstance(filters, basestring):
 		filters = json.loads(filters)
@@ -86,13 +89,13 @@ def run(report_name, filters=()):
 		if report.is_standard=="Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
-			
+
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
 			if len(res) > 3:
 				chart = res[3]
-	
+
 	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result)
 
@@ -124,14 +127,14 @@ def add_total_row(result, columns):
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
-			
+
 		for row in result:
 			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
 				total_row[i] = flt(total_row[i]) + flt(row[i])
-			
+
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
-				
+
 		if fieldtype=="Link" and options == "Currency":
 			total_row[i] = result[0][i]
 
