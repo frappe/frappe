@@ -67,7 +67,7 @@ class AutoEmailReport(Document):
 	def get_xls(self, data):
 		return
 
-def send_daily(self):
+def send_daily():
 	'''Check reports to be sent daily'''
 	now = frappe.utils.now_datetime()
 	for report in frappe.get_all('Auto Email Report', {'enabled': 1, 'frequency': ('in', ('Daily', 'Weekly'))}):
@@ -80,7 +80,7 @@ def send_daily(self):
 
 			auto_email_report.send()
 
-def send_monthly(self):
+def send_monthly():
 	'''Check reports to be sent monthly'''
 	for report in frappe.get_all('Auto Email Report', {'enabled': 1, 'frequency': 'Monthly'}):
 		frappe.get_doc('Auto Email Report', report.name).send()

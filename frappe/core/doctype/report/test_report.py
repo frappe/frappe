@@ -25,8 +25,7 @@ class TestReport(unittest.TestCase):
 		self.assertTrue('User' in [d[0] for d in data])
 
 # test standard report with child table
-user_activity_report = '''
- {
+user_activity_report = '''{
   "add_total_row": 0,
   "apply_user_permissions": 1,
   "disabled": 0,
@@ -42,5 +41,4 @@ user_activity_report = '''
   "ref_doctype": "User",
   "report_name": "User Activity Report",
   "report_type": "Report Builder"
- }
-'''
+ }'''
