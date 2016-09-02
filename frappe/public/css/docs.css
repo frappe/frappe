@@ -48,7 +48,7 @@
 }
 @media (max-width: 767px) {
   .navbar-desk {
-    width: 50% !important;
+    width: 40% !important;
   }
 }
 #search-modal .modal-dialog,
