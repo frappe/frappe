@@ -184,9 +184,14 @@ frappe.views.ListView = Class.extend({
 			fieldname: df.fieldname,
 			title:__(df.label)
 		};
-		if(this.settings.column_colspan && this.settings.column_colspan[df.fieldname]) {
+
+		if(df.colspan && df.colspan>0){
+			col.colspan = df.colspan
+		}
+		else if(this.settings.column_colspan && this.settings.column_colspan[df.fieldname]) {
 			col.colspan = this.settings.column_colspan[df.fieldname];
 		}
+
 		if(this.settings.column_render && this.settings.column_render[df.fieldname]) {
 			col.render = this.settings.column_render[df.fieldname];
 		}
