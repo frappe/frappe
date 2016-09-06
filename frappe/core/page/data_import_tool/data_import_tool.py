@@ -26,12 +26,12 @@ def get_doctype_options():
 	doctype = frappe.form_dict['doctype']
 	return [doctype] + [d.options for d in frappe.get_meta(doctype).get_table_fields()]
 
-def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None):
+def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None, no_email=True):
 	from frappe.utils.csvutils import read_csv_content
 	from frappe.core.page.data_import_tool.importer import upload
 	print "Importing " + path
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite,
+		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
             submit_after_import=submit, pre_process=pre_process)
 
 def export_csv(doctype, path):
