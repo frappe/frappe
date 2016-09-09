@@ -59,13 +59,17 @@ class Controller(IntegrationController):
 		return frappe._dict(self.parameters)
 
 def get_ldap_settings():
-	doc = frappe.get_doc("Integration Service", "LDAP Auth")
-	settings = json.loads(doc.custom_settings_json)
-	settings.update({
-		"enabled": cint(doc.enabled),
-		"method": "frappe.integrations.ldap_auth.login"
-	})
-	return settings
+	try:
+		doc = frappe.get_doc("Integration Service", "LDAP Auth")
+		settings = json.loads(doc.custom_settings_json)
+		settings.update({
+			"enabled": cint(doc.enabled),
+			"method": "frappe.integrations.ldap_auth.login"
+		})
+		return settings
+	except Exception:
+		# this will return blank settings
+		return frappe._dict()
 	
 @frappe.whitelist(allow_guest=True)
 def login():

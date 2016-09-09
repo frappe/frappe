@@ -28,9 +28,8 @@ def get_context(context):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True
 	
-	con = get_ldap_settings()
-	print "context",con
-	context["ldap_settings"] = con
+	ldap_settings = get_ldap_settings()
+	context["ldap_settings"] = ldap_settings
 	
 	return context
 
