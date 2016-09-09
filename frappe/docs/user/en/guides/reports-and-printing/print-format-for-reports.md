@@ -65,6 +65,6 @@ Here is what the report looks like:
 1. [Bootstrap Stylesheet](http://getbootstrap.com) is pre-loaded.
 1. You can use all global functions like `fmt_money` and dateutil.
 1. Translatable strings should be written as `__("text")`
-1. You can create modules and import using `{% raw %}{% include "templates/includes/formats/common_format" %}{% endraw %}`
+1. You can create modules and import using `{% include "templates/includes/formats/common_format" %}`
 
 <!-- markdown -->
