@@ -117,7 +117,7 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 			new_icon = frappe.get_doc({
 				'doctype': 'Desktop Icon',
 				'label': label,
-				'module_name': _doctype,
+				'module_name': label,
 				'link': link,
 				'type': type,
 				'_doctype': _doctype,
