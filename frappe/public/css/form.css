@@ -410,6 +410,12 @@ h6.uppercase,
 .frappe-control pre {
   white-space: pre-wrap;
 }
+.frappe-control .icon-question-sign {
+  visibility: hidden;
+}
+.frappe-control :hover .icon-question-sign {
+  visibility: visible;
+}
 .hide-control {
   display: none !important;
 }
