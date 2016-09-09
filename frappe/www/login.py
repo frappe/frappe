@@ -8,6 +8,7 @@ from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_v
 import json
 from frappe import _
 from frappe.auth import LoginManager
+from frappe.integrations.ldap_auth import get_ldap_settings
 
 no_cache = True
 
@@ -26,7 +27,11 @@ def get_context(context):
 		if get_oauth_keys(provider):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True
-
+	
+	con = get_ldap_settings()
+	print "context",con
+	context["ldap_settings"] = con
+	
 	return context
 
 @frappe.whitelist(allow_guest=True)
