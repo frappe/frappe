@@ -56,7 +56,7 @@ def set_new_name(doc):
 	if not doc.name or autoname=='hash':
 		doc.name = make_autoname('hash', doc.doctype)
 
-	doc.name = validate_name(doc.doctype, doc.name)
+	doc.name = validate_name(doc.doctype, doc.name,frappe.get_meta(doc.doctype).get_field("name_case"))
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
