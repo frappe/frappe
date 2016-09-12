@@ -208,7 +208,7 @@ frappe.ui.form.update_calling_link = function(name) {
 				if(field.doc && field.doc.name===frappe._from_link.docname){
 					field.fields_dict[frappe._from_link.df.fieldname].set_value(name);
 			}});
-		}else {
+		} else {
 			frappe._from_link.frm.fields_dict[frappe._from_link.df.fieldname].set_value(name);
 	    	}
 
