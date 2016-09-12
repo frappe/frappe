@@ -19,6 +19,7 @@ class WebForm(WebsiteGenerator):
 	)
 
 	def onload(self):
+		super(WebForm, self).onload()
 		if self.is_standard and not frappe.conf.developer_mode:
 			self.use_meta_fields()
 
@@ -45,7 +46,7 @@ class WebForm(WebsiteGenerator):
 
 				else:
 					df.options = "\n".join([""] + options)
-					
+
 	def use_meta_fields(self):
 		'''Override default properties for standard web forms'''
 		meta = frappe.get_meta(self.doc_type)
@@ -160,7 +161,6 @@ def get_context(context):
 
 		context.parents = self.get_parents(context)
 
-		context.types = [f.fieldtype for f in self.web_form_fields]
 		if context.success_message:
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")

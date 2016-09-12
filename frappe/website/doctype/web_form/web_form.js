@@ -5,8 +5,12 @@ frappe.web_form = {
 		if(doc.doc_type) {
 			frappe.model.with_doctype(doc.doc_type, function() {
 				var fields = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
-					return frappe.model.no_value_type.indexOf(d.fieldtype)===-1 ?
-						 d.fieldname : null;
+					if(frappe.model.no_value_type.indexOf(d.fieldtype)===-1
+						|| d.fieldtype==='Table') {
+							return {label: d.label + ' ('+d.fieldtype+')', value:d.fieldname}
+					} else {
+						return null;
+					}
 				})
 				frappe.meta.get_docfield("Web Form Field", "fieldname", frm.doc.name).options
 					= [""].concat(fields);
