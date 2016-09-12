@@ -303,7 +303,7 @@ def has_controller_permissions(doc, ptype, user=None):
 
 def can_set_user_permissions(doctype, docname=None):
 	# System Manager can always set user permissions
-	if "System Manager" in frappe.get_roles():
+	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
 		return True
 
 	meta = frappe.get_meta(doctype)
