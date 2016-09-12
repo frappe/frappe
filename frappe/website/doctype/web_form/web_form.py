@@ -31,7 +31,23 @@ class WebForm(WebsiteGenerator):
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+	def convert_links_to_selects(self):
+		'''Convert link fields to select with names as options'''
+		for df in self.web_form_fields:
+			if df.fieldtype == "Link":
+				options = [d.name for d in frappe.get_all(df.options)]
+				df.fieldtype = "Select"
+
+				if len(options)==1:
+					df.options = options[0]
+					df.default = options[0]
+					df.hidden = 1
+
+				else:
+					df.options = "\n".join([""] + options)
+					
 	def use_meta_fields(self):
+		'''Override default properties for standard web forms'''
 		meta = frappe.get_meta(self.doc_type)
 
 		for df in self.web_form_fields:
@@ -46,21 +62,6 @@ class WebForm(WebsiteGenerator):
 					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
-			if df.fieldtype == "Link":
-				try:
-					options = [d.name for d in frappe.get_list(df.options)]
-					df.fieldtype = "Select"
-
-					if len(options)==1:
-						df.options = options[0]
-						df.default = options[0]
-						df.hidden = 1
-
-					else:
-						df.options = "\n".join([""] + options)
-
-				except frappe.PermissionError:
-					df.hidden = 1
 
 			# TODO translate options of Select fields like Country
 
@@ -72,8 +73,7 @@ class WebForm(WebsiteGenerator):
 		"""
 		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
 			from frappe.modules.export_file import export_to_files
-			from frappe.modules import get_module_path, scrub
-			import os
+			from frappe.modules import get_module_path
 
 			# json
 			export_to_files(record_list=[['Web Form', self.name]])
@@ -117,6 +117,8 @@ def get_context(context):
 
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
+
+		self.convert_links_to_selects()
 
 		if self.is_standard:
 			self.use_meta_fields()

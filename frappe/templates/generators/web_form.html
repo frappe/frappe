@@ -103,9 +103,9 @@
 	{% elif field.fieldtype=="Text" %}
 	<div class="form-group">
 		{{ label(field) }}
+		{{ help(field) }}
 		<textarea class="form-control" style="height: 200px;"
 		{{ properties(field) }}>{{ value(field) }}</textarea>
-		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Attach" %}
 	<div class="form-group">

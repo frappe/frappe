@@ -80,7 +80,7 @@ class FormMeta(Meta):
 		js = get_js(path)
 		if js:
 			self.set(fieldname, (self.get(fieldname) or "")
-				+ "\n\n\* Adding {0} *\n\n".format(path) + js)
+				+ "\n\n/* Adding {0} */\n\n".format(path) + js)
 
 	def add_html_templates(self, path):
 		if self.custom:
