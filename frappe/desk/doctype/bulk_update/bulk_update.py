@@ -29,7 +29,12 @@ def update(doctype, field, value, condition='', limit=500):
 	for i, d in enumerate(items):
 		doc = frappe.get_doc(doctype, d)
 		doc.set(field, value)
-		doc.save()
+
+		try:
+			doc.save()
+		except Exception, e:
+			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
+			raise e
 
 		frappe.publish_progress(float(i)*100/n,
 			title = _('Updating Records'), doctype='Bulk Update', docname='Bulk Update')
