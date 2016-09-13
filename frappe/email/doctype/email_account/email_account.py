@@ -147,7 +147,7 @@ class EmailAccount(Document):
 				raise
 
 		# reset failed attempts count
-		self.clear_failed_attempts_count()
+		self.set_failed_attempts_count(0)
 
 		return email_server
 
@@ -169,9 +169,11 @@ class EmailAccount(Document):
 				except assign_to.DuplicateToDoError:
 					frappe.message_log.pop()
 					pass
+		else:
+			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
-	def clear_failed_attempts_count(self):
-		frappe.cache().set('{0}:email-account-failed-attempts'.format(self.name), 0)
+	def set_failed_attempts_count(self, value):
+		frappe.cache().set('{0}:email-account-failed-attempts'.format(self.name), value)
 
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache().get('{0}:email-account-failed-attempts'.format(self.name)))
