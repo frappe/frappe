@@ -103,7 +103,8 @@ frappe.DataImportTool = Class.extend({
 				return {
 					submit_after_import: me.page.main.find('[name="submit_after_import"]').prop("checked"),
 					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
-					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked")
+					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
+					no_email: me.page.main.find('[name="no_email"]').prop("checked")
 				}
 			},
 			args: {

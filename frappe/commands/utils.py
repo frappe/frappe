@@ -213,8 +213,10 @@ def import_doc(context, path, force=False):
 @click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
+@click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
+
 @pass_context
-def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False):
+def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import tool"
 	from frappe.core.page.data_import_tool import importer
 	from frappe.utils.csvutils import read_csv_content
@@ -227,7 +229,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 	frappe.connect()
 
 	try:
-		importer.upload(content, submit_after_import=submit_after_import,
+		importer.upload(content, submit_after_import=submit_after_import, no_email=no_email,
 			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
 			via_console=True)
 		frappe.db.commit()
