@@ -95,14 +95,15 @@ def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
 	import frappe.www.list
 
-	sidebar_items = json.loads(frappe.cache().get('sidebar_items') or '[]')
-	if not sidebar_items:
-		sidebar_items = frappe.get_all('Portal Menu Item',
-			fields=['title', 'route', 'reference_doctype', 'show_always'],
-			filters={'enabled': 1}, order_by='idx asc')
-		frappe.cache().set('portal_menu_items', json.dumps(sidebar_items))
-
 	if not context.sidebar_items:
+		sidebar_items = json.loads(frappe.cache().get_value('portal_menu_items') or '[]')
+
+		if not sidebar_items:
+			sidebar_items = frappe.get_all('Portal Menu Item',
+				fields=['title', 'route', 'reference_doctype', 'show_always'],
+				filters={'enabled': 1, 'parent': 'Portal Settings'}, order_by='idx asc')
+			frappe.cache().set_value('portal_menu_items', json.dumps(sidebar_items))
+
 		context.sidebar_items = sidebar_items
 
 	info = get_fullname_and_avatar(frappe.session.user)
