@@ -18,7 +18,7 @@
     		{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname + args }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
 	    {{ _("New {0}").format(_(doc_type)) }}
 	    </a>
 	</div>
@@ -53,7 +53,7 @@
 		name="{{ field.fieldname }}"
 		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
-		data-default="{{ field.default or "" }}"
+		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
@@ -148,38 +148,45 @@
 {% endmacro %}
 
 {% macro render_row(field, d=None, hidden=False) %}
-<div class="row web-form-grid-row {% if hidden %}hidden{% endif %}"
-	{% if d != None %}data-name="{{ d.name }}"{% endif %}>
+<tr class="web-form-grid-row {% if hidden %}hidden{% endif %}"
+	{% if d != None %}data-name="{{ d.name }}" data-child-row=1{% endif %}>
 	{% for df in frappe.get_meta(field.options).fields %}
 		{% if df.in_list_view %}
-		<div class="col-sm-{{ field.columns or 2 }}">
+		<{{ 'th' if d==None else 'td' }} style="width: {{ (field.columns or 2) * 8.3333 }}%;">
 			{% if d!=None %}
 				{{ render_field(df, d, False) }}
 			{% else %}
-				{{ df.label }}
+				<span class='text-muted small'>{{ df.label }}</span>
 			{% endif %}
-		</div>
+		</{{ 'th' if d.name==None else 'td' }}>
 		{% endif %}
 	{% endfor %}
+	<td style="width: 8.3333%">
 	{% if d!=None %}
-	<div class='col-sm-1'>
 		<button class='btn btn-default btn-sm btn-remove'><i class='icon-remove'></i></button>
-	</div>
 	{% endif %}
-</div>
+	</td>
+</tr>
 {% endmacro %}
 
 {% macro render_table(field) %}
-	<div class='web-form-grid' data-fieldname='{{ field.fieldname }}'>
-		{{ render_row(field) }}
-		{{ render_row(field, {}, True) }}
-		{% if doc.get(field.fieldname) %}
-			{% for d in doc.get(field.fieldname) %}
-				{{ render_row(field, d) }}
-			{% endfor %}
-		{% else %}
-			{{ render_row(field, {}) }}
-		{% endif %}
+	<div class='web-form-grid'
+		data-fieldname='{{ field.fieldname }}' data-doctype='{{ field.options }}'>
+		<table class='table table-bordered'>
+			<thead>
+				{{ render_row(field) }}
+			</thead>
+			<tbody>
+				{{ render_row(field, {}, True) }}
+				{% if doc.get(field.fieldname) %}
+					{% for d in doc.get(field.fieldname) %}
+						{{ render_row(field, d) }}
+					{% endfor %}
+				{% else %}
+					{{ render_row(field, {}) }}
+				{% endif %}
+			</tbody>
+		</table>
 	</div>
 	<p><button class='btn btn-default btn-sm btn-add-row'
 		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
@@ -198,16 +205,18 @@
 		</div>
 	</div>
 	{% endif %}
-	<input type="hidden" name="web_form" value="{{ name }}">
-	<input type="hidden" name="doctype" value="{{ doc_type }}">
 	{% if frappe.form_dict.name -%}
-	<input type="hidden" name="name" value="{{ frappe.form_dict.name }}">
+	<input type="hidden" name="name" value="{{ frappe.form_dict.name }}"
+		data-doctype="{{ doc_type }}">
 	{%- endif %}
 
-		{% for section in layout %}
+	{% for section in layout %}
+		{% if section.label %}
+		<h5 class='uppercase'>{{ _(section.label) }}</h5>
+		{% endif %}
 		<div class="row">
-				{% for column in section %}
-				<div class="col-sm-{{ (12 / (section|len))|int }}" style="max-width: 500px;">
+				{% for column in section.columns %}
+				<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
 						{% for field in column %}
 							{% if field.fieldtype=='Table' %}
 								{{ render_table(field) }}
@@ -218,7 +227,7 @@
 				</div>
 				{% endfor %}
 		</div>
-		{% endfor %}
+	{% endfor %}
 </form>
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
@@ -235,8 +244,10 @@
 <script>
 frappe.ready(function() {
 	window.file_reading = false;
-		window.success_message = "{{ success_message or "" }}";
+	window.success_message = "{{ success_message or "" }}";
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
+	var web_form_doctype = "{{ doc_type }}";
+	var web_form_name = "{{ name }}";
 	var $form = $("form[data-web-form='{{ name }}']");
 
 	// read file attachment
@@ -277,11 +288,14 @@ frappe.ready(function() {
 		var fieldname = $(this).attr('data-fieldname');
 		var grid = $('.web-form-grid[data-fieldname="'+fieldname+'"]');
 		var new_row = grid.find('.web-form-grid-row.hidden').clone()
-			.appendTo(grid).removeClass('hidden');
+			.appendTo(grid.find('tbody'))
+			.attr('data-name', '')
+			.removeClass('hidden');
 		new_row.find('input').each(function() {
-			$(this).val($(this).attr('data-default') || "");
-			$(this).removeClass('hasDatepicker');
-			$(this).attr('id', '');
+			$(this)
+				.val($(this).attr('data-default') || "")
+				.removeClass('hasDatepicker')
+				.attr('id', '');
 		});
 		setup_date_picker(new_row);
 		return false;
@@ -293,20 +307,37 @@ frappe.ready(function() {
 		return false;
 	});
 
-	// submit
-	$(".btn-form-submit").on("click", function() {
-		var args = {};
-		if(window.saving)
-			return;
-		window.saving = true;
+	// get document data
+	var get_data = function() {
+		var doc = get_data_for_doctype($form, web_form_doctype);
+		doc.doctype = web_form_doctype;
 
-		if(window.file_reading) {
-			window.saving = false;
-			frappe.msgprint("Reading file, please retry.");
-			return;
-		}
+		// get data from child tables
+		$('.web-form-grid').each(function() {
+			var fieldname = $(this).attr('data-fieldname');
+			var doctype = $(this).attr('data-doctype');
+			doc[fieldname] = [];
 
-		$form.find("[name]").each(function() {
+			// get data from each row
+			$(this).find('[data-child-row=1]:visible').each(function() {
+				var d = get_data_for_doctype($(this), doctype);
+
+				// set name of child record (if set)
+				var name = $(this).attr('data-name');
+				if(name) { d.name = name; }
+
+				doc[fieldname].push(d);
+			});
+		});
+
+		return doc;
+	}
+
+	// get data from input elements
+	// for the given doctype
+	var get_data_for_doctype = function(parent, doctype) {
+		var out = {};
+		parent.find("[name][data-doctype='"+ doctype +"']").each(function() {
 			var $input = $(this);
 			var input_type = $input.attr("type");
 			if(input_type==="file") {
@@ -327,13 +358,30 @@ frappe.ready(function() {
 				throw "mandatory missing";
 			}
 
-			args[$input.attr("name")] = val;
+			out[$input.attr("name")] = val;
 		});
+		return out;
+	}
+
+	// submit
+	$(".btn-form-submit").on("click", function() {
+		if(window.saving)
+			return;
+		window.saving = true;
+
+		if(window.file_reading) {
+			window.saving = false;
+			frappe.msgprint("Reading file, please retry.");
+			return;
+		}
 
 		frappe.call({
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
-			args: args,
+			args: {
+				data: get_data(),
+				web_form: web_form_name
+			},
 			freeze: true,
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
@@ -348,7 +396,7 @@ frappe.ready(function() {
                     } else {
 						frappe.msgprint(__('Successfully Updated'));
 						setTimeout(function() {
-							window.location.href = "{{ success_url }}";
+							//window.location.href = "{{ success_url }}";
 						}, 3000);
 				    }
 			    }
@@ -434,5 +482,20 @@ frappe.ready(function() {
 {% endblock %}
 
 {% block style %}
-{% if style is defined %}<style>{{ style }}</style>{% endif %}
+<style>
+input, select {
+	max-width: 500px;
+}
+.web-form-grid-row input, .web-form-grid-row select {
+	border: 0px;
+	padding: 0px;
+}
+.web-form-grid-row input:focus, .web-form-grid-row select:focus {
+	box-shadow: none;
+}
+.web-form-grid-row .form-group {
+	margin: 0px;
+}
+{% if style is defined %}{{ style }}{% endif %}
+</style>
 {% endblock %}

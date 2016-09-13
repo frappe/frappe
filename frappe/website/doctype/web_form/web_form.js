@@ -44,18 +44,26 @@ frappe.ui.form.on("Web Form", {
 });
 
 
-frappe.ui.form.on("Web Form Field", "fieldname", function(frm, doctype, name) {
-	var doc = frappe.get_doc(doctype, name);
-	var df = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
-			return doc.fieldname==d.fieldname ? d : null; })[0];
+frappe.ui.form.on("Web Form Field", {
+	fieldtype: function(frm, doctype, name) {
+		var doc = frappe.get_doc(doctype, name);
+		if(fieldtype==='Section Break' || fieldtype==='Section Break') {
+			doc.fieldname = '';
+			frm.refresh_field("web_form_fields");
+		}
+	},
+	fieldname: function(frm, doctype, name) {
+		var doc = frappe.get_doc(doctype, name);
+		var df = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
+				return doc.fieldname==d.fieldname ? d : null; })[0];
 
-	doc.label = df.label;
-	doc.reqd = df.reqd;
-	doc.options = df.options;
-	doc.fieldtype = frappe.meta.get_docfield("Web Form Field", "fieldtype")
-		.options.split("\n").indexOf(df.fieldtype)===-1 ? "Data" : df.fieldtype;
-	doc.description = df.description;
-	doc["default"] = df["default"];
+		doc.label = df.label;
+		doc.reqd = df.reqd;
+		doc.options = df.options;
+		doc.fieldtype = frappe.meta.get_docfield("Web Form Field", "fieldtype")
+			.options.split("\n").indexOf(df.fieldtype)===-1 ? "Data" : df.fieldtype;
+		doc.description = df.description;
+		doc["default"] = df["default"];
 
-	frm.refresh_field("web_form_fields");
+	}
 });
