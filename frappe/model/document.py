@@ -136,7 +136,7 @@ class Document(BaseDocument):
 			self.latest = frappe.get_doc(self.doctype, self.name)
 		return self.latest
 
-	def check_permission(self, permtype, permlabel=None):
+	def check_permission(self, permtype='read', permlabel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlabel or permtype)

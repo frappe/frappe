@@ -1,0 +1,22 @@
+<table cellpadding=2px cellspacing=0 border=1px style='width:100%; border-collapse:collapse;'>
+	<thead>
+		<tr>
+			{% for col in headings %}
+			<th>
+				{{ col }}
+			</th>
+			{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in data %}
+		<tr>
+			{% for val in row %}
+			<td>
+				{{ frappe.format(val) }}
+			</td>
+			{% endfor %}
+		</td>
+		{% endfor %}
+	</tbody>
+</table>

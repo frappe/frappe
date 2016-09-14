@@ -20,6 +20,26 @@ frappe.ui.form.on('Auto Email Report', {
 				frm.trigger('show_filters');
 			}
 		}
+		if(!frm.is_new()) {
+			frm.add_custom_button(__('Download'), function() {
+				var w = window.open(
+					frappe.urllib.get_full_url(
+						"/api/method/frappe.email.doctype.auto_email_report.auto_email_report.download?"
+						+"name="+encodeURIComponent(frm.doc.name)));
+				if(!w) {
+					msgprint(__("Please enable pop-ups")); return;
+				}
+			});
+			frm.add_custom_button(__('Send Now'), function() {
+				frappe.call({
+					method: 'frappe.email.doctype.auto_email_report.auto_email_report.send_now',
+					args: {name: frm.doc.name},
+					callback: function() {
+						msgprint(__('Scheduled to send'));
+					}
+				});
+			});
+		}
 	},
 	show_filters: function(frm) {
 		var wrapper = $(frm.get_field('filters_display').wrapper);

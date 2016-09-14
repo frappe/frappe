@@ -1,41 +1,37 @@
 <!-- title -->
-{% if(title) { %}
-<h2>{%= __(title) %}</h2>
+{% if title %}
+<h2>{{ __(title) }}</h2>
 <hr>
-{% } %}
+{{ endif }}
 <table class="table table-bordered">
     <!-- heading -->
     <thead>
         <tr>
-        {% var columns_length = columns.length;
-            for (var i=0; i < columns_length; i++) {
-            var col =  columns[i]; %}
-            {% if(col.name && col._id !== "_check") { %}
-            <th style="min-width: {%= col.minWidth %}px"
-                {% if(col.docfield && in_list(["Float", "Currency", "Int"],
-                    col.docfield.fieldtype)) { %}
+        {% for col in columns %}
+            {% if col.name && col._id !== "_check" %}
+            <th style="min-width: {{ col.minWidth }}px"
+                {% if col.docfield && in_list(["Float", "Currency", "Int"], col.docfield.fieldtype) %}
                     class="text-right"
-                {% } %}>{%= __(col.name) %}</th>
-            {% } %}
-        {% } %}
+                {% endif %}>{{ __(col.name) }}</th>
+            {% endif %}
+        {% endfor %}
         </tr>
     </thead>
     <!-- body -->
     <tbody>
-        {% for (var i=0, l= data.length; i < l; i++) {
-            var row = data[i]; %}
+        {% for row in data %}
             <tr>
-            {% for(var c=0; c < columns_length; c++) { var col = columns[c];%}
-                {% if(col.name && col._id !== "_check") { %}
-					
+            {% for col in columns %}
+                {% if col.name && col._id !== "_check" %}
+
 					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
-						
-                	<td>{%= col.formatter
+
+                	<td>{{ col.formatter
 	                        ? col.formatter(i, c, value, col, row, true)
-	                        : value %}</td>
-                {% } %}
-            {% } %}
+	                        : value }}</td>
+                {% endif %}
+            {% endfor %}
             </tr>
-        {% } %}
+        {% endfor %}
     </tbody>
 </table>

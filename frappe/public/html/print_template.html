@@ -6,18 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>{%= title %}</title>
-    <link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/bootstrap.css" rel="stylesheet">
+    <title>{{ title }}</title>
+    <link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
 	<link type="text/css" rel="stylesheet"
-        href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/font-awesome.css">
+        href="{{ base_url }}/assets/frappe/css/font-awesome.css">
 	<style>
-		{%= frappe.boot.print_css %}
+		{{ print_css }}
 	</style>
   </head>
   <body>
 	  <div class="print-format-gutter">
 		  <div class="print-format">
-	        {%= content %}
+	        {{ content }}
 		  </div>
 	  </div>
   </body>

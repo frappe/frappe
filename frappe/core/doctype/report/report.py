@@ -83,6 +83,7 @@ class Report(Document):
 
 		return out
 
+
 	@Document.whitelist
 	def toggle_disable(self, disable):
 		self.db_set("disabled", cint(disable))
