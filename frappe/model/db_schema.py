@@ -102,6 +102,9 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
+			if len(col.fieldname) >= 64:
+				frappe.throw(_("Fieldname is limited to 64 characters"))
+			
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
@@ -112,7 +115,7 @@ class DbTable:
 				try:
 					# check for truncation
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
-						.format(fieldname=col.fieldname, doctype=self.doctype))
+						.format(fieldname=col.fieldname, doctype=self.doctype), debug=1)
 
 				except MySQLdb.OperationalError, e:
 					if e.args[0]==1054:
