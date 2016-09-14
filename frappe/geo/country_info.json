@@ -2454,8 +2454,10 @@
  },
  "Ukraine": {
   "code": "ua",
+  "currency": "UAH",
   "currency_fraction": "Kopiyka",
   "currency_fraction_units": 100,
+  "currency_name": "Ukrainian Hryvnia",
   "currency_symbol": "\u20b4",
   "number_format": "#,###.##",
   "timezones": [
