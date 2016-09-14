@@ -105,6 +105,18 @@
 		</select>
 		{{ help(field) }}
 	</div>
+		{% elif field.fieldtype=="Link" %}
+	<div class="form-group">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<select class="form-control" {{ properties(field) }}>
+			{% for option in frappe.get_all(field.options) -%}
+			<option value="{{ option.name }}"
+				{{ 'selected="selected"' if value(field, _doc)==option.name else '' }}>
+				{{ option.name }}</option>
+			{%- endfor %}
+		</select>
+		{{ help(field) }}
+	</div>
 	{% elif field.fieldtype=="Text" %}
 	<div class="form-group">
 		{% if with_label %}{{ label(field) }}{% endif %}
@@ -152,7 +164,7 @@
 	{% if d != None %}data-name="{{ d.name }}" data-child-row=1{% endif %}>
 	{% for df in frappe.get_meta(field.options).fields %}
 		{% if df.in_list_view %}
-		<{{ 'th' if d==None else 'td' }} style="width: {{ (field.columns or 2) * 8.3333 }}%;">
+		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
 			{% if d!=None %}
 				{{ render_field(df, d, False) }}
 			{% else %}
