@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 """build query for doclistview and return results"""
 
-import frappe, json
+import frappe, json, copy
 import frappe.defaults
 import frappe.share
 import frappe.permissions
@@ -71,6 +71,7 @@ class DatabaseQuery(object):
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
 		self.update = update
+		self.list_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
 
 		if query:
@@ -494,7 +495,7 @@ class DatabaseQuery(object):
 		list_settings['order_by'] = self.order_by
 
 		if self.save_list_settings_fields:
-			list_settings['fields'] = self.fields
+			list_settings['fields'] = self.list_settings_fields
 
 		update_list_settings(self.doctype, list_settings)
 
