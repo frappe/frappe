@@ -210,7 +210,8 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		return
 
 	try:
-		update_oauth_user(user, data, provider)
+		if update_oauth_user(user, data, provider) is False:
+			return
 
 	except SignupDisabledError:
 		return frappe.respond_as_web_page("Signup is Disabled", "Sorry. Signup from Website is disabled.",
@@ -260,6 +261,9 @@ def update_oauth_user(user, data, provider):
 
 	else:
 		user = frappe.get_doc("User", user)
+		if not user.enabled:
+			frappe.respond_as_web_page(_('Not Allowed'), _('User {0} is disabled').format(user.email))
+			return False
 
 	if provider=="facebook" and not user.get("fb_userid"):
 		save = True

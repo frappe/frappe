@@ -57,13 +57,15 @@ def clear_sessions(user=None, keep_current=False, device=None):
 	if not device:
 		device = frappe.session.data.device or "desktop"
 
-	simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
+	limit = 0
+	if user == frappe.session.user:
+		simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
+		limit = simultaneous_sessions - 1
 
 	condition = ''
 	if keep_current:
 		condition = ' and sid != "{0}"'.format(frappe.session.sid)
 
-	limit = simultaneous_sessions - 1
 
 	for i, sid in enumerate(frappe.db.sql_list("""select sid from tabSessions
 		where user=%s and device=%s {condition}
