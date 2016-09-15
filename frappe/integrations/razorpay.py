@@ -2,13 +2,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
-import frappe
-from frappe import _
-import urllib, json
-from frappe.utils import get_url, call_hook_method
-from frappe.integration_broker.integration_controller import IntegrationController
-
 """
 # Integrating RazorPay
 
@@ -59,6 +52,12 @@ payment_status - payment gateway will put payment status on callback.
 For razorpay payment status is Authorized
 
 """
+from __future__ import unicode_literals
+import frappe
+from frappe import _
+import urllib, json
+from frappe.utils import get_url, call_hook_method
+from frappe.integration_broker.integration_controller import IntegrationController
 
 class Controller(IntegrationController):
 	service_name = 'Razorpay'

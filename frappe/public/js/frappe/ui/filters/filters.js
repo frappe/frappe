@@ -406,10 +406,13 @@ frappe.ui.Filter = Class.extend({
 			value = this.field.get_value();
 		}
 
+		// for translations
+		// __("like"), __("not like"), __("in")
+
 		this.$btn_group.find(".toggle-filter")
 			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
-				condition: this.get_condition(),
+				condition: __(this.get_condition()),
 				value: __(value),
 			}));
 	}
