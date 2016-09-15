@@ -11,8 +11,7 @@ app_list = [
 ]
 
 def execute():
-	if not frappe.db.exists("DocType", "Integration Service"):
-		return
+	frappe.reload_doc("integration_broker", "doctype", "integration_service")
 
 	installed_apps = frappe.get_installed_apps()
 
@@ -20,12 +19,15 @@ def execute():
 		if app_details["app_name"] in installed_apps:
 			try:
 				setup_integration_service(app_details)
+
+			except DataError:
+				pass
+
+			finally:
 				if app_details["remove"]:
 					uninstall_app(app_details["app_name"])
 
-				frappe.delete_doc("DocType", "Dropbox Backup")
-			except Exception:
-				pass
+	frappe.delete_doc("DocType", "Dropbox Backup")
 
 def setup_integration_service(app_details):
 	settings = get_app_settings(app_details)
