@@ -178,7 +178,7 @@
 			</thead>
 			<tbody>
 				{{ render_row(field, {}, True) }}
-				{% if doc.get(field.fieldname) %}
+				{% if doc and doc.get(field.fieldname) %}
 					{% for d in doc.get(field.fieldname) %}
 						{{ render_row(field, d) }}
 					{% endfor %}
