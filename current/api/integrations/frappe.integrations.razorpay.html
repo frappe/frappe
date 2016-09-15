@@ -111,7 +111,7 @@
 									
 								</div>
 								
-								<h1>frappe.integrations.razorpay</h1>
+								
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -134,7 +134,55 @@
 
 
 
+<h2>Introduction</h2><br><h1>Integrating RazorPay</h1>
 
+<h3>Validate Currency</h3>
+
+<p>Example:</p>
+
+<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+
+controller = get_integration_controller("Razorpay", setup=False)
+controller().validate_transaction_currency(currency)
+</code></pre>
+
+<h3>2. Redirect for payment</h3>
+
+<p>Example:</p>
+
+<pre><code>payment_details = {
+    "amount": 600,
+    "title": "Payment for bill : 111",
+    "description": "payment via cart",
+    "reference_doctype": "Payment Request",
+    "reference_docname": "PR0001",
+    "payer_email": "NuranVerkleij@example.com",
+    "payer_name": "Nuran Verkleij",
+    "order_id": "111",
+    "currency": "INR"
+}
+
+from frappe.integration.razorpay import get_checkout_url
+
+# Redirect the user to this url
+url = controller().get_payment_url(**payment_details)
+</code></pre>
+
+<h3>3. On Completion of Payment</h3>
+
+<p>Write a method for <code>on_payment_authorized</code> in the reference doctype</p>
+
+<p>Example:</p>
+
+<pre><code>def on_payment_authorized(payment_status):
+    # this method will be called when payment is complete
+</code></pre>
+
+<h5>Notes:</h5>
+
+<p>payment_status - payment gateway will put payment status on callback.
+For razorpay payment status is Authorized</p>
+<br><br>
 
 	
         
