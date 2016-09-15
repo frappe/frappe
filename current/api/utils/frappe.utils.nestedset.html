@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -355,7 +351,8 @@
 		frappe.utils.nestedset.<b>rebuild_node</b>
         <i class="text-muted">(doctype, parent, left, parent_field)</i>
     </p>
-	<div class="docs-attr-desc"><p>reset lft, rgt and recursive call for all children</p>
+	<div class="docs-attr-desc"><pre><code>    reset lft, rgt and recursive call for all children
+</code></pre>
 </div>
 	<br>
 
@@ -371,7 +368,8 @@
 		frappe.utils.nestedset.<b>rebuild_tree</b>
         <i class="text-muted">(doctype, parent_field)</i>
     </p>
-	<div class="docs-attr-desc"><p>call rebuild_node for all root nodes</p>
+	<div class="docs-attr-desc"><pre><code>    call rebuild_node for all root nodes
+</code></pre>
 </div>
 	<br>
 
@@ -387,7 +385,8 @@
 		frappe.utils.nestedset.<b>update_add_node</b>
         <i class="text-muted">(doc, parent, parent_field)</i>
     </p>
-	<div class="docs-attr-desc"><p>insert a new node</p>
+	<div class="docs-attr-desc"><pre><code>    insert a new node
+</code></pre>
 </div>
 	<br>
 

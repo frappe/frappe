@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -671,6 +667,20 @@ Yandex.Mail</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="get_failed_attempts_count" href="#get_failed_attempts_count" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>get_failed_attempts_count</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_server" href="#get_server" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_server</b>
@@ -704,7 +714,7 @@ Yandex.Mail</pre>
 		<b>handle_incoming_connect_error</b>
         <i class="text-muted">(self, description)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Disable email account if 3 failed attempts found</p>
 </div>
 	<br>
 
@@ -783,17 +793,32 @@ Yandex.Mail</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="set_failed_attempts_count" href="#set_failed_attempts_count" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_failed_attempts_count</b>
+        <i class="text-muted">(self, value)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="set_thread" href="#set_thread" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>set_thread</b>
         <i class="text-muted">(self, communication, email)</i>
     </p>
 	<div class="docs-attr-desc"><p>Appends communication to parent based on thread ID. Will extract
-parent communication and will link the communication to the reference of that
-communication. Also set the status of parent transaction to Open or Replied.</p>
+        parent communication and will link the communication to the reference of that
+        communication. Also set the status of parent transaction to Open or Replied.</p>
 
-<p>If no thread id is found and <code>append_to</code> is set for the email account,
-it will create a new parent transaction (e.g. Issue)</p>
+<pre><code>    If no thread id is found and `append_to` is set for the email account,
+    it will create a new parent transaction (e.g. Issue)
+</code></pre>
 </div>
 	<br>
 
@@ -875,7 +900,7 @@ it will create a new parent transaction (e.g. Issue)</p>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>Sends email notifications if there are unreplied Communications
-and <code>notify_if_unreplied</code> is set as true.</p>
+        and <code>notify_if_unreplied</code> is set as true.</p>
 </div>
 	<br>
 

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -159,8 +155,9 @@
 		<b>__init__</b>
         <i class="text-muted">(self, str_, background=#fafbfc)</i>
     </p>
-	<div class="docs-attr-desc"><p><code>str_</code> is the string used to generate the identicon.
-<code>background</code> is the background of the identicon.</p>
+	<div class="docs-attr-desc"><pre><code>    `str_` is the string used to generate the identicon.
+    `background` is the background of the identicon.
+</code></pre>
 </div>
 	<br>
 
@@ -174,11 +171,12 @@
 		<b>base64</b>
         <i class="text-muted">(self, format=PNG)</i>
     </p>
-	<div class="docs-attr-desc"><p>usage:  i = Identicon('xx')
-        print(i.base64())
-return: this image's base64 code
-created by: liuzheng712
-bug report: <a href="https://github.com/liuzheng712/identicons/issues" rel="nofollow">https://github.com/liuzheng712/identicons/issues</a></p>
+	<div class="docs-attr-desc"><pre><code>    usage:  i = Identicon('xx')
+            print(i.base64())
+    return: this image's base64 code
+    created by: liuzheng712
+    bug report: <a href="https://github.com/liuzheng712/identicons/issues" rel="nofollow">https://github.com/liuzheng712/identicons/issues</a>
+</code></pre>
 </div>
 	<br>
 
@@ -192,9 +190,10 @@ bug report: <a href="https://github.com/liuzheng712/identicons/issues" rel="nofo
 		<b>calculate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Creates the identicon.
-First three bytes are used to generate the color,
-remaining bytes are used to create the drawing</p>
+	<div class="docs-attr-desc"><pre><code>    Creates the identicon.
+    First three bytes are used to generate the color,
+    remaining bytes are used to create the drawing
+</code></pre>
 </div>
 	<br>
 
@@ -208,7 +207,8 @@ remaining bytes are used to create the drawing</p>
 		<b>digest</b>
         <i class="text-muted">(self, str_)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns a md5 numeric hash</p>
+	<div class="docs-attr-desc"><pre><code>    Returns a md5 numeric hash
+</code></pre>
 </div>
 	<br>
 
@@ -222,7 +222,8 @@ remaining bytes are used to create the drawing</p>
 		<b>generate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Save and show calculated identicon</p>
+	<div class="docs-attr-desc"><pre><code>    Save and show calculated identicon
+</code></pre>
 </div>
 	<br>
 

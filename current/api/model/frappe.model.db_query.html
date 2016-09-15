@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -385,7 +381,8 @@
     </p>
 	<div class="docs-attr-desc"><p>Returns a filter condition in the format:</p>
 
-<p>ifnull(<code>tabDocType</code>.<code>fieldname</code>, fallback) operator "value"</p>
+<pre><code>            ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
+</code></pre>
 </div>
 	<br>
 
@@ -414,7 +411,7 @@
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>If there are more than one table, the fieldname must not be ambigous.
-If the fieldname is not explicitly mentioned, set the default table</p>
+        If the fieldname is not explicitly mentioned, set the default table</p>
 </div>
 	<br>
 

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -128,8 +124,11 @@
 <h3>General Usage</h3>
 
 <ul>
+<li><code>bench --version</code> - Show bench version</li>
+<li><code>bench src</code> - Show bench repo directory</li>
 <li><code>bench --help</code> - Show all commands and help</li>
 <li><code>bench [command] --help</code> - Show help for command</li>
+<li><code>bench init [bench-name]</code> - Create a new bench (Run from home dir)</li>
 <li><code>bench --site [site-name] COMMAND</code> - Specify site for command</li>
 <li><code>bench update</code> - Pulls changes for bench-repo and all apps, applies patches, builds JS and CSS, and then migrates.
 <ul>
@@ -142,12 +141,17 @@
 <li><code>--upgrade</code> Does major upgrade (Eg. ERPNext 6 -> 7)</li>
 <li><code>--no-backup</code>             Don't take a backup before update</li>
 </ul></li>
+<li><code>bench restart</code> Restart all bench services </li>
 <li><code>bench backup</code> Backup </li>
 <li><code>bench backup-all-sites</code> Backup all sites
 <ul>
 <li><code>--with-files</code> Backup site with files</li>
 </ul></li>
-<li><code>bench restore</code> Restore</li>
+<li><code>bench restore</code> Restore
+<ul>
+<li><code>--with-private-files</code> Restore site with private files (Path to tar file)</li>
+<li><code>--with-public-files</code> Restore site with public files (Path to tar file)</li>
+</ul></li>
 <li><code>bench migrate</code> Will read JSON files and make changes to the database accordingly</li>
 </ul>
 
@@ -176,6 +180,7 @@
 <li><code>socketio</code>  Setup node deps for socketio server</li>
 <li><code>sudoers</code>  Add commands to sudoers list for execution...</li>
 <li><code>supervisor</code>  generate config for supervisor</li>
+<li><code>add-domain</code>  add custom domain for site</li>
 </ul></li>
 </ul>
 
@@ -183,10 +188,11 @@
 
 <ul>
 <li><code>bench new-app [app-name]</code> Creates a new app </li>
-<li><code>bench get-app [app-name] [repo-link]</code> - Downloads an app from an online git repository and installs it</li>
+<li><code>bench get-app [repo-link]</code> - Downloads an app from a git repository and installs it</li>
 <li><code>bench install-app [app-name]</code> Installs existing app</li>
 <li><code>bench remove-from-installed-apps [app-name]</code> Remove app from the list of apps</li>
 <li><code>bench uninstall-app [app-name]</code> Delete app and everything linked to the app</li>
+<li><code>bench remove-app [app-name]</code> Remove app from the bench entirely</li>
 <li><code>bench new-site [sitename]</code> - Creates a new site
 <ul>
 <li><code>--db-name</code>                Database name</li>
@@ -218,6 +224,7 @@
 <li><code>--module</code> Run a particular module that has tests </li>
 <li><code>--profile</code> Runs a Python profiler on the test</li>
 </ul></li>
+<li><code>bench disable-production</code> - Disables production environment</li>
 </ul>
 
 <h3>Scheduler</h3>

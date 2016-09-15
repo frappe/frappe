@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -172,14 +168,14 @@
     </p>
 	<div class="docs-attr-desc"><p>Returns a list of attributes for given module string.</p>
 
-<p>Attribute Format:</p>
+<pre><code>Attribute Format:
 
-<pre><code>{
-    "name": [__name__],
-    "type": ["function" or "class"]
-    "args": [inspect.getargspec(value) (for function)]
-    "docs": [__doc__ as markdown]
-}
+    {
+        "name": [__name__],
+        "type": ["function" or "class"]
+        "args": [inspect.getargspec(value) (for function)]
+        "docs": [__doc__ as markdown]
+    }
 </code></pre>
 
 <p><strong>Parameters:</strong></p>
@@ -219,6 +215,22 @@
         <i class="text-muted">(value)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.autodoc.get_obj_doc" href="#frappe.utils.autodoc.get_obj_doc" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.autodoc.<b>get_obj_doc</b>
+        <i class="text-muted">(obj)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Return <code>__doc__</code> of the given object as unicode</p>
 </div>
 	<br>
 

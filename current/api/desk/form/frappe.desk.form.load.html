@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -302,9 +298,10 @@
 		frappe.desk.form.load.<b>getdoc</b>
         <i class="text-muted">(doctype, name, user=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Loads a doclist for a given document. This method is called directly from the client.
+	<div class="docs-attr-desc"><pre><code>Loads a doclist for a given document. This method is called directly from the client.
 Requries "doctype", "name" as form variables.
-Will also call the "onload" method on the document.</p>
+Will also call the "onload" method on the document.
+</code></pre>
 </div>
 	<br>
 

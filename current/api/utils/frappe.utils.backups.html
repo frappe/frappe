@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -145,10 +141,11 @@
         
 	<h3 style="font-weight: normal;">Class <b>BackupGenerator</b></h3>
     
-    <div class="docs-attr-desc"><p>This class contains methods to perform On Demand Backup</p>
+    <div class="docs-attr-desc"><pre><code>    This class contains methods to perform On Demand Backup
 
-<p>To initialize, specify (db<em>name, user, password, db</em>file<em>name=None, db</em>host="localhost")
-If specifying db<em>file</em>name, also append ".sql.gz"</p>
+    To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
+    If specifying db_file_name, also append ".sql.gz"
+</code></pre>
 </div>
     <div style="padding-left: 30px;">
         
@@ -175,8 +172,9 @@ If specifying db<em>file</em>name, also append ".sql.gz"</p>
 		<b>get_backup</b>
         <i class="text-muted">(self, older_than=24, ignore_files=False, force=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Takes a new dump if existing file is old
-and sends the link to the file as email</p>
+	<div class="docs-attr-desc"><pre><code>        Takes a new dump if existing file is old
+        and sends the link to the file as email
+</code></pre>
 </div>
 	<br>
 
@@ -204,7 +202,8 @@ and sends the link to the file as email</p>
 		<b>send_email</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Sends the link to backup file located at erpnext/backups</p>
+	<div class="docs-attr-desc"><pre><code>        Sends the link to backup file located at erpnext/backups
+</code></pre>
 </div>
 	<br>
 
@@ -282,7 +281,8 @@ and sends the link to the file as email</p>
 		frappe.utils.backups.<b>delete_temp_backups</b>
         <i class="text-muted">(older_than=24)</i>
     </p>
-	<div class="docs-attr-desc"><p>Cleans up the backup<em>link</em>path directory by deleting files older than 24 hours</p>
+	<div class="docs-attr-desc"><pre><code>    Cleans up the backup_link_path directory by deleting files older than 24 hours
+</code></pre>
 </div>
 	<br>
 
@@ -300,8 +300,9 @@ and sends the link to the file as email</p>
 		frappe.utils.backups.<b>get_backup</b>
         <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p>This function is executed when the user clicks on
-Toos &gt; Download Backup</p>
+	<div class="docs-attr-desc"><pre><code>    This function is executed when the user clicks on
+    Toos &gt; Download Backup
+</code></pre>
 </div>
 	<br>
 
@@ -333,10 +334,11 @@ Toos &gt; Download Backup</p>
 		frappe.utils.backups.<b>is_file_old</b>
         <i class="text-muted">(db_file_name, older_than=24)</i>
     </p>
-	<div class="docs-attr-desc"><p>Checks if file exists and is older than specified hours
-Returns -&gt;
-True: file does not exist or file is old
-False: file is new</p>
+	<div class="docs-attr-desc"><pre><code>        Checks if file exists and is older than specified hours
+        Returns -&gt;
+        True: file does not exist or file is old
+        False: file is new
+</code></pre>
 </div>
 	<br>
 
@@ -369,8 +371,8 @@ False: file is new</p>
         <i class="text-muted">(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>this function is called from scheduler
-deletes backups older than 7 days
-takes backup</p>
+        deletes backups older than 7 days
+        takes backup</p>
 </div>
 	<br>
 

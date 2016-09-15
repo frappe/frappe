@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -149,7 +145,7 @@
     <p><b>Table Name:</b> <code>tabNote</code></p>
 
 
-Note is a free page where users can share documents / notes
+
 
 <h3>Fields</h3>
 
@@ -184,14 +180,37 @@ Note is a free page where users can share documents / notes
                 Check</td>
             <td >
                 Public
-                <p class="text-muted small">
-                    Everyone can read</p>
+                
             </td>
             <td></td>
         </tr>
         
         <tr >
             <td>3</td>
+            <td ><code>notify_on_login</code></td>
+            <td >
+                Check</td>
+            <td >
+                Notify users with a popup when they log in
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>expire_notification_on</code></td>
+            <td >
+                Date</td>
+            <td >
+                Expire Notification On
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
             <td ><code>content</code></td>
             <td >
                 Text Editor</td>
@@ -201,6 +220,39 @@ Note is a free page where users can share documents / notes
                     Help: To link to another record in the system, use "#Form/Note/[Note Name]" as the Link URL. (don't use "http://")</p>
             </td>
             <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>6</td>
+            <td ><code>seen_by_section</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Seen By
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
+            <td ><code>seen_by</code></td>
+            <td >
+                Table</td>
+            <td >
+                Seen By Table
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/desk/note_seen_by">Note Seen By</a>
+
+
+                
+            </td>
         </tr>
         
     </tbody>
@@ -253,6 +305,20 @@ Note is a free page where users can share documents / notes
 	<br>
 
         
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate" href="#validate" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
     </div>
     <hr>
 
@@ -283,6 +349,24 @@ Note is a free page where users can share documents / notes
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.doctype.note.note.<b>has_permission</b>
         <i class="text-muted">(doc, ptype, user)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.desk.doctype.note.note.mark_as_seen</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.desk.doctype.note.note.mark_as_seen" href="#frappe.desk.doctype.note.note.mark_as_seen" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.desk.doctype.note.note.<b>mark_as_seen</b>
+        <i class="text-muted">(note)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -208,16 +204,16 @@
         <i class="text-muted">(raise_exception_not_set=True)</i>
     </p>
 	<div class="docs-attr-desc"><p>conf should be like:
-{
- "mail<em>server": "<a href="http://smtp.example.com" rel="nofollow">smtp.example.com</a>",
- "mail</em>port": 587,
- "use<em>ssl": 1,
- "mail</em>login": "emails@example.com",
- "mail<em>password": "Super.Secret.Password",
- "auto</em>email<em>id": "emails@example.com",
- "email</em>sender<em>name": "Example Notifications",
- "always</em>use<em>account</em>email<em>id</em>as_sender": 0
-}</p>
+        {
+         "mail<em>server": "<a href="http://smtp.example.com" rel="nofollow">smtp.example.com</a>",
+         "mail</em>port": 587,
+         "use<em>ssl": 1,
+         "mail</em>login": "emails@example.com",
+         "mail<em>password": "Super.Secret.Password",
+         "auto</em>email<em>id": "emails@example.com",
+         "email</em>sender<em>name": "Example Notifications",
+         "always</em>use<em>account</em>email<em>id</em>as_sender": 0
+        }</p>
 </div>
 	<br>
 
@@ -234,8 +230,8 @@
         <i class="text-muted">(raise_exception_not_set=True, append_to=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns outgoing email account based on <code>append_to</code> or the default
-outgoing account. If default outgoing account is not found, it will
-try getting settings from <code>site_config.json</code>.</p>
+        outgoing account. If default outgoing account is not found, it will
+        try getting settings from <code>site_config.json</code>.</p>
 </div>
 	<br>
 

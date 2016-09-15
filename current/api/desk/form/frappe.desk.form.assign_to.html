@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -168,12 +164,12 @@
         <i class="text-muted">(args=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>add in someone's to do list
-args = {
-    "assign_to": ,
-    "doctype": ,
-    "name": ,
-    "description":
-}</p>
+        args = {
+            "assign_to": ,
+            "doctype": ,
+            "name": ,
+            "description":
+        }</p>
 </div>
 	<br>
 
@@ -239,7 +235,8 @@ args = {
 		frappe.desk.form.assign_to.<b>notify_assignment</b>
         <i class="text-muted">(assigned_by, owner, doc_type, doc_name, action=CLOSE, description=None, notify=0)</i>
     </p>
-	<div class="docs-attr-desc"><p>Notify assignee that there is a change in assignment</p>
+	<div class="docs-attr-desc"><pre><code>    Notify assignee that there is a change in assignment
+</code></pre>
 </div>
 	<br>
 

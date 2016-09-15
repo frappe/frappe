@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -196,7 +192,7 @@
         <a name="frappe.utils.data.add_to_date" href="#frappe.utils.data.add_to_date" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.data.<b>add_to_date</b>
-        <i class="text-muted">(date, years=0, months=0, days=0)</i>
+        <i class="text-muted">(date, years=0, months=0, days=0, hours=0, as_string=False, as_datetime=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Adds <code>days</code> to the given date</p>
 </div>
@@ -454,7 +450,8 @@
 		frappe.utils.data.<b>fmt_money</b>
         <i class="text-muted">(amount, precision=None, currency=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Convert to string with commas for thousands, millions etc</p>
+	<div class="docs-attr-desc"><pre><code>Convert to string with commas for thousands, millions etc
+</code></pre>
 </div>
 	<br>
 
@@ -502,16 +499,15 @@
 		frappe.utils.data.<b>formatdate</b>
         <i class="text-muted">(string_date=None, format_string=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Convers the given string date to :data:<code>user_format</code>
-ser format specified in defaults</p>
+	<div class="docs-attr-desc"><pre><code>    Convers the given string date to :data:`user_format`
+    User format specified in defaults
 
-<p>Examples:</p>
+     Examples:
 
-<ul>
-<li>dd-mm-yyyy</li>
-<li>mm-dd-yyyy</li>
-<li>dd/mm/yyyy</li>
-</ul>
+     * dd-mm-yyyy
+     * mm-dd-yyyy
+     * dd/mm/yyyy
+</code></pre>
 </div>
 	<br>
 
@@ -554,6 +550,22 @@ ser format specified in defaults</p>
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.utils.data.get_eta" href="#frappe.utils.data.get_eta" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.data.<b>get_eta</b>
+        <i class="text-muted">(from_time, percent_complete)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.utils.data.get_filter" href="#frappe.utils.data.get_filter" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.data.<b>get_filter</b>
@@ -561,12 +573,13 @@ ser format specified in defaults</p>
     </p>
 	<div class="docs-attr-desc"><p>Returns a _dict like</p>
 
-<p>{
-    "doctype":
-    "fieldname":
-    "operator":
-    "value":
-}</p>
+<pre><code>    {
+        "doctype":
+        "fieldname":
+        "operator":
+        "value":
+    }
+</code></pre>
 </div>
 	<br>
 
@@ -582,8 +595,9 @@ ser format specified in defaults</p>
 		frappe.utils.data.<b>get_first_day</b>
         <i class="text-muted">(dt, d_years=0, d_months=0)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns the first day of the month for the date specified by date object
-Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
+	<div class="docs-attr-desc"><pre><code> Returns the first day of the month for the date specified by date object
+ Also adds `d_years` and `d_months` if specified
+</code></pre>
 </div>
 	<br>
 
@@ -615,8 +629,9 @@ Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
 		frappe.utils.data.<b>get_last_day</b>
         <i class="text-muted">(dt)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns last day of the month using:
-<code>get_first_day(dt, 0, 1) + datetime.timedelta(-1)</code></p>
+	<div class="docs-attr-desc"><pre><code> Returns last day of the month using:
+ `get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
+</code></pre>
 </div>
 	<br>
 
@@ -760,7 +775,8 @@ Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
 		frappe.utils.data.<b>getdate</b>
         <i class="text-muted">(string_date=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Coverts string date (yyyy-mm-dd) to datetime.date object</p>
+	<div class="docs-attr-desc"><pre><code>     Coverts string date (yyyy-mm-dd) to datetime.date object
+</code></pre>
 </div>
 	<br>
 
@@ -808,7 +824,8 @@ Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
 		frappe.utils.data.<b>in_words</b>
         <i class="text-muted">(integer, in_million=True)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns string in words for the given integer.</p>
+	<div class="docs-attr-desc"><pre><code>Returns string in words for the given integer.
+</code></pre>
 </div>
 	<br>
 
@@ -856,7 +873,8 @@ Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
 		frappe.utils.data.<b>money_in_words</b>
         <i class="text-muted">(number, main_currency=None, fraction_currency=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns string in words with currency and fraction currency.</p>
+	<div class="docs-attr-desc"><pre><code>Returns string in words with currency and fraction currency.
+</code></pre>
 </div>
 	<br>
 
@@ -968,9 +986,10 @@ Also adds <code>d_years</code> and <code>d_months</code> if specified</p>
 		frappe.utils.data.<b>pretty_date</b>
         <i class="text-muted">(iso_datetime)</i>
     </p>
-	<div class="docs-attr-desc"><p>Takes an ISO time and returns a string representing how
-long ago the date represents.
-Ported from PrettyDate by John Resig</p>
+	<div class="docs-attr-desc"><pre><code>    Takes an ISO time and returns a string representing how
+    long ago the date represents.
+    Ported from PrettyDate by John Resig
+</code></pre>
 </div>
 	<br>
 
@@ -1211,7 +1230,7 @@ Ported from PrettyDate by John Resig</p>
         <i class="text-muted">(seq)</i>
     </p>
 	<div class="docs-attr-desc"><p>use this instead of list(set()) to preserve order of the original list.
-Thanks to Stackoverflow: <a href="http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order" rel="nofollow">http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order</a></p>
+    Thanks to Stackoverflow: <a href="http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order" rel="nofollow">http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order</a></p>
 </div>
 	<br>
 

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -167,8 +163,8 @@
         <i class="text-muted">(columns)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns a dict with column docfield values as dict
-The keys for the dict are both idx and fieldname,
-so either index or fieldname can be used to search for a column's docfield properties</p>
+        The keys for the dict are both idx and fieldname,
+        so either index or fieldname can be used to search for a column's docfield properties</p>
 </div>
 	<br>
 
@@ -182,7 +178,7 @@ so either index or fieldname can be used to search for a column's docfield prope
         <a name="frappe.desk.query_report.get_filtered_data" href="#frappe.desk.query_report.get_filtered_data" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_filtered_data</b>
-        <i class="text-muted">(ref_doctype, columns, data)</i>
+        <i class="text-muted">(ref_doctype, columns, data, user)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -280,18 +276,19 @@ so either index or fieldname can be used to search for a column's docfield prope
         <a name="frappe.desk.query_report.has_match" href="#frappe.desk.query_report.has_match" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>has_match</b>
-        <i class="text-muted">(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict)</i>
+        <i class="text-muted">(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns True if after evaluating permissions for each linked doctype
-- There is an owner match for the ref_doctype
-- <code>and</code> There is a user permission match for all linked doctypes</p>
+        - There is an owner match for the ref_doctype
+        - <code>and</code> There is a user permission match for all linked doctypes</p>
 
-<p>Returns True if the row is empty</p>
+<pre><code>    Returns True if the row is empty
 
-<p>Note:
-Each doctype could have multiple conflicting user permission doctypes.
-Hence even if one of the sets allows a match, it is true.
-This behavior is equivalent to the trickling of user permissions of linked doctypes to the ref doctype.</p>
+    Note:
+    Each doctype could have multiple conflicting user permission doctypes.
+    Hence even if one of the sets allows a match, it is true.
+    This behavior is equivalent to the trickling of user permissions of linked doctypes to the ref doctype.
+</code></pre>
 </div>
 	<br>
 
@@ -307,7 +304,7 @@ This behavior is equivalent to the trickling of user permissions of linked docty
         <a name="frappe.desk.query_report.run" href="#frappe.desk.query_report.run" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>run</b>
-        <i class="text-muted">(report_name, filters=())</i>
+        <i class="text-muted">(report_name, filters=None, user=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -166,7 +162,8 @@
 		frappe.utils.doctor.<b>doctor</b>
         <i class="text-muted">(site=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Prints diagnostic information for the scheduler</p>
+	<div class="docs-attr-desc"><pre><code>Prints diagnostic information for the scheduler
+</code></pre>
 </div>
 	<br>
 
@@ -262,9 +259,10 @@
 		frappe.utils.doctor.<b>purge_pending_jobs</b>
         <i class="text-muted">(event=None, site=None, queue=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Purge tasks of the event event type. Passing 'all' will not purge all
+	<div class="docs-attr-desc"><pre><code>Purge tasks of the event event type. Passing 'all' will not purge all
 events but of the all event type, ie. the ones that are enqueued every five
-mintues and would any leave daily, hourly and weekly tasks</p>
+mintues and would any leave daily, hourly and weekly tasks
+</code></pre>
 </div>
 	<br>
 

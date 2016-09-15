@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -165,11 +161,12 @@
 
 <ul>
 <li><strong><code>arg1</code></strong> -  DocType name as string or document <strong>dict</strong></li>
-<li><strong><code>arg2</code></strong> -  Document name, if <code>arg1</code> is DocType name.</li>
-</ul>
+<li><p><strong><code>arg2</code></strong> -  Document name, if <code>arg1</code> is DocType name.</p>
 
-<p>If DocType name and document name are passed, the object will load
-all values (including child documents) from the database.</p>
+<pre><code>If DocType name and document name are passed, the object will load
+all values (including child documents) from the database.
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -198,10 +195,11 @@ all values (including child documents) from the database.</p>
         <i class="text-muted">(self, ignore_permissions=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Save the current document in the database in the <strong>DocType</strong>'s table or
-<code>tabSingles</code> (for single types).</p>
+        <code>tabSingles</code> (for single types).</p>
 
-<p>This will check for user permissions and execute
-<code>validate</code> before updating, <code>on_update</code> after updating triggers.</p>
+<pre><code>    This will check for user permissions and execute
+    `validate` before updating, `on_update` after updating triggers.
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 
@@ -320,6 +318,20 @@ all values (including child documents) from the database.</p>
     
     
 	<p class="docs-attr-name">
+        <a name="apply_fieldlevel_read_permissions" href="#apply_fieldlevel_read_permissions" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>apply_fieldlevel_read_permissions</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Remove values the user is not allowed to read (called when loading in desk)</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="cancel" href="#cancel" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>cancel</b>
@@ -340,16 +352,15 @@ all values (including child documents) from the database.</p>
         <i class="text-muted">(self, docstatus)</i>
     </p>
 	<div class="docs-attr-desc"><p>Ensures valid <code>docstatus</code> transition.
-Valid transitions are (number in brackets is <code>docstatus</code>):</p>
+        Valid transitions are (number in brackets is <code>docstatus</code>):</p>
 
-<ul>
-<li>Save (0) &gt; Save (0)</li>
-<li>Save (0) &gt; Submit (1)</li>
-<li>Submit (1) &gt; Submit (1)</li>
-<li>Submit (1) &gt; Cancel (2)</li>
-</ul>
+<pre><code>    - Save (0) &gt; Save (0)
+    - Save (0) &gt; Submit (1)
+    - Submit (1) &gt; Submit (1)
+    - Submit (1) &gt; Cancel (2)
 
-<p>If docstatus is &gt; 2, it will throw exception as document is deemed queued</p>
+    If docstatus is &gt; 2, it will throw exception as document is deemed queued
+</code></pre>
 </div>
 	<br>
 
@@ -364,12 +375,13 @@ Valid transitions are (number in brackets is <code>docstatus</code>):</p>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Checks if <code>modified</code> timestamp provided by document being updated is same as the
-<code>modified</code> timestamp in the database. If there is a different, the document has been
-updated in the database after the current copy was read. Will throw an error if
-timestamps don't match.</p>
+        <code>modified</code> timestamp in the database. If there is a different, the document has been
+        updated in the database after the current copy was read. Will throw an error if
+        timestamps don't match.</p>
 
-<p>Will also validate document transitions (Save &gt; Submit &gt; Cancel) calling
-<code>self.check_docstatus_transition</code>.</p>
+<pre><code>    Will also validate document transitions (Save &gt; Submit &gt; Cancel) calling
+    `self.check_docstatus_transition`.
+</code></pre>
 </div>
 	<br>
 
@@ -395,7 +407,7 @@ timestamps don't match.</p>
         <a name="check_permission" href="#check_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>check_permission</b>
-        <i class="text-muted">(self, permtype, permlabel=None)</i>
+        <i class="text-muted">(self, permtype=read, permlabel=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raise <code>frappe.PermissionError</code> if not permitted</p>
 </div>
@@ -507,7 +519,7 @@ timestamps don't match.</p>
         <a name="get_permlevel_access" href="#get_permlevel_access" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_permlevel_access</b>
-        <i class="text-muted">(self)</i>
+        <i class="text-muted">(self, permission_type=write)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -552,7 +564,7 @@ timestamps don't match.</p>
         <i class="text-muted">(self, permtype=read, verbose=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Call <code>frappe.has_permission</code> if <code>self.flags.ignore_permissions</code>
-is not set.</p>
+        is not set.</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -570,7 +582,7 @@ is not set.</p>
         <a name="has_permlevel_access_to" href="#has_permlevel_access_to" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>has_permlevel_access_to</b>
-        <i class="text-muted">(self, fieldname, df=None)</i>
+        <i class="text-muted">(self, fieldname, df=None, permission_type=read)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -587,7 +599,7 @@ is not set.</p>
         <i class="text-muted">(self, permtype=read, verbose=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Call <code>frappe.has_website_permission</code> if <code>self.flags.ignore_permissions</code>
-is not set.</p>
+        is not set.</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -608,8 +620,8 @@ is not set.</p>
         <i class="text-muted">(self, ignore_permissions=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Insert the document in the database (as a new document).
-This will check for user permissions and execute <code>before_insert</code>,
-<code>validate</code>, <code>on_update</code>, <code>after_insert</code> methods if they are written.</p>
+        This will check for user permissions and execute <code>before_insert</code>,
+        <code>validate</code>, <code>on_update</code>, <code>after_insert</code> methods if they are written.</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -644,7 +656,7 @@ This will check for user permissions and execute <code>before_insert</code>,
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Load document and children from database and create properties
-from fields</p>
+        from fields</p>
 </div>
 	<br>
 
@@ -660,9 +672,10 @@ from fields</p>
     </p>
 	<div class="docs-attr-desc"><p>Will set docstatus to 3 + the current docstatus and mark it as queued</p>
 
-<p>3 = queued for saving
-4 = queued for submission
-5 = queued for cancellation</p>
+<pre><code>    3 = queued for saving
+    4 = queued for submission
+    5 = queued for cancellation
+</code></pre>
 </div>
 	<br>
 
@@ -691,7 +704,7 @@ from fields</p>
         <i class="text-muted">(self, action)</i>
     </p>
 	<div class="docs-attr-desc"><p>Run an action in background. If the action has an inner function,
-like _submit for submit, it will call that instead</p>
+        like _submit for submit, it will call that instead</p>
 </div>
 	<br>
 
@@ -770,14 +783,13 @@ like _submit for submit, it will call that instead</p>
     </p>
 	<div class="docs-attr-desc"><p>Run standard methods before  <code>INSERT</code> or <code>UPDATE</code>. Standard Methods are:</p>
 
-<ul>
-<li><code>validate</code>, <code>before_save</code> for <strong>Save</strong>.</li>
-<li><code>validate</code>, <code>before_submit</code> for <strong>Submit</strong>.</li>
-<li><code>before_cancel</code> for <strong>Cancel</strong></li>
-<li><code>before_update_after_submit</code> for <strong>Update after Submit</strong></li>
-</ul>
+<pre><code>    - `validate`, `before_save` for **Save**.
+    - `validate`, `before_submit` for **Submit**.
+    - `before_cancel` for **Cancel**
+    - `before_update_after_submit` for **Update after Submit**
 
-<p>Will also update title_field if set</p>
+    Will also update title_field if set
+</code></pre>
 </div>
 	<br>
 
@@ -807,12 +819,11 @@ like _submit for submit, it will call that instead</p>
     </p>
 	<div class="docs-attr-desc"><p>Run standard methods after <code>INSERT</code> or <code>UPDATE</code>. Standard Methods are:</p>
 
-<ul>
-<li><code>on_update</code> for <strong>Save</strong>.</li>
-<li><code>on_update</code>, <code>on_submit</code> for <strong>Submit</strong>.</li>
-<li><code>on_cancel</code> for <strong>Cancel</strong></li>
-<li><code>update_after_submit</code> for <strong>Update after Submit</strong></li>
-</ul>
+<pre><code>    - `on_update` for **Save**.
+    - `on_update`, `on_submit` for **Submit**.
+    - `on_cancel` for **Cancel**
+    - `update_after_submit` for **Update after Submit**
+</code></pre>
 </div>
 	<br>
 
@@ -1051,7 +1062,7 @@ like _submit for submit, it will call that instead</p>
         <i class="text-muted">(self, fieldname, condition, val2, doc=None, raise_exception=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Check that value of fieldname should be 'condition' val2
-else throw Exception.</p>
+            else throw Exception.</p>
 </div>
 	<br>
 
@@ -1093,8 +1104,7 @@ else throw Exception.</p>
 
 <ul>
 <li><strong><code>arg1</code></strong> -  Document dict or DocType name.</li>
-<li><strong><code>arg2</code></strong> -  [optional] document name.</li>
-</ul>
+<li><p><strong><code>arg2</code></strong> -  [optional] document name.</p>
 
 <p>There are two ways to call <code>get_doc</code></p>
 
@@ -1109,7 +1119,8 @@ user = get_doc({
         {"role": "System Manager"}
     ]
 })
-</code></pre>
+</code></pre></li>
+</ul>
 </div>
 	<br>
 

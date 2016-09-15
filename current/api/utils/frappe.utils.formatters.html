@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -148,9 +144,10 @@
         <a name="frappe.utils.formatters.format_value" href="#frappe.utils.formatters.format_value" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.formatters.<b>format_value</b>
-        <i class="text-muted">(value, df, doc=None, currency=None, translated=False)</i>
+        <i class="text-muted">(value, df=None, doc=None, currency=None, translated=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Format value based on given fieldtype, document reference, currency reference.
+    If docfield info (df) is not given, it will try and guess based on the datatype of the value</p>
 </div>
 	<br>
 

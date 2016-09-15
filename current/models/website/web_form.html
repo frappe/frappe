@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -535,8 +531,9 @@
 		<b>on_update</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Writes the .txt for this page and if write_content is checked,
-it will write out a .html file</p>
+	<div class="docs-attr-desc"><pre><code>        Writes the .txt for this page and if write_content is checked,
+        it will write out a .html file
+</code></pre>
 </div>
 	<br>
 
@@ -559,12 +556,26 @@ it will write out a .html file</p>
     
     
 	<p class="docs-attr-name">
+        <a name="reset_field_parent_and_convert_links_to_selects" href="#reset_field_parent_and_convert_links_to_selects" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>reset_field_parent_and_convert_links_to_selects</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Convert link fields to select with names as options</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="use_meta_fields" href="#use_meta_fields" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>use_meta_fields</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Override default properties for standard web forms</p>
 </div>
 	<br>
 
@@ -598,7 +609,7 @@ it will write out a .html file</p>
         <a name="frappe.website.doctype.web_form.web_form.accept" href="#frappe.website.doctype.web_form.web_form.accept" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.website.doctype.web_form.web_form.<b>accept</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(web_form, data)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -132,57 +128,30 @@
 <h3><code>bench doctor</code></h3>
 
 <p>This will output the following in order:
-- Worker Status
 - Scheduler Status per site
-- Pending Tasks
-- Timed out locks</p>
+- Number of Workers
+- Pending Tasks</p>
 
 <p>Desirable output:</p>
 
-<pre><code>Workers online: True
-Pending tasks 0
-Timed out locks:
+<pre><code>Workers online: 0
+-----None Jobs-----
 </code></pre>
 
-<h3><code>bench celery-doctor</code></h3>
+<h3><code>bench --site [site-name] show-pending-jobs</code></h3>
 
 <p>This will output the following in order:
-- Queue Status
-- Running Tasks</p>
+- Queue
+- Tasks within Queue</p>
 
 <p>Desirable output:</p>
 
-<pre><code>Queue Status
-------------
-[
- {
-  "total": 0
- }
-]
-
-Running Tasks
-------------
-{
- "async@erpnext": [],
- "longjobs@erpnext": [],
- "jobs@erpnext": []
-}
+<pre><code>-----Pending Jobs-----
 </code></pre>
 
-<h3><code>bench dump-queue-status</code></h3>
+<h3><code>bench purge-jobs</code></h3>
 
-<p>This will output detailed diagnostic information for task queues in JSON</p>
-
-<p>Desirable output:</p>
-
-<pre><code>[
- {
-  "total": 0
- }
-]
-Pending Tasks Queue
---------------------
-</code></pre>
+<p>This will remove all pending jobs from all queues</p>
 
 </div>
 				</div>

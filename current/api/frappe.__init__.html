@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -268,7 +264,7 @@
         <i class="text-muted">(doc)</i>
     </p>
 	<div class="docs-attr-desc"><p>Insert a new <strong>Version</strong> of the given document.
-A <strong>Version</strong> is a JSON dump of the current document state.</p>
+    A <strong>Version</strong> is a JSON dump of the current document state.</p>
 </div>
 	<br>
 
@@ -286,10 +282,11 @@ A <strong>Version</strong> is a JSON dump of the current document state.</p>
     </p>
 	<div class="docs-attr-desc"><p>appends a hook to the the target dict.</p>
 
-<p>If the hook key, exists, it will make it a key.</p>
+<pre><code>If the hook key, exists, it will make it a key.
 
-<p>If the hook value is a dict, like doc_events, it will
-listify the values against the key.</p>
+If the hook value is a dict, like doc_events, it will
+listify the values against the key.
+</code></pre>
 </div>
 	<br>
 
@@ -442,7 +439,7 @@ listify the values against the key.</p>
     </p>
 	<div class="docs-attr-desc"><p>Compare two values using <code>frappe.utils.compare</code></p>
 
-<p><code>condition</code> could be:
+<pre><code>`condition` could be:
 - "^"
 - "in"
 - "not in"
@@ -453,7 +450,8 @@ listify the values against the key.</p>
 - "&gt;="
 - "&lt;="
 - "not None"
-- "None"</p>
+- "None"
+</code></pre>
 </div>
 	<br>
 
@@ -626,7 +624,7 @@ listify the values against the key.</p>
         <a name="frappe.format_value" href="#frappe.format_value" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>format_value</b>
-        <i class="text-muted">(value, df, doc=None, currency=None)</i>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>Format value with given field properties.</p>
 
@@ -634,7 +632,7 @@ listify the values against the key.</p>
 
 <ul>
 <li><strong><code>value</code></strong> -  Value to be formatted.</li>
-<li><strong><code>df</code></strong> -  DocField object with properties <code>fieldtype</code>, <code>options</code> etc.</li>
+<li><strong><code>df</code></strong> -  (Optional) DocField object with properties <code>fieldtype</code>, <code>options</code> etc.</li>
 </ul>
 </div>
 	<br>
@@ -668,7 +666,7 @@ listify the values against the key.</p>
         <i class="text-muted">(doctype)</i>
     </p>
 	<div class="docs-attr-desc"><p>List database query via <code>frappe.model.db_query</code>. Will <strong>not</strong> check for conditions.
-Parameters are same as <code>frappe.get_list</code></p>
+    Parameters are same as <code>frappe.get_list</code></p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -678,8 +676,7 @@ Parameters are same as <code>frappe.get_list</code></p>
 <li><strong><code>filters</code></strong> -  List of filters (see example).</li>
 <li><strong><code>order_by</code></strong> -  Order By e.g. <code>modified desc</code>.</li>
 <li><strong><code>limit_page_start</code></strong> -  Start results at record #. Default 0.</li>
-<li><strong><code>limit_poge_length</code></strong> -  No of records in the page. Default 20.</li>
-</ul>
+<li><p><strong><code>limit_poge_length</code></strong> -  No of records in the page. Default 20.</p>
 
 <p>Example usage:</p>
 
@@ -691,7 +688,8 @@ frappe.get_all("ToDo", fields=["*"], filters = [["modified", "&gt;", "2014-01-01
 
 # filter as a list of dicts
 frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
-</code></pre>
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -800,8 +798,7 @@ frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")
 
 <ul>
 <li><strong><code>arg1</code></strong> -  DocType name as string <strong>or</strong> document JSON.</li>
-<li><strong><code>arg2</code></strong> -  [optional] Document name as string.</li>
-</ul>
+<li><p><strong><code>arg2</code></strong> -  [optional] Document name as string.</p>
 
 <p>Examples:</p>
 
@@ -811,7 +808,8 @@ tood.insert()
 
 # open an existing document
 todo = frappe.get_doc("ToDo", "TD0001")
-</code></pre>
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -980,8 +978,7 @@ todo = frappe.get_doc("ToDo", "TD0001")
 <li><strong><code>filters</code></strong> -  List of filters (see example).</li>
 <li><strong><code>order_by</code></strong> -  Order By e.g. <code>modified desc</code>.</li>
 <li><strong><code>limit_page_start</code></strong> -  Start results at record #. Default 0.</li>
-<li><strong><code>limit_poge_length</code></strong> -  No of records in the page. Default 20.</li>
-</ul>
+<li><p><strong><code>limit_poge_length</code></strong> -  No of records in the page. Default 20.</p>
 
 <p>Example usage:</p>
 
@@ -993,7 +990,8 @@ frappe.get_list("ToDo", fields="*", filters = [["modified", "&gt;", "2014-01-01"
 
 # filter as a list of dicts
 frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
-</code></pre>
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -1217,7 +1215,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <i class="text-muted">(sites_path=None, site_path=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns <code>site_config.json</code> combined with <code>sites/common_site_config.json</code>.
-<code>site_config</code> is a set of site wide settings like database name, password, email etc.</p>
+    <code>site_config</code> is a set of site wide settings like database name, password, email etc.</p>
 </div>
 	<br>
 
@@ -1305,7 +1303,8 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
     </p>
 	<div class="docs-attr-desc"><p>Returns a document property or list of properties.</p>
 
-<p>Alias for <code>frappe.db.get_value</code></p>
+<pre><code>Alias for `frappe.db.get_value`
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 
@@ -1549,8 +1548,9 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
     </p>
 	<div class="docs-attr-desc"><p>Create a new <strong>Property Setter</strong> (for overriding DocType and DocField properties).</p>
 
-<p>If doctype is not specified, it will create a property setter for all fields with the
-given fieldname</p>
+<pre><code>If doctype is not specified, it will create a property setter for all fields with the
+given fieldname
+</code></pre>
 </div>
 	<br>
 
@@ -1567,8 +1567,8 @@ given fieldname</p>
         <i class="text-muted">(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Print a message to the user (via HTTP response).
-Messages are sent in the <code>__server_messages</code> property in the
-response JSON and shown in a pop-up / modal.</p>
+    Messages are sent in the <code>__server_messages</code> property in the
+    response JSON and shown in a pop-up / modal.</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -1709,18 +1709,18 @@ response JSON and shown in a pop-up / modal.</p>
         <i class="text-muted">(title, html, http_status_code=None, context=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Redirects to /message?id=random
-Similar to respond<em>as</em>web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message</p>
+    Similar to respond<em>as</em>web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message</p>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
 <li><strong><code>title</code></strong> -  Page title and heading.</li>
 <li><strong><code>message</code></strong> -  Message to be shown.</li>
-<li><strong><code>http_status_code</code></strong> -  HTTP status code.</li>
-</ul>
+<li><p><strong><code>http_status_code</code></strong> -  HTTP status code.</p>
 
 <p>Example Usage:
-    frappe.redirect<em>to</em>message(_('Thank you'), "</p><div><p>You will receive an email at test@example.com</p></div>")<p></p>
+    frappe.redirect<em>to</em>message(_('Thank you'), "</p><div><p>You will receive an email at test@example.com</p></div>")<p></p></li>
+</ul>
 </div>
 	<br>
 
@@ -1998,21 +1998,22 @@ Similar to respond<em>as</em>web_page, but used to 'redirect' and show message p
 		frappe.<b>whitelist</b>
         <i class="text-muted">(allow_guest=False, xss_safe=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Decorator for whitelisting a function and making it accessible via HTTP.
-Standard request will be <code>/api/method/[path.to.method]</code></p>
+	<div class="docs-attr-desc"><pre><code>Decorator for whitelisting a function and making it accessible via HTTP.
+Standard request will be `/api/method/[path.to.method]`
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
-<li><strong><code>allow_guest</code></strong> -  Allow non logged-in user to access this method.</li>
-</ul>
+<li><p><strong><code>allow_guest</code></strong> -  Allow non logged-in user to access this method.</p>
 
 <p>Use as:</p>
 
 <pre><code>@frappe.whitelist()
 def myfunc(param1, param2):
     pass
-</code></pre>
+</code></pre></li>
+</ul>
 </div>
 	<br>
 

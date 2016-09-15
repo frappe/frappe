@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -231,9 +227,8 @@
     </p>
 	<div class="docs-attr-desc"><p>Sanitize HTML and Email in field values. Used to prevent XSS.</p>
 
-<ul>
-<li>Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'</li>
-</ul>
+<pre><code>        - Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
+</code></pre>
 </div>
 	<br>
 
@@ -612,7 +607,7 @@
         <i class="text-muted">(self, fieldname)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns True if shown via Print Format::<code>format_data</code> property.
-Called from within standard print format.</p>
+            Called from within standard print format.</p>
 </div>
 	<br>
 
@@ -670,12 +665,12 @@ Called from within standard print format.</p>
     </p>
 	<div class="docs-attr-desc"><p>Returns true if fieldname is to be hidden for print.</p>
 
-<p>Print Hide can be set via the Print Format Builder or in the controller as a list
-of hidden fields. Example</p>
+<pre><code>    Print Hide can be set via the Print Format Builder or in the controller as a list
+    of hidden fields. Example
 
-<pre><code>class MyDoc(Document):
-    def __setup__(self):
-        self.print_hide = ["field1", "field2"]
+        class MyDoc(Document):
+            def __setup__(self):
+                self.print_hide = ["field1", "field2"]
 </code></pre>
 
 <p><strong>Parameters:</strong></p>
@@ -822,9 +817,9 @@ of hidden fields. Example</p>
         <i class="text-muted">(data, filters, limit=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>pass filters as:
-{"key": "val", "key": ["!=", "val"],
-"key": ["in", "val"], "key": ["not in", "val"], "key": "^val",
-"key" : True (exists), "key": False (does not exist) }</p>
+        {"key": "val", "key": ["!=", "val"],
+        "key": ["in", "val"], "key": ["not in", "val"], "key": "^val",
+        "key" : True (exists), "key": False (does not exist) }</p>
 </div>
 	<br>
 
@@ -841,7 +836,7 @@ of hidden fields. Example</p>
         <i class="text-muted">(doctype)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns the <strong>class</strong> object of the given DocType.
-For <code>custom</code> type, returns <code>frappe.model.document.Document</code>.</p>
+    For <code>custom</code> type, returns <code>frappe.model.document.Document</code>.</p>
 
 <p><strong>Parameters:</strong></p>
 

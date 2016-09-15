@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -436,7 +432,7 @@
         <a name="frappe.installer.remove_app" href="#frappe.installer.remove_app" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.installer.<b>remove_app</b>
-        <i class="text-muted">(app_name, dry_run=False)</i>
+        <i class="text-muted">(app_name, dry_run=False, yes=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Delete app and all linked to the app's module with the app.</p>
 </div>
@@ -500,7 +496,7 @@
         <a name="frappe.installer.update_site_config" href="#frappe.installer.update_site_config" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.installer.<b>update_site_config</b>
-        <i class="text-muted">(key, value, validate=True)</i>
+        <i class="text-muted">(key, value, validate=True, site_config_path=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Update a value in site_config</p>
 </div>

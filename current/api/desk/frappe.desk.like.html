@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -201,10 +197,11 @@
         <i class="text-muted">(doctype, name, add=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Adds / removes the current user in the <code>__liked_by</code> property of the given document.
-If column does not exist, will add it in the database.</p>
+    If column does not exist, will add it in the database.</p>
 
-<p>The <code>_liked_by</code> property is always set from this function and is ignored if set via
-Document API</p>
+<pre><code>The `_liked_by` property is always set from this function and is ignored if set via
+Document API
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 

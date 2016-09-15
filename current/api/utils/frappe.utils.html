@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -182,7 +178,8 @@
 		frappe.utils.<b>dict_to_str</b>
         <i class="text-muted">(args, sep=&)</i>
     </p>
-	<div class="docs-attr-desc"><p>Converts a dictionary to URL</p>
+	<div class="docs-attr-desc"><pre><code>Converts a dictionary to URL
+</code></pre>
 </div>
 	<br>
 
@@ -214,7 +211,8 @@
 		frappe.utils.<b>esc</b>
         <i class="text-muted">(s, esc_chars)</i>
     </p>
-	<div class="docs-attr-desc"><p>Escape special characters</p>
+	<div class="docs-attr-desc"><pre><code>    Escape special characters
+</code></pre>
 </div>
 	<br>
 
@@ -262,12 +260,11 @@
 		frappe.utils.<b>getCSVelement</b>
         <i class="text-muted">(v)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns the CSV value of <code>v</code>, For example:</p>
+	<div class="docs-attr-desc"><pre><code>     Returns the CSV value of `v`, For example:
 
-<ul>
-<li>apple becomes "apple"</li>
-<li>hi"there becomes "hi""there"</li>
-</ul>
+     * apple becomes "apple"
+     * hi"there becomes "hi""there"
+</code></pre>
 </div>
 	<br>
 
@@ -315,7 +312,8 @@
 		frappe.utils.<b>get_defaults</b>
         <i class="text-muted">(key=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Get dictionary of default values from the defaults, or a value if key is passed</p>
+	<div class="docs-attr-desc"><pre><code>Get dictionary of default values from the defaults, or a value if key is passed
+</code></pre>
 </div>
 	<br>
 
@@ -347,7 +345,8 @@
 		frappe.utils.<b>get_file_timestamp</b>
         <i class="text-muted">(fn)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns timestamp of the given file</p>
+	<div class="docs-attr-desc"><pre><code>    Returns timestamp of the given file
+</code></pre>
 </div>
 	<br>
 
@@ -458,6 +457,22 @@
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.utils.<b>get_html_format</b>
         <i class="text-muted">(print_path)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.get_installed_apps_info" href="#frappe.utils.get_installed_apps_info" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>get_installed_apps_info</b>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -619,7 +634,8 @@
 		frappe.utils.<b>get_traceback</b>
         <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns the traceback of the Exception</p>
+	<div class="docs-attr-desc"><pre><code>     Returns the traceback of the Exception
+</code></pre>
 </div>
 	<br>
 
@@ -699,7 +715,8 @@
 		frappe.utils.<b>make_esc</b>
         <i class="text-muted">(esc_chars)</i>
     </p>
-	<div class="docs-attr-desc"><p>Function generator for Escaping special characters</p>
+	<div class="docs-attr-desc"><pre><code>    Function generator for Escaping special characters
+</code></pre>
 </div>
 	<br>
 
@@ -747,7 +764,8 @@
 		frappe.utils.<b>remove_blanks</b>
         <i class="text-muted">(d)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns d with empty ('' or None) values stripped</p>
+	<div class="docs-attr-desc"><pre><code>    Returns d with empty ('' or None) values stripped
+</code></pre>
 </div>
 	<br>
 
@@ -779,10 +797,11 @@
 		frappe.utils.<b>sanitize_html</b>
         <i class="text-muted">(html, linkify=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Sanitize HTML tags, attributes and style to prevent XSS attacks
-Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults</p>
+	<div class="docs-attr-desc"><pre><code>Sanitize HTML tags, attributes and style to prevent XSS attacks
+Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
 
-<p>Does not sanitize JSON, as it could lead to future problems</p>
+Does not sanitize JSON, as it could lead to future problems
+</code></pre>
 </div>
 	<br>
 
@@ -798,7 +817,8 @@ Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults</p>
 		frappe.utils.<b>set_default</b>
         <i class="text-muted">(key, val)</i>
     </p>
-	<div class="docs-attr-desc"><p>Set / add a default value to defaults`</p>
+	<div class="docs-attr-desc"><pre><code>Set / add a default value to defaults`
+</code></pre>
 </div>
 	<br>
 
@@ -862,7 +882,8 @@ Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults</p>
 		frappe.utils.<b>unesc</b>
         <i class="text-muted">(s, esc_chars)</i>
     </p>
-	<div class="docs-attr-desc"><p>UnEscape special characters</p>
+	<div class="docs-attr-desc"><pre><code>    UnEscape special characters
+</code></pre>
 </div>
 	<br>
 

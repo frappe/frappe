@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -234,17 +230,17 @@
 
 <p><strong>Autoname rules:</strong></p>
 
-<pre><code>  * The key is separated by '.'
-  * '####' represents a series. The string before this part becomes the prefix:
-     Example: ABC.#### creates a series ABC0001, ABC0002 etc
-  * 'MM' represents the current month
-  * 'YY' and 'YYYY' represent the current year
+<pre><code>     * The key is separated by '.'
+     * '####' represents a series. The string before this part becomes the prefix:
+        Example: ABC.#### creates a series ABC0001, ABC0002 etc
+     * 'MM' represents the current month
+     * 'YY' and 'YYYY' represent the current year
 </code></pre>
 
 <p><em>Example:</em></p>
 
-<pre><code>  * DE/./.YY./.MM./.##### will create a series like
-    DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
+<pre><code>     * DE/./.YY./.MM./.##### will create a series like
+       DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 </code></pre>
 </div>
 	<br>
@@ -295,15 +291,14 @@
     </p>
 	<div class="docs-attr-desc"><p>Sets the `name`` property for the document based on various rules.</p>
 
-<ol>
-<li>If amened doc, set suffix.</li>
-<li>If <code>autoname</code> method is declared, then call it.</li>
-<li>If <code>autoname</code> property is set in the DocType (<code>meta</code>), then build it using the <code>autoname</code> property.</li>
-<li>If <code>name</code> is already defined, use that name</li>
-<li>If no rule defined, use hash.</li>
-</ol>
+<pre><code>1. If amened doc, set suffix.
+3. If `autoname` method is declared, then call it.
+4. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
+2. If `name` is already defined, use that name
+5. If no rule defined, use hash.
 
-<h4>Note:</h4>
+#### Note:
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 

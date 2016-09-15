@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -115,7 +111,7 @@
 									
 								</div>
 								
-								
+								<h1>frappe.model.db_schema</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -227,14 +223,13 @@
         
 	<h3 style="font-weight: normal;">Class <b>DbManager</b></h3>
     
-    <div class="docs-attr-desc"><p>Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc...</p>
+    <div class="docs-attr-desc"><pre><code>Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc...
 
-<h1>TODO:</h1>
-
-<pre><code>0.  Simplify / create settings for the restore database source folder
-0a. Merge restore database and extract_sql(from frappe_server_tools).
-1. Setter and getter for different mysql variables.
-2. Setter and getter for mysql variables at global level??
+#TODO:
+    0.  Simplify / create settings for the restore database source folder
+    0a. Merge restore database and extract_sql(from frappe_server_tools).
+    1. Setter and getter for different mysql variables.
+    2. Setter and getter for mysql variables at global level??
 </code></pre>
 </div>
     <div style="padding-left: 30px;">
@@ -248,7 +243,8 @@
 		<b>__init__</b>
         <i class="text-muted">(self, db)</i>
     </p>
-	<div class="docs-attr-desc"><p>Pass root_conn here for access to all databases.</p>
+	<div class="docs-attr-desc"><pre><code>    Pass root_conn here for access to all databases.
+</code></pre>
 </div>
 	<br>
 
@@ -374,7 +370,8 @@
 		<b>get_table_schema</b>
         <i class="text-muted">(self, table)</i>
     </p>
-	<div class="docs-attr-desc"><p>Just returns the output of Desc tables.</p>
+	<div class="docs-attr-desc"><pre><code>    Just returns the output of Desc tables.
+</code></pre>
 </div>
 	<br>
 
@@ -402,7 +399,8 @@
 		<b>get_variables</b>
         <i class="text-muted">(self, regex)</i>
     </p>
-	<div class="docs-attr-desc"><p>Get variables that match the passed pattern regex</p>
+	<div class="docs-attr-desc"><pre><code>    Get variables that match the passed pattern regex
+</code></pre>
 </div>
 	<br>
 
@@ -555,7 +553,8 @@
 		<b>get_columns_from_docfields</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>get columns from docfields and custom fields</p>
+	<div class="docs-attr-desc"><pre><code>        get columns from docfields and custom fields
+</code></pre>
 </div>
 	<br>
 
@@ -708,10 +707,11 @@
 		frappe.model.db_schema.<b>updatedb</b>
         <i class="text-muted">(dt, meta=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Syncs a <code>DocType</code> to the table
+	<div class="docs-attr-desc"><pre><code>Syncs a `DocType` to the table
    * creates if required
    * updates columns
-   * updates indices</p>
+   * updates indices
+</code></pre>
 </div>
 	<br>
 

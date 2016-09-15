@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -133,12 +129,13 @@
 
 <ol>
 <li><code>bench start</code> - the web server</li>
-<li>celery task queue for background workers (scheduled jobs and other async tasks)</li>
-<li>celery worker beat to trigger periodic tasks</li>
-<li><code>redis</code> for caching (general)</li>
-<li><code>redis</code> for managing queue for background workers</li>
-<li><code>redis</code> as a message broker for real-time updates / updates from background workers</li>
-<li><code>node</code> to run <code>socketio</code> for real-time messaging.</li>
+<li><code>redis_cache</code> for caching (general)</li>
+<li><code>redis_queue</code> for managing queue for background workers</li>
+<li><code>redis_socketio</code> as a message broker for real-time updates / updates from background workers</li>
+<li><code>web</code> for the frappe web server.</li>
+<li><code>socketio</code> for real-time messaging.</li>
+<li><code>schedule</code> to trigger periodic tasks</li>
+<li><code>worker_*</code> redis workers to handle async jobs</li>
 </ol>
 
 <p>Optionally if you are developing for frappe you can add:</p>
@@ -147,14 +144,16 @@
 
 <h3>Sample</h3>
 
-<pre><code>web: bench --site test.erpnext.com serve --port 8001
-redis_async_broker: redis-server config/redis_async_broker.conf
-socketio: node apps/frappe/socketio.js
-workerbeat: sh -c 'cd sites &amp;&amp; exec ../env/bin/python -m frappe.celery_app beat -s scheduler.schedule'
-worker: sh -c 'cd sites &amp;&amp; exec ../env/bin/python -m frappe.celery_app worker'
-redis_cache: redis-server config/redis_cache.conf
-redis: redis-server
+<pre><code>redis_cache: redis-server config/redis_cache.conf
+redis_socketio: redis-server config/redis_socketio.conf
+redis_queue: redis-server config/redis_queue.conf
+web: bench serve --port 8000
+socketio: /usr/bin/node apps/frappe/socketio.js
 watch: bench watch
+schedule: bench schedule
+worker_short: bench worker --queue short
+worker_long: bench worker --queue long
+worker_default: bench worker --queue default
 </code></pre>
 
 </div>

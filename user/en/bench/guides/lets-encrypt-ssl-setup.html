@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -145,6 +141,15 @@
 </code></pre>
 
 <p>You will be faced with several prompts, respond to them accordingly. This command will also add an entry to the crontab of the user that will attempt to renew the certificate every month.</p>
+
+<h3>Custom Domains</h3>
+
+<p>You can setup Let's Encrypt for <a href="adding-custom-domains.html">custom domains</a> as well. Just use the <code>--custom-domain</code> option</p>
+
+<pre><code>sudo -H bench setup lets-encrypt [site-name] --custom-domain [custom-domain]
+</code></pre>
+
+<h3>Renew Certificates</h3>
 
 <p>To renew certificates manually you can use: </p>
 

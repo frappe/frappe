@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -167,7 +163,7 @@
         <i class="text-muted">(code)</i>
     </p>
 	<div class="docs-attr-desc"><p>Extracts messages and returns Javascript code snippet to be appened at the end
-of the given script</p>
+    of the given script</p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -380,22 +376,6 @@ of the given script</p>
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.translate.get_lang_info" href="#frappe.translate.get_lang_info" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.translate.<b>get_lang_info</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns a listified version of <code>apps/languages.txt</code></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="frappe.translate.get_lang_js" href="#frappe.translate.get_lang_js" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.translate.<b>get_lang_js</b>
@@ -409,22 +389,6 @@ of the given script</p>
 <li><strong><code>fortype</code></strong> -  Type of object, e.g. <code>DocType</code></li>
 <li><strong><code>name</code></strong> -  Document name</li>
 </ul>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.translate.get_language_from_code" href="#frappe.translate.get_language_from_code" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.translate.<b>get_language_from_code</b>
-        <i class="text-muted">(lang)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -473,7 +437,7 @@ of the given script</p>
         <i class="text-muted">(name)</i>
     </p>
 	<div class="docs-attr-desc"><p>Extract all translatable messages for a doctype. Includes labels, Python code,
-Javascript code, html templates</p>
+    Javascript code, html templates</p>
 </div>
 	<br>
 
@@ -576,7 +540,7 @@ Javascript code, html templates</p>
         <i class="text-muted">(app)</i>
     </p>
 	<div class="docs-attr-desc"><p>Extracts all translatable strings (tagged with :func:<code>frappe._</code>) from Python modules
-inside an app</p>
+        inside an app</p>
 </div>
 	<br>
 
@@ -712,7 +676,9 @@ inside an app</p>
 		frappe.translate.<b>load_lang</b>
         <i class="text-muted">(lang, apps=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Combine all translations from <code>.csv</code> files in all <code>apps</code></p>
+	<div class="docs-attr-desc"><p>Combine all translations from <code>.csv</code> files in all <code>apps</code>.
+    For derivative languages (es-GT), take translations from the
+    base language (es) and then update translations from the child (es-GT)</p>
 </div>
 	<br>
 
@@ -834,7 +800,7 @@ inside an app</p>
         <a name="frappe.translate.set_default_language" href="#frappe.translate.set_default_language" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.translate.<b>set_default_language</b>
-        <i class="text-muted">(language)</i>
+        <i class="text-muted">(lang)</i>
     </p>
 	<div class="docs-attr-desc"><p>Set Global default language</p>
 </div>

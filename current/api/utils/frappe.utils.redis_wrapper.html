@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -230,11 +226,15 @@
         <i class="text-muted">(self, key, generator=None, user=None, expires=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns cache value. If not found and generator function is
-given, it will call the generator.</p>
+            given, it will call the generator.</p>
 
-<p>param key: Cache key.
-param generator: Function to be called to generate a value if <code>None</code> is returned.
-param expires: If the key is supposed to be with an expiry, don't store it in frappe.local</p>
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>key</code></strong> -  Cache key.</li>
+<li><strong><code>generator</code></strong> -  Function to be called to generate a value if <code>None</code> is returned.</li>
+<li><strong><code>expires</code></strong> -  If the key is supposed to be with an expiry, don't store it in frappe.local</li>
+</ul>
 </div>
 	<br>
 

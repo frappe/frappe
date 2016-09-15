@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -212,7 +208,7 @@
         <a name="frappe.test_runner.main" href="#frappe.test_runner.main" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.test_runner.<b>main</b>
-        <i class="text-muted">(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False)</i>
+        <i class="text-muted">(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False, junit_xml_output=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -343,6 +339,22 @@
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.test_runner.xmlrunner_wrapper" href="#frappe.test_runner.xmlrunner_wrapper" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.test_runner.<b>xmlrunner_wrapper</b>
+        <i class="text-muted">(output)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner</p>
 </div>
 	<br>
 

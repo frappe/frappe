@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -275,7 +271,7 @@
         <a name="frappe.desk.tags.add_tag" href="#frappe.desk.tags.add_tag" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.tags.<b>add_tag</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(tag, dt, dn, color=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>adds a new tag to a record, and creates the Tag master</p>
 </div>
@@ -327,7 +323,7 @@
         <a name="frappe.desk.tags.remove_tag" href="#frappe.desk.tags.remove_tag" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.desk.tags.<b>remove_tag</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(tag, dt, dn)</i>
     </p>
 	<div class="docs-attr-desc"><p>removes tag from the record</p>
 </div>

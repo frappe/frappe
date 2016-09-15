@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -125,29 +121,50 @@
 						</div>
 					</div>
 					<div class="page_content">
-<p>To trigger an event when a row from a grid has been deleted, you need to add a handler the <code>fieldname_remove</code> event, where fieldname is the fieldname of the grid (Table)</p>
+<p>To trigger an event when a row from a Child Table has been deleted (when user clicks on <code>delete</code> button), you need to add a handler the <code>fieldname_remove</code> event to Child Table, where fieldname is the fieldname of the Child Table in Parent Table decloration. </p>
 
-<h3>Example for add</h3>
+<p>For example: </p>
 
-<p>Recalculate totals when a Journal Entry row has been added</p>
+<p>Assuming that your parent DocType is named <code>Item</code> has a Table Field linked to <code>Item Color</code> DocType with decloration name <code>color</code>. </p>
 
-<pre><code>frappe.ui.form.on("Journal Entry Account", "accounts_add", function(frm){
-        cur_frm.cscript.update_totals(frm.doc);
-});
+<p>In order to "catch" the delete event:</p>
+
+<p><code>javascript
+   frappe.ui.form.on('Item Color', 
+      color_remove: function(frm) {
+         // You code here 
+         // If you console.log(frm.doc.color) you will get the remaining color list
+      }
+   );
+</code></p>
+
+<p>The same process is used to trigger the add event (when user clicks on <code>add row</code> button):
+ <code>javascript
+   frappe.ui.form.on('Item Color', 
+      color_remove: function(frm) {
+         // Your code here 
+      },
+      color_add: function(frm) {
+        // Your code here
+      }
+   );
+</code></p>
+
+<p>Notice that the handling is be made on Child DocType Table <code>form.ui.on</code> and not on Parent Doctype so a minimal full example is: </p>
+
+<p>```javascript 
+    frappe.ui.form.on('Item',{
+        // Your client side handling for Item 
+    });</p>
+
+<pre><code>frappe.ui.form.on('Item Color', 
+  color_remove: function(frm) {
+     // Deleting is triggered here
+  }
 </code></pre>
 
-<!-- markdown -->
-
-<h3>Example for delete</h3>
-
-<p>Recalculate totals when a Journal Entry row has been deleted</p>
-
-<pre><code>frappe.ui.form.on("Journal Entry Account", "accounts_remove", function(frm){
-        cur_frm.cscript.update_totals(frm.doc);
-});
-</code></pre>
-
-<!-- markdown -->
+<p>);
+ ```</p>
 
 </div>
 				</div>

@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -144,17 +140,17 @@ frappe. In development scenario (<code>bench serve</code> or <code>bench start</
 Werkzeug WSGI server is used and in production, gunicorn (automatically
 configured in supervisor) is used.</li>
 </ul></li>
-<li><p>Celery Worker Processes</p>
+<li><p>Redis Worker Processes</p>
 
 <ul>
 <li>The Celery worker processes execute background jobs in the Frappe system.
 These processes are automatically started when <code>bench start</code> is run and
 for production are configured in supervisor configuration.</li>
 </ul></li>
-<li><p>Celery Worker Beat Process</p>
+<li><p>Scheduler Process</p>
 
 <ul>
-<li>The Celery worker beat process schedules enqeueing of scheduled jobs in the
+<li>The Scheduler process schedules enqeueing of scheduled jobs in the
 Frappe system. This process is automatically started when <code>bench start</code> is
 run and for production are configured in supervisor configuration.</li>
 </ul></li>

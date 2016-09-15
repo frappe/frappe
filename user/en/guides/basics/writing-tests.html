@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Writing Tests</title>
+	<title>Writing Tests Guide</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -125,9 +121,9 @@
 						</div>
 					</div>
 					<div class="page_content">
-<h1>Writing Tests</h1>
+<h1>Writing Tests Guide</h1>
 
-<h3>Introduction</h3>
+<h2>1.Introduction</h2>
 
 <p>Frappe provides some basic tooling to quickly write automated tests. There are some basic rules:</p>
 
@@ -140,9 +136,136 @@
 <li>For non-DocType tests, you can write simple unittests and prefix your file names with <code>test_</code>.</li>
 </ol>
 
-<h3>Tests for a DocType</h3>
+<h2>2. Running Tests</h2>
 
-<h4>Writing DocType Tests:</h4>
+<p>This function will build all the test dependencies and run your tests.
+You should run tests from "frappe_bench" folder. Without options all tests will be run.</p>
+
+<pre><code>bench run-tests
+</code></pre>
+
+<p>If you need more information about test execution - you can use verbose log level for bench.</p>
+
+<pre><code>bench --verbose run-tests
+</code></pre>
+
+<h3>Options:</h3>
+
+<pre><code>--app &lt;AppName&gt;
+--doctype &lt;DocType&gt;
+--test &lt;SpecificTest&gt;
+--module &lt;Module&gt; (Run a particular module that has tests)
+--profile (Runs a Python profiler on the test)
+--junit-xml-output&lt;PathToXML&gt; (The command provides test results in the standard XUnit XML format)
+</code></pre>
+
+<h4>2.1. Example for app:</h4>
+
+<p>All applications are located in folder: "~/frappe-bench/apps". 
+We can run tests for each application.</p>
+
+<pre><code>- frappe-bench/apps/erpnext/
+- frappe-bench/apps/erpnext_demo/
+- frappe-bench/apps/frappe/
+
+bench run-tests --app erpnext
+bench run-tests --app erpnext_demo
+bench run-tests --app frappe
+</code></pre>
+
+<h4>2.2. Example for doctype:</h4>
+
+<pre><code>frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost"
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+OK
+</code></pre>
+
+<h4>2.3. Example for test:</h4>
+
+<p>Run a specific case in User:</p>
+
+<pre><code>frappe@erpnext:~/frappe-bench$ bench run-tests --doctype User --test test_get_value
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.005s
+
+OK
+</code></pre>
+
+<h4>2.4. Example for module:</h4>
+
+<p>If we want to run tests in the module:</p>
+
+<pre><code>/home/frappe/frappe-bench/apps/erpnext/erpnext/support/doctype/issue/test_issue.py
+</code></pre>
+
+<p>We should use module name like this (related to application folder)</p>
+
+<pre><code>erpnext.support.doctype.issue.test_issue
+</code></pre>
+
+<h5>EXAMPLE:</h5>
+
+<pre><code>frappe@erpnext:~/frappe-bench$ bench run-tests --module "erpnext.stock.doctype.stock_entry.test_stock_entry"
+...........................
+----------------------------------------------------------------------
+Ran 27 tests in 30.549s
+</code></pre>
+
+<h4>2.5. Example for profile:</h4>
+
+<pre><code>frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost" --profile
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.010s
+
+OK
+         9133 function calls (8912 primitive calls) in 0.011 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.000    0.000    0.008    0.004 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:187(insert)
+        1    0.000    0.000    0.003    0.003 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:386(_validate)
+       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/database.py:77(sql)
+      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
+       12    0.000    0.000    0.002    0.000
+</code></pre>
+
+<h4>2.6. Example for XUnit XML:</h4>
+
+<h5>How to run:</h5>
+
+<pre><code>bench run-tests --junit-xml-output=/reports/junit_test.xml
+</code></pre>
+
+<h5>Example of test report:</h5>
+
+<pre><code>&lt;testsuite tests="3"&gt;
+    &lt;testcase classname="foo1" name="ASuccessfulTest"/&gt;
+    &lt;testcase classname="foo2" name="AnotherSuccessfulTest"/&gt;
+    &lt;testcase classname="foo3" name="AFailingTest"&gt;
+        &lt;failure type="NotEnoughFoo"&gt; details about failure &lt;/failure&gt;
+    &lt;/testcase&gt;
+&lt;/testsuite&gt;
+</code></pre>
+
+<p>It’s designed for the CI Jenkins, but will work for anything else that understands an XUnit-formatted XML representation of test results.</p>
+
+<h4>Jenkins configuration support:</h4>
+
+<ol>
+<li>You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin </li>
+<li>After installation open Jenkins job configuration, click the box named “Publish JUnit test result report” under the "Post-build Actions" and enter path to XML report:
+(Example: <em>reports/*.xml</em>)</li>
+</ol>
+
+<h2>3. Tests for a DocType</h2>
+
+<h3>3.1. Writing DocType Tests:</h3>
 
 <ol>
 <li>Records that are used for testing are stored in a file <code>test_records.json</code> in the doctype folder. <a href="https://github.com/frappe/frappe/blob/develop/frappe/core/doctype/event/test_records.json">For example see the Event Tests</a>.</li>
@@ -218,29 +341,9 @@ class TestEvent(unittest.TestCase):
         self.assertFalse("_Test Event 2" in subjects)
 </code></pre>
 
-<h4>Running Tests</h4>
+<h2>4. Client Side Testing (Using Selenium)</h2>
 
-<p>To run a test for a doctype</p>
-
-<pre><code>bench run-tests --doctype [doctype]
-</code></pre>
-
-<p>This function will build all the test dependencies and run your tests.</p>
-
-<h3>Running All Tests</h3>
-
-<p>To run all tests:</p>
-
-<pre><code>bench run-tests
-</code></pre>
-
-<hr />
-
-<h2>Client Side Testing (Using Selenium)</h2>
-
-<blockquote>
-  <p>This feature is still under development.</p>
-</blockquote>
+<p>This feature is still under development.</p>
 
 <p>For an example see, <a href="https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py">https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py</a></p>
 

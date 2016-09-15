@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -150,7 +146,8 @@
 		frappe.utils.background_jobs.<b>enqueue</b>
         <i class="text-muted">(method, queue=default, timeout=300, event=None, async=True, job_name=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Enqueue method to be executed using a background worker</p>
+	<div class="docs-attr-desc"><pre><code>    Enqueue method to be executed using a background worker
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 
@@ -163,6 +160,22 @@
 <li><strong><code>job_name</code></strong> -  can be used to name an enqueue call, which can be used to prevent duplicate calls</li>
 <li><strong><code>kwargs</code></strong> -  keyword arguments to be passed to the method</li>
 </ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.background_jobs.enqueue_test_job" href="#frappe.utils.background_jobs.enqueue_test_job" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.background_jobs.<b>enqueue_test_job</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -275,6 +288,22 @@
         <i class="text-muted">(queue=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Wrapper to start rq worker. Connects to redis and monitors these queues.</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.background_jobs.test_job" href="#frappe.utils.background_jobs.test_job" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.utils.background_jobs.<b>test_job</b>
+        <i class="text-muted">(s)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 

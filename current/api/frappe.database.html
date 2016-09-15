@@ -29,14 +29,10 @@
 	<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<!-- <a class="navbar-brand ellipsis" href="https://frappe.github.io/frappe//"> -->
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
 					<span>Frappe Framework</span>
 				</a>
-				<!-- <a class="pull-right visible-xs navbar-toggle toggle-sidebar">
-					<i class="octicon octicon-three-bars"></i>
-				</a> -->
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 						<i class="octicon octicon-three-bars"></i>
@@ -144,9 +140,10 @@
         
 	<h3 style="font-weight: normal;">Class <b>Database</b></h3>
     
-    <div class="docs-attr-desc"><p>Open a database connection with the given parmeters, if use_default is True, use the
-login details from <code><a href="http://conf.py" rel="nofollow">conf.py</a></code>. This is called by the request handler and is accessible using
-the <code>db</code> global variable. the <code>sql</code> method is also global to run queries</p>
+    <div class="docs-attr-desc"><pre><code>   Open a database connection with the given parmeters, if use_default is True, use the
+   login details from `<a href="http://conf.py" rel="nofollow">conf.py</a>`. This is called by the request handler and is accessible using
+   the `db` global variable. the `sql` method is also global to run queries
+</code></pre>
 </div>
     <div style="padding-left: 30px;">
         
@@ -230,7 +227,7 @@ the <code>db</code> global variable. the <code>sql</code> method is also global 
         <i class="text-muted">(self, doctype, fields, index_name=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Creates an index with given fields if not already created.
-Index name will be <code>fieldname1_fieldname2_index</code></p>
+        Index name will be <code>fieldname1_fieldname2_index</code></p>
 </div>
 	<br>
 
@@ -273,12 +270,11 @@ Index name will be <code>fieldname1_fieldname2_index</code></p>
         <i class="text-muted">(self, filters)</i>
     </p>
 	<div class="docs-attr-desc"><p>Convert filters sent as dict, lists to SQL conditions. filter's key
-is passed by map function, build conditions like:</p>
+        is passed by map function, build conditions like:</p>
 
-<ul>
-<li>ifnull(<code>fieldname</code>, default_value) = %(fieldname)s</li>
-<li><code>fieldname</code> [=, !=, &gt;, &gt;=, &lt;, &lt;=] %(fieldname)s</li>
-</ul>
+<pre><code>    * ifnull(`fieldname`, default_value) = %(fieldname)s
+    * `fieldname` [=, !=, &gt;, &gt;=, &lt;, &lt;=] %(fieldname)s
+</code></pre>
 </div>
 	<br>
 
@@ -293,8 +289,8 @@ is passed by map function, build conditions like:</p>
         <i class="text-muted">(self, query)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raises exception if more than 20,000 <code>INSERT</code>, <code>UPDATE</code> queries are
-executed in one transaction. This is to ensure that writes are always flushed otherwise this
-could cause the system to hang.</p>
+        executed in one transaction. This is to ensure that writes are always flushed otherwise this
+        could cause the system to hang.</p>
 </div>
 	<br>
 
@@ -731,23 +727,23 @@ could cause the system to hang.</p>
 <li><strong><code>fieldname</code></strong> -  Column name.</li>
 <li><strong><code>ignore</code></strong> -  Don't raise exception if table, column is missing.</li>
 <li><strong><code>as_dict</code></strong> -  Return values as dict.</li>
-<li><strong><code>debug</code></strong> -  Print query in error log.</li>
+<li><p><strong><code>debug</code></strong> -  Print query in error log.</p>
+
+<pre><code>Example:
+
+    # return first customer starting with a
+    frappe.db.get_value("Customer", {"name": ("like a%")})
+
+    # return last login of **User** `test@example.com`
+    frappe.db.get_value("User", "test@example.com", "last_login")
+
+    last_login, last_ip = frappe.db.get_value("User", "test@example.com",
+        ["last_login", "last_ip"])
+
+    # returns default date_format
+    frappe.db.get_value("System Settings", None, "date_format")
+</code></pre></li>
 </ul>
-
-<p>Example:</p>
-
-<pre><code># return first customer starting with a
-frappe.db.get_value("Customer", {"name": ("like a%")})
-
-# return last login of **User** `test@example.com`
-frappe.db.get_value("User", "test@example.com", "last_login")
-
-last_login, last_ip = frappe.db.get_value("User", "test@example.com",
-    ["last_login", "last_ip"])
-
-# returns default date_format
-frappe.db.get_value("System Settings", None, "date_format")
-</code></pre>
 </div>
 	<br>
 
@@ -771,17 +767,17 @@ frappe.db.get_value("System Settings", None, "date_format")
 <li><strong><code>fieldname</code></strong> -  Column name.</li>
 <li><strong><code>ignore</code></strong> -  Don't raise exception if table, column is missing.</li>
 <li><strong><code>as_dict</code></strong> -  Return values as dict.</li>
-<li><strong><code>debug</code></strong> -  Print query in error log.</li>
+<li><p><strong><code>debug</code></strong> -  Print query in error log.</p>
+
+<pre><code>Example:
+
+    # return first customer starting with a
+    customers = frappe.db.get_values("Customer", {"name": ("like a%")})
+
+    # return last login of **User** `test@example.com`
+    user = frappe.db.get_values("User", "test@example.com", "*")[0]
+</code></pre></li>
 </ul>
-
-<p>Example:</p>
-
-<pre><code># return first customer starting with a
-customers = frappe.db.get_values("Customer", {"name": ("like a%")})
-
-# return last login of **User** `test@example.com`
-user = frappe.db.get_values("User", "test@example.com", "*")[0]
-</code></pre>
 </div>
 	<br>
 
@@ -916,9 +912,10 @@ user = frappe.db.get_values("User", "test@example.com", "*")[0]
         <i class="text-muted">(self, dt, dn, field, val, modified=None, modified_by=None, update_modified=True, debug=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Set a single value in the database, do not call the ORM triggers
-but update the modified timestamp (unless specified not to).</p>
+        but update the modified timestamp (unless specified not to).</p>
 
-<p><strong>Warning:</strong> this function will not call Document events and should be avoided in normal cases.</p>
+<pre><code>    **Warning:** this function will not call Document events and should be avoided in normal cases.
+</code></pre>
 
 <p><strong>Parameters:</strong></p>
 
@@ -959,21 +956,21 @@ but update the modified timestamp (unless specified not to).</p>
 <li><strong><code>ignore_ddl</code></strong> -  Catch exception if table, column missing.</li>
 <li><strong><code>as_utf8</code></strong> -  Encode values as UTF 8.</li>
 <li><strong><code>auto_commit</code></strong> -  Commit after executing the query.</li>
-<li><strong><code>update</code></strong> -  Update this dict to all rows (if returned <code>as_dict</code>).</li>
+<li><p><strong><code>update</code></strong> -  Update this dict to all rows (if returned <code>as_dict</code>).</p>
+
+<pre><code>Examples:
+
+    # return customer names as dicts
+    frappe.db.sql("select name from tabCustomer", as_dict=True)
+
+    # return names beginning with a
+    frappe.db.sql("select name from tabCustomer where name like %s", "a%")
+
+    # values as dict
+    frappe.db.sql("select name from tabCustomer where name like %(name)s and owner=%(owner)s",
+        {"name": "a%", "owner":"test@example.com"})
+</code></pre></li>
 </ul>
-
-<p>Examples:</p>
-
-<pre><code># return customer names as dicts
-frappe.db.sql("select name from tabCustomer", as_dict=True)
-
-# return names beginning with a
-frappe.db.sql("select name from tabCustomer where name like %s", "a%")
-
-# values as dict
-frappe.db.sql("select name from tabCustomer where name like %(name)s and owner=%(owner)s",
-    {"name": "a%", "owner":"test@example.com"})
-</code></pre>
 </div>
 	<br>
 
@@ -988,7 +985,7 @@ frappe.db.sql("select name from tabCustomer where name like %(name)s and owner=%
         <i class="text-muted">(self, query, values=(), debug=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Commit and execute a query. DDL (Data Definition Language) queries that alter schema
-autocommit in MariaDB.</p>
+        autocommit in MariaDB.</p>
 </div>
 	<br>
 
@@ -1004,10 +1001,10 @@ autocommit in MariaDB.</p>
     </p>
 	<div class="docs-attr-desc"><p>Return data as list of single elements (first column).</p>
 
-<p>Example:</p>
+<pre><code>    Example:
 
-<pre><code># doctypes = ["DocType", "DocField", "User", ...]
-doctypes = frappe.db.sql_list("select name from DocType")
+        # doctypes = ["DocType", "DocField", "User", ...]
+        doctypes = frappe.db.sql_list("select name from DocType")
 </code></pre>
 </div>
 	<br>
