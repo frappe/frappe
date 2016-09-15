@@ -67,8 +67,13 @@ class AutoEmailReport(Document):
 
 	def send(self):
 		data = self.get_report_content()
-		message = '<p>{0}</p>'.format(_('{0} generated on {1}').format(self.name,
-				frappe.utils.format_datetime(frappe.utils.now_datetime())))
+		attachments = None
+		message = '<p>{0}</p>'.format(_('{0} generated on {1}')\
+				.format(frappe.bold(self.name),
+					frappe.utils.format_datetime(frappe.utils.now_datetime())))
+
+		if self.description:
+			message += '<hr>' + self.description
 
 		if self.format=='HTML':
 			message += '<hr>' + data
@@ -77,6 +82,8 @@ class AutoEmailReport(Document):
 				'fname': self.get_file_name(),
 				'fcontent': data
 			}]
+
+		message += '<hr><p style="font-size: 10px;"> Edit Auto Email Report Settings: {0}</p>'.format(frappe.utils.get_link_to_form('Auto Email Report', self.name))
 
 		frappe.sendmail(
 			recipients = self.email_to.split(),

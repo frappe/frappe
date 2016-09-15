@@ -156,8 +156,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Email Group Member",
-					"description": _("Email Group Member List"),
+					"name": "Auto Email Report",
+					"description": _("Setup Reports to be emailed at regular intervals"),
 				},
 			]
 		},

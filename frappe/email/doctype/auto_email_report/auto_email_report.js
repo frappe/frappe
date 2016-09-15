@@ -49,7 +49,7 @@ frappe.ui.form.on('Auto Email Report', {
 			&& frappe.query_reports[frm.doc.report].filters) {
 
 			// make a table to show filters
-			var table = $('<table class="table table-bordered" style="cursor:pointer;"><thead>\
+			var table = $('<table class="table table-bordered" style="cursor:pointer; margin:0px;"><thead>\
 				<tr><th style="width: 50%">'+__('Filter')+'</th><th>'+__('Value')+'</th></tr>\
 				</thead><tbody></tbody></table>').appendTo(wrapper);
 				$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);

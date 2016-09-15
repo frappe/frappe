@@ -58,6 +58,10 @@ frappe.views.ListView = Class.extend({
 			add_field(this.meta.title_field);
 		}
 
+		// endabled / disabled
+		if(frappe.meta.has_field(this.doctype, 'enabled')) { add_field('enabled'); };
+		if(frappe.meta.has_field(this.doctype, 'disabled')) { add_field('disabled'); };
+
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
 		if(this.workflow_state_fieldname) {
@@ -113,8 +117,8 @@ frappe.views.ListView = Class.extend({
 		this.columns.push(name_column);
 		this.total_colspans = this.columns[0].colspan;
 
-		if(frappe.model.is_submittable(this.doctype)
-			|| this.settings.get_indicator || this.workflow_state_fieldname) {
+
+		if(frappe.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
 				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,

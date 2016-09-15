@@ -11,52 +11,49 @@ from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
 """
-1. Get paypal controller,
+# Integrating PayPal
+
+### 1. Validate Currency Support
+
+Example:
+
 	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+
 	controller = get_integration_controller("PayPal", setup=False)
+	controller().validate_transaction_currency(currency)
 
-2. check whether transaction currency supported by payment gateway,
-Controller().validate_transaction_currency(currency)
+### 2. Redirect for payment
 
-3. Get checkout url via controller or api, this will redirect you to payment page of particular gateway.
+Example:
 
-payment_details = {
-	"amount": 600,
-	"title": "Payment for bill : 111",
-	"description": "payment via cart",
-	"reference_doctype": "Payment Request",
-	"reference_docname": "PR0001",
-	"payer_email": "NuranVerkleij@example.com",
-	"payer_name": "Nuran Verkleij",
-	"order_id": "111",
-	"currency": "USD"
-}
+	payment_details = {
+		"amount": 600,
+		"title": "Payment for bill : 111",
+		"description": "payment via cart",
+		"reference_doctype": "Payment Request",
+		"reference_docname": "PR0001",
+		"payer_email": "NuranVerkleij@example.com",
+		"payer_name": "Nuran Verkleij",
+		"order_id": "111",
+		"currency": "USD"
+	}
 
-Via API
----------
-Get payement url via get_checkout_url(**kwargs)
+	# redirect the user to this url
+	url = controller().get_payment_url(**payment_details)
 
-example:
-	from frappe.integration.paypal import get_checkout_url
-	get_checkout_url(**payment_details)
 
-Via Controller
----------------
-Get payment url via get_payment_url(**kwargs)
+### 3. On Completion of Payment
 
-example:
-	controller().get_payment_url(**payment_details)
+Write a method for `on_payment_authorized` in the reference doctype
 
-4.To handle a callback of payment, you need to write `on_payment_authorized` 
-in reference document.
+Example:
 
-example:
-	def on_payment_authorized(payment_satus):
-		"your code to handle callback"
+	def on_payment_authorized(payment_status):
+		# your code to handle callback
 
-parameter description
----------------------
-payment_satus - payment gateway will put payment status on callback.
+##### Note:
+
+payment_status - payment gateway will put payment status on callback.
 For paypal payment status parameter is one from: [Completed, Cancelled, Failed]
 
 """
@@ -83,27 +80,27 @@ class Controller(IntegrationController):
 			"reqd": 1
 		}
 	]
-	
+
 	js = "assets/frappe/js/integrations/paypal.js"
-	
+
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
 		"TWD", "NZD", "NOK", "PHP", "PLN", "GBP", "RUB", "SGD", "SEK", "CHF", "THB", "TRY", "USD"]
-	
+
 	def enable(self, parameters, use_test_account=0):
 		call_hook_method('payment_gateway_enabled', gateway=self.service_name)
 		self.parameters = parameters
 		self.validate_paypal_credentails(use_test_account)
-	
+
 	def get_settings(self):
 		return frappe._dict(self.parameters)
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
-	
+
 	def get_paypal_params_and_url(self, use_test_account):
 		paypal_settings = frappe._dict(self.get_settings())
-		
+
 		params = {
 			"USER": paypal_settings.api_username,
 			"PWD": paypal_settings.api_password,
@@ -111,9 +108,9 @@ class Controller(IntegrationController):
 			"VERSION": "98",
 			"METHOD": "GetPalDetails"
 		}
-		
+
 		api_url = "https://api-3t.sandbox.paypal.com/nvp" if use_test_account else "https://api-3t.paypal.com/nvp"
-		
+
 		return params, api_url
 
 	def validate_paypal_credentails(self, use_test_account):
@@ -134,7 +131,7 @@ class Controller(IntegrationController):
 		self.parameters = json.loads(custom_settings_json)
 
 		response = self.execute_set_express_checkout(kwargs["amount"], kwargs["currency"], use_test_account)
-		
+
 		if use_test_account:
 			return_url = "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token={0}"
 		else:
@@ -144,9 +141,9 @@ class Controller(IntegrationController):
 			"token": response.get("TOKEN")[0],
 			"correlation_id": response.get("CORRELATIONID")[0]
 		})
-		
+
 		self.integration_request = self.create_request(kwargs, "Remote", self.service_name, response.get("TOKEN")[0])
-		
+
 		return return_url.format(kwargs["token"])
 
 	def execute_set_express_checkout(self, amount, currency, use_test_account):
@@ -159,7 +156,7 @@ class Controller(IntegrationController):
 			"returnUrl": get_url("/api/method/frappe.integrations.paypal.get_express_checkout_details"),
 			"cancelUrl": get_url("/payment-cancel")
 		})
-		
+
 		params = urlencode(params)
 
 		response = self.post_request(url, data=params.encode("utf-8"))
@@ -172,7 +169,7 @@ class Controller(IntegrationController):
 def get_express_checkout_details(token):
 	use_test_account, custom_settings_json = frappe.db.get_value("Integration Service", "PayPal", ["use_test_account", "custom_settings_json"])
 	Controller.parameters = json.loads(custom_settings_json)
-	
+
 	params, url = Controller().get_paypal_params_and_url(use_test_account)
 	params.update({
 		"METHOD": "GetExpressCheckoutDetails",
@@ -188,12 +185,12 @@ def get_express_checkout_details(token):
 			http_status_code=frappe.ValidationError.http_status_code)
 
 		return
-	
+
 	update_integration_request_status(token, {
 			"payerid": response.get("PAYERID")[0],
 			"payer_email": response.get("EMAIL")[0]
 		}, "Authorized")
-	
+
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = get_url( \
 		"/api/method/frappe.integrations.paypal.confirm_payment?token={0}".format(token))
@@ -202,7 +199,7 @@ def get_express_checkout_details(token):
 def confirm_payment(token):
 	redirect = True
 	status_changed_to, redirect_to = None, None
-	
+
 	use_test_account = frappe.db.get_value("Integration Service", "PayPal", "use_test_account")
 	integration_request = frappe.get_doc("Integration Request", token)
 

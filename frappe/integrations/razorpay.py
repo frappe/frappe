@@ -10,52 +10,53 @@ from frappe.utils import get_url, call_hook_method
 from frappe.integration_broker.integration_controller import IntegrationController
 
 """
-1. Get razorpay controller,
+# Integrating RazorPay
+
+### Validate Currency
+
+Example:
+
 	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+
 	controller = get_integration_controller("Razorpay", setup=False)
+	controller().validate_transaction_currency(currency)
 
-2. check whether transaction currency supported by payment gateway,
-Controller().validate_transaction_currency(currency)
+### 2. Redirect for payment
 
-3. Get checkout url via controller or api, this will redirect you to payment page of particular gateway.
+Example:
 
-payment_details = {
-	"amount": 600,
-	"title": "Payment for bill : 111",
-	"description": "payment via cart",
-	"reference_doctype": "Payment Request",
-	"reference_docname": "PR0001",
-	"payer_email": "NuranVerkleij@example.com",
-	"payer_name": "Nuran Verkleij",
-	"order_id": "111",
-	"currency": "INR"
-}
+	payment_details = {
+		"amount": 600,
+		"title": "Payment for bill : 111",
+		"description": "payment via cart",
+		"reference_doctype": "Payment Request",
+		"reference_docname": "PR0001",
+		"payer_email": "NuranVerkleij@example.com",
+		"payer_name": "Nuran Verkleij",
+		"order_id": "111",
+		"currency": "INR"
+	}
 
-Via API
----------
-Get payement url via get_checkout_url(**kwargs)
-
-example:
 	from frappe.integration.razorpay import get_checkout_url
-	get_checkout_url(**payment_details)
 
-Via Controller
----------------
-Get payment url via get_payment_url(**kwargs)
+	# Redirect the user to this url
+	url = controller().get_payment_url(**payment_details)
 
-example:
-	controller().get_payment_url(**payment_details)
 
-4.To handle a callback of payment, you need to write `on_payment_authorized`
-in reference document.
+### 3. On Completion of Payment
 
-example:
-	def on_payment_authorized(payment_satus):
-		"your code to handle callback"
+Write a method for `on_payment_authorized` in the reference doctype
 
-parameter description
----------------------
-payment_satus - payment gateway will put payment status on callback. For razorpay payment status is Authorized
+Example:
+
+	def on_payment_authorized(payment_status):
+		# this method will be called when payment is complete
+
+
+##### Notes:
+
+payment_status - payment gateway will put payment status on callback.
+For razorpay payment status is Authorized
 
 """
 
@@ -75,7 +76,7 @@ class Controller(IntegrationController):
 			'reqd': 1
 		}
 	]
-	
+
 	# do also changes in razorpay.js scheduler job helper
 	scheduled_jobs = [
 		{
@@ -84,11 +85,11 @@ class Controller(IntegrationController):
 			]
 		}
 	]
-	
+
 	js = "assets/frappe/js/integrations/razorpay.js"
-	
+
 	supported_currencies = ["INR"]
-	
+
 	def enable(self, parameters, use_test_account=0):
 		call_hook_method('payment_gateway_enabled', gateway='Razorpay')
 		self.parameters = parameters
@@ -103,23 +104,23 @@ class Controller(IntegrationController):
 					auth=(razorpay_settings.api_key, razorpay_settings.api_secret))
 			except Exception:
 				frappe.throw(_("Seems API Key or API Secret is wrong !!!"))
-	
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
-	
+
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
-	
+
 	def get_settings(self):
 		if hasattr(self, "parameters"):
 			return frappe._dict(self.parameters)
 
 		custom_settings_json = frappe.db.get_value("Integration Service", "Razorpay", "custom_settings_json", debug=1)
-		
+
 		if custom_settings_json:
 			return frappe._dict(json.loads(custom_settings_json))
-	
+
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
@@ -133,29 +134,29 @@ class Controller(IntegrationController):
 				"redirect_to": frappe.redirect_to_message(_('Server Error'), _("Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.")),
 				"status": 401
 			}
-		
+
 	def authorize_payment(self):
 		"""
 		An authorization is performed when user’s payment details are successfully authenticated by the bank.
 		The money is deducted from the customer’s account, but will not be transferred to the merchant’s account
 		until it is explicitly captured by merchant.
 		"""
-		
+
 		settings = self.get_settings()
-		
+
 		if self.integration_request.status != "Authorized":
 			resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
 				.format(self.data.razorpay_payment_id), auth=(settings.api_key,
 					settings.api_secret))
-			
+
 			if resp.get("status") == "authorized":
 				self.integration_request.db_set('status', 'Authorized', update_modified=False)
 				self.flags.status_changed_to = "Authorized"
-				
+
 		if self.flags.status_changed_to == "Authorized":
 			if self.data.reference_doctype and self.data.reference_docname:
 				redirect_to = frappe.get_doc(self.data.reference_doctype, self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
-			
+
 			return {
 				"redirect_to": redirect_to or "payment-success",
 				"status": 200
@@ -180,7 +181,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 				data = json.loads(doc.data)
 				resp = controller.post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
 					auth=(settings["api_key"], settings["api_secret"]), data={"amount": data.get("amount")})
-			
+
 			if resp.get("status") == "captured":
 				frappe.db.set_value("Integration Request", doc.name, "status", "Completed")
 
