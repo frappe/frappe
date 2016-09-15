@@ -167,7 +167,7 @@ def get_context(context):
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
-
+		
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
 		if self.is_standard:
@@ -336,4 +336,4 @@ def make_route_string(parameters):
 			if key != "is_web_form":
 				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
 				delimeter = '&'
-	return (route_string,delimeter)
+	return (route_string, delimeter)
