@@ -81,7 +81,35 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("Edit Folder"), function() {
 			frappe.set_route("Form", "File", doclist.current_folder);
 		});
-	},
+
+	doclist.page.add_menu_item(__("Import Zip-Archive"), function() {
+			// make upload dialog
+			frappe.ui.get_upload_dialog({
+				"args": {
+					"folder": doclist.current_folder,
+					"from_form": 1
+				},
+				"is_private": 0,
+				"callback": function(attachment, r) { 
+				frappe.call({
+		                method: "frappe.core.doctype.file.file.extraxt_uploaded_file",
+		                args: {
+		                	"file_name" : r.message["file_name"],
+		                },
+		                freeze: true,
+		                freeze_message: __("uploading files"),
+		                callback: function(r){
+		                    if(!r.exc) {
+		                        frappe.msgprint(__("Files uploaded successfully"));
+		                    } else {
+		                        frappe.msgprint(__("Error in uploading files." + r.exc));
+		                    }
+		                }
+		        });
+					doclist.refresh(); },
+			});
+		});
+ 	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
 			.on('drop', function (e) {
