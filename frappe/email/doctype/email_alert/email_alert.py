@@ -10,6 +10,9 @@ from frappe.utils import validate_email_add, nowdate
 from frappe.utils.jinja import validate_template
 
 class EmailAlert(Document):
+	def autoname(self):
+		self.name = self.subject
+
 	def validate(self):
 		validate_template(self.subject)
 		validate_template(self.message)
