@@ -1146,6 +1146,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+		this.translate_values = true;
 		var me = this;
 		this.setup_buttons();
 		this.setup_autocomplete();
@@ -1337,7 +1338,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			$(this).autocomplete("close");
 		})
 		.data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<strong>" + __(d.value) + "</strong>";
+			var _value = d.value;
+			if(me.translate_values) {
+				_value = __(d.value)
+			}
+			var html = "<strong>" + _value + "</strong>";
 			if(d.description && d.value!==d.description) {
 				html += '<br><span class="small">' + __(d.description) + '</span>';
 			}
@@ -1371,14 +1376,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			} else if(typeof(get_query)==="string") {
 				args.query = get_query;
 			} else {
+				// get_query by function
 				var q = (get_query)(this.frm && this.frm.doc, this.doctype, this.docname);
 
 				if (typeof(q)==="string") {
+					// returns a string
 					args.query = q;
 				} else if($.isPlainObject(q)) {
+					// returns a plain object with filters
 					if(q.filters) {
 						set_nulls(q.filters);
 					}
+
+					// turn off value translation
+					if(q.translate_values !== undefined) {
+						this.translate_values = q.translate_values;
+					}
+
 					// extend args for custom functions
 					$.extend(args, q);
 

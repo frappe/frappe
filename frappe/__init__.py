@@ -56,8 +56,6 @@ def get_lang_dict(fortype, name=None):
 
 	 :param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
 	 :param name: name of the document for which assets are to be returned."""
-	if local.lang=="en":
-		return {}
 	from frappe.translate import get_dict
 	return get_dict(fortype, name)
 

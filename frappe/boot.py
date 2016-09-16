@@ -103,16 +103,18 @@ def get_allowed_pages():
 	return page_info
 
 def load_translations(bootinfo):
-	if frappe.local.lang != 'en':
-		messages = frappe.get_lang_dict("boot")
+	messages = frappe.get_lang_dict("boot")
 
-		bootinfo["lang"] = frappe.lang
+	bootinfo["lang"] = frappe.lang
 
-		# load translated report names
-		for name in bootinfo.user.all_reports:
-			messages[name] = frappe._(name)
+	# load translated report names
+	for name in bootinfo.user.all_reports:
+		messages[name] = frappe._(name)
 
-		bootinfo["__messages"] = messages
+	# only untranslated
+	messages = {k:v for k, v in messages.iteritems() if k!=v}
+
+	bootinfo["__messages"] = messages
 
 def get_fullnames():
 	"""map of user fullnames"""
