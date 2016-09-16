@@ -87,7 +87,8 @@ def get_parameters(app_details):
 			return {"settings": frappe.get_doc(app_details["doctype"])}
 
 	elif app_details["service_name"] == "Dropbox Integration":
-		doc = frappe.db.get_value(app_details["doctype"], None, ["dropbox_access_key", "dropbox_access_secret", "upload_backups_to_dropbox"])
+		doc = frappe.db.get_value(app_details["doctype"], None,
+			["dropbox_access_key", "dropbox_access_secret", "upload_backups_to_dropbox"], as_dict=1)
 
 		if not (frappe.conf.dropbox_access_key and frappe.conf.dropbox_secret_key):
 			raise DataError
