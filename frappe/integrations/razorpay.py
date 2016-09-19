@@ -115,7 +115,7 @@ class Controller(IntegrationController):
 		if hasattr(self, "parameters"):
 			return frappe._dict(self.parameters)
 
-		custom_settings_json = frappe.db.get_value("Integration Service", "Razorpay", "custom_settings_json", debug=1)
+		custom_settings_json = frappe.db.get_value("Integration Service", "Razorpay", "custom_settings_json")
 
 		if custom_settings_json:
 			return frappe._dict(json.loads(custom_settings_json))
