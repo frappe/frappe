@@ -1361,13 +1361,29 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if($.isPlainObject(get_query)) {
-				var filters = set_nulls(get_query);
+				var filters = null;
+				if(get_query.filters) {
+					// passed as {'filters': {'key':'value'}}
+					filters = get_query.filters;
+				} else if(get_query.query) {
 
-				// extend args for custom functions
-				$.extend(args, filters);
+					// passed as {'query': 'path.to.method'}
+					args.query = get_query;
+				} else {
 
-				// add "filters" for standard query (search.py)
-				args.filters = filters;
+					// dict is filters
+					filters = get_query;
+				}
+
+				if (filters) {
+					var filters = set_nulls(filters);
+
+					// extend args for custom functions
+					$.extend(args, filters);
+
+					// add "filters" for standard query (search.py)
+					args.filters = filters;
+				}
 			} else if(typeof(get_query)==="string") {
 				args.query = get_query;
 			} else {
