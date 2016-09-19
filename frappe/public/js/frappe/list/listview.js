@@ -65,7 +65,9 @@ frappe.views.ListView = Class.extend({
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
 		if(this.workflow_state_fieldname) {
-			add_field(this.workflow_state_fieldname);
+			if (!frappe.workflow.workflows[this.doctype]["override_status"]) {
+				add_field(this.workflow_state_fieldname);
+			}
 			this.stats.push(this.workflow_state_fieldname);
 		}
 
