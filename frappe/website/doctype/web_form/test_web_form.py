@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import unittest
+import unittest, json
 
 from frappe.website.render import build_page
 from frappe.website.doctype.web_form.web_form import accept
@@ -38,12 +38,12 @@ class TestWebForm(unittest.TestCase):
 
 	def test_accept(self):
 		frappe.set_user("Administrator")
-		frappe.form_dict.web_form = "manage-events"
-		frappe.form_dict.doctype = "Event"
-		frappe.form_dict.subject = "_Test Event Web Form"
-		frappe.form_dict.description = "_Test Event Description"
-		frappe.form_dict.starts_on = "2014-09-09"
-		accept()
+		accept(web_form='manage-events', data=json.dumps({
+			'doctype': 'Event',
+			'subject': '_Test Event Web Form',
+			'description': '_Test Event Description',
+			'starts_on': '2014-09-09'
+		}))
 
 		self.event_name = frappe.db.get_value("Event",
 			{"subject": "_Test Event Web Form"})
@@ -51,17 +51,18 @@ class TestWebForm(unittest.TestCase):
 
 	def test_edit(self):
 		self.test_accept()
-		frappe.form_dict.web_form = "manage-events"
-		frappe.form_dict.doctype = "Event"
-		frappe.form_dict.name = self.event_name
-		frappe.form_dict.subject = "_Test Event Web Form"
-		frappe.form_dict.description = "_Test Event Description 1"
-		frappe.form_dict.starts_on = "2014-09-09"
+		doc={
+			'doctype': 'Event',
+			'subject': '_Test Event Web Form',
+			'description': '_Test Event Description 1',
+			'starts_on': '2014-09-09',
+			'name': self.event_name
+		}
 
 		self.assertNotEquals(frappe.db.get_value("Event",
-			self.event_name, "description"), frappe.form_dict.description)
+			self.event_name, "description"), doc.get('description'))
 
-		accept()
+		accept(web_form='manage-events', data=json.dumps(doc))
 
 		self.assertEquals(frappe.db.get_value("Event",
-			self.event_name, "description"), frappe.form_dict.description)
+			self.event_name, "description"), doc.get('description'))

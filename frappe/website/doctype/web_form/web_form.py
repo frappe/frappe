@@ -19,6 +19,7 @@ class WebForm(WebsiteGenerator):
 	)
 
 	def onload(self):
+		super(WebForm, self).onload()
 		if self.is_standard and not frappe.conf.developer_mode:
 			self.use_meta_fields()
 
@@ -31,7 +32,24 @@ class WebForm(WebsiteGenerator):
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+	def reset_field_parent_and_convert_links_to_selects(self):
+		'''Convert link fields to select with names as options'''
+		for df in self.web_form_fields:
+			df.parent = self.doc_type
+			if df.fieldtype == "Link":
+				options = [d.name for d in frappe.get_all(df.options)]
+				df.fieldtype = "Select"
+
+				if len(options)==1:
+					df.options = options[0]
+					df.default = options[0]
+					df.hidden = 1
+
+				else:
+					df.options = "\n".join([""] + options)
+
 	def use_meta_fields(self):
+		'''Override default properties for standard web forms'''
 		meta = frappe.get_meta(self.doc_type)
 
 		for df in self.web_form_fields:
@@ -46,21 +64,6 @@ class WebForm(WebsiteGenerator):
 					"hidden", "read_only", "label"):
 					df.set(prop, meta_df.get(prop))
 
-			if df.fieldtype == "Link":
-				try:
-					options = [d.name for d in frappe.get_list(df.options)]
-					df.fieldtype = "Select"
-
-					if len(options)==1:
-						df.options = options[0]
-						df.default = options[0]
-						df.hidden = 1
-
-					else:
-						df.options = "\n".join([""] + options)
-
-				except frappe.PermissionError:
-					df.hidden = 1
 
 			# TODO translate options of Select fields like Country
 
@@ -72,8 +75,7 @@ class WebForm(WebsiteGenerator):
 		"""
 		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
 			from frappe.modules.export_file import export_to_files
-			from frappe.modules import get_module_path, scrub
-			import os
+			from frappe.modules import get_module_path
 
 			# json
 			export_to_files(record_list=[['Web Form', self.name]])
@@ -107,8 +109,8 @@ def get_context(context):
 		frappe.form_dict.is_web_form = 1
 		logged_in = frappe.session.user != "Guest"
 
-		args, delimeter = make_route_string(frappe.form_dict)
-		context.args = args
+		doc, delimeter = make_route_string(frappe.form_dict)
+		context.doc = doc
 		context.delimeter = delimeter
 
 		# check permissions
@@ -117,6 +119,8 @@ def get_context(context):
 
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
+
+		self.reset_field_parent_and_convert_links_to_selects()
 
 		if self.is_standard:
 			self.use_meta_fields()
@@ -158,13 +162,12 @@ def get_context(context):
 
 		context.parents = self.get_parents(context)
 
-		context.types = [f.fieldtype for f in self.web_form_fields]
 		if context.success_message:
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
-
+		
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
 		if self.is_standard:
@@ -191,14 +194,20 @@ def get_context(context):
 	def get_layout(self):
 		layout = []
 		for df in self.web_form_fields:
-			if df.fieldtype=="Section Break" or not layout:
-				layout.append([])
+			if not layout:
+				layout.append({'columns': []})
 
-			if df.fieldtype=="Column Break" or not layout[-1]:
-				layout[-1].append([])
+			if df.fieldtype=="Section Break":
+				layout.append({'label': df.label, 'columns': [] })
+
+			if not layout[-1]['columns']:
+				layout[-1]['columns'].append([])
+
+			if df.fieldtype=="Column Break" or not layout[-1]['columns']:
+				layout[-1]['columns'].append([])
 
 			if df.fieldtype not in ("Section Break", "Column Break"):
-				layout[-1][-1].append(df)
+				layout[-1]['columns'][-1].append(df)
 
 		return layout
 
@@ -213,40 +222,38 @@ def get_context(context):
 		return parents
 
 @frappe.whitelist(allow_guest=True)
-def accept():
-	args = frappe.form_dict
+def accept(web_form, data):
+	data = frappe._dict(json.loads(data))
 	files = []
 
-	web_form = frappe.get_doc("Web Form", args.web_form)
-	if args.doctype != web_form.doc_type:
+	web_form = frappe.get_doc("Web Form", web_form)
+	if data.doctype != web_form.doc_type:
 		frappe.throw(_("Invalid Request"))
 
-	elif args.name and not web_form.allow_edit:
+	elif data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
-	if args.name:
+	if data.name:
 		# update
-		doc = frappe.get_doc(args.doctype, args.name)
+		doc = frappe.get_doc(data.doctype, data.name)
 	else:
 		# insert
-		doc = frappe.new_doc(args.doctype)
+		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in args.iteritems():
-		if fieldname not in ("web_form", "cmd", "owner"):
-			if value and value.startswith("{"):
-				try:
-					filedata = json.loads(value)
-					if "__file_attachment" in filedata:
-						files.append((fieldname, filedata))
-						continue
+	for fieldname, value in data.iteritems():
+		if value and isinstance(value, dict):
+			try:
+				if "__file_attachment" in value:
+					files.append((fieldname, value))
+					continue
 
-				except ValueError:
-					pass
+			except ValueError:
+				pass
 
-			doc.set(fieldname, value)
+		doc.set(fieldname, value)
 
-	if args.name:
+	if doc.name:
 		if has_web_form_permission(doc.doctype, doc.name, "write"):
 			doc.save(ignore_permissions=True)
 		else:
@@ -329,4 +336,4 @@ def make_route_string(parameters):
 			if key != "is_web_form":
 				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
 				delimeter = '&'
-	return (route_string,delimeter)
+	return (route_string, delimeter)

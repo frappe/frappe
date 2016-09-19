@@ -114,7 +114,7 @@ _f.Frm.prototype.setup = function() {
 			frm: this,
 			parent: $('<div>').appendTo(this.page.main.parent())
 		})
-		$("body").attr("data-sidebar", 1);	
+		$("body").attr("data-sidebar", 1);
 	}
 	this.setup_drag_drop();
 

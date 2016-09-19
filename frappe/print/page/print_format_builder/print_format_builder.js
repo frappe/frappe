@@ -457,6 +457,9 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	setup_edit_heading: function() {
 		var me = this;
+		if (!me.print_heading_template) {
+			$(this.page.main.find(".print-heading")).html('<h2>'+me.print_format.doc_type+'<br><small>{{ doc.name }}</small></h2>')
+		}
 		this.page.main.find(".edit-heading").on("click", function() {
 			var $heading = $(this).parents(".print-format-builder-header:first")
 				.find(".print-format-builder-print-heading");

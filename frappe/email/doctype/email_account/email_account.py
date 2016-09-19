@@ -146,25 +146,37 @@ class EmailAccount(Document):
 			else:
 				raise
 
+		# reset failed attempts count
+		self.set_failed_attempts_count(0)
+
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		self.db_set("enable_incoming", 0)
+		'''Disable email account if 3 failed attempts found'''
+		if self.get_failed_attempts_count() == 3:
+			self.db_set("enable_incoming", 0)
 
-		for user in get_system_managers(only_name=True):
-			try:
-				assign_to.add({
-					'assign_to': user,
-					'doctype': self.doctype,
-					'name': self.name,
-					'description': description,
-					'priority': 'High',
-					'notify': 1
-				})
-			except assign_to.DuplicateToDoError:
-				frappe.message_log.pop()
-				pass
+			for user in get_system_managers(only_name=True):
+				try:
+					assign_to.add({
+						'assign_to': user,
+						'doctype': self.doctype,
+						'name': self.name,
+						'description': description,
+						'priority': 'High',
+						'notify': 1
+					})
+				except assign_to.DuplicateToDoError:
+					frappe.message_log.pop()
+					pass
+		else:
+			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
+	def set_failed_attempts_count(self, value):
+		frappe.cache().set('{0}:email-account-failed-attempts'.format(self.name), value)
+
+	def get_failed_attempts_count(self):
+		return cint(frappe.cache().get('{0}:email-account-failed-attempts'.format(self.name)))
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""

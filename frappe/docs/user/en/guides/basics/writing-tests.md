@@ -29,14 +29,15 @@ If you need more information about test execution - you can use verbose log leve
 	--test <SpecificTest>
 	--module <Module> (Run a particular module that has tests)
 	--profile (Runs a Python profiler on the test)
+	--junit-xml-output<PathToXML> (The command provides test results in the standard XUnit XML format)
 	
 #### 2.1. Example for app:
 All applications are located in folder: "~/frappe-bench/apps". 
 We can run tests for each application.
 
 	- frappe-bench/apps/erpnext/
-	- frappe-bench/apps/erpnext_demo
-	- frappe-bench/apps/frappe
+	- frappe-bench/apps/erpnext_demo/
+	- frappe-bench/apps/frappe/
 
 	bench run-tests --app erpnext
 	bench run-tests --app erpnext_demo
@@ -98,6 +99,28 @@ We should use module name like this (related to application folder)
 	      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
 	       12    0.000    0.000    0.002    0.000 
 
+#### 2.6. Example for XUnit XML:
+
+##### How to run:
+
+	bench run-tests --junit-xml-output=/reports/junit_test.xml
+
+##### Example of test report:
+
+	<testsuite tests="3">
+	    <testcase classname="foo1" name="ASuccessfulTest"/>
+	    <testcase classname="foo2" name="AnotherSuccessfulTest"/>
+	    <testcase classname="foo3" name="AFailingTest">
+	        <failure type="NotEnoughFoo"> details about failure </failure>
+	    </testcase>
+	</testsuite>
+
+It’s designed for the CI Jenkins, but will work for anything else that understands an XUnit-formatted XML representation of test results.
+
+#### Jenkins configuration support:
+1. You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin 
+2. After installation open Jenkins job configuration, click the box named “Publish JUnit test result report” under the "Post-build Actions" and enter path to XML report:
+(Example: _reports/*.xml_)
 
 ## 3. Tests for a DocType
 
@@ -177,6 +200,6 @@ We should use module name like this (related to application folder)
 
 ## 4. Client Side Testing (Using Selenium)
 
-> This feature is still under development.
+This feature is still under development.
 
 For an example see, [https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py](https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py)

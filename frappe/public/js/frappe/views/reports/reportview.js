@@ -402,48 +402,59 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 		var d = new frappe.ui.Dialog({
 			title: __("Edit") + " " + __(docfield.label),
-			fields: [docfield, {"fieldtype": "Button", "label": "Update"}],
-		});
-		d.get_input("update").on("click", function() {
-			var args = {
-				doctype: docfield.parent,
-				name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
-				fieldname: docfield.fieldname,
-				value: d.get_value(docfield.fieldname)
-			};
-
-			if (!args.name) {
-				frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
+			fields: [docfield],
+			primary_action_label: __("Update"),
+			primary_action: function() {
+				me.update_value(docfield, d, row);
 			}
-
-			frappe.call({
-				method: "frappe.client.set_value",
-				args: args,
-				callback: function(r) {
-					if(!r.exc) {
-						d.hide();
-						var doc = r.message;
-						$.each(me.dataView.getItems(), function(i, item) {
-							if (item.name === doc.name) {
-								var new_item = $.extend({}, item);
-								$.each(frappe.model.get_all_docs(doc), function(i, d) {
-									if(item[d.doctype + ":name"]===d.name) {
-										$.each(d, function(k, v) {
-											if(frappe.model.std_fields_list.indexOf(k)===-1) {
-												new_item[k] = v;
-											}
-										})
-									}
-								});
-								me.dataView.updateItem(item.id, new_item);
-							}
-						});
-					}
-				}
-			});
 		});
 		d.show();
 		d.set_input(docfield.fieldname, row[docfield.fieldname]);
+	},
+
+	update_value: function(docfield, dialog, row) {
+		// update value on the serverside
+		var me = this;
+		var args = {
+			doctype: docfield.parent,
+			name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+			fieldname: docfield.fieldname,
+			value: dialog.get_value(docfield.fieldname)
+		};
+
+		if (!args.name) {
+			frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
+		}
+
+		frappe.call({
+			method: "frappe.client.set_value",
+			args: args,
+			callback: function(r) {
+				if(!r.exc) {
+					dialog.hide();
+					var doc = r.message;
+					$.each(me.dataView.getItems(), function(i, item) {
+						if (item.name === doc.name) {
+							var new_item = $.extend({}, item);
+							$.each(frappe.model.get_all_docs(doc), function(i, d) {
+								// find the document of the current updated record
+								// from locals (which is synced in the response)
+								if(item[d.doctype + ":name"]===d.name) {
+									for(k in d) {
+										v = d[k];
+										if(frappe.model.std_fields_list.indexOf(k)===-1
+											&& item[k]!==undefined) {
+											new_item[k] = v;
+										}
+									}
+								}
+							});
+							me.dataView.updateItem(item.id, new_item);
+						}
+					});
+				}
+			}
+		});
 	},
 
 	set_data: function() {

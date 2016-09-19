@@ -4,7 +4,7 @@
 {% for page in layout %}
 <div class="page-break">
 	<div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
-		{{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead, footer) }}
+		{{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead, footer, print_settings) }}
 	</div>
 
 	{% if print_settings.repeat_header_footer %}

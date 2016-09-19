@@ -58,10 +58,16 @@ frappe.views.ListView = Class.extend({
 			add_field(this.meta.title_field);
 		}
 
+		// endabled / disabled
+		if(frappe.meta.has_field(this.doctype, 'enabled')) { add_field('enabled'); };
+		if(frappe.meta.has_field(this.doctype, 'disabled')) { add_field('disabled'); };
+
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
 		if(this.workflow_state_fieldname) {
-			add_field(this.workflow_state_fieldname);
+			if (!frappe.workflow.workflows[this.doctype]["override_status"]) {
+				add_field(this.workflow_state_fieldname);
+			}
 			this.stats.push(this.workflow_state_fieldname);
 		}
 
@@ -113,8 +119,8 @@ frappe.views.ListView = Class.extend({
 		this.columns.push(name_column);
 		this.total_colspans = this.columns[0].colspan;
 
-		if(frappe.model.is_submittable(this.doctype)
-			|| this.settings.get_indicator || this.workflow_state_fieldname) {
+
+		if(frappe.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
 				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,
@@ -173,6 +179,12 @@ frappe.views.ListView = Class.extend({
 			colspan = 4;
 		} else if(df.fieldtype=="Text Editor" || df.fieldtype=="Text") {
 			colspan = 4;
+		}
+		if(df.columns && df.columns>0){
+			colspan = df.columns;
+		}
+		else if(this.settings.column_colspan && this.settings.column_colspan[df.fieldname]) {
+			colspan = this.settings.column_colspan[df.fieldname];
 		}
 		this.total_colspans += parseInt(colspan);
 		var col = {
@@ -238,12 +250,15 @@ frappe.views.ListView = Class.extend({
 			"Datetime", "Float", "Int", "Link",
 			"Percent", "Select", "Read Only", "Time"
 		];
+		var image_url = (data.image && window.cordova && data.image.indexOf('http')===-1) ?
+			frappe.base_url + data.image : data.image;
+
 		img_col = $(frappe.render_template("image_view_item_row", {
 			data: data,
 			list: this,
 			columns: this.columns,
 			allowed_type: this.allowed_type,
-			item_image: data.image ? "url('" + data.image + "')" : null,
+			item_image: image_url ? "url('" + image_url + "')" : null,
 			color: frappe.get_palette(data.item_name),
 			subject: this.get_avatar_and_id(data, true),
 			right_column: this.settings.right_column

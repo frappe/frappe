@@ -1,0 +1,12 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Payment Failed{% endblock %}
+
+{%- block header -%}
+<h2>Payment Failed<h2>
+{% endblock %}
+
+{%- block page_content -%}
+<p class="lead">Your payment has failed. Do you mind trying again?</p>
+<p><a href="/" class="btn btn-default">Back to Home</a></p>
+{% endblock %}

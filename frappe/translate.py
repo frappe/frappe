@@ -205,7 +205,9 @@ def load_lang(lang, apps=None):
 
 		if '-' in lang:
 			parent = lang.split('-')[0]
-			out = load_lang(parent).update(out)
+			parent_out = load_lang(parent)
+			parent_out.update(out)
+			out = parent_out
 
 		frappe.cache().hset("lang_full_dict", lang, out)
 
@@ -364,8 +366,8 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
 			(w['name'],), as_dict=True)
 
-		messages.extend([("Workflow: " + w['name'], states['message'])
-			for state in states if is_translatable(state['state'])])
+		messages.extend([("Workflow: " + w['name'], state['message'])
+			for state in states if is_translatable(state['message'])])
 
 		actions = frappe.db.sql(
 			'select distinct action from `tabWorkflow Transition` where parent=%s',

@@ -8,8 +8,11 @@
                 {%= __("Edit Heading") %}</a>
         </div>
         <div class="print-format-builder-print-heading">
-        {%= me.print_heading_template || __("<span class=text-muted data-no-content=1>"
-            + __("Edit to set heading") + "</span>") %}
+            {% if (me.print_heading_template ){ %}
+                {%= me.print_heading_template %}
+            {% } else { %}
+                <div class="print-heading"></div>
+            {% } %}
         </div>
     </div>
     <div class="print-format-builder-layout">

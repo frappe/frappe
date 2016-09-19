@@ -67,7 +67,7 @@ calendars = ["Event"]
 
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
-	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
@@ -129,7 +129,8 @@ scheduler_events = {
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots"
+		"frappe.utils.error.collect_error_snapshots",
+		"frappe.integration_broker.doctype.integration_service.integration_service.trigger_integration_service_events"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -142,12 +143,16 @@ scheduler_events = {
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.limits.update_space_usage",
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_weekly"
+	],
+	"monthly": [
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
 	]
 
 }
@@ -180,3 +185,6 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
+
+
+integration_services = ["PayPal", "Razorpay", "Dropbox Integration", "LDAP Auth"]

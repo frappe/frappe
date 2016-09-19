@@ -79,4 +79,4 @@ starting it with the following command.
 
 ### Adding a new site
 
-`frappe new-site SITENAME`
+`bench new-site SITENAME`

@@ -163,7 +163,7 @@ frappe.views.QueryReport = Class.extend({
 
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
-				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
+				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			frappe.render_grid({content:content, title:__(this.report_name)});
 		} else {
@@ -272,10 +272,10 @@ frappe.views.QueryReport = Class.extend({
 		frappe.route_options = null;
 	},
 	set_filters_by_name: function() {
-		this.filters_by_name = {};
+		frappe.query_report_filters_by_name = {};
 
 		for(var i in this.filters) {
-			this.filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
+			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
 	},
 	refresh: function() {

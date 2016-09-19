@@ -12,6 +12,7 @@ from frappe.database import Database
 import os
 from markdown2 import markdown
 from bs4 import BeautifulSoup
+import jinja2.exceptions
 
 def sync():
 	# make table
@@ -80,7 +81,9 @@ class HelpDatabase(object):
 
 	def search(self, words):
 		self.connect()
-		return self.db.sql('select title, intro, path from help where match(content) against (%s) limit 10', words)
+		return self.db.sql('''
+			select title, intro, path from help where title like '%{term}%' union
+			select title, intro, path from help where match(content) against ('{term}') limit 10'''.format(term=words))
 
 	def get_content(self, path):
 		self.connect()
@@ -113,17 +116,21 @@ class HelpDatabase(object):
 						if fname.rsplit('.', 1)[-1] in ('md', 'html'):
 							fpath = os.path.join(basepath, fname)
 							with open(fpath, 'r') as f:
-								content = frappe.render_template(unicode(f.read(), 'utf-8'),
-									{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
+								try:
+									content = frappe.render_template(unicode(f.read(), 'utf-8'),
+										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
-								relpath = self.get_out_path(fpath)
-								relpath = relpath.replace("user", app)
-								content = markdown(content)
-								title = self.make_title(basepath, fname, content)
-								intro = self.make_intro(content)
-								content = self.make_content(content, fpath, relpath)
-								self.db.sql('''insert into help(path, content, title, intro, full_path)
-									values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+									relpath = self.get_out_path(fpath)
+									relpath = relpath.replace("user", app)
+									content = markdown(content)
+									title = self.make_title(basepath, fname, content)
+									intro = self.make_intro(content)
+									content = self.make_content(content, fpath, relpath)
+									self.db.sql('''insert into help(path, content, title, intro, full_path)
+										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+								except jinja2.exceptions.TemplateSyntaxError:
+									print "Invalid Jinja Template for {0}. Skipping".format(fpath)
+
 		doc_contents += "</ol>"
 		self.db.sql('''insert into help(path, content, title, intro, full_path) values (%s, %s, %s, %s, %s)''',
 			('/documentation/index', doc_contents, 'Documentation', '', ''))

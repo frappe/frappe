@@ -96,6 +96,8 @@ frappe.render_grid = function(opts) {
 	}
 
 	// render HTML wrapper page
+	opts.base_url = frappe.urllib.get_base_url();
+	opts.print_css = frappe.boot.print_css;
 	var html = frappe.render_template("print_template", opts);
 
 	var w = window.open();

@@ -51,6 +51,20 @@ login.bind_events = function() {
 		login.call(args);
 		return false;
 	});
+	
+	$(".btn-ldpa-login").on("click", function(){
+		var args = {};
+		args.cmd = "{{ ldap_settings.method }}";
+		args.usr = ($("#login_email").val() || "").trim();
+		args.pwd = $("#login_password").val();
+		args.device = "desktop";
+		if(!args.usr || !args.pwd) {
+			frappe.msgprint(__("Both login and password required"));
+			return false;
+		}
+		login.call(args);
+		return false;
+	});
 }
 
 

@@ -12,10 +12,10 @@ def execute():
 
 	lang_dict = get_lang_dict()
 	language = frappe.db.get_value('System Settings', None, 'language')
-	if language and language in lang_dict:
-		frappe.db.set_value('System Settings', None, 'language', lang_dict[language])
+	if language:
+		frappe.db.set_value('System Settings', None, 'language', lang_dict.get('language') or 'en')
 
 	for user in frappe.get_all('User', fields=['name', 'language']):
-		if user.language in lang_dict:
+		if user.language:
 			frappe.db.set_value('User', user.name, 'language',
-				lang_dict[user.language], update_modified=False)
+				lang_dict.get('language') or 'en', update_modified=False)
