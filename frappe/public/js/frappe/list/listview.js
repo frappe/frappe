@@ -178,6 +178,12 @@ frappe.views.ListView = Class.extend({
 		} else if(df.fieldtype=="Text Editor" || df.fieldtype=="Text") {
 			colspan = 4;
 		}
+		if(df.columns && df.columns>0){
+			colspan = df.columns;
+		}
+		else if(this.settings.column_colspan && this.settings.column_colspan[df.fieldname]) {
+			colspan = this.settings.column_colspan[df.fieldname];
+		}
 		this.total_colspans += parseInt(colspan);
 		var col = {
 			colspan: colspan,
