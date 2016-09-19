@@ -628,10 +628,10 @@ def has_permission(doc, user):
 		# dont allow non Administrator user to view / edit Administrator user
 		return False
 
-def notifify_admin_access_to_system_manager(login_manager=None):
+def notify_admin_access_to_system_manager(login_manager=None):
 	if (login_manager
 		and login_manager.user == "Administrator"
-		and frappe.local.conf.notifify_admin_access_to_system_manager):
+		and frappe.local.conf.notify_admin_access_to_system_manager):
 
 		message = """<p>
 			{dear_system_manager} <br><br>

@@ -67,7 +67,7 @@ calendars = ["Event"]
 
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
-	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
