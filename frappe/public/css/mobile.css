@@ -69,6 +69,11 @@ body {
     white-space: nowrap;
     overflow: hidden;
   }
+  #navbar-breadcrumbs li a {
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
     display: inline-block;
@@ -84,6 +89,7 @@ body {
   }
   .navbar-nav {
     margin: 0px;
+    margin-right: -15px;
   }
   .sidebar .form-group {
     margin-bottom: 0px;

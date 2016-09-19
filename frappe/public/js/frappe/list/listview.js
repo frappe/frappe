@@ -250,12 +250,15 @@ frappe.views.ListView = Class.extend({
 			"Datetime", "Float", "Int", "Link",
 			"Percent", "Select", "Read Only", "Time"
 		];
+		var image_url = (data.image && window.cordova && data.image.indexOf('http')===-1) ?
+			frappe.base_url + data.image : data.image;
+
 		img_col = $(frappe.render_template("image_view_item_row", {
 			data: data,
 			list: this,
 			columns: this.columns,
 			allowed_type: this.allowed_type,
-			item_image: data.image ? "url('" + data.image + "')" : null,
+			item_image: image_url ? "url('" + image_url + "')" : null,
 			color: frappe.get_palette(data.item_name),
 			subject: this.get_avatar_and_id(data, true),
 			right_column: this.settings.right_column
