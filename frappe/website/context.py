@@ -33,6 +33,25 @@ def get_context(path, args=None):
 
 	return context
 
+def update_controller_context(context, controller):
+	module = frappe.get_module(controller)
+
+	if module:
+		# get config fields
+		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+			"condition_field"):
+			if hasattr(module, prop):
+				context[prop] = getattr(module, prop)
+
+		if hasattr(module, "get_context"):
+			ret = module.get_context(context)
+			if ret:
+				context.update(ret)
+
+		if hasattr(module, "get_children"):
+			context.children = module.get_children(context)
+
+
 def build_context(context):
 	"""get_context method of doc or module is supposed to render
 		content templates and push it into context"""
@@ -62,22 +81,18 @@ def build_context(context):
 				context[prop] = getattr(context.doc, prop, False)
 
 	elif context.controller:
-		module = frappe.get_module(context.controller)
-
-		if module:
-			# get config fields
-			for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
-				"condition_field"):
-				if hasattr(module, prop):
-					context[prop] = getattr(module, prop)
-
-			if hasattr(module, "get_context"):
-				ret = module.get_context(context)
-				if ret:
-					context.update(ret)
-
-			if hasattr(module, "get_children"):
-				context.children = module.get_children(context)
+		# controller based context
+		update_controller_context(context, context.controller)
+		
+		# controller context extensions
+		context_controller_hooks = frappe.get_hooks("extend_controller_context") or {}
+		for controller, extension in context_controller_hooks.items():
+			if isinstance(extension, list):
+				for ext in extension:
+					if controller == context.controller:
+						update_controller_context(context, ext)
+			else:
+				update_controller_context(context, extension)
 
 	add_metatags(context)
 
