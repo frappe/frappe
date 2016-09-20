@@ -5,10 +5,11 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.translate import clear_cache
 
 class Translation(Document):
 	def on_update(self):
-		frappe.cache().hdel('lang_user_translations', self.language_code)
+		clear_cache()
 
 	def on_trash(self):
-		frappe.cache().hdel('lang_user_translations', self.language_code)
+		clear_cache()
