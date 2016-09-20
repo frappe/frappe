@@ -85,7 +85,7 @@ def build_context(context):
 		update_controller_context(context, context.controller)
 		
 		# controller context extensions
-		context_controller_hooks = frappe.get_hooks("extend_controller_context") or {}
+		context_controller_hooks = frappe.get_hooks("extend_website_page_controller_context") or {}
 		for controller, extension in context_controller_hooks.items():
 			if isinstance(extension, list):
 				for ext in extension:
