@@ -200,6 +200,13 @@ def export_fixtures(context):
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
 	from frappe.core.page.data_import_tool import data_import_tool
+
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print 'Invalid path {0}'.format(path)
+		sys.exit(1)
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -221,6 +228,12 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 	from frappe.core.page.data_import_tool import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
+
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print 'Invalid path {0}'.format(path)
+		sys.exit(1)
 
 	with open(path, 'r') as csvfile:
 		content = read_csv_content(csvfile.read())

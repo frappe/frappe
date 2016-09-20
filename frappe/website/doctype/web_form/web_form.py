@@ -167,7 +167,7 @@ def get_context(context):
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
-		
+
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
 		if self.is_standard:
@@ -193,21 +193,54 @@ def get_context(context):
 
 	def get_layout(self):
 		layout = []
+		def add_page(df=None):
+			new_page = {'sections': []}
+			layout.append(new_page)
+			if df and df.fieldtype=='Page Break':
+				new_page['label'] = df.label
+
+			return new_page
+
+		def add_section(df=None):
+			new_section = {'columns': []}
+			layout[-1]['sections'].append(new_section)
+			if df and df.fieldtype=='Section Break':
+				new_section['label'] = df.label
+
+			return new_section
+
+		def add_column(df=None):
+			new_col = []
+			layout[-1]['sections'][-1]['columns'].append(new_col)
+
+			return new_col
+
+		page, section, column = None, None, None
 		for df in self.web_form_fields:
-			if not layout:
-				layout.append({'columns': []})
 
-			if df.fieldtype=="Section Break":
-				layout.append({'label': df.label, 'columns': [] })
+			# breaks
+			if df.fieldtype=='Page Break':
+				page = add_page(df)
+				section, column = None, None
 
-			if not layout[-1]['columns']:
-				layout[-1]['columns'].append([])
+			if df.fieldtype=='Section Break':
+				section = add_section(df)
+				column = None
 
-			if df.fieldtype=="Column Break" or not layout[-1]['columns']:
-				layout[-1]['columns'].append([])
+			if df.fieldtype=='Column Break':
+				column = add_column(df)
 
-			if df.fieldtype not in ("Section Break", "Column Break"):
-				layout[-1]['columns'][-1].append(df)
+			# input
+			if df.fieldtype not in ('Section Break', 'Column Break', 'Page Break'):
+				if not page:
+					page = add_page()
+					section, column = None, None
+				if not section:
+					section = add_section()
+					column = None
+				if not column:
+					column = add_column()
+				column.append(df)
 
 		return layout
 

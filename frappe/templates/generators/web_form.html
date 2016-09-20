@@ -15,7 +15,7 @@
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
+    		{{ _("Submit") if frappe.form_dict.new else _("Save") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
@@ -136,8 +136,8 @@
 			{% if with_label %}
 			<label>
 				<input type="checkbox" id="{{ field.fieldname }}"
-					name="{{ field.fieldname }}"
-					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
+					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
+					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
 					{{ _(field.label) }}
 			</label>
 			{% endif %}
@@ -192,6 +192,15 @@
 		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
 {% endmacro %}
 
+{% if layout|len > 1 %}
+<div class="text-center slide-progress text-extra-muted">
+	{% for page in layout %}
+	<i data-idx="{{ loop.index }}" class="icon-fixed-width
+		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
+	{% endfor %}
+</div>
+{% endif %}
+
 <div class="form-message text-muted hide"></div>
 <form role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
@@ -210,24 +219,50 @@
 		data-doctype="{{ doc_type }}">
 	{%- endif %}
 
-	{% for section in layout %}
-		{% if section.label %}
-		<h5 class='uppercase'>{{ _(section.label) }}</h5>
-		{% endif %}
-		<div class="row">
-				{% for column in section.columns %}
-				<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
-						{% for field in column %}
-							{% if field.fieldtype=='Table' %}
-								{{ render_table(field) }}
-							{% else %}
-								{{ render_field(field, doc) }}
-							{% endif %}
-						{% endfor %}
-				</div>
-				{% endfor %}
+	{% for page in layout %}
+	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
+		data-idx="{{ loop.index }}">
+		<h2>{{ page.label }}</h2>
+		{% for section in page.sections %}
+		<div class="section">
+			{% if section.label %}
+			<h5 class='uppercase'>{{ _(section.label) }}</h5>
+			{% endif %}
+			<div class="row">
+					{% for column in section.columns %}
+					<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
+							{% for field in column %}
+								{% if field.fieldtype=='Table' %}
+									{{ render_table(field) }}
+								{% else %}
+									{{ render_field(field, doc) }}
+								{% endif %}
+							{% endfor %}
+					</div>
+					{% endfor %}
+			</div>
 		</div>
+		{% endfor %}
+		<!-- page footer buttons -->
+		<div class='text-right'>
+			<br>
+			{% if loop.index > 1 %}
+				<button class='btn btn-sm btn-default btn-change-section'
+					data-idx="{{ loop.index - 1 }}">
+					{{ _("Previous") }}</button>
+			{% endif %}
+			{% if loop.index == layout|len %}
+			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+			    	{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
+			{% elif layout|len > 1 %}
+			    <button class="btn btn-primary btn-sm btn-change-section"
+					data-idx="{{ loop.index + 1 }}">
+			    	{{ _("Next") }}</button>
+			{% endif %}
+		</div>
+	</div>
 	{% endfor %}
+
 </form>
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
@@ -282,6 +317,29 @@ frappe.ready(function() {
 
 		return false;
 	});
+
+	// change section
+	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
+		var idx = $(this).attr('data-idx');
+		show_slide(idx);
+	});
+
+	show_slide = function(idx) {
+		// hide all sections
+		$('.web-form-page').addClass('hidden');
+
+		// slide-progress
+		$('.slide-progress .icon-fixed-width.icon-circle')
+			.removeClass('icon-circle').addClass('icon-circle-blank');
+		$('.slide-progress .icon-fixed-width[data-idx="'+idx+'"]')
+			.removeClass('icon-circle-blank').addClass('icon-circle');
+
+		// un hide target section
+		$('.web-form-page[data-idx="'+idx+'"]')
+			.removeClass('hidden')
+			.find(':input:first').focus();
+
+	}
 
 	// add row
 	$('.btn-add-row').on('click', function() {
@@ -343,7 +401,7 @@ frappe.ready(function() {
 			if(input_type==="file") {
 				var val = $input.get(0).filedata;
 			} else if(input_type==="checkbox") {
-				var val = $input.is(":checked") ? 1 : 0;
+				var val = $input.prop("checked") ? 1 : 0;
 			} else if($input.attr("data-fieldtype")==="Date") {
 				var val = $.datepicker.formatDate("yy-mm-dd",
 					$input.datepicker('getDate'));
@@ -496,6 +554,24 @@ input, select {
 .web-form-grid-row .form-group {
 	margin: 0px;
 }
+
+.slide-progress {
+    /*border-top: 1px solid #d1d8dd;*/
+	margin-top: -7px;
+	padding: 15px 0px;
+}
+.slide-progress .icon-fixed-width {
+	vertical-align: middle;
+	margin-right: 7px;
+	cursor: pointer;
+}
+.slide-progress .icon-circle-blank {
+	font-size: 12px;
+}
+.slide-progress .icon-circle {
+	font-size: 14px;
+}
+
 {% if style is defined %}{{ style }}{% endif %}
 </style>
 {% endblock %}
