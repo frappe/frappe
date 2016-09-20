@@ -170,6 +170,7 @@
 {% endmacro %}
 
 {% macro render_table(field) %}
+	{{ label(field) }}
 	<div class='web-form-grid'
 		data-fieldname='{{ field.fieldname }}' data-doctype='{{ field.options }}'>
 		<table class='table table-bordered'>
