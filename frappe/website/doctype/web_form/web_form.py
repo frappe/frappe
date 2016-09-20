@@ -26,7 +26,8 @@ class WebForm(WebsiteGenerator):
 	def validate(self):
 		super(WebForm, self).validate()
 
-		self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
+		if not self.module:
+			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
 
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
@@ -78,7 +79,7 @@ class WebForm(WebsiteGenerator):
 			from frappe.modules import get_module_path
 
 			# json
-			export_to_files(record_list=[['Web Form', self.name]])
+			export_to_files(record_list=[['Web Form', self.name]], record_module=self.module)
 
 			# write files
 			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
