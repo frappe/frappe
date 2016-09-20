@@ -26,27 +26,17 @@ class WebForm(WebsiteGenerator):
 	def validate(self):
 		super(WebForm, self).validate()
 
-		self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
+		if not self.module:
+			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
 
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
-	def reset_field_parent_and_convert_links_to_selects(self):
+	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
-			if df.fieldtype == "Link":
-				options = [d.name for d in frappe.get_all(df.options)]
-				df.fieldtype = "Select"
-
-				if len(options)==1:
-					df.options = options[0]
-					df.default = options[0]
-					df.hidden = 1
-
-				else:
-					df.options = "\n".join([""] + options)
 
 	def use_meta_fields(self):
 		'''Override default properties for standard web forms'''
@@ -78,7 +68,7 @@ class WebForm(WebsiteGenerator):
 			from frappe.modules import get_module_path
 
 			# json
-			export_to_files(record_list=[['Web Form', self.name]])
+			export_to_files(record_list=[['Web Form', self.name]], record_module=self.module)
 
 			# write files
 			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
@@ -120,7 +110,7 @@ def get_context(context):
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
-		self.reset_field_parent_and_convert_links_to_selects()
+		self.reset_field_parent()
 
 		if self.is_standard:
 			self.use_meta_fields()
@@ -167,7 +157,7 @@ def get_context(context):
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
-		
+
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
 		if self.is_standard:
@@ -193,21 +183,54 @@ def get_context(context):
 
 	def get_layout(self):
 		layout = []
+		def add_page(df=None):
+			new_page = {'sections': []}
+			layout.append(new_page)
+			if df and df.fieldtype=='Page Break':
+				new_page['label'] = df.label
+
+			return new_page
+
+		def add_section(df=None):
+			new_section = {'columns': []}
+			layout[-1]['sections'].append(new_section)
+			if df and df.fieldtype=='Section Break':
+				new_section['label'] = df.label
+
+			return new_section
+
+		def add_column(df=None):
+			new_col = []
+			layout[-1]['sections'][-1]['columns'].append(new_col)
+
+			return new_col
+
+		page, section, column = None, None, None
 		for df in self.web_form_fields:
-			if not layout:
-				layout.append({'columns': []})
 
-			if df.fieldtype=="Section Break":
-				layout.append({'label': df.label, 'columns': [] })
+			# breaks
+			if df.fieldtype=='Page Break':
+				page = add_page(df)
+				section, column = None, None
 
-			if not layout[-1]['columns']:
-				layout[-1]['columns'].append([])
+			if df.fieldtype=='Section Break':
+				section = add_section(df)
+				column = None
 
-			if df.fieldtype=="Column Break" or not layout[-1]['columns']:
-				layout[-1]['columns'].append([])
+			if df.fieldtype=='Column Break':
+				column = add_column(df)
 
-			if df.fieldtype not in ("Section Break", "Column Break"):
-				layout[-1]['columns'][-1].append(df)
+			# input
+			if df.fieldtype not in ('Section Break', 'Column Break', 'Page Break'):
+				if not page:
+					page = add_page()
+					section, column = None, None
+				if not section:
+					section = add_section()
+					column = None
+				if not column:
+					column = add_column()
+				column.append(df)
 
 		return layout
 
