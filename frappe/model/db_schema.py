@@ -102,6 +102,9 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
+			if len(col.fieldname) >= 64:
+				frappe.throw(_("Fieldname is limited to 64 characters"))
+			
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
