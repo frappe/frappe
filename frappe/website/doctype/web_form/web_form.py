@@ -33,21 +33,10 @@ class WebForm(WebsiteGenerator):
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
-	def reset_field_parent_and_convert_links_to_selects(self):
+	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
-			if df.fieldtype == "Link":
-				options = [d.name for d in frappe.get_all(df.options)]
-				df.fieldtype = "Select"
-
-				if len(options)==1:
-					df.options = options[0]
-					df.default = options[0]
-					df.hidden = 1
-
-				else:
-					df.options = "\n".join([""] + options)
 
 	def use_meta_fields(self):
 		'''Override default properties for standard web forms'''
@@ -121,7 +110,7 @@ def get_context(context):
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
 			frappe.throw(_("You don't have the permissions to access this document"), frappe.PermissionError)
 
-		self.reset_field_parent_and_convert_links_to_selects()
+		self.reset_field_parent()
 
 		if self.is_standard:
 			self.use_meta_fields()

@@ -440,6 +440,7 @@ select.form-control {
 }
 .form-headline {
   padding: 0px 15px;
+  margin: 0px;
 }
 .form-headline .alert {
   font-size: 12px;
