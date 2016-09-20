@@ -1,0 +1,14 @@
+{
+	"app_url": "https://github.com/revant/civil_contracting.git",
+	"app_name": "civil_contracting",
+	"app_icon": "octicon octicon-file-directory",
+	"app_color": "grey",
+	"app_description": "Civil Contracting App to manage workers, wages and measurements",
+	"app_publisher": "Revant Nandgaonkar",
+	"app_email": "revant@mntechnique.com",
+	"repo_url": "https://github.com/revant/civil_contracting.git",
+	"app_title": "Civil Contracting",
+	"app_version": "1.5.0",
+	"app_category": "Integrations",
+  "featured": 1
+}
