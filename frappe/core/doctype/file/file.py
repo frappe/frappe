@@ -74,8 +74,7 @@ class File(NestedSet):
 		self.set_folder_size()
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
-			f = frappe.get_doc('File', {'name': self.name, 'is_folder': 0})
-			if not f.is_folder and (self.is_private != f.is_private):
+			if not self.is_folder and (self.is_private != self.db_get('is_private')):
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
