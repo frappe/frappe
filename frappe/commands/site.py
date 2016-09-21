@@ -238,6 +238,20 @@ def reload_doc(context, module, doctype, docname):
 		finally:
 			frappe.destroy()
 
+@click.command('reload-doctype')
+@click.argument('doctype')
+@pass_context
+def reload_doctype(context, doctype):
+	"Reload schema for a DocType"
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.reload_doctype(doctype, force=context.force)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
 
 @click.command('use')
 @click.argument('site')
@@ -455,6 +469,7 @@ commands = [
 	new_site,
 	reinstall,
 	reload_doc,
+	reload_doctype,
 	remove_from_installed_apps,
 	restore,
 	run_patch,
