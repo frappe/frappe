@@ -72,6 +72,7 @@ def update_system_settings(args):
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
+		'backup_limit': 3 # Default for downloadable backups
 	})
 	system_settings.save()
 
