@@ -131,7 +131,7 @@ class User(Document):
 
 	def share_with_self(self):
 		if self.user_type=="System User":
-			frappe.share.add(self.doctype, self.name, self.name, share=1,
+			frappe.share.add(self.doctype, self.name, self.name, write=1, share=1,
 				flags={"ignore_share_permission": True})
 		else:
 			frappe.share.remove(self.doctype, self.name, self.name,
