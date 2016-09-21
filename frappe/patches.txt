@@ -115,7 +115,7 @@ frappe.patches.v6_6.rename_slovak_language
 frappe.patches.v6_6.fix_file_url
 frappe.patches.v6_9.rename_burmese_language
 frappe.patches.v6_11.rename_field_in_email_account
-execute:frappe.create_folder(os.path.join(frappe.local.site_path, 'private', 'files'))
+frappe.patches.v7_0.create_private_file_folder
 frappe.patches.v6_15.remove_property_setter_for_previous_field #2015-12-29
 frappe.patches.v6_15.set_username
 execute:frappe.permissions.reset_perms("Error Snapshot")
