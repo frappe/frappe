@@ -42,7 +42,7 @@ class AutoEmailReport(Document):
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
-		raw = report.get_data(limit=500, user = self.user, filters = self.filters)
+		raw = report.get_data(limit=self.no_of_rows or 100, user = self.user, filters = self.filters)
 
 		if self.format == 'HTML':
 			return self.get_html_table(raw)
