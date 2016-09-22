@@ -15,7 +15,7 @@
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Submit") if frappe.form_dict.new else _("Save") }}</button>
+    		{{ _("Save") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
@@ -32,6 +32,7 @@
 	<hr>
 	{% endif %}
 </div>
+<div class="form-message alert alert-warning hide"></div>
 {% if login_required and frappe.user=="Guest" %}
 <div class="login-required">
 	<div class="text-muted">
@@ -161,7 +162,7 @@
 
 {% macro render_row(field, d=None, hidden=False) %}
 <tr class="web-form-grid-row {% if hidden %}hidden{% endif %}"
-	{% if d != None %}data-name="{{ d.name }}" data-child-row=1{% endif %}>
+	{% if d != None %}data-name="{{ d.name or "" }}" data-child-row=1{% endif %}>
 	{% for df in frappe.get_meta(field.options).fields %}
 		{% if df.in_list_view %}
 		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
@@ -214,7 +215,6 @@
 </div>
 {% endif %}
 
-<div class="form-message text-muted hide"></div>
 <form role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
 	{% if frappe.form_dict.name and web_page_link_text %}
@@ -227,15 +227,11 @@
 		</div>
 	</div>
 	{% endif %}
-	{% if frappe.form_dict.name -%}
-	<input type="hidden" name="name" value="{{ frappe.form_dict.name }}"
-		data-doctype="{{ doc_type }}">
-	{%- endif %}
 
 	{% for page in layout %}
 	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
 		data-idx="{{ loop.index }}">
-		<h2>{{ page.label }}</h2>
+		{% if page.label %}<h2>{{ page.label }}</h2>{% endif %}
 		{% for section in page.sections %}
 		<div class="section">
 			{% if section.label %}
@@ -266,7 +262,7 @@
 			{% endif %}
 			{% if loop.index == layout|len %}
 			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-			    	{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
+			    	{{ _("Save") }}</button>
 			{% elif layout|len > 1 %}
 			    <button class="btn btn-primary btn-sm btn-change-section"
 					data-idx="{{ loop.index + 1 }}">
@@ -293,10 +289,13 @@
 frappe.ready(function() {
 	window.file_reading = false;
 	window.success_message = "{{ success_message or "" }}";
+	window.success_link = '{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>'
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
-	var web_form_doctype = "{{ doc_type }}";
-	var web_form_name = "{{ name }}";
+	frappe.web_form_doctype = "{{ doc_type }}";
+	frappe.web_form_name = "{{ name }}";
+	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	var $form = $("form[data-web-form='{{ name }}']");
+	var dirty = false;
 
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
@@ -323,6 +322,11 @@ frappe.ready(function() {
 		}
 	});
 
+	// if changed, set dirty flag
+	$form.on('change', function() {
+		dirty = true;
+	});
+
 	// change attach
 	$form.on("click", ".change-attach", function() {
 		$(this).parent().addClass("hide")
@@ -335,6 +339,9 @@ frappe.ready(function() {
 	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
 		var idx = $(this).attr('data-idx');
 		show_slide(idx);
+		if(dirty) {
+			save();
+		}
 	});
 
 	show_slide = function(idx) {
@@ -380,8 +387,11 @@ frappe.ready(function() {
 
 	// get document data
 	var get_data = function() {
-		var doc = get_data_for_doctype($form, web_form_doctype);
-		doc.doctype = web_form_doctype;
+		var doc = get_data_for_doctype($form, frappe.web_form_doctype);
+		doc.doctype = frappe.web_form_doctype;
+		if(frappe.doc_name) {
+			doc.name = frappe.doc_name;
+		}
 
 		// get data from child tables
 		$('.web-form-grid').each(function() {
@@ -434,11 +444,11 @@ frappe.ready(function() {
 		return out;
 	}
 
-	// submit
-	$(".btn-form-submit").on("click", function() {
+	function save() {
 		if(window.saving)
 			return;
 		window.saving = true;
+		dirty = false;
 
 		if(window.file_reading) {
 			window.saving = false;
@@ -451,24 +461,20 @@ frappe.ready(function() {
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
 				data: get_data(),
-				web_form: web_form_name
+				web_form: frappe.web_form_name
 			},
 			freeze: true,
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
+					frappe.doc_name = data.message;
 					if(window.success_message) {
 						$form.addClass("hide");
 						$(".comments, .introduction").addClass("hide");
 						scroll(0, 0);
-						$(".form-message")
-							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
-							.removeClass("hide");
+						set_message(window.success_link);
                     } else {
-						frappe.msgprint(__('Successfully Updated'));
-						setTimeout(function() {
-							//window.location.href = "{{ success_url }}";
-						}, 3000);
+						set_message(__('Saved'));
 				    }
 			    }
 		    },
@@ -476,7 +482,21 @@ frappe.ready(function() {
                 window.saving = false;
             }
 		});
+	}
 
+	function set_message(msg) {
+		$(".form-message")
+			.html(msg)
+			.removeClass("hide");
+
+		setTimeout(function() {
+			$(".form-message").addClass('hide');
+		}, 5000);
+	}
+
+	// submit
+	$(".btn-form-submit").on("click", function() {
+		save();
 		return false;
 	});
 
