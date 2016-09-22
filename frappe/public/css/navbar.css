@@ -126,7 +126,7 @@
   color: #fff;
   text-align: center;
   padding: 2px 5px;
-  background-color: #98d85b;
+  background-color: #b8c2cc;
 }
 .navbar-new-comments-true {
   background-color: #ff5858;
@@ -186,6 +186,14 @@
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
+}
+@media (max-width: 1199px) {
+  #navbar-breadcrumbs > li > a {
+    width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 .toolbar-user-fullname {
   max-width: 200px;
