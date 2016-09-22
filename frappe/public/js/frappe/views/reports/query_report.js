@@ -74,6 +74,10 @@ frappe.views.QueryReport = Class.extend({
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
 
+		this.page.add_menu_item(__("Setup Auto Email"), function() {
+			frappe.set_route('List', 'Auto Email Report', {'report' : me.report_name});
+		}, true);
+
 		if(frappe.model.can_set_user_permissions("Report")) {
 			this.page.add_menu_item(__("User Permissions"), function() {
 				frappe.route_options = {
