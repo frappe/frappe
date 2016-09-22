@@ -152,7 +152,7 @@ class Controller(IntegrationController):
 			"METHOD": "SetExpressCheckout",
 			"PAYMENTREQUEST_0_PAYMENTACTION": "SALE",
 			"PAYMENTREQUEST_0_AMT": amount,
-			"PAYMENTREQUEST_0_CURRENCYCODE": currency,
+			"PAYMENTREQUEST_0_CURRENCYCODE": currency.upper(),
 			"returnUrl": get_url("/api/method/frappe.integrations.paypal.get_express_checkout_details"),
 			"cancelUrl": get_url("/payment-cancel")
 		})
@@ -212,7 +212,7 @@ def confirm_payment(token):
 		"TOKEN": token,
 		"PAYMENTREQUEST_0_PAYMENTACTION": "SALE",
 		"PAYMENTREQUEST_0_AMT": data.get("amount"),
-		"PAYMENTREQUEST_0_CURRENCYCODE": data.get("currency")
+		"PAYMENTREQUEST_0_CURRENCYCODE": data.get("currency").upper()
 	})
 
 	response = Controller().post_request(url, data=params)
