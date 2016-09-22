@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# Copyright (c) 2015, Frappe Technologies and contributors
+# For license information, please see license.txt
 
-"""
+from __future__ import unicode_literals
+import frappe
+from frappe.utils import get_url, call_hook_method
+from frappe import _
+import urllib, json
+from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
+
+service_details = """
 # Integrating RazorPay
 
 ### Validate Currency
@@ -50,31 +57,11 @@ payment_status - payment gateway will put payment status on callback.
 For razorpay payment status is Authorized
 
 """
-from __future__ import unicode_literals
-import frappe
-from frappe import _
-import urllib, json
-from frappe.utils import get_url, call_hook_method
-from frappe.integration_broker.integration_controller import IntegrationController
 
-class Controller(IntegrationController):
-	service_name = 'Razorpay'
-	parameters_template = [
-		{
-			"label": "API Key",
-			'fieldname': 'api_key',
-			'fieldtype': "Data",
-			'reqd': 1
-		},
-		{
-			"label": "API Secret",
-			'fieldname': 'api_secret',
-			'fieldtype': "Password",
-			'reqd': 1
-		}
-	]
-
-	# do also changes in razorpay.js scheduler job helper
+class RazorpaySettings(IntegrationService):
+	service_name = "Razorpay"
+	supported_currencies = ["INR"]
+	
 	scheduled_jobs = [
 		{
 			"all": [
@@ -82,48 +69,41 @@ class Controller(IntegrationController):
 			]
 		}
 	]
-
-	js = "assets/frappe/js/integrations/razorpay.js"
-
-	supported_currencies = ["INR"]
-
-	def enable(self, parameters, use_test_account=0):
+	
+	def validate(self):
+		if not self.flags.ignore_mandatory:
+			self.validate_razorpay_credentails()
+	
+	def on_update(self):
+		pass
+	
+	def enable(self):
 		call_hook_method('payment_gateway_enabled', gateway='Razorpay')
-		self.parameters = parameters
-		self.validate_razorpay_credentails()
 
+		if not self.flags.ignore_mandatory:
+			self.validate_razorpay_credentails()
+	
 	def validate_razorpay_credentails(self):
-		razorpay_settings = self.get_settings()
-
-		if razorpay_settings.get("api_key"):
+		if self.api_key and self.api_secret:
 			try:
 				self.get_request(url="https://api.razorpay.com/v1/payments",
-					auth=(razorpay_settings.api_key, razorpay_settings.api_secret))
+					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)))
 			except Exception:
 				frappe.throw(_("Seems API Key or API Secret is wrong !!!"))
-
+	
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
 
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
-
-	def get_settings(self):
-		if hasattr(self, "parameters"):
-			return frappe._dict(self.parameters)
-
-		custom_settings_json = frappe.db.get_value("Integration Service", "Razorpay", "custom_settings_json")
-
-		if custom_settings_json:
-			return frappe._dict(json.loads(custom_settings_json))
-
+	
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
 		try:
-			self.integration_request = super(Controller, self).create_request(self.data, "Host", \
-				self.service_name)
+			self.integration_request = super(RazorpaySettings, self).create_request(self.data, "Host", \
+				"Razorpay")
 			return self.authorize_payment()
 
 		except Exception:
@@ -139,7 +119,6 @@ class Controller(IntegrationController):
 		The money is deducted from the customer’s account, but will not be transferred to the merchant’s account
 		until it is explicitly captured by merchant.
 		"""
-
 		settings = self.get_settings()
 		data = json.loads(self.integration_request.data)
 		redirect_to = data.get('notes', {}).get('redirect_to') or None
@@ -198,8 +177,8 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 
 		Note: Attempting to capture a payment whose status is not authorized will produce an error.
 	"""
-	controller = frappe.get_doc("Integration Service", "Razorpay")
-	settings = controller.get_parameters()
+	controller = frappe.get_doc("Razorpay Settings")
+
 	for doc in frappe.get_all("Integration Request", filters={"status": "Authorized",
 		"integration_request_service": "Razorpay"}, fields=["name", "data"]):
 		try:
@@ -208,7 +187,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			else:
 				data = json.loads(doc.data)
 				resp = controller.post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
-					auth=(settings["api_key"], settings["api_secret"]), data={"amount": data.get("amount")})
+					auth=(controller.api_key, controller.get_password("api_secret")), data={"amount": data.get("amount")})
 
 			if resp.get("status") == "captured":
 				frappe.db.set_value("Integration Request", doc.name, "status", "Completed")
@@ -221,9 +200,14 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
 	try:
-		return Controller().get_payment_url(**kwargs)
+		return frappe.get_doc("Razorpay Settings").get_payment_url(**kwargs)
 	except Exception:
 		frappe.respond_as_web_page(_("Something went wrong"),
 			_("Looks like something is wrong with this site's Razorpay configuration. Don't worry! No payment has been made."),
 			success=False,
 			http_status_code=frappe.ValidationError.http_status_code)
+	
+
+@frappe.whitelist()
+def get_service_details():
+	return service_details
