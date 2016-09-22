@@ -47,7 +47,7 @@ def _(msg, lang=None):
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg)
+	msg = cstr(msg).strip()
 
 	return get_full_dict(local.lang).get(msg) or msg
 

@@ -64,16 +64,6 @@ body {
     margin: 0px;
     display: inline-block;
   }
-  #navbar-breadcrumbs li {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  #navbar-breadcrumbs li a {
-    width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
     display: inline-block;
@@ -193,6 +183,14 @@ body {
   }
   .linked-with-dialog {
     width: 100% !important;
+  }
+}
+@media (max-width: 991px) and (max-width: 480px) {
+  #navbar-breadcrumbs li a {
+    width: 100px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 @media (max-width: 767px) {

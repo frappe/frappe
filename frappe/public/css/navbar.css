@@ -187,9 +187,9 @@
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
 }
-@media (max-width: 1199px) {
+@media (min-width: 991px) and (max-width: 1199px) {
   #navbar-breadcrumbs > li > a {
-    width: 140px;
+    max-width: 143px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
