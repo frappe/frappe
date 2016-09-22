@@ -166,7 +166,7 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 	return odb
 
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
-	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 48)
+	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
