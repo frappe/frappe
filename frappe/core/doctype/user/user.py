@@ -193,7 +193,7 @@ class User(Document):
 
 	def send_password_notification(self, new_password):
 		try:
-			if self.in_insert:
+			if getattr(self, 'in_insert', False):
 				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
