@@ -209,8 +209,10 @@ class User(Document):
 		from frappe.utils import get_url
 
 		link = self.reset_password()
+
 		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
 			{"link": link, "site_url": get_url()})
+
 
 	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
@@ -238,7 +240,7 @@ class User(Document):
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			message=frappe.get_template(template).render(args),
-			delayed=(not now) if now!=None else self.flags.delay_emails)
+			delayed=(not now) if now!=None else self.flags.delay_emails, retry=3)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
