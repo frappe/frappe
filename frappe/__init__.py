@@ -500,11 +500,15 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
+	if isinstance(doc, basestring):
+		doc = get_doc(doctype, doc)
+
+	# check permission in controller
+	if hasattr(doc, 'has_website_permission'):
+		return doc.has_website_permission(ptype, verbose=verbose)
+
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
-		if isinstance(doc, basestring):
-			doc = get_doc(doctype, doc)
-
 		for method in hooks:
 			result = call(method, doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy

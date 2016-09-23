@@ -1,0 +1,117 @@
+{
+ "allow_comments": 0, 
+ "allow_delete": 0, 
+ "allow_edit": 1, 
+ "allow_multiple": 0, 
+ "creation": "2016-09-19 05:16:59.242754", 
+ "doc_type": "User", 
+ "docstatus": 0, 
+ "doctype": "Web Form", 
+ "idx": 0, 
+ "is_standard": 1, 
+ "login_required": 1, 
+ "modified": "2016-09-23 03:08:15.206534", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "edit-profile", 
+ "owner": "Administrator", 
+ "published": 1, 
+ "route": "update-profile", 
+ "sidebar_items": [], 
+ "success_message": "Profile updated successfully.", 
+ "success_url": "/me", 
+ "title": "Update Profile", 
+ "web_form_fields": [
+  {
+   "fieldname": "first_name", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "First Name", 
+   "read_only": 0, 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "middle_name", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Middle Name (Optional)", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "last_name", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Last Name", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "description": "", 
+   "fieldname": "user_image", 
+   "fieldtype": "Attach", 
+   "hidden": 0, 
+   "label": "User Image", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldtype": "Section Break", 
+   "hidden": 0, 
+   "label": "More Information", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "phone", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Phone", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "gender", 
+   "fieldtype": "Select", 
+   "hidden": 0, 
+   "label": "Gender", 
+   "options": "\nMale\nFemale\nOther", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "description": "", 
+   "fieldname": "language", 
+   "fieldtype": "Link", 
+   "hidden": 0, 
+   "label": "Language", 
+   "options": "Language", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "birth_date", 
+   "fieldtype": "Date", 
+   "hidden": 0, 
+   "label": "Birth Date", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "location", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Location", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "bio", 
+   "fieldtype": "Text", 
+   "hidden": 0, 
+   "label": "Bio", 
+   "read_only": 0, 
+   "reqd": 0
+  }
+ ]
+}
