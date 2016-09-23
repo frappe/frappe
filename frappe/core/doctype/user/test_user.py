@@ -36,6 +36,8 @@ class TestUser(unittest.TestCase):
 		new_user.save()
 		self.assertEquals(new_user.user_type, 'Website User')
 
+		frappe.delete_doc('User', new_user.name)
+
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
