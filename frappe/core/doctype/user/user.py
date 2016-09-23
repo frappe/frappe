@@ -70,6 +70,10 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
 
+	def has_website_permission(self, ptype, verbose=False):
+		"""Returns true if current user is the session user"""
+		return self.name == frappe.session.user
+
 	def check_demo(self):
 		if frappe.session.user == 'demo@erpnext.com':
 			frappe.throw('Cannot change user details in demo. Please signup for a new account at https://erpnext.com', title='Not Allowed')

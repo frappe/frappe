@@ -124,6 +124,7 @@ def add_sidebar_data(context):
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname
 	context["user_image"] = info.avatar
+	context["user"] = info.name
 
 
 def add_metatags(context):
