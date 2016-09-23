@@ -7,17 +7,17 @@ import frappe
 import json
 
 def execute():
-	for doctype in ["Razorpay Log", "Razorpay Payment", "Razorpay Settings"]:
-		delete_doc(doctype)
+	for doctype_name in ["Razorpay Log", "Razorpay Payment", "Razorpay Settings"]:
+		delete_doc("DocType", doctype_name)
 	
 	reload_doctypes()
 	setup_services()
 
-def delete_doc(doctype):
-	frappe.delete_doc("DocType", doctype)
+def delete_doc(doctype, doctype_name):
+	frappe.delete_doc(doctype, doctype_name)
 
 def reload_doctypes():
-	for doctype in ("razorpay_settings", "paypal_settings", "dropbox_settings", "ldap_settigns"):
+	for doctype in ("razorpay_settings", "paypal_settings", "dropbox_settings", "ldap_settings"):
 		frappe.reload_doc("integrations", "doctype", doctype)
 
 def setup_services():
@@ -37,7 +37,7 @@ def setup_services():
 			service_settings.save(ignore_permissions=True)
 
 			if service["old_name"] in ["Dropbox Integration", "LDAP Auth"]:
-				delete_doc(service["old_name"])
+				delete_doc("Integration Service", service["old_name"])
 				
 				new_service_doc = frappe.get_doc({
 					"doctype": "Integration Service",
