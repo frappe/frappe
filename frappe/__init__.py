@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = "7.0.33"
+__version__ = "7.0.34"
 
 local = Local()
 
@@ -359,7 +359,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None):
+		send_priority=1, communication=None, retry=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -396,11 +396,11 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 
 whitelisted = []
 guest_methods = []

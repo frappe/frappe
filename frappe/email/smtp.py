@@ -10,7 +10,7 @@ import _socket, sys
 from frappe.utils import cint
 from frappe import _
 
-def send(email, append_to=None):
+def send(email, append_to=None, retry=1):
 	"""send the message or add it to Outbox Email"""
 	if frappe.flags.in_test:
 		frappe.flags.sent_mail = email.as_string()
@@ -20,20 +20,30 @@ def send(email, append_to=None):
 		frappe.msgprint(_("Emails are muted"))
 		return
 
-	try:
-		smtpserver = SMTPServer(append_to=append_to)
+	def _send(retry):
+		try:
+			smtpserver = SMTPServer(append_to=append_to)
 
-		# validate is called in as_string
-		email_body = email.as_string()
+			# validate is called in as_string
+			email_body = email.as_string()
 
-		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
+			smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
+		except smtplib.SMTPSenderRefused:
+			frappe.throw(_("Invalid login or password"), title='Email Failed')
+			raise
+		except smtplib.SMTPRecipientsRefused:
+			frappe.msgprint(_("Invalid recipient address"), title='Email Failed')
+			raise
+		except smtplib.SMTPServerDisconnected:
+			if not retry:
+				raise
+			else:
+				retry = retry - 1
+				_send(retry)
 
-	except smtplib.SMTPSenderRefused:
-		frappe.throw(_("Invalid login or password"), title='Email Failed')
-		raise
-	except smtplib.SMTPRecipientsRefused:
-		frappe.msgprint(_("Invalid recipient address"), title='Email Failed')
-		raise
+		_send(retry)
+
+
 
 def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 	"""Returns outgoing email account based on `append_to` or the default
