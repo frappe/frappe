@@ -26,7 +26,7 @@ frappe.email_alert = {
 
 			var email_fields = $.map(fields,
 				function(d) { return (d.options == "Email" ||
-					(d.option=='User' && d.fieldtype=='Link')) ?
+					(d.options=='User' && d.fieldtype=='Link')) ?
 					get_select_options(d) : null; });
 
 			// set email recipient options
