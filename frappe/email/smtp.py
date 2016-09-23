@@ -34,16 +34,14 @@ def send(email, append_to=None, retry=1):
 		except smtplib.SMTPRecipientsRefused:
 			frappe.msgprint(_("Invalid recipient address"), title='Email Failed')
 			raise
-		except smtplib.SMTPServerDisconnected:
+		except (smtplib.SMTPServerDisconnected, smtplib.SMTPAuthenticationError):
 			if not retry:
 				raise
 			else:
 				retry = retry - 1
 				_send(retry)
 
-		_send(retry)
-
-
+	_send(retry)
 
 def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 	"""Returns outgoing email account based on `append_to` or the default
@@ -206,4 +204,3 @@ class SMTPServer:
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
-
