@@ -44,6 +44,9 @@ class AutoEmailReport(Document):
 		report = frappe.get_doc('Report', self.report)
 		raw = report.get_data(limit=self.no_of_rows or 100, user = self.user, filters = self.filters)
 
+		if len(raw)==1 and self.send_if_data:
+			return None
+
 		if self.format == 'HTML':
 			return self.get_html_table(raw)
 
@@ -67,6 +70,9 @@ class AutoEmailReport(Document):
 
 	def send(self):
 		data = self.get_report_content()
+		if not data:
+			return
+
 		attachments = None
 		message = '<p>{0}</p>'.format(_('{0} generated on {1}')\
 				.format(frappe.bold(self.name),
@@ -98,6 +104,10 @@ def download(name):
 	auto_email_report = frappe.get_doc('Auto Email Report', name)
 	auto_email_report.check_permission()
 	data = auto_email_report.get_report_content()
+
+	if not data:
+		frappe.msgprint(_('No Data'))
+		return
 
 	frappe.local.response.filecontent = data
 	frappe.local.response.type = "download"
