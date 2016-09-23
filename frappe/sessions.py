@@ -31,7 +31,8 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
-		"defaults", "user_permissions", "roles", "home_page", "linked_with", "desktop_icons")
+		"defaults", "user_permissions", "roles", "home_page", "linked_with",
+		"desktop_icons", 'portal_menu_items')
 
 	if user:
 		for name in groups:

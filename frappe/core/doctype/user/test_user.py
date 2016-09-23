@@ -16,6 +16,27 @@ from frappe.core.doctype.user.user import MaxUsersReachedError
 test_records = frappe.get_test_records('User')
 
 class TestUser(unittest.TestCase):
+	def test_user_type(self):
+		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
+			first_name='Tester')).insert()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		# role with desk access
+		new_user.add_roles('_Test Role 2')
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'System User')
+
+		# clear role
+		new_user.user_roles = []
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		# role without desk access
+		new_user.add_roles('_Test Role 4')
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")

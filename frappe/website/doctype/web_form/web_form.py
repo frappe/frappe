@@ -93,7 +93,6 @@ def get_context(context):
 """)
 
 	def get_context(self, context):
-		context.show_sidebar=True
 		from frappe.www.list import get_context as get_list_context
 
 		frappe.form_dict.is_web_form = 1
