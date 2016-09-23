@@ -6,7 +6,7 @@ frappe.integration_service.razorpay = {
 	},
 	scheduler_job_helper: function(){
 		return  {
-			"Execute on every few minits of interval": "Take backup of database and files to dropbox on daily basis"
+			"Every few minutes": "Check and capture new payments"
 		}
 	}
 }
@@ -21,7 +21,6 @@ frappe.integration_service.Razorpay =  Class.extend({
 		this.frm.add_custom_button(__("Show Log"), function(frm){
 			frappe.route_options = {"integration_request_service": "Razorpay"};
 			frappe.set_route("List", "Integration Request");
-		}).addClass("btn-primary")
+		});
 	}
 })
-	

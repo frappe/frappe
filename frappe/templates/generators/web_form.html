@@ -252,6 +252,20 @@
 					</div>
 					{% endfor %}
 			</div>
+			{% if accept_payment and payment_url %}
+				<div class="well payment-details">
+					{% if not doc.paid %}
+						{% if payment_button_help %}
+						<div class='text-muted' style='padding-bottom: 15px;'>
+							{{ payment_button_help }}</div>
+						{% endif %}
+						<a class="btn btn-primary" href="{{ payment_url }}">
+							{{ payment_button_label }}</a>
+					{% else %}
+						<div>{{ _("Payment Complete") }}</div>
+					{% endif %}
+				</div>
+			{% endif %}
 		</div>
 		{% endfor %}
 		<!-- page footer buttons -->
@@ -275,6 +289,7 @@
 	{% endfor %}
 
 </form>
+
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
 	<br><br>
