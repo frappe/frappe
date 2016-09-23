@@ -132,7 +132,7 @@ frappe.search = {
 
 				var ret = frappe.search.find(values, txt, function(match) {
 					return {
-						label: __(doctype) + " " match.bold(),
+						label: __(doctype) + " " + match.bold(),
 						value: __(doctype) + " " + match,
 						route: ["Form", doctype, match]
 					}
