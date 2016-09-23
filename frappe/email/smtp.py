@@ -41,6 +41,8 @@ def send(email, append_to=None, retry=1):
 				retry = retry - 1
 				_send(retry)
 
+	_send(retry)
+
 def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 	"""Returns outgoing email account based on `append_to` or the default
 		outgoing account. If default outgoing account is not found, it will
