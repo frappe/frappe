@@ -150,7 +150,7 @@ class User(Document):
 			])
 
 	def email_new_password(self, new_password=None):
-		if new_password and not self.in_insert:
+		if new_password and not getattr(self, 'in_insert', False):
 			_update_password(self.name, new_password)
 
 			if self.send_password_update_notification:
