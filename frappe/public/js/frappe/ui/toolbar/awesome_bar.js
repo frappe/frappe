@@ -132,7 +132,7 @@ frappe.search = {
 
 				var ret = frappe.search.find(values, txt, function(match) {
 					return {
-						label: __(doctype) + " <b>" + match + "</b>",
+						label: __(doctype) + " " match.bold(),
 						value: __(doctype) + " " + match,
 						route: ["Form", doctype, match]
 					}
@@ -191,7 +191,7 @@ frappe.search.verbs = [
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			frappe.search.options.push({
-				label: __('Find {0} in {1}', ["<b>"+txt+"</b>", "<b>" + route[1] + "</b>"]),
+				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
 				onclick: function() {
@@ -208,7 +208,7 @@ frappe.search.verbs = [
 		if(txt.split(" ")[0]==="new") {
 			frappe.search.find(frappe.boot.user.can_create, txt.substr(4), function(match) {
 				return {
-					label: __("New {0}", ["<b>"+match+"</b>"]),
+					label: __("New {0}", [match.bold()]),
 					value: __("New {0}", [match]),
 					onclick: function() { frappe.new_doc(match, true); }
 				}
@@ -226,19 +226,19 @@ frappe.search.verbs = [
 		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
 			if(in_list(frappe.boot.single_types, match)) {
 				return {
-					label: __("{0}", ["<b>"+__(match)+"</b>"]),
+					label: __("{0}", [__(match).bold()]),
 					value: __(match),
 					route:["Form", match, match]
 				}
 			} else if(in_list(frappe.boot.treeviews, match)) {
 				return {
-					label: __("{0} Tree", ["<b>"+__(match)+"</b>"]),
+					label: __("{0} Tree", [__(match).bold()]),
 					value: __(match),
 					route:["Tree", match]
 				}
 			} else {
 				return {
-					label: __("{0} List", ["<b>"+__(match)+"</b>"]),
+					label: __("{0} List", [__(match).bold()]),
 					value: __("{0} List", [__(match)]),
 					route:["List", match]
 				}
@@ -257,7 +257,7 @@ frappe.search.verbs = [
 				route = ["query-report",  match];
 
 			return {
-				label: __("Report {0}", ["<b>"+__(match)+"</b>"]),
+				label: __("Report {0}", [__(match).bold()]),
 				value: __("Report {0}", [__(match)]),
 				route: route
 			}
@@ -268,7 +268,7 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
-				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
@@ -283,7 +283,7 @@ frappe.search.verbs = [
 			if(module._doctype) return;
 
 			ret = {
-				label: __("Open {0}", ["<b>"+__(match)+"</b>"]),
+				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
 			}
 			if(module.link) {
@@ -301,7 +301,7 @@ frappe.search.verbs = [
 			parts = txt.split(" in ");
 			frappe.search.find(frappe.boot.user.can_read, parts[1], function(match) {
 				return {
-					label: __('Find {0} in {1}', ["<b>"+__(parts[0])+"</b>", "<b>"+__(match)+"</b>"]),
+					label: __('Find {0} in {1}', [__(parts[0]).bold(), __(match).bold()]),
 					value: __('Find {0} in {1}', [__(parts[0]), __(match)]),
 					route_options: {"name": ["like", "%" + parts[0] + "%"]},
 					route: ["List", match]
@@ -320,7 +320,7 @@ frappe.search.verbs = [
 
 			try {
 				var val = eval(txt);
-				var formatted_value = __('{0} = {1}', [txt, "<b>"+val+"</b>"]);
+				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
 				frappe.search.options.push({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
