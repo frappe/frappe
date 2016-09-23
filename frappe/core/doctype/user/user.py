@@ -38,6 +38,9 @@ class User(Document):
 			[m.module_name for m in frappe.db.get_all('Desktop Icon',
 				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
 
+	def after_insert(self):
+		self.set_default_roles()
+
 	def validate(self):
 		self.check_demo()
 
@@ -93,6 +96,33 @@ class User(Document):
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
+	def set_default_roles(self):
+		"""Set a default role if specified by rules (`default_role`) in hooks or Portal Settings
+
+		Hooks for default roles can be set as:
+
+			default_roles = [
+				{'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',
+					'filters': {'ifnull(customer, "")': ('!=', '')}}
+			]
+
+		"""
+		role_found = False
+		for rule in frappe.get_hooks('default_roles'):
+			filters = {rule.get('email_field'): self.email}
+			if rule.get('filters'):
+				filters.update(rule.get('filters'))
+
+			match = frappe.get_all(rule.get('doctype'), filters=filters, limit=1)
+			if match:
+				role_found = True
+				self.add_roles(rule.get('role'))
+
+		if not role_found:
+			default_role = frappe.db.get_single_value('Portal Settings', 'default_role')
+			if default_role:
+				self.add_roles(default_role)
+
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.enabled) or ("System Manager" in [user_role.role for user_role in
@@ -128,10 +158,22 @@ class User(Document):
 				frappe.msgprint(_("New password emailed"))
 
 	def set_system_user(self):
-		if self.user_roles or self.name == 'Administrator':
+		'''Set as System User if any of the given roles has desk_access'''
+		if self.has_desk_access() or self.name == 'Administrator':
 			self.user_type = 'System User'
 		else:
 			self.user_type = 'Website User'
+
+	def has_desk_access(self):
+		'''Return true if any of the set roles has desk access'''
+		if not self.user_roles:
+			return False
+
+		return len(frappe.db.sql("""select name
+			from `tabRole` where desk_access=1
+				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.user_roles))),
+				[d.role for d in self.user_roles]))
+
 
 	def share_with_self(self):
 		if self.user_type=="System User":

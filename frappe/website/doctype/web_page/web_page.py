@@ -67,7 +67,7 @@ class WebPage(WebsiteGenerator):
 	def set_breadcrumbs(self, context):
 		"""Build breadcrumbs template (deprecated)"""
 		if not "no_breadcrumbs" in context:
-			if "<!-- no-breadcrumbs -->" in context.main_section:
+			if "<!-- no-breadcrumbs -->" in context.main_section or '':
 				context.no_breadcrumbs = 1
 
 	def set_title_and_header(self, context):

@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
@@ -83,7 +82,7 @@ def build_context(context):
 	elif context.controller:
 		# controller based context
 		update_controller_context(context, context.controller)
-		
+
 		# controller context extensions
 		context_controller_hooks = frappe.get_hooks("extend_website_page_controller_context") or {}
 		for controller, extension in context_controller_hooks.items():
@@ -95,6 +94,9 @@ def build_context(context):
 				update_controller_context(context, extension)
 
 	add_metatags(context)
+
+	if frappe.session.user == 'Guest':
+		context.show_sidebar = 0
 
 	if context.show_sidebar:
 		add_sidebar_data(context)
@@ -111,13 +113,17 @@ def add_sidebar_data(context):
 	import frappe.www.list
 
 	if not context.sidebar_items:
-		sidebar_items = json.loads(frappe.cache().get_value('portal_menu_items') or '[]')
-
-		if not sidebar_items:
+		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
+		if sidebar_items == None:
+			roles = frappe.get_roles()
 			sidebar_items = frappe.get_all('Portal Menu Item',
-				fields=['title', 'route', 'reference_doctype', 'show_always'],
+				fields=['title', 'route', 'reference_doctype', 'role'],
 				filters={'enabled': 1, 'parent': 'Portal Settings'}, order_by='idx asc')
-			frappe.cache().set_value('portal_menu_items', json.dumps(sidebar_items))
+
+			# filter sidebar items by role
+			sidebar_items = filter(lambda i: i.role==None or i.role in roles, sidebar_items)
+
+			frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
 
 		context.sidebar_items = sidebar_items
 

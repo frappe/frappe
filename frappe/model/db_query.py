@@ -267,8 +267,11 @@ class DatabaseQuery(object):
 		if not tname in self.tables:
 			self.append_table(tname)
 
-		column_name = '{tname}.{fname}'.format(tname=tname,
-			fname=f.fieldname)
+		if 'ifnull(' in f.fieldname:
+			column_name = f.fieldname
+		else:
+			column_name = '{tname}.{fname}'.format(tname=tname,
+				fname=f.fieldname)
 
 		can_be_null = True
 
@@ -317,8 +320,10 @@ class DatabaseQuery(object):
 			if isinstance(value, basestring):
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
-		if (self.ignore_ifnull or not can_be_null
-			or (f.value and f.operator in ('=', 'like')) or 'ifnull(' in column_name.lower()):
+		if (self.ignore_ifnull
+			or not can_be_null
+			or (f.value and f.operator in ('=', 'like'))
+			or 'ifnull(' in column_name.lower()):
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)
