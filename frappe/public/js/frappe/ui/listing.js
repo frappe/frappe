@@ -355,6 +355,12 @@ frappe.ui.Listing = Class.extend({
 		this.render_rows(values);
 	},
 	render_rows: function(values) {
+		//count for list items
+		var total_list = values.length;
+		var htmlForCount = " Count : " + total_list;
+		$('.total_list_count').empty();
+		$('.total_list_count').append(htmlForCount);
+
 		// render the rows
 		if(this.meta && this.meta.image_view){
 			var cols = values.slice();
