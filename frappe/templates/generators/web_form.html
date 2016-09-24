@@ -57,7 +57,7 @@
 		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
-		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
+		{{ (field.reqd and field.fieldtype!="Attach") and "data-reqd=1" or "" }}
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
 
@@ -90,14 +90,14 @@
 		{{ field.options }}
 	</div>
 	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
-	<div class="form-group">
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
 		<input type="text" class="form-control" {{ properties(field) }}
 			value="{{ value(field, _doc) }}">
 		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Link" %}
-	<div class="form-group">
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
 		<select class="form-control" {{ properties(field) }}>
 			{% for option in ([{"name":""}] + frappe.get_all(field.options)) -%}
@@ -109,7 +109,7 @@
 		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Select" %}
-	<div class="form-group">
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
 		<select class="form-control" {{ properties(field) }}>
 			{% for option in field.options.split("\n") -%}
@@ -121,7 +121,7 @@
 		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Text" %}
-	<div class="form-group">
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
 		{{ help(field) }}
 		<textarea class="form-control" style="height: 200px;"
@@ -305,15 +305,17 @@
 {% block script %}
 <script>
 frappe.ready(function() {
-	window.file_reading = false;
-	window.success_message = "{{ success_message or "" }}";
-	window.success_link = '{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>'
+	frappe.file_reading = false;
+	frappe.allow_incomplete = {{ allow_incomplete or 0 }};
+	frappe.success_message = "{{ success_message or "" }}";
+	frappe.success_link = '{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>'
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
+	frappe.form_dirty = false;
+
 	var $form = $("form[data-web-form='{{ name }}']");
-	var dirty = false;
 
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
@@ -325,14 +327,14 @@ frappe.ready(function() {
 			input.filedata = null;
 			if(input.files.length) {
 				file = input.files[0];
-				window.file_reading = true;
+				frappe.file_reading = true;
 				reader.onload = function(e) {
 					input.filedata = {
 						"__file_attachment": 1,
 						"filename": file.name,
 						"dataurl": reader.result
 					};
-					window.file_reading = false;
+					frappe.file_reading = false;
 				}
 
 				reader.readAsDataURL(file);
@@ -340,15 +342,26 @@ frappe.ready(function() {
 		}
 	});
 
+	// show mandatory fields as red
+	$('.form-group input, .form-group textarea, .form-group select').on('change', function() {
+		if($(this).attr('data-reqd')) {
+			$(this).parent().toggleClass('has-error', !!!$(this).val());
+		}
+	}).on('keypress', function() {
+		$(this).trigger('change');
+	}).trigger('change');
+
 	// if changed, set dirty flag
 	$form.on('change', function() {
-		dirty = true;
+		frappe.form_dirty = true;
 	});
 
 	// change attach
 	$form.on("click", ".change-attach", function() {
 		$(this).parent().addClass("hide")
 			.parent().find(".attach-input-wrap").removeClass("hide");
+
+		frappe.form_dirty = true;
 
 		return false;
 	});
@@ -357,9 +370,14 @@ frappe.ready(function() {
 	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
 		var idx = $(this).attr('data-idx');
 		show_slide(idx);
-		if(dirty) {
-			save();
+		if(frappe.form_dirty) {
+			try {
+				save();
+			} catch(e) {
+				// pass
+			}
 		}
+		return false;
 	});
 
 	show_slide = function(idx) {
@@ -399,12 +417,15 @@ frappe.ready(function() {
 
 	// remove row
 	$('.web-form-grid').on('click', '.btn-remove', function() {
-		$(this).parents('.web-form-grid-row:first').remove();
+		$(this).parents('.web-form-grid-row:first').addClass('hidden').remove();
+		frappe.form_dirty = true;
 		return false;
 	});
 
 	// get document data
 	var get_data = function() {
+		frappe.mandatory_missing = [];
+
 		var doc = get_data_for_doctype($form, frappe.web_form_doctype);
 		doc.doctype = frappe.web_form_doctype;
 		if(frappe.doc_name) {
@@ -418,14 +439,30 @@ frappe.ready(function() {
 			doc[fieldname] = [];
 
 			// get data from each row
-			$(this).find('[data-child-row=1]:visible').each(function() {
-				var d = get_data_for_doctype($(this), doctype);
+			$(this).find('[data-child-row=1]').each(function() {
+				if(!$(this).hasClass('hidden')) {
+					var d = get_data_for_doctype($(this), doctype);
 
-				// set name of child record (if set)
-				var name = $(this).attr('data-name');
-				if(name) { d.name = name; }
+					// set name of child record (if set)
+					var name = $(this).attr('data-name');
+					if(name) { d.name = name; }
 
-				doc[fieldname].push(d);
+					// check if child table has value
+					var has_value = false;
+					for(key in d) {
+						if(d[key] !== null && d[key] !== undefined && d[key] !== '') {
+							has_value = true;
+							break;
+						}
+					}
+
+					console.log(d, has_value)
+
+					// only add if any value is set
+					if(has_value) {
+						doc[fieldname].push(d);
+					}
+				}
 			});
 		});
 
@@ -450,11 +487,8 @@ frappe.ready(function() {
 				var val = $input.val();
 			}
 
-			if($input.prop("required") && val===undefined) {
-				frappe.msgprint(__("{0} is required",
-					$input.attr("data-label")));
-				window.saving = false;
-				throw "mandatory missing";
+			if($input.attr("data-reqd") && val===undefined || val===null || val==='') {
+				frappe.mandatory_missing.push($input.attr("data-label"));
 			}
 
 			out[$input.attr("name")] = val;
@@ -466,11 +500,19 @@ frappe.ready(function() {
 		if(window.saving)
 			return;
 		window.saving = true;
-		dirty = false;
+		frappe.form_dirty = false;
 
-		if(window.file_reading) {
+		if(frappe.file_reading) {
 			window.saving = false;
 			frappe.msgprint("Reading file, please retry.");
+			return;
+		}
+
+		var data = get_data();
+		if(frappe.allow_incomplete && frappe.mandatory_missing.length) {
+			window.saving = false;
+			frappe.msgprint(__('The following mandatory fields must be filled') + '<br>'
+				+ frappe.mandatory_missing.join('<br>'));
 			return;
 		}
 
@@ -478,7 +520,7 @@ frappe.ready(function() {
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
-				data: get_data(),
+				data: data,
 				web_form: frappe.web_form_name
 			},
 			freeze: true,
@@ -486,11 +528,11 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					if(window.success_message) {
+					if(frappe.success_message) {
 						$form.addClass("hide");
 						$(".comments, .introduction").addClass("hide");
 						scroll(0, 0);
-						set_message(window.success_link);
+						set_message(frappe.success_link);
                     } else {
 						set_message(__('Saved'));
 				    }
