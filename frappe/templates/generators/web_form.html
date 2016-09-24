@@ -171,7 +171,7 @@
 			{% if d!=None %}
 				{{ render_field(df, d, False) }}
 			{% else %}
-				<span class='text-muted small'>{{ df.label }}</span>
+				<span class='text-muted small'>{{ _(df.label) }}</span>
 			{% endif %}
 		</{{ 'th' if d.name==None else 'td' }}>
 		{% endif %}
