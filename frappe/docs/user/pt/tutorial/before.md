@@ -1,48 +1,47 @@
 # Before You Start
 
-<p class="lead">A list of tools, technologies that will be very helpful for building apps in Frappe.</p>
+<p class="lead">Uma lista de ferramentas, tecnologias que serão muito úteis para a construção de aplicativos com Frappe.</p>
 
-There are a number of good tutorials online and we found [CodeAcademy](http://www.codecademy.com/) to be the most beautiful ones out there here bunch of lessons you can learn from CodeAcademy
+Há uma série de bons tutoriais on-line e encontramos [Codecademy] (http://www.codecademy.com/) como um dos mais bonitos tutoriais, aqui há um monte de lições que você pode aprender com Codecademy
 
 ---
 
 #### 1. Python
 
-Server side Frappe is written in Python and its a good idea to [quickly learn Python](http://www.codecademy.com/tracks/python) before you started digging into Frappe. Another good place to learn Python is the [tutorial on docs.python.org](https://docs.python.org/2.7/tutorial/index.html). Note that Frappe uses Python 2.7
+O lado do servidor do Frappe é escrito em Python e é uma boa idéia para [aprender rapidamente Python] (http://www.codecademy.com/tracks/python) antes de começar a se aprofundar em Frappe. Outro bom lugar para aprender Pytohn é o [tutorial no docs.python.org](https://docs.python.org/2.7/tutorial/index.html). Note-se que o Frappe usa Python 2.7
 
-To write quality server side code, you must include automatic tests. You can learn the [basics of test driven development here](http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
+Para escrever código do lado do servidor de qualidade, você deve incluir testes automáticos. Você pode aprender as noções básicas de [test driven development (TDD) - aqui] (http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
 
 ---
 
 #### 2. Databases MariaDB / MySQL
 
-You need to understand the basics of databases, like how to install, login, create new databases, and basic SQL queries. Here is a [very quick introduction to MySQL](https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) or head to [the MariaDB site for a more detailed understanding](https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
+Você precisa entender os conceitos básicos de bancos de dados, como instalar, login, criar novos bancos de dados e consultas SQL básicas. Aqui é um [introdução muito rápido para MySQL] (https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) ou o [site do MariaDB para uma compreensão mais detalhada] (https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
 
 ---
 
 #### 3. HTML / CSS
 
-If you are building user interfaces, you will need to [learn basic HTML / CSS](http://www.codecademy.com/tracks/web) and the [Boostrap CSS Framework](http://getbootstrap.com)
+Se você está construindo interfaces de usuário, você precisará [conhecer o básico de HTML / CSS] (http://www.codecademy.com/tracks/web) e o [Framework CSS - Boostrap] (http://getbootstrap.com)
 
 ---
 
 #### 4. Building UI with Javascript and JQuery
 
-To customize forms and create new rich user interfaces, it is best to [learn Javacsript](http://www.codecademy.com/tracks/javascript) and the [popular library JQuery](http://www.codecademy.com/tracks/jquery).
+Para personalizar formulários e criar novas interfaces de usuário ricas, é melhor [saber JavaScript] (http://www.codecademy.com/tracks/javascript) e a [biblioteca popular, JQuery] (http://www.codecademy.com/faixas/jQuery).
 
 ---
 
 #### 5. Customizing Prints and Web pages with Jinja Templating
 
-If you are customizing Print templates, you need to learn the [Jinja Templating language](http://jinja.pocoo.org/). It is an easy way to create dynamic web pages (HTML).
+Se estiver personalizando modelos de impressão, você precisa aprender a [línguagem Jinja Templating] (http://jinja.pocoo.org/). É uma maneira fácil de criar páginas web dinâmicas (HTML).
 
 ---
 
 #### 6. Git and GitHub
 
-[Learn how to contribute back to an open source project using Git and GitHub](https://guides.github.com/activities/contributing-to-open-source/), two great tools to help you manage your code and share it with others.
+[Saiba como contribuir para um projeto open source usando Git e GitHub] (https://guides.github.com/activities/contributing-to-open-source/), duas grandes ferramentas para ajudá-lo a gerir o seu código e compartilha-lo com os outros.
 
 ---
 
-When you are ready, [try building a sample application on Frappe]({{ docs_base_url }}/user/en/tutorial/app)
-
+Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe]({{docs base_url}}/user/pt/tutorial/app)
