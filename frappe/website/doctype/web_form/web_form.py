@@ -9,6 +9,7 @@ from frappe.utils import cstr
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
+from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -162,6 +163,30 @@ def get_context(context):
 				"<br>").replace("'", "\'")
 
 		self.add_custom_context_and_script(context)
+		self.add_payment_gateway_url(context)
+
+	def add_payment_gateway_url(self, context):
+
+		if context.doc and self.accept_payment:
+			controller = get_integration_controller(self.payment_gateway)
+
+			title = "Payment for {0} {1}".format(context.doc.doctype, context.doc.name)
+
+			payment_details = {
+				"amount": self.amount,
+				"title": title,
+				"description": title,
+				"reference_doctype": context.doc.doctype,
+				"reference_docname": context.doc.name,
+				"payer_email": frappe.session.user,
+				"payer_name": frappe.utils.get_fullname(frappe.session.user),
+				"order_id": context.doc.name,
+				"currency": self.currency,
+				"redirect_to": frappe.utils.get_url(self.route)
+			}
+
+			# Redirect the user to this url
+			context.payment_url = controller.get_payment_url(**payment_details)
 
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''

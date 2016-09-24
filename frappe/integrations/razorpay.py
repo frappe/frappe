@@ -11,7 +11,7 @@ Example:
 
 	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 
-	controller = get_integration_controller("Razorpay", setup=False)
+	controller = get_integration_controller("Razorpay")
 	controller().validate_transaction_currency(currency)
 
 ### 2. Redirect for payment
@@ -29,8 +29,6 @@ Example:
 		"order_id": "111",
 		"currency": "INR"
 	}
-
-	from frappe.integration.razorpay import get_checkout_url
 
 	# Redirect the user to this url
 	url = controller().get_payment_url(**payment_details)
@@ -142,6 +140,7 @@ class Controller(IntegrationController):
 		"""
 
 		settings = self.get_settings()
+		data = json.loads(self.integration_request.data)
 
 		if self.integration_request.status != "Authorized":
 			resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
@@ -154,7 +153,11 @@ class Controller(IntegrationController):
 
 		if self.flags.status_changed_to == "Authorized":
 			if self.data.reference_doctype and self.data.reference_docname:
-				redirect_to = frappe.get_doc(self.data.reference_doctype, self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
+				redirect_to = frappe.get_doc(self.data.reference_doctype,
+					self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
+				if not redirect_to:
+					if data.get('redirect_to'):
+						redirect_to = data.get('redirect_to')
 
 			return {
 				"redirect_to": redirect_to or "payment-success",
