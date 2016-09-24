@@ -38,13 +38,14 @@ class User(Document):
 			[m.module_name for m in frappe.db.get_all('Desktop Icon',
 				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
 
+	def before_insert(self):
+		self.flags.in_insert = True
+
 	def after_insert(self):
 		self.set_default_roles()
 
 	def validate(self):
 		self.check_demo()
-
-		self.in_insert = self.get("__islocal")
 
 		# clear new password
 		self.__new_password = self.new_password
@@ -150,7 +151,7 @@ class User(Document):
 			])
 
 	def email_new_password(self, new_password=None):
-		if new_password and not getattr(self, 'in_insert', False):
+		if new_password and not self.flags.in_insert:
 			_update_password(self.name, new_password)
 
 			if self.send_password_update_notification:
@@ -193,7 +194,7 @@ class User(Document):
 
 	def send_password_notification(self, new_password):
 		try:
-			if getattr(self, 'in_insert', False):
+			if self.flags.in_insert:
 				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
@@ -201,12 +202,14 @@ class User(Document):
 
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
+						self.flags.email_sent = 1
 						msgprint(_("Welcome email sent"))
 						return
 			else:
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
+			print frappe.get_traceback()
 			pass # email server not set, don't send email
 
 
@@ -593,7 +596,10 @@ def sign_up(email, full_name, redirect_to):
 		if redirect_to:
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
 
-		return _("Registration Details Emailed.")
+		if user.flags.email_sent:
+			return _("Please check your email for verification")
+		else:
+			return _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
