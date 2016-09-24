@@ -274,15 +274,12 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
-	if validate:
-		try:
-			value = int(value)
-		except ValueError:
-			pass
+	if value in ('0', '1'):
+		value = int(value)
 
 	# boolean
-	if value in ("False", "True"):
-		value = eval(value)
+	if value in ("false", "true"):
+		value = eval(value.title())
 
 	# remove key if value is None
 	if value == "None":

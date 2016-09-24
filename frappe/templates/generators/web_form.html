@@ -36,7 +36,7 @@
 {% if login_required and frappe.user=="Guest" %}
 <div class="login-required">
 	<div class="text-muted">
-		{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+		{{ _("Please sign-up or login to begin") }}
 	</div>
 	<p>
 		<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">

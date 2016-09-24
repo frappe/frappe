@@ -563,7 +563,7 @@ def verify_password(password):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 @frappe.whitelist(allow_guest=True)
-def sign_up(email, full_name):
+def sign_up(email, full_name, redirect_to):
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
@@ -572,9 +572,12 @@ def sign_up(email, full_name):
 			return _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
-			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 200:
-			frappe.msgprint("Login is closed for sometime, please check back again in an hour.")
-			raise Exception, "Too Many New Users"
+			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
+
+			frappe.respond_as_web_page(_('Temperorily Disabled'),
+				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
+				http_status_code=429)
+
 		from frappe.utils import random_string
 		user = frappe.get_doc({
 			"doctype":"User",
@@ -586,6 +589,10 @@ def sign_up(email, full_name):
 		})
 		user.flags.ignore_permissions = True
 		user.insert()
+
+		if redirect_to:
+			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
+
 		return _("Registration Details Emailed.")
 
 @frappe.whitelist(allow_guest=True)
