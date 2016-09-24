@@ -203,7 +203,8 @@ class User(Document):
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
-						msgprint(_("Welcome email sent"))
+						if frappe.session.user != 'Guest':
+							msgprint(_("Welcome email sent"))
 						return
 			else:
 				self.email_new_password(new_password)
@@ -508,10 +509,10 @@ def update_password(new_password, key=None, old_password=None):
 	user_doc, redirect_url = reset_user_data(user)
 
 	# get redirect url from cache
-	redirect_to = frappe.cache().hset('redirect_after_login', user.name)
+	redirect_to = frappe.cache().hset('redirect_after_login', user)
 	if redirect_to:
 		redirect_url = redirect_to
-		frappe.cache().hdel('redirect_after_login', user.name)
+		frappe.cache().hdel('redirect_after_login', user)
 
 
 	frappe.local.login_manager.login_as(user)
