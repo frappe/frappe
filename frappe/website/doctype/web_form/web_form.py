@@ -166,7 +166,6 @@ def get_context(context):
 		self.add_payment_gateway_url(context)
 
 	def add_payment_gateway_url(self, context):
-
 		if context.doc and self.accept_payment:
 			controller = get_integration_controller(self.payment_gateway)
 
