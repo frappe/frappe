@@ -231,6 +231,7 @@
 	{% endif %}
 
 	{% for page in layout %}
+	{% set last_page = True if loop.index == layout|len else False %}
 	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
 		data-idx="{{ loop.index }}">
 		{% if page.label %}<h2>{{ page.label }}</h2>{% endif %}
@@ -252,7 +253,7 @@
 					</div>
 					{% endfor %}
 			</div>
-			{% if accept_payment and payment_url %}
+			{% if last_page and accept_payment and payment_url %}
 				<div class="well payment-details">
 					{% if not doc.paid %}
 						{% if payment_button_help %}
