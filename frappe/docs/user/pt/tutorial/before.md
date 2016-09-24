@@ -1,4 +1,4 @@
-# Before You Start
+# Antes de começar
 
 <p class="lead">Uma lista de ferramentas, tecnologias que serão muito úteis para a construção de aplicativos com Frappe.</p>
 
