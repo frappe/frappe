@@ -7,11 +7,13 @@
 {% endblock %}
 
 {% block breadcrumbs %}
+{% if has_header %}
 {% include "templates/includes/breadcrumbs.html" %}
+{% endif %}
 {% endblock %}
 
 {% block header_actions %}
-  {% if frappe.form_dict.name or frappe.form_dict.new %}
+  {% if has_header %}
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">

@@ -151,6 +151,12 @@ def get_context(context):
 
 		context.parents = self.get_parents(context)
 
+		if self.breadcrumbs:
+			context.parents = eval(self.breadcrumbs)
+
+		context.has_header = ((frappe.form_dict.name or frappe.form_dict.new)
+			and (frappe.session.user!="Guest" or not self.login_required))
+
 		if context.success_message:
 			context.success_message = context.success_message.replace("\n",
 				"<br>").replace("'", "\'")
@@ -165,7 +171,6 @@ def get_context(context):
 					module = scrub(self.module),
 					name = scrub(self.name)
 			)
-			print module_name
 			module = frappe.get_module(module_name)
 			new_context = module.get_context(context)
 

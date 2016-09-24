@@ -507,6 +507,13 @@ def update_password(new_password, key=None, old_password=None):
 
 	user_doc, redirect_url = reset_user_data(user)
 
+	# get redirect url from cache
+	redirect_to = frappe.cache().hset('redirect_after_login', user.name)
+	if redirect_to:
+		redirect_url = redirect_to
+		frappe.cache().hdel('redirect_after_login', user.name)
+
+
 	frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
