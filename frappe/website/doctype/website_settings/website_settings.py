@@ -111,7 +111,7 @@ def get_website_settings():
 		context[key] = via_hooks[key]
 		if key not in ("top_bar_items", "footer_items", "post_login") \
 			and isinstance(context[key], (list, tuple)):
-			context[key] = context[key][0]
+			context[key] = context[key][-1]
 
 	add_website_theme(context)
 
