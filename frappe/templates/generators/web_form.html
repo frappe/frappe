@@ -312,6 +312,7 @@ frappe.ready(function() {
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
+	frappe.is_new = {{ 1 if frappe.form_dict.new else 0 }};
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	frappe.form_dirty = false;
 
@@ -342,14 +343,18 @@ frappe.ready(function() {
 		}
 	});
 
+	var set_mandatory_class = function(input) {
+		if($(input).attr('data-reqd')) {
+			$(input).parent().toggleClass('has-error', !!!$(input).val());
+		}
+	}
+
 	// show mandatory fields as red
 	$('.form-group input, .form-group textarea, .form-group select').on('change', function() {
-		if($(this).attr('data-reqd')) {
-			$(this).parent().toggleClass('has-error', !!!$(this).val());
-		}
+		set_mandatory_class(this);
 	}).on('keypress', function() {
-		$(this).trigger('change');
-	}).trigger('change');
+		set_mandatory_class(this);
+	}).each(function() { set_mandatory_class(this); });
 
 	// if changed, set dirty flag
 	$form.on('change', function() {
@@ -456,8 +461,6 @@ frappe.ready(function() {
 						}
 					}
 
-					console.log(d, has_value)
-
 					// only add if any value is set
 					if(has_value) {
 						doc[fieldname].push(d);
@@ -536,6 +539,9 @@ frappe.ready(function() {
                     } else {
 						set_message(__('Saved'));
 				    }
+					if(frappe.is_new) {
+						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
+					}
 			    }
 		    },
             always: function() {
