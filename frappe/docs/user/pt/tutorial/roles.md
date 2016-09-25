@@ -1,11 +1,11 @@
-# Creating Roles
+# Criando cargos
 
-Before creating Models, we must create Roles so that we can set permissions on the Model. There are two Roles we will create:
+Antes de criar modelos, devemos criar cargos para que possamos definir as permissões do modelo. Há dois cargos que nós iremos criar:
 
 1. Librarian
 1. Library Member
 
-To create a new Role, go to:
+Para criar um novo cargo, vá para:
 
 > Setup > Users > Role > New
 
