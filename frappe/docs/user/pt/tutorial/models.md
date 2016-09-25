@@ -1,14 +1,14 @@
-# Making Models
+# Criando modelos
 
-The next step is to create the models as we discussed in the introduction. In Frappe, models are called **DocTypes**. You can create new DocTypes from the Desk UI. **DocTypes** are made of fields called **DocField** and role based permissions are integrated into the models, these are called **DocPerms**.
+O próximo passo é criar os modelos como discutimos na introdução. Em Frappe, os modelos são chamados **DocTypes**. Você pode criar novos doctypes atravez da interface do Desk. **DocTypes** são feitos de campos chamados **DocField** e de permissões com base nas permissões que são integrados nos modelos, estes são chamados **DocPerms**.
 
-When a DocType is saved, a new table is created in the database. This table is named as `tab[doctype]`.
+Quando um DocType é salvo, uma nova tabela é criada no banco de dados. Esta tabela é nomeado como `tab[doctype]`.
 
-When you create a **DocType** a new folder is created in the **Module** and a model JSON file and a controller template in Python are automatically created. When you update the DocType, the JSON model file is updated and whenever `bench migrate` is executed, it is synced with the database. This makes it easy to propagate schema changes and migrate.
+Quando você cria um **DocType** uma nova pasta é criada no **Módulo** e um arquivo JSON do modelo e um controlador template em Python são criados automaticamente. Quando você atualizar o DocType, o arquivo modelo JSON é atualizado e quando o `bench migrate` é executado, ele é sincronizado com o banco de dados. Isto torna mais fácil para propagar alterações de schema e migrar.
 
-### Developer Mode
+### Modo Desenvolvedor
 
-To create models, you must set `developer_mode` as 1 in the `site_config.json` file located in /sites/library and execute command `bench clear-cache` or use the user menu in UI and click on "Reload" for the changes to take effect. You should now see the "Developer" app on your desk
+Para criar modelos, você deve definir `developer_mode` como 1 no arquivo `site_config.json` localizado em /sites/library e executar o comando `bench clear-cache` ou use o menu de usuário na interface do usuário e clique em "Atualizar" para que as alterações entrem em vigor. Agora você deve ver o aplicativo "Developer" em sua Desk
 
 	{
 	 "db_name": "bcad64afbf",
