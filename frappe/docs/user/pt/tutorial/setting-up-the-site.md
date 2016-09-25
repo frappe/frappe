@@ -1,10 +1,10 @@
-# Setting up the Site
+# Configurando o site
 
-Let us create a new site and call it `library`.
+Vamos criar um novo site e chamá-lo de `library`.
 
-You can install a new site, by the command `bench new-site library`
+Você pode instalar um novo site, pelo comando `bench new-site library`
 
-This will create a new database and site folder and install `frappe` (which is also an application!) in the new site. The `frappe` application has two built-in modules **Core** and **Website**. The Core module contains the basic models for the application. Frappe is a batteries included framework and comes with a lot of built-in models. These models are called **DocTypes**. More on that later.
+Isto irá criar uma nova pasta para o site e um banco de dados e instalar o `frappe` (que também é uma aplicação!) No novo site. A aplicação `frappe` tem dois módulos embutidos **Core** e **WebSite**. O módulo de Core contém os modelos básicos para a aplicação. Frappe é uma estrutura como as pilhas e vem com um monte de modelos internos. Estes modelos são chamados doctypes **Mais sobre isso mais tarde**.
 
 	$ bench new-site library
 	MySQL root password:
@@ -16,9 +16,9 @@ This will create a new database and site folder and install `frappe` (which is a
 	Installing fixtures...
 	*** Scheduler is disabled ***
 
-### Site Structure
+### Estrututa do Site
 
-A new folder called `library` will be created in the `sites` folder. Here is the standard folder structure for a site.
+Uma nova pasta chamada `library` será criado na pasta` sites`. Aqui está a estrutura de pastas padrão para um site.
 
 	.
 	├── locks
@@ -28,25 +28,25 @@ A new folder called `library` will be created in the `sites` folder. Here is the
 	│   └── files
 	└── site_config.json
 
-1. `public/files` is where user uploaded files are stored.
-1. `private/backups` is where backups are dumped
-1. `site_config.json` is where site level configurations are maintained.
+1. `public/files` é onde os arquivos enviados pelo usuário são armazenados.
+1. `private/backups` é onde os backups são despejados
+1. `site_config.json` é onde as configurações a nível do site são mantidas.
 
-### Setting Default Site
+### Configurações padrão do site
 
-In case you have multiple sites on you bench use `bench use [site_name]` to set the default site.
+No caso de você ter vários sites em seu bench use `bench use [site_name]` para definir o site padrão.
 
-Example:
+Exemplo:
 
 	$ bench use library
 
-### Install App
+### Instalar App
 
-Now let us install our app `library_management` in our site `library`
+Agora vamos instalar nosso app `library_management` no nosso site `library`
 
-1. Install library_management in library with: `bench --site [site_name] install-app [app_name]`
+1. Instale library_management no library com: `bench --site [site_name] install-app [app_name]`
 
-Example:
+Exemplo:
 
 	$ bench --site library install-app library_management
 
