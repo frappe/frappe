@@ -1,6 +1,6 @@
-# DocType Directory Structure
+# Estrutura de diretórios do DocType
 
-After saving the DocTypes, check that the model `.json` and `.py` files are created in the `apps/library_management/library_management` module. The directory structure after creating the models should look like this:
+Depois de salvar os doctypes, verifique-se de que oo arquivos do modelo `.json` e `.py` foram criados no modulo `apps/library_management/library_management`. A estrutura de diretório após a criação dos modelos deve ficar assim:
 
 	.
 	├── MANIFEST.in
