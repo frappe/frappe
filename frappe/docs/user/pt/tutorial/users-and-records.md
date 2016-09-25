@@ -1,52 +1,52 @@
-# Making Users and Records
+# Fazendo Usuários e Registros
 
-Now that we have created the models, we can directly start making records using Frappe Desk UI. You do not have to create views! Views in Frappe are automatically made based on the DocType properties.
+Agora que já criamos os modelos, podemos começar diretamente criando registros usando a interface Desk do Frappe. Você não precisa criar Views! Views no Frappe são geradas automaticamente com base nas propriedades do DocType.
 
-### 4.1 Creating User
+### 4.1 Criando Usuarios
 
-To make records, we will first create a User. To create a user, go to:
+Para criar registros, vamos primeiro criar um usuário. Para criar um usuário, vá para:
 
 > Setup > Users > User > New
 
-Create a new User and set the name and first name and new password.
+Crie um novo usuário e definá o nome, o primeiro nome e uma nova senha.
 
-Also give the Librarian and Library Member Roles to this user
+Também de as roles de Librarian e Library Member para este usuario
 
 <img class="screenshot" alt="Add User Roles" src="{{docs_base_url}}/assets/img/add_user_roles.png">
 
-Now logout and login using the new user id and password.
+Agora saia e se autentique usando o novo ID de usuário e senha.
 
-### 4.2 Creating Records
+### 4.2 Criando registros
 
-You will now see an icon for the Library Management module. Click on that icon and you will see the Module page:
+Você vai ver agora um ícone para o módulo de Library Management. Clique nesse ícone e você verá a página do modelo:
 
 <img class="screenshot" alt="Library Management Module" src="{{docs_base_url}}/assets/img/lib_management_module.png">
 
-Here you can see the DocTypes that we have created for the application. Let us start creating a few records.
+Aqui você pode ver os doctypes que criamos para a aplicação. Vamos começar a criar alguns registros.
 
-First let us create a new Article:
+Primeiro, vamos criar um novo artigo:
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article_blank.png">
 
-Here you will see that the the DocType you had created has been rendered as a form. The validations and other rules will also apply as designed. Let us fill out one Article.
+Aqui você vai ver que o DocType que você tinha criado foi processado como um formulário. As validações e outras regras também serão aplicadas conforme projetado. Vamos preencher um artigo.
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article.png">
 
-You can also add an image.
+Você também pode adicionar uma imagem.
 
 <img class="screenshot" alt="Attach Image" src="{{docs_base_url}}/assets/img/attach_image.gif">
 
-Now let us create a new member:
+Agora vamos criar um novo membro:
 
 <img class="screenshot" alt="New Library Member" src="{{docs_base_url}}/assets/img/new_member.png">
 
-After this, let us create a new membership record for the member.
+Depois disso, vamos criar um novo registro de membership para o membro.
 
-Here if you remember we had set the values of Member First Name and Member Last Name to be directly fetched from the Member records and as soon as you will select the member id, the names will be updated.
+Aqui se você se lembra, nós tinhamos definido os valores do primeiro e do ultimo nome do membro para ser diretamente obtido a partir dos registros de membros e, logo que você selecionar o ID de membro, os nomes serão atualizados.
 
 <img class="screenshot" alt="New Library Membership" src="{{docs_base_url}}/assets/img/new_lib_membership.png">
 
-As you can see that the date is formatted as year-month-day which is a system format. To set / change date, time and number formats, go to
+Como você pode ver que a data é formatada como ano-mês-dia, que é um formato de sistema. Para definir/mudar a data, hora e número de formatos, acesse
 
 > Setup > Settings > System Settings
 
