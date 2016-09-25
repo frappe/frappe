@@ -1,8 +1,8 @@
-# Starting the Bench
+# Iniciando o Bench
 
-Now we can login and check if everything works.
+Agora podemos logar e verificar se tudo funcionou.
 
-To start the development server, run `bench start`
+Para iniciar o servidor de desenvolvimento, digite `bench start`
 
 	$ bench start
 	13:58:51 web.1        | started with pid 22135
@@ -12,20 +12,20 @@ To start the development server, run `bench start`
 	13:58:52 web.1        |  * Restarting with reloader
 	13:58:52 workerbeat.1 | [2014-09-17 13:58:52,343: INFO/MainProcess] beat: Starting...
 
-You can now open your browser and go to `http://localhost:8000`. You should see this login page if all goes well:
+Agora você pode abrir o seu navegador e ir para `http://localhost:8000`. Você deve ver esta página de login, se tudo correu bem:
 
 <img class="screenshot" alt="Login Screen" src="{{docs_base_url}}/assets/img/login.png">
 
-Now login with : 
+Agora logue com :
 
 Login ID: **Administrator**
 
-Password : **Use the password that was created during installation**
+Senha : **Use a senha que foi criada durante a instalação**
 
-When you login, you should see the "Desk" home page
+Quando voce logar, voce deverá ver o "Desk" da pagine home
 
 <img class="screenshot" alt="Desk" src="{{docs_base_url}}/assets/img/desk.png">
 
-As you can see, the Frappe basic system comes with several pre-loaded applications like To Do, File Manager etc. These apps can integrated in your app workflow as we progress.
+Como você pode ver, o básico do sistema Frappe vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.
 
 {next}
