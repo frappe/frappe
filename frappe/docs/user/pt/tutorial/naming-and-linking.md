@@ -1,54 +1,54 @@
-# DocType Naming and Linking
+# Nomeando e vinculando DocType
 
-Then let us create the other DocType and save it too:
+Em seguida, vamos criar outro DocType e salva-lo também:
 
 1. Library Member (First Name, Last Name, Email ID, Phone, Address)
 
 <img class="screenshot" alt="Doctype Saved" src="{{docs_base_url}}/assets/img/naming_doctype.png">
 
 
-#### Naming of DocTypes
+#### Nomeação de DocTypes
 
-DocTypes can be named in different ways:
+DocTypes podem ser nomeados de diferentes formas:
 
-1. Based on a field
-1. Based on a series
-1. By controller (code)
+1. Com base em um campo
+1. Com base numa série
+1. Pelo controlador (Código)
 1. Prompt
 
-This can be set by entering the **Autoname** field. For controller, leave blank.
+Isso pode ser definido através do preenchimento do campo **Autoname**. Para o controlador, deixe em branco.
 
-> **Search Fields**: A DocType may be named on a series but it still needs to be searched by name. In our case, the Article will be searched by the title or the author name. So this can be entered in search field.
+> **Search Fields**: A DocType pode ser nomeado em uma série, mas ele ainda precisa ser pesquisado por nome. No nosso caso, o artigo será procurado pelo título ou o nome do autor. Portanto, este pode ser inserido no campo de pesquisa.
 
 <img class="screenshot" alt="Autonaming and Search Field" src="{{docs_base_url}}/assets/img/autoname_and_search_field.png">
 
-#### Link and Select Fields
+#### Vinculando e selecionando campos
 
-Foreign keys are specified in Frappe as **Link** type fields. The target DocType must be mentioned in the Options text area.
+As chaves estrangeiras são especificados no Frappe como um tipo de campo **Link**. O DocType alvo deve ser mencionado na área de Opções de texto.
 
-In our example, in the Library Transaction DocType, we have to link both the Library Member and the Article.
+No nosso exemplo, na Library Transaction DocType, temos que ligar o Membro da Biblioteca e o artigo.
 
-**Note:** Remeber that Link fields are not automatically set as Foreign Keys in the MariaDB database, because that will implicitly index the column. This may not be optimum hence the Foreign Key validation is done by the Framework.
+**Observação:** Lembre-se que os campos link não são automaticamente configurados como chaves estrangeiras no banco de dados MariaDB, porque isso vai implicitamente indexar a coluna. Isto pode não ser ideal, mas, a validação de chave estrangeira é feito pelo Framework.
 
 <img class="screenshot" alt="Link Field" src="{{docs_base_url}}/assets/img/link_field.png">
 
-For select fields, as we mentioned earlier, add the various options in the **Options** input box, each option on a new row.
+Para campos de multipla escolha, como mencionamos anteriormente, adicione as várias opções na caixa de entrada **Options**, cada opção em uma nova linha.
 
 <img class="screenshot" alt="Select Field" src="{{docs_base_url}}/assets/img/select_field.png">
 
-Similary complete making the other models.
+Fazer o mesmo para outros modelos.
 
-#### Linked Values
+#### Vinculando valores
 
-A standard pattern is when you select an ID, say **Library Member** in **Library Membership**, then the Member's first and last names should be copied into relevant fields in the Library Membership Transaction.
+Um modelo padrão é quando você seleciona um ID, **Library Member** na **Library Membership**, então, o primeiro e o ultimo nome dos membros devem ser copiados para os campos adequados ao gravar na Library Membership Transaction.
 
-To do this, we can use Read Only fields and in options, we can set the the name of the link and the fieldname of the property we want to fetch. For this example in **Member First Name** we can set `library_member.first_name`
+Para fazer isso, podemos usar campos de somente leitura e de opções, podemos definir o nome do link e o nome do campo da propriedade que deseja buscar. Para este exemplo no **Member First Name** podemos definir `library_member.first_name`
 
 <img class="screenshot" alt="Fetch values" src="{{docs_base_url}}/assets/img/fetch.png">
 
-### Complete the Models
+### Complete os modelos
 
-In the same way, you can complete all the models so that the final fields look like this:
+Da mesma forma, você pode completar todos os modelos de modo que os campos finais fiquem parecido com este:
 
 #### Article
 
@@ -66,6 +66,6 @@ In the same way, you can complete all the models so that the final fields look l
 
 <img class="screenshot" alt="Library Transaction" src="{{docs_base_url}}/assets/img/doctype_lib_trans.png">
 
-> Make sure to give permissions to **Librarian** on each DocType
+> Lembre-se de dar permissões para **Librarian** em cada DocType
 
 {next}
