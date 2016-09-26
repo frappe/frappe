@@ -13,8 +13,8 @@ frappe.ui.TagEditor = Class.extend({
 		*/
 		$.extend(this, opts);
 		var me = this;
-		this.$w = $('<div class="tag-line">').appendTo(this.parent)
-		this.$tags = $('<ul>').prependTo(this.$w);
+		this.wrapper = $('<div class="tag-line">').appendTo(this.parent)
+		this.$tags = $('<ul>').prependTo(this.wrapper);
 		this.$tags.tagit({
 			animate: false,
 			allowSpaces: true,
@@ -59,7 +59,7 @@ frappe.ui.TagEditor = Class.extend({
 	},
 	setup_autocomplete: function() {
 		var me = this;
-		this.$w.find("input").autocomplete({
+		this.wrapper.find("input").autocomplete({
 			minLength: 0,
 			minChars: 0,
 			source: function(request, response) {

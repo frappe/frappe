@@ -61,7 +61,7 @@ frappe.Chat = Class.extend({
 		var $row = $('<div class="list-row"/>');
 		frappe.pages.chat.chat.list.data.unshift(comment);
 		frappe.pages.chat.chat.list.render_row($row, comment);
-		frappe.pages.chat.chat.list.$w.prepend($row);
+		frappe.pages.chat.chat.list.wrapper.prepend($row);
 	},
 
 	make_sidebar: function() {

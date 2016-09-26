@@ -14,14 +14,16 @@
 		</div>
 	</li>
 	<li class="divider"></li>
+	<li class="hide list-link" data-view="List">
+		<a href="#List/{%= doctype %}">{%= __("List") %}</a></li>
+	<li class="hide list-link" data-view="Image">
+		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
+    <li class="hide list-link" data-view="Gantt">
+		<a href="#List/{%= doctype %}/Gantt">{%= __("Gantt") %}</a></li>
 	<li class="hide tree-link"><a href="#Tree/{%= doctype %}">{%= __("Tree") %}</a></li>
     <li class="hide calendar-link"><a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
-    <li class="hide gantt-link"><a href="#Gantt/{%= doctype %}">{%= __("Gantt") %}</a></li>
     <li class="assigned-to-me">
         <a>{%= __("Assigned To Me") %}</a>
-    </li>
-    <li class="hide switch-list-view">
-        <a>{%= __("Show Images") %}</a>
     </li>
     {% if(frappe.help.has_help(doctype)) { %}
     <li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
