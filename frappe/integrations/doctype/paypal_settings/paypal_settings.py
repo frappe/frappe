@@ -208,8 +208,8 @@ def confirm_payment(token):
 			redirect_to = frappe.get_doc(data.get("reference_doctype"), data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 
 		if not redirect_to:
-			if data.get('redirect_to'):
-				redirect_to = data.get('redirect_to')
+			if doc.redirect_to:
+				redirect_to = doc.redirect_to
 
 		redirect_to = redirect_to or get_url("/integrations/payment-success")
 
