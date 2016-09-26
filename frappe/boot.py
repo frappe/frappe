@@ -103,18 +103,16 @@ def get_allowed_pages():
 	return page_info
 
 def load_translations(bootinfo):
-	messages = frappe.get_lang_dict("boot")
+	if frappe.local.lang != 'en':
+		messages = frappe.get_lang_dict("boot")
 
-	bootinfo["lang"] = frappe.lang
+		bootinfo["lang"] = frappe.lang
 
-	# load translated report names
-	for name in bootinfo.user.all_reports:
-		messages[name] = frappe._(name)
+		# load translated report names
+		for name in bootinfo.user.all_reports:
+			messages[name] = frappe._(name)
 
-	# only untranslated
-	messages = {k:v for k, v in messages.iteritems() if k!=v}
-
-	bootinfo["__messages"] = messages
+		bootinfo["__messages"] = messages
 
 def get_fullnames():
 	"""map of user fullnames"""
@@ -167,9 +165,3 @@ def load_print(bootinfo, doclist):
 
 def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.get_attr("frappe.www.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)
-
-def get_unseen_notes():
-	return frappe.db.sql('''select name, title, content from tabNote where notify_on_login=1
-		and expire_notification_on > %s and %s not in
-			(select user from `tabNote Seen By` nsb
-				where nsb.parent=tabNote.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)

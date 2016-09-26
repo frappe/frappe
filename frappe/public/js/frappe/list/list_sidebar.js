@@ -114,6 +114,7 @@ frappe.views.ListSidebar = Class.extend({
 			method: 'frappe.desk.reportview.get_stats',
 			args: {
 				stats: me.stats,
+				filters: this.doclistview.filter_list.get_filters(),
 				doctype: me.doctype
 			},
 			callback: function(r) {
@@ -121,17 +122,7 @@ frappe.views.ListSidebar = Class.extend({
 				$.each(me.stats, function(i, v) {
 					me.render_stat(v, (r.message || {})[v]);
 				});
-
-				// reload button at the end
-				// if(me.stats.length) {
-				// 	$('<a class="small text-muted">'+__('Refresh Stats')+'</a>')
-				// 		.css({"margin-top":"15px", "display":"inline-block"})
-				// 		.click(function() {
-				// 			me.reload_stats();
-				// 			return false;
-				// 		}).appendTo($('<div class="stat-wrapper">')
-				// 			.appendTo(me.sidebar));
-				// }
+				//display count of list
 
 				me.doclistview.set_sidebar_height();
 			}
@@ -160,6 +151,8 @@ frappe.views.ListSidebar = Class.extend({
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				me.set_filter(fieldname, label);
+				me.sidebar.find(".sidebar-stat").remove();
+				me.get_stats();
 			})
 			.appendTo(this.sidebar);
 	},

@@ -52,9 +52,12 @@ def get_user_lang(user=None):
 	if not lang:
 
 		# if defined in user profile
-		lang = frappe.db.get_value("User", user, "language")
-		if not lang:
-			lang = frappe.db.get_default("lang")
+		user_lang = frappe.db.get_value("User", user, "language")
+		if user_lang and user_lang!="Loading...":
+			lang = get_lang_code(user_lang)
+		else:
+			default_lang = frappe.db.get_default("lang")
+			lang = get_lang_code(default_lang)
 
 		if not lang:
 			lang = frappe.local.lang or 'en'
@@ -64,24 +67,29 @@ def get_user_lang(user=None):
 	return lang
 
 def get_lang_code(lang):
-	return frappe.db.get_value('Language', {'language_name': lang}) or lang
+	return get_lang_dict().get(lang, lang)
 
-def set_default_language(lang):
+def set_default_language(language):
 	"""Set Global default language"""
+	lang = get_lang_dict().get(language, language)
 	frappe.db.set_default("lang", lang)
 	frappe.local.lang = lang
 
 def get_all_languages():
 	"""Returns all language codes ar, ch etc"""
-	def _get():
-		if not frappe.db:
-			frappe.connect()
-		return frappe.db.sql_list('select name from tabLanguage')
-	return frappe.cache().get_value('languages', _get)
+	return [a.split()[0] for a in get_lang_info()]
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	return dict(frappe.db.sql('select language_name, name from tabLanguage'))
+	return dict([[a[1], a[0]] for a in [a.split(None, 1) for a in get_lang_info()]])
+
+def get_language_from_code(lang):
+	return dict(a.split(None, 1) for a in get_lang_info()).get(lang)
+
+def get_lang_info():
+	"""Returns a listified version of `apps/languages.txt`"""
+	return frappe.cache().get_value("langinfo",
+		lambda:frappe.get_file_items(os.path.join(frappe.local.sites_path, "languages.txt")))
 
 def get_dict(fortype, name=None):
 	"""Returns translation dict for a type of object.
@@ -113,13 +121,8 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Module:', label from `tabDesktop Icon` where standard=1 or owner=%s",
 				frappe.session.user)
 
-		message_dict = make_dict_from_messages(messages)
-		message_dict.update(get_dict_from_hooks(fortype, name))
-
-		# remove untranslated
-		message_dict = {k:v for k, v in message_dict.iteritems() if k!=v}
-
-		translation_assets[asset_key] = message_dict
+		translation_assets[asset_key] = make_dict_from_messages(messages)
+		translation_assets[asset_key].update(get_dict_from_hooks(fortype, name))
 
 		cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
@@ -177,10 +180,16 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, 'lang_full_dict', None) is not None:
+	if frappe.local.lang_full_dict is not None:
 		return frappe.local.lang_full_dict
 
-	frappe.local.lang_full_dict = load_lang(lang)
+	frappe.local.lang_full_dict = frappe.cache().hget("lang_full_dict", lang)
+
+	if frappe.local.lang_full_dict is None:
+		frappe.local.lang_full_dict = load_lang(lang)
+
+		# only cache file translations in this
+		frappe.cache().hset("lang_full_dict", lang, frappe.local.lang_full_dict)
 
 	try:
 		# get user specific transaltion data
@@ -194,29 +203,12 @@ def get_full_dict(lang):
 	return frappe.local.lang_full_dict
 
 def load_lang(lang, apps=None):
-	"""Combine all translations from `.csv` files in all `apps`.
-	For derivative languages (es-GT), take translations from the
-	base language (es) and then update translations from the child (es-GT)"""
-
-	if lang=='en':
-		return {}
-
-	out = frappe.cache().hget("lang_full_dict", lang)
-	if not out:
-		out = {}
-		for app in (apps or frappe.get_all_apps(True)):
-			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			out.update(get_translation_dict_from_file(path, lang, app) or {})
-
-		if '-' in lang:
-			parent = lang.split('-')[0]
-			parent_out = load_lang(parent)
-			parent_out.update(out)
-			out = parent_out
-
-		frappe.cache().hset("lang_full_dict", lang, out)
-
-	return out or {}
+	"""Combine all translations from `.csv` files in all `apps`"""
+	out = {}
+	for app in (apps or frappe.get_all_apps(True)):
+		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
+		out.update(get_translation_dict_from_file(path, lang, app))
+	return out
 
 def get_translation_dict_from_file(path, lang, app):
 	"""load translation dict from given path"""
@@ -250,17 +242,16 @@ def get_user_translations(lang):
 
 	return out
 
+# def get_user_translation_key():
+# 	return 'lang_user_translations:{0}'.format(frappe.local.site)
+
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
 	cache = frappe.cache()
 	cache.delete_key("langinfo")
-
-	# clear translations saved in boot cache
-	cache.delete_key("bootinfo")
 	cache.delete_key("lang_full_dict")
 	cache.delete_key("translation_assets")
-	cache.delete_key("lang_user_translations")
 
 def get_messages_for_app(app):
 	"""Returns all messages (list) for a specified `app`"""
@@ -372,8 +363,8 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
 			(w['name'],), as_dict=True)
 
-		messages.extend([("Workflow: " + w['name'], state['message'])
-			for state in states if is_translatable(state['message'])])
+		messages.extend([("Workflow: " + w['name'], states['message'])
+			for state in states if is_translatable(state['state'])])
 
 		actions = frappe.db.sql(
 			'select distinct action from `tabWorkflow Transition` where parent=%s',
@@ -685,9 +676,6 @@ def get_bench_dir():
 	return os.path.join(frappe.__file__, '..', '..', '..', '..')
 
 def rename_language(old_name, new_name):
-	if not frappe.db.exists('Language', new_name):
-		return
-
 	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
 	if language_in_system_settings == old_name:
 		frappe.db.set_value("System Settings", "System Settings", "language", new_name)

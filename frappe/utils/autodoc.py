@@ -8,8 +8,6 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-from __future__ import unicode_literals
-
 import inspect, importlib, re, frappe
 from frappe.model.document import get_controller
 
@@ -44,7 +42,7 @@ def automodule(name):
 
 	return {
 		"members": filter(None, attributes),
-		"docs": get_obj_doc(obj)
+		"docs": getattr(obj, "__doc__", "")
 	}
 
 installed = None
@@ -91,11 +89,11 @@ def get_class_info(class_obj, module_name):
 		"type": "class",
 		"bases": [b.__module__ + "." + b.__name__ for b in class_obj.__bases__],
 		"members": filter(None, members),
-		"docs": parse(get_obj_doc(class_obj))
+		"docs": parse(getattr(class_obj, "__doc__", ""))
 	}
 
 def get_function_info(value):
-	docs = get_obj_doc(value)
+	docs = getattr(value, "__doc__")
 	return {
 		"name": value.__name__,
 		"type": "function",
@@ -109,6 +107,8 @@ def parse(docs):
 	# strip leading tabs
 	if not docs:
 		return ""
+
+	docs = strip_leading_tabs(docs)
 
 	if ":param" in docs:
 		out, title_set = [], False
@@ -154,10 +154,3 @@ def strip_leading_tabs(docs):
 def automodel(doctype):
 	"""return doctype template"""
 	pass
-
-def get_obj_doc(obj):
-	'''Return `__doc__` of the given object as unicode'''
-	doc = getattr(obj, "__doc__", "") or ''
-	if not isinstance(doc, unicode):
-		doc = unicode(doc, 'utf-8')
-	return doc

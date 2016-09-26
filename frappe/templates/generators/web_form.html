@@ -7,21 +7,19 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-{% if has_header %}
 {% include "templates/includes/breadcrumbs.html" %}
-{% endif %}
 {% endblock %}
 
 {% block header_actions %}
-  {% if has_header %}
+  {% if frappe.form_dict.name or frappe.form_dict.new %}
     <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
     		{{ _("Cancel") }}</a>
     <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Save") }}</button>
+    		{{ _("Submit") if frappe.form_dict.new else _("Update") }}</button>
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
-	    {{ _("New {0}").format(_(title)) }}
+	    <a href="/{{ pathname + args }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+	    {{ _("New {0}").format(_(doc_type)) }}
 	    </a>
 	</div>
   {% endif %}
@@ -34,11 +32,10 @@
 	<hr>
 	{% endif %}
 </div>
-<div class="form-message alert alert-warning hide"></div>
 {% if login_required and frappe.user=="Guest" %}
 <div class="login-required">
 	<div class="text-muted">
-		{{ _("Please sign-up or login to begin") }}
+		{{ _("Please login to create a new {0}").format(_(doc_type)) }}
 	</div>
 	<p>
 		<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
@@ -53,22 +50,17 @@
 <br>
 
 {%- macro properties(field) %}
-		name="{{ field.fieldname }}"
+		name="{{ field.fieldname }}" id="{{ field.fieldname }}"
 		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
-		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }}
 		{{ field.read_only and "disabled" or "" }}
 {% endmacro -%}
 
-{%- macro value(field, _doc) -%}
-	{%- if _doc -%}
-		{{ _doc.get(field.fieldname) or field.default
-			or frappe.form_dict.get(field.fieldname) or "" }}
-	{%- else -%}
-		{{ field.default or "" }}
-	{%- endif -%}
-{%- endmacro -%}
+{%- macro value(field) -%}{% if doc %}{{
+	doc.get(field.fieldname) or
+	field.default or
+	frappe.form_dict.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or field.default or "" }}{% endif %}{%- endmacro -%}
 
 {%- macro help(field) -%}
 		{% if field.description -%}
@@ -81,7 +73,7 @@
 				{{ _(field.label) }}</label>
 {% endmacro %}
 
-{% macro render_field(field, _doc=None, with_label=True) %}
+{% macro render_field(field) %}
 	{% if field.hidden %}
 	<input type="hidden"
 		name="{{ field.fieldname }}" {% if field.default -%} value="{{ field.default }}" {%- endif %}>
@@ -91,30 +83,18 @@
 	</div>
 	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
 	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
+		{{ label(field) }}
 		<input type="text" class="form-control" {{ properties(field) }}
-			value="{{ value(field, _doc) }}">
-		{{ help(field) }}
-	</div>
-	{% elif field.fieldtype=="Link" %}
-	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		<select class="form-control" {{ properties(field) }}>
-			{% for option in ([{"name":""}] + frappe.get_all(field.options)) -%}
-			<option value="{{ option.name }}"
-				{{ 'selected="selected"' if value(field, _doc)==option.name else '' }}>
-				{{ option.name }}</option>
-			{%- endfor %}
-		</select>
+			value="{{ value(field) }}">
 		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Select" %}
 	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
+		{{ label(field) }}
 		<select class="form-control" {{ properties(field) }}>
 			{% for option in field.options.split("\n") -%}
 			<option value="{{ option }}"
-				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
+				{{ 'selected="selected"' if value(field)==option else '' }}>
 				{{ option }}</option>
 			{%- endfor %}
 		</select>
@@ -122,24 +102,24 @@
 	</div>
 	{% elif field.fieldtype=="Text" %}
 	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		{{ help(field) }}
+		{{ label(field) }}
 		<textarea class="form-control" style="height: 200px;"
-		{{ properties(field) }}>{{ value(field, _doc) }}</textarea>
+		{{ properties(field) }}>{{ value(field) }}</textarea>
+		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Attach" %}
 	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		{% if value(field, _doc) -%}
+		{{ label(field) }}
+		{% if value(field) -%}
 		<p class="small">
 			<a href="{{ doc.get(field.fieldname) }}" target="blank">
-				{{ _doc.get(field.fieldname) }}
+				{{ doc.get(field.fieldname) }}
 			</a>
 			<br><button class="btn btn-small btn-default btn-xs
 				change-attach" style="margin-top: 5px;">Change</button>
 		</p>
 		{%- endif %}
-		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
+		<p class="{{ value(field) and 'hide' or '' }} attach-input-wrap">
 			<input type="file" style="margin-top: 7px;"
 				{{ properties(field) }}>
 		</p>
@@ -148,75 +128,19 @@
 	{% elif field.fieldtype=="Check" %}
 	<div class="form-group">
 		<div class="checkbox">
-			{% if with_label %}
 			<label>
 				<input type="checkbox" id="{{ field.fieldname }}"
-					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
-					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
+					name="{{ field.fieldname }}"
+					{{ doc and doc.get(field.fieldname) and 'checked' or '' }}>
 					{{ _(field.label) }}
 			</label>
-			{% endif %}
 			{{ help(field) }}
 		</div>
 	</div>
 	{% endif %}
 {% endmacro %}
 
-{% macro render_row(field, d=None, hidden=False) %}
-<tr class="web-form-grid-row {% if hidden %}hidden{% endif %}"
-	{% if d != None %}data-name="{{ d.name or "" }}" data-child-row=1{% endif %}>
-	{% for df in frappe.get_meta(field.options).fields %}
-		{% if df.in_list_view %}
-		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
-			{% if d!=None %}
-				{{ render_field(df, d, False) }}
-			{% else %}
-				<span class='text-muted small'>{{ _(df.label) }}</span>
-			{% endif %}
-		</{{ 'th' if d.name==None else 'td' }}>
-		{% endif %}
-	{% endfor %}
-	<td style="width: 8.3333%">
-	{% if d!=None %}
-		<button class='btn btn-default btn-sm btn-remove'><i class='icon-remove'></i></button>
-	{% endif %}
-	</td>
-</tr>
-{% endmacro %}
-
-{% macro render_table(field) %}
-	{{ label(field) }}
-	<div class='web-form-grid'
-		data-fieldname='{{ field.fieldname }}' data-doctype='{{ field.options }}'>
-		<table class='table table-bordered'>
-			<thead>
-				{{ render_row(field) }}
-			</thead>
-			<tbody>
-				{{ render_row(field, {}, True) }}
-				{% if doc and doc.get(field.fieldname) %}
-					{% for d in doc.get(field.fieldname) %}
-						{{ render_row(field, d) }}
-					{% endfor %}
-				{% else %}
-					{{ render_row(field, {}) }}
-				{% endif %}
-			</tbody>
-		</table>
-	</div>
-	<p><button class='btn btn-default btn-sm btn-add-row'
-		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
-{% endmacro %}
-
-{% if layout|len > 1 %}
-<div class="text-center slide-progress text-extra-muted">
-	{% for page in layout %}
-	<i data-idx="{{ loop.index }}" class="icon-fixed-width
-		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
-	{% endfor %}
-</div>
-{% endif %}
-
+<div class="form-message text-muted hide"></div>
 <form role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
 	{% if frappe.form_dict.name and web_page_link_text %}
@@ -229,68 +153,24 @@
 		</div>
 	</div>
 	{% endif %}
+	<input type="hidden" name="web_form" value="{{ name }}">
+	<input type="hidden" name="doctype" value="{{ doc_type }}">
+	{% if frappe.form_dict.name -%}
+	<input type="hidden" name="name" value="{{ frappe.form_dict.name }}">
+	{%- endif %}
 
-	{% for page in layout %}
-	{% set last_page = True if loop.index == layout|len else False %}
-	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
-		data-idx="{{ loop.index }}">
-		{% if page.label %}<h2>{{ page.label }}</h2>{% endif %}
-		{% for section in page.sections %}
-		<div class="section">
-			{% if section.label %}
-			<h5 class='uppercase'>{{ _(section.label) }}</h5>
-			{% endif %}
-			<div class="row">
-					{% for column in section.columns %}
-					<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
-							{% for field in column %}
-								{% if field.fieldtype=='Table' %}
-									{{ render_table(field) }}
-								{% else %}
-									{{ render_field(field, doc) }}
-								{% endif %}
-							{% endfor %}
-					</div>
-					{% endfor %}
-			</div>
-			{% if last_page and accept_payment and payment_url %}
-				<div class="well payment-details">
-					{% if not doc.paid %}
-						{% if payment_button_help %}
-						<div class='text-muted' style='padding-bottom: 15px;'>
-							{{ payment_button_help }}</div>
-						{% endif %}
-						<a class="btn btn-primary" href="{{ payment_url }}">
-							{{ payment_button_label }}</a>
-					{% else %}
-						<div>{{ _("Payment Complete") }}</div>
-					{% endif %}
+		{% for section in layout %}
+		<div class="row">
+				{% for column in section %}
+				<div class="col-sm-{{ (12 / (section|len))|int }}" style="max-width: 500px;">
+						{% for field in column %}
+								{{ render_field(field) }}
+						{% endfor %}
 				</div>
-			{% endif %}
+				{% endfor %}
 		</div>
 		{% endfor %}
-		<!-- page footer buttons -->
-		<div class='text-right'>
-			<br>
-			{% if loop.index > 1 %}
-				<button class='btn btn-sm btn-default btn-change-section'
-					data-idx="{{ loop.index - 1 }}">
-					{{ _("Previous") }}</button>
-			{% endif %}
-			{% if loop.index == layout|len %}
-			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-			    	{{ _("Save") }}</button>
-			{% elif layout|len > 1 %}
-			    <button class="btn btn-primary btn-sm btn-change-section"
-					data-idx="{{ loop.index + 1 }}">
-			    	{{ _("Next") }}</button>
-			{% endif %}
-		</div>
-	</div>
-	{% endfor %}
-
 </form>
-
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
 	<br><br>
@@ -306,14 +186,9 @@
 <script>
 frappe.ready(function() {
 	window.file_reading = false;
-	window.success_message = "{{ success_message or "" }}";
-	window.success_link = '{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>'
+		window.success_message = "{{ success_message or "" }}";
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
-	frappe.web_form_doctype = "{{ doc_type }}";
-	frappe.web_form_name = "{{ name }}";
-	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	var $form = $("form[data-web-form='{{ name }}']");
-	var dirty = false;
 
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
@@ -340,11 +215,6 @@ frappe.ready(function() {
 		}
 	});
 
-	// if changed, set dirty flag
-	$form.on('change', function() {
-		dirty = true;
-	});
-
 	// change attach
 	$form.on("click", ".change-attach", function() {
 		$(this).parent().addClass("hide")
@@ -353,96 +223,26 @@ frappe.ready(function() {
 		return false;
 	});
 
-	// change section
-	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
-		var idx = $(this).attr('data-idx');
-		show_slide(idx);
-		if(dirty) {
-			save();
-		}
-	});
+	// submit
+	$(".btn-form-submit").on("click", function() {
+		var args = {};
+		if(window.saving)
+			return;
+		window.saving = true;
 
-	show_slide = function(idx) {
-		// hide all sections
-		$('.web-form-page').addClass('hidden');
-
-		// slide-progress
-		$('.slide-progress .icon-fixed-width.icon-circle')
-			.removeClass('icon-circle').addClass('icon-circle-blank');
-		$('.slide-progress .icon-fixed-width[data-idx="'+idx+'"]')
-			.removeClass('icon-circle-blank').addClass('icon-circle');
-
-		// un hide target section
-		$('.web-form-page[data-idx="'+idx+'"]')
-			.removeClass('hidden')
-			.find(':input:first').focus();
-
-	}
-
-	// add row
-	$('.btn-add-row').on('click', function() {
-		var fieldname = $(this).attr('data-fieldname');
-		var grid = $('.web-form-grid[data-fieldname="'+fieldname+'"]');
-		var new_row = grid.find('.web-form-grid-row.hidden').clone()
-			.appendTo(grid.find('tbody'))
-			.attr('data-name', '')
-			.removeClass('hidden');
-		new_row.find('input').each(function() {
-			$(this)
-				.val($(this).attr('data-default') || "")
-				.removeClass('hasDatepicker')
-				.attr('id', '');
-		});
-		setup_date_picker(new_row);
-		return false;
-	});
-
-	// remove row
-	$('.web-form-grid').on('click', '.btn-remove', function() {
-		$(this).parents('.web-form-grid-row:first').remove();
-		return false;
-	});
-
-	// get document data
-	var get_data = function() {
-		var doc = get_data_for_doctype($form, frappe.web_form_doctype);
-		doc.doctype = frappe.web_form_doctype;
-		if(frappe.doc_name) {
-			doc.name = frappe.doc_name;
+		if(window.file_reading) {
+			window.saving = false;
+			frappe.msgprint("Reading file, please retry.");
+			return;
 		}
 
-		// get data from child tables
-		$('.web-form-grid').each(function() {
-			var fieldname = $(this).attr('data-fieldname');
-			var doctype = $(this).attr('data-doctype');
-			doc[fieldname] = [];
-
-			// get data from each row
-			$(this).find('[data-child-row=1]:visible').each(function() {
-				var d = get_data_for_doctype($(this), doctype);
-
-				// set name of child record (if set)
-				var name = $(this).attr('data-name');
-				if(name) { d.name = name; }
-
-				doc[fieldname].push(d);
-			});
-		});
-
-		return doc;
-	}
-
-	// get data from input elements
-	// for the given doctype
-	var get_data_for_doctype = function(parent, doctype) {
-		var out = {};
-		parent.find("[name][data-doctype='"+ doctype +"']").each(function() {
+		$form.find("[name]").each(function() {
 			var $input = $(this);
 			var input_type = $input.attr("type");
 			if(input_type==="file") {
 				var val = $input.get(0).filedata;
 			} else if(input_type==="checkbox") {
-				var val = $input.prop("checked") ? 1 : 0;
+				var val = $input.is(":checked") ? 1 : 0;
 			} else if($input.attr("data-fieldtype")==="Date") {
 				var val = $.datepicker.formatDate("yy-mm-dd",
 					$input.datepicker('getDate'));
@@ -457,42 +257,29 @@ frappe.ready(function() {
 				throw "mandatory missing";
 			}
 
-			out[$input.attr("name")] = val;
+			args[$input.attr("name")] = val;
 		});
-		return out;
-	}
-
-	function save() {
-		if(window.saving)
-			return;
-		window.saving = true;
-		dirty = false;
-
-		if(window.file_reading) {
-			window.saving = false;
-			frappe.msgprint("Reading file, please retry.");
-			return;
-		}
 
 		frappe.call({
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
-			args: {
-				data: get_data(),
-				web_form: frappe.web_form_name
-			},
+			args: args,
 			freeze: true,
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-					frappe.doc_name = data.message;
 					if(window.success_message) {
 						$form.addClass("hide");
 						$(".comments, .introduction").addClass("hide");
 						scroll(0, 0);
-						set_message(window.success_link);
+						$(".form-message")
+							.html('{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>')
+							.removeClass("hide");
                     } else {
-						set_message(__('Saved'));
+						frappe.msgprint(__('Successfully Updated. Redirecting...'));
+						setTimeout(function() {
+							window.location.href = "{{ success_url }}";
+						}, 3000);
 				    }
 			    }
 		    },
@@ -500,21 +287,7 @@ frappe.ready(function() {
                 window.saving = false;
             }
 		});
-	}
 
-	function set_message(msg) {
-		$(".form-message")
-			.html(msg)
-			.removeClass("hide");
-
-		setTimeout(function() {
-			$(".form-message").addClass('hide');
-		}, 5000);
-	}
-
-	// submit
-	$(".btn-form-submit").on("click", function() {
-		save();
 		return false;
 	});
 
@@ -538,49 +311,40 @@ frappe.ready(function() {
 		}
 	})
 
-	// setup datepicker in all inputs within the given element
-	var setup_date_picker = function(ele) {
-		var $dates = ele.find("[data-fieldtype='Date']");
-		var $date_times = ele.find("[data-fieldtype='Datetime']");
+	// import date picker / timepicker if required
+	{% if "Date" in types %}
+	frappe.require("assets/frappe/js/lib/jquery/jquery-ui.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
+	$form.find("[data-fieldtype='Date']").datepicker({
+		altFormat:'yy-mm-dd',
+		changeYear: true,
+		yearRange: "-70Y:+10Y",
+		dateFormat: frappe.datepicker_format,
+	});
 
-		// setup date
-		if($dates.length) {
-			frappe.require("assets/frappe/js/lib/jquery/jquery-ui.min.js");
-			frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
-			$dates.datepicker({
-				altFormat:'yy-mm-dd',
-				changeYear: true,
-				yearRange: "-70Y:+10Y",
-				dateFormat: frappe.datepicker_format,
-			});
-
-			// convert dates to user format
-			$dates.each(function() {
-				var val = $(this).val();
-				if(val) {
-					$(this).val($.datepicker.formatDate(frappe.datepicker_format,
-						$.datepicker.parseDate("yy-mm-dd", val)));
-				}
-			});
+	// convert dates to user format
+	$form.find("[data-fieldtype='Date']").each(function() {
+		var val = $(this).val();
+		if(val) {
+			$(this).val($.datepicker.formatDate(frappe.datepicker_format,
+				$.datepicker.parseDate("yy-mm-dd", val)));
 		}
+	})
 
-		// setup datetime
-		if($date_times.length) {
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
+	{% endif %}
 
-			$date_times.datetimepicker({
-				altFormat:'yy-mm-dd',
-				changeYear: true,
-				yearRange: "-70Y:+10Y",
-				dateFormat: frappe.datepicker_format,
-			});
-		}
-	}
-
-	setup_date_picker($form);
+	{% if "Datetime" in types %}
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
+	$form.find("[data-fieldtype='Datetime']").datetimepicker({
+		altFormat:'yy-mm-dd',
+		changeYear: true,
+		yearRange: "-70Y:+10Y",
+		dateFormat: frappe.datepicker_format,
+	})
+	{% endif %}
 });
 
 {% if script is defined %}
@@ -591,38 +355,5 @@ frappe.ready(function() {
 {% endblock %}
 
 {% block style %}
-<style>
-input, select {
-	max-width: 500px;
-}
-.web-form-grid-row input, .web-form-grid-row select {
-	border: 0px;
-	padding: 0px;
-}
-.web-form-grid-row input:focus, .web-form-grid-row select:focus {
-	box-shadow: none;
-}
-.web-form-grid-row .form-group {
-	margin: 0px;
-}
-
-.slide-progress {
-    /*border-top: 1px solid #d1d8dd;*/
-	margin-top: -7px;
-	padding: 15px 0px;
-}
-.slide-progress .icon-fixed-width {
-	vertical-align: middle;
-	margin-right: 7px;
-	cursor: pointer;
-}
-.slide-progress .icon-circle-blank {
-	font-size: 12px;
-}
-.slide-progress .icon-circle {
-	font-size: 14px;
-}
-
-{% if style is defined %}{{ style }}{% endif %}
-</style>
+{% if style is defined %}<style>{{ style }}</style>{% endif %}
 {% endblock %}

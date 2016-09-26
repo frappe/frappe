@@ -80,6 +80,7 @@
 }
 .form-dashboard-section {
   padding: 15px 30px;
+  margin: 0px;
   border-bottom: 1px solid #EBEFF2;
 }
 .form-dashboard-section:last-child {
@@ -406,9 +407,6 @@ h6.uppercase,
 .frappe-control .help-box {
   margin-top: 3px;
 }
-.frappe-control pre {
-  white-space: pre-wrap;
-}
 .hide-control {
   display: none !important;
 }
@@ -440,7 +438,6 @@ select.form-control {
 }
 .form-headline {
   padding: 0px 15px;
-  margin: 0px;
 }
 .form-headline .alert {
   font-size: 12px;

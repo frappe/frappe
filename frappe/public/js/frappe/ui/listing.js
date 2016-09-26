@@ -354,14 +354,34 @@ frappe.ui.Listing = Class.extend({
 
 		this.render_rows(values);
 	},
+	get_list_count: function(callback) {
+		var me = this
+		return frappe.call({
+			type: "GET",
+			method: 'frappe.desk.reportview.get_count',
+			args: {
+				filters: this.filter_list.get_filters(),
+				doctype: me.doctype
+			},
+			callback: function(r) {
+				callback(r.message);
+			}
+		});
+	},
 	render_rows: function(values) {
 		//count for list items
-		var total_list = values.length;
-		var htmlForCount = " Count : " + total_list;
-		$('.total_list_count').empty();
-		$('.total_list_count').append(htmlForCount);
+		var total_list = 0;
+		this.get_list_count(function(r){
+			if(r && r.length > 0 && r[0].total_count){
+				total_list = r[0].total_count;
+			var htmlForCount = " Count : " + total_list;
+			$('.total_list_count').empty();
+			$('.total_list_count').append(htmlForCount);
+			}
+		})
 
 		// render the rows
+
 		if(this.meta && this.meta.image_view){
 			var cols = values.slice();
 			while (cols.length) {

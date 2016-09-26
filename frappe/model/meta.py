@@ -23,7 +23,6 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
 from frappe.modules import load_doctype_module
-from frappe import _
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -118,19 +117,7 @@ class Meta(Document):
 		return True if self.get_field(fieldname) else False
 
 	def get_label(self, fieldname):
-		'''Get label of the given fieldname'''
-		df = self.get_field(fieldname)
-		if df:
-			label = df.label
-		else:
-			label = {
-				'name': _('ID'),
-				'owner': _('Created By'),
-				'modified_by': _('Modified By'),
-				'creation': _('Created On'),
-				'modified': _('Last Modified On')
-			}.get(fieldname) or _('No Label')
-		return label
+		return self.get_field(fieldname).label
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options

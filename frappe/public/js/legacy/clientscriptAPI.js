@@ -209,12 +209,8 @@ _f.Frm.prototype.get_files = function() {
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	if(opt2) {
-		// on child table
-		// set_query(fieldname, parent fieldname, query)
 		this.fields_dict[opt1].grid.get_field(fieldname).get_query = opt2;
 	} else {
-		// on parent table
-		// set_query(fieldname, query)
 		this.fields_dict[fieldname].get_query = opt1;
 	}
 }

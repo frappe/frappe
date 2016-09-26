@@ -202,15 +202,8 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 frappe.ui.form.update_calling_link = function(name) {
 	if(frappe._from_link) {
 		// set value
-		if (frappe._from_link.doc.parentfield){
-			//update values for child table
-			$.each(frappe._from_link.frm.fields_dict[frappe._from_link.doc.parentfield].grid.grid_rows, function(index, field) {
-				if(field.doc && field.doc.name===frappe._from_link.docname){
-					field.fields_dict[frappe._from_link.df.fieldname].set_value(name);
-			}});
-		} else {
-			frappe._from_link.frm.fields_dict[frappe._from_link.df.fieldname].set_value(name);
-	    	}
+		frappe.model.set_value(frappe._from_link.doctype,
+			frappe._from_link.docname, frappe._from_link.df.fieldname, name);
 
 		// refresh field
 		frappe._from_link.refresh();

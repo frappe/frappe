@@ -102,9 +102,6 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
-			if len(col.fieldname) >= 64:
-				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
-
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
@@ -490,10 +487,13 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		if password:
-			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
-		else:
-			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
+		try:
+			if password:
+				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
+			else:
+				self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
+		except Exception:
+			raise
 
 	def delete_user(self, target, host=None):
 		if not host:
@@ -519,8 +519,7 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
-			user, host))
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
 	def grant_select_privilges(self, db, table, user, host=None):
 		if not host:

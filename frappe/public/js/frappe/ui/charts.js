@@ -6,8 +6,6 @@ frappe.ui.Chart = Class.extend({
 		$.extend(this.opts, opts);
 		this.show_chart(false);
 
-		this.opts.bind_to = frappe.dom.set_unique_id(this.opts.wrapper);
-
 		if(this.opts.data && ((this.opts.data.columns && this.opts.data.columns.length >= 1)
 			|| (this.opts.data.rows && this.opts.data.rows.length >= 1))) {
 				this.chart = this.render_chart();
@@ -19,7 +17,7 @@ frappe.ui.Chart = Class.extend({
 
 	render_chart: function() {
 		var chart_dict = {
-			bindto: '#' + this.opts.bind_to,
+			bindto: this.opts.bind_to,
 		    data: {},
 			axis: {
 		        x: {
@@ -51,7 +49,7 @@ frappe.ui.Chart = Class.extend({
 	},
 
 	show_chart: function(show) {
-		this.opts.wrapper.toggle(show);
+		this.opts.wrapper.find(this.opts.bind_to).toggle(show);
 	},
 
 	set_chart_size: function(width, height) {

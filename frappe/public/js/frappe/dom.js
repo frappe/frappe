@@ -11,12 +11,9 @@ frappe.dom = {
 		return document.getElementById(id);
 	},
 	set_unique_id: function(ele) {
-		var $ele = $(ele);
-		if($ele.attr('id')) {
-			return $ele.attr('id');
-		}
 		var id = 'unique-' + frappe.dom.id_count;
-		$ele.attr('id', id);
+		if(ele)
+			ele.setAttribute('id', id);
 		frappe.dom.id_count++;
 		return id;
 	},
@@ -49,10 +46,10 @@ frappe.dom = {
 	    var rect = el.getBoundingClientRect();
 
 	    return (
-	        rect.top >= 0
-	        && rect.left >= 0
-	        // && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-	        // && rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+	        rect.top >= 0 &&
+	        rect.left >= 0 &&
+	        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+	        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
 	    );
 	},
 

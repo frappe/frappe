@@ -284,6 +284,37 @@ textarea.form-control {
 	}
 }
 
+// .form-page {
+// 	.form-group {
+// 		margin: 20px 0px;
+// 	}
+//
+// 	input.form-control, select.form-control {
+// 		position: relative;
+// 		box-shadow: none;
+// 		border: none;
+// 		padding: 0px;
+// 		border-bottom: 1px solid transparent;
+// 		border-radius: 0;
+// 		background-color: inherit;
+// 		font-size: 16px;
+// 	}
+// 	input.form-control:focus, select.form-control:focus {
+// 		box-shadow: none;
+// 		border-color: @text-color;
+// 	}
+//
+// 	.control-label {
+// 		margin-bottom: 3px;
+// 	}
+//
+// 	.frappe-control:not([data-fieldtype*="Text"]) {
+// 		.control-value {
+// 			font-size: 16px;
+// 		}
+// 	}
+// }
+
 .link-field.ui-front {
 	z-index: inherit;
 }
@@ -448,55 +479,4 @@ textarea.form-control {
 	li {
 		margin: 15px 0px;
 	}
-}
-
-.screenshot {
-	border: 1px solid @border-color;
-	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
-	margin: 8px 0px;
-	max-width: 100%;
-}
-
-.help-modal {
-	a {
-		color: @brand-primary;
-	}
-
-	.modal-dialog {
-		width: 768px;
-	}
-
-	.modal-body {
-		padding: 15px 27px;
-	}
-
-	.parent-link {
-		&:before {
-			font-family: 'Octicons';
-			content: '\f0a4';
-		}
-	}
-
-	.edit-container {
-		padding-bottom: 12px;
-	}
-
-	@media (max-width: @screen-xs) {
-		.modal-dialog {
-			width: auto;
-		}
-
-		.modal-content {
-			height: auto !important;
-		}
-
-		iframe {
-			height: auto;
-			width: 100%;
-		}
-	}
-}
-
-.search-result {
-	margin-bottom: 24px;
 }

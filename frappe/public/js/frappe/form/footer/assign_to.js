@@ -153,9 +153,10 @@ frappe.ui.to_do_dialog = function(opts){
 	var dialog = new frappe.ui.Dialog({
 		title: __('Add to To Do'),
 		fields: [
+			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
+			{fieldtype: 'Section Break'},
 			{fieldtype: 'Link', fieldname:'assign_to', options:'User',
 				label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
-			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
 			{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
 			{fieldtype: 'Section Break'},
 			{fieldtype: 'Column Break'},

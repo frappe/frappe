@@ -110,17 +110,13 @@ def get_page_info_from_doctypes(path=None):
 
 	return routes
 
-def get_pages(app=None):
+def get_pages():
 	'''Get all pages. Called for docs / sitemap'''
 	pages = {}
 	frappe.local.flags.in_get_all_pages = True
 
 	folders = frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
-
-	if app:
-		apps = [app]
-	else:
-		apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps()
+	apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps()
 
 	for app in apps:
 		app_path = frappe.get_app_path(app)

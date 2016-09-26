@@ -13,8 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.0-beta'
-__title__ = "Frappe Framework"
+__version__ = "7.0.33"
 
 local = Local()
 
@@ -47,7 +46,7 @@ def _(msg, lang=None):
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg).strip()
+	msg = cstr(msg)
 
 	return get_full_dict(local.lang).get(msg) or msg
 
@@ -56,6 +55,8 @@ def get_lang_dict(fortype, name=None):
 
 	 :param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
 	 :param name: name of the document for which assets are to be returned."""
+	if local.lang=="en":
+		return {}
 	from frappe.translate import get_dict
 	return get_dict(fortype, name)
 
@@ -171,9 +172,7 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print "{0} does not exist".format(local.site)
-			sys.exit(1)
-			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
+			raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
@@ -274,7 +273,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if as_table and type(msg) in (list, tuple):
 		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
-	if flags.print_messages and out.msg:
+	if flags.print_messages:
 		print "Message: " + repr(out.msg).encode("utf-8")
 
 	if title:
@@ -360,7 +359,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None, retry=1):
+		send_priority=1, communication=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -397,11 +396,11 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
 
 whitelisted = []
 guest_methods = []
@@ -500,15 +499,11 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
-	if isinstance(doc, basestring):
-		doc = get_doc(doctype, doc)
-
-	# check permission in controller
-	if hasattr(doc, 'has_website_permission'):
-		return doc.has_website_permission(ptype, verbose=verbose)
-
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
+		if isinstance(doc, basestring):
+			doc = get_doc(doctype, doc)
+
 		for method in hooks:
 			result = call(method, doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy
@@ -1118,7 +1113,7 @@ def as_json(obj, indent=1):
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
 
 def are_emails_muted():
-	return flags.mute_emails or int(conf.get("mute_emails") or 0) or False
+	return flags.mute_emails or conf.get("mute_emails") or False
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""
@@ -1130,13 +1125,13 @@ def get_test_records(doctype):
 	else:
 		return []
 
-def format_value(*args, **kwargs):
+def format_value(value, df, doc=None, currency=None):
 	"""Format value with given field properties.
 
 	:param value: Value to be formatted.
-	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
+	:param df: DocField object with properties `fieldtype`, `options` etc."""
 	import frappe.utils.formatters
-	return frappe.utils.formatters.format_value(*args, **kwargs)
+	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
 
 def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None):
 	"""Get Print Format for given document.

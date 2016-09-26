@@ -341,25 +341,10 @@ frappe.ui.form.Dashboard = Class.extend({
  		}
 	},
 
-	add_indicator: function(label, color) {
+	// stats
+	add_stats: function(html) {
+		this.stats_area.html(html).removeClass('hidden');
 		this.show();
-		this.stats_area.removeClass('hidden');
-
-		// set colspan
-		var indicators = this.stats_area.find('.indicator-column');
-		var n_indicators = indicators.length + 1;
-		if(n_indicators > 4) { colspan = 3 }
-		else { colspan = 12 / n_indicators; }
-
-		// reset classes in existing indicators
-		if(indicators.length) {
-			indicators.removeClass().addClass('col-sm-'+colspan).addClass('indicator-column');
-		}
-
-		var indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
-			+label+'</span></div>').appendTo(this.stats_area);
-
-		return indicator;
 	},
 
 	//graphs
@@ -369,7 +354,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.removeClass('hidden');
 
 		$.extend(opts, {
-			wrapper: me.wrapper.find('.form-chart'),
+			wrapper: me.wrapper,
+			bind_to: ".form-chart",
 			padding: {
 				right: 30,
 				bottom: 30

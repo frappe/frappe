@@ -1,0 +1,57 @@
+ar	العربية
+bg	bǎlgarski
+bn	বাংলা
+bo	ལྷ་སའི་སྐད་
+bs	bosanski
+ca	català
+cs	česky
+da	dansk
+da-DK	 dansk (Danmark)
+de	deutsch
+el	ελληνικά
+en	english
+es	español
+es-PE	 Español (Perú)
+et	eesti
+fa	پارسی
+fi	suomalainen
+fr	français
+gu	ગુજરાતી
+he	עברית
+hi	हिंदी
+hr	hrvatski
+hu	magyar
+id	Indonesia
+is	íslenska
+it	italiano
+ja	日本語
+km	ភាសាខ្មែរ
+kn	ಕನ್ನಡ
+ko	한국의
+lv	latviešu valoda
+mk	македонски
+ml	മലയാളം
+mr	मराठी
+ms	Melayu
+my	မြန်မာ
+nl	nederlands
+no	norsk
+pl	polski
+pt	português
+pt-BR	português brasileiro
+ro	român
+ru	русский
+sk	slovenčina (Slovak)
+sl	slovenščina (Slovene)
+sv	svenska
+sq	shqiptar
+sr	српски
+ta	தமிழ்
+te	తెలుగు
+th	ไทย
+tr	Türk
+uk	українська
+ur	اردو
+vi	việt
+zh-cn	簡體中文
+zh-tw	正體中文

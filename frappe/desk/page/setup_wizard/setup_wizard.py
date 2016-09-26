@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe, json, os
 from frappe.utils import strip, cint
 from frappe import _
-from frappe.translate import (set_default_language, get_dict, send_translations)
+from frappe.translate import (set_default_language, get_dict,
+	get_lang_dict, send_translations, get_language_from_code)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
@@ -24,7 +25,7 @@ def setup_complete(args):
 
 	try:
 		if args.language and args.language != "english":
-			set_default_language(get_language_code(args.lang))
+			set_default_language(args.language)
 
 		frappe.clear_cache()
 
@@ -66,13 +67,12 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": get_language_code(args.get("language")),
+		"language": args.get("language"),
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
-		'backup_limit': 3 # Default for downloadable backups
 	})
 	system_settings.save()
 
@@ -151,7 +151,7 @@ def load_messages(language):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	frappe.clear_cache()
-	set_default_language(get_language_code(language))
+	set_default_language(language)
 	m = get_dict("page", "setup-wizard")
 
 	for path in frappe.get_hooks("setup_wizard_requires"):
@@ -166,8 +166,8 @@ def load_messages(language):
 @frappe.whitelist()
 def load_languages():
 	return {
-		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage'))
+		"default_language": get_language_from_code(frappe.local.lang),
+		"languages": sorted(get_lang_dict().keys())
 	}
 
 
@@ -235,5 +235,4 @@ def email_setup_wizard_exception(traceback, args):
 		message=message,
 		delayed=False)
 
-def get_language_code(lang):
-	return frappe.db.get_value('Language', {'language_name':lang})
+

@@ -9,40 +9,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			avatar: frappe.avatar(frappe.session.user)
 		}));
 
-		this.setup_sidebar();
-
-		$(document).on("notification-update", function() {
-			frappe.ui.notifications.update_notifications();
-		});
-
-		$('.dropdown-toggle').dropdown();
-
-		this.setup_help();
-
-		$(document).trigger('toolbar_setup');
-
-		// clear all custom menus on page change
-		$(document).on("page-change", function() {
-			$("header .navbar .custom-menu").remove();
-		});
-
-		frappe.search.setup();
-	},
-
-	setup_sidebar: function () {
-
-		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
 			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
-
 			overlay_sidebar.addClass('opened');
-			overlay_sidebar.find('.reports-dropdown')
-				.removeClass('dropdown-menu')
-				.addClass('list-unstyled');
-			overlay_sidebar.find('.dropdown-toggle')
-				.addClass('text-muted').find('.caret')
-				.addClass('hidden-xs hidden-sm');
+			overlay_sidebar.find('.reports-dropdown').removeClass('dropdown-menu').addClass('list-unstyled');
+			overlay_sidebar.find('.dropdown-toggle').addClass('text-muted').find('.caret').addClass('hidden-xs hidden-sm');
 
 			$('<div class="close-sidebar">').hide().appendTo(layout_side_section).fadeIn();
 
@@ -56,150 +28,28 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				scroll_container.css("overflow-y", "");
 
 				layout_side_section.find(".close-sidebar").fadeOut(function() {
-					overlay_sidebar.removeClass('opened')
-						.find('.dropdown-toggle')
-						.removeClass('text-muted');
-					overlay_sidebar.find('.reports-dropdown')
-						.addClass('dropdown-menu');
+					overlay_sidebar.removeClass('opened').find('.dropdown-toggle').removeClass('text-muted');
+					overlay_sidebar.find('.reports-dropdown').addClass('dropdown-menu');
 				});
 			}
 		});
+
+		$(document).on("notification-update", function() {
+			frappe.ui.notifications.update_notifications();
+		});
+
+		$('.dropdown-toggle').dropdown();
+
+		$(document).trigger('toolbar_setup');
+
+		// clear all custom menus on page change
+		$(document).on("page-change", function() {
+			$("header .navbar .custom-menu").remove();
+		});
+
+		frappe.search.setup();
 	},
 
-	setup_help: function () {
-
-		$(".dropdown-help .dropdown-toggle").on("click", function () {
-			$(".dropdown-help input").focus();
-		});
-
-		$(".dropdown-help .dropdown-menu").on("click", "input, button", function (e) {
-			e.stopPropagation();
-		});
-
-		$("#input-help").on("keydown", function (e) {
-			if(e.which == 13) {
-				var keywords = $(this).val();
-				show_help_results(keywords);
-				$(this).val("");
-			}
-		});
-
-		$("#input-help + span").on("click", function () {
-			var keywords = $("#input-help").val();
-			show_help_results(keywords);
-			$(this).val("");
-		});
-
-		$(document).on("page-change", function () {
-			var $help_links = $(".dropdown-help #help-links");
-			$help_links.html("");
-
-			var route = frappe.get_route_str();
-			var breadcrumbs = route.split("/");
-
-			var links = [];
-			for (var i = 0; i < breadcrumbs.length; i++) {
-				var r = route.split("/", i + 1);
-				var key = r.join("/");
-				var help_links = frappe.help.help_links[key] || [];
-				links = $.merge(links, help_links);
-			}
-
-			if(links.length === 0) {
-				$help_links.next().hide();
-			}
-			else {
-				$help_links.next().show();
-			}
-
-			for (var i = 0; i < links.length; i++) {
-				var link = links[i];
-				var url = link.url;
-				var app_name = url.split('//', 2)[1].split('/', 2)[1];
-				var data_path = url.slice(url.indexOf('/user'));
-				if(data_path.lastIndexOf('.')){
-					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
-				}
-				data_path = data_path.replace('user', app_name);
-
-				$("<a>", {
-					href: link.url,
-					text: link.label,
-					target: "_blank",
-					"data-path": data_path
-				}).appendTo($help_links);
-			}
-
-			$('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
-		});
-
-		var $help_modal = frappe.get_modal("Help", "");
-		$help_modal.addClass('help-modal');
-
-		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("help-modal");
-
-		$(document).on("click", ".help-modal a", show_results);
-
-		function show_help_results(keywords) {
-			frappe.call({
-				method: "frappe.utils.help.get_help",
-				args: {
-					text: keywords
-				},
-				callback: function (r) {
-					var results = r.message || [];
-					var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
-
-					for (var i = 0, l = results.length; i < l; i++) {
-						var title = results[i][0];
-						var intro = results[i][1];
-						var fpath = results[i][2];
-
-						result_html +=	"<div class='search-result'>" +
-											"<a href='#' class='h4' data-path='"+fpath+"'>" + title + "</a>" +
-											"<p>" + intro + "</p>" +
-										"</div>";
-					}
-
-					if(results.length === 0) {
-						result_html += "<p class='padding'>No results found</p>";
-					}
-
-					$help_modal.find('.modal-body').html(result_html);
-					$help_modal.modal('show');
-				}
-			});
-		}
-
-		function show_results(e) {
-			//edit links
-			href = e.target.href;
-			if(href.indexOf('blob') > 0) {
-				window.open(href, '_blank');
-			}
-
-			var converter = new Showdown.converter();
-			var path = $(this).attr("data-path");
-			if(path) {
-				e.preventDefault();
-				frappe.call({
-					method: "frappe.utils.help.get_help_content",
-					args: {
-						path: path
-					},
-					callback: function (r) {
-						if(r.message && r.message.title) {
-							$result_modal.find('.modal-title').html("<span>"
-								+ r.message.title + "</span>");
-							$result_modal.find('.modal-body').html(r.message.content);
-							$result_modal.modal('show');
-						}
-					}
-				});
-			}
-		}
-	}
 });
 
 $.extend(frappe.ui.toolbar, {

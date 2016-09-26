@@ -12,9 +12,6 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
 			}
 		})
-		if(this.values) {
-			this.set_values(this.values);
-		}
 	},
 	make: function() {
 		var me = this;
@@ -35,7 +32,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			$(this.body).find('input').on('change', function() {
 				me.refresh_dependency();
 			})
-
+						
 			$(this.body).find('select').on("change", function() {
 				me.refresh_dependency();
 			})

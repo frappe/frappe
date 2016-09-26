@@ -338,24 +338,27 @@ frappe.ui.form.Grid = Class.extend({
 				throw 'field not found: ' + _df.fieldname;
 			}
 
+			// map columns
+			if(_df.columns) {
+				df.colsize = _df.columns;
+			}
+
 			if(!df.hidden
 				&& (this.editable_fields || df.in_list_view)
 				&& this.frm.get_perm(df.permlevel, "read")
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
-					if(df.columns) {
-						df.colsize=df.columns;
-					}
-					else {
-						var colsize=2;
-						switch(df.fieldtype){
-							case"Text":
-							case"Small Text":
-								colsize=3;
+					if(!df.colsize) {
+						var colsize = 2;
+						switch(df.fieldtype) {
+							case "Text":
+							case "Small Text":
+								colsize = 3;
 								break;
-							case"Check":
-								colsize=1
-							}
-							df.colsize=colsize
+							case "Check":
+								colsize = 1;
+								break;
+						}
+						df.colsize = colsize;
 					}
 
 					total_colsize += df.colsize
@@ -595,9 +598,8 @@ frappe.ui.form.GridRow = Class.extend({
 			this.grid.refresh();
 		}
 	},
-	insert: function(show, below) {
+	insert: function(show) {
 		var idx = this.doc.idx;
-		if(below) idx ++;
 		this.toggle_view(false);
 		this.grid.add_new_row(idx, null, show);
 	},
@@ -1061,8 +1063,6 @@ frappe.ui.form.GridRowForm = Class.extend({
 			.click(function() { me.row.remove(); return false; })
 		this.wrapper.find(".grid-insert-row")
 			.click(function() { me.row.insert(true); return false; })
-		this.wrapper.find(".grid-insert-row-below")
-			.click(function() { me.row.insert(true, true); return false; })
 		this.wrapper.find(".grid-append-row")
 			.click(function() {
 				me.row.toggle_view(false);
@@ -1075,7 +1075,7 @@ frappe.ui.form.GridRowForm = Class.extend({
 		});
 	},
 	toggle_add_delete_button_display: function($parent) {
-		$parent.find(".grid-header-toolbar .btn, .grid-footer-toolbar .btn")
+		$parent.find(".grid-delete-row, .grid-insert-row, .grid-append-row")
 			.toggle(this.row.grid.is_editable());
 	},
 	refresh_field: function(fieldname) {

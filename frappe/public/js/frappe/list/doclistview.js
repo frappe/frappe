@@ -299,6 +299,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if((auto_run !== false) && (auto_run !== 0))
 			this.refresh();
+
+
+
 	},
 
 	refresh: function(dirty) {
@@ -392,11 +395,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	make_no_result: function() {
 		var new_button = frappe.boot.user.can_create.indexOf(this.doctype)!=-1
-			? ('<p><button class="btn btn-primary btn-sm" \
+			? ('<p><button class="btn btn-default btn-sm" \
 				list_view_doc="' + this.doctype + '">'+
 				__('Make a new {0}', [__(this.doctype)]) + '</button></p>')
 			: '';
-		var no_result_message = '<div class="msg-box no-border" style="margin: 100px 0px;">\
+		var no_result_message = '<div class="msg-box no-border" style="margin-top: 20px;">\
 			<p>' + __("No {0} found", [__(this.doctype)])  + '</p>' + new_button + '</div>';
 
 		return no_result_message;

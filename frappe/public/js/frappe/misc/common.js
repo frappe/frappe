@@ -24,14 +24,10 @@ frappe.avatar = function(user, css_class, title) {
 	}
 
 	if(user_info.image) {
-
-		var image = (window.cordova && user_info.image.indexOf('http')===-1) ?
-			frappe.base_url + user_info.image : user_info.image;
-
 		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 			<span class="avatar-frame" style="background-image: url(%(image)s)"\
 			 title="%(title)s"></span></span>', {
-				image: image,
+				image: user_info.image,
 				title: title,
 				abbr: user_info.abbr,
 				css_class: css_class

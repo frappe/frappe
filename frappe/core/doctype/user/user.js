@@ -1,5 +1,7 @@
 frappe.ui.form.on('User', {
 	before_load: function(frm) {
+		frappe.setup_language_field(frm);
+
 		var update_tz_select = function(user_language) {
 			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
 		}

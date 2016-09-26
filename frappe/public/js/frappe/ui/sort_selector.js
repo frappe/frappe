@@ -108,6 +108,11 @@ frappe.ui.SortSelector = Class.extend({
 					_options.push({fieldname: df.fieldname, label: df.label});
 				}
 			});
+			meta.fields.forEach(function(df) {
+				if(df.fieldname == 'contact_date') {
+					_options.push({fieldname: df.fieldname, label: df.label});
+				}
+			});
 
 			_options.push({'fieldname': 'name'});
 			_options.push({'fieldname': 'creation'});

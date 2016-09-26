@@ -215,12 +215,11 @@ def get_user_fullname(user):
 	return fullname and fullname[0][0] or ''
 
 def get_fullname_and_avatar(user):
-	first_name, last_name, avatar, name = frappe.db.get_value("User",
-		user, ["first_name", "last_name", "user_image", "name"])
+	first_name, last_name, avatar = frappe.db.get_value("User",
+		user, ["first_name", "last_name", "user_image"])
 	return _dict({
 		"fullname": " ".join(filter(None, [first_name, last_name])),
-		"avatar": avatar,
-		"name": name
+		"avatar": avatar
 	})
 
 def get_system_managers(only_name=False):
@@ -292,6 +291,7 @@ def is_website_user():
 
 def is_system_user(username):
 	return frappe.db.get_value("User", {"name": username, "enabled": 1, "user_type": "System User"})
+
 
 def get_users():
 	from frappe.core.doctype.user.user import get_system_users

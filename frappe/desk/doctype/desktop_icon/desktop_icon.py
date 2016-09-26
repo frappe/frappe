@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe import _
 import json
 import random
 from frappe.model.document import Document
@@ -81,10 +80,6 @@ def get_desktop_icons(user=None):
 
 		# sort by idx
 		user_icons.sort(lambda a, b: 1 if a.idx > b.idx else -1)
-
-		# translate
-		for d in user_icons:
-			if d.label: d.label = _(d.label)
 
 		frappe.cache().hset('desktop_icons', user, user_icons)
 

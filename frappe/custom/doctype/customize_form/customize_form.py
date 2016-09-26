@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 	Thus providing a better UI from user perspective
 """
 import frappe
-import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
@@ -55,8 +54,7 @@ docfield_properties = {
 	'default': 'Text',
 	'precision': 'Select',
 	'read_only': 'Check',
-	'length': 'Int',
-	'columns': 'Int'
+	'length': 'Int'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -85,35 +83,7 @@ class CustomizeForm(Document):
 				new_d[property] = d.get(property)
 			self.append("fields", new_d)
 
-		# load custom translation
-		translation = self.get_name_translation()
-		self.label = translation.target_name if translation else ''
-
 		# NOTE doc is sent to clientside by run_method
-
-	def get_name_translation(self):
-		'''Get translation object if exists of current doctype name in the default language'''
-		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language_code': frappe.local.lang or 'en'},
-			['name', 'target_name'], as_dict=True)
-
-	def set_name_translation(self):
-		'''Create, update custom translation for this doctype'''
-		current = self.get_name_translation()
-		if current:
-			if self.label and current!=self.label:
-				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
-				frappe.translate.clear_cache()
-			else:
-				# clear translation
-				frappe.delete_doc('Translation', current.name)
-
-		else:
-			if self.label:
-				frappe.get_doc(dict(doctype='Translation',
-					source_name=self.doc_type,
-					target_name=self.label,
-					language_code=frappe.local.lang or 'en')).insert()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -133,7 +103,6 @@ class CustomizeForm(Document):
 
 		self.set_property_setters()
 		self.update_custom_fields()
-		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 
 		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))

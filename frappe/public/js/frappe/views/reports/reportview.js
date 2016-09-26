@@ -107,7 +107,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_sorter();
 		this.setup_print();
 		this.make_export();
-		this.setup_auto_email();
 		this.set_init_columns();
 		this.make_save();
 		this.make_user_permissions();
@@ -117,7 +116,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.page.add_menu_item(__("Add to Desktop"), function() {
 			frappe.add_to_desktop(__('{0} Report', [me.doctype]), me.doctype);
 		}, true);
-
 	},
 
 	make_new_and_refresh: function() {
@@ -130,17 +128,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			me.make_new_doc(me.doctype);
 		}, true);
 
-	},
-
-	setup_auto_email: function() {
-		var me = this;
-		this.page.add_menu_item(__("Setup Auto Email"), function() {
-			if(me.docname) {
-				frappe.set_route('List', 'Auto Email Report', {'report' : me.docname});
-			} else {
-				frappe.msgprint({message:__('Please save the report first'), indicator: 'red'});
-			}
-		}, true);
 	},
 
 	set_init_columns: function() {
@@ -415,59 +402,48 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 		var d = new frappe.ui.Dialog({
 			title: __("Edit") + " " + __(docfield.label),
-			fields: [docfield],
-			primary_action_label: __("Update"),
-			primary_action: function() {
-				me.update_value(docfield, d, row);
+			fields: [docfield, {"fieldtype": "Button", "label": "Update"}],
+		});
+		d.get_input("update").on("click", function() {
+			var args = {
+				doctype: docfield.parent,
+				name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+				fieldname: docfield.fieldname,
+				value: d.get_value(docfield.fieldname)
+			};
+
+			if (!args.name) {
+				frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
 			}
+
+			frappe.call({
+				method: "frappe.client.set_value",
+				args: args,
+				callback: function(r) {
+					if(!r.exc) {
+						d.hide();
+						var doc = r.message;
+						$.each(me.dataView.getItems(), function(i, item) {
+							if (item.name === doc.name) {
+								var new_item = $.extend({}, item);
+								$.each(frappe.model.get_all_docs(doc), function(i, d) {
+									if(item[d.doctype + ":name"]===d.name) {
+										$.each(d, function(k, v) {
+											if(frappe.model.std_fields_list.indexOf(k)===-1) {
+												new_item[k] = v;
+											}
+										})
+									}
+								});
+								me.dataView.updateItem(item.id, new_item);
+							}
+						});
+					}
+				}
+			});
 		});
 		d.show();
 		d.set_input(docfield.fieldname, row[docfield.fieldname]);
-	},
-
-	update_value: function(docfield, dialog, row) {
-		// update value on the serverside
-		var me = this;
-		var args = {
-			doctype: docfield.parent,
-			name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
-			fieldname: docfield.fieldname,
-			value: dialog.get_value(docfield.fieldname)
-		};
-
-		if (!args.name) {
-			frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
-		}
-
-		frappe.call({
-			method: "frappe.client.set_value",
-			args: args,
-			callback: function(r) {
-				if(!r.exc) {
-					dialog.hide();
-					var doc = r.message;
-					$.each(me.dataView.getItems(), function(i, item) {
-						if (item.name === doc.name) {
-							var new_item = $.extend({}, item);
-							$.each(frappe.model.get_all_docs(doc), function(i, d) {
-								// find the document of the current updated record
-								// from locals (which is synced in the response)
-								if(item[d.doctype + ":name"]===d.name) {
-									for(k in d) {
-										v = d[k];
-										if(frappe.model.std_fields_list.indexOf(k)===-1
-											&& item[k]!==undefined) {
-											new_item[k] = v;
-										}
-									}
-								}
-							});
-							me.dataView.updateItem(item.id, new_item);
-						}
-					});
-				}
-			}
-		});
 	},
 
 	set_data: function() {

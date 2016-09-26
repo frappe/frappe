@@ -8,13 +8,8 @@ from frappe.model.document import Document
 
 class PortalSettings(Document):
 	def add_item(self, item):
-		'''insert new portal menu item if route is not set, or role is different'''
-		exists = [d for d in self.get('menu', []) if d.get('route')==item.get('route')]
-		if exists and item.get('role'):
-			if exists[0].role != item.get('role'):
-				exists[0].role = item.get('role')
-				return True
-		elif not exists:
+		'''insert new portal menu item if route is not set'''
+		if not item.get('route') in [d.route for d in self.get('menu', [])]:
 			item['enabled'] = 1
 			self.append('menu', item)
 			return True
@@ -33,19 +28,4 @@ class PortalSettings(Document):
 
 		if dirty:
 			self.save()
-
-	def on_update(self):
-		self.clear_cache()
-
-	def clear_cache(self):
-		# make js and css
-		# clear web cache (for menus!)
-		from frappe.sessions import clear_cache
-		clear_cache('Guest')
-
-		from frappe.website.render import clear_cache
-		clear_cache()
-
-		# clears role based home pages
-		frappe.clear_cache()
 

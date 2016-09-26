@@ -138,7 +138,7 @@ def delete_items():
 		frappe.delete_doc(doctype, d)
 
 @frappe.whitelist()
-def get_stats(stats, doctype):
+def get_stats(stats, doctype,filters):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
@@ -148,7 +148,7 @@ def get_stats(stats, doctype):
 	for tag in tags:
 		if not tag in columns: continue
 		tagcount = execute(doctype, fields=[tag, "count(*)"],
-			filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			filters=filters, group_by=tag, as_list=True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
@@ -156,6 +156,14 @@ def get_stats(stats, doctype):
 			stats[tag] = tagcount
 
 	return stats
+
+@frappe.whitelist()
+def get_count(doctype, filters):
+
+	totalcount = execute(doctype, fields=["count(*) as total_count "],
+			filters=filters)
+
+	return totalcount
 
 def scrub_user_tags(tagcount):
 	"""rebuild tag list for tags"""

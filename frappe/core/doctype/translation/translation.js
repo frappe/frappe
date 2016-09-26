@@ -3,6 +3,9 @@
 
 
 frappe.ui.form.on('Translation', {
+	before_load: function(frm) {
+		frappe.setup_language_field(frm);
+	},
 	language: function(frm) {
 		frm.events.update_language_code(frm);
 	},

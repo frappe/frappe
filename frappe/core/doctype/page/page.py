@@ -132,9 +132,6 @@ class Page(Document):
 						template = frappe.render_template(template, context)
 					self.script = html_to_js_template(fname, template) + self.script
 
-					# flag for not caching this page
-					self._dynamic_page = True
-
 		if frappe.lang != 'en':
 			from frappe.translate import get_lang_js
 			self.script += get_lang_js("page", self.name)

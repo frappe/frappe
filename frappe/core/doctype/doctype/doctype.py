@@ -593,7 +593,8 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 		for role in list(set(roles)):
 			if not frappe.db.exists("Role", role):
-				r = frappe.get_doc(dict(doctype= "Role", role_name=role, desk_access=1))
+				r = frappe.get_doc({"doctype": "Role", "role_name": role})
+				r.role_name = role
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
 	except frappe.DoesNotExistError, e:

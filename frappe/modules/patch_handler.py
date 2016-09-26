@@ -14,9 +14,6 @@ from __future__ import unicode_literals
 """
 import frappe, frappe.permissions
 
-# for patches
-import os
-
 class PatchError(Exception): pass
 
 def run_all():

@@ -65,15 +65,13 @@ def to_timedelta(time_str):
 	else:
 		return time_str
 
-def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_datetime=False):
+def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
 	from dateutil.relativedelta import relativedelta
 
+	as_string, as_datetime = False, False
 	if date==None:
 		date = now_datetime()
-
-	if hours:
-		as_datetime = True
 
 	if isinstance(date, basestring):
 		as_string = True
@@ -81,7 +79,7 @@ def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_da
 			as_datetime = True
 		date = parser.parse(date)
 
-	date = date + relativedelta(years=years, months=months, days=days, hours=hours)
+	date = date + relativedelta(years=years, months=months, days=days)
 
 	if as_string:
 		if as_datetime:
