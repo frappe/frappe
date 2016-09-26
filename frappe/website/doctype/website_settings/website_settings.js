@@ -55,7 +55,7 @@ $.extend(cur_frm.cscript, {
 			cur_frm.fields_dict.top_bar_items.grid.refresh();
 		}
 	},
-	
+
 	set_parent_label_options_footer: function() {
 		frappe.meta.get_docfield("Top Bar Item", "parent_label", cur_frm.docname).options =
 			this.get_parent_options("footer_items");
@@ -81,9 +81,9 @@ $.extend(cur_frm.cscript, {
 
 cur_frm.cscript.set_banner_from_image = function(doc) {
 	if(!doc.banner_image) {
-		msgprint(__("Select a Banner Image first."));
+		msgprint(__("Select a Brand Image first."));
 	}
 	var src = doc.banner_image;
-	cur_frm.set_value("banner_html", "<a href='/'><img src='"+ src
-		+"' style='max-width: 200px;'></a>");
+	cur_frm.set_value("brand_html", "<img src='"+ src
+		+"' style='max-width: 150px;'>");
 }

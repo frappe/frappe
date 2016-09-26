@@ -61,6 +61,8 @@ def get_allowed_functions_for_jenv():
 	import mimetypes
 
 	datautils = {}
+	date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key.startswith("_"):
 			# ignore
@@ -80,6 +82,7 @@ def get_allowed_functions_for_jenv():
 			"get_url": frappe.utils.get_url,
 			'format': frappe.format_value,
 			"format_value": frappe.format_value,
+			'date_format': date_format,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": getattr(frappe.local, 'form_dict', {}),
 			"local": frappe.local,
@@ -109,7 +112,7 @@ def get_allowed_functions_for_jenv():
 
 	if not frappe.flags.in_setup_help:
 		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
-		out['frappe']['date_format'] = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
 			"get_default": frappe.db.get_default,

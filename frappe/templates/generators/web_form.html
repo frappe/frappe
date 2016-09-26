@@ -320,6 +320,7 @@ frappe.ready(function() {
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	frappe.form_dirty = false;
 	frappe.max_attachment_size = {{ max_attachment_size }};
+	moment.defaultFormat = "{{ frappe.date_format.upper() }}";
 
 	var $form = $("form[data-web-form='{{ name }}']");
 
