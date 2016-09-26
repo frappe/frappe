@@ -111,50 +111,54 @@ frappe.views.TreeView = Class.extend({
 	},
 	get_toolbar: function(){
 		var me = this;
-		if(this.opts.toolbar) {
-			return this.opts.toolbar;
-		} else {
-			return [
-				{toggle_btn: true},
-				{
-					label:__("Edit"),
-					condition: function(node) {
-						return !node.root && me.can_read;
-					},
-					click: function(node) {
-						frappe.set_route("Form", me.doctype, node.label);
-					}
+		
+		var toolbar = [
+			{toggle_btn: true},
+			{
+				label:__("Edit"),
+				condition: function(node) {
+					return !node.root && me.can_read;
 				},
-				{
-					label:__("Add Child"),
-					condition: function(node) { return me.can_create && node.expandable; },
-					click: function(node) {
-						me.new_node();
-					},
-					btnClass: "hidden-xs"
-				},
-				{
-					label:__("Rename"),
-					condition: function(node) { return !node.root && me.can_write; },
-					click: function(node) {
-						frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
-							node.$a.html(new_name);
-						});
-					},
-					btnClass: "hidden-xs"
-				},
-				{
-					label:__("Delete"),
-					condition: function(node) { return !node.root && me.can_delete; },
-					click: function(node) {
-						frappe.model.delete_doc(me.doctype, node.label, function() {
-							node.parent.remove();
-						});
-					},
-					btnClass: "hidden-xs"
+				click: function(node) {
+					frappe.set_route("Form", me.doctype, node.label);
 				}
-
-			]
+			},
+			{
+				label:__("Add Child"),
+				condition: function(node) { return me.can_create && node.expandable; },
+				click: function(node) {
+					me.new_node();
+				},
+				btnClass: "hidden-xs"
+			},
+			{
+				label:__("Rename"),
+				condition: function(node) { return !node.root && me.can_write; },
+				click: function(node) {
+					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
+						node.$a.html(new_name);
+					});
+				},
+				btnClass: "hidden-xs"
+			},
+			{
+				label:__("Delete"),
+				condition: function(node) { return !node.root && me.can_delete; },
+				click: function(node) {
+					frappe.model.delete_doc(me.doctype, node.label, function() {
+						node.parent.remove();
+					});
+				},
+				btnClass: "hidden-xs"
+			}
+		]
+		
+		if(this.opts.toolbar && this.opts.extend_toolbar) {
+			return toolbar.concat(this.opts.toolbar)
+		} else if (this.opts.toolbar && !this.opts.extend_toolbar) {
+			return this.opts.toolbar
+		} else {
+			return toolbar
 		}
 	},
 	new_node: function() {
