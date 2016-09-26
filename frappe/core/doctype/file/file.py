@@ -12,6 +12,7 @@ import frappe
 import json
 import urllib
 import os
+import shutil
 import requests
 import requests.exceptions
 import StringIO
@@ -71,6 +72,23 @@ class File(NestedSet):
 			self.generate_content_hash()
 
 		self.set_folder_size()
+
+		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
+			if not self.is_folder and (self.is_private != self.db_get('is_private')):
+				private_files = frappe.get_site_path('private', 'files')
+				public_files = frappe.get_site_path('public', 'files')
+
+				if not self.is_private:
+					shutil.move(os.path.join(private_files, self.file_name),
+						os.path.join(public_files, self.file_name))
+
+					self.file_url = "/files/{0}".format(self.file_name)
+
+				else:
+					shutil.move(os.path.join(public_files, self.file_name),
+						os.path.join(private_files, self.file_name))
+
+					self.file_url = "/private/files/{0}".format(self.file_name)
 
 	def set_folder_size(self):
 		"""Set folder size if folder"""
@@ -350,4 +368,3 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
-
