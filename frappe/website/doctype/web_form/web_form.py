@@ -10,6 +10,7 @@ from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+from frappe.utils.file_manager import get_max_file_size
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -164,6 +165,7 @@ def get_context(context):
 
 		self.add_custom_context_and_script(context)
 		self.add_payment_gateway_url(context)
+		context.max_attachment_size = get_max_file_size()
 
 	def add_payment_gateway_url(self, context):
 		if context.doc and self.accept_payment:

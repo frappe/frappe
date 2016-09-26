@@ -24,6 +24,9 @@ class WebPage(WebsiteGenerator):
 		return self.title
 
 	def get_context(self, context):
+		if context.main_section == None:
+			context.main_section = ''
+
 		# if static page, get static content
 		if context.slideshow:
 			context.update(get_slideshow(self))
@@ -67,7 +70,7 @@ class WebPage(WebsiteGenerator):
 	def set_breadcrumbs(self, context):
 		"""Build breadcrumbs template (deprecated)"""
 		if not "no_breadcrumbs" in context:
-			if "<!-- no-breadcrumbs -->" in context.main_section or '':
+			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
 
 	def set_title_and_header(self, context):

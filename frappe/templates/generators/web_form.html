@@ -89,11 +89,15 @@
 	<div class="form-group">
 		{{ field.options }}
 	</div>
-	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
+	{% elif field.fieldtype in ("Data", "Date", "Datetime", "Int", "Float") %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
-		<input type="text" class="form-control" {{ properties(field) }}
-			value="{{ value(field, _doc) }}">
+		<input type={{ "number" if field.fieldtype in ("Int", "Float") else "text" }}
+			class="form-control" {{ properties(field) }}
+			value="{{ value(field, _doc) }}"
+			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
+			{%- if field.max_value %} max={{ field.max_value }}{% endif %}
+			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
 		{{ help(field) }}
 	</div>
 	{% elif field.fieldtype=="Link" %}
@@ -315,6 +319,7 @@ frappe.ready(function() {
 	frappe.is_new = {{ 1 if frappe.form_dict.new else 0 }};
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	frappe.form_dirty = false;
+	frappe.max_attachment_size = {{ max_attachment_size }};
 
 	var $form = $("form[data-web-form='{{ name }}']");
 
@@ -334,6 +339,16 @@ frappe.ready(function() {
 						"__file_attachment": 1,
 						"filename": file.name,
 						"dataurl": reader.result
+					};
+
+					if(input.filedata.dataurl.length > frappe.max_attachment_size) {
+						frappe.msgprint(__('Max file size allowed is {0}MB',
+							[frappe.max_attachment_size / 1024 / 1024]));
+						input.filedata = null
+
+						// clear attachment
+						$(input).val('');
+
 					};
 					frappe.file_reading = false;
 				}

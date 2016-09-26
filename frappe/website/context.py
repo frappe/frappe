@@ -114,14 +114,22 @@ def add_sidebar_data(context):
 
 	if not context.sidebar_items:
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
+		print sidebar_items
 		if sidebar_items == None:
+			sidebar_items = []
 			roles = frappe.get_roles()
-			sidebar_items = frappe.get_all('Portal Menu Item',
-				fields=['title', 'route', 'reference_doctype', 'role'],
-				filters={'enabled': 1, 'parent': 'Portal Settings'}, order_by='idx asc')
+			portal_settings = frappe.get_doc('Portal Settings', 'Portal Settings')
 
-			# filter sidebar items by role
-			sidebar_items = filter(lambda i: i.role==None or i.role in roles, sidebar_items)
+			def add_items(sidebar_items, menu_field):
+				for d in portal_settings.get(menu_field):
+					if d.enabled and ((not d.role) or d.role in roles):
+						sidebar_items.append(d.as_dict())
+
+			if not portal_settings.hide_standard_menu:
+				add_items(sidebar_items, 'menu')
+
+			if portal_settings.custom_menu:
+				add_items(sidebar_items, 'custom_menu')
 
 			frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
 
