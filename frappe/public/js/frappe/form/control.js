@@ -605,6 +605,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		changeYear: true,
 		changeMonth: true,
 		yearRange: "-70Y:+10Y",
+		showOtherMonths: true,
+		selectOtherMonths: true
 	},
 	make_input: function() {
 		this._super();

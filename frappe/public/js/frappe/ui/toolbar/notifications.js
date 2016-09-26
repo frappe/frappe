@@ -46,10 +46,11 @@ frappe.ui.notifications.update_notifications = function() {
 		}
 	});
 
-	// switch colour on the navbar
+	// switch colour on the navbar and disable if no notifications
 	$(".navbar-new-comments")
 		.html(frappe.ui.notifications.total > 20 ? '20+' : frappe.ui.notifications.total)
-		.toggleClass("navbar-new-comments-true", frappe.ui.notifications.total ? true : false);
+		.toggleClass("navbar-new-comments-true", frappe.ui.notifications.total ? true : false)
+		.parent().toggleClass("disabled", frappe.ui.notifications.total ? false : true);
 
 }
 
