@@ -158,8 +158,6 @@ scheduler_events = {
 
 }
 
-default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"
-
 get_translated_dict = {
 	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
 	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict"
@@ -186,6 +184,5 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
-
 
 integration_services = ["PayPal", "Razorpay", "Dropbox Integration", "LDAP Auth"]
