@@ -198,6 +198,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.setup_sortable();
 		this.setup_add_section();
 		this.setup_edit_heading();
+		this.setup_field_settings();
 	},
 	prepare_data: function() {
 		this.print_heading_template = null;
@@ -417,6 +418,50 @@ frappe.PrintFormatBuilder = Class.extend({
 
 				d.hide();
 			});
+
+			d.show();
+
+			return false;
+		});
+	},
+	setup_field_settings: function() {
+		var me = this;
+		this.page.main.on("click", ".field-settings", function() {
+			var field = $(this).parent();
+
+			// new dialog
+			var d = new frappe.ui.Dialog({
+				title: "Set Properties",
+				fields: [
+					{
+						label:__("Label"),
+						fieldname:"label",
+						fieldtype:"Data"
+					},
+					{
+						label: __("Align Value"),
+						fieldname: "align",
+						fieldtype: "Select",
+						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}]
+					},
+				],
+			});
+			
+			d.set_value('label', field.attr("data-label"));
+			
+			d.set_primary_action(__("Update"), function() {
+				field.attr('data-align', d.get_value('align'));
+				field.attr('data-label', d.get_value('label'));
+				field.find('.field-label').html(d.get_value('label'));
+				d.hide();
+			});
+
+			// set current value
+			if(field.attr('data-align')) {
+				d.set_value('align', field.attr('data-align'));
+			} else {
+				d.set_value('align', 'left');
+			}
 
 			d.show();
 
@@ -645,10 +690,21 @@ frappe.PrintFormatBuilder = Class.extend({
 				$(this).find(".print-format-builder-field").each(function() {
 					var $this = $(this),
 						fieldtype = $this.attr("data-fieldtype"),
+						align = $this.attr('data-align'),
+						label = $this.attr('data-label'),
 						df = {
 							fieldname: $this.attr("data-fieldname"),
 							print_hide: 0
 						};
+						
+					if(align) {
+						df.align = align;
+					}
+					
+					if(label) {
+						df.label = label;
+					}
+
 					if(fieldtype==="Table") {
 						// append the user selected columns to visible_columns
 						var columns = $this.attr("data-columns").split(",");
