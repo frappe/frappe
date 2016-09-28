@@ -21,7 +21,7 @@
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
-	    {{ _("New {0}").format(_(title)) }}
+	    {{ _("New") }}
 	    </a>
 	</div>
   {% endif %}
@@ -211,7 +211,8 @@
 		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
 {% endmacro %}
 
-{% if layout|len > 1 %}
+<!-- pagination -->
+{% if not frappe.form_dict.new and layout|len > 1 %}
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" class="icon-fixed-width
@@ -280,7 +281,7 @@
 					data-idx="{{ loop.index - 1 }}">
 					{{ _("Previous") }}</button>
 			{% endif %}
-			{% if loop.index == layout|len %}
+			{% if loop.index == layout|len or frappe.form_dict.new %}
 			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 			    	{{ _("Save") }}</button>
 			{% elif layout|len > 1 %}
@@ -516,8 +517,12 @@ frappe.ready(function() {
 			} else if(input_type==="checkbox") {
 				var val = $input.prop("checked") ? 1 : 0;
 			} else if($input.attr("data-fieldtype")==="Date") {
-				var val = $.datepicker.formatDate("yy-mm-dd",
-					$input.datepicker('getDate'));
+				// convert from user format to YYYY-MM-DD
+				if($input.val()) {
+					var val = moment($input.val(), moment.defaultFormat).format('YYYY-MM-DD');
+				} else {
+					var val = null;
+				}
 			} else {
 				var val = $input.val();
 			}
@@ -634,12 +639,11 @@ frappe.ready(function() {
 				dateFormat: frappe.datepicker_format,
 			});
 
-			// convert dates to user format
+			// convert dates from YYYY-MM-DD to user format
 			$dates.each(function() {
 				var val = $(this).val();
 				if(val) {
-					$(this).val($.datepicker.formatDate(frappe.datepicker_format,
-						$.datepicker.parseDate("yy-mm-dd", val)));
+					$(this).val(moment(val, 'YYYY-MM-DD').format());
 				}
 			});
 		}
