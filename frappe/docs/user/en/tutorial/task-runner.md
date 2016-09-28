@@ -66,7 +66,7 @@ Here we can point to a Python function and that function will be executed every 
 
 			articles_transacted.append(d.article)
 
-We can place the above code code in any accessible Python module. The route is defined in `hooks.py`, so for our purposes we would place this code in `library_management/tasks.py`.
+We can place the above code in any accessible Python module. The route is defined in `hooks.py`, so for our purposes we would place this code in `library_management/tasks.py`.
 
 Note:
 
