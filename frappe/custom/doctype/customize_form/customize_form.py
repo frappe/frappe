@@ -209,8 +209,9 @@ class CustomizeForm(Document):
 
 		for property in docfield_properties:
 			d.set(property, df.get(property))
-
-		d.insert_after = self.fields[i-1].fieldname
+		
+		if i!=0:	
+			d.insert_after = self.fields[i-1].fieldname
 		d.idx = i
 
 		d.insert()
@@ -233,11 +234,12 @@ class CustomizeForm(Document):
 				changed = True
 
 		# check and update `insert_after` property
-		insert_after = self.fields[i-1].fieldname
-		if custom_field.insert_after != insert_after:
-			custom_field.insert_after = insert_after
-			custom_field.idx = i
-			changed = True
+		if i!=0:
+			insert_after = self.fields[i-1].fieldname
+			if custom_field.insert_after != insert_after:
+				custom_field.insert_after = insert_after
+				custom_field.idx = i
+				changed = True
 
 		if changed:
 			custom_field.flags.ignore_validate = True
