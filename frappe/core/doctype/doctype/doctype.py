@@ -46,8 +46,8 @@ class DocType(Document):
 		elif self.istable:
 			self.allow_import = 0
 
-		self.validate_series()
 		self.scrub_field_names()
+		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
 
@@ -119,6 +119,12 @@ class DocType(Document):
 
 		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
 			self.autoname = "naming_series:"
+
+		# validate field name if autoname field:fieldname is used
+		if autoname and autoname.startswith('field:'):
+			field = autoname.split(":")[1]
+			if not field or field not in [ df.fieldname for df in self.fields ]:
+				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
