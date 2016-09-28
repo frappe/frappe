@@ -167,12 +167,16 @@ frappe.search = {
 				var option = process(item);
 
 				if(option) {
-					option.match = item;
+					if($.isPlainObject(option)) {
+						option = [option];
+					}
+
+					option.forEach(function(o) { o.match = item; });
 
 					if(prepend) {
-						frappe.search.options = [option].concat(frappe.search.options);
+						frappe.search.options = option.concat(frappe.search.options);
 					} else {
-						frappe.search.options.push(option);
+						frappe.search.options = frappe.search.options.concat(option);
 					}
 				}
 			}
@@ -237,11 +241,34 @@ frappe.search.verbs = [
 					route:["Tree", match]
 				}
 			} else {
-				return {
-					label: __("{0} List", [__(match).bold()]),
-					value: __("{0} List", [__(match)]),
-					route:["List", match]
+				out = [
+					{
+						label: __("{0} List", [__(match).bold()]),
+						value: __("{0} List", [__(match)]),
+						route:["List", match]
+					},
+				];
+				if(frappe.model.can_get_report(match)) {
+					out.push({
+						label: __("{0} Report", [__(match).bold()]),
+						value: __("{0} Report", [__(match)]),
+						route:["Report", match]
+					});
 				}
+				if(frappe.boot.calendars.indexOf(match) !== -1) {
+					out.push({
+						label: __("{0} Calendar", [__(match).bold()]),
+						value: __("{0} Calendar", [__(match)]),
+						route:["Calendar", match]
+					});
+
+					out.push({
+						label: __("{0} Gantt", [__(match).bold()]),
+						value: __("{0} Gantt", [__(match)]),
+						route:["List", match, "Gantt"]
+					});
+				}
+				return out;
 			}
 		});
 	},
@@ -273,6 +300,17 @@ frappe.search.verbs = [
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
+
+		// calendar
+		var match = 'Calendar';
+		if(__('calendar').indexOf(txt.toLowerCase()) === 0) {
+			frappe.search.options.push({
+				label: __("Open {0}", [__(match).bold()]),
+				value: __("Open {0}", [__(match)]),
+				route: [match, 'Event'],
+				match: match
+			});
+		}
 	},
 
 	// modules
