@@ -1,12 +1,12 @@
-## Scripting Forms
+## Escrevendo script de formulários
 
-Now we have created a basic system that works out of the box without us having to write any code. Let us now write some scripts to make the application richer and add validations so that the user does not enter wrong data.
+Até agora nós criamos um sistema básico que funciona fora da caixa, sem ter que escrever nenhum código. Vamos agora escrever alguns scripts para tornar a aplicação mais rica e adicionar validações de formulários para o usuário não inserir dados incorretos.
 
-### Client Side Scripting
+### Script no Lado do Cliente
 
-In the **Library Transaction** DocType, we have only field for Member Name. We have not made two fields. Now this could well be two fields (and probably should), but for the sake of example, let us consider we have to implement this. To do this we would have to write a event handler for the event when the user selects the `library_member` field and then access the member resource from the server using REST API and set the values in the form.
+No DocType **Library Transaction**, temos um único campo de nome do membro. Não fizemos dois campos. Agora, isso poderia muito bem ser dois campos (e provavelmente deve), mas por uma questão de exemplo, vamos considerar que temos que implementar isto. Para fazer isso, teria que escrever um Handler de eventos para um evento para quando o usuário selecionar o campo `library_member`, acessar o recurso membro do servidor usando REST API e inserir os valores no formulário.
 
-To start the script, in the `library_management/doctype/library_transaction` folder, create a new file `library_transaction.js`. This file will be automatically executed when the first Library Transaction is opened by the user. So in this file, we can bind events and write other functions.
+Para iniciar o script, na pasta `library_management/doctype/library_transaction`, crie um novo arquivo `library_transaction.js`. Este arquivo será executado automaticamente quando a primeiro Library Transaction for aberta pelo usuário. Portanto, neste arquivo, podemos ligar os eventos e escrever outras funções.
 
 #### library_transaction.js
 
@@ -28,10 +28,10 @@ To start the script, in the `library_management/doctype/library_transaction` fol
 			})
 		});
 
-1. **frappe.ui.form.on(*doctype*, *fieldname*, *handler*)** is used to bind a handler to the event when the property library_member is set.
-1. In the handler, we trigger an AJAX call to `frappe.client.get`. In response we get the requested object as JSON. [Learn more about the API](/frappe/user/en/guides/integration/rest_api).
-1. Using **frappe.model.set_value(*doctype*, *name*, *fieldname*, *value*)** we set the value in the form.
+1. **frappe.ui.form.on(*doctype*, *fieldname*, *handler*)** é utilizado para ligar um handler ao evento quando a propriedade library_member for definida.
+1. No handler, nós desencadear uma chamada AJAX para `frappe.client.get`. Em resposta obtemos o objeto solicitado como JSON. [Saiba mais sobre a API](/frappe/user/en/guides/integration/rest_api).
+1. Utilizando **frappe.model.set_value(*doctype*, *name*, *fieldname*, *value*)** Nós inserimos o valor no formulário.
 
-**Note:** To check if your script works, remember to 'reload' the page before testing your script. Client script changes are not automatically picked up when you are in developer mode.
+**Observação:** Para verificar se o script funciona, lembre-se de 'recarregar' a página antes de testar seu script. mudanças no script do cliente não são captadas automaticamente quando você está no modo de desenvolvedor..
 
 {next}
