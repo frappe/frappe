@@ -65,6 +65,7 @@
 .grid-row > .row .col {
   padding-left: 10px;
   padding-right: 10px;
+  overflow: hidden;
 }
 .grid-body .btn-open-row {
   padding-top: 5px;
