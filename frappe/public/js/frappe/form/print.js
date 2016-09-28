@@ -77,6 +77,21 @@ frappe.ui.form.PrintPreview = Class.extend({
 			}
 		});
 
+        this.wrapper.find(".btn-download-excel").click(function() {
+			if(!me.is_old_style()) {
+				var w = window.open(
+					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_excel?"
+					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
+					+"&name="+encodeURIComponent(me.frm.doc.name)
+					+"&format="+me.selected_format()
+					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
+					+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
+				if(!w) {
+					msgprint(__("Please enable pop-ups")); return;
+				}
+			}
+		});
+
 		this.wrapper.find(".btn-print-edit").on("click", function() {
 			var print_format = me.get_print_format();
 			if(print_format && print_format.name) {
