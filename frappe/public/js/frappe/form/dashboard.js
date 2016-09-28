@@ -12,6 +12,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
 		this.chart_area = this.wrapper.find('.form-chart');
 		this.stats_area = this.wrapper.find('.form-stats');
+		this.stats_area_row = this.stats_area.find('.row');
 		this.links_area = this.wrapper.find('.form-links');
 		this.transactions_area = this.links_area.find('.transactions');
 
@@ -28,7 +29,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.links_area.find('.count, .open-notification').addClass('hidden');
 
 		// clear stats
-		this.stats_area.empty().addClass('hidden');
+		this.stats_area.addClass('hidden')
+		this.stats_area_row.empty();
 
 		// clear custom
 		this.wrapper.find('.custom').remove();
@@ -345,8 +347,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.show();
 		this.stats_area.removeClass('hidden');
 
+
 		// set colspan
-		var indicators = this.stats_area.find('.indicator-column');
+		var indicators = this.stats_area_row.find('.indicator-column');
 		var n_indicators = indicators.length + 1;
 		if(n_indicators > 4) { colspan = 3 }
 		else { colspan = 12 / n_indicators; }
@@ -357,7 +360,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 
 		var indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
-			+label+'</span></div>').appendTo(this.stats_area);
+			+label+'</span></div>').appendTo(this.stats_area_row);
 
 		return indicator;
 	},

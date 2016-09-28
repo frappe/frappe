@@ -58,7 +58,7 @@
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "data-reqd=1" or "" }}
-		{{ field.read_only and "disabled" or "" }}
+		{{ (read_only or field.read_only) and "disabled" or "" }}
 {% endmacro -%}
 
 {%- macro value(field, _doc) -%}
@@ -96,7 +96,6 @@
 			class="form-control" {{ properties(field) }}
 			value="{{ value(field, _doc) }}"
 			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
-			{%- if field.max_value %} max={{ field.max_value }}{% endif %}
 			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
 		{{ help(field) }}
 	</div>
@@ -264,7 +263,7 @@
 						<div class='text-muted' style='padding-bottom: 15px;'>
 							{{ payment_button_help }}</div>
 						{% endif %}
-						<a class="btn btn-primary" href="{{ payment_url }}">
+						<a class="btn btn-primary btn-payment" href="{{ payment_url }}">
 							{{ payment_button_label }}</a>
 					{% else %}
 						<div>{{ _("Payment Complete") }}</div>
@@ -321,6 +320,7 @@ frappe.ready(function() {
 	frappe.form_dirty = false;
 	frappe.max_attachment_size = {{ max_attachment_size }};
 	moment.defaultFormat = "{{ frappe.date_format.upper() }}";
+	{% if row_template %}frappe.web_form_row_template = "{{ row_template }}";{% endif %}
 
 	var $form = $("form[data-web-form='{{ name }}']");
 
@@ -370,11 +370,27 @@ frappe.ready(function() {
 		set_mandatory_class(this);
 	}).on('keypress', function() {
 		set_mandatory_class(this);
+
+		// validate maxlength
+		var maxlength = parseInt($(this).attr('maxlength'));
+		if(maxlength && (($(this).val() || '') + '').length > maxlength-1) {
+			$(this).val($(this).val().substr(0, maxlength-1));
+		};
 	}).each(function() { set_mandatory_class(this); });
 
 	// if changed, set dirty flag
 	$form.on('change', function() {
 		frappe.form_dirty = true;
+	});
+
+	// allow payment only if
+	$('.btn-payment').on('click', function() {
+		var data = get_data();
+		if(frappe.mandatory_missing.length) {
+			frappe.msgprint(__('Payment can only be made after filling the following mandatory fields: {0}',
+				['<br><br><ol><li>' + frappe.mandatory_missing.join('<li>') + '</ol>']));
+			return false;
+		}
 	});
 
 	// change attach

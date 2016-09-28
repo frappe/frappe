@@ -114,7 +114,6 @@ def add_sidebar_data(context):
 
 	if not context.sidebar_items:
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
-		print sidebar_items
 		if sidebar_items == None:
 			sidebar_items = []
 			roles = frappe.get_roles()

@@ -73,7 +73,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 
 def set_route(context):
 	'''Set link for the list item'''
-	if context.is_web_form:
+	if context.web_form_name:
 		context.route = "{0}?name={1}".format(context.pathname, quoted(context.doc.name))
 	elif context.doc and getattr(context.doc, 'route', None):
 		context.route = context.doc.route
@@ -89,16 +89,13 @@ def prepare_filters(doctype, kwargs):
 		# resolve additional filters from path
 		resolve_path(filters.pathname)
 		for key, val in frappe.local.form_dict.items():
-			if key not in filters:
+			if key not in filters and key != 'flags':
 				filters[key] = val
 
 	# filter the filters to include valid fields only
 	for fieldname, val in filters.items():
 		if not meta.has_field(fieldname):
 			del filters[fieldname]
-
-	if "is_web_form" in filters:
-		del filters["is_web_form"]
 
 	return filters
 
@@ -111,11 +108,19 @@ def get_list_context(context, doctype):
 	if hasattr(module, "get_list_context"):
 		list_context = frappe._dict(module.get_list_context(context) or {})
 
-	# is web form
-	if cint(frappe.local.form_dict.is_web_form):
-		list_context.is_web_form = 1
+	# is web form, show the default web form filters
+	# which is only the owner
+	if frappe.form_dict.web_form_name:
+		list_context.web_form_name = frappe.form_dict.web_form_name
 		if not list_context.get("get_list"):
 			list_context.get_list = get_web_form_list
+
+		if not frappe.flags.web_form:
+			# update list context from web_form
+			frappe.flags.web_form = frappe.get_doc('Web Form', frappe.form_dict.web_form_name)
+
+		if frappe.flags.web_form.is_standard:
+			frappe.flags.web_form.update_list_context(list_context)
 
 	return list_context
 

@@ -10,8 +10,9 @@ frappe.ready(function() {
 			txt: "{{ txt or '' }}",
 			limit_start: next_start,
 			pathname: location.pathname,
-			is_web_form: "{{ is_web_form }}"
 		});
+
+		data.web_form_name = frappe.web_form_name;
 
 		btn.prop("disabled", true);
 		return $.ajax({
@@ -37,7 +38,7 @@ frappe.ready(function() {
 			$(".website-list .more-block").addClass("hide");
 		}
 	};
-	
+
 	if($('.navbar-header .navbar-toggle:visible').length === 1)
 	{
 		$('.page-head h1').addClass('list-head').click(function(){
