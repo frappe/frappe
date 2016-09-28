@@ -21,7 +21,7 @@
   {% elif is_list %}
   	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
-	    {{ _("New {0}").format(_(title)) }}
+	    {{ _("New") }}
 	    </a>
 	</div>
   {% endif %}
@@ -58,7 +58,7 @@
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
 		{{ (field.reqd and field.fieldtype!="Attach") and "data-reqd=1" or "" }}
-		{{ field.read_only and "disabled" or "" }}
+		{{ (read_only or field.read_only) and "disabled" or "" }}
 {% endmacro -%}
 
 {%- macro value(field, _doc) -%}
@@ -96,7 +96,6 @@
 			class="form-control" {{ properties(field) }}
 			value="{{ value(field, _doc) }}"
 			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
-			{%- if field.max_value %} max={{ field.max_value }}{% endif %}
 			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
 		{{ help(field) }}
 	</div>
@@ -212,7 +211,8 @@
 		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
 {% endmacro %}
 
-{% if layout|len > 1 %}
+<!-- pagination -->
+{% if not frappe.form_dict.new and layout|len > 1 %}
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" class="icon-fixed-width
@@ -264,7 +264,7 @@
 						<div class='text-muted' style='padding-bottom: 15px;'>
 							{{ payment_button_help }}</div>
 						{% endif %}
-						<a class="btn btn-primary" href="{{ payment_url }}">
+						<a class="btn btn-primary btn-payment" href="{{ payment_url }}">
 							{{ payment_button_label }}</a>
 					{% else %}
 						<div>{{ _("Payment Complete") }}</div>
@@ -281,7 +281,7 @@
 					data-idx="{{ loop.index - 1 }}">
 					{{ _("Previous") }}</button>
 			{% endif %}
-			{% if loop.index == layout|len %}
+			{% if loop.index == layout|len or frappe.form_dict.new %}
 			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 			    	{{ _("Save") }}</button>
 			{% elif layout|len > 1 %}
@@ -321,6 +321,7 @@ frappe.ready(function() {
 	frappe.form_dirty = false;
 	frappe.max_attachment_size = {{ max_attachment_size }};
 	moment.defaultFormat = "{{ frappe.date_format.upper() }}";
+	{% if row_template %}frappe.web_form_row_template = "{{ row_template }}";{% endif %}
 
 	var $form = $("form[data-web-form='{{ name }}']");
 
@@ -370,11 +371,27 @@ frappe.ready(function() {
 		set_mandatory_class(this);
 	}).on('keypress', function() {
 		set_mandatory_class(this);
+
+		// validate maxlength
+		var maxlength = parseInt($(this).attr('maxlength'));
+		if(maxlength && (($(this).val() || '') + '').length > maxlength-1) {
+			$(this).val($(this).val().substr(0, maxlength-1));
+		};
 	}).each(function() { set_mandatory_class(this); });
 
 	// if changed, set dirty flag
 	$form.on('change', function() {
 		frappe.form_dirty = true;
+	});
+
+	// allow payment only if
+	$('.btn-payment').on('click', function() {
+		var data = get_data();
+		if(frappe.mandatory_missing.length) {
+			frappe.msgprint(__('Payment can only be made after filling the following mandatory fields: {0}',
+				['<br><br><ol><li>' + frappe.mandatory_missing.join('<li>') + '</ol>']));
+			return false;
+		}
 	});
 
 	// change attach
@@ -500,8 +517,12 @@ frappe.ready(function() {
 			} else if(input_type==="checkbox") {
 				var val = $input.prop("checked") ? 1 : 0;
 			} else if($input.attr("data-fieldtype")==="Date") {
-				var val = $.datepicker.formatDate("yy-mm-dd",
-					$input.datepicker('getDate'));
+				// convert from user format to YYYY-MM-DD
+				if($input.val()) {
+					var val = moment($input.val(), moment.defaultFormat).format('YYYY-MM-DD');
+				} else {
+					var val = null;
+				}
 			} else {
 				var val = $input.val();
 			}
@@ -618,12 +639,11 @@ frappe.ready(function() {
 				dateFormat: frappe.datepicker_format,
 			});
 
-			// convert dates to user format
+			// convert dates from YYYY-MM-DD to user format
 			$dates.each(function() {
 				var val = $(this).val();
 				if(val) {
-					$(this).val($.datepicker.formatDate(frappe.datepicker_format,
-						$.datepicker.parseDate("yy-mm-dd", val)));
+					$(this).val(moment(val, 'YYYY-MM-DD').format());
 				}
 			});
 		}

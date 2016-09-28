@@ -61,7 +61,10 @@ def get_allowed_functions_for_jenv():
 	import mimetypes
 
 	datautils = {}
-	date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+	if frappe.db:
+		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+	else:
+		date_format = 'yyyy-mm-dd'
 
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key.startswith("_"):

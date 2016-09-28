@@ -51,8 +51,9 @@ class TestDataImport(unittest.TestCase):
 		user_email = "test_import_userrole@example.com"
 		if frappe.db.exists("User", user_email):
 			frappe.delete_doc("User", user_email)
-
-		frappe.get_doc({"doctype": "User", "email": user_email, "first_name": "Test Import UserRole"}).insert()
+		
+		frappe.get_doc({"doctype": "User", "email": user_email, 
+			"first_name": "Test Import UserRole"}).insert()
 
 		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
@@ -60,7 +61,7 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content)
 
 		user = frappe.get_doc("User", user_email)
-		self.assertEquals(len(user.get("user_roles")), 1)
+		self.assertTrue(frappe.db.get_value("UserRole", filters={"role": "Blogger", "parent": user_email}))
 		self.assertTrue(user.get("user_roles")[0].role, "Blogger")
 
 		# overwrite
