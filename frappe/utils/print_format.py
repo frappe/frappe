@@ -61,5 +61,12 @@ def report_to_pdf(html):
 def download_excel(doctype, name, format=None, doc=None):
 	# mimicking frappe.get_print
 	frappe.local.response.filename = "{name}.xlsx".format(name=name.replace(" ", "-").replace("/", "-"))
-	frappe.local.response.filecontent = get_excel(doctype, name, format)
+	fname = get_excel(doctype, name, format)
+	# serve the excel file as a download
+	try:
+		with open(fname, "rb") as fileobj:
+			frappe.local.response.filecontent = fileobj.read()
+	except IOError, e:
+		raise
+
 	frappe.local.response.type = "download"

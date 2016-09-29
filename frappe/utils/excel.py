@@ -47,13 +47,7 @@ def get_excel(doctype=None, name=None, print_format=None, style=None):
 	output_sheet_header(doc, meta, cur_worksheet, starting_row, starting_col)
 	workbook.close()
 
-	try:
-		with open(fname, "rb") as fileobj:
-			filedata = fileobj.read()
-	except IOError, e:
-		raise
-
-	return filedata
+	return fname
 
 def output_sheet_header(doc, meta, cur_worksheet, current_row, current_col):
 	#check if we have a header
