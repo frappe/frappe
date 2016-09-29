@@ -22,6 +22,10 @@
 .gantt #grid .tick.thick {
   stroke-width: 0.4;
 }
+.gantt #grid .today-highlight {
+  fill: #fcf8e3;
+  opacity: 0.5;
+}
 .gantt #arrow {
   fill: none;
   stroke: #333;

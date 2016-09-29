@@ -455,11 +455,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					bar_on_click: function (task) {
 						frappe.set_route('Form', task.doctype, task.id);
 					},
-					bar_on_datechange: function(task, start, end) {
-						update_date(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
-							update_date(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
+					bar_on_date_change: function(task, start, end) {
+						update_field(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
+							update_field(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
 								show_alert("Saved", 1);
 							});
+						});
+					},
+					bar_on_progress_change: function(task, progress) {
+						update_field(task.id, 'progress', progress, function() {
+							show_alert("Saved", 1);
 						});
 					},
 					on_viewmode_change: function(mode) {
@@ -506,7 +511,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			})
 		});
 
-		function update_date(id, fieldname, value, callback) {
+		function update_field(id, fieldname, value, callback) {
 			frappe.call({
 				method: "frappe.client.set_value",
 				args: {
