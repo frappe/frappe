@@ -2,7 +2,9 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import frappe
+import json
+import unittest
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
@@ -219,3 +221,64 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEquals(before_update + new_count, after_update)
 
+	def test_document_versioning(self):
+		from frappe.model.document_versioning import sort_temp_entries
+		# setup
+		version_settings = frappe.get_doc("Document Versioning Settings")
+		version_settings.stored_modules = json.dumps({"Desk": True})
+		version_settings.save()
+		# insert doc, assert 'Doc History Temp' entry exists
+		d = frappe.get_doc({
+			"doctype": "Event",
+			"subject": "test-doc-versioning-test-event 1",
+			"starts_on": "2014-01-01",
+			"event_type": "Public"
+		})
+		d.insert()
+		self.assertTrue(d.name.startswith("EV"))
+		self.assertEquals(frappe.db.get_value(
+			"Event", d.name, "subject"),
+			"test-doc-versioning-test-event 1"
+		)
+		doc_history_temp = frappe.get_doc(
+			"Doc History Temp",
+			{
+				"changed_name": d.name
+			}
+		)
+		self.assertEquals(doc_history_temp.old_json_blob, "{}")
+		new_blob = json.loads(doc_history_temp.new_json_blob)
+		self.assertEquals(new_blob['event_type'], "Public")
+		# sort entries, assert entry + correct values exist in correct table
+		sort_temp_entries()
+		history_entry = frappe.get_doc(
+			"Event Field History",
+			{
+				"changed_doc_name": d.name,
+				"fieldname": "subject"
+			}
+		)
+		self.assertEquals(
+			history_entry.new_value,
+			"test-doc-versioning-test-event 1"
+		)
+		self.assertEquals(
+			history_entry.old_value,
+			None
+		)
+		# test changing value, assert entry is created in correct table.
+		d.subject = "changed-test-doc-versioning-name"
+		d.save()
+		sort_temp_entries()
+		history_entry_2 = frappe.get_doc(
+			"Event Field History",
+			{
+				"changed_doc_name": d.name,
+				"fieldname": "subject",
+				"old_value": "test-doc-versioning-test-event 1"
+			}
+		)
+		self.assertEquals(
+			history_entry_2.new_value,
+			"changed-test-doc-versioning-name"
+		)
