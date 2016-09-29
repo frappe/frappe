@@ -13,17 +13,19 @@
 {% endblock %}
 
 {% block header_actions %}
-  {% if has_header %}
-    <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
-    		{{ _("Cancel") }}</a>
-    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-    		{{ _("Save") }}</button>
-  {% elif is_list %}
-  	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
-	    {{ _("New") }}
-	    </a>
-	</div>
+  {% if not read_only %}
+	  {% if has_header %}
+	    <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+	    		{{ _("Cancel") }}</a>
+	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+	    		{{ _("Save") }}</button>
+	  {% elif is_list %}
+	  	<div style="padding-bottom: 15px;">
+		    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+		    {{ _("New") }}
+		    </a>
+		</div>
+	  {% endif %}
   {% endif %}
 {% endblock %}
 
@@ -274,16 +276,21 @@
 		</div>
 		{% endfor %}
 		<!-- page footer buttons -->
-		<div class='text-right'>
+		<div class='text-center'>
 			<br>
-			{% if loop.index > 1 %}
+			{% if layout|len > 1 %}
+			<p class='text-muted small'>
+				{{ _("Page {0} of {1}").format(loop.index, layout|len) }}</p>
+			<br>
 				<button class='btn btn-sm btn-default btn-change-section'
 					data-idx="{{ loop.index - 1 }}">
 					{{ _("Previous") }}</button>
 			{% endif %}
-			{% if loop.index == layout|len or frappe.form_dict.new %}
+			{% if (loop.index == layout|len or frappe.form_dict.new) %}
+				{% if not read_only %}
 			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 			    	{{ _("Save") }}</button>
+				{% endif %}
 			{% elif layout|len > 1 %}
 			    <button class="btn btn-primary btn-sm btn-change-section"
 					data-idx="{{ loop.index + 1 }}">
@@ -317,6 +324,7 @@ frappe.ready(function() {
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
 	frappe.is_new = {{ 1 if frappe.form_dict.new else 0 }};
+	frappe.is_read_only = {{ 1 if read_only else 0 }};
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	frappe.form_dirty = false;
 	frappe.max_attachment_size = {{ max_attachment_size }};
@@ -409,7 +417,7 @@ frappe.ready(function() {
 	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
 		var idx = $(this).attr('data-idx');
 		show_slide(idx);
-		if(frappe.form_dirty) {
+		if(frappe.form_dirty && !frappe.is_read_only) {
 			try {
 				save();
 			} catch(e) {
@@ -682,8 +690,9 @@ frappe.ready(function() {
 
 {% block style %}
 <style>
-input, select {
-	max-width: 500px;
+.web-form-page {
+	max-width: 540px;
+	margin: auto;
 }
 .web-form-grid-row input, .web-form-grid-row select {
 	border: 0px;
