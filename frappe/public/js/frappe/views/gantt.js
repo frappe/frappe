@@ -307,7 +307,7 @@ var Gantt = Class.extend({
 				secondary_text_y = me.opts.header_height - 25;
 
 			if(me.view_mode === 'Month') {
-				primary_text_x += me.opts.column_width/2;
+				primary_text_x += (date.daysInMonth() * me.opts.column_width/30)/2;
 				secondary_text_x += (me.opts.column_width * 12)/2;
 			}
 			if(me.view_mode === 'Week') {
@@ -315,6 +315,7 @@ var Gantt = Class.extend({
 				secondary_text_x += (me.opts.column_width * 4)/2;
 			}
 			if(me.view_mode === 'Day') {
+				primary_text_x += me.opts.column_width/2;
 				secondary_text_x += (me.opts.column_width * 30)/2;
 			}
 			if(me.view_mode === 'Quarter Day') {
@@ -511,10 +512,8 @@ var Bar = Class.extend({
 	prepare_values: function() {
 		this.x = this.compute_x();
 		this.y = this.compute_y();
-		this.duration = this.task._end.diff(this.task._start, 'hours')/this.gantt.step;
+		this.duration = (this.task._end.diff(this.task._start, 'hours') + 24)/this.gantt.step;
 		this.width = this.gantt.unit_width * this.duration;
-		if(this.gantt.view_mode === 'Month')
-			this.width = (this.gantt.unit_width/30) * (this.duration*this.gantt.step/24);
 		this.progress_width = this.gantt.unit_width * this.duration * (this.task.progress/100) || 0;
 		this.group = this.canvas.group().addClass('bar-wrapper');
 		this.bar_group = this.canvas.group().addClass('bar-group').appendTo(this.group);
