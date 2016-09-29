@@ -3,14 +3,19 @@ import frappe
 import logging
 
 default_log_level = logging.DEBUG
+LOG_FILENAME = '../logs/frappe.log'
 
 def get_logger(module, with_more_info=True):
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
-	formatter = logging.Formatter('%(asctime)s - %(pathname)s [%(levelname)s]:\n%(message)s')
-	handler = logging.StreamHandler()
+	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
+	# handler = logging.StreamHandler()
+
+	handler = logging.handlers.RotatingFileHandler(
+		LOG_FILENAME, maxBytes=20000, backupCount=20)
 	handler.setFormatter(formatter)
+
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
 
