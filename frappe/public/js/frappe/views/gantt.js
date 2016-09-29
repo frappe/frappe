@@ -179,6 +179,7 @@ var Gantt = Class.extend({
 		this.make_grid_rows();
 		this.make_grid_header();
 		this.make_grid_ticks();
+		this.make_grid_highlights();
 	},
 	make_grid_background: function () {
 		var me = this;
@@ -263,6 +264,22 @@ var Gantt = Class.extend({
 				tick_x += me.opts.column_width;
 			}
 		});
+	},
+	make_grid_highlights: function() {
+		var me = this;
+		//highlight today
+		if(me.view_mode === 'Day') {
+			var x = me.opts.label_width
+				+ moment().startOf('day').diff(me.start, 'hours')
+				/ me.opts.step * me.opts.column_width,
+			y = 0, //me.opts.header_height + me.opts.padding/2;
+			width = me.opts.column_width,
+			height = (me.opts.bar.height + me.opts.padding) * me.tasks.length
+				+ me.opts.header_height + me.opts.padding/2;
+			me.canvas.rect(x, y, width, height)
+				.addClass('today-highlight')
+				.appendTo(me.groups.grid);
+		}
 	},
 	make_dates: function() {
 		var me = this;
@@ -451,7 +468,8 @@ var Gantt = Class.extend({
 	setup_events: function() {
 		var me = this;
 		this._bars.forEach(function(bar) {
-			bar.events.on_date_change = me.events.bar_on_datechange;
+			bar.events.on_date_change = me.events.bar_on_date_change;
+			bar.events.on_progress_change = me.events.bar_on_progress_change;
 			bar.click(me.events.bar_on_click);
 		});
 	},
@@ -586,11 +604,19 @@ var Bar = Class.extend({
 			8, this.height - 2, this.corner_radius, this.corner_radius)
 			.addClass('handle left')
 			.appendTo(this.handle_group);
+		this.canvas.polygon(
+				bar.getX() + this.progress_width - 5, bar.getY() + bar.get("height"),
+				bar.getX() + this.progress_width + 5, bar.getY() + bar.get("height"),
+				bar.getX() + this.progress_width, bar.getY() + bar.get("height") - 8.66
+			)
+			.addClass('handle progress')
+			.appendTo(this.handle_group);
 	},
 	bind: function () {
 		// this.show_details();
 		this.bind_resize();
 		this.bind_drag();
+		this.bind_resize_progress();
 	},
 	show_details: function () {
 		var me = this;
@@ -721,6 +747,27 @@ var Bar = Class.extend({
 			bar.finaldx = 0;
 		}
 	},
+	bind_resize_progress: function() {
+		var me = this;
+		var bar_progress = me.group.select('.bar-progress');
+		var handle = me.group.select('.handle.progress');
+		handle.drag(onmove, onstart, onstop);
+
+		function onmove(dx, dy) {
+			bar_progress.attr("width", bar_progress.owidth + dx);
+			handle.transform("t"+dx+",0");
+			bar_progress.finaldx = dx;
+		}
+		function onstop() {
+			if(!bar_progress.finaldx) return;
+			me.progress_changed();
+			me.set_action_completed();
+		}
+		function onstart() {
+			bar_progress.owidth = bar_progress.getWidth();
+			bar_progress.finaldx = 0;
+		}
+	},
 	view_is: function(modes) {
 		var me = this;
 		if (typeof modes === 'string') {
@@ -758,13 +805,19 @@ var Bar = Class.extend({
 		});
 	},
 	date_changed: function() {
-		if(this.events.on_date_change) {
-			this.events.on_date_change(
-				this.task,
-				this.compute_start_date(),
-				this.compute_end_date()
-			);
-		}
+		this.events.on_date_change &&
+		this.events.on_date_change(
+			this.task,
+			this.compute_start_date(),
+			this.compute_end_date()
+		);
+	},
+	progress_changed: function() {
+		this.events.on_progress_change &&
+		this.events.on_progress_change(
+			this.task,
+			this.compute_progress()
+		);
 	},
 	set_action_completed: function() {
 		var me = this;
@@ -790,6 +843,11 @@ var Bar = Class.extend({
 			shift = (final_x - og_x) / this.gantt.unit_width,
 			new_end_date = this.task._end.clone().add(this.gantt.step*shift, 'hours');
 		return new_end_date;
+	},
+	compute_progress: function() {
+		var bar = this.group.select('.bar'),
+			bar_progress = this.group.select('.bar-progress');
+		return bar_progress.getWidth() / bar.getWidth() * 100;
 	},
 	compute_x: function() {
 		var x = this.gantt.offset
