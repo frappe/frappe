@@ -332,7 +332,6 @@ frappe.ready(function() {
 			var input = $input.get(0);
 			var reader = new FileReader();
 
-			input.filedata = null;
 			if(input.files.length) {
 				file = input.files[0];
 				frappe.file_reading = true;
@@ -396,8 +395,10 @@ frappe.ready(function() {
 
 	// change attach
 	$form.on("click", ".change-attach", function() {
-		$(this).parent().addClass("hide")
+		var input_wrapper = $(this).parent().addClass("hide")
 			.parent().find(".attach-input-wrap").removeClass("hide");
+
+		input_wrapper.find('input').val('');
 
 		frappe.form_dirty = true;
 
@@ -513,7 +514,12 @@ frappe.ready(function() {
 			var $input = $(this);
 			var input_type = $input.attr("type");
 			if(input_type==="file") {
-				var val = $input.get(0).filedata;
+				// save filedata dict as value
+				if($input.get(0).filedata) {
+					var val = $input.get(0).filedata;
+				} else {
+					var val = {'__no_attachment': 1}
+				}
 			} else if(input_type==="checkbox") {
 				var val = $input.prop("checked") ? 1 : 0;
 			} else if($input.attr("data-fieldtype")==="Date") {
@@ -639,11 +645,11 @@ frappe.ready(function() {
 				dateFormat: frappe.datepicker_format,
 			});
 
-			// convert dates from YYYY-MM-DD to user format
+			// initialize dates from YYYY-MM-DD to user format
 			$dates.each(function() {
-				var val = $(this).val();
+				var val = $(this).attr('value');
 				if(val) {
-					$(this).val(moment(val, 'YYYY-MM-DD').format());
+					$(this).val(moment(val, 'YYYY-MM-DD').format()).trigger('change');
 				}
 			});
 		}

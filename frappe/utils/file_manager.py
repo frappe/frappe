@@ -259,6 +259,8 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	if attached_to_doctype and attached_to_name:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
+		if frappe.flags.in_web_form:
+			ignore_permissions = True
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
