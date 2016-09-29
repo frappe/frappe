@@ -66,7 +66,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		print "*** Scheduler is", scheduler_status, "***"
 
 	finally:
-		os.remove(installing)
+		if os.path.exists(installing):
+			os.remove(installing)
+
 		frappe.destroy()
 
 @click.command('restore')
