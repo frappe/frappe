@@ -31,7 +31,7 @@ def get_logger(module, with_more_info=True):
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 	def filter(self, record):
-		record.msg = get_more_info_for_log() + record.msg
+		record.msg = get_more_info_for_log() + unicode(record.msg)
 		return True
 
 def get_more_info_for_log():
