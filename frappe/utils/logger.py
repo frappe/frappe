@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import frappe
 import logging
+from logging.handlers import RotatingFileHandler
 
 default_log_level = logging.DEBUG
 LOG_FILENAME = '../logs/frappe.log'
@@ -12,7 +13,7 @@ def get_logger(module, with_more_info=True):
 	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
 	# handler = logging.StreamHandler()
 
-	handler = logging.handlers.RotatingFileHandler(
+	handler = RotatingFileHandler(
 		LOG_FILENAME, maxBytes=20000, backupCount=20)
 	handler.setFormatter(formatter)
 
