@@ -28,6 +28,8 @@ class PortalSettings(Document):
 		'''Sync portal menu items'''
 		dirty = False
 		for item in frappe.get_hooks('portal_menu_items'):
+			if item.get('role') and not frappe.db.exists("Role", item.get('role')):
+				frappe.get_doc({"doctype": "Role", "role_name": item.get('role'), "desk_access": 0}).insert()
 			if self.add_item(item):
 				dirty = True
 
