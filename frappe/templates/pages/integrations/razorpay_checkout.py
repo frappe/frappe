@@ -17,8 +17,13 @@ expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'referen
 def get_context(context):
 	context.no_cache = 1
 	context.api_key = Controller().get_settings().api_key
-
-	context.brand_image = './assets/erpnext/images/erp-icon.svg'
+	
+	installed_apps = frappe.get_installed_apps()
+	
+	if 'erpnext' in installed_apps:
+		context.brand_image = "/assets/erpnext/images/erp-icon.svg"
+	else:
+		context.brand_image = '/assets/frappe_theme/img/erp-icon.svg'
 
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(frappe.form_dict.keys())):
