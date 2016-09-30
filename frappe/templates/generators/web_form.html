@@ -65,11 +65,11 @@
 
 {%- macro value(field, _doc) -%}
 	{%- if _doc -%}
-		{{ _doc.get(field.fieldname) or field.default
-			or frappe.form_dict.get(field.fieldname) or "" }}
+		{%- set _value = _doc.get(field.fieldname) -%}
 	{%- else -%}
-		{{ field.default or "" }}
+		{%- set _value = frappe.form_dict.get(field.fieldname) or field.default -%}
 	{%- endif -%}
+	{{ "" if _value==None else _value }}
 {%- endmacro -%}
 
 {%- macro help(field) -%}
@@ -147,6 +147,9 @@
 		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
 			<input type="file" style="margin-top: 7px;"
 				{{ properties(field) }}>
+			<p class='text-muted small'>
+				{{ _("Max attachment size is {0}MB").format(max_attachment_size) }}
+			</p>
 		</p>
 		{{ help(field) }}
 	</div>
@@ -217,7 +220,8 @@
 {% if not frappe.form_dict.new and layout|len > 1 %}
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
-	<i data-idx="{{ loop.index }}" class="icon-fixed-width
+	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
+		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="icon-fixed-width
 		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
 	{% endfor %}
 </div>
@@ -239,7 +243,8 @@
 	{% for page in layout %}
 	{% set last_page = True if loop.index == layout|len else False %}
 	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
-		data-idx="{{ loop.index }}">
+		data-idx="{{ loop.index }}"
+		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
 		{% if page.label %}<h2>{{ page.label }}</h2>{% endif %}
 		{% for section in page.sections %}
 		<div class="section">
@@ -276,26 +281,30 @@
 		</div>
 		{% endfor %}
 		<!-- page footer buttons -->
-		<div class='text-center'>
-			<br>
+		<div>
 			{% if layout|len > 1 %}
-			<p class='text-muted small'>
+			<p class='text-muted small text-center'>
 				{{ _("Page {0} of {1}").format(loop.index, layout|len) }}</p>
+			{% endif %}
 			<br>
+			<p class='text-right'>
+				{%- if loop.index > 1 -%}
 				<button class='btn btn-sm btn-default btn-change-section'
 					data-idx="{{ loop.index - 1 }}">
 					{{ _("Previous") }}</button>
-			{% endif %}
-			{% if (loop.index == layout|len or frappe.form_dict.new) %}
-				{% if not read_only %}
-			    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-			    	{{ _("Save") }}</button>
+				{%- endif -%}
+				<!-- save/next button -->
+				{% if (loop.index == layout|len or frappe.form_dict.new) %}
+					{% if not read_only %}
+				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+				    	{{ _("Save") }}</button>
+					{% endif %}
+				{% elif layout|len > 1 %}
+				    <button class="btn btn-primary btn-sm btn-change-section"
+						data-idx="{{ loop.index + 1 }}">
+				    	{{ _("Next") }}</button>
 				{% endif %}
-			{% elif layout|len > 1 %}
-			    <button class="btn btn-primary btn-sm btn-change-section"
-					data-idx="{{ loop.index + 1 }}">
-			    	{{ _("Next") }}</button>
-			{% endif %}
+			</p>
 		</div>
 	</div>
 	{% endfor %}
@@ -331,6 +340,8 @@ frappe.ready(function() {
 	moment.defaultFormat = "{{ frappe.date_format.upper() }}";
 	{% if row_template %}frappe.web_form_row_template = "{{ row_template }}";{% endif %}
 
+	$('[data-toggle="tooltip"]').tooltip();
+
 	var $form = $("form[data-web-form='{{ name }}']");
 
 	// read file attachment
@@ -350,9 +361,10 @@ frappe.ready(function() {
 						"dataurl": reader.result
 					};
 
-					if(input.filedata.dataurl.length > frappe.max_attachment_size) {
+					if(input.filedata.dataurl.length >
+						(frappe.max_attachment_size * 1024 * 1024)) {
 						frappe.msgprint(__('Max file size allowed is {0}MB',
-							[frappe.max_attachment_size / 1024 / 1024]));
+							[frappe.max_attachment_size]));
 						input.filedata = null
 
 						// clear attachment
@@ -395,8 +407,7 @@ frappe.ready(function() {
 	$('.btn-payment').on('click', function() {
 		var data = get_data();
 		if(frappe.mandatory_missing.length) {
-			frappe.msgprint(__('Payment can only be made after filling the following mandatory fields: {0}',
-				['<br><br><ol><li>' + frappe.mandatory_missing.join('<li>') + '</ol>']));
+			show_mandatory_missing();
 			return false;
 		}
 	});
@@ -471,13 +482,14 @@ frappe.ready(function() {
 
 	// get document data
 	var get_data = function() {
-		frappe.mandatory_missing = [];
+		frappe.mandatory_missing_in_last_doc = [];
 
 		var doc = get_data_for_doctype($form, frappe.web_form_doctype);
 		doc.doctype = frappe.web_form_doctype;
 		if(frappe.doc_name) {
 			doc.name = frappe.doc_name;
 		}
+		frappe.mandatory_missing = frappe.mandatory_missing_in_last_doc;
 
 		// get data from child tables
 		$('.web-form-grid').each(function() {
@@ -488,7 +500,8 @@ frappe.ready(function() {
 			// get data from each row
 			$(this).find('[data-child-row=1]').each(function() {
 				if(!$(this).hasClass('hidden')) {
-					var d = get_data_for_doctype($(this), doctype);
+					frappe.mandatory_missing_in_last_doc = [];
+					var d = get_data_for_doctype($(this), doctype, true);
 
 					// set name of child record (if set)
 					var name = $(this).attr('data-name');
@@ -506,6 +519,8 @@ frappe.ready(function() {
 					// only add if any value is set
 					if(has_value) {
 						doc[fieldname].push(d);
+						frappe.mandatory_missing =
+							frappe.mandatory_missing.concat(frappe.mandatory_missing_in_last_doc);
 					}
 				}
 			});
@@ -541,8 +556,9 @@ frappe.ready(function() {
 				var val = $input.val();
 			}
 
-			if($input.attr("data-reqd") && val===undefined || val===null || val==='') {
-				frappe.mandatory_missing.push($input.attr("data-label"));
+			if($input.attr("data-reqd") && (val===undefined || val===null || val==='')) {
+				frappe.mandatory_missing_in_last_doc.push([$input.attr("data-label"),
+					$input.parents('.web-form-page:first').attr('data-label')]);
 			}
 
 			out[$input.attr("name")] = val;
@@ -565,8 +581,7 @@ frappe.ready(function() {
 		var data = get_data();
 		if(frappe.allow_incomplete && frappe.mandatory_missing.length) {
 			window.saving = false;
-			frappe.msgprint(__('The following mandatory fields must be filled') + '<br>'
-				+ frappe.mandatory_missing.join('<br>'));
+			show_mandatory_missing();
 			return;
 		}
 
@@ -599,6 +614,20 @@ frappe.ready(function() {
                 window.saving = false;
             }
 		});
+	}
+
+	function show_mandatory_missing() {
+		var text = [], last_section = null;
+		frappe.mandatory_missing.forEach(function(d) {
+			if(last_section != d[1]) {
+				text.push('');
+				text.push(d[1].bold());
+				last_section = d[1];
+			}
+			text.push(d[0]);
+		});
+		frappe.msgprint(__('The following mandatory fields must be filled:<br>')
+			+ text.join('<br>'));
 	}
 
 	function set_message(msg) {
@@ -691,9 +720,12 @@ frappe.ready(function() {
 {% block style %}
 <style>
 .web-form-page {
-	max-width: 540px;
-	margin: auto;
 }
+
+.web-form-page input, .web-form-page select {
+	max-width: 500px;
+}
+
 .web-form-grid-row input, .web-form-grid-row select {
 	border: 0px;
 	padding: 0px;
@@ -712,7 +744,8 @@ frappe.ready(function() {
 }
 .slide-progress .icon-fixed-width {
 	vertical-align: middle;
-	margin-right: 7px;
+	margin-right: 9px;
+	padding-left: 2px;
 	cursor: pointer;
 }
 .slide-progress .icon-circle-blank {

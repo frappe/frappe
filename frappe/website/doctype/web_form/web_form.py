@@ -148,7 +148,8 @@ def get_context(context):
 
 		self.add_custom_context_and_script(context)
 		self.add_payment_gateway_url(context)
-		context.max_attachment_size = get_max_file_size()
+		if not context.max_attachment_size:
+			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
