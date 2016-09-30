@@ -304,6 +304,7 @@ def get_context(context):
 def accept(web_form, data):
 	data = frappe._dict(json.loads(data))
 	files = []
+	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
 	if data.doctype != web_form.doc_type:
@@ -311,6 +312,8 @@ def accept(web_form, data):
 
 	elif data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
+
+	frappe.flags.in_web_form = True
 
 	if data.name:
 		# update
@@ -326,6 +329,9 @@ def accept(web_form, data):
 				if "__file_attachment" in value:
 					files.append((fieldname, value))
 					continue
+				if '__no_attachment' in value:
+					files_to_delete.append(doc.get(fieldname))
+					value = ''
 
 			except ValueError:
 				pass
@@ -351,7 +357,7 @@ def accept(web_form, data):
 		for f in files:
 			fieldname, filedata = f
 
-			# remove earlier attachmed file (if exists)
+			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
 				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
 
@@ -363,6 +369,11 @@ def accept(web_form, data):
 			doc.set(fieldname, filedoc.file_url)
 
 		doc.save()
+
+	if files_to_delete:
+		for f in files_to_delete:
+			if f:
+				remove_file_by_url(f, doc.doctype, doc.name)
 
 	return doc.name
 

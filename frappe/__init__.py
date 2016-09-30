@@ -1246,7 +1246,7 @@ log_level = None
 def logger(module=None, with_more_info=True):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module or __name__, with_more_info=with_more_info)
+	return get_logger(module or 'default', with_more_info=with_more_info)
 
 def get_desk_link(doctype, name):
 	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))
