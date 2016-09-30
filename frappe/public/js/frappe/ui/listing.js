@@ -64,11 +64,11 @@ frappe.ui.Listing = Class.extend({
 		$.extend(this, this.opts);
 
 		$(this.parent).html(frappe.render_template("listing", this.opts));
-		this.$w = $(this.parent).find('.frappe-list');
+		this.wrapper = $(this.parent).find('.frappe-list');
 		this.set_events();
 
 		if(this.page) {
-			this.$w.find('.list-toolbar-wrapper').toggle(false);
+			this.wrapper.find('.list-toolbar-wrapper').toggle(false);
 		}
 
 		if(this.show_filters) {
@@ -79,9 +79,9 @@ frappe.ui.Listing = Class.extend({
 		if(this.page) {
 			return this.page.add_menu_item(label, click, icon)
 		} else {
-			this.$w.find('.list-toolbar-wrapper').removeClass("hide");
+			this.wrapper.find('.list-toolbar-wrapper').removeClass("hide");
 			$button = $('<button class="btn btn-default"></button>')
-				.appendTo(this.$w.find('.list-toolbar'))
+				.appendTo(this.wrapper.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);
 			return $button
@@ -91,13 +91,13 @@ frappe.ui.Listing = Class.extend({
 		var me = this;
 
 		// next page
-		this.$w.find('.btn-more').click(function() {
+		this.wrapper.find('.btn-more').click(function() {
 			me.run(true);
 		});
 
-		this.$w.find(".btn-group-paging .btn").click(function() {
+		this.wrapper.find(".btn-group-paging .btn").click(function() {
 			me.page_length = cint($(this).attr("data-value"));
-			me.$w.find(".btn-group-paging .btn-info").removeClass("btn-info");
+			me.wrapper.find(".btn-group-paging .btn-info").removeClass("btn-info");
 			$(this).addClass("btn-info");
 
 			// always reset when changing list page length
@@ -106,20 +106,20 @@ frappe.ui.Listing = Class.extend({
 
 		// select the correct page length
 		if(this.opts.page_length != 20) {
-			this.$w.find(".btn-group-paging .btn-info").removeClass("btn-info");
-			this.$w.find(".btn-group-paging .btn[data-value='"+ this.opts.page_length +"']").addClass('btn-info');
+			this.wrapper.find(".btn-group-paging .btn-info").removeClass("btn-info");
+			this.wrapper.find(".btn-group-paging .btn[data-value='"+ this.opts.page_length +"']").addClass('btn-info');
 		}
 
 		// title
 		if(this.title) {
-			this.$w.find('h3').html(this.title).toggle(true);
+			this.wrapper.find('h3').html(this.title).toggle(true);
 		}
 
 		// new
 		this.set_primary_action();
 
 		if(me.no_toolbar || me.hide_toolbar) {
-			me.$w.find('.list-toolbar-wrapper').toggle(false);
+			me.wrapper.find('.list-toolbar-wrapper').toggle(false);
 		}
 	},
 
@@ -159,7 +159,7 @@ frappe.ui.Listing = Class.extend({
 	make_filters: function() {
 		this.filter_list = new frappe.ui.FilterList({
 			listobj: this,
-			$parent: this.$w.find('.list-filters').toggle(true),
+			$parent: this.wrapper.find('.list-filters').toggle(true),
 			doctype: this.doctype,
 			filter_fields: this.filter_fields
 		});
@@ -170,9 +170,9 @@ frappe.ui.Listing = Class.extend({
 
 	clear: function() {
 		this.data = [];
-		this.$w.find('.result-list').empty();
-		this.$w.find('.result').toggle(true);
-		this.$w.find('.no-result').toggle(false);
+		this.wrapper.find('.result-list').empty();
+		this.wrapper.find('.result').toggle(true);
+		this.wrapper.find('.no-result').toggle(false);
 		this.start = 0;
 	},
 
@@ -274,7 +274,7 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 	set_working: function(flag) {
-		this.$w.find('.img-load').toggle(flag);
+		this.wrapper.find('.img-load').toggle(flag);
 	},
 	get_call_args: function() {
 		// load query
@@ -305,7 +305,7 @@ frappe.ui.Listing = Class.extend({
 	render_results: function(r) {
 		if(this.start===0) this.clear();
 
-		this.$w.find('.btn-more, .list-loading').toggle(false);
+		this.wrapper.find('.btn-more, .list-loading').toggle(false);
 
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
@@ -317,7 +317,7 @@ frappe.ui.Listing = Class.extend({
 			this.update_paging(r.values);
 		} else {
 			if(this.start===0) {
-				this.$w.find('.result').toggle(false);
+				this.wrapper.find('.result').toggle(false);
 
 				var msg = this.get_no_result_message
 					? this.get_no_result_message()
@@ -325,7 +325,7 @@ frappe.ui.Listing = Class.extend({
 						? this.no_result_message
 						: __("Nothing to show"));
 
-				this.$w.find('.no-result')
+				this.wrapper.find('.no-result')
 					.html(msg)
 					.toggle(true);
 			}
@@ -334,7 +334,7 @@ frappe.ui.Listing = Class.extend({
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
-		this.$w.trigger("render-complete");
+		this.wrapper.trigger("render-complete");
 	},
 
 	get_values_from_response: function(data) {
@@ -356,21 +356,9 @@ frappe.ui.Listing = Class.extend({
 	},
 	render_rows: function(values) {
 		// render the rows
-		if(this.meta && this.meta.image_view){
-			var cols = values.slice();
-			while (cols.length) {
-				row = this.add_row(cols[0]);
-				$("<div class='row image-view-marker'></div>").appendTo(row);
-				$(row).addClass('no-hover');
-				this.render_image_view_row(row, cols.splice(0, 4), this, i);
-			}
-
-			this.render_image_gallery();
-		} else {
-			var m = Math.min(values.length, this.page_length);
-			for(var i=0; i < m; i++) {
-				this.render_row(this.add_row(values[i]), values[i], this, i);
-			}
+		var m = Math.min(values.length, this.page_length);
+		for(var i=0; i < m; i++) {
+			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
 	},
 	render_image_gallery: function(){
@@ -384,17 +372,17 @@ frappe.ui.Listing = Class.extend({
 				"assets/frappe/js/lib/gallery/css/blueimp-gallery-indicator.css"
 			], function(){
 				// remove previous gallery container
-				me.$w.find(".blueimp-gallery").remove();
+				me.wrapper.find(".blueimp-gallery").remove();
 				// append gallery div
 				var gallery = frappe.render_template("blueimp-gallery", {});
-				$(gallery).appendTo(me.$w);
+				$(gallery).appendTo(me.wrapper);
 
-				me.$w.find(".zoom-view").click(function(event){
+				me.wrapper.find(".zoom-view").click(function(event){
 					event.preventDefault();
 					opts = {
 						doctype: me.doctype,
 						docname: $(this).parent().attr('data-name'),
-						container: me.$w
+						container: me.wrapper
 					};
 					new frappe.views.ImageView(opts);
 			});
@@ -402,14 +390,14 @@ frappe.ui.Listing = Class.extend({
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
-			this.$w.find('.btn-more').toggle(true);
+			this.wrapper.find('.btn-more').toggle(true);
 			this.start += this.page_length;
 		}
 	},
 	add_row: function(row) {
 		return $('<div class="list-row">')
 			.data("data", (this.meta && this.meta.image_view) == 0 ? row : null)
-			.appendTo(this.$w.find('.result-list'))
+			.appendTo(this.wrapper.find('.result-list'))
 			.get(0);
 	},
 	refresh: function() {

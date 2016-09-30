@@ -47,7 +47,7 @@ def _(msg, lang=None):
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg)
+	msg = cstr(msg).strip()
 
 	return get_full_dict(local.lang).get(msg) or msg
 
@@ -56,8 +56,6 @@ def get_lang_dict(fortype, name=None):
 
 	 :param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
 	 :param name: name of the document for which assets are to be returned."""
-	if local.lang=="en":
-		return {}
 	from frappe.translate import get_dict
 	return get_dict(fortype, name)
 
@@ -362,7 +360,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None):
+		send_priority=1, communication=None, retry=1):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -399,11 +397,11 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 
 whitelisted = []
 guest_methods = []
@@ -502,11 +500,15 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
+	if isinstance(doc, basestring):
+		doc = get_doc(doctype, doc)
+
+	# check permission in controller
+	if hasattr(doc, 'has_website_permission'):
+		return doc.has_website_permission(ptype, verbose=verbose)
+
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
-		if isinstance(doc, basestring):
-			doc = get_doc(doctype, doc)
-
 		for method in hooks:
 			result = call(method, doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy
@@ -1244,7 +1246,7 @@ log_level = None
 def logger(module=None, with_more_info=True):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module or __name__, with_more_info=with_more_info)
+	return get_logger(module or 'default', with_more_info=with_more_info)
 
 def get_desk_link(doctype, name):
 	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))

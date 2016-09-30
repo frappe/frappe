@@ -29,7 +29,8 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 		# these need to go first at time of install
 		for d in (("core", "docfield"), ("core", "docperm"), ("core", "doctype"),
 			("core", "user"), ("core", "role"), ("custom", "custom_field"),
-			("custom", "property_setter")):
+			("custom", "property_setter"), ("website", "web_form"),
+			("website", "web_form_field"), ("website", "portal_menu_item")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
 

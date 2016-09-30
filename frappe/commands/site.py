@@ -66,7 +66,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		print "*** Scheduler is", scheduler_status, "***"
 
 	finally:
-		os.remove(installing)
+		if os.path.exists(installing):
+			os.remove(installing)
+
 		frappe.destroy()
 
 @click.command('restore')
@@ -234,6 +236,20 @@ def reload_doc(context, module, doctype, docname):
 			frappe.init(site=site)
 			frappe.connect()
 			frappe.reload_doc(module, doctype, docname, force=context.force)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('reload-doctype')
+@click.argument('doctype')
+@pass_context
+def reload_doctype(context, doctype):
+	"Reload schema for a DocType"
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.reload_doctype(doctype, force=context.force)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -455,6 +471,7 @@ commands = [
 	new_site,
 	reinstall,
 	reload_doc,
+	reload_doctype,
 	remove_from_installed_apps,
 	restore,
 	run_patch,

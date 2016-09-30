@@ -72,7 +72,6 @@ def application(request):
 			raise NotFound
 
 	except HTTPException, e:
-		frappe.logger().error('Request Error', exc_info=True)
 		return e
 
 	except frappe.SessionStopped, e:

@@ -51,6 +51,7 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
+		#'load-error-handling': 'ignore',
 
 		# defaults
 		'margin-right': '15mm',

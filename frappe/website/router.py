@@ -303,6 +303,9 @@ def load_properties(page_info):
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
 
+	if "<!-- show-sidebar -->" in page_info.source:
+		page_info.show_sidebar = 1
+
 	if "<!-- no-header -->" in page_info.source:
 		page_info.no_header = 1
 	else:

@@ -26,7 +26,7 @@ frappe.template.compile = function(str, name) {
 			var i = frappe.utils.get_random(3);
 			var len = frappe.utils.get_random(3);
 			return "{% for (var "+i+"=0, "+len+"="+p2+".length; "+i+"<"+len+"; "+i+"++) { var "
-				+p1+" = "+p2+"["+i+"]; %}";
+				+p1+" = "+p2+"["+i+"]; "+p1+"._index = "+i+"; %}";
 		}
 		str = str.replace(/{%\s?for\s([a-z]+)\sin\s([a-z._]+)\s?%}/g, replacer);
 
@@ -97,7 +97,7 @@ frappe.render_grid = function(opts) {
 
 	// render HTML wrapper page
 	opts.base_url = frappe.urllib.get_base_url();
-	opts.print_cess = frappe.boot.print_css;
+	opts.print_css = frappe.boot.print_css;
 	var html = frappe.render_template("print_template", opts);
 
 	var w = window.open();

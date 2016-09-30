@@ -2,11 +2,13 @@
 
 frappe.has_indicator = function(doctype) {
 	// returns true if indicator is present
-	if(frappe.model.is_submittable(this.doctype)) {
+	if(frappe.model.is_submittable(doctype)) {
 		return true;
-	} else if(this.settings.get_indicator || this.workflow_state_fieldname) {
+	} else if((frappe.listview_settings[doctype] || {}).get_indicator
+		|| frappe.workflow.get_state_fieldname(doctype)) {
 		return true;
-	} else if(frappe.meta.has_field(doctype, 'enabled') || frappe.meta.has_field(doctype, 'disabled')) {
+	} else if(frappe.meta.has_field(doctype, 'enabled')
+		|| frappe.meta.has_field(doctype, 'disabled')) {
 		return true;
 	}
 	return false;

@@ -1,0 +1,1 @@
+- Restrict the number of backups to be saved in System Settings

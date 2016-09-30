@@ -150,6 +150,13 @@ class LoginManager:
 		if not resume:
 			frappe.response["full_name"] = self.full_name
 
+		# redirect information
+		redirect_to = frappe.cache().hget('redirect_after_login', self.user)
+		if redirect_to:
+			frappe.local.response["redirect_to"] = redirect_to
+			frappe.cache().hdel('redirect_after_login', self.user)
+
+
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")

@@ -595,8 +595,9 @@ frappe.ui.form.GridRow = Class.extend({
 			this.grid.refresh();
 		}
 	},
-	insert: function(show) {
+	insert: function(show, below) {
 		var idx = this.doc.idx;
+		if(below) idx ++;
 		this.toggle_view(false);
 		this.grid.add_new_row(idx, null, show);
 	},
@@ -1060,6 +1061,8 @@ frappe.ui.form.GridRowForm = Class.extend({
 			.click(function() { me.row.remove(); return false; })
 		this.wrapper.find(".grid-insert-row")
 			.click(function() { me.row.insert(true); return false; })
+		this.wrapper.find(".grid-insert-row-below")
+			.click(function() { me.row.insert(true, true); return false; })
 		this.wrapper.find(".grid-append-row")
 			.click(function() {
 				me.row.toggle_view(false);
@@ -1072,7 +1075,7 @@ frappe.ui.form.GridRowForm = Class.extend({
 		});
 	},
 	toggle_add_delete_button_display: function($parent) {
-		$parent.find(".grid-delete-row, .grid-insert-row, .grid-append-row")
+		$parent.find(".grid-header-toolbar .btn, .grid-footer-toolbar .btn")
 			.toggle(this.row.grid.is_editable());
 	},
 	refresh_field: function(fieldname) {

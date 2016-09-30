@@ -59,7 +59,7 @@
 
 @media (max-width: 767px) {
 	.navbar-desk {
-		width: 40% !important;
+		width: 50% !important;
 	}
 }
 
@@ -153,6 +153,7 @@
 	color: #fff;
 	text-align: center;
 	padding: 2px 5px;
+	background-color: @indicator-darkgrey;
 }
 
 .navbar-new-comments-true {
@@ -209,6 +210,13 @@
 
 #navbar-breadcrumbs > li > a {
 	padding: 6px 15px 10px 0px;
+
+	@media (min-width:991px) and (max-width: 1199px) {
+		max-width: 143px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }
 
 .toolbar-user-fullname {
@@ -225,7 +233,7 @@
 }
 
 .toggle-sidebar {
-	margin-right: 15px;
+	margin-right: 10px;
 }
 
 .navbar-default .navbar-nav > li > a,

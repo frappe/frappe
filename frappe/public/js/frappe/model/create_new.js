@@ -141,7 +141,7 @@ $.extend(frappe.model, {
 			if(!user_default && df.fieldtype==='Link' && frappe.boot.user.last_selected_values) {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}
-			
+
 			var is_allowed_user_default = user_default &&
 				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
 
@@ -154,8 +154,8 @@ $.extend(frappe.model, {
 		// 3 - look in default of docfield
 		if (df['default']) {
 
-			if (df["default"] == "__user" || df["default"] == "user") {
-				return user;
+			if (df["default"] == "__user" || df["default"].toLowerCase() == "user") {
+				return frappe.session.user;
 
 			} else if (df["default"] == "user_fullname") {
 				return user_fullname;

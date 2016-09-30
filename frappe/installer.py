@@ -131,9 +131,10 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	sync_from_app(name)
-	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
 	add_to_installed_apps(name)
+
+	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
 	if set_as_patched:
 		set_all_patches_as_completed(name)
@@ -274,15 +275,12 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
-	if validate:
-		try:
-			value = int(value)
-		except ValueError:
-			pass
+	if value in ('0', '1'):
+		value = int(value)
 
 	# boolean
-	if value in ("False", "True"):
-		value = eval(value)
+	if value in ("false", "true"):
+		value = eval(value.title())
 
 	# remove key if value is None
 	if value == "None":

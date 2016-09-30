@@ -39,6 +39,13 @@ frappe.ui.form.on('Auto Email Report', {
 					}
 				});
 			});
+		} else {
+			if(!frm.doc.user) {
+				frm.set_value('user', frappe.session.user);
+			}
+			if(!frm.doc.email_to) {
+				frm.set_value('email_to', frappe.session.user);
+			}
 		}
 	},
 	show_filters: function(frm) {

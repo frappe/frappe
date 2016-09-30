@@ -113,8 +113,13 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Module:', label from `tabDesktop Icon` where standard=1 or owner=%s",
 				frappe.session.user)
 
-		translation_assets[asset_key] = make_dict_from_messages(messages)
-		translation_assets[asset_key].update(get_dict_from_hooks(fortype, name))
+		message_dict = make_dict_from_messages(messages)
+		message_dict.update(get_dict_from_hooks(fortype, name))
+
+		# remove untranslated
+		message_dict = {k:v for k, v in message_dict.iteritems() if k!=v}
+
+		translation_assets[asset_key] = message_dict
 
 		cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
@@ -245,16 +250,17 @@ def get_user_translations(lang):
 
 	return out
 
-# def get_user_translation_key():
-# 	return 'lang_user_translations:{0}'.format(frappe.local.site)
-
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
 	cache = frappe.cache()
 	cache.delete_key("langinfo")
+
+	# clear translations saved in boot cache
+	cache.delete_key("bootinfo")
 	cache.delete_key("lang_full_dict")
 	cache.delete_key("translation_assets")
+	cache.delete_key("lang_user_translations")
 
 def get_messages_for_app(app):
 	"""Returns all messages (list) for a specified `app`"""
@@ -366,8 +372,8 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
 			(w['name'],), as_dict=True)
 
-		messages.extend([("Workflow: " + w['name'], states['message'])
-			for state in states if is_translatable(state['state'])])
+		messages.extend([("Workflow: " + w['name'], state['message'])
+			for state in states if is_translatable(state['message'])])
 
 		actions = frappe.db.sql(
 			'select distinct action from `tabWorkflow Transition` where parent=%s',

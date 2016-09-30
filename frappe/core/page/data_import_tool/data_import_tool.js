@@ -42,11 +42,15 @@ frappe.DataImportTool = Class.extend({
 				if(me.doctype) {
 
 					// render select columns
-					var doctype_list = [frappe.get_doc('DocType', me.doctype)];
+					var parent_doctype = frappe.get_doc('DocType', me.doctype);
+					parent_doctype["reqd"] = true;
+					var doctype_list = [parent_doctype];
+					
 					frappe.meta.get_table_fields(me.doctype).forEach(function(df) {
-						doctype_list.push(frappe.get_doc('DocType', df.options));
+						var d = frappe.get_doc('DocType', df.options);
+						d["reqd"]=df.reqd;
+						doctype_list.push(d);						
 					});
-
 					$(frappe.render_template("data_import_tool_columns", {doctype_list: doctype_list}))
 						.appendTo(me.select_columns.empty());
 				}

@@ -74,6 +74,10 @@ frappe.views.QueryReport = Class.extend({
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
 
+		this.page.add_menu_item(__("Setup Auto Email"), function() {
+			frappe.set_route('List', 'Auto Email Report', {'report' : me.report_name});
+		}, true);
+
 		if(frappe.model.can_set_user_permissions("Report")) {
 			this.page.add_menu_item(__("User Permissions"), function() {
 				frappe.route_options = {
@@ -171,6 +175,9 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	pdf_report: function() {
+		base_url = frappe.urllib.get_base_url(); 
+		print_css = frappe.boot.print_css;
+
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to make PDF for this report"));
 			return false;
@@ -178,17 +185,19 @@ frappe.views.QueryReport = Class.extend({
 
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
-				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
+				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template", {content:content, title:__(this.report_name)});
+			var html = frappe.render_template("print_template",
+				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
 		} else {
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
 			var content = frappe.render_template("print_grid", {columns:columns, data:data, title:__(this.report_name)})
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template", {content:content, title:__(this.report_name)});
+			var html = frappe.render_template("print_template",
+				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
 		}
 
 		//Create a form to place the HTML content

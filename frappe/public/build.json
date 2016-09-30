@@ -193,8 +193,7 @@
 	"css/list.min.css": [
 		"public/css/list.css",
 		"public/css/tag-it.css",
-		"public/css/calendar.css",
-		"public/css/gantt.css"
+		"public/css/calendar.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
@@ -219,13 +218,13 @@
 		"public/js/frappe/list/listview.js",
 		"public/js/frappe/views/calendar_base.js",
 		"public/js/frappe/views/calendar.js",
-		"public/js/frappe/views/ganttview.js",
 		"public/js/frappe/list/blueimp-gallery.html",
 		"public/js/frappe/list/image_view_item_row.html",
 		"public/js/frappe/list/image_view_item_main_head.html",
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
-		"public/js/frappe/views/treeview.js"
+		"public/js/frappe/views/treeview.js",
+		"public/js/frappe/views/gantt.js"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",

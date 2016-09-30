@@ -11,9 +11,8 @@ $(document).ready(function(){
 			},
 			"prefill": {
 				"name": "{{ payer_name }}",
-				"email": "saurabh@erpnext.com",
-				"order_id": "{{ order_id }}",
-				"phone": "9773595372"
+				"email": "{{ payer_email }}",
+				"order_id": "{{ order_id }}"
 			},
 			"notes": {
 				"doctype": "{{ doctype }}",
@@ -26,7 +25,6 @@ $(document).ready(function(){
 		};
 
 		var rzp = new Razorpay(options);
-		console.log(options)
 		rzp.open();
 		//	e.preventDefault();
 	})();
@@ -39,7 +37,7 @@ razorpay.make_payment_log = function(response, options, doctype, docname){
 	$('.razorpay-confirming').removeClass('hidden');
 
 	frappe.call({
-		method:"frappe.templates.pages.razorpay_checkout.make_payment",
+		method:"frappe.templates.pages.integrations.razorpay_checkout.make_payment",
 		freeze:true,
 		headers: {"X-Requested-With": "XMLHttpRequest"},
 		args: {

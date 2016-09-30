@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
@@ -32,6 +31,25 @@ def get_context(path, args=None):
 	# print frappe.as_json(context)
 
 	return context
+
+def update_controller_context(context, controller):
+	module = frappe.get_module(controller)
+
+	if module:
+		# get config fields
+		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+			"condition_field"):
+			if hasattr(module, prop):
+				context[prop] = getattr(module, prop)
+
+		if hasattr(module, "get_context"):
+			ret = module.get_context(context)
+			if ret:
+				context.update(ret)
+
+		if hasattr(module, "get_children"):
+			context.children = module.get_children(context)
+
 
 def build_context(context):
 	"""get_context method of doc or module is supposed to render
@@ -62,24 +80,23 @@ def build_context(context):
 				context[prop] = getattr(context.doc, prop, False)
 
 	elif context.controller:
-		module = frappe.get_module(context.controller)
+		# controller based context
+		update_controller_context(context, context.controller)
 
-		if module:
-			# get config fields
-			for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
-				"condition_field"):
-				if hasattr(module, prop):
-					context[prop] = getattr(module, prop)
-
-			if hasattr(module, "get_context"):
-				ret = module.get_context(context)
-				if ret:
-					context.update(ret)
-
-			if hasattr(module, "get_children"):
-				context.children = module.get_children(context)
+		# controller context extensions
+		context_controller_hooks = frappe.get_hooks("extend_website_page_controller_context") or {}
+		for controller, extension in context_controller_hooks.items():
+			if isinstance(extension, list):
+				for ext in extension:
+					if controller == context.controller:
+						update_controller_context(context, ext)
+			else:
+				update_controller_context(context, extension)
 
 	add_metatags(context)
+
+	if frappe.session.user == 'Guest':
+		context.show_sidebar = 0
 
 	if context.show_sidebar:
 		add_sidebar_data(context)
@@ -96,19 +113,31 @@ def add_sidebar_data(context):
 	import frappe.www.list
 
 	if not context.sidebar_items:
-		sidebar_items = json.loads(frappe.cache().get_value('portal_menu_items') or '[]')
+		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
+		if sidebar_items == None:
+			sidebar_items = []
+			roles = frappe.get_roles()
+			portal_settings = frappe.get_doc('Portal Settings', 'Portal Settings')
 
-		if not sidebar_items:
-			sidebar_items = frappe.get_all('Portal Menu Item',
-				fields=['title', 'route', 'reference_doctype', 'show_always'],
-				filters={'enabled': 1, 'parent': 'Portal Settings'}, order_by='idx asc')
-			frappe.cache().set_value('portal_menu_items', json.dumps(sidebar_items))
+			def add_items(sidebar_items, menu_field):
+				for d in portal_settings.get(menu_field):
+					if d.enabled and ((not d.role) or d.role in roles):
+						sidebar_items.append(d.as_dict())
+
+			if not portal_settings.hide_standard_menu:
+				add_items(sidebar_items, 'menu')
+
+			if portal_settings.custom_menu:
+				add_items(sidebar_items, 'custom_menu')
+
+			frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
 
 		context.sidebar_items = sidebar_items
 
 	info = get_fullname_and_avatar(frappe.session.user)
 	context["fullname"] = info.fullname
 	context["user_image"] = info.avatar
+	context["user"] = info.name
 
 
 def add_metatags(context):

@@ -201,8 +201,11 @@ def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
 		'file_url': file_url
 	}
 
+def get_max_file_size():
+	return conf.get('max_file_size') or 10485760
+
 def check_max_file_size(content):
-	max_file_size = conf.get('max_file_size') or 10485760
+	max_file_size = get_max_file_size()
 	file_size = len(content)
 
 	if file_size > max_file_size:
@@ -256,6 +259,8 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	if attached_to_doctype and attached_to_name:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
+		if frappe.flags.in_web_form:
+			ignore_permissions = True
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))

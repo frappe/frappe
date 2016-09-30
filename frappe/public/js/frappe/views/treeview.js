@@ -7,7 +7,8 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
-				doctype: route[1]
+				doctype: route[1],
+				meta: frappe.get_meta(route[1])
 			};
 
 			if (!frappe.treeview_settings[route[1]] && !frappe.meta.get_docfield(route[1], "is_group")) {
@@ -111,50 +112,54 @@ frappe.views.TreeView = Class.extend({
 	},
 	get_toolbar: function(){
 		var me = this;
-		if(this.opts.toolbar) {
-			return this.opts.toolbar;
-		} else {
-			return [
-				{toggle_btn: true},
-				{
-					label:__("Edit"),
-					condition: function(node) {
-						return !node.root && me.can_read;
-					},
-					click: function(node) {
-						frappe.set_route("Form", me.doctype, node.label);
-					}
+		
+		var toolbar = [
+			{toggle_btn: true},
+			{
+				label:__("Edit"),
+				condition: function(node) {
+					return !node.root && me.can_read;
 				},
-				{
-					label:__("Add Child"),
-					condition: function(node) { return me.can_create && node.expandable; },
-					click: function(node) {
-						me.new_node();
-					},
-					btnClass: "hidden-xs"
-				},
-				{
-					label:__("Rename"),
-					condition: function(node) { return !node.root && me.can_write; },
-					click: function(node) {
-						frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
-							node.$a.html(new_name);
-						});
-					},
-					btnClass: "hidden-xs"
-				},
-				{
-					label:__("Delete"),
-					condition: function(node) { return !node.root && me.can_delete; },
-					click: function(node) {
-						frappe.model.delete_doc(me.doctype, node.label, function() {
-							node.parent.remove();
-						});
-					},
-					btnClass: "hidden-xs"
+				click: function(node) {
+					frappe.set_route("Form", me.doctype, node.label);
 				}
-
-			]
+			},
+			{
+				label:__("Add Child"),
+				condition: function(node) { return me.can_create && node.expandable; },
+				click: function(node) {
+					me.new_node();
+				},
+				btnClass: "hidden-xs"
+			},
+			{
+				label:__("Rename"),
+				condition: function(node) { return !node.root && me.can_write; },
+				click: function(node) {
+					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
+						node.$a.html(new_name);
+					});
+				},
+				btnClass: "hidden-xs"
+			},
+			{
+				label:__("Delete"),
+				condition: function(node) { return !node.root && me.can_delete; },
+				click: function(node) {
+					frappe.model.delete_doc(me.doctype, node.label, function() {
+						node.parent.remove();
+					});
+				},
+				btnClass: "hidden-xs"
+			}
+		]
+		
+		if(this.opts.toolbar && this.opts.extend_toolbar) {
+			return toolbar.concat(this.opts.toolbar)
+		} else if (this.opts.toolbar && !this.opts.extend_toolbar) {
+			return this.opts.toolbar
+		} else {
+			return toolbar
 		}
 	},
 	new_node: function() {
@@ -166,7 +171,7 @@ frappe.views.TreeView = Class.extend({
 			return;
 		}
 
-		this.prepare_fields()
+		this.prepare_fields();
 
 		// the dialog
 		var d = new frappe.ui.Dialog({
@@ -174,7 +179,25 @@ frappe.views.TreeView = Class.extend({
 			fields: me.fields
 		})
 
+		me.args["parent_"+me.doctype.toLowerCase()] = me.args["parent"];
 		d.set_value("is_group", 0);
+		d.set_values(me.args);
+
+		// set query to all link fields if company field exists
+		if (me.args["company"]) {
+			$.each(me.fields, function(i, field){
+				if(field.fieldtype == "Link") {
+					d.fields_dict[field.fieldname].get_query = function() {
+						return {
+							filters:{
+								"company": me.args["company"]
+							}
+						}
+					};
+				}
+			})
+		}
+
 		// create
 		d.set_primary_action(__("Create New"), function() {
 			var btn = this;
@@ -215,15 +238,26 @@ frappe.views.TreeView = Class.extend({
 		var me = this;
 
 		this.fields = [
-			{fieldtype:'Data', fieldname: 'name_field',
-				label:__('New {0} Name',[__(me.doctype)]), reqd:true},
 			{fieldtype:'Check', fieldname:'is_group', label:__('Group Node'),
 				description: __("Further nodes can be only created under 'Group' type nodes")}
 		]
 
-		if (me.opts.fields) {
-			me.fields = me.opts.fields;
+		if (this.opts.fields) {
+			this.fields = this.opts.fields;
 		}
+
+		var mandatory_fields = $.map(me.opts.meta.fields,
+			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
+
+		var opts_field_names = this.fields.map(function(d) {
+			return d.fieldname
+		})
+
+		mandatory_fields.map(function(d) {
+			if($.inArray(d.fieldname, opts_field_names) === -1) {
+				me.fields.push(d)
+			}
+		})
 	},
 	set_primary_action: function(){
 		var me = this;

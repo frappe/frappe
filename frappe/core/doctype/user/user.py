@@ -38,10 +38,14 @@ class User(Document):
 			[m.module_name for m in frappe.db.get_all('Desktop Icon',
 				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
 
+	def before_insert(self):
+		self.flags.in_insert = True
+
+	def after_insert(self):
+		self.set_default_roles()
+
 	def validate(self):
 		self.check_demo()
-
-		self.in_insert = self.get("__islocal")
 
 		# clear new password
 		self.__new_password = self.new_password
@@ -70,6 +74,10 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
 
+	def has_website_permission(self, ptype, verbose=False):
+		"""Returns true if current user is the session user"""
+		return self.name == frappe.session.user
+
 	def check_demo(self):
 		if frappe.session.user == 'demo@erpnext.com':
 			frappe.throw('Cannot change user details in demo. Please signup for a new account at https://erpnext.com', title='Not Allowed')
@@ -88,6 +96,33 @@ class User(Document):
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
+
+	def set_default_roles(self):
+		"""Set a default role if specified by rules (`default_role`) in hooks or Portal Settings
+
+		Hooks for default roles can be set as:
+
+			default_roles = [
+				{'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',
+					'filters': {'ifnull(customer, "")': ('!=', '')}}
+			]
+
+		"""
+		role_found = False
+		for rule in frappe.get_hooks('default_roles'):
+			filters = {rule.get('email_field'): self.email}
+			if rule.get('filters'):
+				filters.update(rule.get('filters'))
+
+			match = frappe.get_all(rule.get('doctype'), filters=filters, limit=1)
+			if match:
+				role_found = True
+				self.add_roles(rule.get('role'))
+
+		if not role_found:
+			default_role = frappe.db.get_single_value('Portal Settings', 'default_role')
+			if default_role:
+				self.add_roles(default_role)
 
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
@@ -116,7 +151,7 @@ class User(Document):
 			])
 
 	def email_new_password(self, new_password=None):
-		if new_password and not self.in_insert:
+		if new_password and not self.flags.in_insert:
 			_update_password(self.name, new_password)
 
 			if self.send_password_update_notification:
@@ -124,10 +159,22 @@ class User(Document):
 				frappe.msgprint(_("New password emailed"))
 
 	def set_system_user(self):
-		if self.user_roles or self.name == 'Administrator':
+		'''Set as System User if any of the given roles has desk_access'''
+		if self.has_desk_access() or self.name == 'Administrator':
 			self.user_type = 'System User'
 		else:
 			self.user_type = 'Website User'
+
+	def has_desk_access(self):
+		'''Return true if any of the set roles has desk access'''
+		if not self.user_roles:
+			return False
+
+		return len(frappe.db.sql("""select name
+			from `tabRole` where desk_access=1
+				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.user_roles))),
+				[d.role for d in self.user_roles]))
+
 
 	def share_with_self(self):
 		if self.user_type=="System User":
@@ -147,7 +194,7 @@ class User(Document):
 
 	def send_password_notification(self, new_password):
 		try:
-			if self.in_insert:
+			if self.flags.in_insert:
 				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
@@ -155,12 +202,15 @@ class User(Document):
 
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
-						msgprint(_("Welcome email sent"))
+						self.flags.email_sent = 1
+						if frappe.session.user != 'Guest':
+							msgprint(_("Welcome email sent"))
 						return
 			else:
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
+			print frappe.get_traceback()
 			pass # email server not set, don't send email
 
 
@@ -209,8 +259,10 @@ class User(Document):
 		from frappe.utils import get_url
 
 		link = self.reset_password()
+
 		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
 			{"link": link, "site_url": get_url()})
+
 
 	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
@@ -238,7 +290,7 @@ class User(Document):
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
 			message=frappe.get_template(template).render(args),
-			delayed=(not now) if now!=None else self.flags.delay_emails)
+			delayed=(not now) if now!=None else self.flags.delay_emails, retry=3)
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
@@ -456,6 +508,13 @@ def update_password(new_password, key=None, old_password=None):
 
 	user_doc, redirect_url = reset_user_data(user)
 
+	# get redirect url from cache
+	redirect_to = frappe.cache().hget('redirect_after_login', user)
+	if redirect_to:
+		redirect_url = redirect_to
+		frappe.cache().hdel('redirect_after_login', user)
+
+
 	frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
@@ -515,7 +574,7 @@ def verify_password(password):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 @frappe.whitelist(allow_guest=True)
-def sign_up(email, full_name):
+def sign_up(email, full_name, redirect_to):
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
@@ -524,9 +583,12 @@ def sign_up(email, full_name):
 			return _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
-			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 200:
-			frappe.msgprint("Login is closed for sometime, please check back again in an hour.")
-			raise Exception, "Too Many New Users"
+			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
+
+			frappe.respond_as_web_page(_('Temperorily Disabled'),
+				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
+				http_status_code=429)
+
 		from frappe.utils import random_string
 		user = frappe.get_doc({
 			"doctype":"User",
@@ -538,7 +600,14 @@ def sign_up(email, full_name):
 		})
 		user.flags.ignore_permissions = True
 		user.insert()
-		return _("Registration Details Emailed.")
+
+		if redirect_to:
+			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
+
+		if user.flags.email_sent:
+			return _("Please check your email for verification")
+		else:
+			return _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
@@ -628,10 +697,10 @@ def has_permission(doc, user):
 		# dont allow non Administrator user to view / edit Administrator user
 		return False
 
-def notifify_admin_access_to_system_manager(login_manager=None):
+def notify_admin_access_to_system_manager(login_manager=None):
 	if (login_manager
 		and login_manager.user == "Administrator"
-		and frappe.local.conf.notifify_admin_access_to_system_manager):
+		and frappe.local.conf.notify_admin_access_to_system_manager):
 
 		message = """<p>
 			{dear_system_manager} <br><br>
