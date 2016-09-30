@@ -269,9 +269,9 @@ var Gantt = Class.extend({
 		var me = this;
 		//highlight today
 		if(me.view_mode === 'Day') {
-			var x = me.opts.label_width
-				+ moment().startOf('day').diff(me.start, 'hours')
-				/ me.opts.step * me.opts.column_width,
+			var x = me.opts.label_width +
+				moment().startOf('day').diff(me.start, 'hours') / me.opts.step *
+				me.opts.column_width,
 			y = 0, //me.opts.header_height + me.opts.padding/2;
 			width = me.opts.column_width,
 			height = (me.opts.bar.height + me.opts.padding) * me.tasks.length
