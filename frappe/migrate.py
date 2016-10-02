@@ -13,6 +13,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 from frappe.core.doctype.language.language import sync_languages
+from frappe.modules.utils import sync_customizations
 import frappe.utils.help
 
 def migrate(verbose=True, rebuild_website=False):
@@ -31,6 +32,7 @@ def migrate(verbose=True, rebuild_website=False):
 	frappe.model.sync.sync_all(verbose=verbose)
 	frappe.translate.clear_cache()
 	sync_fixtures()
+	sync_customizations()
 	sync_desktop_icons()
 	sync_languages()
 

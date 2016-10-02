@@ -49,6 +49,7 @@ frappe.ui.form.on("Email Alert", {
 	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
+		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
 	document_type: function(frm) {
