@@ -125,7 +125,6 @@ def get_communications(doctype, name, start=0, limit=20):
 
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
-			and timeline_hide is null
 	for c in communications:
 		if c.communication_type=="Communication":
 			c.attachments = json.dumps(frappe.get_all("File",
@@ -157,6 +156,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 				or (timeline_doctype=%(doctype)s
 					and timeline_name=%(name)s
 					and communication_type="Comment"
+					and timeline_hide is null
 					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted"))
 			)
 			and (comment_type is null or comment_type != 'Update')'''

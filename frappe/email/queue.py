@@ -108,7 +108,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None):
+	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None, read_receipt=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.recipient = email
@@ -318,7 +318,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			smtplib.SMTPAuthenticationError,
-			frappe.ValidationError):
+			JobTimeoutException):
 
 		# bad connection/timeout, retry later
 		frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s where name=%s""",

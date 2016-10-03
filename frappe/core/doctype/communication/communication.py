@@ -229,6 +229,7 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 	frappe.db.add_index("Communication", ["creation"])
 	frappe.db.add_index("Communication", ["modified"])
+	frappe.db.add_index("Communication", ["message_id(200)"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read" and doc.reference_doctype and doc.reference_name:

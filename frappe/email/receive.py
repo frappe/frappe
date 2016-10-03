@@ -242,29 +242,6 @@ class EmailServer:
 
 		message_list = []
 		#get message-id's to link new uid's to
-		"""
-		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (MESSAGE-ID)])')
-		#format data into list
- 		if messages[0] == 'OK':
-			for i, item in enumerate(messages[1]):
-				if isinstance(item, tuple):
-					message = ""
-					#add items into a single string to deal with hotmail returning uid on the 2nd half
-					for m in item:
-						message += u' ' + m
-						message += messages[1][i + 1]
-					message_id = re.search(r'(Message-ID: )\<.*\>', message, re.U | re.I)
-					if message_id:
-						message_id = message_id.group()[12:]
-					else:
-						continue
-					uid = re.search(r'UID [0-9]*', message, re.U | re.I)
-					if uid:
-						uid = uid.group()[4:]
-					else:
-						break
-					message_list.append([uid, message_id])
-		"""
 		import email
 		#messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (FROM TO ENVELOPE-TO DATE RECEIVED)])')
 		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER])')
@@ -357,24 +334,18 @@ class EmailServer:
 		from itertools import count, groupby
 		num = 50
 
-		# set number of email remaining to be synced TEMPTEMPTEMPTEMPTEMP################################################################
+		# set number of email remaining to be synced
 		dl_length = len(download_list)
 
 		lcount =1
 		while len(download_list)>0:
 			# trim list to specified num emails to dl at a time
 
-			#cur_download_list = download_list[:num]
-			#if cur_download_list:
-			#	length = len(download_list)
-			#	download_list = download_list[num:length]
-
 			dlength = len(download_list)
 			cur_download_list = download_list[dlength - num:dlength]
 			if cur_download_list:
 				download_list = download_list[:dlength - num]
 
-				#####tempoary limit until python RQ arrives ################################################
 				if lcount>=4:
 					download_list = []
 
@@ -383,7 +354,6 @@ class EmailServer:
 				message_meta = ",".join(":".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
 
 				messages =[]
-
 
 				try:
 					messages = self.imap.uid('fetch', message_meta,'(BODY.PEEK[])')
@@ -424,13 +394,8 @@ class EmailServer:
 					# set number of email remaining to be synced TEMPTEMPTEMPTEMPTEMP################################################################
 					frappe.db.set_value("Email Account", self.settings.email_account, "no_remaining",dl_length-len(self.latest_messages),update_modified = False)
 					frappe.db.commit()
-				print(lcount)
 				lcount = lcount +1
-					# TEMPTEMPTEMPTEMPTEMP###########################################################################################################
 
-
-					#send all emails to received emails to be processed by another worker then clear emails
-					#self.latest_messages = []
 	def sync_flags(self):
 		#get flags from email flag queue + join them to the matching email account and uid
 		queue = frappe.db.sql("""select que.name,comm.uid,que.action,que.flag from tabCommunication as comm,`tabEmail Flag Queue` as que
@@ -624,7 +589,6 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		import email.header
 		self.raw = content
 		self.mail = email.message_from_string(self.raw)
 
@@ -645,26 +609,26 @@ class Email:
 
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
-		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
-
-		self.from_email = extract_email_id(_from_email)
-		if self.from_email:
-			self.from_email = self.from_email.lower()
-
-		#self.from_real_name = email.utils.parseaddr(_from_email)[0]
-
-		_from_real_name = email.Header.decode_header(email.utils.parseaddr(_from_email)[0])
-		self.from_real_name = email.Header.decode_header(email.utils.parseaddr(_from_email)[0])[0][0] or ""
-
-		try:
-			if _from_real_name[0][1]:
-				self.from_real_name = self.from_real_name.decode(_from_real_name[0][1])
-			else:
-				# assume that the encoding is utf-8
-				self.from_real_name = self.from_real_name.decode("utf-8")
-		except UnicodeDecodeError,e:
-			print e
-			pass
+		# _from_email = self.mail.get("X-Original-From") or self.mail["From"]
+		# 
+		# self.from_email = extract_email_id(_from_email)
+		# if self.from_email:
+		# 	self.from_email = self.from_email.lower()
+		# 
+		# #self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		# 
+		# _from_real_name = decode_header(email.utils.parseaddr(_from_email)[0])
+		# self.from_real_name = decode_header(email.utils.parseaddr(_from_email)[0])[0][0] or ""
+		# 
+		# try:
+		# 	if _from_real_name[0][1]:
+		# 		self.from_real_name = self.from_real_name.decode(_from_real_name[0][1])
+		# 	else:
+		# 		# assume that the encoding is utf-8
+		# 		self.from_real_name = self.from_real_name.decode("utf-8")
+		# except UnicodeDecodeError,e:
+		# 	print e
+		# 	pass
 
 		#self.from_real_name = email.Header.decode_header(email.utils.parseaddr(_from_email)[0])[0][0]
 		self.To = self.mail.get("To")
@@ -720,13 +684,21 @@ class Email:
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
 		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
 		_from_email, encoding = decode_header(_from_email)[0]
+		_reply_to = self.mail.get("Reply-To")
 
 		if encoding:
 			_from_email = _from_email.decode(encoding)
 		else:
 			_from_email = _from_email.decode('utf-8')
 
-		self.from_email = extract_email_id(_from_email)
+		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
+			self.from_email = _reply_to
+		else:
+			self.from_email = extract_email_id(_from_email)
+			
+		if self.from_email:
+			self.from_email = self.from_email.lower()
+			
 		self.from_real_name = email.utils.parseaddr(_from_email)[0]
 
 	def set_content_and_type(self):
