@@ -28,9 +28,11 @@
 				</a>
 			</li>
 			{%- endfor %}
+			{% if frappe.user != 'Guest' %}
 			<li class="sidebar-item">
 				<a href="/me">My Account</a>
 			</li>
+			{% endif %}
 		</ul>
 		</div>
 </div>
