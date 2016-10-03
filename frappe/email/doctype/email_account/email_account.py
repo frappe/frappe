@@ -243,7 +243,6 @@ class EmailAccount(Document):
 
 				except SentEmailInInbox,e:
 					frappe.db.rollback()
-					make_error_snapshot(e)
 					if self.use_imap:
 						self.handle_bad_emails(email_server, msg[1], msg[0],"sent email in inbox")
 
@@ -259,7 +258,6 @@ class EmailAccount(Document):
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 
-					if communication.message_id and not communication.timeline_hide:
 					if communication.message_id and not communication.timeline_hide:
 						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
 						if first:
@@ -548,13 +546,6 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
-	if frappe.cache().get_value("workers:no-internet") == True:
-		if test_internet():
-			frappe.cache().set_value("workers:no-internet", False)
-		else:	
-			return
-	
-
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""
 	Host: 8.8.8.8 (google-public-dns-a.google.com)
@@ -568,6 +559,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 	except Exception as ex:
 		print ex.message
 		return False
+
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
@@ -598,8 +590,13 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
-	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
-
+	if frappe.cache().get_value("workers:no-internet") == True:
+		if test_internet():
+			frappe.cache().set_value("workers:no-internet", False)
+		else:	
+			return
+	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]	
+			
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1,"awaiting_password": 0}):
 		if now:
 			pull_from_email_account(email_account.name)
@@ -609,8 +606,12 @@ def pull(now=False):
 			job_name = 'pull_from_email_account|{0}'.format(email_account.name)
 
 			if job_name not in queued_jobs:
-				enqueue(pull_from_email_account, 'short', event='all', job_name=job_name,
-					email_account=email_account.name)
+				if email_account.no_remaining == 0:
+					enqueue(pull_from_email_account, 'short', event='all', job_name=job_name,
+					        email_account=email_account.name)
+				else:
+					enqueue(pull_from_email_account, 'long', event='all', job_name=job_name,
+						email_account=email_account.name)
 
 def pull_from_email_account(email_account):
 	'''Runs within a worker process'''

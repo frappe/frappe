@@ -93,7 +93,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 def add(recipients, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
 	cc=[], message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None,
-	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None):
+	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None, read_receipt=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.priority = send_priority

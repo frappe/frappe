@@ -43,9 +43,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
-		if (this.from && this.from.options.length == 1) {
-			this.dialog.set_value("sender",this.from.options[0])
-		}
+
 	},
 
 	get_fields: function() {
