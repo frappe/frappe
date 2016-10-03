@@ -206,8 +206,6 @@
 					{% for d in doc.get(field.fieldname) %}
 						{{ render_row(field, d) }}
 					{% endfor %}
-				{% else %}
-					{{ render_row(field, {}) }}
 				{% endif %}
 			</tbody>
 		</table>
@@ -510,6 +508,9 @@ frappe.ready(function() {
 					// check if child table has value
 					var has_value = false;
 					for(key in d) {
+						if(typeof d[key]==='string') {
+							d[key] = d[key].trim();
+						}
 						if(d[key] !== null && d[key] !== undefined && d[key] !== '') {
 							has_value = true;
 							break;
@@ -554,6 +555,10 @@ frappe.ready(function() {
 				}
 			} else {
 				var val = $input.val();
+			}
+
+			if(typeof val==='string') {
+				val = val.trim();
 			}
 
 			if($input.attr("data-reqd") && (val===undefined || val===null || val==='')) {

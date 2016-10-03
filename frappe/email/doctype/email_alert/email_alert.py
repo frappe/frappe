@@ -13,7 +13,8 @@ from markdown2 import markdown
 
 class EmailAlert(Document):
 	def autoname(self):
-		self.name = self.subject
+		if not self.name:
+			self.name = self.subject
 
 	def validate(self):
 		validate_template(self.subject)

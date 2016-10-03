@@ -40,13 +40,14 @@ def get_doc_module(module, doctype, name):
 	return frappe.get_module(module_name)
 
 @frappe.whitelist()
-def export_customizations(module, doctype):
+def export_customizations(module, doctype, sync_on_migrate=0):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 		This will be synced with bench migrate"""
 	if not frappe.get_conf().developer_mode:
 		raise 'Not developer mode'
 
-	custom = {'custom_fields': [], 'property_setters': [], 'doctype': doctype}
+	custom = {'custom_fields': [], 'property_setters': [],
+		'doctype': doctype, 'sync_on_migrate': 1}
 
 	def add(_doctype):
 		custom['custom_fields'] += frappe.get_all('Custom Field',
@@ -72,7 +73,6 @@ def export_customizations(module, doctype):
 
 def sync_customizations():
 	'''Sync custom fields and property setters from custom folder in each app module'''
-	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 	for app_name in frappe.get_installed_apps():
 		for module_name in frappe.local.app_modules.get(app_name) or []:
@@ -83,25 +83,33 @@ def sync_customizations():
 					with open(os.path.join(folder, fname), 'r') as f:
 						data = json.loads(f.read())
 
-					doctype = data['doctype']
-					if data['custom_fields']:
-						frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
+					if data.get('sync_on_migrate'):
+						sync_customizations_for_doctype(data)
 
-						for d in data['custom_fields']:
-							d['doctype'] = 'Custom Field'
-							doc = frappe.get_doc(d)
-							doc.db_insert()
 
-					if data['property_setters']:
-						frappe.db.sql('delete from `tabProperty Setter` where doc_type=%s', doctype)
+def sync_customizations_for_doctype(data):
+	'''Sync doctype customzations for a particular data set'''
+	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
-						for d in data['property_setters']:
-							d['doctype'] = 'Property Setter'
-							doc = frappe.get_doc(d)
-							doc.db_insert()
+	doctype = data['doctype']
+	if data['custom_fields']:
+		frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
 
-					print 'Updating customizations for {0}'.format(doctype)
-					validate_fields_for_doctype(doctype)
+		for d in data['custom_fields']:
+			d['doctype'] = 'Custom Field'
+			doc = frappe.get_doc(d)
+			doc.db_insert()
+
+	if data['property_setters']:
+		frappe.db.sql('delete from `tabProperty Setter` where doc_type=%s', doctype)
+
+		for d in data['property_setters']:
+			d['doctype'] = 'Property Setter'
+			doc = frappe.get_doc(d)
+			doc.db_insert()
+
+	print 'Updating customizations for {0}'.format(doctype)
+	validate_fields_for_doctype(doctype)
 
 
 def scrub(txt):
