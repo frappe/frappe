@@ -171,7 +171,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				if item and ((item.parent or item.name) != doc.name) \
-						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
+					and ((method=="Delete" and item.docstatus<2) or (lf.parent != "Timesheet Detail" and method=="Cancel" and item.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling

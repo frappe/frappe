@@ -620,9 +620,10 @@ class Document(BaseDocument):
 				frappe.LinkValidationError)
 
 		if cancelled_links:
-			msg = ", ".join((each[2] for each in cancelled_links))
-			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
-				frappe.CancelledLinkError)
+			if not (self.doctype == "Timesheet" or self.doctype == "Timesheet Detail"):
+				msg = ", ".join((each[2] for each in cancelled_links))
+				frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
+					frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
 		"""Returns all children documents from **Table** type field in a list."""
