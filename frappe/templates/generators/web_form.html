@@ -65,7 +65,7 @@
 
 {%- macro value(field, _doc) -%}
 	{%- if _doc -%}
-		{%- set _value = _doc.get(field.fieldname) -%}
+		{%- set _value = _doc.get(field.fieldname) or frappe.form_dict.get(field.fieldname) -%}
 	{%- else -%}
 		{%- set _value = frappe.form_dict.get(field.fieldname) or field.default -%}
 	{%- endif -%}
@@ -85,8 +85,8 @@
 
 {% macro render_field(field, _doc=None, with_label=True) %}
 	{% if field.hidden %}
-	<input type="hidden"
-		name="{{ field.fieldname }}" {% if field.default -%} value="{{ field.default }}" {%- endif %}>
+	<input type="hidden" data-doctype="{{ field.parent }}"
+		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
 	{% elif field.fieldtype == "HTML" and field.options %}
 	<div class="form-group">
 		{{ field.options }}
