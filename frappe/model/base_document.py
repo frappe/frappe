@@ -392,8 +392,9 @@ class BaseDocument(object):
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
 			elif self.parentfield:
-				return "{}: {} #{}: {}: {}".format(_("Error"), _("Row"), self.idx,
-					_("Value missing for"), _(df.label))
+
+				return "{}: {} {} #{}: {}: {}".format(_("Error"), frappe.bold(_(self.doctype)),
+					_("Row"), self.idx, _("Value missing for"), _(df.label))
 
 			else:
 				return "{}: {}: {}".format(_("Error"), _("Value missing for"), _(df.label))

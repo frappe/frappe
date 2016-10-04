@@ -65,7 +65,6 @@
 .grid-row > .row .col {
   padding-left: 10px;
   padding-right: 10px;
-  overflow: hidden;
 }
 .grid-body .btn-open-row {
   padding-top: 5px;
@@ -121,6 +120,9 @@
 .grid-body .grid-static-col[data-fieldtype="Code"] .static-area pre {
   background: none;
   border: none;
+}
+.grid-body .grid-static-col[data-fieldtype="Text Editor"] {
+  overflow: hidden;
 }
 @media (max-width: 767px) {
   .grid-body .btn-open-row {

@@ -72,6 +72,28 @@ frappe.ui.form.on("Customize Form", {
 			frm.add_custom_button(__('Reset to defaults'), function() {
 				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
 			}, "icon-eraser", "btn-default");
+
+			if(frappe.boot.developer_mode) {
+				frm.add_custom_button(__('Export Customizations'), function() {
+					frappe.prompt(
+						[
+							{fieldtype:'Link', fieldname:'module', options:'Module Def',
+								label: __('Module to Export')},
+							{fieldtype:'Check', fieldname:'sync_on_migrate',
+								label: __('Sync on Migrate'), 'default': 1},
+						],
+						function(data) {
+							frappe.call({
+								method: 'frappe.modules.utils.export_customizations',
+								args: {
+									doctype: frm.doc.doc_type,
+									module: data.module,
+									sync_on_migrate: data.sync_on_migrate
+								}
+							});
+						});
+				});
+			}
 		}
 
 		// sort order select

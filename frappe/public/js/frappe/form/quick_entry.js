@@ -102,10 +102,12 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		});
 
 		// ctrl+enter to save
-		dialog.wrapper.keydown("meta+return ctrl+return", function(e) {
-			if(!frappe.request.ajax_count) {
-				// not already working -- double entry
-				dialog.get_primary_btn().trigger("click");
+		dialog.wrapper.keydown(function(e) {
+			if((e.ctrlKey || e.metaKey) && e.which==13) {
+				if(!frappe.request.ajax_count) {
+					// not already working -- double entry
+					dialog.get_primary_btn().trigger("click");
+				}
 			}
 		});
 

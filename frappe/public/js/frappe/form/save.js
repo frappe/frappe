@@ -202,7 +202,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 frappe.ui.form.update_calling_link = function(name) {
 	if(frappe._from_link) {
 		// set value
-		if (frappe._from_link.doc.parentfield){
+		if (frappe._from_link.doc && frappe._from_link.doc.parentfield){
 			//update values for child table
 			$.each(frappe._from_link.frm.fields_dict[frappe._from_link.doc.parentfield].grid.grid_rows, function(index, field) {
 				if(field.doc && field.doc.name===frappe._from_link.docname){

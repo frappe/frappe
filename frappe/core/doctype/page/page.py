@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import os
 from frappe.model.document import Document
 from frappe.build import html_to_js_template
 from frappe.model.utils import render_include
@@ -49,15 +50,10 @@ class Page(Document):
 		from frappe.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self, "roles")
 
-		if not frappe.flags.in_import and getattr(conf,'developer_mode', 0) and self.standard=='Yes':
-			from frappe.modules.export_file import export_to_files
-			from frappe.modules import get_module_path, scrub
-			import os
-			export_to_files(record_list=[['Page', self.name]])
+		from frappe.modules.utils import export_module_json
+		path = export_module_json(self, self.standard=='Yes', self.module)
 
-			# write files
-			path = os.path.join(get_module_path(self.module), 'page', scrub(self.name), scrub(self.name))
-
+		if path:
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:

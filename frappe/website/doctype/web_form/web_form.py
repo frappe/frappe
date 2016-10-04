@@ -11,6 +11,7 @@ from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 from frappe.utils.file_manager import get_max_file_size
+from frappe.modules.utils import export_module_json, get_doc_module
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -65,16 +66,9 @@ class WebForm(WebsiteGenerator):
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
-			from frappe.modules.export_file import export_to_files
-			from frappe.modules import get_module_path
+		path = export_module_json(self, self.is_standard, self.module)
 
-			# json
-			export_to_files(record_list=[['Web Form', self.name]], record_module=self.module)
-
-			# write files
-			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
-
+		if path:
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
@@ -291,12 +285,7 @@ def get_context(context):
 	def set_web_form_module(self):
 		'''Get custom web form module if exists'''
 		if self.is_standard:
-			module_name = "{app}.{module}.web_form.{name}.{name}".format(
-					app = frappe.local.module_app[scrub(self.module)],
-					module = scrub(self.module),
-					name = scrub(self.name)
-			)
-			self.web_form_module = frappe.get_module(module_name)
+			self.web_form_module = get_doc_module(self.module, self.doctype, self.name)
 		else:
 			self.web_form_module = None
 

@@ -95,10 +95,8 @@ def build_context(context):
 
 	add_metatags(context)
 
-	if frappe.session.user == 'Guest':
-		context.show_sidebar = 0
-
 	if context.show_sidebar:
+		context.no_cache = 1
 		add_sidebar_data(context)
 
 	# determine templates to be used
