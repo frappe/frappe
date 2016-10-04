@@ -59,7 +59,7 @@
 		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
 		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
 		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
-		{{ (field.reqd and field.fieldtype!="Attach") and "data-reqd=1" or "" }}
+		{{ field.reqd and "data-reqd=1" or "" }}
 		{{ (read_only or field.read_only) and "disabled" or "" }}
 {% endmacro -%}
 
@@ -537,12 +537,15 @@ frappe.ready(function() {
 		parent.find("[name][data-doctype='"+ doctype +"']").each(function() {
 			var $input = $(this);
 			var input_type = $input.attr("type");
+			var no_attachment = false;
+
 			if(input_type==="file") {
 				// save filedata dict as value
 				if($input.get(0).filedata) {
 					var val = $input.get(0).filedata;
 				} else {
 					var val = {'__no_attachment': 1}
+					no_attachment = true;
 				}
 			} else if(input_type==="checkbox") {
 				var val = $input.prop("checked") ? 1 : 0;
@@ -561,7 +564,8 @@ frappe.ready(function() {
 				val = val.trim();
 			}
 
-			if($input.attr("data-reqd") && (val===undefined || val===null || val==='')) {
+			if($input.attr("data-reqd")
+				&& (val===undefined || val===null || val==='' || no_attachment)) {
 				frappe.mandatory_missing_in_last_doc.push([$input.attr("data-label"),
 					$input.parents('.web-form-page:first').attr('data-label')]);
 			}
