@@ -98,12 +98,16 @@ def module_is_versionable(doc):
         return False
 
     module = doc.meta.module
-    settings = json.loads(frappe.db.get_value(
+    settings = frappe.db.get_value(
             "Document Versioning Settings",
             "Document Versioning Settings",
             "stored_modules"
-        ))
-
+        )
+    # have to handle installation edge case this way.
+    if settings:
+        settings = json.loads(settings)
+    else:
+        settings = {}
     return settings.get(module, False)
 
 
