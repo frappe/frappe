@@ -945,7 +945,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +494,{0}: No basic permission
 apps/frappe/frappe/limits.py +72,Your subscription will expire on {0}.,Ihr Abonnement endet am {0}.
 apps/frappe/frappe/utils/backups.py +159,Download link for your backup will be emailed on the following email address: {0},Download-Link für Datensicherung wird an die folgende E-Mail-Adresse gesendet: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Bedeutung von Übertragen, Stornieren, Abändern"
-apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Aufgaben
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Tun
 apps/frappe/frappe/templates/generators/web_form.html +279,Successfully Updated. Redirecting...,Erfolgreich aktualisiert. Umleiten ...
 apps/frappe/frappe/public/js/frappe/ui/editor.html +24,Paragraph,Absatz
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,Alle vorhandenen Berechtigungen werden gelöscht/überschrieben.
@@ -1825,7 +1825,7 @@ DocType: Email Account,Add Signature,Signatur hinzufügen
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Hat diese Unterhaltung verlassen
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +474,Did not set,Wurde nicht übernommen
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Setup&gt; Benutzerberechtigungen-Manager
-DocType: ToDo,ToDo,Aufgabe
+DocType: ToDo,ToDo,Tun
 DocType: DocField,No Copy,Keine Kopie
 DocType: Workflow State,qrcode,QR-Code
 DocType: Web Form,Breadcrumbs,Breadcrumbs
