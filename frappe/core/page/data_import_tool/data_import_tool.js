@@ -134,7 +134,7 @@ frappe.DataImportTool = Class.extend({
 				}
 			},
 			callback: function(attachment, r) {
-				if(r.message.error) {
+				if(r.message.error || r.message.messages.length==0) {
 					me.onerror(r);
 				} else {
 					if(me.has_progress) {
@@ -197,7 +197,7 @@ frappe.DataImportTool = Class.extend({
 			r.messages = ["<h4 style='color:red'>" + __("Import Failed") + "</h4>"]
 				.concat(r.messages);
 
-			r.messages.push("Please correct and import again.");
+			r.messages.push("Please correct the format of the file and import again.");
 
 			frappe.show_progress(__("Importing"), 1, 1);
 
