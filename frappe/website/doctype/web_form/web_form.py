@@ -36,6 +36,20 @@ class WebForm(WebsiteGenerator):
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
+		self.validate_fields()
+
+	def validate_fields(self):
+		'''Validate all fields are present'''
+		from frappe.model import no_value_fields
+		missing = []
+		meta = frappe.get_meta(self.doc_type)
+		for df in self.web_form_fields:
+			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname)):
+				missing.append(df.fieldname)
+
+		if missing:
+			frappe.throw(_('Following fields are missing:') + '<br>' + '<br>'.join(missing))
+
 	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
 		for df in self.web_form_fields:

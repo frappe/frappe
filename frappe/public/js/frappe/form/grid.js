@@ -460,6 +460,11 @@ frappe.ui.form.Grid = Class.extend({
 										if(df.fieldtype==="Date" && value) {
 											value = frappe.datetime.user_to_str(value);
 										}
+
+										if(df.fieldtype==="Int" || df.fieldtype==="Check") {
+											value = cint(value);
+										}
+
 										d[fieldnames[ci]] = value;
 									});
 								}
