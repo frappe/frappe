@@ -974,7 +974,6 @@ class Document(BaseDocument):
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
 		like _submit for submit, it will call that instead'''
-
 		if action in ('save', 'submit', 'cancel'):
 			# set docstatus explicitly again due to inconsistent action
 			self.docstatus = {'save':0, 'submit':1, 'cancel': 2}[action]
@@ -988,6 +987,7 @@ class Document(BaseDocument):
 			action = '_' + action
 
 		self.lock()
+		frappe.db.commit()
 		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,
 			action=action, **kwargs)
 
@@ -995,9 +995,10 @@ def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''
 	doc = frappe.get_doc(doctype, name)
 	doc.unlock()
+	frappe.db.commit()
 	try:
 		getattr(doc, action)(**kwargs)
-	except frappe.ValidationError:
+	except Exception:
 		# add a comment (?)
 		if frappe.local.message_log:
 			msg = json.loads(frappe.local.message_log[-1]).get('message')
@@ -1005,11 +1006,4 @@ def execute_action(doctype, name, action, **kwargs):
 			msg = '<pre><code>' + frappe.get_traceback() + '</pre></code>'
 		
 		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
-
-		doc.notify_update()
-	except Exception:
-		# add a comment (?)
-		doc.add_comment('Comment',
-			_('Action Failed') + '<pre><code>' + frappe.get_traceback() + '</pre></code>')
-
 		doc.notify_update()
