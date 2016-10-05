@@ -239,7 +239,7 @@ def get_context(context):
 			new_page = {'sections': []}
 			layout.append(new_page)
 			if df and df.fieldtype=='Page Break':
-				new_page['label'] = df.label
+				new_page.update(df.as_dict())
 
 			return new_page
 
@@ -247,7 +247,7 @@ def get_context(context):
 			new_section = {'columns': []}
 			layout[-1]['sections'].append(new_section)
 			if df and df.fieldtype=='Section Break':
-				new_section['label'] = df.label
+				new_section.update(df.as_dict())
 
 			return new_section
 
@@ -280,7 +280,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if not column:
+				if column==None:
 					column = add_column()
 				column.append(df)
 

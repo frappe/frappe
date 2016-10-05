@@ -32,8 +32,7 @@
 {% block page_content %}
 <div class="introduction">
 	{% if introduction_text %}
-	<p class="lead">{{ introduction_text }}</p>
-	<hr>
+	<p class="text-muted">{{ introduction_text }}</p>
 	{% endif %}
 </div>
 <div class="form-message alert alert-warning hide"></div>
@@ -74,7 +73,7 @@
 
 {%- macro help(field) -%}
 		{% if field.description -%}
-		<span class="help-block small">{{ _(field.description) }}</span>
+		<span class="help-block small text-muted">{{ _(field.description) }}</span>
 		{%- endif -%}
 {%- endmacro %}
 
@@ -147,7 +146,7 @@
 		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
 			<input type="file" style="margin-top: 7px;"
 				{{ properties(field) }}>
-			<p class='text-muted small'>
+			<p class='text-muted small' style='margin-bottom: 20px;'>
 				{{ _("Max attachment size is {0}MB").format(max_attachment_size) }}
 			</p>
 		</p>
@@ -157,7 +156,7 @@
 	<div class="form-group">
 		<div class="checkbox">
 			{% if with_label %}
-			<label>
+			<label class='text-muted'>
 				<input type="checkbox" id="{{ field.fieldname }}"
 					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
 					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
@@ -243,7 +242,14 @@
 	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
 		data-idx="{{ loop.index }}"
 		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
-		{% if page.label %}<h2>{{ page.label }}</h2>{% endif %}
+		{% if page.label %}
+			<h2 class='text-center'>{{ page.label }}</h2>
+		{% endif %}
+		{% if page.description %}
+			<p class='text-center text-muted small'>{{ page.description }}</p>
+			<br>
+		{% endif %}
+
 		{% for section in page.sections %}
 		<div class="section">
 			{% if section.label %}
@@ -263,18 +269,18 @@
 					{% endfor %}
 			</div>
 			{% if last_page and accept_payment and payment_url %}
-				<div class="well payment-details">
-					{% if not doc.paid %}
-						{% if payment_button_help %}
-						<div class='text-muted' style='padding-bottom: 15px;'>
-							{{ payment_button_help }}</div>
-						{% endif %}
-						<a class="btn btn-primary btn-payment" href="{{ payment_url }}">
-							{{ payment_button_label }}</a>
-					{% else %}
-						<div>{{ _("Payment Complete") }}</div>
+			<div class="well payment-details">
+				{% if not doc.paid %}
+					{% if payment_button_help %}
+					<div class='text-muted' style='padding-bottom: 15px;'>
+						{{ payment_button_help }}</div>
 					{% endif %}
-				</div>
+					<a class="btn btn-primary btn-payment" href="{{ payment_url }}">
+						{{ payment_button_label }}</a>
+				{% else %}
+					<div>{{ _("Payment Complete") }}</div>
+				{% endif %}
+			</div>
 			{% endif %}
 		</div>
 		{% endfor %}
@@ -728,11 +734,30 @@ frappe.ready(function() {
 
 {% block style %}
 <style>
-.web-form-page {
+
+.introduction {
+	border-bottom: 1px solid #e1e9f0;
+	padding: 15px;
+	padding-top: 0px;
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-bottom: 15px;
 }
 
-.web-form-page input, .web-form-page select {
-	max-width: 500px;
+.form-group label {
+	font-weight: normal;
+}
+
+input[type='checkbox'] {
+	margin-top: 3px;
+}
+
+.checkbox label {
+	font-size: 12px;
+}
+
+.web-form-page, .web-form-page .section {
+	padding: 20px 0px;
 }
 
 .web-form-grid-row input, .web-form-grid-row select {
@@ -748,8 +773,7 @@ frappe.ready(function() {
 
 .slide-progress {
     /*border-top: 1px solid #d1d8dd;*/
-	margin-top: -7px;
-	padding: 15px 0px;
+	margin-top: -10px;
 }
 .slide-progress .icon-fixed-width {
 	vertical-align: middle;
