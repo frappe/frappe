@@ -145,7 +145,8 @@
 		{%- endif %}
 		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
 			<input type="file" style="margin-top: 7px;"
-				{{ properties(field) }}>
+				{{ properties(field) }}
+				{%- if value(field, _doc) -%} data-value="{{ value(field, _doc) }}"{%- endif -%}>
 			<p class='text-muted small' style='margin-bottom: 20px;'>
 				{{ _("Max attachment size is {0}MB").format(max_attachment_size) }}
 			</p>
@@ -373,6 +374,7 @@ frappe.ready(function() {
 
 						// clear attachment
 						$(input).val('');
+						$(input).attr('data-value', '');
 
 					};
 					frappe.file_reading = false;
@@ -421,7 +423,7 @@ frappe.ready(function() {
 		var input_wrapper = $(this).parent().addClass("hide")
 			.parent().find(".attach-input-wrap").removeClass("hide");
 
-		input_wrapper.find('input').val('');
+		input_wrapper.find('input').val('').attr('data-value', '');
 
 		frappe.form_dirty = true;
 
@@ -550,8 +552,12 @@ frappe.ready(function() {
 				if($input.get(0).filedata) {
 					var val = $input.get(0).filedata;
 				} else {
-					var val = {'__no_attachment': 1}
-					no_attachment = true;
+					// original value
+					var val = $input.attr('data-value');
+					if (!val) {
+						val = {'__no_attachment': 1}
+						no_attachment = true;
+					}
 				}
 			} else if(input_type==="checkbox") {
 				var val = $input.prop("checked") ? 1 : 0;
