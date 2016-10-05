@@ -999,8 +999,12 @@ def execute_action(doctype, name, action, **kwargs):
 		getattr(doc, action)(**kwargs)
 	except frappe.ValidationError:
 		# add a comment (?)
-		doc.add_comment('Comment',
-			_('Action Failed') + '<br><br>' + json.loads(frappe.local.message_log[-1]).get('message'))
+		if frappe.local.message_log:
+			msg = json.loads(frappe.local.message_log[-1]).get('message')
+		else:
+			msg = '<pre><code>' + frappe.get_traceback() + '</pre></code>'
+		
+		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
 
 		doc.notify_update()
 	except Exception:
