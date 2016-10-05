@@ -363,7 +363,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			'select distinct message from `tabWorkflow Document State` where parent=%s and message is not null',
 			(w['name'],), as_dict=True)
 
-		messages.extend([("Workflow: " + w['name'], states['message'])
+		messages.extend([("Workflow: " + w['name'], state['message'])
 			for state in states if is_translatable(state['message'])])
 
 		actions = frappe.db.sql(
