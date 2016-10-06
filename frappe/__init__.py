@@ -1250,7 +1250,8 @@ def logger(module=None, with_more_info=True):
 
 def log_error(message, title=None):
 	'''Log error to Scheduler Log'''
-	get_doc(dict(doctype='Scheduler Log', error=str(message), method=title)).insert()
+	get_doc(dict(doctype='Scheduler Log', error=str(message),
+		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
 	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))

@@ -57,6 +57,7 @@ class IntegrationService(Document):
 			return frappe.flags.integration_request.json()
 
 		except Exception, exc:
+			frappe.log_error(frappe.get_traceback())
 			raise exc
 
 	def post_request(self, url, auth=None, data=None):

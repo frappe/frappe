@@ -145,29 +145,31 @@ class Controller(IntegrationController):
 		redirect_to = data.get('notes', {}).get('redirect_to') or None
 		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
-		if self.integration_request.status != "Authorized":
-			try:
-					for tries in xrange(3):
-						resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
-							.format(self.data.razorpay_payment_id), auth=(settings.api_key,
-								settings.api_secret))
+		try:
+				for tries in xrange(3):
+					resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
+						.format(self.data.razorpay_payment_id), auth=(settings.api_key,
+							settings.api_secret))
 
-						if resp.get('status') == 'created':
-							# just created wait for a few seconds and try again
-							import time
-							time.sleep(0.5)
+					if resp.get('status') == 'created':
+						# just created wait for a few seconds and try again
+						import time
+						time.sleep(0.5)
 
-						elif resp.get("status") == "authorized":
-							self.integration_request.db_set('status', 'Authorized', update_modified=False)
-							self.flags.status_changed_to = "Authorized"
-							break
+					elif resp.get("status") == "authorized":
+						self.integration_request.db_set('status', 'Authorized', update_modified=False)
+						self.flags.status_changed_to = "Authorized"
+						break
 
-			except:
-				frappe.log_error(frappe.get_traceback())
-				# failed
-				pass
+				if self.flags.status_changed_to != 'Authorized':
+					frappe.log_error(str(resp), 'Razorpay Payment not authorized')
 
-			status = frappe.flags.integration_request.status_code
+		except:
+			frappe.log_error(frappe.get_traceback())
+			# failed
+			pass
+
+		status = frappe.flags.integration_request.status_code
 
 		if self.flags.status_changed_to == "Authorized":
 			if self.data.reference_doctype and self.data.reference_docname:
