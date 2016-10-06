@@ -26,7 +26,7 @@ frappe.integration_service.razorpay_settings =  Class.extend({
 			callback: function(r){
 				var integration_service_help = frm.fields_dict.integration_service_help.wrapper;
 				$(integration_service_help).empty();
-				$(integration_service_help).append("<pre><code>" + r.message + "</code></pre>");
+				$(integration_service_help).append(r.message);
 			}
 		})
 	}

@@ -9,8 +9,9 @@ from frappe import _
 from frappe.utils import get_url, call_hook_method
 from urllib import urlencode
 from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
+import urllib
 
-service_details = """
+"""
 # Integrating PayPal
 
 ### 1. Validate Currency Support
@@ -148,7 +149,40 @@ class PayPalSettings(IntegrationService):
 
 @frappe.whitelist()
 def get_service_details():
-	return service_details 
+	return """
+		<div>
+			<p> Steps to configure Service
+			<ol>
+				<li> Get PayPal api credentials from link: 
+					<a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank">
+						https://developer.paypal.com/docs/classic/api/apiCredentials/
+					</a>
+				</li>
+				<br>
+				<li> Setup credentials on PayPal settings doctype. 
+					Click on
+					<button class="btn btn-default btn-xs disabled"> PayPal Settings </button>
+					top right corner
+				</li>
+				<br>
+				<li>
+					After saving settings,
+						<label>
+							<span class="input-area">
+								<input type="checkbox" class="input-with-feedback" checked disabled>
+							</span>
+							<span class="label-area small">Enabled</span>
+						</label>
+					PayPal Integration Service and Save a document.
+				</li>
+				<br>
+				<li>
+					To view PayPal payment logs,
+					<button class="btn btn-default btn-xs disabled"> Show Log </button>
+				</li>
+			</ol>
+		</div>
+	"""
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
@@ -185,7 +219,10 @@ def confirm_payment(token):
 	doc = frappe.get_doc("PayPal Settings")
 	integration_request = frappe.get_doc("Integration Request", token)
 	data = json.loads(integration_request.data)
-
+	
+	redirect_to = data.get('redirect_to') or None
+	redirect_message = data.get('redirect_message') or None
+	
 	params, url = doc.get_paypal_params_and_url()
 	params.update({
 		"METHOD": "DoExpressCheckoutPayment",
@@ -205,21 +242,22 @@ def confirm_payment(token):
 		}, "Completed")
 
 		if data.get("reference_doctype") and data.get("reference_docname"):
-			redirect_to = frappe.get_doc(data.get("reference_doctype"), data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
+			redirect_url = frappe.get_doc(data.get("reference_doctype"), data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 
-		if not redirect_to:
-			if doc.redirect_to:
-				redirect_to = doc.redirect_to
-
-		redirect_to = redirect_to or get_url("/integrations/payment-success")
-
+		if not redirect_url:
+			redirect_url = '/integrations/payment-success'
 	else:
-		redirect_to = get_url("/integrations/payment-failed")
+		redirect_url = "/integrations/payment-failed"
+
+	if redirect_to:
+		redirect_url += '?' + urllib.urlencode({'redirect_to': redirect_to})
+	if redirect_message:
+		redirect_url += '&' + urllib.urlencode({'redirect_message': redirect_message})
 
 	# this is done so that functions called via hooks can update flags.redirect_to
 	if redirect:
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = redirect_to
+		frappe.local.response["location"] = get_url(redirect_to)
 
 def update_integration_request_status(token, data, status, error=False):
 	frappe.get_doc("Integration Request", token).update_status(data, status)

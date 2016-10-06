@@ -4,13 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import ldap
 from frappe import _
 from frappe.utils import cstr, cint
 from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
-
-service_details=""" LDAP based authentication:
-"""
 
 class LDAPSettings(IntegrationService):
 	def on_update(self):
@@ -26,15 +22,58 @@ class LDAPSettings(IntegrationService):
 
 	def validate_ldap_credentails(self):
 		try:
+			import ldap
 			conn = ldap.initialize(self.ldap_server_url)
 			conn.simple_bind_s(self.base_dn, self.get_password(raise_exception=False))
+			raise ImportError
+		except ImportError:
+			msg = """
+				<div>
+					Seems ldap is not installed on system.<br>
+					Guidelines to install ldap dependancies and python package,
+					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">Click here</a>,
+						
+				</div>
+			"""
+			frappe.throw(msg, title="LDAP Not Installed")
+
 		except ldap.LDAPError:
 			conn.unbind_s()
 			frappe.throw("Incorrect UserId or Password")
 
 @frappe.whitelist()
 def get_service_details():
-	return service_details
+	return """
+		<div>
+			<p> Steps to configure Service
+			<ol>
+				<li> Setup credentials on LDAP settings doctype
+					Click on
+					<button class="btn btn-default btn-xs disabled"> LDAP Settings </button>
+					top right corner
+					<br>
+					To setup LDAP you need,
+					<ul>
+						<li> Server URL & Port :  ldap://ldap.forumsys.com:389</li>
+						<li> Base Distinguished Name :   cn=read-only-admin,dc=example,dc=com</li>
+						<li> Organisational Unit :   ou=mathematicians,dc=example,dc=com</li>
+						<li> Password : Base DN password   </li>
+					</ul>
+				</li>
+				<br>
+				<li>
+					After saving settings,
+						<label>
+							<span class="input-area">
+								<input type="checkbox" class="input-with-feedback" checked disabled>
+							</span>
+							<span class="label-area small">Enable</span>
+						</label>
+					LDAP Integration Service and Save a document.
+				</li>
+			</ol>
+		</div>
+	"""
 
 def get_ldap_settings():
 	try:
@@ -65,6 +104,19 @@ def authenticate_ldap_user(user=None, password=None):
 	dn = None
 	params = {}
 	settings = get_ldap_settings()
+	
+	try:
+		import ldap
+	except:
+		msg = """
+			<div>
+				{{_("Seems ldap is not installed on system")}}.<br>
+				<a href"https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841">Click here</a>,
+					{{_("Guidelines to install ldap dependancies and python")}}
+			</div>
+		"""
+		frappe.throw(msg, title="LDAP Not Installed")
+	
 	conn = ldap.initialize(settings.ldap_server_url)
 
 	try:

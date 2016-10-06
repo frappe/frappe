@@ -9,7 +9,7 @@ from frappe import _
 import urllib, json
 from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
 
-service_details = """
+"""
 # Integrating RazorPay
 
 ### Validate Currency
@@ -210,4 +210,37 @@ def get_checkout_url(**kwargs):
 
 @frappe.whitelist()
 def get_service_details():
-	return service_details
+	return """
+		<div>
+			<p> Steps to configure Service
+			<ol>
+				<li> Get Razorpay api credentials by login to: 
+					<a href="https://razorpay.com/" target="_blank">
+						https://razorpay.com/
+					</a>
+				</li>
+				<br>
+				<li> Setup credentials on Razorpay Settings doctype. 
+					Click on
+					<button class="btn btn-default btn-xs disabled"> Razorpay Settings </button>
+					top right corner
+				</li>
+				<br>
+				<li>
+					After saving settings,
+						<label>
+							<span class="input-area">
+								<input type="checkbox" class="input-with-feedback" checked disabled>
+							</span>
+							<span class="label-area small">Enable</span>
+						</label>
+					Razorpay Integration Service and Save a document.
+				</li>
+				<br>
+				<li>
+					To view Razorpays payment logs,
+					<button class="btn btn-default btn-xs disabled"> Show Log </button>
+				</li>
+			</ol>
+		</div>
+	"""

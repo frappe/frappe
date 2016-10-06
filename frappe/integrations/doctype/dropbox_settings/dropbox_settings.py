@@ -14,17 +14,6 @@ from frappe.integration_broker.doctype.integration_service.integration_service i
 
 ignore_list = [".DS_Store"]
 
-service_details = """
-Steps to enable dropbox backup service:
-	1. Setup dropbox api key and secret on Dropbox Settings
-	2. Generate access token, setup frequency and other details on Dropbox Settings
-	3. Come back to Integration Service and enable service.
-
-After enabling service, system will take backup of files and database on daily or weekly basis
-as per set on Dropbox Settings page and upload it to your dropbox.
-
-"""
-
 class DropboxSettings(IntegrationService):
 	scheduled_jobs = [
 		{
@@ -71,7 +60,43 @@ class DropboxSettings(IntegrationService):
 
 @frappe.whitelist()
 def get_service_details():
-	return service_details
+	return """
+	<div>
+		Steps to enable dropbox backup service:
+		<ol>
+			<li> Create a dropbox app then get App Key and App Secret, 
+				<a href="https://www.dropbox.com/developers/apps" target="_blank">
+					https://www.dropbox.com/developers/apps
+				</a>
+			</li>
+			<br>
+			<li> Setup credentials on Dropbox Settings doctype. 
+				Click on
+				<button class="btn btn-default btn-xs disabled"> Dropbox Settings </button>
+				top right corner
+			</li>
+			<br>
+			<li> After settings up App key and App Secret, generate access token
+				<button class="btn btn-default btn-xs disabled"> Allow Dropbox Access </button>
+			</li>
+			<br>
+			<li>
+				After saving settings,
+					<label>
+						<span class="input-area">
+							<input type="checkbox" class="input-with-feedback" checked disabled>
+						</span>
+						<span class="label-area small">Enable</span>
+					</label>
+				Dropbox Integration Service and Save a document.
+			</li>
+		</ol>
+		<p>
+			After enabling service, system will take backup of files and database on daily or weekly basis
+			as per set on Dropbox Settings page and upload it to your dropbox.
+		</p>
+	</div>
+	"""
 
 #get auth token
 @frappe.whitelist()
@@ -103,7 +128,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 	doc = frappe.get_doc("Dropbox Settings")
 
 	if not not_approved:
-		if doc.get_password(fieldname="dropbox_access_key", raise_exception=False)==oauth_token:			
+		if doc.get_password(fieldname="dropbox_access_key", raise_exception=False)==oauth_token:
 			sess = doc.get_dropbox_session()
 			sess.set_request_token(doc.get_password(fieldname="dropbox_access_key", raise_exception=False),
 				doc.get_password(fieldname="dropbox_access_secret", raise_exception=False))

@@ -28,12 +28,12 @@ frappe.ui.form.on('Integration Service', {
 	setup_custom_buttons: function(frm) {
 		frm.add_custom_button(__("{0} Settings", [frm.doc.service]), function(){
 			frappe.set_route("List", frm.doc.service + " Settings");
-		}).addClass("btn-primary");
+		});
 		
 		frm.add_custom_button(__("Show Log"), function(){
 			frappe.route_options = {"integration_request_service": frm.doc.service};
 			frappe.set_route("List", "Integration Request");
-		}).addClass("btn-primary");
+		});
 	},
 	
 	setup_service_details: function(frm) {
