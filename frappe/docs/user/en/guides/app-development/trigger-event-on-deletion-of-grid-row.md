@@ -2,7 +2,7 @@ To trigger an event when a row from a Child Table has been deleted (when user cl
  
  For example: 
  
- Assuming that your parent DocType is named `Item` has a Table Field linked to `Item Color` DocType with decloration name `color`. 
+ Assuming that your parent DocType is named `Item` has a Table Field linked to `Item Color` DocType with declaration name `color`. 
  
  In order to "catch" the delete event:
  
@@ -37,6 +37,18 @@ To trigger an event when a row from a Child Table has been deleted (when user cl
     
     frappe.ui.form.on('Item Color', 
       color_remove: function(frm) {
+         // Deleting is triggered here
+      }
+   );
+ ```
+or
+ ```javascript 
+    frappe.ui.form.on('Item',{
+    	// Your client side handling for Item 
+    });
+    
+    frappe.ui.form.on('Item Color', 
+      'color_remove', function(frm) {
          // Deleting is triggered here
       }
    );
