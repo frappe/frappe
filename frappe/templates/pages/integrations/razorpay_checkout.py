@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import get_url, flt
-import json, urllib
+from frappe.utils import flt
+import json
 
 from frappe.integrations.razorpay import Controller
 
@@ -17,8 +17,6 @@ expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'referen
 def get_context(context):
 	context.no_cache = 1
 	context.api_key = Controller().get_settings().api_key
-
-	installed_apps = frappe.get_installed_apps()
 
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(frappe.form_dict.keys())):
@@ -45,4 +43,10 @@ def make_payment(razorpay_payment_id, options, reference_doctype, reference_docn
 		"reference_doctype": reference_doctype
 	})
 
-	return Controller().create_request(data)
+	# let razorpay commit its payments!
+	import time
+	time.sleep(0.5)
+
+	data = Controller().create_request(data)
+	frappe.db.commit()
+	return data
