@@ -109,8 +109,8 @@ class DbTable:
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
-				if not (1 <= new_length <= 255):
-					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+				if not (1 <= new_length <= 1000):
+					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
 				try:
 					# check for truncation
