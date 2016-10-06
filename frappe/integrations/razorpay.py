@@ -147,13 +147,21 @@ class Controller(IntegrationController):
 
 		if self.integration_request.status != "Authorized":
 			try:
-				resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
-					.format(self.data.razorpay_payment_id), auth=(settings.api_key,
-						settings.api_secret))
+					for tries in xrange(3):
+						resp = self.get_request("https://api.razorpay.com/v1/payments/{0}"
+							.format(self.data.razorpay_payment_id), auth=(settings.api_key,
+								settings.api_secret))
 
-				if resp.get("status") == "authorized":
-					self.integration_request.db_set('status', 'Authorized', update_modified=False)
-					self.flags.status_changed_to = "Authorized"
+						if resp.get('status') == 'created':
+							# just created wait for a few seconds and try again
+							import time
+							time.sleep(0.5)
+
+						elif resp.get("status") == "authorized":
+							self.integration_request.db_set('status', 'Authorized', update_modified=False)
+							self.flags.status_changed_to = "Authorized"
+							break
+
 			except:
 				frappe.log_error(frappe.get_traceback())
 				# failed
