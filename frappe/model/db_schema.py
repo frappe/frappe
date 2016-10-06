@@ -174,10 +174,11 @@ class DbTable:
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			%sindex parent(parent))
-			ENGINE=InnoDB
+			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
+				engine=self.meta.engine or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns

@@ -43,10 +43,4 @@ def make_payment(razorpay_payment_id, options, reference_doctype, reference_docn
 		"reference_doctype": reference_doctype
 	})
 
-	# let razorpay commit its payments!
-	import time
-	time.sleep(0.5)
-
-	data = Controller().create_request(data)
-	frappe.db.commit()
-	return data
+	return Controller().create_request(data)

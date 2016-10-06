@@ -76,7 +76,7 @@ class EmailServer:
 			return True
 
 		except _socket.error:
-			# log performs rollback and logs error in scheduler log
+			# log performs rollback and logs error in Error Log
 			log("receive.connect_pop")
 
 			# Invalid mail server -- due to refusing connection
@@ -185,7 +185,7 @@ class EmailServer:
 				raise LoginLimitExceeded, e
 
 			else:
-				# log performs rollback and logs error in scheduler log
+				# log performs rollback and logs error in Error Log
 				log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
