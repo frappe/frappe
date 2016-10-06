@@ -999,6 +999,8 @@ def execute_action(doctype, name, action, **kwargs):
 	try:
 		getattr(doc, action)(**kwargs)
 	except Exception:
+		frappe.db.rollback()
+		
 		# add a comment (?)
 		if frappe.local.message_log:
 			msg = json.loads(frappe.local.message_log[-1]).get('message')
