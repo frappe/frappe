@@ -43,7 +43,7 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Scheduler Log",
+					"name": "Error Log",
 					"description": _("Errors in Background Events"),
 				},
 				{

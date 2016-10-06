@@ -340,7 +340,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			raise e
 
 		else:
-			# log to scheduler log
+			# log to Error Log
 			log('frappe.email.queue.flush', unicode(e))
 
 def clear_outbox():

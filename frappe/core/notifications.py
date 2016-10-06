@@ -7,7 +7,7 @@ import frappe
 def get_notification_config():
 	return {
 		"for_doctype": {
-			"Scheduler Log": {"seen": 0},
+			"Error Log": {"seen": 0},
 			"Communication": {"status": "Open", "communication_type": "Communication"},
 			"ToDo": "frappe.core.notifications.get_things_todo",
 			"Event": "frappe.core.notifications.get_todays_events",

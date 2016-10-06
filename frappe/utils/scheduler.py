@@ -14,10 +14,9 @@ import frappe
 import json
 import schedule
 import time
-import os
 import MySQLdb
 import frappe.utils
-from frappe.utils import get_sites, get_site_path, touch_file
+from frappe.utils import get_sites
 from datetime import datetime
 from background_jobs import enqueue, get_jobs, queue_timeout
 from frappe.limits import has_expired
@@ -165,7 +164,7 @@ def log(method, message=None):
 	frappe.db.rollback()
 	frappe.db.begin()
 
-	d = frappe.new_doc("Scheduler Log")
+	d = frappe.new_doc("Error Log")
 	d.method = method
 	d.error = message
 	d.insert(ignore_permissions=True)
@@ -205,7 +204,7 @@ def disable_scheduler():
 	toggle_scheduler(False)
 
 def get_errors(from_date, to_date, limit):
-	errors = frappe.db.sql("""select modified, method, error from `tabScheduler Log`
+	errors = frappe.db.sql("""select modified, method, error from `tabError Log`
 		where date(modified) between %s and %s
 		and error not like '%%[Errno 110] Connection timed out%%'
 		order by modified limit %s""", (from_date, to_date, limit), as_dict=True)
@@ -223,11 +222,11 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 	errors = get_errors(from_date, to_date, limit)
 
 	if errors:
-		return 1, """<h4>Scheduler Failed Events (max {limit}):</h4>
+		return 1, """<h4>Error Logs (max {limit}):</h4>
 			<p>URL: <a href="{url}" target="_blank">{url}</a></p><hr>{errors}""".format(
 			limit=limit, url=get_url(), errors="<hr>".join(errors))
 	else:
-		return 0, "<p>Scheduler didn't encounter any problems.</p>"
+		return 0, "<p>No error logs</p>"
 
 def scheduler_task(site, event, handler, now=False):
 	'''This is a wrapper function that runs a hooks.scheduler_events method'''
