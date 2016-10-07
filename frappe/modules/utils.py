@@ -71,10 +71,15 @@ def export_customizations(module, doctype, sync_on_migrate=0):
 
 	frappe.msgprint('Customizations exported to {0}'.format(path))
 
-def sync_customizations():
+def sync_customizations(app=None):
 	'''Sync custom fields and property setters from custom folder in each app module'''
 
-	for app_name in frappe.get_installed_apps():
+	if app:
+		apps = [app]
+	else:
+		apps = frappe.get_installed_apps()
+
+	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
 			folder = frappe.get_app_path(app_name, module_name, 'custom')
 
