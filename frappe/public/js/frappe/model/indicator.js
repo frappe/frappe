@@ -42,18 +42,12 @@ frappe.get_indicator = function(doc, doctype) {
 	if(workflow_fieldname) {
 		var value = doc[workflow_fieldname];
 		if(value) {
-			var colour = "";
-			
-			if(in_list(locals["Workflow State"], value) && locals["Workflow State"][value].style) {
-				var colour = {
-					"Success": "green",
-					"Warning": "orange",
-					"Danger": "red",
-					"Primary": "blue",
-				}[locals["Workflow State"][value].style];
-			}
-			if(!colour) colour = "darkgrey";
-
+			var colour = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			}[locals["Workflow State"][value].style] || "darkgrey";
 			return [__(value), colour, workflow_fieldname + ',=,' + value];
 		}
 	}
