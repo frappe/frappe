@@ -193,6 +193,8 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
+		self.flags.email_alerts_executed = []
+
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
 
@@ -251,6 +253,8 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True."""
 		if self.flags.in_print:
 			return
+
+		self.flags.email_alerts_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -658,7 +662,54 @@ class Document(BaseDocument):
 			fn = lambda self, *args, **kwargs: None
 
 		fn.__name__ = method.encode("utf-8")
-		return Document.hook(fn)(self, *args, **kwargs)
+		out = Document.hook(fn)(self, *args, **kwargs)
+
+		self.run_email_alerts(method)
+
+		return out
+
+	def run_email_alerts(self, method):
+		'''Run email alerts for this method'''
+		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+			return
+
+		if self.flags.email_alerts_executed==None:
+			self.flags.email_alerts_executed = []
+
+		from frappe.email.doctype.email_alert.email_alert import evaluate_alert
+
+		if self.flags.email_alerts == None:
+			alerts = frappe.cache().hget('email_alerts', self.doctype)
+			if alerts==None:
+				alerts = frappe.get_all('Email Alert', fields=['name', 'event', 'method'],
+					filters={'enabled': 1, 'document_type': self.doctype})
+				frappe.cache().hset('email_alerts', self.doctype, alerts)
+			self.flags.email_alerts = alerts
+
+		if not self.flags.email_alerts:
+			return
+
+		def _evaluate_alert(alert):
+			if not alert.name in self.flags.email_alerts_executed:
+				evaluate_alert(self, alert.name, alert.event)
+
+		event_map = {
+			"on_update": "Save",
+			"after_insert": "New",
+			"on_submit": "Submit",
+			"on_cancel": "Cancel"
+		}
+
+		if not self.flags.in_insert:
+			# value change is not applicable in insert
+			event_map['validate'] = 'Value Change'
+
+		for alert in self.flags.email_alerts:
+			event = event_map.get(method, None)
+			if event and alert.event == event:
+				_evaluate_alert(alert)
+			elif alert.event=='Method' and method == alert.method:
+				_evaluate_alert(alert)
 
 	@staticmethod
 	def whitelist(f):
@@ -1000,12 +1051,12 @@ def execute_action(doctype, name, action, **kwargs):
 		getattr(doc, action)(**kwargs)
 	except Exception:
 		frappe.db.rollback()
-		
+
 		# add a comment (?)
 		if frappe.local.message_log:
 			msg = json.loads(frappe.local.message_log[-1]).get('message')
 		else:
 			msg = '<pre><code>' + frappe.get_traceback() + '</pre></code>'
-		
+
 		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
 		doc.notify_update()

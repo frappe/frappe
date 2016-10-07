@@ -28,8 +28,10 @@ class EmailAlert(Document):
 
 		self.validate_forbidden_types()
 		self.validate_condition()
+		self.validate_method()
 
 	def on_update(self):
+		frappe.cache().hdel('email_alerts', self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# js
@@ -157,60 +159,42 @@ def trigger_daily_alerts():
 	trigger_email_alerts(None, "daily")
 
 def trigger_email_alerts(doc, method=None):
-	from jinja2 import TemplateError
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send email alerts while syncing or patching
 		return
 
 	if method == "daily":
-
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
 			alert = frappe.get_doc("Email Alert", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
-	else:
-		if method in ("on_update", "validate") and doc.flags.in_insert:
-			# don't call email alerts multiple times for inserts
-			# on insert only "New" type alert must be called
-			return
-
-		eevent = {
-			"on_update": "Save",
-			"after_insert": "New",
-			"validate": "Value Change",
-			"on_submit": "Submit",
-			"on_cancel": "Cancel",
-		}[method]
-
-		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
-			where document_type=%s and event=%s and enabled=1""", (doc.doctype, eevent)):
-			try:
-				evaluate_alert(doc, alert, eevent)
-			except TemplateError:
-				frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def evaluate_alert(doc, alert, event):
-	if isinstance(alert, basestring):
-		alert = frappe.get_doc("Email Alert", alert)
+	from jinja2 import TemplateError
+	try:
+		if isinstance(alert, basestring):
+			alert = frappe.get_doc("Email Alert", alert)
 
-	context = get_context(doc)
+		context = get_context(doc)
 
-	if alert.condition:
-		if not eval(alert.condition, context):
-			return
+		if alert.condition:
+			if not eval(alert.condition, context):
+				return
 
-	if event=="Value Change" and not doc.is_new():
-		if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
-			doc.name, alert.value_changed):
-			return # value not changed
+		if event=="Value Change" and not doc.is_new():
+			if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
+				doc.name, alert.value_changed):
+				return # value not changed
 
-	if event != "Value Change" and not doc.is_new():
-		# reload the doc for the latest values & comments,
-		# except for validate type event.
-		doc = frappe.get_doc(doc.doctype, doc.name)
+		if event != "Value Change" and not doc.is_new():
+			# reload the doc for the latest values & comments,
+			# except for validate type event.
+			doc = frappe.get_doc(doc.doctype, doc.name)
 
-	alert.send(doc)
+		alert.send(doc)
+	except TemplateError:
+		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate}

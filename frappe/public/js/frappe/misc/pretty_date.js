@@ -1,5 +1,7 @@
 function prettyDate(time, mini){
-
+	if(!time) {
+		time = new Date();
+	}
 	if(moment) {
 		if(window.sys_defaults && sys_defaults.time_zone) {
 			var ret = moment.tz(time, sys_defaults.time_zone).fromNow(mini);

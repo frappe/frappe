@@ -415,7 +415,8 @@ def clear_cache(doctype=None):
 	for key in ('is_table', 'doctype_modules'):
 		cache.delete_value(key)
 
-	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
+	groups = ["meta", "form_meta", "table_columns", "last_modified",
+		"linked_doctypes", 'email_alerts']
 
 	def clear_single(dt):
 		for name in groups:
