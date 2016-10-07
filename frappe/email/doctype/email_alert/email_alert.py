@@ -28,7 +28,6 @@ class EmailAlert(Document):
 
 		self.validate_forbidden_types()
 		self.validate_condition()
-		self.validate_method()
 
 	def on_update(self):
 		frappe.cache().hdel('email_alerts', self.document_type)
