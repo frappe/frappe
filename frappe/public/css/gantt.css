@@ -28,7 +28,7 @@
 }
 .gantt #arrow {
   fill: none;
-  stroke: #333;
+  stroke: #666;
   stroke-width: 1.4;
 }
 .gantt .bar {
@@ -36,6 +36,9 @@
   stroke: #8D99A6;
   stroke-width: 0;
   transition: stroke-width 0.3s ease;
+}
+.gantt .bar-progress {
+  fill: #a3a3ff;
 }
 .gantt .bar-label {
   fill: #fff;

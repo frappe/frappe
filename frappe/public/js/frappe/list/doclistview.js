@@ -445,11 +445,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			me.gantt = new Gantt({
 				parent_selector: '#' + id,
 				bar: {
-					height: 20,
-					color: "#b8c2cc",
-					progress_color: "#a3a3ff",
-					hover_color: "#8D99A6",
-					hover_progress_color: "#7575ff"
+					height: 20
 				},
 				events: {
 					bar_on_click: function (task) {
@@ -481,7 +477,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					name: item[field_map.title],
 					id: item[field_map.id],
 					doctype: me.doctype,
-					progress: item.progress
+					progress: item.progress,
+					dependent: item.depends_on_tasks || ""
 				});
 			})
 			me.gantt.render();
