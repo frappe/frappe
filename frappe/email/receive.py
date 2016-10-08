@@ -283,7 +283,7 @@ class Email:
 			self.subject = self.subject.decode(_subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = self.subject.decode("utf-8")
+			self.subject = self.subject.decode("utf-8")[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -360,7 +360,7 @@ class Email:
 			return part.get_payload()
 
 	def get_attachment(self, part):
-		charset = self.get_charset(part)
+		#charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
 		if fcontent:

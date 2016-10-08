@@ -95,22 +95,13 @@ standard_queries = {
 
 doc_events = {
 	"*": {
-		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 			"frappe.core.doctype.communication.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_submit": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
 	},

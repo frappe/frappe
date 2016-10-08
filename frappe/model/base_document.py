@@ -273,6 +273,11 @@ class BaseDocument(object):
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		if not self.creation:
+			self.creation = self.modified = now()
+			self.created_by = self.modifield_by = frappe.session.user
+
 		d = self.get_valid_dict()
 		columns = d.keys()
 		try:

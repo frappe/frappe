@@ -17,6 +17,7 @@ from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.utils.password import create_auth_table
+from frappe.modules.utils import sync_customizations
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
@@ -142,8 +143,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	print "Installing fixtures..."
 	sync_fixtures(name)
+	sync_customizations(name)
 
 	frappe.flags.in_install = False
 
