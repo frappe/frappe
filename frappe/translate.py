@@ -28,6 +28,8 @@ def guess_language(lang_list=None):
 
 	for l in lang_codes:
 		code = l.strip()
+		if not isinstance(code, unicode):
+			code = unicode(code, 'utf-8')
 		if code in lang_list or code == "en":
 			guess = code
 			break
