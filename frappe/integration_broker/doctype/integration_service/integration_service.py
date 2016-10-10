@@ -13,35 +13,16 @@ from frappe.utils import get_request_session
 class IntegrationService(Document):
 	def on_update(self):
 		if self.enabled:
-			self.enable_service()
-			self.install_fixtures()
-
-	def get_controller(self):
-		if not getattr(self, '_controller', None):
-			self._controller = get_integration_controller(self.service, setup=False)
-		return self._controller
-
-	def get_parameters(self):
-		parameters = {}
-		if self.custom_settings_json:
-			parameters = json.loads(self.custom_settings_json)
-		return parameters
+			if not self.flags.ignore_mandatory:
+				self.enable_service()
+				self.install_fixtures()
 
 	def install_fixtures(self):
 		pass
 
 	def enable_service(self):
-		if not self.flags.ignore_mandatory:
-			self.get_controller().enable(self.get_parameters(), self.use_test_account)
-
-	def setup_events_and_parameters(self):
-		self.parameters = []
-		for d in self.get_controller().parameters_template:
-			self.parameters.append({'label': d.label, "value": d.value})
-
-		self.events = []
-		for d in self.get_controller()._events:
-			self.parameters.append({'event': d.event, 'enabled': d.enabled})
+		service_doc = "{0} Settings".format(self.service)
+		frappe.get_doc(service_doc).enable()
 
 	#rest request handler
 	def get_request(self, url, auth=None, data=None):
@@ -99,46 +80,12 @@ class IntegrationService(Document):
 
 		return integration_request
 
-@frappe.whitelist()
-def get_service_parameters(service):
-	controller = get_integration_controller(service, setup=False)
-	return {
-		'parameters': controller.parameters_template,
-	}
-
-@frappe.whitelist()
-def get_js_resouce(service):
-	controller = get_integration_controller(service, setup=False)
-	return {
-		"js": getattr(controller, "js", "")
-	}
-
-def get_integration_controller(service_name, setup=True):
+def get_integration_controller(service_name):
 	'''Returns integration controller module from app_name.integrations.{service}'''
-	def load_from_app(app, service_name):
-		try:
-			controller_module = frappe.get_module("{app}.integrations.{service}"
-				.format(app=app, service=service_name.strip().lower().replace(' ','_')))
-			controller = controller_module.Controller(setup=setup)
-
-			# make default properites and frappe._dictify
-			for key in ('events', 'parameters_template'):
-				tmp = []
-				for d in getattr(controller, key, []):
-					tmp.append(frappe._dict(d))
-				setattr(controller, key, tmp)
-
-			return controller
-
-		except ImportError:
-			pass
-
-	for app in frappe.get_installed_apps():
-		controller = load_from_app(app, service_name)
-		if controller:
-			return controller
-
-	frappe.throw(_("Module {service} not found".format(service=service_name)))
+	try:
+		return frappe.get_doc("{0} Settings".format(service_name))
+	except Exception:
+		frappe.throw(_("Module {service} not found".format(service=service_name)))
 
 @frappe.whitelist()
 def get_integration_services():
@@ -150,7 +97,7 @@ def get_integration_services():
 
 def trigger_integration_service_events():
 	for service in frappe.get_all("Integration Service", filters={"enabled": 1}, fields=["name"]):
-		controller = get_integration_controller(service.name, setup=False)
+		controller = get_integration_controller(service.name)
 
 		if hasattr(controller, "scheduled_jobs"):
 			for job in controller.scheduled_jobs:

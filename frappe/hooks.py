@@ -176,4 +176,4 @@ bot_parsers = [
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
 
-integration_services = ["PayPal", "Razorpay", "Dropbox Integration", "LDAP Auth"]
+integration_services = ["PayPal", "Razorpay", "Dropbox", "LDAP"]

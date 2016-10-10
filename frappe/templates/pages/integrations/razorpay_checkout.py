@@ -6,8 +6,6 @@ from frappe import _
 from frappe.utils import flt
 import json
 
-from frappe.integrations.razorpay import Controller
-
 no_cache = 1
 no_sitemap = 1
 
@@ -16,7 +14,7 @@ expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'referen
 
 def get_context(context):
 	context.no_cache = 1
-	context.api_key = Controller().get_settings().api_key
+	context.api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
 
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(frappe.form_dict.keys())):
@@ -43,4 +41,6 @@ def make_payment(razorpay_payment_id, options, reference_doctype, reference_docn
 		"reference_doctype": reference_doctype
 	})
 
-	return Controller().create_request(data)
+	data =  frappe.get_doc("Razorpay Settings").create_request(data)
+	frappe.db.commit()
+	return data

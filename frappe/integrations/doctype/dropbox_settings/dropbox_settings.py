@@ -1,58 +1,20 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2015, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+from __future__ import unicode_literals
 import frappe
+import os
 from frappe import _
-from frappe.integration_broker.integration_controller import IntegrationController
-from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
-	get_files_path, get_backups_path, encode)
-import os, json
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
+from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
+	get_files_path, get_backups_path, encode)
+from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
 
 ignore_list = [".DS_Store"]
 
-class Controller(IntegrationController):
-	service_name = 'Dropbox Integration'
-	parameters_template = [
-		{
-			"label": "App Access Key",
-			'fieldname': 'app_access_key',
-			'reqd': 1,
-			'default': '',
-			'fieldtype': "Data"
-		},
-		{
-			"label": "App Secret Key",
-			'fieldname': 'app_secret_key',
-			'reqd': 1,
-			'default': '',
-			'fieldtype': "Password"
-		},
-		{
-			"label": "Dropbox Access Key",
-			'fieldname': 'dropbox_access_key',
-			'reqd': 1,
-			'default': '****',
-			'fieldtype': "Password"
-		},
-		{
-			"label": "Dropbox Secret Key",
-			'fieldname': 'dropbox_access_secret',
-			'reqd': 1,
-			'default': '****',
-			'fieldtype': "Password"
-		},
-		{
-			"label": "Backup Frequency",
-			"fieldname": "backup_frequency",
-			"options": "\nDaily\nWeekly",
-			"default": "",
-			"reqd": 1,
-			"fieldtype":'Select'
-		}
-	]
-
-	js = "assets/frappe/js/integrations/dropbox_integration.js"
-
-	# do also changes in dropbox_integration.js scheduler job helper
+class DropboxSettings(IntegrationService):
 	scheduled_jobs = [
 		{
 			"daily_long": [
@@ -64,10 +26,17 @@ class Controller(IntegrationController):
 		}
 	]
 	
-	def enable(self, parameters, use_test_account=0):
+	def validate(self):
+		if not self.flags.ignore_mandatory:
+			self.validate_dropbox_credentails()
+
+	def on_update(self):
+		pass
+
+	def enable(self):
 		""" enable service """
-		self.parameters = parameters
-		self.validate_dropbox_credentails()
+		if not self.flags.ignore_mandatory:
+			self.validate_dropbox_credentails()
 
 	def validate_dropbox_credentails(self):
 		try:
@@ -80,30 +49,71 @@ class Controller(IntegrationController):
 			from dropbox import session
 		except:
 			raise Exception(_("Please install dropbox python module"))
-		parameters = frappe._dict(self.parameters)
-		if not (parameters["app_access_key"] or parameters["app_secret_key"]):
+		
+		if not (self.app_access_key or self.app_secret_key):
 			raise Exception(_("Please set Dropbox access keys in your site config"))
-
-		sess = session.DropboxSession(parameters["app_access_key"], parameters["app_secret_key"], "app_folder")
+		
+		sess = session.DropboxSession(self.app_access_key,
+			self.get_password(fieldname="app_secret_key", raise_exception=False), "app_folder")
 
 		return sess
+
+@frappe.whitelist()
+def get_service_details():
+	return """
+	<div>
+		Steps to enable dropbox backup service:
+		<ol>
+			<li> Create a dropbox app then get App Key and App Secret, 
+				<a href="https://www.dropbox.com/developers/apps" target="_blank">
+					https://www.dropbox.com/developers/apps
+				</a>
+			</li>
+			<br>
+			<li> Setup credentials on Dropbox Settings doctype. 
+				Click on
+				<button class="btn btn-default btn-xs disabled"> Dropbox Settings </button>
+				top right corner
+			</li>
+			<br>
+			<li> After settings up App key and App Secret, generate access token
+				<button class="btn btn-default btn-xs disabled"> Allow Dropbox Access </button>
+			</li>
+			<br>
+			<li>
+				After saving settings,
+					<label>
+						<span class="input-area">
+							<input type="checkbox" class="input-with-feedback" checked disabled>
+						</span>
+						<span class="label-area small">Enable</span>
+					</label>
+				Dropbox Integration Service and Save a document.
+			</li>
+		</ol>
+		<p>
+			After enabling service, system will take backup of files and database on daily or weekly basis
+			as per set on Dropbox Settings page and upload it to your dropbox.
+		</p>
+	</div>
+	"""
 
 #get auth token
 @frappe.whitelist()
 def get_dropbox_authorize_url():
-	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
-	Controller.parameters = json.loads(doc.custom_settings_json)
-
-	sess = Controller().get_dropbox_session()
+	doc = frappe.get_doc("Dropbox Settings")
+	sess = doc.get_dropbox_session()
 	request_token = sess.obtain_request_token()
 
-	setup_parameter({
+	doc.update({
 		"dropbox_access_key": request_token.key,
 		"dropbox_access_secret": request_token.secret
-	}, doc)
+	})
+	
+	doc.save(ignore_permissions=False)
 
 	return_address = get_request_site_address(True) \
-		+ "?cmd=frappe.integrations.dropbox_integration.dropbox_callback"
+		+ "?cmd=frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback"
 
 	url = sess.build_authorize_url(request_token, return_address)
 
@@ -113,34 +123,20 @@ def get_dropbox_authorize_url():
 		"dropbox_access_secret": request_token.secret
 	}
 
-def setup_parameter(request_token, doc):
-	parameters = Controller().parameters
-	
-	for key in ["dropbox_access_key", "dropbox_access_secret"]:
-		for parameter in Controller().parameters:
-			if key == parameter:
-				parameters[key] = request_token[key]
-
-	doc.custom_settings_json = json.dumps(parameters)
-	doc.save(ignore_permissions=True)
-	frappe.db.commit()
-
 @frappe.whitelist(allow_guest=True)
 def dropbox_callback(oauth_token=None, not_approved=False):
-	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
-	Controller.parameters = json.loads(doc.custom_settings_json)
+	doc = frappe.get_doc("Dropbox Settings")
 
-	parameters = Controller().get_parameters()
 	if not not_approved:
-		if parameters["dropbox_access_key"]==oauth_token:
-			sess = Controller().get_dropbox_session()
-			sess.set_request_token(parameters["dropbox_access_key"], parameters["dropbox_access_secret"])
+		if doc.get_password(fieldname="dropbox_access_key", raise_exception=False)==oauth_token:
+			sess = doc.get_dropbox_session()
+			sess.set_request_token(doc.get_password(fieldname="dropbox_access_key", raise_exception=False),
+				doc.get_password(fieldname="dropbox_access_secret", raise_exception=False))
+
 			access_token = sess.obtain_access_token()
 
-			setup_parameter({
-				"dropbox_access_key": access_token.key,
-				"dropbox_access_secret": access_token.secret
-			}, doc)
+			frappe.db.set_value("Dropbox Settings", None, "dropbox_access_key", access_token.key)
+			frappe.db.set_value("Dropbox Settings", None, "dropbox_access_secret", access_token.secret)
 
 			frappe.db.commit()
 		else:
@@ -157,7 +153,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 @frappe.whitelist()
 def take_backup():
 	"Enqueue longjob for taking backup to dropbox"
-	enqueue("frappe.integrations.dropbox_integration.take_backup_to_dropbox", queue='long')
+	enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox", queue='long')
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 def take_backups_daily():
@@ -167,16 +163,13 @@ def take_backups_weekly():
 	take_backups_if("Weekly")
 
 def take_backups_if(freq):
-	custom_settings_json = frappe.db.get_value("Dropbox Backup", None, "custom_settings_json")
-	if custom_settings_json:
-		custom_settings_json = json.loads(custom_settings_json)
-		if custom_settings_json["backup_frequency"] == freq:
-			take_backup_to_dropbox()
+	if frappe.db.get_value("Dropbox Settings", None, "backup_frequency") == freq:
+		take_backup_to_dropbox()
 
 def take_backup_to_dropbox():
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_value("Integration Service", "Dropbox Integration", "enabled")):
+		if cint(frappe.db.get_value("Integration Service", "Dropbox", "enabled")):
 			did_not_upload, error_log = backup_to_dropbox()
 			if did_not_upload: raise Exception
 
@@ -235,13 +228,11 @@ def backup_to_dropbox():
 
 def get_dropbox_client(previous_dropbox_client=None):
 	from dropbox import client
-	doc = frappe.get_doc("Integration Service", "Dropbox Integration")
-	Controller.parameters = json.loads(doc.custom_settings_json)
+	doc = frappe.get_doc("Dropbox Settings")
+	sess = doc.get_dropbox_session()
 
-	sess = Controller().get_dropbox_session()
-
-	parameters = Controller().get_parameters()
-	sess.set_token(parameters["dropbox_access_key"], parameters["dropbox_access_secret"])
+	sess.set_token(doc.get_password(fieldname="dropbox_access_key", raise_exception=False),
+		doc.get_password(fieldname="dropbox_access_secret", raise_exception=False))
 
 	dropbox_client = client.DropboxClient(sess)
 
