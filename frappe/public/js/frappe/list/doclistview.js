@@ -454,13 +454,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					bar_on_date_change: function(task, start, end) {
 						update_field(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
 							update_field(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
-								show_alert("Saved", 1);
+								show_alert({message:__("Saved"), indicator:'green'}, 1);
 							});
 						});
 					},
 					bar_on_progress_change: function(task, progress) {
 						update_field(task.id, 'progress', progress, function() {
-							show_alert("Saved", 1);
+							show_alert({message:__("Saved"), indicator:'green'}, 1);
 						});
 					},
 					on_viewmode_change: function(mode) {
@@ -485,15 +485,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 			var dropdown = "<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-				"<span class='dropdown-text'>Day</span><i class='caret'></i></a>" +
+				"<span class='dropdown-text'>"+__('Day')+"</span><i class='caret'></i></a>" +
 				"<ul class='dropdown-menu'></ul>" +
 				"</div>";
 
+			// view modes (for translation) __("Day"), __("Week"), __("Month"),
+			//__("Half Day"), __("Quarter Day")
+
 			var dropdown_list = "";
 			view_modes.forEach(function(view_mode) {
-				dropdown_list += "<li>" + 
+				dropdown_list += "<li>" +
 					"<a class='option' data-value='"+view_mode+"'>" +
-					view_mode + "</a></li>";
+					__(view_mode) + "</a></li>";
 			})
 			var $dropdown = $(dropdown)
 			$dropdown.find(".dropdown-menu")
@@ -511,6 +514,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		function update_field(id, fieldname, value, callback) {
 			frappe.call({
 				method: "frappe.client.set_value",
+				freeze: false,
 				args: {
 					doctype: me.doctype,
 					name: id,
