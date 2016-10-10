@@ -19,6 +19,13 @@
 	    		{{ _("Cancel") }}</a>
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
+		{%- if allow_print %}
+		<div class='text-right' style='margin-top: 15px;'>
+			<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}' target="_blank">
+				<i class='icon icon-print'></i> {{ _("Print") }}</a>
+		</div>
+		{% endif -%}
+
 	  {% elif is_list %}
 	  	<div style="padding-bottom: 15px;">
 		    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
