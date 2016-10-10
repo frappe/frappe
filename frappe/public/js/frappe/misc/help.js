@@ -14,7 +14,7 @@ frappe.help.show_link = function() {
 }
 
 frappe.help.show = function(doctype) {
-	if(frappe.help.youtube_id[doctype]) {
+	if(frappe.help.has_help(doctype)) {
 		frappe.help.show_video(frappe.help.youtube_id[doctype]);
 	}
 }

@@ -83,7 +83,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		});
 
 		// help click
-		page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
+		page.main.off().on("click", '.module-section-link[data-type="help"]', function(event) {
 			frappe.help.show_video($(this).attr("data-youtube-id"));
 			return false;
 		});
