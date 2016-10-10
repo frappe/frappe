@@ -23,6 +23,9 @@ class PrintFormat(Document):
 
 		self.extract_images()
 
+		if not self.module:
+			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
+
 		if self.html:
 			validate_template(self.html)
 
@@ -46,8 +49,7 @@ class PrintFormat(Document):
 	def export_doc(self):
 		# export
 		from frappe.modules.utils import export_module_json
-		export_module_json(self, self.standard == 'Yes',
-			frappe.db.get_value("DocType", self.doc_type, "module"))
+		export_module_json(self, self.standard == 'Yes', self.module)
 
 	def on_trash(self):
 		if self.doc_type:
