@@ -231,7 +231,7 @@ frappe.ui.form.Grid = Class.extend({
 				me.frm.doc[me.df.fieldname].forEach(function(d) {
 					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
 				});
-
+				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
 				me.refresh();
 
 				me.frm.dirty();
