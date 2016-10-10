@@ -5,6 +5,10 @@ frappe.provide("frappe.help");
 
 frappe.help.youtube_id = {};
 
+frappe.help.has_help = function(doctype) {
+	return frappe.help.youtube_id[doctype];
+}
+
 frappe.help.show = function(doctype) {
 	if(frappe.help.youtube_id[doctype]) {
 		frappe.help.show_video(frappe.help.youtube_id[doctype]);

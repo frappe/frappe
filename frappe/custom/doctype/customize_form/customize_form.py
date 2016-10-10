@@ -244,8 +244,8 @@ class CustomizeForm(Document):
 				changed = True
 
 		if changed:
-			custom_field.flags.ignore_validate = True
-			custom_field.save()
+			custom_field.db_update()
+			#custom_field.save()
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
