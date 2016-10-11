@@ -306,12 +306,12 @@ def get_context(context):
 		'''Validate mandatory web form fields'''
 		missing = []
 		for f in self.web_form_fields:
-			if f.reqd and doc.get(f.fieldname) in (None, []):
+			if f.reqd and doc.get(f.fieldname) in (None, [], ''):
 				missing.append(f)
 
 		if missing:
 			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
-				+ '<br>'.join([d.label for d in missing]))
+				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
 
 
 @frappe.whitelist(allow_guest=True)
