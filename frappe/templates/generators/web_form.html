@@ -13,27 +13,27 @@
 {% endblock %}
 
 {% block header_actions %}
-  {% if not read_only %}
-	  {% if has_header %}
+	{% if not read_only and has_header %}
+	<div style="padding-bottom: 15px;">
 	    <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    		{{ _("Cancel") }}</a>
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
-		{%- if allow_print %}
-		<div class='text-right' style='margin-top: 15px;'>
-			<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}' target="_blank">
-				<i class='icon icon-print'></i> {{ _("Print") }}</a>
-		</div>
-		{% endif -%}
-
-	  {% elif is_list %}
-	  	<div style="padding-bottom: 15px;">
-		    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
-		    {{ _("New") }}
-		    </a>
-		</div>
-	  {% endif %}
-  {% endif %}
+	</div>
+	{% endif %}
+	{% if is_list %}
+	<div style="padding-bottom: 15px;">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+	    {{ _("New") }}
+	    </a>
+	</div>
+	{% endif %}
+	{%- if allow_print and not is_list -%}
+	<div class='text-right'>
+		<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}' target="_blank">
+			<i class='icon icon-print'></i> {{ _("Print") }}</a>
+	</div>
+	{%- endif -%}
 {% endblock %}
 
 {% block page_content %}
@@ -419,6 +419,7 @@ frappe.ready(function() {
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
 		save(true);
+		return false;
 	});
 
 	// change attach
@@ -443,6 +444,7 @@ frappe.ready(function() {
 				show_slide(idx);
 			}
 		}
+		return false;
 	});
 
 	show_slide = function(idx) {
@@ -624,7 +626,7 @@ frappe.ready(function() {
 						$form.addClass("hide");
 						$(".comments, .introduction").addClass("hide");
 						scroll(0, 0);
-						set_message(frappe.success_link);
+						set_message(frappe.success_message);
                     } else {
 						set_message(__('Saved'));
 				    }
