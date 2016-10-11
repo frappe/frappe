@@ -168,6 +168,12 @@ class RazorpaySettings(IntegrationService):
 			"redirect_to": redirect_url,
 			"status": status
 		}
+		
+	def get_settings(self):
+		return frappe._dict({
+			"api_key": self.api_key,
+			"api_secret": self.get_password(fieldname="api_secret", raise_exception=False)
+		})
 
 def capture_payment(is_sandbox=False, sanbox_response=None):
 	"""
