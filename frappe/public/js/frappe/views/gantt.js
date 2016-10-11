@@ -15,16 +15,13 @@ var Gantt = Class.extend({
 	init: function(opts) {
 		this.opts = opts;
 		this.events = this.opts.events;
-		this.tasks = [];
-		this._bars = [];
-		this._arrows = [];
 		this.set_defaults();
-		this.groups = {};
-		this.make();
+		this.prepare();
+		this.render();
 	},
 	set_defaults: function() {
 		var defaults = {
-			label_width: 40,
+			label_width: 38,
 			header_height: 50,
 			column_width: 30,
 			step: 24,
@@ -43,27 +40,36 @@ var Gantt = Class.extend({
 			},
 			view_mode: 'Day',
 			padding: 18,
-			date_format: 'YYYY-MM-DD'
+			date_format: 'DD-MM-YYYY'
 		};
 		for(var key in defaults) {
 			if(defaults.hasOwnProperty(key)) {
 				if(!this.opts[key]) this.opts[key] = defaults[key];
 			}
 		}
-	},
-	make: function() {
-		this.canvas = Snap(this.opts.parent_selector);
-		this.canvas.addClass("gantt");
-		this.prepare_filters();
+
+		this._bars = [];
+		this._arrows = [];
+		this.groups = {};
+		//prepare tasks
+		this.tasks = this.opts.tasks.map(function(task, i) {
+			task._index = i;
+			return task;
+		});
+		//default view mode
 		this.set_scale(this.opts.view_mode);
+	},
+	prepare: function() {
+		//TODO: check for valid dates
+		this.start = this.end = undefined;
+		this.prepare_dates();
+		this.render_canvas();
 	},
 	render: function() {
 		this.clear();
-
 		this.setup_groups();
 		this.make_grid();
 		this.make_dates();
-		// this.make_label();
 		this.make_bars();
 		this.make_arrows();
 		this.set_arrows_on_bars();
@@ -75,8 +81,9 @@ var Gantt = Class.extend({
 	bind: function() {
 		this.bind_grid_click();
 	},
-	prepare_filters: function () {
-		this.filters = {};
+	render_canvas: function() {
+		this.canvas = Snap(this.opts.parent_selector);
+		this.canvas.addClass("gantt");
 	},
 	clear: function () {
 		this.canvas.clear();
@@ -98,19 +105,22 @@ var Gantt = Class.extend({
 				me.end = task._end;
 			}
 		});
-		if(me.view_mode === 'Quarter Day' || me.view_mode === 'Half Day') {
-			me.start = me.start.clone().subtract(1, 'day');
-			me.end = me.end.clone().add(1, 'day');
-		} else if(me.view_mode === 'Month') {
+		this.set_gantt_dates();
+		this.setup_dates();
+	},
+	set_gantt_dates: function() {
+		var me = this;
+		if(me.view_is(['Quarter Day','Half Day'])) {
+			me.start = me.start.clone().subtract(7, 'day');
+			me.end = me.end.clone().add(7, 'day');
+		} else if(me.view_is('Month')) {
 			me.start = me.start.clone().startOf('year');
 			me.end = me.end.clone().endOf('month').add(1, 'year');
 		} else {
-			me.start = me.start.clone().startOf('month');
-			me.end = me.end.clone().endOf('month');
+			me.start = me.start.clone().startOf('month').subtract(1, 'month');
+			me.end = me.end.clone().endOf('month').add(1, 'month');
 		}
-		this.setup_dates();
 	},
-
 	setup_dates: function() {
 		this.dates = [];
 		var cur_date = null;
@@ -118,21 +128,33 @@ var Gantt = Class.extend({
 			if(!cur_date) {
 				cur_date = this.start.clone();
 			} else {
-				cur_date = (this.view_mode === 'Month') ?
+				cur_date = this.view_is('Month') ?
 					cur_date = cur_date.clone().add(1, 'month'):
 					cur_date.clone().add(this.opts.step, 'hours');
 			}
 			this.dates.push(cur_date);
 		}
 	},
+	setup_groups: function() {
+		var me = this;
+		// make group layers
+		["grid", "date", "arrow",
+		"progress", "bar", "details"].forEach(function(name) {
+			me.groups[name] = me.canvas.group().attr({'id': name});
+		});
+	},
+	get_view_modes: function() {
+		return this.opts.valid_view_modes || [];
+	},
 	set_view_mode: function(mode) {
 		this.set_scale(mode);
-		this.start = this.end = undefined;
-		this.prepare_dates();
+		this.prepare();
 		this.render();
 	},
 	set_scale: function (scale) {
 		this.view_mode = scale;
+
+		//fire viewmode_change event
 		this.events.on_viewmode_change(scale);
 		if(scale === 'Day') {
 			this.opts.step = 24;
@@ -159,14 +181,6 @@ var Gantt = Class.extend({
 		task._index = this.tasks.length;
 		this.tasks.push(task);
 		this.prepare_dates();
-	},
-	setup_groups: function() {
-		var me = this;
-		// make groups
-		["grid", "controls", "label", "date",
-		 "arrow", "progress", "bar", "details"].forEach(function(name) {
-			me.groups[name] = me.canvas.group().attr({'id': name});
-		});
 	},
 	set_width: function () {
 		var cur_width = this.canvas.node.getBoundingClientRect().width;
@@ -401,15 +415,7 @@ var Gantt = Class.extend({
 			}
 		});
 	},
-	get_task: function (id) {
-		var result = null;
-		this.tasks.forEach(function (task) {
-			if (task.id === id){
-				result = task;
-			}
-		});
-		return result;
-	},
+
 	make_label: function () {
 		var me = this;
 		var label_x = me.opts.label_width - me.opts.padding,
@@ -471,6 +477,29 @@ var Gantt = Class.extend({
 				el.removeClass('active');
 			});
 		});
+	},
+	view_is: function(modes) {
+		var me = this;
+		if (typeof modes === 'string') {
+			return me.view_mode === modes;
+		} else {
+			modes.reduce(function(acc, curr) {
+				return (me.view_mode === curr) || acc
+			}, false);
+			// for (var i = 0; i < modes.length; i++) {
+			// 	if(me.gantt.view_mode === modes[i]) return true;
+			// }
+			// return false;
+		}
+	},
+	get_task: function (id) {
+		var result = null;
+		this.tasks.forEach(function (task) {
+			if (task.id === id){
+				result = task;
+			}
+		});
+		return result;
 	}
 });
 
@@ -501,12 +530,6 @@ var Bar = Class.extend({
 		var defaults = {
 			height: 20,
 			corner_radius: 3,
-			color: {
-				bar: "#a3a3ff",
-				progress: "#7575ff",
-				hover_bar: "#7575ff",
-				hover_progress: "#4d4da8"
-			},
 			events: {}
 		};
 		for(var key in defaults) {
@@ -583,13 +606,16 @@ var Bar = Class.extend({
 			8, this.height - 2, this.corner_radius, this.corner_radius)
 			.addClass('handle left')
 			.appendTo(this.handle_group);
-		this.canvas.polygon(
+
+		if(this.task.progress) {
+			this.canvas.polygon(
 				bar.getX() + this.progress_width - 5, bar.getY() + bar.get("height"),
 				bar.getX() + this.progress_width + 5, bar.getY() + bar.get("height"),
 				bar.getX() + this.progress_width, bar.getY() + bar.get("height") - 8.66
 			)
 			.addClass('handle progress')
-			.appendTo(this.handle_group);
+			.appendTo(this.handle_group)
+		}
 	},
 	bind: function () {
 		// this.show_details();
@@ -730,7 +756,7 @@ var Bar = Class.extend({
 		var me = this;
 		var bar_progress = me.group.select('.bar-progress');
 		var handle = me.group.select('.handle.progress');
-		handle.drag(onmove, onstart, onstop);
+		handle && handle.drag(onmove, onstart, onstop);
 
 		function onmove(dx, dy) {
 			bar_progress.attr("width", bar_progress.owidth + dx);

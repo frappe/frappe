@@ -437,13 +437,25 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var gantt_area = $('<svg height="400" width="6000"></svg>')
 			.appendTo(this.wrapper.find('.result-list').css("overflow", "scroll"));
 		var id = frappe.dom.set_unique_id(gantt_area);
+
 		var me = this;
 		var field_map = frappe.views.calendar[this.doctype].field_map;
-
-		var view_modes;
+		var tasks = values.map(function(item) {
+			return {
+				start: item[field_map.start],
+				end: item[field_map.end],
+				name: item[field_map.title],
+				id: item[field_map.id],
+				doctype: me.doctype,
+				progress: item.progress,
+				dependent: item.depends_on_tasks || ""
+			};
+		});
 		frappe.require(["assets/frappe/js/lib/snap.svg-min.js", "assets/frappe/css/gantt.css"], function() {
 			me.gantt = new Gantt({
 				parent_selector: '#' + id,
+				tasks: tasks,
+				date_format: "YYYY-MM-DD",
 				bar: {
 					height: 20
 				},
@@ -468,21 +480,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					}
 				}
 			});
-
-			view_modes = me.gantt.opts.valid_view_modes || [];
-			values.forEach(function(item) {
-				me.gantt.add_task({
-					start: item[field_map.start],
-					end: item[field_map.end],
-					name: item[field_map.title],
-					id: item[field_map.id],
-					doctype: me.doctype,
-					progress: item.progress,
-					dependent: item.depends_on_tasks || ""
-				});
-			})
 			me.gantt.render();
 
+			var view_modes = me.gantt.get_view_modes() || [];
 			var dropdown = "<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
 				"<span class='dropdown-text'>"+__('Day')+"</span><i class='caret'></i></a>" +
