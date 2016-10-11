@@ -56,6 +56,7 @@ class IntegrationService(Document):
 
 			return res.json()
 		except Exception, exc:
+			frappe.log_error()
 			raise exc
 
 	def put_request(url, auth=None, data=None):

@@ -1248,9 +1248,9 @@ def logger(module=None, with_more_info=True):
 	from frappe.utils.logger import get_logger
 	return get_logger(module or 'default', with_more_info=with_more_info)
 
-def log_error(message, title=None):
+def log_error(message=None, title=None):
 	'''Log error to Error Log'''
-	get_doc(dict(doctype='Error Log', error=str(message),
+	get_doc(dict(doctype='Error Log', error=str(message or get_traceback()),
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):

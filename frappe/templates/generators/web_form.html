@@ -276,14 +276,14 @@
 					</div>
 					{% endfor %}
 			</div>
-			{% if last_page and accept_payment and payment_url %}
+			{% if last_page and accept_payment %}
 			<div class="well payment-details">
 				{% if not doc.paid %}
 					{% if payment_button_help %}
 					<div class='text-muted' style='padding-bottom: 15px;'>
 						{{ payment_button_help }}</div>
 					{% endif %}
-					<a class="btn btn-primary btn-payment" href="{{ payment_url }}">
+					<a class="btn btn-primary btn-payment">
 						{{ payment_button_label }}</a>
 				{% else %}
 					<div>{{ _("Payment Complete") }}</div>
@@ -418,11 +418,7 @@ frappe.ready(function() {
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
-		var data = get_data();
-		if(frappe.mandatory_missing.length) {
-			show_mandatory_missing();
-			return false;
-		}
+		save(true);
 	});
 
 	// change attach
@@ -594,7 +590,7 @@ frappe.ready(function() {
 		return out;
 	}
 
-	function save() {
+	function save(for_payment) {
 		if(window.saving)
 			return;
 		window.saving = true;
@@ -602,7 +598,8 @@ frappe.ready(function() {
 
 		if(frappe.file_reading) {
 			window.saving = false;
-			frappe.msgprint("Reading file, please retry.");
+			frappe.msgprint(__("Uploading files please wait for a few seconds."));
+			throw 'reading files';
 			return;
 		}
 
@@ -610,6 +607,7 @@ frappe.ready(function() {
 		if(frappe.allow_incomplete && frappe.mandatory_missing.length) {
 			window.saving = false;
 			show_mandatory_missing();
+			throw 'mandatory missing';
 			return;
 		}
 
@@ -618,7 +616,8 @@ frappe.ready(function() {
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
 				data: data,
-				web_form: frappe.web_form_name
+				web_form: frappe.web_form_name,
+				for_payment: for_payment
 			},
 			freeze: true,
 			btn: $form.find("[type='submit']"),
@@ -636,6 +635,11 @@ frappe.ready(function() {
 					if(frappe.is_new) {
 						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
 					}
+					if(for_payment && data.message) {
+						window.location.href = data.message;
+					}
+			    } else {
+					set_message(__('Not Saved'));
 			    }
 		    },
             always: function() {
