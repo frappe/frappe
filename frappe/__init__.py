@@ -489,7 +489,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -503,6 +503,8 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if doc:
 		if isinstance(doc, basestring):
 			doc = get_doc(doctype, doc)
+
+		doctype = doc.doctype
 
 		if doc.flags.ignore_permissions:
 			return True

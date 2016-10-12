@@ -418,7 +418,7 @@ def has_web_form_permission(doctype, name, ptype='read'):
 	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
 		return True
 
-	elif frappe.has_website_permission(doctype, ptype=ptype, doc=name):
+	elif frappe.has_website_permission(name, ptype=ptype):
 		return True
 
 	elif check_webform_perm(doctype, name):
