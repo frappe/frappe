@@ -107,6 +107,9 @@ def get_context(context):
 		self.set_web_form_module()
 
 		logged_in = frappe.session.user != "Guest"
+		self._login_required = self.login_required
+		if logged_in and self.login_required:
+			self._login_required = False
 
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
@@ -124,7 +127,7 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if self.login_required and logged_in:
+		if not self._login_required:
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:

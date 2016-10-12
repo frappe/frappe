@@ -4,11 +4,11 @@ from frappe import _
 from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
-from frappe.utils.user import get_enabled_system_users, get_system_managers
+from frappe.utils.user import get_enabled_system_users
 import os, subprocess, urlparse, urllib
 
 class SiteExpiredError(frappe.ValidationError):
-	pass
+	http_status_code = 417
 
 EXPIRY_WARNING_DAYS = 10
 

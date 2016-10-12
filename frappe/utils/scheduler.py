@@ -79,7 +79,6 @@ def enqueue_events(site, queued_jobs):
 	last = frappe.db.get_value('System Settings', 'System Settings', 'scheduler_last_event')
 
 	# set scheduler last event
-	frappe.db.begin()
 	frappe.db.set_value('System Settings', 'System Settings',
 		'scheduler_last_event', nowtime.strftime(DATETIME_FORMAT),
 		update_modified=False)

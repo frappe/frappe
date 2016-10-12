@@ -5,6 +5,9 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
+	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach")
+		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
+		{{ render_image(df, doc) }}
 	{%- else -%}
 		{{ render_field_with_label(df, doc) }}
 	{%- endif -%}
@@ -26,7 +29,7 @@
 					<tr>
 						<th style="width: 40px" class="table-sr">Sr</th>
 						{% for tdf in visible_columns %}
-							<th style="width: {{ get_width(tdf) }}px;" class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
+							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
 						{% endfor %}
 					</tr>
@@ -37,7 +40,7 @@
 						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
 							<td class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
-                                <div class="value">{{ print_value(tdf, d, table_meta, doc) }}</div></td>
+                                <div class="value">{{ print_value(tdf, d, doc) }}</div></td>
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -82,17 +85,25 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endif -%}
 {%- endmacro -%}
 
-{%- macro print_value(df, doc, meta, parent_doc=None) -%}
+{%- macro render_image(df, doc) -%}
+	{%- if df.label %}<label>{{ _(df.label) }}</label>{%- endif %}
+	{{ print_value(df, doc) }}
+{% endmacro %}
+
+{%- macro print_value(df, doc, parent_doc=None) -%}
     {% if doc.print_templates and
 			doc.print_templates.get(df.fieldname) %}
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}
-		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" class="img-responsive">
+		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
+			class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
-		<img src="{{ doc[df.fieldname] }}" class="img-responsive">
+		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
     {% elif df.fieldtype=="HTML" %}
         {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
@@ -101,9 +112,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro %}
 
 {% macro get_width(df) -%}
-	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}
-	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
-	{%- else -%}{{ 150 }}{% endif -%}
+	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}px
+	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}px
+	{%- else -%}{{ 150 }}px{% endif -%}
 {%- endmacro %}
 
 {% macro get_align_class(fieldtype) %}
