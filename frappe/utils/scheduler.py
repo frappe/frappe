@@ -255,7 +255,7 @@ def reset_enabled_scheduler_events(login_manager):
 			frappe.db.set_global('enabled_scheduler_events', None)
 		except MySQLdb.OperationalError, e:
 			if e.args[0]==1205:
-				frappe.get_logger().error("Error in reset_enabled_scheduler_events")
+				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
 			else:
 				raise
 		else:
