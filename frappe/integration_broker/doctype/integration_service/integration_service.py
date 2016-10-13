@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils.background_jobs import enqueue, get_jobs
 import json, urlparse
 from frappe.utils import get_request_session
 
@@ -16,6 +15,8 @@ class IntegrationService(Document):
 			if not self.flags.ignore_mandatory:
 				self.enable_service()
 				self.install_fixtures()
+
+		frappe.cache().delete_value('scheduler_events')
 
 	def install_fixtures(self):
 		pass
@@ -96,13 +97,15 @@ def get_integration_services():
 
 	return services
 
-def trigger_integration_service_events():
-	for service in frappe.get_all("Integration Service", filters={"enabled": 1}, fields=["name"]):
+def get_integration_service_events():
+	'''Get scheduler events for enabled integrations'''
+	events = {}
+	for service in frappe.get_all("Integration Service", filters={"enabled": 1},
+		fields=["name"]):
 		controller = get_integration_controller(service.name)
 
-		if hasattr(controller, "scheduled_jobs"):
-			for job in controller.scheduled_jobs:
-				for event, handlers in job.items():
-					for handler in handlers:
-						if handler not in get_jobs():
-							enqueue(handler, queue='short', event=event)
+		if hasattr(controller, "scheduler_events"):
+			for key, handlers in controller.scheduler_events:
+				events.setdefault(key, []).extend(handlers)
+
+	return events

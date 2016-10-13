@@ -61,28 +61,26 @@ For razorpay payment status is Authorized
 class RazorpaySettings(IntegrationService):
 	service_name = "Razorpay"
 	supported_currencies = ["INR"]
-	
-	scheduled_jobs = [
-		{
-			"all": [
-				"frappe.integrations.razorpay.capture_payment"
-			]
-		}
-	]
-	
+
+	scheduler_events = {
+		"all": [
+			"frappe.integrations.razorpay.capture_payment"
+		]
+	}
+
 	def validate(self):
 		if not self.flags.ignore_mandatory:
 			self.validate_razorpay_credentails()
-	
+
 	def on_update(self):
 		pass
-	
+
 	def enable(self):
 		call_hook_method('payment_gateway_enabled', gateway='Razorpay')
 
 		if not self.flags.ignore_mandatory:
 			self.validate_razorpay_credentails()
-	
+
 	def validate_razorpay_credentails(self):
 		if self.api_key and self.api_secret:
 			try:
@@ -90,14 +88,14 @@ class RazorpaySettings(IntegrationService):
 					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)))
 			except Exception:
 				frappe.throw(_("Seems API Key or API Secret is wrong !!!"))
-	
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
 
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
-	
+
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
@@ -168,7 +166,7 @@ class RazorpaySettings(IntegrationService):
 			"redirect_to": redirect_url,
 			"status": status
 		}
-		
+
 	def get_settings(self):
 		return frappe._dict({
 			"api_key": self.api_key,
@@ -212,7 +210,7 @@ def get_checkout_url(**kwargs):
 			_("Looks like something is wrong with this site's Razorpay configuration. Don't worry! No payment has been made."),
 			success=False,
 			http_status_code=frappe.ValidationError.http_status_code)
-	
+
 
 @frappe.whitelist()
 def get_service_details():
@@ -220,13 +218,13 @@ def get_service_details():
 		<div>
 			<p> Steps to configure Service
 			<ol>
-				<li> Get Razorpay api credentials by login to: 
+				<li> Get Razorpay api credentials by login to:
 					<a href="https://razorpay.com/" target="_blank">
 						https://razorpay.com/
 					</a>
 				</li>
 				<br>
-				<li> Setup credentials on Razorpay Settings doctype. 
+				<li> Setup credentials on Razorpay Settings doctype.
 					Click on
 					<button class="btn btn-default btn-xs disabled"> Razorpay Settings </button>
 					top right corner

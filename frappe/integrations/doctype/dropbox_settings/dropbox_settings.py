@@ -15,17 +15,15 @@ from frappe.integration_broker.doctype.integration_service.integration_service i
 ignore_list = [".DS_Store"]
 
 class DropboxSettings(IntegrationService):
-	scheduled_jobs = [
-		{
-			"daily_long": [
-				"frappe.integrations.dropbox_integration.take_backups_daily"
-			],
-			"weekly_long": [
-				"frappe.integrations.dropbox_integration.take_backups_weekly"
-			]
-		}
-	]
-	
+	scheduler_events = {
+		"daily_long": [
+			"frappe.integrations.dropbox_integration.take_backups_daily"
+		],
+		"weekly_long": [
+			"frappe.integrations.dropbox_integration.take_backups_weekly"
+		]
+	}
+
 	def validate(self):
 		if not self.flags.ignore_mandatory:
 			self.validate_dropbox_credentails()
@@ -49,10 +47,10 @@ class DropboxSettings(IntegrationService):
 			from dropbox import session
 		except:
 			raise Exception(_("Please install dropbox python module"))
-		
+
 		if not (self.app_access_key or self.app_secret_key):
 			raise Exception(_("Please set Dropbox access keys in your site config"))
-		
+
 		sess = session.DropboxSession(self.app_access_key,
 			self.get_password(fieldname="app_secret_key", raise_exception=False), "app_folder")
 
@@ -64,13 +62,13 @@ def get_service_details():
 	<div>
 		Steps to enable dropbox backup service:
 		<ol>
-			<li> Create a dropbox app then get App Key and App Secret, 
+			<li> Create a dropbox app then get App Key and App Secret,
 				<a href="https://www.dropbox.com/developers/apps" target="_blank">
 					https://www.dropbox.com/developers/apps
 				</a>
 			</li>
 			<br>
-			<li> Setup credentials on Dropbox Settings doctype. 
+			<li> Setup credentials on Dropbox Settings doctype.
 				Click on
 				<button class="btn btn-default btn-xs disabled"> Dropbox Settings </button>
 				top right corner
@@ -109,7 +107,7 @@ def get_dropbox_authorize_url():
 		"dropbox_access_key": request_token.key,
 		"dropbox_access_secret": request_token.secret
 	})
-	
+
 	doc.save(ignore_permissions=False)
 
 	return_address = get_request_site_address(True) \
