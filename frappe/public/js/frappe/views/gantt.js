@@ -754,11 +754,19 @@ var Bar = Class.extend({
 	},
 	bind_resize_progress: function() {
 		var me = this;
+		var bar = me.group.select('.bar');
 		var bar_progress = me.group.select('.bar-progress');
 		var handle = me.group.select('.handle.progress');
 		handle && handle.drag(onmove, onstart, onstop);
 
 		function onmove(dx, dy) {
+			if(dx > bar_progress.max_dx) {
+				dx = bar_progress.max_dx;
+			}
+			if(dx < bar_progress.min_dx) {
+				dx = bar_progress.min_dx;
+			}
+
 			bar_progress.attr("width", bar_progress.owidth + dx);
 			handle.transform("t"+dx+",0");
 			bar_progress.finaldx = dx;
@@ -769,8 +777,10 @@ var Bar = Class.extend({
 			me.set_action_completed();
 		}
 		function onstart() {
-			bar_progress.owidth = bar_progress.getWidth();
 			bar_progress.finaldx = 0;
+			bar_progress.owidth = bar_progress.getWidth();
+			bar_progress.min_dx = -bar_progress.getWidth();
+			bar_progress.max_dx = bar.getWidth() - bar_progress.getWidth();
 		}
 	},
 	view_is: function(modes) {
