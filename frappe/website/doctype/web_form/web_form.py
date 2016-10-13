@@ -36,7 +36,8 @@ class WebForm(WebsiteGenerator):
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
-		self.validate_fields()
+		if not frappe.flags.in_import:
+			self.validate_fields()
 
 	def validate_fields(self):
 		'''Validate all fields are present'''
@@ -106,17 +107,16 @@ def get_context(context):
 		'''Build context to render the `web_form.html` template'''
 		self.set_web_form_module()
 
-		logged_in = frappe.session.user != "Guest"
-		self._login_required = self.login_required
-		if logged_in and self.login_required:
-			self._login_required = False
+		context._login_required = False
+		if self.login_required and frappe.session.user == "Guest":
+			context._login_required = True
 
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
 		context.delimeter = delimeter
 
 		# check permissions
-		if not logged_in and frappe.form_dict.name:
+		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
 
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
@@ -127,7 +127,7 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not self._login_required:
+		if not context._login_required:
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:
