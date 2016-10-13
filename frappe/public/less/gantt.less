@@ -47,6 +47,16 @@
 	.bar-progress {
 		fill: #a3a3ff;
 	}
+	.bar-invalid {
+		fill: transparent;
+		stroke: #8D99A6;
+		stroke-width: 1;
+		stroke-dasharray: 5;
+
+		&~.bar-label {
+			fill: #555;
+		}
+	}
 	.bar-label {
 		fill: #fff;
 		dominant-baseline: central;

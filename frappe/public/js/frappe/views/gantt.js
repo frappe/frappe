@@ -51,9 +51,21 @@ var Gantt = Class.extend({
 		this._bars = [];
 		this._arrows = [];
 		this.groups = {};
+
 		//prepare tasks
+		var me = this;
 		this.tasks = this.opts.tasks.map(function(task, i) {
+			// momentify
+			task._start = moment(task.start, me.opts.date_format);
+			task._end = moment(task.end, me.opts.date_format);
+			//index
 			task._index = i;
+			//invalid dates
+			if(!task.start || !task.end) {
+				task._start = moment().startOf('day');
+				task._end = moment().startOf('day').add(2, 'days');
+				task.invalid = true;
+			}
 			return task;
 		});
 		//default view mode
@@ -93,10 +105,6 @@ var Gantt = Class.extend({
 	prepare_dates: function() {
 		var me = this;
 		this.tasks.forEach(function(task) {
-			// momentify
-			task._start = moment(task.start, me.opts.date_format);
-			task._end = moment(task.end, me.opts.date_format);
-
 			// set global start and end date
 			if(!me.start || task._start < me.start) {
 				me.start = task._start;
@@ -542,6 +550,9 @@ var Bar = Class.extend({
 		this.prepare_plugins();
 	},
 	prepare_values: function() {
+		if(!this.task.start || !this.task.end){
+			this.invalid = true;
+		}
 		this.x = this.compute_x();
 		this.y = this.compute_y();
 		this.duration = (this.task._end.diff(this.task._start, 'hours') + 24)/this.gantt.step;
@@ -580,8 +591,12 @@ var Bar = Class.extend({
 			this.corner_radius, this.corner_radius)
 			.addClass("bar")
 			.appendTo(this.bar_group);
+		if(this.invalid) {
+			this.bar.addClass('bar-invalid');
+		}
 	},
 	draw_progress_bar: function() {
+		if(this.invalid) return;
 		this.bar_progress = this.canvas.rect(this.x, this.y,
 			this.progress_width, this.height,
 			this.corner_radius, this.corner_radius)
@@ -597,6 +612,7 @@ var Bar = Class.extend({
 		this.update_label_position(this);
 	},
 	draw_resize_handles: function() {
+		if(this.invalid) return;
 		var bar = this.group.select('.bar');
 		this.canvas.rect(bar.getX() + bar.getWidth() - 9, bar.getY() + 1,
 			8, this.height - 2, this.corner_radius, this.corner_radius)
@@ -607,7 +623,7 @@ var Bar = Class.extend({
 			.addClass('handle left')
 			.appendTo(this.handle_group);
 
-		if(this.task.progress) {
+		if(this.task.progress && this.task.progress < 100) {
 			this.canvas.polygon(
 				bar.getX() + this.progress_width - 5, bar.getY() + bar.get("height"),
 				bar.getX() + this.progress_width + 5, bar.getY() + bar.get("height"),
@@ -617,7 +633,26 @@ var Bar = Class.extend({
 			.appendTo(this.handle_group)
 		}
 	},
+	draw_invalid_bar: function() {
+		var x = this.gantt.offset +
+			(moment().startOf('day').diff(this.gantt.start, 'hours') /
+			this.gantt.step *
+			this.gantt.unit_width);
+
+		this.canvas.rect(x, this.y,
+			this.gantt.unit_width*2, this.height,
+			this.corner_radius, this.corner_radius)
+			.addClass("bar-invalid")
+			.appendTo(this.bar_group);
+			//continue here
+		this.canvas.text(x + this.gantt.unit_width,
+				this.y + this.height/2,
+				'Dates not set')
+			.addClass("bar-label big")
+			.appendTo(this.bar_group);
+	},
 	bind: function () {
+		if(this.invalid) return;
 		// this.show_details();
 		this.bind_resize();
 		this.bind_drag();
