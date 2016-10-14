@@ -9,6 +9,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Communication Reconciliation",
+					"description":_("Reattach communications to other documents"),
+				},
+				{
+					"type": "doctype",
 					"name": "ToDo",
 					"label": _("To Do"),
 					"description": _("Documents assigned to you and by you."),
