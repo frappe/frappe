@@ -182,7 +182,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access_token and the refresh_token and set expiration for the
 		# access_token to now + expires_in seconds.
 
-		otoken = frappe.new_doc("OAuth Bearer To`ken")
+		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
 		otoken.user = request.user
 		otoken.scopes = ";".join(request.scopes)
