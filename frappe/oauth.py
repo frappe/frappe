@@ -1,18 +1,14 @@
-import frappe
-from frappe import database
-from oauthlib.oauth2 import RequestValidator
-from oauthlib.common import Request
-from mnt_oauth.doctype.oauth_client.oauth_client import OAuthClient
-import urllib
+import frappe, urllib
 
 from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant
-
+from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2.rfc6749.endpoints.authorization import AuthorizationEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
+from oauthlib.common import Request
 
 class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoint,
 						   RevocationEndpoint):
