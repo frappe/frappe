@@ -64,10 +64,10 @@ def authorize(*args, **kwargs):
 
 			scopes, credentials = oauth_server.validate_authorization_request(uri, http_method, body, headers)
 
-			skipauth = frappe.db.get_value("OAuth Client", credentials['client_id'], "skip_authorization")
+			skip_auth = frappe.db.get_value("OAuth Client", credentials['client_id'], "skip_authorization")
 			unrevoked_tokens = frappe.get_all("OAuth Bearer Token", filters={"status":"Active"})
 
-			if skipauth or (oauth_settings["skip_authorization"] == "Auto" and len(unrevoked_tokens)):
+			if skip_auth or (oauth_settings["skip_authorization"] == "Auto" and len(unrevoked_tokens)):
 
 				frappe.local.response["type"] = "redirect"
 				frappe.local.response["location"] = success_url
