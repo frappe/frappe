@@ -38,3 +38,10 @@ To trigger an event when a row from a Child Table has been deleted (when user cl
       }
    );
  ```
+Handlers are:
+
+1. fieldname_add
+1. fieldname_move
+1. fieldname_before_remove
+1. fieldname_remove
+
