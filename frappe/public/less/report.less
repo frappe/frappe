@@ -23,9 +23,8 @@
 // column picker
 .column-picker-dialog {
 	.column-list {
-		margin: 15px -15px;
-		border-top: 1px solid @border-color;
-		border-bottom: 1px solid @border-color;
+		margin: 15px 0;
+		border: 1px solid @border-color;
 
 		.column-list-item {
 			padding: 10px;
@@ -46,6 +45,10 @@
 		.form-control {
 			display: inline-block;
 			width: 89%;
+
+			@media (max-width: @screen-xs) {
+				width: 77%;
+			}
 		}
 
 		.close {
