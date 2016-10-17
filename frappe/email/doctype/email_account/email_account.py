@@ -54,13 +54,16 @@ class EmailAccount(Document):
 		#	frappe.throw(_("Append To is mandatory for incoming mails"))
 
 		if not self.awaiting_password and not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
-			if self.enable_incoming:
-				self.get_server()
-				self.no_failed = 0
-
-
-			if self.enable_outgoing:
-				self.check_smtp()
+			if self.password:
+				if self.enable_incoming:
+					self.get_server()
+					self.no_failed = 0
+	
+	
+				if self.enable_outgoing:
+					self.check_smtp()
+			else:
+				frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
