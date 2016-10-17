@@ -15,9 +15,8 @@
   display: none;
 }
 .column-picker-dialog .column-list {
-  margin: 15px -15px;
-  border-top: 1px solid #d1d8dd;
-  border-bottom: 1px solid #d1d8dd;
+  margin: 15px 0;
+  border: 1px solid #d1d8dd;
 }
 .column-picker-dialog .column-list .column-list-item {
   padding: 10px;
@@ -35,6 +34,11 @@
 .column-picker-dialog .column-list .form-control {
   display: inline-block;
   width: 89%;
+}
+@media (max-width: 767px) {
+  .column-picker-dialog .column-list .form-control {
+    width: 77%;
+  }
 }
 .column-picker-dialog .column-list .close {
   margin: 2px 7px 0px;
