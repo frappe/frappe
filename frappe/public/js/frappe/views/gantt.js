@@ -7,7 +7,6 @@ Opts:
 	column_width: 15 // pixels
 	date_format: 'YYYY-MM-DD'
 	bar.height: 26
-	bar.gap: 24
 	arrow.curve: 15
 
 */
@@ -18,6 +17,7 @@ var Gantt = Class.extend({
 		this.events = this.opts.events;
 		this.tasks = [];
 		this._bars = [];
+		this._arrows = [];
 		this.set_defaults();
 		this.groups = {};
 		this.make();
@@ -35,6 +35,12 @@ var Gantt = Class.extend({
 				"Week",
 				"Month"
 			],
+			bar: {
+				height: 20
+			},
+			arrow: {
+				curve: 5
+			},
 			view_mode: 'Day',
 			padding: 18,
 			date_format: 'YYYY-MM-DD'
@@ -57,9 +63,10 @@ var Gantt = Class.extend({
 		this.setup_groups();
 		this.make_grid();
 		this.make_dates();
-		this.make_arrows();
 		// this.make_label();
 		this.make_bars();
+		this.make_arrows();
+		this.set_arrows_on_bars();
 		this.setup_events();
 		this.set_width();
 		this.set_scroll_position();
@@ -73,6 +80,8 @@ var Gantt = Class.extend({
 	},
 	clear: function () {
 		this.canvas.clear();
+		this._bars = [];
+		this._arrows = [];
 	},
 	prepare_dates: function() {
 		var me = this;
@@ -110,7 +119,7 @@ var Gantt = Class.extend({
 				cur_date = this.start.clone();
 			} else {
 				cur_date = (this.view_mode === 'Month') ?
-					cur_date = cur_date.clone().add(1, 'month') :
+					cur_date = cur_date.clone().add(1, 'month'):
 					cur_date.clone().add(this.opts.step, 'hours');
 			}
 			this.dates.push(cur_date);
@@ -172,7 +181,7 @@ var Gantt = Class.extend({
 	get_min_date: function() {
 		return this.tasks.reduce(function(acc, curr) {
 			return curr._start.isSameOrBefore(acc._start) ? curr : acc;
-		})._start
+		})._start;
 	},
 	make_grid: function () {
 		this.make_grid_background();
@@ -184,8 +193,8 @@ var Gantt = Class.extend({
 	make_grid_background: function () {
 		var me = this;
 		var grid_width = this.opts.label_width + this.dates.length * this.opts.column_width,
-			grid_height = this.opts.header_height + this.opts.padding 
-				+ (this.opts.bar.height + this.opts.padding) * this.tasks.length;
+			grid_height = this.opts.header_height + this.opts.padding +
+				(this.opts.bar.height + this.opts.padding) * this.tasks.length;
 
 		this.canvas.rect(0,0, grid_width, grid_height)
 			.addClass('grid-background')
@@ -216,7 +225,7 @@ var Gantt = Class.extend({
 		row_width = me.opts.label_width + me.dates.length * me.opts.column_width,
 		row_height = me.opts.bar.height + me.opts.padding,
 		row_y = me.opts.header_height + me.opts.padding/2;
-		
+
 		this.tasks.forEach(function (task, i) {
 			var row_class = i % 2 ? "row-odd" : "row-even";
 			me.canvas.rect(0, row_y, row_width, row_height)
@@ -246,7 +255,7 @@ var Gantt = Class.extend({
 				tick_class += ' thick';
 			}
 			//thick ticks for quarters
-			if(me.view_mode === 'Month' && date.month() % 3 == 0) {
+			if(me.view_mode === 'Month' && date.month() % 3 === 0) {
 				tick_class += ' thick';
 			}
 
@@ -267,15 +276,15 @@ var Gantt = Class.extend({
 	},
 	make_grid_highlights: function() {
 		var me = this;
-		//highlight today
+		//highlight today's date
 		if(me.view_mode === 'Day') {
 			var x = me.opts.label_width +
 				moment().startOf('day').diff(me.start, 'hours') / me.opts.step *
 				me.opts.column_width,
-			y = 0, //me.opts.header_height + me.opts.padding/2;
+			y = 0,
 			width = me.opts.column_width,
-			height = (me.opts.bar.height + me.opts.padding) * me.tasks.length
-				+ me.opts.header_height + me.opts.padding/2;
+			height = (me.opts.bar.height + me.opts.padding) * me.tasks.length +
+				me.opts.header_height + me.opts.padding/2;
 			me.canvas.rect(x, y, width, height)
 				.addClass('today-highlight')
 				.appendTo(me.groups.grid);
@@ -344,11 +353,11 @@ var Gantt = Class.extend({
 
 			me.canvas.text(primary_text_x, primary_text_y, primary_text)
 				.addClass('primary-text')
-				.appendTo(me.groups.date)
+				.appendTo(me.groups.date);
 			if(secondary_text) {
 				var $secondary_text = me.canvas.text(secondary_text_x, secondary_text_y, secondary_text)
 					.addClass('secondary-text')
-					.appendTo(me.groups.date)
+					.appendTo(me.groups.date);
 
 				if($secondary_text.getBBox().x2 > me.groups.grid.getBBox().width) {
 					$secondary_text.remove();
@@ -379,39 +388,23 @@ var Gantt = Class.extend({
 			if(task.dependent) {
 				var dependents = task.dependent.split(',');
 				dependents.forEach(function (task_dependent) {
-					task_dependent = task_dependent.trim();
-					var dependent = me.get_task(task_dependent);
-					var start_x = dependent._start.diff(me.start, 'hours')/me.opts.step
-						* me.opts.column_width + me.opts.label_width
-						+ (dependent._end.diff(dependent._start, 'hours')/me.opts.step
-						* me.opts.column_width) / 2;
-					var start_y = me.opts.header_height + me.opts.bar.height 
-						+ (me.opts.padding + me.opts.bar.height) * dependent._index;
-					var end_x = task._start.diff(me.start, 'hours')/me.opts.step
-						* me.opts.column_width + me.opts.label_width;
-					var end_y = me.opts.header_height + me.opts.bar.height/2
-						+ (me.opts.padding + me.opts.bar.height) * task._index;
-
-					var path = Snap.format("M {start_x} {start_y} V {offset} a {curve} {curve} " +
-							"0 0 0 {curve} {curve}" +
-							"L {end_x} {end_y} m -5 -5 l 5 5 l -5 5",
-						{
-							start_x: start_x,
-							start_y: start_y + me.opts.padding,
-							end_x: end_x - me.opts.padding,
-							end_y: end_y + me.opts.padding,
-							offset: end_y - me.opts.arrow.curve + me.opts.padding,
-							curve: me.opts.arrow.curve
-						});
-					me.groups.arrow.add(me.canvas.path(path));
+					var dependent = me.get_task(task_dependent.trim());
+					if(!dependent) return;
+					var arrow = new Arrow({
+						gantt: me,
+						from_task: me._bars[dependent._index],
+						to_task: me._bars[task._index]
+					});
+					me.groups.arrow.add(arrow.element);
+					me._arrows.push(arrow);
 				});
 			}
 		});
 	},
-	get_task: function (name) {
+	get_task: function (id) {
 		var result = null;
 		this.tasks.forEach(function (task) {
-			if (task.name === name){
+			if (task.id === id){
 				result = task;
 			}
 		});
@@ -435,15 +428,10 @@ var Gantt = Class.extend({
 	make_bars: function () {
 		var me = this;
 
-		var bar_position_x,
-			bar_position_y = this.opts.header_height + me.opts.padding;
-
 		this.tasks.forEach(function (task, i) {
-
 			var bar = new Bar({
 				canvas: me.canvas,
 				task: task,
-				details: me.groups.details,
 				gantt: {
 					offset: me.opts.label_width,
 					unit_width: me.opts.column_width,
@@ -453,16 +441,19 @@ var Gantt = Class.extend({
 					padding: me.opts.padding,
 					view_mode: me.view_mode
 				},
-				color: {
-					bar: me.opts.bar.color,
-					progress: me.opts.bar.progress_color,
-					hover_bar: me.opts.bar.hover_color,
-					hover_progress: me.opts.bar.hover_progress_color
-				}
+				popover_group: me.groups.details
 			});
-
 			me._bars.push(bar);
 			me.groups.bar.add(bar.group);
+		});
+	},
+	set_arrows_on_bars: function() {
+		var me = this;
+		this._bars.forEach(function(bar) {
+			bar.arrows = me._arrows.filter(function(arrow) {
+				if(arrow.from_task.task.id === bar.task.id || arrow.to_task.task.id === bar.task.id)
+					return arrow;
+			});
 		});
 	},
 	setup_events: function() {
@@ -479,7 +470,7 @@ var Gantt = Class.extend({
 			me.canvas.selectAll('.bar-wrapper').forEach(function(el) {
 				el.removeClass('active');
 			});
-		})
+		});
 	}
 });
 
@@ -538,7 +529,6 @@ var Bar = Class.extend({
 		this.handle_group = this.canvas.group().addClass('handle-group').appendTo(this.group);
 	},
 	prepare_plugins: function() {
-		var me = this;
 		this.filters = {};
 		Snap.plugin(function (Snap, Element, Paper, global, Fragment) {
 			Element.prototype.get = function (attr) {
@@ -553,16 +543,6 @@ var Bar = Class.extend({
 			Element.prototype.getWidth = function () {
 				return this.get("width");
 			};
-			Element.prototype.setStartDate = function(date) {
-				date = moment(date)
-				var x = me.gantt.offset + (date.diff(me.gantt.start, 'hours')/me.gantt.step)*me.gantt.unit_width;
-				return this.attr('x', x);
-			}
-			Element.prototype.setEndDate = function(date) {
-				date = moment(date)
-				var x = me.gantt.offset + (date.diff(me.gantt.start, 'hours')/me.gantt.step)*me.gantt.unit_width;
-				return this.attr('x', x);
-			}
 		});
 	},
 	draw: function () {
@@ -572,19 +552,18 @@ var Bar = Class.extend({
 		this.draw_resize_handles();
 	},
 	draw_bar: function() {
-		this.canvas.rect(this.x, this.y,
-				this.width, this.height,
-				this.corner_radius, this.corner_radius)
+		this.bar = this.canvas.rect(this.x, this.y,
+			this.width, this.height,
+			this.corner_radius, this.corner_radius)
 			.addClass("bar")
 			.appendTo(this.bar_group);
 	},
 	draw_progress_bar: function() {
-		this.canvas.rect(this.x, this.y,
-				this.progress_width, this.height,
-				this.corner_radius, this.corner_radius)
-			.attr("fill", this.color.progress)
+		this.bar_progress = this.canvas.rect(this.x, this.y,
+			this.progress_width, this.height,
+			this.corner_radius, this.corner_radius)
 			.addClass("bar-progress")
-			.appendTo(this.bar_group)
+			.appendTo(this.bar_group);
 	},
 	draw_label: function() {
 		this.canvas.text(this.x + this.width/2,
@@ -623,11 +602,11 @@ var Bar = Class.extend({
 
 		this.group.mouseover(function (e, x, y) {
 			var details_box = me.canvas.group();
-			me.details.clear();
+			me.popover_group.clear();
 			var pos = me.get_details_position(me.group);
 
 			details_box.attr({ transform: "translate(" + pos.x +"," + pos.y + ")" })
-				.appendTo(me.details);
+				.appendTo(me.popover_group);
 
 			var line1_text = me.task.name + ": " +
 				me.task._start.format("MMM D") + " - " +
@@ -668,7 +647,7 @@ var Bar = Class.extend({
 				dy: 90,
 				"fill": "#757575"
 			}).appendTo(details_box);
-			me.details.attr({
+			me.popover_group.attr({
 				x: x,
 				y: y,
 				"font-size": 14
@@ -726,7 +705,7 @@ var Bar = Class.extend({
 		return {
 			left: me.handle_group.select('.handle.left'),
 			right: me.handle_group.select('.handle.right')
-		}
+		};
 	},
 	bind_drag: function() {
 		var me = this;
@@ -776,9 +755,6 @@ var Bar = Class.extend({
 			for (var i = 0; i < modes.length; i++) {
 				if(me.gantt.view_mode === modes[i]) return true;
 			}
-			// modes.forEach(function(mode) {
-			// 	if(me.gantt.view_mode === mode) return true;
-			// })
 			return false;
 		}
 	},
@@ -786,9 +762,10 @@ var Bar = Class.extend({
 		var bar = this.group.select('.bar');
 		if(x) this.update_attr(bar, "x", x);
 		if(width) this.update_attr(bar, "width", width);
-		this.update_label_position(this);
-		this.update_handle_position(this);
-		this.update_progressbar_position(this);
+		this.update_label_position();
+		this.update_handle_position();
+		this.update_progressbar_position();
+		this.update_arrow_position();
 	},
 	click: function(callback) {
 		var me = this;
@@ -825,7 +802,6 @@ var Bar = Class.extend({
 		setTimeout(function() { me.action_completed = false; }, 2000);
 	},
 	compute_date: function(x) {
-		var pos = x - this.gantt.offset;
 		var shift = (x - this.compute_x())/this.gantt.unit_width;
 		var date = this.task._start.clone().add(this.gantt.step*shift, 'hours');
 		return date;
@@ -850,34 +826,35 @@ var Bar = Class.extend({
 		return bar_progress.getWidth() / bar.getWidth() * 100;
 	},
 	compute_x: function() {
-		var x = this.gantt.offset
-			+ (this.task._start.diff(this.gantt.start, 'hours')/this.gantt.step
-				* this.gantt.unit_width);
+		var x = this.gantt.offset +
+			(this.task._start.diff(this.gantt.start, 'hours')/this.gantt.step *
+			 this.gantt.unit_width);
 		if(this.gantt.view_mode === 'Month') {
-			x = this.gantt.offset
-			 + this.task._start.diff(this.gantt.start, 'days') * this.gantt.unit_width/30
+			x = this.gantt.offset +
+				this.task._start.diff(this.gantt.start, 'days') *
+				this.gantt.unit_width/30;
 		}
 		return x;
 	},
 	compute_y: function() {
-		return this.gantt.header_height + this.gantt.padding
-			+ this.task._index * (this.height + this.gantt.padding)
+		return this.gantt.header_height + this.gantt.padding +
+			this.task._index * (this.height + this.gantt.padding);
 	},
 	get_snap_position: function(me, bar, dx) {
-		var odx = dx, rem, position, scale;
+		var odx = dx, rem, position;
 
 		if (me.gantt.view_mode === 'Week') {
 			rem = dx % (me.gantt.unit_width/7);
 			position = odx - rem +
-				((rem < me.gantt.unit_width/7) ? 0 : me.gantt.unit_width/7);
+				((rem < me.gantt.unit_width/14) ? 0 : me.gantt.unit_width/7);
 		} else if (me.gantt.view_mode === 'Month') {
 			rem = dx % (me.gantt.unit_width/30);
 			position = odx - rem +
-				((rem < me.gantt.unit_width/30) ? 0 : me.gantt.unit_width/30);
+				((rem < me.gantt.unit_width/60) ? 0 : me.gantt.unit_width/30);
 		} else {
 			rem = dx % me.gantt.unit_width;
 			position =  odx - rem +
-				((rem < me.gantt.unit_width) ? 0 : me.gantt.unit_width);
+				((rem < me.gantt.unit_width/2) ? 0 : me.gantt.unit_width);
 		}
 		return position;
 	},
@@ -888,13 +865,15 @@ var Bar = Class.extend({
 		}
 		return element;
 	},
-	update_progressbar_position: function(me) {
+	update_progressbar_position: function() {
+		var me = this;
 		var bar = me.group.select('.bar');
 		var bar_progress = me.group.select('.bar-progress');
 		bar_progress.attr('x', bar.getX());
 		bar_progress.attr('width', bar.getWidth() * (me.task.progress/100));
 	},
-	update_label_position: function(me) {
+	update_label_position: function() {
+		var me = this;
 		var bar = me.group.select(".bar");
 		var label = me.group.select('.bar-label');
 		if(label.getBBox().width > bar.getWidth()){
@@ -903,7 +882,8 @@ var Bar = Class.extend({
 			label.removeClass('big').attr('x', bar.getX() + bar.getWidth()/2);
 		}
 	},
-	update_handle_position: function(me) {
+	update_handle_position: function() {
+		var me = this;
 		var bar = me.group.select(".bar");
 		me.handle_group.select(".handle.left").attr({
 			"x": bar.getX() + 1,
@@ -912,9 +892,111 @@ var Bar = Class.extend({
 			"x": bar.getX() + bar.getWidth() - 9,
 		});
 	},
+	update_arrow_position: function() {
+		this.arrows.forEach(function(arrow) {
+			arrow.update();
+		});
+	},
 	unselect_all: function() {
 		this.canvas.selectAll('.bar-wrapper').forEach(function(el) {
 			el.removeClass('active');
 		});
+	}
+});
+
+/*
+	Class: Arrow
+	from_task ---> to_task
+
+	Opts:
+		gantt (Gantt object)
+		from_task (Bar object)
+		to_task (Bar object)
+*/
+
+var Arrow = Class.extend({
+	init: function (opts) {
+		for(var key in opts) {
+			if(opts.hasOwnProperty(key))
+				this[key] = opts[key];
+		}
+		this.prepare();
+		this.draw();
+	},
+	prepare: function() {
+		var gantt = this.gantt,
+		from_task = this.from_task,
+		to_task = this.to_task;
+
+		this.start_x =from_task.bar.getX() + from_task.bar.getWidth()/2;
+
+		while(to_task.bar.getX() < this.start_x + gantt.opts.padding &&
+			this.start_x > from_task.bar.getX() + gantt.opts.padding)
+		{
+			this.start_x -= 10;
+		}
+
+		this.start_y = gantt.opts.header_height + gantt.opts.bar.height +
+			(gantt.opts.padding + gantt.opts.bar.height) * from_task.task._index +
+			gantt.opts.padding;
+
+		this.end_x = to_task.bar.getX() - gantt.opts.padding/2;
+		this.end_y = gantt.opts.header_height + gantt.opts.bar.height/2 +
+			(gantt.opts.padding + gantt.opts.bar.height) * to_task.task._index +
+			gantt.opts.padding;
+
+		var from_is_below_to = (from_task.task._index > to_task.task._index);
+		this.curve = gantt.opts.arrow.curve;
+		this.clockwise = from_is_below_to ? 1 : 0;
+		this.curve_y = from_is_below_to ? -this.curve : this.curve;
+		this.offset = from_is_below_to ?
+			this.end_y + gantt.opts.arrow.curve:
+			this.end_y - gantt.opts.arrow.curve;
+
+		this.path =
+			Snap.format("M {start_x} {start_y} V {offset} " +
+				"a {curve} {curve} 0 0 {clockwise} {curve} {curve_y} " +
+				"L {end_x} {end_y} m -5 -5 l 5 5 l -5 5",
+			{
+				start_x: this.start_x,
+				start_y: this.start_y,
+				end_x: this.end_x,
+				end_y: this.end_y,
+				offset: this.offset,
+				curve: this.curve,
+				clockwise: this.clockwise,
+				curve_y: this.curve_y
+			});
+
+		if(to_task.bar.getX() < from_task.bar.getX() + gantt.opts.padding) {
+			this.path =
+				Snap.format("M {start_x} {start_y} v {down_1} " +
+				"a {curve} {curve} 0 0 1 -{curve} {curve} H {left} " +
+				"a {curve} {curve} 0 0 {clockwise} -{curve} {curve_y} V {down_2} " +
+				"a {curve} {curve} 0 0 {clockwise} {curve} {curve_y} " +
+				"L {end_x} {end_y} m -5 -5 l 5 5 l -5 5",
+			{
+				start_x: this.start_x,
+				start_y: this.start_y,
+				end_x: this.end_x,
+				end_y: this.end_y,
+				down_1: this.gantt.opts.padding/2 - this.curve,
+				down_2: to_task.bar.getY() + to_task.bar.get('height')/2 - this.curve_y,
+				left: to_task.bar.getX() - gantt.opts.padding,
+				offset: this.offset,
+				curve: this.curve,
+				clockwise: this.clockwise,
+				curve_y: this.curve_y
+			});
+		}
+	},
+	draw: function() {
+		this.element = this.gantt.canvas.path(this.path)
+			.attr("data-from", this.from_task.task.id)
+			.attr("data-to", this.to_task.task.id);
+	},
+	update: function() {
+		this.prepare();
+		this.element.attr('d', this.path);
 	}
 });

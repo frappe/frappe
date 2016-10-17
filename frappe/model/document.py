@@ -150,17 +150,6 @@ class Document(BaseDocument):
 			return True
 		return frappe.has_permission(self.doctype, permtype, self, verbose=verbose)
 
-	def has_website_permission(self, permtype="read", verbose=False):
-		"""Call `frappe.has_website_permission` if `self.flags.ignore_permissions`
-		is not set.
-
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
-		if self.flags.ignore_permissions:
-			return True
-
-		return (frappe.has_website_permission(self.doctype, permtype, self, verbose=verbose)
-			or self.has_permission(permtype, verbose=verbose))
-
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
 		msg = _("No permission to {0} {1} {2}".format(perm_type, self.doctype, self.name or ""))
@@ -192,6 +181,8 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True."""
 		if self.flags.in_print:
 			return
+
+		self.flags.email_alerts_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -251,6 +242,8 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True."""
 		if self.flags.in_print:
 			return
+
+		self.flags.email_alerts_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -658,7 +651,54 @@ class Document(BaseDocument):
 			fn = lambda self, *args, **kwargs: None
 
 		fn.__name__ = method.encode("utf-8")
-		return Document.hook(fn)(self, *args, **kwargs)
+		out = Document.hook(fn)(self, *args, **kwargs)
+
+		self.run_email_alerts(method)
+
+		return out
+
+	def run_email_alerts(self, method):
+		'''Run email alerts for this method'''
+		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+			return
+
+		if self.flags.email_alerts_executed==None:
+			self.flags.email_alerts_executed = []
+
+		from frappe.email.doctype.email_alert.email_alert import evaluate_alert
+
+		if self.flags.email_alerts == None:
+			alerts = frappe.cache().hget('email_alerts', self.doctype)
+			if alerts==None:
+				alerts = frappe.get_all('Email Alert', fields=['name', 'event', 'method'],
+					filters={'enabled': 1, 'document_type': self.doctype})
+				frappe.cache().hset('email_alerts', self.doctype, alerts)
+			self.flags.email_alerts = alerts
+
+		if not self.flags.email_alerts:
+			return
+
+		def _evaluate_alert(alert):
+			if not alert.name in self.flags.email_alerts_executed:
+				evaluate_alert(self, alert.name, alert.event)
+
+		event_map = {
+			"on_update": "Save",
+			"after_insert": "New",
+			"on_submit": "Submit",
+			"on_cancel": "Cancel"
+		}
+
+		if not self.flags.in_insert:
+			# value change is not applicable in insert
+			event_map['validate'] = 'Value Change'
+
+		for alert in self.flags.email_alerts:
+			event = event_map.get(method, None)
+			if event and alert.event == event:
+				_evaluate_alert(alert)
+			elif alert.event=='Method' and method == alert.method:
+				_evaluate_alert(alert)
 
 	@staticmethod
 	def whitelist(f):
@@ -974,7 +1014,6 @@ class Document(BaseDocument):
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
 		like _submit for submit, it will call that instead'''
-
 		if action in ('save', 'submit', 'cancel'):
 			# set docstatus explicitly again due to inconsistent action
 			self.docstatus = {'save':0, 'submit':1, 'cancel': 2}[action]
@@ -988,6 +1027,7 @@ class Document(BaseDocument):
 			action = '_' + action
 
 		self.lock()
+		frappe.db.commit()
 		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,
 			action=action, **kwargs)
 
@@ -995,17 +1035,17 @@ def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''
 	doc = frappe.get_doc(doctype, name)
 	doc.unlock()
+	frappe.db.commit()
 	try:
 		getattr(doc, action)(**kwargs)
-	except frappe.ValidationError:
-		# add a comment (?)
-		doc.add_comment('Comment',
-			_('Action Failed') + '<br><br>' + json.loads(frappe.local.message_log[-1]).get('message'))
-
-		doc.notify_update()
 	except Exception:
-		# add a comment (?)
-		doc.add_comment('Comment',
-			_('Action Failed') + '<pre><code>' + frappe.get_traceback() + '</pre></code>')
+		frappe.db.rollback()
 
+		# add a comment (?)
+		if frappe.local.message_log:
+			msg = json.loads(frappe.local.message_log[-1]).get('message')
+		else:
+			msg = '<pre><code>' + frappe.get_traceback() + '</pre></code>'
+
+		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
 		doc.notify_update()

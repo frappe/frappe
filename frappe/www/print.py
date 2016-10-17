@@ -96,6 +96,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	# determine template
 	if print_format:
+		doc._show_section_headings = print_format.show_section_headings
+		doc._line_breaks = print_format.line_breaks
+		doc._align_labels_left = print_format.align_labels_left
+
 		if print_format.format_data:
 			# set format data
 			format_data = json.loads(print_format.format_data)
@@ -179,7 +183,7 @@ def validate_print_permission(doc):
 
 	for ptype in ("read", "print"):
 		if (not frappe.has_permission(doc.doctype, ptype, doc)
-			and not frappe.has_website_permission(doc.doctype, ptype, doc)):
+			and not frappe.has_website_permission(doc)):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
 def get_letter_head(doc, no_letterhead):
@@ -226,6 +230,8 @@ def make_layout(doc, meta, format_data=None):
 			doc.print_heading_template = format_data[0].get("options")
 			format_data = format_data[1:]
 
+	def get_new_section(): return  {'columns': [{'fields': []}], 'has_data': False}
+
 	for df in format_data or meta.fields:
 		if format_data:
 			# embellish df with original properties
@@ -240,20 +246,32 @@ def make_layout(doc, meta, format_data=None):
 			df.print_hide = 0
 
 		if df.fieldtype=="Section Break" or page==[]:
-			if len(page) > 1 and not any(page[-1]):
-				# truncate prev section if empty
-				del page[-1]
+			if len(page) > 1:
+				if page[-1]['has_data']==False:
+					# truncate last section if empty
+					del page[-1]
+				elif page[-1]['columns'][-1]['fields']==[]:
+					# truncate last column in empty
+					del page[-1]['columns'][-1]
 
-			page.append([])
+			section = get_new_section()
+			if df.fieldtype=='Section Break' and df.label:
+				section['label'] = df.label
 
-		if df.fieldtype=="Column Break" or (page[-1]==[] and df.fieldtype!="Section Break"):
-			page[-1].append([])
+			page.append(section)
+
+		if df.fieldtype=="Column Break" and page[-1]['columns'][-1]['fields'] != []:
+			# if last column break and last column is not empty
+			page[-1]['columns'].append({'fields': []})
 
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
 
 		if is_visible(df, doc) and has_value(df, doc):
-			page[-1][-1].append(df)
+			page[-1]['columns'][-1]['fields'].append(df)
+
+			# section has fields
+			page[-1]['has_data'] = True
 
 			# if table, add the row info in the field
 			# if a page break is found, create a new docfield
@@ -267,7 +285,7 @@ def make_layout(doc, meta, format_data=None):
 						df.end = i
 
 						# new page, with empty section and column
-						page = [[[]]]
+						page = [get_new_section()]
 						layout.append(page)
 
 						# continue the table in a new page

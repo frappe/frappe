@@ -228,13 +228,14 @@ frappe.ui.get_upload_dialog = function(opts){
 			'method': 'frappe.client.get_value',
 			'args': {
 			'doctype': 'File',
-			'fieldname': 'file_url',
+			'fieldname': ['file_url','filename'],
 			  'filters': {
 			      'name': dialog.get_value("file")
 			    }
 			},
 			callback: function(r){
 			    dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
+				opts.args.filename = r.message.file_name
 			}
 	    });
 	});

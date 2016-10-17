@@ -195,10 +195,11 @@ class CustomizeForm(Document):
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("__islocal"):
-				self.add_custom_field(df, i)
-			else:
-				self.update_in_custom_field(df, i)
+			if df.get("is_custom_field"):
+				if not frappe.db.exists('Custom Field', {'dt': self.doc_type, 'fieldname': df.fieldname}):
+					self.add_custom_field(df, i)
+				else:
+					self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
 
@@ -209,8 +210,8 @@ class CustomizeForm(Document):
 
 		for property in docfield_properties:
 			d.set(property, df.get(property))
-		
-		if i!=0:	
+
+		if i!=0:
 			d.insert_after = self.fields[i-1].fieldname
 		d.idx = i
 
@@ -221,6 +222,7 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not (meta_df and meta_df[0].get("is_custom_field")):
+			# not a custom field
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
@@ -242,8 +244,8 @@ class CustomizeForm(Document):
 				changed = True
 
 		if changed:
-			custom_field.flags.ignore_validate = True
-			custom_field.save()
+			custom_field.db_update()
+			#custom_field.save()
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)

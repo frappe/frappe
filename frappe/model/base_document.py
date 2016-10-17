@@ -22,6 +22,8 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	from frappe.model.document import Document
+	global _classes
+
 	if not doctype in _classes:
 		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
 			or ["Core", False]
@@ -273,6 +275,11 @@ class BaseDocument(object):
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		if not self.creation:
+			self.creation = self.modified = now()
+			self.created_by = self.modifield_by = frappe.session.user
+
 		d = self.get_valid_dict()
 		columns = d.keys()
 		try:

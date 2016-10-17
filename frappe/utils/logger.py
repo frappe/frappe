@@ -14,7 +14,7 @@ def get_logger(module, with_more_info=True):
 	# handler = logging.StreamHandler()
 
 	handler = RotatingFileHandler(
-		LOG_FILENAME, maxBytes=20000, backupCount=20)
+		LOG_FILENAME, maxBytes=100000, backupCount=20)
 	handler.setFormatter(formatter)
 
 	if with_more_info:

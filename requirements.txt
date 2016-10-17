@@ -38,4 +38,3 @@ zxcvbn
 psutil
 unittest-xml-reporting
 xlwt
-python-ldap

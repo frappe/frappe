@@ -202,6 +202,13 @@ frappe.ui.Filter = Class.extend({
 	set_values: function(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
 		this.set_field(doctype, fieldname);
+
+		// change 0,1 to Yes, No for check field type
+		if(this.field.df.original_type==='Check') {
+			if(value==0) value = 'No';
+			else if(value==1) value = 'Yes';
+		}
+
 		if(condition) this.wrapper.find('.condition').val(condition).change();
 		if(value!=null) this.field.set_input(value);
 	},

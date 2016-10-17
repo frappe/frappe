@@ -5,7 +5,6 @@ $(document).ready(function(){
 			"amount": cint({{ amount }} * 100), // 2000 paise = INR 20
 			"name": "{{ title }}",
 			"description": "{{ description }}",
-			"image": "{{ brand_image }}",
 			"handler": function (response){
 				razorpay.make_payment_log(response, options, "{{ reference_doctype }}", "{{ reference_docname }}");
 			},
@@ -14,14 +13,7 @@ $(document).ready(function(){
 				"email": "{{ payer_email }}",
 				"order_id": "{{ order_id }}"
 			},
-			"notes": {
-				"doctype": "{{ doctype }}",
-				"name": "{{ name }}",
-				"payment_request": "{{ name }}" // backward compatibility
-			},
-			"theme": {
-				"color": "#4B4C9D"
-			}
+			"notes": {{ frappe.form_dict|json }}
 		};
 
 		var rzp = new Razorpay(options);

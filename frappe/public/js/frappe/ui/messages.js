@@ -242,14 +242,25 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(txt, seconds) {
+frappe.show_alert = function(message, seconds) {
+	if(typeof message==='string') {
+		message = {
+			message: message
+		}
+	}
 	if(!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
+	if(message.indicator) {
+		message_html = '<span class="indicator ' + message.indicator + '">' + message.message + '</span>';
+	} else {
+		message_html = message.message;
+	}
+
 	var div = $(repl('<div class="alert desk-alert" style="display: none;">'
-			+ '<a class="close">&times;</a><span class="alert-message">%(txt)s</span>'
-		+ '</div>', {txt: txt}))
+			+ '<span class="alert-message">%(txt)s</span><a class="close">&times;</a>'
+		+ '</div>', {txt: message_html}))
 		.appendTo("#alert-container")
 		.fadeIn(300);
 

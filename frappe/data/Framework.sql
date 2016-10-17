@@ -146,6 +146,7 @@ CREATE TABLE `tabDocType` (
   `tag_fields` varchar(255) DEFAULT NULL,
   `subject` varchar(255) DEFAULT NULL,
   `_last_update` varchar(32) DEFAULT NULL,
+  `engine` varchar(20) DEFAULT 'InnoDB',
   `default_print_format` varchar(255) DEFAULT NULL,
   `is_submittable` int(1) NOT NULL DEFAULT 0,
   `_user_tags` varchar(255) DEFAULT NULL,

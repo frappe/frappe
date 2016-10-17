@@ -109,8 +109,8 @@ class DbTable:
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
-				if not (1 <= new_length <= 255):
-					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+				if not (1 <= new_length <= 1000):
+					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
 				try:
 					# check for truncation
@@ -174,10 +174,11 @@ class DbTable:
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			%sindex parent(parent))
-			ENGINE=InnoDB
+			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
+				engine=self.meta.engine or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns

@@ -489,7 +489,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -500,12 +500,18 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
-	if isinstance(doc, basestring):
-		doc = get_doc(doctype, doc)
+	if doc:
+		if isinstance(doc, basestring):
+			doc = get_doc(doctype, doc)
 
-	# check permission in controller
-	if hasattr(doc, 'has_website_permission'):
-		return doc.has_website_permission(ptype, verbose=verbose)
+		doctype = doc.doctype
+
+		if doc.flags.ignore_permissions:
+			return True
+
+		# check permission in controller
+		if hasattr(doc, 'has_website_permission'):
+			return doc.has_website_permission(ptype, verbose=verbose)
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
@@ -1247,6 +1253,11 @@ def logger(module=None, with_more_info=True):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
 	return get_logger(module or 'default', with_more_info=with_more_info)
+
+def log_error(message=None, title=None):
+	'''Log error to Error Log'''
+	get_doc(dict(doctype='Error Log', error=str(message or get_traceback()),
+		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
 	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))

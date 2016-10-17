@@ -8,7 +8,7 @@ from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_v
 import json
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.ldap_auth import get_ldap_settings
+from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
 
 no_cache = True
 

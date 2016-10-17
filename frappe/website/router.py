@@ -8,6 +8,23 @@ from frappe.website.utils import can_cache, delete_page_cache
 from frappe.model.document import get_controller
 from frappe import _
 
+def resolve_route(path):
+	"""Returns the page route object based on searching in pages and generators.
+	The `www` folder is also a part of generator **Web Page**.
+
+	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
+	first before checking the standard pages."""
+	if path not in ("about", "contact"):
+		context = get_page_context_from_template(path)
+		if context:
+			return context
+		return get_page_context_from_doctype(path)
+	else:
+		context = get_page_context_from_doctype(path)
+		if context:
+			return context
+		return get_page_context_from_template(path)
+
 def get_page_context(path):
 	page_context = None
 	if can_cache():
@@ -34,26 +51,9 @@ def make_page_context(path):
 
 	return context
 
-def resolve_route(path):
-	"""Returns the page route object based on searching in pages and generators.
-	The `www` folder is also a part of generator **Web Page**.
-
-	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
-	first before checking the standard pages."""
-	if path not in ("about", "contact"):
-		context = get_page_context_from_template(path)
-		if context:
-			return context
-		return get_page_context_from_doctype(path)
-	else:
-		context = get_page_context_from_doctype(path)
-		if context:
-			return context
-		return get_page_context_from_template(path)
-
 def get_page_context_from_template(path):
 	'''Return page_info from path'''
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_installed_apps(frappe_last=True):
 		app_path = frappe.get_app_path(app)
 
 		folders = frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
@@ -188,6 +188,7 @@ def get_page_info(path, app, basepath=None, app_path=None, fname=None):
 	if os.path.exists(page_info.controller_path):
 		controller = app + "." + os.path.relpath(page_info.controller_path,
 			app_path).replace(os.path.sep, ".")[:-3]
+
 		page_info.controller = controller
 
 	# get the source

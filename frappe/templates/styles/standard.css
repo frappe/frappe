@@ -75,7 +75,6 @@
 }
 
 .print-item-image {
-	max-height: 110px;
 	object-fit: contain;
 }
 

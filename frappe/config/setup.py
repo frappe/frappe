@@ -75,7 +75,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Scheduler Log",
+					"name": "Error Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
 				{
@@ -222,9 +222,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Dropbox Backup",
-					"description": _("Manage cloud backups on Dropbox"),
-					"hide_count": True
+					"name": "Integration Service",
+					"description": _("Centralize access to Integrations"),
 				}
 			]
 		},

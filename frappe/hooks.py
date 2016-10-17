@@ -95,22 +95,13 @@ standard_queries = {
 
 doc_events = {
 	"*": {
-		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 			"frappe.core.doctype.communication.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_submit": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
 	},
@@ -135,7 +126,7 @@ scheduler_events = {
 	"daily": [
 		"frappe.email.queue.clear_outbox",
 		"frappe.desk.notifications.clear_notifications",
-		"frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen",
+		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
@@ -185,4 +176,4 @@ bot_parsers = [
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
 
-integration_services = ["PayPal", "Razorpay", "Dropbox Integration", "LDAP Auth"]
+integration_services = ["PayPal", "Razorpay", "Dropbox", "LDAP"]

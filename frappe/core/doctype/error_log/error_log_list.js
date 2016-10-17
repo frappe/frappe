@@ -1,4 +1,4 @@
-frappe.listview_settings['Scheduler Log'] = {
+frappe.listview_settings['Error Log'] = {
 	add_fields: ["seen"],
 	get_indicator: function(doc) {
         if(cint(doc.seen)) {
