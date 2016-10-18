@@ -115,7 +115,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									d[fieldname] = getdate(parse_date(d[fieldname])) if d[fieldname] else None
 								elif fieldtype == "Datetime":
 									if d[fieldname]:
-										_date, _time = d[fieldname].split()
+										if " " in d[fieldname]:
+											_date, _time = d[fieldname].split()
+										else:
+											_date, _time = d[fieldname], '00:00:00'
 										_date = parse_date(d[fieldname])
 										d[fieldname] = get_datetime(_date + " " + _time)
 									else:
