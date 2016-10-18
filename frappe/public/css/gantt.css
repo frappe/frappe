@@ -40,6 +40,15 @@
 .gantt .bar-progress {
   fill: #a3a3ff;
 }
+.gantt .bar-invalid {
+  fill: transparent;
+  stroke: #8D99A6;
+  stroke-width: 1;
+  stroke-dasharray: 5;
+}
+.gantt .bar-invalid ~ .bar-label {
+  fill: #555;
+}
 .gantt .bar-label {
   fill: #fff;
   dominant-baseline: central;
