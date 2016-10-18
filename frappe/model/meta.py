@@ -281,11 +281,13 @@ class Meta(Document):
 
 		This method will return the `data` property in the
 		`[doctype]_dashboard.py` file in the doctype folder'''
+		data = frappe._dict()
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
-			data = frappe._dict(module.data)
+			if hasattr(module, 'get_data'):
+				data = frappe._dict(module.get_data())
 		except ImportError:
-			data = frappe._dict()
+			pass
 
 		return data
 

@@ -11,6 +11,9 @@ import re
 def format_value(value, df=None, doc=None, currency=None, translated=False):
 	'''Format value based on given fieldtype, document reference, currency reference.
 	If docfield info (df) is not given, it will try and guess based on the datatype of the value'''
+	if isinstance(df, basestring):
+		df = frappe._dict(fieldtype=df)
+
 	if not df:
 		df = frappe._dict()
 		if isinstance(value, datetime.datetime):

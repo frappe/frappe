@@ -208,6 +208,10 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
+				# get the default value if none, for insert / update
+				if d[fieldname]==None and df.default:
+					d[fieldname] = df.default
+
 		return d
 
 	def init_valid_columns(self):

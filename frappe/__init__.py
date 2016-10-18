@@ -1144,6 +1144,14 @@ def format_value(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
+def format(*args, **kwargs):
+	"""Format value with given field properties.
+
+	:param value: Value to be formatted.
+	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(*args, **kwargs)
+
 def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None):
 	"""Get Print Format for given document.
 
