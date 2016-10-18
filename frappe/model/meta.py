@@ -283,7 +283,7 @@ class Meta(Document):
 		`[doctype]_dashboard.py` file in the doctype folder'''
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
-			data = frappe._dict(module.data)
+			data = frappe._dict(module.get_data())
 		except ImportError:
 			data = frappe._dict()
 
