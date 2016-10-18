@@ -358,6 +358,7 @@ def accept(web_form, data, for_payment=False):
 
 	if for_payment:
 		web_form.validate_mandatory(doc)
+		doc.run_method('validate_payment')
 
 	if doc.name:
 		if has_web_form_permission(doc.doctype, doc.name, "write"):
