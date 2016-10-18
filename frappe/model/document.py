@@ -657,6 +657,9 @@ class Document(BaseDocument):
 
 		return out
 
+	def run_trigger(self, method, *args, **kwargs):
+		return self.run_method(method, *args, **kwargs)
+
 	def run_email_alerts(self, method):
 		'''Run email alerts for this method'''
 		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
