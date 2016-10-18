@@ -49,7 +49,8 @@ def authorize(*args, **kwargs):
 	oauth_settings = get_oauth_settings()
 	params = get_urlparams_from_kwargs(kwargs)
 	request_url = urlparse(frappe.request.url)
-	success_url =  request_url.scheme + request_url.netloc + "/api/method/frappe.integration_broker.oauth2.approve?" + params
+	success_url = request_url.scheme + "://" + request_url.netloc + "/api/method/frappe.integration_broker.oauth2.approve?" + params
+	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied" 
 
 	if frappe.session['user']=='Guest':
 		#Force login, redirect to preauth again.
@@ -78,8 +79,8 @@ def authorize(*args, **kwargs):
 				response_html_params = frappe._dict({
 					"client_id": frappe.db.get_value("OAuth Client", kwargs['client_id'], "app_name"),
 					"success_url": success_url,
-					"details": scopes,
-					"error": ""
+					"failure_url": failure_url,
+					"details": scopes
 				})
 				resp_html = frappe.render_template("templates/includes/oauth_confirmation.html", response_html_params)
 				frappe.respond_as_web_page("Confirm Access", resp_html)

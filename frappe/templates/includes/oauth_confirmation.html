@@ -4,9 +4,9 @@
     <h3 class="panel-title">{{ client_id }} wants to access the following details from your account</h3>
   </div>
   <div class="panel-body">
-      <ul style="list-style:none">
+      <ul class="list-group">
       {% for dtl in details %}
-        <li>{{ dtl }}</li>
+        <li class="list-group-item">{{ dtl.title() }}</li>
       {% endfor %}
       </ul>
     <ul class="list-inline">
@@ -25,8 +25,7 @@
       window.location.replace("{{ success_url|string }}");
     });
     $('#deny').on('click', function(event) {
-      frappe.msgprint('Access not allowed');
-      //TODO: Handle.
+      window.location.replace("{{ failure_url|string }}");
     });
   });
 </script>
