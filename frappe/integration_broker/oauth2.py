@@ -4,6 +4,7 @@ from frappe.oauth import OAuthWebRequestValidator, WebApplicationServer
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from urllib import quote, urlencode
 from urlparse import urlparse
+from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 
 #Variables required across requests
 oauth_validator = OAuthWebRequestValidator()
@@ -45,6 +46,7 @@ def approve(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def authorize(*args, **kwargs):
 	#Fetch provider URL from settings
+	oauth_settings = get_oauth_settings()
 	params = get_urlparams_from_kwargs(kwargs)
 	request_url = urlparse(frappe.request.url)
 	success_url =  request_url.scheme + request_url.netloc + "/api/method/frappe.integration_broker.oauth2.approve?" + params
