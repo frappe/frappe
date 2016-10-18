@@ -200,6 +200,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
