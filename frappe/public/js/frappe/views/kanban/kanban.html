@@ -1,0 +1,38 @@
+<div class="kanban">
+	{% for col in columns %}
+		<div class="kanban-column">
+			<div class="kanban-column-title h4">
+				{{ __(col.value) }}
+			</div>
+			<div class="kanban-cards">
+				{% for card in col.cards %}
+				<div class="kanban-card-wrapper">
+					<div class="kanban-card">
+						<div class="kanban-card-title">
+							{{ __(card.subject) }}
+						</div>
+					</div>
+					<div class="kanban-card-placeholder"></div>
+				</div>
+				{% endfor %}
+			</div>
+
+			<div class="kanban-card compose-card">
+				<div class="kanban-card-title">
+					<i class="glyphicon glyphicon-plus"></i>
+					{{ __("Add a card") }}
+				</div>
+			</div>
+
+			<form class="hide">
+				<div class="kanban-card composer">
+					<textarea></textarea>
+				</div>
+				<div class="kanban-controls">
+					<button class="btn btn-primary">Add</button>
+					<a class="glyphicon glyphicon-remove"></a>
+				</div>
+			</form>
+		</div>
+	{% endfor %}
+</div>

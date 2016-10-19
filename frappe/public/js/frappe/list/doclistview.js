@@ -96,7 +96,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.dirty = true;
 		this.tags_shown = false;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
-		 	__(this.label) : (__(this.label) + ' ' + __('List'));
+			__(this.label) : (__(this.label) + ' ' + __('List'));
 		this.make_page();
 		this.setup();
 
@@ -379,7 +379,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(!this.listview.settings.use_route) {
 			var route = frappe.get_route();
-			if(route[2] && !in_list(['Image', 'Gantt'], route[2])) {
+			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -539,6 +539,61 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 	},
 
+	render_rows_Kanban: function(values) {
+		var me = this;
+		var kanban_board = frappe.get_route()[3];
+
+		frappe.model.with_doctype('Kanban Board', function() {
+			frappe.model.with_doc('Kanban Board', kanban_board, function(name, r) {
+				console.log('asdf')
+				var doc = frappe.get_doc('Kanban Board', kanban_board);
+				var columns = doc.columns;
+
+				var columns_data = columns.map(function(column) {
+					var status = column.value;
+					column.cards = values.filter(function(value) {
+						return value.status === status;
+					});
+					return column;
+				});
+				// console.log(columns_data);
+				var $kanban = $(frappe.render_template('kanban', { columns: columns }))
+					.appendTo(me.wrapper.find('.result-list'));
+
+				var lists = document.getElementsByClassName("kanban-cards");
+				for(key in lists) {
+					if(lists.hasOwnProperty(key)) {
+						var list = lists[key];
+						Sortable.create(list, {
+							group: "cards",
+							ghostClass: "ghost-card",
+							chosenClass: "chosen-card",
+							filter: ".no-drag",
+							onStart: function (evt) {
+								$kanban.find('.kanban-card.compose-card').fadeOut(300);
+								$kanban.find('.kanban-cards').height('20px');
+							},
+							onEnd: function (evt) {
+								$kanban.find('.kanban-card.compose-card').fadeIn(300);
+								$kanban.find('.kanban-cards').height('auto');
+							}
+						});
+					}
+				}
+
+				$kanban.find('.compose-card').click(function() {
+					$(this).hide();
+					$(this).next('form').removeClass('hide').find('textarea').focus();
+				});
+
+				$kanban.find('.glyphicon-remove').click(function() {
+					$(this).closest('form').addClass('hide');
+					$kanban.find('.compose-card').show();
+				})
+			});
+		});
+	},
+
 	render_row: function(row, data) {
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
@@ -563,7 +618,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		// apply default filters, if specified for a listing
 		$.each((this.listview.default_filters || this.listview.settings.default_filters || []), function(i, f) {
-		      args.filters.push(f);
+			  args.filters.push(f);
 		});
 
 		args.order_by = '`tab' + this.doctype + '`.`' + this.sort_selector.sort_by + '` ' + this.sort_selector.sort_order;
@@ -693,7 +748,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			$.each(me.get_checked_items(), function(i, doc){
 				if(!is_submittable || doc.docstatus == 1  ||
 					(allow_print_for_cancelled && doc.docstatus == 2)||
-	 				(allow_print_for_draft && doc.docstatus == 0)||
+					(allow_print_for_draft && doc.docstatus == 0)||
 					in_list(user_roles, "Administrator"))
 
 						docname.push(doc.name);

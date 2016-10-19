@@ -26,6 +26,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.setup_reports();
 		this.setup_assigned_to_me();
 		this.setup_views();
+		this.setup_kanban_boards();
 
 	},
 	setup_views: function() {
@@ -36,6 +37,8 @@ frappe.views.ListSidebar = Class.extend({
 			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
 			show_list_link = true;
 		}
+		//show link for kanban view
+		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
 
 		if(frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
@@ -43,8 +46,12 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && (route[2]==='Gantt' || route[2]==='Image')) {
+		if(route.length > 2 && (route[2]==='Gantt' || route[2]==='Image'|| route[2]==='Kanban')) {
 			this.current_view = route[2];
+
+			if(this.current_view === 'Kanban') {
+				this.kanban_board = route[3];
+			}
 		}
 
 		// disable link for current view
@@ -98,6 +105,24 @@ frappe.views.ListSidebar = Class.extend({
 
 		// from specially tagged reports
 		add_reports(frappe.boot.user.all_reports || []);
+	},
+	setup_kanban_boards: function() {
+		// add reports linked to this doctype to the dropdown
+		var me = this;
+		var added = [];
+		var dropdown = this.page.sidebar.find('.kanban-dropdown');
+		var divider = false;
+
+		var boards = frappe.get_meta(this.doctype).__kanban_boards;
+		if (!boards) return;
+		boards.forEach(function(board) {
+			var route = "List/" + board.parent + "/Kanban/" + board.name;
+			if(!divider) {
+				$('<li role="separator" class="divider"></li>').appendTo(dropdown);
+				divider = true;
+			}
+			$('<li><a href="#'+ route + '">'+board.name+'</a></li>').appendTo(dropdown);
+		});
 	},
 	setup_assigned_to_me: function() {
 		var me = this;

@@ -1,0 +1,35 @@
+// Copyright (c) 2016, Frappe Technologies and contributors
+// For license information, please see license.txt
+
+frappe.ui.form.on('Kanban Board', {
+	refresh: function(frm) {
+		console.log('asdfasf')
+	},
+	reference_doctype: function(frm) {
+
+		// set field options
+		if(!frm.doc.reference_doctype) return;
+
+		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
+			var options = $.map(frappe.get_meta(frm.doc.reference_doctype).fields,
+				function(d) {
+					if(d.fieldname && frappe.model.no_value_type.indexOf(d.fieldtype)===-1) {
+						return d.fieldname;
+					}
+					return null;
+				}
+			);
+			frm.set_df_property('field_name', 'options', options);
+		});
+	},
+	field_name: function(frm) {
+		var field = frappe.meta.get_field(frm.doc.reference_doctype, frm.doc.field_name);
+		if(field.fieldtype === 'Select') {
+			field.options.split('\n').forEach(function(o, i) {
+				d = i===0 ? frm.doc.columns[0] : frm.add_child('columns');
+				d.value = o;
+			});
+			frm.refresh();
+		}
+	}
+});
