@@ -138,17 +138,17 @@ def delete_items():
 		frappe.delete_doc(doctype, d)
 
 @frappe.whitelist()
-def get_tag_catagories(doctype):
+def get_sidebar_stats(stats, doctype, filters=[]):
 	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
 		from `tabTag Doc Category` as docCat
 		INNER JOIN  tabTag as tag on tag.parent = docCat.parent
 		where docCat.tagdoc=%s
 		ORDER BY tag.parent asc,tag.idx""",doctype,as_dict=1)
 
-	return cat_tags
+	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
-def get_stats(stats, doctype,filters=[]):
+def get_stats(stats, doctype, filters=[]):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
@@ -165,14 +165,14 @@ def get_stats(stats, doctype,filters=[]):
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters +["({0} = ',' or {0} is null)".format(tag)],  as_list=True)[0][1]])
+			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
 
 	return stats
 
 @frappe.whitelist()
-def get_dash(stats, doctype,filters=[]):
+def get_dash(stats, doctype, filters=[]):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
