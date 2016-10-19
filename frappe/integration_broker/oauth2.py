@@ -101,8 +101,7 @@ def get_token(*args, **kwargs):
 
 	try:
 		headers, body, status = oauth_server.create_token_response(uri, http_method, body, headers, credentials)
-		out = json.loads(body)
-		return out
+		frappe.local.response = frappe._dict(json.loads(body))
 	except FatalClientError as e:
 		return e
 
@@ -121,22 +120,3 @@ def revoke_token(*args, **kwargs):
 
 	return "Access Token revoked successfully"
 
-@frappe.whitelist(allow_guest=True, xss_safe=True)
-def test_resource(*args, **kwargs):
-	r = frappe.request
-	uri = r.url
-	http_method = r.method
-	body = r.get_data()
-	headers = r.headers
-
-	if not kwargs["access_token"]:
-		return "Access Token Required"
-
-	required_scopes = frappe.db.get_value("OAuth Bearer Token", kwargs["access_token"], "scopes").split(";")
-
-	valid, oauthlib_request = oauth_server.verify_request(uri, http_method, body, headers, required_scopes)
-
-	if valid:
-	 	return "Access Granted"
-	else:
-		return "403: Forbidden"

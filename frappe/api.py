@@ -8,6 +8,9 @@ import frappe.handler
 import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
+from urlparse import urlparse, parse_qs
+from urllib import quote, urlencode
+from frappe.integration_broker.oauth2 import oauth_server
 
 def handle():
 	"""
@@ -32,6 +35,28 @@ def handle():
 
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
+
+	form_dict = frappe.local.form_dict
+
+	if frappe.form_dict.access_token:
+
+		r = frappe.request
+		parsed_url = urlparse(r.url)
+		access_token = { "access_token": parse_qs(parsed_url.query).pop("access_token")[0]}
+		uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
+		http_method = r.method
+		body = r.get_data()
+		headers = r.headers
+
+		required_scopes = frappe.db.get_value("OAuth Bearer Token", frappe.form_dict.access_token, "scopes").split(";")
+
+		valid, oauthlib_request = oauth_server.verify_request(uri, http_method, body, headers, required_scopes)
+
+		if valid:
+			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", frappe.form_dict.access_token, "user"))
+			form_dict.pop("access_token")
+			frappe.local.form_dict = form_dict
+
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
 
