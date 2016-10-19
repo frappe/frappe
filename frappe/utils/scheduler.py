@@ -69,7 +69,8 @@ def enqueue_events_for_site(site, queued_jobs):
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
 
 	except:
-		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
+		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
+			'\n' + frappe.get_traceback())
 		raise
 
 	finally:
