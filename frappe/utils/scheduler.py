@@ -69,7 +69,8 @@ def enqueue_events_for_site(site, queued_jobs):
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
 
 	except:
-		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site))
+		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
+			'\n' + frappe.get_traceback())
 		raise
 
 	finally:
@@ -163,7 +164,7 @@ def get_scheduler_events(event):
 	if not scheduler_events:
 		scheduler_events = frappe.get_hooks("scheduler_events")
 		integration_events = get_integration_service_events()
-		for key, handlers in integration_events:
+		for key, handlers in integration_events.items():
 			scheduler_events.setdefault(key, []).extend(handlers)
 		frappe.cache().set_value('scheduler_events', scheduler_events)
 

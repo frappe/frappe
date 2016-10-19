@@ -105,7 +105,7 @@ def get_integration_service_events():
 		controller = get_integration_controller(service.name)
 
 		if hasattr(controller, "scheduler_events"):
-			for key, handlers in controller.scheduler_events:
+			for key, handlers in controller.scheduler_events.items():
 				events.setdefault(key, []).extend(handlers)
 
 	return events
