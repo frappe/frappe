@@ -224,7 +224,17 @@ def get_data():
 					"type": "doctype",
 					"name": "Integration Service",
 					"description": _("Centralize access to Integrations"),
-				}
+				},
+				{
+					"type": "doctype",
+					"name": "OAuth Client",
+					"description": _("Register OAuth Client App"),
+				},
+				{
+					"type": "doctype",
+					"name": "OAuth Provider Settings",
+					"description": _("Settings for OAuth Provider"),
+				},
 			]
 		},
 		{
