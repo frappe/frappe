@@ -209,8 +209,8 @@ class BaseDocument(object):
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
 				# get the default value if none, for insert / update
-				if d[fieldname]==None and df.default:
-					d[fieldname] = df.default
+				if d[fieldname]==None and df.get('default'):
+					d[fieldname] = df.get('default')
 
 		return d
 
