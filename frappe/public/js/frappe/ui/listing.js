@@ -408,7 +408,7 @@ frappe.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(fieldname, label, no_run,no_duplicate) {
+	set_filter: function(fieldname, label, no_run, no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
 			var v = cstr(filter.field.get_parsed_value());

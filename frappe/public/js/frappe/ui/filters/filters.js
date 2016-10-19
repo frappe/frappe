@@ -14,7 +14,7 @@ frappe.ui.FilterList = Class.extend({
 		var me = this;
 		$(frappe.render_template("filter_dash", {})).appendTo(this.wrapper.find('.show_filters'));
 		//show filter dashboard
-		this.$w.find('.show-filter-dashboard').click(function() {
+		this.wrapper.find('.show-filter-dashboard').click(function() {
 			$(this).closest('.show_filters').find('.dashboard-box').toggle();
 			$(this).prop('title',($(this).prop('title')===__("Hide Standard Filters"))?__("Show Standard Filters") : __("Hide Standard Filters"))
 		});
@@ -45,7 +45,7 @@ frappe.ui.FilterList = Class.extend({
 			type:field.type
 		};
 		var sidebar_stat = $(frappe.render_template("filter_dash_stat_head", context))
-			.appendTo(this.$w.find(".filter-dashboard-items"));
+			.appendTo(this.wrapper.find(".filter-dashboard-items"));
 
 		//adjust width for horizontal scrolling
 		var width = (me.stats.length)*180+30
@@ -139,9 +139,9 @@ frappe.ui.FilterList = Class.extend({
 					var noduplicate = true
 				}
 				if (label=="No Data"){
-					me.listobj.set_filter(fieldname, '',false,noduplicate);
+					me.listobj.set_filter(fieldname, '', false, noduplicate);
 				}else{
-					me.listobj.set_filter(fieldname, label,false,noduplicate);
+					me.listobj.set_filter(fieldname, label, false, noduplicate);
 				}
 				return false;
 			})
@@ -623,7 +623,7 @@ frappe.ui.Filter = Class.extend({
 				title="'+__("Remove Filter")+'">\
 				<i class="icon-remove text-muted"></i>\
 			</button></div>')
-			.insertAfter(this.flist.wrapper.find(".set-filters .new-filter"));
+			.insertAfter(this.flist.wrapper.find(".set-filters .clear-filter"));
 
 		this.set_filter_button_text();
 

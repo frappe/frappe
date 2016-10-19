@@ -49,7 +49,7 @@ def remove_tag(tag, dt, dn):
 
 
 @frappe.whitelist()
-def get_tags(doctype, txt,cat_tags):
+def get_tags(doctype, txt, cat_tags):
 	tags = json.loads(cat_tags)
 	try:
 		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`

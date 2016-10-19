@@ -110,16 +110,17 @@ frappe.views.ListSidebar = Class.extend({
 	},
 	get_stats: function() {
 		var me = this
-		return frappe.call({
-			type: "GET",
-			method: 'frappe.desk.reportview.get_stats',
+		frappe.call({
+			method: 'frappe.desk.reportview.get_sidebar_stats',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
 				filters:me.default_filters
 			},
 			callback: function(r) {
-				if (me.defined_category ){
+				me.defined_category = r.message;
+				if (r.message.defined_cat ){
+					me.defined_category = r.message.defined_cat
 					 me.cats = {};
 					//structure the tag categories
 					for (i in me.defined_category){
@@ -130,7 +131,7 @@ frappe.views.ListSidebar = Class.extend({
 						}
 						me.cat_tags[i]=me.defined_category[i].tag
 					}
-					me.tempstats = r.message;
+					me.tempstats =r.message.stats
 					var len = me.cats.length;
 					$.each(me.cats, function (i, v) {
 						me.render_stat(i, (me.tempstats || {})["_user_tags"],v);
@@ -140,13 +141,13 @@ frappe.views.ListSidebar = Class.extend({
 				else
 				{
 					//render normal stats
-					me.render_stat("_user_tags", (r.message|| {})["_user_tags"]);
+					me.render_stat("_user_tags", (r.message.stats|| {})["_user_tags"]);
 				}
 				me.doclistview.set_sidebar_height();
 			}
 		});
 	},
-	render_stat: function(field, stat,tags) {
+	render_stat: function(field, stat, tags) {
 		var me = this;
 		var sum = 0;
 		var stats = []
