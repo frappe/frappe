@@ -131,10 +131,17 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
+		self.flags.update_db = False
+
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+
+		if self.flags.update_db:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.doc_type)
+
 
 		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
@@ -148,7 +155,6 @@ class CustomizeForm(Document):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=doctype_properties[property])
 
-		update_db = False
 		for df in self.get("fields"):
 			if df.get("__islocal"):
 				continue
@@ -175,10 +181,10 @@ class CustomizeForm(Document):
 
 					elif property == "precision" and cint(df.get("precision")) > 6 \
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
-						update_db = True
+						self.flags.update_db = True
 
 					elif property == "unique":
-						update_db = True
+						self.flags.update_db = True
 
 					elif (property == "read_only" and cint(df.get("read_only"))==0
 						and frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only")==1):
@@ -189,15 +195,12 @@ class CustomizeForm(Document):
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
 
-		if update_db:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.doc_type)
-
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
 			if df.get("is_custom_field"):
 				if not frappe.db.exists('Custom Field', {'dt': self.doc_type, 'fieldname': df.fieldname}):
 					self.add_custom_field(df, i)
+					self.flags.update_db = True
 				else:
 					self.update_in_custom_field(df, i)
 
@@ -245,6 +248,7 @@ class CustomizeForm(Document):
 
 		if changed:
 			custom_field.db_update()
+			self.flags.update_db = True
 			#custom_field.save()
 
 	def delete_custom_fields(self):
