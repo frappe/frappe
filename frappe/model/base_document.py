@@ -189,8 +189,13 @@ class BaseDocument(object):
 
 			df = self.meta.get_field(fieldname)
 			if df:
-				if df.fieldtype=="Check" and (not isinstance(d[fieldname], int) or d[fieldname] > 1):
-					d[fieldname] = 1 if cint(d[fieldname]) else 0
+				if df.fieldtype=="Check":
+					if (not isinstance(d[fieldname], int) or d[fieldname] > 1):
+						d[fieldname] = 1 if cint(d[fieldname]) else 0
+
+					# get the default value if none, for insert / update
+					elif d[fieldname]==None:
+						d[fieldname] = df.get('default')
 
 				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
@@ -207,10 +212,6 @@ class BaseDocument(object):
 
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
-
-				# get the default value if none, for insert / update
-				if d[fieldname]==None and df.get('default'):
-					d[fieldname] = df.get('default')
 
 		return d
 
