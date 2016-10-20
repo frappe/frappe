@@ -147,3 +147,5 @@ execute:frappe.db.set_default('language', '')
 frappe.patches.v7_1.refactor_integration_broker
 frappe.patches.v7_1.set_backup_limit
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
+
+execute:frappe.db.sql("update tabCommunication set communication_date = if(actualdate,actualdate,creation) where time(communication_date) = 0 or actualdate is not null")

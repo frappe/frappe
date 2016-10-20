@@ -92,7 +92,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		var communications = this.get_communications();
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
+		$.each(communications.sort(function(a, b) { return a.communication_date > b.communication_date ? -1 : 1 }),
 			function(i, c) {
 				if(c.content) {
 					c.frm = me.frm;
@@ -113,7 +113,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		// created
 		me.render_timeline_item({"content": __("Created"), "comment_type": "Created", "communication_type": "Comment",
-			"sender": this.frm.doc.owner, "creation": this.frm.doc.creation, "frm": this.frm});
+			"sender": this.frm.doc.owner, "communication_date": this.frm.doc.creation, "frm": this.frm});
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
@@ -246,7 +246,7 @@ frappe.ui.form.Timeline = Class.extend({
 			c.user_info = frappe.user_info(c.owner);
 		}
 
-		c.comment_on = comment_when(c.creation);
+		c.comment_on = comment_when(c.communication_date);
 		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 
 		if(c.attachments && typeof c.attachments==="string")
@@ -447,7 +447,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communications = this.frm.get_docinfo().communications,
 			email = this.get_recipient();
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
+		$.each(communications.sort(function(a, b) { return a.communication_date > b.communication_date ? -1 : 1 }), function(i, c) {
 			if(c.communication_type=='Communication' && c.communication_medium=="Email") {
 				if(from_recipient) {
 					if(c.sender.indexOf(email)!==-1) {

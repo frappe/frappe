@@ -144,7 +144,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	if not fields:
 		fields = '''name, communication_type,
 			communication_medium, comment_type,
-			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
+			content, sender, sender_full_name, communication_date, subject, delivery_status, _liked_by,
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
 			link_doctype, link_name,
@@ -163,7 +163,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 	if after:
 		# find after a particular date
-		conditions+= ' and creation > {0}'.format(after)
+		conditions+= ' and communication_date > {0}'.format(after)
 
 	communications = frappe.db.sql("""select {fields}
 		from tabCommunication

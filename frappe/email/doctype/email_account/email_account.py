@@ -336,7 +336,7 @@ class EmailAccount(Document):
 			"communication_medium": "Email",
 			"uid":uid,
 			"message_id":email.message_id,
-			"actualdate":email.date,
+			"communication_date":email.date,
 			"has_attachment": 1 if email.attachments else 0,
 			"seen":seen,
 			"unique_id":email.unique_id
