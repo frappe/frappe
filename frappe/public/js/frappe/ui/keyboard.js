@@ -3,6 +3,10 @@ frappe.provide('frappe.ui.keys.handlers');
 frappe.ui.keys.setup = function() {
 	$(window).on('keydown', function(e) {
 		var key = e.key;
+		//safari doesn't have key property
+		if(!key) {
+			key = String.fromCharCode(e.keyCode).toLowerCase();
+		}
 		if(key.substr(0, 5)==='Arrow') {
 			// ArrowDown -> down
 			key = key.substr(5).toLowerCase();
