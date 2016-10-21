@@ -507,8 +507,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	
 	make_totals_row_button: function() {
 		var me = this;
-
-		this.column_picker = new frappe.ui.ColumnPicker(this);
 		this.page.add_menu_item(__('Toggle Totals Row'), function() {
 			me.opts.add_totals_row = !me.opts.add_totals_row;
 			me.refresh();
