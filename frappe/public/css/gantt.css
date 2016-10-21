@@ -92,3 +92,21 @@
 .gantt .secondary-text {
   fill: #555;
 }
+.gantt #details {
+  font-size: 14;
+}
+.gantt #details .details-container {
+  stroke: #c1c1c1;
+  stroke-width: 1.1;
+  fill: #fff;
+}
+.gantt #details .details-heading {
+  fill: #424242;
+  font-weight: 500;
+}
+.gantt #details .details-body {
+  fill: #757575;
+}
+.gantt .hide {
+  display: none;
+}
