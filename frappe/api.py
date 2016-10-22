@@ -8,8 +8,8 @@ import frappe.handler
 import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
-from urlparse import urlparse, parse_qs
-from urllib import quote, urlencode
+from urlparse import urlparse
+from urllib import urlencode
 from frappe.integration_broker.oauth2 import oauth_server
 
 def handle():
