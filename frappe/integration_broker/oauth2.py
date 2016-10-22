@@ -96,7 +96,7 @@ def get_token(*args, **kwargs):
 
 	uri = r.url
 	http_method = r.method
-	body = r.get_data()
+	body = r.form
 	headers = r.headers
 
 	try:
