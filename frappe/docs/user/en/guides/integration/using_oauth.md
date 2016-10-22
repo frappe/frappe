@@ -29,7 +29,7 @@ http://localhost:3000/oauth_code?code=plkj2mqDLwaLJAgDBAkyR1W8Co08Ud
 ```
 If user clicks 'Deny' receive error
 ```
-http://localhost:3000/oauth_code?code=plkj2mqDLwaLJAgDBAkyR1W8Co08Ud
+http://localhost:3000/oauth_code?error=access_denied
 ```
 
 ### Token Endpoints
@@ -44,7 +44,7 @@ Params:
 ```
 grant_type = "authorization_code"
 code = <code received in redirect uri after confirmation>
-redirect_uri= <valid redirect uri>
+redirect_uri = <valid redirect uri>
 client_id = <client ID of app from OAuth Client>
 ```
 Response:
@@ -68,7 +68,7 @@ Params:
 ```
 grant_type = "refresh_token"
 refresh_token = <refresh token from the response of get_token call with grant_type=authorization_code>
-redirect_uri= <valid redirect uri>
+redirect_uri = <valid redirect uri>
 client_id = <client ID of app from OAuth Client>
 ```
 Response:
@@ -91,21 +91,19 @@ Params:
 ```
 token = <access token to be revoked>
 ```
-Success Response `status : 200`: 
+Success Response
 ```
+status : 200
+
 {"message": "success"}
 ```
-Error Response `status : 400`:
+Error Response:
 ```
+status : 400
+
 {"message": "bad request"}
 ```
 
 ### Accessing Resource
 
-Add parameter `access_token=<valid_bearer_token>` to Frappe's REST API endpoints to access user's resource
-  
-e.g.
-```
-frappe-server/api/method/dotted.path.to.function?param1=aaa&param2=bbb&access_token=valid_access_token 
-frappe-server/api/resource/DocType/DocName?fields=["name","description"]&access_token=valid_access_token
-```
+Add header `Authorizaton: Bearer <valid_bearer_token>` to Frappe's REST API endpoints to access user's resource
