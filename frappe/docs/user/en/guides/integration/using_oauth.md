@@ -8,7 +8,7 @@ Once the client and provider settings are entered, following steps can be used t
 
 URL:
 ```
-0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.authorize
+[GET] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.authorize
 ```
 Params:
 ```
@@ -38,7 +38,7 @@ http://localhost:3000/oauth_code?code=plkj2mqDLwaLJAgDBAkyR1W8Co08Ud
 
 URL:
 ```
-0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
 ```
 Params:
 ```
@@ -62,7 +62,7 @@ Response:
 
 URL:
 ```
-0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
 ```
 Params:
 ```
@@ -85,16 +85,19 @@ Response:
 
 URL:
 ```
-0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.revoke_token
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.revoke_token
 ```
 Params:
 ```
-client_id = <client ID of app from OAuth Client>    
 token = <access token to be revoked>
 ```
-Response:
+Success Response `status : 200`: 
 ```
-{"status": 200}
+{"message": "success"}
+```
+Error Response `status : 400`:
+```
+{"message": "bad request"}
 ```
 
 ### Accessing Resource

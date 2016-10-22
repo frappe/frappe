@@ -111,12 +111,13 @@ def revoke_token(*args, **kwargs):
 	r = frappe.request
 	uri = r.url
 	http_method = r.method
-	body = r.get_data()
+	body = r.form
 	headers = r.headers
 	
 	headers, body, status = oauth_server.create_revocation_response(uri, headers=headers, body=body, http_method=http_method)
 	
-	frappe.local.response = frappe._dict({"status": status})
-
-	return "Access Token revoked successfully"
-
+	frappe.local.response['http_status_code'] = status
+	if status == 200:
+		return "success"
+	else:
+		return "bad request"
