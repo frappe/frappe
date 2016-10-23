@@ -304,7 +304,9 @@ frappe.PrintFormatBuilder = Class.extend({
 		// drag from fields library
 		Sortable.create(this.page.sidebar.find(".print-format-builder-fields").get(0),
 			{
-				group: {put: true, pull:"clone"},
+				group: {
+					name:'field', put: true, pull:"clone"
+				},
 				sort: false,
 				onAdd: function(evt) {
 					// on drop, trash!
@@ -326,11 +328,13 @@ frappe.PrintFormatBuilder = Class.extend({
 		var me = this;
 		Sortable.create(col, {
 			group: {
+				name: 'field',
 				put: true,
 				pull: true
 			},
 			onAdd: function(evt) {
 				// on drop, change the HTML
+
 				var $item = $(evt.item);
 				if(!$item.hasClass("print-format-builder-field")) {
 					var fieldname = $item.attr("data-fieldname");
@@ -342,8 +346,10 @@ frappe.PrintFormatBuilder = Class.extend({
 							fieldname);
 					}
 
-					$item.replaceWith(frappe.render_template("print_format_builder_field",
-						{field: field, me:me}))
+					var html = frappe.render_template("print_format_builder_field",
+						{field: field, me:me});
+
+					$item.replaceWith(html);
 				}
 			}
 		});
