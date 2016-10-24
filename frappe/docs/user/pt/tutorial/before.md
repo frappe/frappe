@@ -16,32 +16,32 @@ Para escrever código do lado do servidor de qualidade, você deve incluir teste
 
 #### 2. Databases MariaDB / MySQL
 
-Você precisa entender os conceitos básicos de bancos de dados, como instalar, login, criar novos bancos de dados e consultas SQL básicas. Aqui é um [introdução muito rápido para MySQL] (https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) ou o [site do MariaDB para uma compreensão mais detalhada] (https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
+Você precisa entender os conceitos básicos de bancos de dados, como instalar, login, criar novos bancos de dados e consultas SQL básicas. Aqui é um [introdução muito rápido para MySQL](https://www.digitalocean.com/community/tutorials/a-basic-mysql-tutorial) ou o [site do MariaDB para uma compreensão mais detalhada](https://mariadb.com/kb/en/mariadb/documentation/getting-started/)
 
 ---
 
 #### 3. HTML / CSS
 
-Se você está construindo interfaces de usuário, você precisará [conhecer o básico de HTML / CSS] (http://www.codecademy.com/tracks/web) e o [Framework CSS - Boostrap] (http://getbootstrap.com)
+Se você está construindo interfaces de usuário, você precisará [conhecer o básico de HTML / CSS](http://www.codecademy.com/tracks/web) e o [Framework CSS - Boostrap](http://getbootstrap.com)
 
 ---
 
 #### 4. Building UI with Javascript and JQuery
 
-Para personalizar formulários e criar novas interfaces de usuário ricas, é melhor [saber JavaScript] (http://www.codecademy.com/tracks/javascript) e a [biblioteca popular, JQuery] (http://www.codecademy.com/faixas/jQuery).
+Para personalizar formulários e criar novas interfaces de usuário ricas, é melhor [saber JavaScript](http://www.codecademy.com/tracks/javascript) e a [biblioteca popular, JQuery](http://www.codecademy.com/faixas/jQuery).
 
 ---
 
 #### 5. Customizing Prints and Web pages with Jinja Templating
 
-Se estiver personalizando modelos de impressão, você precisa aprender a [línguagem Jinja Templating] (http://jinja.pocoo.org/). É uma maneira fácil de criar páginas web dinâmicas (HTML).
+Se estiver personalizando modelos de impressão, você precisa aprender a [línguagem Jinja Templating](http://jinja.pocoo.org/). É uma maneira fácil de criar páginas web dinâmicas (HTML).
 
 ---
 
 #### 6. Git and GitHub
 
-[Saiba como contribuir para um projeto open source usando Git e GitHub] (https://guides.github.com/activities/contributing-to-open-source/), duas grandes ferramentas para ajudá-lo a gerir o seu código e compartilha-lo com os outros.
+[Saiba como contribuir para um projeto open source usando Git e GitHub](https://guides.github.com/activities/contributing-to-open-source/), duas grandes ferramentas para ajudá-lo a gerir o seu código e compartilha-lo com os outros.
 
 ---
 
-Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe]({{docs base_url}}/user/pt/tutorial/app)
+Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe]({{docs_base_url}}/user/pt/tutorial/app)
