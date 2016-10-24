@@ -67,6 +67,9 @@ a.text-muted,
 a.text-extra-muted {
   text-decoration: none;
 }
+.underline {
+  text-decoration: underline;
+}
 /* the element that this class is applied to, should have a max width for this to work*/
 .text-ellipsis,
 .ellipsis {
@@ -461,9 +464,6 @@ fieldset[disabled] .form-control {
 }
 .form-control input {
   padding: 6px 10px 8px;
-}
-.link-field.ui-front {
-  z-index: inherit;
 }
 .modal .hasDatepicker {
   z-index: 1140;
