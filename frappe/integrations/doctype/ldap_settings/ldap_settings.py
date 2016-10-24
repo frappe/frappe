@@ -25,7 +25,6 @@ class LDAPSettings(IntegrationService):
 			import ldap
 			conn = ldap.initialize(self.ldap_server_url)
 			conn.simple_bind_s(self.base_dn, self.get_password(raise_exception=False))
-			raise ImportError
 		except ImportError:
 			msg = """
 				<div>
