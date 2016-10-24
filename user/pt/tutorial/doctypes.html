@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>DocType</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/pt/tutorial/doctypes">
+	<div class="main-section">
+		<div>
+				<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span>Frappe Framework</span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/pt/tutorial/doctypes" data-path="{{ pathname }}"
+	>
+			<div class="row ">
+				
+				<div class=" page-content col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class='col-sm-12'>
+								
+								<div class="page-breadcrumbs">
+									
+									
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+
+									
+								</div>
+								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
+							</div>
+							<div class="col-sm-4 col-xs-6">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
+<h1>DocType</h1>
+
+<p>Depois de criar as Roles, vamos criar os <strong>DocTypes</strong></p>
+
+<p>Para criar um novo <strong>DocType</strong>, vá para:</p>
+
+<blockquote>
+  <p>Developer &gt; Documents &gt; Doctype &gt; New</p>
+</blockquote>
+
+<p><img class="screenshot" alt="New Doctype" src="https://frappe.github.io/frappe/assets/img/doctype_new.png"></p>
+
+<p>No DocType, criamos o módulo, que no nosso caso é <strong>Library Managment</strong></p>
+
+<h4>Adicionando Campos</h4>
+
+<p>Na Tabela, você pode adicionar os campos (fields) do DocType (Article).</p>
+
+<p>Os campos são muito mais do que colunas de banco de dados, eles podem ser:</p>
+
+<ol>
+<li>Colunas no banco de dados</li>
+<li>Layout helpers (Seção / quebras de coluna)</li>
+<li>Tabelas filho (Tabela como tipo de uma propriedade)</li>
+<li>HTML</li>
+<li>Ações (botões)</li>
+<li>Anexos ou imagens</li>
+</ol>
+
+<p>Vamos adicionar os campos do artigo.</p>
+
+<p><img class="screenshot" alt="Adding Fields" src="https://frappe.github.io/frappe/assets/img/doctype_adding_field.png"></p>
+
+<p>Quando você adiciona campos, você precisa digitar o <strong>Type</strong>. <strong>Label</strong> é opcional para quebra de seção e quebra de coluna. <strong>Name</strong> (<code>fieldname</code>) é o nome da coluna da tabela de banco de dados e também a propriedade do controlador. Isso tem que ser um <em>código amigável</em>, ou seja, ele tem que ter caracteres minusculos e _ em vez de "". Se você deixar o nome do campo em branco, ele será ajustado automaticamente quando você salvá-lo.</p>
+
+<p>Você também pode definir outras propriedades do campo como se é obrigatório, apenas para leitura etc.</p>
+
+<p>Nós podemos adicionar os seguintes campos:</p>
+
+<ol>
+<li>Article Name (Data)</li>
+<li>Author (Data)</li>
+<li>Description</li>
+<li>ISBN</li>
+<li>Status (Select): Para Selecionar campos, você vai entrar nas opções. Digite <strong>Issued</strong> e <strong>Available</strong> cada um em uma nova linha na caixa de Opções. Consulte o diagrama abaixo</li>
+<li>Publisher (Data)</li>
+<li>Language (Data)</li>
+<li>Image (Attach Image)</li>
+</ol>
+
+<h4>Adicionando permissões</h4>
+
+<p>Depois de adicionar os campos, finalize e adicione uma nova linha na seção Regras de permissão. Por enquanto, vamos dar permissão de Read, Write, Create, Delete and Report, a <strong>Librarian</strong>. Frappe tem uma Role baseado nas permissões do modelo. Você também pode alterar as permissões posteriormente usando o <strong>Role Permissions Manager</strong> do <strong>Setup</strong>.</p>
+
+<p><img class="screenshot" alt="Adding Permissions" src="https://frappe.github.io/frappe/assets/img/doctype_adding_permission.png"></p>
+
+<h4>Salvando</h4>
+
+<p>Click no botão <strong>Save</strong>. Quando o botão for clicado, um popup irá te pedir um nome. De o nome de <strong>Article</strong> e salve o DocType.</p>
+
+<p>Agora logue no mysql e verifique se a tabela do banco de dados foi criada:</p>
+
+<pre><code>$ bench mysql
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 3931
+Server version: 5.5.36-MariaDB-log Homebrew
+
+Copyright (c) 2000, 2014, Oracle, Monty Program Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [library]&gt; DESC tabArticle;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| name         | varchar(255) | NO   | PRI | NULL    |       |
+| creation     | datetime(6)  | YES  |     | NULL    |       |
+| modified     | datetime(6)  | YES  |     | NULL    |       |
+| modified_by  | varchar(40)  | YES  |     | NULL    |       |
+| owner        | varchar(60)  | YES  |     | NULL    |       |
+| docstatus    | int(1)       | YES  |     | 0       |       |
+| parent       | varchar(255) | YES  | MUL | NULL    |       |
+| parentfield  | varchar(255) | YES  |     | NULL    |       |
+| parenttype   | varchar(255) | YES  |     | NULL    |       |
+| idx          | int(8)       | YES  |     | NULL    |       |
+| article_name | varchar(255) | YES  |     | NULL    |       |
+| status       | varchar(255) | YES  |     | NULL    |       |
+| description  | text         | YES  |     | NULL    |       |
+| image        | varchar(255) | YES  |     | NULL    |       |
+| publisher    | varchar(255) | YES  |     | NULL    |       |
+| isbn         | varchar(255) | YES  |     | NULL    |       |
+| language     | varchar(255) | YES  |     | NULL    |       |
+| author       | varchar(255) | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+18 rows in set (0.00 sec)
+</code></pre>
+
+<p>Como você pode ver, junto com os DocFields, várias colunas padrão também foram adicionados à tabela. Importante notar aqui que, a chave primária, <code>name</code>,<code>owner</code> (o usuário que criou o registro), <code>creation</code> e<code>modified</code> (timestamps para a criação e última modificação).</p>
+
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/naming-and-linking">Nomeando e vinculando DocType</a></p></p>
+
+</div>
+				</div>
+			</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/doctypes.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	<!-- csrf_token --></body>
+</html>

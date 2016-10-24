@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.integrations.ldap_auth</title>
+	<title>O que é uma aplicação</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/integrations/frappe.integrations.ldap_auth">
+<body data-path="user/pt/tutorial/app">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/integrations/frappe.integrations.ldap_auth" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/pt/tutorial/app" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/integrations">
-		integrations</a>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
 	</li>
 	
 </ul>
@@ -111,7 +111,9 @@
 									
 								</div>
 								
-								<h1>frappe.integrations.ldap_auth</h1>
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -121,153 +123,32 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: frappe.integrations.ldap_auth --><div class="dev-header">
+<h1>O que é uma aplicação</h1>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
+<p>Uma Aplicação em Frappe é apenas uma aplicação padrão em Python. Você pode estruturar uma aplicação Frappe da mesma forma que estrutura uma aplicação padrão do Python. Para fazer o deploy, Frappe usa o padrão Setuptools do Python, assim você pode facilmente portar e instalar o aplicativo em qualquer máquina.</p>
 
+<p>Frappe Framework fornece uma interface WSGI e para o desenvolvimento você pode usar o servidor embutido Werkzeug. Para a implementação em produção, recomendamos o uso do nginx e gunicorn.</p>
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/integrations/ldap_auth.py"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+<p>Frappe também tem uma arquitetura multi-tenant, a partir da base. Isso significa que você pode executar vários "sites" em sua configuração, cada um poderia estar servindo um conjunto diferente de aplicativos e usuários. O banco de dados de  cada site é separado.</p>
 
-</div>
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/bench">Instalando o Frappe Bench</a></p></p>
 
-
-
-
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>Controller</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.integration_controller.IntegrationController</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="enable" href="#enable" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>enable</b>
-        <i class="text-muted">(self, parameters, use_test_account=0)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_settings" href="#get_settings" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_settings</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="validate_ldap_credentails" href="#validate_ldap_credentails" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>validate_ldap_credentails</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-    </div>
-    <hr>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.ldap_auth.authenticate_ldap_user" href="#frappe.integrations.ldap_auth.authenticate_ldap_user" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.ldap_auth.<b>authenticate_ldap_user</b>
-        <i class="text-muted">(user=None, password=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.ldap_auth.create_user" href="#frappe.integrations.ldap_auth.create_user" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.ldap_auth.<b>create_user</b>
-        <i class="text-muted">(params)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.ldap_auth.get_ldap_settings" href="#frappe.integrations.ldap_auth.get_ldap_settings" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.ldap_auth.<b>get_ldap_settings</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.ldap_auth.login</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.ldap_auth.login" href="#frappe.integrations.ldap_auth.login" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.ldap_auth.<b>login</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-
-
-<!-- autodoc -->
 </div>
 				</div>
 			</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/app.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">

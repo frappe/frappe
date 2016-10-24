@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Web Form</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -211,7 +213,7 @@
             <td ><code>module</code></td>
             <td >
                 Link</td>
-            <td class="text-muted" title="Hidden">
+            <td >
                 Module
                 
             </td>
@@ -313,6 +315,39 @@
         
         <tr >
             <td>12</td>
+            <td ><code>allow_print</code></td>
+            <td >
+                Check</td>
+            <td >
+                Allow Print
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>13</td>
+            <td ><code>print_format</code></td>
+            <td >
+                Link</td>
+            <td >
+                Print Format
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/print/print_format">Print Format</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>14</td>
             <td ><code>allow_comments</code></td>
             <td >
                 Check</td>
@@ -323,8 +358,21 @@
             <td></td>
         </tr>
         
+        <tr >
+            <td>15</td>
+            <td ><code>allow_incomplete</code></td>
+            <td >
+                Check</td>
+            <td >
+                Allow Incomplete Forms
+                <p class="text-muted small">
+                    Allow saving if mandatory fields are not filled</p>
+            </td>
+            <td></td>
+        </tr>
+        
         <tr class="info">
-            <td>13</td>
+            <td>16</td>
             <td ><code>fields</code></td>
             <td >
                 Section Break</td>
@@ -336,7 +384,7 @@
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>17</td>
             <td ><code>introduction_text</code></td>
             <td >
                 Text</td>
@@ -348,7 +396,7 @@
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>18</td>
             <td ><code>web_form_fields</code></td>
             <td >
                 Table</td>
@@ -368,8 +416,20 @@
             </td>
         </tr>
         
+        <tr >
+            <td>19</td>
+            <td ><code>max_attachment_size</code></td>
+            <td >
+                Int</td>
+            <td >
+                Max Attachment Size (in MB)
+                
+            </td>
+            <td></td>
+        </tr>
+        
         <tr class="info">
-            <td>16</td>
+            <td>20</td>
             <td ><code>actions</code></td>
             <td >
                 Section Break</td>
@@ -381,7 +441,7 @@
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>21</td>
             <td ><code>success_message</code></td>
             <td >
                 Text</td>
@@ -394,7 +454,7 @@
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>22</td>
             <td ><code>success_url</code></td>
             <td >
                 Data</td>
@@ -407,7 +467,166 @@
         </tr>
         
         <tr class="info">
-            <td>19</td>
+            <td>23</td>
+            <td ><code>sidebar_settings</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Sidebar Settings
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>24</td>
+            <td ><code>show_sidebar</code></td>
+            <td >
+                Check</td>
+            <td >
+                Show Sidebar
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>25</td>
+            <td ><code>sidebar_items</code></td>
+            <td >
+                Table</td>
+            <td >
+                Sidebar Items
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/website/portal_menu_item">Portal Menu Item</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>26</td>
+            <td ><code>payments</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Payments
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>27</td>
+            <td ><code>accept_payment</code></td>
+            <td >
+                Check</td>
+            <td >
+                Accept Payment
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>28</td>
+            <td ><code>payment_gateway</code></td>
+            <td >
+                Link</td>
+            <td >
+                Payment Gateway
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/integration_broker/integration_service">Integration Service</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>29</td>
+            <td ><code>currency</code></td>
+            <td >
+                Link</td>
+            <td >
+                Currency
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/geo/currency">Currency</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>30</td>
+            <td ><code>amount</code></td>
+            <td >
+                Currency</td>
+            <td >
+                Amount
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>31</td>
+            <td ><code>column_break_28</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>32</td>
+            <td ><code>payment_button_label</code></td>
+            <td >
+                Data</td>
+            <td >
+                Button Label
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>33</td>
+            <td ><code>payment_button_help</code></td>
+            <td >
+                Text</td>
+            <td >
+                Button Help
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>34</td>
             <td ><code>advanced</code></td>
             <td >
                 Section Break</td>
@@ -419,7 +638,7 @@
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>35</td>
             <td ><code>web_page_link_text</code></td>
             <td >
                 Data</td>
@@ -432,14 +651,14 @@
         </tr>
         
         <tr >
-            <td>21</td>
+            <td>36</td>
             <td ><code>breadcrumbs</code></td>
             <td >
                 Code</td>
             <td >
                 Breadcrumbs
                 <p class="text-muted small">
-                    In JSON as [{"title":"Jobs", "name":"jobs"}]</p>
+                    List as [{"label": _("Jobs"), "route":"jobs"}]</p>
             </td>
             <td></td>
         </tr>
@@ -484,12 +703,26 @@
     
     
 	<p class="docs-attr-name">
+        <a name="build_as_list" href="#build_as_list" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>build_as_list</b>
+        <i class="text-muted">(self, context)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Web form is a list, show render as list.html</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_context" href="#get_context" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_context</b>
         <i class="text-muted">(self, context)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Build context to render the <code>web_form.html</code> template</p>
 </div>
 	<br>
 
@@ -518,6 +751,34 @@
         <i class="text-muted">(self, context)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_payment_gateway_url" href="#get_payment_gateway_url" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>get_payment_gateway_url</b>
+        <i class="text-muted">(self, doc)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="load_document" href="#load_document" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>load_document</b>
+        <i class="text-muted">(self, context)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Load document <code>doc</code> and <code>layout</code> properties for template</p>
 </div>
 	<br>
 
@@ -556,12 +817,40 @@
     
     
 	<p class="docs-attr-name">
-        <a name="reset_field_parent_and_convert_links_to_selects" href="#reset_field_parent_and_convert_links_to_selects" class="text-muted small">
+        <a name="reset_field_parent" href="#reset_field_parent" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>reset_field_parent_and_convert_links_to_selects</b>
+		<b>reset_field_parent</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Convert link fields to select with names as options</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_web_form_module" href="#set_web_form_module" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_web_form_module</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Get custom web form module if exists</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="update_list_context" href="#update_list_context" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>update_list_context</b>
+        <i class="text-muted">(self, context)</i>
+    </p>
+	<div class="docs-attr-desc"><p>update list context for stanard modules</p>
 </div>
 	<br>
 
@@ -594,6 +883,34 @@
 	<br>
 
         
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_fields" href="#validate_fields" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate_fields</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Validate all fields are present</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_mandatory" href="#validate_mandatory" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate_mandatory</b>
+        <i class="text-muted">(self, doc)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Validate mandatory web form fields</p>
+</div>
+	<br>
+
+        
     </div>
     <hr>
 
@@ -609,9 +926,9 @@
         <a name="frappe.website.doctype.web_form.web_form.accept" href="#frappe.website.doctype.web_form.web_form.accept" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.website.doctype.web_form.web_form.<b>accept</b>
-        <i class="text-muted">(web_form, data)</i>
+        <i class="text-muted">(web_form, data, for_payment=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Save the web form</p>
 </div>
 	<br>
 

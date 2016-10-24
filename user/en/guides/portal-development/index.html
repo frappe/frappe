@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -123,9 +125,19 @@
 					<div class="page_content">
 <h1>Making Portals</h1>
 
+<p>Frappe has powerful tools to build portals where pages can be dynamically generated using templates (Jinja) and users can be shown records after login</p>
+
+<h4>Adding Pages</h4>
+
 <p>You can make your website by adding pages to the <code>/www</code> folder of your website. The urls of your site will match the path of your pages within the <code>/www</code> folder.</p>
 
 <p>Pages must be <code>.html</code> or <code>.md</code> (Markdown) files. Basic HTML template is provided in frappe in <code>frappe/templates/base_template.html</code></p>
+
+<h4>Views after Login</h4>
+
+<p>After logging in, the user sees a "My Account" page <code>/me</code> where user can access certain documents that are shown via a menu</p>
+
+<p>The user can view records based on permissions and also add / edit them with <strong>Web Forms</strong></p>
 
 <p>
 
@@ -138,7 +150,12 @@
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/ordering">Ordering</a>
+            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/context">Dynamic Pages</a>
+            
+        </li>
+    
+        <li>
+            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/generators">None</a>
             
         </li>
     
@@ -148,17 +165,17 @@
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/context">Adding to context</a>
+            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/web-forms">Customizing Web Forms</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/building">Building the site</a>
+            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/portal-roles">Portal Roles</a>
             
         </li>
     
         <li>
-            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/generators">None</a>
+            <a href="https://frappe.github.io/frappe/user/en/guides/portal-development/ordering">Ordering</a>
             
         </li>
     

@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>frappe.model.document</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -593,27 +595,6 @@ all values (including child documents) from the database.
     
     
 	<p class="docs-attr-name">
-        <a name="has_website_permission" href="#has_website_permission" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>has_website_permission</b>
-        <i class="text-muted">(self, permtype=read, verbose=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Call <code>frappe.has_website_permission</code> if <code>self.flags.ignore_permissions</code>
-        is not set.</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>permtype</code></strong> -  one of <code>read</code>, <code>write</code>, <code>submit</code>, <code>cancel</code>, <code>delete</code></li>
-</ul>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="insert" href="#insert" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>insert</b>
@@ -798,6 +779,20 @@ all values (including child documents) from the database.
     
     
 	<p class="docs-attr-name">
+        <a name="run_email_alerts" href="#run_email_alerts" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>run_email_alerts</b>
+        <i class="text-muted">(self, method)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Run email alerts for this method</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="run_method" href="#run_method" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>run_method</b>
@@ -824,6 +819,20 @@ all values (including child documents) from the database.
     - `on_cancel` for **Cancel**
     - `update_after_submit` for **Update after Submit**
 </code></pre>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="run_trigger" href="#run_trigger" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>run_trigger</b>
+        <i class="text-muted">(self, method)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 

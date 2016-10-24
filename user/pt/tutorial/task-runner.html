@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Building the site</title>
+	<title>Tarefas agendadas</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="user/en/guides/portal-development/building">
+<body data-path="user/pt/tutorial/task-runner">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-user/en/guides/portal-development/building" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/pt/tutorial/task-runner" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//user/en/guides/portal-development">
-		Making Portals</a>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
 	</li>
 	
 </ul>
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -121,24 +123,87 @@
 						</div>
 					</div>
 					<div class="page_content">
-<h1>Building the site</h1>
+<h1>Tarefas agendadas</h1>
 
-<p>To make the pages to be served on the web, they must first be synced with the database. This is done by running:</p>
+<p>Finalmente, uma aplicação também tem que enviar notificações de e-mail e fazer outros tipos de tarefas agendadas. Em Frappe, se você instalou o bench, o task / scheduler foi instalado via Celery usando Redis Queue.</p>
 
-<pre><code>bench --site sitename sync-www
+<p>Para adicionar um novo task handler, vá para <code>hooks.py</code> e adicione um novo handler. Handlers padrão são os <code>all</code>,<code>daily</code>, <code>weekly</code>,<code>monthly</code>. O handler <code>all</code> é chamado a cada 3 minutos por padrão.</p>
+
+<pre><code># Scheduled Tasks
+# ---------------
+
+scheduler_events = {
+    "daily": [
+        "library_management.tasks.daily"
+    ],
+}
 </code></pre>
 
-<p>To re-build the site</p>
+<p>Aqui podemos apontar para uma função Python e esta função será executada todos os dias. Vejamos como é essa função:</p>
 
-<pre><code>bench --site sitename --force sync-www
+<pre><code># Copyright (c) 2013, Frappe
+# For license information, please see license.txt
+
+from __future__ import unicode_literals
+import frappe
+from frappe.utils import datediff, nowdate, format_date, add_days
+
+def daily():
+    loan_period = frappe.db.get_value("Library Management Settings",
+        None, "loan_period")
+
+    overdue = get_overdue(loan_period)
+
+    for member, items in overdue.iteritems():
+        content = """&lt;h2&gt;Following Items are Overdue&lt;/h2&gt;
+        &lt;p&gt;Please return them as soon as possible&lt;/p&gt;&lt;ol&gt;"""
+
+        for i in items:
+            content += "&lt;li&gt;{0} ({1}) due on {2}&lt;/li&gt;".format(i.article_name,
+                i.article,
+                format_date(add_days(i.transaction_date, loan_period)))
+
+        content += "&lt;/ol&gt;"
+
+        recipient = frappe.db.get_value("Library Member", member, "email_id")
+        frappe.sendmail(recipients=[recipient],
+            sender="test@example.com",
+            subject="Library Articles Overdue", content=content, bulk=True)
+
+def get_overdue(loan_period):
+    # check for overdue articles
+    today = nowdate()
+
+    overdue_by_member = {}
+    articles_transacted = []
+
+    for d in frappe.db.sql("""select name, article, article_name,
+        library_member, member_name
+        from `tabLibrary Transaction`
+        order by transaction_date desc, modified desc""", as_dict=1):
+
+        if d.article in articles_transacted:
+            continue
+
+        if d.transaction_type=="Issue" and \
+            datediff(today, d.transaction_date) &gt; loan_period:
+            overdue_by_member.setdefault(d.library_member, [])
+            overdue_by_member[d.library_member].append(d)
+
+        articles_transacted.append(d.article)
 </code></pre>
 
-<p>Clearing the website cache</p>
+<p>Nós podemos colocar o código acima em qualquer módulo Python acessível. A rota é definida em <code>hooks.py</code>, portanto, para os nossos propósitos, iremos colocar esse código em <code>library_management/tasks.py</code>.</p>
 
-<pre><code>bench --site sitename clear-website-cache
-</code></pre>
+<p>Observação:</p>
 
-<p>{next}</p>
+<ol>
+<li>Nós pegamos o loan period de <strong>Library Management Settings</strong> usando <code>frappe.db.get_value</code>.</li>
+<li>Nós rodamos uma query no banco de dados com <code>frappe.db.sql</code></li>
+<li>O email foi enviado via <code>frappe.sendmail</code></li>
+</ol>
+
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/conclusion">Conclusão</a></p></p>
 
 </div>
 				</div>
@@ -150,7 +215,7 @@
 	<div class="page-content">
 	<div class="edit-container text-center">
 		<i class="icon icon-smile"></i>
-		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/portal-development/building.md">
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/task-runner.md">
 			Improve this page
 		</a>
 	</div>
