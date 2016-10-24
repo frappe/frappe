@@ -216,8 +216,12 @@ frappe.ui.form.Grid = Class.extend({
 			return;
 		}
 
+
 		new Sortable($rows.get(0), {
+			group: {name: 'row'},
 			handle: ".sortable-handle",
+			draggable: '.grid-row',
+			filter: 'li, a',
 			onUpdate: function(event, ui) {
 				me.frm.doc[me.df.fieldname] = [];
 				$rows.find(".grid-row").each(function(i, item) {
