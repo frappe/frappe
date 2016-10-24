@@ -249,9 +249,8 @@ var Gantt = Class.extend({
 		row_y = me.opts.header_height + me.opts.padding/2;
 
 		this.tasks.forEach(function (task, i) {
-			var row_class = i % 2 ? "row-odd" : "row-even";
 			me.canvas.rect(0, row_y, row_width, row_height)
-				.addClass(row_class)
+				.addClass("grid-row")
 				.appendTo(rows);
 
 			me.canvas.line(0, row_y + row_height, row_width, row_y + row_height)
@@ -571,6 +570,9 @@ var Bar = Class.extend({
 			Element.prototype.getX = function () {
 				return this.get("x");
 			};
+			Element.prototype.getEndX = function () {
+				return this.getX() + this.getWidth();
+			};
 			Element.prototype.getY = function () {
 				return this.get("y");
 			};
@@ -586,18 +588,18 @@ var Bar = Class.extend({
 		this.draw_resize_handles();
 	},
 	draw_bar: function() {
-		this.bar = this.canvas.rect(this.x, this.y,
+		this.$bar = this.canvas.rect(this.x, this.y,
 			this.width, this.height,
 			this.corner_radius, this.corner_radius)
 			.addClass("bar")
 			.appendTo(this.bar_group);
 		if(this.invalid) {
-			this.bar.addClass('bar-invalid');
+			this.$bar.addClass('bar-invalid');
 		}
 	},
 	draw_progress_bar: function() {
 		if(this.invalid) return;
-		this.bar_progress = this.canvas.rect(this.x, this.y,
+		this.$bar_progress = this.canvas.rect(this.x, this.y,
 			this.progress_width, this.height,
 			this.corner_radius, this.corner_radius)
 			.addClass("bar-progress")
@@ -609,11 +611,13 @@ var Bar = Class.extend({
 				this.task.name)
 			.addClass("bar-label")
 			.appendTo(this.bar_group);
-		this.update_label_position(this);
+		this.update_label_position();
 	},
 	draw_resize_handles: function() {
 		if(this.invalid) return;
-		var bar = this.group.select('.bar');
+		var bar = this.$bar,
+		bar_progress = this.$bar_progress;
+
 		this.canvas.rect(bar.getX() + bar.getWidth() - 9, bar.getY() + 1,
 			8, this.height - 2, this.corner_radius, this.corner_radius)
 				.addClass('handle right')
@@ -625,9 +629,9 @@ var Bar = Class.extend({
 
 		if(this.task.progress && this.task.progress < 100) {
 			this.canvas.polygon(
-				bar.getX() + this.progress_width - 5, bar.getY() + bar.get("height"),
-				bar.getX() + this.progress_width + 5, bar.getY() + bar.get("height"),
-				bar.getX() + this.progress_width, bar.getY() + bar.get("height") - 8.66
+				bar_progress.getEndX() - 5, bar_progress.getY() + bar_progress.get("height"),
+				bar_progress.getEndX() + 5, bar_progress.getY() + bar_progress.get("height"),
+				bar_progress.getEndX(), bar_progress.getY() + bar_progress.get("height") - 8.66
 			)
 			.addClass('handle progress')
 			.appendTo(this.handle_group)
@@ -653,7 +657,7 @@ var Bar = Class.extend({
 	},
 	bind: function () {
 		if(this.invalid) return;
-		// this.show_details();
+		this.show_details();
 		this.bind_resize();
 		this.bind_drag();
 		this.bind_resize_progress();
@@ -661,77 +665,71 @@ var Bar = Class.extend({
 	show_details: function () {
 		var me = this;
 
+		var details_box = me.popover_group.select('.details-wrapper');
+		if(!details_box) {
+			details_box = me.canvas.group().addClass('details-wrapper');
+			details_box.appendTo(me.popover_group);
+			me.canvas.rect(0, 0, 0, 110, 2, 2)
+				.addClass('details-container')
+				.appendTo(details_box);
+			me.canvas.text(0, 0, "")
+				.attr({ dx: 10, dy: 30 })
+				.addClass('details-heading')
+				.appendTo(details_box);
+			me.canvas.text(0, 0, "")
+				.attr({ dx: 10, dy: 65 })
+				.addClass('details-body')
+				.appendTo(details_box);
+			me.canvas.text(0, 0, "")
+				.attr({ dx: 10, dy: 90 })
+				.addClass('details-body')
+				.appendTo(details_box);
+		}
+
+
 		this.group.mouseover(function (e, x, y) {
-			var details_box = me.canvas.group();
-			me.popover_group.clear();
-			var pos = me.get_details_position(me.group);
+			me.popover_group.removeClass('hide');
 
-			details_box.attr({ transform: "translate(" + pos.x +"," + pos.y + ")" })
-				.appendTo(me.popover_group);
+			var pos = me.get_details_position();
+			details_box.transform("t" + pos.x + "," + pos.y);
 
-			var line1_text = me.task.name + ": " +
+			var heading = me.task.name + ": " +
 				me.task._start.format("MMM D") + " - " +
 				me.task._end.format("MMM D");
 
-			var line1_el = me.canvas.text(0,0, line1_text).attr({
-				dx: 10,
-				dy: 30,
-				"fill": "#424242",
-				"font-weight": 500,
-				"font-size": 14
-			});
+			var $heading = me.popover_group.select('.details-heading');
+			$heading.attr('text', heading);
 
-			me.canvas.rect(0, 0, 0, 110, 2, 2).attr({
-				stroke: "#c1c1c1",
-				"stroke-width": 1.1,
-				fill: "#fff"
-			}).appendTo(details_box);
-
-			var bbox = line1_el.getBBox();
-			details_box.select('rect').attr({
+			var bbox = $heading.getBBox();
+			details_box.select('.details-container').attr({
 				width: bbox.width + 20
 			});
-			line1_el.appendTo(details_box);
 
-			var line2_text =
-				"Duration: " + me.task._end.diff(me.task._start, 'days') + " days";
-			me.canvas.text(0,0, line2_text).attr({
-				dx: 10,
-				dy: 65,
-				"fill": "#757575"
-			}).appendTo(details_box);
-
-			var line3_text = me.task.progress ?
+			var body1 = "Duration: " +
+				me.task._end.diff(me.task._start, 'days') + " days";
+			var body2 = me.task.progress ?
 				"Progress: " + me.task.progress + "%" : "";
-			me.canvas.text(0,0, line3_text).attr({
-				dx: 10,
-				dy: 90,
-				"fill": "#757575"
-			}).appendTo(details_box);
-			me.popover_group.attr({
-				x: x,
-				y: y,
-				"font-size": 14
-			});
+
+			var $body = me.popover_group.selectAll('.details-body');
+			$body[0].attr('text', body1);
+			$body[1].attr('text', body2);
 		});
 		this.group.mouseout(function () {
 			setTimeout(function () {
-				me.details.clear();
+				me.popover_group.addClass('hide');
 			}, 500);
 		});
 	},
-	get_details_position: function (group) {
-		var bar = group.select('rect');
+	get_details_position: function () {
 		return {
-			x: bar.getX() + bar.getWidth() + 2,
-			y: bar.getY() - 10
+			x: this.$bar.getEndX() + 2,
+			y: this.$bar.getY() - 10
 		};
 	},
 	bind_resize: function() {
 		var me = this;
-		var bar = me.group.select('.bar');
-		var handle = me.get_handles(me);
-
+		var bar = this.$bar;
+		var handle = me.get_handles();
 		handle.right.drag(onmove_right, onstart, onstop_right);
 		handle.left.drag(onmove_left, onstart, onstop_left);
 
@@ -754,7 +752,7 @@ var Bar = Class.extend({
 		}
 
 		function onmove_left(dx, dy) {
-			bar.finaldx = me.get_snap_position(me, bar, dx);
+			bar.finaldx = me.get_snap_position(dx);
 			me.update_bar_position(bar.ox + bar.finaldx, bar.owidth - bar.finaldx);
 		}
 		function onstop_left() {
@@ -762,7 +760,8 @@ var Bar = Class.extend({
 			me.set_action_completed();
 		}
 	},
-	get_handles: function(me) {
+	get_handles: function() {
+		var me = this;
 		return {
 			left: me.handle_group.select('.handle.left'),
 			right: me.handle_group.select('.handle.right')
@@ -770,11 +769,11 @@ var Bar = Class.extend({
 	},
 	bind_drag: function() {
 		var me = this;
-		var bar = me.group.select('.bar');
-		me.bar_group.drag(onmove, onstart, onstop);
+		var bar = this.$bar;
+		this.bar_group.drag(onmove, onstart, onstop);
 
 		function onmove(dx, dy) {
-			bar.finaldx = me.get_snap_position(me, bar, dx);
+			bar.finaldx = me.get_snap_position(dx);
 			me.update_bar_position(bar.ox + bar.finaldx);
 		}
 		function onstop() {
@@ -789,8 +788,8 @@ var Bar = Class.extend({
 	},
 	bind_resize_progress: function() {
 		var me = this;
-		var bar = me.group.select('.bar');
-		var bar_progress = me.group.select('.bar-progress');
+		var bar = this.$bar;
+		var bar_progress = this.$bar_progress;
 		var handle = me.group.select('.handle.progress');
 		handle && handle.drag(onmove, onstart, onstop);
 
@@ -830,13 +829,14 @@ var Bar = Class.extend({
 		}
 	},
 	update_bar_position: function(x, width) {
-		var bar = this.group.select('.bar');
+		var bar = this.$bar;
 		if(x) this.update_attr(bar, "x", x);
 		if(width) this.update_attr(bar, "width", width);
 		this.update_label_position();
 		this.update_handle_position();
 		this.update_progressbar_position();
 		this.update_arrow_position();
+		this.update_details_position();
 	},
 	click: function(callback) {
 		var me = this;
@@ -878,29 +878,27 @@ var Bar = Class.extend({
 		return date;
 	},
 	compute_start_date: function() {
-		var bar = this.group.select(".bar"),
+		var bar = this.$bar,
 			shift = (bar.getX() - this.compute_x()) / this.gantt.unit_width,
 			new_start_date = this.task._start.clone().add(this.gantt.step*shift, 'hours');
 		return new_start_date;
 	},
 	compute_end_date: function() {
-		var bar = this.group.select(".bar"),
+		var bar = this.$bar,
 			og_x = this.compute_x() + this.duration * this.gantt.unit_width,
-			final_x = bar.getX() + bar.getWidth(),
+			final_x = bar.getEndX(),
 			shift = (final_x - og_x) / this.gantt.unit_width,
 			new_end_date = this.task._end.clone().add(this.gantt.step*shift, 'hours');
 		return new_end_date;
 	},
 	compute_progress: function() {
-		var bar = this.group.select('.bar'),
-			bar_progress = this.group.select('.bar-progress');
-		return bar_progress.getWidth() / bar.getWidth() * 100;
+		return this.$bar_progress.getWidth() / this.$bar.getWidth() * 100;
 	},
 	compute_x: function() {
 		var x = this.gantt.offset +
 			(this.task._start.diff(this.gantt.start, 'hours')/this.gantt.step *
 			 this.gantt.unit_width);
-		if(this.gantt.view_mode === 'Month') {
+		if(this.view_is('Month')) {
 			x = this.gantt.offset +
 				this.task._start.diff(this.gantt.start, 'days') *
 				this.gantt.unit_width/30;
@@ -911,14 +909,15 @@ var Bar = Class.extend({
 		return this.gantt.header_height + this.gantt.padding +
 			this.task._index * (this.height + this.gantt.padding);
 	},
-	get_snap_position: function(me, bar, dx) {
+	get_snap_position: function(dx) {
+		var me = this;
 		var odx = dx, rem, position;
 
-		if (me.gantt.view_mode === 'Week') {
+		if (me.view_is('Week')) {
 			rem = dx % (me.gantt.unit_width/7);
 			position = odx - rem +
 				((rem < me.gantt.unit_width/14) ? 0 : me.gantt.unit_width/7);
-		} else if (me.gantt.view_mode === 'Month') {
+		} else if (me.view_is('Month')) {
 			rem = dx % (me.gantt.unit_width/30);
 			position = odx - rem +
 				((rem < me.gantt.unit_width/60) ? 0 : me.gantt.unit_width/30);
@@ -937,16 +936,12 @@ var Bar = Class.extend({
 		return element;
 	},
 	update_progressbar_position: function() {
-		var me = this;
-		var bar = me.group.select('.bar');
-		var bar_progress = me.group.select('.bar-progress');
-		bar_progress.attr('x', bar.getX());
-		bar_progress.attr('width', bar.getWidth() * (me.task.progress/100));
+		this.$bar_progress.attr('x', this.$bar.getX());
+		this.$bar_progress.attr('width', this.$bar.getWidth() * (this.task.progress/100));
 	},
 	update_label_position: function() {
-		var me = this;
-		var bar = me.group.select(".bar");
-		var label = me.group.select('.bar-label');
+		var bar = this.$bar,
+		label = this.group.select('.bar-label');
 		if(label.getBBox().width > bar.getWidth()){
 			label.addClass('big').attr('x', bar.getX() + bar.getWidth() + 5);
 		} else {
@@ -954,12 +949,11 @@ var Bar = Class.extend({
 		}
 	},
 	update_handle_position: function() {
-		var me = this;
-		var bar = me.group.select(".bar");
-		me.handle_group.select(".handle.left").attr({
+		var bar = this.$bar;
+		this.handle_group.select(".handle.left").attr({
 			"x": bar.getX() + 1,
 		});
-		me.handle_group.select(".handle.right").attr({
+		this.handle_group.select(".handle.right").attr({
 			"x": bar.getX() + bar.getWidth() - 9,
 		});
 	},
@@ -967,6 +961,11 @@ var Bar = Class.extend({
 		this.arrows.forEach(function(arrow) {
 			arrow.update();
 		});
+	},
+	update_details_position: function() {
+		var details_box = this.popover_group.select('.details-wrapper');
+		var pos = this.get_details_position();
+		details_box.transform("t" + pos.x + "," + pos.y);
 	},
 	unselect_all: function() {
 		this.canvas.selectAll('.bar-wrapper').forEach(function(el) {
@@ -999,10 +998,10 @@ var Arrow = Class.extend({
 		from_task = this.from_task,
 		to_task = this.to_task;
 
-		this.start_x =from_task.bar.getX() + from_task.bar.getWidth()/2;
+		this.start_x =from_task.$bar.getX() + from_task.$bar.getWidth()/2;
 
-		while(to_task.bar.getX() < this.start_x + gantt.opts.padding &&
-			this.start_x > from_task.bar.getX() + gantt.opts.padding)
+		while(to_task.$bar.getX() < this.start_x + gantt.opts.padding &&
+			this.start_x > from_task.$bar.getX() + gantt.opts.padding)
 		{
 			this.start_x -= 10;
 		}
@@ -1011,7 +1010,7 @@ var Arrow = Class.extend({
 			(gantt.opts.padding + gantt.opts.bar.height) * from_task.task._index +
 			gantt.opts.padding;
 
-		this.end_x = to_task.bar.getX() - gantt.opts.padding/2;
+		this.end_x = to_task.$bar.getX() - gantt.opts.padding/2;
 		this.end_y = gantt.opts.header_height + gantt.opts.bar.height/2 +
 			(gantt.opts.padding + gantt.opts.bar.height) * to_task.task._index +
 			gantt.opts.padding;
@@ -1039,7 +1038,7 @@ var Arrow = Class.extend({
 				curve_y: this.curve_y
 			});
 
-		if(to_task.bar.getX() < from_task.bar.getX() + gantt.opts.padding) {
+		if(to_task.$bar.getX() < from_task.$bar.getX() + gantt.opts.padding) {
 			this.path =
 				Snap.format("M {start_x} {start_y} v {down_1} " +
 				"a {curve} {curve} 0 0 1 -{curve} {curve} H {left} " +
@@ -1052,8 +1051,8 @@ var Arrow = Class.extend({
 				end_x: this.end_x,
 				end_y: this.end_y,
 				down_1: this.gantt.opts.padding/2 - this.curve,
-				down_2: to_task.bar.getY() + to_task.bar.get('height')/2 - this.curve_y,
-				left: to_task.bar.getX() - gantt.opts.padding,
+				down_2: to_task.$bar.getY() + to_task.$bar.get('height')/2 - this.curve_y,
+				left: to_task.$bar.getX() - gantt.opts.padding,
 				offset: this.offset,
 				curve: this.curve,
 				clockwise: this.clockwise,
