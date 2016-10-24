@@ -205,7 +205,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
+		reports =  frappe.db.sql("""select name, report_type, ref_doctype, disabled from tabReport
 		    where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)), as_dict=1)
 
 		return frappe._dict((d.name, d) for d in reports)
