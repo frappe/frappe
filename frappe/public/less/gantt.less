@@ -1,60 +1,63 @@
 @import "variables.less";
 
+@bar-color: #cbd1d8;
+@bar-stroke: #aeb0b1;
+
 .gantt {
 	#grid {
 		.grid-background {
 			fill: none;
 		}
 		.grid-header {
-			fill: #fff;
-			stroke: #e0e0e0;
+			fill: #ffffff;
+			stroke: @border-color;
 			stroke-width: 1.4;
 		}
-		.row-odd {
+		.grid-row {
 			fill: #ffffff;
 		}
-		.row-even {
-			fill: #f5f5f5;
+		.grid-row:nth-child(even) {
+			fill: @light-bg;
 		}
 		.row-line {
-			stroke: #EBEFF2;
+			stroke: @light-border-color;
 		}
 		.tick {
-			stroke: #aaa;
+			stroke: @border-color;
 			stroke-width: 0.2;
 			&.thick {
 				stroke-width: 0.4;
 			}
 		}
 		.today-highlight {
-			fill: #fcf8e3;
+			fill: @light-yellow;
 			opacity: 0.5;
 		}
 	}
 
 	#arrow {
 		fill: none;
-		stroke: #666;
+		stroke: @text-muted;
 		stroke-width: 1.4;
 	}
 
 	.bar {
-		fill: #b8c2cc;
-		stroke: #8D99A6;
+		fill: @bar-color;
+		stroke: @bar-stroke;
 		stroke-width: 0;
 		transition: stroke-width .3s ease;
 	}
 	.bar-progress {
-		fill: #a3a3ff;
+		fill: lighten(@erpnext-blue, 10%);
 	}
 	.bar-invalid {
 		fill: transparent;
-		stroke: #8D99A6;
+		stroke: @bar-stroke;
 		stroke-width: 1;
 		stroke-dasharray: 5;
 
 		&~.bar-label {
-			fill: #555;
+			fill: @text-light;
 		}
 	}
 	.bar-label {
@@ -66,13 +69,13 @@
 		letter-spacing: 0.8px;
 
 		&.big {
-			fill: #555;
+			fill: @text-light;
 			text-anchor: start;
 		}
 	}
 
 	.handle {
-		fill: #ddd;
+		fill: @btn-bg;
 		cursor: ew-resize;
 		opacity: 0;
 		visibility: hidden;
@@ -105,26 +108,26 @@
 		text-anchor: middle;
 	}
 	.primary-text {
-		fill: #999;
+		fill: @text-light;
 	}
 	.secondary-text {
-		fill: #555;
+		fill: @text-color;
 	}
 
 	#details {
 		font-size: 14;
 
 		.details-container {
-			stroke: #c1c1c1;
+			stroke: @border-color;
 			stroke-width: 1.1;
 			fill: #fff;
 		}
 		.details-heading {
-			fill: #424242;
+			fill: @text-color;
 			font-weight: 500;
 		}
 		.details-body {
-			fill: #757575;
+			fill: @text-light;
 		}
 	}
 
@@ -132,4 +135,3 @@
 		display: none;
 	}
 }
-

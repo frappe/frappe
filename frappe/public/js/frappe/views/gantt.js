@@ -249,9 +249,8 @@ var Gantt = Class.extend({
 		row_y = me.opts.header_height + me.opts.padding/2;
 
 		this.tasks.forEach(function (task, i) {
-			var row_class = i % 2 ? "row-odd" : "row-even";
 			me.canvas.rect(0, row_y, row_width, row_height)
-				.addClass(row_class)
+				.addClass("grid-row")
 				.appendTo(rows);
 
 			me.canvas.line(0, row_y + row_height, row_width, row_y + row_height)
