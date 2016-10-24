@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>frappe.__init__</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -610,6 +612,29 @@ listify the values against the key.
 
 <ul>
 <li><strong><code>msg</code></strong> -  Message.</li>
+</ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.format" href="#frappe.format" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>format</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Format value with given field properties.</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>value</code></strong> -  Value to be formatted.</li>
+<li><strong><code>df</code></strong> -  (Optional) DocField object with properties <code>fieldtype</code>, <code>options</code> etc.</li>
 </ul>
 </div>
 	<br>
@@ -1354,7 +1379,7 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
         <a name="frappe.has_website_permission" href="#frappe.has_website_permission" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>has_website_permission</b>
-        <i class="text-muted">(doctype, ptype=read, doc=None, user=None, verbose=False)</i>
+        <i class="text-muted">(doc=None, ptype=read, user=None, verbose=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Raises <code>frappe.PermissionError</code> if not permitted.</p>
 
@@ -1515,6 +1540,22 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
 <ul>
 <li><strong><code>msg</code></strong> -  Message.</li>
 </ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.log_error" href="#frappe.log_error" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.<b>log_error</b>
+        <i class="text-muted">(message=None, title=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Log error to Error Log</p>
 </div>
 	<br>
 
@@ -1848,7 +1889,7 @@ given fieldname
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None)</i>
+        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None, retry=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 

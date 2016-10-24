@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>User</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -1035,6 +1037,20 @@ Website User</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="after_insert" href="#after_insert" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>after_insert</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="after_rename" href="#after_rename" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>after_rename</b>
@@ -1069,6 +1085,20 @@ Website User</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>set name as email id</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="before_insert" href="#before_insert" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>before_insert</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -1181,6 +1211,34 @@ Website User</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="has_desk_access" href="#has_desk_access" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>has_desk_access</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Return true if any of the set roles has desk access</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="has_website_permission" href="#has_website_permission" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>has_website_permission</b>
+        <i class="text-muted">(self, ptype, verbose=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns true if current user is the session user</p>
 </div>
 	<br>
 
@@ -1357,6 +1415,28 @@ Website User</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="set_default_roles" href="#set_default_roles" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_default_roles</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Set a default role if specified by rules (<code>default_role</code>) in hooks or Portal Settings</p>
+
+<pre><code>    Hooks for default roles can be set as:
+
+        default_roles = [
+            {'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',
+                'filters': {'ifnull(customer, "")': ('!=', '')}}
+        ]
+</code></pre>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="set_full_name" href="#set_full_name" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>set_full_name</b>
@@ -1376,7 +1456,7 @@ Website User</pre>
 		<b>set_system_user</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Set as System User if any of the given roles has desk_access</p>
 </div>
 	<br>
 
@@ -1750,9 +1830,9 @@ Website User</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.core.doctype.user.user.notifify_admin_access_to_system_manager" href="#frappe.core.doctype.user.user.notifify_admin_access_to_system_manager" class="text-muted small">
+        <a name="frappe.core.doctype.user.user.notify_admin_access_to_system_manager" href="#frappe.core.doctype.user.user.notify_admin_access_to_system_manager" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.core.doctype.user.user.<b>notifify_admin_access_to_system_manager</b>
+		frappe.core.doctype.user.user.<b>notify_admin_access_to_system_manager</b>
         <i class="text-muted">(login_manager=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -1805,7 +1885,7 @@ Website User</pre>
         <a name="frappe.core.doctype.user.user.sign_up" href="#frappe.core.doctype.user.user.sign_up" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.core.doctype.user.user.<b>sign_up</b>
-        <i class="text-muted">(email, full_name)</i>
+        <i class="text-muted">(email, full_name, redirect_to)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -1890,8 +1970,6 @@ Website User</pre>
         <ul>
         
 			
-        
-			
             <li>
 
 
@@ -1919,26 +1997,12 @@ Website User</pre>
 			
         
 			
-        
-			
             <li>
 
 
 <a href="https://frappe.github.io/frappe/current/models/core/docshare">DocShare</a>
 
 </li>
-			
-        
-			
-        
-			
-        
-			
-        
-			
-        
-			
-        
 			
         
 			
@@ -1951,14 +2015,6 @@ Website User</pre>
 			
         
 			
-        
-			
-        
-			
-        
-			
-        
-			
             <li>
 
 
@@ -1968,16 +2024,12 @@ Website User</pre>
 			
         
 			
-        
-			
             <li>
 
 
 <a href="https://frappe.github.io/frappe/current/models/desk/todo">ToDo</a>
 
 </li>
-			
-        
 			
         
         </ul>

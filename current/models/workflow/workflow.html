@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Workflow</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -208,8 +210,21 @@ Defines workflow states and rules for a document.
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>4</td>
+            <td ><code>override_status</code></td>
+            <td >
+                Check</td>
+            <td >
+                Don't Override Status
+                <p class="text-muted small">
+                    If Checked workflow status will not override status in list view</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>5</td>
             <td ><code>states_head</code></td>
             <td >
                 Section Break</td>
@@ -222,7 +237,7 @@ Defines workflow states and rules for a document.
         </tr>
         
         <tr >
-            <td>5</td>
+            <td>6</td>
             <td class="danger" title="Mandatory"><code>states</code></td>
             <td >
                 Table</td>
@@ -244,7 +259,7 @@ Defines workflow states and rules for a document.
         </tr>
         
         <tr class="info">
-            <td>6</td>
+            <td>7</td>
             <td ><code>transition_rules</code></td>
             <td >
                 Section Break</td>
@@ -257,7 +272,7 @@ Defines workflow states and rules for a document.
         </tr>
         
         <tr >
-            <td>7</td>
+            <td>8</td>
             <td class="danger" title="Mandatory"><code>transitions</code></td>
             <td >
                 Table</td>
@@ -279,7 +294,7 @@ Defines workflow states and rules for a document.
         </tr>
         
         <tr >
-            <td>8</td>
+            <td>9</td>
             <td ><code>workflow_state_field</code></td>
             <td >
                 Data</td>

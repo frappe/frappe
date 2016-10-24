@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Portal Settings</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -161,11 +163,89 @@
         
         <tr >
             <td>1</td>
+            <td ><code>default_role</code></td>
+            <td >
+                Link</td>
+            <td >
+                Default Role at Time of Signup
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/role">Role</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>2</td>
+            <td ><code>standard_menu_items</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Standard Sidebar Menu
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>hide_standard_menu</code></td>
+            <td >
+                Check</td>
+            <td >
+                Hide Standard Menu
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
             <td ><code>menu</code></td>
             <td >
                 Table</td>
             <td >
                 Portal Menu
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/website/portal_menu_item">Portal Menu Item</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>5</td>
+            <td ><code>custom_sidebar_menu</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Custom Sidebar Menu
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>custom_menu</code></td>
+            <td >
+                Table</td>
+            <td >
+                Custom Menu Items
                 
             </td>
             <td>
@@ -211,7 +291,35 @@
 		<b>add_item</b>
         <i class="text-muted">(self, item)</i>
     </p>
-	<div class="docs-attr-desc"><p>insert new portal menu item if route is not set</p>
+	<div class="docs-attr-desc"><p>insert new portal menu item if route is not set, or role is different</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="clear_cache" href="#clear_cache" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>clear_cache</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_update" href="#on_update" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 

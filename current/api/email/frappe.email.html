@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>frappe.email</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -178,7 +180,7 @@
         <a name="frappe.email.sendmail" href="#frappe.email.sendmail" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.<b>sendmail</b>
-        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], attachments=None, content=None, reply_to=None, cc=(), message_id=None, in_reply_to=None)</i>
+        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], attachments=None, content=None, reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>send an html email as multipart with attachments and all</p>
 </div>
@@ -194,7 +196,7 @@
         <a name="frappe.email.sendmail_md" href="#frappe.email.sendmail_md" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.<b>sendmail_md</b>
-        <i class="text-muted">(recipients, sender=None, msg=None, subject=None, attachments=None, content=None, reply_to=None, cc=(), message_id=None, in_reply_to=None)</i>
+        <i class="text-muted">(recipients, sender=None, msg=None, subject=None, attachments=None, content=None, reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>send markdown email</p>
 </div>

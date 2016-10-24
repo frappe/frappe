@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.integrations.razorpay</title>
+	<title>PayPal Settings</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/integrations/frappe.integrations.razorpay">
+<body data-path="current/models/integrations/paypal_settings">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/integrations/frappe.integrations.razorpay" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/paypal_settings" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/integrations">
-		integrations</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -111,7 +111,9 @@
 									
 								</div>
 								
-								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								<h1>PayPal Settings</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -121,74 +123,123 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: frappe.integrations.razorpay --><div class="dev-header">
+<!-- title: PayPal Settings -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/integrations/razorpay.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/paypal_settings"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<span class="label label-info">Single</span>
 
 
-<h2>Introduction</h2><br><h1>Integrating RazorPay</h1>
 
-<h3>Validate Currency</h3>
 
-<p>Example:</p>
 
-<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 
-controller = get_integration_controller("Razorpay", setup=False)
-controller().validate_transaction_currency(currency)
-</code></pre>
+<h3>Fields</h3>
 
-<h3>2. Redirect for payment</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>api_username</code></td>
+            <td >
+                Data</td>
+            <td >
+                API Username
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td class="danger" title="Mandatory"><code>api_password</code></td>
+            <td >
+                Password</td>
+            <td >
+                API Password
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td class="danger" title="Mandatory"><code>signature</code></td>
+            <td >
+                Data</td>
+            <td >
+                Signature
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>paypal_sandbox</code></td>
+            <td >
+                Check</td>
+            <td >
+                Use Sandbox
+                <p class="text-muted small">
+                    Check this if you are testing your payment using the Sandbox API</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>redirect_to</code></td>
+            <td >
+                Data</td>
+            <td >
+                Redirect To
+                <p class="text-muted small">
+                    Mention transaction completion page URL</p>
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
 
-<p>Example:</p>
 
-<pre><code>payment_details = {
-    "amount": 600,
-    "title": "Payment for bill : 111",
-    "description": "payment via cart",
-    "reference_doctype": "Payment Request",
-    "reference_docname": "PR0001",
-    "payer_email": "NuranVerkleij@example.com",
-    "payer_name": "Nuran Verkleij",
-    "order_id": "111",
-    "currency": "INR"
-}
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.paypal_settings.paypal_settings</h4>
 
-from frappe.integration.razorpay import get_checkout_url
+    
 
-# Redirect the user to this url
-url = controller().get_payment_url(**payment_details)
-</code></pre>
 
-<h3>3. On Completion of Payment</h3>
-
-<p>Write a method for <code>on_payment_authorized</code> in the reference doctype</p>
-
-<p>Example:</p>
-
-<pre><code>def on_payment_authorized(payment_status):
-    # this method will be called when payment is complete
-</code></pre>
-
-<h5>Notes:</h5>
-
-<p>payment_status - payment gateway will put payment status on callback.
-For razorpay payment status is Authorized</p>
-<br><br>
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>Controller</b></h3>
+	<h3 style="font-weight: normal;">Class <b>PayPalSettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.integration_controller.IntegrationController</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
@@ -198,27 +249,10 @@ For razorpay payment status is Authorized</p>
     
     
 	<p class="docs-attr-name">
-        <a name="authorize_payment" href="#authorize_payment" class="text-muted small">
+        <a name="enable" href="#enable" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>authorize_payment</b>
+		<b>enable</b>
         <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><pre><code>    An authorization is performed when user’s payment details are successfully authenticated by the bank.
-    The money is deducted from the customer’s account, but will not be transferred to the merchant’s account
-    until it is explicitly captured by merchant.
-</code></pre>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="create_request" href="#create_request" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>create_request</b>
-        <i class="text-muted">(self, data)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -229,10 +263,10 @@ For razorpay payment status is Authorized</p>
     
     
 	<p class="docs-attr-name">
-        <a name="enable" href="#enable" class="text-muted small">
+        <a name="execute_set_express_checkout" href="#execute_set_express_checkout" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>enable</b>
-        <i class="text-muted">(self, parameters, use_test_account=0)</i>
+		<b>execute_set_express_checkout</b>
+        <i class="text-muted">(self, amount, currency)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -257,9 +291,9 @@ For razorpay payment status is Authorized</p>
     
     
 	<p class="docs-attr-name">
-        <a name="get_settings" href="#get_settings" class="text-muted small">
+        <a name="get_paypal_params_and_url" href="#get_paypal_params_and_url" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_settings</b>
+		<b>get_paypal_params_and_url</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -271,9 +305,37 @@ For razorpay payment status is Authorized</p>
     
     
 	<p class="docs-attr-name">
-        <a name="validate_razorpay_credentails" href="#validate_razorpay_credentails" class="text-muted small">
+        <a name="on_update" href="#on_update" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>validate_razorpay_credentails</b>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate" href="#validate" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_paypal_credentails" href="#validate_paypal_credentails" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate_paypal_credentails</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -303,19 +365,16 @@ For razorpay payment status is Authorized</p>
 	
         
     
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.razorpay.capture_payment" href="#frappe.integrations.razorpay.capture_payment" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.razorpay.<b>capture_payment</b>
-        <i class="text-muted">(is_sandbox=False, sanbox_response=None)</i>
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.confirm_payment</code>
     </p>
-	<div class="docs-attr-desc"><pre><code>    Verifies the purchase as complete by the merchant.
-    After capture, the amount is transferred to the merchant within T+3 days
-    where T is the day on which payment is captured.
-
-    Note: Attempting to capture a payment whose status is not authorized will produce an error.
-</code></pre>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.confirm_payment" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.confirm_payment" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>confirm_payment</b>
+        <i class="text-muted">(token)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -325,12 +384,12 @@ For razorpay payment status is Authorized</p>
         
     
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.razorpay.get_checkout_url</code>
+        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.razorpay.get_checkout_url" href="#frappe.integrations.razorpay.get_checkout_url" class="text-muted small">
+        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.razorpay.<b>get_checkout_url</b>
+		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_checkout_url</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -339,9 +398,66 @@ For razorpay payment status is Authorized</p>
 
 	
 
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_express_checkout_details</b>
+        <i class="text-muted">(token)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_service_details</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.update_integration_request_status" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.update_integration_request_status" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>update_integration_request_status</b>
+        <i class="text-muted">(token, data, status, error=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+
+    
+    
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 				</div>
 			</div>

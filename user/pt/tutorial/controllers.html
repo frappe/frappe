@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Controladores</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/pt/tutorial/controllers">
+	<div class="main-section">
+		<div>
+				<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span>Frappe Framework</span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/pt/tutorial/controllers" data-path="{{ pathname }}"
+	>
+			<div class="row ">
+				
+				<div class=" page-content col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class='col-sm-12'>
+								
+								<div class="page-breadcrumbs">
+									
+									
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+
+									
+								</div>
+								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
+							</div>
+							<div class="col-sm-4 col-xs-6">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
+<h1>Controladores</h1>
+
+<p>O passo seguinte seria a adição de métodos e handlers de eventos para os modelos. No aplicativo, devemos assegurar que se uma Library Transaction é feita, o artigo em questão deve estar em estoque e o membro que irá emprestar o artigo deve ter um filiação válida.</p>
+
+<p>Para isso, podemos escrever uma validação pouco antes do objeto de Library Transaction ser salvo. Para fazer isso, abra o template <code>library_management/doctype/library_transaction/library_transaction.py</code>.</p>
+
+<p>Este arquivo é o controlador para o objeto Library Transaction. Nele você pode escrever métodos para:</p>
+
+<ol>
+<li><code>before_insert</code></li>
+<li><code>validate</code> (antes de inserir ou atualizar)</li>
+<li><code>on_update</code> (depois de salvar)</li>
+<li><code>on_submit</code> (quando o documento é submetido)</li>
+<li><code>on_cancel</code></li>
+<li><code>on_trash</code> (antes que ele esteja prestes a ser excluido)</li>
+</ol>
+
+<p>Você pode escrever métodos para esses eventos e eles serão chamados pelo framework quando o documento for salvo etc.</p>
+
+<p>Aqui é o controlador acabado:</p>
+
+<pre><code>from __future__ import unicode_literals
+import frappe
+from frappe import _
+from frappe.model.document import Document
+
+class LibraryTransaction(Document):
+    def validate(self):
+        last_transaction = frappe.get_list("Library Transaction",
+            fields=["transaction_type", "transaction_date"],
+            filters = {
+                "article": self.article,
+                "transaction_date": ("&lt;=", self.transaction_date),
+                "name": ("!=", self.name)
+            })
+        if self.transaction_type=="Issue":
+            msg = _("Article {0} {1} has not been recorded as returned since {2}")
+            if last_transaction and last_transaction[0].transaction_type=="Issue":
+                frappe.throw(msg.format(self.article, self.article_name,
+                    last_transaction[0].transaction_date))
+        else:
+            if not last_transaction or last_transaction[0].transaction_type!="Issue":
+                frappe.throw(_("Cannot return article not issued"))
+</code></pre>
+
+<p>Nesse script:</p>
+
+<ol>
+<li>Pegamos a última transação antes da data da transação atual usando a função de consulta <code>frappe.get_list</code></li>
+<li>Se a última transação for algo que não queremos, lançamos uma exceção usando <code>frappe.throw</code></li>
+<li>Usamos o método <code>_("text")</code> para identificar strings traduzíveis.</li>
+</ol>
+
+<p>Verifique se suas validações funcionaram, criando de novos registros.</p>
+
+<p><img class="screenshot" alt="Transaction" src="https://frappe.github.io/frappe/assets/img/lib_trans.png"></p>
+
+<h4>Debugging</h4>
+
+<p>Para Debugar, mantenha sempre o seu Console JS aberto. procurando por erros de servidor e JavaScript.</p>
+
+<p>Além disso, verifique a sua janela do terminal para exceções. Quaisquer  <strong>500 Internal Server Errors</strong> será impresso em seu terminal, onde o servidor está rodando.</p>
+
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/reports">Relatórios</a></p></p>
+
+</div>
+				</div>
+			</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/controllers.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	<!-- csrf_token --></body>
+</html>

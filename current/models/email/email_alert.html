@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Email Alert</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -223,6 +225,51 @@
         
         <tr >
             <td>5</td>
+            <td ><code>is_standard</code></td>
+            <td >
+                Check</td>
+            <td >
+                Is Standard
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>module</code></td>
+            <td >
+                Link</td>
+            <td >
+                Module
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/module_def">Module Def</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
+            <td ><code>col_break_1</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>8</td>
             <td class="danger" title="Mandatory"><code>event</code></td>
             <td >
                 Select</td>
@@ -238,12 +285,27 @@ Submit
 Cancel
 Days After
 Days Before
-Value Change</pre>
+Value Change
+Method
+Custom</pre>
             </td>
         </tr>
         
         <tr >
-            <td>6</td>
+            <td>9</td>
+            <td ><code>method</code></td>
+            <td >
+                Data</td>
+            <td >
+                Trigger Method
+                <p class="text-muted small">
+                    Trigger on valid methods like "before_insert", "after_update", etc (will depend on the DocType selected)</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>10</td>
             <td ><code>date_changed</code></td>
             <td >
                 Select</td>
@@ -256,7 +318,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>7</td>
+            <td>11</td>
             <td ><code>days_in_advance</code></td>
             <td >
                 Int</td>
@@ -269,7 +331,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>8</td>
+            <td>12</td>
             <td ><code>value_changed</code></td>
             <td >
                 Select</td>
@@ -282,7 +344,7 @@ Value Change</pre>
         </tr>
         
         <tr class="info">
-            <td>9</td>
+            <td>13</td>
             <td ><code>section_break_9</code></td>
             <td >
                 Section Break</td>
@@ -294,7 +356,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>14</td>
             <td ><code>condition</code></td>
             <td >
                 Code</td>
@@ -307,7 +369,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>15</td>
             <td ><code>column_break_6</code></td>
             <td class="info">
                 Column Break</td>
@@ -319,7 +381,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>16</td>
             <td ><code>html_7</code></td>
             <td >
                 HTML</td>
@@ -331,7 +393,7 @@ Value Change</pre>
         </tr>
         
         <tr class="info">
-            <td>13</td>
+            <td>17</td>
             <td ><code>column_break_5</code></td>
             <td >
                 Section Break</td>
@@ -343,7 +405,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>18</td>
             <td class="danger" title="Mandatory"><code>recipients</code></td>
             <td >
                 Table</td>
@@ -364,7 +426,7 @@ Value Change</pre>
         </tr>
         
         <tr class="info">
-            <td>15</td>
+            <td>19</td>
             <td ><code>message_sb</code></td>
             <td >
                 Section Break</td>
@@ -376,8 +438,8 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>16</td>
-            <td class="danger" title="Mandatory"><code>message</code></td>
+            <td>20</td>
+            <td ><code>message</code></td>
             <td >
                 Text</td>
             <td >
@@ -388,7 +450,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>21</td>
             <td ><code>attach_print</code></td>
             <td >
                 Check</td>
@@ -400,7 +462,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>22</td>
             <td ><code>message_examples</code></td>
             <td >
                 HTML</td>
@@ -412,7 +474,7 @@ Value Change</pre>
         </tr>
         
         <tr >
-            <td>19</td>
+            <td>23</td>
             <td ><code>view_properties</code></td>
             <td >
                 Button</td>
@@ -449,12 +511,68 @@ Value Change</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="autoname" href="#autoname" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>autoname</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_documents_for_today" href="#get_documents_for_today" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_documents_for_today</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>get list of documents that will be triggered today</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="load_standard_properties" href="#load_standard_properties" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>load_standard_properties</b>
+        <i class="text-muted">(self, context)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_update" href="#on_update" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="send" href="#send" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>send</b>
+        <i class="text-muted">(self, doc)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Build recipients and send email alert</p>
 </div>
 	<br>
 

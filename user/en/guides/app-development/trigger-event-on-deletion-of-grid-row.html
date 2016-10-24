@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Trigger Event On Deletion Of Grid Row</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -121,50 +123,57 @@
 						</div>
 					</div>
 					<div class="page_content">
-<p>To trigger an event when a row from a Child Table has been deleted (when user clicks on <code>delete</code> button), you need to add a handler the <code>fieldname_remove</code> event to Child Table, where fieldname is the fieldname of the Child Table in Parent Table decloration. </p>
+<p>To trigger an event when a row from a Child Table has been deleted (when user clicks on <code>delete</code> button), you need to add a handler the <code>fieldname_remove</code> event to Child Table, where fieldname is the fieldname of the Child Table in Parent Table declaration.</p>
 
-<p>For example: </p>
+<p>For example:</p>
 
-<p>Assuming that your parent DocType is named <code>Item</code> has a Table Field linked to <code>Item Color</code> DocType with decloration name <code>color</code>. </p>
+<p>Assuming that your parent DocType is named <code>Item</code> has a Table Field linked to <code>Item Color</code> DocType with decloration name <code>color</code>.</p>
 
 <p>In order to "catch" the delete event:</p>
 
-<p><code>javascript
-   frappe.ui.form.on('Item Color', 
-      color_remove: function(frm) {
-         // You code here 
-         // If you console.log(frm.doc.color) you will get the remaining color list
-      }
-   );
-</code></p>
+<pre><code>frappe.ui.form.on('Item Color', {
+    color_remove: function(frm) {
+        // You code here
+        // If you console.log(frm.doc.color) you will get the remaining color list
+    }
+);
+</code></pre>
 
-<p>The same process is used to trigger the add event (when user clicks on <code>add row</code> button):
- <code>javascript
-   frappe.ui.form.on('Item Color', 
-      color_remove: function(frm) {
-         // Your code here 
-      },
-      color_add: function(frm) {
-        // Your code here
-      }
-   );
-</code></p>
+<p>The same process is used to trigger the add event (when user clicks on <code>add row</code> button):</p>
 
-<p>Notice that the handling is be made on Child DocType Table <code>form.ui.on</code> and not on Parent Doctype so a minimal full example is: </p>
+<pre><code>frappe.ui.form.on('Item Color', {
+    color_remove: function(frm) {
+        // You code here
+        // If you console.log(frm.doc.color) you will get the remaining color list
+    },
+    color_add: function(frm) {
+    }
+});
+</code></pre>
 
-<p>```javascript 
+<p>Notice that the handling is be made on Child DocType Table <code>form.ui.on</code> and not on Parent Doctype so a minimal full example is:</p>
+
+<p>```javascript
     frappe.ui.form.on('Item',{
-        // Your client side handling for Item 
+        // Your client side handling for Item
     });</p>
 
-<pre><code>frappe.ui.form.on('Item Color', 
+<pre><code>frappe.ui.form.on('Item Color', {
   color_remove: function(frm) {
      // Deleting is triggered here
   }
 </code></pre>
 
 <p>);
- ```</p>
+ ```
+Handlers are:</p>
+
+<ol>
+<li>fieldname_add</li>
+<li>fieldname_move</li>
+<li>fieldname<em>before</em>remove</li>
+<li>fieldname_remove</li>
+</ol>
 
 </div>
 				</div>

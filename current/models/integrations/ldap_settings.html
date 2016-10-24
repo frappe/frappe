@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.integrations.paypal</title>
+	<title>LDAP Settings</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/integrations/frappe.integrations.paypal">
+<body data-path="current/models/integrations/ldap_settings">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/integrations/frappe.integrations.paypal" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/ldap_settings" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/integrations">
-		integrations</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -111,7 +111,9 @@
 									
 								</div>
 								
-								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								<h1>LDAP Settings</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -121,72 +123,109 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: frappe.integrations.paypal --><div class="dev-header">
+<!-- title: LDAP Settings -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/integrations/paypal.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/ldap_settings"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<span class="label label-info">Single</span>
 
 
-<h2>Introduction</h2><br><h1>Integrating PayPal</h1>
 
-<h3>1. Validate Currency Support</h3>
 
-<p>Example:</p>
 
-<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 
-controller = get_integration_controller("PayPal", setup=False)
-controller().validate_transaction_currency(currency)
-</code></pre>
+<h3>Fields</h3>
 
-<h3>2. Redirect for payment</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>ldap_server_url</code></td>
+            <td >
+                Data</td>
+            <td >
+                LDAP Server Url
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td class="danger" title="Mandatory"><code>organizational_unit</code></td>
+            <td >
+                Data</td>
+            <td >
+                Organizational Unit
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td class="danger" title="Mandatory"><code>base_dn</code></td>
+            <td >
+                Data</td>
+            <td >
+                Base Distinguished Name (DN)
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td class="danger" title="Mandatory"><code>password</code></td>
+            <td >
+                Password</td>
+            <td >
+                Password for Base DN
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
 
-<p>Example:</p>
 
-<pre><code>payment_details = {
-    "amount": 600,
-    "title": "Payment for bill : 111",
-    "description": "payment via cart",
-    "reference_doctype": "Payment Request",
-    "reference_docname": "PR0001",
-    "payer_email": "NuranVerkleij@example.com",
-    "payer_name": "Nuran Verkleij",
-    "order_id": "111",
-    "currency": "USD"
-}
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.ldap_settings.ldap_settings</h4>
 
-# redirect the user to this url
-url = controller().get_payment_url(**payment_details)
-</code></pre>
+    
 
-<h3>3. On Completion of Payment</h3>
 
-<p>Write a method for <code>on_payment_authorized</code> in the reference doctype</p>
-
-<p>Example:</p>
-
-<pre><code>def on_payment_authorized(payment_status):
-    # your code to handle callback
-</code></pre>
-
-<h5>Note:</h5>
-
-<p>payment_status - payment gateway will put payment status on callback.
-For paypal payment status parameter is one from: [Completed, Cancelled, Failed]</p>
-<br><br>
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>Controller</b></h3>
+	<h3 style="font-weight: normal;">Class <b>LDAPSettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.integration_controller.IntegrationController</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
@@ -199,34 +238,6 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
         <a name="enable" href="#enable" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>enable</b>
-        <i class="text-muted">(self, parameters, use_test_account=0)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="execute_set_express_checkout" href="#execute_set_express_checkout" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>execute_set_express_checkout</b>
-        <i class="text-muted">(self, amount, currency, use_test_account)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_payment_url" href="#get_payment_url" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_payment_url</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -238,23 +249,9 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
     
     
 	<p class="docs-attr-name">
-        <a name="get_paypal_params_and_url" href="#get_paypal_params_and_url" class="text-muted small">
+        <a name="on_update" href="#on_update" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_paypal_params_and_url</b>
-        <i class="text-muted">(self, use_test_account)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_settings" href="#get_settings" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>get_settings</b>
+		<b>on_update</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -266,10 +263,10 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
     
     
 	<p class="docs-attr-name">
-        <a name="validate_paypal_credentails" href="#validate_paypal_credentails" class="text-muted small">
+        <a name="validate" href="#validate" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>validate_paypal_credentails</b>
-        <i class="text-muted">(self, use_test_account)</i>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -280,10 +277,10 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
     
     
 	<p class="docs-attr-name">
-        <a name="validate_transaction_currency" href="#validate_transaction_currency" class="text-muted small">
+        <a name="validate_ldap_credentails" href="#validate_ldap_credentails" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>validate_transaction_currency</b>
-        <i class="text-muted">(self, currency)</i>
+		<b>validate_ldap_credentails</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -298,14 +295,12 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.paypal.confirm_payment</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.paypal.confirm_payment" href="#frappe.integrations.paypal.confirm_payment" class="text-muted small">
+        <a name="frappe.integrations.doctype.ldap_settings.ldap_settings.authenticate_ldap_user" href="#frappe.integrations.doctype.ldap_settings.ldap_settings.authenticate_ldap_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.paypal.<b>confirm_payment</b>
-        <i class="text-muted">(token)</i>
+		frappe.integrations.doctype.ldap_settings.ldap_settings.<b>authenticate_ldap_user</b>
+        <i class="text-muted">(user=None, password=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -316,13 +311,27 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.paypal.get_checkout_url</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.paypal.get_checkout_url" href="#frappe.integrations.paypal.get_checkout_url" class="text-muted small">
+        <a name="frappe.integrations.doctype.ldap_settings.ldap_settings.create_user" href="#frappe.integrations.doctype.ldap_settings.ldap_settings.create_user" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.paypal.<b>get_checkout_url</b>
+		frappe.integrations.doctype.ldap_settings.ldap_settings.<b>create_user</b>
+        <i class="text-muted">(params)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.ldap_settings.ldap_settings.get_ldap_settings" href="#frappe.integrations.doctype.ldap_settings.ldap_settings.get_ldap_settings" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.ldap_settings.ldap_settings.<b>get_ldap_settings</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -335,13 +344,13 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
         
     
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.paypal.get_express_checkout_details</code>
+        <br><code>/api/method/frappe.integrations.doctype.ldap_settings.ldap_settings.get_service_details</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.paypal.get_express_checkout_details" href="#frappe.integrations.paypal.get_express_checkout_details" class="text-muted small">
+        <a name="frappe.integrations.doctype.ldap_settings.ldap_settings.get_service_details" href="#frappe.integrations.doctype.ldap_settings.ldap_settings.get_service_details" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.paypal.<b>get_express_checkout_details</b>
-        <i class="text-muted">(token)</i>
+		frappe.integrations.doctype.ldap_settings.ldap_settings.<b>get_service_details</b>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -352,12 +361,14 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 	
         
     
-    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.ldap_settings.ldap_settings.login</code>
+    </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.paypal.update_integration_request_status" href="#frappe.integrations.paypal.update_integration_request_status" class="text-muted small">
+        <a name="frappe.integrations.doctype.ldap_settings.ldap_settings.login" href="#frappe.integrations.doctype.ldap_settings.ldap_settings.login" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.paypal.<b>update_integration_request_status</b>
-        <i class="text-muted">(token, data, status, error=False)</i>
+		frappe.integrations.doctype.ldap_settings.ldap_settings.<b>login</b>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -366,8 +377,13 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 	
 
 
+    
+    
+
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 				</div>
 			</div>

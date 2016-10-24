@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>frappe.email.smtp</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -245,7 +247,7 @@
         <a name="frappe.email.smtp.send" href="#frappe.email.smtp.send" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.email.smtp.<b>send</b>
-        <i class="text-muted">(email, append_to=None)</i>
+        <i class="text-muted">(email, append_to=None, retry=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>send the message or add it to Outbox Email</p>
 </div>

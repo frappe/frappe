@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								<h1>Bench Commands Cheatsheet</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -160,9 +162,9 @@
 <ul>
 <li><code>bench config</code> - Change bench configuration
 <ul>
-<li><code>auto_update [on/off]</code>                   Enable/Disable auto update for bench</li>
-<li><code>dns_multitenant [on/off]</code>               Enable/Disable DNS Multitenancy</li>
-<li><code>http_timeout [?]</code>                  Set http timeout</li>
+<li><code>auto_update [on/off]</code>          Enable/Disable auto update for bench</li>
+<li><code>dns_multitenant [on/off]</code>      Enable/Disable DNS Multitenancy</li>
+<li><code>http_timeout</code>                  Set http timeout</li>
 <li><code>restart_supervisor_on_update</code>  Enable/Disable auto restart of supervisor</li>
 <li><code>serve_default_site</code>            Configure nginx to serve the default site on</li>
 <li><code>update_bench_on_update</code>        Enable/Disable bench updates on running bench...</li>
@@ -181,6 +183,8 @@
 <li><code>sudoers</code>  Add commands to sudoers list for execution...</li>
 <li><code>supervisor</code>  generate config for supervisor</li>
 <li><code>add-domain</code>  add custom domain for site</li>
+<li><code>firewall</code>    setup firewall and block all ports except 22, 80 and 443</li>
+<li><code>ssh-port</code>    change the default ssh connection port</li>
 </ul></li>
 </ul>
 
@@ -193,6 +197,7 @@
 <li><code>bench remove-from-installed-apps [app-name]</code> Remove app from the list of apps</li>
 <li><code>bench uninstall-app [app-name]</code> Delete app and everything linked to the app</li>
 <li><code>bench remove-app [app-name]</code> Remove app from the bench entirely</li>
+<li><code>bench --site [sitename] --force reinstall</code> Reinstall with fresh database (Caution: Will wipe out old database) </li>
 <li><code>bench new-site [sitename]</code> - Creates a new site
 <ul>
 <li><code>--db-name</code>                Database name</li>
@@ -205,18 +210,18 @@
 <li><code>--install-app</code>            Install app after installation`</li>
 </ul></li>
 <li><code>bench use [site]</code> Sets a default site</li>
-<li><code>bench drop-site</code> - Removes site from disk and database completely
+<li><code>bench drop-site</code> Removes site from disk and database completely
 <ul>
 <li><code>--root-login</code> </li>
 <li><code>--root-password</code></li>
 </ul></li>
-<li><code>bench console</code> - Opens a IPython console in the bench venv</li>
-<li><code>bench execute</code> - Execute a method inside any app.
+<li><code>bench console</code>   Opens a IPython console in the bench venv</li>
+<li><code>bench execute</code>   Execute a method inside any app.
 <ul>
 <li>Eg : <code>bench execute frappe.utils.scheduler.enqueue_scheduler_events</code></li>
 </ul></li>
-<li><code>bench mysql</code> - Opens SQL Console </li>
-<li><code>bench run-tests</code> - Run tests
+<li><code>bench mysql</code>  Opens SQL Console </li>
+<li><code>bench run-tests</code>  Run tests
 <ul>
 <li><code>--app</code> App Name</li>
 <li><code>--doctype</code> DocType to run tests for</li>
@@ -224,7 +229,7 @@
 <li><code>--module</code> Run a particular module that has tests </li>
 <li><code>--profile</code> Runs a Python profiler on the test</li>
 </ul></li>
-<li><code>bench disable-production</code> - Disables production environment</li>
+<li><code>bench disable-production</code>  Disables production environment</li>
 </ul>
 
 <h3>Scheduler</h3>

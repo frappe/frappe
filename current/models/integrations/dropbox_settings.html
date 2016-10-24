@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.integrations.dropbox_integration</title>
+	<title>Dropbox Settings</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/integrations/frappe.integrations.dropbox_integration">
+<body data-path="current/models/integrations/dropbox_settings">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/integrations/frappe.integrations.dropbox_integration" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/dropbox_settings" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/integrations">
-		integrations</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -111,7 +111,9 @@
 									
 								</div>
 								
-								<h1>frappe.integrations.dropbox_integration</h1>
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								<h1>Dropbox Settings</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -121,26 +123,149 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: frappe.integrations.dropbox_integration --><div class="dev-header">
+<!-- title: Dropbox Settings -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/integrations/dropbox_integration.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/dropbox_settings"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<span class="label label-info">Single</span>
 
+
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>send_notifications_to</code></td>
+            <td >
+                Data</td>
+            <td >
+                Send Notifications To
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td class="danger" title="Mandatory"><code>backup_frequency</code></td>
+            <td >
+                Select</td>
+            <td >
+                Backup Frequency
+                
+            </td>
+            <td>
+                <pre>
+Daily
+Weekly</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td class="danger" title="Mandatory"><code>app_access_key</code></td>
+            <td >
+                Data</td>
+            <td >
+                App Access Key
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td class="danger" title="Mandatory"><code>app_secret_key</code></td>
+            <td >
+                Password</td>
+            <td >
+                App Secret Key
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>allow_dropbox_access</code></td>
+            <td >
+                Button</td>
+            <td >
+                Allow Dropbox Access
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>dropbox_access_key</code></td>
+            <td >
+                Password</td>
+            <td class="text-muted" title="Hidden">
+                Dropbox Access Key
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
+            <td ><code>dropbox_access_secret</code></td>
+            <td >
+                Password</td>
+            <td class="text-muted" title="Hidden">
+                Dropbox Access Secret
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.dropbox_settings.dropbox_settings</h4>
+
+    
 
 
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>Controller</b></h3>
+	<h3 style="font-weight: normal;">Class <b>DropboxSettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.integration_controller.IntegrationController</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
@@ -153,7 +278,7 @@
         <a name="enable" href="#enable" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>enable</b>
-        <i class="text-muted">(self, parameters, use_test_account=0)</i>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>enable service </p>
 </div>
@@ -167,6 +292,34 @@
         <a name="get_dropbox_session" href="#get_dropbox_session" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>get_dropbox_session</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_update" href="#on_update" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate" href="#validate" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>validate</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -198,9 +351,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.backup_to_dropbox" href="#frappe.integrations.dropbox_integration.backup_to_dropbox" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.backup_to_dropbox" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.backup_to_dropbox" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>backup_to_dropbox</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>backup_to_dropbox</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -213,12 +366,12 @@
         
     
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.dropbox_integration.dropbox_callback</code>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.dropbox_callback" href="#frappe.integrations.dropbox_integration.dropbox_callback" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>dropbox_callback</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>dropbox_callback</b>
         <i class="text-muted">(oauth_token=None, not_approved=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -231,12 +384,12 @@
         
     
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.dropbox_integration.get_dropbox_authorize_url</code>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_authorize_url</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.get_dropbox_authorize_url" href="#frappe.integrations.dropbox_integration.get_dropbox_authorize_url" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_authorize_url" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_authorize_url" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>get_dropbox_authorize_url</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_dropbox_authorize_url</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -250,9 +403,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.get_dropbox_client" href="#frappe.integrations.dropbox_integration.get_dropbox_client" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_client" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_client" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>get_dropbox_client</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_dropbox_client</b>
         <i class="text-muted">(previous_dropbox_client=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -264,11 +417,29 @@
 	
         
     
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_service_details</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.send_email" href="#frappe.integrations.dropbox_integration.send_email" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.send_email" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.send_email" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>send_email</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>send_email</b>
         <i class="text-muted">(success, service_name, error_status=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -280,29 +451,13 @@
 	
         
     
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.setup_parameter" href="#frappe.integrations.dropbox_integration.setup_parameter" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>setup_parameter</b>
-        <i class="text-muted">(request_token, doc)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.dropbox_integration.take_backup</code>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.take_backup" href="#frappe.integrations.dropbox_integration.take_backup" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>take_backup</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>take_backup</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>Enqueue longjob for taking backup to dropbox</p>
@@ -316,9 +471,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.take_backup_to_dropbox" href="#frappe.integrations.dropbox_integration.take_backup_to_dropbox" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>take_backup_to_dropbox</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>take_backup_to_dropbox</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -332,9 +487,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.take_backups_daily" href="#frappe.integrations.dropbox_integration.take_backups_daily" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>take_backups_daily</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>take_backups_daily</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -348,9 +503,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.take_backups_if" href="#frappe.integrations.dropbox_integration.take_backups_if" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_if" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_if" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>take_backups_if</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>take_backups_if</b>
         <i class="text-muted">(freq)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -364,9 +519,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.take_backups_weekly" href="#frappe.integrations.dropbox_integration.take_backups_weekly" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>take_backups_weekly</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>take_backups_weekly</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -380,9 +535,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.upload_file_to_dropbox" href="#frappe.integrations.dropbox_integration.upload_file_to_dropbox" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.upload_file_to_dropbox" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.upload_file_to_dropbox" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>upload_file_to_dropbox</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>upload_file_to_dropbox</b>
         <i class="text-muted">(filename, folder, dropbox_client)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -396,9 +551,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.dropbox_integration.upload_from_folder" href="#frappe.integrations.dropbox_integration.upload_from_folder" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.upload_from_folder" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.upload_from_folder" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.dropbox_integration.<b>upload_from_folder</b>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>upload_from_folder</b>
         <i class="text-muted">(path, dropbox_folder, dropbox_client, did_not_upload, error_log)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -408,8 +563,13 @@
 	
 
 
+    
+    
+
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 				</div>
 			</div>

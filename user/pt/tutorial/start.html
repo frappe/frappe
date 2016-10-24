@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Scheduler Log</title>
+	<title>Iniciando o Bench</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/models/core/scheduler_log">
+<body data-path="user/pt/tutorial/start">
 	<div class="main-section">
 		<div>
 				<header>
@@ -87,14 +87,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/core/scheduler_log" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/pt/tutorial/start" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -102,8 +102,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="icon icon-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/core">
-		Module core</a>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
 	</li>
 	
 </ul>
@@ -111,7 +111,9 @@
 									
 								</div>
 								
-								<h1>Scheduler Log</h1>
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -121,153 +123,55 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: Scheduler Log -->
+<h1>Iniciando o Bench</h1>
 
+<p>Agora podemos logar e verificar se tudo funcionou.</p>
 
+<p>Para iniciar o servidor de desenvolvimento, digite <code>bench start</code></p>
 
+<pre><code>$ bench start
+13:58:51 web.1        | started with pid 22135
+13:58:51 worker.1     | started with pid 22136
+13:58:51 workerbeat.1 | started with pid 22137
+13:58:52 web.1        |  * Running on http://0.0.0.0:8000/
+13:58:52 web.1        |  * Restarting with reloader
+13:58:52 workerbeat.1 | [2014-09-17 13:58:52,343: INFO/MainProcess] beat: Starting...
+</code></pre>
 
+<p>Agora você pode abrir o seu navegador e ir para <code>http://localhost:8000</code>. Você deve ver esta página de login, se tudo correu bem:</p>
 
-<div class="dev-header">
+<p><img class="screenshot" alt="Login Screen" src="https://frappe.github.io/frappe/assets/img/login.png"></p>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
+<p>Agora logue com :</p>
 
+<p>Login ID: <strong>Administrator</strong></p>
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/core/doctype/scheduler_log"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+<p>Senha : <strong>Use a senha que foi criada durante a instalação</strong></p>
 
-</div>
+<p>Quando voce logar, voce deverá ver o "Desk" da pagine home</p>
 
+<p><img class="screenshot" alt="Desk" src="https://frappe.github.io/frappe/assets/img/desk.png"></p>
 
+<p>Como você pode ver, o básico do sistema Frappe vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.</p>
 
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/models">Criando modelos</a></p></p>
 
-
-    <p><b>Table Name:</b> <code>tabScheduler Log</code></p>
-
-
-Log of Scheduler Errors
-
-<h3>Fields</h3>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th style="width: 5%">Sr</th>
-            <th style="width: 25%">Fieldname</th>
-            <th style="width: 20%">Type</th>
-            <th style="width: 25%">Label</th>
-            <th style="width: 25%">Options</th>
-        </tr>
-    </thead>
-    <tbody>
-        
-        <tr >
-            <td>1</td>
-            <td ><code>seen</code></td>
-            <td >
-                Check</td>
-            <td class="text-muted" title="Hidden">
-                Seen
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>2</td>
-            <td ><code>method</code></td>
-            <td >
-                Data</td>
-            <td >
-                Method
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>3</td>
-            <td ><code>error</code></td>
-            <td >
-                Code</td>
-            <td >
-                Error
-                
-            </td>
-            <td></td>
-        </tr>
-        
-    </tbody>
-</table>
-
-
-    <hr>
-    <h3>Controller</h3>
-    <h4>frappe.core.doctype.scheduler_log.scheduler_log</h4>
-
-    
-
-
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>SchedulerLog</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="onload" href="#onload" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>onload</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-    </div>
-    <hr>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen" href="#frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		frappe.core.doctype.scheduler_log.scheduler_log.<b>set_old_logs_as_seen</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-
-    
-    
-
-
-<!-- autodoc -->
-<!-- jinja -->
-<!-- static -->
 </div>
 				</div>
 			</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/start.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">

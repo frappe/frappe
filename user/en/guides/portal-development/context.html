@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Adding to context</title>
+	<title>Dynamic Pages</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -94,7 +94,7 @@
 				<div class=" page-content col-sm-12 ">
 					<div class="page-content-wrapper">
 						<div class="row page-head">
-							<div class="col-sm-8 col-xs-6">
+							<div class='col-sm-12'>
 								
 								<div class="page-breadcrumbs">
 									
@@ -111,6 +111,8 @@
 									
 								</div>
 								
+							</div>
+							<div class="col-sm-8 col-xs-6">
 								
 							</div>
 							<div class="col-sm-4 col-xs-6">
@@ -121,15 +123,32 @@
 						</div>
 					</div>
 					<div class="page_content">
-<h1>Adding to context</h1>
+<h1>Dynamic Pages</h1>
 
-<p>You can add more data for the pages by adding a <code>.py</code> file with the same filename (e.g. <code>index.py</code> for <code>index.md</code>) with a <code>get_context</code> method.</p>
+<p>You can render pages dynamically using Jinja templating language. To query data, you can update that <code>context</code> object that you pass to the template.</p>
 
-<pre><code>def get_context(context):
-    context.data = frappe.db.sql("some query")
+<p>This can be done by adding a <code>.py</code> file with the same filename (e.g. <code>index.py</code> for <code>index.md</code>) with a <code>get_context</code> method.</p>
+
+<h3>Example</h3>
+
+<p>If you want to show a page to see users, make a <code>users.html</code> and <code>users.py</code> file in the <code>www/</code> folder.</p>
+
+<p>In <code>users.py</code>:</p>
+
+<pre><code>import frappe
+def get_context(context):
+    context.users = frappe.db.sql("select first_name, last_name from `tabUser`")
 </code></pre>
 
-<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/en/guides/portal-development/building">Building the site</a></p></p>
+<p>In <code>users.html</code>:</p>
+
+<pre><code>&lt;h3&gt;List of Users&lt;/h3&gt;
+&lt;ol&gt;
+
+&lt;/ol&gt;
+</code></pre>
+
+<p>{next}</p>
 
 </div>
 				</div>

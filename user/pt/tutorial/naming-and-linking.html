@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Nomeando e vinculando DocType</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/pt/tutorial/naming-and-linking">
+	<div class="main-section">
+		<div>
+				<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span>Frappe Framework</span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/pt/tutorial/naming-and-linking" data-path="{{ pathname }}"
+	>
+			<div class="row ">
+				
+				<div class=" page-content col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class='col-sm-12'>
+								
+								<div class="page-breadcrumbs">
+									
+									
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe//user/pt/tutorial">
+		Frappe Tutorial</a>
+	</li>
+	
+</ul>
+
+									
+								</div>
+								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
+							</div>
+							<div class="col-sm-4 col-xs-6">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
+<h1>Nomeando e vinculando DocType</h1>
+
+<p>Em seguida, vamos criar outro DocType e salva-lo também:</p>
+
+<ol>
+<li>Library Member (First Name, Last Name, Email ID, Phone, Address)</li>
+</ol>
+
+<p><img class="screenshot" alt="Doctype Saved" src="https://frappe.github.io/frappe/assets/img/naming_doctype.png"></p>
+
+<h4>Nomeação de DocTypes</h4>
+
+<p>DocTypes podem ser nomeados de diferentes formas:</p>
+
+<ol>
+<li>Com base em um campo</li>
+<li>Com base numa série</li>
+<li>Pelo controlador (Código)</li>
+<li>Prompt</li>
+</ol>
+
+<p>Isso pode ser definido através do preenchimento do campo <strong>Autoname</strong>. Para o controlador, deixe em branco.</p>
+
+<blockquote>
+  <p><strong>Search Fields</strong>: A DocType pode ser nomeado em uma série, mas ele ainda precisa ser pesquisado por nome. No nosso caso, o artigo será procurado pelo título ou o nome do autor. Portanto, este pode ser inserido no campo de pesquisa.</p>
+</blockquote>
+
+<p><img class="screenshot" alt="Autonaming and Search Field" src="https://frappe.github.io/frappe/assets/img/autoname_and_search_field.png"></p>
+
+<h4>Vinculando e selecionando campos</h4>
+
+<p>As chaves estrangeiras são especificados no Frappe como um tipo de campo <strong>Link</strong>. O DocType alvo deve ser mencionado na área de Opções de texto.</p>
+
+<p>No nosso exemplo, na Library Transaction DocType, temos que ligar o Membro da Biblioteca e o artigo.</p>
+
+<p><strong>Observação:</strong> Lembre-se que os campos link não são automaticamente configurados como chaves estrangeiras no banco de dados MariaDB, porque isso vai implicitamente indexar a coluna. Isto pode não ser ideal, mas, a validação de chave estrangeira é feito pelo Framework.</p>
+
+<p><img class="screenshot" alt="Link Field" src="https://frappe.github.io/frappe/assets/img/link_field.png"></p>
+
+<p>Para campos de multipla escolha, como mencionamos anteriormente, adicione as várias opções na caixa de entrada <strong>Options</strong>, cada opção em uma nova linha.</p>
+
+<p><img class="screenshot" alt="Select Field" src="https://frappe.github.io/frappe/assets/img/select_field.png"></p>
+
+<p>Fazer o mesmo para outros modelos.</p>
+
+<h4>Vinculando valores</h4>
+
+<p>Um modelo padrão é quando você seleciona um ID, <strong>Library Member</strong> na <strong>Library Membership</strong>, então, o primeiro e o ultimo nome dos membros devem ser copiados para os campos adequados ao gravar na Library Membership Transaction.</p>
+
+<p>Para fazer isso, podemos usar campos de somente leitura e de opções, podemos definir o nome do link e o nome do campo da propriedade que deseja buscar. Para este exemplo no <strong>Member First Name</strong> podemos definir <code>library_member.first_name</code></p>
+
+<p><img class="screenshot" alt="Fetch values" src="https://frappe.github.io/frappe/assets/img/fetch.png"></p>
+
+<h3>Complete os modelos</h3>
+
+<p>Da mesma forma, você pode completar todos os modelos de modo que os campos finais fiquem parecido com este:</p>
+
+<h4>Article</h4>
+
+<p><img class="screenshot" alt="Article" src="https://frappe.github.io/frappe/assets/img/doctype_article.png"></p>
+
+<h4>Library Member</h4>
+
+<p><img class="screenshot" alt="Library Member" src="https://frappe.github.io/frappe/assets/img/doctype_lib_member.png"></p>
+
+<h4>Library Membership</h4>
+
+<p><img class="screenshot" alt="Library Membership" src="https://frappe.github.io/frappe/assets/img/doctype_lib_membership.png"></p>
+
+<h4>Library Transaction</h4>
+
+<p><img class="screenshot" alt="Library Transaction" src="https://frappe.github.io/frappe/assets/img/doctype_lib_trans.png"></p>
+
+<blockquote>
+  <p>Lembre-se de dar permissões para <strong>Librarian</strong> em cada DocType</p>
+</blockquote>
+
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/doctype-directory-structure">Estrutura de diretórios do DocType</a></p></p>
+
+</div>
+				</div>
+			</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/pt/tutorial/naming-and-linking.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	<!-- csrf_token --></body>
+</html>
