@@ -292,7 +292,7 @@ def make_layout(doc, meta, format_data=None):
 						df = copy.copy(df)
 						df.start = i
 						df.end = None
-						page[-1][-1].append(df)
+						page[-1]['columns'][-1]['fields'].append(df)
 
 	return layout
 
