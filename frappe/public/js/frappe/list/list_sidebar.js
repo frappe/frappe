@@ -69,7 +69,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		var add_reports = function(reports) {
 			$.each(reports, function(name, r) {
-				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
+				if(!r.ref_doctype || r.ref_doctype==me.doctype && !r.disabled) {
 					var report_type = r.report_type==='Report Builder'
 						? 'Report/' + r.ref_doctype : 'query-report';
 					var route = r.route || report_type + '/' + r.name;
