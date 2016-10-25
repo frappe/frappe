@@ -17,10 +17,10 @@ ignore_list = [".DS_Store"]
 class DropboxSettings(IntegrationService):
 	scheduler_events = {
 		"daily_long": [
-			"frappe.integrations.dropbox_integration.take_backups_daily"
+			"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily"
 		],
 		"weekly_long": [
-			"frappe.integrations.dropbox_integration.take_backups_weekly"
+			"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly"
 		]
 	}
 
