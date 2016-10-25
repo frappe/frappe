@@ -64,7 +64,7 @@ class RazorpaySettings(IntegrationService):
 
 	scheduler_events = {
 		"all": [
-			"frappe.integrations.razorpay.capture_payment"
+			"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment"
 		]
 	}
 
