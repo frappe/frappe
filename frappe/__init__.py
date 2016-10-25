@@ -564,7 +564,7 @@ def new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
-def set_value(doctype, docname, fieldname, value):
+def set_value(doctype, docname, fieldname, value=None):
 	"""Set document value. Calls `frappe.client.set_value`"""
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
