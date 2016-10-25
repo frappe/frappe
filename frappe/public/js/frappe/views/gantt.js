@@ -743,7 +743,7 @@ var Bar = Class.extend({
 		}
 
 		function onmove_right(dx, dy) {
-			bar.finaldx = me.get_snap_position(me, bar, dx);
+			bar.finaldx = me.get_snap_position(dx);
 			me.update_bar_position(null, bar.owidth + bar.finaldx);
 		}
 		function onstop_right() {
@@ -965,7 +965,7 @@ var Bar = Class.extend({
 	update_details_position: function() {
 		var details_box = this.popover_group.select('.details-wrapper');
 		var pos = this.get_details_position();
-		details_box.transform("t" + pos.x + "," + pos.y);
+		details_box && details_box.transform("t" + pos.x + "," + pos.y);
 	},
 	unselect_all: function() {
 		this.canvas.selectAll('.bar-wrapper').forEach(function(el) {
