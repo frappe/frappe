@@ -23,9 +23,9 @@ def execute():
 			except DataError:
 				pass
 
-			finally:
-				if app_details["remove"]:
-					uninstall_app(app_details["app_name"])
+			
+			if app_details["remove"]:
+				uninstall_app(app_details["app_name"])
 
 	frappe.delete_doc("DocType", "Dropbox Backup")
 
@@ -55,7 +55,7 @@ def get_app_settings(app_details):
 	app_settings = get_parameters(app_details)
 	settings = app_settings["settings"]
 
-	controller = get_integration_controller(app_details["service_name"], setup=False)
+	controller = get_integration_controller(app_details["service_name"])
 
 	for d in controller.parameters_template:
 		if settings.get(d.fieldname):
