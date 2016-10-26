@@ -522,13 +522,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			})
 		});
 
-		function update_field(id, fieldname, value, callback) {
+		function update_field(name, fieldname, value, callback) {
 			frappe.call({
 				method: "frappe.client.set_value",
 				freeze: false,
 				args: {
 					doctype: me.doctype,
-					name: id,
+					name: name,
 					fieldname: fieldname,
 					value: value
 				},
@@ -542,11 +542,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	render_rows_Kanban: function(values) {
 		var me = this;
 		var kanban_board = frappe.get_route()[3];
+		// console.log(this)
 
 		frappe.model.with_doctype('Kanban Board', function() {
 			frappe.model.with_doc('Kanban Board', kanban_board, function(name, r) {
-				console.log('asdf')
+
 				var doc = frappe.get_doc('Kanban Board', kanban_board);
+				var reference_doctype = doc.reference_doctype;
+				var name = doc.name;
+				var field_name = doc.field_name;
 				var columns = doc.columns;
 
 				var columns_data = columns.map(function(column) {
@@ -556,7 +560,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					});
 					return column;
 				});
-				// console.log(columns_data);
+
 				var $kanban = $(frappe.render_template('kanban', { columns: columns }))
 					.appendTo(me.wrapper.find('.result-list'));
 
@@ -568,7 +572,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 							group: "cards",
 							ghostClass: "ghost-card",
 							chosenClass: "chosen-card",
-							filter: ".no-drag",
 							onStart: function (evt) {
 								$kanban.find('.kanban-card.compose-card').fadeOut(300);
 								$kanban.find('.kanban-cards').height('20px');
@@ -576,10 +579,21 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 							onEnd: function (evt) {
 								$kanban.find('.kanban-card.compose-card').fadeIn(300);
 								$kanban.find('.kanban-cards').height('auto');
+							},
+							onAdd: function (evt) {
+								// var value = $(evt.to).parent().data().columnValue;
+								// if(!value) return;
+								console.log(evt)
+								// frappe.model.set_value(reference_doctype, name, field_name, value);
 							}
 						});
 					}
 				}
+
+				$('.kanban-cards').on('click', '.kanban-card-wrapper', function(e) {
+					console.log(e)
+					// frappe.set_route('Form', me.doctype, )
+				})
 
 				$kanban.find('.compose-card').click(function() {
 					$(this).hide();

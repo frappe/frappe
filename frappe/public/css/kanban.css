@@ -7,8 +7,7 @@
 .kanban .kanban-column {
   flex: 0 0 230px;
   max-width: 230px;
-  background-color: #F7FAFC;
-  background-color: #f7f7f7;
+  background-color: #fafbfc;
   border-right: 1px solid #e2dfdf;
   padding: 15px;
 }

@@ -3,7 +3,6 @@
 
 frappe.ui.form.on('Kanban Board', {
 	refresh: function(frm) {
-		console.log('asdfasf')
 	},
 	reference_doctype: function(frm) {
 
@@ -25,8 +24,9 @@ frappe.ui.form.on('Kanban Board', {
 	field_name: function(frm) {
 		var field = frappe.meta.get_field(frm.doc.reference_doctype, frm.doc.field_name);
 		if(field.fieldtype === 'Select') {
+			frm.doc.columns = [];
 			field.options.split('\n').forEach(function(o, i) {
-				d = i===0 ? frm.doc.columns[0] : frm.add_child('columns');
+				d = frm.add_child('columns');
 				d.value = o;
 			});
 			frm.refresh();

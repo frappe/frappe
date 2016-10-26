@@ -51,12 +51,21 @@ frappe.views.ListSidebar = Class.extend({
 
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
+				this.page.set_title(this.doctype +" - "+ this.kanban_board);
 			}
 		}
 
 		// disable link for current view
 		this.sidebar.find('.list-link[data-view="'+ this.current_view +'"] a')
 			.attr('disabled', 'disabled').addClass('disabled');
+
+		//enable link for Kanban view
+		this.sidebar.find('.list-link[data-view="Kanban"] a')
+			.attr('disabled', null).removeClass('disabled')
+
+		// this.sidebar.find('.list-link[data-view="Kanban" .dropdown-toggle')
+		// 	.innerHTML
+
 
 		// show image link if image_view
 		if(this.doclistview.meta.image_field) {
@@ -107,10 +116,9 @@ frappe.views.ListSidebar = Class.extend({
 		add_reports(frappe.boot.user.all_reports || []);
 	},
 	setup_kanban_boards: function() {
-		// add reports linked to this doctype to the dropdown
+		// add kanban boards linked to this doctype to the dropdown
 		var me = this;
-		var added = [];
-		var dropdown = this.page.sidebar.find('.kanban-dropdown');
+		var $dropdown = this.page.sidebar.find('.kanban-dropdown');
 		var divider = false;
 
 		var boards = frappe.get_meta(this.doctype).__kanban_boards;
@@ -118,10 +126,20 @@ frappe.views.ListSidebar = Class.extend({
 		boards.forEach(function(board) {
 			var route = "List/" + board.parent + "/Kanban/" + board.name;
 			if(!divider) {
-				$('<li role="separator" class="divider"></li>').appendTo(dropdown);
+				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;
 			}
-			$('<li><a href="#'+ route + '">'+board.name+'</a></li>').appendTo(dropdown);
+			$('<li><a href="#'+ route + '">'+board.name+'</a></li>').appendTo($dropdown);
+		});
+
+		$dropdown.find('li:first-child a').click(function() {
+			frappe.new_doc('Kanban Board');
+		});
+
+		//refresh view when kanban board is clicked
+		$dropdown.find('li:not(.divider) a').click(function() {
+			me.doclistview.dirty = true;
+			me.doclistview.refresh();
 		});
 	},
 	setup_assigned_to_me: function() {
