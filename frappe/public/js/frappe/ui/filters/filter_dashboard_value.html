@@ -1,6 +1,6 @@
 	<li class="divider"></li>
 	{% if(!stat.length) { %}
-	<li class="stat-no-records text-muted" >{%= __("No records.") %}</li>
+	<li class="stat-no-records text-muted small">{%= __("No records.") %}</li>
 	{% } else {
 		for (var i=0, l=stat.length; i < l; i++) {
 			var stat_label = stat[i][0];
