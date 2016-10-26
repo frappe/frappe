@@ -47,7 +47,8 @@
   padding: 5px;
   padding-top: 10px;
 }
-.fitler-item-value {
+.fitler-item-value,
+.stat-no-records {
   padding: 0px 5px;
 }
 .filter-dash-item:after {
