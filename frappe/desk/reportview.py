@@ -191,7 +191,7 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 				fields=[tag["name"], "count(*)"],
 				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
 				group_by = tag["name"],
-				limit = 10,
+				limit = 20,
 				as_list = True)
 
 		if tag["type"] not in ['Check','Select','Date','Datetime']:
