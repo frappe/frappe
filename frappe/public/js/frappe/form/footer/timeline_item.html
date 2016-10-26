@@ -130,7 +130,7 @@
 			{% if(data.attachments && data.attachments.length) { %}
 			<div style="margin: 10px 0px">
 				{% $.each(data.attachments, function(i, a) { %}
-				<div class="text-ellipsis">
+				<div class="ellipsis">
 					<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}" class="text-muted small" target="_blank">
 						<i class="icon-paperclip"></i>
 						{%= a.file_url.split("/").slice(-1)[0] %}

@@ -37,7 +37,7 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	// save action
 	page.set_primary_action('Save', function() {
 		var hidden_list = [];
-		page.wrapper.find('input[type="checkbox"]').each(function() {
+		page.wrapper.find('input.module-select').each(function() {
 			if(!$(this).is(":checked")) {
 				hidden_list.push($(this).attr('data-module'));
 			}
@@ -64,6 +64,11 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 			frappe.set_route('applications');
 		});
 	}
+
+	// setup select all
+	$('.check-all').on('click', function() {
+		$(wrapper).find('input.module-select').prop('checked', $(this).prop('checked'));
+	});
 }
 
 frappe.pages['modules_setup'].on_page_show = function(wrapper) {

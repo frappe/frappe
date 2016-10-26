@@ -159,21 +159,23 @@ def get_stats(stats, doctype, filters=[]):
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = execute(doctype, fields=[tag, "count(*)"],
+		tagcount = frappe.get_all(doctype, fields=[tag, "count(*)"],
 			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
 			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
+			stats[tag].append(["No Tags", frappe.get_all(doctype,
+				fields=[tag, "count(*)"],
+				filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
 
 	return stats
 
 @frappe.whitelist()
-def get_dash(stats, doctype, filters=[]):
-	"""get tag info"""
+def get_filter_dashboard_data(stats, doctype, filters=[]):
+	"""get tags info"""
 	import json
 	tags = json.loads(stats)
 	if filters:
@@ -185,13 +187,20 @@ def get_dash(stats, doctype, filters=[]):
 		if not tag["name"] in columns: continue
 		tagcount = []
 		if tag["type"] not in ['Date', 'Datetime']:
-			tagcount = execute(doctype, fields=[tag["name"], "count(*)"],
-				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]], group_by = tag["name"], as_list = True)
+			tagcount = frappe.get_all(doctype,
+				fields=[tag["name"], "count(*)"],
+				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
+				group_by = tag["name"],
+				limit = 10,
+				as_list = True)
 
 		if tag["type"] not in ['Check','Select','Date','Datetime']:
 			stats[tag["name"]] = list(tagcount)
 			if stats[tag["name"]]:
-				data =["No Data",execute(doctype, fields=[tag["name"], "count(*)"], filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],  as_list=True)[0][1]]
+				data =["No Data", frappe.get_all(doctype,
+					fields=[tag["name"], "count(*)"],
+					filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
+					as_list=True)[0][1]]
 				if data and data[1]!=0:
 
 					stats[tag["name"]].append(data)
