@@ -20,6 +20,8 @@ CREATE TABLE `tabDocField` (
   `idx` int(8) NOT NULL DEFAULT 0,
   `fieldname` varchar(255) DEFAULT NULL,
   `label` varchar(255) DEFAULT NULL,
+  `tooltip` text,
+  `tooltiplink` varchar(255) DEFAULT NULL,
   `oldfieldname` varchar(255) DEFAULT NULL,
   `fieldtype` varchar(255) DEFAULT NULL,
   `oldfieldtype` varchar(255) DEFAULT NULL,
