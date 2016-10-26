@@ -191,9 +191,9 @@ class BaseDocument(object):
 			if df:
 				if df.fieldtype=="Check":
 					if d[fieldname]==None:
-						d[fieldname] = df.get('default') or 0
+						d[fieldname] = 0
 
-					if (not isinstance(d[fieldname], int) or d[fieldname] > 1):
+					elif (not isinstance(d[fieldname], int) or d[fieldname] > 1):
 						d[fieldname] = 1 if cint(d[fieldname]) else 0
 
 				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
@@ -285,6 +285,7 @@ class BaseDocument(object):
 			self.created_by = self.modifield_by = frappe.session.user
 
 		d = self.get_valid_dict()
+
 		columns = d.keys()
 		try:
 			frappe.db.sql("""insert into `tab{doctype}`

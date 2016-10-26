@@ -28,6 +28,9 @@
 .filter-header .sort-dropdown {
   margin-top: -20px;
 }
+.filter-header .dropdown-menu {
+  min-width: 150px !important;
+}
 .filter-label {
   margin: 0px;
   padding: 5px;
