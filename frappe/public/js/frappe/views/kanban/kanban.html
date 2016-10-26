@@ -1,12 +1,12 @@
 <div class="kanban">
 	{% for col in columns %}
-		<div class="kanban-column" data-column-value={{col.value}}>
+		<div class="kanban-column" data-column-value="{{col.value}}">
 			<div class="kanban-column-title h4">
 				{{ __(col.value) }}
 			</div>
 			<div class="kanban-cards">
 				{% for card in col.cards %}
-				<div class="kanban-card-wrapper" data-name={{card.name}}>
+				<div class="kanban-card-wrapper" data-name="{{card.name}}">
 					<div class="kanban-card">
 						<div class="kanban-card-title">
 							{{ __(card.subject) }}
