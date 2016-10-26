@@ -56,7 +56,6 @@ def get_bootinfo():
 
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
-	bootinfo.remember_selected = hooks.remember_selected
 
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
