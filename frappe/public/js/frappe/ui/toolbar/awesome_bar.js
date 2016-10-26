@@ -278,16 +278,17 @@ frappe.search.verbs = [
 		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
 			var report = frappe.boot.user.all_reports[match];
 			var route = [];
-			if(report.report_type == "Report Builder")
-				route = ["Report", report.ref_doctype, match];
-			else
-				route = ["query-report",  match];
+			if(!report.disabled)
+				if(report.report_type == "Report Builder")
+					route = ["Report", report.ref_doctype, match];
+				else
+					route = ["query-report",  match];
 
-			return {
-				label: __("Report {0}", [__(match).bold()]),
-				value: __("Report {0}", [__(match)]),
-				route: route
-			}
+				return {
+					label: __("Report {0}", [__(match).bold()]),
+					value: __("Report {0}", [__(match)]),
+					route: route
+				}
 		});
 	},
 
