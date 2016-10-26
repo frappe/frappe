@@ -47,6 +47,7 @@ CREATE TABLE `tabDocField` (
   `description` text,
   `in_filter` int(1) NOT NULL DEFAULT 0,
   `in_list_view` int(1) NOT NULL DEFAULT 0,
+  `in_standard_filter` int(1) NOT NULL DEFAULT 0,
   `read_only` int(1) NOT NULL DEFAULT 0,
   `precision` varchar(255) DEFAULT NULL,
   `length` int(11) NOT NULL DEFAULT 0,
@@ -152,7 +153,6 @@ CREATE TABLE `tabDocType` (
   `_user_tags` varchar(255) DEFAULT NULL,
   `custom` int(1) NOT NULL DEFAULT 0,
   `beta` int(1) NOT NULL DEFAULT 0,
-  `in_standard_filter` int(1) NOT NULL DEFAULT 0,
   `image_view` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
