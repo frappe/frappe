@@ -190,12 +190,11 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			if df:
 				if df.fieldtype=="Check":
-					if (not isinstance(d[fieldname], int) or d[fieldname] > 1):
-						d[fieldname] = 1 if cint(d[fieldname]) else 0
+					if d[fieldname]==None:
+						d[fieldname] = df.get('default') or 0
 
-					# get the default value if none, for insert / update
-					elif d[fieldname]==None:
-						d[fieldname] = df.get('default')
+					elif (not isinstance(d[fieldname], int) or d[fieldname] > 1):
+						d[fieldname] = 1 if cint(d[fieldname]) else 0
 
 				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
