@@ -53,6 +53,7 @@ class User(Document):
 
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
+			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.set_system_user()
 		self.set_full_name()
