@@ -22,6 +22,8 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	from frappe.model.document import Document
+	global _classes
+
 	if not doctype in _classes:
 		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
 			or ["Core", False]
@@ -187,8 +189,13 @@ class BaseDocument(object):
 
 			df = self.meta.get_field(fieldname)
 			if df:
-				if df.fieldtype=="Check" and (not isinstance(d[fieldname], int) or d[fieldname] > 1):
-					d[fieldname] = 1 if cint(d[fieldname]) else 0
+				if df.fieldtype=="Check":
+					if (not isinstance(d[fieldname], int) or d[fieldname] > 1):
+						d[fieldname] = 1 if cint(d[fieldname]) else 0
+
+					# get the default value if none, for insert / update
+					elif d[fieldname]==None:
+						d[fieldname] = df.get('default')
 
 				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])
@@ -273,6 +280,11 @@ class BaseDocument(object):
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		if not self.creation:
+			self.creation = self.modified = now()
+			self.created_by = self.modifield_by = frappe.session.user
+
 		d = self.get_valid_dict()
 		columns = d.keys()
 		try:
@@ -392,8 +404,9 @@ class BaseDocument(object):
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
 			elif self.parentfield:
-				return "{}: {} #{}: {}: {}".format(_("Error"), _("Row"), self.idx,
-					_("Value missing for"), _(df.label))
+
+				return "{}: {} {} #{}: {}: {}".format(_("Error"), frappe.bold(_(self.doctype)),
+					_("Row"), self.idx, _("Value missing for"), _(df.label))
 
 			else:
 				return "{}: {}: {}".format(_("Error"), _("Value missing for"), _(df.label))

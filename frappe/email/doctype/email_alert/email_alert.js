@@ -25,7 +25,8 @@ frappe.email_alert = {
 					get_select_options(d) : null; }));
 
 			var email_fields = $.map(fields,
-				function(d) { return d.options == "Email" ?
+				function(d) { return (d.options == "Email" ||
+					(d.options=='User' && d.fieldtype=='Link')) ?
 					get_select_options(d) : null; });
 
 			// set email recipient options
@@ -48,6 +49,7 @@ frappe.ui.form.on("Email Alert", {
 	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
+		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
 	document_type: function(frm) {

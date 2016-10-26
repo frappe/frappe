@@ -15,6 +15,9 @@ from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 
 class Newsletter(Document):
+	def autoname(self):
+		self.name = self.subject
+
 	def onload(self):
 		if self.email_sent:
 			self.get("__onload").status_count = dict(frappe.db.sql("""select status, count(name)

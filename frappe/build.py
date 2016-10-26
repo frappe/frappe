@@ -57,23 +57,25 @@ def make_asset_dirs(make_copy=False):
 	# symlink app/public > assets/app
 	for app_name in frappe.get_all_apps(True):
 		pymodule = frappe.get_module(app_name)
-		source = os.path.join(os.path.abspath(os.path.dirname(pymodule.__file__)), 'public')
-		target = os.path.join(assets_path, app_name)
+		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
 
-		if not os.path.exists(target) and os.path.exists(source):
-			if make_copy:
-				shutil.copytree(os.path.abspath(source), target)
-			else:
-				os.symlink(os.path.abspath(source), target)
+		symlinks = []
+		symlinks.append([os.path.join(app_base_path, 'public'), os.path.join(assets_path, app_name)])
+		symlinks.append([os.path.join(app_base_path, 'docs'), os.path.join(assets_path, app_name + '_docs')])
+
+		for source, target in symlinks:
+			source = os.path.abspath(source)
+			if not os.path.exists(target) and os.path.exists(source):
+				if make_copy:
+					shutil.copytree(source, target)
+				else:
+					os.symlink(source, target)
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 	for target, sources in get_build_maps().iteritems():
 		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
-
-	shutil.copy(os.path.join(os.path.dirname(os.path.abspath(frappe.__file__)), 'data', 'languages.txt'), frappe.local.sites_path)
-	# reset_app_html()
 
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""

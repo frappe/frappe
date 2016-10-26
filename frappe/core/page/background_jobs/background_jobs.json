@@ -1,0 +1,22 @@
+{
+ "content": null, 
+ "creation": "2016-08-18 16:44:14.322642", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2016-08-18 16:48:11.577611", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "background_jobs", 
+ "owner": "Administrator", 
+ "page_name": "background_jobs", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Background Jobs"
+}

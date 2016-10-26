@@ -1,0 +1,12 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Payment Cancelled") }}{% endblock %}
+
+{%- block header -%}
+<h2>{{ _("Payment Cancelled") }}<h2>
+{% endblock %}
+
+{%- block page_content -%}
+<p>{{ _("You have cancelled the payment") }}</p>
+<p><br><a href="/">Back to home page</a></p>
+{% endblock %}

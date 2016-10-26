@@ -102,6 +102,12 @@ kbd {
   font-size: 12px;
   border-radius: 0px 0px 4px 4px;
 }
+.dropdown-menu .dropdown-header {
+  padding: 3px 14px;
+  font-size: 11px;
+  font-weight: 200;
+  padding-top: 12px;
+}
 .dropdown-menu .divider {
   margin: 0px;
 }
@@ -221,6 +227,13 @@ a.no-decoration:active {
 .grayscale {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
+}
+.uppercase {
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: #8D99A6;
 }
 .avatar {
   display: inline-block;
@@ -579,6 +592,7 @@ fieldset {
   font-weight: 500 !important;
 }
 .web-sidebar .sidebar-items {
+  margin-top: -10px;
   margin-bottom: 30px;
 }
 .web-sidebar .sidebar-items .title {
@@ -620,7 +634,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 15px 0px;
+  padding: 10px;
+  margin: 0px -15px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -797,7 +812,6 @@ a.active {
 }
 .page-content.with-sidebar {
   padding-left: 50px;
-  padding-right: 50px;
 }
 @media screen and (max-width: 480px) {
   .page-content {

@@ -3,13 +3,19 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
+import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, nowdate
 from frappe.utils.jinja import validate_template
+from frappe.modules.utils import export_module_json, get_doc_module
+from markdown2 import markdown
 
 class EmailAlert(Document):
+	def autoname(self):
+		if not self.name:
+			self.name = self.subject
+
 	def validate(self):
 		validate_template(self.subject)
 		validate_template(self.message)
@@ -22,6 +28,27 @@ class EmailAlert(Document):
 
 		self.validate_forbidden_types()
 		self.validate_condition()
+
+	def on_update(self):
+		frappe.cache().hdel('email_alerts', self.document_type)
+		path = export_module_json(self, self.is_standard, self.module)
+		if path:
+			# js
+			if not os.path.exists(path + '.md') and not os.path.exists(path + '.html'):
+				with open(path + '.md', 'w') as f:
+					f.write(self.message)
+
+			# py
+			if not os.path.exists(path + '.py'):
+				with open(path + '.py', 'w') as f:
+					f.write("""from __future__ import unicode_literals
+
+import frappe
+
+def get_context(context):
+	# do your magic here
+	pass
+""")
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -60,6 +87,67 @@ class EmailAlert(Document):
 
 		return docs
 
+	def send(self, doc):
+		'''Build recipients and send email alert'''
+		context = get_context(doc)
+
+		for recipient in self.recipients:
+			recipients = []
+			if recipient.condition:
+				if not eval(recipient.condition, context):
+					continue
+			if recipient.email_by_document_field:
+				if validate_email_add(doc.get(recipient.email_by_document_field)):
+					recipients.append(doc.get(recipient.email_by_document_field))
+				# else:
+				# 	print "invalid email"
+			if recipient.cc:
+				recipient.cc = recipient.cc.replace(",", "\n")
+				recipients = recipients + recipient.cc.split("\n")
+
+		if not recipients:
+			return
+
+		subject = self.subject
+
+		context = {"doc": doc, "alert": self, "comments": None}
+
+		if self.is_standard:
+			self.load_standard_properties(context)
+
+		if doc.get("_comments"):
+			context["comments"] = json.loads(doc.get("_comments"))
+
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context)
+
+		frappe.sendmail(recipients=recipients, subject=subject,
+			message= frappe.render_template(self.message, context),
+			reference_doctype = doc.doctype,
+			reference_name = doc.name,
+			attachments = [frappe.attach_print(doc.doctype, doc.name)] if self.attach_print else None)
+
+	def load_standard_properties(self, context):
+		module = get_doc_module(self.module, self.doctype, self.name)
+		if module:
+			if hasattr(module, 'get_context'):
+				out = module.get_context(context)
+				if out: context.update(out)
+
+			def load_template(extn):
+				template_path = os.path.join(os.path.dirname(module.__file__),
+					frappe.scrub(self.name) + extn)
+				if os.path.exists(template_path):
+					with open(template_path, 'r') as f:
+						self.message = f.read()
+					return True
+
+			# get template
+			if not load_template('.html'):
+				if load_template('.md'):
+					self.message = markdown(self.message)
+
+
 @frappe.whitelist()
 def get_documents_for_today(email_alert):
 	email_alert = frappe.get_doc('Email Alert', email_alert)
@@ -70,89 +158,42 @@ def trigger_daily_alerts():
 	trigger_email_alerts(None, "daily")
 
 def trigger_email_alerts(doc, method=None):
-	from jinja2 import TemplateError
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send email alerts while syncing or patching
 		return
 
 	if method == "daily":
-
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
 			alert = frappe.get_doc("Email Alert", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
-	else:
-		if method in ("on_update", "validate") and doc.flags.in_insert:
-			# don't call email alerts multiple times for inserts
-			# on insert only "New" type alert must be called
-			return
-
-		eevent = {
-			"on_update": "Save",
-			"after_insert": "New",
-			"validate": "Value Change",
-			"on_submit": "Submit",
-			"on_cancel": "Cancel",
-		}[method]
-
-		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
-			where document_type=%s and event=%s and enabled=1""", (doc.doctype, eevent)):
-			try:
-				evaluate_alert(doc, alert, eevent)
-			except TemplateError:
-				frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def evaluate_alert(doc, alert, event):
-	if isinstance(alert, basestring):
-		alert = frappe.get_doc("Email Alert", alert)
+	from jinja2 import TemplateError
+	try:
+		if isinstance(alert, basestring):
+			alert = frappe.get_doc("Email Alert", alert)
 
-	context = get_context(doc)
+		context = get_context(doc)
 
-	if alert.condition:
-		if not eval(alert.condition, context):
-			return
+		if alert.condition:
+			if not eval(alert.condition, context):
+				return
 
-	if event=="Value Change" and not doc.is_new():
-		if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
-			doc.name, alert.value_changed):
-			return # value not changed
+		if event=="Value Change" and not doc.is_new():
+			if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
+				doc.name, alert.value_changed):
+				return # value not changed
 
-	for recipient in alert.recipients:
-		recipients = []
-		if recipient.condition:
-			if not eval(recipient.condition, context):
-				continue
-		if recipient.email_by_document_field:
-			if validate_email_add(doc.get(recipient.email_by_document_field)):
-				recipients.append(doc.get(recipient.email_by_document_field))
-			# else:
-			# 	print "invalid email"
-		if recipient.cc:
-			recipient.cc = recipient.cc.replace(",", "\n")
-			recipients = recipients + recipient.cc.split("\n")
+		if event != "Value Change" and not doc.is_new():
+			# reload the doc for the latest values & comments,
+			# except for validate type event.
+			doc = frappe.get_doc(doc.doctype, doc.name)
 
-	if not recipients:
-		return
-
-	subject = alert.subject
-
-	if event != "Value Change" and not doc.is_new():
-		# reload the doc for the latest values & comments,
-		# except for validate type event.
-		doc = frappe.get_doc(doc.doctype, doc.name)
-
-	context = {"doc": doc, "alert": alert, "comments": None}
-
-	if doc.get("_comments"):
-		context["comments"] = json.loads(doc.get("_comments"))
-
-	if "{" in subject:
-		subject = frappe.render_template(alert.subject, context)
-
-	frappe.sendmail(recipients=recipients, subject=subject,
-		message= frappe.render_template(alert.message, context), reference_doctype = doc.doctype, reference_name = doc.name,
-		attachments = [frappe.attach_print(doc.doctype, doc.name)] if alert.attach_print else None)
+		alert.send(doc)
+	except TemplateError:
+		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate}

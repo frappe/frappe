@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 	Thus providing a better UI from user perspective
 """
 import frappe
+import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
@@ -54,7 +55,8 @@ docfield_properties = {
 	'default': 'Text',
 	'precision': 'Select',
 	'read_only': 'Check',
-	'length': 'Int'
+	'length': 'Int',
+	'columns': 'Int'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -83,7 +85,35 @@ class CustomizeForm(Document):
 				new_d[property] = d.get(property)
 			self.append("fields", new_d)
 
+		# load custom translation
+		translation = self.get_name_translation()
+		self.label = translation.target_name if translation else ''
+
 		# NOTE doc is sent to clientside by run_method
+
+	def get_name_translation(self):
+		'''Get translation object if exists of current doctype name in the default language'''
+		return frappe.get_value('Translation',
+			{'source_name': self.doc_type, 'language_code': frappe.local.lang or 'en'},
+			['name', 'target_name'], as_dict=True)
+
+	def set_name_translation(self):
+		'''Create, update custom translation for this doctype'''
+		current = self.get_name_translation()
+		if current:
+			if self.label and current!=self.label:
+				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
+				frappe.translate.clear_cache()
+			else:
+				# clear translation
+				frappe.delete_doc('Translation', current.name)
+
+		else:
+			if self.label:
+				frappe.get_doc(dict(doctype='Translation',
+					source_name=self.doc_type,
+					target_name=self.label,
+					language_code=frappe.local.lang or 'en')).insert()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -101,9 +131,17 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
+		self.flags.update_db = False
+
 		self.set_property_setters()
 		self.update_custom_fields()
+		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+
+		if self.flags.update_db:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.doc_type)
+
 
 		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
@@ -117,7 +155,6 @@ class CustomizeForm(Document):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=doctype_properties[property])
 
-		update_db = False
 		for df in self.get("fields"):
 			if df.get("__islocal"):
 				continue
@@ -144,10 +181,10 @@ class CustomizeForm(Document):
 
 					elif property == "precision" and cint(df.get("precision")) > 6 \
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
-						update_db = True
+						self.flags.update_db = True
 
 					elif property == "unique":
-						update_db = True
+						self.flags.update_db = True
 
 					elif (property == "read_only" and cint(df.get("read_only"))==0
 						and frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only")==1):
@@ -158,16 +195,14 @@ class CustomizeForm(Document):
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
 
-		if update_db:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.doc_type)
-
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("__islocal"):
-				self.add_custom_field(df, i)
-			else:
-				self.update_in_custom_field(df, i)
+			if df.get("is_custom_field"):
+				if not frappe.db.exists('Custom Field', {'dt': self.doc_type, 'fieldname': df.fieldname}):
+					self.add_custom_field(df, i)
+					self.flags.update_db = True
+				else:
+					self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
 
@@ -179,7 +214,8 @@ class CustomizeForm(Document):
 		for property in docfield_properties:
 			d.set(property, df.get(property))
 
-		d.insert_after = self.fields[i-1].fieldname
+		if i!=0:
+			d.insert_after = self.fields[i-1].fieldname
 		d.idx = i
 
 		d.insert()
@@ -189,6 +225,7 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not (meta_df and meta_df[0].get("is_custom_field")):
+			# not a custom field
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
@@ -202,15 +239,17 @@ class CustomizeForm(Document):
 				changed = True
 
 		# check and update `insert_after` property
-		insert_after = self.fields[i-1].fieldname
-		if custom_field.insert_after != insert_after:
-			custom_field.insert_after = insert_after
-			custom_field.idx = i
-			changed = True
+		if i!=0:
+			insert_after = self.fields[i-1].fieldname
+			if custom_field.insert_after != insert_after:
+				custom_field.insert_after = insert_after
+				custom_field.idx = i
+				changed = True
 
 		if changed:
-			custom_field.flags.ignore_validate = True
-			custom_field.save()
+			custom_field.db_update()
+			self.flags.update_db = True
+			#custom_field.save()
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)

@@ -18,8 +18,8 @@ def get_roles_and_doctypes():
 			istable=0 and
 			name not in ('DocType') and
 			exists(select * from `tabDocField` where parent=dt.name)""")],
-		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where name not in
-			('Administrator')""")]
+		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where
+			name != 'Administrator' and disabled=0""")]
 	}
 
 @frappe.whitelist()

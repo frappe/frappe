@@ -24,6 +24,9 @@ class WebPage(WebsiteGenerator):
 		return self.title
 
 	def get_context(self, context):
+		if context.main_section == None:
+			context.main_section = ''
+
 		# if static page, get static content
 		if context.slideshow:
 			context.update(get_slideshow(self))

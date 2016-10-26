@@ -23,6 +23,7 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
 from frappe.modules import load_doctype_module
+from frappe import _
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -117,7 +118,19 @@ class Meta(Document):
 		return True if self.get_field(fieldname) else False
 
 	def get_label(self, fieldname):
-		return self.get_field(fieldname).label
+		'''Get label of the given fieldname'''
+		df = self.get_field(fieldname)
+		if df:
+			label = df.label
+		else:
+			label = {
+				'name': _('ID'),
+				'owner': _('Created By'),
+				'modified_by': _('Modified By'),
+				'creation': _('Created On'),
+				'modified': _('Last Modified On')
+			}.get(fieldname) or _('No Label')
+		return label
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -268,11 +281,13 @@ class Meta(Document):
 
 		This method will return the `data` property in the
 		`[doctype]_dashboard.py` file in the doctype folder'''
+		data = frappe._dict()
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
-			data = frappe._dict(module.get_data())
+			if hasattr(module, 'get_data'):
+				data = frappe._dict(module.get_data())
 		except ImportError:
-			data = frappe._dict()
+			pass
 
 		return data
 
@@ -402,7 +417,8 @@ def clear_cache(doctype=None):
 	for key in ('is_table', 'doctype_modules'):
 		cache.delete_value(key)
 
-	groups = ["meta", "form_meta", "table_columns", "last_modified", "linked_doctypes"]
+	groups = ["meta", "form_meta", "table_columns", "last_modified",
+		"linked_doctypes", 'email_alerts']
 
 	def clear_single(dt):
 		for name in groups:

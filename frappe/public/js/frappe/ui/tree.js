@@ -8,10 +8,10 @@ frappe.ui.Tree = Class.extend({
 	init: function(args) {
 		$.extend(this, args);
 		this.nodes = {};
-		this.$w = $('<div class="tree">').appendTo(this.parent);
+		this.wrapper = $('<div class="tree">').appendTo(this.parent);
 		this.rootnode = new frappe.ui.TreeNode({
 			tree: this,
-			parent: this.$w,
+			parent: this.wrapper,
 			label: this.label,
 			parent_label: null,
 			expandable: true,
@@ -53,7 +53,7 @@ frappe.ui.TreeNode = Class.extend({
 		this.$a = $('<span class="tree-link">')
 			.click(function(event) {
 				me.tree.selected_node = me;
-				me.tree.$w.find(".tree-link.active").removeClass("active");
+				me.tree.wrapper.find(".tree-link.active").removeClass("active");
 				me.$a.addClass("active");
 				if(me.tree.toolbar) {
 					me.show_toolbar();
@@ -188,7 +188,7 @@ frappe.ui.TreeNode = Class.extend({
 		}
 
 		// select this link
-		this.tree.$w.find('.selected')
+		this.tree.wrapper.find('.selected')
 			.removeClass('selected');
 		this.$a.toggleClass('selected');
 		this.expanded = !this.expanded;

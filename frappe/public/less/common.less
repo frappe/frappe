@@ -77,6 +77,10 @@ a.text-muted, a.text-extra-muted {
 	text-decoration: none;
 }
 
+.underline {
+	text-decoration: underline;
+}
+
 /* the element that this class is applied to, should have a max width for this to work*/
 .text-ellipsis,
 .ellipsis {
@@ -117,6 +121,14 @@ kbd {
 
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
+
+}
+
+.dropdown-menu .dropdown-header {
+	padding: 3px 14px;
+	font-size: 11px;
+	font-weight: 200;
+	padding-top: 12px;
 }
 
 .dropdown-menu .divider {
@@ -255,3 +267,12 @@ a.no-decoration& {
 	-webkit-filter: grayscale(100%);
 	filter: grayscale(100%);
 }
+
+.uppercase {
+	padding-bottom: 4px;
+	text-transform: uppercase;
+	font-size: 12px;
+	letter-spacing: 0.4px;
+	color: @text-muted;
+}
+

@@ -140,6 +140,39 @@ _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
 }
 
+_f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfield) {
+	// To set the currency in the label
+	// For example Total Cost(INR), Total Cost(USD)
+
+	var me = this;
+	var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
+	var field_label_map = {}
+	var grid_field_label_map = {}
+
+	$.each(fields_list, function(i, fname) {
+		var docfield = frappe.meta.docfield_map[doctype][fname];
+		if(docfield) {
+			var label = __(docfield.label || "").replace(/\([^\)]*\)/g, "");
+			if(parentfield) {
+				grid_field_label_map[doctype + "-" + fname] =
+					label.trim() + " (" + __(currency) + ")";
+			} else {
+				field_label_map[fname] = label.trim() + " (" + currency + ")";
+			}
+		}
+	});
+
+	$.each(field_label_map, function(fname, label) {
+		me.fields_dict[fname].set_label(label);
+	});
+
+	$.each(grid_field_label_map, function(fname, label) {
+		fname = fname.split("-");
+		var df = frappe.meta.get_docfield(fname[0], fname[1], me.doc.name);
+		if(df) df.label = label;
+	});
+}
+
 _f.Frm.prototype.field_map = function(fnames, fn) {
 	if(typeof fnames==='string') {
 		if(fnames == '*') {
@@ -209,8 +242,12 @@ _f.Frm.prototype.get_files = function() {
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	if(opt2) {
+		// on child table
+		// set_query(fieldname, parent fieldname, query)
 		this.fields_dict[opt1].grid.get_field(fieldname).get_query = opt2;
 	} else {
+		// on parent table
+		// set_query(fieldname, query)
 		this.fields_dict[fieldname].get_query = opt1;
 	}
 }

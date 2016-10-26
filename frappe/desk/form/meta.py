@@ -79,7 +79,8 @@ class FormMeta(Meta):
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + js)
+			self.set(fieldname, (self.get(fieldname) or "")
+				+ "\n\n/* Adding {0} */\n\n".format(path) + js)
 
 	def add_html_templates(self, path):
 		if self.custom:
@@ -103,7 +104,7 @@ class FormMeta(Meta):
 		custom = frappe.db.get_value("Custom Script", {"dt": self.name,
 			"script_type": "Client"}, "script") or ""
 
-		self.set("__js", (self.get('__js') or '') + "\n\n" + custom)
+		self.set("__js", (self.get('__js') or '') + "\n\n/* Appending Custom Script */\n\n" + custom)
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""

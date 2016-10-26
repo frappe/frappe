@@ -16,19 +16,24 @@ from frappe.utils import cint, cstr, flt, getdate, get_datetime
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None,
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
 	ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""
-	frappe.flags.mute_emails = True
+		
 	frappe.flags.in_import = True
 
 	# extra input params
 	params = json.loads(frappe.form_dict.get("params") or '{}')
-
+	
+	
 	if params.get("submit_after_import"):
 		submit_after_import = True
 	if params.get("ignore_encoding_errors"):
 		ignore_encoding_errors = True
+	if not params.get("no_email"):
+		no_email = False
+
+	frappe.flags.mute_emails = no_email
 
 	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 

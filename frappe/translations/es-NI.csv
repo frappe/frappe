@@ -1,0 +1,1 @@
+apps/frappe/frappe/model/base_document.py +520,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) resultarán truncadas, como caracteres máximo permitido es {2}"

@@ -36,3 +36,6 @@ schedule
 cryptography
 zxcvbn
 psutil
+unittest-xml-reporting
+xlwt
+oauthlib

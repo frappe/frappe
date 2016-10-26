@@ -8,14 +8,36 @@ import requests
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
 from frappe import _dict
-from frappe.limits import SiteExpiredError, update_limits, clear_limit
+from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
-from frappe.installer import update_site_config
 from frappe.core.doctype.user.user import MaxUsersReachedError
 
 test_records = frappe.get_test_records('User')
 
 class TestUser(unittest.TestCase):
+	def test_user_type(self):
+		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
+			first_name='Tester')).insert()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		# role with desk access
+		new_user.add_roles('_Test Role 2')
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'System User')
+
+		# clear role
+		new_user.user_roles = []
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		# role without desk access
+		new_user.add_roles('_Test Role 4')
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		frappe.delete_doc('User', new_user.name)
+
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
@@ -122,6 +144,7 @@ class TestUser(unittest.TestCase):
 		clear_limit('users')
 
 	# def test_deny_multiple_sessions(self):
+	#	from frappe.installer import update_site_config
 	# 	clear_limit('users')
 	#
 	# 	# allow one session
@@ -156,13 +179,18 @@ class TestUser(unittest.TestCase):
 	# 	test_request(conn1)
 
 	def test_site_expiry(self):
+		user = frappe.get_doc('User', 'test@example.com')
+		user.enabled = 1
+		user.new_password = 'testpassword'
+		user.save()
+
 		update_limits({'expiry': add_to_date(today(), days=-1)})
 		frappe.local.conf = _dict(frappe.get_site_config())
 
 		frappe.db.commit()
 
-		res = requests.post(get_url(), params={'cmd': 'login', 'usr': 'test@example.com', 'pwd': 'testpassword',
-			'device': 'desktop'})
+		res = requests.post(get_url(), params={'cmd': 'login', 'usr':
+			'test@example.com', 'pwd': 'testpassword', 'device': 'desktop'})
 
 		# While site is expired status code returned is 417 Failed Expectation
 		self.assertEqual(res.status_code, 417)

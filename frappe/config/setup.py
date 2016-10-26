@@ -75,7 +75,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Scheduler Log",
+					"name": "Error Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
 				{
@@ -156,8 +156,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Email Group Member",
-					"description": _("Email Group Member List"),
+					"name": "Auto Email Report",
+					"description": _("Setup Reports to be emailed at regular intervals"),
 				},
 			]
 		},
@@ -222,10 +222,19 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Dropbox Backup",
-					"description": _("Manage cloud backups on Dropbox"),
-					"hide_count": True
-				}
+					"name": "Integration Service",
+					"description": _("Centralize access to Integrations"),
+				},
+				{
+					"type": "doctype",
+					"name": "OAuth Client",
+					"description": _("Register OAuth Client App"),
+				},
+				{
+					"type": "doctype",
+					"name": "OAuth Provider Settings",
+					"description": _("Settings for OAuth Provider"),
+				},
 			]
 		},
 		{

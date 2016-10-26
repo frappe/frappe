@@ -31,7 +31,8 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
-		"defaults", "user_permissions", "roles", "home_page", "linked_with", "desktop_icons")
+		"defaults", "user_permissions", "roles", "home_page", "linked_with",
+		"desktop_icons", 'portal_menu_items')
 
 	if user:
 		for name in groups:
@@ -47,7 +48,8 @@ def clear_cache(user=None):
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
-		"app_modules", "module_app", "notification_config", 'system_settings'])
+		"app_modules", "module_app", "notification_config", 'system_settings'
+		'scheduler_events'])
 	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False, device=None):
@@ -97,7 +99,7 @@ def get():
 	"""get session boot info"""
 	from frappe.desk.notifications import \
 		get_notification_info_for_boot, get_notifications
-	from frappe.boot import get_bootinfo
+	from frappe.boot import get_bootinfo, get_unseen_notes
 	from frappe.limits import get_limits, get_expiry_message
 
 	bootinfo = None
@@ -131,6 +133,8 @@ def get():
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
+
+	bootinfo.notes = get_unseen_notes()
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)

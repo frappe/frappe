@@ -60,8 +60,13 @@ def get_script(report_name):
 	}
 
 @frappe.whitelist()
-def run(report_name, filters=()):
+def run(report_name, filters=None, user=None):
 	report = get_report_doc(report_name)
+	if not user:
+		user = frappe.session.user
+
+	if not filters:
+		filters = []
 
 	if filters and isinstance(filters, basestring):
 		filters = json.loads(filters)
@@ -86,15 +91,15 @@ def run(report_name, filters=()):
 		if report.is_standard=="Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
-			
+
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
 			if len(res) > 3:
 				chart = res[3]
-	
+
 	if report.apply_user_permissions and result:
-		result = get_filtered_data(report.ref_doctype, columns, result)
+		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result:
 		result = add_total_row(result, columns)
@@ -124,14 +129,14 @@ def add_total_row(result, columns):
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
-			
+
 		for row in result:
 			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
 				total_row[i] = flt(total_row[i]) + flt(row[i])
-			
+
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
-				
+
 		if fieldtype=="Link" and options == "Currency":
 			total_row[i] = result[0][i]
 
@@ -155,14 +160,14 @@ def add_total_row(result, columns):
 	result.append(total_row)
 	return result
 
-def get_filtered_data(ref_doctype, columns, data):
+def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
-	shared = frappe.share.get_shared(ref_doctype)
+	shared = frappe.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
-	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype))
+	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
 	if match_filters_per_doctype:
@@ -171,14 +176,14 @@ def get_filtered_data(ref_doctype, columns, data):
 			if linked_doctypes.get(ref_doctype) and shared and row[linked_doctypes[ref_doctype]] in shared:
 				result.append(row)
 
-			elif has_match(row, linked_doctypes, match_filters_per_doctype, ref_doctype, if_owner, columns_dict):
+			elif has_match(row, linked_doctypes, match_filters_per_doctype, ref_doctype, if_owner, columns_dict, user):
 				result.append(row)
 	else:
 		result = list(data)
 
 	return result
 
-def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict):
+def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
 	"""Returns True if after evaluating permissions for each linked doctype
 		- There is an owner match for the ref_doctype
 		- `and` There is a user permission match for all linked doctypes
@@ -202,7 +207,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 		if doctype==ref_doctype and if_owner:
 			idx = linked_doctypes.get("User")
 			if (idx is not None
-				and row[idx]==frappe.session.user
+				and row[idx]==user
 				and columns_dict[idx]==columns_dict.get("owner")):
 					# owner match is true
 					matched_for_doctype = True

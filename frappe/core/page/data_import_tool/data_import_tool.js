@@ -42,11 +42,15 @@ frappe.DataImportTool = Class.extend({
 				if(me.doctype) {
 
 					// render select columns
-					var doctype_list = [frappe.get_doc('DocType', me.doctype)];
+					var parent_doctype = frappe.get_doc('DocType', me.doctype);
+					parent_doctype["reqd"] = true;
+					var doctype_list = [parent_doctype];
+					
 					frappe.meta.get_table_fields(me.doctype).forEach(function(df) {
-						doctype_list.push(frappe.get_doc('DocType', df.options));
+						var d = frappe.get_doc('DocType', df.options);
+						d["reqd"]=df.reqd;
+						doctype_list.push(d);						
 					});
-
 					$(frappe.render_template("data_import_tool_columns", {doctype_list: doctype_list}))
 						.appendTo(me.select_columns.empty());
 				}
@@ -103,7 +107,8 @@ frappe.DataImportTool = Class.extend({
 				return {
 					submit_after_import: me.page.main.find('[name="submit_after_import"]').prop("checked"),
 					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
-					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked")
+					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
+					no_email: me.page.main.find('[name="no_email"]').prop("checked")
 				}
 			},
 			args: {

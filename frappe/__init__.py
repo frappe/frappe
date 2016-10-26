@@ -13,7 +13,8 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = "7.0.47"
+__version__ = '7.2.0'
+__title__ = "Frappe Framework"
 
 local = Local()
 
@@ -46,7 +47,7 @@ def _(msg, lang=None):
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg)
+	msg = cstr(msg).strip()
 
 	return get_full_dict(local.lang).get(msg) or msg
 
@@ -55,8 +56,6 @@ def get_lang_dict(fortype, name=None):
 
 	 :param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
 	 :param name: name of the document for which assets are to be returned."""
-	if local.lang=="en":
-		return {}
 	from frappe.translate import get_dict
 	return get_dict(fortype, name)
 
@@ -172,7 +171,9 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			raise IncorrectSitePath, "{0} does not exist".format(site_config)
+			print "{0} does not exist".format(local.site)
+			sys.exit(1)
+			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
@@ -273,7 +274,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if as_table and type(msg) in (list, tuple):
 		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
-	if flags.print_messages:
+	if flags.print_messages and out.msg:
 		print "Message: " + repr(out.msg).encode("utf-8")
 
 	if title:
@@ -488,7 +489,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -499,11 +500,21 @@ def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=F
 	if not user:
 		user = session.user
 
-	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
-	if hooks:
+	if doc:
 		if isinstance(doc, basestring):
 			doc = get_doc(doctype, doc)
 
+		doctype = doc.doctype
+
+		if doc.flags.ignore_permissions:
+			return True
+
+		# check permission in controller
+		if hasattr(doc, 'has_website_permission'):
+			return doc.has_website_permission(ptype, verbose=verbose)
+
+	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
+	if hooks:
 		for method in hooks:
 			result = call(method, doc=doc, ptype=ptype, user=user, verbose=verbose)
 			# if even a single permission check is Falsy
@@ -553,7 +564,7 @@ def new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
-def set_value(doctype, docname, fieldname, value):
+def set_value(doctype, docname, fieldname, value=None):
 	"""Set document value. Calls `frappe.client.set_value`"""
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
@@ -1113,7 +1124,7 @@ def as_json(obj, indent=1):
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
 
 def are_emails_muted():
-	return flags.mute_emails or conf.get("mute_emails") or False
+	return flags.mute_emails or int(conf.get("mute_emails") or 0) or False
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""
@@ -1125,13 +1136,21 @@ def get_test_records(doctype):
 	else:
 		return []
 
-def format_value(value, df, doc=None, currency=None):
+def format_value(*args, **kwargs):
 	"""Format value with given field properties.
 
 	:param value: Value to be formatted.
-	:param df: DocField object with properties `fieldtype`, `options` etc."""
+	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
 	import frappe.utils.formatters
-	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
+	return frappe.utils.formatters.format_value(*args, **kwargs)
+
+def format(*args, **kwargs):
+	"""Format value with given field properties.
+
+	:param value: Value to be formatted.
+	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(*args, **kwargs)
 
 def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None):
 	"""Get Print Format for given document.
@@ -1241,7 +1260,12 @@ log_level = None
 def logger(module=None, with_more_info=True):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module or __name__, with_more_info=with_more_info)
+	return get_logger(module or 'default', with_more_info=with_more_info)
+
+def log_error(message=None, title=None):
+	'''Log error to Error Log'''
+	get_doc(dict(doctype='Error Log', error=str(message or get_traceback()),
+		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
 	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))

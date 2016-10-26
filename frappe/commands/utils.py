@@ -171,7 +171,7 @@ def export_json(context, doctype, path, name=None):
 @click.argument('path')
 @pass_context
 def export_csv(context, doctype, path):
-	"Export data import template for DocType"
+	"Export data import template with data for DocType"
 	from frappe.core.page.data_import_tool import data_import_tool
 	for site in context.sites:
 		try:
@@ -200,6 +200,13 @@ def export_fixtures(context):
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
 	from frappe.core.page.data_import_tool import data_import_tool
+
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print 'Invalid path {0}'.format(path)
+		sys.exit(1)
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -213,12 +220,20 @@ def import_doc(context, path, force=False):
 @click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
+@click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
+
 @pass_context
-def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False):
+def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
 	"Import CSV using data import tool"
 	from frappe.core.page.data_import_tool import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
+
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print 'Invalid path {0}'.format(path)
+		sys.exit(1)
 
 	with open(path, 'r') as csvfile:
 		content = read_csv_content(csvfile.read())
@@ -227,7 +242,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 	frappe.connect()
 
 	try:
-		importer.upload(content, submit_after_import=submit_after_import,
+		importer.upload(content, submit_after_import=submit_after_import, no_email=no_email,
 			ignore_encoding_errors=ignore_encoding_errors, overwrite=not only_insert,
 			via_console=True)
 		frappe.db.commit()
@@ -284,8 +299,9 @@ def console(context):
 @click.option('--driver', help="For Travis")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False):
+def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
 	"Run tests"
 	import frappe.test_runner
 	from frappe.utils import sel
@@ -299,7 +315,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 
 	try:
 		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-			force=context.force, profile=profile)
+			force=context.force, profile=profile, junit_xml_output=junit_xml_output)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:
@@ -382,6 +398,47 @@ def get_version():
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
 
+
+
+@click.command('setup-global-help')
+@click.option('--mariadb_root_password')
+def setup_global_help(mariadb_root_password=None):
+	'''setup help table in a separate database that will be
+	shared by the whole bench and set `global_help_setup` as 1 in
+	common_site_config.json'''
+
+	from frappe.installer import update_site_config
+
+	frappe.local.flags = frappe._dict()
+	frappe.local.flags.in_setup_help = True
+	frappe.local.flags.in_install = True
+	frappe.local.lang = 'en'
+	frappe.local.conf = frappe.get_site_config(sites_path='.')
+
+	update_site_config('global_help_setup', 1,
+		site_config_path=os.path.join('.', 'common_site_config.json'))
+
+	if mariadb_root_password:
+		frappe.local.conf.root_password = mariadb_root_password
+
+	from frappe.utils.help import sync
+	sync()
+
+@click.command('setup-help')
+@pass_context
+def setup_help(context):
+	'''Setup help table in the current site (called after migrate)'''
+	from frappe.utils.help import sync
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+			sync()
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	build,
 	clear_cache,
@@ -406,4 +463,6 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
+	setup_global_help,
+	setup_help
 ]

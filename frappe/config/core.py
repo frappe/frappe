@@ -43,13 +43,18 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Scheduler Log",
+					"name": "Error Log",
 					"description": _("Errors in Background Events"),
 				},
 				{
 					"type": "doctype",
 					"name": "Email Queue",
 					"description": _("Background Email Queue"),
+				},
+				{
+					"type": "page",
+					"label": _("Background Jobs"),
+					"name": "background_jobs",
 				},
 				{
 					"type": "doctype",

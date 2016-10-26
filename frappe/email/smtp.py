@@ -66,6 +66,8 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 				frappe.OutgoingEmailError)
 
 		if email_account:
+			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
+				email_account.password = email_account.get_password()
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account

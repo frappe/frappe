@@ -47,22 +47,32 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
 
 @frappe.whitelist()
-def set_value(doctype, name, fieldname, value):
+def set_value(doctype, name, fieldname, value=None):
+	'''Set a value using get_doc, group of values
+
+	:param doctype: DocType of the document
+	:param name: name of the document
+	:param fieldname: fieldname string or JSON / dict with key value pair
+	:param value: value if fieldname is JSON / dict'''
+
 	if fieldname!="idx" and fieldname in frappe.model.default_fields:
 		frappe.throw(_("Cannot edit standard fields"))
+
+	if not value:
+		values = fieldname
+		if isinstance(fieldname, basestring):
+			values = json.loads(fieldname)
+	else:
+		values = {fieldname: value}
 
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent and doc.parenttype:
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
-		child.set(fieldname, value)
+		child.update(values)
 	else:
 		doc = frappe.get_doc(doctype, name)
-		df = doc.meta.get_field(fieldname)
-		if df.fieldtype == "Read Only" or df.read_only:
-			frappe.throw(_("Can not edit Read Only fields"))
-		else:
-			doc.set(fieldname, value)
+		doc.update(values)
 
 	doc.save()
 

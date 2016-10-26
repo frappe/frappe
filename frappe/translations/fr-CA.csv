@@ -1,0 +1,3 @@
+DocType: Email Alert,"To add dynamic subject, use jinja tags like
+
+<div><pre><code>{{ doc.name }} Delivered</code></pre></div>","Pour ajouter l'objet dynamique, utiliser des balises comme Jinja <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>"

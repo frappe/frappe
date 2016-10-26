@@ -32,10 +32,10 @@ def upload():
 			raise_exception=True)
 
 	# save
-	if filename:
+	if frappe.form_dict.filedata:
 		filedata = save_uploaded(dt, dn, folder, is_private)
 	elif file_url:
-		filedata = save_url(file_url, dt, dn, folder)
+		filedata = save_url(file_url, filename, dt, dn, folder)
 
 	comment = {}
 	if dt and dn:
@@ -60,7 +60,7 @@ def save_uploaded(dt, dn, folder, is_private):
 	else:
 		raise Exception
 
-def save_url(file_url, dt, dn, folder):
+def save_url(file_url, filename, dt, dn, folder):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
@@ -70,6 +70,7 @@ def save_url(file_url, dt, dn, folder):
 	f = frappe.get_doc({
 		"doctype": "File",
 		"file_url": file_url,
+		"fieldname": filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"folder": folder
@@ -201,8 +202,11 @@ def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
 		'file_url': file_url
 	}
 
+def get_max_file_size():
+	return conf.get('max_file_size') or 10485760
+
 def check_max_file_size(content):
-	max_file_size = conf.get('max_file_size') or 10485760
+	max_file_size = get_max_file_size()
 	file_size = len(content)
 
 	if file_size > max_file_size:
@@ -256,6 +260,8 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	if attached_to_doctype and attached_to_name:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
+		if frappe.flags.in_web_form:
+			ignore_permissions = True
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))

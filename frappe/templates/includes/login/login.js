@@ -30,6 +30,7 @@ login.bind_events = function() {
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
+		args.redirect_to = get_url_arg("redirect-to") || '';
 		args.full_name = ($("#signup_fullname").val() || "").trim();
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
 			frappe.msgprint(__("Valid email and name required"));
@@ -46,6 +47,20 @@ login.bind_events = function() {
 		args.user = ($("#forgot_email").val() || "").trim();
 		if(!args.user) {
 			frappe.msgprint(__("Valid Login id required."));
+			return false;
+		}
+		login.call(args);
+		return false;
+	});
+
+	$(".btn-ldpa-login").on("click", function(){
+		var args = {};
+		args.cmd = "{{ ldap_settings.method }}";
+		args.usr = ($("#login_email").val() || "").trim();
+		args.pwd = $("#login_password").val();
+		args.device = "desktop";
+		if(!args.usr || !args.pwd) {
+			frappe.msgprint(__("Both login and password required"));
 			return false;
 		}
 		login.call(args);
@@ -119,6 +134,10 @@ login.login_handlers = (function() {
 						localStorage.getItem("last_visited")
 						|| get_url_arg("redirect-to");
 					localStorage.removeItem("last_visited");
+				}
+
+				if(data.redirect_to) {
+					window.location.href = data.redirect_to;
 				}
 
 				if(last_visited && last_visited != "/login") {

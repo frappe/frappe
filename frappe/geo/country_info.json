@@ -1,6 +1,7 @@
 {
  "Afghanistan": {
   "code": "af",
+  "currency": "AFN",
   "currency_fraction": "Pul",
   "currency_fraction_units": 100,
   "currency_symbol": "\u060b",
@@ -2453,8 +2454,10 @@
  },
  "Ukraine": {
   "code": "ua",
+  "currency": "UAH",
   "currency_fraction": "Kopiyka",
   "currency_fraction_units": 100,
+  "currency_name": "Ukrainian Hryvnia",
   "currency_symbol": "\u20b4",
   "number_format": "#,###.##",
   "timezones": [
@@ -2620,7 +2623,7 @@
  },
  "Zambia": {
   "code": "zm",
-  "currency": "ZMK",
+  "currency": "ZMW",
   "currency_fraction": "Ngwee",
   "currency_fraction_units": 100,
   "currency_name": "Zambian Kwacha",

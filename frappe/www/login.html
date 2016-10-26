@@ -49,13 +49,18 @@
 				{%- endif -%}
 			</p>
 		{%- endif -%}
-
+		{% if ldap_settings.enabled %}
+			<p>
+				<button class="btn btn-lg btn-default btn-block btn-login btn-ldpa-login">
+						{{ _("Login via LDAP") }}</button>
+			</p>
+		{% endif %}
 	</div>
 
 		<div style="margin-top: 25px">
 		{%- if not disable_signup -%}
-			<p class="text-center small">
-				{{ _("Dont have an account? ") }}<a class="blue" href="#signup">{{ _("Sign up.") }}</a>
+			<p class="text-center">
+				{{ _("Dont have an account? ") }} <a class="btn btn-default" href="#signup">{{ _("Sign up.") }}</a>
 			</p>
 		{%- endif -%}
 		</div>
@@ -70,7 +75,7 @@
 		<br>
 		<button class="btn btn-lg btn-default btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
 		<p class="text-center small">
-			{{ _("Have an account? ") }}<a href="#login" class="blue">{{ _("Login") }}</a>
+			{{ _("Have an account? ") }} <a href="#login" class="blue">{{ _("Login") }}</a>
 		</p>
 	</form>
 

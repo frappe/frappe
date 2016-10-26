@@ -4,7 +4,13 @@ frappe.pages['print-format-builder'].on_page_load = function(wrapper) {
 }
 
 frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
-	if(frappe.route_options) {
+	var route = frappe.get_route();
+	if(route.length>1) {
+		frappe.model.with_doc('Print Format', route[1], function() {
+			frappe.print_format_builder.print_format = frappe.get_doc('Print Format', route[1]);
+			frappe.print_format_builder.refresh();
+		});
+	} else if(frappe.route_options) {
 		if(frappe.route_options.make_new) {
 			var doctype = frappe.route_options.doctype;
 			var name = frappe.route_options.name;
@@ -157,9 +163,10 @@ frappe.PrintFormatBuilder = Class.extend({
 				me.print_format = null;
 				me.refresh();
 			}, true);
-			me.page.add_menu_item(__("Edit Properties"), function() {
+			me.page.clear_inner_toolbar();
+			me.page.add_inner_button(__("Edit Properties"), function() {
 				frappe.set_route("Form", "Print Format", me.print_format.name);
-			}, true);
+			});
 		});
 	},
 	setup_sidebar: function() {
@@ -191,6 +198,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.setup_sortable();
 		this.setup_add_section();
 		this.setup_edit_heading();
+		this.setup_field_settings();
 	},
 	prepare_data: function() {
 		this.print_heading_template = null;
@@ -217,8 +225,9 @@ frappe.PrintFormatBuilder = Class.extend({
 			section.no_of_columns += 1;
 		}
 
-		var set_section = function() {
+		var set_section = function(label) {
 			section = me.get_new_section();
+			if(label) section.label = label;
 			column = null;
 			me.layout_data.push(section);
 		}
@@ -239,7 +248,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			}
 
 			if(f.fieldtype==="Section Break") {
-				set_section();
+				set_section(f.label);
 
 			} else if(f.fieldtype==="Column Break") {
 				set_column();
@@ -265,7 +274,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	get_new_section: function() {
-		return {columns: [], no_of_columns: 0};
+		return {columns: [], no_of_columns: 0, label:''};
 	},
 	get_new_column: function() {
 		return {fields: []}
@@ -296,7 +305,9 @@ frappe.PrintFormatBuilder = Class.extend({
 		// drag from fields library
 		Sortable.create(this.page.sidebar.find(".print-format-builder-fields").get(0),
 			{
-				group: {put: true, pull:"clone"},
+				group: {
+					name:'field', put: true, pull:"clone"
+				},
 				sort: false,
 				onAdd: function(evt) {
 					// on drop, trash!
@@ -318,11 +329,13 @@ frappe.PrintFormatBuilder = Class.extend({
 		var me = this;
 		Sortable.create(col, {
 			group: {
+				name: 'field',
 				put: true,
 				pull: true
 			},
 			onAdd: function(evt) {
 				// on drop, change the HTML
+
 				var $item = $(evt.item);
 				if(!$item.hasClass("print-format-builder-field")) {
 					var fieldname = $item.attr("data-fieldname");
@@ -330,11 +343,14 @@ frappe.PrintFormatBuilder = Class.extend({
 					if(fieldname==="_custom_html") {
 						var field = me.get_custom_html_field();
 					} else {
-						var field = frappe.meta.get_docfield(me.print_format.doc_type, fieldname);
+						var field = frappe.meta.get_docfield(me.print_format.doc_type,
+							fieldname);
 					}
 
-					$item.replaceWith(frappe.render_template("print_format_builder_field",
-						{field: field, me:me}))
+					var html = frappe.render_template("print_format_builder_field",
+						{field: field, me:me});
+
+					$item.replaceWith(html);
 				}
 			}
 		});
@@ -355,6 +371,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.page.main.on("click", ".section-settings", function() {
 			var section = $(this).parent().parent();
 			var no_of_columns = section.find(".section-column").length;
+			var label = section.attr('data-label');
 
 			// new dialog
 			var d = new frappe.ui.Dialog({
@@ -364,7 +381,13 @@ frappe.PrintFormatBuilder = Class.extend({
 						label:__("No of Columns"),
 						fieldname:"no_of_columns",
 						fieldtype:"Select",
-						options: ["1", "2", "3"],
+						options: ["1", "2", "3", "4"],
+					},
+					{
+						label:__("Section Heading"),
+						fieldname:"label",
+						fieldtype:"Data",
+						description: __('Will only be shown if section headings are enabled')
 					},
 					{
 						label: __("Remove Section"),
@@ -383,14 +406,62 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 			d.set_input("no_of_columns", no_of_columns + "");
+			d.set_input("label", label || "");
 
 			d.set_primary_action(__("Update"), function() {
 				// resize number of columns
 				me.update_columns_in_section(section, no_of_columns,
 					cint(d.get_value("no_of_columns")));
 
+				section.attr('data-label', d.get_value('label') || '');
+				section.find('.section-label').html(d.get_value('label') || '');
+
 				d.hide();
 			});
+
+			d.show();
+
+			return false;
+		});
+	},
+	setup_field_settings: function() {
+		var me = this;
+		this.page.main.on("click", ".field-settings", function() {
+			var field = $(this).parent();
+
+			// new dialog
+			var d = new frappe.ui.Dialog({
+				title: "Set Properties",
+				fields: [
+					{
+						label:__("Label"),
+						fieldname:"label",
+						fieldtype:"Data"
+					},
+					{
+						label: __("Align Value"),
+						fieldname: "align",
+						fieldtype: "Select",
+						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}]
+					},
+				],
+			});
+			
+			d.set_value('label', field.attr("data-label"));
+			
+			d.set_primary_action(__("Update"), function() {
+				field.attr('data-align', d.get_value('align'));
+				field.attr('data-label', d.get_value('label'));
+				field.find('.field-label').html(d.get_value('label'));
+				d.hide();
+			});
+
+			// set current value
+			if(field.attr('data-align')) {
+				d.set_value('align', field.attr('data-align'));
+			} else {
+				d.set_value('align', 'left');
+			}
 
 			d.show();
 
@@ -457,6 +528,9 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	setup_edit_heading: function() {
 		var me = this;
+		if (!me.print_heading_template) {
+			$(this.page.main.find(".print-heading")).html('<h2>'+me.print_format.doc_type+'<br><small>{{ doc.name }}</small></h2>')
+		}
 		this.page.main.find(".edit-heading").on("click", function() {
 			var $heading = $(this).parents(".print-format-builder-header:first")
 				.find(".print-format-builder-print-heading");
@@ -483,16 +557,16 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 			var $body = $(d.body);
-			
-			
+
+
 			var doc_fields = frappe.get_meta(doctype).fields;
 			var docfields_by_name = {};
-			
+
 			// docfields by fieldname
 			$.each(doc_fields, function(j, f) {
 				if(f) docfields_by_name[f.fieldname] = f;
 			})
-			
+
 			// add field which are in column_names first to preserve order
 			var fields = [];
 			$.each(column_names, function(i, v) {
@@ -502,7 +576,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			})
 			// add remaining fields
 			$.each(doc_fields, function(j, f) {
-				if (f && !in_list(column_names, f.fieldname) 
+				if (f && !in_list(column_names, f.fieldname)
 					&& !in_list(["Section Break", "Column Break"], f.fieldtype) && f.label) {
 						fields.push(f);
 				}
@@ -609,16 +683,28 @@ frappe.PrintFormatBuilder = Class.extend({
 
 		// add pages
 		this.page.main.find(".print-format-builder-section").each(function() {
-			data.push({"fieldtype": "Section Break"});
+			var section = {"fieldtype": "Section Break", 'label': $(this).attr('data-label') || '' };
+			data.push(section);
 			$(this).find(".print-format-builder-column").each(function() {
 				data.push({"fieldtype": "Column Break"});
 				$(this).find(".print-format-builder-field").each(function() {
 					var $this = $(this),
 						fieldtype = $this.attr("data-fieldtype"),
+						align = $this.attr('data-align'),
+						label = $this.attr('data-label'),
 						df = {
 							fieldname: $this.attr("data-fieldname"),
 							print_hide: 0
 						};
+						
+					if(align) {
+						df.align = align;
+					}
+					
+					if(label) {
+						df.label = label;
+					}
+
 					if(fieldtype==="Table") {
 						// append the user selected columns to visible_columns
 						var columns = $this.attr("data-columns").split(",");
@@ -653,7 +739,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			},
 			callback: function(r) {
 				me.print_format = r.message;
-				msgprint(__("Saved"));
+				frappe.show_alert({message: __("Saved"), indicator: 'green'});
 			}
 		});
 	}

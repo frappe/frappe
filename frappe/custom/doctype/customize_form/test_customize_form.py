@@ -109,7 +109,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.append("fields", {
 			"label": "Test Add Custom Field Via Customize Form",
 			"fieldtype": "Data",
-			"__islocal": 1
+			"is_custom_field": 1
 		})
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Custom Field",

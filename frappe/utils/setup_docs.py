@@ -205,7 +205,7 @@ class setup_docs(object):
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
 						f.write(frappe.render_template("templates/autodoc/pymodule.html",
-							context))
+							context).encode('utf-8'))
 
 		self.update_index_txt(module_folder)
 
@@ -272,11 +272,17 @@ class setup_docs(object):
 		frappe.local.flags.home_page = "index"
 
 		from frappe.website.router import get_pages, make_toc
-		pages = get_pages()
+		pages = get_pages(self.app)
 
 		# clear the user, current folder in target
 		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
 		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
+
+		def raw_replacer(matchobj):
+			if '{% raw %}' in matchobj.group(0):
+				return matchobj.group(0)
+			else:
+				return '{% raw %}' + matchobj.group(0) + '{% endraw %}'
 
 		cnt = 0
 		for path, context in pages.iteritems():
@@ -336,7 +342,7 @@ class setup_docs(object):
 			context.base_template_path = "templates/autodoc/base_template.html"
 
 			if '<code>' in context.source:
-				context.source = re.sub('\<code\>(.*)\</code\>', '<code>{% raw %}\g<1>{% endraw %}</code>', context.source)
+				context.source = re.sub('\<code\>(.*)\</code\>', raw_replacer, context.source)
 
 			html = frappe.render_template(context.source, context)
 

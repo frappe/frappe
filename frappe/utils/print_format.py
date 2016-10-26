@@ -40,7 +40,7 @@ def download_multi_pdf(doctype, name, format=None):
 		'title': doctype,
 	})
 
-	frappe.local.response.filecontent = get_pdf(totalhtml,options)
+	frappe.local.response.filecontent = get_pdf(totalhtml, options)
 	frappe.local.response.type = "download"
 
 @frappe.whitelist()

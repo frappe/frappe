@@ -512,13 +512,14 @@ def get_site_info():
 
 	# only get system users
 	users = frappe.get_all('User', filters={'user_type': 'System User', 'name': ('not in', STANDARD_USERS)},
-		fields=['name', 'first_name', 'last_name', 'enabled',
-			'last_login', 'last_active', 'language', 'time_zone'])
+		fields=['name', 'enabled', 'last_login', 'last_active', 'language', 'time_zone'])
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
 		# tag system managers
 		u.is_system_manager = 1 if u.name in system_managers else 0
 		u.full_name = get_fullname(u.name)
+		u.email = u.name
+		del u['name']
 
 	system_settings = frappe.db.get_singles_dict('System Settings')
 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))

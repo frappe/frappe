@@ -172,3 +172,10 @@ def get_redis_conn():
 
 	return redis.from_url(frappe.local.conf.redis_queue)
 
+def enqueue_test_job():
+	enqueue('frappe.utils.background_jobs.test_job', s=100)
+
+def test_job(s):
+	import time
+	print 'sleeping...'
+	time.sleep(s)

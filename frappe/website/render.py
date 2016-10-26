@@ -244,5 +244,8 @@ def get_doctype_from_path(path):
 	return None, None
 
 def add_csrf_token(data):
-	return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
-			frappe.local.session.data.csrf_token))
+	if frappe.local.session:
+		return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
+				frappe.local.session.data.csrf_token))
+	else:
+		return data

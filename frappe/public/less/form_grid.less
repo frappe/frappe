@@ -85,6 +85,7 @@
 	.col {
 		padding-left: 10px;
 		padding-right: 10px;
+		// overflow: hidden;
 	}
 }
 
@@ -145,13 +146,21 @@
 		}
 	}
 
-	.grid-static-col[data-fieldtype="Code"] .static-area {
-		margin-top: -5px;
+	.grid-static-col[data-fieldtype="Code"] {
+		overflow: hidden;
 
-		pre {
-			background: none;
-			border: none;
+		.static-area {
+			margin-top: -5px;
+
+			pre {
+				background: none;
+				border: none;
+			}
 		}
+	}
+
+	.grid-static-col[data-fieldtype="Text Editor"] {
+		overflow: hidden;
 	}
 
 }

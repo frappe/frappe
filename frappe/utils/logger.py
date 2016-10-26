@@ -1,16 +1,22 @@
 from __future__ import unicode_literals
 import frappe
 import logging
+from logging.handlers import RotatingFileHandler
 
 default_log_level = logging.DEBUG
+LOG_FILENAME = '../logs/frappe.log'
 
 def get_logger(module, with_more_info=True):
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
-	formatter = logging.Formatter('%(asctime)s - %(pathname)s [%(levelname)s]:\n%(message)s')
-	handler = logging.StreamHandler()
+	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
+	# handler = logging.StreamHandler()
+
+	handler = RotatingFileHandler(
+		LOG_FILENAME, maxBytes=100000, backupCount=20)
 	handler.setFormatter(formatter)
+
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
 
@@ -26,7 +32,7 @@ def get_logger(module, with_more_info=True):
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 	def filter(self, record):
-		record.msg = get_more_info_for_log() + record.msg
+		record.msg = get_more_info_for_log() + unicode(record.msg)
 		return True
 
 def get_more_info_for_log():

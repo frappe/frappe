@@ -102,12 +102,15 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
+			if len(col.fieldname) >= 64:
+				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
+
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
-				if not (1 <= new_length <= 255):
-					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+				if not (1 <= new_length <= 1000):
+					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
 				try:
 					# check for truncation
@@ -171,10 +174,11 @@ class DbTable:
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			%sindex parent(parent))
-			ENGINE=InnoDB
+			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
+				engine=self.meta.engine or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
@@ -487,13 +491,10 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		try:
-			if password:
-				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
-			else:
-				self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
-		except Exception:
-			raise
+		if password:
+			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
+		else:
+			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
 
 	def delete_user(self, target, host=None):
 		if not host:
@@ -519,7 +520,8 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
+			user, host))
 
 	def grant_select_privilges(self, db, table, user, host=None):
 		if not host:

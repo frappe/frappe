@@ -67,7 +67,7 @@ calendars = ["Event"]
 
 on_session_creation = [
 	"frappe.core.doctype.communication.feed.login_feed",
-	"frappe.core.doctype.user.user.notifify_admin_access_to_system_manager",
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
@@ -95,22 +95,13 @@ standard_queries = {
 
 doc_events = {
 	"*": {
-		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 			"frappe.core.doctype.communication.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_submit": [
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
-		],
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
 	},
@@ -129,12 +120,13 @@ scheduler_events = {
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots"
+		"frappe.utils.error.collect_error_snapshots",
+		"frappe.integration_broker.doctype.integration_service.integration_service.trigger_integration_service_events"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
 		"frappe.desk.notifications.clear_notifications",
-		"frappe.core.doctype.scheduler_log.scheduler_log.set_old_logs_as_seen",
+		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
@@ -142,17 +134,20 @@ scheduler_events = {
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.limits.update_space_usage",
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
+		"frappe.desk.page.backups.backups.delete_downloadable_backups"
 	],
 	"daily_long": [
-		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_daily"
+		"frappe.integrations.dropbox_integration.take_backups_daily"
 	],
 	"weekly_long": [
-		"frappe.integrations.doctype.dropbox_backup.dropbox_backup.take_backups_weekly"
+		"frappe.integrations.dropbox_integration.take_backups_weekly"
+	],
+	"monthly": [
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
 	]
 
 }
-
-default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"
 
 get_translated_dict = {
 	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
@@ -180,3 +175,5 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
+
+integration_services = ["PayPal", "Razorpay", "Dropbox", "LDAP"]

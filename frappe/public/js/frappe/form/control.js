@@ -605,6 +605,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		changeYear: true,
 		changeMonth: true,
 		yearRange: "-70Y:+10Y",
+		showOtherMonths: true,
+		selectOtherMonths: true
 	},
 	make_input: function() {
 		this._super();
@@ -1146,6 +1148,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+		this.translate_values = true;
 		var me = this;
 		this.setup_buttons();
 		this.setup_autocomplete();
@@ -1337,7 +1340,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			$(this).autocomplete("close");
 		})
 		.data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<strong>" + __(d.value) + "</strong>";
+			var _value = d.value;
+			if(me.translate_values) {
+				_value = __(d.value)
+			}
+			var html = "<strong>" + _value + "</strong>";
 			if(d.description && d.value!==d.description) {
 				html += '<br><span class="small">' + __(d.description) + '</span>';
 			}
@@ -1361,24 +1368,49 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if($.isPlainObject(get_query)) {
-				var filters = set_nulls(get_query);
+				var filters = null;
+				if(get_query.filters) {
+					// passed as {'filters': {'key':'value'}}
+					filters = get_query.filters;
+				} else if(get_query.query) {
 
-				// extend args for custom functions
-				$.extend(args, filters);
+					// passed as {'query': 'path.to.method'}
+					args.query = get_query;
+				} else {
 
-				// add "filters" for standard query (search.py)
-				args.filters = filters;
+					// dict is filters
+					filters = get_query;
+				}
+
+				if (filters) {
+					var filters = set_nulls(filters);
+
+					// extend args for custom functions
+					$.extend(args, filters);
+
+					// add "filters" for standard query (search.py)
+					args.filters = filters;
+				}
 			} else if(typeof(get_query)==="string") {
 				args.query = get_query;
 			} else {
+				// get_query by function
 				var q = (get_query)(this.frm && this.frm.doc, this.doctype, this.docname);
 
 				if (typeof(q)==="string") {
+					// returns a string
 					args.query = q;
 				} else if($.isPlainObject(q)) {
+					// returns a plain object with filters
 					if(q.filters) {
 						set_nulls(q.filters);
 					}
+
+					// turn off value translation
+					if(q.translate_values !== undefined) {
+						this.translate_values = q.translate_values;
+					}
+
 					// extend args for custom functions
 					$.extend(args, q);
 
