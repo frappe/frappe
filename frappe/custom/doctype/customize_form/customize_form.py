@@ -43,6 +43,7 @@ docfield_properties = {
 	'ignore_user_permissions': 'Check',
 	'in_filter': 'Check',
 	'in_list_view': 'Check',
+	'in_filter_dash': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',

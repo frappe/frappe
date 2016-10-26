@@ -78,11 +78,6 @@ frappe.views.ListView = Class.extend({
 				} else {
 					add_field(d.fieldname);
 				}
-
-				if(d.fieldtype=="Select") {
-					if(me.stats.indexOf(d.fieldname)===-1) me.stats.push(d.fieldname);
-				}
-
 				// currency field for symbol (multi-currency)
 				if(d.fieldtype=="Currency" && d.options) {
 					if(d.options.indexOf(":")!=-1) {
@@ -279,6 +274,7 @@ frappe.views.ListView = Class.extend({
 				doctype: this.doctype,
 				docname: data.name
 			},
+			list_sidebar: me.doclistview.list_sidebar,
 			user_tags: data._user_tags,
 			on_change: function(user_tags) {
 				data._user_tags = user_tags;
