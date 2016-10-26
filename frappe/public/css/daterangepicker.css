@@ -90,7 +90,7 @@
     white-space: nowrap;
     cursor: pointer; }
     .daterangepicker td.available:hover, .daterangepicker th.available:hover {
-      background-color: #eee;
+      background-color: #F0F4F7;
       border-color: transparent;
       color: inherit; }
     .daterangepicker td.week, .daterangepicker th.week {
@@ -112,7 +112,7 @@
   .daterangepicker td.start-date.end-date {
     border-radius: 4px; }
   .daterangepicker td.active, .daterangepicker td.active:hover {
-    background-color: #357ebd;
+    background-color: #5E64FF;
     border-color: transparent;
     color: #fff; }
   .daterangepicker th.month {
@@ -147,7 +147,7 @@
     padding: 0 6px 0 28px;
     width: 100%; }
     .daterangepicker .input-mini.active {
-      border: 1px solid #08c;
+      border: 1px solid #36414C;
       border-radius: 4px; }
   .daterangepicker .daterangepicker_input {
     position: relative; }
@@ -183,20 +183,20 @@
     width: 100%; }
   .ranges li {
     font-size: 13px;
-    background: #f5f5f5;
-    border: 1px solid #f5f5f5;
+    background: #F7FAFC;
+    border: 1px solid #F7FAFC;
     border-radius: 4px;
-    color: #08c;
+    color: #36414C;
     padding: 3px 12px;
     margin-bottom: 8px;
     cursor: pointer; }
     .ranges li:hover {
-      background: #08c;
-      border: 1px solid #08c;
+      background: #36414C;
+      border: 1px solid #36414C;
       color: #fff; }
     .ranges li.active {
-      background: #08c;
-      border: 1px solid #08c;
+      background: #36414C;
+      border: 1px solid #36414C;
       color: #fff; }
 
 /*  Larger Screen Styling */

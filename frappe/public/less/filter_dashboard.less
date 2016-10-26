@@ -1,0 +1,119 @@
+@import "variables.less";
+@import "mixins.less";
+
+.date-range-picker {
+    font-size:85%;
+}
+
+.filter-dashboard-wrapper {
+	display: none;
+	padding-bottom: 0px;
+}
+
+.list-filter-dashboard {
+    height: 202px;
+	margin-top: -10px;
+	margin-left: -15px;
+	margin-right: -14px;
+    overflow-x: scroll;
+	overflow-y: hidden;
+}
+
+.filter-header {
+	border-bottom: 1px solid @border-color;
+	background-color: @panel-bg;
+	padding: 3px 0px;
+
+	.search-dropdown {
+		margin-top: -23px;
+
+		.octicon {
+			font-size: 14px;
+		}
+	}
+
+	.sort-dropdown {
+		margin-top: -20px;
+	}
+}
+
+.filter-label {
+    margin: 0px;
+	padding: 5px;
+	color: @text-muted;
+}
+
+.filter-dashboard-items {
+    height: 187px;
+	margin-right: -2px;
+}
+
+.filter-dash-item {
+    width: 180px;
+    float: left;
+    height: 187px;
+    border-right:1px solid @border-color;
+}
+
+.filter-input {
+	padding: 5px;
+	padding-top: 10px;
+}
+
+.fitler-item-value {
+	padding: 0px 5px;
+}
+
+.filter-dash-item:after {
+    /*top:-10px;*/
+}
+
+.filter-sort {
+    font-size:1.5em;
+}
+
+.filter-sort-item {
+	a {
+		padding: 8px !important;
+	}
+}
+
+.filter-sort-item:hover {
+    color: @grey-link-color;
+    text-decoration: none;
+    background-color: @btn-bg;
+}
+
+.filter-stat {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 158px;
+    margin: 0px;
+}
+
+.selected {
+    vertical-align: 10%;
+    font-size: 1.2em;
+}
+
+.filter-sort-item > label {
+    float:right;
+}
+
+.filter-stat-link > .badge {
+    position: absolute;
+    float: right;
+	margin-right: 5px;
+	margin-top: 2px;
+	font-size: 11px;
+}
+
+.filter-stat-link > .stat {
+    width: 130px;
+	display: inline-block;
+	.text-ellipsis();
+}
+
+.filter-dash-controls >.filter-label {
+    padding-bottom: 5px;
+}

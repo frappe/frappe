@@ -100,7 +100,7 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.alert) {
-		frappe.show_alert(data.message);
+		frappe.show_alert(data);
 		return;
 	}
 

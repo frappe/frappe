@@ -819,7 +819,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				me.onclick();
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
-			<div class="text-ellipsis" style="display: inline-block; width: 90%;">\
+			<div class="ellipsis" style="display: inline-block; width: 90%;">\
 				<i class="icon-paper-clip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
