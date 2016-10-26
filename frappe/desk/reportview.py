@@ -15,7 +15,7 @@ def get():
 	args.save_list_settings = True
 	
 	data = compress(execute(**args))
-	if add_totals == "true":
+	if add_totals == "1":
 		data = add_totals_row(data)
 
 	return data
