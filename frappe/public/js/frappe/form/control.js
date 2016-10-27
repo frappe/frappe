@@ -60,6 +60,7 @@ frappe.ui.form.Control = Class.extend({
 				return "None";
 
 			} else if (cint(this.df.read_only)) {
+			console.log("MARKDOWN ON CHANGE");
 				if(explain) console.log("By Read Only: Read");
 				return "Read";
 
@@ -1475,6 +1476,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	editor_name: "summerEditor",
 	horizontal: false,
+	editor_change: false,
 	make_input: function() {
 		//$(this.input_area).css({"min-height":"360px"});
 		this.has_input = true;
@@ -1486,18 +1488,22 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		var me = this;
 		this.editor_wrapper = $("<div>").appendTo(this.input_area);
 		var onchange = function(value) {
-			me.md_editor.val(value);
-			me.parse_validate_and_set_in_model(value);
+			me.editor_change = true;
+			try {
+				me.md_editor.val(value);
+				me.parse_validate_and_set_in_model(value);
+			} finally {
+				me.editor_change = false;
+			}
 		}
 		this.editor = new (frappe.provide(this.editor_name))({
 			parent: this.editor_wrapper,
 			change: onchange,
 			field: this
 		});
-		/* Editor handles html formatting
 		this.editor.on_blur(function() {
-			onchange(me.editor.clean_html());
-		});*/
+			onchange(me.editor.get_value());
+		});
 		this.editor.on_keypress("ctrl+s meta+s", function() {
 			me.frm.save_or_update();
 		});
@@ -1571,6 +1577,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			: this.md_editor.val();
 	},
 	set_input: function(value) {
+		if ( this.editor_change ) {
+			return;
+		}
+
 		this._set_input(value);
 
 		// guess editor type
