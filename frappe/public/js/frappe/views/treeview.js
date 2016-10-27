@@ -68,6 +68,7 @@ frappe.views.TreeView = Class.extend({
 	},
 	make_filters: function(){
 		var me = this;
+		frappe.treeview_settings.filters = []
 		$.each(this.opts.filters || [], function(i, filter){
 			if(frappe.route_options && frappe.route_options[filter.fieldname]) {
 				filter.default = frappe.route_options[filter.fieldname]
@@ -76,6 +77,7 @@ frappe.views.TreeView = Class.extend({
 			me.page.add_field(filter).$input
 				.change(function() {
 					me.args[$(this).attr("data-fieldname")] = $(this).val();
+					frappe.treeview_settings.filters = me.args;
 					me.make_tree();
 				})
 
@@ -179,24 +181,10 @@ frappe.views.TreeView = Class.extend({
 			fields: me.fields
 		})
 
-		me.args["parent_"+me.doctype.toLowerCase()] = me.args["parent"];
+		me.args["parent_"+me.doctype.toLowerCase().replace(/ /g,'_')] = me.args["parent"];
+
 		d.set_value("is_group", 0);
 		d.set_values(me.args);
-
-		// set query to all link fields if company field exists
-		if (me.args["company"]) {
-			$.each(me.fields, function(i, field){
-				if(field.fieldtype == "Link") {
-					d.fields_dict[field.fieldname].get_query = function() {
-						return {
-							filters:{
-								"company": me.args["company"]
-							}
-						}
-					};
-				}
-			})
-		}
 
 		// create
 		d.set_primary_action(__("Create New"), function() {
@@ -246,15 +234,17 @@ frappe.views.TreeView = Class.extend({
 			this.fields = this.opts.fields;
 		}
 
-		var mandatory_fields = $.map(me.opts.meta.fields,
-			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
+		this.ignore_fields = this.opts.ignore_fields || [];
+
+		var mandatory_fields = $.map(me.opts.meta.fields, function(d) {
+			return (d.reqd || d.bold && !d.read_only) ? d : null });
 
 		var opts_field_names = this.fields.map(function(d) {
 			return d.fieldname
 		})
 
 		mandatory_fields.map(function(d) {
-			if($.inArray(d.fieldname, opts_field_names) === -1) {
+			if($.inArray(d.fieldname, me.ignore_fields) === -1 && $.inArray(d.fieldname, opts_field_names) === -1) {
 				me.fields.push(d)
 			}
 		})
