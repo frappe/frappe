@@ -29,7 +29,7 @@ def execute():
 
 def setup_integration_service(app_details, settings=None):
 	if not settings:
-		raise DataError
+		return
 
 	setup_service_settings(app_details["service_name"], settings)
 
@@ -48,16 +48,17 @@ def get_app_settings(app_details):
 	doctype = docname = app_details["doctype"]
 
 	app_settings = get_parameters(app_details)
-	settings = app_settings["settings"]
+	if app_settings:		
+		settings = app_settings["settings"]
+		frappe.reload_doc("integrations", "doctype", 			"{0}_settings".format(app_details["service_name"].lower()))
+		controller = frappe.get_meta("{0} Settings".format(app_details["service_name"]))
 
-	controller = frappe.get_meta("{0} Settings".format(app_details["service_name"]))
+		for d in controller.fields:
+			if settings.get(d.fieldname):
+				if ''.join(set(settings.get(d.fieldname))) == '*':
+					setattr(settings, d.fieldname, get_decrypted_password(doctype, docname, d.fieldname, raise_exception=True))
 
-	for d in controller.fields:
-		if settings.get(d.fieldname):
-			if ''.join(set(settings.get(d.fieldname))) == '*':
-				setattr(settings, d.fieldname, get_decrypted_password(doctype, docname, d.fieldname, raise_exception=True))
-
-			parameters.update({d.fieldname : settings.get(d.fieldname)})
+				parameters.update({d.fieldname : settings.get(d.fieldname)})
 
 	return parameters
 
@@ -86,7 +87,7 @@ def get_parameters(app_details):
 			["dropbox_access_key", "dropbox_access_secret", "upload_backups_to_dropbox"], as_dict=1)
 
 		if not (frappe.conf.dropbox_access_key and frappe.conf.dropbox_secret_key):
-			raise DataError
+			return
 
 		return {
 			"settings": {
@@ -99,8 +100,6 @@ def get_parameters(app_details):
 		}
 
 def setup_service_settings(service_name, settings):
-	frappe.reload_doc("integrations", "doctype", "{0}_settings".format(service_name.lower()))
-
 	service_doc = frappe.get_doc("{0} Settings".format(service_name))
 	service_doc.update(settings)
 	service_doc.flags.ignore_mandatory = True
