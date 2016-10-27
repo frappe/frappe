@@ -526,7 +526,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	update_field: function (name, fieldname, value, callback) {
 		frappe.call({
 			method: "frappe.client.set_value",
-			freeze: false,
 			args: {
 				doctype: this.doctype,
 				name: name,
@@ -541,73 +540,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		var kanban_board = frappe.get_route()[3];
 
-		frappe.model.with_doctype('Kanban Board', function() {
-			frappe.model.with_doc('Kanban Board', kanban_board, function(name, r) {
-
-				var doc = frappe.get_doc('Kanban Board', kanban_board);
-				var reference_doctype = doc.reference_doctype;
-				var name = doc.name;
-				var field_name = doc.field_name;
-				var columns = doc.columns;
-
-				var cards = {};
-				values.forEach(function(value) {
-					cards[value.name] = value;
-				});
-
-				var columns_data = columns.map(function(column) {
-					var status = column.value;
-					column.cards = values.filter(function(value) {
-						return value.status === status;
-					});
-					return column;
-				});
-
-				var $kanban = $(frappe.render_template('kanban', { columns: columns }))
-					.appendTo(me.wrapper.find('.result-list'));
-
-				var lists = document.getElementsByClassName("kanban-cards");
-				for(key in lists) {
-					if(lists.hasOwnProperty(key)) {
-						var list = lists[key];
-						Sortable.create(list, {
-							group: "cards",
-							ghostClass: "ghost-card",
-							chosenClass: "chosen-card",
-							onStart: function (evt) {
-								$kanban.find('.kanban-card.compose-card').fadeOut(300);
-								$kanban.find('.kanban-cards').height('20px');
-							},
-							onEnd: function (evt) {
-								$kanban.find('.kanban-card.compose-card').fadeIn(300);
-								$kanban.find('.kanban-cards').height('auto');
-							},
-							onAdd: function (evt) {
-								var column_value = $(evt.to).parent().data().columnValue;
-								var card_name = $(evt.item).data().name;
-								if(!column_value) return;
-								me.update_field(card_name, field_name, column_value, function(r){
-									console.log(r);
-								});
-							}
-						});
-					}
-				}
-
-				$('.kanban-cards').on('click', '.kanban-card-wrapper', function(e) {
-					var name = $(this).data().name;
-					frappe.set_route('Form', me.doctype, name);
-				})
-
-				$kanban.find('.compose-card').click(function() {
-					$(this).hide();
-					$(this).next('form').removeClass('hide').find('textarea').focus();
-				});
-
-				$kanban.find('.glyphicon-remove').click(function() {
-					$(this).closest('form').addClass('hide');
-					$kanban.find('.compose-card').show();
-				})
+		frappe.require('assets/frappe/js/frappe/views/kanban/kanban_view.js', function() {
+			new frappe.views.KanbanView({
+				doctype: me.doctype,
+				board_name: kanban_board,
+				values: values,
+				wrapper: me.wrapper.find('.result-list') 
 			});
 		});
 	},
