@@ -83,7 +83,7 @@ class IntegrationService(Document):
 		return integration_request
 
 def get_integration_controller(service_name):
-	'''Returns integration controller module from app_name.integrations.{service}'''
+	'''Returns integration controller module from app_name.integrations.doctype.{service}.{service}'''
 	try:
 		return frappe.get_doc("{0} Settings".format(service_name))
 	except Exception:
