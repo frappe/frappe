@@ -34,6 +34,7 @@ app_include_css = [
 	"assets/css/desk.min.css",
 	"assets/css/list.min.css",
 	"assets/css/form.min.css",
+	"assets/frappe/css/summernote/summernote.css", # required due to relative urls in theme
 	"assets/css/report.min.css",
 	"assets/css/module.min.css"
 ]

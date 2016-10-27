@@ -1473,7 +1473,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 });
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
-	editor_name: "bsEditor",
+	editor_name: "summerEditor",
 	horizontal: false,
 	make_input: function() {
 		//$(this.input_area).css({"min-height":"360px"});
@@ -1494,10 +1494,11 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			change: onchange,
 			field: this
 		});
-		this.editor.editor.on("blur", function() {
+		/* Editor handles html formatting
+		this.editor.on_blur(function() {
 			onchange(me.editor.clean_html());
-		});
-		this.editor.editor.keypress("ctrl+s meta+s", function() {
+		});*/
+		this.editor.on_keypress("ctrl+s meta+s", function() {
 			me.frm.save_or_update();
 		});
 	},
