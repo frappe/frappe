@@ -1,12 +1,4 @@
 /* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
-}
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -238,6 +230,13 @@ a.no-decoration:active {
   letter-spacing: 0.4px;
   color: #8D99A6;
 }
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
+}
 .nav-pills a,
 .nav-pills a:hover {
   border-bottom: none;
@@ -357,6 +356,9 @@ fieldset[disabled] .form-control {
 .ui-datepicker {
   z-index: 100 !important;
 }
+.ui-datepicker {
+  z-index: 100 !important;
+}
 .ui-datepicker .ui-datepicker-header {
   border-radius: 0px !important;
 }
@@ -386,6 +388,7 @@ fieldset[disabled] .form-control {
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 1041;
+  position: initial;
 }
 .ui-autocomplete a {
   transition: none;
