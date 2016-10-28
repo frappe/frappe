@@ -121,3 +121,19 @@ def revoke_token(*args, **kwargs):
 		return "success"
 	else:
 		return "bad request"
+
+@frappe.whitelist()
+def openid_profile(*args, **kwargs):
+	first_name, last_name, avatar, name, frappe_userid = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name", "frappe_userid"])
+	request_url = urlparse(frappe.request.url)
+	picture = (request_url.scheme + "://" + request_url.netloc + avatar) if avatar else None
+	user_profile = frappe._dict({
+			"sub": frappe_userid,
+			"name": " ".join(filter(None, [first_name, last_name])),
+			"given_name": first_name,
+			"family_name": last_name,
+			"email": name,
+			"picture": picture
+		})
+	
+	frappe.local.response = user_profile
