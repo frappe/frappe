@@ -1,5 +1,6 @@
 import frappe, urllib
 
+from frappe import _
 from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
@@ -109,7 +110,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# one associated with their one allowed grant type.
 		# In this case it must be "code".
 
-		return (response_type in [client.response_type.lower(), "code id_token"])
+		return (client.response_type.lower() in ["code", "code id_token"])
 
 
 	# Post-authorization
@@ -139,7 +140,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			if frappe.form_dict.has_key("refresh_token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", {"refresh_token": frappe.form_dict["refresh_token"]}, 'client'))
 			else:
-				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], 'client'))
+				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception, e:
@@ -308,8 +309,6 @@ class OAuthWebRequestValidator(RequestValidator):
 		:param request: the HTTP Request (oauthlib.common.Request)
 		:return: The ID Token (a JWS signed JWT)
 		"""
-		for x in xrange(1,100):
-			print request.client_id
 		# the request.scope should be used by the get_id_token() method to determine which claims to include in the resulting id_token
 		id_token_header = {
 			"alg":"HS256",
@@ -323,8 +322,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			"iss":"",
 			"nonce":""
 		}
-		for x in xrange(1,100):
-			request.client_id
+
 		# encoded = jwt.encode(id_token_payload,)
 
 	def validate_silent_authorization(self, request):
@@ -341,8 +339,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		# raise NotImplementedError('Subclasses must implement this method.')
-		return True
+		if request.prompt == "login":
+			False
+		elif request.prompt.lower() == "none":
+			frappe.throw(_("prompt is none"))
 
 	def validate_silent_login(self, request):
 		"""Ensure session user has authorized silent OpenID login.
@@ -362,8 +362,8 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		# raise NotImplementedError('Subclasses must implement this method.')
-		return True
+		if frappe.session.user == "Guest" or request.prompt.lower() == "login":
+			return False
 
 	def validate_user_match(self, id_token_hint, scopes, claims, request):
 		"""Ensure client supplied user id hint matches session user.
@@ -382,14 +382,8 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		# for x in xrange(1,10):
-		# 	print "id_token_hint: ", id_token_hint
-		# 	print "scopes: ", scopes
-		# 	print "claims: ", claims
-		# 	print "request: ", request.client_id
-
-		# raise NotImplementedError('Subclasses must implement this method.')
-		return True
+		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
+			return True
 
 def get_cookie_dict_from_headers(r):
 	if r.headers.get('Cookie'):
