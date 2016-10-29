@@ -41,6 +41,9 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		AuthorizationEndpoint.__init__(self, default_response_type='code',
 									   response_types={
 											'code': auth_grant,
+											'code+token': openid_connect_auth,
+											'code+id_token': openid_connect_auth,
+											'code+token+id_token': openid_connect_auth,
 											'code token': openid_connect_auth,
 											'code id_token': openid_connect_auth,
 											'code token id_token': openid_connect_auth,
@@ -109,8 +112,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Clients should only be allowed to use one type of response type, the
 		# one associated with their one allowed grant type.
 		# In this case it must be "code".
+		allowed_response_types = [client.response_type.lower(),
+			"code token", "code id_token", "code token id_token",
+			"code+token", "code+id_token", "code+token id_token"]
 
-		return (client.response_type.lower() in ["code", "code id_token"])
+		return (response_type in allowed_response_types)
 
 
 	# Post-authorization
@@ -310,20 +316,6 @@ class OAuthWebRequestValidator(RequestValidator):
 		:return: The ID Token (a JWS signed JWT)
 		"""
 		# the request.scope should be used by the get_id_token() method to determine which claims to include in the resulting id_token
-		id_token_header = {
-			"alg":"HS256",
-			"type":"JWT"
-		}
-
-		id_token_payload = {
-			"aud":"",
-			"exp":"",
-			"sub":"",
-			"iss":"",
-			"nonce":""
-		}
-
-		# encoded = jwt.encode(id_token_payload,)
 
 	def validate_silent_authorization(self, request):
 		"""Ensure the logged in user has authorized silent OpenID authorization.
@@ -341,8 +333,6 @@ class OAuthWebRequestValidator(RequestValidator):
 		"""
 		if request.prompt == "login":
 			False
-		elif request.prompt.lower() == "none":
-			frappe.throw(_("prompt is none"))
 
 	def validate_silent_login(self, request):
 		"""Ensure session user has authorized silent OpenID login.
@@ -364,6 +354,8 @@ class OAuthWebRequestValidator(RequestValidator):
 		"""
 		if frappe.session.user == "Guest" or request.prompt.lower() == "login":
 			return False
+		else:
+			return True
 
 	def validate_user_match(self, id_token_hint, scopes, claims, request):
 		"""Ensure client supplied user id hint matches session user.
@@ -384,6 +376,8 @@ class OAuthWebRequestValidator(RequestValidator):
 		"""
 		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
 			return True
+		else:
+			return False
 
 def get_cookie_dict_from_headers(r):
 	if r.headers.get('Cookie'):
