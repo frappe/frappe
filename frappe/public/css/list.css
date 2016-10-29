@@ -52,6 +52,9 @@
   padding-right: 15px;
   width: calc(64%);
 }
+.filter-box .filter_field .frappe-control {
+  position: relative;
+}
 .ui-autocomplete .filter-field-select {
   cursor: pointer;
 }
