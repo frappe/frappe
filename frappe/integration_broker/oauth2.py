@@ -3,6 +3,7 @@ import frappe, json
 from frappe.oauth import OAuthWebRequestValidator, WebApplicationServer
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from urllib import quote, urlencode
+from werkzeug import url_fix
 from urlparse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 
@@ -20,15 +21,10 @@ def get_urlparams_from_kwargs(param_kwargs):
 
 	return urlencode(arguments)
 
-def build_url(r):
-	request_url = urlparse(frappe.request.url)
-	built_url = request_url.scheme + "://" + request_url.netloc + request_url.path + "?" + request_url.query
-	return built_url
-
 @frappe.whitelist()
 def approve(*args, **kwargs):
 	r = frappe.request
-	uri = r.url.replace(" ", "%20")
+	uri = url_fix(r.url)
 	http_method = r.method
 	body = r.get_data()
 	headers = r.headers
@@ -65,7 +61,7 @@ def authorize(*args, **kwargs):
 	elif frappe.session['user']!='Guest':
 		try:
 			r = frappe.request
-			uri = r.url.replace(" ", "%20")
+			uri = url_fix(r.url)
 			http_method = r.method
 			body = r.get_data()
 			headers = r.headers
@@ -99,7 +95,7 @@ def authorize(*args, **kwargs):
 def get_token(*args, **kwargs):
 	r = frappe.request
 
-	uri = r.url.replace(" ", "%20")
+	uri = url_fix(r.url)
 	http_method = r.method
 	body = r.form
 	headers = r.headers
@@ -114,7 +110,7 @@ def get_token(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def revoke_token(*args, **kwargs):
 	r = frappe.request
-	uri = r.url.replace(" ", "%20")
+	uri = url_fix(r.url)
 	http_method = r.method
 	body = r.form
 	headers = r.headers
