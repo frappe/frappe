@@ -5,16 +5,17 @@
     font-size:85%;
 }
 
+.filter_area {
+	margin: 0 -15px;
+}
+
 .filter-dashboard-wrapper {
 	display: none;
 	padding-bottom: 0px;
 }
 
 .list-filter-dashboard {
-    height: 202px;
-	margin-top: -10px;
-	margin-left: -15px;
-	margin-right: -14px;
+	border-top: 1px solid @border-color;
     overflow-x: scroll;
 	overflow-y: hidden;
 }
@@ -22,7 +23,7 @@
 .filter-header {
 	border-bottom: 1px solid @border-color;
 	background-color: @panel-bg;
-	padding: 3px 0px;
+	padding: 8px 15px;
 
 	.search-dropdown {
 		margin-top: -23px;
@@ -33,7 +34,7 @@
 	}
 
 	.sort-dropdown {
-		margin-top: -20px;
+		margin-top: -16px;
 	}
 
 	.dropdown-menu {
@@ -43,29 +44,33 @@
 
 .filter-label {
     margin: 0px;
-	padding: 5px;
 	color: @text-muted;
 }
 
 .filter-dashboard-items {
     height: 187px;
 	margin-right: -2px;
+	display: flex;
 }
 
 .filter-dash-item {
-    width: 180px;
+	flex-grow: 1;
+    min-width: 180px;
     float: left;
     height: 187px;
     border-right:1px solid @border-color;
 }
 
 .filter-input {
-	padding: 5px;
-	padding-top: 10px;
+	padding: 10px 15px;
+
+	input {
+		height: 25px;
+	}
 }
 
-.fitler-item-value, .stat-no-records {
-	padding: 0px 5px;
+.filter-item-value, .stat-no-records {
+	padding: 0px 15px;
 }
 
 .filter-dash-item:after {
@@ -107,7 +112,7 @@
 .filter-stat-link > .badge {
     position: absolute;
     float: right;
-	margin-right: 5px;
+	margin-right: 10px;
 	margin-top: 2px;
 	font-size: 11px;
 }

@@ -65,10 +65,6 @@ frappe.ui.FilterList = Class.extend({
 		};
 		var sidebar_stat = $(frappe.render_template("filter_dashboard_head", context))
 			.appendTo(this.wrapper.find(".filter-dashboard-items"));
-
-		//adjust width for horizontal scrolling
-		var width = (me.stats.length)*180;
-		this.wrapper.find(".filter-dashboard-items").css("width",width);
 	},
 	reload_stats: function(){
 		if(this.fresh) {
