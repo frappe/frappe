@@ -6,6 +6,7 @@ from urllib import quote, urlencode
 from werkzeug import url_fix
 from urlparse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
+from frappe import _
 
 #Variables required across requests
 oauth_validator = OAuthWebRequestValidator()
@@ -99,10 +100,37 @@ def get_token(*args, **kwargs):
 	http_method = r.method
 	body = r.form
 	headers = r.headers
+	
+	#Check whether frappe server URL is set
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url") or None
+	if not frappe_server_url:
+		frappe.throw(_("Define Frappe Server URL in Social Login Keys"))
 
 	try:
 		headers, body, status = oauth_server.create_token_response(uri, http_method, body, headers, credentials)
-		frappe.local.response = frappe._dict(json.loads(body))
+		out = frappe._dict(json.loads(body))
+		if not out.error:
+			token_user = frappe.db.get_value("OAuth Bearer Token", out.access_token, "user")
+			token_client = frappe.db.get_value("OAuth Bearer Token", out.access_token, "client")
+			client_secret = frappe.db.get_value("OAuth Client", token_client, "client_secret")
+			if token_user in ["Guest", "Administrator"]:
+				frappe.throw(_("Logged in as Guest or Administrator"))
+			import hashlib
+			id_token_header = {
+				"typ":"jwt",
+				"alg":"HS256"
+			}
+			id_token = {
+				"aud": token_client,
+				"exp": int((frappe.db.get_value("OAuth Bearer Token", out.access_token, "expiration_time") - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
+				"sub": frappe.db.get_value("User", token_user, "frappe_userid"),
+				"iss": frappe_server_url,
+				"at_hash": frappe.oauth.calculate_at_hash(out.access_token, hashlib.sha256)
+			}
+			import jwt
+			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
+			out.update({"id_token":id_token_encoded})
+		frappe.local.response = out
 	except FatalClientError as e:
 		return e
 
