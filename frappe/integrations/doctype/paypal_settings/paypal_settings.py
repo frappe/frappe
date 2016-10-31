@@ -135,7 +135,7 @@ class PayPalSettings(IntegrationService):
 			"PAYMENTREQUEST_0_PAYMENTACTION": "SALE",
 			"PAYMENTREQUEST_0_AMT": amount,
 			"PAYMENTREQUEST_0_CURRENCYCODE": currency.upper(),
-			"returnUrl": get_url("/api/method/frappe.integrations.paypal.get_express_checkout_details"),
+			"returnUrl": get_url("/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details"),
 			"cancelUrl": get_url("/payment-cancel")
 		})
 
@@ -210,7 +210,7 @@ def get_express_checkout_details(token):
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = get_url( \
-		"/api/method/frappe.integrations.paypal.confirm_payment?token={0}".format(token))
+		"/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.confirm_payment?token={0}".format(token))
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def confirm_payment(token):
