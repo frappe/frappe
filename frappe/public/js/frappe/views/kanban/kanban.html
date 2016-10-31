@@ -9,7 +9,7 @@
 				<div class="kanban-card-wrapper" data-name="{{card.name}}">
 					<div class="kanban-card">
 						<div class="kanban-card-title">
-							{{ __(card.subject) }}
+							{{ __(card.subject || card.title || card.name) }}
 						</div>
 					</div>
 					<div class="kanban-card-placeholder"></div>
@@ -19,7 +19,7 @@
 
 			<div class="kanban-card compose-card">
 				<div class="kanban-card-title">
-					<i class="glyphicon glyphicon-plus"></i>
+					<i class="octicon octicon-plus"></i>
 					{{ __("Add a card") }}
 				</div>
 			</div>
@@ -30,7 +30,7 @@
 				</div>
 				<div class="kanban-controls">
 					<button class="btn btn-primary">Add</button>
-					<a class="glyphicon glyphicon-remove"></a>
+					<a class="btn octicon octicon-x text-muted" style="font-size: 1.4em"></a>
 				</div>
 			</form>
 		</div>
