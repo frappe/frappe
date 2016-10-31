@@ -422,6 +422,7 @@ def delete_oauth2_data():
 		commit_token = True
 	for code in code_list:
 		frappe.delete_doc("OAuth Authorization Code", code["name"])
-
+	for token in token_list:
+		frappe.delete_doc("OAuth Bearer Token", token["name"])
 	if commit_code or commit_token:
 		frappe.db.commit()
