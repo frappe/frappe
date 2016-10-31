@@ -1,12 +1,4 @@
 /* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
-}
 .form-grid {
   border: 1px solid #d1d8dd;
   border-radius: 3px;
@@ -156,6 +148,7 @@
 }
 .grid-row .frappe-control {
   margin-bottom: 0px;
+  position: relative;
 }
 .grid-row .col-sm-6 .editor-toolbar-text-group,
 .grid-row .col-sm-6 .editor-toolbar-align-group {
