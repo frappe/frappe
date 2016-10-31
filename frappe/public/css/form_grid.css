@@ -147,6 +147,7 @@
 }
 .grid-row .frappe-control {
   margin-bottom: 0px;
+  position: relative;
 }
 .grid-row .col-sm-6 .editor-toolbar-text-group,
 .grid-row .col-sm-6 .editor-toolbar-align-group {
