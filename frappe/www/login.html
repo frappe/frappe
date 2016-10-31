@@ -47,6 +47,11 @@
 				<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
 					<i class="icon-github-sign icon-2x"></i></a>
 				{%- endif -%}
+
+				{%- if frappe_login is defined %}
+				<a href="{{ frappe_login }}" class="no-decoration">
+					<img src="/assets/frappe/images/favicon.png"></a>
+				{%- endif -%}
 			</p>
 		{%- endif -%}
 		{% if ldap_settings.enabled %}
