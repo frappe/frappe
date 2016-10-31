@@ -67,6 +67,9 @@
   .filter_field {
     width: 65% !important;
   }
+  .filter_field .frappe-control {
+    position: relative;
+  }
 }
 .list-row {
   padding: 9px 15px;
