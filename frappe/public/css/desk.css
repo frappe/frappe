@@ -338,6 +338,9 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #EBEFF2;
 }
 /* jquery ui */
+.ui-datepicker {
+  z-index: 100 !important;
+}
 .ui-datepicker .ui-datepicker-header {
   border-radius: 0px !important;
 }
