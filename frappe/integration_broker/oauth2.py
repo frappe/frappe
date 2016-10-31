@@ -109,7 +109,7 @@ def get_token(*args, **kwargs):
 	try:
 		headers, body, status = oauth_server.create_token_response(uri, http_method, body, headers, credentials)
 		out = frappe._dict(json.loads(body))
-		if not out.error:
+		if not out.error and out.scope == "openid":
 			token_user = frappe.db.get_value("OAuth Bearer Token", out.access_token, "user")
 			token_client = frappe.db.get_value("OAuth Bearer Token", out.access_token, "client")
 			client_secret = frappe.db.get_value("OAuth Client", token_client, "client_secret")

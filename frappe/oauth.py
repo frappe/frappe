@@ -145,6 +145,8 @@ class OAuthWebRequestValidator(RequestValidator):
 			#Extract token, instantiate OAuth Bearer Token and use clientid from there.
 			if frappe.form_dict.has_key("refresh_token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", {"refresh_token": frappe.form_dict["refresh_token"]}, 'client'))
+			elif frappe.form_dict.has_key("token"):
+				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], 'client'))
 			else:
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
 		try:
@@ -408,3 +410,18 @@ def calculate_at_hash(access_token, hash_alg):
 	from jwt.utils import base64url_encode
 	at_hash = base64url_encode(truncated)
 	return at_hash.decode('utf-8')
+
+def delete_oauth2_data():
+	# Delete Invalid Authorization Code and Revoked Token
+	commit_code, commit_token = False, False
+	code_list = frappe.get_all("OAuth Authorization Code", filters={"validity":"Invalid"})
+	token_list = frappe.get_all("OAuth Bearer Token", filters={"status":"Revoked"})
+	if len(code_list) > 0:
+		commit_code = True
+	if len(token_list) > 0:
+		commit_token = True
+	for code in code_list:
+		frappe.delete_doc("OAuth Authorization Code", code["name"])
+
+	if commit_code or commit_token:
+		frappe.db.commit()
