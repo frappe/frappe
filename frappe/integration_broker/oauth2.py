@@ -20,7 +20,7 @@ def get_urlparams_from_kwargs(param_kwargs):
 	if arguments.get("cmd"):
 		arguments.pop("cmd")
 
-	return urlencode(arguments)
+	return urlencode(arguments).replace("+","")
 
 @frappe.whitelist()
 def approve(*args, **kwargs):
@@ -153,9 +153,16 @@ def revoke_token(*args, **kwargs):
 
 @frappe.whitelist()
 def openid_profile(*args, **kwargs):
+	picture = None
 	first_name, last_name, avatar, name, frappe_userid = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name", "frappe_userid"])
 	request_url = urlparse(frappe.request.url)
-	picture = (request_url.scheme + "://" + request_url.netloc + avatar) if avatar else None
+
+	if avatar:
+		if validate_url(avatar):
+			picture = avatar
+		else:
+			picture = request_url.scheme + "://" + request_url.netloc + avatar
+
 	user_profile = frappe._dict({
 			"sub": frappe_userid,
 			"name": " ".join(filter(None, [first_name, last_name])),
@@ -166,3 +173,14 @@ def openid_profile(*args, **kwargs):
 		})
 	
 	frappe.local.response = user_profile
+
+def validate_url(url_string):
+	from urlparse import urlparse
+	try:
+		result = urlparse(url_string)
+		if result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]:
+			return True
+		else:
+			return False
+	except:
+		return False
