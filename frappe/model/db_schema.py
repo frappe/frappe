@@ -178,7 +178,7 @@ class DbTable:
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
-				engine=self.meta.engine or 'InnoDB') % (self.name, add_text))
+				engine=self.meta.get("engine") or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
