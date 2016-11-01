@@ -193,7 +193,7 @@
 	"css/list.min.css": [
 		"public/css/list.css",
 		"public/css/tag-it.css",
-		"public/css/calendar.css"
+		"public/css/calendar.css",
 		"public/css/daterangepicker.css",
 		"public/css/filter_dashboard.css"
 	],
