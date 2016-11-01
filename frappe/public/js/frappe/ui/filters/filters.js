@@ -12,9 +12,9 @@ frappe.ui.FilterList = Class.extend({
 	},
 	make_dash: function() {
 		var me = this;
-		$(frappe.render_template("filter_dash", {})).appendTo(this.$w.find('.show_filters'));
+		$(frappe.render_template("filter_dash", {})).appendTo(this.wrapper.find('.show_filters'));
 		//show filter dashboard
-		this.$w.find('.show-filter-dashboard').click(function() {
+		this.wrapper.find('.show-filter-dashboard').click(function() {
 			$(this).closest('.show_filters').find('.dashboard-box').toggle();
 			$(this).prop('title',($(this).prop('title')===__("Hide Standard Filters"))?__("Show Standard Filters") : __("Hide Standard Filters"))
 		});
@@ -45,11 +45,11 @@ frappe.ui.FilterList = Class.extend({
 			type:field.type
 		};
 		var sidebar_stat = $(frappe.render_template("filter_dash_stat_head", context))
-			.appendTo(this.$w.find(".filter-dashboard-items"));
+			.appendTo(this.wrapper.find(".filter-dashboard-items"));
 
 		//adjust width for horizontal scrolling
 		var width = (me.stats.length)*180+30
-		this.$w.find(".filter-dashboard-items").css("width",width);
+		this.wrapper.find(".filter-dashboard-items").css("width",width);
 	},
 	reload_stats: function(){
 		if(this.fresh ) {
@@ -74,7 +74,7 @@ frappe.ui.FilterList = Class.extend({
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
-				me.$w.find(".filter-stat").empty();
+				me.wrapper.find(".filter-stat").empty();
 				$.each(me.stats, function (i, v) {
 						me.render_filters(v, (r.message|| {})[v.name]);
 				});
@@ -88,7 +88,7 @@ frappe.ui.FilterList = Class.extend({
 			return
 		}
 		//sort based on icon
-		var type = /icon-\S+/g.exec(this.$w.find(".filter-label[data-name='"+__(field.label)+"']").find(".filter-sort-active").attr('class'));
+		var type = /icon-\S+/g.exec(this.wrapper.find(".filter-label[data-name='"+__(field.label)+"']").find(".filter-sort-active").attr('class'));
 		if(type[0].indexOf("alphabet")>0){
 			stat = (stat || []).sort(function(a, b) {return a[0].toString().toLowerCase().localeCompare(b[0].toString().toLowerCase());});
 
@@ -131,7 +131,7 @@ frappe.ui.FilterList = Class.extend({
 			label: __(field.label),
 			labels:labels
 		};
-		var dashitem = this.$w.find(".filter-stat[data-name='" + __(field.label) + "']")
+		var dashitem = this.wrapper.find(".filter-stat[data-name='" + __(field.label) + "']")
 		dashitem.html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
@@ -181,13 +181,13 @@ frappe.ui.FilterList = Class.extend({
 		});
 
 
-		this.$w.find('.clear-filter').bind('click', function() {
+		this.wrapper.find('.clear-filter').bind('click', function() {
 			me.clear_filters();
 			$('.date-range-picker').val('')
 			me.listobj.run();
 		});
 		//set sort filters
-		this.$w.find(".filter-label").on("click", ".filter-sort-item", function() {
+		this.wrapper.find(".filter-label").on("click", ".filter-sort-item", function() {
 			var active = $(this).closest(".filter-dash-item").find(".filter-sort-active").attr('class',
 				   function(i, c){
 					  return c.replace(/(^|\s)icon-\S+/g, '');

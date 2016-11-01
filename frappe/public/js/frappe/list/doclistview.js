@@ -850,27 +850,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	refresh_sidebar: function() {
 		var me = this;
-		frappe.call({
-			method: 'frappe.desk.reportview.get_tag_catagories',
-			args: {
-				doctype: me.doctype,
+		me.list_sidebar = new frappe.views.ListSidebar({
+			doctype: me.doctype,
+			stats: me.listview.stats,
+			parent: me.$page.find('.layout-side-section'),
+			set_filter: function(fieldname, label, norun, noduplicates) {
+				me.set_filter(fieldname, label, norun, noduplicates);
 			},
-			callback: function(r) {
-				me.defined_category = r.message;
-
-				me.list_sidebar = new frappe.views.ListSidebar({
-					doctype: me.doctype,
-					stats: me.listview.stats,
-					defined_category : me.defined_category,
-					parent: me.$page.find('.layout-side-section'),
-					set_filter: function(fieldname, label,norun,noduplicates) {
-						me.set_filter(fieldname, label,norun,noduplicates);
-					},
-					default_filters:me.listview.settings.default_filters,
-					page: me.page,
-					doclistview: me
-				})
-			}
+			default_filters:me.listview.settings.default_filters,
+			page: me.page,
+			doclistview: me
 		})
 	},
 	call_for_selected_items: function(method, args) {
