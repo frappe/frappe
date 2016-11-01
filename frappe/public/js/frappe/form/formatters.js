@@ -80,6 +80,9 @@ frappe.form.formatters = {
 		if(!value) {
 			return "";
 		}
+		if(value[0] == "'" && value[value.length -1] == "'") {
+			return value.substring(1, value.length - 1);
+		}
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
