@@ -559,7 +559,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "default": "Today", 
+   "default": "Now", 
    "fieldname": "communication_date", 
    "fieldtype": "Datetime", 
    "hidden": 0, 
