@@ -20,12 +20,12 @@ def get_urlparams_from_kwargs(param_kwargs):
 	if arguments.get("cmd"):
 		arguments.pop("cmd")
 
-	return urlencode(arguments).replace("+","")
+	return urlencode(arguments)
 
 @frappe.whitelist()
 def approve(*args, **kwargs):
 	r = frappe.request
-	uri = url_fix(r.url)
+	uri = url_fix(r.url.replace("+"," "))
 	http_method = r.method
 	body = r.get_data()
 	headers = r.headers
@@ -109,7 +109,7 @@ def get_token(*args, **kwargs):
 	try:
 		headers, body, status = oauth_server.create_token_response(uri, http_method, body, headers, credentials)
 		out = frappe._dict(json.loads(body))
-		if not out.error and out.scope == "openid":
+		if not out.error and "openid" in out.scope:
 			token_user = frappe.db.get_value("OAuth Bearer Token", out.access_token, "user")
 			token_client = frappe.db.get_value("OAuth Bearer Token", out.access_token, "client")
 			client_secret = frappe.db.get_value("OAuth Client", token_client, "client_secret")
