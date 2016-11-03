@@ -951,7 +951,5 @@ _f.Frm.prototype.scroll_to_element = function() {
 		if (selector.length) {
 			frappe.utils.scroll_to(selector);
 		}
-	} else {
-		frappe.utils.scroll_to(0);
 	}
 }
