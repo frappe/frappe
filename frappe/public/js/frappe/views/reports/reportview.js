@@ -23,7 +23,9 @@ frappe.views.ReportViewPage = Class.extend({
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
 			if(me.docname) {
+				
 				frappe.model.with_doc('Report', me.docname, function(r) {
+					me.parent.reportview.opts.add_totals_row = frappe.model.get_value('Report', me.docname, "add_total_row");
 					me.parent.reportview.set_columns_and_filters(
 						JSON.parse(frappe.get_doc("Report", me.docname).json));
 					me.parent.reportview.set_route_filters();
@@ -100,11 +102,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			start: 0,
 			show_filters: true,
 			allow_delete: true,
+			add_totals_row: 0
 		});
+
 		this.make_new_and_refresh();
 		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
+		this.make_totals_row_button();
 		this.setup_print();
 		this.make_export();
 		this.setup_auto_email();
@@ -233,7 +238,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			order_by: this.get_order_by(),
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
-			with_childnames: 1
+			with_childnames: 1,
+			add_totals_row: this.opts.add_totals_row
 		}
 	},
 
@@ -499,6 +505,16 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.column_picker = new frappe.ui.ColumnPicker(this);
 		this.page.add_menu_item(__('Pick Columns'), function() {
 			me.column_picker.show(me.columns);
+		}, true);
+	},
+	
+	make_totals_row_button: function() {
+		var me = this;
+
+		this.page.add_menu_item(__('Toggle Totals Row'), function() {
+			me.opts.add_totals_row = 1 - me.opts.add_totals_row;
+			me.refresh();
+
 		}, true);
 	},
 
