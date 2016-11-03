@@ -1,0 +1,24 @@
+<div class="kanban-column" data-column-value="{{title}}">
+	<div class="kanban-column-title h4">
+		{{ __(title) }}
+	</div>
+	<div class="kanban-cards">
+		
+	</div>
+
+	<div class="kanban-card compose-card">
+		<div class="kanban-card-title">
+			<i class="octicon octicon-plus"></i> {{ __("Add a card") }}
+		</div>
+	</div>
+
+	<form class="hide">
+		<div class="kanban-card composer">
+			<textarea></textarea>
+		</div>
+		<div class="kanban-controls">
+			<button class="btn btn-primary">Add</button>
+			<a class="btn octicon octicon-x text-muted" style="font-size: 1.4em"></a>
+		</div>
+	</form>
+</div>

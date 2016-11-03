@@ -538,12 +538,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	render_rows_Kanban: function(values) {
 		var me = this;
-		var kanban_board = frappe.get_route()[3];
+		var board_name = frappe.get_route()[3];
 
 		frappe.require('assets/frappe/js/frappe/views/kanban/kanban_view.js', function() {
-			new frappe.views.KanbanView({
-				doctype: me.doctype,
-				board_name: kanban_board,
+			new frappe.views.KanbanBoard({
+				name: board_name,
 				values: values,
 				wrapper: me.wrapper.find('.result-list') 
 			});
