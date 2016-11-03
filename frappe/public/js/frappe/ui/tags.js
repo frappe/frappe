@@ -76,6 +76,12 @@ frappe.ui.TagEditor = Class.extend({
 					}
 				});
 			},
+			open: function() { $(this).attr('state', 'open'); },
+			close: function () { $(this).attr('state', 'closed'); }
+		}).focus(function () {
+			if ($(this).attr('state') != 'open') {
+				$(this).autocomplete("search");
+			}
 		});
 	},
 	get_args: function(tag) {

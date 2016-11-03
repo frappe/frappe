@@ -80,6 +80,9 @@ frappe.form.formatters = {
 		if(!value) {
 			return "";
 		}
+		if(value[0] == "'" && value[value.length -1] == "'") {
+			return value.substring(1, value.length - 1);
+		}
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
@@ -110,7 +113,7 @@ frappe.form.formatters = {
 			if(frappe.boot.sysdefaults.time_zone) {
 				m = m.tz(frappe.boot.sysdefaults.time_zone);
 			}
-			return m.format('MMMM Do YYYY, h:mm a z');
+			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ', h:mm a z');
 		} else {
 			return "";
 		}
