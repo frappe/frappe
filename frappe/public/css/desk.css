@@ -354,9 +354,6 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #EBEFF2;
 }
 /* jquery ui */
-.ui-datepicker {
-  z-index: 100 !important;
-}
 .ui-datepicker .ui-datepicker-header {
   border-radius: 0px !important;
 }
@@ -467,6 +464,9 @@ fieldset[disabled] .form-control {
 }
 .form-control input {
   padding: 6px 10px 8px;
+}
+.link-field.ui-front {
+  z-index: inherit;
 }
 .modal .hasDatepicker {
   z-index: 1140;
