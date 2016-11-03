@@ -146,6 +146,8 @@ frappe.patches.v7_0.cleanup_list_settings
 execute:frappe.db.set_default('language', '')
 frappe.patches.v7_1.refactor_integration_broker
 frappe.patches.v7_1.set_backup_limit
+frappe.patches.v7_1.fix_email_sender
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 
+execute:frappe.db.sql("update tabCommunication SET docstatus = 0 where docstatus =2 or docstatus = 1")
 execute:frappe.db.sql("update tabCommunication set communication_date = if(actualdate,actualdate,creation) where time(communication_date) = 0 or actualdate is not null")
