@@ -232,9 +232,9 @@
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
-		"public/js/frappe/views/kanban/kanban-board.html",
-		"public/js/frappe/views/kanban/kanban-column.html",
-		"public/js/frappe/views/kanban/kanban-card.html"
+		"public/js/frappe/views/kanban/kanban_board.html",
+		"public/js/frappe/views/kanban/kanban_column.html",
+		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",

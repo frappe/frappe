@@ -1,29 +1,36 @@
 frappe.provide("frappe.views");
 
+/**
+ * frappe.views.KanbanBoard
+ * 
+ * opts: 
+ * 		name - Kanban Board name
+ * 		docs - Values in list view to be rendered as cards
+ * 		wrapper - element where kanban will render
+ */
+
 frappe.views.KanbanBoard = Class.extend({
 	init: function(opts) {
+		$.extend(this, opts);
 		this.prepare(opts);
 	},
 	prepare: function(opts) {
 		var me = this;
-		this.name = opts.name;
-		this.wrapper = opts.wrapper;
-		this.docs = opts.values;
-
+		this.$kanban_board = $(frappe.render_template('kanban_board'))
+			.appendTo(this.wrapper);
 		this.prepare_doc(function() {
 			me.board = frappe.get_doc('Kanban Board', me.name);
 			me.prepare_cards();
 			me.prepare_columns();
-			me.render();
 		});
 	},
 	prepare_cards: function() {
 		var me = this;
-		this.cards = this.docs.map(function(doc) {
-			return new frappe.views.KanbanBoardCard({
+		this._cards = this.docs.map(function(doc) {
+			return {
 				title: doc.name,
 				parent: doc[me.board.field_name]
-			});
+			};
 		});
 	},
 	prepare_columns: function() {
@@ -33,13 +40,14 @@ frappe.views.KanbanBoard = Class.extend({
 			var column_title = column.value;
 			return new frappe.views.KanbanBoardColumn({
 				title: column_title,
-				cards: me.get_cards_for_column(column_title)
+				_cards: me.get_cards_for_column(column_title),
+				wrapper: me.$kanban_board
 			});
 		});
 		console.log(me)	
 	},
 	get_cards_for_column: function(column_title) {
-		return this.cards.filter(function(card) {
+		return this._cards.filter(function(card) {
 			return card.parent === column_title;
 		});
 	},
@@ -49,22 +57,18 @@ frappe.views.KanbanBoard = Class.extend({
 		// me.bind();
 		
 	},
-	bootstrap: function() {
-		this.$wrapper = $(frappe.render_template('kanban-board', { columns: this.columns }))
-			.appendTo(this.wrapper);
+	prepare_doc: function(callback) {
+		var me = this;
+		frappe.model.with_doctype('Kanban Board', function() {
+			frappe.model.with_doc('Kanban Board', me.name, function() {
+				callback();
+			});
+		});
 	},
 	// make_sortable: function() {
 	// 	var me = this;
 	// 	this.$kanban_cards.each(function(i, el){
 	// 		me.setup_sortable(el);
-	// 	});
-	// },
-	// prepare_doc: function(callback) {
-	// 	var me = this;
-	// 	frappe.model.with_doctype('Kanban Board', function() {
-	// 		frappe.model.with_doc('Kanban Board', me.name, function() {
-	// 			callback();
-	// 		});
 	// 	});
 	// },
 	// setup_sortable: function(list) {
@@ -156,11 +160,25 @@ frappe.views.KanbanBoard = Class.extend({
 //KanbanBoardColumn
 frappe.views.KanbanBoardColumn = Class.extend({
 	init: function(opts) {
-		this.title = opts.title;
-		this.cards = opts.cards;
+		$.extend(this, opts);
+		this.prepare();
+		this.make();
+	},
+	prepare: function() {
+		this.$kanban_cards = this.wrapper.find('.kanban-cards');
+		this.$kanban_column = $(frappe.render_template('kanban_column',
+			{ title: this.title }))
+			.appendTo(this.wrapper);
 	},
 	make: function() {
-		
+		var me = this;
+		this.cards = this._cards.map(function(card) {
+			return new frappe.views.KanbanBoardCard({
+				title: card.title,
+				parent: card.parent,
+				wrapper: me.$kanban_cards
+			});
+		});
 	},
 });
 
@@ -168,7 +186,15 @@ frappe.views.KanbanBoardColumn = Class.extend({
 //KanbanBoardCard
 frappe.views.KanbanBoardCard = Class.extend({
 	init: function(opts) {
-		this.title = opts.title;
-		this.parent = opts.parent;
+		$.extend(this, opts);
+		this.prepare();
+	},
+	prepare: function() {
+		this.$kanban_card = $(frappe.render_template('kanban_card',
+			{ title: this.title }))
+			.appendTo(this.wrapper);
+	},
+	make: function() {
+		
 	},
 });
