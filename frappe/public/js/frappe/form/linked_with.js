@@ -136,6 +136,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 						var listview = frappe.views.get_listview(doctype, me);
 						listview.no_delete = true;
+						me.current_view = "List"
 
 						var wrapper = $('<div class="panel panel-default"><div>').appendTo(parent);
 						$('<div class="panel-heading">').html(__(doctype).bold()).appendTo(wrapper);
