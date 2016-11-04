@@ -6,7 +6,7 @@ frappe.provide("frappe.views");
  * opts: 
  * 		name - Kanban Board name
  * 		docs - Values in list view to be rendered as cards
- * 		wrapper - element where kanban will render
+ * 		wrapper - wrapper for kanban
  */
 
 frappe.views.KanbanBoard = Class.extend({
@@ -50,12 +50,6 @@ frappe.views.KanbanBoard = Class.extend({
 		return this._cards.filter(function(card) {
 			return card.parent === column_title;
 		});
-	},
-	render: function() {
-		me.bootstrap();
-		// me.make_sortable();
-		// me.bind();
-		
 	},
 	prepare_doc: function(callback) {
 		var me = this;
@@ -163,12 +157,12 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		$.extend(this, opts);
 		this.prepare();
 		this.make();
+		this.setup_sortable();
 	},
 	prepare: function() {
-		this.$kanban_cards = this.wrapper.find('.kanban-cards');
 		this.$kanban_column = $(frappe.render_template('kanban_column',
-			{ title: this.title }))
-			.appendTo(this.wrapper);
+			{ title: this.title })).appendTo(this.wrapper);
+		this.$kanban_cards = this.$kanban_column.find('.kanban-cards');
 	},
 	make: function() {
 		var me = this;
@@ -178,6 +172,32 @@ frappe.views.KanbanBoardColumn = Class.extend({
 				parent: card.parent,
 				wrapper: me.$kanban_cards
 			});
+		});
+	},
+	setup_sortable: function() {
+		var me = this;
+		Sortable.create(me.$kanban_cards.get(0), {
+			group: "cards",
+			ghostClass: "ghost-card",
+			chosenClass: "chosen-card",
+			onStart: function (evt) {
+				me.$kanban_cards.find('.kanban-card.compose-card').fadeOut(200, function() {
+					me.$kanban_cards.find('.kanban-cards').height('200px');
+				});
+			},
+			onEnd: function (evt) {
+				me.$kanban_cards.find('.kanban-card.compose-card').fadeIn(100);
+				me.$kanban_cards.find('.kanban-cards').height('auto');
+			},
+			onAdd: function (evt) {
+				// var column_value = $(evt.to).parent().data().columnValue;
+				// var card_name = $(evt.item).data().name;
+				// if (!column_value) return;
+				// console.log(evt);
+				// me.update_field(card_name, me.board.field_name, column_value, function (r) {
+				// 	console.log(r);
+				// });
+			}
 		});
 	},
 });

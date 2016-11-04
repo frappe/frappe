@@ -3,6 +3,9 @@
 
 frappe.ui.form.on('Kanban Board', {
 	refresh: function(frm) {
+		frm.add_custom_button("Show Board", function() {
+			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
+		}, "icon-table");
 	},
 	reference_doctype: function(frm) {
 
