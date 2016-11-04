@@ -13,8 +13,8 @@ from frappe import _
 def get():
 	args = get_form_params()
 	args.save_list_settings = True
-	data = compress(execute(**args))
 
+	data = compress(execute(**args))
 	return data
 
 def execute(doctype, *args, **kwargs):
@@ -32,6 +32,7 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
+
 
 	# queries must always be server side
 	data.query = None
@@ -53,7 +54,6 @@ def compress(data):
 		"keys": keys,
 		"values": values
 	}
-
 
 @frappe.whitelist()
 def save_report():
@@ -80,12 +80,21 @@ def export_query():
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	doctype = form_params.doctype
+	add_totals_row = None
+
 	del form_params["doctype"]
+
+	if 'add_totals_row' in form_params and form_params['add_totals_row']=='1':
+		add_totals_row = 1
+		del form_params["add_totals_row"]
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
+
+	if add_totals_row:
+		ret = append_totals_row(ret)
 
 	data = [['Sr'] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
@@ -105,6 +114,21 @@ def export_query():
 	frappe.response['result'] = unicode(f.read(), 'utf-8')
 	frappe.response['type'] = 'csv'
 	frappe.response['doctype'] = doctype
+
+def append_totals_row(data):
+	if not data:
+		return data
+	data = list(data)
+	totals = []
+	totals.extend([""]*len(data[0]))
+
+	for row in data:
+		for i in xrange(len(row)):
+			if isinstance(row[i], (float, int)):
+				totals[i] = (totals[i] or 0) + row[i]
+	data.append(totals)
+
+	return data
 
 def get_labels(fields, doctype):
 	"""get column labels based on column names"""
