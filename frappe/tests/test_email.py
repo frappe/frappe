@@ -49,7 +49,7 @@ class TestEmail(unittest.TestCase):
 
 	def test_expired(self):
 		self.test_email_queue()
-		frappe.db.sql("update `tabEmail Queue` set creation=DATE_SUB(curdate(), interval 8 day)")
+		frappe.db.sql("update `tabEmail Queue` set modified=DATE_SUB(curdate(), interval 8 day)")
 		from frappe.email.queue import clear_outbox
 		clear_outbox()
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Expired'""", as_dict=1)

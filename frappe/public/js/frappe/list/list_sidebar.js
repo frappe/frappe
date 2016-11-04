@@ -189,7 +189,7 @@ frappe.views.ListSidebar = Class.extend({
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: field==='_user_tags' ?  tags ? __(label)+ show_tags:(__("UnCatagorised Tags") + show_tags): __(label),
+			label: field==='_user_tags' ?  tags ? __(label)+ show_tags:(__("UnCategorised Tags") + show_tags): __(label),
 		};
 		var sidebar_stat = $(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
