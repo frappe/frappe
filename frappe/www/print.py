@@ -250,9 +250,6 @@ def make_layout(doc, meta, format_data=None):
 				if page[-1]['has_data']==False:
 					# truncate last section if empty
 					del page[-1]
-				elif page[-1]['columns'][-1]['fields']==[]:
-					# truncate last column in empty
-					del page[-1]['columns'][-1]
 
 			section = get_new_section()
 			if df.fieldtype=='Section Break' and df.label:
