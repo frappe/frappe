@@ -228,7 +228,7 @@ frappe.ui.get_upload_dialog = function(opts){
 			'method': 'frappe.client.get_value',
 			'args': {
 			'doctype': 'File',
-			'fieldname': ['file_url','filename'],
+			'fieldname': ['file_url','file_name'],
 			  'filters': {
 			      'name': dialog.get_value("file")
 			    }
