@@ -346,7 +346,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabEmail Queue` where
-		datediff(now(), creation) > 31""")
+		datediff(now(), modified) > 31""")
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
-		where datediff(curdate(), creation) > 7 and status='Not Sent'""")
+		where datediff(curdate(), modified) > 7 and status='Not Sent'""")
