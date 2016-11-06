@@ -827,6 +827,9 @@ a.active {
 .content-header {
   padding-bottom: 20px;
 }
+.footer-group {
+	margin-bottom: 28px;
+}
 .footer-group-label {
   display: inline-block;
   font-size: 11px;
