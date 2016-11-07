@@ -390,8 +390,9 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		message = markdown(message)
 
 
+	import email
 	if delayed:
-		import frappe.email.queue
+		import email.queue
 		frappe.email.queue.send(recipients=recipients, sender=sender,
 			subject=subject, message=message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
@@ -399,7 +400,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
 			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
 	else:
-		frappe.email.sendmail(recipients, sender=sender,
+		email.sendmail(recipients, sender=sender,
 			subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
 			cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 
