@@ -2,13 +2,12 @@
 	<div class="filter-header">
 		<h6 class="h6 filter-label" data-name="{{ label }}">{{ label }}</h6>
 		{% if (type!=="Date" && type!=="Datetime") { %}
-		<div class="dropdown search-dropdown hide pull-right"
-			style="margin-right: 25px;">
+		<div class="dropdown search-dropdown hide pull-right">
 			<i class="dropdown-toggle octicon octicon-search text-muted"
 				data-toggle="dropdown"></i>
 			<div class="dropdown-menu">
 				<form >
-				<input class="search-dashboard" type="text" autocomplete="off" class="input-with-feedback form-control" style="min-width: 150px;" />
+				<input class="search-dashboard" type="text" autocomplete="off" class="input-with-feedback form-control" />
 				</form>
 			</div>
 		</div>
