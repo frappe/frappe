@@ -146,13 +146,16 @@ def check_email_limit(recipients):
 		and getattr(smtp_server.email_account, "from_site_config", False)
 		or frappe.flags.in_test):
 
-		# get count of mails sent this month
-		this_month = get_emails_sent_this_month()
-
-		monthly_email_limit = frappe.conf.get('limits', {}).get('emails') or 500
+		monthly_email_limit = frappe.conf.get('limits', {}).get('emails')
 
 		if frappe.flags.in_test:
 			monthly_email_limit = 500
+
+		if not monthly_email_limit:
+			return
+
+		# get count of mails sent this month
+		this_month = get_emails_sent_this_month()
 
 		if (this_month + len(recipients)) > monthly_email_limit:
 			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_email_limit),
