@@ -383,25 +383,26 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	"""
+	message = content or message
 
+	if as_markdown:
+		from markdown2 import markdown
+		message = markdown(message)
+
+
+	import email
 	if delayed:
-		import frappe.email.queue
-		frappe.email.queue.send(recipients=recipients, sender=sender,
-			subject=subject, message=content or message,
+		import email.queue
+		email.queue.send(recipients=recipients, sender=sender,
+			subject=subject, message=message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
 			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
 	else:
-		import frappe.email
-		if as_markdown:
-			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
-		else:
-			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+		email.sendmail(recipients, sender=sender,
+			subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
+			cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 
 whitelisted = []
 guest_methods = []

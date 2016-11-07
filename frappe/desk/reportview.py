@@ -218,7 +218,8 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 				limit = 20,
 				as_list = True)
 
-		if tag["type"] not in ['Check','Select','Date','Datetime']:
+		if tag["type"] not in ['Check','Select','Date','Datetime','Int',
+			'Float','Currency','Percent'] and tag['name'] not in ['docstatus']:
 			stats[tag["name"]] = list(tagcount)
 			if stats[tag["name"]]:
 				data =["No Data", frappe.get_all(doctype,
