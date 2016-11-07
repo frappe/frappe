@@ -217,7 +217,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:22:59.015955", 
+ "modified": "2016-11-07 18:31:54.470173", 
  "modified_by": "Administrator", 
  "module": "Integration Broker", 
  "name": "OAuth Authorization Code", 
@@ -228,7 +228,7 @@
    "amend": 0, 
    "apply_user_permissions": 0, 
    "cancel": 0, 
-   "create": 1, 
+   "create": 0, 
    "delete": 1, 
    "email": 1, 
    "export": 1, 
@@ -243,7 +243,7 @@
    "set_user_permissions": 0, 
    "share": 1, 
    "submit": 0, 
-   "write": 1
+   "write": 0
   }
  ], 
  "quick_entry": 0, 

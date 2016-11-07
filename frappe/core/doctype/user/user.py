@@ -67,6 +67,9 @@ class User(Document):
 		if self.language == "Loading...":
 			self.language = None
 
+		if (self.name not in ["Administrator", "Guest"]) and (not self.frappe_userid):
+			self.frappe_userid = frappe.generate_hash(length=39)
+
 	def on_update(self):
 		# clear new password
 		self.validate_user_limit()
