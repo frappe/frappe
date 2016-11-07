@@ -20,7 +20,8 @@
   padding: 8px 15px;
 }
 .filter-header .search-dropdown {
-  margin-top: -23px;
+  margin-top: -20px;
+  margin-right: 20px;
 }
 .filter-header .search-dropdown .octicon {
   font-size: 14px;
@@ -29,7 +30,7 @@
   margin-top: -16px;
 }
 .filter-header .dropdown-menu {
-  min-width: 150px !important;
+  min-width: 120px !important;
 }
 .filter-label {
   margin: 0px;
