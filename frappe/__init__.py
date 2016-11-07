@@ -393,7 +393,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	import email
 	if delayed:
 		import email.queue
-		frappe.email.queue.send(recipients=recipients, sender=sender,
+		email.queue.send(recipients=recipients, sender=sender,
 			subject=subject, message=message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
