@@ -74,6 +74,7 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_list_js", "__list_js")
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_custom_script()
+		self.add_global_custom_script() 2016-11-03 - JDLP
 		self.add_html_templates(path)
 
 	def _add_code(self, path, fieldname):
@@ -105,6 +106,27 @@ class FormMeta(Meta):
 			"script_type": "Client"}, "script") or ""
 
 		self.set("__js", (self.get('__js') or '') + "\n\n/* Appending Custom Script */\n\n" + custom)
+
+	def add_global_custom_script(self):
+		"""embed all require files"""
+		# 2016-11-03 - JDLP
+		# global custom script
+		args = {"dt": self.name, "script_type": "Client"}
+		global_custom_scripts = frappe.db.sql("""
+			SELECT
+				`tabGlobal Custom Script`.script
+			FROM
+				`tabGlobal Custom Script Detail`
+			INNER JOIN `tabGlobal Custom Script` ON `tabGlobal Custom Script Detail`.parent = `tabGlobal Custom Script`.`name`
+			WHERE
+				`tabGlobal Custom Script`.script_type = %(script_type)s AND
+				`tabGlobal Custom Script Detail`.dt = %(dt)s AND
+				`tabGlobal Custom Script Detail`.disabled = false""", args, as_list=1)
+				
+		if (global_custom_scripts):
+			for script in global_custom_scripts:
+				if script[0]:
+					self.set("__js", (self.get('__js') or '') + "\n\n/* Appending Global Custom Script */\n\n" + script[0])
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
