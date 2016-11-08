@@ -7,6 +7,22 @@ $.extend(frappe.model, {
 	new_names: {},
 	new_name_count: {},
 
+	// 2016-11-04 - JDLP - Modification pour améliorer la gestion du QuickEntry
+	get_new_doc_and_map: function(source_doc, new_doctype, parent_doc, parentfield, with_mandatory_children) {
+		var doc = frappe.model.get_new_doc(new_doctype, parent_doc, parentfield, with_mandatory_children)
+		if (source_doc){
+			var custom_mapping = [
+				{"s_doc":"Stock Entry Detail", "s_field":"item_code", "d_doc":"Batch","d_field":"item"},
+				{"s_doc":"Sales Order Item", "s_field":"item_code", "d_doc":"Batch","d_field":"item"}];
+			for(var i = 0; i < custom_mapping.length; i++){
+				var m = custom_mapping[i];
+				if (source_doc.doctype==m["s_doc"] && doc.doctype==m["d_doc"])
+					doc[m["d_field"]] = source_doc[m["s_field"]];
+			}			
+		}
+		return doc;
+	},
+	
 	get_new_doc: function(doctype, parent_doc, parentfield, with_mandatory_children) {
 		frappe.provide("locals." + doctype);
 		var doc = {
