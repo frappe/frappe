@@ -103,12 +103,6 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		if(frm.doc.docstatus==2) return true; // don't check for cancel
 
 		$.each(frappe.model.get_all_docs(frm.doc), function(i, doc) {
-
-			if(doc.parent && doc.__unedited) {
-				frappe.model.remove_from_locals(doc.doctype, doc.name);
-				return;
-			}
-
 			var error_fields = [];
 			var folded = false;
 
