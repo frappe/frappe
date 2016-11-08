@@ -10,10 +10,7 @@ from frappe import _
 class SignupDisabledError(frappe.PermissionError): pass
 
 def get_oauth2_providers():
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url") or None
-	if not frappe_server_url:
-		frappe.throw(_("Define Frappe Server URL in Social Login Keys"))
-	return {
+	out = {
 		"google": {
 			"flow_params": {
 				"name": "google",
@@ -68,9 +65,12 @@ def get_oauth2_providers():
 			"api_endpoint_args": {
 				"fields": "first_name,last_name,email,gender,location,verified,picture"
 			},
-		},
+		}
+	}
 
-		"frappe": {
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+	if frappe_server_url:
+		out['frappe'] = {
 			"flow_params": {
 				"name": "frappe",
 				"authorize_url": frappe_server_url + "/api/method/frappe.integration_broker.oauth2.authorize",
@@ -88,7 +88,8 @@ def get_oauth2_providers():
 			# relative to base_url
 			"api_endpoint": "/api/method/frappe.integration_broker.oauth2.openid_profile"
 		}
-	}
+
+	return out
 
 def get_oauth_keys(provider):
 	"""get client_id and client_secret from database or conf"""
