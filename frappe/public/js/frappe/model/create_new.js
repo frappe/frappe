@@ -186,7 +186,6 @@ $.extend(frappe.model, {
 
 		} else if (df.fieldtype=="Time") {
 			return dateutil.now_time();
-
 		}
 	},
 
