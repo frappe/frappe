@@ -18,7 +18,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=(), show_as_cc=(), in_reply_to=None, send_after=None,
 		expose_recipients=False, send_priority=1, communication=None):
 	"""Add email to sending queue (Email Queue)
 
@@ -33,7 +33,6 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
-	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 	:param communication: Communication link to be set in Email Queue record
@@ -103,11 +102,12 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 			email_text_context = cc_message + "\n" + email_text_context
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
+			reference_name, attachments, reply_to, cc, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None):
+	cc=(), in_reply_to=None, send_after=None, send_priority=1, email_account=None,
+	communication=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.recipient = email
@@ -115,10 +115,11 @@ def add(email, sender, subject, formatted, text_content=None,
 
 	try:
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
-			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
+			text_content=text_content, attachments=attachments, reply_to=reply_to,
+			cc=cc, email_account=email_account)
 
-		if message_id:
-			mail.set_message_id(message_id)
+		if reference_doctype and reference_name:
+			mail.set_message_id(reference_doctype, reference_name)
 
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)

@@ -6,7 +6,7 @@ import frappe
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode)
+	split_emails, to_markdown, markdown, encode, random_string)
 import email.utils
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -182,8 +182,9 @@ class EMail:
 			sender_name, sender_email = email.utils.parseaddr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
-	def set_message_id(self, message_id):
-		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)
+	def set_message_id(self, doctype, name):
+		self.msg_root["Message-Id"] = "<{random}.{doctype}.{name}@{site}>".format(
+			doctype=doctype, name=name, site=frappe.local.site, random=random_string(10))
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""

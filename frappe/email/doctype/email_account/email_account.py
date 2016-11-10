@@ -270,46 +270,50 @@ class EmailAccount(Document):
 
 		If no thread id is found and `append_to` is set for the email account,
 		it will create a new parent transaction (e.g. Issue)"""
-		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 		parent = None
 
-		if self.append_to:
-			# set subject_field and sender_field
-			meta_module = frappe.get_meta_module(self.append_to)
-			meta = frappe.get_meta(self.append_to)
-			subject_field = getattr(meta_module, "subject_field", "subject")
-			if not meta.get_field(subject_field):
-				subject_field = None
-			sender_field = getattr(meta_module, "sender_field", "sender")
-			if not meta.get_field(sender_field):
-				sender_field = None
+		parent = self.find_parent_from_in_reply_to(email, communication)
 
-		if in_reply_to:
-			if "@{0}".format(frappe.local.site) in in_reply_to:
+		if not parent:
+			self.set_sender_field_and_subject_field()
 
-				# reply to a communication sent from the system
-				in_reply_to, domain = in_reply_to.split("@", 1)
+		if not parent and self.append_to:
+			parent = self.find_parent_based_on_subject_and_sender(email, communication)
 
-				if frappe.db.exists("Communication", in_reply_to):
-					parent = frappe.get_doc("Communication", in_reply_to)
+		if not parent and self.append_to and self.append_to!="Communication":
+			parent = self.create_new_parent(email, communication)
 
-					# set in_reply_to of current communication
-					communication.in_reply_to = in_reply_to
+		if parent:
+			communication.reference_doctype = parent.doctype
+			communication.reference_name = parent.name
 
-					if parent.reference_name:
-						parent = frappe.get_doc(parent.reference_doctype,
-							parent.reference_name)
+	def set_sender_field_and_subject_field(self):
+		'''Identify the sender and subject fields from the `append_to` DocType'''
+		# set subject_field and sender_field
+		meta_module = frappe.get_meta_module(self.append_to)
+		meta = frappe.get_meta(self.append_to)
 
-		if not parent and self.append_to and sender_field:
-			if subject_field:
+		self.subject_field = getattr(meta_module, "subject_field", "subject")
+		if not meta.get_field(self.subject_field):
+			self.subject_field = None
+
+		self.sender_field = getattr(meta_module, "sender_field", "sender")
+		if not meta.get_field(self.sender_field):
+			self.sender_field = None
+
+	def find_parent_based_on_subject_and_sender(self, email, communication):
+		'''Find parent document based on subject and sender match'''
+
+		if self.append_to and self.sender_field:
+			if self.subject_field:
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
 				subject = strip(re.sub("^\s*(Re|RE)[^:]*:\s*", "", email.subject))
 
 				parent = frappe.db.get_all(self.append_to, filters={
-					sender_field: email.from_email,
-					subject_field: ("like", "%{0}%".format(subject)),
+					self.sender_field: email.from_email,
+					self.subject_field: ("like", "%{0}%".format(subject)),
 					"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 				}, fields="name")
 
@@ -318,42 +322,73 @@ class EmailAccount(Document):
 				# and subject is atleast 10 chars long
 				if not parent and len(subject) > 10 and is_system_user(email.from_email):
 					parent = frappe.db.get_all(self.append_to, filters={
-						subject_field: ("like", "%{0}%".format(subject)),
+						self.subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 					}, fields="name")
 
 			if parent:
 				parent = frappe.get_doc(self.append_to, parent[0].name)
+				return parent
 
-		if not parent and self.append_to and self.append_to!="Communication":
-			# no parent found, but must be tagged
-			# insert parent type doc
-			parent = frappe.new_doc(self.append_to)
 
-			if subject_field:
-				parent.set(subject_field, email.subject)
+	def create_new_parent(self, email, communication):
+		'''If no parent found, create a new reference document'''
 
-			if sender_field:
-				parent.set(sender_field, email.from_email)
+		# no parent found, but must be tagged
+		# insert parent type doc
+		parent = frappe.new_doc(self.append_to)
 
-			parent.flags.ignore_mandatory = True
+		if self.subject_field:
+			parent.set(self.subject_field, email.subject)
 
-			try:
-				parent.insert(ignore_permissions=True)
-			except frappe.DuplicateEntryError:
-				# try and find matching parent
-				parent_name = frappe.db.get_value(self.append_to, {sender_field: email.from_email})
-				if parent_name:
-					parent.name = parent_name
-				else:
-					parent = None
+		if self.sender_field:
+			parent.set(self.sender_field, email.from_email)
 
-			# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
-			communication.is_first = True
+		parent.flags.ignore_mandatory = True
 
-		if parent:
-			communication.reference_doctype = parent.doctype
-			communication.reference_name = parent.name
+		try:
+			parent.insert(ignore_permissions=True)
+		except frappe.DuplicateEntryError:
+			# try and find matching parent
+			parent_name = frappe.db.get_value(self.append_to, {self.sender_field: email.from_email})
+			if parent_name:
+				parent.name = parent_name
+			else:
+				parent = None
+
+		# NOTE if parent isn't found and there's no subject match, it is likely that it is a new conversation thread and hence is_first = True
+		communication.is_first = True
+
+		return parent
+
+	def find_parent_from_in_reply_to(self, communication, email):
+		'''Returns parent reference if embedded in In-Reply-To header
+
+		Message-ID is formatted as `{random}.{doctype}.{name}@{site}`'''
+		parent = None
+		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
+
+		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
+
+			# reply to a communication sent from the system
+			reference, domain = in_reply_to.split("@", 1)
+			if '.' in reference:
+				t, parent_doctype, parent_name = reference.split('.', 2)
+			else:
+				parent_doctype, parent_name = 'Communication', reference
+
+			if frappe.db.exists(parent_doctype, parent_name):
+				parent = frappe.get_doc(parent_doctype, parent_name)
+
+				# set in_reply_to of current communication
+				if parent_doctype=='Communication':
+					communication.in_reply_to = in_reply_to
+
+				if parent.reference_name:
+					parent = frappe.get_doc(parent.reference_doctype,
+						parent.reference_name)
+
+		return parent
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
@@ -373,7 +408,6 @@ class EmailAccount(Document):
 					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype = communication.reference_doctype,
 				reference_name = communication.reference_name,
-				message_id = communication.name,
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = unsubscribe_message)
 
