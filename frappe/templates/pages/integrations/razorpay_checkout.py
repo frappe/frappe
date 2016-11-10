@@ -14,7 +14,7 @@ expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'referen
 
 def get_context(context):
 	context.no_cache = 1
-	context.api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
+	context.api_key = get_api_key()
 
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(frappe.form_dict.keys())):
@@ -27,6 +27,14 @@ def get_context(context):
 		frappe.redirect_to_message(_('Some information is missing'), _('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
 		frappe.local.flags.redirect_location = frappe.local.response.location
 		raise frappe.Redirect
+
+def get_api_key():
+	api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
+
+	if frappe.form_dict.get("use_sandbox"):
+		api_key = frappe.conf.sandbox_api_key
+
+	return api_key
 
 @frappe.whitelist(allow_guest=True)
 def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname):
