@@ -131,7 +131,6 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_doctype=doc.reference_doctype,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
-		message_id=doc.name,
 		unsubscribe_message=_("Leave this conversation"),
 		delayed=True,
 		communication=doc.name

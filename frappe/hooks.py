@@ -121,8 +121,7 @@ scheduler_events = {
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots",
-		"frappe.integration_broker.doctype.integration_service.integration_service.trigger_integration_service_events"
+		"frappe.utils.error.collect_error_snapshots"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
