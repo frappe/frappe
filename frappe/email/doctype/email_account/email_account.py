@@ -225,6 +225,7 @@ class EmailAccount(Document):
 			"doctype": "Communication",
 			"subject": email.subject,
 			"content": email.content,
+			'text_content': email.text_content,
 			"sent_or_received": "Received",
 			"sender_full_name": email.from_real_name,
 			"sender": email.from_email,
@@ -272,16 +273,16 @@ class EmailAccount(Document):
 		it will create a new parent transaction (e.g. Issue)"""
 		parent = None
 
-		parent = self.find_parent_from_in_reply_to(email, communication)
+		parent = self.find_parent_from_in_reply_to(communication, email)
 
 		if not parent:
 			self.set_sender_field_and_subject_field()
 
 		if not parent and self.append_to:
-			parent = self.find_parent_based_on_subject_and_sender(email, communication)
+			parent = self.find_parent_based_on_subject_and_sender(communication, email)
 
 		if not parent and self.append_to and self.append_to!="Communication":
-			parent = self.create_new_parent(email, communication)
+			parent = self.create_new_parent(communication, email)
 
 		if parent:
 			communication.reference_doctype = parent.doctype
@@ -301,7 +302,7 @@ class EmailAccount(Document):
 		if not meta.get_field(self.sender_field):
 			self.sender_field = None
 
-	def find_parent_based_on_subject_and_sender(self, email, communication):
+	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''
 
 		if self.append_to and self.sender_field:
@@ -331,7 +332,7 @@ class EmailAccount(Document):
 				return parent
 
 
-	def create_new_parent(self, email, communication):
+	def create_new_parent(self, communication, email):
 		'''If no parent found, create a new reference document'''
 
 		# no parent found, but must be tagged
@@ -374,6 +375,9 @@ class EmailAccount(Document):
 			reference, domain = in_reply_to.split("@", 1)
 			if '.' in reference:
 				t, parent_doctype, parent_name = reference.split('.', 2)
+
+				# parent doctype has '-' instead of ' ' and '--' instead of '-'
+				parent_doctype = parent_doctype.replace('--', '%').replace('-', ' ').replace('%', '-')
 			else:
 				parent_doctype, parent_name = 'Communication', reference
 
@@ -384,9 +388,10 @@ class EmailAccount(Document):
 				if parent_doctype=='Communication':
 					communication.in_reply_to = in_reply_to
 
-				if parent.reference_name:
-					parent = frappe.get_doc(parent.reference_doctype,
-						parent.reference_name)
+					if parent.reference_name:
+						# the true parent is the communication parent
+						parent = frappe.get_doc(parent.reference_doctype,
+							parent.reference_name)
 
 		return parent
 
