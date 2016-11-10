@@ -145,3 +145,4 @@ frappe.patches.v7_0.cleanup_list_settings
 execute:frappe.db.set_default('language', '')
 frappe.patches.v7_1.refactor_integration_broker
 frappe.patches.v7_1.set_backup_limit
+frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
