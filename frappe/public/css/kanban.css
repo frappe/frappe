@@ -58,10 +58,10 @@
   margin-right: 5px;
   position: relative;
 }
-.kanban .composer {
+.kanban form.compose-card-form .kanban-card {
   margin-bottom: 10px;
 }
-.kanban .composer textarea {
+.kanban form.compose-card-form .kanban-card textarea {
   resize: none;
   border: none;
   background: none;
@@ -69,6 +69,6 @@
   word-wrap: break-word;
   width: 100%;
 }
-.kanban .composer textarea:focus {
+.kanban form.compose-card-form .kanban-card textarea:focus {
   outline: none;
 }

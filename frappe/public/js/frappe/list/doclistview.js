@@ -542,8 +542,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		frappe.require('assets/frappe/js/frappe/views/kanban/kanban_view.js', function() {
 			new frappe.views.KanbanBoard({
-				name: board_name,
-				docs: values,
+				doctype: me.doctype,
+				board_name: board_name,
+				cards: values,
 				wrapper: me.wrapper.find('.result-list') 
 			});
 		});

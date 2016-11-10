@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Kanban Board', {
 	refresh: function(frm) {
+		if(frm.is_new()) return;
 		frm.add_custom_button("Show Board", function() {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		}, "icon-table");
@@ -15,24 +16,22 @@ frappe.ui.form.on('Kanban Board', {
 		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
 			var options = $.map(frappe.get_meta(frm.doc.reference_doctype).fields,
 				function(d) {
-					if(d.fieldname && frappe.model.no_value_type.indexOf(d.fieldtype)===-1) {
+					if(d.fieldname && d.fieldtype === 'Select' &&
+						frappe.model.no_value_type.indexOf(d.fieldtype)===-1) {
 						return d.fieldname;
 					}
 					return null;
-				}
-			);
+				});
 			frm.set_df_property('field_name', 'options', options);
 		});
 	},
 	field_name: function(frm) {
 		var field = frappe.meta.get_field(frm.doc.reference_doctype, frm.doc.field_name);
-		if(field.fieldtype === 'Select') {
-			frm.doc.columns = [];
-			field.options.split('\n').forEach(function(o, i) {
-				d = frm.add_child('columns');
-				d.value = o;
-			});
-			frm.refresh();
-		}
+		frm.doc.columns = [];
+		field.options.split('\n').forEach(function(o, i) {
+			d = frm.add_child('columns');
+			d.column_name = o;
+		});
+		frm.refresh();
 	}
 });
