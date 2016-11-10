@@ -460,6 +460,23 @@ def clear_limits(context, site, limits):
 		if not limits:
 			update_site_config('limits', 'None', validate=False)
 
+@click.command('set-last-active')
+@click.option('--user', help="Setup last active date for user")
+@pass_context
+def set_last_active(context, user=None):
+	from frappe.core.doctype.user.user import get_system_users
+	from frappe.utils.user import set_last_active_to_now
+	
+	site = get_site(context)
+
+	with frappe.init_site(site):
+		frappe.connect()
+		if not user:
+			user = get_system_users(limit=1)[0]
+
+		set_last_active_to_now(user)
+		frappe.db.commit()
+
 
 commands = [
 	add_system_manager,
@@ -482,4 +499,5 @@ commands = [
 	clear_limits,
 	disable_user,
 	_use,
+	set_last_active,
 ]
