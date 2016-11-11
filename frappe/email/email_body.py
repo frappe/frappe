@@ -185,7 +185,7 @@ class EMail:
 	def set_message_id(self, doctype, name):
 		message_id = "<{random}.{doctype}.{name}@{site}>".format(
 			doctype=doctype.replace('-', '--').replace(' ', '-'), name=name, site=frappe.local.site, random=random_string(10))
-		self.msg_root["Message-ID"] = message_id
+		self.msg_root["Message-Id"] = message_id
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
