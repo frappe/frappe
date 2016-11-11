@@ -57,7 +57,14 @@ class Report(Document):
 		if self.report_type in ('Query Report', 'Script Report'):
 			# query and script reports
 			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
-			out.append([d.split(':')[0] for d in data.get('columns')])
+			columns_list = []
+			for d in data.get('columns'):
+				if isinstance(d, dict):
+					columns_list.append(d.get('label'))
+				else:
+					columns_list.append(d.split(':')[0])
+
+			out.append(columns_list)
 			out += data.get('result')
 		else:
 			# standard report
