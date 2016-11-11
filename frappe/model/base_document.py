@@ -360,8 +360,21 @@ class BaseDocument(object):
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError, (self.doctype, self.name, e), traceback
 
-	def db_set(self, fieldname, value, update_modified=True):
-		self.set(fieldname, value)
+	def db_set(self, fieldname, value=None, update_modified=True):
+		'''Set a value in the document object, update the timestamp and update the database.
+
+		WARNING: This method does not trigger controller validations and should
+		be used very carefully.
+
+		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
+		:param value: value of the property to be updated
+		:param update_modified: default True. updates the `modified` and `modified_by` properties
+		'''
+		if isinstance(fieldname, dict):
+			self.update(fieldname)
+		else:
+			self.set(fieldname, value)
+
 		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
 			# don't update modified timestamp if called from post save methods
 			# like on_update or on_submit

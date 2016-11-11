@@ -586,7 +586,7 @@ class Database:
 
 		:param dt: DocType name.
 		:param dn: Document name.
-		:param field: Property / field name.
+		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
 		:param modified_by: Set this user as `modified_by`.
@@ -598,28 +598,39 @@ class Database:
 		if not modified_by:
 			modified_by = frappe.session.user
 
+		if update_modified:
+			to_update = {"modified": modified, "modified_by": modified_by}
+
+		if isinstance(field, dict):
+			to_update.update(field)
+		else:
+			to_update.update({field: val})
+
 		if dn and dt!=dn:
+			# with table
 			conditions, values = self.build_conditions(dn)
 
-			values.update({"val": val, "modified": modified, "modified_by": modified_by})
+			values.update(to_update)
 
-			if update_modified:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
-			else:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
+			set_values = []
+			for key in to_update:
+				set_values.append('`{0}`=%({0})s'.format(key))
 
+			self.sql("""update `tab{0}`
+				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
+				values, debug=debug)
 
 		else:
-			self.sql("delete from tabSingles where field=%s and doctype=%s", (field, dt))
-			self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)",
-				(dt, field, val), debug=debug)
-
-			if update_modified and (field not in ("modified", "modified_by")):
-				self.set_value(dt, dn, "modified", modified)
-				self.set_value(dt, dn, "modified_by", modified_by)
-
+			# for singles
+			keys = to_update.keys()
+			self.sql('''
+				delete from tabSingles
+				where field in ({0}) and
+					doctype=%s'''.format(', '.join(['%s']*len(keys))),
+					keys + [dt], debug=debug)
+			for key, value in to_update.iteritems():
+				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
+					(dt, key, value), debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]

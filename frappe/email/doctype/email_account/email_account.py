@@ -386,7 +386,7 @@ class EmailAccount(Document):
 
 				# set in_reply_to of current communication
 				if parent_doctype=='Communication':
-					communication.in_reply_to = in_reply_to
+					communication.in_reply_to = parent_name
 
 					if parent.reference_name:
 						# the true parent is the communication parent

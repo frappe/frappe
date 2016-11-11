@@ -54,8 +54,8 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as f:
-			test_mails = [f.read()]
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
+			test_mails = [testfile.read()]
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.receive(test_mails=test_mails)
