@@ -35,8 +35,6 @@ def handle():
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 
-	form_dict = frappe.local.form_dict
-
 	validate_oauth()
 
 	parts = frappe.request.path[1:].split("/",3)
@@ -131,9 +129,10 @@ def handle():
 	return build_response("json")
 
 def validate_oauth():
+	form_dict = frappe.local.form_dict
 	authorization_header = frappe.get_request_header("Authorization").split(" ") if frappe.get_request_header("Authorization") else None
 	if authorization_header and authorization_header[0].lower() == "bearer":
-		from frappe.integration_broker.oauth2 import oauth_server
+		from frappe.integration_broker.oauth2 import get_oauth_server
 		token = authorization_header[1]
 		r = frappe.request
 		parsed_url = urlparse(r.url)
@@ -145,7 +144,7 @@ def validate_oauth():
 
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(";")
 
-		valid, oauthlib_request = oauth_server.verify_request(uri, http_method, body, headers, required_scopes)
+		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
 
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
