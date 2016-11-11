@@ -5,13 +5,8 @@ function get_url_arg(name) {
 function get_query_params(query_string) {
 	var query_params = {};
 	if (!query_string) {
-        if (location.hash) {
-            query_string = location.search.substring(1) + location.hash;
-        }
-        else {
-            query_string = location.search.substring(1)
-        }
-    }
+		query_string = location.search.substring(1);
+	}
 
 	var query_list = query_string.split("&");
 	for (var i=0, l=query_list.length; i < l; i++ ){
