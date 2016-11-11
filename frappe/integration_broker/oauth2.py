@@ -7,7 +7,7 @@ from urlparse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 
 def get_oauth_server():
-	if not getattr(frappe.local, 'oauth_server'):
+	if not getattr(frappe.local, 'oauth_server', None):
 		oauth_validator = OAuthWebRequestValidator()
 		frappe.local.oauth_server  = WebApplicationServer(oauth_validator)
 
