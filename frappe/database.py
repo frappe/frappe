@@ -598,6 +598,7 @@ class Database:
 		if not modified_by:
 			modified_by = frappe.session.user
 
+		to_update = {}
 		if update_modified:
 			to_update = {"modified": modified, "modified_by": modified_by}
 
