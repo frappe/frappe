@@ -6,10 +6,12 @@ from urllib import quote, urlencode
 from urlparse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 
-#Variables required across requests
-oauth_validator = OAuthWebRequestValidator()
-oauth_server  = WebApplicationServer(oauth_validator)
-credentials = None
+def get_oauth_server():
+	if not getattr(frappe.local, 'oauth_server', None):
+		oauth_validator = OAuthWebRequestValidator()
+		frappe.local.oauth_server  = WebApplicationServer(oauth_validator)
+
+	return frappe.local.oauth_server
 
 def get_urlparams_from_kwargs(param_kwargs):
 	arguments = param_kwargs
@@ -29,10 +31,10 @@ def approve(*args, **kwargs):
 	headers = r.headers
 
 	try:
-		scopes, credentials = oauth_server.validate_authorization_request(uri, http_method, body, headers)
+		scopes, frappe.flags.oauth_credentials = get_oauth_server().validate_authorization_request(uri, http_method, body, headers)
 
-		headers, body, status = oauth_server.create_authorization_response(uri=credentials['redirect_uri'], \
-				body=body, headers=headers, scopes=scopes, credentials=credentials)
+		headers, body, status = get_oauth_server().create_authorization_response(uri=frappe.flags.oauth_credentials['redirect_uri'], \
+				body=body, headers=headers, scopes=scopes, credentials=frappe.flags.oauth_credentials)
 		uri = headers.get('Location', None)
 
 		frappe.local.response["type"] = "redirect"
@@ -50,7 +52,7 @@ def authorize(*args, **kwargs):
 	params = get_urlparams_from_kwargs(kwargs)
 	request_url = urlparse(frappe.request.url)
 	success_url = request_url.scheme + "://" + request_url.netloc + "/api/method/frappe.integration_broker.oauth2.approve?" + params
-	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied" 
+	failure_url = frappe.form_dict["redirect_uri"] + "?error=access_denied"
 
 	if frappe.session['user']=='Guest':
 		#Force login, redirect to preauth again.
@@ -65,9 +67,9 @@ def authorize(*args, **kwargs):
 			body = r.get_data()
 			headers = r.headers
 
-			scopes, credentials = oauth_server.validate_authorization_request(uri, http_method, body, headers)
+			scopes, frappe.flags.oauth_credentials = get_oauth_server().validate_authorization_request(uri, http_method, body, headers)
 
-			skip_auth = frappe.db.get_value("OAuth Client", credentials['client_id'], "skip_authorization")
+			skip_auth = frappe.db.get_value("OAuth Client", frappe.flags.oauth_credentials['client_id'], "skip_authorization")
 			unrevoked_tokens = frappe.get_all("OAuth Bearer Token", filters={"status":"Active"})
 
 			if skip_auth or (oauth_settings["skip_authorization"] == "Auto" and len(unrevoked_tokens)):
@@ -100,7 +102,7 @@ def get_token(*args, **kwargs):
 	headers = r.headers
 
 	try:
-		headers, body, status = oauth_server.create_token_response(uri, http_method, body, headers, credentials)
+		headers, body, status = get_oauth_server().create_token_response(uri, http_method, body, headers, frappe.flags.oauth_credentials)
 		frappe.local.response = frappe._dict(json.loads(body))
 	except FatalClientError as e:
 		return e
@@ -113,9 +115,9 @@ def revoke_token(*args, **kwargs):
 	http_method = r.method
 	body = r.form
 	headers = r.headers
-	
-	headers, body, status = oauth_server.create_revocation_response(uri, headers=headers, body=body, http_method=http_method)
-	
+
+	headers, body, status = get_oauth_server().create_revocation_response(uri, headers=headers, body=body, http_method=http_method)
+
 	frappe.local.response['http_status_code'] = status
 	if status == 200:
 		return "success"

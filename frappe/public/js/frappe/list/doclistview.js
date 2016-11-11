@@ -781,13 +781,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	toggle_delete: function() {
 		var me = this;
-		if (this.$page.find(".list-delete:checked").length) {
+		var no_of_checked_items = this.$page.find(".list-delete:checked").length;
+		if (no_of_checked_items) {
 			this.page.set_primary_action(__("Delete"), function() { me.delete_items() },
 				"octicon octicon-trashcan");
 			this.page.btn_primary.addClass("btn-danger");
+			this.page.checked_items_status.text(no_of_checked_items == 1 
+    				? __("1 item selected") 
+    				: __("{0} items selected", [no_of_checked_items]))
+			this.page.checked_items_status.removeClass("hide");
 		} else {
 			this.page.btn_primary.removeClass("btn-danger");
 			this.set_primary_action();
+			this.page.checked_items_status.addClass("hide");
 		}
 	},
 
