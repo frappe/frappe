@@ -11,7 +11,7 @@ from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
 
-def oauth_url_delimiter(separator_character=" "):
+def get_url_delimiter(separator_character=" "):
 	return separator_character
 
 class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoint,
@@ -77,7 +77,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
 		# the client previously registered this EXACT redirect uri.
 
-		redirect_uris = frappe.db.get_value("OAuth Client", client_id, 'redirect_uris').split(oauth_url_delimiter())
+		redirect_uris = frappe.db.get_value("OAuth Client", client_id, 'redirect_uris').split(get_url_delimiter())
 
 		if redirect_uri in redirect_uris:
 			return True
@@ -93,7 +93,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
-		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(oauth_url_delimiter())
+		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
 
 		are_scopes_valid = True
 
@@ -105,7 +105,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def get_default_scopes(self, client_id, request, *args, **kwargs):
 		# Scopes a client will authorize for if none are supplied in the
 		# authorization request.
-		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(oauth_url_delimiter())
+		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
 		request.scopes = scopes #Apparently this is possible.
 		return scopes
 
@@ -127,7 +127,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		cookie_dict = get_cookie_dict_from_headers(request)
 
 		oac = frappe.new_doc('OAuth Authorization Code')
-		oac.scopes = oauth_url_delimiter().join(request.scopes)
+		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
 		oac.user = urllib.unquote(cookie_dict['user_id'])
@@ -177,7 +177,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			checkcodes.append(vcode["name"])
 
 		if code in checkcodes:
-			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, 'scopes').split(oauth_url_delimiter())
+			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, 'scopes').split(get_url_delimiter())
 			request.user = frappe.db.get_value("OAuth Authorization Code", code, 'user')
 			return True
 		else:
@@ -203,7 +203,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
 		otoken.user = request.user
-		otoken.scopes = oauth_url_delimiter().join(request.scopes)
+		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
 		otoken.refresh_token = token['refresh_token']
 		otoken.expires_in = token['expires_in']
@@ -227,7 +227,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken = frappe.get_doc("OAuth Bearer Token", token) #{"access_token": str(token)})
 		is_token_valid = (frappe.utils.datetime.datetime.now() < otoken.expiration_time) \
 			and otoken.status != "Revoked"
-		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, 'scopes').split(oauth_url_delimiter())
+		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, 'scopes').split(get_url_delimiter())
 		are_scopes_valid = True
 		for scp in scopes:
 			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
