@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.12'
+__version__ = '7.1.13'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -135,6 +135,8 @@ def init(site, sites_path=None, new_site=False):
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.form_dict = _dict()
+	local.session = _dict()
 
 	setup_module_map()
 
@@ -149,8 +151,6 @@ def connect(site=None, db_name=None):
 	if site:
 		init(site)
 	local.db = Database(user=db_name or local.conf.db_name)
-	local.form_dict = _dict()
-	local.session = _dict()
 	set_user("Administrator")
 
 def get_site_config(sites_path=None, site_path=None):

@@ -8,7 +8,9 @@ from frappe.utils import cstr
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
-	def make_key(self, key, user=None):
+	def make_key(self, key, user=None, shared=False):
+		if shared:
+			return key
 		if user:
 			if user == True:
 				user = frappe.session.user
@@ -100,22 +102,22 @@ class RedisWrapper(redis.Redis):
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
 
-	def delete_value(self, keys, user=None, make_keys=True):
+	def delete_value(self, keys, user=None, make_keys=True, shared=False):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):
 			keys = (keys, )
 
 		for key in keys:
+			if key in frappe.local.cache:
+				del frappe.local.cache[key]
+
 			if make_keys:
-				key = self.make_key(key)
+				key = self.make_key(key, shared=shared)
 
 			try:
 				self.delete(key)
 			except redis.exceptions.ConnectionError:
 				pass
-
-			if key in frappe.local.cache:
-				del frappe.local.cache[key]
 
 	def lpush(self, key, value):
 		super(redis.Redis, self).lpush(self.make_key(key), value)
@@ -129,12 +131,13 @@ class RedisWrapper(redis.Redis):
 	def llen(self, key):
 		return super(redis.Redis, self).llen(self.make_key(key))
 
-	def hset(self, name, key, value):
+	def hset(self, name, key, value, shared=False):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		frappe.local.cache[name][key] = value
 		try:
-			super(redis.Redis, self).hset(self.make_key(name), key, pickle.dumps(value))
+			super(redis.Redis, self).hset(self.make_key(name, shared=shared),
+				key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -142,7 +145,7 @@ class RedisWrapper(redis.Redis):
 		return {key: pickle.loads(value) for key, value in
 			super(redis.Redis, self).hgetall(self.make_key(name)).iteritems()}
 
-	def hget(self, name, key, generator=None):
+	def hget(self, name, key, generator=None, shared=False):
 		if not name in frappe.local.cache:
 			frappe.local.cache[name] = {}
 		if key in frappe.local.cache[name]:
@@ -150,7 +153,7 @@ class RedisWrapper(redis.Redis):
 
 		value = None
 		try:
-			value = super(redis.Redis, self).hget(self.make_key(name), key)
+			value = super(redis.Redis, self).hget(self.make_key(name, shared=shared), key)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -165,12 +168,12 @@ class RedisWrapper(redis.Redis):
 				pass
 		return value
 
-	def hdel(self, name, key):
+	def hdel(self, name, key, shared=False):
 		if name in frappe.local.cache:
 			if key in frappe.local.cache[name]:
 				del frappe.local.cache[name][key]
 		try:
-			super(redis.Redis, self).hdel(self.make_key(name), key)
+			super(redis.Redis, self).hdel(self.make_key(name, shared=shared), key)
 		except redis.exceptions.ConnectionError:
 			pass
 
