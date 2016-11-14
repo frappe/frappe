@@ -22,7 +22,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db-name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 
 	if len(frappe.utils.get_sites()) == 1:
