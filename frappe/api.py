@@ -129,6 +129,7 @@ def handle():
 	return build_response("json")
 
 def validate_oauth():
+	from frappe.oauth import get_url_delimiter
 	form_dict = frappe.local.form_dict
 	authorization_header = frappe.get_request_header("Authorization").split(" ") if frappe.get_request_header("Authorization") else None
 	if authorization_header and authorization_header[0].lower() == "bearer":
@@ -142,7 +143,7 @@ def validate_oauth():
 		body = r.get_data()
 		headers = r.headers
 
-		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(";")
+		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
 
 		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
 
