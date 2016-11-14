@@ -14,7 +14,6 @@ import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
-
 # once_only validation
 # methods
 
@@ -789,9 +788,12 @@ class Document(BaseDocument):
 		self.clear_cache()
 		self.notify_update()
 		update_global_search(self)
+<<<<<<< 9bed558186668a0f7bb046f625cb382f8547c74f
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
+=======
+>>>>>>> [start] global search frappe/erpnext#6674
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
