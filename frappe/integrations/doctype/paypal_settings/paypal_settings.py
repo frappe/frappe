@@ -71,9 +71,10 @@ class PayPalSettings(IntegrationService):
 
 	def __setup__(self):
 		setattr(self, "use_sandbox", 0)
-		if hasattr(self, "token"):
-			data = json.loads(frappe.db.get_value("Integration Request", self.token, "data"))
-			setattr(self, "use_sandbox", frappe._dict(data).use_sandbox or 0)
+
+	def setup_sandbox_env(self, token):
+		data = json.loads(frappe.db.get_value("Integration Request", token, "data"))
+		setattr(self, "use_sandbox", frappe._dict(data).use_sandbox or 0)
 
 	def validate(self):
 		if not self.flags.ignore_mandatory:
@@ -202,7 +203,9 @@ def get_service_details():
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
 	try:
-		doc = frappe.get_doc({"doctype": "PayPal Settings", "token": token})
+		doc = frappe.get_doc("PayPal Settings")
+		doc.setup_sandbox_env(token)
+
 		params, url = doc.get_paypal_params_and_url()
 		params.update({
 			"METHOD": "GetExpressCheckoutDetails",
@@ -236,7 +239,10 @@ def confirm_payment(token):
 	try:
 		redirect = True
 		status_changed_to, redirect_to = None, None
-		doc = frappe.get_doc({"doctype": "PayPal Settings", "token": token})
+
+		doc = frappe.get_doc("PayPal Settings")
+		doc.setup_sandbox_env(token)
+
 		integration_request = frappe.get_doc("Integration Request", token)
 		data = json.loads(integration_request.data)
 
