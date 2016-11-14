@@ -371,7 +371,7 @@ def check_file_permission(file_url):
 	raise frappe.PermissionError
 
 @frappe.whitelist()
-def extraxt_uploaded_file(file_name, ):
+def upload_zip(file_name, folder, name):
 	if ".zip" in file_name:
 		zip_path = frappe.get_site_path("public", "files")
 		zip_path_with_filename=frappe.get_site_path("public", "files", file_name)
@@ -379,12 +379,13 @@ def extraxt_uploaded_file(file_name, ):
 			zf.extractall(zip_path)
 			for info in zf.infolist():
 				data = info.filename
-				file_doc=frappe.new_doc("File")
-				file_doc.file_name=info.filename
-				file_doc.file_size=info.file_size
-				file_doc.folder="Home/Attachments"
+				file_doc = frappe.new_doc("File")
+				file_doc.file_name = info.filename
+				file_doc.file_size = info.file_size
+				file_doc.folder = folder
 				file_doc.file_url = "/files/" + file_name
 				file_doc.validate()
 				file_doc.insert()
 	else:
 		frappe.throw("Please upload .zip file")
+	frappe.delete_doc("File", name)
