@@ -13,8 +13,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
-
-
+from frappe.utils.global_search import update_global_search
 # once_only validation
 # methods
 
@@ -784,6 +783,7 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+		update_global_search(self)
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
