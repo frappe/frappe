@@ -23,6 +23,7 @@ frappe.views.ReportViewPage = Class.extend({
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
 			if(me.docname) {
+
 				frappe.model.with_doc('Report', me.docname, function(r) {
 					me.parent.reportview.set_columns_and_filters(
 						JSON.parse(frappe.get_doc("Report", me.docname).json));
@@ -87,7 +88,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	setup: function() {
 		var me = this;
+
+		this.add_totals_row = 0;
 		this.page = this.parent.page;
+		this._body = $('<div>').appendTo(this.page.main);
 		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
 		this.page.set_title(this.page_title);
 		this.init_list_settings();
@@ -96,15 +100,17 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			method: 'frappe.desk.reportview.get',
 			save_list_settings: true,
 			get_args: this.get_args,
-			parent: this.page.main,
+			parent: this._body,
 			start: 0,
 			show_filters: true,
 			allow_delete: true,
 		});
+
 		this.make_new_and_refresh();
 		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
+		this.make_totals_row_button();
 		this.setup_print();
 		this.make_export();
 		this.setup_auto_email();
@@ -195,6 +201,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		// second sort
 		if(opts.sort_by_next) this.sort_by_next_select.val(opts.sort_by_next);
 		if(opts.sort_order_next) this.sort_order_next_select.val(opts.sort_order_next);
+
+		this.add_totals_row = opts.add_totals_row;
 	},
 
 	set_route_filters: function(first_load) {
@@ -233,7 +241,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			order_by: this.get_order_by(),
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
-			with_childnames: 1
+			with_childnames: 1,
 		}
 	},
 
@@ -316,7 +324,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						docfield = columnDef.report_docfield;
 
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").run()',
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s")',
 								{fieldname:docfield.fieldname, value:value});
 					}
 					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
@@ -330,6 +338,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	render_list: function() {
 		var me = this;
 		var columns = this.get_columns();
+
+		this.set_totals_row();
 
 		// add sr in data
 		$.each(this.data, function(i, v) {
@@ -497,9 +507,39 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_column_picker: function() {
 		var me = this;
 		this.column_picker = new frappe.ui.ColumnPicker(this);
-		this.page.add_menu_item(__('Pick Columns'), function() {
+		this.page.add_inner_button(__('Pick Columns'), function() {
 			me.column_picker.show(me.columns);
-		}, true);
+		});
+	},
+
+	make_totals_row_button: function() {
+		var me = this;
+
+		this.page.add_inner_button(__('Show Totals'), function() {
+			me.add_totals_row = 1 - me.add_totals_row;
+			me.render_list();
+		});
+	},
+
+	set_totals_row: function() {
+		// remove existing totals row
+		if(this.data.length && this.data[this.data.length-1]._totals_row) {
+			this.data.pop();
+		}
+
+		if(this.add_totals_row) {
+			var totals_row = {_totals_row: 1};
+			if(this.data.length) {
+				this.data.forEach(function(row, ri) {
+					$.each(row, function(key, value) {
+						if($.isNumeric(value)) {
+							totals_row[key] = (totals_row[key] || 0) + value;
+						}
+					});
+				});
+			}
+			this.data.push(totals_row);
+		}
 	},
 
 	set_tag_and_status_filter: function() {
@@ -507,14 +547,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.wrapper.find('.result-list').on("click", ".label-info", function() {
 			if($(this).attr("data-label")) {
 				me.set_filter("_user_tags", $(this).attr("data-label"));
-				me.refresh();
 			}
 		});
 		this.wrapper.find('.result-list').on("click", "[data-workflow-state]", function() {
 			if($(this).attr("data-workflow-state")) {
 				me.set_filter(me.state_fieldname,
 					$(this).attr("data-workflow-state"));
-				me.refresh();
 			}
 		});
 	},
@@ -562,9 +600,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.sort_order_next_select.val('desc');
 
 		// button actions
-		this.page.add_menu_item(__('Sort By'), function() {
+		this.page.add_inner_button(__('Set Sort'), function() {
 			me.sort_dialog.show();
-		}, true);
+		});
 
 		$(this.sort_dialog.body).find('.btn-primary').click(function() {
 			me.sort_dialog.hide();
@@ -581,6 +619,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
 			args.cmd = 'frappe.desk.reportview.export_query'
+			if(me.add_totals_row) {
+				args.add_totals_row = 1;
+			}
 			open_url_post(frappe.request.url, args);
 		}, true);
 	},
@@ -611,7 +652,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						sort_by: me.sort_by_select.val(),
 						sort_order: me.sort_order_select.val(),
 						sort_by_next: me.sort_by_next_select.val(),
-						sort_order_next: me.sort_order_next_select.val()
+						sort_order_next: me.sort_order_next_select.val(),
 					})
 				},
 				callback: function(r) {

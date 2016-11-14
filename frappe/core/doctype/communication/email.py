@@ -120,6 +120,11 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 
 	prepare_to_notify(doc, print_html, print_format, attachments)
 
+	if doc.outgoing_email_account.send_unsubscribe_message:
+		unsubscribe_message = _("Leave this conversation")
+	else:
+		unsubscribe_message = ""
+
 	frappe.sendmail(
 		recipients=(recipients or []) + (cc or []),
 		show_as_cc=(cc or []),
@@ -132,7 +137,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
 		message_id=doc.name,
-		unsubscribe_message=_("Leave this conversation"),
+		unsubscribe_message=unsubscribe_message,
 		delayed=True,
 		communication=doc.name
 	)
@@ -252,7 +257,7 @@ def set_incoming_outgoing_accounts(doc):
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
 
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""

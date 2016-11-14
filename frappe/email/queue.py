@@ -78,7 +78,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		email_content = formatted
 		email_text_context = text_content
 
-		if reference_doctype:
+		if reference_doctype and (unsubscribe_message or reference_doctype=="Newsletter"):
 			unsubscribe_link = get_unsubscribe_link(
 				reference_doctype=reference_doctype,
 				reference_name=reference_name,
@@ -101,7 +101,6 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 			email_content = email_content.replace("<!-- cc message -->", cc_message)
 			email_text_context = cc_message + "\n" + email_text_context
-
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
 			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
@@ -146,13 +145,16 @@ def check_email_limit(recipients):
 		and getattr(smtp_server.email_account, "from_site_config", False)
 		or frappe.flags.in_test):
 
-		# get count of mails sent this month
-		this_month = get_emails_sent_this_month()
-
-		monthly_email_limit = frappe.conf.get('limits', {}).get('emails') or 500
+		monthly_email_limit = frappe.conf.get('limits', {}).get('emails')
 
 		if frappe.flags.in_test:
 			monthly_email_limit = 500
+
+		if not monthly_email_limit:
+			return
+
+		# get count of mails sent this month
+		this_month = get_emails_sent_this_month()
 
 		if (this_month + len(recipients)) > monthly_email_limit:
 			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_email_limit),
@@ -346,7 +348,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 def clear_outbox():
 	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
 	frappe.db.sql("""delete from `tabEmail Queue` where
-		datediff(now(), creation) > 31""")
+		datediff(now(), modified) > 31""")
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
-		where datediff(curdate(), creation) > 7 and status='Not Sent'""")
+		where datediff(curdate(), modified) > 7 and status='Not Sent'""")

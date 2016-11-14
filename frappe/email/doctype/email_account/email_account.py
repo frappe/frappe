@@ -360,6 +360,11 @@ class EmailAccount(Document):
 		if self.enable_auto_reply:
 			set_incoming_outgoing_accounts(communication)
 
+			if self.send_unsubscribe_message:
+				unsubscribe_message = _("Leave this conversation")
+			else:
+				unsubscribe_message = ""
+
 			frappe.sendmail(recipients = [email.from_email],
 				sender = self.email_id,
 				reply_to = communication.incoming_email_account,
@@ -370,7 +375,7 @@ class EmailAccount(Document):
 				reference_name = communication.reference_name,
 				message_id = communication.name,
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
-				unsubscribe_message = _("Leave this conversation"))
+				unsubscribe_message = unsubscribe_message)
 
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""

@@ -53,6 +53,7 @@ class User(Document):
 
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
+			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.set_system_user()
 		self.set_full_name()
@@ -65,6 +66,9 @@ class User(Document):
 
 		if self.language == "Loading...":
 			self.language = None
+
+		if (self.name not in ["Administrator", "Guest"]) and (not self.frappe_userid):
+			self.frappe_userid = frappe.generate_hash(length=39)
 
 	def on_update(self):
 		# clear new password
@@ -651,17 +655,21 @@ def get_total_users():
 		where enabled=1 and user_type="System User"
 		and name not in ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
-def get_system_users(exclude_users=None):
+def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:
 		exclude_users = []
 	elif not isinstance(exclude_users, (list, tuple)):
 		exclude_users = [exclude_users]
+	
+	limit_cond = ''
+	if limit:
+		limit_cond = 'limit {0}'.format(limit)
 
 	exclude_users += list(STANDARD_USERS)
 
 	system_users = frappe.db.sql_list("""select name from `tabUser`
 		where enabled=1 and user_type != 'Website User'
-		and name not in ({})""".format(", ".join(["%s"]*len(exclude_users))),
+		and name not in ({}) {}""".format(", ".join(["%s"]*len(exclude_users)), limit_cond),
 		exclude_users)
 
 	return system_users

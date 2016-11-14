@@ -216,8 +216,12 @@ frappe.ui.form.Grid = Class.extend({
 			return;
 		}
 
+
 		new Sortable($rows.get(0), {
+			group: {name: 'row'},
 			handle: ".sortable-handle",
+			draggable: '.grid-row',
+			filter: 'li, a',
 			onUpdate: function(event, ui) {
 				me.frm.doc[me.df.fieldname] = [];
 				$rows.find(".grid-row").each(function(i, item) {
@@ -744,7 +748,7 @@ frappe.ui.form.GridRow = Class.extend({
 			});
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
-		$col.static_area = $('<div class="static-area text-ellipsis"></div>').appendTo($col).html(txt);
+		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -1063,17 +1067,23 @@ frappe.ui.form.GridRowForm = Class.extend({
 	set_form_events: function() {
 		var me = this;
 		this.wrapper.find(".grid-delete-row")
-			.click(function() { me.row.remove(); return false; })
+			.on('click', function() {
+				me.row.remove(); return false;
+			});
 		this.wrapper.find(".grid-insert-row")
-			.click(function() { me.row.insert(true); return false; })
+			.on('click', function() {
+				me.row.insert(true); return false;
+			});
 		this.wrapper.find(".grid-insert-row-below")
-			.click(function() { me.row.insert(true, true); return false; })
+			.on('click', function() {
+				me.row.insert(true, true); return false;
+			});
 		this.wrapper.find(".grid-append-row")
-			.click(function() {
+			.on('click', function() {
 				me.row.toggle_view(false);
 				me.row.grid.add_new_row(me.row.doc.idx+1, null, true);
 				return false;
-		})
+			});
 		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
 			me.row.toggle_view();
 			return false;

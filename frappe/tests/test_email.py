@@ -23,7 +23,7 @@ class TestEmail(unittest.TestCase):
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name='Administrator',
-			subject='Testing Queue', message='This mail is queued!', send_after=send_after)
+			subject='Testing Queue', message='This mail is queued!', unsubscribe_message="Unsubscribe", send_after=send_after)
 
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(email_queue), 2)
@@ -49,7 +49,7 @@ class TestEmail(unittest.TestCase):
 
 	def test_expired(self):
 		self.test_email_queue()
-		frappe.db.sql("update `tabEmail Queue` set creation=DATE_SUB(curdate(), interval 8 day)")
+		frappe.db.sql("update `tabEmail Queue` set modified=DATE_SUB(curdate(), interval 8 day)")
 		from frappe.email.queue import clear_outbox
 		clear_outbox()
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Expired'""", as_dict=1)
@@ -69,7 +69,7 @@ class TestEmail(unittest.TestCase):
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name= "Administrator",
-			subject='Testing Email Queue', message='This is mail is queued!')
+			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe")
 
 		# this is sent async (?)
 

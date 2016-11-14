@@ -29,3 +29,8 @@ th.fc-widget-header {
   /* default BORDER color */
   background-color: #E8DDFF;
 }
+@media (max-width: 767px) {
+  .fc-scroller {
+    height: auto !important;
+  }
+}

@@ -153,12 +153,16 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	conditions = '''communication_type in ("Communication", "Comment")
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
-				or (timeline_doctype=%(doctype)s
-					and timeline_name=%(name)s
-					and communication_type="Comment"
-					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted"))
-			)
-			and (comment_type is null or comment_type != 'Update')'''
+				or (
+				(timeline_doctype=%(doctype)s and timeline_name=%(name)s) 
+				and (
+				communication_type="Communication"
+				or (
+					communication_type="Comment"
+					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted")
+				)))
+			)'''
+
 
 	if after:
 		# find after a particular date

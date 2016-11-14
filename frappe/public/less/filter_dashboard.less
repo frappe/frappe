@@ -1,0 +1,129 @@
+@import "variables.less";
+@import "mixins.less";
+
+.date-range-picker {
+    font-size:85%;
+}
+
+.filter_area {
+	margin: 0 -15px;
+}
+
+.filter-dashboard-wrapper {
+	display: none;
+	padding-bottom: 0px;
+}
+
+.list-filter-dashboard {
+	border-top: 1px solid @border-color;
+    overflow-x: scroll;
+	overflow-y: hidden;
+}
+
+.filter-header {
+	border-bottom: 1px solid @border-color;
+	background-color: @panel-bg;
+	padding: 8px 15px;
+
+	.search-dropdown {
+		margin-top: -20px;
+		margin-right: 20px;
+
+		.octicon {
+			font-size: 14px;
+		}
+	}
+
+	.sort-dropdown {
+		margin-top: -16px;
+	}
+
+	.dropdown-menu {
+		 min-width: 120px !important;
+	}
+}
+
+.filter-label {
+    margin: 0px;
+	color: @text-muted;
+}
+
+.filter-dashboard-items {
+    height: 187px;
+	margin-right: -2px;
+	display: flex;
+}
+
+.filter-dash-item {
+	flex-grow: 1;
+    min-width: 180px;
+    float: left;
+    height: 187px;
+    border-right:1px solid @border-color;
+}
+
+.filter-input {
+	padding: 10px 15px;
+
+	input {
+		height: 25px;
+	}
+}
+
+.filter-item-value, .stat-no-records {
+	padding: 0px 15px;
+}
+
+.filter-dash-item:after {
+    /*top:-10px;*/
+}
+
+.filter-sort {
+    font-size:1.5em;
+}
+
+.filter-sort-item {
+	a {
+		padding: 8px !important;
+	}
+}
+
+.filter-sort-item:hover {
+    color: @grey-link-color;
+    text-decoration: none;
+    background-color: @btn-bg;
+}
+
+.filter-stat {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 158px;
+    margin: 0px;
+}
+
+.selected {
+    vertical-align: 10%;
+    font-size: 1.2em;
+}
+
+.filter-sort-item > label {
+    float:right;
+}
+
+.filter-stat-link > .badge {
+    position: absolute;
+    float: right;
+	margin-right: 10px;
+	margin-top: 2px;
+	font-size: 11px;
+}
+
+.filter-stat-link > .stat {
+    width: 130px;
+	display: inline-block;
+	.text-ellipsis();
+}
+
+.filter-dash-controls >.filter-label {
+    padding-bottom: 5px;
+}

@@ -66,7 +66,7 @@ frappe.ui.form.Attachments = Class.extend({
 				<a class="close" data-owner="%(owner)s">&times;</a>\
 				%(lock_icon)s\
 				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
-					class="text-ellipsis" style="max-width: calc(100% - 43px);">\
+					class="ellipsis" style="max-width: calc(100% - 43px);">\
 					<span>%(file_name)s</span></a>\
 			</li>', {
 				lock_icon: attachment.is_private ? '<i class="icon icon-lock icon-fixed-width text-warning"></i> ': "",
@@ -228,7 +228,7 @@ frappe.ui.get_upload_dialog = function(opts){
 			'method': 'frappe.client.get_value',
 			'args': {
 			'doctype': 'File',
-			'fieldname': ['file_url','filename'],
+			'fieldname': ['file_url','file_name'],
 			  'filters': {
 			      'name': dialog.get_value("file")
 			    }

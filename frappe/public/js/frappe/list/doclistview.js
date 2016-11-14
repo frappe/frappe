@@ -313,7 +313,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.init_headers();
 			this.dirty = true;
 		}
-
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -321,6 +320,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.set_filters_before_run();
 		if(this.dirty) {
 			this.run();
+			if (this.clean_dash != true) {
+				this.filter_list.reload_stats();
+			}
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
@@ -375,7 +377,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-
+		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
@@ -437,13 +439,25 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var gantt_area = $('<svg height="400" width="6000"></svg>')
 			.appendTo(this.wrapper.find('.result-list').css("overflow", "scroll"));
 		var id = frappe.dom.set_unique_id(gantt_area);
+
 		var me = this;
 		var field_map = frappe.views.calendar[this.doctype].field_map;
-
-		var view_modes;
+		var tasks = values.map(function(item) {
+			return {
+				start: item[field_map.start],
+				end: item[field_map.end],
+				name: item[field_map.title],
+				id: item[field_map.id],
+				doctype: me.doctype,
+				progress: item.progress,
+				dependent: item.depends_on_tasks || ""
+			};
+		});
 		frappe.require(["assets/frappe/js/lib/snap.svg-min.js", "assets/frappe/css/gantt.css"], function() {
 			me.gantt = new Gantt({
 				parent_selector: '#' + id,
+				tasks: tasks,
+				date_format: "YYYY-MM-DD",
 				bar: {
 					height: 20
 				},
@@ -468,21 +482,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					}
 				}
 			});
-
-			view_modes = me.gantt.opts.valid_view_modes || [];
-			values.forEach(function(item) {
-				me.gantt.add_task({
-					start: item[field_map.start],
-					end: item[field_map.end],
-					name: item[field_map.title],
-					id: item[field_map.id],
-					doctype: me.doctype,
-					progress: item.progress,
-					dependent: item.depends_on_tasks || ""
-				});
-			})
 			me.gantt.render();
 
+			var view_modes = me.gantt.get_view_modes() || [];
 			var dropdown = "<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
 				"<span class='dropdown-text'>"+__('Day')+"</span><i class='caret'></i></a>" +
@@ -781,13 +783,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	toggle_delete: function() {
 		var me = this;
-		if (this.$page.find(".list-delete:checked").length) {
+		var no_of_checked_items = this.$page.find(".list-delete:checked").length;
+		if (no_of_checked_items) {
 			this.page.set_primary_action(__("Delete"), function() { me.delete_items() },
 				"octicon octicon-trashcan");
 			this.page.btn_primary.addClass("btn-danger");
+			this.page.checked_items_status.text(no_of_checked_items == 1 
+    				? __("1 item selected") 
+    				: __("{0} items selected", [no_of_checked_items]))
+			this.page.checked_items_status.removeClass("hide");
 		} else {
 			this.page.btn_primary.removeClass("btn-danger");
 			this.set_primary_action();
+			this.page.checked_items_status.addClass("hide");
 		}
 	},
 
@@ -842,45 +850,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	refresh_sidebar: function() {
 		var me = this;
-		this.list_sidebar = new frappe.views.ListSidebar({
-			doctype: this.doctype,
-			stats: this.listview.stats,
-			parent: this.$page.find('.layout-side-section'),
-			set_filter: function(fieldname, label) {
-				me.set_filter(fieldname, label);
+		me.list_sidebar = new frappe.views.ListSidebar({
+			doctype: me.doctype,
+			stats: me.listview.stats,
+			parent: me.$page.find('.layout-side-section'),
+			set_filter: function(fieldname, label, norun, noduplicates) {
+				me.set_filter(fieldname, label, norun, noduplicates);
 			},
-			page: this.page,
-			doclistview: this
+			default_filters:me.listview.settings.default_filters,
+			page: me.page,
+			doclistview: me
 		})
-	},
-	set_filter: function(fieldname, label, no_run) {
-		var filter = this.filter_list.get_filter(fieldname);
-		if(filter) {
-			var v = cstr(filter.field.get_parsed_value());
-			if(v.indexOf(label)!=-1) {
-				// already set
-				return false;
-			} else {
-				// second filter set for this field
-				if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-				} else {
-					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
-				}
-			}
-		} else {
-			// no filter for this item,
-			// setup one
-			if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
-			}
-		}
-		if(!no_run)
-			this.run();
 	},
 	call_for_selected_items: function(method, args) {
 		var me = this;

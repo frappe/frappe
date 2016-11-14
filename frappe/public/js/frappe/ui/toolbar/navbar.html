@@ -8,7 +8,7 @@
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
 		</div>
-		<div class="navbar-center text-ellipsis" style="display: none;"></div>
+		<div class="navbar-center ellipsis" style="display: none;"></div>
 
 		<ul class="nav navbar-nav navbar-right">
 			<li class="visible-xs">
@@ -18,7 +18,7 @@
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;">
 				{{ avatar }}
-                <span class="text-ellipsis toolbar-user-fullname hidden-xs hidden-sm">
+                <span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
 					{%= frappe.user.full_name() %}</span>
                 <b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
@@ -39,7 +39,7 @@
 			<li class="dropdown dropdown-help dropdown-mobile">
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;"  style="height: 40px;">
-					<span class="hidden-xs hidden-sm" style="vertical-align: middle;">{{ __("Help") }} <b class="caret"></b></span>
+					<span class="hidden-xs hidden-sm" style="line-height: 24px;">{{ __("Help") }} <b class="caret"></b></span>
 					<span class="visible-xs visible-sm standard-image"
 						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
 				</a>

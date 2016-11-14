@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -67,14 +68,8 @@ a.text-muted,
 a.text-extra-muted {
   text-decoration: none;
 }
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
+.underline {
+  text-decoration: underline;
 }
 .inline-block {
   display: inline-block;
@@ -234,6 +229,13 @@ a.no-decoration:active {
   font-size: 12px;
   letter-spacing: 0.4px;
   color: #8D99A6;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
 }
 .avatar {
   display: inline-block;
@@ -824,6 +826,9 @@ a.active {
 }
 .content-header {
   padding-bottom: 20px;
+}
+.footer-group {
+  margin-bottom: 28px;
 }
 .footer-group-label {
   display: inline-block;

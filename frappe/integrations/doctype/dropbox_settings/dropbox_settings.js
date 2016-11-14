@@ -31,7 +31,7 @@ frappe.ui.form.on('Dropbox Settings', {
 		if (frm.doc.app_access_key && frm.doc.app_secret_key && frm.doc.dropbox_access_key && frm.doc.dropbox_access_secret) {
 			frm.add_custom_button(__("Take Backup Now"), function(frm){
 				frappe.call({
-					method: "frappe.integrations.dropbox_integration.take_backup",
+					method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup",
 					freeze: true
 				})
 			}).addClass("btn-primary")

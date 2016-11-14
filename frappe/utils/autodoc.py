@@ -137,10 +137,21 @@ def parse(docs):
 def strip_leading_tabs(docs):
 	"""Strip leading tabs from __doc__ text."""
 	lines = docs.splitlines()
+
+	# remove empty lines in the front
+	start = 0
+	for line in lines:
+		if line != '': break
+		start += 1
+	if start:
+		lines = lines[start:]
+
+	# remove default indentation
 	if len(lines) > 1:
 		start_line = 1
 		ref_line = lines[start_line]
 		while not ref_line:
+			# find reference line for indentations (the first line that is nonempty (false))
 			start_line += 1
 			if start_line > len(lines): break
 			ref_line = lines[start_line]

@@ -2,43 +2,52 @@
   fill: none;
 }
 .gantt #grid .grid-header {
-  fill: #fff;
-  stroke: #e0e0e0;
+  fill: #ffffff;
+  stroke: #d1d8dd;
   stroke-width: 1.4;
 }
-.gantt #grid .row-odd {
+.gantt #grid .grid-row {
   fill: #ffffff;
 }
-.gantt #grid .row-even {
-  fill: #f5f5f5;
+.gantt #grid .grid-row:nth-child(even) {
+  fill: #fafbfc;
 }
 .gantt #grid .row-line {
   stroke: #EBEFF2;
 }
 .gantt #grid .tick {
-  stroke: #aaa;
+  stroke: #d1d8dd;
   stroke-width: 0.2;
 }
 .gantt #grid .tick.thick {
   stroke-width: 0.4;
 }
 .gantt #grid .today-highlight {
-  fill: #fcf8e3;
+  fill: #fffce7;
   opacity: 0.5;
 }
 .gantt #arrow {
   fill: none;
-  stroke: #666;
+  stroke: #8D99A6;
   stroke-width: 1.4;
 }
 .gantt .bar {
-  fill: #b8c2cc;
-  stroke: #8D99A6;
+  fill: #cbd1d8;
+  stroke: #aeb0b1;
   stroke-width: 0;
   transition: stroke-width 0.3s ease;
 }
 .gantt .bar-progress {
-  fill: #a3a3ff;
+  fill: #a8a8ff;
+}
+.gantt .bar-invalid {
+  fill: transparent;
+  stroke: #aeb0b1;
+  stroke-width: 1;
+  stroke-dasharray: 5;
+}
+.gantt .bar-invalid ~ .bar-label {
+  fill: #6c7680;
 }
 .gantt .bar-label {
   fill: #fff;
@@ -49,11 +58,11 @@
   letter-spacing: 0.8px;
 }
 .gantt .bar-label.big {
-  fill: #555;
+  fill: #6c7680;
   text-anchor: start;
 }
 .gantt .handle {
-  fill: #ddd;
+  fill: #F0F4F7;
   cursor: ew-resize;
   opacity: 0;
   visibility: hidden;
@@ -78,8 +87,26 @@
   text-anchor: middle;
 }
 .gantt .primary-text {
-  fill: #999;
+  fill: #6c7680;
 }
 .gantt .secondary-text {
-  fill: #555;
+  fill: #36414C;
+}
+.gantt #details {
+  font-size: 14;
+}
+.gantt #details .details-container {
+  stroke: #d1d8dd;
+  stroke-width: 1.1;
+  fill: #fff;
+}
+.gantt #details .details-heading {
+  fill: #36414C;
+  font-weight: 500;
+}
+.gantt #details .details-body {
+  fill: #6c7680;
+}
+.gantt .hide {
+  display: none;
 }

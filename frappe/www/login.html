@@ -47,6 +47,11 @@
 				<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
 					<i class="icon-github-sign icon-2x"></i></a>
 				{%- endif -%}
+
+				{%- if frappe_login is defined %}
+				<a href="{{ frappe_login }}" class="no-decoration">
+					<img src="/assets/frappe/images/favicon.png"></a>
+				{%- endif -%}
 			</p>
 		{%- endif -%}
 		{% if ldap_settings.enabled %}
@@ -60,7 +65,7 @@
 		<div style="margin-top: 25px">
 		{%- if not disable_signup -%}
 			<p class="text-center">
-				{{ _("Dont have an account? ") }} <a class="btn btn-default" href="#signup">{{ _("Sign up.") }}</a>
+				{{ _("Dont have an account? ") }} <a class="btn btn-default" href="#signup" style="margin-top: -2px;">{{ _("Sign up.") }}</a>
 			</p>
 		{%- endif -%}
 		</div>

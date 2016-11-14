@@ -29,7 +29,7 @@
 					<tr>
 						<th style="width: 40px" class="table-sr">Sr</th>
 						{% for tdf in visible_columns %}
-							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
+							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
 						{% endfor %}
 					</tr>
@@ -39,7 +39,7 @@
 					<tr>
 						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
-							<td class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
+							<td class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
                                 <div class="value">{{ print_value(tdf, d, doc) }}</div></td>
 						{% endfor %}
 					</tr>
@@ -59,13 +59,17 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 			<div class="col-xs-{{ "9" if df.fieldtype=="Check" else "5" }}
 				{%- if not doc._align_labels_left %} text-right{%- endif -%}">
-				{% if df.fieldtype not in ("Image","HTML") and
+				{% if df.fieldtype not in ("Image","HTML","Check") and
 					doc.get(df.fieldname) != None %}
+				<label>{{ _(df.label) }}</label>
+				{% endif %}
+				{% if df.fieldtype == "Check" and
+				doc.get(df.fieldname) != 0 %}
 				<label>{{ _(df.label) }}</label>
 				{% endif %}
 			</div>
 			<div class="col-xs-{{ "3" if df.fieldtype=="Check" else "7" }}
-			{{ get_align_class(df.fieldtype) }} value">
+			{{ get_align_class(df) }} value">
 				{% if doc.get(df.fieldname) != None -%}
 					{{ print_value(df, doc) }}{% endif %}
 			</div>
@@ -95,7 +99,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			doc.print_templates.get(df.fieldname) %}
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
-		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
+		<i class="{{ 'icon-check' if doc[df.fieldname] }}"></i>
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
@@ -117,8 +121,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- else -%}{{ 150 }}px{% endif -%}
 {%- endmacro %}
 
-{% macro get_align_class(fieldtype) %}
-	{%- if fieldtype in ("Int", "Float", "Currency", "Check") -%}{{ "text-right" }}
+{% macro get_align_class(df) %}
+	{%- if df.align -%}{{ "text-" + df.align }}
+	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Check") -%}{{ "text-right" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}

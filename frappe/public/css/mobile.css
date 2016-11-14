@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 html {
   min-height: 100%;
 }

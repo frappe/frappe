@@ -133,7 +133,10 @@ def get_context(context):
 					if not frappe.form_dict.name and not frappe.form_dict.new:
 						self.build_as_list(context)
 				else:
-					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+					name = None
+					if frappe.session.user != 'Guest':
+						name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+
 					if name:
 						frappe.form_dict.name = name
 					else:
@@ -358,6 +361,7 @@ def accept(web_form, data, for_payment=False):
 
 	if for_payment:
 		web_form.validate_mandatory(doc)
+		doc.run_method('validate_payment')
 
 	if doc.name:
 		if has_web_form_permission(doc.doctype, doc.name, "write"):
@@ -421,7 +425,7 @@ def has_web_form_permission(doctype, name, ptype='read'):
 	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
 		return True
 
-	elif frappe.has_website_permission(name, ptype=ptype):
+	elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
 		return True
 
 	elif check_webform_perm(doctype, name):

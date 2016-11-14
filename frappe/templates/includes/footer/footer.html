@@ -5,11 +5,9 @@
 				<div class="col-sm-6 text-left">
 					<div class="row">
 					{% if footer_items -%}
-						<div class="col-sm-3">
-							<ul class="list-unstyled navbar-nav">
-								{% include "templates/includes/footer/footer_items.html" %}
-							</ul>
-						</div>
+								<ul class="list-unstyled navbar-nav col-sm-12">
+									{% include "templates/includes/footer/footer_items.html" %}
+								</ul>
 					{% endif %}
 					</div>
 				</div>
@@ -22,7 +20,9 @@
 				<div class="text-muted small col-sm-6">
 					{% if copyright %}
 						&copy; {{ copyright }}
-					{% elif footer_address%}
+					{% endif %}
+					<br>
+					{% if footer_address %}
 						{{ footer_address }}
 					{% endif %}
 				</div>

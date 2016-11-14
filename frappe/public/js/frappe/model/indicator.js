@@ -86,18 +86,18 @@ frappe.get_indicator = function(doc, doctype) {
 	// based on enabled
 	if(frappe.meta.has_field(doctype, 'enabled')) {
 		if(doc.enabled) {
-			return [__('Enabled'), 'blue', 'enabled=1'];
+			return [__('Enabled'), 'blue', 'enabled,=,1'];
 		} else {
-			return [__('Disabled'), 'grey', 'enabled=0'];
+			return [__('Disabled'), 'grey', 'enabled,=,0'];
 		}
 	}
 
 	// based on disabled
 	if(frappe.meta.has_field(doctype, 'disabled')) {
 		if(doc.disabled) {
-			return [__('Disabled'), 'grey', 'disabled=1'];
+			return [__('Disabled'), 'grey', 'disabled,=,1'];
 		} else {
-			return [__('Enabled'), 'blue', 'disabled=0'];
+			return [__('Enabled'), 'blue', 'disabled,=,0'];
 		}
 	}
 }

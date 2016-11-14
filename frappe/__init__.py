@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.0-beta'
+__version__ = '7.1.12'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -383,25 +383,26 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	"""
+	message = content or message
 
+	if as_markdown:
+		from markdown2 import markdown
+		message = markdown(message)
+
+
+	import email
 	if delayed:
-		import frappe.email.queue
-		frappe.email.queue.send(recipients=recipients, sender=sender,
-			subject=subject, message=content or message,
+		import email.queue
+		email.queue.send(recipients=recipients, sender=sender,
+			subject=subject, message=message,
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
 			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
 	else:
-		import frappe.email
-		if as_markdown:
-			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
-		else:
-			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+		email.sendmail(recipients, sender=sender,
+			subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
+			cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
 
 whitelisted = []
 guest_methods = []
@@ -489,7 +490,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -564,7 +565,7 @@ def new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
-def set_value(doctype, docname, fieldname, value):
+def set_value(doctype, docname, fieldname, value=None):
 	"""Set document value. Calls `frappe.client.set_value`"""
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
@@ -1137,6 +1138,14 @@ def get_test_records(doctype):
 		return []
 
 def format_value(*args, **kwargs):
+	"""Format value with given field properties.
+
+	:param value: Value to be formatted.
+	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(*args, **kwargs)
+
+def format(*args, **kwargs):
 	"""Format value with given field properties.
 
 	:param value: Value to be formatted.

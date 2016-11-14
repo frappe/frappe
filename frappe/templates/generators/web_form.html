@@ -417,6 +417,10 @@ frappe.ready(function() {
 		frappe.form_dirty = true;
 	});
 
+	$form.on('submit', function() {
+		return false;
+	});
+
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
 		save(true);
@@ -593,7 +597,7 @@ frappe.ready(function() {
 
 	function save(for_payment) {
 		if(window.saving)
-			return;
+			return false;
 		window.saving = true;
 		frappe.form_dirty = false;
 

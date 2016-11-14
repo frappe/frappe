@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -67,14 +68,8 @@ a.text-muted,
 a.text-extra-muted {
   text-decoration: none;
 }
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
+.underline {
+  text-decoration: underline;
 }
 .inline-block {
   display: inline-block;
@@ -235,6 +230,13 @@ a.no-decoration:active {
   letter-spacing: 0.4px;
   color: #8D99A6;
 }
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
+}
 .nav-pills a,
 .nav-pills a:hover {
   border-bottom: none;
@@ -351,6 +353,9 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #EBEFF2;
 }
 /* jquery ui */
+.ui-datepicker {
+  z-index: 9999 !important;
+}
 .ui-datepicker .ui-datepicker-header {
   border-radius: 0px !important;
 }
@@ -467,6 +472,9 @@ fieldset[disabled] .form-control {
 }
 .modal .hasDatepicker {
   z-index: 1140;
+}
+.link-field.ui-front {
+  z-index: inherit;
 }
 .modal .link-field .ui-autocomplete {
   z-index: 1141;

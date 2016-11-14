@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .navbar .dropdown-toggle {
   padding-top: 8px;
   padding-bottom: 8px;

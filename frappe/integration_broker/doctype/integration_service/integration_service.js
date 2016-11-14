@@ -25,6 +25,11 @@ frappe.ui.form.on('Integration Service', {
 		}
 	},
 	
+	service: function(frm){
+		frm.events.setup_custom_buttons(frm);
+		frm.events.setup_service_details(frm);
+	},
+	
 	setup_custom_buttons: function(frm) {
 		frm.add_custom_button(__("{0} Settings", [frm.doc.service]), function(){
 			frappe.set_route("List", frm.doc.service + " Settings");

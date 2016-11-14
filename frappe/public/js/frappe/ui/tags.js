@@ -21,6 +21,7 @@ frappe.ui.TagEditor = Class.extend({
 			placeholderText: __('Add a tag') + "...",
 			onTagAdded: function(ev, tag) {
 				if(me.initialized && !me.refreshing) {
+					tag.find('.tagit-label').text(toTitle(tag.find('.tagit-label').text()));
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
 						method: 'frappe.desk.tags.add_tag',
@@ -67,13 +68,20 @@ frappe.ui.TagEditor = Class.extend({
 					method:"frappe.desk.tags.get_tags",
 					args:{
 						doctype: me.frm.doctype,
-						txt: request.term.toLowerCase()
+						txt: request.term.toLowerCase(),
+						cat_tags:JSON.stringify(me.list_sidebar.get_cat_tags())
 					},
 					callback: function(r) {
 						response(r.message);
 					}
 				});
 			},
+			open: function() { $(this).attr('state', 'open'); },
+			close: function () { $(this).attr('state', 'closed'); }
+		}).focus(function () {
+			if ($(this).attr('state') != 'open') {
+				$(this).autocomplete("search");
+			}
 		});
 	},
 	get_args: function(tag) {

@@ -205,7 +205,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
+		reports =  frappe.db.sql("""select name, report_type, ref_doctype, disabled from tabReport
 		    where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)), as_dict=1)
 
 		return frappe._dict((d.name, d) for d in reports)
@@ -305,3 +305,7 @@ def get_users():
 		})
 
 	return users
+
+def set_last_active_to_now(user):
+	from frappe.utils import now_datetime
+	frappe.db.set_value("User", user, "last_active", now_datetime())

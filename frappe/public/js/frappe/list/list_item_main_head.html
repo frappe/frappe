@@ -2,7 +2,7 @@
     {% var total_cols=0; for (var i=0, l=columns.length; i < l; i++ ) {
         var col = columns[i]; total_cols += parseInt(col.colspan); %}
         {% if (total_cols <= 12) { %}
-        <div class="col-sm-{%= col.colspan %} list-col text-ellipsis h6 text-muted
+        <div class="col-sm-{%= col.colspan %} list-col ellipsis h6 text-muted
             {% if(col.type==="Subject") {
 				if (right_column) { %}
 					col-xs-9

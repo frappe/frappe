@@ -64,7 +64,7 @@ class RazorpaySettings(IntegrationService):
 
 	scheduler_events = {
 		"all": [
-			"frappe.integrations.razorpay.capture_payment"
+			"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment"
 		]
 	}
 
@@ -117,8 +117,9 @@ class RazorpaySettings(IntegrationService):
 		The money is deducted from the customer’s account, but will not be transferred to the merchant’s account
 		until it is explicitly captured by merchant.
 		"""
-		settings = self.get_settings()
 		data = json.loads(self.integration_request.data)
+
+		settings = self.get_settings(data)
 		redirect_to = data.get('notes', {}).get('redirect_to') or None
 		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
@@ -167,11 +168,19 @@ class RazorpaySettings(IntegrationService):
 			"status": status
 		}
 
-	def get_settings(self):
-		return frappe._dict({
+	def get_settings(self, data):
+		settings = frappe._dict({
 			"api_key": self.api_key,
 			"api_secret": self.get_password(fieldname="api_secret", raise_exception=False)
 		})
+
+		if data.get('notes', {}).get('use_sandbox'):
+			settings.update({
+				"api_key": frappe.conf.sandbox_api_key,
+				"api_secret": frappe.conf.sandbox_api_secret,
+			})
+
+		return settings
 
 def capture_payment(is_sandbox=False, sanbox_response=None):
 	"""
@@ -190,8 +199,10 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 				resp = sanbox_response
 			else:
 				data = json.loads(doc.data)
+				settings = controller.get_settings(data)
+
 				resp = controller.post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
-					auth=(controller.api_key, controller.get_password("api_secret")), data={"amount": data.get("amount")})
+					auth=(settings.api_key, settings.api_secret), data={"amount": data.get("amount")})
 
 			if resp.get("status") == "captured":
 				frappe.db.set_value("Integration Request", doc.name, "status", "Completed")
@@ -200,6 +211,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
@@ -210,7 +222,6 @@ def get_checkout_url(**kwargs):
 			_("Looks like something is wrong with this site's Razorpay configuration. Don't worry! No payment has been made."),
 			success=False,
 			http_status_code=frappe.ValidationError.http_status_code)
-
 
 @frappe.whitelist()
 def get_service_details():

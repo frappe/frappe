@@ -257,6 +257,7 @@ frappe.wiz.WizardSlide = Class.extend({
 		if(this.onload) {
 			this.onload(this);
 		}
+		this.focus_first_input();
 
 	},
 	set_init_values: function() {
@@ -288,29 +289,62 @@ frappe.wiz.WizardSlide = Class.extend({
 
 		// prev
 		if(this.id > 0) {
-			this.$prev = this.$body.find('.prev-btn').removeClass("hide")
+			this.$prev = this.$body.find('.prev-btn')
+				.removeClass("hide")
+				.attr('tabIndex', 0)
 				.click(function() {
-					frappe.set_route(me.wiz.page_name, me.id-1 + "");
+					me.prev();
 				})
 				.css({"margin-right": "10px"});
 		}
 
 		// next or complete
 		if(this.id+1 < this.wiz.slides.length) {
-			this.$next = this.$body.find('.next-btn').removeClass("hide")
-				.click(function() {
-					if(me.set_values()) {
-						frappe.set_route(me.wiz.page_name, me.id+1 + "");
-					}
-				});
+			this.$next = this.$body.find('.next-btn')
+				.removeClass("hide")
+				.attr('tabIndex', 0)
+				.click(this.next_or_complete.bind(this));
 		} else {
-			this.$complete = this.$body.find('.complete-btn').removeClass("hide")
-				.click(function() {
-					if(me.set_values()) {
-						me.wiz.on_complete(me.wiz);
-					}
-				});
+			this.$complete = this.$body.find('.complete-btn')
+				.removeClass("hide")
+				.attr('tabIndex', 0)
+				.click(this.next_or_complete.bind(this));
 		}
+
+		//setup mousefree navigation
+		this.$body.on('keypress', function(e) {
+			if(e.which === 13) {
+				$target = $(e.target);
+				if($target.hasClass('prev-btn')) {
+					me.prev();
+				} else if($target.hasClass('btn-attach')) {
+					//do nothing
+				} else {
+					me.next_or_complete();
+					e.preventDefault();
+				}
+			}
+		});
+	},
+	next_or_complete: function() {
+		if(this.set_values()) {
+			if(this.id+1 < this.wiz.slides.length) {
+				this.next();
+			} else {
+				this.wiz.on_complete(this.wiz);
+			}
+		}
+	},
+	focus_first_input: function() {
+		setTimeout(function() {
+			this.$body.find('.form-control').first().focus();
+		}.bind(this), 0);
+	},
+	next: function() {
+		frappe.set_route(this.wiz.page_name, this.id+1 + "");
+	},
+	prev: function() {
+		frappe.set_route(this.wiz.page_name, this.id-1 + "");
 	},
 	get_input: function(fn) {
 		return this.form.get_input(fn);

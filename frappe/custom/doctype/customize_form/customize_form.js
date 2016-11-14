@@ -94,7 +94,8 @@ frappe.ui.form.on("Customize Form", {
 									sync_on_migrate: data.sync_on_migrate
 								}
 							});
-						});
+						},
+						__("Select Module"));
 				});
 			}
 		}
