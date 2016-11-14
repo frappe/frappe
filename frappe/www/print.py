@@ -270,6 +270,9 @@ def make_layout(doc, meta, format_data=None):
 			doc.set(df.fieldname, True) # show this field
 
 		if is_visible(df, doc) and has_value(df, doc):
+			if page[-1]['columns'] == []:
+				page[-1]['columns'].append({'fields': []})
+
 			page[-1]['columns'][-1]['fields'].append(df)
 
 			# section has fields
