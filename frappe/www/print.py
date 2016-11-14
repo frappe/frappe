@@ -230,7 +230,7 @@ def make_layout(doc, meta, format_data=None):
 			doc.print_heading_template = format_data[0].get("options")
 			format_data = format_data[1:]
 
-	def get_new_section(): return  {'columns': [{'fields': []}], 'has_data': False}
+	def get_new_section(): return  {'columns': [], 'has_data': False}
 
 	for df in format_data or meta.fields:
 		if format_data:
@@ -257,9 +257,14 @@ def make_layout(doc, meta, format_data=None):
 
 			page.append(section)
 
-		if df.fieldtype=="Column Break" and page[-1]['columns'][-1]['fields'] != []:
+		elif df.fieldtype=="Column Break":
 			# if last column break and last column is not empty
 			page[-1]['columns'].append({'fields': []})
+
+		else:
+			# add a column if not yet added
+			if not page[-1]['columns']:
+				page[-1]['columns'].append({'fields': []})
 
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
