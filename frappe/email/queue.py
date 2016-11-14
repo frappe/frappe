@@ -78,7 +78,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		email_content = formatted
 		email_text_context = text_content
 
-		if reference_doctype:
+		if reference_doctype and (unsubscribe_message or reference_doctype=="Newsletter"):
 			unsubscribe_link = get_unsubscribe_link(
 				reference_doctype=reference_doctype,
 				reference_name=reference_name,
@@ -101,7 +101,6 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 			email_content = email_content.replace("<!-- cc message -->", cc_message)
 			email_text_context = cc_message + "\n" + email_text_context
-
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
 			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
