@@ -86,11 +86,9 @@ class CommunicationReconciliation(Document):
 		return self.fetch()
 
 @frappe.whitelist()
-def relink(name,reference_doctype,reference_name):
+def relink(name,reference_doctype=None,reference_name=None):
 		dt = reference_doctype
 		dn = reference_name
-		if dt=="" or dt==None or dn == "" or dn == None:
-			return 
 
 		original_reference_doctype=frappe.db.get_value("Communication",name,"reference_doctype")
 		original_reference_name=frappe.db.get_value("Communication",name,"reference_name")
