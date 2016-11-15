@@ -31,10 +31,7 @@
 	</div>
 
 	{%  if(type==="Date" || type==="Datetime") { %}
-	<div class="filter-input">
-		<input type="text" autocomplete="off" class="input-with-feedback
-			form-control date-range-picker {{ field }}-filter"
-			data-name="{{ field }}">
+	<div class="filter-input filter-input-date" data-name="{{ field }}">
 	</div>
 	{% } else { %}
 	<ul class="list-unstyled sidebar-menu filter-stat" data-name="{{ label }}">

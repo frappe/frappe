@@ -693,7 +693,7 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in","Between")
 	if f.operator not in valid_operators:
 		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
 
