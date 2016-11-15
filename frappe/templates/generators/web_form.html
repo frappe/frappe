@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-{% if has_header %}
+{% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
 {% endif %}
 {% endblock %}
@@ -15,8 +15,10 @@
 {% block header_actions %}
 	{% if not read_only and has_header %}
 	<div style="padding-bottom: 15px;">
-	    <a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
-	    		{{ _("Cancel") }}</a>
+	    {% if login_required -%}
+		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+	    	{{ _("Cancel") }}</a>
+		{%- endif %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
 	</div>
@@ -43,7 +45,7 @@
 	<p class="text-muted">{{ introduction_text }}</p>
 	{% endif %}
 </div>
-<div class="form-message alert alert-warning hide"></div>
+<div class="form-message hide"></div>
 {% if _login_required %}
 <div class="login-required">
 	<div class="text-muted">
@@ -340,8 +342,7 @@
 frappe.ready(function() {
 	frappe.file_reading = false;
 	frappe.allow_incomplete = {{ allow_incomplete or 0 }};
-	frappe.success_message = "{{ success_message or "" }}";
-	frappe.success_link = '{{ success_message }}<p><a href="{{ success_url }}">{{ _("Continue") }}</a></p>'
+	frappe.success_link = '<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>'
 	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
@@ -349,6 +350,7 @@ frappe.ready(function() {
 	frappe.is_read_only = {{ 1 if read_only else 0 }};
 	frappe.doc_name = "{{ frappe.form_dict.name or "" }}";
 	frappe.form_dirty = false;
+	frappe.login_required = {{ 1 if login_required else 0 }};
 	frappe.max_attachment_size = {{ max_attachment_size }};
 	moment.defaultFormat = "{{ frappe.date_format.upper() }}";
 	{% if row_template %}frappe.web_form_row_template = "{{ row_template }}";{% endif %}
@@ -627,22 +629,25 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					if(frappe.success_message) {
+					if(!frappe.login_required) {
 						$form.addClass("hide");
-						$(".comments, .introduction").addClass("hide");
+						$(".comments, .introduction, .page-head").addClass("hide");
 						scroll(0, 0);
-						set_message(frappe.success_message);
+						set_message(frappe.success_link, true);
                     } else {
 						set_message(__('Saved'));
 				    }
-					if(frappe.is_new) {
+
+					if(frappe.is_new && frappe.login_required) {
+						// reload page (with ID)
 						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
 					}
 					if(for_payment && data.message) {
+						// redirect to payment
 						window.location.href = data.message;
 					}
 			    } else {
-					set_message(__('Not Saved'));
+					frappe.msgprint(__('There were errors. Please report this.'));
 			    }
 		    },
             always: function() {
@@ -666,14 +671,16 @@ frappe.ready(function() {
 			+ text.join('<br>'));
 	}
 
-	function set_message(msg) {
+	function set_message(msg, permanent) {
 		$(".form-message")
 			.html(msg)
 			.removeClass("hide");
 
-		setTimeout(function() {
-			$(".form-message").addClass('hide');
-		}, 5000);
+		if(!permanent) {
+			setTimeout(function() {
+				$(".form-message").addClass('hide');
+			}, 5000);
+		}
 	}
 
 	// submit
