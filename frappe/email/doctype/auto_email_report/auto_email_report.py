@@ -130,7 +130,7 @@ def send_daily():
 		# if not correct weekday, skip
 		if auto_email_report.frequency=='Weekly':
 			if now.weekday()!={'Monday':0,'Tuesday':1,'Wednesday':2,
-				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.weekday]:
+				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.day_of_week]:
 				continue
 
 		auto_email_report.send()

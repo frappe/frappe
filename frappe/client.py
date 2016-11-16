@@ -61,7 +61,10 @@ def set_value(doctype, name, fieldname, value=None):
 	if not value:
 		values = fieldname
 		if isinstance(fieldname, basestring):
-			values = json.loads(fieldname)
+			try:
+				values = json.loads(fieldname)
+			except ValueError:
+				values = {fieldname: ''}
 	else:
 		values = {fieldname: value}
 

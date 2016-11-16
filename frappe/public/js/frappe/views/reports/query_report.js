@@ -175,7 +175,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	pdf_report: function() {
-		base_url = frappe.urllib.get_base_url(); 
+		base_url = frappe.urllib.get_base_url();
 		print_css = frappe.boot.print_css;
 
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {

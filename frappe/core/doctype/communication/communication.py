@@ -6,8 +6,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
-from frappe.core.doctype.communication.comment import (validate_comment,
-	notify_mentions, update_comment_in_doc)
+from frappe.core.doctype.communication.comment import (notify_mentions,
+	update_comment_in_doc)
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_status)
 from frappe.utils.bot import BotReply
@@ -43,7 +43,6 @@ class Communication(Document):
 		self.set_status()
 		self.set_sender_full_name()
 		validate_email(self)
-		validate_comment(self)
 		self.set_timeline_doc()
 
 	def after_insert(self):
