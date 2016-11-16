@@ -4,10 +4,12 @@
 from __future__ import unicode_literals, absolute_import
 import frappe
 import json
+import re
 from email.utils import formataddr, parseaddr
 from frappe.utils import (get_url, get_formatted_email, cint,
 	validate_email_add, split_emails, time_diff_in_seconds)
 from frappe.utils.file_manager import get_file
+from frappe.utils.excel import get_excel
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 import frappe.email.smtp
@@ -19,7 +21,7 @@ from frappe.utils.background_jobs import enqueue
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
+	print_html=None, print_format=None, attachments='[some]', send_me_a_copy=False, cc=None, flags=None, add_excel_attachment=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -35,6 +37,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	:param add_excel_attachment: Add an attachment as an Excel spreadsheet (default **False**).
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
@@ -60,6 +63,14 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
+
+	if cint(add_excel_attachment):
+		fname = get_excel(doctype, name, None)
+		if(attachments == '[]'):
+			attachments = "[%s]" % (fname)
+		else:
+			addon = ",%s]" % (fname)
+			attachments = re.sub(r'\]', addon, attachments)
 
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()

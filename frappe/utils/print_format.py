@@ -7,6 +7,7 @@ from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils import cint, strip_html
 from frappe.utils.pdf import get_pdf
+from frappe.utils.excel import get_excel
 
 no_cache = 1
 no_sitemap = 1
@@ -54,4 +55,18 @@ def download_pdf(doctype, name, format=None, doc=None):
 def report_to_pdf(html):
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(html, {"orientation": "Landscape"})
+	frappe.local.response.type = "download"
+
+@frappe.whitelist()
+def download_excel(doctype, name, format=None, doc=None):
+	# mimicking frappe.get_print
+	frappe.local.response.filename = "{name}.xlsx".format(name=name.replace(" ", "-").replace("/", "-"))
+	fname = get_excel(doctype, name, format)
+	# serve the excel file as a download
+	try:
+		with open(fname, "rb") as fileobj:
+			frappe.local.response.filecontent = fileobj.read()
+	except IOError, e:
+		raise
+
 	frappe.local.response.type = "download"
