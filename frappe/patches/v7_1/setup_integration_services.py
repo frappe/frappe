@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.exceptions import DataError
 from frappe.utils.password import get_decrypted_password
+from frappe.utils import cstr
 
 app_list = [
 	{"app_name": "razorpay_integration", "service_name": "Razorpay", "doctype": "Razorpay Settings", "remove": True},
@@ -55,7 +56,7 @@ def get_app_settings(app_details):
 
 		for d in controller.fields:
 			if settings.get(d.fieldname):
-				if ''.join(set(settings.get(d.fieldname))) == '*':
+				if ''.join(set(cstr(settings.get(d.fieldname)))) == '*':
 					setattr(settings, d.fieldname, get_decrypted_password(doctype, docname, d.fieldname, raise_exception=True))
 
 				parameters.update({d.fieldname : settings.get(d.fieldname)})
@@ -85,6 +86,9 @@ def get_parameters(app_details):
 	elif app_details["service_name"] == "Dropbox":
 		doc = frappe.db.get_value(app_details["doctype"], None,
 			["dropbox_access_key", "dropbox_access_secret", "upload_backups_to_dropbox"], as_dict=1)
+		
+		if not doc:
+			return
 
 		if not (frappe.conf.dropbox_access_key and frappe.conf.dropbox_secret_key):
 			return
