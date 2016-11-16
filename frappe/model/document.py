@@ -382,6 +382,7 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
+		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
 
@@ -390,6 +391,7 @@ class Document(BaseDocument):
 			d._validate_selects()
 			d._validate_constants()
 			d._validate_length()
+			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
 
@@ -397,11 +399,6 @@ class Document(BaseDocument):
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
-
-		# extract images after validations to save processing if some validation error is raised
-		self._extract_images_from_text_editor()
-		for d in children:
-			d._extract_images_from_text_editor()
 
 	def apply_fieldlevel_read_permissions(self):
 		'''Remove values the user is not allowed to read (called when loading in desk)'''

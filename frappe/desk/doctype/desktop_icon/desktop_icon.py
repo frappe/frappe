@@ -170,7 +170,7 @@ def set_order(new_order, user=None):
 
 	clear_desktop_icons_cache()
 
-def set_desktop_icons(visible_list):
+def set_desktop_icons(visible_list, ignore_duplicate=True):
 	'''Resets all lists and makes only the given one standard,
 	if the desktop icon does not exist and the name is a DocType, then will create
 	an icon for the doctype'''
@@ -188,7 +188,11 @@ def set_desktop_icons(visible_list):
 			frappe.db.set_value('Desktop Icon', name, 'hidden', 0)
 		else:
 			if frappe.db.exists('DocType', module_name):
-				add_user_icon(module_name, standard=1)
+				try:
+					add_user_icon(module_name, standard=1)
+				except frappe.UniqueValidationError, e:
+					if not ignore_duplicate:
+						raise e
 
 	# set the order
 	set_order(visible_list)
