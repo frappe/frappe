@@ -229,25 +229,25 @@ frappe.ui.FilterList = Class.extend({
 
 		//setup date-time range pickers
 		$(".filter-input-date").each(function(i,v) {
-			var lab = $(v).data("name");
+			var name = $(v).data("name");
 			var f = frappe.ui.form.make_control({
 					df: {
 						fieldtype:"DateRange",
-						fieldname:field.name,
+						fieldname:name,
 					},
 					parent: this.parentElement,
 					only_input: true,
 					applydaterange:function(ev,picker){
-						var filt = me.get_filter(lab);
+						var filt = me.get_filter(name);
 						if (filt) {
 							filt.remove(true)
 						}
-						me.add_filter(me.doctype, lab, 'Between', [picker.startDate,picker.endDate]);
+						me.add_filter(me.doctype, name, 'Between', [picker.startDate,picker.endDate]);
 						me.listobj.run();
 					},
 					canceldaterange:function(ev,picker){
 						$(this).val('');
-						var filt = me.get_filter(lab);
+						var filt = me.get_filter(name);
 						if (filt) {
 							filt.remove(true)
 						}
