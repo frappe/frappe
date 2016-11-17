@@ -20,8 +20,7 @@
             <a class="edit-html btn btn-default btn-xs">
                 {%= __("Edit HTML") %}</a>
         </div>
-        <div class="html-content"
-			data-html-content="{{ field.options || me.get_no_content() }}">
+        <div class="html-content">
 			{{ field.options || me.get_no_content() }}</div>
     {% } else { %}
         <span class="field-label">{{ field.label }}</span>
