@@ -193,6 +193,10 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 				except frappe.UniqueValidationError, e:
 					if not ignore_duplicate:
 						raise e
+					else:
+						visible_list.remove(module_name)
+						if frappe.message_log:
+							frappe.message_log.pop()
 
 	# set the order
 	set_order(visible_list)

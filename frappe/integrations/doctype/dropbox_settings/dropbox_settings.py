@@ -198,7 +198,7 @@ def send_email(success, service_name, error_status=None):
 	if not frappe.db:
 		frappe.connect()
 
-	recipients = split_emails(frappe.db.get_value("Dropbox Backup", None, "send_notifications_to"))
+	recipients = split_emails(frappe.db.get_value("Dropbox Settings", None, "send_notifications_to"))
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 def backup_to_dropbox():
