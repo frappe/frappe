@@ -198,10 +198,12 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.setup_add_section();
 		this.setup_edit_heading();
 		this.setup_field_settings();
+		this.setup_html_data();
 	},
 	prepare_data: function() {
 		this.print_heading_template = null;
 		this.data = JSON.parse(this.print_format.format_data || "[]");
+		this.fields_dict = {};
 		if(!this.data.length) {
 			// new layout
 			this.data = this.meta.fields;
@@ -212,6 +214,15 @@ frappe.PrintFormatBuilder = Class.extend({
 				this.data = this.data.splice(1);
 			}
 		}
+
+		if(!this.print_heading_template) {
+			// default print heading template
+			this.print_heading_template = '<div class="print-heading">\
+				<h2>'+__(this.print_format.doc_type)
+					+'<br><small>{{ doc.name }}</small>\
+				</h2></div>';
+		}
+
 		this.layout_data = [];
 		var section = null, column = null, me = this;
 
@@ -234,6 +245,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		// break the layout into sections and columns
 		// so that it is easier to render in a template
 		$.each(this.data, function(i, f) {
+			me.fields_dict[f.fieldname] = f;
 			if(!f.name && f.fieldname) {
 				// from format_data (designed format)
 				// print_hide should always be false
@@ -467,6 +479,14 @@ frappe.PrintFormatBuilder = Class.extend({
 			return false;
 		});
 	},
+	setup_html_data: function() {
+		// set `data` for Custom HTML fields
+		var me = this;
+		this.page.main.find('[data-fieldtype="Custom HTML"]').each(function() {
+			$(this).find('.html-content')
+				.data('content', me.fields_dict[$(this).attr('data-fieldname')].options);
+		})
+	},
 	update_columns_in_section: function(section, no_of_columns, new_no_of_columns) {
 		var col_size = 12 / new_no_of_columns,
 			me = this,
@@ -527,12 +547,12 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	setup_edit_heading: function() {
 		var me = this;
-		if (!me.print_heading_template) {
-			$(this.page.main.find(".print-heading")).html('<h2>'+me.print_format.doc_type+'<br><small>{{ doc.name }}</small></h2>')
-		}
+		var $heading = this.page.main.find(".print-format-builder-print-heading");
+
+		// set content property
+		$heading.data('content', this.print_heading_template);
+
 		this.page.main.find(".edit-heading").on("click", function() {
-			var $heading = $(this).parents(".print-format-builder-header:first")
-				.find(".print-format-builder-print-heading");
 			var d = me.get_edit_html_dialog(__("Edit Heading"), __("Heading"), $heading);
 		})
 	},
@@ -657,12 +677,12 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 		// set existing content in input
-		content = $content.attr('data-html-content');
+		content = $content.data('content') || "";
 		if(content.indexOf(me.get_no_content())!==-1) content = "";
 		d.set_input("content", content);
 
 		d.set_primary_action(__("Update"), function() {
-			$content.attr('data-html-content', d.get_value("content"));
+			$content.data('content', d.get_value("content"));
 			$content.html(d.get_value("content"));
 			d.hide();
 		});
@@ -678,9 +698,11 @@ frappe.PrintFormatBuilder = Class.extend({
 		// add print heading as the first field
 		// this will be removed and set as a doc property
 		// before rendering
-		data.push({"fieldname": "print_heading_template",
-			fieldtype:"HTML",
-			options: this.page.main.find(".print-format-builder-print-heading").html()});
+		data.push({
+			fieldname: "print_heading_template",
+			fieldtype:"Custom HTML",
+			options: this.page.main.find(".print-format-builder-print-heading").data('content')
+		});
 
 		// add pages
 		this.page.main.find(".print-format-builder-section").each(function() {
@@ -722,7 +744,7 @@ frappe.PrintFormatBuilder = Class.extend({
 					if(fieldtype==="Custom HTML") {
 						// custom html as HTML field
 						df.fieldtype = "HTML";
-						df.options = $this.find(".html-content").attr('data-html-content');
+						df.options = $this.find(".html-content").data('content');
 					}
 					data.push(df);
 				});
