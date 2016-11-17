@@ -383,7 +383,7 @@ def upload_zip(file_name, folder, name):
 				file_doc.file_name = info.filename
 				file_doc.file_size = info.file_size
 				file_doc.folder = folder
-				file_doc.file_url = "/files/" + file_name
+				file_doc.file_url = "/files/" + info.filename
 				file_doc.validate()
 				file_doc.insert()
 	else:
