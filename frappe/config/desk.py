@@ -7,11 +7,11 @@ def get_data():
 			"label": _("Tools"),
 			"icon": "octicon octicon-briefcase",
 			"items": [
-				{
-					"type": "doctype",
-					"name": "Communication Reconciliation",
-					"description":_("Reattach communications to other documents"),
-				},
+				# {
+				# 	"type": "doctype",
+				# 	"name": "Communication Reconciliation",
+				# 	"description":_("Reattach communications to other documents"),
+				# },
 				{
 					"type": "doctype",
 					"name": "Newsletter",
