@@ -739,9 +739,9 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			"linkedCalendars": false,
 			"alwaysShowCalendars": true,
 			"cancelClass": "date-range-picker-cancel",
-			"autoUpdateInput": me.df.autoUpdateInput || false,
-			"startDate": me.df.from_date ? moment(me.df.from_date, "YYYY-MM-DD"):false,
-			"endDate":me.df.to_date?moment(me.df.to_date, "YYYY-MM-DD"):false,
+			"autoUpdateInput": me.df.start_with_value || false,
+			"startDate": me.df.default_from ? moment(me.df.default_from, "YYYY-MM-DD"):false,
+			"endDate":me.df.default_to?moment(me.df.default_to, "YYYY-MM-DD"):false,
 			"ranges":{
 					'Today': [moment(), moment()],
 					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
