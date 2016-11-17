@@ -292,6 +292,10 @@ def make_cache_queue():
 
 def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
+	if frappe.are_emails_muted():
+		frappe.msgprint(_("Emails are muted"))
+		return
+
 
 	email = frappe.db.sql('''select name, status, communication,
 		message, sender, recipient, reference_doctype
