@@ -388,22 +388,17 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		from markdown2 import markdown
 		message = markdown(message)
 
-	if now!=None:
-		delayed = not now
+	if not delayed:
+		now = True
 
-	import email
-	if delayed:
-		import email.queue
-		email.queue.send(recipients=recipients, sender=sender,
-			subject=subject, message=message,
-			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
-			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, in_reply_to=in_reply_to,
-			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
-	else:
-		email.sendmail(recipients, sender=sender,
-			subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-			cc=cc, in_reply_to=in_reply_to, retry=retry)
+	import email.queue
+	email.queue.send(recipients=recipients, sender=sender,
+		subject=subject, message=message,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
+		attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, in_reply_to=in_reply_to,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		communication=communication, now=now)
 
 whitelisted = []
 guest_methods = []

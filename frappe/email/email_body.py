@@ -59,6 +59,7 @@ class EMail:
 		self.html_set = False
 
 		self.email_account = email_account or get_outgoing_email_account()
+		self.set_message_id()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
@@ -182,10 +183,8 @@ class EMail:
 			sender_name, sender_email = email.utils.parseaddr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
-	def set_message_id(self, doctype, name):
-		message_id = "<{random}.{doctype}.{name}@{site}>".format(
-			doctype=doctype.replace('-', '--').replace(' ', '-'), name=name, site=frappe.local.site, random=random_string(10))
-		self.msg_root["Message-Id"] = message_id
+	def set_message_id(self):
+		self.msg_root["Message-Id"] = get_message_id()
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
@@ -240,6 +239,12 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 	})
 
 	return scrub_urls(rendered_email)
+
+def get_message_id():
+	'''Returns Message ID created from doctype and name'''
+	return "<{unique}@{site}>".format(
+			site=frappe.local.site,
+			unique=email.utils.make_msgid(random_string(10)).split('@')[0].split('<')[1])
 
 def get_signature(email_account):
 	if email_account and email_account.add_signature and email_account.signature:

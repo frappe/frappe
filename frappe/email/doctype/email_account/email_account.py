@@ -365,20 +365,17 @@ class EmailAccount(Document):
 	def find_parent_from_in_reply_to(self, communication, email):
 		'''Returns parent reference if embedded in In-Reply-To header
 
-		Message-ID is formatted as `{random}.{doctype}.{name}@{site}`'''
+		Message-ID is formatted as `{message_id}@{site}`'''
 		parent = None
 		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 
 		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
-
 			# reply to a communication sent from the system
-			reference, domain = in_reply_to.split("@", 1)
-			if '.' in reference:
-				t, parent_doctype, parent_name = reference.split('.', 2)
-
-				# parent doctype has '-' instead of ' ' and '--' instead of '-'
-				parent_doctype = parent_doctype.replace('--', '%').replace('-', ' ').replace('%', '-')
+			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
+			if email_queue:
+				parent_doctype, parent_name = email_queue
 			else:
+				reference, domain = in_reply_to.split("@", 1)
 				parent_doctype, parent_name = 'Communication', reference
 
 			if frappe.db.exists(parent_doctype, parent_name):
