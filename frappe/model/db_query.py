@@ -291,9 +291,10 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator=='Between' and f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime") ):
-				value = "'%s' AND '%s'"%(
-					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"), 
+			if f.operator=='Between' and \
+				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+				value = "'%s' AND '%s'" % (
+					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
 					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
 			elif df and df.fieldtype=="Date":
