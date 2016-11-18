@@ -228,58 +228,32 @@ frappe.ui.FilterList = Class.extend({
 		});
 
 		//setup date-time range pickers
-		$(".date-range-picker").each(function(i,v) {
-			var picker = this;
-			var lab = $(v).data("name");
-			$(v).daterangepicker({
-				"autoApply": true,
-				"showDropdowns": true,
-				"ranges": {
-					'Today': [moment(), moment()],
-					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
-					'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-					'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-					'This Month': [moment().startOf('month'), moment().endOf('month')],
-					'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-					'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
-					'Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD"), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD")],
-					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
-				},
-				"locale": {
-					"format": "DD-MM-YYYY",
-					"firstDay": 1,
-					"cancelLabel": "Clear"
-				},
-				"linkedCalendars": false,
-				"alwaysShowCalendars": true,
-				"cancelClass": "date-range-picker-cancel "+lab,
-				"autoUpdateInput": false
-			}).on('apply.daterangepicker',function(ev,picker){
-				$(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
-				}
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
-				}
-				me.add_filter(me.doctype, lab, '<=', picker.endDate);
-				me.add_filter(me.doctype, lab, '>=', picker.startDate);
-				me.listobj.run();
-			}).on('cancel.daterangepicker', function(ev, picker) {
-      			$(this).val('');
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
-				}
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove()
-				}
-			});
-			$(".date-range-picker-cancel." + lab ).removeClass("hide")
+		$(".filter-input-date").each(function(i,v) {
+			var name = $(v).data("name");
+			var f = frappe.ui.form.make_control({
+					df: {
+						fieldtype:"DateRange",
+						fieldname:name,
+					},
+					parent: this.parentElement,
+					only_input: true,
+					applydaterange:function(ev,picker){
+						var filt = me.get_filter(name);
+						if (filt) {
+							filt.remove(true)
+						}
+						me.add_filter(me.doctype, name, 'Between', [picker.startDate,picker.endDate]);
+						me.listobj.run();
+					},
+					canceldaterange:function(ev,picker){
+						$(this).val('');
+						var filt = me.get_filter(name);
+						if (filt) {
+							filt.remove(true)
+						}
+					}
+					})
+			f.refresh();
 		})
 	},
 
@@ -503,6 +477,7 @@ frappe.ui.Filter = Class.extend({
 		df.read_only = 0;
 		df.hidden = 0;
 
+		if(!condition) this.set_default_condition(df, fieldtype);
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
@@ -533,8 +508,6 @@ frappe.ui.Filter = Class.extend({
 		me.field = f;
 		if(old_text && me.field.df.fieldtype===cur.fieldtype)
 			me.field.set_input(old_text);
-
-		if(!condition) this.set_default_condition(df, fieldtype);
 
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
@@ -582,14 +555,19 @@ frappe.ui.Filter = Class.extend({
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
 			df.options = null;
 		}
+		if(this.wrapper.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
+			df.fieldtype='DateRange'
+		}
 	},
 
 	set_default_condition: function(df, fieldtype) {
 		if(!fieldtype) {
 			// set as "like" for data fields
-			if(df.fieldtype=='Data') {
+			if (df.fieldtype == 'Data') {
 				this.wrapper.find('.condition').val('like');
-			} else {
+			} else if (df.fieldtype == 'Date' || df.fieldtype == 'Datetime'){
+				this.wrapper.find('.condition').val('Between');
+			}else{
 				this.wrapper.find('.condition').val('=');
 			}
 		}
