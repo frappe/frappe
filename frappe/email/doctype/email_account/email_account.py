@@ -304,6 +304,7 @@ class EmailAccount(Document):
 
 	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''
+		parent = None
 
 		if self.append_to and self.sender_field:
 			if self.subject_field:
