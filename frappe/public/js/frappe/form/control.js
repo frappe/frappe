@@ -730,19 +730,22 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		var me = this
 		var daterangepicker_options = {
 			"autoApply": true,
-			"showDropdowns": true,
+			"showDropdowns": me.df.show_dropdowns || true,
+			"showWeekNumbers": me.df.show_week_numbers || false,
 			"locale": {
 				"format": (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').toUpperCase(),
 				"firstDay": 1,
 				"cancelLabel": "Clear"
 			},
 			"linkedCalendars": false,
-			"alwaysShowCalendars": true,
+			"alwaysShowCalendars": me.df.alwaysShowCalendars || true,
 			"cancelClass": "date-range-picker-cancel",
 			"autoUpdateInput": me.df.start_with_value || false,
 			"startDate": me.df.default_from ? moment(me.df.default_from, "YYYY-MM-DD"):false,
 			"endDate":me.df.default_to?moment(me.df.default_to, "YYYY-MM-DD"):false,
-			"ranges":{
+			"minDate":me.df.mindate || undefined,
+			"maxDate":me.df.maxdate || undefined,
+			"ranges":me.df.ranges || {
 					'Today': [moment(), moment()],
 					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
 					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
