@@ -37,7 +37,7 @@ frappe.views.ImageView = Class.extend({
 					} else{
 						// filter image files from other
 						images = r.message.filter(function(image){
-							return frappe.utils.is_image_file(image.title);
+							return frappe.utils.is_image_file(image.title? image.title: image.href);
 						});
 
 						if(images){
