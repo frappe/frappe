@@ -271,7 +271,7 @@ def flush(from_test=False):
 		email = cache.lpop('cache_email_queue')
 
 		if email:
-			send_one(email, smtpserver, auto_commit)
+			send_one(email, smtpserver, auto_commit, from_test=from_test)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
@@ -290,15 +290,27 @@ def make_cache_queue():
 	for e in emails:
 		cache.rpush('cache_email_queue', e[0])
 
-def send_one(email, smtpserver=None, auto_commit=True, now=False):
+def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
 	'''Send Email Queue with given smtpserver'''
-	if frappe.are_emails_muted() or frappe.flags.in_test:
-		frappe.msgprint(_("Emails are muted"))
-		return
 
 	email = frappe.db.sql('''select name, status, communication,
 		message, sender, recipient, reference_doctype
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
+
+	if from_test:
+		# called from specific test, just set it as sent
+		frappe.db.set_value('Email Queue', email.name, 'status', 'Sent')
+		return
+
+	if frappe.flags.in_test:
+		# call form general test, add the sent email to flags and quit
+		frappe.flags.sent_mail = email.message
+		return
+
+	if frappe.are_emails_muted():
+		frappe.msgprint(_("Emails are muted"))
+		return
+
 	if email.status != 'Not Sent':
 		# rollback to release lock and return
 		frappe.db.rollback()
@@ -358,7 +370,7 @@ def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
 
 	Called daily via scheduler."""
-	frappe.db.sql("""delete from `tabEmail Queue` where priority=0
+	frappe.db.sql("""delete from `tabEmail Queue` where priority=0 and
 		datediff(now(), modified) > 31""")
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Expired'

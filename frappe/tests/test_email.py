@@ -14,16 +14,12 @@ class TestEmail(unittest.TestCase):
 		frappe.db.sql("""delete from `tabEmail Unsubscribe`""")
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 
-	def test_send(self):
-		from frappe.email import sendmail
-		sendmail('test@example.com', subject='Test Mail', msg="Test Content")
-
 	def test_email_queue(self, send_after=None):
-		from frappe.email.queue import send
-		send(recipients = ['test@example.com', 'test1@example.com'],
+		frappe.sendmail(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name='Administrator',
-			subject='Testing Queue', message='This mail is queued!', unsubscribe_message="Unsubscribe", send_after=send_after)
+			subject='Testing Queue', message='This mail is queued!',
+			unsubscribe_message="Unsubscribe", send_after=send_after)
 
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(email_queue), 2)
@@ -31,14 +27,14 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
 		self.assertTrue('Unsubscribe' in email_queue[0]['message'])
 
-	def test_flush(self):
+	def test_send_after(self):
 		self.test_email_queue(send_after = 1)
 		from frappe.email.queue import flush
 		flush(from_test=True)
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEquals(len(email_queue), 0)
 
-	def test_send_after(self):
+	def test_flush(self):
 		self.test_email_queue()
 		from frappe.email.queue import flush
 		flush(from_test=True)
