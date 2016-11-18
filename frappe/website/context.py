@@ -6,6 +6,7 @@ import frappe
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
+import frappe.utils
 
 def get_context(path, args=None):
 	if args and args.source:
@@ -43,9 +44,13 @@ def update_controller_context(context, controller):
 				context[prop] = getattr(module, prop)
 
 		if hasattr(module, "get_context"):
-			ret = module.get_context(context)
-			if ret:
-				context.update(ret)
+			try:
+				ret = module.get_context(context)
+				if ret:
+					context.update(ret)
+			except Exception:
+				frappe.errprint(frappe.utils.get_traceback())
+
 
 		if hasattr(module, "get_children"):
 			context.children = module.get_children(context)
@@ -151,4 +156,5 @@ def add_metatags(context):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
 		if tags.get("image"):
 			tags["og:image"] = tags["twitter:image:src"] = tags["image"]
+
 
