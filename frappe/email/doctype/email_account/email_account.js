@@ -138,17 +138,17 @@ frappe.ui.form.on("Email Account", {
 					}
 					catch (Exception) {
 						frappe.confirm(
-							'Domain not configured for this account\nCreate one?',
+							'Email Domain not configured for this account\nCreate one?',
 							function () {
-								var doc = frappe.model.get_new_doc("Domain");
+								var doc = frappe.model.get_new_doc("Email Domain");
 								frappe.route_options = {
 									"email_id": cur_frm.doc.email_id
 								};
 								frappe.route_titles["return to email_account"] = 1
-								frappe.set_route("Form", "Domain", doc.name);
+								frappe.set_route("Form", "Email Domain", doc.name);
 							},
 							function () {
-								show_alert('Domain setup is required for account')
+								show_alert('Email Domain setup is required for account')
 							}
 						)
 					}

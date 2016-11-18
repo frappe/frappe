@@ -353,7 +353,7 @@
  "modified": "2016-07-25 10:27:00.249208",
  "modified_by": "Administrator", 
  "module": "Email", 
- "name": "Domain", 
+ "name": "Email Domain", 
  "name_case": "", 
  "owner": "Administrator", 
  "permissions": [

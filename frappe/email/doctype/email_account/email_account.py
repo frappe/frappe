@@ -101,7 +101,7 @@ class EmailAccount(Document):
 		try:
 			domain = email_id.split("@")
 			return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
-			from tabDomain
+			from `tabEmail Domain`
 			where name = %s
 			""",domain[1],as_dict=1)
 		except Exception:

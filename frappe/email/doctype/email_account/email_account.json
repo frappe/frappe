@@ -74,7 +74,7 @@
    "label": "Domain", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "Domain", 
+   "options": "Email Domain", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
