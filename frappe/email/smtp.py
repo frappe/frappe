@@ -11,15 +11,7 @@ from frappe.utils import cint
 from frappe import _
 
 def send(email, append_to=None, retry=1):
-	"""send the message or add it to Outbox Email"""
-	if frappe.flags.in_test:
-		frappe.flags.sent_mail = email.as_string()
-		return
-
-	if frappe.are_emails_muted():
-		frappe.msgprint(_("Emails are muted"))
-		return
-
+	"""Deprecated: Send the message or add it to Outbox Email"""
 	def _send(retry):
 		try:
 			smtpserver = SMTPServer(append_to=append_to)

@@ -61,6 +61,10 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
+	if not doctype:
+		# if no reference given, then send it against the communication
+		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+
 	# if not committed, delayed task doesn't find the communication
 	frappe.db.commit()
 
@@ -136,7 +140,6 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_doctype=doc.reference_doctype,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
-		message_id=doc.name,
 		unsubscribe_message=unsubscribe_message,
 		delayed=True,
 		communication=doc.name

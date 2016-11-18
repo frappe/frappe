@@ -18,8 +18,8 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=False, send_priority=1, communication=None):
+		attachments=None, reply_to=None, cc=(), show_as_cc=(), in_reply_to=None, send_after=None,
+		expose_recipients=False, send_priority=1, communication=None, now=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -33,10 +33,10 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 	:param attachments: Attachments to be sent.
 	:param reply_to: Reply to be captured here (default inbox)
-	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 	:param communication: Communication link to be set in Email Queue record
+	:param now: Send immediately (don't send in the background)
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -102,12 +102,17 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 			email_content = email_content.replace("<!-- cc message -->", cc_message)
 			email_text_context = cc_message + "\n" + email_text_context
 		# add to queue
-		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
+		email_queue = add(email, sender, subject, email_content, email_text_context, reference_doctype,
+			reference_name, attachments, reply_to, cc, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication)
+
+		if now:
+			send_one(email_queue.name, now=True)
+
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None):
+	cc=(), in_reply_to=None, send_after=None, send_priority=1, email_account=None,
+	communication=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.recipient = email
@@ -115,14 +120,13 @@ def add(email, sender, subject, formatted, text_content=None,
 
 	try:
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
-			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
-
-		if message_id:
-			mail.set_message_id(message_id)
+			text_content=text_content, attachments=attachments, reply_to=reply_to,
+			cc=cc, email_account=email_account)
 
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
 
+		e.message_id = mail.msg_root["Message-Id"].strip(" <>")
 		e.message = cstr(mail.as_string())
 		e.sender = mail.sender
 
@@ -135,6 +139,8 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.communication = communication
 	e.send_after = send_after
 	e.db_insert()
+
+	return e
 
 def check_email_limit(recipients):
 	# if using settings from site_config.json, check email limit
@@ -265,7 +271,7 @@ def flush(from_test=False):
 		email = cache.lpop('cache_email_queue')
 
 		if email:
-			send_one(email, smtpserver, auto_commit)
+			send_one(email, smtpserver, auto_commit, from_test=from_test)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
@@ -284,12 +290,27 @@ def make_cache_queue():
 	for e in emails:
 		cache.rpush('cache_email_queue', e[0])
 
-def send_one(email, smtpserver=None, auto_commit=True, now=False):
+def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select name, status, communication,
 		message, sender, recipient, reference_doctype
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
+
+	if from_test:
+		# called from specific test, just set it as sent
+		frappe.db.set_value('Email Queue', email.name, 'status', 'Sent')
+		return
+
+	if frappe.flags.in_test:
+		# call form general test, add the sent email to flags and quit
+		frappe.flags.sent_mail = email.message
+		return
+
+	if frappe.are_emails_muted():
+		frappe.msgprint(_("Emails are muted"))
+		return
+
 	if email.status != 'Not Sent':
 		# rollback to release lock and return
 		frappe.db.rollback()
@@ -346,8 +367,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 			log('frappe.email.queue.flush', unicode(e))
 
 def clear_outbox():
-	"""Remove mails older than 31 days in Outbox. Called daily via scheduler."""
-	frappe.db.sql("""delete from `tabEmail Queue` where
+	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
+
+	Called daily via scheduler."""
+	frappe.db.sql("""delete from `tabEmail Queue` where priority=0 and
 		datediff(now(), modified) > 31""")
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
