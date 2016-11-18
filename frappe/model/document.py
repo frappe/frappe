@@ -11,6 +11,8 @@ from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
+from frappe.utils.file_manager import save_url
+
 
 # once_only validation
 # methods
@@ -219,6 +221,10 @@ class Document(BaseDocument):
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
+
+		if self.get("amended_from"):
+			self.amend_attachments()
+
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -280,6 +286,18 @@ class Document(BaseDocument):
 
 		return self
 
+	def amend_attachments(self):
+		from frappe.desk.form.load import get_attachments
+		
+		#get attachments
+		attach_list = get_attachments(self.doctype, self.amended_from)
+		
+		#loop through attachments
+		for attach_item in attach_list:
+			
+			#save attachments to new doc
+			save_url(attach_item.file_url,attach_item.file_name,self.doctype,self.name,"Home/Attachments")
+	
 	def update_children(self):
 		'''update child tables'''
 		for df in self.meta.get_table_fields():
