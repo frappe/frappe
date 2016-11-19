@@ -1,13 +1,13 @@
 <div class="data-transfer-wizard">
 	
-	<div class="export-tool-section hide">		
-		<div class="data-tool-selector">
+	<div class="import-tool-section">		
+		<div class="">
 			<h3>{%= __("Instructions") %}</h3>
 		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
 		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
 		</div>
 		<hr>
-		<div>
+		<div class="">
 			<h6>{%= __("Select Type of Document to Download") %}</h6>
             <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
                 <option value=""></option>
@@ -18,29 +18,12 @@
             </select>
             <br>
         </div>
-        <div class="doctype-column">
-        </div>
-	</div>
 
-	<div class="import-tool-section hide">		
-		
-		<div class="data-tool-selector">
-			<h3>{%= __("Instructions") %}</h3>
-		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
-		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
-		</div>
-		<hr>
-    	<div>
-			<h6>{%= __("Select Type of Document to Upload") %}</h6>
-            <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
-                <option value=""></option>
-                {% for (var i=0, l= frappe.boot.user.can_import.length; i < l; i++) {
-                    var doctype = frappe.boot.user.can_import[i]; %}
-                <option value="{%= doctype %}">{%= __(doctype) %}</option>
-                {% } %}
-            </select>
-            <br>
-        </div>		
+        <h4>{{ __("1. Select File") }}</h4>
+        <div class="upload-area"></div>
+		<br>
+        
+        <div class=""></div>
 	</div>
 
 </div>
