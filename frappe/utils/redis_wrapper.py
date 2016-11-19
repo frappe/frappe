@@ -170,7 +170,7 @@ class RedisWrapper(redis.Redis):
 		elif generator:
 			value = generator()
 			try:
-				self.hset(_name, key, value)
+				self.hset(name, key, value)
 			except redis.exceptions.ConnectionError:
 				pass
 		return value
