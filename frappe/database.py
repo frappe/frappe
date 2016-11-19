@@ -509,7 +509,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 
 	def get_singles_dict(self, doctype):
-		"""Get Single DocType as dict."""
+		"""Get Single DocType as dict.
+
+		:param doctype: DocType of the single object whose value is requested
+
+		Example:
+
+			# Get coulmn and value of the single doctype Accounts Settings
+			account_settings = frappe.db.get_singles_dict("Accounts Settings")
+		"""
+
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
@@ -520,7 +529,17 @@ class Database:
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
-		"""Get property of Single DocType. Cache locally by default"""
+		"""Get property of Single DocType. Cache locally by default
+
+		:param doctype: DocType of the single object whose value is requested
+		:param fieldname: `fieldname` of the property whose value is requested
+
+		Example:
+
+			# Get the default value of the company from the Global Defaults doctype.
+			company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		"""
+
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
 		if value:
 			return value
