@@ -69,7 +69,7 @@ frappe.ui.form.Attachments = Class.extend({
 					class="ellipsis" style="max-width: calc(100% - 43px);">\
 					<span>%(file_name)s</span></a>\
 			</li>', {
-				lock_icon: attachment.is_private ? '<i class="icon icon-lock icon-fixed-width text-warning"></i> ': "",
+				lock_icon: attachment.is_private ? '<i class="icon icon-lock fa-fw text-warning"></i> ': "",
 				file_name: file_name,
 				file_url: frappe.urllib.get_full_url(file_url)
 			}))

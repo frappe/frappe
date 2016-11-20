@@ -181,9 +181,9 @@ frappe.ui.TreeNode = Class.extend({
 			// open close icon
 			this.$a.find('i').removeClass();
 			if(!this.expanded) {
-				this.$a.find('i').addClass('icon-fixed-width icon-folder-open text-muted');
+				this.$a.find('i').addClass('fa-fw icon-folder-open text-muted');
 			} else {
-				this.$a.find('i').addClass('icon-fixed-width icon-folder-close text-muted');
+				this.$a.find('i').addClass('fa-fw icon-folder-close text-muted');
 			}
 		}
 

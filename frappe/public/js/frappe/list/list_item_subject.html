@@ -7,7 +7,7 @@
 	    {% if (_liked_by.indexOf(_user)===-1) { %}
 	        text-extra-muted not-liked
 	    {% }%}
-	    icon-fixed-width like-action"
+	    fa-fw like-action"
 	    data-name="{{ _name }}" data-doctype="{{ doctype }}">
 	</i>
 	<span class="likes-count">{{ (_liked_by.length > 9 ? "9+" : _liked_by.length) || "" }}</span>

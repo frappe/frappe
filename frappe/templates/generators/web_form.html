@@ -440,7 +440,7 @@ frappe.ready(function() {
 	});
 
 	// change section
-	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
+	$('.btn-change-section, .slide-progress .fa-fw').on('click', function() {
 		var idx = $(this).attr('data-idx');
 		if(!frappe.form_dirty || frappe.is_read_only) {
 			show_slide(idx);
@@ -457,9 +457,9 @@ frappe.ready(function() {
 		$('.web-form-page').addClass('hidden');
 
 		// slide-progress
-		$('.slide-progress .icon-fixed-width.icon-circle')
+		$('.slide-progress .fa-fw.icon-circle')
 			.removeClass('icon-circle').addClass('icon-circle-blank');
-		$('.slide-progress .icon-fixed-width[data-idx="'+idx+'"]')
+		$('.slide-progress .fa-fw[data-idx="'+idx+'"]')
 			.removeClass('icon-circle-blank').addClass('icon-circle');
 
 		// un hide target section
@@ -796,7 +796,7 @@ input[type='checkbox'] {
     /*border-top: 1px solid #d1d8dd;*/
 	margin-top: -10px;
 }
-.slide-progress .icon-fixed-width {
+.slide-progress .fa-fw {
 	vertical-align: middle;
 	margin-right: 9px;
 	padding-left: 2px;
