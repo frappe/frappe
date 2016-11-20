@@ -242,6 +242,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				}
 			}
 		}
+
+		//Always sort based on start_date field for Gantt View
+		if(frappe.get_route()[2] === 'Gantt') {
+			var field_map = frappe.views.calendar[this.doctype].field_map;
+			args = {
+				sort_by: field_map.start,
+				sort_order: 'asc'
+			}
+		}
+
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
