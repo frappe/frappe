@@ -820,7 +820,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
 			<div class="ellipsis" style="display: inline-block; width: 90%;">\
-				<i class="icon-paper-clip"></i> \
+				<i class="fa fa-paper-clip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
 			<a class="close">&times;</a></div>')
@@ -1629,9 +1629,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 })
 
 frappe.ui.form.fieldtype_icons = {
-	"Date": "icon-calendar",
-	"Time": "icon-time",
-	"Datetime": "icon-time",
-	"Code": "icon-code",
-	"Select": "icon-flag"
+	"Date": "fa fa-calendar",
+	"Time": "fa fa-time",
+	"Datetime": "fa fa-time",
+	"Code": "fa fa-code",
+	"Select": "fa fa-flag"
 };

@@ -77,9 +77,9 @@ frappe.ui.TreeNode = Class.extend({
 	make_icon: function() {
 		// label with icon
 		var me= this;
-		var icon_html = '<i class="icon-fixed-width octicon octicon-primitive-dot text-extra-muted"></i>';
+		var icon_html = '<i class="fa fa-fixed-width octicon octicon-primitive-dot text-extra-muted"></i>';
 		if(this.expandable) {
-			icon_html = '<i class="icon-fixed-width icon-folder-close text-muted"></i>';
+			icon_html = '<i class="fa fa-fixed-width icon-folder-close text-muted"></i>';
 		}
 		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
 			appendTo(this.$a);

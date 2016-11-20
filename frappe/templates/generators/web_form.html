@@ -227,7 +227,7 @@
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
-		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="icon-fixed-width
+		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa fa-fixed-width
 		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
 	{% endfor %}
 </div>

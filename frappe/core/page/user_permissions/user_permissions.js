@@ -2,7 +2,7 @@ frappe.pages['user-permissions'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("User Permissions Manager"),
-		icon: "icon-shield",
+		icon: "fa fa-shield",
 		single_column: true
 	});
 
@@ -87,14 +87,14 @@ frappe.UserPermissions = Class.extend({
 						fieldname: "download",
 						label: __("Download"),
 						fieldtype: "Button",
-						icon: "icon-download"
+						icon: "fa fa-download"
 					});
 
 					me.upload = me.wrapper.page.add_field({
 						fieldname: "upload",
 						label: __("Upload"),
 						fieldtype: "Button",
-						icon: "icon-upload"
+						icon: "fa fa-upload"
 					});
 				}
 
