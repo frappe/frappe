@@ -8,7 +8,7 @@
 		</div>
 		<hr>
 		<div class="">
-			<h6>{%= __("Select Type of Document to Download") %}</h6>
+			<h6>{%= __("Select Type of Document to Upload") %}</h6>
             <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
                 <option value=""></option>
                 {% for (var i=0, l= frappe.boot.user.can_import.length; i < l; i++) {
@@ -22,7 +22,10 @@
         <h4>{{ __("1. Select File") }}</h4>
         <div class="upload-area"></div>
 		<br>
-        
+        <h4>{{ __("2. Upload") }}</h4>        
+        <p>
+            <button class="btn btn-sm btn-primary btn-import">Import</button>
+        </p>
         <div class=""></div>
 	</div>
 
