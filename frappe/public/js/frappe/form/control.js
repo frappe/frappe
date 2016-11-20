@@ -805,7 +805,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + __(this.df.label));
+			('<i class="'+this.df.icon+' fa-fw"></i> ') : "") + __(this.df.label));
 	}
 });
 
