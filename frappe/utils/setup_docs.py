@@ -17,8 +17,9 @@ class setup_docs(object):
 		"""
 		self.app = app
 
-		frappe.local.flags.web_pages_folders = ['docs',]
-		frappe.local.flags.web_pages_apps = [self.app,]
+
+		frappe.flags.web_pages_folders = ['docs',]
+		frappe.flags.web_pages_apps = [self.app,]
 
 		self.hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = self.hooks.get("app_title")[0]
@@ -160,6 +161,8 @@ class setup_docs(object):
 		self.target = target
 		self.local = local
 
+		frappe.flags.local_docs = local
+
 		if self.local:
 			self.docs_base_url = ""
 		else:
@@ -191,8 +194,10 @@ class setup_docs(object):
 
 		for f in files:
 			if f.endswith(".py"):
-				module_name = os.path.relpath(os.path.join(basepath, f),
-					self.app_path)[:-3].replace("/", ".").replace(".__init__", "")
+				full_module_name = os.path.relpath(os.path.join(basepath, f),
+					self.app_path)[:-3].replace("/", ".")
+
+				module_name = full_module_name.replace(".__init__", "")
 
 				module_doc_path = os.path.join(module_folder,
 					self.app + "." + module_name + ".html")
@@ -204,6 +209,7 @@ class setup_docs(object):
 					with open(module_doc_path, "w") as f:
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
+						context['full_module_name'] = self.app + '.' + full_module_name
 						f.write(frappe.render_template("templates/autodoc/pymodule.html",
 							context).encode('utf-8'))
 
@@ -269,7 +275,7 @@ class setup_docs(object):
 
 	def write_files(self):
 		"""render templates and write files to target folder"""
-		frappe.local.flags.home_page = "index"
+		frappe.flags.home_page = "index"
 
 		from frappe.website.router import get_pages, make_toc
 		pages = get_pages(self.app)
@@ -346,7 +352,7 @@ class setup_docs(object):
 
 			html = frappe.render_template(context.source, context)
 
-			html = make_toc(context, html)
+			html = make_toc(context, html, self.app)
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
