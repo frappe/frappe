@@ -235,7 +235,7 @@ frappe.ui.FilterList = Class.extend({
 						fieldtype:"DateRange",
 						fieldname:name,
 					},
-					parent: this.parentElement,
+					parent: this,
 					only_input: true,
 					applydaterange:function(ev,picker){
 						var filt = me.get_filter(name);

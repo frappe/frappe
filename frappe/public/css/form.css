@@ -164,6 +164,9 @@ h6.uppercase,
   margin: 0px;
   padding: 15px;
 }
+.form-section .form-section-description {
+  margin-bottom: 10px;
+}
 .form-section .form-section-heading {
   margin: 10px 0px;
 }
