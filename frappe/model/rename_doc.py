@@ -85,7 +85,16 @@ def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
 	frappe.db.sql("update `tab%s` set name=%s where name=%s" % (frappe.db.escape(doctype), '%s', '%s'),
 		(new, old))
+	update_autoname_field(doctype, new, meta)
 	update_child_docs(old, new, meta)
+
+def update_autoname_field(doctype, new, meta):
+	# update the value of the autoname field on rename of the docname
+	if meta.get('autoname'):
+		field = meta.get('autoname').split(':')
+		if field and field[0] == "field":
+			frappe.db.sql("update `tab%s` set %s=%s where name=%s" % (frappe.db.escape(doctype), field[1], '%s', '%s'),
+				(new, new))
 
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
