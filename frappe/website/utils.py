@@ -182,23 +182,27 @@ def abs_url(path):
 		path = "/" + path
 	return path
 
-def get_full_index(route=None, extn = False):
+def get_full_index(route=None, app=None):
 	"""Returns full index of the website for www upto the n-th level"""
 	if not frappe.local.flags.children_map:
 		from frappe.website.router import get_pages
 		children_map = {}
-		pages = get_pages()
+		pages = get_pages(app=app)
 
 		# make children map
 		for route, page_info in pages.iteritems():
 			parent_route = os.path.dirname(route)
 			children_map.setdefault(parent_route, []).append(page_info)
 
+			if frappe.flags.local_docs:
+				page_info.extn = '.html'
+
 		# order as per index if present
 		for route, children in children_map.items():
 			page_info = pages[route]
 			if page_info.index:
 				new_children = []
+				page_info.extn = ''
 				for name in page_info.index:
 					child_route = page_info.route + '/' + name
 					if child_route in pages:
