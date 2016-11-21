@@ -5,6 +5,7 @@ Call from command line:
 	bench setup-docs app path
 
 """
+from __future__ import unicode_literals
 
 import os, json, frappe, shutil, re
 from frappe.website.context import get_context
@@ -38,6 +39,7 @@ class setup_docs(object):
 				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
 				"headline": self.docs_config.headline,
+				"brand_html": getattr(self.docs_config, 'brand_html', None),
 				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
 				"hide_install": getattr(self.docs_config, "hide_install", False),
@@ -316,7 +318,8 @@ class setup_docs(object):
 
 			target_filename = os.path.join(self.target, target_path_fragment.strip('/'))
 
-			context.brand_html = context.top_bar_items = context.favicon = None
+			context.brand_html = context.app.brand_html
+			context.top_bar_items = context.favicon = None
 
 			self.docs_config.get_context(context)
 
@@ -340,9 +343,6 @@ class setup_docs(object):
 			parent_route = os.path.dirname(context.route)
 			if pages[parent_route]:
 				context.parents = [pages[parent_route]]
-
-			if not context.favicon:
-				context.favicon = "/assets/img/favicon.ico"
 
 			context.only_static = True
 			context.base_template_path = "templates/autodoc/base_template.html"
@@ -413,6 +413,7 @@ class setup_docs(object):
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
 			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
+			"images/favicon.png": "img/favicon.png",
 			"images/background.png": "img/background.png",
 			"images/smiley.png": "img/smiley.png",
 			"images/up.png": "img/up.png"
@@ -435,13 +436,13 @@ class setup_docs(object):
 
 		for path in files:
 			with open(path, "r") as css_file:
-				text = css_file.read()
+				text = unicode(css_file.read(), 'utf-8')
 			with open(path, "w") as css_file:
 				if "docs.css" in path:
 					css_file.write(text.replace("/assets/img/",
-						self.docs_base_url + '/assets/img/'))
+						self.docs_base_url + '/assets/img/').encode('utf-8'))
 				else:
-					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
+					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/').encode('utf-8'))
 
 
 edit_link = '''
