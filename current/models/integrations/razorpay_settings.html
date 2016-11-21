@@ -14,10 +14,10 @@
 
     
 	<link rel="shortcut icon"
-		href="/assets/img/favicon.ico"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
 		type="image/x-icon">
 	<link rel="icon"
-		href="/assets/img/favicon.ico"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
 		type="image/x-icon">
     
 
@@ -31,7 +31,7 @@
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
 					 href="https://frappe.github.io/frappe//">
-					<span>Frappe Framework</span>
+					<span><img class="brand-logo" src="https://frappe.github.io/frappe/assets/img/frappe-bird-white.png"> Frappé Framework</img></span>
 				</a>
 				<div class="dropdown">
 					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -42,15 +42,19 @@
 	<a href="/#"
 		
 		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
+	Tutorials</a></li><li data-label='API' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	API Documentation</a></li>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
 
 <li class="divider"></li>
 <!-- post login tools -->
@@ -66,15 +70,19 @@
 	<a href="/#"
 		
 		>
-	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
 	<a href="https://frappe.github.io/frappe/user"
 		
 		>
-	Developer Tutorials</a></li><li data-label='API Documentation' >
+	Tutorials</a></li><li data-label='API' >
 	<a href="https://frappe.github.io/frappe/current"
 		
 		>
-	API Documentation</a></li>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
 	
 	<!-- post login tools -->
 
@@ -113,7 +121,7 @@
 								
 							</div>
 							<div class="col-sm-8 col-xs-6">
-								<h1>Razorpay Settings</h1>
+								
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -208,7 +216,53 @@
 
     
 
+<h2>Introduction</h2><br><h1>Integrating RazorPay</h1>
 
+<h3>Validate Currency</h3>
+
+<p>Example:</p>
+
+<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+
+controller = get_integration_controller("Razorpay")
+controller().validate_transaction_currency(currency)
+</code></pre>
+
+<h3>2. Redirect for payment</h3>
+
+<p>Example:</p>
+
+<pre><code>payment_details = {
+    "amount": 600,
+    "title": "Payment for bill : 111",
+    "description": "payment via cart",
+    "reference_doctype": "Payment Request",
+    "reference_docname": "PR0001",
+    "payer_email": "NuranVerkleij@example.com",
+    "payer_name": "Nuran Verkleij",
+    "order_id": "111",
+    "currency": "INR"
+}
+
+# Redirect the user to this url
+url = controller().get_payment_url(**payment_details)
+</code></pre>
+
+<h3>3. On Completion of Payment</h3>
+
+<p>Write a method for <code>on_payment_authorized</code> in the reference doctype</p>
+
+<p>Example:</p>
+
+<pre><code>def on_payment_authorized(payment_status):
+    # this method will be called when payment is complete
+</code></pre>
+
+<h5>Notes:</h5>
+
+<p>payment_status - payment gateway will put payment status on callback.
+For razorpay payment status is Authorized</p>
+<br><br>
 
 	
         
@@ -451,7 +505,7 @@
                             Forum</a>
                         </li>
                         <li>
-                            <a href="https://frappe.io/apps">
+                            <a href="https://community.erpnext.com/apps">
                             Frappe Apps</a>
                         </li>
                     </ul>
