@@ -586,7 +586,7 @@ def sign_up(email, full_name, redirect_to):
 		else:
 			return _("Already Registered")
 	else:
-		if frappe.db.sql("""select count(*) from tabUser where
+		if frappe.db.sql("""select count(name) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
 			frappe.respond_as_web_page(_('Temperorily Disabled'),
@@ -676,19 +676,19 @@ def get_system_users(exclude_users=None, limit=None):
 
 def get_active_users():
 	"""Returns No. of system users who logged in, in the last 3 days"""
-	return frappe.db.sql("""select count(*) from `tabUser`
+	return frappe.db.sql("""select count(name) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ({})
 		and hour(timediff(now(), last_active)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_website_users():
 	"""Returns total no. of website users"""
-	return frappe.db.sql("""select count(*) from `tabUser`
+	return frappe.db.sql("""select count(name) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'""")[0][0]
 
 def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
-	return frappe.db.sql("""select count(*) from `tabUser`
+	return frappe.db.sql("""select count(name) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'
 		and hour(timediff(now(), last_active)) < 72""")[0][0]
 

@@ -77,7 +77,7 @@ def get_fields_label(doctype=None):
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and \
-		frappe.db.sql("""select count(*) from `tab{doctype}`
+		frappe.db.sql("""select count(name) from `tab{doctype}`
 			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
 
 		create_custom_field(doctype, df)

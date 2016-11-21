@@ -44,7 +44,7 @@ def get_todays_events(as_list=False):
 def get_unread_messages():
 	"returns unread (docstatus-0 messages for a user)"
 	return frappe.db.sql("""\
-		SELECT count(*)
+		select count(name)
 		FROM `tabCommunication`
 		WHERE communication_type in ('Chat', 'Notification')
 		AND reference_doctype = 'User'
@@ -55,7 +55,7 @@ def get_unread_messages():
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
-	return frappe.db.sql("""select count(*) from `tabCommunication`
+	return frappe.db.sql("""select count(name) from `tabCommunication`
 		where
 			communication_type='Comment'
 			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
