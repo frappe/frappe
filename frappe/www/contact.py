@@ -38,7 +38,7 @@ def send_message(subject="Website Query", message="", sender=""):
 		return
 
 	# guest method, cap max writes per hour
-	if frappe.db.sql("""select count(*) from `tabCommunication`
+	if frappe.db.sql("""select count(name) from `tabCommunication`
 		where `sent_or_received`="Received"
 		and TIMEDIFF(%s, modified) < '01:00:00'""", now())[0][0] > max_communications_per_hour:
 		frappe.response["message"] = "Sorry: we believe we have received an unreasonably high number of requests of this kind. Please try later"

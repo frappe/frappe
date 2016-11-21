@@ -10,7 +10,7 @@ from frappe.model.document import Document
 class LetterHead(Document):
 	def validate(self):
 		if not self.is_default:
-			if not frappe.db.sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
+			if not frappe.db.sql("""select count(name) from `tabLetter Head` where ifnull(is_default,0)=1"""):
 				self.is_default = 1
 
 	def on_update(self):

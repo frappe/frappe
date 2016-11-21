@@ -110,7 +110,7 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 	else:
 		idx = frappe.db.sql('select max(idx) from `tabDesktop Icon` where owner=%s',
 			frappe.session.user)[0][0] or \
-			frappe.db.sql('select count(*) from `tabDesktop Icon` where standard=1')[0][0]
+			frappe.db.sql('select count(name) from `tabDesktop Icon` where standard=1')[0][0]
 
 		module = frappe.db.get_value('DocType', _doctype, 'module')
 		module_icon = frappe.get_value('Desktop Icon', {'standard':1, 'module_name':module},

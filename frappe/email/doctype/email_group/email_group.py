@@ -49,7 +49,7 @@ class EmailGroup(Document):
 		return self.total_subscribers
 
 	def get_total_subscribers(self):
-		return frappe.db.sql("""select count(*) from `tabEmail Group Member`
+		return frappe.db.sql("""select count(name) from `tabEmail Group Member`
 			where email_group=%s""", self.name)[0][0]
 
 	def on_trash(self):

@@ -29,7 +29,7 @@ def execute():
 
 	# reset file size
 	for folder in frappe.db.sql("""select name from tabFile f1 where is_folder = 1 and
-		(select count(*) from tabFile f2 where f2.folder = f1.name and f2.is_folder = 1) = 0"""):
+		(select count(name) from tabFile f2 where f2.folder = f1.name and f2.is_folder = 1) = 0"""):
 		folder = frappe.get_doc("File", folder[0])
 		folder.save()
 
