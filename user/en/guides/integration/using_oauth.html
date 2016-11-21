@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Using OAuth</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+	<link rel="icon"
+		href="/assets/img/favicon.ico"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/en/guides/integration/using_oauth">
+	<div class="main-section">
+		<div>
+				<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span>Frappe Framework</span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+
+<li class="divider"></li>
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Developer Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Developer Tutorials</a></li><li data-label='API Documentation' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API Documentation</a></li>
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav>
+</header><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/en/guides/integration/using_oauth" data-path="{{ pathname }}"
+	>
+			<div class="row ">
+				
+				<div class=" page-content col-sm-12 ">
+					<div class="page-content-wrapper">
+						<div class="row page-head">
+							<div class='col-sm-12'>
+								
+								<div class="page-breadcrumbs">
+									
+									
+<ul class="breadcrumb">
+	<li>
+		<span class="icon icon-angle-left"></span>
+		<a href="https://frappe.github.io/frappe//user/en/guides/integration">
+		Integrations</a>
+	</li>
+	
+</ul>
+
+									
+								</div>
+								
+							</div>
+							<div class="col-sm-8 col-xs-6">
+								
+							</div>
+							<div class="col-sm-4 col-xs-6">
+								
+
+								
+							</div>
+						</div>
+					</div>
+					<div class="page_content">
+<h1>Using OAuth</h1>
+
+<p>Once the client and provider settings are entered, following steps can be used to start using OAuth 2.0</p>
+
+<h3>Authorization Code Endpoint</h3>
+
+<h4>Authorization Request</h4>
+
+<p>URL:
+<code>
+[GET] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.authorize
+</code>
+Params:
+<code>
+client_id = &lt;client ID of registered app&gt;
+scope = &lt;access scope, e.g. scope=project will allow you to access project doctypes.&gt;
+response_type = "code"
+redirect_uri = &lt;redirect uri from OAuth Client&gt;
+</code></p>
+
+<h4>Confirmation Dialog</h4>
+
+<p><img class="screenshot" src="assets/frappe/img/oauth_confirmation_page.png"></p>
+
+<p>Click 'Allow' to receive authorization code in redirect uri.</p>
+
+<p><code>
+http://localhost:3000/oauth_code?code=plkj2mqDLwaLJAgDBAkyR1W8Co08Ud
+</code>
+If user clicks 'Deny' receive error
+<code>
+http://localhost:3000/oauth_code?error=access_denied
+</code></p>
+
+<h3>Token Endpoints</h3>
+
+<h4>Get Access Token</h4>
+
+<p>URL:
+<code>
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+</code>
+Params:
+<code>
+grant_type = "authorization_code"
+code = &lt;code received in redirect uri after confirmation&gt;
+redirect_uri = &lt;valid redirect uri&gt;
+client_id = &lt;client ID of app from OAuth Client&gt;
+</code>
+Response:
+<code>
+{
+    "access_token": "pNO2DpTMHTcFHYUXwzs74k6idQBmnI",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "cp74cxbbDgaxFuUZ8Usc7egYlhKbH1",
+    "scope": "project"
+}
+</code></p>
+
+<h4>Refresh Access Token</h4>
+
+<p>URL:
+<code>
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+</code>
+Params:
+<code>
+grant_type = "refresh_token"
+refresh_token = &lt;refresh token from the response of get_token call with grant_type=authorization_code&gt;
+redirect_uri = &lt;valid redirect uri&gt;
+client_id = &lt;client ID of app from OAuth Client&gt;
+</code>
+Response:
+<code>
+{
+    "access_token": "Ywz1iNk0b21iAmjWAYnFWT4CuudHD5",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "PNux3Q8Citr3s9rl2zEsKuU1l8bSN5",
+    "scope": "project"
+}
+</code></p>
+
+<h4>Revoke Token Endpoint</h4>
+
+<p>URL:
+<code>
+[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.revoke_token
+</code>
+Params:
+<code>
+token = &lt;access token to be revoked&gt;
+</code>
+Success Response
+```
+status : 200</p>
+
+<p>{"message": "success"}
+<code>
+Error Response:
+</code>
+status : 400</p>
+
+<p>{"message": "bad request"}
+```</p>
+
+<h3>Accessing Resource</h3>
+
+<p>Add header <code>Authorizaton: Bearer &lt;valid_bearer_token&gt;</code> to Frappe's REST API endpoints to access user's resource</p>
+
+</div>
+				</div>
+			</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="icon icon-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/integration/using_oauth.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.io/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	<!-- csrf_token --></body>
+</html>

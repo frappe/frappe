@@ -150,7 +150,13 @@
 		frappe.client.<b>bulk_update</b>
         <i class="text-muted">(docs)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Bulk update documents</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>docs</code></strong> -  JSON list of documents to be updated remotely. Each document must have <code>docname</code> property</li>
+</ul>
 </div>
 	<br>
 
@@ -168,7 +174,14 @@
 		frappe.client.<b>cancel</b>
         <i class="text-muted">(doctype, name)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Cancel a document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be cancelled</li>
+<li><strong><code>name</code></strong> -  name of the document to be cancelled</li>
+</ul>
 </div>
 	<br>
 
@@ -186,7 +199,14 @@
 		frappe.client.<b>delete</b>
         <i class="text-muted">(doctype, name)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Delete a remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be deleted</li>
+<li><strong><code>name</code></strong> -  name of the document to be deleted</li>
+</ul>
 </div>
 	<br>
 
@@ -204,7 +224,15 @@
 		frappe.client.<b>get</b>
         <i class="text-muted">(doctype, name=None, filters=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a document by name or filters</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be returned</li>
+<li><strong><code>name</code></strong> -  return document of this <code>name</code></li>
+<li><strong><code>filters</code></strong> -  If name is not set, filter by these values and return the first match</li>
+</ul>
 </div>
 	<br>
 
@@ -222,7 +250,14 @@
 		frappe.client.<b>get_js</b>
         <i class="text-muted">(items)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Load JS code files.  Will also append translations
+    and extend <code>frappe._messages</code></p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>items</code></strong> -  JSON list of paths of the js files to be loaded.</li>
+</ul>
 </div>
 	<br>
 
@@ -240,7 +275,18 @@
 		frappe.client.<b>get_list</b>
         <i class="text-muted">(doctype, fields=None, filters=None, order_by=None, limit_start=None, limit_page_length=20)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a list of records by filters, fields, ordering and limit</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the data to be queried</li>
+<li><strong><code>fields</code></strong> -  fields to be returned. Default is <code>name</code></li>
+<li><strong><code>filters</code></strong> -  filter list by this dict</li>
+<li><strong><code>order_by</code></strong> -  Order by this fieldname</li>
+<li><strong><code>limit_start</code></strong> -  Start at this index</li>
+<li><strong><code>limit_page_length</code></strong> -  Number of records to be returned (default 20)</li>
+</ul>
 </div>
 	<br>
 
@@ -258,7 +304,15 @@
 		frappe.client.<b>get_password</b>
         <i class="text-muted">(doctype, name, fieldname)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Return a password type property. Only applicable for System Managers</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document that holds the password</li>
+<li><strong><code>name</code></strong> -  <code>name</code> of the document that holds the password</li>
+<li><strong><code>fieldname</code></strong> -  <code>fieldname</code> of the password property</li>
+</ul>
 </div>
 	<br>
 
@@ -276,7 +330,15 @@
 		frappe.client.<b>get_value</b>
         <i class="text-muted">(doctype, fieldname, filters=None, as_dict=True, debug=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a value form a document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType to be queried</li>
+<li><strong><code>fieldname</code></strong> -  Field to be returned (default <code>name</code>)</li>
+<li><strong><code>filters</code></strong> -  dict or string for identifying the record</li>
+</ul>
 </div>
 	<br>
 
@@ -294,7 +356,15 @@
 		frappe.client.<b>has_permission</b>
         <i class="text-muted">(doctype, docname, perm_type=read)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a JSON with data whether the document has the requested permission</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be checked</li>
+<li><strong><code>docname</code></strong> -  <code>name</code> of the document to be checked</li>
+<li><strong><code>perm_type</code></strong> -  one of <code>read</code>, <code>write</code>, <code>create</code>, <code>submit</code>, <code>cancel</code>, <code>report</code>. Default is <code>read</code></li>
+</ul>
 </div>
 	<br>
 
@@ -312,7 +382,13 @@
 		frappe.client.<b>insert</b>
         <i class="text-muted">(doc=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Insert a document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  JSON or dict object to be inserted</li>
+</ul>
 </div>
 	<br>
 
@@ -330,7 +406,13 @@
 		frappe.client.<b>insert_many</b>
         <i class="text-muted">(docs=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Insert multiple documents</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>docs</code></strong> -  JSON or list of dict objects to be inserted in one request</li>
+</ul>
 </div>
 	<br>
 
@@ -348,7 +430,13 @@
 		frappe.client.<b>make_width_property_setter</b>
         <i class="text-muted">(doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Set width Property Setter</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  Property Setter document with <code>width</code> property</li>
+</ul>
 </div>
 	<br>
 
@@ -366,7 +454,15 @@
 		frappe.client.<b>rename_doc</b>
         <i class="text-muted">(doctype, old_name, new_name, merge=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Rename document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be renamed</li>
+<li><strong><code>old_name</code></strong> -  Current <code>name</code> of the document to be renamed</li>
+<li><strong><code>new_name</code></strong> -  New <code>name</code> to be set</li>
+</ul>
 </div>
 	<br>
 
@@ -384,7 +480,13 @@
 		frappe.client.<b>save</b>
         <i class="text-muted">(doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Update (save) an existing document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  JSON or dict object with the properties of the document to be updated</li>
+</ul>
 </div>
 	<br>
 
@@ -418,9 +520,18 @@
         <a name="frappe.client.set_value" href="#frappe.client.set_value" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		frappe.client.<b>set_value</b>
-        <i class="text-muted">(doctype, name, fieldname, value)</i>
+        <i class="text-muted">(doctype, name, fieldname, value=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Set a value using get_doc, group of values</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document</li>
+<li><strong><code>name</code></strong> -  name of the document</li>
+<li><strong><code>fieldname</code></strong> -  fieldname string or JSON / dict with key value pair</li>
+<li><strong><code>value</code></strong> -  value if fieldname is JSON / dict</li>
+</ul>
 </div>
 	<br>
 
@@ -438,7 +549,13 @@
 		frappe.client.<b>submit</b>
         <i class="text-muted">(doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Submit a document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  JSON or dict object to be submitted remotely</li>
+</ul>
 </div>
 	<br>
 

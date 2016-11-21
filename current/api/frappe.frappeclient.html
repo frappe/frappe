@@ -209,12 +209,32 @@
     
     
 	<p class="docs-attr-name">
+        <a name="_login" href="#_login" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>_login</b>
+        <i class="text-muted">(self, username, password)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Login/start a sesion. Called internally on init</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="bulk_update" href="#bulk_update" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>bulk_update</b>
         <i class="text-muted">(self, docs)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Bulk update documents remotely</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>docs</code></strong> -  List of dict or Document objects to be updated remotely (by <code>name</code>)</li>
+</ul>
 </div>
 	<br>
 
@@ -228,7 +248,14 @@
 		<b>cancel</b>
         <i class="text-muted">(self, doctype, name)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Cancel a remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be cancelled</li>
+<li><strong><code>name</code></strong> -  name of the document to be cancelled</li>
+</ul>
 </div>
 	<br>
 
@@ -242,7 +269,14 @@
 		<b>delete</b>
         <i class="text-muted">(self, doctype, name)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Delete remote document by name</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  <code>doctype</code> to be deleted</li>
+<li><strong><code>name</code></strong> -  <code>name</code> of document to be deleted</li>
+</ul>
 </div>
 	<br>
 
@@ -270,7 +304,16 @@
 		<b>get_doc</b>
         <i class="text-muted">(self, doctype, name=, filters=None, fields=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a single remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be returned</li>
+<li><strong><code>name</code></strong> -  (optional) <code>name</code> of the document to be returned</li>
+<li><strong><code>filters</code></strong> -  (optional) Filter by this dict if name is not set</li>
+<li><strong><code>fields</code></strong> -  (optional) Fields to be returned, will return everythign if not set</li>
+</ul>
 </div>
 	<br>
 
@@ -312,7 +355,15 @@
 		<b>get_value</b>
         <i class="text-muted">(self, doctype, fieldname=None, filters=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Returns a value form a document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType to be queried</li>
+<li><strong><code>fieldname</code></strong> -  Field to be returned (default <code>name</code>)</li>
+<li><strong><code>filters</code></strong> -  dict or string for identifying the record</li>
+</ul>
 </div>
 	<br>
 
@@ -326,7 +377,13 @@
 		<b>insert</b>
         <i class="text-muted">(self, doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Insert a document to the remote server</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  A dict or Document object to be inserted remotely</li>
+</ul>
 </div>
 	<br>
 
@@ -340,21 +397,13 @@
 		<b>insert_many</b>
         <i class="text-muted">(self, docs)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+	<div class="docs-attr-desc"><p>Insert multiple documents to the remote server</p>
 
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="login" href="#login" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
-		<b>login</b>
-        <i class="text-muted">(self, username, password)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>docs</code></strong> -  List of dict or Document objects to be inserted in one request</li>
+</ul>
 </div>
 	<br>
 
@@ -368,7 +417,7 @@
 		<b>logout</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Logout session</p>
 </div>
 	<br>
 
@@ -466,7 +515,15 @@
 		<b>rename_doc</b>
         <i class="text-muted">(self, doctype, old_name, new_name)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Rename remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be renamed</li>
+<li><strong><code>old_name</code></strong> -  Current <code>name</code> of the document to be renamed</li>
+<li><strong><code>new_name</code></strong> -  New <code>name</code> to be set</li>
+</ul>
 </div>
 	<br>
 
@@ -480,7 +537,16 @@
 		<b>set_value</b>
         <i class="text-muted">(self, doctype, docname, fieldname, value)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Set a value in a remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the document to be updated</li>
+<li><strong><code>docname</code></strong> -  name of the document to be updated</li>
+<li><strong><code>fieldname</code></strong> -  fieldname of the document to be updated</li>
+<li><strong><code>value</code></strong> -  value to be updated</li>
+</ul>
 </div>
 	<br>
 
@@ -492,9 +558,15 @@
         <a name="submit" href="#submit" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>submit</b>
-        <i class="text-muted">(self, doclist)</i>
+        <i class="text-muted">(self, doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Submit remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  dict or Document object to be submitted remotely</li>
+</ul>
 </div>
 	<br>
 
@@ -508,7 +580,13 @@
 		<b>update</b>
         <i class="text-muted">(self, doc)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Update a remote document</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doc</code></strong> -  dict or Document object to be updated remotely. <code>name</code> is mandatory for this</li>
+</ul>
 </div>
 	<br>
 

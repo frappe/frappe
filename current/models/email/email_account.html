@@ -504,8 +504,20 @@ Yandex.Mail</pre>
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>27</td>
+            <td ><code>send_unsubscribe_message</code></td>
+            <td >
+                Check</td>
+            <td >
+                Send unsubscribe message in email
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>28</td>
             <td ><code>signature_section</code></td>
             <td >
                 Section Break</td>
@@ -517,7 +529,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>28</td>
+            <td>29</td>
             <td ><code>add_signature</code></td>
             <td >
                 Check</td>
@@ -529,7 +541,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>29</td>
+            <td>30</td>
             <td ><code>signature</code></td>
             <td >
                 Text Editor</td>
@@ -541,7 +553,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>30</td>
+            <td>31</td>
             <td ><code>auto_reply</code></td>
             <td >
                 Section Break</td>
@@ -553,7 +565,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>31</td>
+            <td>32</td>
             <td ><code>enable_auto_reply</code></td>
             <td >
                 Check</td>
@@ -565,7 +577,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>32</td>
+            <td>33</td>
             <td ><code>auto_reply_message</code></td>
             <td >
                 Text Editor</td>
@@ -578,7 +590,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>33</td>
+            <td>34</td>
             <td ><code>set_footer</code></td>
             <td >
                 Section Break</td>
@@ -590,7 +602,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>34</td>
+            <td>35</td>
             <td ><code>footer</code></td>
             <td >
                 Text Editor</td>
@@ -661,6 +673,51 @@ Yandex.Mail</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Checks SMTP settings.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="create_new_parent" href="#create_new_parent" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>create_new_parent</b>
+        <i class="text-muted">(self, communication, email)</i>
+    </p>
+	<div class="docs-attr-desc"><p>If no parent found, create a new reference document</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="find_parent_based_on_subject_and_sender" href="#find_parent_based_on_subject_and_sender" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>find_parent_based_on_subject_and_sender</b>
+        <i class="text-muted">(self, communication, email)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Find parent document based on subject and sender match</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="find_parent_from_in_reply_to" href="#find_parent_from_in_reply_to" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>find_parent_from_in_reply_to</b>
+        <i class="text-muted">(self, communication, email)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns parent reference if embedded in In-Reply-To header</p>
+
+<pre><code>    Message-ID is formatted as `{message_id}@{site}`
+</code></pre>
 </div>
 	<br>
 
@@ -801,6 +858,20 @@ Yandex.Mail</pre>
         <i class="text-muted">(self, value)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_sender_field_and_subject_field" href="#set_sender_field_and_subject_field" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		<b>set_sender_field_and_subject_field</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Identify the sender and subject fields from the <code>append_to</code> DocType</p>
 </div>
 	<br>
 

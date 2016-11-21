@@ -396,9 +396,21 @@
         <a name="db_set" href="#db_set" class="text-muted small">
             <i class="icon-link small" style="color: #ccc;"></i></a>
 		<b>db_set</b>
-        <i class="text-muted">(self, fieldname, value, update_modified=True)</i>
+        <i class="text-muted">(self, fieldname, value=None, update_modified=True)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Set a value in the document object, update the timestamp and update the database.</p>
+
+<pre><code>    WARNING: This method does not trigger controller validations and should
+    be used very carefully.
+</code></pre>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>fieldname</code></strong> -  fieldname of the property to be updated, or a {"field":"value"} dictionary</li>
+<li><strong><code>value</code></strong> -  value of the property to be updated</li>
+<li><strong><code>update_modified</code></strong> -  default True. updates the <code>modified</code> and <code>modified_by</code> properties</li>
+</ul>
 </div>
 	<br>
 

@@ -622,6 +622,19 @@
         <i class="text-muted">(self, doctype, fieldname, cache=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get property of Single DocType. Cache locally by default</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>doctype</code></strong> -  DocType of the single object whose value is requested</li>
+<li><p><strong><code>fieldname</code></strong> -  <code>fieldname</code> of the property whose value is requested</p>
+
+<pre><code>Example:
+
+    # Get the default value of the company from the Global Defaults doctype.
+    company = frappe.db.get_single_value('Global Defaults', 'default_company')
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -636,6 +649,18 @@
         <i class="text-muted">(self, doctype)</i>
     </p>
 	<div class="docs-attr-desc"><p>Get Single DocType as dict.</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><p><strong><code>doctype</code></strong> -  DocType of the single object whose value is requested</p>
+
+<pre><code>Example:
+
+    # Get coulmn and value of the single doctype Accounts Settings
+    account_settings = frappe.db.get_singles_dict("Accounts Settings")
+</code></pre></li>
+</ul>
 </div>
 	<br>
 
@@ -924,7 +949,7 @@
 <ul>
 <li><strong><code>dt</code></strong> -  DocType name.</li>
 <li><strong><code>dn</code></strong> -  Document name.</li>
-<li><strong><code>field</code></strong> -  Property / field name.</li>
+<li><strong><code>field</code></strong> -  Property / field name or dictionary of values to be updated</li>
 <li><strong><code>value</code></strong> -  Value to be updated.</li>
 <li><strong><code>modified</code></strong> -  Use this as the <code>modified</code> timestamp.</li>
 <li><strong><code>modified_by</code></strong> -  Set this user as <code>modified_by</code>.</li>
