@@ -35,7 +35,7 @@ class AutoEmailReport(Document):
 
 	def validate_report_count(self):
 		'''check that there are only 3 enabled reports per user'''
-		count = frappe.db.sql('select count(name) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
+		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
 		if count > max_reports_per_user:
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
 

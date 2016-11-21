@@ -41,7 +41,7 @@ class BlogPost(WebsiteGenerator):
 			self.published_on = today()
 
 		# update posts
-		frappe.db.sql("""update tabBlogger set posts=(select count(name) from `tabBlog Post`
+		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post`
 			where ifnull(blogger,'')=tabBlogger.name)
 			where name=%s""", (self.blogger,))
 
