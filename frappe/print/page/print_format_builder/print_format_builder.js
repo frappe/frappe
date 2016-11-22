@@ -31,6 +31,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.refresh();
 	},
 	refresh: function() {
+		this.custom_html_count = 0;
 		if(!this.print_format) {
 			this.show_start();
 		} else {
@@ -203,7 +204,6 @@ frappe.PrintFormatBuilder = Class.extend({
 	prepare_data: function() {
 		this.print_heading_template = null;
 		this.data = JSON.parse(this.print_format.format_data || "[]");
-		this.fields_dict = {};
 		if(!this.data.length) {
 			// new layout
 			this.data = this.meta.fields;
@@ -224,7 +224,9 @@ frappe.PrintFormatBuilder = Class.extend({
 		}
 
 		this.layout_data = [];
-		var section = null, column = null, me = this;
+		this.fields_dict = {};
+		this.custom_html_dict = {};
+		var section = null, column = null, me = this, custom_html_count = 0;
 
 		// create a new placeholder for column and set
 		// it as "column"
@@ -251,7 +253,12 @@ frappe.PrintFormatBuilder = Class.extend({
 				// print_hide should always be false
 				if(f.fieldname==="_custom_html") {
 					f.label = "Custom HTML";
-					f.fieldtype = "Custom HTML"
+					f.fieldtype = "Custom HTML";
+
+					// set custom html id to map data properties later
+					custom_html_count++;
+					f.custom_html_id = custom_html_count;
+					me.custom_html_dict[f.custom_html_id] = f
 				} else {
 					f = $.extend(frappe.meta.get_docfield(me.print_format.doc_type,
 						f.fieldname) || {}, f);
@@ -480,11 +487,17 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_html_data: function() {
-		// set `data` for Custom HTML fields
+		// set JQuery `data` for Custom HTML fields, since editing the HTML
+		// directly causes problem becuase of HTML reformatting
+		//
+		// this is based on a dummy attribute custom_html_id, since all custom html
+		// fields have the same fieldname `_custom_html`
 		var me = this;
 		this.page.main.find('[data-fieldtype="Custom HTML"]').each(function() {
-			$(this).find('.html-content')
-				.data('content', me.fields_dict[$(this).attr('data-fieldname')].options);
+			var fieldname = $(this).attr('data-fieldname');
+			var content = $($(this).find('.html-content')[0]);
+			var html = me.custom_html_dict[parseInt(content.attr('data-custom-html-id'))].options;
+			content.data('content', html);
 		})
 	},
 	update_columns_in_section: function(section, no_of_columns, new_no_of_columns) {
@@ -682,7 +695,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		d.set_input("content", content);
 
 		d.set_primary_action(__("Update"), function() {
-			$content.data('content', d.get_value("content"));
+			$($content[0]).data('content', d.get_value("content"));
 			$content.html(d.get_value("content"));
 			d.hide();
 		});
@@ -744,7 +757,7 @@ frappe.PrintFormatBuilder = Class.extend({
 					if(fieldtype==="Custom HTML") {
 						// custom html as HTML field
 						df.fieldtype = "HTML";
-						df.options = $this.find(".html-content").data('content');
+						df.options = $($this.find(".html-content")[0]).data('content');
 					}
 					data.push(df);
 				});
