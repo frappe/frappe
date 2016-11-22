@@ -382,7 +382,7 @@ class Database:
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, cache=False):
+		debug=False, order_by=None, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -391,6 +391,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -407,7 +408,7 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -421,6 +422,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
