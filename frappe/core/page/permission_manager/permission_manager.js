@@ -2,7 +2,7 @@ frappe.pages['permission-manager'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Role Permissions Manager'),
-		icon: "icon-lock",
+		icon: "fa fa-lock",
 		single_column: true
 	});
 
@@ -491,7 +491,7 @@ frappe.PermissionEngine = Class.extend({
 	make_reset_button: function() {
 		var me = this;
 		$('<button class="btn btn-default btn-sm" style="margin-left: 10px;">\
-			<i class="icon-refresh"></i> ' + __("Restore Original Permissions") + '</button>')
+			<i class="fa fa-refresh"></i> ' + __("Restore Original Permissions") + '</button>')
 			.appendTo(this.body.find(".permission-toolbar"))
 			.on("click", function() {
 				me.get_standard_permissions(function(data) {

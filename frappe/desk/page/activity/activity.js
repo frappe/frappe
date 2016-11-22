@@ -120,7 +120,7 @@ frappe.activity.Feed = Class.extend({
 		data.by = frappe.user.full_name(data.owner);
 		data.avatar = frappe.avatar(data.owner);
 
-		data.icon = "icon-flag";
+		data.icon = "fa fa-flag";
 
 		// color for comment
 		data.add_class = {

@@ -1,7 +1,7 @@
 {
 	"app_url": "https://github.com/frappe/knowledge_base",
 	"app_name": "knowledge_base",
-	"app_icon": "icon-question-sign",
+	"app_icon": "fa fa-question-sign",
 	"app_color": "#4cd964",
 	"app_description": "Publish help articles by category on the portal",
 	"app_publisher": "Frappe",

@@ -42,7 +42,7 @@ _-At last, we think we would never stop talking!_
 				<input type="text" class="input-with-feedback form-control">\
 				<span class="dialog-btn">\
 					<a class="btn-open no-decoration" title="' + __(" open="" translation")="" +="" '"="">\
-					<i class="icon-globe"></i></a>\
+					<i class="fa fa-globe"></i></a>\
 				</span>\
 			</div>').prependTo(this.input_area);
 			this.$input_area = $(this.input_area);

@@ -82,8 +82,8 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
 .btn [class*=" icon-"],
 .nav [class*=" icon-"] {
   display: inline-block;

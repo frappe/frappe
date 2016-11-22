@@ -316,7 +316,7 @@ frappe.ui.Page = Class.extend({
 
 	get_main_icon: function(icon) {
 		return this.$title_area.find(".title-icon")
-			.html('<i class="'+icon+' icon-fixed-width"></i> ')
+			.html('<i class="'+icon+' fa-fw"></i> ')
 			.toggle(true);
 		},
 
