@@ -94,7 +94,7 @@ def get_allowed_pages():
 	# pages where role is not set are also allowed
 	for p in frappe.db.sql("""select name, modified, title
 		from `tabPage` where
-			(select count(name) from `tabPage Role`
+			(select count(*) from `tabPage Role`
 				where `tabPage Role`.parent=tabPage.name) = 0""", as_dict=1):
 
 		page_info[p.name] = {"modified":p.modified, "title":p.title}

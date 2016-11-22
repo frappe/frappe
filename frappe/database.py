@@ -777,10 +777,10 @@ class Database:
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			return frappe.db.sql("""select count(name)
+			return frappe.db.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 		else:
-			return frappe.db.sql("""select count(name)
+			return frappe.db.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
 
 

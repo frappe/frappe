@@ -88,7 +88,7 @@ class CountBot(BotParser):
 		if self.startswith('how many'):
 			self.tables = self.reply.identify_tables(self.query.split(None, 1)[1])
 			if self.tables:
-				return str(frappe.db.sql('select count(name) from `tab{0}`'.format(self.get_doctype()))[0][0])
+				return str(frappe.db.sql('select count(*) from `tab{0}`'.format(self.get_doctype()))[0][0])
 
 class FindBot(BotParser):
 	def get_reply(self):

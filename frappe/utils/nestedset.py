@@ -224,7 +224,7 @@ class NestedSet(Document):
 
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):
-			if frappe.db.sql("""select count(name) from `tab%s` where
+			if frappe.db.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
 
@@ -240,7 +240,7 @@ class NestedSet(Document):
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	return frappe.db.sql("""select t1.name from `tab{0}` t1 where
-		(select count(name) from `tab{1}` t2 where
+		(select count(*) from `tab{1}` t2 where
 			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0""".format(doctype, doctype))[0][0]
 
 def get_ancestors_of(doctype, name):
