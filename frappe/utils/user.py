@@ -305,3 +305,7 @@ def get_users():
 		})
 
 	return users
+
+def set_last_active_to_now(user):
+	from frappe.utils import now_datetime
+	frappe.db.set_value("User", user, "last_active", now_datetime())
