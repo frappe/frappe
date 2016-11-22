@@ -2,15 +2,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import json
-from frappe import _
-from frappe.utils import get_url, call_hook_method
-from urllib import urlencode
-from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
-import urllib
-
 """
 # Integrating PayPal
 
@@ -63,9 +54,18 @@ More Details:
 
 """
 
+from __future__ import unicode_literals
+import frappe
+import json
+from frappe import _
+from frappe.utils import get_url, call_hook_method
+from urllib import urlencode
+from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
+import urllib
+
 class PayPalSettings(IntegrationService):
 	service_name = "PayPal"
-	
+
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
 		"TWD", "NZD", "NOK", "PHP", "PLN", "GBP", "RUB", "SGD", "SEK", "CHF", "THB", "TRY", "USD"]
 
@@ -79,19 +79,19 @@ class PayPalSettings(IntegrationService):
 	def validate(self):
 		if not self.flags.ignore_mandatory:
 			self.validate_paypal_credentails()
-	
+
 	def on_update(self):
 		pass
-	
+
 	def enable(self):
 		call_hook_method('payment_gateway_enabled', gateway=self.service_name)
 		if not self.flags.ignore_mandatory:
 			self.validate_paypal_credentails()
-		
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
-	
+
 	def get_paypal_params_and_url(self):
 		params = {
 			"USER": self.api_username,
@@ -124,7 +124,7 @@ class PayPalSettings(IntegrationService):
 
 		except Exception:
 			frappe.throw(_("Invalid payment gateway credentials"))
-	
+
 	def get_payment_url(self, **kwargs):
 		setattr(self, "use_sandbox", kwargs.get("use_sandbox", 0))
 
@@ -169,13 +169,13 @@ def get_service_details():
 		<div>
 			<p> Steps to configure Service
 			<ol>
-				<li> Get PayPal api credentials from link: 
+				<li> Get PayPal api credentials from link:
 					<a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank">
 						https://developer.paypal.com/docs/classic/api/apiCredentials/
 					</a>
 				</li>
 				<br>
-				<li> Setup credentials on PayPal settings doctype. 
+				<li> Setup credentials on PayPal settings doctype.
 					Click on
 					<button class="btn btn-default btn-xs disabled"> PayPal Settings </button>
 					top right corner
