@@ -712,8 +712,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		pass
-		#self.sql("start transaction")
+		self.sql("start transaction")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""

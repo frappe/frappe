@@ -50,8 +50,13 @@ frappe.route = function() {
 		frappe.views.pageview.show(route[0]);
 	}
 
+
 	if(frappe.route_titles[window.location.hash]) {
 		frappe.utils.set_title(frappe.route_titles[window.location.hash]);
+	} else {
+		setTimeout(function() {
+			frappe.route_titles[frappe.get_route_str()] = frappe._original_title || document.title;
+		}, 1000);
 	}
 }
 
@@ -145,4 +150,5 @@ $(window).on('hashchange', function() {
 		cur_dialog.hide();
 
 	frappe.route();
+
 });

@@ -334,9 +334,6 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 	}
 
-	if(frappe.ui.toolbar.recent)
-		frappe.ui.toolbar.recent.add(this.doctype, this.docname, 1);
-
 	// show / hide buttons
 	if(this.toolbar) {
 		if (is_a_different_doc) {
