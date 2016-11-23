@@ -25,6 +25,7 @@ frappe.DataTransferWizard = Class.extend({
 		this.select.on("change", function() {
 			me.doctype = $(this).val();
 			console.log(me.doctype);
+			
 		});			
 		
 	},

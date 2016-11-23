@@ -1,53 +1,22 @@
-<div style="margin: 15px 0px;">
-		<h4>{{ __("1. Select Columns") }}</h4>
-        <p>
-			<a class="btn btn-default btn-xs btn-select-all" style="margin-right: 7px;">
-            {%= __("Select All") %}</a>
-			<a class="btn btn-default btn-xs btn-select-mandatory" style="margin-right: 7px;">
-            {%= __("Select Mandatory") %}</a>
-			<a class="btn btn-default btn-xs btn-unselect-all">
-            {%= __("Unselect All") %}</a>
-		</p>
-		<div class="">
-			{% for doctype in doctype_list %}
-			<h5 style="margin-top: 25px; margin-bottom: 5px;">{{ doctype.name }}</h5>
-			<div class="row">
+<div>
+	{% for doctype in doctype_list %}
+		<h5>{{ doctype.name }}</h5>
+		<div class="row">
 			{% for f in doctype.fields %}
 			{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1) %}
 			{% doctype.reqd||(f.reqd=0);%}		
 			<div class="col-sm-4">
-		        <div class="checkbox" style="margin: 5px 0px;">
-		            <label>
-		                <input type="checkbox" class="select-column-check"
+	            <div>
+	                <label>
+	                    <input type="checkbox" class="select-column-check"
 							data-fieldname="{{ f.fieldname }}" data-reqd="{{ f.reqd }}"
 							data-doctype="{{ doctype.name }}" checked>
 							<small>{{ __(f.label) }}</small>
-		            </label>
-		        </div>
+	                </label>
+	            </div>
 			</div>
 			{% endif %}
 			{% endfor %}
 		</div>
-		{% endfor %}
-		</div>
-		<br>
-		<h4>{{ __("2. Download") }}</h4>
-		<div class="row">
-            <div class="col-sm-4">
-                <p><a class="btn btn-primary btn-xs btn-download-template">
-                    {%= __("Download Blank Template") %}</a></p>
-            </div>
-            <div class="col-sm-8">
-                <h6 class="text-muted">{%= __("Recommended for inserting new records.") %}</h6>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-4">
-                <p><a class="btn btn-primary btn-xs btn-download-data">
-                    {%= __("Download with Data") %}</a></p>
-            </div>
-            <div class="col-sm-8">
-                <h6 class="text-muted">{%= __("Recommended bulk editing records via import, or understanding the import format.") %}</h6>
-            </div>
-        </div>
+	{% endfor %}
 </div>

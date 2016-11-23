@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe, xlwt, StringIO, datetime
+from openpyxl import load_workbook
 from frappe import _
 
 def get_xls(data):
