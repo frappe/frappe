@@ -785,7 +785,7 @@ frappe.ui.ColumnPicker = Class.extend({
 		var me = this;
 
 		var w = $('<div class="column-list-item">\
-				<i class="icon icon-sort text-muted drag-handle"></i>\
+				<i class="fa fa-sort text-muted drag-handle"></i>\
 				<a class="close">&times;</a>\
 			</div>')
 			.appendTo(this.column_list);

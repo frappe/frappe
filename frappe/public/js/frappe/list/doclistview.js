@@ -82,7 +82,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 
-		if(!frappe.model.can_read(this.doctype)) {
+		if(!in_list(frappe.boot.user.all_read, this.doctype)) {
 			frappe.show_not_permitted(frappe.get_route_str());
 			return;
 		};
@@ -242,6 +242,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				}
 			}
 		}
+
+		//Always sort based on start_date field for Gantt View
+		if(frappe.get_route()[2] === 'Gantt') {
+			var field_map = frappe.views.calendar[this.doctype].field_map;
+			args = {
+				sort_by: field_map.start,
+				sort_order: 'asc'
+			}
+		}
+
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
@@ -788,8 +798,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.page.set_primary_action(__("Delete"), function() { me.delete_items() },
 				"octicon octicon-trashcan");
 			this.page.btn_primary.addClass("btn-danger");
-			this.page.checked_items_status.text(no_of_checked_items == 1 
-    				? __("1 item selected") 
+			this.page.checked_items_status.text(no_of_checked_items == 1
+    				? __("1 item selected")
     				: __("{0} items selected", [no_of_checked_items]))
 			this.page.checked_items_status.removeClass("hide");
 		} else {

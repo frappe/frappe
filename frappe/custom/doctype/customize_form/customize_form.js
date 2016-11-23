@@ -70,11 +70,11 @@ frappe.ui.form.on("Customize Form", {
 
 			frm.add_custom_button(__('Refresh Form'), function() {
 				frm.script_manager.trigger("doc_type");
-			}, "icon-refresh", "btn-default");
+			}, "fa fa-refresh", "btn-default");
 
 			frm.add_custom_button(__('Reset to defaults'), function() {
 				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-			}, "icon-eraser", "btn-default");
+			}, "fa fa-eraser", "btn-default");
 
 			if(frappe.boot.developer_mode) {
 				frm.add_custom_button(__('Export Customizations'), function() {

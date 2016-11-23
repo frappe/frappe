@@ -6,7 +6,7 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 				file_url = file_url.replace(/#/g, '%23');
 			}
 			window.open(file_url);
-		}, "icon-download");
+		}, "fa fa-download");
 	}
 
 	var wrapper = frm.get_field("preview_html").$wrapper;

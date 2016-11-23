@@ -249,12 +249,12 @@ def setup_index(page_info):
 		if os.path.exists(index_txt_path):
 			page_info.index = open(index_txt_path, 'r').read().splitlines()
 
-def make_toc(context, out):
+def make_toc(context, out, app=None):
 	'''Insert full index (table of contents) for {index} tag'''
 	from frappe.website.utils import get_full_index
 	if '{index}' in out:
 		html = frappe.get_template("templates/includes/full_index.html").render({
-			"full_index": get_full_index(),
+			"full_index": get_full_index(app=app),
 			"url_prefix": context.url_prefix or "/",
 			"route": context.route
 		})
@@ -264,7 +264,7 @@ def make_toc(context, out):
 	if '{next}' in out:
 		# insert next link
 		next_item = None
-		children_map = get_full_index()
+		children_map = get_full_index(app=app)
 		parent_route = os.path.dirname(context.route)
 		children = children_map[parent_route]
 

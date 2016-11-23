@@ -366,7 +366,7 @@ function load_frappe_slides() {
 		name: "welcome",
 		domains: ["all"],
 		title: __("Welcome"),
-		icon: "icon-world",
+		icon: "fa fa-world",
 		help: __("Let's prepare the system for first use."),
 
 		fields: [
@@ -435,7 +435,7 @@ function load_frappe_slides() {
 	frappe.wiz.region = {
 		domains: ["all"],
 		title: __("Region"),
-		icon: "icon-flag",
+		icon: "fa fa-flag",
 		help: __("Select your Country, Time Zone and Currency"),
 		fields: [
 			{ fieldname: "country", label: __("Country"), reqd:1,
@@ -546,7 +546,7 @@ function load_frappe_slides() {
 	frappe.wiz.user = {
 		domains: ["all"],
 		title: __("The First User: You"),
-		icon: "icon-user",
+		icon: "fa fa-user",
 		fields: [
 			{"fieldname": "first_name", "label": __("First Name"), "fieldtype": "Data",
 				reqd:1},

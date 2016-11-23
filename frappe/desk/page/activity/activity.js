@@ -69,7 +69,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
 		this.page.add_menu_item(__('Build Report'), function() {
 			frappe.set_route('Report', "Feed");
-		}, 'icon-th')
+		}, 'fa fa-th')
 	}
 
 	this.page.add_menu_item(__('Show Likes'), function() {
@@ -120,7 +120,7 @@ frappe.activity.Feed = Class.extend({
 		data.by = frappe.user.full_name(data.owner);
 		data.avatar = frappe.avatar(data.owner);
 
-		data.icon = "icon-flag";
+		data.icon = "fa fa-flag";
 
 		// color for comment
 		data.add_class = {

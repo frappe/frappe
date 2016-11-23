@@ -164,6 +164,9 @@ h6.uppercase,
   margin: 0px;
   padding: 15px;
 }
+.form-section .form-section-description {
+  margin-bottom: 10px;
+}
 .form-section .form-section-heading {
   margin: 10px 0px;
 }
@@ -317,7 +320,7 @@ h6.uppercase,
 .timeline-item.notification-content * {
   color: #8D99A6;
 }
-.timeline-item.notification-content .icon-fixed-width {
+.timeline-item.notification-content .fa-fw {
   margin-left: 36px;
 }
 .timeline-item.notification-content .octicon-heart {

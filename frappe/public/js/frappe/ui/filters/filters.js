@@ -235,7 +235,7 @@ frappe.ui.FilterList = Class.extend({
 						fieldtype:"DateRange",
 						fieldname:name,
 					},
-					parent: this.parentElement,
+					parent: this,
 					only_input: true,
 					applydaterange:function(ev,picker){
 						var filt = me.get_filter(name);
@@ -630,7 +630,7 @@ frappe.ui.Filter = Class.extend({
 			</button>\
 			<button class="btn btn-default btn-xs remove-filter"\
 				title="'+__("Remove Filter")+'">\
-				<i class="icon-remove text-muted"></i>\
+				<i class="fa fa-remove text-muted"></i>\
 			</button></div>')
 			.insertAfter(this.flist.wrapper.find(".set-filters .show-filters"));
 

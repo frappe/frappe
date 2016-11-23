@@ -20,17 +20,17 @@ frappe.listview_settings['File'] = {
 		var icon = ""
 
 		if(data.is_folder) {
-			icon += '<i class="icon-folder-close-alt icon-fixed-width"></i> ';
+			icon += '<i class="fa fa-folder-close-alt fa-fw"></i> ';
 		} else if(frappe.utils.is_image_file(data.file_name)) {
-			icon += '<i class="icon-picture icon-fixed-width"></i> ';
+			icon += '<i class="fa fa-picture fa-fw"></i> ';
 		} else {
-			icon += '<i class="icon-file-alt icon-fixed-width"></i> '
+			icon += '<i class="fa fa-file-alt fa-fw"></i> '
 		}
 
 		data._title = icon + (data.file_name ? data.file_name : data.file_url)
 
 		if (data.is_private) {
-			data._title += ' <i class="icon-lock icon-fixed-width text-warning"></i>'
+			data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>'
 		}
 	},
 	onload: function(doclist) {

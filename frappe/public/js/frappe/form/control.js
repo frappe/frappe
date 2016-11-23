@@ -913,7 +913,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + __(this.df.label));
+			('<i class="'+this.df.icon+' fa-fw"></i> ') : "") + __(this.df.label));
 	}
 });
 
@@ -928,7 +928,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
 			<div class="ellipsis" style="display: inline-block; width: 90%;">\
-				<i class="icon-paper-clip"></i> \
+				<i class="fa fa-paper-clip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
 			<a class="close">&times;</a></div>')
@@ -1372,7 +1372,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								// new item
 								r.results.push({
 									value: "<span class='text-primary link-option'>"
-										+ "<i class='icon-plus' style='margin-right: 5px;'></i> "
+										+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
 										+ __("Create a new {0}", [__(me.df.options)])
 										+ "</span>",
 									action: me.new_doc
@@ -1381,7 +1381,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 							// advanced search
 							r.results.push({
 								value: "<span class='text-primary link-option'>"
-									+ "<i class='icon-search' style='margin-right: 5px;'></i> "
+									+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
 									+ __("Advanced Search")
 									+ "</span>",
 								action: me.open_advanced_search
@@ -1737,9 +1737,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 })
 
 frappe.ui.form.fieldtype_icons = {
-	"Date": "icon-calendar",
-	"Time": "icon-time",
-	"Datetime": "icon-time",
-	"Code": "icon-code",
-	"Select": "icon-flag"
+	"Date": "fa fa-calendar",
+	"Time": "fa fa-time",
+	"Datetime": "fa fa-time",
+	"Code": "fa fa-code",
+	"Select": "fa fa-flag"
 };
