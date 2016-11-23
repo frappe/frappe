@@ -9,7 +9,7 @@ from frappe.utils import global_search
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
-	def test_setup(self):
+	def setUp(self):
 		global_search.setup_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 
