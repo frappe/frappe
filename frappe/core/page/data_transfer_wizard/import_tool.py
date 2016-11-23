@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from openpyxl import load_workbook
+import StringIO
 
 @frappe.whitelist()
 def upload():
@@ -15,8 +16,11 @@ def upload():
 		fname, fcontent = get_uploaded_content()
 	print "============>>>>>>>>>> TESTING"
 	print fname
+	output = StringIO.StringIO()
+	output.write(fcontent)
+	print output
 	#print fcontent
-	wb = load_workbook(fname)
+	wb = load_workbook(output)
 	ws = wb.active
 	for row in ws.iter_rows(max_row=10):
 		for cell in row:
