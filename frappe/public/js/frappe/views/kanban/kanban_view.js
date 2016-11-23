@@ -23,18 +23,16 @@ frappe.views.KanbanBoard = Class.extend({
 		
 		this.prepare_doc(function() {
 			me.board = frappe.get_doc('Kanban Board', me.board_name);
+			me.board_field_name = me.board.field_name;
 			if(!me.board) {
 				frappe.msgprint(__('Kanban Board {0} does not exist.', ['<b>'+me.board_name+'</b>']));
 				frappe.set_route('List', me.doctype);
 				return;
 			}
-			me.board_field_name = me.board.field_name;
 			me.prepare_cards();
 			me.prepare_columns();
-			me.prepare_filters();
-			if(!me.is_filters_modified()) {
-				me.fresh = true;
-			}
+			me.bind_events();
+			// me.prepare_filters();
 		});
 	},
 	prepare_cards: function() {
@@ -59,7 +57,7 @@ frappe.views.KanbanBoard = Class.extend({
 				wrapper: me.$kanban_board
 			});
 		});
-		// console.log(me)	
+		me.make_add_new_column();
 	},
 	prepare_filters: function() {
 		this.init_save_filter_button();
@@ -68,16 +66,16 @@ frappe.views.KanbanBoard = Class.extend({
 	init_filters: function() {
 		var me = this;
 		//set filters from board.filters
-		if(me.fresh) {
-			var filters = JSON.parse(me.board.filters);
-			if($.isArray(filters)) {
-				me.cur_list.filter_list.clear_filters();
-				filters.forEach(function(f) {
-					me.cur_list.filter_list
-						.add_filter(f[0], f[1], f[2], f[3]);
-				});
-			}
-		}
+		// if(me.fresh) {
+		// 	var filters = JSON.parse(me.board.filters);
+		// 	if($.isArray(filters)) {
+		// 		me.cur_list.filter_list.clear_filters();
+		// 		filters.forEach(function(f) {
+		// 			me.cur_list.filter_list
+		// 				.add_filter(f[0], f[1], f[2], f[3]);
+		// 		});
+		// 	}
+		// }
 
 		// on filter added or removed
 		this.cur_list.wrapper.on('render-complete', function() {
@@ -134,7 +132,26 @@ frappe.views.KanbanBoard = Class.extend({
 				callback();
 			});
 		});
-	}
+	},
+	make_add_new_column: function() {
+		this.$add_new_column = $('<div class="kanban-column">' +
+			'<div class="kanban-column-title h4 add-new-column">' +
+				__("Add a column") + '</div></div>')
+			.appendTo(this.$kanban_board);
+	},
+	bind_events: function() {
+		this.$add_new_column.on('click', function() {
+			//add option to Select field's option field
+		})
+	},
+	insert_option_to_customization: function() {
+		frappe.call({
+			method: "frappe.custom.doctype.customize_form.customize_form",
+			args: {
+				
+			}
+		})
+	},
 });
 
 //KanbanBoardColumn
@@ -239,7 +256,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		meta.fields.every(function(df) {
 			if(df.reqd && !doc[df.fieldname]) {
 				// missing mandatory
-				
+
 				if(in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !field) {
 					// can be mapped to textarea
 					field = df;
@@ -251,14 +268,15 @@ frappe.views.KanbanBoardColumn = Class.extend({
 				}
 			}
 		});
-		// console.log(doc, field, quick_entry);
-		doc[field.fieldname] = card_title;
-		doc[me.kb.board_field_name] = me.title;
-		
-		if(quick_entry) {
-			frappe.new_doc(me.kb.doctype, doc);
-		} else {
-			me.insert_doc(doc);
+		if(field) {
+			doc[field.fieldname] = card_title;
+			doc[me.kb.board_field_name] = me.title;
+
+			if(quick_entry) {
+				frappe.new_doc(me.kb.doctype, doc);
+			} else {
+				me.insert_doc(doc);
+			}
 		}
 	},
 	insert_doc: function(doc) {
