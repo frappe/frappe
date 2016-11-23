@@ -11,6 +11,7 @@ frappe.provide("frappe.views");
 
 frappe.views.KanbanBoard = Class.extend({
 	init: function(opts) {
+		console.log('kanbanboard init')
 		$.extend(this, opts);
 		this.prepare(opts);
 	},
@@ -18,6 +19,8 @@ frappe.views.KanbanBoard = Class.extend({
 		var me = this;
 		this.$kanban_board = $(frappe.render_template('kanban_board'))
 			.appendTo(this.wrapper);
+		this.$filter_area = this.cur_list.$page.find('.set-filters');
+		
 		this.prepare_doc(function() {
 			me.board = frappe.get_doc('Kanban Board', me.board_name);
 			if(!me.board) {
@@ -28,6 +31,10 @@ frappe.views.KanbanBoard = Class.extend({
 			me.board_field_name = me.board.field_name;
 			me.prepare_cards();
 			me.prepare_columns();
+			me.prepare_filters();
+			if(!me.is_filters_modified()) {
+				me.fresh = true;
+			}
 		});
 	},
 	prepare_cards: function() {
@@ -53,6 +60,67 @@ frappe.views.KanbanBoard = Class.extend({
 			});
 		});
 		// console.log(me)	
+	},
+	prepare_filters: function() {
+		this.init_save_filter_button();
+		this.init_filters();
+	},
+	init_filters: function() {
+		var me = this;
+		//set filters from board.filters
+		if(me.fresh) {
+			var filters = JSON.parse(me.board.filters);
+			if($.isArray(filters)) {
+				me.cur_list.filter_list.clear_filters();
+				filters.forEach(function(f) {
+					me.cur_list.filter_list
+						.add_filter(f[0], f[1], f[2], f[3]);
+				});
+			}
+		}
+
+		// on filter added or removed
+		this.cur_list.wrapper.on('render-complete', function() {
+			me.$save_filter_btn.show();
+		});
+	},
+	init_save_filter_button: function() {
+		var me = this;
+		
+		me.$save_filter_btn = this.$filter_area.find('.save-filters'); 
+		if(me.$save_filter_btn.length) return;
+
+		me.$save_filter_btn = $('<button>', {
+			class: 'btn btn-xs btn-default text-muted save-filters',
+			text: 'Save filters'
+		}).on('click', function(){
+			$(this).hide();
+			me.save_filters();
+		}).appendTo(this.$filter_area).hide();
+
+		if(this.is_filters_modified())
+			me.$save_filter_btn.show();
+	},
+	save_filters: function() {
+		var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
+		frappe.call({
+			method: "frappe.client.set_value",
+			args: {
+				doctype: 'Kanban Board',
+				name: this.board_name,
+				fieldname: 'filters',
+				value: filters
+			},
+			callback: function() {
+				show_alert({message:__("Filters saved"), indicator:'green'}, 1);
+			}
+		});
+	},
+	is_filters_modified: function() {
+		var list_filters = JSON.stringify(this.cur_list.filter_list.get_filters());
+		if(list_filters !== this.board.filters)
+			return true;
+		return false;
 	},
 	get_cards_for_column: function(column_name) {
 		return this._cards.filter(function(card) {

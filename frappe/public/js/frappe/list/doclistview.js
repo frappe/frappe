@@ -140,6 +140,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init_headers: function() {
 		this.page.main.find(".list-headers").empty();
 
+		// no header in kanban view 
+		if(this.current_view === 'Kanban') {
+			this.list_header = $();
+			return;
+		}
+
 		this.header = this.current_view === 'List' ? "list_item_main_head": "image_view_item_main_head";
 		var main = frappe.render_template(this.header, {
 			columns: this.listview.columns,
@@ -545,7 +551,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				doctype: me.doctype,
 				board_name: board_name,
 				cards: values,
-				wrapper: me.wrapper.find('.result-list') 
+				wrapper: me.wrapper.find('.result-list'),
+				cur_list: me 
 			});
 		});
 	},
