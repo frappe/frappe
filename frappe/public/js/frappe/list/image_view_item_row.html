@@ -12,7 +12,7 @@
 				 	else { %} background-color: {{ color }}; {% } %} border: 0px;">
 					{% if (!item_image) { %}{%= frappe.get_abbr(data.name) %}{% } %}
 					<button class="btn btn-info zoom-view">
-						<i class="icon-zoom-in"></i>
+						<i class="fa fa-zoom-in"></i>
 					</button>
 					<table class="table table-condensed field-info">
 						{% for (var i=0, l=columns.length; i < l; i++ ) {

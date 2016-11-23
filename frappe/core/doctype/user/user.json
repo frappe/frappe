@@ -1744,7 +1744,7 @@
  ], 
  "hide_heading": 0, 
  "hide_toolbar": 0, 
- "icon": "icon-user", 
+ "icon": "fa fa-user", 
  "idx": 413, 
  "image_field": "user_image", 
  "image_view": 0, 

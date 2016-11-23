@@ -449,7 +449,7 @@ edit_link = '''
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/{target}">
 			Improve this page
 		</a>
