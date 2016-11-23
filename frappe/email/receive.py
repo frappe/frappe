@@ -243,11 +243,11 @@ class EmailServer:
 		message_list = []
 		#get message-id's to link new uid's to
 		import email
+		self.imap.select("Inbox")
 		#messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (FROM TO ENVELOPE-TO DATE RECEIVED)])')
 		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER])')
 		for i, item in enumerate(messages[1]):
 			if isinstance(item, tuple):
-				# '''
 				# check for uid appended to the end
 				uid = re.search(r'UID [0-9]*', messages[1][i + 1], re.U | re.I)
 				if uid:
@@ -284,19 +284,19 @@ class EmailServer:
 			for new in message_list:
 				if old["unique_id"] == new[1]:
 					frappe.db.sql("""update `tabCommunication`
-	    											set uid = %(uid)s
-	    										where name = %(name)s
-	    										""", {"name": old["name"],
-					                                  "uid": new[0]})
+                            set uid = %(uid)s
+                        where name = %(name)s
+                        """, {"name": old["name"],
+                              "uid": new[0]})
 					break
 		for old in unhandled_uid_list:
 			for new in message_list:
 				if old["unique_id"] == new[1]:
 					frappe.db.sql("""update `tabUnhandled Emails`
-			    											set uid = %(uid)s
-			    										where name = %(name)s
-			    										""", {"name": old["name"],
-					                                          "uid": new[0]})
+                            set uid = %(uid)s
+                        where name = %(name)s
+                        """, {"name": old["name"],
+                              "uid": new[0]})
 					break
 
 		frappe.db.set_value("Email Account", self.settings.email_account, "uid_validity", uid_validity)
