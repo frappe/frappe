@@ -600,7 +600,7 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
-		self.message_id = self.mail.__getitem__('Message-ID')
+		self.message_id = self.mail.get('Message-ID')
 		#self.unique_id = hashlib.md5((self.mail.get("X-Original-From") or self.mail["From"])+(self.mail.get("To") or self.mail.get("Envelope-to"))+(self.mail.get("Received") or self.mail["Date"] )).hexdigest()
 
 

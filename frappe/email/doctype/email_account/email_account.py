@@ -248,10 +248,10 @@ class EmailAccount(Document):
 					attachments = [d.file_name for d in communication._attachments]
 
 					if communication.message_id and not communication.timeline_hide:
-						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
+						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],order_by="creation",as_dict=1)
 						if first:
 							if first.name != communication.name:
-								communication.db_set("timeline_hide",first.name,update_modified=False)
+								frappe.db.sql("""update tabCommunication set timeline_hide =%s where name = %s""",(first.name,communication.name),auto_commit=1)
 					
 					if self.no_remaining == '0' and not frappe.local.flags.in_test:
 						if communication.reference_doctype :
@@ -280,7 +280,7 @@ class EmailAccount(Document):
 				mail = email.message_from_string(raw)
 
 				unique_id = get_unique_id(mail)
-				message_id = mail.__getitem__('Message-ID')
+				message_id = mail.get('Message-ID')
 			except Exception:
 				message_id = "can't be parsed"
 
@@ -382,7 +382,7 @@ class EmailAccount(Document):
 		matched = False
 		if in_reply_to:
 			# reply to a communication sent from the system
-			reply_found = frappe.db.get_value("Communication", {"message_id": in_reply_to}, ["name","reference_doctype","reference_name"],as_dict=1)
+			reply_found = frappe.db.get_value("Communication", {"message_id": in_reply_to}, ["name","reference_doctype","reference_name"],order_by="creation",as_dict=1)
 			if reply_found:
 				
 				# set in_reply_to of current communication
@@ -392,7 +392,7 @@ class EmailAccount(Document):
 					communication.reference_name = reply_found.reference_name
 				matched = True
 			if email.message_id:
-				first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"],as_dict=1)
+				first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"],order_by="creation",as_dict=1)
 			
 				if first:
 					#set timeline hide to parent doc so are linked
@@ -562,9 +562,8 @@ def pull(now=False):
 			frappe.cache().set_value("workers:no-internet", False)
 		else:	
 			return
-	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]	
-			
-	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1,"awaiting_password": 0}):
+	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
+	for email_account in frappe.get_list("Email Account",["name","no_remaining"], filters={"enable_incoming": 1,"awaiting_password": 0}):
 		if now:
 			pull_from_email_account(email_account.name)
 
@@ -573,7 +572,7 @@ def pull(now=False):
 			job_name = 'pull_from_email_account|{0}'.format(email_account.name)
 
 			if job_name not in queued_jobs:
-				if email_account.no_remaining == 0:
+				if email_account.no_remaining == '0':
 					enqueue(pull_from_email_account, 'short', event='all', job_name=job_name,
 					        email_account=email_account.name)
 				else:
