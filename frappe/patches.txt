@@ -22,6 +22,7 @@ execute:frappe.reload_doc('core', 'doctype', 'patch_log') #2016-10-31
 execute:frappe.reload_doctype("File") # 2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
 execute:frappe.clear_cache()
+frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v7_1.sync_language_doctype
 frappe.patches.v7_0.rename_bulk_email_to_email_queue
 frappe.patches.v7_1.rename_chinese_language_codes
