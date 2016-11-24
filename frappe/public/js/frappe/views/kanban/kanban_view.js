@@ -11,29 +11,20 @@ frappe.provide("frappe.views");
 
 frappe.views.KanbanBoard = Class.extend({
 	init: function(opts) {
-		console.log('kanbanboard init')
 		$.extend(this, opts);
 		this.prepare(opts);
 	},
 	prepare: function(opts) {
 		var me = this;
-		this.$kanban_board = $(frappe.render_template('kanban_board'))
-			.appendTo(this.wrapper);
+		this.$kanban_board = $('<div class="kanban">').appendTo(this.wrapper);
 		this.$filter_area = this.cur_list.$page.find('.set-filters');
-		
-		this.prepare_doc(function() {
-			me.board = frappe.get_doc('Kanban Board', me.board_name);
-			me.board_field_name = me.board.field_name;
-			if(!me.board) {
-				frappe.msgprint(__('Kanban Board {0} does not exist.', ['<b>'+me.board_name+'</b>']));
-				frappe.set_route('List', me.doctype);
-				return;
-			}
+
+		me.get_board(function(board) {
+			me.board = board;
 			me.prepare_cards();
-			me.prepare_columns();
+			me.make_columns();
 			me.bind_events();
-			// me.prepare_filters();
-		});
+		})
 	},
 	prepare_cards: function() {
 		var me = this;
@@ -41,11 +32,11 @@ frappe.views.KanbanBoard = Class.extend({
 			return {
 				name: card.name,
 				title: card.subject,
-				column: card[me.board_field_name]
+				column: card[me.board.field_name]
 			};
 		});
 	},
-	prepare_columns: function() {
+	make_columns: function() {
 		var me = this;
 		
 		me.columns = me.board.columns.map(function(column) {
@@ -59,32 +50,12 @@ frappe.views.KanbanBoard = Class.extend({
 		});
 		me.make_add_new_column();
 	},
-	prepare_filters: function() {
-		this.init_save_filter_button();
-		this.init_filters();
+	bind_events: function() {
+		this.bind_add_new_column();
+		this.bind_save_filter_button();
 	},
-	init_filters: function() {
+	bind_save_filter_button: function() {
 		var me = this;
-		//set filters from board.filters
-		// if(me.fresh) {
-		// 	var filters = JSON.parse(me.board.filters);
-		// 	if($.isArray(filters)) {
-		// 		me.cur_list.filter_list.clear_filters();
-		// 		filters.forEach(function(f) {
-		// 			me.cur_list.filter_list
-		// 				.add_filter(f[0], f[1], f[2], f[3]);
-		// 		});
-		// 	}
-		// }
-
-		// on filter added or removed
-		this.cur_list.wrapper.on('render-complete', function() {
-			me.$save_filter_btn.show();
-		});
-	},
-	init_save_filter_button: function() {
-		var me = this;
-		
 		me.$save_filter_btn = this.$filter_area.find('.save-filters'); 
 		if(me.$save_filter_btn.length) return;
 
@@ -94,10 +65,17 @@ frappe.views.KanbanBoard = Class.extend({
 		}).on('click', function(){
 			$(this).hide();
 			me.save_filters();
-		}).appendTo(this.$filter_area).hide();
+		}).appendTo(this.$filter_area);
 
-		if(this.is_filters_modified())
-			me.$save_filter_btn.show();
+		// if(this.is_filters_modified())
+		// 	me.$save_filter_btn.show();
+
+		me.wrapper.on('render-complete', function() {
+			if(this.is_filters_modified())
+				me.$save_filter_btn.show();
+			else
+				me.$save_filter_btn.hide();
+		})
 	},
 	save_filters: function() {
 		var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
@@ -125,11 +103,18 @@ frappe.views.KanbanBoard = Class.extend({
 			return card.column === column_name;
 		});
 	},
-	prepare_doc: function(callback) {
+	get_board: function(callback) {
 		var me = this;
-		frappe.model.with_doctype('Kanban Board', function() {
-			frappe.model.with_doc('Kanban Board', me.board_name, function() {
-				callback();
+		var doctype = 'Kanban Board';
+		frappe.model.with_doctype(doctype, function() {
+			frappe.model.with_doc(doctype, me.board_name, function() {
+				var board = frappe.get_doc(doctype, me.board_name);
+				if(!board) {
+					frappe.msgprint(__('Kanban Board {0} does not exist.', ['<b>'+me.board_name+'</b>']));
+					frappe.set_route('List', me.doctype);
+					return;
+				}
+				callback(board);
 			});
 		});
 	},
@@ -139,9 +124,9 @@ frappe.views.KanbanBoard = Class.extend({
 				__("Add a column") + '</div></div>')
 			.appendTo(this.$kanban_board);
 	},
-	bind_events: function() {
+	bind_add_new_column: function() {
 		this.$add_new_column.on('click', function() {
-			//add option to Select field's option field
+			//add column_name to Select field's option field
 		})
 	},
 	insert_option_to_customization: function() {
@@ -159,7 +144,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.prepare();
-		this.make();
+		this.make_cards();
 		this.setup_sortable();
 		this.bind_add_card();
 	},
@@ -168,7 +153,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 			{ title: this.title })).appendTo(this.wrapper);
 		this.$kanban_cards = this.$kanban_column.find('.kanban-cards');
 	},
-	make: function() {
+	make_cards: function() {
 		var me = this;
 		this.cards = this.cards.map(function(card) {
 			var opts = $.extend({}, card, {
@@ -270,7 +255,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		});
 		if(field) {
 			doc[field.fieldname] = card_title;
-			doc[me.kb.board_field_name] = me.title;
+			doc[me.kb.board.field_name] = me.title;
 
 			if(quick_entry) {
 				frappe.new_doc(me.kb.doctype, doc);
@@ -318,7 +303,7 @@ frappe.views.KanbanBoardCard = Class.extend({
 			args: {
 				doctype: this.kb.doctype,
 				name: this.name,
-				fieldname: this.kb.board_field_name,
+				fieldname: this.kb.board.field_name,
 				value: value || this.column
 			},
 			callback: function() {

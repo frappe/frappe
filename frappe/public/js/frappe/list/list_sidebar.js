@@ -124,7 +124,7 @@ frappe.views.ListSidebar = Class.extend({
 		var boards = frappe.get_meta(this.doctype).__kanban_boards;
 		if (!boards) return;
 		boards.forEach(function(board) {
-			var route = "List/" + board.parent + "/Kanban/" + board.name;
+			var route = ["List", board.parent, "Kanban", board.name].join('/');
 			if(!divider) {
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;

@@ -338,6 +338,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 
 		this.set_filters_before_run();
+
+		if(frappe.get_route()[2]==="Kanban") {
+			this.setup_kanban_board(this.execute_run.bind(this))
+		} else {
+			this.execute_run();
+		}
+	},
+
+	execute_run: function() {
 		if(this.dirty) {
 			this.run();
 			if (this.clean_dash != true) {
@@ -553,6 +562,25 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				cards: values,
 				wrapper: me.wrapper.find('.result-list'),
 				cur_list: me 
+			});
+		});
+	},
+
+	setup_kanban_board: function(callback) {
+		var me = this, doctype = 'Kanban Board',
+			board_name = frappe.get_route()[3];
+		frappe.model.with_doctype(doctype, function() {
+			frappe.model.with_doc(doctype, board_name, function() {
+				var board = frappe.get_doc(doctype, board_name);
+				var filters = (board.filters) ? JSON.parse(board.filters) : [];
+				if(!frappe.utils.arrays_equal(filters, me.filter_list.get_filters())) {
+				// console.log('not equal')
+					me.filter_list.clear_filters();
+					filters.forEach(function(f) {
+						me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
+					});
+				}
+				callback();
 			});
 		});
 	},

@@ -8,7 +8,7 @@
   flex: 0 0 230px;
   max-width: 230px;
   background-color: #fafbfc;
-  border-right: 1px solid #e2dfdf;
+  border-right: 1px solid #d1d8dd;
   padding: 15px;
 }
 .kanban .kanban-column-title {
@@ -32,7 +32,7 @@
   margin-top: 10px;
 }
 .kanban .kanban-card-wrapper.chosen-card .kanban-card {
-  transform: rotate(5deg);
+  transform: rotate(2deg);
 }
 .kanban .kanban-card {
   background-color: #fff;
