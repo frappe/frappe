@@ -2,11 +2,13 @@ import frappe
 
 def execute():
 	frappe.reload_doctype("Communication")
-	data = frappe.db.sql("""select dup.name as ref_name,comm.name as name,comm.message_id as message_id  from `tabCommunication` as comm
-  		inner join ( select name,message_id
-		from tabCommunication 
-		where message_id is not null
-		group by message_id having count(*) > 1) dup
+	data = frappe.db.sql("""select dup.name as ref_name,comm.name as name,comm.message_id as message_id  
+		from `tabCommunication` as comm
+  		inner join ( select 
+  		(select name from tabCommunication as child where message_id = inn.message_id order by creation limit 1) as name, message_id 
+			from tabCommunication as inn
+			where message_id is not null 
+			group by message_id having count(*) > 1) dup
     on comm.message_id = dup.message_id""",as_dict=1)
 		
 	for d in data:
