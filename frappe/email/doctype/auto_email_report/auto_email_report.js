@@ -4,7 +4,7 @@
 frappe.ui.form.on('Auto Email Report', {
 	refresh: function(frm) {
 		if(frm.doc.report_type !== 'Report Builder') {
-			if(frm.script_setup_for !== frm.doc.report) {
+			if(frm.script_setup_for !== frm.doc.report && !frm.doc.__islocal) {
 				frappe.call({
 					method:"frappe.desk.query_report.get_script",
 					args: {
