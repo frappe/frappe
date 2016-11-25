@@ -483,6 +483,27 @@ def set_last_active_for_user(context, user=None):
 		set_last_active_to_now(user)
 		frappe.db.commit()
 
+@click.command('publish-realtime')
+@click.argument('event')
+@click.option('--message')
+@click.option('--room')
+@click.option('--user')
+@click.option('--doctype')
+@click.option('--docname')
+@click.option('--after-commit')
+@pass_context
+def publish_realtime(context, event, message, room, user, doctype, docname, after_commit):
+	"Publish realtime event from bench"
+	from frappe import publish_realtime
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			publish_realtime(event, message=message, room=room, user=user, doctype=doctype, docname=docname,
+				after_commit=after_commit)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
 
 commands = [
 	add_system_manager,
@@ -506,4 +527,5 @@ commands = [
 	disable_user,
 	_use,
 	set_last_active_for_user,
+	publish_realtime,
 ]
