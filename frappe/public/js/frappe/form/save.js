@@ -141,7 +141,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			if(error_fields.length)
 				msgprint(__('Mandatory fields required in {0}', [(doc.parenttype
 					? (__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label) + ' ('+ __("Table") + ')')
-					: __(doc.doctype))]) + '\n' + error_fields.join('\n'));
+					: __(doc.doctype))]) + '<br> <ul><li>' + error_fields.join('</li><li>') + "</ul>");
 		});
 
 		return !has_errors;
