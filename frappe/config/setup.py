@@ -146,11 +146,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Newsletter",
-					"description": _("Newsletters to contacts, leads."),
-				},
-				{
-					"type": "doctype",
 					"name": "Email Group",
 					"description": _("Email Group List"),
 				},
