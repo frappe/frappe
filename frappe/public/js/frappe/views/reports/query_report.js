@@ -175,6 +175,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	pdf_report: function() {
+		var me = this;
 		base_url = frappe.urllib.get_base_url();
 		print_css = frappe.boot.print_css;
 
@@ -200,11 +201,23 @@ frappe.views.QueryReport = Class.extend({
 				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
 		}
 
+		frappe.prompt({
+			fieldtype: "Select",
+			fieldname: "orientation",
+			label: __("Orientation"),
+			options: "Landscape\nPortrait",
+			default: "Landscape"
+		}, function(data) {
+			me.open_pdf_report(html, data.orientation);
+		}, __("Select orientation"));
+	},
+	open_pdf_report: function(html, orientation) {
 		//Create a form to place the HTML content
 		var formData = new FormData();
 
 		//Push the HTML content into an element
 		formData.append("html", html);
+		formData.append("orientation", orientation);
 		var blob = new Blob([], { type: "text/xml"});
 		//formData.append("webmasterfile", blob);
 		formData.append("blob", blob);
