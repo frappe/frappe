@@ -836,7 +836,13 @@ frappe.ui.form.GridRow = Class.extend({
 			field.$input.on('keydown', function(e) {
 				var values = me.frm.doc[me.grid.df.fieldname];
 				var fieldname = $(this).attr('data-fieldname');
+				var fieldtype = $(this).attr('data-fieldtype');
+
 				// TAB
+				if(in_list(['Text', 'Small Text'], fieldtype)) {
+					return;
+				}
+
 				if(e.which==TAB) {
 					// last column
 					if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
