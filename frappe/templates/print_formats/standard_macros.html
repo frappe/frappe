@@ -99,7 +99,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			doc.print_templates.get(df.fieldname) %}
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
-		<i class="{{ 'icon-check' if doc[df.fieldname] }}"></i>
+		<i class="{{ 'fa fa-check' if doc[df.fieldname] }}"></i>
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"

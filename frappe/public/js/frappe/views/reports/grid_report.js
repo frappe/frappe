@@ -572,7 +572,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
-			<i class="icon icon-share" style="cursor: pointer;"></i></a>', {
+			<i class="fa fa-share" style="cursor: pointer;"></i></a>', {
 			doctype: doctype,
 			name: encodeURIComponent(name)
 		});
