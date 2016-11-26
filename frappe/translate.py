@@ -392,7 +392,7 @@ def get_messages_from_custom_fields(app_name):
 
 	for fixture in fixtures:
 		if isinstance(fixture, basestring) and fixture == 'Custom Field':
-			custom_fields = frappe.get_all('Custom Field')
+			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
 			custom_fields.extend(frappe.get_all('Custom Field', filters=fixture.get('filters'),
