@@ -65,17 +65,14 @@ frappe.views.KanbanBoard = Class.extend({
 		}).on('click', function(){
 			$(this).hide();
 			me.save_filters();
-		}).appendTo(this.$filter_area);
+		}).appendTo(this.$filter_area).hide();
 
-		// if(this.is_filters_modified())
-		// 	me.$save_filter_btn.show();
-
-		me.wrapper.on('render-complete', function() {
-			if(this.is_filters_modified())
+		me.cur_list.wrapper.on('filters-ready', function() {
+			if(me.is_filters_modified())
 				me.$save_filter_btn.show();
 			else
 				me.$save_filter_btn.hide();
-		})
+		});
 	},
 	save_filters: function() {
 		var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
@@ -224,6 +221,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		//save on enter
 		$compose_card_form.keydown(function(e) {
 			if(e.which==13) {
+				e.preventDefault();
 				if(!frappe.request.ajax_count) {
 					// not already working -- double entry
 					$compose_card_form.find('.add-new').trigger('click')
@@ -256,6 +254,8 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		if(field) {
 			doc[field.fieldname] = card_title;
 			doc[me.kb.board.field_name] = me.title;
+			
+			me.kb.board.filters
 
 			if(quick_entry) {
 				frappe.new_doc(me.kb.doctype, doc);
