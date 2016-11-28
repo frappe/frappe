@@ -16,8 +16,10 @@ class AutoEmailReport(Document):
 	def autoname(self):
 		self.name = _(self.report)
 
-	def validate(self):
+	def before_insert(self):
 		self.validate_report_count()
+
+	def validate(self):
 		self.validate_emails()
 
 	def validate_emails(self):
@@ -36,7 +38,8 @@ class AutoEmailReport(Document):
 	def validate_report_count(self):
 		'''check that there are only 3 enabled reports per user'''
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
-		if count > max_reports_per_user:
+
+		if count >= max_reports_per_user:
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
 
 	def get_report_content(self):
