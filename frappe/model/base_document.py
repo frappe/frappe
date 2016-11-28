@@ -504,7 +504,16 @@ class BaseDocument(object):
 			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
 		for fieldname in constants:
-			if self.get(fieldname) != values.get(fieldname):
+			df = self.meta.get_field(fieldname)
+
+			# This conversion to string only when fieldtype is Date 
+			if df.fieldtype == 'Date':
+				value = str(values.get(fieldname))
+
+			else:
+				value  = values.get(fieldname)
+
+			if self.get(fieldname) != value:
 				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
 
