@@ -481,7 +481,7 @@ class Document(BaseDocument):
 				modified = frappe.db.sql('''select value from tabSingles
 					where doctype=%s and field='modified' for update''', self.doctype)
 				modified = modified and modified[0][0]
-				if cstr(modified) and cstr(modified) != cstr(self._original_modified):
+				if modified and modified != cstr(self._original_modified):
 					conflict = True
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
