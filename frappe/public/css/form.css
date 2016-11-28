@@ -250,6 +250,9 @@ h6.uppercase,
   left: 43px;
   z-index: -1;
 }
+.timeline.in-dialog::before {
+  bottom: 0px;
+}
 @media (max-width: 991px) {
   .timeline::before {
     bottom: -64px;

@@ -135,12 +135,6 @@ frappe.views.ListSidebar = Class.extend({
 		$dropdown.find('li:first-child a').click(function() {
 			frappe.new_doc('Kanban Board');
 		});
-
-		//refresh view when kanban board is clicked
-		$dropdown.find('li:not(.divider) a').click(function() {
-			me.doclistview.dirty = true;
-			me.doclistview.refresh();
-		});
 	},
 	setup_assigned_to_me: function() {
 		var me = this;
