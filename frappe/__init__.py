@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.19'
+__version__ = '7.1.20'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1152,7 +1152,7 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1173,7 +1173,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 		html = build_page("print")
 
 	if as_pdf:
-		return get_pdf(html)
+		return get_pdf(html, output = output)
 	else:
 		return html
 

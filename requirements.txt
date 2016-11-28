@@ -39,3 +39,4 @@ psutil
 unittest-xml-reporting
 xlwt
 oauthlib
+pypdf
