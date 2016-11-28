@@ -2,8 +2,7 @@
 	<div class="comment-header">{{ comment_text or "" }}</div>
 {% if not comment_list %}
 <div class="no-comment">
-	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
-    <br>
+	<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
 </div>
 {% endif %}
 
@@ -20,7 +19,7 @@
 	</div>
 
 	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>
+		<a class="add-comment btn btn-default btn-xs">{{ _("Add Comment") }}</a>
 			<div style="display: none;" id="comment-form">
 			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
