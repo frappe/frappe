@@ -16,10 +16,8 @@ class AutoEmailReport(Document):
 	def autoname(self):
 		self.name = _(self.report)
 
-	def before_insert(self):
-		self.validate_report_count()
-
 	def validate(self):
+		self.validate_report_count()
 		self.validate_emails()
 
 	def validate_emails(self):
