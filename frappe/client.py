@@ -274,7 +274,7 @@ def get_js(items):
 	for src in items:
 		src = src.strip("/").split("/")
 
-		if ".." in src:
+		if ".." in src or src[0] != "assets":
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
 		contentpath = os.path.join(frappe.local.sites_path, *src)
