@@ -175,7 +175,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
-					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")
+					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
 						.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
 						item.parent or item.name), frappe.LinkExistsError)
 
@@ -198,19 +198,21 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				# raise exception only if
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
-				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
+				frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>').format(doc.doctype,
 					doc.name, df.parent, ""), frappe.LinkExistsError)
 		else:
 			# dynamic link in table
-			for refdoc in frappe.db.sql("""select name, docstatus from `tab{parent}` where
+			df["table"] = ", parent, parenttype, idx" if meta.istable else ""
+			for refdoc in frappe.db.sql("""select name, docstatus{table} from `tab{parent}` where
 				{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
 
 				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
-					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")\
-						.format(doc.doctype, doc.name, df.parent, refdoc.name), frappe.LinkExistsError)
+					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a> {4}')\
+						.format(doc.doctype, doc.name, refdoc.parenttype if meta.istable else df.parent,
+					    refdoc.parent if meta.istable else refdoc.name,"Row: {0}".format(refdoc.idx) if meta.istable else ""), frappe.LinkExistsError)
 
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
