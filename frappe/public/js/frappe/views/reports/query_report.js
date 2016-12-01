@@ -38,19 +38,23 @@ frappe.views.QueryReport = Class.extend({
 	    multiColumnSort: true
 	},
 	make: function() {
+		var me = this;
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
 		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<button class="btn btn-secondary btn-default btn-sm expand-all" style="margin: 10px;">'+__('Expand All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-sm collapse-all" style="margin: 10px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
-
+		this.wrapper.find(".expand-all").on("click", function() { me.expand_all();});
+		this.wrapper.find(".collapse-all").on("click", function() { me.collapse_all();});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
 	},
@@ -563,6 +567,27 @@ frappe.views.QueryReport = Class.extend({
 				item._collapsed = true;
 			}
 		}
+
+	},
+	expand_all: function() {
+		var me = this;
+		for(var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+			item._collapsed = false;
+			me.dataView.updateItem(item.id, item);
+		}
+		$(".expand-all").prop('disabled', true);
+		$(".collapse-all").prop('disabled', false);
+	},
+	collapse_all: function() {
+		var me = this;
+		for(var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+			item._collapsed = true;
+			me.dataView.updateItem(item.id, item);
+		}
+		$(".collapse-all").prop('disabled', true);
+		$(".expand-all").prop('disabled', false);
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
@@ -726,8 +751,10 @@ frappe.views.QueryReport = Class.extend({
 				if (item) {
 					if (!item._collapsed) {
 						item._collapsed = true;
+						$(".expand-all").prop('disabled', false);
 					} else {
 						item._collapsed = false;
+						$(".collapse-all").prop('disabled', false);
 					}
 
 					me.dataView.updateItem(item.id, item);
