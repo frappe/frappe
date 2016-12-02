@@ -207,7 +207,7 @@ class Document(BaseDocument):
 		self.flags.in_insert = True
 		
 		if self.get("amended_from"):
-			self.amend_attachments()
+			self.copy_attachments_from_amended_from()
 
 		self.run_post_save_methods()
 		self.flags.in_insert = False
@@ -270,17 +270,15 @@ class Document(BaseDocument):
 
 		return self
 
-	def amend_attachments(self):
+	def copy_attachments_from_amended_from(self):
+		'''Copy attachments from `amended_from`'''
 		from frappe.desk.form.load import get_attachments
-		
-		#get attachments
-		attach_list = get_attachments(self.doctype, self.amended_from)
-		
+				
 		#loop through attachments
-		for attach_item in attach_list:
+		for attach_item in get_attachments(self.doctype, self.amended_from):
 			
 			#save attachments to new doc
-			save_url(attach_item.file_url,attach_item.file_name,self.doctype,self.name,"Home/Attachments")
+			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments")
 	
 	def update_children(self):
 		'''update child tables'''
