@@ -85,7 +85,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		if(!me.dialog) {
-			me.dialog = new frappe.ui.to_do_dialog({
+			me.dialog = new frappe.ui.form.AssignToDialog({
 				obj: me,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
@@ -128,8 +128,8 @@ frappe.ui.form.AssignTo = Class.extend({
 });
 
 
-frappe.ui.to_do_dialog = Class.extend({
-	init:function(opts){
+frappe.ui.form.AssignToDialog = Class.extend({
+	init: function(opts){
 		var me = this
 		$.extend(me,new frappe.ui.Dialog({
 			title: __('Add to To Do'),
