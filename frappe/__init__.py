@@ -49,7 +49,7 @@ def _(msg, lang=None):
 	# msg should always be unicode
 	msg = cstr(msg).strip()
 
-	return get_full_dict(local.lang).get(msg) or msg
+	return get_full_dict(lang).get(msg) or msg
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
