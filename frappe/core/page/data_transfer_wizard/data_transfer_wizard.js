@@ -22,9 +22,22 @@ frappe.DataTransferWizard = Class.extend({
 		frappe.boot.user.can_import = frappe.boot.user.can_import.sort();
 		$(frappe.render_template("data_transfer_wizard", this)).appendTo(this.page.main);
 		this.select = this.page.main.find("select.doctype");
+		this.select_column = this.page.main.find(".doctype-column")
 		this.select.on("change", function() {
 			me.doctype = $(this).val();
 			console.log(me.doctype);
+			frappe.model.with_doctype(me.doctype, function() {
+				if(me.doctype) {
+					// render select columns
+					var selected_doctype = frappe.get_doc('DocType', me.doctype);
+					console.log(selected_doctype);
+					selected_doctype["reqd"] = true;
+					var doctype_list = [selected_doctype];
+
+					$(frappe.render_template("try_html", {doctype: doctype_list}))
+						.appendTo(me.doctype-column.empty());
+				}
+			});
 			
 		});			
 		
@@ -88,6 +101,25 @@ frappe.DataTransferWizard = Class.extend({
 			}
 		})
 
+	},
+	write_messages: function(data) {
+		this.page.main.find(".import-data").removeClass("hide");
+		var parent = this.page.main.find(".import-log-messages").empty();
+
+		// TODO render using template!
+		for (var i=0, l=data.length; i<l; i++) {
+			var v = data[i];
+			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(parent);
+			if(v.substr(0,5)=='Error') {
+				$p.css('color', 'red');
+			} else if(v.substr(0,8)=='Inserted') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,7)=='Updated') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,5)=='Valid') {
+				$p.css('color', '#777');
+			}
+		}
 	},
 	onerror: function(r) {
 		if(r.message) {

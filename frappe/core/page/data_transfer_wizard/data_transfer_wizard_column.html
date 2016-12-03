@@ -1,22 +1,20 @@
 <div>
-	{% for doctype in doctype_list %}
-		<h5>{{ doctype.name }}</h5>
-		<div class="row">
-			{% for f in doctype.fields %}
-			{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1) %}
-			{% doctype.reqd||(f.reqd=0);%}		
-			<div class="col-sm-4">
-	            <div>
-	                <label>
-	                    <input type="checkbox" class="select-column-check"
-							data-fieldname="{{ f.fieldname }}" data-reqd="{{ f.reqd }}"
-							data-doctype="{{ doctype.name }}" checked>
-							<small>{{ __(f.label) }}</small>
-	                </label>
-	            </div>
-			</div>
-			{% endif %}
-			{% endfor %}
+	<h5>{{ doctype.name }}</h5>
+	<div class="row">
+		{% for f in doctype.fields %}
+		{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1) %}
+		{% doctype.reqd||(f.reqd=0);%}		
+		<div class="col-sm-4">
+            <div>
+                <label>
+                    <input type="checkbox" class="select-column-check"
+						data-fieldname="{{ f.fieldname }}" data-reqd="{{ f.reqd }}"
+						data-doctype="{{ doctype.name }}" checked>
+						<small>{{ __(f.label) }}</small>
+                </label>
+            </div>
 		</div>
-	{% endfor %}
+		{% endif %}
+		{% endfor %}
+	</div>
 </div>
