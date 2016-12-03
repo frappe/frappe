@@ -49,6 +49,8 @@ def update_controller_context(context, controller):
 					context.update(ret)
 			except frappe.Redirect:
 				raise
+			except frappe.PermissionError:
+				raise
 			except:
 				frappe.errprint(frappe.utils.get_traceback())
 

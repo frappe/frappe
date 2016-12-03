@@ -58,7 +58,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 from frappe import _
-from frappe.utils import get_url, call_hook_method
+from frappe.utils import get_url, call_hook_method, cint
 from urllib import urlencode
 from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
 import urllib
@@ -74,7 +74,7 @@ class PayPalSettings(IntegrationService):
 
 	def setup_sandbox_env(self, token):
 		data = json.loads(frappe.db.get_value("Integration Request", token, "data"))
-		setattr(self, "use_sandbox", frappe._dict(data).use_sandbox or 0)
+		setattr(self, "use_sandbox", cint(frappe._dict(data).use_sandbox) or 0)
 
 	def validate(self):
 		if not self.flags.ignore_mandatory:
@@ -126,7 +126,7 @@ class PayPalSettings(IntegrationService):
 			frappe.throw(_("Invalid payment gateway credentials"))
 
 	def get_payment_url(self, **kwargs):
-		setattr(self, "use_sandbox", kwargs.get("use_sandbox", 0))
+		setattr(self, "use_sandbox", cint(kwargs.get("use_sandbox", 0)))
 
 		response = self.execute_set_express_checkout(kwargs["amount"], kwargs["currency"])
 
