@@ -4,8 +4,8 @@ frappe.provide("frappe.views");
  * frappe.views.KanbanBoard
  * 
  * opts: 
- * 		name - Kanban Board name
- * 		docs - Values in list view to be rendered as cards
+ * 		board_name - Kanban Board name
+ * 		cards - Values in list view to be rendered as cards
  * 		wrapper - wrapper for kanban
  */
 
@@ -16,7 +16,7 @@ frappe.views.KanbanBoard = Class.extend({
 	},
 	prepare: function(opts) {
 		var me = this;
-		this.$kanban_board = $('<div class="kanban">').appendTo(this.wrapper);
+		this.$kanban_board = $(frappe.render_template("kanban_board")).appendTo(this.wrapper);
 		this.$filter_area = this.cur_list.$page.find('.set-filters');
 
 		me.get_board(function(board) {
@@ -54,7 +54,7 @@ frappe.views.KanbanBoard = Class.extend({
 				wrapper: me.$kanban_board
 			});
 		});
-		me.make_add_new_column();
+		// me.make_add_new_column();
 	},
 	bind_events: function() {
 		this.bind_add_new_column();
@@ -126,13 +126,66 @@ frappe.views.KanbanBoard = Class.extend({
 	},
 	make_add_new_column: function() {
 		this.$add_new_column = $('<div class="kanban-column">' +
-			'<div class="kanban-column-title h4 add-new-column">' +
-				__("Add a column") + '</div></div>')
+			'<div class="kanban-column-title h4 add-new-column"><a class="text-muted">' +
+				__("Add a column") + '</a></div></div>')
 			.appendTo(this.$kanban_board);
 	},
 	bind_add_new_column: function() {
-		this.$add_new_column.on('click', function() {
+		var me = this,
+		$add_new_column = this.$kanban_board.find(".add-new-column"),
+		$compose_column = $add_new_column.find(".compose-column"),
+		$compose_column_form = $add_new_column.find(".compose-column-form").hide();
+
+		$compose_column.on('click', function() {
 			//add column_name to Select field's option field
+			$(this).hide();
+			$compose_column_form.show();
+			$compose_column_form.find('textarea').focus();
+		});
+
+		//Add button
+		$compose_column_form.find('.add-new').on('click', function(e) {
+			e.preventDefault();
+			var title = $compose_column_form.serializeArray()[0].value;
+			me.new_column(title);
+		});
+
+		//Close form button
+		$compose_column_form.find('.close-form').on('click', function() {
+			$compose_column.show();
+			$compose_column_form.hide();
+		});
+	},
+	new_column: function(title) {
+		console.log(title)
+		var me = this;
+
+		frappe.model.with_doc("Customize Form", "Customize Form", function() {
+			var doc = frappe.get_doc("Customize Form");
+			doc.doc_type = me.doctype;
+
+			frappe.call({
+				doc: doc,
+				freeze: true,
+				method: "fetch_to_customize",
+				callback: (r) => {
+					var d = r.docs[0];
+					d.fields.forEach(function(df) {
+						if(df.fieldname === me.board.field_name && df.fieldtype === "Select") {
+							df.options += "\n" + title;
+						}
+					});
+
+					frappe.call({
+						doc: d,
+						freeze: true,
+						method: "save_customization",
+						callback: (r) => {
+							console.log(r)
+						}
+					})
+				}
+			})
 		})
 	},
 	insert_option_to_customization: function() {
@@ -236,7 +289,7 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		var me = this;
 		var selector = '.kanban-column[data-column-value="'+me.title+'"]';
 		var $wrapper = this.wrapper.find(selector);
-		var $compose_card = $wrapper.find('.compose-card'); 
+		var $compose_card = $wrapper.find('.compose-card');
 		var $compose_card_form = $wrapper.find('.compose-card-form');
 		
 		//Add card button

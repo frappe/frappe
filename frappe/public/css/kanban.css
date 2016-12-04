@@ -58,10 +58,12 @@
   margin-right: 5px;
   position: relative;
 }
-.kanban form.compose-card-form .kanban-card {
+.kanban .compose-card-form,
+.kanban .compose-column-form .kanban-card {
   margin-bottom: 10px;
 }
-.kanban form.compose-card-form .kanban-card textarea {
+.kanban .compose-card-form textarea,
+.kanban .compose-column-form .kanban-card textarea {
   resize: none;
   border: none;
   background: none;
@@ -69,6 +71,14 @@
   word-wrap: break-word;
   width: 100%;
 }
-.kanban form.compose-card-form .kanban-card textarea:focus {
+.kanban .compose-card-form textarea:focus,
+.kanban .compose-column-form .kanban-card textarea:focus {
   outline: none;
+}
+.kanban .compose-column-form .kanban-card {
+  margin-top: 0px;
+  background: #f9f9f9;
+}
+.kanban .add-new-column a:hover {
+  color: #36414C;
 }

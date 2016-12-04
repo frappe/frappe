@@ -75,7 +75,7 @@
 		}
 	}
 
-	form.compose-card-form .kanban-card {
+	.compose-card-form,.compose-column-form .kanban-card {
 		margin-bottom: 10px;
 
 		textarea {
@@ -90,6 +90,17 @@
 				outline: none;
 			}
 		}
+	}
+
+	.compose-column-form {
+		.kanban-card {
+			margin-top: 0px;
+			background: #f9f9f9;
+		}
+	}
+
+	.add-new-column a:hover {
+		color: @text-color;
 	}
 }
 
