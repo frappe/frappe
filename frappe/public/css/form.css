@@ -320,7 +320,7 @@ h6.uppercase,
 .timeline-item.notification-content * {
   color: #8D99A6;
 }
-.timeline-item.notification-content .icon-fixed-width {
+.timeline-item.notification-content .fa-fw {
   margin-left: 36px;
 }
 .timeline-item.notification-content .octicon-heart {
