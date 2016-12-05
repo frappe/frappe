@@ -155,7 +155,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 			primary_action_label: __("Add")
 		}));
 
-		dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+		me.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 
 		var myself = me.get_input("myself").on("click", function() {
 			me.toggle_myself(this);
