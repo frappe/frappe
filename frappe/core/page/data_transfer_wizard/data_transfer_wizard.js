@@ -29,13 +29,16 @@ frappe.DataTransferWizard = Class.extend({
 			frappe.model.with_doctype(me.doctype, function() {
 				if(me.doctype) {
 					// render select columns
-					var selected_doctype = frappe.get_doc('DocType', me.doctype);
-					console.log(selected_doctype);
-					selected_doctype["reqd"] = true;
-					var doctype_list = [selected_doctype];
+					
+					// for (var i = 0; i < selected_doctype.fields.length; i++) {
+					// 		console.log(selected_doctype.fields[i]);
+						
+					// }
+					// selected_doctype["reqd"] = true;
+					// var doctype_list = [selected_doctype];
 
-					$(frappe.render_template("try_html", {doctype: doctype_list}))
-						.appendTo(me.doctype-column.empty());
+					// $(frappe.render_template("try_html", {doctype: doctype_list}))
+					// 	.appendTo(me.doctype-column.empty());
 				}
 			});
 			
@@ -50,44 +53,23 @@ frappe.DataTransferWizard = Class.extend({
 			args: {
 				method: 'frappe.core.page.data_transfer_wizard.import_tool.upload',
 			},
-			onerror: function(r) {
-				me.onerror(r);
-			},
-			queued: function() {
-				// async, show queued
-				msg_dialog.clear();
-				msgprint(__("Import Request Queued. This may take a few moments, please be patient."));
-			},
-			running: function() {
-				// update async status as running
-				msg_dialog.clear();
-				msgprint(__("Importing..."));
-				me.write_messages([__("Importing")]);
-				me.has_progress = false;
-			},
-			progress: function(data) {
-				// show callback if async
-				if(data.progress) {
-					frappe.hide_msgprint(true);
-					me.has_progress = true;
-					frappe.show_progress(__("Importing"), data.progress[0],
-						data.progress[1]);
-				}
-			},
-			callback: function(attachment, r) {
-				if(r.message.error || r.message.messages.length==0) {
-					me.onerror(r);
-				} else {
-					if(me.has_progress) {
-						frappe.show_progress(__("Importing"), 1, 1);
-						setTimeout(frappe.hide_progress, 1000);
-					}
-
-					r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
-						concat(r.message.messages)
-
-					me.write_messages(r.messages);
-				}
+		
+			callback: function(r) {
+				// console.log(r)
+				// console.log(me)
+				// r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
+				// 	concat(r.message.messages)
+				// me.write_data(r);
+				var selected_doctype = frappe.get_doc('DocType', me.doctype);
+				me.page.main.find(".imported-data").removeClass("hide");
+				me.imported_data = me.page.main.find(".imported-data-row");
+				// for (var i = 0; i < r.length; i++) {
+				// 	for (var j = 0; j < r[i].length; j++) {
+				// 		console.log(r[i][j]);
+				// 	}
+				// }
+				$(frappe.render_template("try_html", {imported_data: r, fields:selected_doctype.fields})).appendTo(me.imported_data.empty());
+	
 			},
 			is_private: true
 		});
@@ -101,50 +83,19 @@ frappe.DataTransferWizard = Class.extend({
 			}
 		})
 
-	},
-	write_messages: function(data) {
-		this.page.main.find(".import-data").removeClass("hide");
-		var parent = this.page.main.find(".import-log-messages").empty();
-
-		// TODO render using template!
-		for (var i=0, l=data.length; i<l; i++) {
-			var v = data[i];
-			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(parent);
-			if(v.substr(0,5)=='Error') {
-				$p.css('color', 'red');
-			} else if(v.substr(0,8)=='Inserted') {
-				$p.css('color', 'green');
-			} else if(v.substr(0,7)=='Updated') {
-				$p.css('color', 'green');
-			} else if(v.substr(0,5)=='Valid') {
-				$p.css('color', '#777');
-			}
-		}
-	},
-	onerror: function(r) {
-		if(r.message) {
-			// bad design: moves r.messages to r.message.messages
-			r.messages = $.map(r.message.messages, function(v) {
-				var msg = v.replace("Inserted", "Valid")
-					.replace("Updated", "Valid").split("<");
-				if (msg.length > 1) {
-					v = msg[0] + (msg[1].split(">").slice(-1)[0]);
-				} else {
-					v = msg[0];
-				}
-				return v;
-			});
-
-			r.messages = ["<h4 style='color:red'>" + __("Import Failed") + "</h4>"]
-				.concat(r.messages);
-
-			r.messages.push("Please correct the format of the file and import again.");
-
-			frappe.show_progress(__("Importing"), 1, 1);
-
-			this.write_messages(r.messages);
-		}
 	}
+	// write_data: function(data) {
+	// 	this.page.main.find(".imported-data").removeClass("hide");
+	// 	var parent = this.page.main.find(".imported-data-row").empty();
+
+	// 	// TODO render using template!
+	// 	for (var i=0, l=data.length; i<l; i++) {
+	// 		var v = data[i];
+	// 		console.log(v)
+	// 		frappe.render_template("try_html", {doctype: doctype_list}).appendTo(parent);
+	// 	}
+	// }
+	
 });
 
 

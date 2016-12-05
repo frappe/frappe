@@ -15,18 +15,17 @@ def upload():
 		from frappe.utils.file_manager import get_uploaded_content
 		fname, fcontent = get_uploaded_content()
 	print "============>>>>>>>>>> TESTING"
-	print fname
 	output = StringIO.StringIO()
 	output.write(fcontent)
-	print output
-	#print fcontent
 	wb = load_workbook(output)
 	ws = wb.active
+	excel_file_as_list = []
 	for row in ws.iter_rows(max_row=10):
+		tmp_list = []
 		for cell in row:
-			print cell.value
-	
-
+			tmp_list.append(cell.value)
+		excel_file_as_list.append(tmp_list)
+	return excel_file_as_list
 
 
 

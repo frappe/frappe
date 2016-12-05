@@ -1,0 +1,30 @@
+<div style="margin-left: 15px;">
+	<h5 style="margin-top: 10px;">File Data</h5>
+    <div class="table-responsive">
+  		<table class="table table-bordered table-hover">
+  		<tr>
+			{% for (var i = 0; i < imported_data[0].length; i++) { %}
+			<td>
+				<select class="form-control" placeholder="{%= __("Select Fieldtype") %}">
+		        <option value=""></option>
+				{% for (var j = 0; j < fields.length; j++) { %}
+				<option value="{%= fields[j].fieldname %}">{{ __(fields[j].label) }}</option>
+		        {% } %}
+				</select>
+			</td>
+			{% } %}
+    	</tr>
+  		</table>
+    </div>
+	<div class="table-responsive">
+  		<table class="table table-bordered table-hover">
+  		{% for (var i = 0; i < imported_data.length; i++) { %}
+  		<tr>
+  			{% for (var j = 0; j < imported_data[i].length; j++) { 
+				var cell_data = imported_data[i][j] %}
+			<td>{{ cell_data }}</td>
+			{% } %}
+    	</tr>
+    	{% } %}
+  		</table>
+    </div>
