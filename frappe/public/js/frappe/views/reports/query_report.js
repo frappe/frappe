@@ -53,8 +53,8 @@ frappe.views.QueryReport = Class.extend({
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
-		this.wrapper.find(".expand-all").on("click", function() { me.expand_all();});
-		this.wrapper.find(".collapse-all").on("click", function() { me.collapse_all();});
+		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
+		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
 	},
@@ -569,25 +569,15 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 	},
-	expand_all: function() {
+	toggle_all: function(collapse) {
 		var me = this;
 		for(var i=0, l=this.data.length; i<l; i++) {
 			var item = this.data[i];
-			item._collapsed = false;
+			item._collapsed = collapse;
 			me.dataView.updateItem(item.id, item);
 		}
-		$(".expand-all").prop('disabled', true);
-		$(".collapse-all").prop('disabled', false);
-	},
-	collapse_all: function() {
-		var me = this;
-		for(var i=0, l=this.data.length; i<l; i++) {
-			var item = this.data[i];
-			item._collapsed = true;
-			me.dataView.updateItem(item.id, item);
-		}
-		$(".collapse-all").prop('disabled', true);
-		$(".expand-all").prop('disabled', false);
+		$(".collapse-all").prop('disabled', collapse);
+		$(".expand-all").prop('disabled', !collapse);
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
