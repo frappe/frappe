@@ -85,7 +85,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		if(!me.dialog) {
-			me.dialog = new frappe.ui.to_do_dialog({
+			me.dialog = new frappe.ui.form.AssignToDialog({
 				obj: me,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
@@ -128,7 +128,7 @@ frappe.ui.form.AssignTo = Class.extend({
 });
 
 
-frappe.ui.to_do_dialog = Class.extend({
+frappe.ui.form.AssignToDialog = Class.extend({
 	init:function(opts){
 		var me = this
 		$.extend(me,new frappe.ui.Dialog({
@@ -155,7 +155,7 @@ frappe.ui.to_do_dialog = Class.extend({
 			primary_action_label: __("Add")
 		}));
 
-		dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+		me.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 
 		var myself = me.get_input("myself").on("click", function() {
 			me.toggle_myself(this);
