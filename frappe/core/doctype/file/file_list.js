@@ -85,30 +85,24 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("Import .zip"), function() {
 			// make upload dialog
 			dialog = frappe.ui.get_upload_dialog({
-				"args": {
-					"folder": doclist.current_folder,
-					"from_form": 1
+				args: {
+					folder: doclist.current_folder,
+					from_form: 1
 				},
-				"callback": function(attachment, r) { 
+				callback: function(attachment, r) {
 					frappe.call({
-						method: "frappe.core.doctype.file.file.upload_zip",
+						method: "frappe.core.doctype.file.file.unzip_file",
 						args: {
-							"file_name" : r.message["file_name"],
-							"folder": doclist.current_folder,
-							"name": r.message["name"],
+							name: r.message["name"],
 						},
-						freeze: true,
-						freeze_message: __("uploading files"),
 						callback: function(r) {
 							if(!r.exc) {
-								frappe.msgprint(__("Files uploaded successfully"));
-								doclist.refresh();
+								//doclist.refresh();
 							} else {
 								frappe.msgprint(__("Error in uploading files." + r.exc));
 							}
 						}
 					});
-					doclist.refresh(); 
 				},
 			});
 		});
@@ -154,7 +148,7 @@ frappe.listview_settings['File'] = {
 					"new_parent": doclist.current_folder,
 					"old_parent": doclist.old_parent
 				},
-				callback:function(r){
+				callback:function(r) {
 					doclist.paste = false;
 					frappe.msgprint(__(r.message));
 					doclist.selected_files = [];
@@ -174,7 +168,6 @@ frappe.listview_settings['File'] = {
 		}
 	},
 	refresh: function(doclist) {
-		// set folder before querying
 		var name_filter = doclist.filter_list.get_filter("file_name");
 
 		var folder_filter = doclist.filter_list.get_filter("folder");

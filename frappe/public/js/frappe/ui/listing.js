@@ -175,6 +175,7 @@ frappe.ui.Listing = Class.extend({
 		this.wrapper.find('.result').toggle(true);
 		this.wrapper.find('.no-result').toggle(false);
 		this.start = 0;
+		if(this.onreset) this.onreset();
 	},
 
 	set_filters_from_route_options: function() {

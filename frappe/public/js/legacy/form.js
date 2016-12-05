@@ -886,7 +886,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
-	if(group && group.indexOf("icon")!==-1) group = null;
+	if(group && group.indexOf("fa fa-")!==-1) group = null;
 	return this.page.add_inner_button(label, fn, group);
 }
 
