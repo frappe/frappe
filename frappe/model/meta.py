@@ -155,6 +155,22 @@ class Meta(Document):
 
 		return search_fields
 
+	def get_fields_to_fetch(self, link_fieldname):
+		'''Returns a list of docfield objects for fields whose values
+		are to be fetched and updated for a particular link field
+
+		These fields are of type Data, Link, Text, Readonly and their
+		options property is set as `link_fieldname`.`source_fieldname`'''
+
+		out = []
+		for df in self.fields:
+			if df.fieldtype in ('Data', 'Read Only', 'Text', 'Small Text',
+				'Text Editor', 'Code') and df.options and \
+				df.options.startswith(link_fieldname + '.'):
+				out.append(df)
+
+		return out
+
 	def get_list_fields(self):
 		list_fields = ["name"] + [d.fieldname \
 			for d in self.fields if (d.in_list_view and d.fieldtype in type_map)]
