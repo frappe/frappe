@@ -66,6 +66,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
 
 	# if not committed, delayed task doesn't find the communication
+	if attachments:
+		add_attachments(comm.name,attachments)
+	
 	frappe.db.commit()
 
 	if cint(send_email):
@@ -319,6 +322,20 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		cc = filter_email_list(doc, cc, exclude, is_cc=True)
 
 	return cc
+
+
+def add_attachments(dn,attachments):
+	
+	from frappe.utils.file_manager import save_url
+
+	attachments = json.loads(attachments)
+	
+	# loop through attachments
+	for a in attachments:
+		attach = frappe.db.get_value("File",{"name":a},["file_name", "file_url", "is_private"],as_dict=1)
+				
+		# save attachments to new doc
+		save_url(attach.file_url, attach.file_name, "Communication", dn, "Home/Attachments", attach.is_private)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False):
 	# temp variables
