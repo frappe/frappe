@@ -129,7 +129,7 @@ frappe.search = {
 			if(route[0]==='Form') {
 				values.push([route[2], route]);
 			}
-			else if(in_list(['List', 'Report', 'modules'], route[0])) {
+			else if(in_list(['List', 'Report', 'modules', 'query-report'], route[0])) {
 				if(route[1]) {
 					values.push([route[1], route]);
 				}
@@ -146,11 +146,12 @@ frappe.search = {
 			if(match[1][0]==='Form') {
 				out.label = __(match[1][1]) + " " + match[1][2].bold();
 				out.value = __(match[1][1]) + " " + match[1][2];
-			} else if(in_list(['List', 'Report', 'modules'], match[1][0])) {
+			} else if(in_list(['List', 'Report', 'modules', 'query-report'], match[1][0])) {
 				var type = match[1][0];
-				if(type==='modules') type = 'Module';
-				out.label = __(match[1][1]).bold() + " " + __(type);
-				out.value = __(match[1][1]) + " " + __(type);
+				if(type==='modules') label = 'Module';
+				else if(type==='query-report') label = 'Report';
+				out.label = __(match[1][1]).bold() + " " + __(label);
+				out.value = __(match[1][1]) + " " + __(label);
 			} else {
 				out.label = match[0].bold();
 				out.value = match[0];

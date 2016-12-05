@@ -45,8 +45,8 @@ frappe.views.QueryReport = Class.extend({
 		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
-			<button class="btn btn-secondary btn-default btn-sm expand-all" style="margin: 10px;">'+__('Expand All')+'</button>\
-			<button class="btn btn-secondary btn-default btn-sm collapse-all" style="margin: 10px;">'+__('Collapse All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
@@ -57,6 +57,9 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
+	},
+	toggle_expand_collapse_buttons: function(show) {
+		this.wrapper.find(".expand-all, .collapse-all").toggleClass('hidden', !!!show);
 	},
 	make_toolbar: function() {
 		var me = this;
@@ -150,6 +153,8 @@ frappe.views.QueryReport = Class.extend({
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
 		this.chart_area.toggle(false);
+		this.toggle_expand_collapse_buttons(false);
+		this.is_tree_report = false;
 
 		var report_settings = frappe.query_reports[this.report_name];
 
@@ -160,7 +165,9 @@ frappe.views.QueryReport = Class.extend({
 
 		}()).then(function() {
 			me.refresh();
-		})
+		});
+
+
 
 	},
 	print_report: function() {
@@ -414,6 +421,8 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+
+		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
 
 	make_columns: function(columns) {
@@ -604,6 +613,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.query_report;
+		me.is_tree_report = true;
 		var $span = $("<span></span>")
 			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
 			.html(value);
