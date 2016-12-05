@@ -35,7 +35,7 @@ def upload():
 	if frappe.form_dict.filedata:
 		filedata = save_uploaded(dt, dn, folder, is_private)
 	elif file_url:
-		filedata = save_url(file_url, filename, dt, dn, folder)
+		filedata = save_url(file_url, filename, dt, dn, folder, is_private)
 
 	comment = {}
 	if dt and dn:
@@ -60,7 +60,7 @@ def save_uploaded(dt, dn, folder, is_private):
 	else:
 		raise Exception
 
-def save_url(file_url, filename, dt, dn, folder):
+def save_url(file_url, filename, dt, dn, folder, is_private):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
@@ -70,10 +70,11 @@ def save_url(file_url, filename, dt, dn, folder):
 	f = frappe.get_doc({
 		"doctype": "File",
 		"file_url": file_url,
-		"fieldname": filename,
+		"file_name": filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
-		"folder": folder
+		"folder": folder,
+		"is_private": is_private
 	})
 	f.flags.ignore_permissions = True
 	try:
