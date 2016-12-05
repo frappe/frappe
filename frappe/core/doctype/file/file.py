@@ -23,6 +23,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
+import zipfile
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -368,3 +369,23 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
+
+@frappe.whitelist()
+def upload_zip(file_name, folder, name):
+	if ".zip" in file_name:
+		zip_path = frappe.get_site_path("public", "files")
+		zip_path_with_filename=frappe.get_site_path("public", "files", file_name)
+		with zipfile.ZipFile(zip_path_with_filename) as zf:
+			zf.extractall(zip_path)
+			for info in zf.infolist():
+				data = info.filename
+				file_doc = frappe.new_doc("File")
+				file_doc.file_name = info.filename
+				file_doc.file_size = info.file_size
+				file_doc.folder = folder
+				file_doc.file_url = "/files/" + info.filename
+				file_doc.validate()
+				file_doc.insert()
+	else:
+		frappe.throw("Please upload .zip file")
+	frappe.delete_doc("File", name)
