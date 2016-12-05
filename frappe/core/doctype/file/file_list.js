@@ -82,7 +82,7 @@ frappe.listview_settings['File'] = {
 			frappe.set_route("Form", "File", doclist.current_folder);
 		});
 
-		doclist.page.add_menu_item(__("Import Zip-Archive"), function() {
+		doclist.page.add_menu_item(__("Import .zip"), function() {
 			// make upload dialog
 			dialog = frappe.ui.get_upload_dialog({
 				"args": {
@@ -91,23 +91,23 @@ frappe.listview_settings['File'] = {
 				},
 				"callback": function(attachment, r) { 
 					frappe.call({
-			                method: "frappe.core.doctype.file.file.upload_zip",
-			                args: {
-			                	"file_name" : r.message["file_name"],
-			                	"folder": doclist.current_folder,
-								"name": r.message["name"],
-			                },
-			                freeze: true,
-			                freeze_message: __("uploading files"),
-			                callback: function(r){
-			                    if(!r.exc) {
-			                        frappe.msgprint(__("Files uploaded successfully"));
-			                        doclist.refresh();
-			                    } else {
-			                        frappe.msgprint(__("Error in uploading files." + r.exc));
-			                    }
-			                }
-			        });
+						method: "frappe.core.doctype.file.file.upload_zip",
+						args: {
+							"file_name" : r.message["file_name"],
+							"folder": doclist.current_folder,
+							"name": r.message["name"],
+						},
+						freeze: true,
+						freeze_message: __("uploading files"),
+						callback: function(r) {
+							if(!r.exc) {
+								frappe.msgprint(__("Files uploaded successfully"));
+								doclist.refresh();
+							} else {
+								frappe.msgprint(__("Error in uploading files." + r.exc));
+							}
+						}
+					});
 					doclist.refresh(); 
 				},
 			});
