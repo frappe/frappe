@@ -84,5 +84,19 @@ def get_data():
 					"label": _("Portal Settings"),
 				}
 			]
-		}
+		},
+		{
+			"label": _("Knowledge Base"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Help Category",
+				},
+				{
+					"type": "doctype",
+					"name": "Help Article",
+				},
+			]
+		},
+
 	]
