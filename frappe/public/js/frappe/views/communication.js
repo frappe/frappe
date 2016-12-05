@@ -263,26 +263,40 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var me = this
 		me.attachments = []
-		$("<h6 class='text-muted add-attachment' style='margin-top: 12px;cursor:pointer;'>"
-				+__("Add Attachments")+"<i class=\"octicon octicon-plus\" style=\"margin-left: 4px;\"></i></h6><div class='attach-list'></div>").appendTo(attach.empty())
-			attach.find(".add-attachment").on('click',this,function() {
-			me.upload = frappe.ui.get_upload_dialog(me.frm ? {
-				"args": me.frm ? me.frm.attachments.get_args() : {from_form: 1,folder:"Home/Attachments"},
-				"callback": function (attachment, r) {
+
+		var args = {
+			args: {
+				from_form: 1,folder:"Home/Attachments"
+			},
+			callback: function(attachment, r) { me.attachments.push(attachment); },
+			max_width: null,
+			max_height: null
+		};
+
+		if(me.frm) {
+			args = {
+				args: (me.frm.attachments.get_args
+				 	? me.frm.attachments.get_args()
+				 	: { from_form: 1,folder:"Home/Attachments" }),
+				callback: function (attachment, r) {
 					me.frm.attachments.attachment_uploaded(attachment, r)
 				},
-				"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-				"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
-			}:
-			{
-			"args": {from_form: 1,folder:"Home/Attachments"},
-			"callback": function(attachment, r) { me.attachments.push(attachment)},
-			"max_width": null,
-			"max_height": null
-		});
+				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+				max_height: me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+			}
+
+		}
+
+		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
+				+__("Select Attachments")+"</h6><div class='attach-list'></div>\
+				<p class='add-more-attachments'>\
+				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
+				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			attach.find(".add-more-attachments a").on('click',this,function() {
+			me.upload = frappe.ui.get_upload_dialog(args);
 		})
 		me.render_attach()
-		
+
 	},
 	render_attach:function(){
 		var fields = this.dialog.fields_dict;

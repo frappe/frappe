@@ -63,7 +63,7 @@ frappe.ui.form.Attachments = Class.extend({
 
 		var me = this;
 		var $attach = $(repl('<li class="attachment-row">\
-				<a class="close" data-owner="%(owner)s">&times;</a>\
+				<a class="close">&times;</a>\
 				%(lock_icon)s\
 				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
 					class="ellipsis" style="max-width: calc(100% - 43px);">\
@@ -235,9 +235,8 @@ frappe.ui.get_upload_dialog = function(opts){
 			},
 			callback: function(r){
 			    dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
+				dialog.$wrapper.find('.private-file input').prop('checked', r.message.is_private);
 				opts.args.filename = r.message.file_name
-				dialog.$wrapper.find('.private-file input').prop('checked',r.message.is_private)
-				
 			}
 	    });
 	});
