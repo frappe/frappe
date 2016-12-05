@@ -2,16 +2,18 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import hashlib
+import json
+from werkzeug.exceptions import NotFound, Forbidden
+
 import frappe
 import time
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
+from frappe.model import optional_fields, document_versioning
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
-from werkzeug.exceptions import NotFound, Forbidden
-import hashlib, json
-from frappe.model import optional_fields
 
 # once_only validation
 # methods
@@ -188,6 +190,7 @@ class Document(BaseDocument):
 		self._validate()
 		self.set_docstatus()
 		self.flags.in_insert = False
+		temp_doc = document_versioning.dump_doc(self)
 
 		# run validate, on update etc.
 
@@ -209,7 +212,9 @@ class Document(BaseDocument):
 		# delete __islocal
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
-
+		if temp_doc is not None:
+			temp_doc.new_json_blob = self.as_json()
+			temp_doc.save()
 		return self
 
 	def save(self, *args, **kwargs):
@@ -237,7 +242,7 @@ class Document(BaseDocument):
 			return
 
 		self.check_permission("write", "save")
-
+		temp_doc = document_versioning.dump_doc(self)
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
@@ -261,7 +266,9 @@ class Document(BaseDocument):
 
 		self.update_children()
 		self.run_post_save_methods()
-
+		if temp_doc is not None:
+			temp_doc.new_json_blob = self.as_json()
+			temp_doc.save()
 		return self
 
 	def update_children(self):

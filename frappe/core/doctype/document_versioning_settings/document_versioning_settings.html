@@ -1,0 +1,33 @@
+<!-- jinja -->
+<div class="row" id="module-row" align="center">
+  <p>
+    <br />
+    Select modules to store field history.
+    <br />
+    Changes are automatically saved.
+  </p>
+  <div class="container container-fluid">
+
+    <div class="form" id="module-list" align="left">
+      {% for module in modules %}
+        <div class="col col-lg-4 col-md-4 col-sm-12">
+          <p>
+            {% if module.value %}
+              <input class="select-module" id="{{ module.name }}" type="checkbox" checked=true>
+            {% else %}
+              <input class="select-module" id="{{ module.name }}" type="checkbox">
+            {% endif %}
+            {{ module.name }}
+            </input>
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  $(".select-module").click(function(e){
+    cur_frm.save();
+});
+</script>
