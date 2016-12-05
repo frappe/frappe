@@ -60,7 +60,8 @@ $.extend(frappe.model, {
 		// set route options
 		if(frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function(fieldname, value) {
-				if(frappe.meta.has_field(doctype, fieldname)) {
+				doc_meta = frappe.meta.has_field(doctype, fieldname)
+				if(doc_meta && !doc_meta.no_copy && !doc_meta.read_only) {
 					doc[fieldname]=value;
 				}
 			});
