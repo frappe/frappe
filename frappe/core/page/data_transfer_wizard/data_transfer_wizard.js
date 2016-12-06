@@ -26,19 +26,9 @@ frappe.DataTransferWizard = Class.extend({
 		this.select.on("change", function() {
 			me.doctype = $(this).val();
 			console.log(me.doctype);
+			me.page.main.find(".select-file").removeClass("hide");
 			frappe.model.with_doctype(me.doctype, function() {
 				if(me.doctype) {
-					// render select columns
-					
-					// for (var i = 0; i < selected_doctype.fields.length; i++) {
-					// 		console.log(selected_doctype.fields[i]);
-						
-					// }
-					// selected_doctype["reqd"] = true;
-					// var doctype_list = [selected_doctype];
-
-					// $(frappe.render_template("try_html", {doctype: doctype_list}))
-					// 	.appendTo(me.doctype-column.empty());
 				}
 			});
 			
@@ -55,8 +45,7 @@ frappe.DataTransferWizard = Class.extend({
 			},
 		
 			callback: function(r) {
-				// console.log(r)
-				// console.log(me)
+				
 				// r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
 				// 	concat(r.message.messages)
 				// me.write_data(r);
@@ -68,7 +57,8 @@ frappe.DataTransferWizard = Class.extend({
 				// 		console.log(r[i][j]);
 				// 	}
 				// }
-				$(frappe.render_template("try_html", {imported_data: r, fields:selected_doctype.fields})).appendTo(me.imported_data.empty());
+				$(frappe.render_template("try_html", {imported_data: r, fields:selected_doctype.fields}))
+										.appendTo(me.imported_data.empty());
 	
 			},
 			is_private: true

@@ -1,29 +1,40 @@
 <div style="margin-left: 15px;">
-	<h5 style="margin-top: 10px;">File Data</h5>
-    <div class="table-responsive">
-  		<table class="table table-bordered table-hover">
-  		<tr>
-			{% for (var i = 0; i < imported_data[0].length; i++) { %}
-			<td>
-				<select class="form-control" placeholder="{%= __("Select Fieldtype") %}">
-		        <option value=""></option>
-				{% for (var j = 0; j < fields.length; j++) { %}
-				<option value="{%= fields[j].fieldname %}">{{ __(fields[j].label) }}</option>
-		        {% } %}
-				</select>
-			</td>
+
+	<div class="form-group">
+      <label for="">{%= __("3. Select the row number to start importing from:") %}</label>
+      <select class="form-control row-no">
+            <option value="" disabled selected>{%= __("Select Row") %}</option>
+            {% for (var i = 0; i < imported_data.length; i++) { %}
+ 			<option value="{{ i }}">{{ __(i) }}</option>
 			{% } %}
-    	</tr>
-  		</table>
+      </select>
     </div>
+
 	<div class="table-responsive">
   		<table class="table table-bordered table-hover">
-  		{% for (var i = 0; i < imported_data.length; i++) { %}
+  		 <caption>{%= __("Imported File Data") %}</caption>
+  		{% for (var i = -1; i < imported_data.length; i++) { %}
   		<tr>
-  			{% for (var j = 0; j < imported_data[i].length; j++) { 
-				var cell_data = imported_data[i][j] %}
-			<td>{{ cell_data }}</td>
-			{% } %}
+  			{% if (i == -1) { %}
+  				<td>{%= __("Row No.") %}</td>
+	  			{% for (var j = 0; j < imported_data[0].length; j++) { %}
+				<td>
+					<select class="form-control">
+			        <option value="" disabled selected>{%= __("Select Fieldtype") %}</option>
+					{% for (var k = 0; k < fields.length; k++) { %}
+					<option value="{%= fields[k].fieldname %}">{{ __(fields[k].label) }}</option>
+			        {% } %}
+					</select>
+				</td>
+				{% } %}
+  			{% } %}
+  			{% if (i != -1) { %}
+  				<td>{{i}}</td>
+	  			{% for (var j = 0; j < imported_data[i].length; j++) { 
+					var cell_data = imported_data[i][j] %}
+				<td>{{ cell_data }}</td>
+				{% } %}
+  			{% } %}
     	</tr>
     	{% } %}
   		</table>

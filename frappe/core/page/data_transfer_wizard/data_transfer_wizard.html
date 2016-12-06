@@ -3,14 +3,14 @@
 	<div class="import-tool-section">		
 		<div class="">
 			<h3>{%= __("Instructions") %}</h3>
-		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
-		    <p class="text-muted">{%= __("1. dsyrt herh erety rh rghetyy hf v etget efe theh er tyrtt ") %}</p>
+		    <p class="text-muted">{%= __("1. This tool is used for importing tablular data in database.") %}</p>
+		    <p class="text-muted">{%= __("2. It will import data from worksheet 1 only.") %}</p>
 		</div>
 		<hr>
 		<div class="">
 			<h6>{%= __("Select Type of Document to Upload") %}</h6>
-            <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
-                <option value=""></option>
+            <select class="form-control doctype" style="width: 200px">
+                <option value="" disabled selected>{%= __("Select Type") %}</option>
                 {% for (var i=0, l= frappe.boot.user.can_import.length; i < l; i++) {
                     var doctype = frappe.boot.user.can_import[i]; %}
                 <option value="{%= doctype %}">{%= __(doctype) %}</option>
@@ -18,17 +18,18 @@
             </select>
             <br>
         </div>
-
-        <h4>{{ __("1. Select File") }}</h4>
+        <div class="select-file hide">
+        <h4>{{ __("1. Select the File") }}</h4>
         <div class="upload-area"></div>
 		<br>
-        <h4>{{ __("2. Upload") }}</h4>        
+        <h4>{{ __("2. Upload the File") }}</h4>        
         <p>
             <button class="btn btn-sm btn-primary btn-import">{{ __("Upload") }}</button>
         </p>
+        </div>
         <br>
         <div class="imported-data hide">
-            <h4>{{ __("3. Import") }}</h4>
+            <h4>{{ __("3. Select the Row and Columns") }}</h4>
             <div class="imported-data-row"></div>
         </div>
 	</div>
