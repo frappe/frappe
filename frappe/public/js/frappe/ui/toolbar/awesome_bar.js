@@ -210,11 +210,14 @@ frappe.search = {
 frappe.search.verbs = [
 	// search in list if current
 	function(txt) {
+		
 		var route = frappe.get_route();
+		//console.log("current route", route);
 		if(route[0]==="List" && txt.indexOf(" in") === -1) {
 			// search in title field
 			var meta = frappe.get_meta(frappe.container.page.doclistview.doctype);
 			var search_field = meta.title_field || "name";
+			//console.log("search_field",search_field);
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			frappe.search.options.push({
@@ -299,8 +302,10 @@ frappe.search.verbs = [
 	// reports
 	function(txt) {
 		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
+			//console.log("Reports", (frappe.boot.user.all_reports));
 			var report = frappe.boot.user.all_reports[match];
 			var route = [];
+			
 			if(report.report_type == "Report Builder")
 				route = ["Report", report.ref_doctype, match];
 			else
@@ -317,6 +322,7 @@ frappe.search.verbs = [
 	// pages
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
+			//console.log("Pages", frappe.search.pages)
 			return {
 				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
@@ -361,6 +367,7 @@ frappe.search.verbs = [
 		if(in_list(txt.split(" "), "in")) {
 			parts = txt.split(" in ");
 			frappe.search.find(frappe.boot.user.can_read, parts[1], function(match) {
+				//console.log("Can read: ", frappe.boot.user.can_read);
 				return {
 					label: __('Find {0} in {1}', [__(parts[0]).bold(), __(match).bold()]),
 					value: __('Find {0} in {1}', [__(parts[0]), __(match)]),
@@ -387,6 +394,7 @@ frappe.search.verbs = [
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
 					onclick: function(match) {
+						//console.log("match1 ", match);
 						msgprint(formatted_value, "Result");
 					}
 				});
@@ -395,5 +403,55 @@ frappe.search.verbs = [
 			}
 
 		};
+	},
+
+	function(txt) {
+		var parts = []
+		if(in_list(txt.split(" "), "search")) {
+			parts = txt.split(" ");
+		}
+		if(parts.length <2) return;
+
+
+		var formatted_value = __('foobar');
+		var val, rendered, path;
+		var results_list = "";
+
+		frappe.call({
+			method: "frappe.utils.global_search.search",
+			args: {
+				text: parts[1], start: 0, limit: 20
+			},
+			callback: function(r) {
+
+				if(r.message){
+					r.message.forEach(function(msg){
+						result = ""
+						console.log(msg);
+						val = msg.content;
+						index = val.indexOf(parts[1]);
+						path = '#Form/' + msg.doctype + '/' + msg.name;
+						rendered = val.substring(0, index) + parts[1].bold() + val.substring((index + parts[1].length), val.length);
+						console.log(rendered);
+						// result.push(path);
+						// result.push(rendered);
+						result += ('<a href="' + path + '" class="list-group-item">' + rendered + '</a>');
+						results_list += result;
+
+					});
+				}
+				console.log("Results:", results_list);
+			}
+			
+		})
+
+		frappe.search.options.push({
+			label: __("Search: " + parts[1].bold()),
+			value: __("Search: " + parts[1].bold()),
+			match: 42,
+			onclick: function(match) {
+					msgprint('<div class="list-group">' + results_list + '</div>', "Search Results");
+			}
+		});
 	}
 ];
