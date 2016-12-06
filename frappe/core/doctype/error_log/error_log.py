@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class ErrorLog(Document):
 	def onload(self):
 		if not self.seen:
-			self.db_set('seen', 1)
+			self.db_set('seen', 1, update_modified=0)
 			frappe.db.commit()
 
 def set_old_logs_as_seen():
