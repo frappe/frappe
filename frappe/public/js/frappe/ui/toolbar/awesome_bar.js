@@ -147,7 +147,7 @@ frappe.search = {
 				out.label = __(match[1][1]) + " " + match[1][2].bold();
 				out.value = __(match[1][1]) + " " + match[1][2];
 			} else if(in_list(['List', 'Report', 'modules', 'query-report'], match[1][0])) {
-				var type = match[1][0];
+				var type = match[1][0], label = type;
 				if(type==='modules') label = 'Module';
 				else if(type==='query-report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);

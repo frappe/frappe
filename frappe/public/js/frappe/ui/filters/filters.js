@@ -228,7 +228,7 @@ frappe.ui.FilterList = Class.extend({
 		});
 
 		//setup date-time range pickers
-		$(".filter-input-date").each(function(i,v) {
+		this.wrapper.find(".filter-input-date").each(function(i,v) {
 			var name = $(v).data("name");
 			var f = frappe.ui.form.make_control({
 					df: {
