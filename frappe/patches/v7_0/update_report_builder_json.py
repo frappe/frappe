@@ -8,7 +8,5 @@ def execute():
 	for report in frappe.db.sql_list(""" select name from `tabReport` where report_type = 'Report Builder'
 		and is_standard = 'No'"""):
 		doc = frappe.get_doc("Report", report)
-		print report
 		doc.update_report_json()
-		print doc.json
 		doc.db_set("json", doc.json, update_modified=False)
