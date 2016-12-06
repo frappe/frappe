@@ -186,7 +186,7 @@ frappe.form.formatters = {
 			return repl("<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='fa fa-small icon-white icon-%(icon)s'></i> %(value)s</span>", {
+				<i class='fa fa-small fa-white fa-%(icon)s'></i> %(value)s</span>", {
 					value: value,
 					style: workflow_state.style.toLowerCase(),
 					icon: workflow_state.icon
