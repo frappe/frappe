@@ -14,6 +14,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Email Group",
+					"description": _("Email Group List"),
+				},
+				{
+					"type": "doctype",
 					"name": "ToDo",
 					"label": _("To Do"),
 					"description": _("Documents assigned to you and by you."),
