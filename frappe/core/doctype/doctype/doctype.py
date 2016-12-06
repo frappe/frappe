@@ -71,8 +71,12 @@ class DocType(Document):
 
 	def update_fields_to_fetch(self):
 		'''Update values for newly set fetch values'''
-		old_meta = frappe.get_meta(frappe.get_doc('DocType', self.name), cached=False)
-		old_fields_to_fetch = [df.fieldname for df in old_meta.get_fields_to_fetch()]
+		try:
+			old_meta = frappe.get_meta(frappe.get_doc('DocType', self.name), cached=False)
+			old_fields_to_fetch = [df.fieldname for df in old_meta.get_fields_to_fetch()]
+		except frappe.DoesNotExistError:
+			old_fields_to_fetch = []
+
 		new_meta = frappe.get_meta(self, cached=False)
 
 		if set(old_fields_to_fetch) != set([df.fieldname for df in new_meta.get_fields_to_fetch()]):
