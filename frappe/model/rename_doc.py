@@ -327,14 +327,8 @@ def rename_dynamic_links(doctype, old, new):
 		else:
 			# because the table hasn't been renamed yet!
 			parent = df.parent if df.parent != new else old
-
-			# replace for each value where renamed
-			for to_change in frappe.db.sql_list("""select name from `tab{parent}` where
-				{options}=%s and {fieldname}=%s""".format(parent=parent, options=df.options,
-				fieldname=df.fieldname), (doctype, old)):
-
-				frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
-					where name=%s""".format(**df), (new, to_change))
+			frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
+				where {options}=%s and {fieldname}=%s""".format(**df), (new, doctype, old))
 
 def bulk_rename(doctype, rows=None, via_console = False):
 	"""Bulk rename documents

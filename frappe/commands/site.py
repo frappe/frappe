@@ -422,7 +422,7 @@ def _set_limits(context, site, limits):
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
 				frappe.throw('Invalid limit {0}'.format(limit))
 
-			if limit=='expiry':
+			if limit=='expiry' and value:
 				try:
 					datetime.datetime.strptime(value, '%Y-%m-%d')
 				except ValueError:

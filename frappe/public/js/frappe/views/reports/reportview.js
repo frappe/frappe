@@ -194,6 +194,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			});
 		}
 
+		if(opts.add_total_row) {
+			this.add_total_row = opts.add_total_row
+		}
+
 		// first sort
 		if(opts.sort_by) this.sort_by_select.val(opts.sort_by);
 		if(opts.sort_order) this.sort_order_select.val(opts.sort_order);
@@ -239,6 +243,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			doctype: this.doctype,
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
+			add_total_row: this.add_total_row,
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
 			with_childnames: 1,
