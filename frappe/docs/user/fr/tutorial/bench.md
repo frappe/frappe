@@ -10,4 +10,4 @@ Python donc vos applications seront isolées les unes des autres (et vous n'aure
 
 La commande `bench` sera installé et vous aidera aidera dans le développement et la gestion des vos applications.
 
-{suite}
+{next}
