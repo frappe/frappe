@@ -15,6 +15,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
+from frappe.utils.global_search import rebuild_for_doctype
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -33,7 +34,7 @@ class DocType(Document):
 		- Validate series
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
-		- Add `amended_from` and `ameneded_by` if Amendable"""
+		- Add `amended_from` and `amended_by` if Amendable"""
 		self.check_developer_mode()
 
 		self.validate_name()
@@ -60,6 +61,7 @@ class DocType(Document):
 		self.make_amendable()
 		self.validate_website()
 		self.update_fields_to_fetch()
+		self.sync_global_search()
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -153,6 +155,7 @@ class DocType(Document):
 			self.autoname = "naming_series:"
 
 		# validate field name if autoname field:fieldname is used
+	
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
@@ -189,6 +192,13 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
+
+	def sync_global_search(self):
+		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
+		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
+
+		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
+			rebuild_for_doctype(doctype=self.name)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
