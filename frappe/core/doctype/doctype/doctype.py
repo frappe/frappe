@@ -63,7 +63,7 @@ class DocType(Document):
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
-		if frappe.flags.in_patch:
+		if frappe.flags.in_patch or frappe.flags.in_test:
 			return
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
