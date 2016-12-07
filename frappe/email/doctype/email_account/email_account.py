@@ -55,7 +55,7 @@ class EmailAccount(Document):
 
 		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
-				self.get_server()
+				self.get_incoming_server()
 
 			if self.enable_outgoing:
 				self.check_smtp()
@@ -98,14 +98,14 @@ class EmailAccount(Document):
 					or self.email_id,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
-				use_ssl = cint(self.use_tls)
+				use_tls = cint(self.use_tls)
 			)
 			if self.password:
 				server.password = self.get_password()
 			server.sess
 
-	def get_server(self, in_receive=False):
-		"""Returns logged in POP3 connection object."""
+	def get_incoming_server(self, in_receive=False):
+		"""Returns logged in POP3/IMAP connection object."""
 
 		args = frappe._dict({
 			"host": self.email_server,
@@ -184,7 +184,7 @@ class EmailAccount(Document):
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
-				email_server = self.get_server(in_receive=True)
+				email_server = self.get_incoming_server(in_receive=True)
 				if not email_server:
 					return
 
