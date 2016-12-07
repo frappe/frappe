@@ -158,7 +158,7 @@ def get_config(app, module):
 
 	for section in config:
 		for item in section["items"]:
-			if item["type"]=="report" and frappe.db.get_value("Report",item["name"],"disabled")==1:
+			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
 				section["items"].remove(item)
 				continue
 			if not "label" in item:
