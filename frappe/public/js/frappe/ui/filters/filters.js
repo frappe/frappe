@@ -155,7 +155,8 @@ frappe.ui.FilterList = Class.extend({
 			labels:labels
 		};
 		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.label) + "']")
-		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context)).on("click", ".filter-stat-link", function() {
+		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context))
+			.on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
@@ -209,7 +210,7 @@ frappe.ui.FilterList = Class.extend({
 		var me = this;
 		// show filters
 		this.wrapper.find('.new-filter').bind('click', function() {
-			me.add_filter(me.doctype, 'name');
+			me.add_filter();
 		});
 
 
@@ -312,7 +313,7 @@ frappe.ui.FilterList = Class.extend({
 			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
-			value: value,
+			value: value
         });
 
 		this.filters.push(filter);
