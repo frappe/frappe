@@ -197,7 +197,7 @@ def get_context(context):
 
 	def update_list_context(self, context):
 		'''update list context for stanard modules'''
-		if self.web_form_module and hasattr(self.web_form_module, 'get_list_context'):
+		if hasattr(self, 'web_form_module') and hasattr(self.web_form_module, 'get_list_context'):
 			self.web_form_module.get_list_context(context)
 
 	def get_payment_gateway_url(self, doc):
