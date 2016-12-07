@@ -34,7 +34,7 @@
 	<div class='text-right'>
 		<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
-			<i class='icon icon-print'></i> {{ _("Print") }}</a>
+			<i class='fa fa-print'></i> {{ _("Print") }}</a>
 	</div>
 	{%- endif -%}
 {% endblock %}
@@ -230,7 +230,7 @@
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
 		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
-		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
+		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-blank{% endif %}"></i>
 	{% endfor %}
 </div>
 {% endif %}
@@ -459,7 +459,7 @@ frappe.ready(function() {
 		$('.web-form-page').addClass('hidden');
 
 		// slide-progress
-		$('.slide-progress .fa-fw.icon-circle')
+		$('.slide-progress .fa-fw fa-circle')
 			.removeClass('fa fa-circle').addClass('fa fa-circle-blank');
 		$('.slide-progress .fa-fw[data-idx="'+idx+'"]')
 			.removeClass('fa fa-circle-blank').addClass('fa fa-circle');
