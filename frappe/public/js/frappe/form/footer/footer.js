@@ -25,7 +25,7 @@ frappe.ui.form.Footer = Class.extend({
 		this.frm.timeline = new frappe.ui.form.Timeline({
 			parent: this.wrapper.find(".form-comments"),
 			frm: this.frm
-		})
+		});
 	},
 	refresh: function() {
 		if(this.frm.doc.__islocal) {

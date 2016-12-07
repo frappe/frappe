@@ -115,6 +115,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.frm.sidebar.refresh_comments();
 
+		this.frm.trigger('timeline_refresh');
 	},
 
 	render_timeline_item: function(c) {
