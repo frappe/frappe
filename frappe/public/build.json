@@ -64,7 +64,8 @@
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/markdown.js"
+		"public/js/lib/markdown.js",
+		"public/js/lib/jSignature.min.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",

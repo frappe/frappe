@@ -441,6 +441,11 @@ select.form-control {
   font-weight: bold;
   background-color: #fffdf4;
 }
+.signature-field {
+  min-height: 300px;
+  background: #fefefe;
+  border: 1px solid #ddd;
+}
 .form-headline {
   padding: 0px 15px;
   margin: 0px;
