@@ -15,6 +15,7 @@ frappe.DataTransferWizard = Class.extend({
 		});
 		this.make();
 		this.make_upload();
+		this.make_import();
 	},
 	
 	make: function() {
@@ -22,10 +23,8 @@ frappe.DataTransferWizard = Class.extend({
 		frappe.boot.user.can_import = frappe.boot.user.can_import.sort();
 		$(frappe.render_template("data_transfer_wizard", this)).appendTo(this.page.main);
 		this.select = this.page.main.find("select.doctype");
-		this.select_column = this.page.main.find(".doctype-column")
 		this.select.on("change", function() {
 			me.doctype = $(this).val();
-			console.log(me.doctype);
 			me.page.main.find(".select-file").removeClass("hide");
 			frappe.model.with_doctype(me.doctype, function() {
 				if(me.doctype) {
@@ -35,30 +34,32 @@ frappe.DataTransferWizard = Class.extend({
 		});			
 		
 	},
+
 	make_upload: function() {
 		var me = this;
 		frappe.upload.make({
 			parent: this.page.main.find(".upload-area"),
-			btn: this.page.main.find(".btn-import"),
+			btn: this.page.main.find(".btn-upload"),
 			args: {
-				method: 'frappe.core.page.data_transfer_wizard.import_tool.upload',
+				method: 'frappe.core.page.data_transfer_wizard.import_tool.upload_data',
 			},
 		
 			callback: function(r) {
-				
-				// r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
-				// 	concat(r.message.messages)
-				// me.write_data(r);
 				var selected_doctype = frappe.get_doc('DocType', me.doctype);
 				me.page.main.find(".imported-data").removeClass("hide");
 				me.imported_data = me.page.main.find(".imported-data-row");
-				// for (var i = 0; i < r.length; i++) {
-				// 	for (var j = 0; j < r[i].length; j++) {
-				// 		console.log(r[i][j]);
-				// 	}
-				// }
 				$(frappe.render_template("try_html", {imported_data: r, fields:selected_doctype.fields}))
 										.appendTo(me.imported_data.empty());
+				me.select_row_no = me.page.main.find("select.row-no");
+				me.select_row_no.on("change", function() {
+					me.row_no = $(this).val();
+					console.log(me.row_no);
+				});
+				me.select_column = me.page.main.find("select.col-1");
+				me.select_column.on("change", function() {
+					me.column = $(this).val();
+					console.log(me.column);
+				});
 	
 			},
 			is_private: true
@@ -72,8 +73,34 @@ frappe.DataTransferWizard = Class.extend({
 					data.progress[1]);
 			}
 		})
-
-	}
+	},
+	
+	make_import: function() {
+		var me = this;
+			
+		frappe.upload.make({
+			//parent: this.page.main.find(".upload-the-data"),
+			btn: this.page.main.find(".btn-import"),
+			get_params: function() {
+				return {
+					submit_after_import: me.page.main.find('[name="submit_after_import"]').prop("checked"),
+					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
+					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
+					no_email: me.page.main.find('[name="no_email"]').prop("checked")
+				}
+			},
+			args: {
+				method: 'frappe.core.page.data_transfer_wizard.import_tool.import_data',
+			},
+			callback: function(r) {
+				var selected_doctype = frappe.get_doc('DocType', me.doctype);
+				me.page.main.find(".imported-data").removeClass("hide");
+				me.imported_data = me.page.main.find(".imported-data-row");
+	
+			},
+		});
+	},
+	
 	// write_data: function(data) {
 	// 	this.page.main.find(".imported-data").removeClass("hide");
 	// 	var parent = this.page.main.find(".imported-data-row").empty();

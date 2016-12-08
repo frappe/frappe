@@ -1,7 +1,7 @@
 <div style="margin-left: 15px;">
 
+    <h5>{{ __("Select the row number to start importing from") }}</h5>
 	<div class="form-group">
-      <label for="">{%= __("3. Select the row number to start importing from:") %}</label>
       <select class="form-control row-no">
             <option value="" disabled selected>{%= __("Select Row") %}</option>
             {% for (var i = 0; i < imported_data.length; i++) { %}
@@ -10,6 +10,7 @@
       </select>
     </div>
 
+    <h5>{{ __("Select the docfield to map with the column") }}</h5>
 	<div class="table-responsive">
   		<table class="table table-bordered table-hover">
   		 <caption>{%= __("Imported File Data") %}</caption>
@@ -19,7 +20,7 @@
   				<td>{%= __("Row No.") %}</td>
 	  			{% for (var j = 0; j < imported_data[0].length; j++) { %}
 				<td>
-					<select class="form-control">
+					<select class="form-control {%= "col-"+j %}">
 			        <option value="" disabled selected>{%= __("Select Fieldtype") %}</option>
 					{% for (var k = 0; k < fields.length; k++) { %}
 					<option value="{%= fields[k].fieldname %}">{{ __(fields[k].label) }}</option>
