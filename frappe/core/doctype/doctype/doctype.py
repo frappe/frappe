@@ -59,14 +59,45 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
+		self.update_fields_to_fetch()
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
-		if frappe.flags.in_patch:
+		if frappe.flags.in_patch or frappe.flags.in_test:
 			return
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+
+	def update_fields_to_fetch(self):
+		'''Update values for newly set fetch values'''
+		try:
+			old_meta = frappe.get_meta(frappe.get_doc('DocType', self.name), cached=False)
+			old_fields_to_fetch = [df.fieldname for df in old_meta.get_fields_to_fetch()]
+		except frappe.DoesNotExistError:
+			old_fields_to_fetch = []
+
+		new_meta = frappe.get_meta(self, cached=False)
+
+		if set(old_fields_to_fetch) != set([df.fieldname for df in new_meta.get_fields_to_fetch()]):
+			for df in new_meta.get_fields_to_fetch():
+				if df.fieldname not in old_fields_to_fetch:
+					link_fieldname, source_fieldname = df.options.split('.', 1)
+					link_df = new_meta.get_field(link_fieldname)
+
+					frappe.db.sql('''update
+						`tab{link_doctype}` source,
+						`tab{doctype}` target
+					set
+						target.`{fieldname}` = source.`{source_fieldname}`
+					where
+						target.`{link_fieldname}` = source.name'''.format(
+							link_doctype = link_df.options,
+							source_fieldname = source_fieldname,
+							doctype = self.name,
+							fieldname = df.fieldname,
+							link_fieldname = link_fieldname
+						))
 
 	def validate_document_type(self):
 		if self.document_type=="Transaction":
