@@ -19,18 +19,25 @@
             <br>
         </div>
         <div class="select-file hide">
-        <h4>{{ __("1. Select the File") }}</h4>
-        <div class="upload-area"></div>
-		<br>
-        <h4>{{ __("2. Upload the File") }}</h4>        
-        <p>
-            <button class="btn btn-sm btn-primary btn-import">{{ __("Upload") }}</button>
-        </p>
+            <h4>{{ __("1. Select the File") }}</h4>
+            <div class="upload-area"></div>
+		    <br>
+            <h4>{{ __("2. Upload the File") }}</h4>        
+            <p>
+                <button class="btn btn-sm btn-primary btn-upload">{{ __("Upload") }}</button>
+            </p>
         </div>
         <br>
+
         <div class="imported-data hide">
             <h4>{{ __("3. Select the Row and Columns") }}</h4>
             <div class="imported-data-row"></div>
+            <div class="upload-the-data">
+            <h4>{{ __("4. Upload the data") }}</h4>
+            <p>
+                <button class="btn btn-lg btn-primary btn-import">{{ __("Import") }}</button>
+            </p>
+            </div>
         </div>
 	</div>
 

@@ -16,7 +16,10 @@ def read_xlsx_content_from_uploaded_file(ignore_encoding=False):
 	else:
 		from frappe.utils.file_manager import get_uploaded_content
 		fname, fcontent = get_uploaded_content()
-	return read_xlsx_content_as_list(fcontent, ignore_encoding)
+
+	file_obj = StringIO.StringIO()
+	file_obj.write(fcontent)
+	return file_obj
 
 def read_xlsx_content_as_list(fcontent, ignore_encoding=False):
 	xlsx_file_as_list = []	
@@ -35,10 +38,10 @@ def read_xlsx_content_as_list(fcontent, ignore_encoding=False):
 	# 		frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
 	#			raise_exception=True)
 
-	output = StringIO.StringIO()
-	output.write(fcontent)
+	file_obj = StringIO.StringIO()
+	file_obj.write(fcontent)
 
-	wb = load_workbook(output)
+	wb = load_workbook(file_obj)
 	ws = wb.active
 
 	for row in ws.iter_rows():
@@ -46,5 +49,4 @@ def read_xlsx_content_as_list(fcontent, ignore_encoding=False):
 		for cell in row:
 			tmp_list.append(cell.value)
 		xlsx_file_as_list.append(tmp_list)
-	print "i am here"
-	return xlsx_file_as_list
+	return output,xlsx_file_as_list
