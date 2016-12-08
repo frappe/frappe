@@ -39,9 +39,10 @@ class Report(Document):
 		self.export_doc()
 
 	def update_report_json(self):
-		data = json.loads(self.json)
-		data["add_total_row"] = self.add_total_row
-		self.json = json.dumps(data)
+		if self.json:
+			data = json.loads(self.json)
+			data["add_total_row"] = self.add_total_row
+			self.json = json.dumps(data)
 
 	def export_doc(self):
 		if frappe.flags.in_import:
