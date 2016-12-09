@@ -40,6 +40,7 @@
 	"css/desk.min.css": [
 		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
 		"public/js/lib/flatpickr/flatpickr.min.css",
+		"public/js/lib/awesomplete/awesomplete.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -58,6 +59,7 @@
 	],
 	"js/libs.min.js": [
 		"public/js/lib/jquery/jquery-ui.min.js",
+		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/tag-it.min.js",
 		"public/js/lib/notify.js",

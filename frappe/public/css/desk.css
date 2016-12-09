@@ -380,6 +380,40 @@ fieldset[disabled] .form-control {
 .hidden-xs-inline-block {
   display: none;
 }
+.awesomplete {
+  width: 100%;
+}
+.awesomplete > ul {
+  z-index: 1041;
+  transition: none;
+  border-radius: 0;
+  background: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.awesomplete > ul:before {
+  display: none;
+}
+.awesomplete > ul > li {
+  font-size: 12px;
+  padding: 9px 11.8px;
+}
+.awesomplete > ul > li .link-option {
+  font-weight: normal;
+}
+.awesomplete > ul > li:hover,
+.awesomplete > ul > li[aria-selected=true] {
+  background-color: #F0F4F7;
+  color: #36414C;
+  text-shadow: none;
+}
+.awesomplete > ul a:hover {
+  text-decoration: none;
+}
+.awesomplete > ul p {
+  margin: 3px 0;
+}
 .ui-autocomplete {
   max-height: 200px;
   overflow-y: auto;

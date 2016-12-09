@@ -177,6 +177,49 @@ textarea.form-control {
 	display: none;
 }
 
+.awesomplete {
+	width: 100%;
+	
+	&> ul {
+		z-index: 1041;
+		transition: none;
+		border-radius: 0;
+		background: #fff;
+		max-height: 200px;
+		overflow-y: auto;
+		overflow-x: hidden;
+
+		&:before {
+			display: none;
+		}
+
+		&> li {
+			font-size: 12px;
+			padding: 9px 11.8px;
+		}
+
+		&> li .link-option {
+			font-weight: normal;
+		}
+
+		&> li:hover, &> li[aria-selected=true] {
+			background-color: @btn-bg;
+			color: @text-color;
+			text-shadow: none;
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+
+		p {
+			margin: 3px 0;
+		}
+	}
+}
+
+
+
 .ui-autocomplete {
 	max-height: 200px;
 	overflow-y: auto;

@@ -725,7 +725,7 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			value = dateutil.user_to_obj(vals[0]);
 			value2 = dateutil.user_to_obj(vals[vals.length-1]);
 			return [value,value2];
-		}	
+		}
 	},
 	format_for_input: function(value,value2) {
 		if(value && value2) {
@@ -1144,7 +1144,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		$('<div class="link-field ui-front" style="position: relative;">\
-			<input type="text" class="input-with-feedback form-control" autocomplete="off">\
+			<input type="text" class="input-with-feedback form-control">\
 			<span class="link-btn">\
 				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
 					<i class="octicon octicon-arrow-right"></i></a>\
@@ -1163,7 +1163,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				if(!me.$input.val()) {
-					me.$input.autocomplete("search", "");
+					// me.$input.autocomplete("search", "");
+					me.$input.val("").trigger("input");
 				}
 			}, 500);
 		});
@@ -1179,7 +1180,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		var me = this;
 		this.setup_buttons();
-		this.setup_autocomplete();
+		// this.setup_autocomplete();
+		this.setup_awesomeplete();
 		if(this.df.change) {
 			this.$input.on("change", function() {
 				me.df.change.apply(this);
@@ -1235,6 +1237,161 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		return false;
+	},
+	setup_awesomeplete: function() {
+		var me = this;
+		this.$input.on("blur", function() {
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			var value = me.get_value();
+			if(me.doctype && me.docname) {
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			} else {
+				me.set_mandatory(value);
+			}
+		});
+
+
+		this.$input.cache = {};
+
+
+		this.awesomplete = new Awesomplete(me.input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+
+			data: function (item, input) {
+				var label = item.value + "%%%" + (item.description || "");
+				if(item.value.indexOf("__link_option") !== -1) {
+					label = item.label;
+				}
+				return {
+					label: label,
+					value: item.value
+				};
+			},
+			item: function (item, input) {
+				// console.log(item)
+				var parts = item.split("%%%"),
+				d = { value: parts[0], description: parts[1] };
+
+				var _value = d.value;
+
+				if(me.translate_values) {
+					_value = __(d.value)
+				}
+				var html = "<strong>" + _value + "</strong>";
+				if(d.description && d.value!==d.description) {
+					html += '<br><span class="small">' + __(d.description) + '</span>';
+				}
+				return $('<li></li>')
+					.data('item.autocomplete', d)
+					.prop('aria-selected', 'false')
+					.html('<a><p>' + html + '</p></a>')
+					.get(0);
+			},
+			sort: function(a, b) {
+				//put 'Create new' and 'Advanced Search' buttons to bottom
+				if(a.value.indexOf("__link_option") !== -1) return -1;
+
+				if (a.value.length !== b.value.length) {
+					return a.value.length - b.value.length;
+				}
+				return a < b ? -1 : 1;
+			},
+			replace: function(text) {
+				var value = text.value;
+				// handlers for link_option button
+				if(value.indexOf("__link_option") !== -1) {
+					if(value.indexOf("create_new") !== -1) {
+						me.new_doc();
+					} else if(value.indexOf("advanced_search") !== -1) {
+						me.open_advanced_search();
+					}
+				} else {
+					this.input.value = value;
+				}
+			}
+		});
+
+		var doctype = me.get_options();
+		if(!doctype) return;
+		if (!me.$input.cache[doctype]) {
+			me.$input.cache[doctype] = {};
+		}
+
+		this.$input.on("input", function(e) {
+			var term = e.target.value;
+
+			if (me.$input.cache[doctype][term]!=null) {
+				// immediately show from cache
+				me.awesomplete.list = me.$input.cache[doctype][term];
+			}
+
+			var args = {
+				'txt': term,
+				'doctype': doctype,
+			};
+
+			me.set_custom_query(args);
+
+			frappe.call({
+				type: "GET",
+				method:'frappe.desk.search.search_link',
+				no_spinner: true,
+				args: args,
+				callback: function(r) {
+					if(!me.$input.is(":focus")) {
+						return;
+					}
+
+					if(!me.df.only_select) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
+							// r.results.push({
+								// value: "<span class='text-primary link-option'>"
+								// 	+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+								// 	+ __("Create a new {0}", [__(me.df.options)])
+								// 	+ "</span>",
+							// 	action: me.new_doc
+							// });
+							r.results.push({
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+									+ __("Create a new {0}", [__(me.df.options)])
+									+ "</span>",
+								value: "create_new__link_option",
+								action: me.new_doc
+							})
+						};
+						// advanced search
+						// r.results.push({
+							// value: "<span class='text-primary link-option'>"
+							// 	+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+							// 	+ __("Advanced Search")
+							// 	+ "</span>",
+						// 	action: me.open_advanced_search
+						// });
+						r.results.push({
+							label: "<span class='text-primary link-option'>"
+								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+								+ __("Advanced Search")
+								+ "</span>",
+							value: "advanced_search__link_option",
+							action: me.open_advanced_search
+						})
+					}
+					me.$input.cache[doctype][term] = r.results;
+					me.awesomplete.list = me.$input.cache[doctype][term];
+				},
+			});
+		});
 	},
 	setup_autocomplete: function() {
 		var me = this;
@@ -1343,7 +1500,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					ui.item.action.apply(me);
 				}
 
-				// if remember_last_selected is checked in the doctype against the field, 
+				// if remember_last_selected is checked in the doctype against the field,
 				// then add this value
 				// to defaults so you do not need to set it again
 				// unless it is changed.
