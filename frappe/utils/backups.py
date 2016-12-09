@@ -118,7 +118,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.email import sendmail, get_system_managers
+		from frappe.email import get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
@@ -140,7 +140,7 @@ download only after 24 hours.""" % {
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
-		sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
 		return recipient_list
 
 

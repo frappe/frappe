@@ -18,7 +18,10 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		frappe.throw(_('Setup already complete'))
+		# do not throw an exception if setup is already complete
+		# let the user continue to desk
+		return
+		#frappe.throw(_('Setup already complete'))
 
 	args = process_args(args)
 

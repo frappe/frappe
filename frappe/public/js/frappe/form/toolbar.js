@@ -115,7 +115,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
-				this.print_icon = this.page.add_action_icon("icon-print", function() {
+				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
 					me.frm.print_doc();});
 			}
 		}
@@ -313,10 +313,10 @@ frappe.ui.form.Toolbar = Class.extend({
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
 			this.page.set_secondary_action(__('Cancel'), function() {
-				me.frm.savecancel(this) }, 'icon-ban-circle');
+				me.frm.savecancel(this) }, 'fa fa-ban-circle');
 		} else if(docstatus==2 && p[AMEND]) {
 			this.page.set_secondary_action(__('Amend'), function() {
-				me.frm.amend_doc() }, 'icon-pencil', true);
+				me.frm.amend_doc() }, 'fa fa-pencil', true);
 		}
 	},
 	add_update_button_on_dirty: function() {

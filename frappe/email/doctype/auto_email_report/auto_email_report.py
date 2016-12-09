@@ -36,7 +36,7 @@ class AutoEmailReport(Document):
 	def validate_report_count(self):
 		'''check that there are only 3 enabled reports per user'''
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
-		if count > max_reports_per_user:
+		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
 
 	def get_report_content(self):
@@ -130,7 +130,7 @@ def send_daily():
 		# if not correct weekday, skip
 		if auto_email_report.frequency=='Weekly':
 			if now.weekday()!={'Monday':0,'Tuesday':1,'Wednesday':2,
-				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.weekday]:
+				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.day_of_week]:
 				continue
 
 		auto_email_report.send()

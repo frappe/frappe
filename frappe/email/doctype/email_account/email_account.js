@@ -15,6 +15,20 @@ frappe.email_defaults = {
 		"smtp_port": 587,
 		"use_tls": 1
 	},
+	"Sendgrid": {
+		"enable_outgoing": 0,
+		"enable_outgoing": 1,
+		"smtp_server": "smtp.sendgrid.net",
+		"smtp_port": 587,
+		"use_tls": 1
+	},
+	"SparkPost": {
+		"enable_incoming": 0,
+		"enable_outgoing": 1,
+		"smtp_server": "smtp.sparkpostmail.com",
+		"smtp_port": 587,
+		"use_tls": 1
+	},
 	"Yahoo Mail": {
 		"email_server": "pop.mail.yahoo.com",
 		"use_ssl": 1,

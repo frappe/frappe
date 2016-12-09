@@ -18,7 +18,7 @@ avec Python, utilise le système de base de données MariaDB et database and HTM
 Il est donc necessaire d'être familier avec ces technologies. Si vous n'avez jamais utilisé Python auparavant, vous devriez
 suivre un tutoriel rapide avant de suivre ce guide.
 
-Frappe utilise le système de gestion de version git sur Github. Il est donc imporant que vous connaissiez les basiques de
+Frappe utilise le système de gestion de version git sur Github. Il est donc imporant que vous connaissiez les bases de
 l'utilisation de git et que vous ayez un compte sur Github pour gérer vos applications.
 
 ## Exemple
@@ -38,4 +38,4 @@ automatiquement générés depuis les modèles en appliquant rôles et permissio
 Nous allons aussi créer des vues pour la lirairie afin que les utilisateurs puissent parcourir les articles depuis un site
 internet.
 
-{index}
+{next}

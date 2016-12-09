@@ -31,10 +31,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				});
 
 				// reset attachment list
-				me.setup_attach();
+				me.render_attach();
 
 				// check latest added
-				checked_items.push(attachment.file_name);
+				checked_items.push(attachment.name);
 
 				$.each(checked_items, function(i, filename) {
 					wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
@@ -258,15 +258,56 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	},
 	setup_attach: function() {
-		if (!cur_frm) return;
-
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
 
-		var files = cur_frm.get_files();
+		var me = this
+		me.attachments = []
+
+		var args = {
+			args: {
+				from_form: 1,folder:"Home/Attachments"
+			},
+			callback: function(attachment, r) { me.attachments.push(attachment); },
+			max_width: null,
+			max_height: null
+		};
+
+		if(me.frm) {
+			args = {
+				args: (me.frm.attachments.get_args
+				 	? me.frm.attachments.get_args()
+				 	: { from_form: 1,folder:"Home/Attachments" }),
+				callback: function (attachment, r) {
+					me.frm.attachments.attachment_uploaded(attachment, r)
+				},
+				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+				max_height: me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+			}
+
+		}
+
+		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
+				+__("Select Attachments")+"</h6><div class='attach-list'></div>\
+				<p class='add-more-attachments'>\
+				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
+				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			attach.find(".add-more-attachments a").on('click',this,function() {
+			me.upload = frappe.ui.get_upload_dialog(args);
+		})
+		me.render_attach()
+
+	},
+	render_attach:function(){
+		var fields = this.dialog.fields_dict;
+		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
+
+		if (cur_frm){
+			var files = cur_frm.get_files();
+		}else {
+			var files = this.attachments
+		}
 		if(files.length) {
-			$("<h6 class='text-muted' style='margin-top: 12px;'>"
-				+__("Add Attachments")+"</h6>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				if (!f.file_name) return;
 				f.file_url = frappe.urllib.get_full_url(f.file_url);
@@ -275,7 +316,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					+	'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>'
 					+		'<span class="small">%(file_name)s</span>'
 					+	' <a href="%(file_url)s" target="_blank" class="text-muted small">'
-					+		'<i class="icon-share" style="vertical-align: middle; margin-left: 3px;"></i>'
+					+		'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>'
 					+ '</label></p>', f))
 					.appendTo(attach)
 			});

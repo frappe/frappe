@@ -655,17 +655,21 @@ def get_total_users():
 		where enabled=1 and user_type="System User"
 		and name not in ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
-def get_system_users(exclude_users=None):
+def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:
 		exclude_users = []
 	elif not isinstance(exclude_users, (list, tuple)):
 		exclude_users = [exclude_users]
+	
+	limit_cond = ''
+	if limit:
+		limit_cond = 'limit {0}'.format(limit)
 
 	exclude_users += list(STANDARD_USERS)
 
 	system_users = frappe.db.sql_list("""select name from `tabUser`
 		where enabled=1 and user_type != 'Website User'
-		and name not in ({})""".format(", ".join(["%s"]*len(exclude_users))),
+		and name not in ({}) {}""".format(", ".join(["%s"]*len(exclude_users)), limit_cond),
 		exclude_users)
 
 	return system_users

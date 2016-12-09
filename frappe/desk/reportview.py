@@ -14,7 +14,8 @@ def get():
 	args = get_form_params()
 	args.save_list_settings = True
 
-	data = compress(execute(**args))
+	data = compress(execute(**args), args = args)
+
 	return data
 
 def execute(doctype, *args, **kwargs):
@@ -39,8 +40,10 @@ def get_form_params():
 
 	return data
 
-def compress(data):
+def compress(data, args = {}):
 	"""separate keys and values"""
+	from frappe.desk.query_report import add_total_row
+
 	if not data: return data
 	values = []
 	keys = data[0].keys()
@@ -49,6 +52,10 @@ def compress(data):
 		for key in keys:
 			new_row.append(row[key])
 		values.append(new_row)
+
+	if args.get("add_total_row"):
+		meta = frappe.get_meta(args.doctype)
+		values = add_total_row(values, keys, meta)
 
 	return {
 		"keys": keys,
@@ -215,7 +222,6 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 				fields=[tag["name"], "count(*)"],
 				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
 				group_by = tag["name"],
-				limit = 20,
 				as_list = True)
 
 		if tag["type"] not in ['Check','Select','Date','Datetime','Int',

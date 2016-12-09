@@ -31,7 +31,7 @@
     </p>{% endif %}
 	<p class="docs-attr-name">
         <a name="{{ full_name }}" href="#{{ full_name }}" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		{{ module_name.replace(".__init__", "") + "." if module_name else "" }}<b>{{ obj.name }}</b>
         <i class="text-muted">({{ print_args(obj.args) if obj.args else "" }})</i>
     </p>

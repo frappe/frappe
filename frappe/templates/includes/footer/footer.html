@@ -20,7 +20,9 @@
 				<div class="text-muted small col-sm-6">
 					{% if copyright %}
 						&copy; {{ copyright }}
-					{% elif footer_address%}
+					{% endif %}
+					<br>
+					{% if footer_address %}
 						{{ footer_address }}
 					{% endif %}
 				</div>

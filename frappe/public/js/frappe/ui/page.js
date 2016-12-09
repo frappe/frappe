@@ -80,6 +80,7 @@ frappe.ui.Page = Class.extend({
 
 		this.page_actions = this.wrapper.find(".page-actions");
 
+		this.checked_items_status = this.page_actions.find(".checked-items-status");
 		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
 
@@ -315,7 +316,7 @@ frappe.ui.Page = Class.extend({
 
 	get_main_icon: function(icon) {
 		return this.$title_area.find(".title-icon")
-			.html('<i class="'+icon+' icon-fixed-width"></i> ')
+			.html('<i class="'+icon+' fa-fw"></i> ')
 			.toggle(true);
 		},
 

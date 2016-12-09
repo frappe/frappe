@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.7'
+__version__ = '7.1.24'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -135,6 +135,8 @@ def init(site, sites_path=None, new_site=False):
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.form_dict = _dict()
+	local.session = _dict()
 
 	setup_module_map()
 
@@ -149,8 +151,6 @@ def connect(site=None, db_name=None):
 	if site:
 		init(site)
 	local.db = Database(user=db_name or local.conf.db_name)
-	local.form_dict = _dict()
-	local.session = _dict()
 	set_user("Administrator")
 
 def get_site_config(sites_path=None, site_path=None):
@@ -359,8 +359,8 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None, retry=1):
+		cc=(), show_as_cc=(), in_reply_to=None, send_after=None, expose_recipients=False,
+		send_priority=1, communication=None, retry=1, now=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -377,7 +377,6 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
 	:param attachments: List of attachments.
 	:param reply_to: Reply-To email id.
-	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
@@ -389,20 +388,17 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		from markdown2 import markdown
 		message = markdown(message)
 
+	if not delayed:
+		now = True
 
-	import email
-	if delayed:
-		import email.queue
-		email.queue.send(recipients=recipients, sender=sender,
-			subject=subject, message=message,
-			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
-			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
-			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
-	else:
-		email.sendmail(recipients, sender=sender,
-			subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-			cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+	import email.queue
+	email.queue.send(recipients=recipients, sender=sender,
+		subject=subject, message=message,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
+		attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, in_reply_to=in_reply_to,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		communication=communication, now=now)
 
 whitelisted = []
 guest_methods = []
@@ -1153,7 +1149,7 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1174,7 +1170,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 		html = build_page("print")
 
 	if as_pdf:
-		return get_pdf(html)
+		return get_pdf(html, output = output)
 	else:
 		return html
 

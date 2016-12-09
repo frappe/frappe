@@ -82,10 +82,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -636,8 +636,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 10px;
-  margin: 0px -15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -737,7 +737,7 @@ textarea {
 }
 .more-block {
   margin: 0px -15px;
-  padding: 0px 15px 30px;
+  padding-bottom: 30px;
 }
 .btn-more {
   margin: 25px 0px;
@@ -865,6 +865,9 @@ li .footer-child-item {
   border-bottom: 1px solid #d1d8dd;
   width: 100%;
 }
+.item-search .input-wrapper {
+  margin-right: 30px;
+}
 .item-search .item-search-input {
   position: relative;
   outline: none;
@@ -872,10 +875,11 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
-  width: 80px;
+  width: 100%;
 }
 .item-search i {
-  padding: 10px 10px 10px 0;
+  margin-right: -30px;
+  margin-top: -25px;
 }
 .vert-line {
   overflow: hidden;
@@ -893,10 +897,14 @@ li .footer-child-item {
   padding-right: 15px;
   border-right: 1px solid #d1d8dd;
 }
+.shopping-cart .cart-icon .dropdown-toggle {
+  text-decoration: none !important;
+}
 .badge-wrapper {
-  min-height: 17px;
-  min-width: 17px;
   display: inline-block;
+  margin-left: 7px;
+  margin-top: -3px;
+  padding: 2px 7px;
   border: 1px solid #d1d8dd;
   border-radius: 3px;
   color: #7575ff;

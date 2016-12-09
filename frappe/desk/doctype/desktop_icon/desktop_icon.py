@@ -97,13 +97,17 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 	if not label: label = frappe._(_doctype)
 	if not link: link = 'List/{0}'.format(_doctype)
 
+	# find if a standard icon exists
 	icon_name = frappe.db.exists('Desktop Icon', {'standard': standard, 'link': link,
 		'owner': frappe.session.user})
-	if icon_name and frappe.db.get_value('Desktop Icon', icon_name, 'hidden'):
-		frappe.db.set_value('Desktop Icon', icon_name, 'hidden', 0)
-		clear_desktop_icons_cache()
 
-	elif not icon_name:
+	if icon_name:
+		if frappe.db.get_value('Desktop Icon', icon_name, 'hidden'):
+			# if it is hidden, unhide it
+			frappe.db.set_value('Desktop Icon', icon_name, 'hidden', 0)
+			clear_desktop_icons_cache()
+
+	else:
 		idx = frappe.db.sql('select max(idx) from `tabDesktop Icon` where owner=%s',
 			frappe.session.user)[0][0] or \
 			frappe.db.sql('select count(*) from `tabDesktop Icon` where standard=1')[0][0]
@@ -135,12 +139,13 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 			}).insert(ignore_permissions=True)
 			clear_desktop_icons_cache()
 
-			return new_icon.name
+			icon_name = new_icon.name
 
 		except Exception, e:
 			raise e
-	else:
-		return icon_name
+
+	return icon_name
+
 
 @frappe.whitelist()
 def set_order(new_order, user=None):
@@ -165,7 +170,7 @@ def set_order(new_order, user=None):
 
 	clear_desktop_icons_cache()
 
-def set_desktop_icons(visible_list):
+def set_desktop_icons(visible_list, ignore_duplicate=True):
 	'''Resets all lists and makes only the given one standard,
 	if the desktop icon does not exist and the name is a DocType, then will create
 	an icon for the doctype'''
@@ -183,10 +188,15 @@ def set_desktop_icons(visible_list):
 			frappe.db.set_value('Desktop Icon', name, 'hidden', 0)
 		else:
 			if frappe.db.exists('DocType', module_name):
-				icon_name = add_user_icon(module_name)
-
-				# make it standard
-				frappe.db.set_value('Desktop Icon', icon_name, 'standard', 1)
+				try:
+					add_user_icon(module_name, standard=1)
+				except frappe.UniqueValidationError, e:
+					if not ignore_duplicate:
+						raise e
+					else:
+						visible_list.remove(module_name)
+						if frappe.message_log:
+							frappe.message_log.pop()
 
 	# set the order
 	set_order(visible_list)

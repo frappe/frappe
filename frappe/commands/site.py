@@ -22,7 +22,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
-	_new_site(None, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 
 	if len(frappe.utils.get_sites()) == 1:
@@ -422,7 +422,7 @@ def _set_limits(context, site, limits):
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
 				frappe.throw('Invalid limit {0}'.format(limit))
 
-			if limit=='expiry':
+			if limit=='expiry' and value:
 				try:
 					datetime.datetime.strptime(value, '%Y-%m-%d')
 				except ValueError:
@@ -460,6 +460,50 @@ def clear_limits(context, site, limits):
 		if not limits:
 			update_site_config('limits', 'None', validate=False)
 
+@click.command('set-last-active-for-user')
+@click.option('--user', help="Setup last active date for user")
+@pass_context
+def set_last_active_for_user(context, user=None):
+	"Set users last active date to current datetime"
+
+	from frappe.core.doctype.user.user import get_system_users
+	from frappe.utils.user import set_last_active_to_now
+	
+	site = get_site(context)
+
+	with frappe.init_site(site):
+		frappe.connect()
+		if not user:
+			user = get_system_users(limit=1)
+			if len(user) > 0:
+				user = user[0]
+			else:
+				return
+
+		set_last_active_to_now(user)
+		frappe.db.commit()
+
+@click.command('publish-realtime')
+@click.argument('event')
+@click.option('--message')
+@click.option('--room')
+@click.option('--user')
+@click.option('--doctype')
+@click.option('--docname')
+@click.option('--after-commit')
+@pass_context
+def publish_realtime(context, event, message, room, user, doctype, docname, after_commit):
+	"Publish realtime event from bench"
+	from frappe import publish_realtime
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			publish_realtime(event, message=message, room=room, user=user, doctype=doctype, docname=docname,
+				after_commit=after_commit)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
 
 commands = [
 	add_system_manager,
@@ -482,4 +526,6 @@ commands = [
 	clear_limits,
 	disable_user,
 	_use,
+	set_last_active_for_user,
+	publish_realtime,
 ]

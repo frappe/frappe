@@ -31,6 +31,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.refresh();
 	},
 	refresh: function() {
+		this.custom_html_count = 0;
 		if(!this.print_format) {
 			this.show_start();
 		} else {
@@ -89,8 +90,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			var name = me.print_format_input.get_value();
 			if(!name) return;
 			frappe.model.with_doc("Print Format", name, function(doc) {
-				me.print_format = frappe.get_doc("Print Format", name);
-				me.refresh();
+				frappe.set_route('print-format-builder', name);
 			});
 		});
 	},
@@ -199,6 +199,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.setup_add_section();
 		this.setup_edit_heading();
 		this.setup_field_settings();
+		this.setup_html_data();
 	},
 	prepare_data: function() {
 		this.print_heading_template = null;
@@ -213,8 +214,19 @@ frappe.PrintFormatBuilder = Class.extend({
 				this.data = this.data.splice(1);
 			}
 		}
+
+		if(!this.print_heading_template) {
+			// default print heading template
+			this.print_heading_template = '<div class="print-heading">\
+				<h2>'+__(this.print_format.doc_type)
+					+'<br><small>{{ doc.name }}</small>\
+				</h2></div>';
+		}
+
 		this.layout_data = [];
-		var section = null, column = null, me = this;
+		this.fields_dict = {};
+		this.custom_html_dict = {};
+		var section = null, column = null, me = this, custom_html_count = 0;
 
 		// create a new placeholder for column and set
 		// it as "column"
@@ -235,12 +247,18 @@ frappe.PrintFormatBuilder = Class.extend({
 		// break the layout into sections and columns
 		// so that it is easier to render in a template
 		$.each(this.data, function(i, f) {
+			me.fields_dict[f.fieldname] = f;
 			if(!f.name && f.fieldname) {
 				// from format_data (designed format)
 				// print_hide should always be false
 				if(f.fieldname==="_custom_html") {
 					f.label = "Custom HTML";
-					f.fieldtype = "Custom HTML"
+					f.fieldtype = "Custom HTML";
+
+					// set custom html id to map data properties later
+					custom_html_count++;
+					f.custom_html_id = custom_html_count;
+					me.custom_html_dict[f.custom_html_id] = f
 				} else {
 					f = $.extend(frappe.meta.get_docfield(me.print_format.doc_type,
 						f.fieldname) || {}, f);
@@ -446,9 +464,9 @@ frappe.PrintFormatBuilder = Class.extend({
 					},
 				],
 			});
-			
+
 			d.set_value('label', field.attr("data-label"));
-			
+
 			d.set_primary_action(__("Update"), function() {
 				field.attr('data-align', d.get_value('align'));
 				field.attr('data-label', d.get_value('label'));
@@ -467,6 +485,20 @@ frappe.PrintFormatBuilder = Class.extend({
 
 			return false;
 		});
+	},
+	setup_html_data: function() {
+		// set JQuery `data` for Custom HTML fields, since editing the HTML
+		// directly causes problem becuase of HTML reformatting
+		//
+		// this is based on a dummy attribute custom_html_id, since all custom html
+		// fields have the same fieldname `_custom_html`
+		var me = this;
+		this.page.main.find('[data-fieldtype="Custom HTML"]').each(function() {
+			var fieldname = $(this).attr('data-fieldname');
+			var content = $($(this).find('.html-content')[0]);
+			var html = me.custom_html_dict[parseInt(content.attr('data-custom-html-id'))].options;
+			content.data('content', html);
+		})
 	},
 	update_columns_in_section: function(section, no_of_columns, new_no_of_columns) {
 		var col_size = 12 / new_no_of_columns,
@@ -528,12 +560,12 @@ frappe.PrintFormatBuilder = Class.extend({
 	},
 	setup_edit_heading: function() {
 		var me = this;
-		if (!me.print_heading_template) {
-			$(this.page.main.find(".print-heading")).html('<h2>'+me.print_format.doc_type+'<br><small>{{ doc.name }}</small></h2>')
-		}
+		var $heading = this.page.main.find(".print-format-builder-print-heading");
+
+		// set content property
+		$heading.data('content', this.print_heading_template);
+
 		this.page.main.find(".edit-heading").on("click", function() {
-			var $heading = $(this).parents(".print-format-builder-header:first")
-				.find(".print-format-builder-print-heading");
 			var d = me.get_edit_html_dialog(__("Edit Heading"), __("Heading"), $heading);
 		})
 	},
@@ -627,7 +659,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",");
 	},
 	get_no_content: function() {
-		return '<div class="text-extra-muted" data-no-content>'+__("Edit to add content")+'</div>'
+		return __("Edit to add content")
 	},
 	setup_edit_custom_html: function() {
 		var me = this;
@@ -637,12 +669,13 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	get_edit_html_dialog: function(title, label, $content) {
+		var me = this;
 		var d = new frappe.ui.Dialog({
 				title: title,
 				fields: [
 					{
 						fieldname: "content",
-						fieldtype: "Text Editor",
+						fieldtype: "Code",
 						label: label
 					},
 					{
@@ -657,11 +690,12 @@ frappe.PrintFormatBuilder = Class.extend({
 			});
 
 		// set existing content in input
-		content = $content.html();
-		if(content.indexOf("data-no-content")!==-1) content = "";
+		content = $content.data('content') || "";
+		if(content.indexOf(me.get_no_content())!==-1) content = "";
 		d.set_input("content", content);
 
 		d.set_primary_action(__("Update"), function() {
+			$($content[0]).data('content', d.get_value("content"));
 			$content.html(d.get_value("content"));
 			d.hide();
 		});
@@ -677,9 +711,11 @@ frappe.PrintFormatBuilder = Class.extend({
 		// add print heading as the first field
 		// this will be removed and set as a doc property
 		// before rendering
-		data.push({"fieldname": "print_heading_template",
-			fieldtype:"HTML",
-			options: this.page.main.find(".print-format-builder-print-heading").html()});
+		data.push({
+			fieldname: "print_heading_template",
+			fieldtype:"Custom HTML",
+			options: this.page.main.find(".print-format-builder-print-heading").data('content')
+		});
 
 		// add pages
 		this.page.main.find(".print-format-builder-section").each(function() {
@@ -696,11 +732,11 @@ frappe.PrintFormatBuilder = Class.extend({
 							fieldname: $this.attr("data-fieldname"),
 							print_hide: 0
 						};
-						
+
 					if(align) {
 						df.align = align;
 					}
-					
+
 					if(label) {
 						df.label = label;
 					}
@@ -721,7 +757,7 @@ frappe.PrintFormatBuilder = Class.extend({
 					if(fieldtype==="Custom HTML") {
 						// custom html as HTML field
 						df.fieldtype = "HTML";
-						df.options = $this.find(".html-content").html();
+						df.options = $($this.find(".html-content")[0]).data('content');
 					}
 					data.push(df);
 				});

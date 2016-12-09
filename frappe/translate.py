@@ -94,7 +94,7 @@ def get_dict(fortype, name=None):
 	fortype = fortype.lower()
 	cache = frappe.cache()
 	asset_key = fortype + ":" + (name or "-")
-	translation_assets = cache.hget("translation_assets", frappe.local.lang) or {}
+	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
 
 	if not asset_key in translation_assets:
 		if fortype=="doctype":
@@ -123,7 +123,7 @@ def get_dict(fortype, name=None):
 
 		translation_assets[asset_key] = message_dict
 
-		cache.hset("translation_assets", frappe.local.lang, translation_assets)
+		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
 	return translation_assets[asset_key]
 
@@ -203,7 +203,7 @@ def load_lang(lang, apps=None):
 	if lang=='en':
 		return {}
 
-	out = frappe.cache().hget("lang_full_dict", lang)
+	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
 	if not out:
 		out = {}
 		for app in (apps or frappe.get_all_apps(True)):
@@ -216,7 +216,7 @@ def load_lang(lang, apps=None):
 			parent_out.update(out)
 			out = parent_out
 
-		frappe.cache().hset("lang_full_dict", lang, out)
+		frappe.cache().hset("lang_full_dict", lang, out, shared=True)
 
 	return out or {}
 
@@ -260,8 +260,8 @@ def clear_cache():
 
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
-	cache.delete_key("lang_full_dict")
-	cache.delete_key("translation_assets")
+	cache.delete_key("lang_full_dict", shared=True)
+	cache.delete_key("translation_assets", shared=True)
 	cache.delete_key("lang_user_translations")
 
 def get_messages_for_app(app):
@@ -392,7 +392,7 @@ def get_messages_from_custom_fields(app_name):
 
 	for fixture in fixtures:
 		if isinstance(fixture, basestring) and fixture == 'Custom Field':
-			custom_fields = frappe.get_all('Custom Field')
+			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
 			custom_fields.extend(frappe.get_all('Custom Field', filters=fixture.get('filters'),
@@ -513,7 +513,7 @@ def extract_messages_from_code(code, is_py=False):
 	return pos_to_line_no(messages, code)
 
 def is_translatable(m):
-	if re.search("[a-zA-Z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
+	if re.search("[a-zA-Z]", m) and not m.startswith("fa fa-") and not m.endswith("px") and not m.startswith("eval:"):
 		return True
 	return False
 

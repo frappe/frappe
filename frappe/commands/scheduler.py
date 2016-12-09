@@ -27,7 +27,7 @@ def trigger_scheduler_event(context, event):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=context.force)
+			frappe.utils.scheduler.trigger(site, event, now=True)
 		finally:
 			frappe.destroy()
 
@@ -145,15 +145,6 @@ def purge_jobs(site=None, queue=None, event=None):
 	count = purge_pending_jobs(event=event, site=site, queue=queue)
 	print "Purged {} jobs".format(count)
 
-@click.command('dump-queue-status')
-def dump_queue_status():
-	"Dump detailed diagnostic infomation for task queues in JSON format"
-	frappe.init('')
-	from frappe.utils.doctor import dump_queue_status as _dump_queue_status, inspect_queue
-	print json.dumps(_dump_queue_status(), indent=1)
-	inspect_queue()
-
-
 @click.command('schedule')
 def start_scheduler():
 	from frappe.utils.scheduler import start_scheduler
@@ -192,7 +183,6 @@ def ready_for_migration(context, site=None):
 commands = [
 	disable_scheduler,
 	doctor,
-	dump_queue_status,
 	enable_scheduler,
 	purge_jobs,
 	ready_for_migration,

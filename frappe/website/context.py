@@ -43,9 +43,16 @@ def update_controller_context(context, controller):
 				context[prop] = getattr(module, prop)
 
 		if hasattr(module, "get_context"):
-			ret = module.get_context(context)
-			if ret:
-				context.update(ret)
+			try:
+				ret = module.get_context(context)
+				if ret:
+					context.update(ret)
+			except frappe.Redirect:
+				raise
+			except frappe.PermissionError:
+				raise
+			except:
+				frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):
 			context.children = module.get_children(context)

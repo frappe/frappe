@@ -438,9 +438,6 @@ $.extend(frappe.model, {
 				parent_doc[parentfield] = newlist;
 			});
 		}
-
-		if(frappe.ui.toolbar.recent)
-			frappe.ui.toolbar.recent.remove(doctype, docname);
 	},
 
 	get_no_copy_list: function(doctype) {

@@ -4,7 +4,7 @@
 frappe.ui.form.on('Auto Email Report', {
 	refresh: function(frm) {
 		if(frm.doc.report_type !== 'Report Builder') {
-			if(frm.script_setup_for !== frm.doc.report) {
+			if(frm.script_setup_for !== frm.doc.report && !frm.doc.__islocal) {
 				frappe.call({
 					method:"frappe.desk.query_report.get_script",
 					args: {
@@ -60,8 +60,18 @@ frappe.ui.form.on('Auto Email Report', {
 				<tr><th style="width: 50%">'+__('Filter')+'</th><th>'+__('Value')+'</th></tr>\
 				</thead><tbody></tbody></table>').appendTo(wrapper);
 				$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);
+
 			var filters = JSON.parse(frm.doc.filters || '{}');
 			var report_filters = frappe.query_reports[frm.doc.report].filters;
+
+			report_filters_list = []
+			$.each(report_filters, function(key, val){
+				// Remove break fieldtype from the filters
+				if(val.fieldtype != 'Break') {
+					report_filters_list.push(val)
+				}
+			})
+			report_filters = report_filters_list;
 
 			report_filters.forEach(function(f) {
 				$('<tr><td>' + f.label + '</td><td>'+ frappe.format(filters[f.fieldname], f) +'</td></tr>')

@@ -82,10 +82,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -354,7 +354,7 @@ fieldset[disabled] .form-control {
 }
 /* jquery ui */
 .ui-datepicker {
-  z-index: 100 !important;
+  z-index: 9999 !important;
 }
 .ui-datepicker .ui-datepicker-header {
   border-radius: 0px !important;
