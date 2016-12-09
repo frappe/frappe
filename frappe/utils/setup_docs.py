@@ -47,7 +47,8 @@ class setup_docs(object):
 				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", "")
+				"style": getattr(self.docs_config, "style", ""),
+				"google_analytics_id": getattr(self.docs_config, "google_analytics_id", "")
 			}),
 			"metatags": {
 				"description": self.hooks.get("app_description")[0],
@@ -408,7 +409,7 @@ class setup_docs(object):
 			"css/font-awesome.css": "css/font-awesome.css",
 			"css/docs.css": "css/docs.css",
 			"css/hljs.css": "css/hljs.css",
-			"css/font": "css/font",
+			"css/fonts": "css/fonts",
 			"css/octicons": "css/octicons",
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",

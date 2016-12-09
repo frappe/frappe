@@ -92,7 +92,7 @@ class DocType(Document):
 						target.`{fieldname}` = source.`{source_fieldname}`
 					where
 						target.`{link_fieldname}` = source.name
-						and ifnull(target.`{link_fieldname}`, '')="" '''.format(
+						and ifnull(target.`{fieldname}`, '')="" '''.format(
 							link_doctype = link_df.options,
 							source_fieldname = source_fieldname,
 							doctype = self.name,
