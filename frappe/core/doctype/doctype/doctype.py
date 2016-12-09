@@ -91,7 +91,8 @@ class DocType(Document):
 					set
 						target.`{fieldname}` = source.`{source_fieldname}`
 					where
-						target.`{link_fieldname}` = source.name'''.format(
+						target.`{link_fieldname}` = source.name
+						and ifnull(target.`{link_fieldname}`, '')="" '''.format(
 							link_doctype = link_df.options,
 							source_fieldname = source_fieldname,
 							doctype = self.name,
