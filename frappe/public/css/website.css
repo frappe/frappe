@@ -636,8 +636,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 10px;
-  margin: 0px -15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -865,6 +865,9 @@ li .footer-child-item {
   border-bottom: 1px solid #d1d8dd;
   width: 100%;
 }
+.item-search .input-wrapper {
+  margin-right: 30px;
+}
 .item-search .item-search-input {
   position: relative;
   outline: none;
@@ -872,10 +875,11 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
-  width: 80px;
+  width: 100%;
 }
 .item-search i {
-  padding: 10px 10px 10px 0;
+  margin-right: -30px;
+  margin-top: -25px;
 }
 .vert-line {
   overflow: hidden;
