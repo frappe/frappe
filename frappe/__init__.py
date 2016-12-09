@@ -355,11 +355,11 @@ def get_request_header(key, default=None):
 	:param default: Default value."""
 	return request.headers.get(key, default)
 
-def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
+def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), show_as_cc=(), in_reply_to=None, send_after=None, expose_recipients=False,
+		cc=[], in_reply_to=None, send_after=None, expose_recipients=False,
 		send_priority=1, communication=None, retry=1, now=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -396,7 +396,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		subject=subject, message=message,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-		attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, in_reply_to=in_reply_to,
+		attachments=attachments, reply_to=reply_to, cc=cc, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now)
 
