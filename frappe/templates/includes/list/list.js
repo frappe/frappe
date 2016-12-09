@@ -1,5 +1,5 @@
 frappe.ready(function() {
-	var next_start = {{ next_start }};
+	var next_start = {{ next_start or 0 }};
 	var result_wrapper = $(".website-list .result");
 
 	$(".website-list .btn-more").on("click", function() {
