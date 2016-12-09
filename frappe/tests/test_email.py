@@ -13,6 +13,7 @@ class TestEmail(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Unsubscribe`""")
 		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
 
 	def test_email_queue(self, send_after=None):
 		frappe.sendmail(recipients = ['test@example.com', 'test1@example.com'],
@@ -21,37 +22,51 @@ class TestEmail(unittest.TestCase):
 			subject='Testing Queue', message='This mail is queued!',
 			unsubscribe_message="Unsubscribe", send_after=send_after)
 
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
-		self.assertEquals(len(email_queue), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('Unsubscribe' in email_queue[0]['message'])
+		email_queue = frappe.db.sql("""select name,message from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""SELECT recipient FROM `tabEmail Queue Recipient` 
+					WHERE status='Not Sent'""", as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		self.assertEquals(len(queue_recipients), 2)
+		self.assertTrue('<!--unsubscribe url-->' in email_queue[0]['message'])
 
 	def test_send_after(self):
 		self.test_email_queue(send_after = 1)
 		from frappe.email.queue import flush
 		flush(from_test=True)
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEquals(len(email_queue), 0)
 
 	def test_flush(self):
 		self.test_email_queue()
 		from frappe.email.queue import flush
 		flush(from_test=True)
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Sent'""", as_dict=1)
-		self.assertEquals(len(email_queue), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+					where status='Sent'""", as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		self.assertEquals(len(queue_recipients), 2)
+		self.assertTrue('Unsubscribe' in frappe.flags.sent_mail)
+
+	def test_cc(self):
+		#test if sending with cc's makes it into header
+		pass
 
 	def test_expired(self):
 		self.test_email_queue()
 		frappe.db.sql("update `tabEmail Queue` set modified=DATE_SUB(curdate(), interval 8 day)")
 		from frappe.email.queue import clear_outbox
 		clear_outbox()
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Expired'""", as_dict=1)
-		self.assertEquals(len(email_queue), 2)
-		self.assertTrue('test@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Expired'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+					where parent = %s""",email_queue[0].name, as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		self.assertEquals(len(queue_recipients), 2)
 
 	def test_unsubscribe(self):
 		from frappe.email.queue import unsubscribe, send
@@ -69,12 +84,15 @@ class TestEmail(unittest.TestCase):
 
 		# this is sent async (?)
 
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue` where status='Not Sent'""",
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""",
 			as_dict=1)
 		self.assertEquals(len(email_queue), before + 1)
-		self.assertFalse('test@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('test1@example.com' in [d['recipient'] for d in email_queue])
-		self.assertTrue('Unsubscribe' in email_queue[0]['message'])
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+			where status='Not Sent'""", as_dict=1)]
+		self.assertFalse('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		self.assertEquals(len(queue_recipients), 1)
+		self.assertTrue('Unsubscribe' in frappe.flags.sent_mail)
 
 	def test_email_queue_limit(self):
 		from frappe.email.queue import send, EmailLimitCrossedError

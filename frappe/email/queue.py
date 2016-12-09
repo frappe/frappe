@@ -262,15 +262,16 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from `tabEmail Queue Recipient` where parent=%s and status = "Not Sent"''',email.name,as_dict=1)
 
-	if from_test:
-		# called from specific test, just set it as sent
-		frappe.db.set_value('Email Queue', email.name, 'status', 'Sent')
-		return
+	# if from_test:
+	# 	# called from specific test, just set it as sent
+	# 	frappe.db.set_value('Email Queue', email.name, 'status', 'Sent')
+	# 	frappe.db.sql("update `tabEmail Queue Recipient` set status = 'Sent' where parent=%s",email.name)
+	# 	return
 
-	if frappe.flags.in_test:
-		# call form general test, add the sent email to flags and quit
-		frappe.flags.sent_mail = email.message
-		return
+	# if frappe.flags.in_test:
+	# 	# call form general test, add the sent email to flags and quit
+	# 	frappe.flags.sent_mail = email.message
+	# 	return
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
@@ -288,18 +289,19 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 	try:
-		if auto_commit:
+		if not frappe.flags.in_test:
 			if not smtpserver: smtpserver = SMTPServer()
 			smtpserver.setup_email_account(email.reference_doctype)
 
-			for recipient in recipients_list:
-				
-				message = prepare_message(email, recipient.recipient)
+		for recipient in recipients_list:
+
+			message = prepare_message(email, recipient.recipient)
+			if not frappe.flags.in_test:
 				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
-				
-				recipient.status = "Sent"
-				frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
-				              (now_datetime(), recipient.name), auto_commit=auto_commit)
+
+			recipient.status = "Sent"
+			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
+			              (now_datetime(), recipient.name), auto_commit=auto_commit)
 
 		#if all are sent set status
 		if any("Sent" == s.status for s in recipients_list):
@@ -308,7 +310,9 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		else:
 			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
 							where name=%s""", ("No recipients to send to", email.name), auto_commit=auto_commit)
-
+		if frappe.flags.in_test:
+			frappe.flags.sent_mail = message
+			return
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
@@ -368,8 +372,8 @@ def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
 
 	Called daily via scheduler."""
-	frappe.db.sql("""delete from `tabEmail Queue` where priority=0 and
-		datediff(now(), modified) > 31""")
+	frappe.db.sql("""delete q, r from `tabEmail Queue` as q, `tabEmail Queue Recipient` as r where q.name = r.parent and q.priority=0 and
+		datediff(now(), q.modified) > 31""")
 
-	frappe.db.sql("""update `tabEmail Queue` set status='Expired'
-		where datediff(curdate(), modified) > 7 and status='Not Sent'""")
+	frappe.db.sql("""update `tabEmail Queue` as q, `tabEmail Queue Recipient` as r set q.status='Expired', r.status='Expired'
+		where q.name = r.parent and datediff(curdate(), q.modified) > 7 and q.status='Not Sent' and r.status='Not Sent'""")
