@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//user/fr/tutorial">
 		Tutoriel Frappe</a>
 	</li>
@@ -133,7 +133,7 @@
 					<div class="page_content">
 <h1>Les controleurs</h1>
 
-<p>La prochaine étape est d'ajouter quelques méthodes et évéements à nos modèles. Dans l'application, nous devons nous 
+<p>La prochaine étape est d'ajouter quelques méthodes et événements à nos modèles. Dans l'application, nous devons nous 
 assurer que si une opération est faite, l'article concerné doit être disponible en stock et que le membre qui souhaite
 faire le prêt à un abonnement valide.</p>
 
@@ -150,7 +150,7 @@ faire le prêt à un abonnement valide.</p>
 <li><code>on_trash</code> (avant qu'il ne soit sur le point d'être supprimé)</li>
 </ol>
 
-<p>Vous pouvez écrire des méthodes pour ces événement et elles seront appelées par le framework au bon moment.</p>
+<p>Vous pouvez écrire des méthodes pour ces événements et elles seront appelées par le framework au bon moment.</p>
 
 <p>Voici pour finir le controleur:</p>
 
@@ -178,7 +178,7 @@ class LibraryTransaction(Document):
                 frappe.throw(_("Cannot return article not issued"))
 </code></pre>
 
-<p>Dans ce scrit:</p>
+<p>Dans ce script:</p>
 
 <ol>
 <li>Nous récuperons la dernière opération, avant la date de l'opération en cours en utilisant la méthode <code>frappe.get_list</code></li>
@@ -186,7 +186,7 @@ class LibraryTransaction(Document):
 <li>Nous utilisons la méthode  <code>_("text")</code> pour identifier une chaine traduisible.</li>
 </ol>
 
-<p>Verifiez vos validations en créant de nouveux enregistrements.</p>
+<p>Vérifiez vos validations en créant de nouveaux enregistrements.</p>
 
 <p><img class="screenshot" alt="Transaction" src="https://frappe.github.io/frappe/assets/img/lib_trans.png"></p>
 
@@ -194,9 +194,9 @@ class LibraryTransaction(Document):
 
 <p>Pour debugger, gardez toujours votre console JS ouverte, vérifier les erreurs à la fois de Javascript mais aussi du serveur.</p>
 
-<p>Regardez aussi votre fenêtre de terminal pour les esceptions. Chaque <strong>erreur 500 pour des problèmes internes</strong> seront affichées dans le terminal du serveur en cours d'utilisation.</p>
+<p>Regardez aussi votre fenêtre de terminal pour les exceptions. Chaque <strong>erreur 500 pour des problèmes internes</strong> seront affichées dans le terminal du serveur en cours d'utilisation.</p>
 
-<p>{suite}</p>
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/fr/tutorial/reports">Rapports</a></p></p>
 
 </div>
 				</div>
@@ -207,7 +207,7 @@ class LibraryTransaction(Document):
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/controllers.md">
 			Improve this page
 		</a>
@@ -261,5 +261,17 @@ class LibraryTransaction(Document):
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>

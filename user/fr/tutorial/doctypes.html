@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//user/fr/tutorial">
 		Tutoriel Frappe</a>
 	</li>
@@ -133,7 +133,7 @@
 					<div class="page_content">
 <h1>DocType</h1>
 
-<p>Après avoir créé les ^oles, créons des <strong>DocTypes</strong></p>
+<p>Après avoir créé les roles, créons des <strong>DocTypes</strong></p>
 
 <p>Pour créer un nouveau <strong>DocType</strong>, rendez-vous sur:</p>
 
@@ -188,7 +188,7 @@ sur chacune des lignes comme ci-dessous</li>
 <h4>Ajouter des permissins</h4>
 
 <p>Après avoir ajouté les champs, validez et ajoutez un nouveau rôle dans la section des règles de permissions. Pour le moment
-ajoutons les droits le lecture, ecriture, création et suppression au modèle <strong>Librarian</strong>. Frappe à une gestion fine des 
+ajoutons les droits le lecture, écriture, création et suppression au modèle <strong>Librarian</strong>. Frappe à une gestion fine des 
 permissions sur les modèles. Vous pouvez aussi changer les permissions plus tard en utilisant le gestionnaire de permissions
 dans la configuration.</p>
 
@@ -239,7 +239,7 @@ MariaDB [library]&gt; DESC tabArticle;
 <p>Comme vous pouvez le voir, en plus de nos <strong>DocFields</strong>, d'autres colonnes ont été ajoutées dans notre table. Notez les 
 changement, la clé primaire sur, <code>name</code>, <code>owner</code>(l'utilisateur quia créer l'enregistrement), <code>creation</code> et <code>modified</code> (des timestamps pour enregistrer les dates de creation et de modification).</p>
 
-<p>{suite}</p>
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/fr/tutorial/naming-and-linking">Nommage et relation entre DocType</a></p></p>
 
 </div>
 				</div>
@@ -250,7 +250,7 @@ changement, la clé primaire sur, <code>name</code>, <code>owner</code>(l'utilis
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/doctypes.md">
 			Improve this page
 		</a>
@@ -304,5 +304,17 @@ changement, la clé primaire sur, <code>name</code>, <code>owner</code>(l'utilis
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>es vues web</title>
+	<title>Les vues web</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//user/fr/tutorial">
 		Tutoriel Frappe</a>
 	</li>
@@ -131,7 +131,7 @@
 						</div>
 					</div>
 					<div class="page_content">
-<h1>es vues web</h1>
+<h1>Les vues web</h1>
 
 <p>Frappe a deux principaux environnements, le <strong>bureau</strong> et <strong>le web</strong>. Le <strong>bureau</strong> est un environnement riche AJAX alors
 que <strong>le web</strong> est une collection plus traditionnelle de fichers HTML pour la consultation publique. Les vues web peuvent
@@ -153,7 +153,7 @@ y a 2 principaux types de templates.</p>
   <p>Cette fonctionnalité est encore en développement.</p>
 </blockquote>
 
-<p>Jettons un oeuil aux vues standards:</p>
+<p>Jettons un oeil aux vues standards:</p>
 
 <p>Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur<code>/article</code> et vous devriez voir la liste des articles:</p>
 
@@ -195,11 +195,11 @@ repertoire <code>library_management/doctype/article</code>. Voici un exemple du 
 le web, il n'a pas accès à l'interface du desk par defaut.</p>
 
 <blockquote>
-  <p>Pour autoriser les utilisateurs à accéder au Desk, ouvrez la configuration de l'utilisateur (Setup &gt; User) et définissez
+  <p>Pour autoriser les utilisateurs à accéder au <code>Desk</code>, ouvrez la configuration de l'utilisateur (Setup &gt; User) et définissez
    le type d'utilisatuer à "System User".</p>
 </blockquote>
 
-<p>Pour les utilisateurs qui n'ont pas accès au desk, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
+<p>Pour les utilisateurs qui n'ont pas accès au <code>Desk</code>, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
 <code>hooks.py</code> le tout en respectant les rôles.</p>
 
 <p>Quand un membre de la librairie se connecte, il doit être redirigé vers la page <code>article</code> donc ouvrez le fichier <code>library_management/hooks.py</code> et ajoutez:</p>
@@ -209,7 +209,7 @@ le web, il n'a pas accès à l'interface du desk par defaut.</p>
 }
 </code></pre>
 
-<p>{suite}</p>
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/fr/tutorial/single-doctypes">Les DocTypes de type Single</a></p></p>
 
 </div>
 				</div>
@@ -220,7 +220,7 @@ le web, il n'a pas accès à l'interface du desk par defaut.</p>
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/web-views.md">
 			Improve this page
 		</a>
@@ -274,5 +274,17 @@ le web, il n'a pas accès à l'interface du desk par defaut.</p>
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>

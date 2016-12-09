@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//current/api/desk">
 		desk</a>
 	</li>
@@ -152,9 +152,9 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.add_total_row" href="#frappe.desk.query_report.add_total_row" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>add_total_row</b>
-        <i class="text-muted">(result, columns)</i>
+        <i class="text-muted">(result, columns, meta=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -168,7 +168,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_columns_dict" href="#frappe.desk.query_report.get_columns_dict" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_columns_dict</b>
         <i class="text-muted">(columns)</i>
     </p>
@@ -186,7 +186,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_filtered_data" href="#frappe.desk.query_report.get_filtered_data" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_filtered_data</b>
         <i class="text-muted">(ref_doctype, columns, data, user)</i>
     </p>
@@ -202,7 +202,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_linked_doctypes" href="#frappe.desk.query_report.get_linked_doctypes" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_linked_doctypes</b>
         <i class="text-muted">(columns, data)</i>
     </p>
@@ -218,7 +218,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_report_doc" href="#frappe.desk.query_report.get_report_doc" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_report_doc</b>
         <i class="text-muted">(report_name)</i>
     </p>
@@ -234,7 +234,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_report_module_dotted_path" href="#frappe.desk.query_report.get_report_module_dotted_path" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_report_module_dotted_path</b>
         <i class="text-muted">(module, report_name)</i>
     </p>
@@ -252,7 +252,7 @@
     </p>
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_script" href="#frappe.desk.query_report.get_script" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_script</b>
         <i class="text-muted">(report_name)</i>
     </p>
@@ -268,7 +268,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.get_user_match_filters" href="#frappe.desk.query_report.get_user_match_filters" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>get_user_match_filters</b>
         <i class="text-muted">(doctypes, ref_doctype)</i>
     </p>
@@ -284,7 +284,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.has_match" href="#frappe.desk.query_report.has_match" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>has_match</b>
         <i class="text-muted">(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user)</i>
     </p>
@@ -312,7 +312,7 @@
     </p>
 	<p class="docs-attr-name">
         <a name="frappe.desk.query_report.run" href="#frappe.desk.query_report.run" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.desk.query_report.<b>run</b>
         <i class="text-muted">(report_name, filters=None, user=None)</i>
     </p>
@@ -378,5 +378,17 @@
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>

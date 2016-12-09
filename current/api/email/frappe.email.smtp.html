@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//current/api/email">
 		email</a>
 	</li>
@@ -159,9 +159,9 @@
     
 	<p class="docs-attr-name">
         <a name="__init__" href="#__init__" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>__init__</b>
-        <i class="text-muted">(self, login=None, password=None, server=None, port=None, use_ssl=None, append_to=None)</i>
+        <i class="text-muted">(self, login=None, password=None, server=None, port=None, use_tls=None, append_to=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -173,7 +173,7 @@
     
 	<p class="docs-attr-name">
         <a name="setup_email_account" href="#setup_email_account" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>setup_email_account</b>
         <i class="text-muted">(self, append_to=None)</i>
     </p>
@@ -193,7 +193,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.email.smtp._get_email_account" href="#frappe.email.smtp._get_email_account" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.smtp.<b>_get_email_account</b>
         <i class="text-muted">(filters)</i>
     </p>
@@ -209,7 +209,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.email.smtp.get_default_outgoing_email_account" href="#frappe.email.smtp.get_default_outgoing_email_account" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.smtp.<b>get_default_outgoing_email_account</b>
         <i class="text-muted">(raise_exception_not_set=True)</i>
     </p>
@@ -217,7 +217,7 @@
         {
          "mail<em>server": "<a href="http://smtp.example.com" rel="nofollow">smtp.example.com</a>",
          "mail</em>port": 587,
-         "use<em>ssl": 1,
+         "use<em>tls": 1,
          "mail</em>login": "emails@example.com",
          "mail<em>password": "Super.Secret.Password",
          "auto</em>email<em>id": "emails@example.com",
@@ -235,7 +235,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.email.smtp.get_outgoing_email_account" href="#frappe.email.smtp.get_outgoing_email_account" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.smtp.<b>get_outgoing_email_account</b>
         <i class="text-muted">(raise_exception_not_set=True, append_to=None)</i>
     </p>
@@ -253,7 +253,7 @@
     
 	<p class="docs-attr-name">
         <a name="frappe.email.smtp.send" href="#frappe.email.smtp.send" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.smtp.<b>send</b>
         <i class="text-muted">(email, append_to=None, retry=1)</i>
     </p>
@@ -319,5 +319,17 @@
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>

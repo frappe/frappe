@@ -109,7 +109,7 @@
 									
 <ul class="breadcrumb">
 	<li>
-		<span class="icon icon-angle-left"></span>
+		<span class="fa fa-angle-left"></span>
 		<a href="https://frappe.github.io/frappe//user/fr/tutorial">
 		Tutoriel Frappe</a>
 	</li>
@@ -145,7 +145,7 @@ faire, nous allons devoir écrire un gestionnaire d'évenements pour lorsque l'u
 
 <p>Pour commencer ce script, dans le repertoire <code>library_management/doctype/library_transaction</code>, créez un nouveau fichier 
 <code>library_transaction.js</code>. Ce fichier sera automatiquement executé lorsque le modèle <code>Library Transaction</code> est appelé par l'utilisateur. 
-Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais aussi écrire d'autres fonctiones.</p>
+Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais aussi écrire d'autres fonctions.</p>
 
 <h4>library_transaction.js</h4>
 
@@ -178,7 +178,7 @@ quand la propriété <code>library_member</code> est complétée.</li>
 <p><strong>Note:</strong> Pour vérifier que votre script fonctionne, n'oubliez pas de recharger votre page avant de tester. 
 Les changements dans les scripts côté client ne sont pas automatiquement pris en compte quand vous êtes en mode développeur.</p>
 
-<p>{suite}</p>
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/fr/tutorial/controllers">Les controleurs</a></p></p>
 
 </div>
 				</div>
@@ -189,7 +189,7 @@ Les changements dans les scripts côté client ne sont pas automatiquement pris 
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/fr/tutorial/form-client-scripting.md">
 			Improve this page
 		</a>
@@ -243,5 +243,17 @@ Les changements dans les scripts côté client ne sont pas automatiquement pris 
         window.docs_base_url = "https://frappe.github.io/frappe";
     </script>
 
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
 	<!-- csrf_token --></body>
 </html>
