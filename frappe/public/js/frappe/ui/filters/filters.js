@@ -245,7 +245,7 @@ frappe.ui.FilterList = Class.extend({
 				}
 			});
 			check.change = function() {
-				date.flatpickr.clear();
+				date.datepicker.clear();
 				date && date.wrapper.remove();
 				check.get_value() ?
 					make_date("range"):
@@ -264,18 +264,17 @@ frappe.ui.FilterList = Class.extend({
 					parent: date_wrapper,
 					only_input: true
 				});
-
 				date.refresh();
-				date.flatpickr.set("onChange", function(dateObj, dateStr) {
+				
+				date.datepicker.update("onSelect", function(fd, dateObj) {
 					var filt = me.get_filter(name);
 					filt && filt.remove(true);
-					if(dateObj.length===1 && date.flatpickr.config.mode==="single") {
-						me.add_filter(me.doctype, name, '=', dateObj[0]);
+					if(!dateObj.length && date.datepicker.opts.range===false) {
+						me.add_filter(me.doctype, name, '=', dateObj);
 						me.listobj.run();
-					} else if(dateObj.length===2 && date.flatpickr.config.mode==="range") {
+					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
 						me.add_filter(me.doctype, name, 'Between', [dateObj[0], dateObj[1]]);
 						me.listobj.run();
-						date.flatpickr.close();
 					}
 				});
 			}

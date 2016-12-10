@@ -39,7 +39,7 @@
 	],
 	"css/desk.min.css": [
 		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
-		"public/js/lib/flatpickr/flatpickr.min.css",
+		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/awesomplete/awesomplete.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
@@ -68,7 +68,8 @@
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/markdown.js",
-		"public/js/lib/flatpickr/flatpickr.min.js"
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",

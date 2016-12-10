@@ -145,6 +145,27 @@ textarea.form-control {
 
 /* jquery ui */
 
+.datepicker {
+	font-family: inherit;
+	z-index: 9999 !important;
+
+	&--time-current-hours, &--time-current-minutes {
+		font-family: inherit;
+	}
+
+	&--day-name {
+		color: @text-color;
+	}
+
+	&--cell.-current- {
+		color: @brand-primary;
+	}
+	&--cell.-selected-,&--cell.-current-.-selected- {
+		background: @brand-primary;
+	}
+}
+
+
 .ui-datepicker {
 	z-index: 9999 !important;
 }

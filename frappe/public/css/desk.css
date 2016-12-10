@@ -353,6 +353,24 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #EBEFF2;
 }
 /* jquery ui */
+.datepicker {
+  font-family: inherit;
+  z-index: 9999 !important;
+}
+.datepicker--time-current-hours,
+.datepicker--time-current-minutes {
+  font-family: inherit;
+}
+.datepicker--day-name {
+  color: #36414C;
+}
+.datepicker--cell.-current- {
+  color: #5E64FF;
+}
+.datepicker--cell.-selected-,
+.datepicker--cell.-current-.-selected- {
+  background: #5E64FF;
+}
 .ui-datepicker {
   z-index: 9999 !important;
 }
