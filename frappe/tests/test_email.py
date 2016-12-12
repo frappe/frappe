@@ -53,7 +53,39 @@ class TestEmail(unittest.TestCase):
 
 	def test_cc(self):
 		#test if sending with cc's makes it into header
-		pass
+		frappe.sendmail(recipients=['test@example.com'],
+		     cc=['test1@example.com'],
+		     sender="admin@example.com",
+		     reference_doctype='User', reference_name="Administrator",
+		     subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients=True)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+							where status='Not Sent'""", as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		message = frappe.db.sql("""select message from `tabEmail Queue` 
+									where status='Not Sent'""", as_dict=1)[0].message
+		self.assertTrue('To: test@example.com' in message)
+		self.assertTrue('CC: test1@example.com' in message)
+
+	def test_expose(self):
+		#test 
+		frappe.sendmail(recipients=['test@example.com'],
+		     cc=['test1@example.com'],
+		     sender="admin@example.com",
+		     reference_doctype='User', reference_name="Administrator",
+		     subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe")
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+									where status='Not Sent'""", as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+		message = frappe.db.sql("""select message from `tabEmail Queue` 
+											where status='Not Sent'""", as_dict=1)[0].message
+		self.assertTrue('<!--recipient-->' in message)
+
 
 	def test_expired(self):
 		self.test_email_queue()
