@@ -18,7 +18,7 @@ frappe.views.ListView = Class.extend({
 		this.doclistview = doclistview;
 		this.doctype = doctype;
 		this.meta = frappe.get_doc("DocType", this.doctype);
-		this.image_field = this.meta.image_field || image;
+		this.image_field = this.meta.image_field || 'image';
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		if(this.meta.__listview_template) {
 			this.template_name = doctype + "_listview";
