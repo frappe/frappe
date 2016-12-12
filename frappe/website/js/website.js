@@ -6,7 +6,9 @@ frappe.provide("frappe.search_path");
 cur_frm = null;
 
 $.extend(frappe, {
-	boot: {},
+	boot: {
+		lang: 'en'
+	},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
