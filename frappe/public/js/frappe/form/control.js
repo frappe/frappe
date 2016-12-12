@@ -608,13 +608,21 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		this._super();
+		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
 	},
-	set_datepicker: function() {
+	set_date_options: function() {
+		var me = this;
 		var date_format =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
 		this.datepicker_options.dateFormat = date_format;
+
+		this.datepicker_options.onSelect = function(dateObj) {
+			me.set_value(me.get_value())
+		}
+	},
+	set_datepicker: function() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 	},
@@ -650,11 +658,15 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
+		var me = this;
 		this._super();
 		this.$input.datepicker({
 			timepicker: true,
 			onlyTimepicker: true,
-			timeFormat: "hh:ii"
+			timeFormat: "hh:ii",
+			onSelect: function(dateObj) {
+				me.set_value(dateObj);
+			}
 		});
 		this.datepicker = this.$input.data('datepicker');
 		this.refresh();
@@ -662,12 +674,10 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
-	set_datepicker: function() {
+	set_date_options: function() {
+		this._super();
 		this.datepicker_options.timepicker = true;
-		this.datepicker_options.startDate = new Date();
 		this.datepicker_options.timeFormat = "hh:ii";
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data('datepicker');
 	},
 	parse: function(value) {
 		if(value) {
@@ -689,10 +699,11 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		this._super();
+		this.set_date_options();
 		this.set_datepicker();
 		this.refresh();
 	},
-	set_datepicker: function() {
+	set_date_options: function() {
 		var datepicker_options = {
 			language: "en",
 			range: true,
@@ -700,6 +711,11 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		}
 		datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
+		datepicker_options.onSelect = function(dateObj) {
+			me.set_value(dateObj);
+		}
+	},
+	set_datepicker: function() {
 		this.$input.datepicker(datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 	},
