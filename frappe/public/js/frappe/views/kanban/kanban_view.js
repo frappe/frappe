@@ -2,8 +2,8 @@ frappe.provide("frappe.views");
 
 /**
  * frappe.views.KanbanBoard
- * 
- * opts: 
+ *
+ * opts:
  * 		board_name - Kanban Board name
  * 		cards - Values in list view to be rendered as cards
  * 		wrapper - wrapper for kanban
@@ -44,7 +44,7 @@ frappe.views.KanbanBoard = Class.extend({
 	},
 	make_columns: function() {
 		var me = this;
-		
+
 		me.columns = me.board.columns.map(function(column) {
 			var column_name = column.column_name;
 			return new frappe.views.KanbanBoardColumn({
@@ -62,7 +62,7 @@ frappe.views.KanbanBoard = Class.extend({
 	},
 	bind_save_filter_button: function() {
 		var me = this;
-		me.$save_filter_btn = this.$filter_area.find('.save-filters'); 
+		me.$save_filter_btn = this.$filter_area.find('.save-filters');
 		if(me.$save_filter_btn.length) return;
 
 		me.$save_filter_btn = $('<button>', {
@@ -109,19 +109,18 @@ frappe.views.KanbanBoard = Class.extend({
 	get_board: function(callback) {
 		var me = this;
 		var doctype = 'Kanban Board';
-		frappe.model.with_doctype(doctype, function() {
-			frappe.model.with_doc(doctype, me.board_name, function() {
-				var board = frappe.get_doc(doctype, me.board_name);
-				if(!board) {
-					frappe.msgprint(__('Kanban Board {0} does not exist.',
-						['<b>'+me.board_name+'</b>']));
-					frappe.set_route('List', me.doctype);
-					return;
-				}
-				board.filters_array = board.filters ?
-					JSON.parse(board.filters) : [];
-				callback(board);
-			});
+		frappe.model.with_doc(doctype, me.board_name, function() {
+			var board = frappe.get_doc(doctype, me.board_name);
+
+			if(!board) {
+				frappe.msgprint(__('Kanban Board {0} does not exist.',
+					['<b>'+me.board_name+'</b>']));
+				frappe.set_route('List', me.doctype);
+				return;
+			}
+			board.filters_array = board.filters ?
+				JSON.parse(board.filters) : [];
+			callback(board);
 		});
 	},
 	make_add_new_column: function() {
@@ -137,7 +136,6 @@ frappe.views.KanbanBoard = Class.extend({
 		$compose_column_form = $add_new_column.find(".compose-column-form").hide();
 
 		$compose_column.on('click', function() {
-			//add column_name to Select field's option field
 			$(this).hide();
 			$compose_column_form.show();
 			$compose_column_form.find('textarea').focus();
@@ -164,35 +162,31 @@ frappe.views.KanbanBoard = Class.extend({
 			var doc = frappe.get_doc("Customize Form");
 			doc.doc_type = me.doctype;
 
-			frappe.call({
-				doc: doc,
-				freeze: true,
-				method: "fetch_to_customize",
-				callback: (r) => {
-					var d = r.docs[0];
-					d.fields.forEach(function(df) {
-						if(df.fieldname === me.board.field_name && df.fieldtype === "Select") {
-							df.options += "\n" + title;
-						}
-					});
+			fetch_customization().then(save_customization);
 
-					frappe.call({
-						doc: d,
-						freeze: true,
-						method: "save_customization",
-						callback: (r) => {
-							console.log(r)
-						}
-					})
-				}
-			})
-		})
-	},
-	insert_option_to_customization: function() {
-		frappe.call({
-			method: "frappe.custom.doctype.customize_form.customize_form",
-			args: {
-				
+			function fetch_customization() {
+				return frappe.call({
+					doc: doc,
+					method: "fetch_to_customize"
+				})
+			}
+
+			function save_customization(r) {
+				//add column_name to Select field's option field
+				var d = r.docs[0];
+				d.fields.forEach(function(df) {
+					if(df.fieldname === me.board.field_name && df.fieldtype === "Select") {
+						df.options += "\n" + title;
+					}
+				});
+				return frappe.call({
+					doc: d,
+					method: "save_customization"
+				})
+			}
+
+			function update_kanban_board() {
+				// frappe.model.set_value("Kanban Board", me.board_name, "columns")
 			}
 		})
 	},
@@ -223,10 +217,12 @@ frappe.views.KanbanBoard = Class.extend({
 				due_date_field = df;
 			}
 		});
-		this.card_title_field = field;
-		this.card_description_field = description_field;
-		this.card_quick_entry = quick_entry;
-		this.due_date_field = due_date_field;
+		this.card_meta = {
+			title_field: field,
+			description_field: description_field,
+			quick_entry: quick_entry,
+			due_date_field: due_date_field,
+		}
 	}
 });
 
@@ -291,9 +287,9 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		var $wrapper = this.wrapper.find(selector);
 		var $compose_card = $wrapper.find('.compose-card');
 		var $compose_card_form = $wrapper.find('.compose-card-form');
-		
+
 		//Add card button
-		$compose_card_form.hide(); 
+		$compose_card_form.hide();
 		$compose_card.on('click', function() {
 			$compose_card.hide();
 			$compose_card_form.show().find('textarea').focus();
@@ -330,49 +326,49 @@ frappe.views.KanbanBoardColumn = Class.extend({
 		var $card = $wrapper.find('.kanban-card-wrapper');
 
 		$card.on('click', function() {
+			if(me.edit_dialog) {
+				me.edit_dialog.show();
+				return;
+			}
+
 			var doc_name = $(this).data().name;
 			var card = me.get_card(doc_name);
 
 			frappe.model.with_doc(me.kb.doctype, doc_name, function() {
 				var doc = frappe.get_doc(me.kb.doctype, doc_name);
-				// console.log(doc)
 				var fields = [];
-				// fields.push({ fieldtype: "Read Only", label: "In Column", default: me.title});
-				// fields.push({ fieldtype: "Section Break" });
-				if(me.kb.card_description_field) {
-					fields.push(me.kb.card_description_field);
+				if(me.kb.card_meta.description_field) {
+					fields.push(me.kb.card_meta.description_field);
 				}
 				fields.push({ fieldtype: "Section Break" });
 				fields.push({ fieldtype: "Read Only", label: "Assigned to",
 					fieldname: "assignees" });
 				fields.push({ fieldtype: "Column Break" });
 
-				if(me.kb.due_date_field) {
-					fields.push(me.kb.due_date_field);
+				if(me.kb.card_meta.due_date_field) {
+					fields.push(me.kb.card_meta.due_date_field);
 				}
+
 
 				var d = new frappe.ui.Dialog({
 					title: card.title,
 					fields: fields
 				});
 
-				if(me.kb.due_date_field) {
-					d.set_value(me.kb.due_date_field.fieldname, doc[me.kb.due_date_field.fieldname]);
+				if(me.kb.card_meta.due_date_field) {
+					d.set_value(me.kb.card_meta.due_date_field.fieldname,
+						doc[me.kb.card_meta.due_date_field.fieldname]);
 				}
-				if(me.kb.card_description_field) {
-					d.set_value(me.kb.card_description_field.fieldname, doc[me.kb.card_description_field.fieldname]);
+				if(me.kb.card_meta.description_field) {
+					d.set_value(me.kb.card_meta.description_field.fieldname,
+						doc[me.kb.card_meta.description_field.fieldname]);
 				}
 
-				// var indicator = frappe.get_indicator(doc, me.kb.doctype);
-				// var indicator_html = $("<span class='indicator'>"+indicator[0]+"</span>")
-				// 	.addClass(indicator[1]).css("float", "left");
-				// d.$wrapper.find('.modal-title').css({
-				// 	float: "left", marginRight: "7px"
-				// }).after(indicator_html);
-
+				// simplify editor appearance
 				d.$wrapper.find(".text-editor").css("height", "60px");
 				d.$wrapper.find(".frappe-list-toolbar").hide();
-				
+
+				// assignees
 				var assignees = "", html = "";
 				if(card.assigned_list.length) {
 					card.assigned_list.forEach(function(a) {
@@ -381,17 +377,39 @@ frappe.views.KanbanBoardColumn = Class.extend({
 					});
 					d.set_value("assignees", assignees);
 				}
-
+				html += '<a class="strong add-assignment">\
+					Assign <i class="octicon octicon-plus" style="margin-left: 2px;"></i></a>';
 				d.$wrapper.find("[data-fieldname='assignees'] .control-value").hide().after(html);
+				d.$wrapper.find(".add-assignment").on("click", function() {
 
+					var ad = new frappe.ui.Dialog({
+						title: __("Assign to"),
+						fields: [
+							{ fieldtype: "Link", fieldname: "user", label: __("User"), options: "User"}
+						]
+					})
+					ad.set_primary_action(__("Save"), function() {
+						var assign_to = ad.fields_dict.user.get_value();
+						var args = {
+							description: d.fields_dict.description.get_value() || ""
+						}
+						var opts = {
+							method: "frappe.desk.form.assign_to.add",
+							doctype: me.kb.doctype,
+							docname: doc_name
+						}
+						frappe.ui.add_assignment(assign_to, args, opts);
+					})
+					ad.show()
+				})
+
+				// activity timeline
 				d.$wrapper.find('.modal-body').append("<div class='form-comments' style='padding:7px'>");
-				
 				var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">\
 			 		<a class="edit-full">Edit in full page</a></div>').appendTo(d.$wrapper.find('.modal-body'));
 				$link.on('click', function() {
 					frappe.set_route("Form", me.kb.doctype, doc_name);
 				});
-				
 				var tl = new frappe.ui.form.Timeline({
 					parent: d.$wrapper.find(".form-comments"),
 					frm: {
@@ -405,10 +423,8 @@ frappe.views.KanbanBoardColumn = Class.extend({
 						}
 					}
 				});
-				console.log(tl)
 				tl.wrapper.addClass('in-dialog');
 				tl.refresh();
-				d.show();
 
 				d.set_primary_action(__('Save'), function() {
 					if(d.working) return;
@@ -428,15 +444,15 @@ frappe.views.KanbanBoardColumn = Class.extend({
 						freeze: true
 					});
 				});
-				window.dialog = d
-
-			})
+				d.show();
+				me.edit_dialog = d;
+			});
 		});
 	},
 	new_card: function(card_title) {
 		var me = this;
 		var doc = frappe.model.get_new_doc(me.kb.doctype);
-		
+
 		var field = me.kb.card_title_field, quick_entry = me.kb.card_quick_entry;
 
 		if(field && !quick_entry) {
