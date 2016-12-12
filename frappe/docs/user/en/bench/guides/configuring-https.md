@@ -37,7 +37,7 @@ Set the paths to the certificate and private key for your site
 
 ### Reload nginx
 	
-	service nginx reload
+	sudo service nginx reload
 
 or
 
