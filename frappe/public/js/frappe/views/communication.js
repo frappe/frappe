@@ -296,7 +296,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		var attach = $(fields.select_attachments.wrapper);
 
 		var me = this
-		me.attachments = []
+		if (!me.attachments){
+			me.attachments = []
+		}
 		$("<h6 class='text-muted add-attachment' style='margin-top: 12px;cursor:pointer;'>"
 				+__("Add Attachments")+"<i class=\"octicon octicon-plus\" style=\"margin-left: 4px;\"></i></h6><div class='attach-list'></div>").appendTo(attach.empty())
 			attach.find(".add-attachment").on('click',this,function() {
