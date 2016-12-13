@@ -192,6 +192,10 @@ frappe.ui.TreeNode = Class.extend({
 			.removeClass('selected');
 		this.$a.toggleClass('selected');
 		this.expanded = !this.expanded;
+		
+		this.expanded ?
+			this.parent.addClass('opened') :
+			this.parent.removeClass('opened');
 		if(callback) callback();
 	},
 	reload: function() {
