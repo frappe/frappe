@@ -129,7 +129,7 @@
 			{% for option in field.options.split("\n") -%}
 			<option value="{{ option }}"
 				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
-				{{ option }}</option>
+				{{ _(option) }}</option>
 			{%- endfor %}
 		</select>
 		{{ help(field) }}
