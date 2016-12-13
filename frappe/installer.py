@@ -184,7 +184,6 @@ def remove_app(app_name, dry_run=False, yes=False):
 		for doctype in frappe.get_list("DocType", filters={"module": module_name},
 			fields=["name", "issingle"]):
 			print "removing DocType {0}...".format(doctype.name)
-			# drop table
 
 			if not dry_run:
 				frappe.delete_doc("DocType", doctype.name)
@@ -192,21 +191,14 @@ def remove_app(app_name, dry_run=False, yes=False):
 				if not doctype.issingle:
 					drop_doctypes.append(doctype.name)
 
-		# remove reports
-		for report in frappe.get_list("Report", filters={"module": module_name}):
-			print "removing {0}...".format(report.name)
-			if not dry_run:
-				frappe.delete_doc("Report", report.name)
-
-		for page in frappe.get_list("Page", filters={"module": module_name}):
-			print "removing Page {0}...".format(page.name)
-			# drop table
-
-			if not dry_run:
-				frappe.delete_doc("Page", page.name)
+		# remove reports, pages and web forms
+		for doctype in ("Report", "Page", "Web Form"):
+			for record in frappe.get_list(doctype, filters={"module": module_name}):
+				print "removing {0} {1}...".format(doctype, record.name)
+				if not dry_run:
+					frappe.delete_doc(doctype, record.name)
 
 		print "removing Module {0}...".format(module_name)
-
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
 
