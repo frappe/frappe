@@ -14,7 +14,7 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=False):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account,expose_recipients=expose_recipients)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)

@@ -262,17 +262,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from `tabEmail Queue Recipient` where parent=%s and status = "Not Sent"''',email.name,as_dict=1)
 
-	# if from_test:
-	# 	# called from specific test, just set it as sent
-	# 	frappe.db.set_value('Email Queue', email.name, 'status', 'Sent')
-	# 	frappe.db.sql("update `tabEmail Queue Recipient` set status = 'Sent' where parent=%s",email.name)
-	# 	return
-
-	# if frappe.flags.in_test:
-	# 	# call form general test, add the sent email to flags and quit
-	# 	frappe.flags.sent_mail = email.message
-	# 	return
-
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
@@ -301,7 +290,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
-			              (now_datetime(), recipient.name), auto_commit=auto_commit)
+				(now_datetime(), recipient.name), auto_commit=auto_commit)
 
 		#if all are sent set status
 		if any("Sent" == s.status for s in recipients_list):
@@ -309,7 +298,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
 			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-							where name=%s""", ("No recipients to send to", email.name), auto_commit=auto_commit)
+				where name=%s""", ("No recipients to send to", email.name), auto_commit=auto_commit)
 		if frappe.flags.in_test:
 			frappe.flags.sent_mail = message
 			return
@@ -326,7 +315,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 		if any("Sent" == s.status for s in recipients_list):
 			frappe.db.sql("""update `tabEmail Queue` set status='Partially Sent', modified=%s where name=%s""",
-			              (now_datetime(), email.name), auto_commit=auto_commit)
+				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
 			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s where name=%s""",
 				(now_datetime(), email.name), auto_commit=auto_commit)
@@ -339,13 +328,13 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	except Exception, e:
 		frappe.db.rollback()
-		
+
 		if any("Sent" == s.status for s in recipients_list):
 			frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
-			              (unicode(e), email.name), auto_commit=auto_commit)
+				(unicode(e), email.name), auto_commit=auto_commit)
 		else:
 			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-				where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
+where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
