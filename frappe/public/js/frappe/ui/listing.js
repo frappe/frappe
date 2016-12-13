@@ -448,4 +448,22 @@ frappe.ui.Listing = Class.extend({
 			this.list_settings = {};
 		}
 	},
+	call_for_selected_items: function(method, args) {
+		var me = this;
+		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
+
+		frappe.call({
+			method: method,
+			args: args,
+			freeze: true,
+			callback: function(r) {
+				if(!r.exc) {
+					if(me.list_header) {
+						me.list_header.find(".list-select-all").prop("checked", false);
+					}
+					me.refresh();
+				}
+			}
+		});
+	}
 });
