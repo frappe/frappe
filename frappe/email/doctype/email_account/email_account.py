@@ -288,6 +288,12 @@ class EmailAccount(Document):
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
 
+		# check if message is notification and disable notifications for this message
+		references = email.mail.get("References")
+		if references:
+			if "notification" in references:
+				communication.unread_notification_sent = 1
+
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
@@ -311,7 +317,7 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-				subject = strip(re.sub("^\s*(Re|RE)[^:]*:\s*", "", email.subject))
+				subject = strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*", "", email.subject))
 
 				parent = frappe.db.get_all(self.append_to, filters={
 					self.sender_field: email.from_email,
@@ -372,7 +378,7 @@ class EmailAccount(Document):
 
 		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
 			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
+			email_queue = frappe.db.get_value('Communication', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
 			if email_queue:
 				parent_doctype, parent_name = email_queue
 			else:
