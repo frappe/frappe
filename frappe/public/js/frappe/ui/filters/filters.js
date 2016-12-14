@@ -265,7 +265,7 @@ frappe.ui.FilterList = Class.extend({
 					only_input: true
 				});
 				date.refresh();
-				
+
 				date.datepicker.update("onSelect", function(fd, dateObj) {
 					var filt = me.get_filter(name);
 					filt && filt.remove(true);
@@ -704,28 +704,32 @@ frappe.ui.FieldSelect = Class.extend({
 		this.options = [];
 		this.$select = $('<input class="form-control">')
 			.appendTo(this.parent)
-			.on("click", function () { $(this).select(); })
-			.autocomplete({
-				source: me.options,
-				minLength: 0,
-				autoFocus: true,
-				focus: function(event, ui) {
-					event.preventDefault();
-				},
-				select: function(event, ui) {
-					me.selected_doctype = ui.item.doctype;
-					me.selected_fieldname = ui.item.fieldname;
-					me.$select.val(ui.item.label);
-					if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
-					return false;
-				}
-			});
-
-		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
-			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
+			.on("click", function () { $(this).select(); });
+		this.select_input = this.$select.get(0);
+		this.awesomplete = new Awesomplete(this.select_input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: me.options,
+			item: function(item, input) {
+				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
 				.data("item.autocomplete", item)
-				.appendTo(ul);
-		}
+				.get(0);
+			}
+		});
+		this.select_input.addEventListener("awesomplete-select", function(e) {
+			var value = e.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.selected_doctype = item.doctype;
+			me.selected_fieldname = item.fieldname;
+			if(me.select) me.select(item.doctype, item.fieldname);
+			return false;
+		});
+		this.select_input.addEventListener("awesomplete-selectcomplete", function(e) {
+			var value = e.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.$select.val(item.label);
+		});
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)

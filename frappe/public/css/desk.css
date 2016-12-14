@@ -270,9 +270,6 @@ a[disabled="disabled"]:hover {
 .link-primary:focus {
   color: #5E64FF;
 }
-.ui-autocomplete .link-option {
-  font-weight: normal;
-}
 .scroll-to-top {
   background-color: #fafbfc;
   padding: 7px;
@@ -432,57 +429,31 @@ fieldset[disabled] .form-control {
 .awesomplete > ul p {
   margin: 3px 0;
 }
-.ui-autocomplete {
-  max-height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  z-index: 1041;
+@media (max-width: 991px) {
+  .awesomplete > ul {
+    top: 26px;
+  }
 }
-.ui-autocomplete a {
-  transition: none;
-}
-.ui-autocomplete .ui-menu-item a:hover,
-.ui-autocomplete .ui-menu-item a:focus,
-.ui-autocomplete .ui-menu-item a:active {
-  color: inherit;
-}
-.ui-datepicker,
-.ui-autocomplete,
-.flatpickr-calendar {
+.ui-datepicker {
   border-radius: 0px 0px 4px 4px;
   box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
   border-color: #d1d8dd;
   padding: 0px;
 }
 .ui-datepicker .ui-state-focus,
-.ui-autocomplete .ui-state-focus,
-.flatpickr-calendar .ui-state-focus,
-.ui-datepicker .ui-state-hover,
-.ui-autocomplete .ui-state-hover,
-.flatpickr-calendar .ui-state-hover {
+.ui-datepicker .ui-state-hover {
   background-color: #F0F4F7 !important;
   color: #36414C !important;
   text-shadow: none !important;
 }
-.ui-datepicker .ui-state-active,
-.ui-autocomplete .ui-state-active,
-.flatpickr-calendar .ui-state-active {
+.ui-datepicker .ui-state-active {
   background-color: #F0F4F7 !important;
   color: #36414C !important;
   text-shadow: none !important;
   border: none;
 }
-.ui-datepicker .ui-state-active .small,
-.ui-autocomplete .ui-state-active .small,
-.flatpickr-calendar .ui-state-active .small {
+.ui-datepicker .ui-state-active .small {
   color: #555 !important;
-}
-.flatpickr-calendar .flatpickr-day {
-  border-radius: 0;
-}
-.flatpickr-calendar .flatpickr-day.selected {
-  border-color: #5E64FF;
-  background: #5E64FF;
 }
 .ui-menu .ui-menu-item {
   font-size: 12px;
@@ -497,7 +468,6 @@ fieldset[disabled] .form-control {
     width: 700px;
   }
 }
-/* z-index hack */
 @media (min-width: 768px) {
   .hidden-xs-inline {
     display: inline;
@@ -539,9 +509,6 @@ fieldset[disabled] .form-control {
 }
 .link-field.ui-front {
   z-index: inherit;
-}
-.modal .link-field .ui-autocomplete {
-  z-index: 1141;
 }
 .form-group {
   margin-bottom: 7px;

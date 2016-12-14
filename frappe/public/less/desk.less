@@ -40,10 +40,6 @@ a[disabled="disabled"] {
 	}
 }
 
-.ui-autocomplete .link-option {
-	font-weight: normal;
-}
-
 .scroll-to-top {
 	background-color: @light-bg;
 	padding: 7px;
@@ -200,7 +196,7 @@ textarea.form-control {
 
 .awesomplete {
 	width: 100%;
-	
+
 	&> ul {
 		z-index: 1041;
 		transition: none;
@@ -237,32 +233,15 @@ textarea.form-control {
 			margin: 3px 0;
 		}
 	}
-}
 
-
-
-.ui-autocomplete {
-	max-height: 200px;
-	overflow-y: auto;
-	overflow-x: hidden;
-	z-index: 1041;
-}
-
-.ui-autocomplete a {
-	transition: none;
-}
-
-.ui-autocomplete .ui-menu-item a& {
-	&:hover,
-	&:focus,
-	&:active {
-		color: inherit;
+	@media (max-width: @screen-sm) {
+		&>ul {
+			top: 26px;
+		}
 	}
 }
 
-.ui-datepicker,
-.ui-autocomplete,
-.flatpickr-calendar {
+.ui-datepicker {
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
 	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
@@ -288,18 +267,6 @@ textarea.form-control {
 	}
 }
 
-.flatpickr-calendar {
-	.flatpickr-day {
-		border-radius: 0;
-
-		&.selected {
-			border-color: @brand-primary;
-			background: @brand-primary; 
-		}
-	}
-} 
-
-
 .ui-menu .ui-menu-item {
 	font-size: @text-medium;
 	.ui-menu-item-wrapper{
@@ -315,10 +282,6 @@ textarea.form-control {
 		width: 700px;
 	}
 }
-
-/* z-index hack */
-// .ui-datepicker { z-index: 9999999 !important; }
-// .ui-autocomplete { z-index: 9999999 !important; }
 
 @media (min-width: 768px) {
 	.hidden-xs-inline {
@@ -375,11 +338,6 @@ textarea.form-control {
 
 .link-field.ui-front {
 	z-index: inherit;
-}
-
-.modal .link-field .ui-autocomplete {
-	// so that it appears over the datepicker field
-	z-index: 1141;
 }
 
 .form-group {

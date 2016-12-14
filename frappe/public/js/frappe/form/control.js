@@ -1305,13 +1305,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					.get(0);
 			},
 			sort: function(a, b) {
-				//put 'Create new' and 'Advanced Search' buttons to bottom
-				if(a.value.indexOf("__link_option") !== -1) return -1;
-
-				if (a.value.length !== b.value.length) {
-					return a.value.length - b.value.length;
-				}
-				return a < b ? -1 : 1;
+				return 0;
 			}
 		});
 
@@ -1355,7 +1349,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
 									+ __("Create a new {0}", [__(me.df.options)])
 									+ "</span>",
-								value: "create_new__link_option"
+								value: "create_new__link_option",
+								action: me.new_doc
 							})
 						};
 						// advanced search
@@ -1364,7 +1359,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
 								+ __("Advanced Search")
 								+ "</span>",
-							value: "advanced_search__link_option"
+							value: "advanced_search__link_option",
+							action: me.open_advanced_search
 						})
 					}
 					me.$input.cache[doctype][term] = r.results;
@@ -1373,45 +1369,52 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		});
 
-		// button: action map object
-		var actions = {
-			"create_new": me.new_doc,
-			"advanced_search": me.open_advanced_search
-		}
+		this.input.addEventListener("awesomplete-open", function(e) {
+			me.$wrapper.css({"z-index": 101});
+			me.autocomplete_open = true;
+		});
+
+		this.input.addEventListener("awesomplete-close", function(e) {
+			me.$wrapper.css({"z-index": 1});
+			me.autocomplete_open = false;
+		});
 
 		this.input.addEventListener("awesomplete-select", function(e) {
-			var value = e.text.value;
-
-			// handlers for action buttons
-			if(value.indexOf("__link_option") !== -1) {
-				e.preventDefault();
-				me.awesomplete.close();
-				var action = value.split("__link_option")[0];
-				var fn = actions[action];
-				fn.apply(me);
-				return;
-			}
+			var item = me.awesomplete.get_item(e.text.value);
 
 			me.autocomplete_open = false;
+
+			// prevent selection on tab
+			var TABKEY = 9;
+			if(event.keyCode === TABKEY) {
+				event.preventDefault();
+				me.awesomplete.close();
+				return false;
+			}
+
+			if(item.action) {
+				item.value = "";
+				item.action.apply(me);
+			}
 
 			// if remember_last_selected is checked in the doctype against the field,
 			// then add this value
 			// to defaults so you do not need to set it again
 			// unless it is changed.
 			if(me.df.remember_last_selected_value) {
-				frappe.boot.user.last_selected_values[me.df.options] = ui.item.value;
+				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
 			if(me.frm && me.frm.doc) {
 				me.selected = true;
-				me.parse_validate_and_set_in_model(value);
+				me.parse_validate_and_set_in_model(item.value);
 				setTimeout(function() {
 					me.selected = false;
 				}, 100);
 			} else {
-				me.$input.val(value);
+				me.$input.val(item.value);
 				me.$input.trigger("change");
-				me.set_mandatory(value);
+				me.set_mandatory(item.value);
 			}
 		});
 	},
@@ -1499,6 +1502,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 });
+
+if(Awesomplete) {
+	Awesomplete.prototype.get_item = function(value) {
+		return this._list.find(function(item) {
+			return item.value === value;
+		});
+	}
+}
 
 frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 	get_options: function() {
