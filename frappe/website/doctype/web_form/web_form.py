@@ -39,6 +39,9 @@ class WebForm(WebsiteGenerator):
 		if not frappe.flags.in_import:
 			self.validate_fields()
 
+		if self.accept_payment:
+			self.validate_payment_amount()
+
 	def validate_fields(self):
 		'''Validate all fields are present'''
 		from frappe.model import no_value_fields
@@ -51,6 +54,13 @@ class WebForm(WebsiteGenerator):
 		if missing:
 			frappe.throw(_('Following fields are missing:') + '<br>' + '<br>'.join(missing))
 
+	def validate_payment_amount(self):
+		if self.amount_based_on_field and not self.amount_field:
+			frappe.throw(_("Please select a Amount Field."))
+		elif not self.amount_based_on_field and not self.amount > 0:
+			frappe.throw(_("Amount must be greater than 0."))
+
+	
 	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
 		for df in self.web_form_fields:
@@ -205,9 +215,11 @@ def get_context(context):
 			controller = get_integration_controller(self.payment_gateway)
 
 			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
-
+			amount = self.amount
+			if self.amount_based_on_field:
+				amount = doc.get(self.amount_field)
 			payment_details = {
-				"amount": self.amount,
+				"amount": amount,
 				"title": title,
 				"description": title,
 				"reference_doctype": doc.doctype,
