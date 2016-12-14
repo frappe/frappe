@@ -15,6 +15,8 @@ ul.tree-children {
 
 .tree-link {
 	cursor: pointer;
+	display: inline-block;
+	padding: 1px;
 }
 
 .tree-link.active i {
@@ -39,4 +41,44 @@ ul.tree-children {
 	ul.tree-children {
 		padding-left: 10px;
 	}
+}
+
+// decoration
+
+.tree, .tree-node {
+	position: relative;
+	
+	&.opened::before, &:last-child::after {
+		content: '';
+		position: absolute;
+		top: 17px;
+		left: 8px;
+		height: ~"calc(100% - 26px)";
+		width: 1px;
+		background: @border-color;
+	}
+
+	&:last-child::after {
+		top: 11px;
+		left: -13px;
+		height: ~"calc(100% - 15px)";
+		width: 3px;
+		background: #fff;
+	}
+	
+	&.opened > .tree-children > .tree-node > .tree-link::before {
+		content: '';
+		position: absolute;
+		width: 12px;
+		height: 1px;
+		top: 10px;
+		left: -11px;
+		background: @border-color;
+	}
+}
+
+.tree.opened::before {
+	left: 23px;
+	top: 33px;
+	height: ~"calc(100% - 67px)";
 }
