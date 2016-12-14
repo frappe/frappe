@@ -31,8 +31,7 @@ p {
   color: #d1d8dd !important;
 }
 a,
-.badge,
-.ui-menu .ui-menu-item {
+.badge {
   -webkit-transition: 0.2s;
   -o-transition: 0.2s;
   transition: 0.2s;
@@ -368,29 +367,6 @@ fieldset[disabled] .form-control {
 .datepicker--cell.-current-.-selected- {
   background: #5E64FF;
 }
-.ui-datepicker {
-  z-index: 9999 !important;
-}
-.ui-datepicker .ui-datepicker-header {
-  border-radius: 0px !important;
-}
-.ui-datepicker select.ui-datepicker-month,
-.ui-datepicker select.ui-datepicker-year {
-  display: inline;
-}
-.ui-datepicker select.ui-datepicker-month {
-  margin-right: 3px;
-}
-.ui-datepicker .ui-datepicker-title {
-  line-height: inherit !important;
-  padding-bottom: 3px;
-}
-.ui-datepicker-today .ui-state-default {
-  background-color: #EBEFF2 !important;
-}
-.ui-state-default {
-  box-shadow: none !important;
-}
 .hidden-xs-inline,
 .hidden-xs-inline-block {
   display: none;
@@ -401,11 +377,13 @@ fieldset[disabled] .form-control {
 .awesomplete > ul {
   z-index: 1041;
   transition: none;
-  border-radius: 0;
   background: #fff;
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
+  border-radius: 0px 0px 4px 4px;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+  border-color: #d1d8dd;
 }
 .awesomplete > ul:before {
   display: none;
@@ -433,35 +411,6 @@ fieldset[disabled] .form-control {
   .awesomplete > ul {
     top: 26px;
   }
-}
-.ui-datepicker {
-  border-radius: 0px 0px 4px 4px;
-  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-  border-color: #d1d8dd;
-  padding: 0px;
-}
-.ui-datepicker .ui-state-focus,
-.ui-datepicker .ui-state-hover {
-  background-color: #F0F4F7 !important;
-  color: #36414C !important;
-  text-shadow: none !important;
-}
-.ui-datepicker .ui-state-active {
-  background-color: #F0F4F7 !important;
-  color: #36414C !important;
-  text-shadow: none !important;
-  border: none;
-}
-.ui-datepicker .ui-state-active .small {
-  color: #555 !important;
-}
-.ui-menu .ui-menu-item {
-  font-size: 12px;
-}
-.ui-menu .ui-menu-item .ui-menu-item-wrapper {
-  padding: 9px 11.8px !important;
-  text-decoration: none;
-  margin: 0;
 }
 @media (min-width: 768px) {
   .video-modal {

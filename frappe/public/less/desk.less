@@ -161,35 +161,6 @@ textarea.form-control {
 	}
 }
 
-
-.ui-datepicker {
-	z-index: 9999 !important;
-}
-
-.ui-datepicker .ui-datepicker-header {
-	border-radius: 0px !important;
-}
-
-.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
-	display: inline;
-}
-
-.ui-datepicker select.ui-datepicker-month {
-	margin-right: 3px;
-}
-.ui-datepicker .ui-datepicker-title {
-	line-height: inherit !important;
-	padding-bottom: 3px;
-}
-
-.ui-datepicker-today .ui-state-default {
-	background-color: @light-border-color !important;
-}
-
-.ui-state-default {
-	box-shadow: none !important;
-}
-
 .hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
@@ -200,11 +171,13 @@ textarea.form-control {
 	&> ul {
 		z-index: 1041;
 		transition: none;
-		border-radius: 0;
 		background: #fff;
 		max-height: 200px;
 		overflow-y: auto;
 		overflow-x: hidden;
+		border-radius: 0px 0px 4px 4px;
+		box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+		border-color: @border-color;
 
 		&:before {
 			display: none;
@@ -240,42 +213,6 @@ textarea.form-control {
 		}
 	}
 }
-
-.ui-datepicker {
-	// only rounded bottoms
-	border-radius: 0px 0px 4px 4px;
-	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-	border-color: @border-color;
-	padding: 0px;
-
-	.ui-state-focus,
-	.ui-state-hover {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-	}
-
-	.ui-state-active {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-		border: none;
-
-		.small {
-			color: #555 !important;
-		}
-	}
-}
-
-.ui-menu .ui-menu-item {
-	font-size: @text-medium;
-	.ui-menu-item-wrapper{
-		padding: 9px 11.8px !important;
-		text-decoration: none;
-		margin: 0;
-	}
-}
-
 
 @media (min-width: 768px) {
 	.video-modal {
