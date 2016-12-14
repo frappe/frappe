@@ -138,7 +138,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 	frappe.sendmail(
 		recipients=(recipients or []),
 		cc=(cc or []),
-		expose_recipients=True,
+		expose_recipients="header",
 		sender=doc.sender,
 		reply_to=doc.incoming_email_account,
 		subject=doc.subject,

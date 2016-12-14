@@ -19,7 +19,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], in_reply_to=None, send_after=None,
-		expose_recipients=False, send_priority=1, communication=None, now=False):
+		expose_recipients=None, send_priority=1, communication=None, now=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -78,7 +78,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	email_text_context = text_content
 
 	if reference_doctype and (unsubscribe_message or reference_doctype=="Newsletter"):
-		unsubscribe_link = get_unsubscribe_message(unsubscribe_message)
+		unsubscribe_link = get_unsubscribe_message(unsubscribe_message, expose_recipients)
 		email_content = email_content.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 		email_text_context += unsubscribe_link.text
 
@@ -93,7 +93,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 def add(recipients, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
 	cc=[], in_reply_to=None, send_after=None, send_priority=1, email_account=None,
-	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=False):
+	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.priority = send_priority
@@ -124,6 +124,7 @@ def add(recipients, sender, subject, formatted, text_content=None,
 	e.expose_recipients = expose_recipients
 	e.communication = communication
 	e.send_after = send_after
+	e.show_as_cc = ",".join(cc)
 	e.insert(ignore_permissions=True)
 
 	return e
@@ -156,20 +157,23 @@ def get_emails_sent_this_month():
 	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
 		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
 
-def get_unsubscribe_message(unsubscribe_message):
-
+def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if not unsubscribe_message:
 		unsubscribe_message = _("Unsubscribe from this list")
 
 	html = """<div style="margin: 15px auto; padding: 0px 7px; text-align: center; color: #8d99a6;">
+			<!--cc message-->
 			<p style="margin: 15px auto;">
 				<a href="<!--unsubscribe url-->" style="color: #8d99a6; text-decoration: underline;
 					target="_blank">{unsubscribe_message}
 				</a>
 			</p>
 		</div>""".format(unsubscribe_message=unsubscribe_message)
-
-	text = "\n\n{unsubscribe_message}: <!--unsubscribe url-->".format(unsubscribe_message=unsubscribe_message)
+	if expose_recipients == "footer":
+		text = "\n<!--cc message-->"
+	else:
+		text = ""
+	text += "\n\n{unsubscribe_message}: <!--unsubscribe url-->".format(unsubscribe_message=unsubscribe_message)
 
 	return frappe._dict({
 		"html": html,
@@ -257,10 +261,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select name, status, communication,
-		message, sender, reference_doctype, reference_name, unsubscribe_param, unsubscribe_method, expose_recipients
+		message, sender, reference_doctype, reference_name, unsubscribe_param, unsubscribe_method, expose_recipients, show_as_cc
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
 
-	recipients_list = frappe.db.sql('''select name, recipient, status from `tabEmail Queue Recipient` where parent=%s and status = "Not Sent"''',email.name,as_dict=1)
+	recipients_list = frappe.db.sql('''select name, recipient, status from `tabEmail Queue Recipient` where parent=%s''',email.name,as_dict=1)
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
@@ -270,6 +274,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		# rollback to release lock and return
 		frappe.db.rollback()
 		return
+
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Sending', modified=%s where name=%s""",
 		(now_datetime(), email.name), auto_commit=auto_commit)
@@ -283,8 +288,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			smtpserver.setup_email_account(email.reference_doctype)
 
 		for recipient in recipients_list:
+			if recipient.status != "Not Sent":
+				continue
 
-			message = prepare_message(email, recipient.recipient)
+			message = prepare_message(email, recipient.recipient, recipients_list)
 			if not frappe.flags.in_test:
 				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
 
@@ -346,14 +353,29 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 			# log to Error Log
 			log('frappe.email.queue.flush', unicode(e))
 
-def prepare_message(email, recipient):
+def prepare_message(email, recipient, recipients_list):
 	message = email.message
-	if email.reference_doctype:
+	if email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
 		message = message.replace("<!--unsubscribe url-->", unsubscribe_url)
 
-	if email.expose_recipients:
+	if email.expose_recipients == "header":
+		pass
+	else:
+		if email.expose_recipients == "footer":
+			if isinstance(email.show_as_cc, basestring):
+				email.show_as_cc = email.show_as_cc.split(",")
+			email_sent_to = [r.recipient for r in recipients_list]
+			email_sent_cc = ", ".join([e for e in email_sent_to if e in email.show_as_cc])
+			email_sent_to = ", ".join([e for e in email_sent_to if e not in email.show_as_cc])
+
+			if email_sent_cc:
+				email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to,email_sent_cc)
+			else:
+				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
+			message = message.replace("<!--cc message-->", email_sent_message)
+
 		message = message.replace("<!--recipient-->", recipient)
 	return message
 

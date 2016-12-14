@@ -11,7 +11,7 @@ import email.utils
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=False):
+	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
 	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
@@ -35,7 +35,7 @@ class EMail:
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None,expose_recipients=False):
+	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
 		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -196,10 +196,10 @@ class EMail:
 		headers = {
 			"Subject":        strip(self.subject),
 			"From":           self.sender,
-			"To":             ', '.join(self.recipients) if self.expose_recipients else "<!--recipient-->",
+			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients else None,
+			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}
 

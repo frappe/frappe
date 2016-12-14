@@ -22,7 +22,7 @@ class EmailQueue(Document):
 @frappe.whitelist()
 def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
-	if doc and doc.status == "Error":
+	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
 		doc.status = "Not Sent"
 		doc.save(ignore_permissions=True)
 

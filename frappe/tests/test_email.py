@@ -51,13 +51,13 @@ class TestEmail(unittest.TestCase):
 		self.assertEquals(len(queue_recipients), 2)
 		self.assertTrue('Unsubscribe' in frappe.flags.sent_mail)
 
-	def test_cc(self):
+	def test_cc_header(self):
 		#test if sending with cc's makes it into header
 		frappe.sendmail(recipients=['test@example.com'],
 			cc=['test1@example.com'],
 			sender="admin@example.com",
 			reference_doctype='User', reference_name="Administrator",
-			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients=True)
+			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="header")
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(email_queue), 1)
 		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
@@ -69,6 +69,22 @@ class TestEmail(unittest.TestCase):
 			where status='Not Sent'""", as_dict=1)[0].message
 		self.assertTrue('To: test@example.com' in message)
 		self.assertTrue('CC: test1@example.com' in message)
+
+	def test_cc_footer(self):
+		#test if sending with cc's makes it into header
+		frappe.sendmail(recipients=['test@example.com'],
+			cc=['test1@example.com'],
+			sender="admin@example.com",
+			reference_doctype='User', reference_name="Administrator",
+			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="footer", now=True)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		self.assertEquals(len(email_queue), 1)
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+			where status='Sent'""", as_dict=1)]
+		self.assertTrue('test@example.com' in queue_recipients)
+		self.assertTrue('test1@example.com' in queue_recipients)
+
+		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.flags.sent_mail)
 
 	def test_expose(self):
 		frappe.sendmail(recipients=['test@example.com'],
