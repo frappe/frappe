@@ -33,8 +33,8 @@ The first step is to setup the docs folder. For that you must create a new file 
 
 To generate the docs for the `current` version, go to the command line and write
 
-    bench --site sitename make-docs app_name current
-
+    bench --site [site] build-docs [appname]
+    
 If you want to maintain versions of your docs, then you can add a version number instead of `current`
 
 This will create a `/docs` folder in your app.
