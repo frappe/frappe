@@ -1,5 +1,6 @@
 .no-result {
-  padding: 15px;
+  padding: 150px 15px;
+  color: #8D99A6;
 }
 .result-list {
   min-height: 400px;

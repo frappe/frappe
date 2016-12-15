@@ -727,7 +727,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	},
 
 	setup_listview_settings: function() {
-		if(frappe.listview_settings[this.doctype]["onload"]) {
+		if(frappe.listview_settings[this.doctype] && frappe.listview_settings[this.doctype].onload) {
 			frappe.listview_settings[this.doctype].onload(this);
 		}
 	},

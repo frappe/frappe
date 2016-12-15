@@ -327,7 +327,7 @@ frappe.ui.Listing = Class.extend({
 					? this.get_no_result_message()
 					: (this.no_result_message
 						? this.no_result_message
-						: __("Nothing to show"));
+						: __("No Result"));
 
 				this.wrapper.find('.no-result')
 					.html(msg)
