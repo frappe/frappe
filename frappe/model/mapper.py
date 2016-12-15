@@ -18,7 +18,10 @@ def make_mapped_doc(method, source_name, selected_children=None):
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
 
-	frappe.flags.selected_children = selected_children
+	if selected_children:
+		selected_children = json.loads(selected_children)
+
+	frappe.flags.selected_children = selected_children or None
 
 	return method(source_name)
 
@@ -71,7 +74,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 					# and this record is not in the selected children, then continue
 					if (frappe.flags.selected_children
 						and (df.fieldname in frappe.flags.selected_children)
-						and source_d.name not in frappe.flags.selected_children):
+						and source_d.name not in frappe.flags.selected_children[df.fieldname]):
 						continue
 
 					target_child_doctype = table_map["doctype"]
