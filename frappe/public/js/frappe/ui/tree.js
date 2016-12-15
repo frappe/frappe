@@ -84,7 +84,7 @@ frappe.ui.TreeNode = Class.extend({
 		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
 			appendTo(this.$a);
 
-		this.$a.find('i').click(function() {
+		this.$a.find('i, a').click(function() {
 			setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
 		});
 	},
