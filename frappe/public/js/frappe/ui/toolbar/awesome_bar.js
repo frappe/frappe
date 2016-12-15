@@ -5,16 +5,13 @@ frappe.search = {
 	setup: function(element) {
 		var $input = $(element);
 		var input = $input.get(0);
-		var suggestions = [];
 
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
-			list: suggestions,
-			filter: function (text, term) {
-				return true;
-			},
+			list: [],
+			filter: function (text, term) { return true; },
 			item: function(item, term) {
 				var d = item;
 				var html = "<span>" + __(d.label || d.value) + "</span>";
@@ -26,9 +23,7 @@ frappe.search = {
 					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) {
-				return 0;
-			}
+			sort: function(a, b) { return 0; }
 		});
 
 		$input.on("input", function(e) {
@@ -57,14 +52,13 @@ frappe.search = {
 							option.route : option.route.join('/');
 					if(routes.indexOf(str_route)===-1) {
 						out.push(option);
-						// routes.push(str_route);
+						routes.push(str_route);
 					}
 				} else {
 					out.push(option);
 				}
 			});
-			suggestions = out;
-			awesomplete.list = suggestions;
+			awesomplete.list = out;
 		});
 
 		var open_recent = function() {
@@ -72,21 +66,19 @@ frappe.search = {
 				$(this).trigger("input");
 			}
 		}
-
 		$input.on("focus", open_recent);
 
-		//events
-
-		input.addEventListener("awesomplete-open", function(e) {
-			frappe.search.autocomplete_open = event.target;
+		$input.on("awesomplete-open", function(e) {
+			frappe.search.autocomplete_open = e.target;
 		});
 
-		input.addEventListener("awesomplete-close", function(e) {
+		$input.on("awesomplete-close", function(e) {
 			frappe.search.autocomplete_open = false;
 		});
 
-		input.addEventListener("awesomplete-select", function(e) {
-			var value = e.text.value;
+		$input.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
 			var item = awesomplete.get_item(value);
 
 			if(item.route_options) {
@@ -104,26 +96,14 @@ frappe.search = {
 					frappe.route();
 				}
 			}
-			return false;
 		});
 
-		input.addEventListener("awesomplete-selectcomplete", function(e) {
-			e.target.value = '';
+		$input.on("awesomplete-selectcomplete", function(e) {
+			$input.val("");
 		});
 
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
-
-	},
-	render_item: function(ul, d) {
-		var html = "<span>" + __(d.label || d.value) + "</span>";
-		if(d.description && d.value!==d.description) {
-			html += '<br><span class="text-muted">' + __(d.description) + '</span>';
-		}
-		return $('<li></li>')
-			.data('item.autocomplete', d)
-			.html('<a><p>' + html + '</p></a>')
-			.appendTo(ul);
 	},
 	add_help: function() {
 		frappe.search.options.push({

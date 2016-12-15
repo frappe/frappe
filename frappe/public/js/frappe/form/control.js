@@ -1369,25 +1369,26 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		});
 
-		this.input.addEventListener("awesomplete-open", function(e) {
+		this.$input.on("awesomplete-open", function(e) {
 			me.$wrapper.css({"z-index": 101});
 			me.autocomplete_open = true;
 		});
 
-		this.input.addEventListener("awesomplete-close", function(e) {
+		this.$input.on("awesomplete-close", function(e) {
 			me.$wrapper.css({"z-index": 1});
 			me.autocomplete_open = false;
 		});
 
-		this.input.addEventListener("awesomplete-select", function(e) {
-			var item = me.awesomplete.get_item(e.text.value);
+		this.$input.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var item = me.awesomplete.get_item(o.text.value);
 
 			me.autocomplete_open = false;
 
 			// prevent selection on tab
 			var TABKEY = 9;
-			if(event.keyCode === TABKEY) {
-				event.preventDefault();
+			if(e.keyCode === TABKEY) {
+				e.preventDefault();
 				me.awesomplete.close();
 				return false;
 			}
@@ -1415,6 +1416,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.$input.val(item.value);
 				me.$input.trigger("change");
 				me.set_mandatory(item.value);
+			}
+		});
+
+		this.$input.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			if(o.text.value.indexOf("__link_option") !== -1) {
+				me.$input.val("");
 			}
 		});
 	},
