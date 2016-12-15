@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.25'
+__version__ = '7.1.26'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -489,7 +489,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
