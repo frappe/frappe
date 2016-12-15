@@ -45,7 +45,7 @@ cur_frm.cscript.refresh = function(doc) {
 			}).always(function() {
 				cur_frm.reload_doc();
 			});
-		}, doc.disabled ? "fa fa-ok" : "fa fa-off");
+		}, doc.disabled ? "fa fa-check" : "fa fa-off");
 	}
 
 	cur_frm.cscript.report_type(doc);

@@ -313,7 +313,9 @@ frappe.ui.Listing = Class.extend({
 			r.values = this.get_values_from_response(r.message);
 		}
 
-		if(r.values && r.values.length) {
+		if(!r.values) r.values = [];
+
+		if(r.values.length) {
 			this.data = this.data.concat(r.values);
 			this.render_list(r.values);
 			this.update_paging(r.values);
@@ -332,6 +334,8 @@ frappe.ui.Listing = Class.extend({
 					.toggle(true);
 			}
 		}
+
+		this.wrapper.find('.list-paging-area').toggle(r.values.length || this.start > 0);
 
 		// callbacks
 		if(this.onrun) this.onrun();
