@@ -1,3 +1,2 @@
-DocType: Web Page,Add code as &lt;script&gt;,Agregar código como &lt;script&gt;
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
 DocType: Website Settings,&lt;head&gt; HTML,HTML
