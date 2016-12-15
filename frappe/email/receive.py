@@ -199,7 +199,7 @@ class EmailServer:
 
 		return email_list
 
-	def check_uid_validity(self,uid_validity):
+	def check_uid_validity(self, uid_validity):
 		if self.settings.uid_validity:
 			if self.settings.uid_validity == uid_validity:
 				return True
@@ -214,7 +214,7 @@ class EmailServer:
 					from tabCommunication
 					where email_account = %(email_account)s and uid is not Null
 					order by uid
-			""",{"email_account":self.settings.email_account},as_list=1)
+			""",{"email_account":self.settings.email_account}, as_list=1)
 			new_uid_list = []
 			for i in uid_list:
 				new_uid_list.append(i[0])
@@ -391,7 +391,6 @@ class EmailServer:
 
 					frappe.db.sql("update `tabEmail Account` set no_remaining = %s where name = %s",
 					              (dl_length-len(self.latest_messages), self.settings.email_account), auto_commit=1)
-					
 				lcount = lcount +1
 
 	def sync_flags(self):
