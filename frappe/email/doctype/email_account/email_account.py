@@ -214,15 +214,18 @@ class EmailAccount(Document):
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
 		if self.enable_incoming:
+			exceptions = []
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
 				email_server = self.get_incoming_server(in_receive=True)
 				if not email_server:
 					return
-				incoming_mails = email_server.get_messages()
-
-			exceptions = []
+				try:
+					incoming_mails = email_server.get_messages()
+				except Exception as e:
+					frappe.db.sql("update `tabEmail Account` set no_remaining = NULL where name = %s",(self.settings.email_account), auto_commit=1)
+					incoming_mails = []
 
 			for msg in incoming_mails:
 				try:
@@ -230,17 +233,17 @@ class EmailAccount(Document):
 					communication = self.insert_communication(msg)
 					#self.notify_update()
 
-				except SentEmailInInbox,e:
+				except SentEmailInInbox as e:
 					frappe.db.rollback()
 					if self.use_imap:
-						self.handle_bad_emails(email_server, msg[1], msg[0],"sent email in inbox")
+						self.handle_bad_emails(email_server, msg[1], msg[0], "sent email in inbox")
 
 
-				except Exception, e:
+				except Exception as e:
 					frappe.db.rollback()
 					log('email_account.receive')
 					if self.use_imap:
-						self.handle_bad_emails(email_server, msg[1], msg[0],frappe.get_traceback())
+						self.handle_bad_emails(email_server, msg[1], msg[0], frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
@@ -263,7 +266,7 @@ class EmailAccount(Document):
 				folder = frappe.get_doc("File", 'Home/Attachments')
 				folder.save()
 			except:
-				print "file attachment bug"
+				print("file attachment bug")
 				#exceptions.append(frappe.get_traceback())
 
 			#notify if user is linked to account
@@ -582,10 +585,10 @@ def pull(now=False):
 	if frappe.cache().get_value("workers:no-internet") == True:
 		if test_internet():
 			frappe.cache().set_value("workers:no-internet", False)
-		else:	
+		else:
 			return
 	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
-	for email_account in frappe.get_list("Email Account",["name","no_remaining"], filters={"enable_incoming": 1,"awaiting_password": 0}):
+	for email_account in frappe.get_list("Email Account",["name", "no_remaining"], filters={"enable_incoming": 1, "awaiting_password": 0}):
 		if now:
 			pull_from_email_account(email_account.name)
 
@@ -596,7 +599,7 @@ def pull(now=False):
 			if job_name not in queued_jobs:
 				if email_account.no_remaining == '0':
 					enqueue(pull_from_email_account, 'short', event='all', job_name=job_name,
-					        email_account=email_account.name)
+						email_account=email_account.name)
 				else:
 					enqueue(pull_from_email_account, 'long', event='all', job_name=job_name,
 						email_account=email_account.name)

@@ -177,7 +177,7 @@ class EmailServer:
 		match = re.search(r"(?<=UIDNEXT )[0-9]*", status[0], re.U | re.I)
 		if match:
 			uidnext = match.group(0)
-		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext, update_modified=False)
+		frappe.db.sql("update `tabEmail Account` set uidnext = %s where name = %s",(uidnext, self.settings.email_account), auto_commit=1)
 		self.settings.newuidnext = uidnext
 		return uid_validity
 
@@ -189,7 +189,8 @@ class EmailServer:
 				if self.settings.uidnext == self.settings.newuidnext:
 					return False
 				else:
-					response, message = self.imap.uid('search', 'UID',str(self.settings.uidnext) + ":" + self.settings.newuidnext)
+					#request all messages between last uidnext and new
+					return True
 			else:
 				response, message = self.imap.uid('search', None, "ALL")
 			email_list =  message[0].split()
@@ -198,7 +199,7 @@ class EmailServer:
 
 		return email_list
 
-	def check_uid_validity(self,uid_validity):
+	def check_uid_validity(self, uid_validity):
 		if self.settings.uid_validity:
 			if self.settings.uid_validity == uid_validity:
 				return True
@@ -213,7 +214,7 @@ class EmailServer:
 					from tabCommunication
 					where email_account = %(email_account)s and uid is not Null
 					order by uid
-			""",{"email_account":self.settings.email_account},as_list=1)
+			""",{"email_account":self.settings.email_account}, as_list=1)
 			new_uid_list = []
 			for i in uid_list:
 				new_uid_list.append(i[0])
@@ -222,7 +223,7 @@ class EmailServer:
 				self.rebuild_uid(uid_validity)
 				return True
 			else:# if no uid and no emails with uid
-				frappe.db.set_value("Email Account",self.settings.email_account,"uid_validity",uid_validity)
+				frappe.db.set_value("Email Account", self.settings.email_account, "uid_validity", uid_validity)
 				frappe.db.commit()
 				return True
 
@@ -265,7 +266,6 @@ class EmailServer:
 						uid = ""
 						continue
 				mail = email.message_from_string(item[1])
-				#unique_id = hashlib.md5((mail.get("X-Original-From") or mail["From"]) + (mail.get("To") or mail.get("Envelope-to")) + ( mail.get("Received") or mail["Date"])).hexdigest()
 				unique_id = get_unique_id(mail)
 				message_list.append([uid, unique_id])
 		# clear out
@@ -307,9 +307,7 @@ class EmailServer:
 
 	def get_imap_messages(self,email_list):
 		if self.settings.no_remaining == '0' and self.settings.uidnext:
-			download_list = []
-			for new in email_list:
-				download_list.append(cint(new))
+			download_list = range(int(self.settings.uidnext), int(self.settings.newuidnext))
 		else:
 			#compare stored uid to new uid list to dl any missing messages
 			uid_list = frappe.db.sql("""select uid
@@ -356,7 +354,7 @@ class EmailServer:
 				messages =[]
 
 				try:
-					messages = self.imap.uid('fetch', message_meta,'(BODY.PEEK[])')
+					messages = self.imap.uid('fetch', message_meta, '(BODY.PEEK[])')
 
 				except (TotalSizeExceededError, EmailTimeoutError), e:
 					print("timeout or size exceed")
@@ -391,22 +389,23 @@ class EmailServer:
 							if uid:
 								self.latest_messages.append([item[1],uid,1])#message,uid,seen
 
-					# set number of email remaining to be synced TEMPTEMPTEMPTEMPTEMP################################################################
-					frappe.db.set_value("Email Account", self.settings.email_account, "no_remaining",dl_length-len(self.latest_messages),update_modified = False)
-					frappe.db.commit()
+					frappe.db.sql("update `tabEmail Account` set no_remaining = %s where name = %s",
+					              (dl_length-len(self.latest_messages), self.settings.email_account), auto_commit=1)
 				lcount = lcount +1
 
 	def sync_flags(self):
 		#get flags from email flag queue + join them to the matching email account and uid
-		queue = frappe.db.sql("""select que.name,comm.uid,que.action,que.flag from tabCommunication as comm,`tabEmail Flag Queue` as que
-			where comm.name = que.comm_name and comm.uid is not null and comm.email_account=%(email_account)s""",{"email_account":self.settings.email_account},as_dict=1)
+		queue = frappe.db.sql("""select que.name,comm.uid,que.action,que.flag 
+			from tabCommunication as comm,`tabEmail Flag Queue` as que
+			where comm.name = que.comm_name and comm.uid is not null and comm.email_account=%(email_account)s""",
+		    {"email_account":self.settings.email_account}, as_dict=1)
 		#loop though flags
 
 		for item in queue:
 			try:
 				self.imap.uid('STORE', item.uid, item.action, item.flag)
 					#delete flag matching email account
-				frappe.delete_doc("Email Flag Queue",item["name"])
+				frappe.delete_doc("Email Flag Queue", item["name"])
 			except Exception,e:
 				#need to do
 				pass
@@ -414,7 +413,7 @@ class EmailServer:
 	def get_seen(self):
 		comm_list = frappe.db.sql("""select name,uid,seen from `tabCommunication`
 			where email_account = %(email_account)s and uid is not null""",
-		              {"email_account":self.settings.email_account},as_dict=1)
+		              {"email_account":self.settings.email_account}, as_dict=1)
 
 		try:
 			#response, messages = self.imap.uid('fetch', '1:*', '(FLAGS)')
@@ -432,7 +431,7 @@ class EmailServer:
 			for comm in comm_list:
 				if comm.uid == unseen:
 					if comm.seen:
-						frappe.db.set_value('Communication', comm.name, 'seen', 0, update_modified=False)
+						frappe.db.sql("update `tabCommunication` set seen=%s where name = %s",(0, comm.name))
 					comm_list.remove(comm)
 					break
 		seen_list = seen_list[0].split()
@@ -444,10 +443,9 @@ class EmailServer:
 			for comm in comm_list:
 				if comm.uid == seen:
 					if not comm.seen:
-						frappe.db.set_value('Communication', comm.name, 'seen', 1, update_modified=False)
+						frappe.db.sql("update `tabCommunication` set seen=%s where name = %s", (1, comm.name))
 					comm_list.remove(comm)
 					break
-
 		'''
 		for item in messages:
 			uid = re.search(r'UID [0-9]*', item, re.U | re.I)
@@ -601,8 +599,6 @@ class Email:
 		self.set_subject()
 		self.set_from()
 		self.message_id = (self.mail.get('Message-ID') or "").strip(" <>")
-		#self.unique_id = hashlib.md5((self.mail.get("X-Original-From") or self.mail["From"])+(self.mail.get("To") or self.mail.get("Envelope-to"))+(self.mail.get("Received") or self.mail["Date"] )).hexdigest()
-
 
 
 		self.unique_id = get_unique_id(self.mail)
