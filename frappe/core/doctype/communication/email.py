@@ -59,7 +59,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
-		"message_id":get_message_id()
+		"message_id":get_message_id().strip(" <>")
 	})
 	comm.insert(ignore_permissions=True)
 
