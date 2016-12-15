@@ -18,7 +18,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=[], show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False):
 	"""Add email to sending queue (Email Queue)
 
