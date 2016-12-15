@@ -256,6 +256,10 @@ frappe.ui.FilterList = Class.extend({
 			function make_date(mode) {
 				var fieldtype = mode==="range" ? "DateRange" : "Date";
 				var name = $(v).data("name");
+				if(date) {
+					//cleanup old datepicker
+					date.datepicker.destroy();
+				}
 				date = frappe.ui.form.make_control({
 					df: {
 						fieldtype: fieldtype,
@@ -269,7 +273,7 @@ frappe.ui.FilterList = Class.extend({
 				date.datepicker.update("onSelect", function(fd, dateObj) {
 					var filt = me.get_filter(name);
 					filt && filt.remove(true);
-					if(!dateObj.length && date.datepicker.opts.range===false) {
+					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
 						me.add_filter(me.doctype, name, '=', dateObj);
 						me.listobj.run();
 					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
@@ -717,16 +721,17 @@ frappe.ui.FieldSelect = Class.extend({
 				.get(0);
 			}
 		});
-		this.select_input.addEventListener("awesomplete-select", function(e) {
-			var value = e.text.value;
+		this.$select.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
 			me.selected_doctype = item.doctype;
 			me.selected_fieldname = item.fieldname;
 			if(me.select) me.select(item.doctype, item.fieldname);
-			return false;
 		});
-		this.select_input.addEventListener("awesomplete-selectcomplete", function(e) {
-			var value = e.text.value;
+		this.$select.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
 			me.$select.val(item.label);
 		});

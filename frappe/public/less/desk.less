@@ -138,9 +138,6 @@ textarea.form-control {
 	border-bottom: 1px solid @light-border-color;
 }
 
-
-/* jquery ui */
-
 .datepicker {
 	font-family: inherit;
 	z-index: 9999 !important;
@@ -153,11 +150,36 @@ textarea.form-control {
 		color: @text-color;
 	}
 
-	&--cell.-current- {
-		color: @brand-primary;
-	}
-	&--cell.-selected-,&--cell.-current-.-selected- {
-		background: @brand-primary;
+	&--cell {
+		&.-current- {
+			color: @brand-primary;
+			
+			&.-in-range- {
+				color: @brand-primary;
+			}
+		}
+
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(@brand-primary, 30%); 
+			background: fade(@brand-primary, 10%);			
+		}
+
+		&.-selected-, &.-current-.-selected- {
+			background: @brand-primary;
+		}
+
+		&.-in-range- {
+			background: fade(@brand-primary, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(@brand-primary, 90%);
+		}
+
 	}
 }
 
@@ -253,8 +275,6 @@ textarea.form-control {
 .modal-title {
 	margin-top: 5px;
 }
-
-// fixes datepicker z-index issue
 
 .form-control {
 	position: relative;

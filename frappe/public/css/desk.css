@@ -348,7 +348,6 @@ fieldset[disabled] .form-control {
   padding: 5px;
   border-bottom: 1px solid #EBEFF2;
 }
-/* jquery ui */
 .datepicker {
   font-family: inherit;
   z-index: 9999 !important;
@@ -363,9 +362,26 @@ fieldset[disabled] .form-control {
 .datepicker--cell.-current- {
   color: #5E64FF;
 }
+.datepicker--cell.-current-.-in-range- {
+  color: #5E64FF;
+}
+.datepicker--cell.-range-from-,
+.datepicker--cell.-range-to- {
+  border: 1px solid rgba(94, 100, 255, 0.3);
+  background: rgba(94, 100, 255, 0.1);
+}
 .datepicker--cell.-selected-,
 .datepicker--cell.-current-.-selected- {
   background: #5E64FF;
+}
+.datepicker--cell.-in-range- {
+  background: rgba(94, 100, 255, 0.05);
+}
+.datepicker--cell.-in-range-.-focus- {
+  background: rgba(94, 100, 255, 0.1);
+}
+.datepicker--cell.-selected-.-focus- {
+  background: rgba(94, 100, 255, 0.9);
 }
 .hidden-xs-inline,
 .hidden-xs-inline-block {

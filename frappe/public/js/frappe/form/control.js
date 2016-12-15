@@ -704,19 +704,20 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.refresh();
 	},
 	set_date_options: function() {
-		var datepicker_options = {
+		var me = this;
+		this.datepicker_options = {
 			language: "en",
 			range: true,
 			autoClose: true
 		}
-		datepicker_options.dateFormat =
+		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
-		datepicker_options.onSelect = function(dateObj) {
+		this.datepicker_options.onSelect = function(dateObj) {
 			me.set_value(dateObj);
 		}
 	},
 	set_datepicker: function() {
-		this.$input.datepicker(datepicker_options);
+		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
 	},
 	set_input: function(value, value2) {
