@@ -14,29 +14,26 @@ frappe.ui.form.on('Data Import', {
 
 	refresh: function(frm) {
 		if(frm.doc.preview_data) {
-			//frm.events.render_html(frm);
-		}
-		//$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
-		 //  	column_map.push($(this).val());
-
-	},
-	
-	reference_doctype: function(frm) {
-		var me = this;
-		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
-				if(frm.doc.reference_doctype) {
-					frm.selected_doctype = frappe.get_meta(frm.doc.reference_doctype).fields;
-					//frm.doc.reference_doctype = frm.selected_doctype;
+			frm.add_custom_button(__("Import into Database"), function() {
+				if (frm.doc.selected_row) {
+					var column_map = [];
+					$(frm.fields_dict.file_preview.wrapper).find("select.column-map" )
+						.each(function(index) {
+					   		column_map.push($(this).val());
+					});
+					frm.doc.selected_columns = JSON.stringify(column_map);
+					frappe.msgprint(__("Now save the document"))
+					//frm.events.import_file(frm)
 				}
-		});
+				else {
+					frappe.throw(__("Select Row to Import from"))
+				}
+			}).addClass("btn-primary");
+			frm.events.render_html(frm);
+		}
 	},
 
 	check: function(frm) {
-		var column_map = [];
-		$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
-		   	column_map.push($(this).val());
-		});
-		frm.doc.selected_columns = column_map;
 		console.log(frm.doc.selected_columns);
 		frm.add_custom_button(__("Import into Database"), function() {
 				//frm.events.import_file(frm)
@@ -45,9 +42,14 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	render_html: function(frm) {
-		console.log("i am in render template"); 
 		var me = this;
-		
+
+		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
+				if(frm.doc.reference_doctype) {
+					frm.selected_doctype = frappe.get_meta(frm.doc.reference_doctype).fields;
+					//frm.doc.reference_doctype = frm.selected_doctype;
+				}
+		});
 
 		$(frm.fields_dict.file_preview.wrapper).empty();
 
@@ -84,9 +86,11 @@ frappe.ui.form.on('Data Import', {
 					  		</table>\
     						</div>'].join("\n");
     	me.preview_data = JSON.parse(frm.doc.preview_data);
-    	console.log(frappe.render(preview_html, {imported_data: me.preview_data,fields: frm.doc.reference_doctype}));
-		$(frappe.render(preview_html, {imported_data: me.preview_data, 
- 			fields: frm.selected_doctype})).appendTo(frm.fields_dict.file_preview.wrapper);
+    	// console.log(frm.selected_doctype);
+    	if (frm.selected_doctype) {
+			$(frappe.render(preview_html, {imported_data: me.preview_data, 
+	 			fields: frm.selected_doctype})).appendTo(frm.fields_dict.file_preview.wrapper);    		
+    	}
 	},
 
 	// import: function(frm) {
@@ -99,7 +103,7 @@ frappe.ui.form.on('Data Import', {
 		
 	// },
 
-	import_file: function(frm) {
+	import_file_as: function(frm) {
 		var me = this;
 		frappe.call({
                 method: "frappe.core.doctype.data_import.data_import.process_file",
