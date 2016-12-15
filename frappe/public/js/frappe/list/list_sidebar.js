@@ -202,7 +202,7 @@ frappe.views.ListSidebar = Class.extend({
 					me.set_filter(fieldname, label);
 				}
 			})
-			.appendTo(this.sidebar);
+			.insertBefore(this.sidebar.find(".close-sidebar-button"));
 	},
 	set_fieldtype: function(df, fieldtype) {
 
