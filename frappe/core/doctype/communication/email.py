@@ -10,6 +10,7 @@ from frappe.utils import (get_url, get_formatted_email, cint,
 from frappe.utils.file_manager import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
+from frappe.email.email_body import get_message_id
 import frappe.email.smtp
 import MySQLdb
 import time
@@ -57,7 +58,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
-		"reference_name": name
+		"reference_name": name,
+		"message_id":get_message_id().strip(" <>")
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -146,6 +148,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_doctype=doc.reference_doctype,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
+		message_id=doc.message_id,
 		unsubscribe_message=unsubscribe_message,
 		delayed=True,
 		communication=doc.name
@@ -411,6 +414,8 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
+				if communication.sent_or_received == "Received":
+					communication.message_id = None
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 

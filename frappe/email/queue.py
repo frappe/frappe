@@ -18,7 +18,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=[], in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False):
 	"""Add email to sending queue (Email Queue)
 
@@ -84,7 +84,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	# add to queue
 	email_queue = add(recipients, sender, subject, email_content, email_text_context, reference_doctype,
-		reference_name, attachments, reply_to, cc, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication,
+		reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, expose_recipients=expose_recipients)
 	if now:
 		send_one(email_queue.name, now=True)
@@ -92,7 +92,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 def add(recipients, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=[], in_reply_to=None, send_after=None, send_priority=1, email_account=None,
+	cc=[], message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None,
 	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
@@ -103,6 +103,7 @@ def add(recipients, sender, subject, formatted, text_content=None,
 			text_content=text_content, attachments=attachments, reply_to=reply_to,
 			cc=cc, email_account=email_account, expose_recipients=expose_recipients)
 
+		mail.set_message_id(message_id)
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
 
