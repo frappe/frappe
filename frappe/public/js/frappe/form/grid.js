@@ -629,6 +629,8 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 	render_template: function() {
+		this.set_row_index();
+		
 		if(this.row_display) {
 			this.row_display.remove();
 		}
