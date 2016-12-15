@@ -378,7 +378,7 @@ class EmailAccount(Document):
 
 		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
 			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Communication', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
+			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
 			if email_queue:
 				parent_doctype, parent_name = email_queue
 			else:

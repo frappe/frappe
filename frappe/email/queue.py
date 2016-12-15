@@ -107,6 +107,7 @@ def add(recipients, sender, subject, formatted, text_content=None,
 		if in_reply_to:
 			mail.set_in_reply_to(in_reply_to)
 
+		e.message_id = mail.msg_root["Message-Id"].strip(" <>")
 		e.message = cstr(mail.as_string())
 		e.sender = mail.sender
 

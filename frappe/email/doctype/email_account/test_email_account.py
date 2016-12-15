@@ -178,11 +178,10 @@ class TestEmailAccount(unittest.TestCase):
 		event = frappe.get_doc(dict(doctype='Event', subject='test-message')).insert()
 
 		# send a mail against this
-		from frappe.core.doctype.communication.email import make
-		make(doctype=event.doctype, name=event.name, subject='test message for threading',
-		     content='testing',recipients='test@example.com', send_email=True)
+		frappe.sendmail(recipients='test@example.com', subject='test message for threading',
+			message='testing', reference_doctype=event.doctype, reference_name=event.name)
 
-		last_mail = frappe.get_doc('Communication', dict(reference_name=event.name))
+		last_mail = frappe.get_doc('Email Queue', dict(reference_name=event.name))
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
