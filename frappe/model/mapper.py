@@ -7,6 +7,25 @@ from frappe import _
 from frappe.utils import cstr
 from frappe.model import default_fields
 
+@frappe.whitelist()
+def make_mapped_doc(method, source_name, selected_children=None):
+	'''Returns the mapped document calling the given mapper method.
+	Sets selected_children as flags for the `get_mapped_doc` method.
+
+	Called from `open_mapped_doc` from create_new.js'''
+	method = frappe.get_attr(method)
+
+	if method not in frappe.whitelisted:
+		raise frappe.PermissionError
+
+	if selected_children:
+		selected_children = json.loads(selected_children)
+
+	frappe.flags.selected_children = selected_children or None
+
+	return method(source_name)
+
+
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
@@ -50,6 +69,13 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 					if "condition" in table_map:
 						if not table_map["condition"](source_d):
 							continue
+
+					# if children are selected (checked from UI) for this table type,
+					# and this record is not in the selected children, then continue
+					if (frappe.flags.selected_children
+						and (df.fieldname in frappe.flags.selected_children)
+						and source_d.name not in frappe.flags.selected_children[df.fieldname]):
+						continue
 
 					target_child_doctype = table_map["doctype"]
 					target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)

@@ -58,9 +58,44 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.custom_buttons = {};
 		this.grid_buttons = this.wrapper.find('.grid-buttons');
+		this.remove_rows_button = this.grid_buttons.find('.grid-remove-rows')
 
 		this.setup_allow_bulk_edit();
+		this.setup_check();
 
+	},
+	setup_check: function() {
+		var me = this;
+		this.wrapper.on('click', '.grid-row-check', function(e) {
+			$check = $(this);
+			if($check.parents('.grid-heading-row:first').length!==0) {
+				$check.parents('.form-grid:first').find('.grid-row-check').prop('checked', $check.prop('checked'));
+			}
+			me.refresh_remove_rows_button();
+		});
+
+		this.remove_rows_button.on('click', function() {
+			me.get_selected().forEach(function(docname) {
+				me.grid_rows_by_docname[docname].remove();
+			});
+			setTimeout(function() { me.refresh_remove_rows_button(); }, 100);
+		});
+	},
+	refresh_remove_rows_button: function() {
+		this.remove_rows_button.toggleClass('hide',
+			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+	},
+	get_selected: function() {
+		var selected = [];
+		var me = this;
+		this.wrapper.find('.grid-body .grid-row-check:checked').each(function() {
+			selected.push($(this).parents('.grid-row:first').attr('data-name'));
+		});
+		return selected;
+	},
+	refresh_checks: function() {
+		var show = this.is_editable() || this.frm.has_mapper();
+		this.wrapper.find('.grid-row-check').toggle(show);
 	},
 	make_head: function() {
 		// labels
@@ -132,6 +167,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			// toolbar
 			this.setup_toolbar();
+			this.refresh_checks();
 
 			// sortable
 			if(this.is_sortable() && !this.sortable_setup_done) {
@@ -143,6 +179,8 @@ frappe.ui.form.Grid = Class.extend({
 			this.last_docname = this.frm.docname;
 			frappe.utils.scroll_to(_scroll_y);
 		}
+
+		this.refresh_remove_rows_button();
 	},
 	setup_toolbar: function() {
 		if(this.is_editable()) {
@@ -215,7 +253,6 @@ frappe.ui.form.Grid = Class.extend({
 		if ('ontouchstart' in window) {
 			return;
 		}
-
 
 		new Sortable($rows.get(0), {
 			group: {name: 'row'},
@@ -545,6 +582,7 @@ frappe.ui.form.GridRow = Class.extend({
 	init: function(opts) {
 		this.on_grid_fields_dict = {};
 		this.on_grid_fields = [];
+		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
 		this.columns = {};
 		this.columns_list = [];
 		$.extend(this, opts);
@@ -552,9 +590,13 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	make: function() {
 		var me = this;
+
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
 		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
-			.on("click", function() {
+			.on("click", function(e) {
+				if($(e.target).hasClass('grid-row-check')) {
+					return;
+				}
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
 					// pass
 				} else {
@@ -562,6 +604,11 @@ frappe.ui.form.GridRow = Class.extend({
 					return false;
 				}
 			});
+
+		// no checkboxes if too small
+		if(this.is_too_small()) {
+			this.row_check_html = '';
+		}
 
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
@@ -582,7 +629,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.wrapper
 				.attr('data-name', this.doc.name)
 				.attr("data-idx", this.doc.idx)
-				.find(".row-index, .grid-form-row-index").html(this.doc.idx)
+				.find(".row-index span, .grid-form-row-index").html(this.doc.idx)
 
 		}
 	},
@@ -640,9 +687,9 @@ frappe.ui.form.GridRow = Class.extend({
 		if(this.doc) {
 			if(!this.row_index) {
 				this.row_index = $('<div style="float: left; margin-left: 15px; margin-top: 8px; \
-					margin-right: -20px;"></div>').appendTo(this.row);
+					margin-right: -20px;">'+this.row_check_html+' <span></span></div>').appendTo(this.row);
 			}
-			this.row_index.html(this.doc.idx);
+			this.row_index.find('span').html(this.doc.idx);
 		}
 
 		this.row_display = $('<div class="row-data template-row">'+
@@ -659,11 +706,18 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
-			this.row_index = $('<div class="row-index col col-xs-1">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
+			var txt = (this.doc ? this.doc.idx : "&nbsp;");
+			this.row_index = $('<div class="row-index col col-xs-1">' +
+				this.row_check_html +
+				 ' <span>' + txt + '</span></div>')
 				.appendTo(this.row)
-				.on('click', function() { me.toggle_view(); });
+				.on('click', function(e) {
+					if(!$(e.target).hasClass('grid-row-check')) {
+						me.toggle_view();
+					}
+				});
 		} else {
-			this.row_index.html(this.doc ? this.doc.idx : "&nbsp;");
+			this.row_index.find('span').html(txt);
 		}
 
 		this.setup_columns();
@@ -678,6 +732,10 @@ frappe.ui.form.GridRow = Class.extend({
 		this.row.toggleClass('editable-row', this.grid.is_editable());
 	},
 
+	is_too_small: function() {
+		return this.row.width() < 400;
+	},
+
 	add_open_form_button: function() {
 		var me = this;
 		if(this.doc) {
@@ -688,7 +746,7 @@ frappe.ui.form.GridRow = Class.extend({
 					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
 					.on('click', function() { me.toggle_view(); return false; });
 
-				if(this.row.width() < 400) {
+				if(this.is_too_small()) {
 					// narrow
 					this.open_form_button.css({'margin-right': '-2px'});
 				}
