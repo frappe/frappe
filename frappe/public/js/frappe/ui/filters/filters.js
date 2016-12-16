@@ -178,32 +178,39 @@ frappe.ui.FilterList = Class.extend({
 
 			var search_input = dashboard_filter.parent().find(".search-dashboard");
 
-			dashboard_filter.parent().find(".search-dropdown").removeClass("hide").on("shown.bs.dropdown", function (event) {
-				search_input.focus();
-				search_input.val("")
+			dashboard_filter.parent().find(".search-dropdown")
+				.removeClass("hide")
+				.on("shown.bs.dropdown", function (event) {
+					search_input.focus();
+					search_input.val("")
+				});
+
+			new Awesomplete(search_input.get(0), {
+				minChars: 0,
+				maxItems: 99,
+				autoFirst: true,
+				list: autolist,
+				item: function(item, input) {
+					return $("<li>").text(item.label).get(0);
+				},
+				replace: function(text) {
+					this.input.value = '';
+				}
 			});
 
-			search_input.autocomplete({
-				source: autolist,
-				select: function (ev, ui) {
-					if (ui.item) {
-						if (df && df.fieldtype == 'Check') {
-							var noduplicate = true
-						}
-						if (ui.item.label == "No Data") {
-							me.listobj.set_filter(ui.item.value, '', false, noduplicate);
-						} else {
-							me.listobj.set_filter(ui.item.value, ui.item.label, false, noduplicate);
-						}
-						search_input.val('');
-						return false;
+			search_input.on("awesomplete-select", function(e) {
+				var item = e.originalEvent.text;
+				if (item) {
+					if (df && df.fieldtype == 'Check') {
+						var noduplicate = true
 					}
-				},
-				focus: function (event, ui) {
-					search_input.val(ui.item.label);
-					return false;
+					if (item.label == "No Data") {
+						me.listobj.set_filter(item.value, '', false, noduplicate);
+					} else {
+						me.listobj.set_filter(item.value, item.label, false, noduplicate);
+					}
 				}
-			})
+			});
 		}
 	},
 	set_events: function() {
