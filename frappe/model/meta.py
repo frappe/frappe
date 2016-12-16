@@ -453,9 +453,6 @@ def clear_cache(doctype=None):
 		for name in groups:
 			cache.hdel(name, dt)
 
-		# also clear linked_with list cache
-		cache.delete_keys("user:*:linked_with:{doctype}:".format(doctype=doctype))
-
 	if doctype:
 		clear_single(doctype)
 

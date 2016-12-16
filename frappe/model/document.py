@@ -205,7 +205,7 @@ class Document(BaseDocument):
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
-		
+
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
@@ -273,13 +273,13 @@ class Document(BaseDocument):
 	def copy_attachments_from_amended_from(self):
 		'''Copy attachments from `amended_from`'''
 		from frappe.desk.form.load import get_attachments
-				
+
 		#loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
-			
+
 			#save attachments to new doc
 			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments")
-	
+
 	def update_children(self):
 		'''update child tables'''
 		for df in self.meta.get_table_fields():
@@ -792,27 +792,6 @@ class Document(BaseDocument):
 
 	def clear_cache(self):
 		frappe.cache().hdel("last_modified", self.doctype)
-		self.clear_linked_with_cache()
-
-	def clear_linked_with_cache(self):
-		cache = frappe.cache()
-		def _clear_cache(d):
-			for df in (d.meta.get_link_fields() + d.meta.get_dynamic_link_fields()):
-				if d.get(df.fieldname):
-					doctype = df.options if df.fieldtype=="Link" else d.get(df.options)
-					name = d.get(df.fieldname)
-
-					if df.fieldtype=="Dynamic Link":
-						# clear linked doctypes list
-						cache.hdel("linked_doctypes", doctype)
-
-					# for all users, delete linked with cache and per doctype linked with cache
-					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
-					cache.delete_value("user:*:linked_with:{doctype}:{name}:*".format(doctype=doctype, name=name))
-
-		_clear_cache(self)
-		for d in self.get_all_children():
-			_clear_cache(d)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
