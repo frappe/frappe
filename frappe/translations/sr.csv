@@ -33,7 +33,7 @@ DocType: DocPerm,This role update User Permissions for a user,Ова улога 
 apps/frappe/frappe/public/js/frappe/model/model.js +476,Rename {0},Преименовати {0}
 DocType: Workflow State,zoom-out,одзумирај
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,"Не могу открыть {0} , когда его экземпляр открыт"
-apps/frappe/frappe/model/document.py +922,Table {0} cannot be empty,Таблица {0} не может быть пустым
+apps/frappe/frappe/model/document.py +901,Table {0} cannot be empty,Таблица {0} не может быть пустым
 DocType: Integration Service Parameter,Parameter,Параметар
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +848,With Ledgers,С Ledgers
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +20,Images,slike
@@ -42,7 +42,7 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Social Login Keys,GitHub,GitHub
 apps/frappe/frappe/model/base_document.py +569,"{0}, Row {1}","{0}, {1} Ред"
 apps/frappe/frappe/core/doctype/file/file_list.js +102,Error in uploading files.,Грешка у уплоаду фајлова.
-apps/frappe/frappe/model/document.py +896,Beginning with,почевши
+apps/frappe/frappe/model/document.py +875,Beginning with,почевши
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,Подаци Увоз шаблона
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Родитељ
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;Чланови тима&quot; или &quot;Манагемент&quot;
@@ -60,7 +60,7 @@ DocType: Email Group,Email Group,емаил Група
 DocType: Note,Seen By,Виђено од
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +662,Not Like,Не волим
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +204,Set the display label for the field,Поставите екран ознаку за области
-apps/frappe/frappe/model/document.py +913,Incorrect value: {0} must be {1} {2},Неисправна вредност: {0} мора бити {1} {2}
+apps/frappe/frappe/model/document.py +892,Incorrect value: {0} must be {1} {2},Неисправна вредност: {0} мора бити {1} {2}
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)","Изменение свойств поля (скрыть , только для чтения , разрешение и т.д.)"
 apps/frappe/frappe/integration_broker/oauth2.py +109,Define Frappe Server URL in Social Login Keys,Дефинисати фрапе Сервер УРЛ у друштвеним Логин Кеис
 DocType: Workflow State,lock,закључати
@@ -128,6 +128,7 @@ DocType: Website Settings,Select an image of approx width 150px with a transpare
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add multiple rows,Додавање више редова
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +561,The first user will become the System Manager (you can change this later).,Први корисник ће постати систем менаџер (можете променити ово касније).
 ,App Installer,Апп Инсталлер
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,дозвољен приступ пријемни. <p> Молимо затворите овај прозор. </p>
 DocType: Workflow State,circle-arrow-up,круг-уп арров
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,Отпремање ...
 DocType: Workflow State,italic,курзиван
@@ -191,6 +192,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Пример:
 DocType: Workflow,Defines workflow states and rules for a document.,Дефинише тока посла државе и правила за документ.
 DocType: Workflow State,Filter,филтер
 DocType: DocType,Show this field as title,Показать это поле как название
+apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Е-маил налог не подешавање. Молимо Вас да креирате нови налог е-поште од подешавања&gt; Емаил&gt; Емаил Аццоунт
 apps/frappe/frappe/model/db_schema.py +560,Fieldname {0} cannot have special characters like {1},ФИЕЛДНАМЕ {0} не могу да имају посебне карактере као што су {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,Выбор языка
 apps/frappe/frappe/config/setup.py +116,Update many values at one time.,Упдате многе вредности у једном тренутку.
@@ -209,7 +211,6 @@ DocType: About Us Settings,Team Members,Чланови тима
 apps/frappe/frappe/public/js/frappe/upload.js +83,Please attach a file or set a URL,Молимо вас да приложите датотеку или поставите УРЛ
 DocType: Async Task,System Manager,Систем менаџер
 DocType: DocField,Permissions,Дозволе
-apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Е-маил налог не подешавање. Молимо Вас да креирате нови налог е-поште од подешавања&gt; Емаил&gt; Емаил Аццоунт
 DocType: Dropbox Settings,Allow Dropbox Access,Дозволи Дропбок Аццесс
 DocType: Bulk Update,"SQL Conditions. Example: status=""Open""",СКЛ услови. Пример: Статус = &quot;Отвори&quot;
 DocType: User,Get your globally recognized avatar from Gravatar.com,Гет иоур глобално признате аватар од Граватар.цом
@@ -316,7 +317,7 @@ apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,Верс
 DocType: About Us Settings,Website Manager,Сајт менаџер
 DocType: Event Role,Event Role,Догађај Улога
 apps/frappe/frappe/public/js/frappe/ui/editor.html +67,Indent (Tab),Индент (Таб)
-apps/frappe/frappe/model/document.py +1025,Document Queued,dokument реду за слање
+apps/frappe/frappe/model/document.py +1004,Document Queued,dokument реду за слање
 DocType: Desktop Icon,List,листа
 DocType: Communication,Link Name,линк Име
 DocType: Page Role,Page Role,Страна Улога
@@ -342,7 +343,6 @@ DocType: Workflow State,barcode,баркод
 apps/frappe/frappe/config/setup.py +249,Add your own translations,Додајте своје преводе
 DocType: Country,Country Name,Земља Име
 apps/frappe/frappe/www/login.html +83,Have an account? ,Имате налог?
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,Дропбок Приступ није одобрен. <p> Молимо затворите овај прозор. </p>
 DocType: About Us Team Member,About Us Team Member,О нама члан тима
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Дозволе су постављени на улога и врсте докумената ( зову ДоцТипес ) постављањем права као што су читање, писање , креирати, брисати , Субмит , Цанцел , измену , Извјештај , Увоз , Извоз , Штампа , е-маил и поставите дозволе корисника ."
 DocType: Event,Wednesday,Среда
@@ -401,13 +401,11 @@ apps/frappe/frappe/utils/jinja.py +35,Syntax error in template,Синтакса 
 DocType: DocField,Width,Ширина
 DocType: Email Account,Notify if unreplied,Нотифи ако Неодговорене
 DocType: DocType,Fields,Поља
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,Незаконит приступ токен Покушајте поново. <p> Молимо затворите овај прозор. </p>
 DocType: System Settings,Your organization name and address for the email footer.,Ваше име организација и адреса за е-фоотер.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,Родитељ Табела
 apps/frappe/frappe/config/desktop.py +41,Developer,Развијач
 DocType: Communication,Created,Направљено
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь как URL и дочерние элементы
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Молимо Вас да подешавање подразумевани е-маил налог од Сетуп&gt; Емаил&gt; Емаил Аццоунт
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Корневая {0} не может быть удален
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,No comments yet,Још нема коментара
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,Оба ДОЦТИПЕ и Име рекуиред
@@ -541,9 +539,8 @@ apps/frappe/frappe/templates/generators/web_form.html +670,The following mandato
 DocType: Email Alert,View Properties (via Customize Form),Погледајте некретнине (преко Цустомизе форми)
 DocType: Note Seen By,Note Seen By,Напомена Сеен би
 apps/frappe/frappe/utils/password_strength.py +73,Try to use a longer keyboard pattern with more turns,Покушајте да користите дуже образац тастатуре са више преокрета
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Подешавање&gt; Усер Дозволе директор
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Репорт Буилдер извештаје директно управља Репорт Буилдер. Нема то везе.
-apps/frappe/frappe/model/document.py +895,none of,ни один из
+apps/frappe/frappe/model/document.py +874,none of,ни один из
 apps/frappe/frappe/public/js/frappe/views/communication.js +66,Send Me A Copy,Пошаљи ми копију
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,Уплоад кориснику дозволе
 DocType: Dropbox Settings,App Secret Key,Апп тајни кључ
@@ -741,6 +738,7 @@ DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","За Линкс, унесите тип документа, као опсегу. За Селецт, листе унесите опција, сваки на новој линији."
 DocType: Workflow State,film,филм
 apps/frappe/frappe/model/db_query.py +361,No permission to read {0},Не дозволи да прочитате {0}
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} година (и)
 apps/frappe/frappe/config/desktop.py +8,Tools,Алат
 apps/frappe/frappe/utils/password_strength.py +111,Avoid recent years.,Избегавајте посљедњих неколико година.
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,Несколько корневые узлы не допускается.
@@ -782,14 +780,14 @@ DocType: Event,Every Day,Сваки дан
 DocType: LDAP Settings,Password for Base DN,Лозинка за Басе ДН
 apps/frappe/frappe/integration_broker/doctype/integration_service/integration_service.js +190,{0} Settings,{0} Подешавања
 DocType: Workflow State,move,Потез
-apps/frappe/frappe/model/document.py +1068,Action Failed,Акција није успела
+apps/frappe/frappe/model/document.py +1047,Action Failed,Акција није успела
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +8,For User,за кориснике
 apps/frappe/frappe/core/doctype/user/user.py +592,Temperorily Disabled,Темперорили Искључено
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} Инсталлед
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","Ако корисник има било какву улогу проверити, онда корисник постаје &quot;Системски корисник&quot;. &quot;Системски корисник&quot; има приступ радној површини"
 DocType: System Settings,Date and Number Format,Дата и номер Формат
 apps/frappe/frappe/templates/generators/web_form.html +161,Max attachment size is {0}MB,Максимална величина прилога је {0} мб
-apps/frappe/frappe/model/document.py +894,one of,Један од
+apps/frappe/frappe/model/document.py +873,one of,Један од
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +156,Show Tags,Схов ознаке
 DocType: Email Queue,Not Sent,Није Сент
 DocType: Web Form,Actions,Акције
@@ -865,7 +863,6 @@ DocType: Email Account,Sendgrid,Сендгрид
 DocType: Workflow State,leaf,лист
 DocType: Portal Menu Item,Portal Menu Item,Портал Ставка менија
 DocType: Email Account,Email ID,Е-маил ИД
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,дозвољен приступ пријемни. <p> Молимо затворите овај прозор. </p>
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Убаци линк
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,Листа средстава које ће клијент апликација има приступ након што корисник то дозвољава. <br> нпр пројекат
 DocType: Contact Us Settings,Query Options,Упит Опције
@@ -971,6 +968,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +14
 DocType: Email Alert,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","Окидач са важећим методама као што су &quot;бефоре_инсерт&quot;, &quot;афтер_упдате&quot;, итд (зависи од ДОЦТИПЕ изабраног)"
 apps/frappe/frappe/core/doctype/user/user.py +138,Adding System Manager to this User as there must be atleast one System Manager,"Добавление System Manager для этого пользователя , как должно быть по крайней мере один System Manager"
 DocType: DocField,Attach Image,Прикрепите изображение
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Сетуп&gt; Корисник
 apps/frappe/frappe/core/page/usage_info/usage_info.html +67,Space usage,upotreba простор
 DocType: Workflow State,list-alt,лист-алт
 apps/frappe/frappe/www/update-password.html +68,Password Updated,Лозинка ажурирано
@@ -1269,6 +1267,7 @@ DocType: Social Login Keys,Google,Google
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +140,Most Used,Највише користе
 DocType: Dropbox Settings,Backup Frequency,бацкуп Фреквенција
 DocType: Workflow State,Inverse,Инверзан
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,Дропбок Приступ није одобрен. <p> Молимо затворите овај прозор. </p>
 DocType: DocField,User permissions should not apply for this Link,Корисника дозволе не би требало да се пријаве за овај Линк
 apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),Неважећи именовање серије (. Миссинг)
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,Тренутни корисници
@@ -1629,7 +1628,6 @@ DocType: Web Form Field,Max Value,мак Вредност
 apps/frappe/frappe/core/doctype/doctype/doctype.py +532,For {0} at level {1} in {2} in row {3},Для {0} на уровне {1} в {2} в строке {3}
 DocType: Communication,All,Све
 DocType: Email Queue,Recipient,Прималац
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Сетуп&gt; Корисник
 apps/frappe/frappe/config/setup.py +162,Drag and Drop tool to build and customize Print Formats.,Драг анд дроп алат за изградњу и прилагодите словима.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,расширять
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,набор
@@ -1754,7 +1752,7 @@ DocType: Workflow State,Search,Претрага
 DocType: Web Form,Web Form Fields,Веб Форм Поља
 DocType: Website Theme,Top Bar Text Color,Топ Бар Боја текста
 apps/frappe/frappe/public/js/frappe/model/meta.js +154,Warning: Unable to find {0} in any table related to {1},Упозорење: Није могуће пронаћи {0} у сваком столу у вези са {1}
-apps/frappe/frappe/model/document.py +1024,This document is currently queued for execution. Please try again,"Овај документ је тренутно чекају на извршење. Молим вас, покушајте поново"
+apps/frappe/frappe/model/document.py +1003,This document is currently queued for execution. Please try again,"Овај документ је тренутно чекају на извршење. Молим вас, покушајте поново"
 apps/frappe/frappe/core/doctype/file/file.py +373,File '{0}' not found,Фајл &#39;{0}&#39; није пронађен
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +411,Remove Section,Ремове секцију
 DocType: User,Change Password,Промена лозинке
@@ -2020,7 +2018,7 @@ DocType: Page,Page Name,Страница Име
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +196,Help: Field Properties,Помоћ: Својства поља
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,Importing...,Увоз ...
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,отворити рајсфешлус
-apps/frappe/frappe/model/document.py +911,Incorrect value in row {0}: {1} must be {2} {3},Неверное значение в строке {0} : {1} должно быть {2} {3}
+apps/frappe/frappe/model/document.py +890,Incorrect value in row {0}: {1} must be {2} {3},Неверное значение в строке {0} : {1} должно быть {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Поднет документ не може да се конвертује у изради .
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,Изаберите постојећи формат за уређивање или започнете нови формат.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Дата создания настраиваемого поля {0} в {1}
@@ -2043,6 +2041,7 @@ DocType: Workflow State,qrcode,КРЦоде
 DocType: Web Form,Breadcrumbs,Бреадцрумбс
 apps/frappe/frappe/core/doctype/doctype/doctype.py +548,If Owner,Ако власник
 DocType: OAuth Authorization Code,Expiration time,истека времена
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,Незаконит приступ токен Покушајте поново. <p> Молимо затворите овај прозор. </p>
 DocType: Web Form,Show Sidebar,Покажи Сидебар
 apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You need to be logged in to access this {0}.,Морате бити пријављени да бисте приступили овој {0}.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Complete By,Комплетан Би
@@ -2333,7 +2332,6 @@ DocType: Web Form,Allow saving if mandatory fields are not filled,Дозволи
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_value.html +3,No records.,Но рецордс.
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,экспортируемый
 DocType: Website Theme,Background,Позадина
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} година (и)
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","ЈСОН листа ДоцТипес користе да примени кориснику дозволе. Ако празна, све повезане ДоцТипес ће се користити да се пријаве кориснику дозволе."
 DocType: Report,Ref DocType,Реф ДОЦТИПЕ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +577,{0}: Cannot set Amend without Cancel,{0} : Не удается установить Изменить без Отменить
@@ -2361,6 +2359,7 @@ DocType: Workflow Action,Workflow Action,Воркфлов Акција
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +609,Set Sort,сет Сортирај
 DocType: Event,Send an email reminder in the morning,Пошаљи е-маил подсетник ујутру
 DocType: Blog Post,Published On,Објављено Дана
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Молимо Вас да подешавање подразумевани е-маил налог од Сетуп&gt; Емаил&gt; Емаил Аццоунт
 DocType: User,Gender,Пол
 apps/frappe/frappe/website/doctype/web_form/web_form.py +331,Mandatory Information missing:,Обавезна Информације недостаје:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +398,Field '{0}' cannot be set as Unique as it has non-unique values,Поље &#39;{0}&#39; не може да се подеси као јединствен јер има не-јединствене вредности
@@ -2456,6 +2455,7 @@ DocType: Website Theme,Link to Bootstrap CSS,Линк то Боотстрап Ц
 DocType: Workflow State,camera,камера
 DocType: Website Settings,Brand HTML,Бренд ХТМЛ
 DocType: Desktop Icon,_doctype,_доцтипе
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Подешавање&gt; Усер Дозволе директор
 apps/frappe/frappe/templates/includes/login/login.js +21,Both login and password required,Оба пријављивање и лозинка потребна
 apps/frappe/frappe/model/document.py +525,Please refresh to get the latest document.,Освежите да би добили најновије документ.
 DocType: User,Security Settings,Безбедносне поставке

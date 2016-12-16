@@ -33,7 +33,7 @@ DocType: DocPerm,This role update User Permissions for a user,ഒരു ഉപ�
 apps/frappe/frappe/public/js/frappe/model/model.js +476,Rename {0},{0} പേരു്മാറ്റുക
 DocType: Workflow State,zoom-out,സൂം ഔട്ട്
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,അതിന്റെ ഉദാഹരണത്തിന് തുറക്കുമ്പോൾ {0} തുറക്കാൻ കഴിയില്ല
-apps/frappe/frappe/model/document.py +922,Table {0} cannot be empty,ടേബിൾ {0} ഒഴിച്ചിടാനാവില്ല
+apps/frappe/frappe/model/document.py +901,Table {0} cannot be empty,ടേബിൾ {0} ഒഴിച്ചിടാനാവില്ല
 DocType: Integration Service Parameter,Parameter,പാരാമീറ്റർ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +848,With Ledgers,Ledgers കൂടി
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +20,Images,ചിത്രങ്ങൾ
@@ -42,7 +42,7 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Social Login Keys,GitHub,സാമൂഹികം
 apps/frappe/frappe/model/base_document.py +569,"{0}, Row {1}","{0}, വരി {1}"
 apps/frappe/frappe/core/doctype/file/file_list.js +102,Error in uploading files.,ഫയലുകൾ അപ്ലോഡ് പിശക്.
-apps/frappe/frappe/model/document.py +896,Beginning with,തുടങ്ങുന്നതിൽ കൂടി
+apps/frappe/frappe/model/document.py +875,Beginning with,തുടങ്ങുന്നതിൽ കൂടി
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,ഡാറ്റാ ഇംപോർട്ട് ഫലകം
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,പേരന്റ്ഫോള്ഡര്
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;ടീം അംഗങ്ങൾ&quot; അല്ലെങ്കിൽ &quot;മാനേജ്മെന്റ്&quot;
@@ -60,7 +60,7 @@ DocType: Email Group,Email Group,ഇമെയിൽ ഗ്രൂപ്പ്
 DocType: Note,Seen By,പ്രത്യക്ഷമായി
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +662,Not Like,ഇഷ്ടമല്ല
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +204,Set the display label for the field,ഫീൽഡിനായി ഡിസ്പ്ലേ ലേബൽ സജ്ജമാക്കുക
-apps/frappe/frappe/model/document.py +913,Incorrect value: {0} must be {1} {2},തെറ്റായ മൂല്യം: {0} {1} {2} ആയിരിക്കണം
+apps/frappe/frappe/model/document.py +892,Incorrect value: {0} must be {1} {2},തെറ്റായ മൂല്യം: {0} {1} {2} ആയിരിക്കണം
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)","മാറ്റുക ഫീൽഡ് സവിശേഷതകൾ (തോൽ, വായന, അനുമതി മുതലായവ)"
 apps/frappe/frappe/integration_broker/oauth2.py +109,Define Frappe Server URL in Social Login Keys,സോഷ്യൽ ലോഗിൻ കീകൾ അവളെന്നോട് സെർവർ URL നിർവചിക്കുക
 DocType: Workflow State,lock,ലോക്ക്
@@ -128,6 +128,7 @@ DocType: Website Settings,Select an image of approx width 150px with a transpare
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add multiple rows,ഒന്നിലധികം വരികൾ ചേർക്കുക
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +561,The first user will become the System Manager (you can change this later).,ആദ്യ ഉപയോക്താവിന് സിസ്റ്റം മാനേജർ (നിങ്ങൾ പിന്നീട് മാറ്റാനാകും) മാറും.
 ,App Installer,അപ്ലിക്കേഷൻ ഇൻസ്റ്റോളർ
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,ഡ്രോപ്പ്ബോക്സ് ആക്സസ് അനുവദിച്ചു. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 DocType: Workflow State,circle-arrow-up,സർക്കിൾ-അമ്പ്-അപ്പ്
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,അപ്ലോഡ് ചെയ്യുന്നു ...
 DocType: Workflow State,italic,ചരിച്ചെഴുത്ത്
@@ -191,6 +192,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,ഉദാഹരണ
 DocType: Workflow,Defines workflow states and rules for a document.,ഒരു പ്രമാണം വേണ്ടി വർക്ക്ഫ്ലോ സംസ്ഥാനങ്ങളും നിയമങ്ങൾ നിഷ്കർഷിക്കുന്നു.
 DocType: Workflow State,Filter,ഫിൽറ്റർ
 DocType: DocType,Show this field as title,ശീർഷകം ഈ ഫീൽഡ് കാണിക്കുക
+apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ഇമെയിൽ അക്കൗണ്ട് സജ്ജീകരണം. സജ്ജീകരണം&gt; ഇമെയിൽ&gt; ഇമെയിൽ അക്കൗണ്ടിൽ നിന്ന് ഒരു പുതിയ ഇമെയിൽ അക്കൌണ്ട് സൃഷ്ടിക്കുക
 apps/frappe/frappe/model/db_schema.py +560,Fieldname {0} cannot have special characters like {1},FIELDNAME {0} {1} പോലുള്ള പ്രത്യേക പ്രതീകങ്ങൾ കഴിയില്ല
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക
 apps/frappe/frappe/config/setup.py +116,Update many values at one time.,ഒരു സമയത്ത് പല മൂല്യങ്ങൾ അപ്ഡേറ്റ് ചെയ്യുക.
@@ -209,7 +211,6 @@ DocType: About Us Settings,Team Members,ടീം അംഗങ്ങൾ
 apps/frappe/frappe/public/js/frappe/upload.js +83,Please attach a file or set a URL,ഒരു ഫയൽ അറ്റാച്ച് അല്ലെങ്കിൽ ഒരു URL സജ്ജീകരിക്കുക
 DocType: Async Task,System Manager,സിസ്റ്റം മാനേജർ
 DocType: DocField,Permissions,അനുമതികൾ
-apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ഇമെയിൽ അക്കൗണ്ട് സജ്ജീകരണം. സജ്ജീകരണം&gt; ഇമെയിൽ&gt; ഇമെയിൽ അക്കൗണ്ടിൽ നിന്ന് ഒരു പുതിയ ഇമെയിൽ അക്കൌണ്ട് സൃഷ്ടിക്കുക
 DocType: Dropbox Settings,Allow Dropbox Access,ഡ്രോപ്പ്ബോക്സ് അക്സസ് അനുവദിക്കുക
 DocType: Bulk Update,"SQL Conditions. Example: status=""Open""",എസ്.ക്യു.എൽ. വ്യവസ്ഥകൾ. ഉദാഹരണം: നില = &quot;തുറക്കുക&quot;
 DocType: User,Get your globally recognized avatar from Gravatar.com,Gravatar.com നിന്ന് നിങ്ങളുടെ ആഗോള അംഗീകാരമുളള അവതാർ നേടുക
@@ -316,7 +317,7 @@ apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,പത�
 DocType: About Us Settings,Website Manager,വെബ്സൈറ്റ് മാനേജർ
 DocType: Event Role,Event Role,ഇവന്റ് റോൾ
 apps/frappe/frappe/public/js/frappe/ui/editor.html +67,Indent (Tab),ഇന്റന്റ് (ടാബ്)
-apps/frappe/frappe/model/document.py +1025,Document Queued,പ്രമാണം ക്യൂവിലാണ്
+apps/frappe/frappe/model/document.py +1004,Document Queued,പ്രമാണം ക്യൂവിലാണ്
 DocType: Desktop Icon,List,പട്ടിക
 DocType: Communication,Link Name,ലിങ്ക് പേര്
 DocType: Page Role,Page Role,പേജ് റോൾ
@@ -342,7 +343,6 @@ DocType: Workflow State,barcode,ബാർകോഡ്
 apps/frappe/frappe/config/setup.py +249,Add your own translations,നിങ്ങളുടെ സ്വന്തം വിവർത്തനങ്ങൾ ചേർക്കുക
 DocType: Country,Country Name,രാജ്യം പേര്
 apps/frappe/frappe/www/login.html +83,Have an account? ,ഒരു അക്കൗണ്ട് ഉണ്ടോ?
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,ഡ്രോപ്പ്ബോക്സ് അക്സസ് അംഗീകരിച്ചിട്ടില്ല. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 DocType: About Us Team Member,About Us Team Member,അമേരിക്ക അംഗം കുറിച്ച്
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","അനുമതികൾ, വായിക്കുക പോലുള്ള അവകാശങ്ങൾ ക്രമീകരിച്ച് റോളുകളും ഡോക്യുമെന്റ് ഇനങ്ങൾ (DocTypes വിളിച്ചു) ന് സജ്ജമാക്കാൻ എഴുതുക, സൃഷ്ടിക്കുക, ഇല്ലാതാക്കുക, സമർപ്പിക്കുക, റദ്ദാക്കുക, നന്നാക്കുവിൻ റിപ്പോർട്ട്, ഇംപോർട്ട്, എക്സ്പോർട്ട്, പ്രിന്റ്, ഇമെയിലും സെറ്റ് ഉപയോക്തൃ അനുമതികൾ ചെയ്യുന്നു."
 DocType: Event,Wednesday,ബുധനാഴ്ച
@@ -401,13 +401,11 @@ apps/frappe/frappe/utils/jinja.py +35,Syntax error in template,ടെംപ്�
 DocType: DocField,Width,വീതി
 DocType: Email Account,Notify if unreplied,Unreplied എങ്കിൽ അറിയിക്കുക
 DocType: DocType,Fields,ഫീൾഡുകൾ
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,നിയമവിരുദ്ധ ആക്സസ് ടോക്കൺ വീണ്ടും ശ്രമിക്കുക. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 DocType: System Settings,Your organization name and address for the email footer.,ഇമെയിൽ ഫൂട്ടറിൽ നിങ്ങളുടെ സ്ഥാപനത്തിലെ പേരും വിലാസവും.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,പാരന്റ് ടേബിൾ
 apps/frappe/frappe/config/desktop.py +41,Developer,ഡെവലപ്പർ
 DocType: Communication,Created,സൃഷ്ടിച്ചത്
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} നിരയിൽ {1} ഇരുവരും URL ഉം കുട്ടി വസ്തുക്കൾ കഴിയില്ല
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,സജ്ജീകരണം&gt; ഇമെയിൽ&gt; ഇമെയിൽ അക്കൗണ്ടിൽ നിന്ന് ദയവായി ചിഹ്നങ്ങള്ക്കു്സഹജമായുള്ളപ്രഭാവംസജ്ജമാക്കുക ഇമെയിൽ അക്കൗണ്ട്
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,റൂട്ട് {0} ഇല്ലാതാക്കാൻ കഴിയില്ല
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,No comments yet,ഇതുവരെ പോസ്റ്റ്
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,DocType ആൻഡ് പേര് ആവശ്യമാണ് രണ്ടും
@@ -541,9 +539,8 @@ apps/frappe/frappe/templates/generators/web_form.html +670,The following mandato
 DocType: Email Alert,View Properties (via Customize Form),(കസ്റ്റമൈസ് ഫോം വഴി) അവതരണരീതികള്പ്രയോഗിച്ചുകൊണ്ടിരിയ്ക്കുന്നു
 DocType: Note Seen By,Note Seen By,കണ്ട കുറിപ്പ്
 apps/frappe/frappe/utils/password_strength.py +73,Try to use a longer keyboard pattern with more turns,കൂടുതൽ വളവുകൾ ഒരു ഇനി കീബോർഡ് പാറ്റേൺ ഉപയോഗിക്കാൻ ശ്രമിക്കുക
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,സജ്ജീകരണം&gt; ഉപയോക്തൃ അനുമതികൾ മാനേജർ
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,റിപ്പോർട്ട് ബിൽഡർ റിപ്പോർട്ടുകൾ റിപ്പോർട്ട് ബിൽഡർ നേരിട്ടു നിയന്ത്രിക്കുന്നത്. ഒന്നും ചെയ്യാനുണ്ടായിരുന്നില്ല.
-apps/frappe/frappe/model/document.py +895,none of,ആരും
+apps/frappe/frappe/model/document.py +874,none of,ആരും
 apps/frappe/frappe/public/js/frappe/views/communication.js +66,Send Me A Copy,എന്നെക്കുറിച്ച് ഒരു കോപ്പി അയയ്ക്കുക
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,ഉപയോക്താവിന്റെ അനുമതികൾ അപ്ലോഡുചെയ്യുക
 DocType: Dropbox Settings,App Secret Key,അപ്ലിക്കേഷൻ രഹസ്യ കീ
@@ -741,6 +738,7 @@ DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","ലിങ്കുകൾ വേണ്ടി, റേഞ്ച് പോലെ DocType നൽകുക. തിരഞ്ഞെടുക്കുക വേണ്ടി, ഒരു പുതിയ വരിയിൽ ഓരോ ഓപ്ഷനുകൾ ലിസ്റ്റ് നൽകുക."
 DocType: Workflow State,film,സിനിമ
 apps/frappe/frappe/model/db_query.py +361,No permission to read {0},{0} വായിക്കാൻ അനുമതിയില്ല
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} വർഷം (ങ്ങൾ) മുമ്പ്
 apps/frappe/frappe/config/desktop.py +8,Tools,ഉപകരണങ്ങൾ
 apps/frappe/frappe/utils/password_strength.py +111,Avoid recent years.,സമീപ വർഷങ്ങളിൽ ഒഴിവാക്കുക.
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,അനുവദനീയമല്ല മൾട്ടിപ്പിൾ റൂട്ട് നോഡുകൾ.
@@ -782,14 +780,14 @@ DocType: Event,Every Day,എല്ലാ ദിവസവും
 DocType: LDAP Settings,Password for Base DN,ബെയിസ് ഡിഎൻ പാസ്വേഡ്
 apps/frappe/frappe/integration_broker/doctype/integration_service/integration_service.js +190,{0} Settings,{0} ക്രമീകരണങ്ങൾ
 DocType: Workflow State,move,ഈ നീക്കം
-apps/frappe/frappe/model/document.py +1068,Action Failed,ആക്ഷൻ പരാജയപ്പെട്ടു
+apps/frappe/frappe/model/document.py +1047,Action Failed,ആക്ഷൻ പരാജയപ്പെട്ടു
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +8,For User,ഉപയോക്താവ് വേണ്ടി
 apps/frappe/frappe/core/doctype/user/user.py +592,Temperorily Disabled,Temperorily അപ്രാപ്തമാക്കി
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} ഇന്സ്റ്റോള്ചെയ്തിരിക്കുന്നു
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","ഉപയോക്താവ് ചെക്കുചെയ്തിരിക്കുന്ന എന്തെങ്കിലും പങ്കുണ്ടോ ഉണ്ട്, ഉപയോക്താവിന് ഒരു &quot;സിസ്റ്റം ഉപയോക്തൃ&quot; മാറുന്നു. &quot;സിസ്റ്റം ഉപയോക്താവ്&quot; ഡെസ്ക്ടോപ്പ് ആക്സസ് ഉണ്ട്"
 DocType: System Settings,Date and Number Format,തീയതിയും നമ്പർ ഫോർമാറ്റ്
 apps/frappe/frappe/templates/generators/web_form.html +161,Max attachment size is {0}MB,പരമാവധി അറ്റാച്ച്മെന്റ് സൈസ് {0} എം.ബി.
-apps/frappe/frappe/model/document.py +894,one of,ഒരുത്തൻ
+apps/frappe/frappe/model/document.py +873,one of,ഒരുത്തൻ
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +156,Show Tags,കാണിക്കുക ടാഗുകൾ
 DocType: Email Queue,Not Sent,അയച്ചിട്ടില്ല
 DocType: Web Form,Actions,ക്രിയകൾ
@@ -865,7 +863,6 @@ DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ഇല
 DocType: Portal Menu Item,Portal Menu Item,പോർട്ടൽ മെനു ഇനം
 DocType: Email Account,Email ID,ഇമെയിൽ ഐഡി
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,ഡ്രോപ്പ്ബോക്സ് ആക്സസ് അനുവദിച്ചു. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,ലിങ്ക് ഉൾപ്പെടുത്തുക
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,ഉപയോക്താക്കൾക്ക് അനുവദിക്കുന്നു ശേഷം ക്ലയന്റ് അപ്ലിക്കേഷൻ ആക്സസ് ഉണ്ടായിരിക്കും ഉറവിടങ്ങളിലെ ഒരു ലിസ്റ്റ്. <br> ഉദാ പദ്ധതി
 DocType: Contact Us Settings,Query Options,അന്വേഷണം ഓപ്ഷനുകൾ
@@ -971,6 +968,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +14
 DocType: Email Alert,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","&quot;Before_insert&quot;, &quot;after_update&quot; പോലുള്ള സാധുവായ രീതികൾ ട്രിഗർ എന്നിവ (തിരഞ്ഞെടുത്ത DocType ആശ്രയിച്ചിരിക്കും)"
 apps/frappe/frappe/core/doctype/user/user.py +138,Adding System Manager to this User as there must be atleast one System Manager,കുറഞ്ഞത് ഒരു സിസ്റ്റം മാനേജർ ഉണ്ടായിരിക്കണം ഈ ഉപയോക്താവ് സിസ്റ്റം മാനേജർ ചേർക്കുന്നു
 DocType: DocField,Attach Image,ചിത്രം അറ്റാച്ച്
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,സജ്ജീകരണം&gt; ഉപയോക്തൃ
 apps/frappe/frappe/core/page/usage_info/usage_info.html +67,Space usage,സ്പെയ്സ് ഉപയോഗം
 DocType: Workflow State,list-alt,പട്ടിക-Alt
 apps/frappe/frappe/www/update-password.html +68,Password Updated,പാസ്വേഡ് അപ്ഡേറ്റ്
@@ -1268,6 +1266,7 @@ DocType: Social Login Keys,Google,ഗൂഗിൾ
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +140,Most Used,ഏറ്റവും ഉപയോഗിച്ച
 DocType: Dropbox Settings,Backup Frequency,ബാക്കപ്പ് ഫ്രീക്വൻസി
 DocType: Workflow State,Inverse,യ്ക്കും
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,ഡ്രോപ്പ്ബോക്സ് അക്സസ് അംഗീകരിച്ചിട്ടില്ല. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 DocType: DocField,User permissions should not apply for this Link,ഉപയോക്താവിന്റെ അനുമതികൾ ഈ ലിങ്ക് അപേക്ഷിക്കാൻ പാടില്ല
 apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),അസാധുവായ പേരിടൽ പരമ്പര (. കാണാതായി)
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,നിലവിലുള്ള ഉപയോക്താക്കൾ
@@ -1628,7 +1627,6 @@ DocType: Web Form Field,Max Value,പരമാവധി മൂല്യം
 apps/frappe/frappe/core/doctype/doctype/doctype.py +532,For {0} at level {1} in {2} in row {3},{2} നിരയിൽ {3} ലെ {1} തലത്തിൽ {0} വേണ്ടി
 DocType: Communication,All,എല്ലാം
 DocType: Email Queue,Recipient,സ്വീകർത്താവ്
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,സജ്ജീകരണം&gt; ഉപയോക്തൃ
 apps/frappe/frappe/config/setup.py +162,Drag and Drop tool to build and customize Print Formats.,പ്രിന്റ് ഫോർമാറ്റുകൾ പണിയും ഇഷ്ടാനുസൃതമാക്കാനും ഉപകരണം വലിച്ചിടാൻ.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,വിപുലീകരിക്കുക
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,സജ്ജമാക്കുക
@@ -1753,7 +1751,7 @@ DocType: Workflow State,Search,തിരച്ചിൽ
 DocType: Web Form,Web Form Fields,വെബ് ഫോം ഫീൾഡുകൾ
 DocType: Website Theme,Top Bar Text Color,ടോപ്പ് ബാർ ടെക്സ്റ്റ് നിറം
 apps/frappe/frappe/public/js/frappe/model/meta.js +154,Warning: Unable to find {0} in any table related to {1},മുന്നറിയിപ്പ്: ലേക്കുള്ള {1} ബന്ധപ്പെട്ട പട്ടികയിൽ കണ്ടെത്താൻ {0} കഴിയുന്നില്ല
-apps/frappe/frappe/model/document.py +1024,This document is currently queued for execution. Please try again,ഈ പ്രമാണം നിലവിൽ വധശിക്ഷ ക്യൂവിലായതിനാൽ. വീണ്ടും ശ്രമിക്കുക
+apps/frappe/frappe/model/document.py +1003,This document is currently queued for execution. Please try again,ഈ പ്രമാണം നിലവിൽ വധശിക്ഷ ക്യൂവിലായതിനാൽ. വീണ്ടും ശ്രമിക്കുക
 apps/frappe/frappe/core/doctype/file/file.py +373,File '{0}' not found,പ്രമാണം &#39;{0}&#39; കണ്ടെത്തിയില്ല
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +411,Remove Section,വിഭാഗം നീക്കംചെയ്യുക
 DocType: User,Change Password,പാസ്വേഡ് മാറ്റുക
@@ -2018,7 +2016,7 @@ DocType: Page,Page Name,പേജ് പേര്
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +196,Help: Field Properties,സഹായം: ഫീൽഡ് പ്രോപ്പർട്ടീസ്
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,Importing...,ഇറക്കുമതി ചെയ്യുന്നു ...
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,അൺസിപ്പ്
-apps/frappe/frappe/model/document.py +911,Incorrect value in row {0}: {1} must be {2} {3},നിരയിൽ തെറ്റായ മൂല്യം {0}: {1} {2} {3} ആയിരിക്കണം
+apps/frappe/frappe/model/document.py +890,Incorrect value in row {0}: {1} must be {2} {3},നിരയിൽ തെറ്റായ മൂല്യം {0}: {1} {2} {3} ആയിരിക്കണം
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},സമർപ്പിച്ച ഡോക്യുമെന്റ് തിരികെ കരട് പരിവർത്തനം ചെയ്യാൻ കഴിയില്ല. ട്രാൻസിഷൻ വരി {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,ഒരു പുതിയ ഫോർമാറ്റ് തിരുത്തുക എന്ന തുടങ്ങാനോ നിലവിലുള്ള ഒരു ഫോർമാറ്റ് തിരഞ്ഞെടുക്കുക.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},{1} ൽ സൃഷ്ടിച്ചു കസ്റ്റം ഫീൽഡ് {0}
@@ -2041,6 +2039,7 @@ DocType: Workflow State,qrcode,qrcode
 DocType: Web Form,Breadcrumbs,Breadcrumbs
 apps/frappe/frappe/core/doctype/doctype/doctype.py +548,If Owner,ഉടമ എങ്കിൽ
 DocType: OAuth Authorization Code,Expiration time,കാലഹരണപ്പെടുന്ന സമയം
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,നിയമവിരുദ്ധ ആക്സസ് ടോക്കൺ വീണ്ടും ശ്രമിക്കുക. <p> ഈ വിൻഡോ അടയ്ക്കുക. </p>
 DocType: Web Form,Show Sidebar,സൈഡ്ബാർ കാണിക്കുക
 apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You need to be logged in to access this {0}.,നിങ്ങൾ {0} ഇത് ആക്സസ് ചെയ്യാൻ ലോഗിൻ ചെയ്യേണ്ടതുണ്ട്.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Complete By,ആയപ്പോഴേക്കും പൂർത്തിയാക്കുക
@@ -2330,7 +2329,6 @@ DocType: Web Form,Allow saving if mandatory fields are not filled,നിർബ�
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_value.html +3,No records.,ഇല്ല രേഖകള്.
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,എക്സ്പോർട്ട് ചെയ്തു
 DocType: Website Theme,Background,പശ്ചാത്തലം
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} വർഷം (ങ്ങൾ) മുമ്പ്
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","ഉപയോക്താവ് അനുമതികൾ പ്രയോഗിക്കുന്നതിന് ഉപയോഗിക്കുന്ന DocTypes എന്ന ജെഎസ്ഒഎൻ പട്ടിക. ഒഴിഞ്ഞ എങ്കിൽ, എല്ലാ ലിങ്ക്ഡ് DocTypes ഉപയോക്താവ് അനുമതികൾ പ്രയോഗിക്കുന്നതിന് ഉപയോഗിക്കും."
 DocType: Report,Ref DocType,റഫറൻസ് DocType
 apps/frappe/frappe/core/doctype/doctype/doctype.py +577,{0}: Cannot set Amend without Cancel,{0}: റദ്ദാക്കുക ഇല്ലാതെ നന്നാക്കുവിൻ സജ്ജീകരിക്കാൻ കഴിയില്ല
@@ -2358,6 +2356,7 @@ DocType: Workflow Action,Workflow Action,വർക്ക്ഫ്ലോ ആ�
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +609,Set Sort,അടുക്കുക സജ്ജമാക്കുക
 DocType: Event,Send an email reminder in the morning,രാവിലെ ഒരു ഇമെയിൽ ഓർമ്മപ്പെടുത്തൽ അയയ്ക്കുക
 DocType: Blog Post,Published On,ന് പ്രസിദ്ധീകരിച്ചു
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,സജ്ജീകരണം&gt; ഇമെയിൽ&gt; ഇമെയിൽ അക്കൗണ്ടിൽ നിന്ന് ദയവായി ചിഹ്നങ്ങള്ക്കു്സഹജമായുള്ളപ്രഭാവംസജ്ജമാക്കുക ഇമെയിൽ അക്കൗണ്ട്
 DocType: User,Gender,സ്ത്രീ
 apps/frappe/frappe/website/doctype/web_form/web_form.py +331,Mandatory Information missing:,നിർബന്ധിതം വിവരം കാണാനില്ല:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +398,Field '{0}' cannot be set as Unique as it has non-unique values,ഇതര അതുല്യമായ മൂല്യങ്ങൾ ഉണ്ട് പോലെ ഫീൽഡ് &#39;{0}&#39; യുണീക് ആയി സജ്ജമാക്കാൻ കഴിയില്ല
@@ -2452,6 +2451,7 @@ DocType: Website Theme,Link to Bootstrap CSS,ബൂട്ട്സ്ട്ര�
 DocType: Workflow State,camera,കാമറ
 DocType: Website Settings,Brand HTML,ബ്രാൻഡ് എച്ച്ടിഎംഎൽ
 DocType: Desktop Icon,_doctype,_doctype
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,സജ്ജീകരണം&gt; ഉപയോക്തൃ അനുമതികൾ മാനേജർ
 apps/frappe/frappe/templates/includes/login/login.js +21,Both login and password required,അകത്തുകയറുന്നതിനുള്ള പാസ്വേഡും ആവശ്യമാണ്
 apps/frappe/frappe/model/document.py +525,Please refresh to get the latest document.,ഏറ്റവും പുതിയ പ്രമാണത്തിൽ ലഭിക്കാൻ പുതുക്കുക.
 DocType: User,Security Settings,സുരക്ഷാ ക്രമീകരണങ്ങൾ

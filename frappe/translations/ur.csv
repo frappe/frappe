@@ -33,7 +33,7 @@ DocType: DocPerm,This role update User Permissions for a user,ایک صارف ک
 apps/frappe/frappe/public/js/frappe/model/model.js +476,Rename {0},نام تبدیل {0}
 DocType: Workflow State,zoom-out,دور کرنا
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,نہیں کھول سکتا {0} اس مثال کھلا ہوا ہے جب
-apps/frappe/frappe/model/document.py +922,Table {0} cannot be empty,ٹیبل {0} خالی نہیں ہو سکتا
+apps/frappe/frappe/model/document.py +901,Table {0} cannot be empty,ٹیبل {0} خالی نہیں ہو سکتا
 DocType: Integration Service Parameter,Parameter,پیرامیٹر
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +848,With Ledgers,روزنامچے کے ساتھ
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +20,Images,امیجز
@@ -42,7 +42,7 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Social Login Keys,GitHub,GitHub کے
 apps/frappe/frappe/model/base_document.py +569,"{0}, Row {1}",{0}، صف {1}
 apps/frappe/frappe/core/doctype/file/file_list.js +102,Error in uploading files.,اپ لوڈ کی فائلوں میں خرابی.
-apps/frappe/frappe/model/document.py +896,Beginning with,کے ساتھ شروع
+apps/frappe/frappe/model/document.py +875,Beginning with,کے ساتھ شروع
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,ڈیٹا درآمد سانچہ
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,والدین
 DocType: About Us Settings,"""Team Members"" or ""Management""","""جماعت کے ارکان"" یا ""انتظام"""
@@ -60,7 +60,7 @@ DocType: Email Group,Email Group,ای میل گروپ
 DocType: Note,Seen By,کی طرف سے دیکھا
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +662,Not Like,پسند نہیں
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +204,Set the display label for the field,فیلڈ کے لئے ڈسپلے لیبل مقرر
-apps/frappe/frappe/model/document.py +913,Incorrect value: {0} must be {1} {2},غلط قیمت: {0} ہونا ضروری ہے {1} {2}
+apps/frappe/frappe/model/document.py +892,Incorrect value: {0} must be {1} {2},غلط قیمت: {0} ہونا ضروری ہے {1} {2}
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)",پیج میدان خصوصیات (چھپائیں، صرف پڑھنے، کی اجازت وغیرہ)
 apps/frappe/frappe/integration_broker/oauth2.py +109,Define Frappe Server URL in Social Login Keys,سماجی لاگ ان چابیاں میں Frappe سرور URL کی وضاحت کریں
 DocType: Workflow State,lock,مقفل
@@ -128,6 +128,7 @@ DocType: Website Settings,Select an image of approx width 150px with a transpare
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add multiple rows,ایک سے زیادہ قطار میں شامل
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +561,The first user will become the System Manager (you can change this later).,سسٹم مینیجر ہو جائے گا سب سے پہلے صارف (آپ بعد میں اس کو تبدیل کر سکتے ہیں).
 ,App Installer,اپلی کیشن انسٹالر
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,"ڈراپ باکس تک رسائی کی اجازت. <p style=""""> اس ونڈو کو بند کریں. </p>"
 DocType: Workflow State,circle-arrow-up,دائرہ تیر اپ
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,اپ لوڈ ...
 DocType: Workflow State,italic,ترچھے
@@ -191,6 +192,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,مثال:
 DocType: Workflow,Defines workflow states and rules for a document.,ایک دستاویز کے لئے کام کے فلو کو امریکہ اور اس کے قوانین کی وضاحت کرتا ہے.
 DocType: Workflow State,Filter,فلٹر
 DocType: DocType,Show this field as title,عنوان کے طور پر اس میدان دکھائیں
+apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ای میل اکاؤنٹ سیٹ اپ نہیں. سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے ایک نیا ای میل اکاؤنٹ بنا مہربانی
 apps/frappe/frappe/model/db_schema.py +560,Fieldname {0} cannot have special characters like {1},FIELDNAME {0} کی طرح خصوصی حروف نہیں کر سکتے ہیں {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,اپنی زبان منتخب کریں
 apps/frappe/frappe/config/setup.py +116,Update many values at one time.,ایک وقت میں بہت اقدار کو اپ ڈیٹ کریں.
@@ -209,7 +211,6 @@ DocType: About Us Settings,Team Members,ٹیم کے ارکان
 apps/frappe/frappe/public/js/frappe/upload.js +83,Please attach a file or set a URL,ایک فائل منسلک یا ایک یو آر ایل مقرر کریں
 DocType: Async Task,System Manager,سسٹم مینیجر
 DocType: DocField,Permissions,اجازتیں
-apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ای میل اکاؤنٹ سیٹ اپ نہیں. سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے ایک نیا ای میل اکاؤنٹ بنا مہربانی
 DocType: Dropbox Settings,Allow Dropbox Access,ڈراپ باکس رسائی کی اجازت دیں
 DocType: Bulk Update,"SQL Conditions. Example: status=""Open""",SQL ضوابط. مثال: حیثیت = &quot;کھولیں&quot;
 DocType: User,Get your globally recognized avatar from Gravatar.com,Gravatar.com سے آپ عالمی سطح پر تسلیم نمائندہ تصویر حاصل کریں
@@ -315,7 +316,7 @@ apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,ورژن
 DocType: About Us Settings,Website Manager,ویب سائٹ کے مینیجر
 DocType: Event Role,Event Role,واقعہ کردار
 apps/frappe/frappe/public/js/frappe/ui/editor.html +67,Indent (Tab),بڑھائیں (ٹیب)
-apps/frappe/frappe/model/document.py +1025,Document Queued,دستاویز قطار
+apps/frappe/frappe/model/document.py +1004,Document Queued,دستاویز قطار
 DocType: Desktop Icon,List,فہرست
 DocType: Communication,Link Name,لنک کا نام
 DocType: Page Role,Page Role,صفحہ کردار
@@ -341,7 +342,6 @@ DocType: Workflow State,barcode,بارکوڈ
 apps/frappe/frappe/config/setup.py +249,Add your own translations,اپنا خود کا ترجمہ شامل کریں
 DocType: Country,Country Name,ملک کا نام
 apps/frappe/frappe/www/login.html +83,Have an account? ,آپ کا اکاؤنٹ ہے؟
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,"ڈراپ باکس تک رسائی حاصل نہیں کی منظوری دے دی. <p style=""""> اس ونڈو کو بند کریں. </p>"
 DocType: About Us Team Member,About Us Team Member,ہم سے ٹیم کے رکن کے بارے میں
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",اجازت، رپورٹ، درآمد، برآمد، پرنٹ، ای میل اور سیٹ صارف کی اجازت، لکھیں تخلیق، حذف، جمع کرائیں، منسوخ، ترمیم، کردار اور پڑھیں طرح حقوق ترتیب کی طرف سے دستاویز کی اقسام (کہا جاتا DocTypes) پر مقرر کیا جاتا ہے.
 DocType: Event,Wednesday,بدھ
@@ -400,13 +400,11 @@ apps/frappe/frappe/utils/jinja.py +35,Syntax error in template,سانچے میں
 DocType: DocField,Width,چوڑائی
 DocType: Email Account,Notify if unreplied,براہ مہربانی انتظار تو مطلع کریں
 DocType: DocType,Fields,قطعات
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,"غیر قانونی رسائی ٹوکن دوبارہ کوشش کریں. <p style=""""> اس ونڈو کو بند کریں. </p>"
 DocType: System Settings,Your organization name and address for the email footer.,ای میل فوٹر کے لئے آپ کی تنظیم کا نام اور پتہ.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,والدین ٹیبل
 apps/frappe/frappe/config/desktop.py +41,Developer,ڈیولپر
 DocType: Communication,Created,پیدا کیا
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} قطار میں {1} دونوں یو آر ایل اور بچے اشیاء نہیں کر سکتے ہیں
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے براہ مہربانی سیٹ اپ ڈیفالٹ ای میل اکاؤنٹ
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,{0} روٹ خارج نہیں کیا جا سکتا
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,No comments yet,ابھی تک کوئی تبصرہ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,ضرورت دونوں DOCTYPE اور نام
@@ -538,9 +536,8 @@ apps/frappe/frappe/templates/generators/web_form.html +670,The following mandato
 DocType: Email Alert,View Properties (via Customize Form),(اپنی مرضی کے مطابق فارم کے ذریعے) دیکھیں پراپرٹیز
 DocType: Note Seen By,Note Seen By,کی طرف سے دیکھا نوٹ
 apps/frappe/frappe/utils/password_strength.py +73,Try to use a longer keyboard pattern with more turns,زیادہ موڑ کے ساتھ ایک طویل بورڈ پیٹرن استعمال کرنے کی کوشش کریں
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,سیٹ اپ&gt; صارف کی اجازت مینیجر
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,رپورٹ بلڈر رپورٹس رپورٹ بلڈر کی طرف سے براہ راست منظم کر رہے ہیں. کرنے کو کچھ نہیں.
-apps/frappe/frappe/model/document.py +895,none of,میں سے کوئی بھی
+apps/frappe/frappe/model/document.py +874,none of,میں سے کوئی بھی
 apps/frappe/frappe/public/js/frappe/views/communication.js +66,Send Me A Copy,مجھے ایک کاپی ارسال کریں
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,صارف کی اجازت کو اپ لوڈ کریں
 DocType: Dropbox Settings,App Secret Key,اپلی راز کلید
@@ -777,13 +774,13 @@ DocType: Event,Every Day,ہر روز
 DocType: LDAP Settings,Password for Base DN,بیس DN کے لیے پاس ورڈ
 apps/frappe/frappe/integration_broker/doctype/integration_service/integration_service.js +190,{0} Settings,{0} ترتیبات
 DocType: Workflow State,move,اقدام
-apps/frappe/frappe/model/document.py +1068,Action Failed,ایکشن میں ناکام
+apps/frappe/frappe/model/document.py +1047,Action Failed,ایکشن میں ناکام
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +8,For User,صارف کے لئے
 apps/frappe/frappe/core/doctype/user/user.py +592,Temperorily Disabled,Temperorily معذور
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} ھوگیا installنصب
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop",صارف کی جانچ پڑتال کوئی کردار نہیں ہیں تب صارف ایک &quot;سسٹم یوزر&quot; بن جاتا ہے. &quot;سسٹم یوزر کے&quot; ڈیسک ٹاپ تک رسائی حاصل ہے
 DocType: System Settings,Date and Number Format,تاریخ اور نمبر کی شکل
-apps/frappe/frappe/model/document.py +894,one of,اس میں سے ایک
+apps/frappe/frappe/model/document.py +873,one of,اس میں سے ایک
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +156,Show Tags,دکھائیں ٹیگز
 DocType: Email Queue,Not Sent,نہیں بھیجا
 DocType: Web Form,Actions,عوامل
@@ -859,7 +856,6 @@ DocType: Email Account,Sendgrid,میل Sendgrid
 DocType: Workflow State,leaf,پتی
 DocType: Portal Menu Item,Portal Menu Item,پورٹل مینو اشیاء
 DocType: Email Account,Email ID,ای میل ID
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,"ڈراپ باکس تک رسائی کی اجازت. <p style=""""> اس ونڈو کو بند کریں. </p>"
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,داخل کریں لنک
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,وسائل کی ایک فہرست ہے جس میں کلائنٹ اے پی پی کے بعد صارف کو یہ اجازت دیتا ہے تک رسائی حاصل ہوگی. <br> مثال کے طور پر اس منصوبے
 DocType: Contact Us Settings,Query Options,استفسار کے اختیارات
@@ -963,6 +959,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +14
 DocType: Email Alert,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)",&quot;before_insert&quot;، &quot;after_update&quot;، وغیرہ درست طریقوں پر ٹریگر (منتخب DOCTYPE پر انحصار کرے گا)
 apps/frappe/frappe/core/doctype/user/user.py +138,Adding System Manager to this User as there must be atleast one System Manager,اس صارف کے لئے نظام کے مینیجر کو شامل کرنے سے کم سے کم ایک سسٹم مینیجر وہاں ہونا ضروری ہے کے طور پر
 DocType: DocField,Attach Image,تصویر منسلک
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,سیٹ اپ&gt; صارف
 apps/frappe/frappe/core/page/usage_info/usage_info.html +67,Space usage,جگہ استعمال
 DocType: Workflow State,list-alt,فہرست ALT
 apps/frappe/frappe/www/update-password.html +68,Password Updated,پاس ورڈ کو اپ ڈیٹ
@@ -1257,6 +1254,7 @@ DocType: Social Login Keys,Google,گوگل
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +140,Most Used,سب سے زیادہ استعمال
 DocType: Dropbox Settings,Backup Frequency,بیک اپ فریکوئینسی
 DocType: Workflow State,Inverse,الٹا
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,"ڈراپ باکس تک رسائی حاصل نہیں کی منظوری دے دی. <p style=""""> اس ونڈو کو بند کریں. </p>"
 DocType: DocField,User permissions should not apply for this Link,صارف کی اجازت اس لنک کے لئے لاگو نہیں کرنا چاہئے
 apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),غلط نام سیریز (. لاپتہ)
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,موجودہ صارفین
@@ -1610,7 +1608,6 @@ DocType: Web Form Field,Max Value,زیادہ سے زیادہ قیمت
 apps/frappe/frappe/core/doctype/doctype/doctype.py +532,For {0} at level {1} in {2} in row {3},کے لئے {0} میں سطح {1} پر {2} قطار میں {3}
 DocType: Communication,All,تمام
 DocType: Email Queue,Recipient,وصول کنندہ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,سیٹ اپ&gt; صارف
 apps/frappe/frappe/config/setup.py +162,Drag and Drop tool to build and customize Print Formats.,ڈریگ اور ڈراپ کے آلے کی تعمیر اور پرنٹ دونوں فارمیٹس اپنی مرضی کے مطابق.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,کریں
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,مقرر
@@ -1733,7 +1730,7 @@ DocType: Web Page,Slideshow,سلائیڈ شو
 DocType: Workflow State,Search,تلاش کریں
 DocType: Web Form,Web Form Fields,ویب فارم قطعے
 DocType: Website Theme,Top Bar Text Color,اوپر بار متن کا رنگ
-apps/frappe/frappe/model/document.py +1024,This document is currently queued for execution. Please try again,یہ دستاویز فی الحال عملدرآمد کے لئے قطار بند ہے. دوبارہ کوشش کریں
+apps/frappe/frappe/model/document.py +1003,This document is currently queued for execution. Please try again,یہ دستاویز فی الحال عملدرآمد کے لئے قطار بند ہے. دوبارہ کوشش کریں
 apps/frappe/frappe/core/doctype/file/file.py +373,File '{0}' not found,فائل &#39;{0}&#39; نہیں ملا
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +411,Remove Section,سیکشن ہٹائیں
 DocType: User,Change Password,پاس ورڈ بدلو
@@ -1995,7 +1992,7 @@ DocType: Page,Page Name,پیج کا نام
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +196,Help: Field Properties,مدد: فیلڈ پراپرٹیز
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,Importing...,درآمد ...
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,ان زپ
-apps/frappe/frappe/model/document.py +911,Incorrect value in row {0}: {1} must be {2} {3},قطار میں غلط قدر {0}: {1} {2} ہونا ضروری ہے {3}
+apps/frappe/frappe/model/document.py +890,Incorrect value in row {0}: {1} must be {2} {3},قطار میں غلط قدر {0}: {1} {2} ہونا ضروری ہے {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},پیش دستاویز کا مسودہ تیار کرنے کے لئے واپس تبدیل نہیں کیا جا سکتا. منتقلی صف {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,ترمیم یا ایک نئی شکل شروع کرنے کے لئے ایک موجودہ شکل کو منتخب کریں.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},پیدا اپنی مرضی کے میدان {0} میں {1}
@@ -2018,6 +2015,7 @@ DocType: Workflow State,qrcode,qrCode دائر تحت:
 DocType: Web Form,Breadcrumbs,breadcrumbs کے
 apps/frappe/frappe/core/doctype/doctype/doctype.py +548,If Owner,مالک تو
 DocType: OAuth Authorization Code,Expiration time,ختم ہونے کا وقت
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,"غیر قانونی رسائی ٹوکن دوبارہ کوشش کریں. <p style=""""> اس ونڈو کو بند کریں. </p>"
 DocType: Web Form,Show Sidebar,سائڈبار دکھائیں
 apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You need to be logged in to access this {0}.,آپ کو اس تک رسائی حاصل کرنے میں رکھا جائے کرنے کی ضرورت ہے {0}.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Complete By,مکمل
@@ -2333,6 +2331,7 @@ DocType: Workflow Action,Workflow Action,کام کے فلو کو ایکشن
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +609,Set Sort,مقرر چھانٹیں
 DocType: Event,Send an email reminder in the morning,صبح میں ایک ای میل یاددہانی بھیجیں
 DocType: Blog Post,Published On,پر شائع
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے براہ مہربانی سیٹ اپ ڈیفالٹ ای میل اکاؤنٹ
 DocType: User,Gender,صنفی
 apps/frappe/frappe/website/doctype/web_form/web_form.py +331,Mandatory Information missing:,لازمی معلومات لاپتہ:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +398,Field '{0}' cannot be set as Unique as it has non-unique values,میدان &#39;{0}&#39; یہ غیر منفرد اقدار ہے کے طور پر منفرد طور پر مقرر نہیں کیا جا سکتا
@@ -2426,6 +2425,7 @@ DocType: Website Theme,Link to Bootstrap CSS,سی ایس ایس بوٹسٹریپ
 DocType: Workflow State,camera,کیمرے
 DocType: Website Settings,Brand HTML,برانڈ ایچ ٹی ایم ایل
 DocType: Desktop Icon,_doctype,_doctype
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,سیٹ اپ&gt; صارف کی اجازت مینیجر
 apps/frappe/frappe/templates/includes/login/login.js +21,Both login and password required,ضرورت دونوں لاگ ان اور پاس ورڈ
 apps/frappe/frappe/model/document.py +525,Please refresh to get the latest document.,تازہ ترین دستاویز حاصل کرنے کے لئے تازہ کریں.
 DocType: User,Security Settings,سیکورٹی کی ترتیبات

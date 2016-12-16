@@ -6,7 +6,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +427,Cannot edit
 DocType: Report,Report Manager,Administrador de informes
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
 DocType: DocPerm,This role update User Permissions for a user,Este función actualiza los Permisos de Usuario para un usuario
-apps/frappe/frappe/model/document.py +922,Table {0} cannot be empty,La tabla {0} no puede estar vacío
+apps/frappe/frappe/model/document.py +901,Table {0} cannot be empty,La tabla {0} no puede estar vacío
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +848,With Ledgers,Con Libro Mayor
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Padre
 DocType: Email Account,Enable Incoming,Habilitar entrante

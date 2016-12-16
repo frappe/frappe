@@ -33,7 +33,7 @@ DocType: DocPerm,This role update User Permissions for a user,વપરાશક
 apps/frappe/frappe/public/js/frappe/model/model.js +476,Rename {0},નામ બદલો {0}
 DocType: Workflow State,zoom-out,ઝૂમ આઉટ
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,‧ ખોલી શકાતી નથી {0} તેના ઉદાહરણ ખુલ્લું છે જ્યારે
-apps/frappe/frappe/model/document.py +922,Table {0} cannot be empty,કોષ્ટક {0} ખાલી ન હોઈ શકે
+apps/frappe/frappe/model/document.py +901,Table {0} cannot be empty,કોષ્ટક {0} ખાલી ન હોઈ શકે
 DocType: Integration Service Parameter,Parameter,પરિમાણ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +848,With Ledgers,Ledgers સાથે
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +20,Images,છબીઓ
@@ -42,7 +42,7 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Social Login Keys,GitHub,GitHub
 apps/frappe/frappe/model/base_document.py +569,"{0}, Row {1}","{0}, રો {1}"
 apps/frappe/frappe/core/doctype/file/file_list.js +102,Error in uploading files.,ફાઇલો અપલોડ કરવામાં ભૂલ.
-apps/frappe/frappe/model/document.py +896,Beginning with,સાથે શરુ
+apps/frappe/frappe/model/document.py +875,Beginning with,સાથે શરુ
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,ડેટા આયાત ઢાંચો
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,પિતૃ
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;ટીમ સભ્યો&quot; અથવા &quot;મેનેજમેન્ટ&quot;
@@ -60,7 +60,7 @@ DocType: Email Group,Email Group,ઇમેઇલ ગ્રુપ
 DocType: Note,Seen By,દ્વારા જોઈ
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +662,Not Like,ન ગમે
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +204,Set the display label for the field,આ ક્ષેત્ર માટે આ પ્રદર્શન લેબલ સેટ
-apps/frappe/frappe/model/document.py +913,Incorrect value: {0} must be {1} {2},ખોટો કિંમત: {0} હોવા જ જોઈએ {1} {2}
+apps/frappe/frappe/model/document.py +892,Incorrect value: {0} must be {1} {2},ખોટો કિંમત: {0} હોવા જ જોઈએ {1} {2}
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)","બદલો ક્ષેત્ર ગુણધર્મો (છુપાવો, ફક્ત વાંચવા, પરવાનગી વગેરે)"
 apps/frappe/frappe/integration_broker/oauth2.py +109,Define Frappe Server URL in Social Login Keys,સમાજ લૉગિન કી વ્યાખ્યાયિત Frappe સર્વર URL
 DocType: Workflow State,lock,લોક
@@ -128,6 +128,7 @@ DocType: Website Settings,Select an image of approx width 150px with a transpare
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add multiple rows,ઘણી પંક્તિઓ ઉમેરો
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +561,The first user will become the System Manager (you can change this later).,સિસ્ટમ વ્યવસ્થાપક બનશે પ્રથમ વપરાશકર્તા (જો તમે આ બદલી શકો છો).
 ,App Installer,એપ્લિકેશન સ્થાપક
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,ડ્રૉપબૉક્સ વપરાશ મંજૂરી આપી હતી. <p> આ વિન્ડો બંધ કરો. </p>
 DocType: Workflow State,circle-arrow-up,વર્તુળ તીર અપ
 apps/frappe/frappe/public/js/frappe/upload.js +156,Uploading...,અપલોડ ...
 DocType: Workflow State,italic,ઇટાલિક
@@ -191,6 +192,7 @@ apps/frappe/frappe/core/doctype/report/report.js +11,Example:,ઉદાહરણ
 DocType: Workflow,Defines workflow states and rules for a document.,એક દસ્તાવેજ માટે વર્કફ્લો સ્ટેટ્સ અને નિયમો વ્યાખ્યાયિત કરે છે.
 DocType: Workflow State,Filter,ફિલ્ટર
 DocType: DocType,Show this field as title,શીર્ષક તરીકે આ ક્ષેત્ર બતાવો
+apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ઇમેઇલ એકાઉન્ટ નથી સેટઅપ. સેટઅપ&gt; ઇમેઇલ&gt; ઇમેઇલ એકાઉન્ટ માંથી નવા ઇમેઇલ એકાઉન્ટ બનાવવા માટે કૃપા કરીને
 apps/frappe/frappe/model/db_schema.py +560,Fieldname {0} cannot have special characters like {1},FIELDNAME {0} જેવા વિશિષ્ટ અક્ષરો હોઈ શકે નહિં {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,તમારી ભાષા પસંદ કરો
 apps/frappe/frappe/config/setup.py +116,Update many values at one time.,એક સમયે ઘણા સુધારા કિંમતો.
@@ -209,7 +211,6 @@ DocType: About Us Settings,Team Members,ટીમના સભ્યો
 apps/frappe/frappe/public/js/frappe/upload.js +83,Please attach a file or set a URL,ફાઇલ જોડવાનો અથવા URL સેટ કરો
 DocType: Async Task,System Manager,સિસ્ટમ વ્યવસ્થાપક
 DocType: DocField,Permissions,પરવાનગીઓ
-apps/frappe/frappe/email/smtp.py +155,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ઇમેઇલ એકાઉન્ટ નથી સેટઅપ. સેટઅપ&gt; ઇમેઇલ&gt; ઇમેઇલ એકાઉન્ટ માંથી નવા ઇમેઇલ એકાઉન્ટ બનાવવા માટે કૃપા કરીને
 DocType: Dropbox Settings,Allow Dropbox Access,ડ્રૉપબૉક્સ ઍક્સેસ માટે પરવાનગી આપે છે
 DocType: Bulk Update,"SQL Conditions. Example: status=""Open""",એસક્યુએલ શરતો. ઉદાહરણ: સ્થિતિ = &quot;ખોલો&quot;
 DocType: User,Get your globally recognized avatar from Gravatar.com,Gravatar.com તમારા વૈશ્વિક માન્યતા અવતાર મેળવો
@@ -316,7 +317,7 @@ apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,આવ�
 DocType: About Us Settings,Website Manager,વેબસાઇટ મેનેજર
 DocType: Event Role,Event Role,ઇવેન્ટ ભૂમિકા
 apps/frappe/frappe/public/js/frappe/ui/editor.html +67,Indent (Tab),ઇન્ડેન્ટ (TAB)
-apps/frappe/frappe/model/document.py +1025,Document Queued,દસ્તાવેજ Queued
+apps/frappe/frappe/model/document.py +1004,Document Queued,દસ્તાવેજ Queued
 DocType: Desktop Icon,List,યાદી
 DocType: Communication,Link Name,લિંક નામ
 DocType: Page Role,Page Role,પેજમાં ભૂમિકા
@@ -342,7 +343,6 @@ DocType: Workflow State,barcode,બારકોડ
 apps/frappe/frappe/config/setup.py +249,Add your own translations,તમારા પોતાના અનુવાદો ઉમેરી
 DocType: Country,Country Name,દેશ નામ
 apps/frappe/frappe/www/login.html +83,Have an account? ,એક એકાઉન્ટ છે?
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,ડ્રૉપબૉક્સ વપરાશ નથી મંજૂરી આપી હતી. <p> આ વિન્ડો બંધ કરો. </p>
 DocType: About Us Team Member,About Us Team Member,અમારો ટીમ સભ્ય વિશે
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","પરવાનગીઓ, રિપોર્ટ, આયાત, નિકાસ, પ્રિન્ટ, ઇમેઇલ અને સેટ, વપરાશકર્તા પરવાનગીઓ લખો બનાવો, કાઢી નાખો, સબમિટ રદ સુધારો, ભૂમિકાઓ અને વાંચન જેવી અધિકારો સુયોજિત કરીને દસ્તાવેજ પ્રકાર (જેને DocTypes) પર સુયોજિત થાય છે."
 DocType: Event,Wednesday,બુધવારે
@@ -401,13 +401,11 @@ apps/frappe/frappe/utils/jinja.py +35,Syntax error in template,નમૂના �
 DocType: DocField,Width,પહોળાઈ
 DocType: Email Account,Notify if unreplied,Unreplied જો સૂચિત
 DocType: DocType,Fields,ક્ષેત્રો
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,ગેરકાયદે ઍક્સેસ ટોકન કરીને ફરીથી પ્રયત્ન કરો. <p> આ વિન્ડો બંધ કરો. </p>
 DocType: System Settings,Your organization name and address for the email footer.,ઈમેઈલ ફૂટર માટે તમારી સંસ્થાના નામ અને સરનામું.
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,પિતૃ ટેબલ
 apps/frappe/frappe/config/desktop.py +41,Developer,વિકાસકર્તા
 DocType: Communication,Created,બનાવનાર
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} પંક્તિ માં {1} બંને URL અને બાળક વસ્તુઓ હોઈ શકે નહિં
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,કૃપા કરીને સેટઅપ&gt; ઇમેઇલ&gt; ઇમેઇલ એકાઉન્ટ પાસેથી સુયોજન મૂળભૂત ઇમેલ એકાઉન્ટ
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,{0} રુટ કાઢી શકાતી નથી
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,No comments yet,હજુ સુધી કોઈ ટિપ્પણીઓ
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,જરૂરી બંને Doctype અને નામ
@@ -541,9 +539,8 @@ apps/frappe/frappe/templates/generators/web_form.html +670,The following mandato
 DocType: Email Alert,View Properties (via Customize Form),(કસ્ટમાઇઝ ફોર્મ મારફતે) જુઓ ગુણધર્મો
 DocType: Note Seen By,Note Seen By,દ્વારા જોઈ નોંધ
 apps/frappe/frappe/utils/password_strength.py +73,Try to use a longer keyboard pattern with more turns,વધુ વળે સાથે લાંબા કીબોર્ડ પેટર્ન ઉપયોગ કરવાનો પ્રયાસ કરો
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,સેટઅપ&gt; વપરાશકર્તા પરવાનગીઓ વ્યવસ્થાપક
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,રિપોર્ટ બિલ્ડર અહેવાલો અહેવાલ બિલ્ડર દ્વારા સીધા વ્યવસ્થાપિત થાય છે. નવરાશ.
-apps/frappe/frappe/model/document.py +895,none of,કંઈ
+apps/frappe/frappe/model/document.py +874,none of,કંઈ
 apps/frappe/frappe/public/js/frappe/views/communication.js +66,Send Me A Copy,મારા એક કૉપિ મોકલો
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,વપરાશકર્તા પરવાનગીઓ અપલોડ કરો
 DocType: Dropbox Settings,App Secret Key,એપ્લિકેશન ગુપ્ત કી
@@ -741,6 +738,7 @@ DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","કડીઓ માટે, શ્રેણી તરીકે Doctype દાખલ કરો. પસંદ કરો, દરેક એક નવી લાઇન પર, વિકલ્પો યાદી દાખલ કરો."
 DocType: Workflow State,film,ફિલ્મ
 apps/frappe/frappe/model/db_query.py +361,No permission to read {0},કોઈ પરવાનગી વાંચવા માટે {0}
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} વર્ષ (ઓ) પહેલા
 apps/frappe/frappe/config/desktop.py +8,Tools,સાધનો
 apps/frappe/frappe/utils/password_strength.py +111,Avoid recent years.,તાજેતરના વર્ષોમાં ટાળો.
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,મલ્ટીપલ રુટ નોડ મંજૂરી નથી.
@@ -782,14 +780,14 @@ DocType: Event,Every Day,દરરોજ
 DocType: LDAP Settings,Password for Base DN,આધાર DN માટે પાસવર્ડ
 apps/frappe/frappe/integration_broker/doctype/integration_service/integration_service.js +190,{0} Settings,{0} સેટિંગ્સ
 DocType: Workflow State,move,ચાલ
-apps/frappe/frappe/model/document.py +1068,Action Failed,ક્રિયા નિષ્ફળ
+apps/frappe/frappe/model/document.py +1047,Action Failed,ક્રિયા નિષ્ફળ
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +8,For User,વપરાશકર્તા માટે
 apps/frappe/frappe/core/doctype/user/user.py +592,Temperorily Disabled,Temperorily અક્ષમ
 apps/frappe/frappe/desk/page/applications/applications.py +81,{0} Installed,{0} ઇન્સ્ટોલ
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","વપરાશકર્તા કોઇ ભૂમિકા ચકાસાયેલ હોય, તો પછી વપરાશકર્તા &quot;સિસ્ટમ વપરાશકર્તા&quot; બની જાય છે. &quot;સિસ્ટમ વપરાશકર્તા&quot; ડેસ્કટોપ ઍક્સેસ છે"
 DocType: System Settings,Date and Number Format,તારીખ અને સંખ્યા ફોર્મેટ
 apps/frappe/frappe/templates/generators/web_form.html +161,Max attachment size is {0}MB,મેક્સ જોડાણ માપ છે {0} એમબી
-apps/frappe/frappe/model/document.py +894,one of,માનૂ એક
+apps/frappe/frappe/model/document.py +873,one of,માનૂ એક
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +156,Show Tags,બતાવો ટૅગ્સ
 DocType: Email Queue,Not Sent,મોકલવામાં આવ્યો ન
 DocType: Web Form,Actions,ક્રિયાઓ
@@ -865,7 +863,6 @@ DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,પર્ણ
 DocType: Portal Menu Item,Portal Menu Item,પોર્ટલ મેનુ વસ્તુ
 DocType: Email Account,Email ID,ઇમેઇલ ને
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +147,Dropbox access allowed. <p>Please close this window.</p>,ડ્રૉપબૉક્સ વપરાશ મંજૂરી આપી હતી. <p> આ વિન્ડો બંધ કરો. </p>
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,સામેલ કરો લિંક
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,સંસાધનો યાદી કે જે ક્લાઈન્ટ એપ્લિકેશન વપરાશકર્તા તેને પરવાનગી આપે છે પછી ઍક્સેસ હશે. <br> દા.ત. પ્રોજેક્ટ
 DocType: Contact Us Settings,Query Options,ક્વેરી વિકલ્પો
@@ -971,6 +968,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +14
 DocType: Email Alert,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","&quot;Before_insert&quot;, &quot;after_update&quot;, વગેરે જેવી માન્ય પદ્ધતિઓ પર ટ્રિગર (પસંદિત Doctype પર આધાર રાખે છે)"
 apps/frappe/frappe/core/doctype/user/user.py +138,Adding System Manager to this User as there must be atleast one System Manager,"આ વપરાશકર્તા માટે સિસ્ટમ વ્યવસ્થાપક ઉમેરવાનું ઓછામાં ઓછા એક સિસ્ટમ વ્યવસ્થાપક હોવો જોઈએ, કારણ કે"
 DocType: DocField,Attach Image,છબી સાથે જોડે છે
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,સેટઅપ&gt; વપરાશકર્તા
 apps/frappe/frappe/core/page/usage_info/usage_info.html +67,Space usage,જગ્યા વપરાશ
 DocType: Workflow State,list-alt,યાદી-Alt
 apps/frappe/frappe/www/update-password.html +68,Password Updated,પાસવર્ડ અપડેટ
@@ -1268,6 +1266,7 @@ DocType: Social Login Keys,Google,Google
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +140,Most Used,સૌથી વધુ ઉપયોગમાં
 DocType: Dropbox Settings,Backup Frequency,બેકઅપ આવર્તન
 DocType: Workflow State,Inverse,વ્યસ્ત
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +144,Dropbox Access not approved. <p>Please close this window.</p>,ડ્રૉપબૉક્સ વપરાશ નથી મંજૂરી આપી હતી. <p> આ વિન્ડો બંધ કરો. </p>
 DocType: DocField,User permissions should not apply for this Link,વપરાશકર્તા પરવાનગીઓ આ લિંક માટે અરજી ન કરવી જોઇએ
 apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),અમાન્ય નામકરણ સિરીઝ (. ખૂટે છે)
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,વર્તમાન વપરાશકર્તાઓ
@@ -1628,7 +1627,6 @@ DocType: Web Form Field,Max Value,મેક્સ ભાવ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +532,For {0} at level {1} in {2} in row {3},માટે {0} સ્તર {1} પર {2} પંક્તિ માં {3}
 DocType: Communication,All,બધા
 DocType: Email Queue,Recipient,પ્રાપ્તકર્તા
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,સેટઅપ&gt; વપરાશકર્તા
 apps/frappe/frappe/config/setup.py +162,Drag and Drop tool to build and customize Print Formats.,ખેંચો અને છોડો બિલ્ડ સાધન અને પ્રિન્ટ ફોર્મેટ્સ કસ્ટમાઇઝ કરવા માટે.
 apps/frappe/frappe/public/js/frappe/ui/tree.js +122,Expand,વિસ્તૃત કરો
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +428,Set,સેટ
@@ -1753,7 +1751,7 @@ DocType: Workflow State,Search,શોધ
 DocType: Web Form,Web Form Fields,વેબ ફોર્મ ફીલ્ડ્સ
 DocType: Website Theme,Top Bar Text Color,ટોચના બાર ટેક્સ્ટ રંગ
 apps/frappe/frappe/public/js/frappe/model/meta.js +154,Warning: Unable to find {0} in any table related to {1},ચેતવણી: અક્ષમ શોધવા માટે {0} સંબંધિત કોઈ કોષ્ટકમાં {1}
-apps/frappe/frappe/model/document.py +1024,This document is currently queued for execution. Please try again,આ દસ્તાવેજ હાલમાં અમલ માટે કતારમાં છે. મહેરબાની કરીને ફરીથી પ્રયતન કરો
+apps/frappe/frappe/model/document.py +1003,This document is currently queued for execution. Please try again,આ દસ્તાવેજ હાલમાં અમલ માટે કતારમાં છે. મહેરબાની કરીને ફરીથી પ્રયતન કરો
 apps/frappe/frappe/core/doctype/file/file.py +373,File '{0}' not found,ફાઇલ &#39;{0}&#39; મળી નથી
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +411,Remove Section,વિભાગ દૂર
 DocType: User,Change Password,પાસવર્ડ બદલો
@@ -2018,7 +2016,7 @@ DocType: Page,Page Name,પૃષ્ઠ નામ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +196,Help: Field Properties,મદદ: ફિલ્ડ ગુણધર્મો
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,Importing...,આયાત કરી રહ્યા ...
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,ઝિપસાંકળ છોડવી
-apps/frappe/frappe/model/document.py +911,Incorrect value in row {0}: {1} must be {2} {3},પંક્તિ માં ખોટો કિંમત {0}: {1} {2} હોવું જ જોઈએ {3}
+apps/frappe/frappe/model/document.py +890,Incorrect value in row {0}: {1} must be {2} {3},પંક્તિ માં ખોટો કિંમત {0}: {1} {2} હોવું જ જોઈએ {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},સબમિટ દસ્તાવેજ મુસદ્દો તૈયાર કરવા માટે પાછા રૂપાંતરિત કરી શકાતા નથી. ટ્રાન્ઝિશન પંક્તિ {0}
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,સંપાદિત કરો અથવા એક નવા ફોર્મેટમાં શરૂ કરવા માટે હાલની બંધારણમાં પસંદ કરો.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},બનાવ્યું કસ્ટમ ફીલ્ડ {0} માં {1}
@@ -2041,6 +2039,7 @@ DocType: Workflow State,qrcode,QRCode
 DocType: Web Form,Breadcrumbs,બ્રેડક્રમ્સમાં
 apps/frappe/frappe/core/doctype/doctype/doctype.py +548,If Owner,માલિક તો
 DocType: OAuth Authorization Code,Expiration time,સમાપ્તિ સમય
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +141,Illegal Access Token Please try again. <p>Please close this window.</p>,ગેરકાયદે ઍક્સેસ ટોકન કરીને ફરીથી પ્રયત્ન કરો. <p> આ વિન્ડો બંધ કરો. </p>
 DocType: Web Form,Show Sidebar,બતાવો સાઇડબાર
 apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You need to be logged in to access this {0}.,તમે આ વપરાશ માટે લૉગ ઇન કરવાની જરૂર {0}.
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Complete By,દ્વારા સંપૂર્ણ
@@ -2330,7 +2329,6 @@ DocType: Web Form,Allow saving if mandatory fields are not filled,જો ફર�
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_value.html +3,No records.,કોઈ રેકોર્ડ.
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,નિકાસ
 DocType: Website Theme,Background,પૃષ્ઠભૂમિ
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} વર્ષ (ઓ) પહેલા
 DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","વપરાશકર્તા પરવાનગીઓ લાગુ કરવા માટે વપરાય DocTypes JSON યાદી. ખાલી હોય તો, બધા કડી DocTypes વપરાશકર્તા પરવાનગીઓ લાગુ કરવા માટે ઉપયોગ કરવામાં આવશે."
 DocType: Report,Ref DocType,સંદર્ભ Doctype
 apps/frappe/frappe/core/doctype/doctype/doctype.py +577,{0}: Cannot set Amend without Cancel,{0}: વિના રદ સુધારો સેટ કરી શકાતો નથી
@@ -2358,6 +2356,7 @@ DocType: Workflow Action,Workflow Action,વર્કફ્લો ક્રિ�
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +609,Set Sort,સેટ સૉર્ટ
 DocType: Event,Send an email reminder in the morning,સવારે એક ઇમેઇલ રીમાઇન્ડર મોકલો
 DocType: Blog Post,Published On,પર પ્રકાશિત
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,કૃપા કરીને સેટઅપ&gt; ઇમેઇલ&gt; ઇમેઇલ એકાઉન્ટ પાસેથી સુયોજન મૂળભૂત ઇમેલ એકાઉન્ટ
 DocType: User,Gender,જાતિ
 apps/frappe/frappe/website/doctype/web_form/web_form.py +331,Mandatory Information missing:,મેન્ડેટરી માહિતી ગુમ:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +398,Field '{0}' cannot be set as Unique as it has non-unique values,ફીલ્ડ &#39;{0}&#39; તે બિન અનન્ય કિંમતો છે કે અનન્ય તરીકે સેટ કરી શકાય છે
@@ -2452,6 +2451,7 @@ DocType: Website Theme,Link to Bootstrap CSS,સીએસએસ બુટસ્�
 DocType: Workflow State,camera,કેમેરા
 DocType: Website Settings,Brand HTML,બ્રાન્ડ HTML
 DocType: Desktop Icon,_doctype,_doctype
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,સેટઅપ&gt; વપરાશકર્તા પરવાનગીઓ વ્યવસ્થાપક
 apps/frappe/frappe/templates/includes/login/login.js +21,Both login and password required,જરૂરી બંને પ્રવેશ અને પાસવર્ડ
 apps/frappe/frappe/model/document.py +525,Please refresh to get the latest document.,તાજેતરની દસ્તાવેજ વિચાર તાજું કરો.
 DocType: User,Security Settings,સુરક્ષા સેટિંગ્સ
