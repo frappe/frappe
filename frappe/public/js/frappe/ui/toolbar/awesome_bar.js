@@ -217,18 +217,73 @@ frappe.search.verbs = [
 			// search in title field
 			var meta = frappe.get_meta(frappe.container.page.doclistview.doctype);
 			var search_field = meta.title_field || "name";
-			//console.log("search_field",search_field);
+			// console.log("meta", meta.name);
+			// var whatList = frappe.get_list(meta.name, fields=["name"], order_by="name");
+			// console.log("whatList", frappe.get_value(meta.name, 'Chair', 'Status'));
+			// frappe.model.with_doctype(meta.name, function(){
+				
+			// });
+
+			var list = $(".list-id").map(function(){return $(this).attr("data-name");}).get();
+			console.log("whatList", list);
 			var options = {};
-			options[search_field] = ["like", "%" + txt + "%"];
-			frappe.search.options.push({
-				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
-				value: __('Find {0} in {1}', [txt, route[1]]),
-				route_options: options,
-				onclick: function() {
-					cur_list.refresh();
-				},
-				match: txt
+			var result = [];
+			frappe.require('assets/frappe/js/lib/fuse.min.js', function() {
+				var fuzzyEgList = 
+				[
+					 {
+					    title: "Old Man's War"
+					 },
+					 {
+					    title: "The Lock Artist"
+					 }
+				];
+
+				var fuzzyList = [];
+
+				list.forEach(function(d){
+					var element = {};
+					element["title"] = d;
+					fuzzyList.push(element);
+				});
+
+				console.log("fuzzyEgList", fuzzyEgList);
+				console.log("fuzzyList", fuzzyList);
+
+				var options = {
+					  id: "title",
+					  shouldSort: true,
+					  threshold: 0.4,
+					  location: 0,
+					  distance: 100,
+					  maxPatternLength: 32,
+					  minMatchCharLength: 1,
+					  keys: [ "title" ]
+				};
+
+				var fuse = new Fuse(fuzzyList, options);
+				result = fuse.search(txt);
+
+				
+				console.log(result);
+
 			});
+
+			options[search_field] = ["like", "%" + txt + "%"];
+			if(result){
+				result.forEach(function(res){
+					console.log("REEESSSS", res);
+					frappe.search.options.push({
+						label: __('{0}: {1}', [meta.name, res.bold()]),
+						value: __('{0}: {1}', [meta.name, res.bold()]),
+						//route_options: options,
+						onclick: function() {
+							//cur_list.refresh();
+						}
+						//,match: txt
+					});
+				});
+			}
 		}
 	},
 
@@ -405,11 +460,13 @@ frappe.search.verbs = [
 		};
 	},
 
+	// Global Search
 	function(txt) {
 		var parts = []
 		if(in_list(txt.split(" "), "search")) {
 			parts = txt.split(" ");
 		}
+		console.log("parts[1]: " + parts[1]);
 		if(parts.length <2) return;
 
 
@@ -426,16 +483,20 @@ frappe.search.verbs = [
 
 				if(r.message){
 					r.message.forEach(function(msg){
+						
 						result = ""
 						console.log(msg);
 						val = msg.content;
 						index = val.indexOf(parts[1]);
 						path = '#Form/' + msg.doctype + '/' + msg.name;
-						rendered = val.substring(0, index) + parts[1].bold() + val.substring((index + parts[1].length), val.length);
+						// rendered = val.substring(0, index) + parts[1].bold() + val.substring((index + parts[1].length), val.length);
+						var regEx = new RegExp("("+ parts[1] +")", "ig");
+						var replaceMask = parts[1].bold();
+						rendered = val.replace(regEx, '<b>$1</b>');
 						console.log(rendered);
 						// result.push(path);
 						// result.push(rendered);
-						result += ('<a href="' + path + '" class="list-group-item">' + rendered + '</a>');
+						result += ('<a href="' + path + '" class="list-group-item"><div class="media"><div class="media-body"><h4 class="media-heading">' + msg.doctype +": " + msg.name + "</h4><p>" + rendered + "</p></div></div></a>");
 						results_list += result;
 
 					});
@@ -445,12 +506,35 @@ frappe.search.verbs = [
 			
 		})
 
+		var paginate = '<nav aria-label="Page navigation" align="center">' +
+  '<ul class="pagination">' +
+    '<li class="page-item">' +
+      '<a class="page-link" href="#" aria-label="Previous">' +
+       ' <span aria-hidden="true">&laquo;</span>' +
+        '<span class="sr-only">Previous</span>' +
+      '</a>' +
+    '</li>' +
+    '<li class="page-item"><a class="page-link" href="#">1</a></li>' +
+    '<li class="page-item"><a class="page-link" href="#">2</a></li>' +
+    '<li class="page-item"><a class="page-link" href="#">3</a></li>' +
+    '<li class="page-item"><a class="page-link" href="#">4</a></li>' +
+    '<li class="page-item"><a class="page-link" href="#">5</a></li>' +
+    '<li class="page-item">' +
+      '<a class="page-link" href="#" aria-label="Next">' +
+        '<span aria-hidden="true">&raquo;</span>' +
+        '<span class="sr-only">Next</span>' +
+      '</a>' +
+    '</li>' +
+  '</ul>' +
+'</nav>';
+
 		frappe.search.options.push({
 			label: __("Search: " + parts[1].bold()),
 			value: __("Search: " + parts[1].bold()),
 			match: 42,
 			onclick: function(match) {
-					msgprint('<div class="list-group">' + results_list + '</div>', "Search Results");
+					msgprint('<div class="list-group">' + results_list + '</div>' + paginate, "Search Results");
+					//msgprint("foo", "bar");
 			}
 		});
 	}
