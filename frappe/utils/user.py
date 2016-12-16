@@ -309,3 +309,18 @@ def get_users():
 def set_last_active_to_now(user):
 	from frappe.utils import now_datetime
 	frappe.db.set_value("User", user, "last_active", now_datetime())
+
+def disable_users(limits=None):
+	if not limits:
+		return
+
+	if limits.get('users'):
+		active_users =  frappe.db.sql_list("""select name from tabUser
+			where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
+			order by creation desc""")
+
+		if len(active_users) > limits.get('users'):
+			for user in active_users[: -limits.get('users')]:
+				frappe.db.set_value("User", user, 'enabled', 0)
+
+	frappe.db.commit()

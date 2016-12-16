@@ -416,6 +416,7 @@ def _set_limits(context, site, limits):
 		site = get_site(context)
 
 	with frappe.init_site(site):
+		frappe.connect()
 		new_limits = {}
 		for limit, value in limits:
 			if limit not in ('emails', 'space', 'users', 'email_group',
