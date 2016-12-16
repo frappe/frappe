@@ -309,11 +309,11 @@ frappe.ui.Listing = Class.extend({
 
 		this.wrapper.find('.btn-more, .list-loading').toggle(false);
 
+		r.values = [];
+
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
 		}
-
-		if(!r.values) r.values = [];
 
 		if(r.values.length) {
 			this.data = this.data.concat(r.values);
@@ -335,7 +335,7 @@ frappe.ui.Listing = Class.extend({
 			}
 		}
 
-		this.wrapper.find('.list-paging-area').toggle(r.values.length || this.start > 0);
+		this.wrapper.find('.list-paging-area').toggle((r.values.length || this.start > 0) ? true : false);
 
 		// callbacks
 		if(this.onrun) this.onrun();

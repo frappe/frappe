@@ -412,6 +412,9 @@ h6.uppercase,
 .frappe-control pre {
   white-space: pre-wrap;
 }
+.frappe-control:last-child {
+  margin-bottom: 0px;
+}
 .hide-control {
   display: none !important;
 }
