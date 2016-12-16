@@ -783,6 +783,7 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+		frappe.msgprint("Update document after submit")
 		update_global_search(self)
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:

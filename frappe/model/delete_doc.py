@@ -11,6 +11,7 @@ from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
+from frappe.utils.global_search import delete_for_document
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False):
@@ -96,6 +97,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 			doc.run_method("after_delete")
+			delete_for_document(doc)
 
 		if doc and not frappe.flags.in_patch:
 			try:

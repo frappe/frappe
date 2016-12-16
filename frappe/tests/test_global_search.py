@@ -14,19 +14,26 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		print "In setup"
 
-		# doctype = "Event"
+		doctype = "Event"
 		# from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-		# make_property_setter(doctype, "subject", "in_global_search", 0, "Int")
+		# make_property_setter(doctype, "subject", "in_global_search", 1, "Int")
+
+		
 
 		global_search.reset()
 
 		self.insert_test_events()
 
-		
-
-		event_doctype = frappe.get_doc('DocType', 'Event')
+		event_doctype = frappe.get_doc('DocType', doctype)
 		event_doctype.validate()
 		event_doctype.sync_global_search()
+
+		# print "Docs"
+		# for doc in frappe.get_all(doctype):
+		# 	print doc
+		# 	print doc.name
+		# 	for field in doc.meta.fields:
+		# 		print field.fieldname
 
 
 
@@ -45,13 +52,9 @@ class TestGlobalSearch(unittest.TestCase):
 		frappe.db.commit()
 
 
-
 	def test_search(self):
 		search_table = frappe.db.sql('''select * from __global_search''', as_dict=True)
-
-		print "SEARCH TABLE"
 		print search_table
-
 		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
 			'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
 			"Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy."
@@ -62,10 +65,10 @@ class TestGlobalSearch(unittest.TestCase):
 			events.append(frappe.get_doc('Event', dict(subject=text)))
 
 		results = global_search.search('awakens')
-		self.assertDictEqual(dict(doctype='Event', name=events[1].name), results[0])
+		self.assertDictEqual(dict(doctype='Event', name=events[1].name, content=events[1].subject), results[0])
 
 		results = global_search.search('extraterrestrial')
-		self.assertDictEqual(dict(doctype='Event', name=events[2].name), results[0])
+		self.assertDictEqual(dict(doctype='Event', name=events[2].name, content=events[2].subject), results[0])
 
 	# def tearDown(self):
 	# 	print "The property setter table before"

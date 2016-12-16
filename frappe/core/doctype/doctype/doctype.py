@@ -62,6 +62,7 @@ class DocType(Document):
 		self.validate_website()
 		self.update_fields_to_fetch()
 		self.sync_global_search()
+		self.before_update = frappe.get_doc('DocType', self.name)
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -192,12 +193,17 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
+		self.sync_global_search()
 
 	def sync_global_search(self):
 		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
 		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
+			frappe.msgprint("New Global Fields! \nBefore Update: ")
+			frappe.msgprint(' '.join(global_search_fields_before_update))
+			frappe.msgprint("After Update: ")
+			frappe.msgprint(' '.join(global_search_fields_after_update))
 			rebuild_for_doctype(doctype=self.name)
 
 	def run_module_method(self, method):
