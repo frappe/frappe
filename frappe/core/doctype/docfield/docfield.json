@@ -322,6 +322,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
+   "depends_on": "eval:(doc.fieldtype === 'Data') || (doc.fieldtype === 'Table')", 
    "fieldname": "in_global_search", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -1287,11 +1288,7 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
-<<<<<<< HEAD
  "modified": "2017-01-30 02:31:32.591687", 
-=======
- "modified": "2016-12-01 07:08:46.559360", 
->>>>>>> 2ca175a... Display result as rudimentary list, rebuild old doctypes
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 
