@@ -230,31 +230,55 @@ frappe.ui.FilterList = Class.extend({
 
 		//setup date-time range pickers
 		this.wrapper.find(".filter-input-date").each(function(i,v) {
-			var name = $(v).data("name");
-			var f = frappe.ui.form.make_control({
+			var self = this;
+			var date;
+			var date_wrapper = $('<div>').appendTo($(this));
+			make_date("single");
+
+			var check = frappe.ui.form.make_control({
+				parent: this,
+				df: {
+					fieldtype: "Check",
+					fieldname: "is_date_range",
+					label: "Date Range",
+					input_css: { "margin-top": "-2px" }
+				}
+			});
+			check.change = function() {
+				date.flatpickr.clear();
+				date && date.wrapper.remove();
+				check.get_value() ?
+					make_date("range"):
+					make_date("single");
+			}
+			check.refresh();
+
+			function make_date(mode) {
+				var fieldtype = mode==="range" ? "DateRange" : "Date";
+				var name = $(v).data("name");
+				date = frappe.ui.form.make_control({
 					df: {
-						fieldtype:"DateRange",
-						fieldname:name,
+						fieldtype: fieldtype,
+						fieldname: name,
 					},
-					parent: this,
-					only_input: true,
-					applydaterange:function(ev,picker){
-						var filt = me.get_filter(name);
-						if (filt) {
-							filt.remove(true)
-						}
-						me.add_filter(me.doctype, name, 'Between', [picker.startDate,picker.endDate]);
+					parent: date_wrapper,
+					only_input: true
+				});
+
+				date.refresh();
+				date.flatpickr.set("onChange", function(dateObj, dateStr) {
+					var filt = me.get_filter(name);
+					filt && filt.remove(true);
+					if(dateObj.length===1 && date.flatpickr.config.mode==="single") {
+						me.add_filter(me.doctype, name, '=', dateObj[0]);
 						me.listobj.run();
-					},
-					canceldaterange:function(ev,picker){
-						$(this).val('');
-						var filt = me.get_filter(name);
-						if (filt) {
-							filt.remove(true)
-						}
+					} else if(dateObj.length===2 && date.flatpickr.config.mode==="range") {
+						me.add_filter(me.doctype, name, 'Between', [dateObj[0], dateObj[1]]);
+						me.listobj.run();
+						date.flatpickr.close();
 					}
-					})
-			f.refresh();
+				});
+			}
 		})
 	},
 
@@ -554,7 +578,7 @@ frappe.ui.Filter = Class.extend({
 			df.options = null;
 		}
 		if(this.wrapper.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
-			df.fieldtype='DateRange'
+			df.fieldtype = 'DateRange';
 		}
 	},
 

@@ -325,7 +325,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$input && this.$input.on("change", this.change || function(e) {
 			if(me.df.change || me.df.onchange) {
 				// onchange event specified in df
-				(me.df.change || me.df.onchange).apply(this, e);
+				(me.df.change || me.df.onchange).apply(this, [e]);
 				return;
 			}
 			if(me.doctype && me.docname && me.get_value) {
@@ -600,23 +600,24 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	datepicker_options: {
-		altFormat:'yy-mm-dd',
-		changeYear: true,
-		changeMonth: true,
-		yearRange: "-70Y:+10Y",
-		showOtherMonths: true,
-		selectOtherMonths: true
+	flatpickr_options: {
+		altFormat:'y-m-d',
+		minDate: moment().add(-70, 'year').format(),
+		maxDate: moment().add(10, 'year').format(),
+		allowInput: true
 	},
 	make_input: function() {
 		this._super();
+		this.set_flatpickr();
 		this.set_t_for_today();
-		this.set_datepicker();
 	},
-	set_datepicker: function() {
-		this.datepicker_options.dateFormat =
-			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
-		this.$input.datepicker(this.datepicker_options);
+	set_flatpickr: function() {
+		var date_format =
+			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd')
+				.replace("yyyy", "Y").replace("yy", "y")
+				.replace("mm", "m").replace("dd", "d");
+		this.flatpickr_options.dateFormat = date_format;
+		this.flatpickr = this.$input.flatpickr(this.flatpickr_options);
 	},
 	set_t_for_today: function() {
 		var me = this;
@@ -629,70 +630,45 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	parse: function(value) {
 		if(value) {
-			value = dateutil.user_to_str(value);
+			return dateutil.user_to_str(value);
 		}
-		return value;
 	},
 	format_for_input: function(value) {
 		if(value) {
-			value = dateutil.str_to_user(value);
+			return dateutil.str_to_user(value);
 		}
-		return value || "";
+		return "";
 	},
 	validate: function(value, callback) {
-		if(!dateutil.validate(value)) {
-			if(value) {
-				msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
-			}
+		if(value && !dateutil.validate(value)) {
+			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 			return;
 		}
 		return callback(value);
 	}
-})
-
-import_timepicker = function(callback) {
-	frappe.require([
-		"assets/frappe/js/lib/jquery/jquery.ui.slider.min.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js"
-	], callback);
-}
+});
 
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
-		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.$input.timepicker({
-				timeFormat: 'HH:mm:ss',
-			});
-			me.refresh();
+		this._super();
+		this.$input.flatpickr({
+			enableTime: true,
+			noCalendar: true,
+			defaultDate: new Date(),
+			dateFormat: "H:i:s",
+			allowInput: true
 		});
+		this.refresh();
 	}
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
-	set_datepicker: function() {
-		var now = new Date();
-		$.extend(this.datepicker_options, {
-			"timeFormat": "HH:mm:ss",
-			"dateFormat": (frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy'),
-			"hour": now.getHours(),
-			"minute": now.getMinutes()
-		});
-
-		this.$input.datetimepicker(this.datepicker_options);
-	},
-	make_input: function() {
-		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.refresh();
-		})
+	set_flatpickr: function() {
+		this.flatpickr_options.enableTime = true;
+		this.flatpickr_options.defaultDate = new Date();
+		this.flatpickr_options.dateFormat += " H:i:s";
+		this.$input.flatpickr(this.flatpickr_options);
 	},
 	parse: function(value) {
 		if(value) {
@@ -705,76 +681,30 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		if(value) {
 			// convert and format
 			value = dateutil.str_to_user(dateutil.convert_to_user_tz(value));
-
 		}
 		return value || "";
-	},
-
+	}
 });
 
 frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
-	
 	make_input: function() {
-		var me = this
 		var me = this;
-		var _super = this._super;
-		_super.apply(me);
-		import_daterangepicker(function() {
-			
-			me.refresh();
-			me.set_daterangepicker();
-			
-		});
+		this._super();
+		this.set_flatpickr();
+		this.refresh();
 	},
-	set_daterangepicker: function() {
-		var me = this
-		var daterangepicker_options = {
-			"autoApply": true,
-			"showDropdowns": me.df.show_dropdowns || true,
-			"showWeekNumbers": me.df.show_week_numbers || false,
-			"locale": {
-				"format": (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').toUpperCase(),
-				"firstDay": 1,
-				"cancelLabel": "Clear"
-			},
-			"linkedCalendars": false,
-			"alwaysShowCalendars": me.df.alwaysShowCalendars || true,
-			"cancelClass": "date-range-picker-cancel",
-			"autoUpdateInput": me.df.start_with_value || false,
-			"startDate": me.df.default_from ? moment(me.df.default_from, "YYYY-MM-DD"):false,
-			"endDate":me.df.default_to?moment(me.df.default_to, "YYYY-MM-DD"):false,
-			"minDate":me.df.mindate || undefined,
-			"maxDate":me.df.maxdate || undefined,
-			"ranges":me.df.ranges || {
-					'Today': [moment(), moment()],
-					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
-					'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-					'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-					'This Month': [moment().startOf('month'), moment().endOf('month')],
-					'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-					'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
-					'Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD"), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD")],
-					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
-			}
+	set_flatpickr: function() {
+		var flatpickr_options = {
+			mode: "range",
+			allowInput: true
 		}
-		
-		this.$input.daterangepicker(daterangepicker_options)
-			.on('apply.daterangepicker',function(ev,picker){
-				me.set_input(picker.startDate,picker.endDate)
-			if (me.applydaterange) {
-				me.applydaterange(ev, picker)
-			} else{
-				me.$input.trigger("change");
-			}
-		}).on('cancel.daterangepicker', function(ev, picker) {
-			if (me.canceldaterange) {
-				me.canceldaterange(ev, picker)
-			}
-		})
-		this.$input.find(".date-range-picker-cancel").removeClass("hide")
+		flatpickr_options.dateFormat =
+			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd')
+				.replace("yyyy", "Y").replace("yy", "y")
+				.replace("mm", "m").replace("dd", "d");
+		this.flatpickr = this.$input.flatpickr(flatpickr_options);
 	},
-	set_input: function(value,value2) {
+	set_input: function(value, value2) {
 		this.last_value = this.value;
 		if (value && value2) {
 			this.value = [value, value2];
@@ -783,11 +713,10 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		}
 		if (this.value) {
 			this.$input && this.$input.val(this.format_for_input(this.value[0], this.value[1]));
-		}else{
+		} else {
 			this.$input && this.$input.val("")
 		}
 		this.set_disp_area();
-		
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
@@ -796,29 +725,20 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			value = dateutil.user_to_obj(vals[0]);
 			value2 = dateutil.user_to_obj(vals[vals.length-1]);
 			return [value,value2];
-		}
-		
+		}	
 	},
 	format_for_input: function(value,value2) {
 		if(value && value2) {
 			value = dateutil.str_to_user(value);
 			value2 = dateutil.str_to_user(value2);
-			return value + " - " + value2
+			return value + " to " + value2
 		}
-		
 		return "";
 	},
 	validate: function(value, callback) {
 		return callback(value);
 	}
-})
-
-import_daterangepicker = function(callback) {
-	frappe.require([
-		"assets/frappe/css/daterangepicker.css",
-		"assets/frappe/js/lib/daterangepicker.js"
-	], callback);
-}
+});
 
 frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	html_element: "textarea",
