@@ -197,3 +197,26 @@ class TestUser(unittest.TestCase):
 
 		clear_limit("expiry")
 		frappe.local.conf = _dict(frappe.get_site_config())
+	
+	def test_deactivate_additional_users(self):
+		from frappe.core.doctype.user.user import get_total_users
+		from frappe.limits import update_limits
+
+		update_limits({'users': get_total_users()+1})
+		
+		if not frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
+			user = frappe.new_doc('User')
+			user.email = 'test_deactivate_additional_users@example.com'
+			user.first_name = 'Test Deactivate Additional Users'
+			user.add_roles("System Manager")
+			user.insert(ignore_permissions=True)
+
+		#update limits
+		update_limits({"users": get_total_users()})
+		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
+
+		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
+			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
+		# Clear the user limit
+		clear_limit('users')
+		
