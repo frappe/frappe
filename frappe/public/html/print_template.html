@@ -16,6 +16,23 @@
   </head>
   <body>
 	  <div class="print-format-gutter">
+		  <div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
+			  <div class="letter-head">{{ header }}</div>
+		  </div>
+
+		  {% if print_settings.repeat_header_footer %}
+			<div id="footer-html" class="visible-pdf">
+				{% if footer %}
+					<div class="letter-head-footer">
+						{{ footer }}
+					</div>
+				{% endif %}
+				<p class="text-center small page-number visible-pdf">
+					{{ __("Page {0} of {1}", [`<span class="page"></span>`, `<span class="topage"></span>`]) }}
+				</p>
+			</div>
+		  {% endif %}
+
 		  <div class="print-format">
 	        {{ content }}
 		  </div>
