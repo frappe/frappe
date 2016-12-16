@@ -580,7 +580,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				board_name: me.kanban_board,
 				cards: values,
 				wrapper: me.wrapper.find('.result-list'),
-				cur_list: me 
+				cur_list: me
 			});
 		});
 	},
