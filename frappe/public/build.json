@@ -38,7 +38,6 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
 		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/awesomplete/awesomplete.css",
 		"public/css/bootstrap.css",
@@ -58,10 +57,9 @@
 		"public/css/mobile.css"
 	],
 	"js/libs.min.js": [
-		"public/js/lib/jquery/jquery-ui.min.js",
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
-		"public/js/lib/tag-it.min.js",
+		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
@@ -196,8 +194,8 @@
 		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
+		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
-		"public/css/tag-it.css",
 		"public/css/calendar.css",
 		"public/css/filter_dashboard.css"
 	],
