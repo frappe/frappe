@@ -64,6 +64,9 @@ frappe.views.set_list_as_dirty = function(doctype) {
 		frappe.views.trees[doctype].tree.refresh();
 	}
 
+	var route = frappe.get_route()[2];
+	if(route && route === "Kanban") return;
+
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
 		if(frappe.pages[list_page].doclistview) {

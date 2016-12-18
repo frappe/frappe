@@ -174,7 +174,7 @@ frappe.stores.kanban = function(opts, callback) {
 
 frappe.views.KanbanBoard = function(opts) {
 	
-	var self = this;
+	var self = {};
 
 	function init() {
 		frappe.stores.kanban(opts, function(store) {
