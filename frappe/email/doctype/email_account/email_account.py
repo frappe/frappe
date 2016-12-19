@@ -255,19 +255,11 @@ class EmailAccount(Document):
 						if first:
 							if first.name != communication.name:
 								frappe.db.sql("""update tabCommunication set timeline_hide =%s where name = %s""",(first.name,communication.name),auto_commit=1)
-					
+
 					if self.no_remaining == '0' and not frappe.local.flags.in_test:
 						if communication.reference_doctype :
 							if not communication.timeline_hide and not communication.unread_notification_sent:
 								communication.notify(attachments=attachments, fetched_from_email_account=True)
-
-			#update attachment folder size as suspended for emails
-			try:
-				folder = frappe.get_doc("File", 'Home/Attachments')
-				folder.save()
-			except:
-				print("file attachment bug")
-				#exceptions.append(frappe.get_traceback())
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
