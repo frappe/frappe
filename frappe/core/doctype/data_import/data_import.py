@@ -17,14 +17,17 @@ class DataImport(Document):
 
 	def validate(self):
 		print "===============>>>>>> TEST"
+		
+
+	def on_update(self):
 		if self.import_file:# and not flag_preview_data:
 			self.set_preview_data()
 
-	def on_update(self):
+
+	def on_submit(self):
 		print self.import_file, self.reference_doctype, self.selected_row
 		if self.preview_data and self.selected_columns and self.selected_row:
 			self.insert_into_db()
-			self.docstatus = 1
 		# frappe.throw("just stop")
 
 	def insert_into_db(self):
