@@ -630,24 +630,31 @@ def reset_password(user):
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
+
+	user_type_condition = "and user_type = 'System User'"
+	if filters and filters.get('ignore_user_type'):
+		user_type_condition = ''
+
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
 		from `tabUser`
 		where enabled=1
-			and user_type = 'System User'
+			{user_type_condition}
 			and docstatus < 2
 			and name not in ({standard_users})
-			and ({key} like %s
-				or concat_ws(' ', first_name, middle_name, last_name) like %s)
+			and ({key} like %(txt)s
+				or concat_ws(' ', first_name, middle_name, last_name) like %(txt)s)
 			{mcond}
 		order by
-			case when name like %s then 0 else 1 end,
-			case when concat_ws(' ', first_name, middle_name, last_name) like %s
+			case when name like %(txt)s then 0 else 1 end,
+			case when concat_ws(' ', first_name, middle_name, last_name) like %(txt)s
 				then 0 else 1 end,
 			name asc
-		limit %s, %s""".format(standard_users=", ".join(["%s"]*len(STANDARD_USERS)),
+		limit %(start)s, %(page_len)s""".format(
+			user_type_condition = user_type_condition,
+			standard_users=", ".join(["'{0}'".format(frappe.db.escape(u)) for u in STANDARD_USERS]),
 			key=searchfield, mcond=get_match_cond(doctype)),
-			tuple(list(STANDARD_USERS) + [txt, txt, txt, txt, start, page_len]))
+			dict(start=start, page_len=page_len, txt=txt))
 
 def get_total_users():
 	"""Returns total no. of system users"""
@@ -660,7 +667,7 @@ def get_system_users(exclude_users=None, limit=None):
 		exclude_users = []
 	elif not isinstance(exclude_users, (list, tuple)):
 		exclude_users = [exclude_users]
-	
+
 	limit_cond = ''
 	if limit:
 		limit_cond = 'limit {0}'.format(limit)
