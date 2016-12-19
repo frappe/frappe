@@ -69,7 +69,11 @@ frappe.ui.form.Grid = Class.extend({
 		this.wrapper.on('click', '.grid-row-check', function(e) {
 			$check = $(this);
 			if($check.parents('.grid-heading-row:first').length!==0) {
+				// select all?
 				$check.parents('.form-grid:first').find('.grid-row-check').prop('checked', $check.prop('checked'));
+			} else {
+				var docname = $check.parents('.grid-row:first').attr('data-name');
+				me.grid_rows_by_docname[docname].select($check.prop('checked'));
 			}
 			me.refresh_remove_rows_button();
 		});
@@ -81,21 +85,16 @@ frappe.ui.form.Grid = Class.extend({
 			setTimeout(function() { me.refresh_remove_rows_button(); }, 100);
 		});
 	},
+	select_row: function(name) {
+		me.grid_rows_by_docname[name].select();
+	},
 	refresh_remove_rows_button: function() {
 		this.remove_rows_button.toggleClass('hide',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 	},
 	get_selected: function() {
-		var selected = [];
-		var me = this;
-		this.wrapper.find('.grid-body .grid-row-check:checked').each(function() {
-			selected.push($(this).parents('.grid-row:first').attr('data-name'));
-		});
-		return selected;
-	},
-	refresh_checks: function() {
-		var show = this.is_editable() || this.frm.has_mapper();
-		this.wrapper.find('.grid-row-check').toggle(show);
+		return this.grid_rows.map(function(row) { return row.doc.__checked ? row.doc.name : null; })
+			.filter(function(d) { return d; });
 	},
 	make_head: function() {
 		// labels
@@ -167,7 +166,6 @@ frappe.ui.form.Grid = Class.extend({
 
 			// toolbar
 			this.setup_toolbar();
-			this.refresh_checks();
 
 			// sortable
 			if(this.is_sortable() && !this.sortable_setup_done) {
@@ -357,7 +355,7 @@ frappe.ui.form.Grid = Class.extend({
 		}
 		setTimeout(function() {
 			me.grid_rows[idx].row
-				.find('input,textarea,select').filter(':visible:first').focus();
+				.find('input[type="Text"],textarea,select').filter(':visible:first').focus();
 		}, 100);
 	},
 
@@ -633,6 +631,13 @@ frappe.ui.form.GridRow = Class.extend({
 
 		}
 	},
+	select: function(checked) {
+		this.doc.__checked = checked ? 1 : 0;
+	},
+	refresh_check: function() {
+		this.wrapper.find('.grid-row-check').prop('checked', this.doc ? !!this.doc.__checked : false);
+		this.grid.refresh_remove_rows_button();
+	},
 	remove: function() {
 		if(this.grid.is_editable()) {
 			if(this.get_open_form()) {
@@ -677,7 +682,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	render_template: function() {
 		this.set_row_index();
-		
+
 		if(this.row_display) {
 			this.row_display.remove();
 		}
@@ -722,6 +727,7 @@ frappe.ui.form.GridRow = Class.extend({
 
 		this.setup_columns();
 		this.add_open_form_button();
+		this.refresh_check();
 
 		if(this.doc) {
 			$(this.frm.wrapper).trigger("grid-row-render", [this]);
@@ -802,7 +808,7 @@ frappe.ui.form.GridRow = Class.extend({
 				out = me.toggle_editable_row();
 				var col = this;
 				setTimeout(function() {
-					$(col).find(':input:first').focus();
+					$(col).find('input[type="Text"]:first').focus();
 				}, 500);
 				return out;
 			});
@@ -1170,7 +1176,7 @@ frappe.ui.form.GridRowForm = Class.extend({
 		var me = this;
 		setTimeout(function() {
 			if(me.row.frm.doc.docstatus===0) {
-				var first = me.form_area.find(":input:first");
+				var first = me.form_area.find("input:first");
 				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
 					try {
 						first.get(0).focus();
