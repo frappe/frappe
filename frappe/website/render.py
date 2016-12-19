@@ -136,6 +136,8 @@ def build_page(path):
 
 	context = get_context(path)
 
+	print 2, context.title, context.source
+
 	if context.source:
 		html = frappe.render_template(context.source, context)
 	elif context.template:
