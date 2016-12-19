@@ -299,7 +299,7 @@ def load_properties(page_info):
 			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
 
 	if page_info.title and not '{% block title %}' in page_info.source:
-		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
+		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -313,7 +313,7 @@ def load_properties(page_info):
 		# every page needs a header
 		# add missing header if there is no <h1> tag
 		if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
-			page_info.source += '\n{% block header %}<h1>' + page_info.title + '</h1>{% endblock %}'
+			page_info.source += '\n{% block header %}<h1>{{ title }}</h1>{% endblock %}'
 
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1
