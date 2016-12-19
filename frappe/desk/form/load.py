@@ -155,13 +155,13 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			"Communication" as doctype'''
 
 	conditions = '''communication_type in ("Communication", "Comment")
+			and timeline_hide is null
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
 				or (
 				(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
 				and (
 				communication_type="Communication"
-				and timeline_hide is null
 				or (
 					communication_type="Comment"
 					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted")
