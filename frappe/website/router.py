@@ -325,10 +325,10 @@ def process_generators(func):
 			condition_field = None
 			controller = get_controller(doctype)
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
+			if "condition_field" in controller.website:
+				condition_field = controller.website['condition_field']
+			if 'order_by' in controller.website:
+				order_by = controller.website['order_by']
 
 			val = func(doctype, condition_field, order_by)
 			if val:

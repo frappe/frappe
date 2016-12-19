@@ -12,6 +12,7 @@ from frappe.custom.doctype.customize_form.customize_form import docfield_propert
 from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
+from urllib import urlencode
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -60,7 +61,7 @@ class WebForm(WebsiteGenerator):
 		elif not self.amount_based_on_field and not self.amount > 0:
 			frappe.throw(_("Amount must be greater than 0."))
 
-	
+
 	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
 		for df in self.web_form_fields:
@@ -201,9 +202,23 @@ def get_context(context):
 		frappe.form_dict.doctype = self.doc_type
 		frappe.flags.web_form = self
 
+		self.update_params_from_form_dict(context)
 		self.update_list_context(context)
 		get_list_context(context)
 		context.is_list = True
+
+	def update_params_from_form_dict(self, context):
+		'''Copy params from list view to new view'''
+		context.params_from_form_dict = ''
+
+		params = {}
+		for key, value in frappe.form_dict.iteritems():
+			if frappe.get_meta(self.doc_type).get_field(key):
+				params[key] = value
+
+		if params:
+			context.params_from_form_dict = '&' + urlencode(params)
+
 
 	def update_list_context(self, context):
 		'''update list context for stanard modules'''
