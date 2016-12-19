@@ -592,7 +592,7 @@ frappe.ui.form.GridRow = Class.extend({
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
 		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
-				if($(e.target).hasClass('grid-row-check')) {
+				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
 					return;
 				}
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
