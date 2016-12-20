@@ -6,10 +6,11 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import os,json
+import difflib
 
 from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path
 from openpyxl import load_workbook
-
+# from frappe.model import no_value_field
 
 class DataImport(Document):
 
@@ -17,15 +18,17 @@ class DataImport(Document):
 
 	def validate(self):
 		print "===============>>>>>> TEST"
+		print self.import_file, self.reference_doctype, self.selected_row
 		
 
 	def on_update(self):
+		# self.get_data_list()
 		if self.import_file:# and not flag_preview_data:
 			self.set_preview_data()
 
 
+
 	def on_submit(self):
-		print self.import_file, self.reference_doctype, self.selected_row
 		if self.preview_data and self.selected_columns and self.selected_row:
 			self.insert_into_db()
 		# frappe.throw("just stop")
@@ -63,7 +66,7 @@ class DataImport(Document):
 
 	def set_preview_data(self):
 		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
-		wb = load_workbook(filename=file_path, read_only=True)
+		wb = load_workbook(filename=file_path)
 		ws = wb.active
 
 		excel_file = []
@@ -73,4 +76,31 @@ class DataImport(Document):
 				tmp_list.append(cell.value)
 			excel_file.append(tmp_list)
 		self.preview_data = json.dumps(excel_file)
-		# flag_preview_data = True
+
+		column_map = []
+
+		for col in ws.iter_cols():
+			tmp_list = []
+			for cell in col:
+				tmp_list.append(cell.value)
+			column_map.append(self.get_data_list(tmp_list))
+		self.selected_columns =  json.dumps(column_map)
+
+
+	def get_data_list(self, list_to_compare=None):
+		new_doc = frappe.new_doc(self.reference_doctype)
+		mapped_field = 0
+		max_sim = 0
+		for field in new_doc.meta.fields:
+			new_list = []
+			if field.fieldtype not in ['Section Break', 'Column Break', 'HTML', 'Table', 
+				'Button', 'Image', 'Fold', 'Heading']:
+				doc = frappe.get_list(self.reference_doctype,fields=[field.fieldname])
+				new_list = [getattr(d, field.fieldname) for d in doc]
+
+			seq=difflib.SequenceMatcher(None, str(new_list), str(list_to_compare))
+			d=seq.ratio()*100
+			if d > max_sim:
+				max_sim = d
+				mapped_field = field.fieldname
+		return mapped_field

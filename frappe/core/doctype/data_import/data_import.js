@@ -14,22 +14,8 @@ frappe.ui.form.on('Data Import', {
 
 	refresh: function(frm) {
 		if(frm.doc.preview_data) {
-			frm.add_custom_button(__("Import into Database"), function() {
-				if (frm.doc.selected_row) {
-					var column_map = [];
-					$(frm.fields_dict.file_preview.wrapper).find("select.column-map" )
-						.each(function(index) {
-					   		column_map.push($(this).val());
-					});
-					frm.doc.selected_columns = JSON.stringify(column_map);
-					frappe.msgprint(__("Now save the document"))
-					//frm.events.import_file(frm)
-				}
-				else {
-					frappe.throw(__("Select Row to Import from"))
-				}
-			}).addClass("btn-primary");
 			frm.events.render_html(frm);
+			//frm.doc.selected_columns = JSON.stringify(column_map);
 		}
 	},
 
@@ -86,11 +72,20 @@ frappe.ui.form.on('Data Import', {
 					  		</table>\
     						</div>'].join("\n");
     	me.preview_data = JSON.parse(frm.doc.preview_data);
+    	me.selected_columns = JSON.parse(frm.doc.selected_columns);
     	// console.log(frm.selected_doctype);
     	if (frm.selected_doctype) {
 			$(frappe.render(preview_html, {imported_data: me.preview_data, 
-	 			fields: frm.selected_doctype})).appendTo(frm.fields_dict.file_preview.wrapper);    		
+	 			fields: frm.selected_doctype, column_map: me.selected_columns}))
+				.appendTo(frm.fields_dict.file_preview.wrapper);    		
     	}
+    	me.selected_columns = JSON.parse(frm.doc.selected_columns);
+		var count = 0;
+		$(frm.fields_dict.file_preview.wrapper).find("select.column-map" )
+			.each(function(index) {
+				$(this).val(me.selected_columns[count]) 
+				count++;
+		});
 	},
 
 	// import: function(frm) {
