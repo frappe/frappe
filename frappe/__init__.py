@@ -51,6 +51,13 @@ def _(msg, lang=None):
 
 	return get_full_dict(local.lang).get(msg) or msg
 
+def as_unicode(text, encoding='utf-8'):
+	'''Convert to unicode if required'''
+	if text and not isinstance(text, unicode):
+		return unicode(text, encoding)
+	else:
+		return text or ''
+
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
 

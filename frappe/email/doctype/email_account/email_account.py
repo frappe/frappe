@@ -347,10 +347,10 @@ class EmailAccount(Document):
 		parent = frappe.new_doc(self.append_to)
 
 		if self.subject_field:
-			parent.set(self.subject_field, email.subject)
+			parent.set(self.subject_field, frappe.as_unicode(email.subject))
 
 		if self.sender_field:
-			parent.set(self.sender_field, email.from_email)
+			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
 
 		parent.flags.ignore_mandatory = True
 
