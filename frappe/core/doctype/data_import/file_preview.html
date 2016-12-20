@@ -1,0 +1,32 @@
+<hr><h5>{{ __("Select the docfield to map with the column") }}</h5>
+<div class="table-responsive">
+	<table class="table table-bordered table-hover">
+		<caption>{%= __("Imported File Data") %}</caption>
+		{% for (var i = -1; i < imported_data.length; i++) { %}
+		<tr>
+			{% if (i == -1) { %}
+			<td>{%= __("Row No.") %}</td>
+			{% for (var j = 0; j < imported_data[0].length; j++) { %}
+			<td>
+				<select class="form-control column-map">
+				<option value="" disabled selected>
+					{%= __("Select Fieldtype") %}</option>
+				{% for (var k = 0; k < fields.length; k++) { %}
+				<option value="{%= fields[k].fieldname %}">
+					{{ __(fields[k].label) }}</option>
+				{% } %}
+				</select>
+			</td>
+			{% } %}
+			{% } %}
+			{% if (i != -1) { %}
+			<td>{{i}}</td>
+			{% for (var j = 0; j < imported_data[i].length; j++) { 
+			var cell_data = imported_data[i][j] %}
+			<td>{{ cell_data }}</td>
+			{% } %}
+			{% } %}
+		</tr>
+		{% } %}
+	</table>
+</div>
