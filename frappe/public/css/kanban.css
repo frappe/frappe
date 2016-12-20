@@ -78,9 +78,10 @@
 .kanban .compose-column-form .kanban-card textarea:focus {
   outline: none;
 }
-.kanban .compose-column-form .kanban-card {
-  margin-top: 0px;
-  background: #f9f9f9;
+.kanban .compose-column-form .new-column-title {
+  background: transparent;
+  border: none;
+  outline: none;
 }
 .kanban .add-new-column a:hover {
   color: #36414C;
