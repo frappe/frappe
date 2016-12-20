@@ -23,15 +23,11 @@ class DataImport(Document):
 
 	def on_update(self):
 		# self.get_data_list()
-		if self.import_file:# and not flag_preview_data:
+		if self.import_file and not self.flag_file_preview:# and not flag_preview_data:
 			self.set_preview_data()
-
-
-
-	def on_submit(self):
 		if self.preview_data and self.selected_columns and self.selected_row:
 			self.insert_into_db()
-		# frappe.throw("just stop")
+			self.docstatus = 1
 
 	def insert_into_db(self):
 		error = False
@@ -70,7 +66,7 @@ class DataImport(Document):
 		ws = wb.active
 
 		excel_file = []
-		for row in ws.iter_rows(max_row=15):
+		for row in ws.iter_rows(max_row=11):
 			tmp_list = []
 			for cell in row:
 				tmp_list.append(cell.value)

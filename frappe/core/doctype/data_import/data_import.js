@@ -9,22 +9,32 @@ frappe.ui.form.on('Data Import', {
             doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
         }
 		frm.get_field('reference_doctype').df.options = doctype_options;
-
+		frm.doc.flag_file_preview = 0;
 	},
 
 	refresh: function(frm) {
-		if(frm.doc.preview_data) {
-			frm.events.render_html(frm);
-			//frm.doc.selected_columns = JSON.stringify(column_map);
+
+	},
+
+	before_save: function(frm) {
+		if (frm.doc.flag_file_preview) {
+			console.log("i am in saving column");
+			var column_map = [];
+			$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
+			   	column_map.push($(this).val());
+			});
+			if(column_map.length != 0){
+				frm.doc.selected_columns = JSON.stringify(column_map);
+			}
 		}
 	},
 
-	check: function(frm) {
-		console.log(frm.doc.selected_columns);
-		frm.add_custom_button(__("Import into Database"), function() {
-				//frm.events.import_file(frm)
-			}).addClass("btn-primary");
-		
+	after_save: function(frm) {
+		if(frm.doc.preview_data) {
+			frm.events.render_html(frm);
+			frm.get_field('selected_row').df.hidden = 0;
+
+		}
 	},
 
 	render_html: function(frm) {
@@ -38,47 +48,15 @@ frappe.ui.form.on('Data Import', {
 		});
 
 		$(frm.fields_dict.file_preview.wrapper).empty();
-
-		var preview_html = ['<hr><h5>{{ __("Select the docfield to map with the column") }}</h5>\
-							<div class="table-responsive">\
-  							<table class="table table-bordered table-hover">\
-  		 					<caption>{%= __("Imported File Data") %}</caption>\
-  							{% for (var i = -1; i < imported_data.length; i++) { %}\
-  								<tr>\
-								{% if (i == -1) { %}\
-  									<td>{%= __("Row No.") %}</td>\
-	  								{% for (var j = 0; j < imported_data[0].length; j++) { %}\
-									<td>\
-									<select class="form-control column-map">\
-			        				<option value="" disabled selected>\
-			        					{%= __("Select Fieldtype") %}</option>\
-									{% for (var k = 0; k < fields.length; k++) { %}\
-									<option value="{%= fields[k].fieldname %}">\
-										{{ __(fields[k].label) }}</option>\
-			        				{% } %}\
-									</select>\
-									</td>\
-									{% } %}\
-  								{% } %}\
-  								{% if (i != -1) { %}\
-  									<td>{{i}}</td>\
-	  								{% for (var j = 0; j < imported_data[i].length; j++) { \
-										var cell_data = imported_data[i][j] %}\
-										<td>{{ cell_data }}</td>\
-									{% } %}\
-  								{% } %}\
-						    	</tr>\
-					   		{% } %}\
-					  		</table>\
-    						</div>'].join("\n");
     	me.preview_data = JSON.parse(frm.doc.preview_data);
     	me.selected_columns = JSON.parse(frm.doc.selected_columns);
-    	// console.log(frm.selected_doctype);
+
     	if (frm.selected_doctype) {
-			$(frappe.render(preview_html, {imported_data: me.preview_data, 
+			$(frappe.render_template("file_preview", {imported_data: me.preview_data, 
 	 			fields: frm.selected_doctype, column_map: me.selected_columns}))
 				.appendTo(frm.fields_dict.file_preview.wrapper);    		
     	}
+
     	me.selected_columns = JSON.parse(frm.doc.selected_columns);
 		var count = 0;
 		$(frm.fields_dict.file_preview.wrapper).find("select.column-map" )
@@ -86,17 +64,8 @@ frappe.ui.form.on('Data Import', {
 				$(this).val(me.selected_columns[count]) 
 				count++;
 		});
+		frm.doc.flag_file_preview = 1;
 	},
-
-	// import: function(frm) {
-	// 	var column_map = [];
-	// 	$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
-	// 	   	column_map.push($(this).val());
-	// 	});
-	// 	frm.doc.selected_columns = column_map;
-	// 	console.log(frm.doc.selected_columns);
-		
-	// },
 
 	import_file_as: function(frm) {
 		var me = this;
