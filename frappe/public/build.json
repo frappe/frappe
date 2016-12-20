@@ -25,7 +25,7 @@
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/beautify-html.js",
 		"public/js/frappe/ui/editor.html",
-		"public/js/frappe/ui/editor.js"
+		"public/js/frappe/ui/summerEditor.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -64,7 +64,15 @@
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/markdown.js"
+		"public/js/lib/codemirror/codemirror.js",
+		"public/js/lib/codemirror/addon/fold/foldcode.js",
+		"public/js/lib/codemirror/addon/fold/foldgutter.js",
+		"public/js/lib/codemirror/addon/fold/xml-fold.js",
+		"public/js/lib/codemirror/addon/edit/matchtags.js",
+		"public/js/lib/codemirror/mode/xml/xml.js",
+		"public/js/lib/codemirror/formatting.js",
+		"public/js/lib/markdown.js",
+		"public/js/lib/summernote/summernote.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
@@ -149,7 +157,10 @@
 		"public/js/lib/c3.min.js"
 	],
 	"css/module.min.css": [
-		"public/css/module.css"
+		"public/css/module.css",
+                "public/css/codemirror/codemirror.css",
+		"public/css/codemirror/theme/monokai.css",
+		"public/js/lib/codemirror/addon/fold/foldgutter.css"
 	],
 	"css/form.min.css": [
 		"public/css/form_grid.css"
