@@ -352,6 +352,9 @@ h6.uppercase,
 .timeline-head .comment-input-container {
   padding: 15px;
 }
+.timeline-head .comment-input-container .awesomplete > ul {
+  min-width: 200px;
+}
 .timeline-head .comment-input {
   border-color: #EBEFF2;
   max-width: 100%;

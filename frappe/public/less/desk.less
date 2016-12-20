@@ -40,10 +40,6 @@ a[disabled="disabled"] {
 	}
 }
 
-.ui-autocomplete .link-option {
-	font-weight: normal;
-}
-
 .scroll-to-top {
 	background-color: @light-bg;
 	padding: 7px;
@@ -142,106 +138,109 @@ textarea.form-control {
 	border-bottom: 1px solid @light-border-color;
 }
 
-
-/* jquery ui */
-
-.ui-datepicker {
+.datepicker {
+	font-family: inherit;
 	z-index: 9999 !important;
-}
 
-.ui-datepicker .ui-datepicker-header {
-	border-radius: 0px !important;
-}
+	&--time-current-hours, &--time-current-minutes {
+		font-family: inherit;
+	}
 
-.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
-	display: inline;
-}
+	&--day-name {
+		color: @text-color;
+	}
 
-.ui-datepicker select.ui-datepicker-month {
-	margin-right: 3px;
-}
-.ui-datepicker .ui-datepicker-title {
-	line-height: inherit !important;
-	padding-bottom: 3px;
-}
+	&--cell {
+		&.-current- {
+			color: @brand-primary;
+			
+			&.-in-range- {
+				color: @brand-primary;
+			}
+		}
 
-.ui-datepicker-today .ui-state-default {
-	background-color: @light-border-color !important;
-}
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(@brand-primary, 30%); 
+			background: fade(@brand-primary, 10%);			
+		}
 
-.ui-state-default {
-	box-shadow: none !important;
+		&.-selected-, &.-current-.-selected- {
+			background: @brand-primary;
+		}
+
+		&.-in-range- {
+			background: fade(@brand-primary, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(@brand-primary, 90%);
+		}
+
+	}
 }
 
 .hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
 
-.ui-autocomplete {
-	max-height: 200px;
-	overflow-y: auto;
-	overflow-x: hidden;
-	z-index: 1041;
-}
+.awesomplete {
+	width: 100%;
 
-.ui-autocomplete a {
-	transition: none;
-}
+	&> ul {
+		z-index: 1041;
+		transition: none;
+		background: #fff;
+		max-height: 200px;
+		overflow-y: auto;
+		overflow-x: hidden;
+		border-radius: 0px 0px 4px 4px;
+		box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+		border-color: @border-color;
 
-.ui-autocomplete .ui-menu-item a& {
-	&:hover,
-	&:focus,
-	&:active {
-		color: inherit;
+		&:before {
+			display: none;
+		}
+
+		&> li {
+			font-size: 12px;
+			padding: 9px 11.8px;
+		}
+
+		&> li .link-option {
+			font-weight: normal;
+		}
+
+		&> li:hover, &> li[aria-selected=true] {
+			background-color: @btn-bg;
+			color: @text-color;
+			text-shadow: none;
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+
+		p {
+			margin: 3px 0;
+		}
 	}
-}
 
-.ui-datepicker,
-.ui-autocomplete {
-	// only rounded bottoms
-	border-radius: 0px 0px 4px 4px;
-	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-	border-color: @border-color;
-	padding: 0px;
-
-	.ui-state-focus,
-	.ui-state-hover {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-	}
-
-	.ui-state-active {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-		border: none;
-
-		.small {
-			color: #555 !important;
+	@media (max-width: @screen-sm) {
+		&>ul {
+			top: 26px;
 		}
 	}
 }
-
-.ui-menu .ui-menu-item {
-	font-size: @text-medium;
-	.ui-menu-item-wrapper{
-		padding: 9px 11.8px !important;
-		text-decoration: none;
-		margin: 0;
-	}
-}
-
 
 @media (min-width: 768px) {
 	.video-modal {
 		width: 700px;
 	}
 }
-
-/* z-index hack */
-// .ui-datepicker { z-index: 9999999 !important; }
-// .ui-autocomplete { z-index: 9999999 !important; }
 
 @media (min-width: 768px) {
 	.hidden-xs-inline {
@@ -277,8 +276,6 @@ textarea.form-control {
 	margin-top: 5px;
 }
 
-// fixes datepicker z-index issue
-
 .form-control {
 	position: relative;
 
@@ -298,11 +295,6 @@ textarea.form-control {
 
 .link-field.ui-front {
 	z-index: inherit;
-}
-
-.modal .link-field .ui-autocomplete {
-	// so that it appears over the datepicker field
-	z-index: 1141;
 }
 
 .form-group {
