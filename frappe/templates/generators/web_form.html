@@ -265,6 +265,7 @@
 		<div class="section">
 			{% if section.label %}
 			<h5 class='uppercase'>{{ _(section.label) }}</h5>
+			<span class="help-block small text-muted">{{ _(section.description) }}</span>
 			{% endif %}
 			<div class="row">
 					{% for column in section.columns %}
