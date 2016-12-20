@@ -291,15 +291,7 @@ def get_recipients(doc, fetched_from_email_account=False):
 		#recipients.append(doc.previous_email_sender)
 
 	if recipients:
-		# exclude email accounts
-		exclude = [] #added to remove account check
-		#exclude = [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		#exclude += [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-		#	if d[0]]
-
-		recipients = filter_email_list(doc, recipients, exclude)
+		recipients = filter_email_list(doc, recipients, [])
 
 	return recipients
 
@@ -318,13 +310,8 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		cc.append(doc.sender)
 
 	if cc:
-		# exclude email accounts, unfollows, recipients and unsubscribes
+		# exclude unfollows, recipients and unsubscribes
 		exclude = [] #added to remove account check
-		#exclude = [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		#exclude += [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-		#	if d[0]]
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
 
