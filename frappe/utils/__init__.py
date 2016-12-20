@@ -118,6 +118,7 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
+
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
 	if (frappe.flags.in_import
@@ -127,10 +128,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	if not isinstance(email, unicode):
-		email = unicode(email, 'utf-8')
-
-	hexdigest = md5.md5(email).hexdigest()
+	hexdigest = md5.md5(frappe.as_unicode(email)).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:

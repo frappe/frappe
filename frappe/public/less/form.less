@@ -518,10 +518,6 @@ h6.uppercase, .h6.uppercase {
 	pre {
 		white-space: pre-wrap;
 	}
-
-	&:last-child {
-		margin-bottom: 0px;
-	}
 }
 
 .hide-control {
@@ -647,7 +643,7 @@ select.form-control {
 			padding: 0px 15px;
 		}
 
-		.frappe-control {
+		.frappe-control& {
 			padding: 7px 15px;
 			border-bottom: 1px solid @light-border-color;
 			margin: 0px -15px;
@@ -658,6 +654,10 @@ select.form-control {
 
 			.like-disabled-input {
 				min-height: 0px !important;
+			}
+
+			&:last-child {
+				margin-bottom: 0px;
 			}
 		}
 
