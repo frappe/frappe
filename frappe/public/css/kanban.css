@@ -86,3 +86,11 @@
 .kanban .add-new-column a:hover {
   color: #36414C;
 }
+.kanban .kanban-card-meta {
+  margin-top: 8px;
+  text-align: right;
+}
+.kanban .kanban-card-meta .avatar {
+  width: 16px;
+  height: 16px;
+}

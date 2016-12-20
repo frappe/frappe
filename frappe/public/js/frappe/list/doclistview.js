@@ -145,10 +145,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.page.main.find(".list-headers").empty();
 
 		// no header in kanban view
-		if(this.current_view === 'Kanban') {
-			this.list_header = $();
-			return;
-		}
+		// if(this.current_view === 'Kanban') {
+		// 	this.list_header = $();
+		// 	return;
+		// }
 
 		this.header = this.current_view === 'List' ? "list_item_main_head": "image_view_item_main_head";
 		var main = frappe.render_template(this.header, {

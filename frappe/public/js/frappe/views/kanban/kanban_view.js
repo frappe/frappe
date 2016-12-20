@@ -1,20 +1,8 @@
 frappe.provide("frappe.views");
 frappe.provide("frappe.stores")
 
-/**
- * frappe.views.KanbanBoard
- *
- * opts:
- * 		board_name - Kanban Board name
- * 		cards - Values in list view to be rendered as cards
- * 		wrapper - wrapper for kanban
- */
 frappe.stores.kanban = function(opts, callback) {
-	// doctype: me.doctype,
-	// board_name: me.kanban_board,
-	// cards: values,
-	// wrapper: me.wrapper.find('.result-list'),
-	// cur_list: me
+
 	var self = Object.assign({}, opts);
 	var state = {};
 	var actions = {};
@@ -48,7 +36,8 @@ frappe.stores.kanban = function(opts, callback) {
 				name: card.name,
 				title: card.subject,
 				column: card[self.board.field_name],
-				assigned_list: assigned_list
+				assigned_list: assigned_list,
+				comment_count: card._comment_count
 			};
 		});
 		state.cards = cards;
@@ -494,9 +483,23 @@ frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
 	}
 
 	function make_dom() {
-		var opts = { name: card.name, title: card.title };
+		var opts = {
+			name: card.name,
+			title: card.title
+		};
 		self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
+		render_card_meta();
+	}
+
+	function render_card_meta() {
+		var html = "";
+		if(card.comment_count > 0)
+			html += '<span class="list-comment-count small text-muted ">' +
+					'<i class="octicon octicon-comment"></i> '+ card.comment_count +
+				'</span>';
+		html += get_assignees_html();
+		self.$card.find(".kanban-card-meta").empty().append(html);
 	}
 
 	function bind_edit_card() {
@@ -579,13 +582,7 @@ frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
 	function make_assignees() {
 		var d = self.dialog;
 
-		var assignees = "", html = "";
-		if(card.assigned_list.length) {
-			card.assigned_list.forEach(function(a) {
-				html += frappe.avatar(a);
-			});
-		}
-		html += '<a class="strong add-assignment">\
+		var html = get_assignees_html() + '<a class="strong add-assignment">\
 			Assign <i class="octicon octicon-plus" style="margin-left: 2px;"></i></a>';
 
 		d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
@@ -596,6 +593,12 @@ frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
 			}
 			show_assign_to_dialog();
 		});
+	}
+
+	function get_assignees_html() {
+		return card.assigned_list.reduce(function(a, b) {
+			return a + frappe.avatar(b);
+		}, "");
 	}
 
 	function show_assign_to_dialog() {
@@ -631,11 +634,11 @@ frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
 			.on('click', function () {
 				frappe.set_route("Form", card.doctype, card.name);
 			});
-
 		var tl = new frappe.ui.form.Timeline({
 			parent: d.$wrapper.find(".form-comments"),
 			frm: {
 				doctype: card.doctype,
+				docname: card.name,
 				get_docinfo: function () {
 					return frappe.model.get_docinfo(card.doctype, card.name)
 				},
@@ -645,10 +648,19 @@ frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
 				}
 			}
 		});
+		console.log(tl)
 		tl.wrapper.addClass('in-dialog');
 		tl.wrapper.find('.timeline-new-email').remove();
 		tl.refresh();
 		self.timeline = tl;
+
+		// update comment count
+		tl.comment_button.on("click", function(e) {
+			if(tl.input.val()) {
+				card.comment_count += 1;
+				render_card_meta();
+			}
+		});
 	}
 
 	init();
