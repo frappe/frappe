@@ -96,7 +96,7 @@ class CustomizeForm(Document):
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
 		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language_code': frappe.local.lang or 'en'},
+			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
 			['name', 'target_name'], as_dict=True)
 
 	def set_name_translation(self):
