@@ -63,7 +63,8 @@ class EmailAccount(Document):
 				if self.enable_outgoing:
 					self.check_smtp()
 			else:
-				frappe.throw(_("Password is required or select Awaiting Password"))
+				if self.enable_incoming or self.enable_outgoing:
+					frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
@@ -224,7 +225,7 @@ class EmailAccount(Document):
 				try:
 					incoming_mails = email_server.get_messages()
 				except Exception as e:
-					frappe.db.sql("update `tabEmail Account` set no_remaining = NULL where name = %s",(self.settings.email_account), auto_commit=1)
+					frappe.db.sql("update `tabEmail Account` set no_remaining = NULL where name = %s",(email_server.settings.email_account), auto_commit=1)
 					incoming_mails = []
 
 			for msg in incoming_mails:
@@ -261,14 +262,6 @@ class EmailAccount(Document):
 							if not communication.timeline_hide and not communication.unread_notification_sent:
 								communication.notify(attachments=attachments, fetched_from_email_account=True)
 
-			#update attachment folder size as suspended for emails
-			try:
-				folder = frappe.get_doc("File", 'Home/Attachments')
-				folder.save()
-			except:
-				print("file attachment bug")
-				#exceptions.append(frappe.get_traceback())
-
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
 				frappe.publish_realtime('new_email', {"account":self.email_account_name,"number":len(incoming_mails)})
@@ -295,8 +288,8 @@ class EmailAccount(Document):
 				"unique_id":unique_id,
 				"reason":reason
 			})
-			unhandled_email.save();
-			frappe.db.commit();
+			unhandled_email.save()
+			frappe.db.commit()
 
 	def insert_communication(self, msg):
 		if isinstance(msg,list):
@@ -375,7 +368,7 @@ class EmailAccount(Document):
 
 		parent = self.find_parent_from_in_reply_to(communication, email)
 
-		if not parent:
+		if not parent and self.append_to:
 			self.set_sender_field_and_subject_field()
 
 		if not parent and self.append_to:
@@ -435,7 +428,7 @@ class EmailAccount(Document):
 					}, fields="name")
 
 			if parent:
-				parent = frappe.get_doc(self.append_to, parent[0].name)
+				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)
 				return parent
 
 
@@ -478,24 +471,34 @@ class EmailAccount(Document):
 
 		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
 			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
+			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
 			if email_queue:
-				parent_doctype, parent_name = email_queue
+				parent_communication, parent_doctype, parent_name = email_queue
+				if parent_communication:
+					communication.in_reply_to = parent_communication
 			else:
 				reference, domain = in_reply_to.split("@", 1)
 				parent_doctype, parent_name = 'Communication', reference
 
 			if frappe.db.exists(parent_doctype, parent_name):
-				parent = frappe.get_doc(parent_doctype, parent_name)
+				parent = frappe._dict(doctype=parent_doctype, name=parent_name)
 
 				# set in_reply_to of current communication
 				if parent_doctype=='Communication':
-					communication.in_reply_to = parent_name
+					# communication.in_reply_to = email_queue.communication
 
 					if parent.reference_name:
 						# the true parent is the communication parent
 						parent = frappe.get_doc(parent.reference_doctype,
 							parent.reference_name)
+		if email.message_id:
+			first = frappe.db.get_value("Communication", {"message_id": email.message_id},["name", "reference_doctype", "reference_name"], order_by="creation", as_dict=1)
+			
+			if first:
+				# set timeline hide to parent doc so are linked
+				communication.timeline_hide = first.name
+				if frappe.db.exists(first.reference_doctype, first.reference_name):
+					parent = frappe._dict(doctype=first.reference_doctype, name=first.reference_name)
 
 		return parent
 
