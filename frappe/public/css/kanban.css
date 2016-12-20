@@ -11,6 +11,9 @@
   border-right: 1px solid #d1d8dd;
   padding: 15px;
 }
+.kanban .kanban-column.add-new-column {
+  order: 1;
+}
 .kanban .kanban-column-title {
   margin-top: 0;
   margin-bottom: 15px;

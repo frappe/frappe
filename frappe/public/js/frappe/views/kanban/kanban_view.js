@@ -15,7 +15,7 @@ frappe.stores.kanban = function(opts, callback) {
 	// cards: values,
 	// wrapper: me.wrapper.find('.result-list'),
 	// cur_list: me
-	var self = Object.assign(this, opts);
+	var self = Object.assign({}, opts);
 	var state = {};
 	var actions = {};
 
@@ -25,6 +25,7 @@ frappe.stores.kanban = function(opts, callback) {
 			prepare_meta();
 			prepare_state();
 			callback({
+				card_meta: self.card_meta,
 				state: state,
 				actions: actions
 			});
@@ -43,6 +44,7 @@ frappe.stores.kanban = function(opts, callback) {
 				assigned_list = JSON.parse(card._assign);
 			}
 			return {
+				doctype: self.doctype,
 				name: card.name,
 				title: card.subject,
 				column: card[self.board.field_name],
@@ -81,14 +83,24 @@ frappe.stores.kanban = function(opts, callback) {
 				frappe.new_doc(self.doctype, doc);
 			} else {
 				$.extend(doc, doc_fields);
-				insert_doc(doc);
+				return insert_doc(doc)
+					.then(function(r) {
+						var doc = r.message;
+						return {
+							doctype: doc.doctype,
+							name: doc.name,
+							title: doc.subject,
+							column: doc[self.board.field_name],
+							assigned_list: []
+						}
+					});
 			}
 		}
 	}
 	actions.add_card = add_card;
 
 	function insert_doc(doc) {
-		frappe.call({
+		return frappe.call({
 			method: "frappe.client.insert",
 			args: {
 				doc: doc
@@ -100,6 +112,62 @@ frappe.stores.kanban = function(opts, callback) {
 			}
 		});
 	}
+
+	function add_column(title) {
+		title = title.trim();
+
+		var defer = $.Deferred();
+
+		frappe.model.with_doc("Customize Form", "Customize Form", function() {
+			var doc = frappe.get_doc("Customize Form");
+			doc.doc_type = self.doctype;
+			
+
+			return fetch_customization()
+				.then(save_customization)
+				.then(update_kanban_board)
+				.then(function(r) {
+					console.log(r);
+					defer.resolve({
+						title: title
+					});
+				});
+
+			function fetch_customization() {
+				return frappe.call({
+					doc: doc,
+					method: "fetch_to_customize"
+				});
+			}
+
+			function save_customization(r) {
+				//add column_name to Select field's option field
+				var d = r.docs[0];
+				d.fields.forEach(function(df) {
+					if(df.fieldname === self.board.field_name && df.fieldtype === "Select") {
+						df.options += "\n" + title;
+					}
+				});
+				d.hide_success = true;
+				return frappe.call({
+					doc: d,
+					method: "save_customization"
+				});
+			}
+
+			function update_kanban_board() {
+				return frappe.call({
+					method: "frappe.desk.doctype.kanban_board.kanban_board.update_column",
+					args: {
+						board_name: self.board_name,
+						column_title: title
+					}
+				});
+			}
+		});
+		return defer;
+	}
+	actions.add_column = add_column;
 
 	function update_column_for_card(card_name, column_title) {
 		frappe.call({
@@ -116,6 +184,33 @@ frappe.stores.kanban = function(opts, callback) {
 		});
 	}
 	actions.update_column_for_card = update_column_for_card;
+
+	function add_assignee(assign_to, description, card, dialog, callback) {
+		var args = {
+			description: description
+		}
+		var opts = {
+			method: "frappe.desk.form.assign_to.add",
+			doctype: card.doctype,
+			docname: card.name,
+			callback: callback
+		}
+		frappe.ui.add_assignment(assign_to, args, opts, dialog);
+	}
+	actions.add_assignee = add_assignee;
+
+	function update_doc(doc, callback) {
+		console.log(doc)
+		frappe.call({
+			method: "frappe.client.bulk_update",
+			args: { docs: [doc] },
+			callback: function (r) {
+				callback();
+			},
+			freeze: true
+		});
+	}
+	actions.update_doc = update_doc;
 
 	function get_board(callback) {
 		var doctype = 'Kanban Board';
@@ -173,14 +268,13 @@ frappe.stores.kanban = function(opts, callback) {
 }
 
 frappe.views.KanbanBoard = function(opts) {
-	
+
 	var self = {};
 
 	function init() {
 		frappe.stores.kanban(opts, function(store) {
 			self.store = store;
 			self.wrapper = opts.wrapper;
-			console.log(self.store);
 			prepare();
 		});
 	}
@@ -191,22 +285,58 @@ frappe.views.KanbanBoard = function(opts) {
 				.appendTo(self.wrapper);
 		// this.$filter_area = this.cur_list.$page.find('.set-filters');
 		make_columns();
-		// bind_events();
+		bind_events();
 	}
 
 	function make_columns() {
 		var actions = self.store.actions;
+		var card_meta = self.store.card_meta;
 		for(var column of self.store.state.columns) {
 			var wrapper = self.$kanban_board;
 			var cards = get_cards_for_column(column.title);
-			frappe.views.KanbanBoardColumn(column, cards, wrapper, actions);
+			frappe.views.KanbanBoardColumn(column, cards, card_meta, wrapper, actions);
 		}
 	}
 
 	function bind_events() {
-		bind_add_new_column();
-		bind_save_filter_button();
+		bind_add_column();
+		// bind_save_filter_button();
 	}
+
+	function bind_add_column() {
+		var actions = self.store.actions;
+		var card_meta = self.store.card_meta;
+		var wrapper = self.$kanban_board;
+		
+		var $add_new_column = self.$kanban_board.find(".add-new-column"),
+		$compose_column = $add_new_column.find(".compose-column"),
+		$compose_column_form = $add_new_column.find(".compose-column-form").hide();
+
+		$compose_column.on('click', function() {
+			$(this).hide();
+			$compose_column_form.show();
+			$compose_column_form.find('textarea').focus();
+		});
+
+		//Add button
+		$compose_column_form.find('.add-new').on('click', function(e) {
+			e.preventDefault();
+			var title = $compose_column_form.serializeArray()[0].value;
+			actions.add_column(title)
+				.then(function(column) {
+					frappe.views.KanbanBoardColumn(column, [], card_meta, wrapper, actions);
+				});
+			$compose_column_form.find('.close-form').trigger('click');
+			$compose_column_form.find('textarea').val('');
+		});
+
+		//Close form button
+		$compose_column_form.find('.close-form').on('click', function() {
+			$compose_column.show();
+			$compose_column_form.hide();
+		});
+	}
+
 
 	// bind_save_filter_button: function() {
 	// 	var me = this;
@@ -254,80 +384,19 @@ frappe.views.KanbanBoard = function(opts) {
 			return card.column === column_name;
 		});
 	}
-	
+
 	// make_add_new_column: function() {
 	// 	this.$add_new_column = $('<div class="kanban-column">' +
 	// 		'<div class="kanban-column-title h4 add-new-column"><a class="text-muted">' +
 	// 			__("Add a column") + '</a></div></div>')
 	// 		.appendTo(this.$kanban_board);
 	// },
-	function bind_add_new_column() {
-		var me = this,
-		$add_new_column = this.$kanban_board.find(".add-new-column"),
-		$compose_column = $add_new_column.find(".compose-column"),
-		$compose_column_form = $add_new_column.find(".compose-column-form").hide();
-
-		$compose_column.on('click', function() {
-			$(this).hide();
-			$compose_column_form.show();
-			$compose_column_form.find('textarea').focus();
-		});
-
-		//Add button
-		$compose_column_form.find('.add-new').on('click', function(e) {
-			e.preventDefault();
-			var title = $compose_column_form.serializeArray()[0].value;
-			me.new_column(title);
-		});
-
-		//Close form button
-		$compose_column_form.find('.close-form').on('click', function() {
-			$compose_column.show();
-			$compose_column_form.hide();
-		});
-	}
-	// new_column: function(title) {
-	// 	console.log(title)
-	// 	var me = this;
-
-	// 	frappe.model.with_doc("Customize Form", "Customize Form", function() {
-	// 		var doc = frappe.get_doc("Customize Form");
-	// 		doc.doc_type = me.doctype;
-
-	// 		fetch_customization().then(save_customization);
-
-	// 		function fetch_customization() {
-	// 			return frappe.call({
-	// 				doc: doc,
-	// 				method: "fetch_to_customize"
-	// 			});
-	// 		}
-
-	// 		function save_customization(r) {
-	// 			//add column_name to Select field's option field
-	// 			var d = r.docs[0];
-	// 			d.fields.forEach(function(df) {
-	// 				if(df.fieldname === me.board.field_name && df.fieldtype === "Select") {
-	// 					df.options += "\n" + title;
-	// 				}
-	// 			});
-	// 			return frappe.call({
-	// 				doc: d,
-	// 				method: "save_customization"
-	// 			});
-	// 		}
-
-	// 		function update_kanban_board() {
-	// 			// frappe.model.set_value("Kanban Board", me.board_name, "columns")
-	// 		}
-	// 	});
-	// },
 	init();
 }
 
-frappe.views.KanbanBoardColumn = function(column, cards, wrapper, actions) {
-	var self = this;
-	
+frappe.views.KanbanBoardColumn = function(column, cards, card_meta, wrapper, actions) {
+	var self = {};
+
 	function init() {
 		make_dom();
 		make_cards();
@@ -344,7 +413,7 @@ frappe.views.KanbanBoardColumn = function(column, cards, wrapper, actions) {
 	function make_cards() {
 		for(var card of cards) {
 			var wrapper = self.$kanban_cards;
-			frappe.views.KanbanBoardCard(card, wrapper);
+			frappe.views.KanbanBoardCard(card, card_meta, actions, wrapper);
 		}
 	}
 
@@ -385,7 +454,13 @@ frappe.views.KanbanBoardColumn = function(column, cards, wrapper, actions) {
 		$compose_card_form.find('.add-new').on('click', function(e) {
 			e.preventDefault();
 			var card_title = $compose_card_form.serializeArray()[0].value;
-			actions.add_card(card_title, column.title);
+			actions.add_card(card_title, column.title)
+				.then(function(card) {
+					// console.log(card);
+					frappe.views.KanbanBoardCard(card, card_meta, actions, self.$kanban_cards);
+				});
+			$compose_card.show();
+			$compose_card_form.hide().find('textarea').val('');
 		});
 
 		//Close form button
@@ -409,311 +484,171 @@ frappe.views.KanbanBoardColumn = function(column, cards, wrapper, actions) {
 	init();
 }
 
-frappe.views.KanbanBoardCard = function(card, wrapper) {
-	var self = this;
+frappe.views.KanbanBoardCard = function(card, card_meta, actions, wrapper) {
+	var self = {};
 
 	function init() {
+		make_dom();
+		bind_edit_card();
+	}
+
+	function make_dom() {
 		var opts = { name: card.name, title: card.title };
-		self.$kanban_card = $(frappe.render_template('kanban_card', opts))
+		self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
 	}
 
-	init();
-}
+	function bind_edit_card() {
 
-//KanbanBoardColumn
-frappe.views.KanbanBoardColumn_old = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		this.prepare();
-		this.make_cards();
-		this.setup_sortable();
-		this.bind_add_card();
-		this.bind_edit_card();
-	},
-	prepare: function() {
-		this.$kanban_column = $(frappe.render_template('kanban_column',
-			{ title: this.title })).appendTo(this.wrapper);
-		this.$kanban_cards = this.$kanban_column.find('.kanban-cards');
-	},
-	make_cards: function() {
-		var me = this;
-		this.cards = this.cards.map(function(card) {
-			var opts = $.extend({}, card, {
-				kb: me.kb,
-				wrapper: me.$kanban_cards
-			});
-			return new frappe.views.KanbanBoardCard(opts);
-		});
-	},
-	setup_sortable: function() {
-		var me = this;
-		Sortable.create(me.$kanban_cards.get(0), {
-			group: "cards",
-			ghostClass: "ghost-card",
-			onStart: function (evt) {
-				me.wrapper.find('.kanban-card.compose-card').fadeOut(200, function() {
-					me.wrapper.find('.kanban-cards').height('200px');
-				});
-				//get the card being moved
-				var card_name = $(evt.item).data().name;
-				me.kb.moved_card = me.get_card(card_name);
-			},
-			onEnd: function (evt) {
-				me.wrapper.find('.kanban-card.compose-card').fadeIn(100);
-				me.wrapper.find('.kanban-cards').height('auto');
-				//remove after use
-				delete me.kb.moved_card;
-			},
-			onAdd: function (evt) {
-				me.kb.moved_card.set_column(me.title); //one line update, sweet
-			}
-		});
-	},
-	get_card: function(name) {
-		var card = this.cards.filter(function(card) {
-			return card.name === name;
-		});
-		return card[0];
-	},
-	bind_add_card: function() {
-		var me = this;
-		var selector = '.kanban-column[data-column-value="'+me.title+'"]';
-		var $wrapper = this.wrapper.find(selector);
-		var $compose_card = $wrapper.find('.compose-card');
-		var $compose_card_form = $wrapper.find('.compose-card-form');
-
-		//Add card button
-		$compose_card_form.hide();
-		$compose_card.on('click', function() {
-			$compose_card.hide();
-			$compose_card_form.show().find('textarea').focus();
-		});
-
-		//Add button
-		$compose_card_form.find('.add-new').on('click', function(e) {
-			e.preventDefault();
-			var title = $compose_card_form.serializeArray()[0].value;
-			me.new_card(title);
-		});
-
-		//Close form button
-		$compose_card_form.find('.close-form').on('click', function() {
-			$compose_card.show();
-			$compose_card_form.hide();
-		});
-
-		//save on enter
-		$compose_card_form.keydown(function(e) {
-			if(e.which==13) {
-				e.preventDefault();
-				if(!frappe.request.ajax_count) {
-					// not already working -- double entry
-					$compose_card_form.find('.add-new').trigger('click')
-				}
-			}
-		});
-	},
-	bind_edit_card: function() {
-		var me = this;
-		var selector = '.kanban-column[data-column-value="'+me.title+'"]';
-		var $wrapper = this.wrapper.find(selector);
-		var $card = $wrapper.find('.kanban-card-wrapper');
-
-		$card.on('click', function() {
-			if(me.edit_dialog) {
-				me.edit_dialog.show();
+		self.$card.on('click', function() {
+			if(self.dialog) {
+				self.dialog.show();
 				return;
 			}
 
-			var doc_name = $(this).data().name;
-			var card = me.get_card(doc_name);
-
-			frappe.model.with_doc(me.kb.doctype, doc_name, function() {
-				var doc = frappe.get_doc(me.kb.doctype, doc_name);
+			get_doc().then(function(doc) {
+				// prepare dialog fields
 				var fields = [];
-				if(me.kb.card_meta.description_field) {
-					fields.push(me.kb.card_meta.description_field);
+				if(card_meta.description_field) {
+					fields.push({ fieldtype: "Small Text", label: __("Description"),
+						fieldname: card_meta.description_field.fieldname});
 				}
+
 				fields.push({ fieldtype: "Section Break" });
 				fields.push({ fieldtype: "Read Only", label: "Assigned to",
 					fieldname: "assignees" });
 				fields.push({ fieldtype: "Column Break" });
 
-				if(me.kb.card_meta.due_date_field) {
-					fields.push(me.kb.card_meta.due_date_field);
+				if(card_meta.due_date_field) {
+					fields.push(card_meta.due_date_field);
 				}
 
+				var d = make_edit_dialog(card.title, fields);
 
-				var d = new frappe.ui.Dialog({
-					title: card.title,
-					fields: fields
-				});
-
-				if(me.kb.card_meta.due_date_field) {
-					d.set_value(me.kb.card_meta.due_date_field.fieldname,
-						doc[me.kb.card_meta.due_date_field.fieldname]);
-				}
-				if(me.kb.card_meta.description_field) {
-					d.set_value(me.kb.card_meta.description_field.fieldname,
-						doc[me.kb.card_meta.description_field.fieldname]);
-				}
-
-				// simplify editor appearance
-				d.$wrapper.find(".text-editor").css("height", "60px");
-				d.$wrapper.find(".frappe-list-toolbar").hide();
-
-				// assignees
-				var assignees = "", html = "";
-				if(card.assigned_list.length) {
-					card.assigned_list.forEach(function(a) {
-						assignees += a + ",";
-						html += frappe.avatar(a);
-					});
-					d.set_value("assignees", assignees);
-				}
-				html += '<a class="strong add-assignment">\
-					Assign <i class="octicon octicon-plus" style="margin-left: 2px;"></i></a>';
-				d.$wrapper.find("[data-fieldname='assignees'] .control-value").hide().after(html);
-				d.$wrapper.find(".add-assignment").on("click", function() {
-
-					var ad = new frappe.ui.Dialog({
-						title: __("Assign to"),
-						fields: [
-							{ fieldtype: "Link", fieldname: "user", label: __("User"), options: "User"}
-						]
-					})
-					ad.set_primary_action(__("Save"), function() {
-						var assign_to = ad.fields_dict.user.get_value();
-						var args = {
-							description: d.fields_dict.description.get_value() || ""
-						}
-						var opts = {
-							method: "frappe.desk.form.assign_to.add",
-							doctype: me.kb.doctype,
-							docname: doc_name
-						}
-						frappe.ui.add_assignment(assign_to, args, opts);
-					})
-					ad.show()
-				})
-
-				// activity timeline
-				d.$wrapper.find('.modal-body').append("<div class='form-comments' style='padding:7px'>");
-				var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">\
-			 		<a class="edit-full">Edit in full page</a></div>').appendTo(d.$wrapper.find('.modal-body'));
-				$link.on('click', function() {
-					frappe.set_route("Form", me.kb.doctype, doc_name);
-				});
-				var tl = new frappe.ui.form.Timeline({
-					parent: d.$wrapper.find(".form-comments"),
-					frm: {
-						doctype: me.kb.doctype,
-						get_docinfo: function() {
-							return frappe.model.get_docinfo(me.kb.doctype, doc_name)
-						},
-						doc: doc,
-						sidebar: {
-							refresh_comments: function() {}
-						}
+				// set fields into dialog from doc
+				fields.forEach(function(df) {
+					var value = doc[df.fieldname];
+					if(value) {
+						d.set_value(df.fieldname, value);
 					}
 				});
-				tl.wrapper.addClass('in-dialog');
-				tl.refresh();
+
+				// assignees
+				make_assignees();
+
+				// activity timeline
+				make_timeline();
 
 				d.set_primary_action(__('Save'), function() {
 					if(d.working) return;
 					var data = d.get_values(true);
-					$.extend(data, { docname: doc_name, doctype: me.kb.doctype });
+					$.extend(data, { docname: card.name, doctype: card.doctype });
 					d.working = true;
-					frappe.call({
-						method: "frappe.client.bulk_update",
-						args: { docs: [data] },
-						callback: function(r) {
-							d.hide();
-							console.log(r);
-						},
-						always: function() {
-							d.working = false;
-						},
-						freeze: true
+					actions.update_doc(data, function() {
+						d.working = false;
 					});
 				});
 				d.show();
-				me.edit_dialog = d;
 			});
 		});
-	},
-	new_card: function(card_title) {
-		var me = this;
-		var doc = frappe.model.get_new_doc(me.kb.doctype);
+	}
 
-		var field = me.kb.card_title_field, quick_entry = me.kb.card_quick_entry;
+	function get_doc() {
+		var defer = new $.Deferred();
+		frappe.model.with_doc(card.doctype, card.name, function() {
+			var doc = frappe.get_doc(card.doctype, card.name);
+			self.doc = doc;
+			defer.resolve(doc);
+		});
+		return defer.promise();
+	}
 
-		if(field && !quick_entry) {
-			var doc_fields = {};
-			doc_fields[field.fieldname] = card_title;
-			doc_fields[me.kb.board.field_name] = me.title;
-			me.kb.board.filters_array.forEach(function(f) {
-				if(f[2]!=="=") return;
-				doc_fields[f[1]] = f[3];
+	function make_edit_dialog(title, fields) {
+		self.dialog = new frappe.ui.Dialog({
+			title: title,
+			fields: fields
+		});
+
+		self.dialog.$wrapper.on("input", function() {
+			console.log('changed')
+		})
+		return self.dialog;
+	}
+
+	function make_assignees() {
+		var d = self.dialog;
+
+		var assignees = "", html = "";
+		if(card.assigned_list.length) {
+			card.assigned_list.forEach(function(a) {
+				html += frappe.avatar(a);
 			});
-
-			if(quick_entry) {
-				frappe.route_options = {};
-				$.extend(frappe.route_options, doc_fields);
-				frappe.new_doc(me.kb.doctype, doc);
-			} else {
-				$.extend(doc, doc_fields);
-				me.insert_doc(doc);
-			}
 		}
-	},
-	insert_doc: function(doc) {
-		var me = this;
-		frappe.call({
-			method: "frappe.client.insert",
-			args: {
-				doc: doc
-			},
-			callback: function(r) {
-				frappe.model.clear_doc(doc.doctype, doc.name);
-				show_alert({message:__("Saved"), indicator:'green'}, 1);
-			}
-		});
-	},
-});
+		html += '<a class="strong add-assignment">\
+			Assign <i class="octicon octicon-plus" style="margin-left: 2px;"></i></a>';
 
-//KanbanBoardCard
-frappe.views.KanbanBoardCard_old = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		this.prepare();
-	},
-	prepare: function() {
-		this.$kanban_card = $(frappe.render_template('kanban_card',
-			{
-				name: this.name,
-				title: this.title
-			}))
-			.appendTo(this.wrapper);
-	},
-	set_column: function(column) {
-		this.column = column;
-		this.update_column();
-	},
-	update_column: function(value) {
-		frappe.call({
-			method: "frappe.client.set_value",
-			args: {
-				doctype: this.kb.doctype,
-				name: this.name,
-				fieldname: this.kb.board.field_name,
-				value: value || this.column
-			},
-			callback: function() {
-				show_alert({message:__("Saved"), indicator:'green'}, 1);
+		d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
+		d.$wrapper.find(".add-assignment").on("click", function() {
+			if(self.assign_to_dialog) {
+				self.assign_to_dialog.show();
+				return;
+			}
+			show_assign_to_dialog();
+		});
+	}
+
+	function show_assign_to_dialog() {
+		var ad = new frappe.ui.Dialog({
+			title: __("Assign to"),
+			fields: [
+				{ fieldtype: "Link", fieldname: "user", label: __("User"), options: "User"},
+				{ fieldtype: "Small Text", fieldname: "description", label: __("Description")}
+			]
+		})
+		ad.set_primary_action(__("Save"), function() {
+			var assign_to = ad.fields_dict.user.get_value();
+			var description = ad.fields_dict.description.get_value();
+			actions.add_assignee(assign_to, description, card, ad, function() {
+				card.assigned_list.push(assign_to);
+				make_assignees();
+				self.timeline.refresh(); // does not work
+			});
+		});
+		ad.show();
+		self.assign_to_dialog = ad;
+	}
+
+	function make_timeline() {
+		var d = self.dialog;
+		// timeline wrapper
+		d.$wrapper.find('.modal-body').append('<div class="form-comments" style="padding:7px">');
+
+		// edit in full page button
+		$('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">\
+			<a class="edit-full">'+__('Edit in full page')+'</a></div>')
+			.appendTo(d.$wrapper.find('.modal-body'))
+			.on('click', function () {
+				frappe.set_route("Form", card.doctype, card.name);
+			});
+
+		var tl = new frappe.ui.form.Timeline({
+			parent: d.$wrapper.find(".form-comments"),
+			frm: {
+				doctype: card.doctype,
+				get_docinfo: function () {
+					return frappe.model.get_docinfo(card.doctype, card.name)
+				},
+				doc: self.doc,
+				sidebar: {
+					refresh_comments: function () { }
+				}
 			}
 		});
-	},
-});
+		tl.wrapper.addClass('in-dialog');
+		tl.wrapper.find('.timeline-new-email').remove();
+		tl.refresh();
+		self.timeline = tl;
+	}
+
+	init();
+}
