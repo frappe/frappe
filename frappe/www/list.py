@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint, quoted
 from frappe.website.render import resolve_path
-from frappe.model.document import get_controller
+from frappe.model.document import get_controller, Document
 from frappe import _
 
 no_cache = 1
@@ -61,7 +61,9 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 	for doc in raw_result:
 		doc.doctype = doctype
 		new_context = frappe._dict(doc=doc, meta=meta)
-		new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+
+		if not isinstance(new_context.doc, Document):
+			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if not frappe.flags.in_test:
 			new_context["pathname"] = frappe.local.request.path.strip("/ ")
