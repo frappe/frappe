@@ -180,7 +180,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 				var doc = r.docs && r.docs[0];
 				if(doc) {
-					frappe.ui.form.update_calling_link(doc.name);
+					frappe.ui.form.update_calling_link(doc);
 				}
 			}
 		})
@@ -193,18 +193,18 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 	}
 }
 
-frappe.ui.form.update_calling_link = function(name) {
-	if(frappe._from_link) {
+frappe.ui.form.update_calling_link = function(newdoc) {
+	if(frappe._from_link && newdoc.doctype===frappe._from_link.df.options) {
 		var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
 		// set value
 		if (doc && doc.parentfield){
 			//update values for child table
 			$.each(frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows, function(index, field) {
 				if(field.doc && field.doc.name===frappe._from_link.docname){
-					frappe._from_link.set_value(name);
+					frappe._from_link.set_value(olddoc.name);
 			}});
 		} else {
-			frappe._from_link.set_value(name);
+			frappe._from_link.set_value(newdoc.name);
 	    }
 
 		// refresh field
