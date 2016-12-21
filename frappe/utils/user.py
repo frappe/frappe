@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _dict
 import frappe.share
+from frappe.utils import cint
 
 class UserPermissions:
 	"""
@@ -320,7 +321,9 @@ def disable_users(limits=None):
 			order by creation desc""")
 
 		if len(active_users) > limits.get('users'):
-			for user in active_users[: -limits.get('users')]:
+			index = -1 * cint(limits.get('users'))
+
+			for user in active_users[:index]:
 				frappe.db.set_value("User", user, 'enabled', 0)
 
 	frappe.db.commit()
