@@ -27,7 +27,11 @@ def execute_cmd(cmd, from_async=False):
 		cmd = hook
 		break
 
-	method = get_attr(cmd)
+	try:
+		method = get_attr(cmd)
+	except:
+		frappe.throw('Invalid method', frappe.NotFound)
+
 	if from_async:
 		method = method.queue
 
