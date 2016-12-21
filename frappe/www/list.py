@@ -62,7 +62,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 		doc.doctype = doctype
 		new_context = frappe._dict(doc=doc, meta=meta)
 
-		if not isinstance(new_context.doc, Document):
+		if not list_context.get_list and not isinstance(new_context.doc, Document):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if not frappe.flags.in_test:

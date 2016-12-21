@@ -41,22 +41,25 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
-	from frappe.utils import cstr
 
 	if not lang:
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg).strip()
+	msg = as_unicode(msg).strip()
 
 	return get_full_dict(local.lang).get(msg) or msg
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
-	if text and not isinstance(text, unicode):
+	if isinstance(text, unicode):
+		return text
+	elif text==None:
+		return ''
+	elif isinstance(text, basestring):
 		return unicode(text, encoding)
 	else:
-		return text or ''
+		return unicode(text)
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
@@ -232,11 +235,11 @@ def errprint(msg):
 	"""Log error. This is sent back as `exc` in response.
 
 	:param msg: Message."""
-	from utils import cstr
+	msg = as_unicode(msg)
 	if not request or (not "cmd" in local.form_dict):
-		print cstr(msg)
+		print msg.encode('utf-8')
 
-	error_log.append(cstr(msg))
+	error_log.append(msg)
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -246,8 +249,7 @@ def log(msg):
 		if conf.get("logging") or False:
 			print repr(msg)
 
-	from utils import cstr
-	debug_log.append(cstr(msg))
+	debug_log.append(as_unicode(msg))
 
 def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False):
 	"""Print a message to the user (via HTTP response).
@@ -852,13 +854,12 @@ def get_file_json(path):
 
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
-	from frappe.utils import cstr
 	if isinstance(path, unicode):
 		path = path.encode("utf-8")
 
 	if os.path.exists(path):
 		with open(path, "r") as f:
-			return cstr(f.read())
+			return as_unicode(f.read())
 	elif raise_not_found:
 		raise IOError("{} Not Found".format(path))
 	else:

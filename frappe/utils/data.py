@@ -271,15 +271,8 @@ def cint(s):
 	except: num = 0
 	return num
 
-def cstr(s):
-	if isinstance(s, unicode):
-		return s
-	elif s==None:
-		return ''
-	elif isinstance(s, basestring):
-		return unicode(s, 'utf-8')
-	else:
-		return unicode(s)
+def cstr(s, encoding='utf-8'):
+	return frappe.as_unicode(s, encoding)
 
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
