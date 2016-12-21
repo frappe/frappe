@@ -474,9 +474,16 @@ def validate_fields(meta):
 			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
 
 	def check_sort_field(meta):
+		'''Validate that sort_field(s) is a valid field'''
 		if meta.sort_field:
-			if not meta.sort_field in fieldname_list + list(default_fields):
-				frappe.throw(_("Sort field must be a valid fieldname"), InvalidFieldNameError)
+			sort_fields = [meta.sort_field]
+			if ','  in meta.sort_field:
+				sort_fields = [d.split()[0] for d in meta.sort_field.split(',')]
+
+			for fieldname in sort_fields:
+				if not fieldname in fieldname_list + list(default_fields):
+					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
+						InvalidFieldNameError)
 
 
 	fields = meta.get("fields")
