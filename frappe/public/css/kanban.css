@@ -17,6 +17,11 @@
 .kanban .kanban-column-title {
   margin-top: 0;
   margin-bottom: 15px;
+  position: relative;
+}
+.kanban .kanban-column-title .column-options {
+  position: absolute;
+  right: 0px;
 }
 .kanban .kanban-card-wrapper:hover {
   cursor: pointer;
@@ -25,17 +30,15 @@
 .kanban .kanban-card-wrapper:hover .kanban-card {
   background-color: #f9f9f9;
 }
-.kanban .kanban-card-wrapper.ghost-card .kanban-card {
-  display: none;
+.kanban .sortable-ghost > .kanban-card {
+  background: #ccc !important;
+  color: transparent;
 }
-.kanban .kanban-card-wrapper.ghost-card .kanban-card-placeholder {
-  background-color: #ccc;
-  min-height: 32px;
-  border-radius: 3px;
-  margin-top: 10px;
+.kanban .sortable-ghost > .kanban-card .list-comment-count {
+  color: transparent !important;
 }
-.kanban .kanban-card-wrapper.chosen-card .kanban-card {
-  transform: rotate(2deg);
+.kanban .sortable-ghost > .kanban-card .avatar-frame {
+  background: transparent !important;
 }
 .kanban .kanban-card {
   background-color: #fff;
