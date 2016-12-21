@@ -46,7 +46,10 @@ def make_page_context(path):
 		raise frappe.DoesNotExistError
 
 	context.doctype = context.ref_doctype
-	context.title = context.page_title
+
+	if context.page_title:
+		context.title = context.page_title
+
 	context.pathname = frappe.local.path
 
 	return context
