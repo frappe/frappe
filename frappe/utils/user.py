@@ -234,7 +234,8 @@ def get_system_managers(only_name=False):
 		where docstatus < 2 and enabled = 1
 		and name not in ({})
 		and exists (select * from tabUserRole ur
-			where ur.parent = p.name and ur.role="System Manager")""".format(", ".join(["%s"]*len(STANDARD_USERS))),
+			where ur.parent = p.name and ur.role="System Manager")
+		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)
 
 	if only_name:
@@ -316,14 +317,23 @@ def disable_users(limits=None):
 		return
 
 	if limits.get('users'):
+		system_manager = get_system_managers(only_name=True)[-1]
+
+		#exclude system manager from active user list
 		active_users =  frappe.db.sql_list("""select name from tabUser
-			where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
-			order by creation desc""")
+			where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1
+			order by creation desc""", system_manager)
 
-		if len(active_users) > limits.get('users'):
-			index = -1 * cint(limits.get('users'))
+		user_limit = cint(limits.get('users')) - 1
 
-			for user in active_users[:index]:
+		if len(active_users) > user_limit:
+
+			# if allowed user limit 1 then deactivate all additional users
+			# else extract additional user from active user list and deactivate them
+			if cint(limits.get('users')) != 1:
+				active_users = active_users[:-1 * user_limit]
+
+			for user in active_users:
 				frappe.db.set_value("User", user, 'enabled', 0)
 
 	frappe.db.commit()
