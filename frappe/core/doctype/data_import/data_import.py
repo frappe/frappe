@@ -23,36 +23,39 @@ class DataImport(Document):
 
 	def on_update(self):
 		# self.get_data_list()
+		if self.import_file:
+			file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file			
+
 		if self.import_file and not self.flag_file_preview:# and not flag_preview_data:
-			self.set_preview_data()
+			self.set_preview_data(file_path)
+
 		if self.preview_data and self.selected_columns and self.selected_row:
-			self.insert_into_db()
+			self.insert_into_db(file_path)
 			self.docstatus = 1
 
-	def insert_into_db(self):
+	def insert_into_db(self, file_path):
 		error = False
 		selected_columns = json.loads(self.selected_columns)
-		doc = frappe.new_doc(self.reference_doctype)
+		ref_doc = frappe.new_doc(self.reference_doctype)
 
-		for field in doc.meta.fields:
+		for field in ref_doc.meta.fields:
 			if field.reqd == 1 and field.fieldname not in selected_columns:
 				frappe.throw("Please select all required fields to insert")
 
-		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
 		wb = load_workbook(filename=file_path, read_only=True)
 		ws = wb.active
 
 		start =  int(self.selected_row)
 		for row in ws.iter_rows(min_row=start+1):
 			try:
-				doc = frappe.new_doc(self.reference_doctype)
+				refr_doc = frappe.new_doc(self.reference_doctype)
 				i = 0
 				for cell in row:
 					if selected_columns[i]:
-						setattr(doc, selected_columns[i], cell.value)
+						setattr(refr_doc, selected_columns[i], cell.value)
 					i = i + 1
-				doc.insert()
-				doc.save()
+				refr_doc.insert()
+				refr_doc.save()
 			except Exception, e:
 				error = True
 			if error:
@@ -60,8 +63,7 @@ class DataImport(Document):
 			else:
 				frappe.db.commit()
 
-	def set_preview_data(self):
-		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
+	def set_preview_data(self, file_path):
 		wb = load_workbook(filename=file_path)
 		ws = wb.active
 
