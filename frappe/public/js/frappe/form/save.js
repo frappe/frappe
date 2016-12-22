@@ -201,7 +201,7 @@ frappe.ui.form.update_calling_link = function(newdoc) {
 			//update values for child table
 			$.each(frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows, function(index, field) {
 				if(field.doc && field.doc.name===frappe._from_link.docname){
-					frappe._from_link.set_value(olddoc.name);
+					frappe._from_link.set_value(newdoc.name);
 			}});
 		} else {
 			frappe._from_link.set_value(newdoc.name);
