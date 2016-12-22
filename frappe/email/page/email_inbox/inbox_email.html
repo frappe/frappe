@@ -1,0 +1,60 @@
+<div class="pull-left media-body" style="max-width: 100%; padding-right: 0px;min-height: 200px;">
+    <div class="media-content-wrapper">
+            <div class="comment-header small" >
+                <span title="{%= data.sender %}">{%= data.sender_full_name?data.sender_full_name:data.sender %}</span>
+                <span class="text-muted" style="font-weight: normal;">
+                    &ndash; {%= data.comment_on %}</span>
+                {% if(data.doctype=="Communication") { %}
+                    {% if (frappe.model.can_read(\'Communication\')) { %}
+                    <a href="#Form/{%= data.doctype %}/{%= data.name %}"
+                        class="text-muted">
+                    {% } %}
+
+                        {% if (data.delivery_status) {
+                            if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
+                                var indicator_class = "green";
+                            } else {
+                                var indicator_class = "red";
+                            }
+                        %}
+                        <span class="text-muted">&ndash;</span>
+                        <span class="indicator-right {%= indicator_class %} delivery-status-indicator"
+                            title="{%= data.delivery_status %}">
+                            {%= data.delivery_status %}</span>
+
+                        {% } else { %}
+                            {% if (frappe.model.can_read(\'Communication\')) { %}
+                            <span class="text-muted">&ndash;</span>
+                            {%= __("Details") %}
+                            {% } %}
+                        {% } %}
+
+                    {% if (frappe.model.can_read(\'Communication\')) { %}
+                    </a>
+                    {% } %}
+                {% } %}
+            </div>
+
+        {% if(data.attachments && data.attachments.length) { %}
+        <div style="margin: 10px 0px">
+            {% $.each(data.attachments, function(i, a) { %}
+            <div class="ellipsis">
+                <a href="{%= a.file_url.replace(/#/g, \'%23\') %}" class=" small" target="_blank">
+                    <i class="icon-paperclip"></i>
+                    {%= a.file_url.split("/").slice(-1)[0] %}
+                    {% if (a.is_private) { %}
+                    <i class="icon icon-lock text-warning"></i>
+                    {% } %}
+                </a>
+            </div>
+            {% }); %}
+        </div>
+        {% } %}
+
+        <div class="reply">
+            <div>
+                {%= data.comment_html %}
+            </div>
+        </div>
+    </div>
+</div>

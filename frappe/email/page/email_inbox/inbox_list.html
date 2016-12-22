@@ -1,0 +1,46 @@
+<div class="list-row row-named" data-name="{%= data.name %}" style=" {%= data.seen ? "font-weight:normal" : "font-weight:bold" %}">
+    <div class="row doclist-row  has-checkbox">
+        <div class="col-mg-5  col-sm-12  list-row-left">
+            <div class="row">
+                <div class="col-sm-2 list-col ellipsis col-xs-12">
+                    <span class="list-value">
+                        <input class="list-delete noclick" type="checkbox" style="margin: 0 7px 0 0; vertical-align: middle;">
+                        {% if (data.sender_full_name){var sender = data.sender_full_name} else {var sender =  data.sender} %}
+                        <a class="grey"  title="{%= sender %}">{%= sender %}</a>
+                    </span>
+                </div>
+                <div class="col-sm-4 list-col ellipsis  col-xs-12">
+                    <span class="list-value">
+                        <a class="grey" title="{%= data.name %}">{%= data.subject %}</a>
+                    </span>
+                </div>
+
+                <div class="col-sm-2 list-col ellipsis hidden-xs">
+                    <span class="list-value">
+                        <a class="h6 text-muted grey noclick" data-filter="timeline_doctype,=,{%= data.timeline_doctype %}" title="Linked Doctype: {%= data.reference_doctype %}" href="#Form/{%= data.timeline_doctype %}/{%= data.timeline_name %}">{%= data.timeline_label%}</a>
+                    </span>
+                </div>
+                <div class="col-sm-2 list-col ellipsis hidden-xs">
+                    <span class="list-value">
+                        <i class="h6 icon-link text-muted relink-link pull-right" style="padding: 0px 0px; margin-right: 10px; font-size: 1.1em;"></i>
+                        <a class="text-muted grey noclick reference-document" title="Linked Doctype: {%= data.reference_doctype %}" href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">{%= data.reference_name %}</a>
+                    </span>
+                </div>
+                <div class="col-sm-1 list-col ellipsis hidden-xs">
+                    <span class="list-value">
+                        <span>
+                            {% if(data.has_attachment){ %}
+                            <i class="icon-paperclip icon-large"></i>
+                            {% } %}
+                        </span>
+                    </span>
+                </div>
+                <div class="col-sm-1 list-col ellipsis  hidden-xs" >
+                    <span class="list-value">
+                        {%= comment_when(data.communication_date,true) %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

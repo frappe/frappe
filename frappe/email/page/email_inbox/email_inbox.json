@@ -1,0 +1,23 @@
+{
+ "content": null, 
+ "creation": "2016-04-14 10:22:57.308665", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "fa-inbox", 
+ "idx": 0, 
+ "modified": "2016-12-22 14:13:41.182601", 
+ "modified_by": "Administrator", 
+ "module": "Email", 
+ "name": "Email Inbox", 
+ "owner": "Administrator", 
+ "page_name": "Email Inbox", 
+ "roles": [
+  {
+   "role": "Email User"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Email Inbox"
+}

@@ -31,9 +31,6 @@ class EmailAccount(Document):
 			self.email_account_name = self.email_id.split("@", 1)[0]\
 				.replace("_", " ").replace(".", " ").replace("-", " ").title()
 
-			if self.service:
-				self.email_account_name = self.email_account_name + " " + self.service
-
 		self.name = self.email_account_name
 
 	def validate(self):
@@ -82,6 +79,15 @@ class EmailAccount(Document):
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		self.there_must_be_only_one_default()
+		if self.awaiting_password:
+			# push values to user_emails
+			frappe.db.sql("""UPDATE `tabUser Emails` SET awaiting_password = 1
+						  WHERE email_account = %(account)s""", {"account": self.name})
+		else:
+			frappe.db.sql("""UPDATE `tabUser Emails` SET awaiting_password = 0
+									  WHERE email_account = %(account)s""", {"account": self.name})
+		from frappe.core.doctype.user.user import ask_pass_update
+		ask_pass_update()
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
