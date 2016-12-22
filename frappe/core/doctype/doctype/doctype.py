@@ -60,17 +60,10 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
-<<<<<<< HEAD
 		if not self.is_new():
-			self.setup_fields_to_fetch()
-=======
+			self.setup_fields_to_fetch() 
 		self.update_fields_to_fetch()
-		self.sync_global_search()
-<<<<<<< HEAD
->>>>>>> 2ca175a... Display result as rudimentary list, rebuild old doctypes
-=======
 		self.before_update = frappe.get_doc('DocType', self.name)
->>>>>>> 168d1f7... Media view, child tables, delete document updates, searchable fields
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
