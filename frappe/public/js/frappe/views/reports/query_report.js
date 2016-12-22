@@ -585,8 +585,6 @@ frappe.views.QueryReport = Class.extend({
 			item._collapsed = collapse;
 			me.dataView.updateItem(item.id, item);
 		}
-		$(".collapse-all").prop('disabled', collapse);
-		$(".expand-all").prop('disabled', !collapse);
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
@@ -751,10 +749,8 @@ frappe.views.QueryReport = Class.extend({
 				if (item) {
 					if (!item._collapsed) {
 						item._collapsed = true;
-						$(".expand-all").prop('disabled', false);
 					} else {
 						item._collapsed = false;
-						$(".collapse-all").prop('disabled', false);
 					}
 
 					me.dataView.updateItem(item.id, item);
