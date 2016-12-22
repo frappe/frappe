@@ -469,13 +469,9 @@ frappe.search.verbs = [
 		console.log("parts[1]: " + parts[1]);
 		if(parts.length <2) return;
 
-
-		var formatted_value = __('foobar');
-		var val, rendered, path;
-		var results = "";
-		//var a = ["a", "b", "c", "d", "e", "f", "g", "h"];
-		//var a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"];
-		var a = [];
+		var val, rendered_keyword, path;
+		var rendered_results = "";
+		var results = [];
 		var initial_length = 6;
 		var more_length = 5;
 
@@ -488,46 +484,33 @@ frappe.search.verbs = [
 
 				if(r.message){
 					r.message.forEach(function(msg){
-						
-						result = "";
-						data = [];
-						console.log(msg);
+						content = [];
 						val = msg.content;
 						index = val.indexOf(parts[1]);
 						path = '#Form/' + msg.doctype + '/' + msg.name;
-						// rendered = val.substring(0, index) + parts[1].bold() + val.substring((index + parts[1].length), val.length);
 						var regEx = new RegExp("("+ parts[1] +")", "ig");
 						var replaceMask = parts[1].bold();
-						rendered = val.replace(regEx, '<b>$1</b>');
-						console.log(rendered);
-						// result.push(path);
-						// result.push(rendered);
-						result += ('<a href="' + path + '" class="list-group-item"><h4 class="list-group-item-heading">' + msg.doctype +": " + msg.name + '</h4><p class="list-group-item-text">' + rendered + "</p></a>");
-						//results += result;
-						data = [path, msg.doctype, msg.name, rendered];
-						a.push(data);
+						rendered_keyword = val.replace(regEx, '<b>$1</b>');
+						content = [path, msg.doctype, msg.name, rendered_keyword];
+						results.push(content);
 
 					});
 				}
-				
 
-				// results = "";
-				console.log("a.length: ", a.length);
-				if(a.length <= initial_length) {
-					a.forEach(function(e) {
-						//results += '<a href="#" class="list-group-item list-group-item-action">' + e + '</a>';
-						results += ('<a href="' + e[0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + e[1] +": " + e[2] + '</h4><p class="list-group-item-text">' + e[3] + "</p></a>");
+				if(results.length <= initial_length) {
+					results.forEach(function(e) {
+						rendered_results += ('<a href="' + e[0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + e[1] +": " + e[2] + '</h4><p class="list-group-item-text">' + e[3] + "</p></a>");
 
 					});
-					results += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
-					console.log("Results:", results);
+					rendered_results += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
+					console.log("Results:", rendered_results);
 
 				} else {
 					for (var i = 0; i < initial_length; i++){
-						results += ('<a href="' + a[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + a[0][1] +": " + a[0][2] + '</h4><p class="list-group-item-text">' + a[0][3] + "</p></a>");
-						a.splice(0, 1);
+						rendered_results += ('<a href="' + results[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + results[0][1] +": " + results[0][2] + '</h4><p class="list-group-item-text">' + results[0][3] + "</p></a>");
+						results.splice(0, 1);
 					};
-					results += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
+					rendered_results += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
 				}
 
 			}
@@ -537,25 +520,19 @@ frappe.search.verbs = [
 		frappe.search.options.push({
 			label: __("Search: " + parts[1].bold()),
 			value: __("Search: " + parts[1].bold()),
-			match: 42,
 			onclick: function(match) {
-					msgprint('<div class="list-group" style="height: auto; max-height: 600px; overflow-y: scroll">' + results + '</div>', "Search Results");
+					msgprint('<div class="list-group" style="height: auto; max-height: 600px; overflow-y: scroll">' + rendered_results + '</div>', "Search Results");
 
-
-					if(a.length > 0) {
+					if(results.length > 0) {
 						$("#show-more").on("click", function(){
-							//$(".list-group").append("<span>Show more results</span>");
-							
-							var more_results = "";
-							for(var i = 0; (i < more_length) && (a.length !== 0); i++) {
-								more_results += ('<a href="' + a[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + a[0][1] +": " + a[0][2] + '</h4><p class="list-group-item-text">' + a[0][3] + "</p></a>");
-								//console.log(a);
-								a.splice(0, 1);	
+							var more_rendered_results = "";
+							for(var i = 0; (i < more_length) && (results.length !== 0); i++) {
+								more_rendered_results += ('<a href="' + results[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + results[0][1] +": " + results[0][2] + '</h4><p class="list-group-item-text">' + results[0][3] + "</p></a>");
+								results.splice(0, 1);	
 							}
-							//$(".list-group").append(more_results);
-							$(more_results).insertAfter('.list-group-item:last');
+							$(more_rendered_results).insertAfter('.list-group-item:last');
 
-							if(a.length === 0){
+							if(results.length === 0){
 								$("#show-more").html('No more results');
 							}								
 							
