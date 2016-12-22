@@ -577,14 +577,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	render_rows_Kanban: function(values) {
 		var me = this;
-		frappe.require('assets/frappe/js/frappe/views/kanban/kanban_view.js', function() {
-			me.kanban = new frappe.views.KanbanBoard({
-				doctype: me.doctype,
-				board_name: me.kanban_board,
-				cards: values,
-				wrapper: me.wrapper.find('.result-list'),
-				cur_list: me
-			});
+		frappe.require(
+			['assets/frappe/js/frappe/views/kanban/fluxify.min.js',
+			'assets/frappe/js/frappe/views/kanban/kanban_view.js'],
+			function() {
+				me.kanban = new frappe.views.KanbanBoard({
+					doctype: me.doctype,
+					board_name: me.kanban_board,
+					cards: values,
+					wrapper: me.wrapper.find('.result-list'),
+					cur_list: me
+				});
 		});
 	},
 

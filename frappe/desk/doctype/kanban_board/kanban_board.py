@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe.model.document import Document
 
 class KanbanBoard(Document):
@@ -20,7 +21,7 @@ def add_column(board_name, column_title):
 		color=""
 	))
 	doc.save()
-	return doc
+	return doc.columns
 
 @frappe.whitelist()
 def delete_column(board_name, column_title):
@@ -31,5 +32,17 @@ def delete_column(board_name, column_title):
 	doc.set("columns", doc.get("columns", {"column_name": ["not in", [column_title]]}))
 	frappe.db.sql("""delete from `tabKanban Board Column` 
 		where parent = %s and column_name = %s""", (doc.name, column_title))
+	
+	cards = frappe.get_list(doc.reference_doctype, filters={ doc.field_name: column_title })
+	archive_cards(cards, doc.field_name)
 
-	return doc
+	return doc.columns
+
+def archive_cards(cards, field):
+	'''
+	Set's column value to 'Archived'
+	'''
+	for doc in docs:
+		doc.set(field, "Archived")
+		doc.save()
+	
