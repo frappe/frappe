@@ -94,7 +94,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_from:function(){
 		var me = this;
 		frappe.call({
-			method: 'inbox.email_inbox.page.email_inbox.get_accounts',
+			method: 'frappe.email.page.email_inbox.get_accounts',
 			args: {user: frappe.user["name"]},
 			async: false,
 			callback: function (list) {
