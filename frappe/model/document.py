@@ -787,7 +787,6 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
-		frappe.msgprint("Update document after submit")
 		update_global_search(self)
 <<<<<<< 9bed558186668a0f7bb046f625cb382f8547c74f
 
