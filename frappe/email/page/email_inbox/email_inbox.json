@@ -3,14 +3,14 @@
  "creation": "2016-04-14 10:22:57.308665", 
  "docstatus": 0, 
  "doctype": "Page", 
- "icon": "fa-inbox", 
+ "icon": "fa fa-inbox", 
  "idx": 0, 
- "modified": "2016-12-22 14:13:41.182601", 
+ "modified": "2016-12-22 17:19:55.284608", 
  "modified_by": "Administrator", 
  "module": "Email", 
- "name": "Email Inbox", 
+ "name": "email_inbox", 
  "owner": "Administrator", 
- "page_name": "Email Inbox", 
+ "page_name": "email_inbox", 
  "roles": [
   {
    "role": "Email User"

@@ -1,4 +1,4 @@
-frappe.pages['Email Inbox'].on_page_load = function(wrapper) {
+frappe.pages['email_inbox'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Email Inbox',
@@ -16,7 +16,7 @@ frappe.pages['Email Inbox'].on_page_load = function(wrapper) {
 	});
 };
 
-frappe.pages['Email Inbox'].refresh = function(wrapper) {
+frappe.pages['email_inbox'].refresh = function(wrapper) {
 	if (wrapper.inbox) {
 		wrapper.Inbox.refresh()
 	}
