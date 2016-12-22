@@ -325,7 +325,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$input && this.$input.on("change", this.change || function(e) {
 			if(me.df.change || me.df.onchange) {
 				// onchange event specified in df
-				(me.df.change || me.df.onchange).apply(this, e);
+				(me.df.change || me.df.onchange).apply(this, [e]);
 				return;
 			}
 			if(me.doctype && me.docname && me.get_value) {
@@ -601,22 +601,30 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
-		altFormat:'yy-mm-dd',
-		changeYear: true,
-		changeMonth: true,
-		yearRange: "-70Y:+10Y",
-		showOtherMonths: true,
-		selectOtherMonths: true
+		language: "en",
+		minDate: moment().add(-70, 'year').toDate(),
+		maxDate: moment().add(10, 'year').toDate(),
+		autoClose: true
 	},
 	make_input: function() {
 		this._super();
-		this.set_t_for_today();
+		this.set_date_options();
 		this.set_datepicker();
+		this.set_t_for_today();
+	},
+	set_date_options: function() {
+		var me = this;
+		var date_format =
+			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
+		this.datepicker_options.dateFormat = date_format;
+
+		this.datepicker_options.onSelect = function(dateObj) {
+			me.set_value(me.get_value())
+		}
 	},
 	set_datepicker: function() {
-		this.datepicker_options.dateFormat =
-			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
+		this.datepicker = this.$input.data('datepicker');
 	},
 	set_t_for_today: function() {
 		var me = this;
@@ -629,70 +637,47 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	parse: function(value) {
 		if(value) {
-			value = dateutil.user_to_str(value);
+			return dateutil.user_to_str(value);
 		}
-		return value;
 	},
 	format_for_input: function(value) {
 		if(value) {
-			value = dateutil.str_to_user(value);
+			return dateutil.str_to_user(value);
 		}
-		return value || "";
+		return "";
 	},
 	validate: function(value, callback) {
-		if(!dateutil.validate(value)) {
-			if(value) {
-				msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
-			}
+		if(value && !dateutil.validate(value)) {
+			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 			return;
 		}
 		return callback(value);
 	}
-})
-
-import_timepicker = function(callback) {
-	frappe.require([
-		"assets/frappe/js/lib/jquery/jquery.ui.slider.min.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js"
-	], callback);
-}
+});
 
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.$input.timepicker({
-				timeFormat: 'HH:mm:ss',
-			});
-			me.refresh();
+		this._super();
+		this.$input.datepicker({
+			timepicker: true,
+			onlyTimepicker: true,
+			timeFormat: "hh:ii",
+			onSelect: function(dateObj) {
+				me.set_value(dateObj);
+			}
 		});
+		this.datepicker = this.$input.data('datepicker');
+		this.refresh();
 	}
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
-	set_datepicker: function() {
-		var now = new Date();
-		$.extend(this.datepicker_options, {
-			"timeFormat": "HH:mm:ss",
-			"dateFormat": (frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy'),
-			"hour": now.getHours(),
-			"minute": now.getMinutes()
-		});
-
-		this.$input.datetimepicker(this.datepicker_options);
-	},
-	make_input: function() {
-		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.refresh();
-		})
+	set_date_options: function() {
+		this._super();
+		this.datepicker_options.timepicker = true;
+		this.datepicker_options.timeFormat = "hh:ii";
 	},
 	parse: function(value) {
 		if(value) {
@@ -705,76 +690,37 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		if(value) {
 			// convert and format
 			value = dateutil.str_to_user(dateutil.convert_to_user_tz(value));
-
 		}
 		return value || "";
-	},
-
+	}
 });
 
 frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
-	
 	make_input: function() {
-		var me = this
 		var me = this;
-		var _super = this._super;
-		_super.apply(me);
-		import_daterangepicker(function() {
-			
-			me.refresh();
-			me.set_daterangepicker();
-			
-		});
+		this._super();
+		this.set_date_options();
+		this.set_datepicker();
+		this.refresh();
 	},
-	set_daterangepicker: function() {
-		var me = this
-		var daterangepicker_options = {
-			"autoApply": true,
-			"showDropdowns": me.df.show_dropdowns || true,
-			"showWeekNumbers": me.df.show_week_numbers || false,
-			"locale": {
-				"format": (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').toUpperCase(),
-				"firstDay": 1,
-				"cancelLabel": "Clear"
-			},
-			"linkedCalendars": false,
-			"alwaysShowCalendars": me.df.alwaysShowCalendars || true,
-			"cancelClass": "date-range-picker-cancel",
-			"autoUpdateInput": me.df.start_with_value || false,
-			"startDate": me.df.default_from ? moment(me.df.default_from, "YYYY-MM-DD"):false,
-			"endDate":me.df.default_to?moment(me.df.default_to, "YYYY-MM-DD"):false,
-			"minDate":me.df.mindate || undefined,
-			"maxDate":me.df.maxdate || undefined,
-			"ranges":me.df.ranges || {
-					'Today': [moment(), moment()],
-					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
-					'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-					'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-					'This Month': [moment().startOf('month'), moment().endOf('month')],
-					'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-					'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
-					'Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD"), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD")],
-					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
-			}
+	set_date_options: function() {
+		var me = this;
+		this.datepicker_options = {
+			language: "en",
+			range: true,
+			autoClose: true
 		}
-		
-		this.$input.daterangepicker(daterangepicker_options)
-			.on('apply.daterangepicker',function(ev,picker){
-				me.set_input(picker.startDate,picker.endDate)
-			if (me.applydaterange) {
-				me.applydaterange(ev, picker)
-			} else{
-				me.$input.trigger("change");
-			}
-		}).on('cancel.daterangepicker', function(ev, picker) {
-			if (me.canceldaterange) {
-				me.canceldaterange(ev, picker)
-			}
-		})
-		this.$input.find(".date-range-picker-cancel").removeClass("hide")
+		this.datepicker_options.dateFormat =
+			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
+		this.datepicker_options.onSelect = function(dateObj) {
+			me.set_value(dateObj);
+		}
 	},
-	set_input: function(value,value2) {
+	set_datepicker: function() {
+		this.$input.datepicker(this.datepicker_options);
+		this.datepicker = this.$input.data('datepicker');
+	},
+	set_input: function(value, value2) {
 		this.last_value = this.value;
 		if (value && value2) {
 			this.value = [value, value2];
@@ -783,42 +729,32 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		}
 		if (this.value) {
 			this.$input && this.$input.val(this.format_for_input(this.value[0], this.value[1]));
-		}else{
+		} else {
 			this.$input && this.$input.val("")
 		}
 		this.set_disp_area();
-		
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
 		if(value) {
-			vals = value.split(" ")
+			vals = value.split(",")
 			value = dateutil.user_to_obj(vals[0]);
 			value2 = dateutil.user_to_obj(vals[vals.length-1]);
 			return [value,value2];
 		}
-		
 	},
 	format_for_input: function(value,value2) {
 		if(value && value2) {
 			value = dateutil.str_to_user(value);
 			value2 = dateutil.str_to_user(value2);
-			return value + " - " + value2
+			return value + " to " + value2
 		}
-		
 		return "";
 	},
 	validate: function(value, callback) {
 		return callback(value);
 	}
-})
-
-import_daterangepicker = function(callback) {
-	frappe.require([
-		"assets/frappe/css/daterangepicker.css",
-		"assets/frappe/js/lib/daterangepicker.js"
-	], callback);
-}
+});
 
 frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	html_element: "textarea",
@@ -913,7 +849,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + __(this.df.label));
+			('<i class="'+this.df.icon+' fa-fw"></i> ') : "") + __(this.df.label));
 	}
 });
 
@@ -928,7 +864,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
 			<div class="ellipsis" style="display: inline-block; width: 90%;">\
-				<i class="icon-paper-clip"></i> \
+				<i class="fa fa-paper-clip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
 			<a class="close">&times;</a></div>')
@@ -1224,7 +1160,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		$('<div class="link-field ui-front" style="position: relative;">\
-			<input type="text" class="input-with-feedback form-control" autocomplete="off">\
+			<input type="text" class="input-with-feedback form-control">\
 			<span class="link-btn">\
 				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
 					<i class="octicon octicon-arrow-right"></i></a>\
@@ -1243,7 +1179,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				if(!me.$input.val()) {
-					me.$input.autocomplete("search", "");
+					me.$input.val("").trigger("input");
 				}
 			}, 500);
 		});
@@ -1259,7 +1195,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		var me = this;
 		this.setup_buttons();
-		this.setup_autocomplete();
+		this.setup_awesomeplete();
 		if(this.df.change) {
 			this.$input.on("change", function() {
 				me.df.change.apply(this);
@@ -1316,7 +1252,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return false;
 	},
-	setup_autocomplete: function() {
+	setup_awesomeplete: function() {
 		var me = this;
 		this.$input.on("blur", function() {
 			if(me.selected) {
@@ -1334,135 +1270,162 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.cache = {};
-		this.$input.autocomplete({
-			minLength: 0,
-			autoFocus: true,
-			source: function(request, response) {
-				var doctype = me.get_options();
-				if(!doctype) return;
-				if (!me.$input.cache[doctype]) {
-					me.$input.cache[doctype] = {};
-				}
 
-				if (me.$input.cache[doctype][request.term]!=null) {
-					// immediately show from cache
-					response(me.$input.cache[doctype][request.term]);
-				}
+		this.awesomplete = new Awesomplete(me.input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
 
-				var args = {
-					'txt': request.term,
-					'doctype': doctype,
+			data: function (item, input) {
+				var label = item.value + "%%%" + (item.description || "");
+				if(item.value.indexOf("__link_option") !== -1) {
+					label = item.label;
+				}
+				return {
+					label: label,
+					value: item.value
 				};
+			},
+			item: function (item, input) {
+				var parts = item.split("%%%"),
+				d = { value: parts[0], description: parts[1] };
+				var _value = d.value;
 
-				me.set_custom_query(args);
+				if(me.translate_values) {
+					_value = __(d.value)
+				}
+				var html = "<strong>" + _value + "</strong>";
+				if(d.description && d.value!==d.description) {
+					html += '<br><span class="small">' + __(d.description) + '</span>';
+				}
+				return $('<li></li>')
+					.data('item.autocomplete', d)
+					.prop('aria-selected', 'false')
+					.html('<a><p>' + html + '</p></a>')
+					.get(0);
+			},
+			sort: function(a, b) {
+				return 0;
+			}
+		});
 
-				return frappe.call({
-					type: "GET",
-					method:'frappe.desk.search.search_link',
-					no_spinner: true,
-					args: args,
-					callback: function(r) {
-						if(!me.$input.is(":focus")) {
-							return;
-						}
+		this.$input.on("input", function(e) {
+			var doctype = me.get_options();
+			if(!doctype) return;
+			if (!me.$input.cache[doctype]) {
+				me.$input.cache[doctype] = {};
+			}
+			
+			var term = e.target.value;
 
-						if(!me.df.only_select) {
-							if(frappe.model.can_create(doctype)
-								&& me.df.fieldtype !== "Dynamic Link") {
-								// new item
-								r.results.push({
-									value: "<span class='text-primary link-option'>"
-										+ "<i class='icon-plus' style='margin-right: 5px;'></i> "
-										+ __("Create a new {0}", [__(me.df.options)])
-										+ "</span>",
-									action: me.new_doc
-								});
-							};
-							// advanced search
+			if (me.$input.cache[doctype][term]!=null) {
+				// immediately show from cache
+				me.awesomplete.list = me.$input.cache[doctype][term];
+			}
+
+			var args = {
+				'txt': term,
+				'doctype': doctype,
+			};
+
+			me.set_custom_query(args);
+
+			frappe.call({
+				type: "GET",
+				method:'frappe.desk.search.search_link',
+				no_spinner: true,
+				args: args,
+				callback: function(r) {
+					if(!me.$input.is(":focus")) {
+						return;
+					}
+
+					if(!me.df.only_select) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
 							r.results.push({
-								value: "<span class='text-primary link-option'>"
-									+ "<i class='icon-search' style='margin-right: 5px;'></i> "
-									+ __("Advanced Search")
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+									+ __("Create a new {0}", [__(me.df.options)])
 									+ "</span>",
-								action: me.open_advanced_search
-							});
-						}
-
-						me.$input.cache[doctype][request.term] = r.results;
-						response(r.results);
-					},
-				});
-			},
-			open: function(event, ui) {
-				me.$wrapper.css({"z-index": 101});
-				me.autocomplete_open = true;
-			},
-			close: function(event, ui) {
-				me.$wrapper.css({"z-index": 1});
-				me.autocomplete_open = false;
-			},
-			focus: function( event, ui ) {
-				event.preventDefault();
-				if(ui.item.action) {
-					return false;
+								value: "create_new__link_option",
+								action: me.new_doc
+							})
+						};
+						// advanced search
+						r.results.push({
+							label: "<span class='text-primary link-option'>"
+								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+								+ __("Advanced Search")
+								+ "</span>",
+							value: "advanced_search__link_option",
+							action: me.open_advanced_search
+						})
+					}
+					me.$input.cache[doctype][term] = r.results;
+					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
-			},
-			select: function(event, ui) {
-				me.autocomplete_open = false;
+			});
+		});
 
-				// prevent selection on tab
-				var TABKEY = 9;
-				if(event.keyCode === TABKEY) {
-					event.preventDefault();
-					me.$input.autocomplete("close");
-					return false;
-				}
+		this.$input.on("awesomplete-open", function(e) {
+			me.$wrapper.css({"z-index": 101});
+			me.autocomplete_open = true;
+		});
 
-				if(ui.item.action) {
-					ui.item.value = "";
-					ui.item.action.apply(me);
-				}
+		this.$input.on("awesomplete-close", function(e) {
+			me.$wrapper.css({"z-index": 1});
+			me.autocomplete_open = false;
+		});
 
-				// if remember_last_selected is checked in the doctype against the field, 
-				// then add this value
-				// to defaults so you do not need to set it again
-				// unless it is changed.
-				if(me.df.remember_last_selected_value) {
-					frappe.boot.user.last_selected_values[me.df.options] = ui.item.value;
-				}
+		this.$input.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var item = me.awesomplete.get_item(o.text.value);
 
-				if(me.frm && me.frm.doc) {
-					me.selected = true;
-					me.parse_validate_and_set_in_model(ui.item.value);
-					setTimeout(function() {
-						me.selected = false;
-					}, 100);
-				} else {
-					me.$input.val(ui.item.value);
-					me.$input.trigger("change");
-					me.set_mandatory(ui.item.value);
-				}
+			me.autocomplete_open = false;
+
+			// prevent selection on tab
+			var TABKEY = 9;
+			if(e.keyCode === TABKEY) {
+				e.preventDefault();
+				me.awesomplete.close();
+				return false;
 			}
-		})
-		.on("blur", function() {
-			$(this).autocomplete("close");
-		})
-		.data('ui-autocomplete')._renderItem = function(ul, d) {
-			var _value = d.value;
-			if(me.translate_values) {
-				_value = __(d.value)
+
+			if(item.action) {
+				item.value = "";
+				item.action.apply(me);
 			}
-			var html = "<strong>" + _value + "</strong>";
-			if(d.description && d.value!==d.description) {
-				html += '<br><span class="small">' + __(d.description) + '</span>';
+
+			// if remember_last_selected is checked in the doctype against the field,
+			// then add this value
+			// to defaults so you do not need to set it again
+			// unless it is changed.
+			if(me.df.remember_last_selected_value) {
+				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
-			return $('<li></li>')
-				.data('item.autocomplete', d)
-				.html('<a><p>' + html + '</p></a>')
-				.appendTo(ul);
-		};
-		// remove accessibility span (for now)
-		this.$wrapper.find(".ui-helper-hidden-accessible").remove();
+
+			if(me.frm && me.frm.doc) {
+				me.selected = true;
+				me.parse_validate_and_set_in_model(item.value);
+				setTimeout(function() {
+					me.selected = false;
+				}, 100);
+			} else {
+				me.$input.val(item.value);
+				me.$input.trigger("change");
+				me.set_mandatory(item.value);
+			}
+		});
+
+		this.$input.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			if(o.text.value.indexOf("__link_option") !== -1) {
+				me.$input.val("");
+			}
+		});
 	},
 	set_custom_query: function(args) {
 		var set_nulls = function(obj) {
@@ -1548,6 +1511,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 });
+
+if(Awesomplete) {
+	Awesomplete.prototype.get_item = function(value) {
+		return this._list.find(function(item) {
+			return item.value === value;
+		});
+	}
+}
 
 frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 	get_options: function() {
@@ -1737,9 +1708,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 })
 
 frappe.ui.form.fieldtype_icons = {
-	"Date": "icon-calendar",
-	"Time": "icon-time",
-	"Datetime": "icon-time",
-	"Code": "icon-code",
-	"Select": "icon-flag"
+	"Date": "fa fa-calendar",
+	"Time": "fa fa-time",
+	"Datetime": "fa fa-time",
+	"Code": "fa fa-code",
+	"Select": "fa fa-flag"
 };

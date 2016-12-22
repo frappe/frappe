@@ -382,7 +382,7 @@ class Database:
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, cache=False):
+		debug=False, order_by=None, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -391,6 +391,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -407,7 +408,7 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -421,6 +422,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -509,7 +511,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 
 	def get_singles_dict(self, doctype):
-		"""Get Single DocType as dict."""
+		"""Get Single DocType as dict.
+
+		:param doctype: DocType of the single object whose value is requested
+
+		Example:
+
+			# Get coulmn and value of the single doctype Accounts Settings
+			account_settings = frappe.db.get_singles_dict("Accounts Settings")
+		"""
+
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
@@ -520,7 +531,17 @@ class Database:
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
-		"""Get property of Single DocType. Cache locally by default"""
+		"""Get property of Single DocType. Cache locally by default
+
+		:param doctype: DocType of the single object whose value is requested
+		:param fieldname: `fieldname` of the property whose value is requested
+
+		Example:
+
+			# Get the default value of the company from the Global Defaults doctype.
+			company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		"""
+
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
 		if value:
 			return value
@@ -691,8 +712,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		pass
-		#self.sql("start transaction")
+		self.sql("start transaction")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""

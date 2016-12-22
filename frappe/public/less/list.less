@@ -1,7 +1,8 @@
 @import "variables.less";
 
 .no-result {
-	padding: 15px;
+	padding: 150px 15px;
+	color: @text-muted;
 }
 
 .result-list {
@@ -69,14 +70,6 @@
 		.frappe-control {
 			position: relative;
 		}
-	}
-}
-
-.ui-autocomplete .filter-field-select {
-	cursor: pointer;
-
-	p {
-		margin: 5px;
 	}
 }
 
@@ -319,4 +312,53 @@ table.field-info tr td {
 
 .image-field:hover .zoom-view {
   opacity: 0.6;
+}
+
+// tags
+
+.tag-row {
+	margin-top: 5px;
+	padding-left: 55px;
+}
+
+.taggle_placeholder {
+	top: 0;
+	left: 0;
+	font-size: 11px;
+}
+
+.taggle_list {
+	padding-left: 0;
+	margin-bottom: 0;
+
+	.taggle {
+		font-size: 11px;
+		padding: 2px 4px;
+		font-weight: normal;
+		background-color: @btn-bg;
+
+		&:hover {
+			padding: 2px 10px 2px 4px;
+			background: #cfdce5;
+			transition: all .2s;
+		}
+	}
+	li {
+		margin-bottom: 0;
+
+		.awesomplete > ul > li {
+			width: 100%;
+		}
+
+		.awesomplete > ul {
+			top: 15px;
+		}
+	}
+}
+
+.taggle_input {
+	padding: 0;
+	margin-top: 3px;
+	font-size: 11px;
+	max-width: 100px;
 }

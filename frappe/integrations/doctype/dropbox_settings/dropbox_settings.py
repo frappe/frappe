@@ -24,6 +24,10 @@ class DropboxSettings(IntegrationService):
 		]
 	}
 
+	def onload(self):
+		if not self.app_access_key and frappe.conf.dropbox_access_key:
+			self.dropbox_setup_via_site_config = 1
+
 	def validate(self):
 		if not self.flags.ignore_mandatory:
 			self.validate_dropbox_credentails()
@@ -48,11 +52,14 @@ class DropboxSettings(IntegrationService):
 		except:
 			raise Exception(_("Please install dropbox python module"))
 
-		if not (self.app_access_key or self.app_secret_key):
+		app_access_key = self.app_access_key or frappe.conf.dropbox_access_key
+		app_secret_key = self.get_password(fieldname="app_secret_key",
+			raise_exception=False) if self.app_secret_key else frappe.conf.dropbox_secret_key
+
+		if not (app_access_key or app_secret_key):
 			raise Exception(_("Please set Dropbox access keys in your site config"))
 
-		sess = session.DropboxSession(self.app_access_key,
-			self.get_password(fieldname="app_secret_key", raise_exception=False), "app_folder")
+		sess = session.DropboxSession(app_access_key, app_secret_key, "app_folder")
 
 		return sess
 
@@ -138,13 +145,17 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 
 			frappe.db.commit()
 		else:
-			frappe.respond_as_web_page(_("Dropbox Approval"), _("Illegal Access Token Please try again. <p>Please close this window.</p"),
+			close = '<p class="text-muted">' + _('Please close this window') + '</p>'
+			frappe.respond_as_web_page(_("Dropbox Setup"),
+				_("Illegal Access Token. Please try again") + close,
 				success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 	else:
-		frappe.respond_as_web_page(_("Dropbox Approval"), _("Dropbox Access not approved. <p>Please close this window.</p"),
+		frappe.respond_as_web_page(_("Dropbox Setup"),
+			_("You did not apporve Dropbox Access.") + close,
 			success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 
-	frappe.respond_as_web_page(_("Dropbox Approval"), _("Dropbox access allowed. <p>Please close this window.</p"),
+	frappe.respond_as_web_page(_("Dropbox Setup"),
+		_("Dropbox access is approved!") + close,
 		success=False, http_status_code=frappe.AuthenticationError.http_status_code)
 
 # backup process

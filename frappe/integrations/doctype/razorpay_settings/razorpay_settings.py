@@ -2,13 +2,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-from frappe.utils import get_url, call_hook_method
-from frappe import _
-import urllib, json
-from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
-
 """
 # Integrating RazorPay
 
@@ -57,6 +50,13 @@ payment_status - payment gateway will put payment status on callback.
 For razorpay payment status is Authorized
 
 """
+
+from __future__ import unicode_literals
+import frappe
+from frappe.utils import get_url, call_hook_method, cint
+from frappe import _
+import urllib, json
+from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
 
 class RazorpaySettings(IntegrationService):
 	service_name = "Razorpay"
@@ -174,7 +174,7 @@ class RazorpaySettings(IntegrationService):
 			"api_secret": self.get_password(fieldname="api_secret", raise_exception=False)
 		})
 
-		if data.get('notes', {}).get('use_sandbox'):
+		if cint(data.get('notes', {}).get('use_sandbox')):
 			settings.update({
 				"api_key": frappe.conf.sandbox_api_key,
 				"api_secret": frappe.conf.sandbox_api_secret,

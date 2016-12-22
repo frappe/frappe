@@ -14,7 +14,8 @@ def get():
 	args = get_form_params()
 	args.save_list_settings = True
 
-	data = compress(execute(**args))
+	data = compress(execute(**args), args = args)
+
 	return data
 
 def execute(doctype, *args, **kwargs):
@@ -39,8 +40,10 @@ def get_form_params():
 
 	return data
 
-def compress(data):
+def compress(data, args = {}):
 	"""separate keys and values"""
+	from frappe.desk.query_report import add_total_row
+
 	if not data: return data
 	values = []
 	keys = data[0].keys()
@@ -49,6 +52,10 @@ def compress(data):
 		for key in keys:
 			new_row.append(row[key])
 		values.append(new_row)
+
+	if args.get("add_total_row"):
+		meta = frappe.get_meta(args.doctype)
+		values = add_total_row(values, keys, meta)
 
 	return {
 		"keys": keys,
@@ -183,13 +190,13 @@ def get_stats(stats, doctype, filters=[]):
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = frappe.get_all(doctype, fields=[tag, "count(*)"],
+		tagcount = frappe.get_list(doctype, fields=[tag, "count(*)"],
 			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
 			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags", frappe.get_all(doctype,
+			stats[tag].append(["No Tags", frappe.get_list(doctype,
 				fields=[tag, "count(*)"],
 				filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 		else:
@@ -211,18 +218,17 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 		if not tag["name"] in columns: continue
 		tagcount = []
 		if tag["type"] not in ['Date', 'Datetime']:
-			tagcount = frappe.get_all(doctype,
+			tagcount = frappe.get_list(doctype,
 				fields=[tag["name"], "count(*)"],
 				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
 				group_by = tag["name"],
-				limit = 20,
 				as_list = True)
 
 		if tag["type"] not in ['Check','Select','Date','Datetime','Int',
 			'Float','Currency','Percent'] and tag['name'] not in ['docstatus']:
 			stats[tag["name"]] = list(tagcount)
 			if stats[tag["name"]]:
-				data =["No Data", frappe.get_all(doctype,
+				data =["No Data", frappe.get_list(doctype,
 					fields=[tag["name"], "count(*)"],
 					filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
 					as_list=True)[0][1]]

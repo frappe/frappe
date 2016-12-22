@@ -38,21 +38,28 @@ frappe.views.QueryReport = Class.extend({
 	    multiColumnSort: true
 	},
 	make: function() {
+		var me = this;
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
 		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
-
+		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
+		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
+	},
+	toggle_expand_collapse_buttons: function(show) {
+		this.wrapper.find(".expand-all, .collapse-all").toggleClass('hidden', !!!show);
 	},
 	make_toolbar: function() {
 		var me = this;
@@ -67,9 +74,17 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, true);
 
-		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
+		this.page.add_menu_item(__("Print"), function() {
+			me.report_print_settings(function(){
+				me.print_report();
+			})
+		}, true);
 
-		this.page.add_menu_item(__("PDF"), function() { me.pdf_report(); }, true);
+		this.page.add_menu_item(__("PDF"), function() {
+			me.report_print_settings(function(){
+				me.pdf_report();
+			}, pdf=true)
+		}, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
@@ -106,6 +121,7 @@ frappe.views.QueryReport = Class.extend({
 				frappe.model.with_doc("Report", me.report_name, function() {
 
 					me.report_doc = frappe.get_doc("Report", me.report_name);
+					me.print_settings = locals[":Print Settings"]["Print Settings"];
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						var module = locals.DocType[me.report_doc.ref_doctype].module;
@@ -146,6 +162,8 @@ frappe.views.QueryReport = Class.extend({
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
 		this.chart_area.toggle(false);
+		this.toggle_expand_collapse_buttons(false);
+		this.is_tree_report = false;
 
 		var report_settings = frappe.query_reports[this.report_name];
 
@@ -156,8 +174,38 @@ frappe.views.QueryReport = Class.extend({
 
 		}()).then(function() {
 			me.refresh();
-		})
+		});
+	},
+	report_print_settings: function(callback, pdf) {
+		var me = this;
+		columns = [{
+			fieldtype: "Check",
+			fieldname: "with_letter_head",
+			label: __("With Letter head")
+		},{
+			fieldtype: "Select",
+			fieldname: "letter_head",
+			label: __("Letter Head"),
+			depends_on: "with_letter_head",
+			options: $.map(frappe.boot.letter_heads, function(i,d){ return d }),
+			default: me.report_doc.letter_head || me.get_default_letter_head()
+		}]
 
+		if(pdf) {
+			columns.push({
+				fieldtype: "Select",
+				fieldname: "orientation",
+				label: __("Orientation"),
+				options: "Landscape\nPortrait",
+				default: "Landscape"
+			})
+		}
+
+		frappe.prompt(columns, function(data) {
+			me.letter_head = data.with_letter_head ? frappe.boot.letter_heads[data.letter_head] : {};
+			me.print_setting_data = data;
+			callback();
+		}, __("Print Settings"));
 	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
@@ -169,12 +217,15 @@ frappe.views.QueryReport = Class.extend({
 			var content = frappe.render(this.html_format,
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
-			frappe.render_grid({content:content, title:__(this.report_name)});
+			frappe.render_grid({content:content, title:__(this.report_name),
+				print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
 		} else {
-			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
+			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name),
+				print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
 		}
 	},
 	pdf_report: function() {
+		var me = this;
 		base_url = frappe.urllib.get_base_url();
 		print_css = frappe.boot.print_css;
 
@@ -189,7 +240,8 @@ frappe.views.QueryReport = Class.extend({
 
 			//Render Report in HTML
 			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css,
+					print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
 		} else {
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
@@ -197,14 +249,20 @@ frappe.views.QueryReport = Class.extend({
 
 			//Render Report in HTML
 			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css,
+					print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
 		}
 
+		orientation = this.print_setting_data.orientation;
+		this.open_pdf_report(html, orientation)
+	},
+	open_pdf_report: function(html, orientation) {
 		//Create a form to place the HTML content
 		var formData = new FormData();
 
 		//Push the HTML content into an element
 		formData.append("html", html);
+		formData.append("orientation", orientation);
 		var blob = new Blob([], { type: "text/xml"});
 		//formData.append("webmasterfile", blob);
 		formData.append("blob", blob);
@@ -224,6 +282,9 @@ frappe.views.QueryReport = Class.extend({
 		    }
 		};
 		xhr.send(formData);
+	},
+	get_default_letter_head: function() {
+		return locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]
 	},
 	setup_filters: function() {
 		this.clear_filters();
@@ -397,6 +458,8 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+
+		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
 
 	make_columns: function(columns) {
@@ -550,6 +613,17 @@ frappe.views.QueryReport = Class.extend({
 				item._collapsed = true;
 			}
 		}
+
+	},
+	toggle_all: function(collapse) {
+		var me = this;
+		for(var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+			item._collapsed = collapse;
+			me.dataView.updateItem(item.id, item);
+		}
+		$(".collapse-all").prop('disabled', collapse);
+		$(".expand-all").prop('disabled', !collapse);
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
@@ -576,6 +650,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.query_report;
+		me.is_tree_report = true;
 		var $span = $("<span></span>")
 			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
 			.html(value);
@@ -713,8 +788,10 @@ frappe.views.QueryReport = Class.extend({
 				if (item) {
 					if (!item._collapsed) {
 						item._collapsed = true;
+						$(".expand-all").prop('disabled', false);
 					} else {
 						item._collapsed = false;
+						$(".collapse-all").prop('disabled', false);
 					}
 
 					me.dataView.updateItem(item.id, item);

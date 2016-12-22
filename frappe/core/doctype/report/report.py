@@ -32,8 +32,17 @@ class Report(Document):
 			and frappe.session.user!="Administrator":
 			frappe.throw(_("Only Administrator allowed to create Query / Script Reports"))
 
+		if self.report_type == "Report Builder":
+			self.update_report_json()
+
 	def on_update(self):
 		self.export_doc()
+
+	def update_report_json(self):
+		if self.json:
+			data = json.loads(self.json)
+			data["add_total_row"] = self.add_total_row
+			self.json = json.dumps(data)
 
 	def export_doc(self):
 		if frappe.flags.in_import:
@@ -51,7 +60,7 @@ class Report(Document):
 			make_boilerplate("controller.js", self, {"name": self.name})
 
 	def get_data(self, filters=None, limit=None, user=None):
-		'''Run the report'''
+
 		out = []
 
 		if self.report_type in ('Query Report', 'Script Report'):

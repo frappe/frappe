@@ -398,6 +398,28 @@ _f.Frm.prototype.get_title = function() {
 	}
 }
 
+_f.Frm.prototype.get_selected = function() {
+	// returns list of children that are selected. returns [parentfield, name] for each
+	var selected = {}, me = this;
+	frappe.meta.get_table_fields(this.doctype).forEach(function(df) {
+		var _selected = me.fields_dict[df.fieldname].grid.get_selected();
+		if(_selected.length) {
+			selected[df.fieldname] = _selected;
+		}
+	});
+	return selected;
+}
+
+_f.Frm.prototype.has_mapper = function() {
+	// hackalert!
+	// if open_mapped_doc is mentioned in the custom script, then mapper exists
+	if(this._has_mapper === undefined) {
+		this._has_mapper = (this.meta.__js && this.meta.__js.search('open_mapped_doc')!==-1) ?
+			true: false;
+	}
+	return this._has_mapper;
+}
+
 _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
 	// get doctype from parent
 	if(frappe.meta.docfield_map[this.doctype][fieldname]) {

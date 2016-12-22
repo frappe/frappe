@@ -13,16 +13,14 @@ frappe.ui.TagEditor = Class.extend({
 		*/
 		$.extend(this, opts);
 		var me = this;
-		this.wrapper = $('<div class="tag-line">').appendTo(this.parent)
-		this.$tags = $('<ul>').prependTo(this.wrapper);
-		this.$tags.tagit({
-			animate: false,
-			allowSpaces: true,
-			placeholderText: __('Add a tag') + "...",
-			onTagAdded: function(ev, tag) {
+		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent)
+		if(!this.wrapper.length) return;
+		var id = frappe.dom.set_unique_id(this.wrapper);
+		this.taggle = new Taggle(id, {
+			placeholder: __('Add a tag') + "...",
+			onTagAdd: function(e, tag) {
 				if(me.initialized && !me.refreshing) {
-					tag.find('.tagit-label').text(toTitle(tag.find('.tagit-label').text()));
-					var tag = tag.find('.tagit-label').text();
+					tag = toTitle(tag);
 					return frappe.call({
 						method: 'frappe.desk.tags.add_tag',
 						args: me.get_args(tag),
@@ -35,9 +33,8 @@ frappe.ui.TagEditor = Class.extend({
 					});
 				}
 			},
-			onTagRemoved: function(ev, tag) {
+			onTagRemove: function(e, tag) {
 				if(!me.refreshing) {
-					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
 						method: 'frappe.desk.tags.remove_tag',
 						args: me.get_args(tag),
@@ -56,31 +53,40 @@ frappe.ui.TagEditor = Class.extend({
 		}
 		this.initialized = true;
 		this.refresh(this.user_tags);
-		this.setup_autocomplete();
+		this.setup_awesomplete();
 	},
-	setup_autocomplete: function() {
+	setup_awesomplete: function() {
 		var me = this;
-		this.wrapper.find("input").autocomplete({
-			minLength: 0,
+		var $input = this.wrapper.find("input.taggle_input");
+		var input = $input.get(0);
+		this.awesomplete = new Awesomplete(input, {
 			minChars: 0,
-			source: function(request, response) {
-				frappe.call({
-					method:"frappe.desk.tags.get_tags",
-					args:{
-						doctype: me.frm.doctype,
-						txt: request.term.toLowerCase(),
-						cat_tags:JSON.stringify(me.list_sidebar.get_cat_tags())
-					},
-					callback: function(r) {
-						response(r.message);
-					}
-				});
-			},
-			open: function() { $(this).attr('state', 'open'); },
-			close: function () { $(this).attr('state', 'closed'); }
-		}).focus(function () {
-			if ($(this).attr('state') != 'open') {
-				$(this).autocomplete("search");
+			maxItems: 99,
+			list: []
+		});
+		$input.on("awesomplete-open", function(e){
+			$input.attr('state', 'open');
+		});
+		$input.on("awesomplete-close", function(e){
+			$input.attr('state', 'closed');
+		});
+		$input.on("input", function(e) {
+			var value = e.target.value;
+			frappe.call({
+				method:"frappe.desk.tags.get_tags",
+				args:{
+					doctype: me.frm.doctype,
+					txt: value.toLowerCase(),
+					cat_tags:JSON.stringify(me.list_sidebar.get_cat_tags())
+				},
+				callback: function(r) {
+					me.awesomplete.list = r.message;
+				}
+			});
+		});
+		$input.on("focus", function(e) {
+			if($input.attr('state') != 'open') {
+				$input.trigger("input");
 			}
 		});
 	},
@@ -93,18 +99,14 @@ frappe.ui.TagEditor = Class.extend({
 	},
 	refresh: function(user_tags) {
 		var me = this;
-
 		if(!me.initialized || me.refreshing)
 			return;
 
 		me.refreshing = true;
 		try {
-			me.$tags.tagit("removeAll");
-
+			me.taggle.removeAll();
 			if(user_tags) {
-				$.each(user_tags.split(','), function(i, v) {
-					if(v) { me.$tags.tagit("createTag", v); }
-				});
+				me.taggle.add(user_tags.split(','));
 			}
 		} catch(e) {
 			me.refreshing = false;

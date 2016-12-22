@@ -118,6 +118,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_save();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
+		this.setup_listview_settings();
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
@@ -194,6 +195,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			});
 		}
 
+		if(opts.add_total_row) {
+			this.add_total_row = opts.add_total_row
+		}
+
 		// first sort
 		if(opts.sort_by) this.sort_by_select.val(opts.sort_by);
 		if(opts.sort_order) this.sort_order_select.val(opts.sort_order);
@@ -239,6 +244,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			doctype: this.doctype,
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
+			add_total_row: this.add_total_row,
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
 			with_childnames: 1,
@@ -495,7 +501,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						return repl("<input type='checkbox' \
 							data-row='%(row)s' %(checked)s>", {
 								row: row,
-								checked: (dataContext._checked ? "checked=\"checked\"" : "")
+								checked: (dataContext.selected ? "checked=\"checked\"" : "")
 							});
 					}
 			}]);
@@ -681,19 +687,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 		if(this.can_delete) {
 			$(this.parent).on("click", "input[type='checkbox'][data-row]", function() {
-				me.data[$(this).attr("data-row")]._checked
+				me.data[$(this).attr("data-row")].selected
 					= this.checked ? true : false;
 			});
 
 			this.page.add_menu_item(__("Delete"), function() {
-				var delete_list = []
-				$.each(me.data, function(i, d) {
-					if(d._checked) {
-						if(d.name)
-							delete_list.push(d.name);
-					}
-				});
-
+				delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
 				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
@@ -726,6 +725,25 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			}, true);
 		}
 	},
+
+	setup_listview_settings: function() {
+		if(frappe.listview_settings[this.doctype] && frappe.listview_settings[this.doctype].onload) {
+			frappe.listview_settings[this.doctype].onload(this);
+		}
+	},
+
+	get_checked_items: function() {
+		var me = this;
+		var selected_records = []
+
+		$.each(me.data, function(i, d) {
+			if(d.selected && d.name) {
+				selected_records.push(d);
+			}
+		});
+
+		return selected_records
+	}
 });
 
 frappe.ui.ColumnPicker = Class.extend({
@@ -785,7 +803,7 @@ frappe.ui.ColumnPicker = Class.extend({
 		var me = this;
 
 		var w = $('<div class="column-list-item">\
-				<i class="icon icon-sort text-muted drag-handle"></i>\
+				<i class="fa fa-sort text-muted drag-handle"></i>\
 				<a class="close">&times;</a>\
 			</div>')
 			.appendTo(this.column_list);

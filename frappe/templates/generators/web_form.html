@@ -19,13 +19,15 @@
 		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
+		{% if not is_list %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
+		{% endif %}
 	</div>
 	{% endif %}
 	{% if is_list %}
 	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
 	    {{ _("New") }}
 	    </a>
 	</div>
@@ -34,7 +36,7 @@
 	<div class='text-right'>
 		<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
-			<i class='icon icon-print'></i> {{ _("Print") }}</a>
+			<i class='fa fa-print'></i> {{ _("Print") }}</a>
 	</div>
 	{%- endif -%}
 {% endblock %}
@@ -42,7 +44,7 @@
 {% block page_content %}
 <div class="introduction">
 	{% if introduction_text %}
-	<p class="text-muted">{{ introduction_text }}</p>
+	<p class="text-muted">{{ _(introduction_text) }}</p>
 	{% endif %}
 </div>
 <div class="form-message hide"></div>
@@ -129,7 +131,7 @@
 			{% for option in field.options.split("\n") -%}
 			<option value="{{ option }}"
 				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
-				{{ option }}</option>
+				{{ _(option) }}</option>
 			{%- endfor %}
 		</select>
 		{{ help(field) }}
@@ -196,7 +198,7 @@
 	{% endfor %}
 	<td style="width: 8.3333%">
 	{% if d!=None %}
-		<button class='btn btn-default btn-sm btn-remove'><i class='icon-remove'></i></button>
+		<button class='btn btn-default btn-sm btn-remove'><i class='fa fa-remove'></i></button>
 	{% endif %}
 	</td>
 </tr>
@@ -229,8 +231,8 @@
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
-		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="icon-fixed-width
-		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
+		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
+		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-blank{% endif %}"></i>
 	{% endfor %}
 </div>
 {% endif %}
@@ -442,7 +444,7 @@ frappe.ready(function() {
 	});
 
 	// change section
-	$('.btn-change-section, .slide-progress .icon-fixed-width').on('click', function() {
+	$('.btn-change-section, .slide-progress .fa-fw').on('click', function() {
 		var idx = $(this).attr('data-idx');
 		if(!frappe.form_dirty || frappe.is_read_only) {
 			show_slide(idx);
@@ -459,10 +461,10 @@ frappe.ready(function() {
 		$('.web-form-page').addClass('hidden');
 
 		// slide-progress
-		$('.slide-progress .icon-fixed-width.icon-circle')
-			.removeClass('icon-circle').addClass('icon-circle-blank');
-		$('.slide-progress .icon-fixed-width[data-idx="'+idx+'"]')
-			.removeClass('icon-circle-blank').addClass('icon-circle');
+		$('.slide-progress .fa-fw fa-circle')
+			.removeClass('fa fa-circle').addClass('fa fa-circle-blank');
+		$('.slide-progress .fa-fw[data-idx="'+idx+'"]')
+			.removeClass('fa fa-circle-blank').addClass('fa fa-circle');
 
 		// un hide target section
 		$('.web-form-page[data-idx="'+idx+'"]')
@@ -803,7 +805,7 @@ input[type='checkbox'] {
     /*border-top: 1px solid #d1d8dd;*/
 	margin-top: -10px;
 }
-.slide-progress .icon-fixed-width {
+.slide-progress .fa-fw {
 	vertical-align: middle;
 	margin-right: 9px;
 	padding-left: 2px;

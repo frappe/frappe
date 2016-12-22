@@ -100,7 +100,14 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		doc._line_breaks = print_format.line_breaks
 		doc._align_labels_left = print_format.align_labels_left
 
-		if print_format.format_data:
+		def get_template_from_string():
+			return jenv.from_string(get_print_format(doc.doctype,
+				print_format))
+
+		if print_format.custom_format:
+			template = get_template_from_string()
+
+		elif print_format.format_data:
 			# set format data
 			format_data = json.loads(print_format.format_data)
 			for df in format_data:
@@ -113,9 +120,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 			template = "standard"
 
-		elif print_format.standard=="Yes" or print_format.custom_format:
-			template = jenv.from_string(get_print_format(doc.doctype,
-				print_format))
+		elif print_format.standard=="Yes":
+			template = get_template_from_string()
 
 		else:
 			# fallback
@@ -232,6 +238,11 @@ def make_layout(doc, meta, format_data=None):
 
 	def get_new_section(): return  {'columns': [], 'has_data': False}
 
+	def append_empty_field_dict_to_page_column(page):
+		""" append empty columns dict to page layout """
+		if not page[-1]['columns']:
+			page[-1]['columns'].append({'fields': []})
+
 	for df in format_data or meta.fields:
 		if format_data:
 			# embellish df with original properties
@@ -263,16 +274,13 @@ def make_layout(doc, meta, format_data=None):
 
 		else:
 			# add a column if not yet added
-			if not page[-1]['columns']:
-				page[-1]['columns'].append({'fields': []})
+			append_empty_field_dict_to_page_column(page)
 
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
 
 		if is_visible(df, doc) and has_value(df, doc):
-			if page[-1]['columns'] == []:
-				# if no column, add one
-				page[-1]['columns'].append({'fields': []})
+			append_empty_field_dict_to_page_column(page)
 
 			page[-1]['columns'][-1]['fields'].append(df)
 
@@ -293,6 +301,7 @@ def make_layout(doc, meta, format_data=None):
 						# new page, with empty section and column
 						page = [get_new_section()]
 						layout.append(page)
+						append_empty_field_dict_to_page_column(page)
 
 						# continue the table in a new page
 						df = copy.copy(df)

@@ -19,7 +19,7 @@
 			</div>
 			{% if(data.communication_type==="Communication" || (data.communication_type==="Comment" && data.comment_type==="Comment")) { %}
 				<div class="comment-header small">
-                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    <i class="{%= data.icon %} fa-fw"></i>
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 					<span>
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
@@ -77,14 +77,14 @@
 						<span class="likes-count text-muted">{{ (data._liked_by || []).length }}</span>
 					</span>
                 </div>
-				<div class="reply" style="overflow-x:scroll">
-        			<div>
+				<div class="reply" style="overflow-x: auto">
+        			<div class="timeline-item-content">
         				{%= data.content_html %}
         			</div>
                 </div>
             {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
                 <div class="small">
-                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    <i class="{%= data.icon %} fa-fw"></i>
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
 								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
@@ -103,7 +103,7 @@
                 </div>
             {% } else { %}
                 <div class="small">
-                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    <i class="{%= data.icon %} fa-fw"></i>
 					{% if (data.comment_type == "Like") { %}
 					<span title="{%= data.comment_by %}">
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
@@ -132,10 +132,10 @@
 				{% $.each(data.attachments, function(i, a) { %}
 				<div class="ellipsis">
 					<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}" class="text-muted small" target="_blank">
-						<i class="icon-paperclip"></i>
+						<i class="fa fa-paperclip"></i>
 						{%= a.file_url.split("/").slice(-1)[0] %}
 						{% if (a.is_private) { %}
-						<i class="icon icon-lock text-warning"></i>
+						<i class="fa fa-lock text-warning"></i>
 						{% } %}
 					</a>
 				</div>

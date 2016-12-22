@@ -1,7 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.treeview_settings")
+frappe.provide("frappe.treeview_settings");
+cur_tree = null;
 
 frappe.views.TreeFactory = frappe.views.Factory.extend({
 	make: function(route) {
@@ -64,6 +65,10 @@ frappe.views.TreeView = Class.extend({
 		this.page.main.css({
 			"min-height": "300px",
 			"padding-bottom": "25px"
+		});
+
+		this.page.add_inner_button(__('Expand All'), function() {
+			me.tree.rootnode.load_all();
 		})
 	},
 	make_filters: function(){
@@ -73,7 +78,7 @@ frappe.views.TreeView = Class.extend({
 			if(frappe.route_options && frappe.route_options[filter.fieldname]) {
 				filter.default = frappe.route_options[filter.fieldname]
 			}
-			
+
 			me.page.add_field(filter).$input
 				.change(function() {
 					me.args[$(this).attr("data-fieldname")] = $(this).val();
@@ -111,10 +116,11 @@ frappe.views.TreeView = Class.extend({
 			get_label: me.opts.get_label,
 			onrender: me.opts.onrender
 		});
+		cur_tree = this.tree;
 	},
 	get_toolbar: function(){
 		var me = this;
-		
+
 		var toolbar = [
 			{toggle_btn: true},
 			{
@@ -155,7 +161,7 @@ frappe.views.TreeView = Class.extend({
 				btnClass: "hidden-xs"
 			}
 		]
-		
+
 		if(this.opts.toolbar && this.opts.extend_toolbar) {
 			return toolbar.concat(this.opts.toolbar)
 		} else if (this.opts.toolbar && !this.opts.extend_toolbar) {

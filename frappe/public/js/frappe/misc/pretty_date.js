@@ -1,16 +1,18 @@
+// moment strings for translation
+
 function prettyDate(time, mini){
 	if(!time) {
 		time = new Date();
 	}
 	if(moment) {
 		if(window.sys_defaults && sys_defaults.time_zone) {
-			var ret = moment.tz(time, sys_defaults.time_zone).fromNow(mini);
+			var ret = moment.tz(time, sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
 		} else {
-			var ret = moment(time).fromNow(mini);
+			var ret = moment(time).locale(frappe.boot.lang).fromNow(mini);
 		}
 		if(mini) {
-			if(ret === "a few seconds") {
-				ret = "now";
+			if(ret === moment().locale(frappe.boot.lang).fromNow(mini)) {
+				ret = __("now");
 			} else {
 				var parts = ret.split(" ");
 				if(parts.length > 1) {
@@ -24,6 +26,7 @@ function prettyDate(time, mini){
 					}
 				}
 			}
+			ret = ret.substr(0, 5);
 		}
 		return ret;
 	} else {

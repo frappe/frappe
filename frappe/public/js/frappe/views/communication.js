@@ -31,10 +31,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				});
 
 				// reset attachment list
-				me.setup_attach();
+				me.render_attach();
 
 				// check latest added
-				checked_items.push(attachment.file_name);
+				checked_items.push(attachment.name);
 
 				$.each(checked_items, function(i, filename) {
 					wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
@@ -89,7 +89,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
-		this.setup_autosuggest();
+		this.setup_awesomplete();
 		this.setup_last_edited_communication();
 		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
@@ -258,15 +258,56 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	},
 	setup_attach: function() {
-		if (!cur_frm) return;
-
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
 
-		var files = cur_frm.get_files();
+		var me = this
+		me.attachments = []
+
+		var args = {
+			args: {
+				from_form: 1,folder:"Home/Attachments"
+			},
+			callback: function(attachment, r) { me.attachments.push(attachment); },
+			max_width: null,
+			max_height: null
+		};
+
+		if(me.frm) {
+			args = {
+				args: (me.frm.attachments.get_args
+				 	? me.frm.attachments.get_args()
+				 	: { from_form: 1,folder:"Home/Attachments" }),
+				callback: function (attachment, r) {
+					me.frm.attachments.attachment_uploaded(attachment, r)
+				},
+				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
+				max_height: me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+			}
+
+		}
+
+		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
+				+__("Select Attachments")+"</h6><div class='attach-list'></div>\
+				<p class='add-more-attachments'>\
+				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
+				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			attach.find(".add-more-attachments a").on('click',this,function() {
+			me.upload = frappe.ui.get_upload_dialog(args);
+		})
+		me.render_attach()
+
+	},
+	render_attach:function(){
+		var fields = this.dialog.fields_dict;
+		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
+
+		if (cur_frm){
+			var files = cur_frm.get_files();
+		}else {
+			var files = this.attachments
+		}
 		if(files.length) {
-			$("<h6 class='text-muted' style='margin-top: 12px;'>"
-				+__("Add Attachments")+"</h6>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				if (!f.file_name) return;
 				f.file_url = frappe.urllib.get_full_url(f.file_url);
@@ -275,7 +316,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					+	'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>'
 					+		'<span class="small">%(file_name)s</span>'
 					+	' <a href="%(file_url)s" target="_blank" class="text-muted small">'
-					+		'<i class="icon-share" style="vertical-align: middle; margin-left: 3px;"></i>'
+					+		'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>'
 					+ '</label></p>', f))
 					.appendTo(attach)
 			});
@@ -462,54 +503,54 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields.content.set_input(reply);
 		}
 	},
-	setup_autosuggest: function() {
+	setup_awesomplete: function() {
 		var me = this;
-
-		function split( val ) {
+		[this.dialog.fields_dict.recipients.input,
+		 this.dialog.fields_dict.cc.input]
+			.map(function(input) {
+				me.setup_awesomplete_for_input(input);
+			});
+	},
+	setup_awesomplete_for_input: function(input) {
+		function split(val) {
 			return val.split( /,\s*/ );
 		}
-		function extractLast( term ) {
+		function extractLast(term) {
 			return split(term).pop();
 		}
 
-		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
-			.bind( "keydown", function(event) {
-		        if (event.keyCode === $.ui.keyCode.TAB &&
-		            $(this).autocomplete("instance").menu.active) {
-					event.preventDefault();
-				}
-			})
-			.autocomplete({
-				source: function(request, response) {
-					return frappe.call({
-						method:'frappe.email.get_contact_list',
-						args: {
-							'fieldname': "email_id",
-							'doctype': "Contact",
-							'txt': extractLast(request.term).value || '%'
-						},
-						quiet: true,
-						callback: function(r) {
-							response($.ui.autocomplete.filter(
-								r.message || [], extractLast(request.term)));
-						}
-					});
+		var awesomplete = new Awesomplete(input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+			item: function(item, input) {
+				return $('<li>').text(item.value).get(0);
+			},
+			filter: function(text, input) {
+				return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+			},
+			replace: function(text) {
+				var before = this.input.value.match(/^.+,\s*|/)[0];
+				this.input.value = before + text + ", ";
+			}
+		});
+
+		var $input = $(input);
+		$input.on("input", function(e) {
+			var term = e.target.value;
+			frappe.call({
+				method:'frappe.email.get_contact_list',
+				args: {
+					'fieldname': "email_id",
+					'doctype': "Contact",
+					'txt': extractLast(term) || '%'
 				},
-				appendTo: this.dialog.$wrapper,
-				focus: function() {
-					return false;
-				},
-				select: function( event, ui ) {
-					var terms = split( this.value );
-					// remove the current input
-					terms.pop();
-					// add the selected item
-					terms.push( ui.item.value );
-					// add placeholder to get the comma-and-space at the end
-					terms.push( "" );
-					this.value = terms.join( ", " );
-					return false;
+				quiet: true,
+				callback: function(r) {
+					awesomplete.list = r.message;
 				}
 			});
+		});
 	}
 });

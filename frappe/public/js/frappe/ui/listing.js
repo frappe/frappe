@@ -175,6 +175,7 @@ frappe.ui.Listing = Class.extend({
 		this.wrapper.find('.result').toggle(true);
 		this.wrapper.find('.no-result').toggle(false);
 		this.start = 0;
+		if(this.onreset) this.onreset();
 	},
 
 	set_filters_from_route_options: function() {
@@ -308,11 +309,13 @@ frappe.ui.Listing = Class.extend({
 
 		this.wrapper.find('.btn-more, .list-loading').toggle(false);
 
+		r.values = [];
+
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
 		}
 
-		if(r.values && r.values.length) {
+		if(r.values.length) {
 			this.data = this.data.concat(r.values);
 			this.render_list(r.values);
 			this.update_paging(r.values);
@@ -324,13 +327,15 @@ frappe.ui.Listing = Class.extend({
 					? this.get_no_result_message()
 					: (this.no_result_message
 						? this.no_result_message
-						: __("Nothing to show"));
+						: __("No Result"));
 
 				this.wrapper.find('.no-result')
 					.html(msg)
 					.toggle(true);
 			}
 		}
+
+		this.wrapper.find('.list-paging-area').toggle((r.values.length || this.start > 0) ? true : false);
 
 		// callbacks
 		if(this.onrun) this.onrun();
@@ -447,4 +452,22 @@ frappe.ui.Listing = Class.extend({
 			this.list_settings = {};
 		}
 	},
+	call_for_selected_items: function(method, args) {
+		var me = this;
+		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
+
+		frappe.call({
+			method: method,
+			args: args,
+			freeze: true,
+			callback: function(r) {
+				if(!r.exc) {
+					if(me.list_header) {
+						me.list_header.find(".list-select-all").prop("checked", false);
+					}
+					me.refresh();
+				}
+			}
+		});
+	}
 });

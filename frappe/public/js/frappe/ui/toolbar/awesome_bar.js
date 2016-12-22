@@ -2,104 +2,113 @@
 // MIT License. See license.txt
 
 frappe.search = {
-	setup: function() {
-		var opts = {
-			autoFocus: true,
-			minLength: 0,
-			source: function(request, response) {
-				var txt = strip(request.term);
-				frappe.search.options = [];
-				if(txt) {
-					var lower = strip(txt.toLowerCase());
-					$.each(frappe.search.verbs, function(i, action) {
-						action(lower);
-					});
+	setup: function(element) {
+		var $input = $(element);
+		var input = $input.get(0);
+
+		var awesomplete = new Awesomplete(input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+			filter: function (text, term) { return true; },
+			item: function(item, term) {
+				var d = item;
+				var html = "<span>" + __(d.label || d.value) + "</span>";
+				if(d.description && d.value!==d.description) {
+					html += '<br><span class="text-muted">' + __(d.description) + '</span>';
 				}
-
-				// sort options
-				frappe.search.options.sort(function(a, b) {
-					return (a.match || "").length - (b.match || "").length; });
-
-				frappe.search.add_recent(txt || "");
-				frappe.search.add_help();
-
-				// de-duplicate
-				var out = [], routes = [];
-				frappe.search.options.forEach(function(option) {
-					if(option.route) {
-						var str_route = (typeof option.route==='string') ?
-							 option.route : option.route.join('/');
-						if(routes.indexOf(str_route)===-1) {
-							out.push(option);
-							routes.push(str_route);
-						}
-					} else {
-						out.push(option);
-					}
- 				});
-
-				response(out);
+				return $('<li></li>')
+					.data('item.autocomplete', d)
+					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
+					.get(0);
 			},
-			open: function(event, ui) {
-				frappe.search.autocomplete_open = event.target;
-			},
-			close: function(event, ui) {
-				frappe.search.autocomplete_open = false;
-			},
-			select: function(event, ui) {
-				if(ui.item.route_options) {
-					frappe.route_options = ui.item.route_options;
-				}
+			sort: function(a, b) { return 0; }
+		});
 
-				if(ui.item.onclick) {
-					ui.item.onclick(ui.item.match);
-				} else {
-					var previous_hash = window.location.hash;
-					frappe.set_route(ui.item.route);
-
-					// hashchange didn't fire!
-					if (window.location.hash == previous_hash) {
-						frappe.route();
-					}
-				}
-				$(this).val('');
-				return false;
+		$input.on("input", function(e) {
+			var value = e.target.value;
+			var txt = strip(value);
+			frappe.search.options = [];
+			if(txt) {
+				var lower = strip(txt.toLowerCase());
+				$.each(frappe.search.verbs, function(i, action) {
+					action(lower);
+				});
 			}
-		};
 
+			// sort options
+			frappe.search.options.sort(function(a, b) {
+				return (a.match || "").length - (b.match || "").length; });
+
+			frappe.search.add_recent(txt || "");
+			frappe.search.add_help();
+
+			// de-duplicate
+			var out = [], routes = [];
+			frappe.search.options.forEach(function(option) {
+				if(option.route) {
+					var str_route = (typeof option.route==='string') ?
+							option.route : option.route.join('/');
+					if(routes.indexOf(str_route)===-1) {
+						out.push(option);
+						routes.push(str_route);
+					}
+				} else {
+					out.push(option);
+				}
+			});
+			awesomplete.list = out;
+		});
 
 		var open_recent = function() {
 			if (!frappe.search.autocomplete_open) {
-				$(this).autocomplete("search", "");
+				$(this).trigger("input");
 			}
 		}
+		$input.on("focus", open_recent);
 
-		$("#navbar-search")
-			.on("focus", open_recent)
-			.autocomplete(opts).data('ui-autocomplete')._renderItem =
-				frappe.search.render_item;
+		$input.on("awesomplete-open", function(e) {
+			frappe.search.autocomplete_open = e.target;
+		});
 
-		$("#modal-search")
-			.on("focus", open_recent)
-			.autocomplete(opts).data('ui-autocomplete')._renderItem =
-				frappe.search.render_item;
+		$input.on("awesomplete-close", function(e) {
+			frappe.search.autocomplete_open = false;
+		});
+
+		$input.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
+			var item = awesomplete.get_item(value);
+
+			if(item.route_options) {
+				frappe.route_options = item.route_options;
+			}
+
+			if(item.onclick) {
+				item.onclick(item.match);
+			} else {
+				var previous_hash = window.location.hash;
+				frappe.set_route(item.route);
+
+				// hashchange didn't fire!
+				if (window.location.hash == previous_hash) {
+					frappe.route();
+				}
+			}
+		});
+
+		$input.on("awesomplete-selectcomplete", function(e) {
+			$input.val("");
+		});
 
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
 	},
-	render_item: function(ul, d) {
-		var html = "<span>" + __(d.label || d.value) + "</span>";
-		if(d.description && d.value!==d.description) {
-			html += '<br><span class="text-muted">' + __(d.description) + '</span>';
-		}
-		return $('<li></li>')
-			.data('item.autocomplete', d)
-			.html('<a><p>' + html + '</p></a>')
-			.appendTo(ul);
-	},
 	add_help: function() {
 		frappe.search.options.push({
 			label: __("Help on Search"),
+			value: "Help on Search",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
 					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
@@ -118,27 +127,46 @@ frappe.search = {
 		});
 	},
 	add_recent: function(txt) {
-		var doctypes = frappe.utils.unique(keys(locals).concat(keys(frappe.search.recent)));
-		for(var i in doctypes) {
-			var doctype = doctypes[i];
-			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
-				&& !in_list(frappe.boot.single_types, doctype)
-				&& !in_list(["DocType", "DocField", "DocPerm", "Page", "Country",
-					"Currency", "Page Role", "Print Format", "Report"], doctype)) {
+		values = [];
+		$.each(frappe.search.recent, function(i, doctype) {
+			values.push([doctype[1], ['Form', doctype[0], doctype[1]]]);
+		});
 
-				var values = frappe.utils.remove_nulls(frappe.utils.unique(
-					keys(locals[doctype]).concat(frappe.search.recent[doctype] || [])
-				));
+		values = values.reverse();
 
-				var ret = frappe.search.find(values, txt, function(match) {
-					return {
-						label: __(doctype) + " " + match.bold(),
-						value: __(doctype) + " " + match,
-						route: ["Form", doctype, match]
-					}
-				}, true);
+		$.each(frappe.route_history, function(i, route) {
+			if(route[0]==='Form') {
+				values.push([route[2], route]);
 			}
-		}
+			else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], route[0])) {
+				if(route[1]) {
+					values.push([route[1], route]);
+				}
+			}
+			else if(route[0]) {
+				values.push([frappe.route_titles[route[0]] || route[0], route]);
+			}
+		});
+
+		frappe.search.find(values, txt, function(match) {
+			out = {
+				route: match[1]
+			}
+			if(match[1][0]==='Form') {
+				out.label = __(match[1][1]) + " " + match[1][2].bold();
+				out.value = __(match[1][1]) + " " + match[1][2];
+			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
+				var type = match[1][0], label = type;
+				if(type==='modules') label = 'Module';
+				else if(type==='query-report') label = 'Report';
+				out.label = __(match[1][1]).bold() + " " + __(label);
+				out.value = __(match[1][1]) + " " + __(label);
+			} else {
+				out.label = match[0].bold();
+				out.value = match[0];
+			}
+			return out;
+		}, true);
 	},
 	make_page_title_map: function() {
 		frappe.search.pages = {};
@@ -148,21 +176,16 @@ frappe.search = {
 		});
 	},
 	setup_recent: function() {
-		var recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
-		frappe.search.recent = {};
-		for (var i=0, l=recent.length; i < l; i++) {
-			var d = recent[i];
-			if (!(d[0] && d[1])) continue;
-
-			if (!frappe.search.recent[d[0]]) {
-				frappe.search.recent[d[0]] = [];
-			}
-			frappe.search.recent[d[0]].push(d[1]);
-		}
+		frappe.search.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 	find: function(list, txt, process, prepend) {
 		$.each(list, function(i, item) {
-			_item = __(item).toLowerCase().replace(/-/g, " ");
+			if($.isArray(item)) {
+				_item = item[0];
+			} else {
+				_item = item;
+			}
+			_item = __(_item).toLowerCase().replace(/-/g, " ");
 			if(txt===_item || _item.indexOf(txt) !== -1) {
 				var option = process(item);
 
@@ -278,17 +301,16 @@ frappe.search.verbs = [
 		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
 			var report = frappe.boot.user.all_reports[match];
 			var route = [];
-			if(!report.disabled)
-				if(report.report_type == "Report Builder")
-					route = ["Report", report.ref_doctype, match];
-				else
-					route = ["query-report",  match];
+			if(report.report_type == "Report Builder")
+				route = ["Report", report.ref_doctype, match];
+			else
+				route = ["query-report",  match];
 
-				return {
-					label: __("Report {0}", [__(match).bold()]),
-					value: __("Report {0}", [__(match)]),
-					route: route
-				}
+			return {
+				label: __("Report {0}", [__(match).bold()]),
+				value: __("Report {0}", [__(match)]),
+				route: route
+			}
 		});
 	},
 

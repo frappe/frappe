@@ -11,10 +11,10 @@ import email.utils
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=(), email_account=None):
+	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)
@@ -35,7 +35,7 @@ class EMail:
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None):
+	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
 		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -51,6 +51,7 @@ class EMail:
 		self.reply_to = reply_to or sender
 		self.recipients = recipients
 		self.subject = subject
+		self.expose_recipients = expose_recipients
 
 		self.msg_root = MIMEMultipart('mixed')
 		self.msg_multipart = MIMEMultipart('alternative')
@@ -59,7 +60,6 @@ class EMail:
 		self.html_set = False
 
 		self.email_account = email_account or get_outgoing_email_account()
-		self.set_message_id()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
@@ -183,8 +183,12 @@ class EMail:
 			sender_name, sender_email = email.utils.parseaddr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
-	def set_message_id(self):
-		self.msg_root["Message-Id"] = get_message_id()
+	def set_message_id(self, message_id):
+		if message_id:
+			self.msg_root["Message-Id"] = message_id
+		else:
+			self.msg_root["Message-Id"] = get_message_id()
+			self.msg_root["References"] = '<notification>'
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
@@ -195,10 +199,10 @@ class EMail:
 		headers = {
 			"Subject":        strip(self.subject),
 			"From":           self.sender,
-			"To":             ', '.join(self.recipients),
+			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"CC":             ', '.join(self.cc) if self.cc else None,
+			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}
 

@@ -309,8 +309,9 @@ fieldset {
 }
 
 .web-list-item {
-	padding: 10px;
-	margin: 0px -15px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
 	border-bottom: 1px solid @light-border-color;
 
 	h1, h2, h3 {
@@ -439,7 +440,7 @@ textarea {
 
 .more-block {
 	margin: 0px -15px;
-	padding: 0px 15px 30px;
+	padding-bottom: 30px;
 }
 
 .btn-more {
@@ -601,6 +602,10 @@ li .footer-child-item {
 	border-bottom: 1px solid @border-color;
 	width: 100%;
 
+	.input-wrapper {
+		margin-right: 30px;
+	}
+
 	.item-search-input {
 		position: relative;
 		outline: none;
@@ -608,10 +613,11 @@ li .footer-child-item {
 		margin-right: 5px;
 		padding: 7px;
 		padding-left: 0px;
-		width: 80px;
+		width: 100%;
 	}
 	i {
-		padding: 10px 10px 10px 0;
+		margin-right: -30px;
+		margin-top: -25px;
 	}
 }
 

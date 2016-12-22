@@ -20,7 +20,9 @@
             <a class="edit-html btn btn-default btn-xs">
                 {%= __("Edit HTML") %}</a>
         </div>
-        <div class="html-content">
+        <div class="html-content"
+			{% if field.custom_html_id!==undefined %}
+				data-custom-html-id={{ field.custom_html_id }}{% endif %}>
 			{{ field.options || me.get_no_content() }}</div>
     {% } else { %}
         <span class="field-label">{{ field.label }}</span>

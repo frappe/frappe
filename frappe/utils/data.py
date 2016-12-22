@@ -8,6 +8,7 @@ import frappe
 import operator
 import re, urllib, datetime, math
 import babel.dates
+from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
 import HTMLParser
@@ -214,10 +215,18 @@ def formatdate(string_date=None, format_string=None):
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
-	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_date = date.strftime("%Y-%m-%d")
+	return formatted_date
 
 def format_time(txt):
-	return babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_time = babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_time = get_time(txt).strftime("%H:%M:%S")
+	return formatted_time
 
 def format_datetime(datetime_string, format_string=None):
 	if not datetime_string:
@@ -227,7 +236,11 @@ def format_datetime(datetime_string, format_string=None):
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
 
-	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_datetime = babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
+	return formatted_datetime
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
@@ -258,15 +271,8 @@ def cint(s):
 	except: num = 0
 	return num
 
-def cstr(s):
-	if isinstance(s, unicode):
-		return s
-	elif s==None:
-		return ''
-	elif isinstance(s, basestring):
-		return unicode(s, 'utf-8')
-	else:
-		return unicode(s)
+def cstr(s, encoding='utf-8'):
+	return frappe.as_unicode(s, encoding)
 
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""

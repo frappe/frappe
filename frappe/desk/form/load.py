@@ -96,8 +96,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"communications": _get_communications(doc.doctype, doc.name),
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
-		"shared": frappe.share.get_users(doc.doctype, doc.name,
-			fields=["user", "read", "write", "share", "everyone"])
+		"shared": frappe.share.get_users(doc.doctype, doc.name)
 	}
 
 def get_user_permissions(meta):
@@ -179,7 +178,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.db.sql("""select owner, description from `tabToDo`
+	cl = frappe.db.sql("""select name, owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {
 			"doctype": dt,

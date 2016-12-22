@@ -461,7 +461,7 @@ frappe.ui.form.Section = Class.extend({
 				this.make_head();
 			}
 			if(this.df.description) {
-				$('<div class="col-sm-12 small text-muted">' + __(this.df.description) + '</div>')
+				$('<div class="col-sm-12 small text-muted form-section-description">' + __(this.df.description) + '</div>')
 				.appendTo(this.wrapper);
 			}
 		}

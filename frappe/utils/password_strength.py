@@ -23,7 +23,7 @@ import re
 from zxcvbn import scoring
 
 # Default feedback value
-feedback = {
+default_feedback = {
 	"warning": "",
 	"suggestions":[
 		_("Use a few words, avoid common phrases."),
@@ -35,9 +35,10 @@ def get_feedback (score, sequence):
 	"""
 	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
 	"""
+	global default_feedback
 	# Starting feedback
 	if len(sequence) == 0:
-		return feedback
+		return default_feedback
 	# No feedback if score is good or great
 	if score > 2:
 		return dict({"warning": "","suggestions": []})
@@ -119,6 +120,7 @@ def get_match_feedback(match, is_sole_match):
 				_("Avoid dates and years that are associated with you.")
 			],
 		}
+
 	# Dictionary that maps pattern names to funtions that return feedback
 	patterns = {
 		"bruteforce": fun_bruteforce,
@@ -128,6 +130,7 @@ def get_match_feedback(match, is_sole_match):
 		"sequence": fun_sequence,
 		"regex": fun_regex,
 		"date": fun_date,
+		"year": fun_date
 	}
 	return(patterns[match['pattern']]())
 

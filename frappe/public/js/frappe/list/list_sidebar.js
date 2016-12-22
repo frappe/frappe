@@ -70,7 +70,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		var add_reports = function(reports) {
 			$.each(reports, function(name, r) {
-				if(!r.ref_doctype || r.ref_doctype==me.doctype && !r.disabled) {
+				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
 					var report_type = r.report_type==='Report Builder'
 						? 'Report/' + r.ref_doctype : 'query-report';
 					var route = r.route || report_type + '/' + r.name;
@@ -202,7 +202,7 @@ frappe.views.ListSidebar = Class.extend({
 					me.set_filter(fieldname, label);
 				}
 			})
-			.appendTo(this.sidebar);
+			.insertBefore(this.sidebar.find(".close-sidebar-button"));
 	},
 	set_fieldtype: function(df, fieldtype) {
 

@@ -31,8 +31,7 @@ p {
   color: #d1d8dd !important;
 }
 a,
-.badge,
-.ui-menu .ui-menu-item {
+.badge {
   -webkit-transition: 0.2s;
   -o-transition: 0.2s;
   transition: 0.2s;
@@ -82,10 +81,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -636,8 +635,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 10px;
-  margin: 0px -15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -737,7 +736,7 @@ textarea {
 }
 .more-block {
   margin: 0px -15px;
-  padding: 0px 15px 30px;
+  padding-bottom: 30px;
 }
 .btn-more {
   margin: 25px 0px;
@@ -865,6 +864,9 @@ li .footer-child-item {
   border-bottom: 1px solid #d1d8dd;
   width: 100%;
 }
+.item-search .input-wrapper {
+  margin-right: 30px;
+}
 .item-search .item-search-input {
   position: relative;
   outline: none;
@@ -872,10 +874,11 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
-  width: 80px;
+  width: 100%;
 }
 .item-search i {
-  padding: 10px 10px 10px 0;
+  margin-right: -30px;
+  margin-top: -25px;
 }
 .vert-line {
   overflow: hidden;

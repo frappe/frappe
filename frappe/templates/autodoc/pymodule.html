@@ -4,7 +4,7 @@
 	version -%}
 <div class="dev-header">
 {{ version(app.name) }}
-{{ source_link(app, name.replace(".", "/") + ".py") }}
+{{ source_link(app, full_module_name.replace(".", "/") + ".py") }}
 </div>
 
 {{ automodule(name) }}
