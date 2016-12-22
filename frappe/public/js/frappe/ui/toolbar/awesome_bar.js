@@ -500,7 +500,6 @@ frappe.search.verbs = [
 				if(results.length <= initial_length) {
 					results.forEach(function(e) {
 						rendered_results += ('<a href="' + e[0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + e[1] +": " + e[2] + '</h4><p class="list-group-item-text">' + e[3] + "</p></a>");
-
 					});
 					rendered_results += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
 					console.log("Results:", rendered_results);
@@ -530,8 +529,9 @@ frappe.search.verbs = [
 								more_rendered_results += ('<a href="' + results[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + results[0][1] +": " + results[0][2] + '</h4><p class="list-group-item-text">' + results[0][3] + "</p></a>");
 								results.splice(0, 1);	
 							}
-							$(more_rendered_results).insertAfter('.list-group-item:last');
 
+							$(more_rendered_results).insertAfter('.list-group-item:last');
+							
 							if(results.length === 0){
 								$("#show-more").html('No more results');
 							}								
