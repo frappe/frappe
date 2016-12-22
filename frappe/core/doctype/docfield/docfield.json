@@ -322,7 +322,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "depends_on": "eval:(doc.fieldtype === 'Data') || (doc.fieldtype === 'Table')", 
+   "depends_on": "eval:(doc.fieldtype === 'Data' || doc.fieldtype === 'Table')", 
    "fieldname": "in_global_search", 
    "fieldtype": "Check", 
    "hidden": 0, 
