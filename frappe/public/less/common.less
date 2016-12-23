@@ -81,16 +81,6 @@ a.text-muted, a.text-extra-muted {
 	text-decoration: underline;
 }
 
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 100%;
-	vertical-align: middle;
-}
-
 .inline-block {
 	display: inline-block;
 }
@@ -105,7 +95,7 @@ kbd {
 	background-color: @btn-bg;
 }
 
-.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
+.btn [class^="fa fa-"], .nav [class^="fa fa-"], .btn [class*="fa fa-"], .nav [class*="fa fa-"] {
 	display: inline-block;
 }
 
@@ -269,10 +259,10 @@ a.no-decoration& {
 }
 
 .uppercase {
-	padding-bottom: 4px;
-	text-transform: uppercase;
-	font-size: 12px;
-	letter-spacing: 0.4px;
-	color: @text-muted;
+	.text-uppercase();
+}
+
+.ellipsis {
+	.text-ellipsis();
 }
 

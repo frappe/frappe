@@ -19,7 +19,7 @@ frappe.upload = {
 
 				var $uploaded_file_display = $(repl('<div class="btn-group" role="group">\
 					<button type="button" class="btn btn-default btn-sm \
-						text-ellipsis uploaded-filename-display">%(filename)s\
+						ellipsis uploaded-filename-display">%(filename)s\
 					</button>\
 					<button type="button" class="btn btn-default btn-sm uploaded-file-remove">\
 						&times;</button>\

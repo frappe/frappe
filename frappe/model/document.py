@@ -3,14 +3,17 @@
 
 from __future__ import unicode_literals
 import frappe
+import time
 from frappe import _, msgprint
-from frappe.utils import flt, cstr, now, get_datetime_str
+from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
+from frappe.utils.file_manager import save_url
+
 
 # once_only validation
 # methods
@@ -156,23 +159,6 @@ class Document(BaseDocument):
 		frappe.msgprint(msg)
 		raise frappe.PermissionError(msg)
 
-	def lock(self):
-		'''Will set docstatus to 3 + the current docstatus and mark it as queued
-
-		3 = queued for saving
-		4 = queued for submission
-		5 = queued for cancellation
-		'''
-		self.db_set('docstatus', 3 + self.docstatus, update_modified = False)
-
-	def unlock(self):
-		'''set the original docstatus at the time it was locked in the controller'''
-		current_docstatus = self.db_get('docstatus') - 4
-		if current_docstatus < 0:
-			current_docstatus = 0
-
-		self.db_set('docstatus', current_docstatus, update_modified = False)
-
 	def insert(self, ignore_permissions=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
@@ -219,6 +205,10 @@ class Document(BaseDocument):
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
+
+		if self.get("amended_from"):
+			self.copy_attachments_from_amended_from()
+
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -279,6 +269,16 @@ class Document(BaseDocument):
 		self.run_post_save_methods()
 
 		return self
+
+	def copy_attachments_from_amended_from(self):
+		'''Copy attachments from `amended_from`'''
+		from frappe.desk.form.load import get_attachments
+
+		#loop through attachments
+		for attach_item in get_attachments(self.doctype, self.amended_from):
+
+			#save attachments to new doc
+			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments")
 
 	def update_children(self):
 		'''update child tables'''
@@ -498,8 +498,10 @@ class Document(BaseDocument):
 		self._action = "save"
 		if not self.get('__islocal'):
 			if self.meta.issingle:
-				modified = frappe.db.get_value(self.doctype, self.name, "modified")
-				if cstr(modified) and cstr(modified) != cstr(self._original_modified):
+				modified = frappe.db.sql('''select value from tabSingles
+					where doctype=%s and field='modified' for update''', self.doctype)
+				modified = modified and modified[0][0]
+				if modified and modified != cstr(self._original_modified):
 					conflict = True
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
@@ -534,13 +536,7 @@ class Document(BaseDocument):
 		- Submit (1) > Submit (1)
 		- Submit (1) > Cancel (2)
 
-		If docstatus is > 2, it will throw exception as document is deemed queued
 		"""
-
-		if self.docstatus > 2:
-			frappe.throw(_('This document is currently queued for execution. Please try again'),
-				title=_('Document Queued'), indicator='red')
-
 		if not self.docstatus:
 			self.docstatus = 0
 		if docstatus==0:
@@ -796,27 +792,6 @@ class Document(BaseDocument):
 
 	def clear_cache(self):
 		frappe.cache().hdel("last_modified", self.doctype)
-		self.clear_linked_with_cache()
-
-	def clear_linked_with_cache(self):
-		cache = frappe.cache()
-		def _clear_cache(d):
-			for df in (d.meta.get_link_fields() + d.meta.get_dynamic_link_fields()):
-				if d.get(df.fieldname):
-					doctype = df.options if df.fieldtype=="Link" else d.get(df.options)
-					name = d.get(df.fieldname)
-
-					if df.fieldtype=="Dynamic Link":
-						# clear linked doctypes list
-						cache.hdel("linked_doctypes", doctype)
-
-					# for all users, delete linked with cache and per doctype linked with cache
-					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
-					cache.delete_value("user:*:linked_with:{doctype}:{name}:*".format(doctype=doctype, name=name))
-
-		_clear_cache(self)
-		for d in self.get_all_children():
-			_clear_cache(d)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
@@ -1018,28 +993,46 @@ class Document(BaseDocument):
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
 		like _submit for submit, it will call that instead'''
-		if action in ('save', 'submit', 'cancel'):
-			# set docstatus explicitly again due to inconsistent action
-			self.docstatus = {'save':0, 'submit':1, 'cancel': 2}[action]
-		else:
-			raise 'Action must be one of save, submit, cancel'
-
 		# call _submit instead of submit, so you can override submit to call
 		# run_delayed based on some action
 		# See: Stock Reconciliation
 		if hasattr(self, '_' + action):
 			action = '_' + action
 
+		if file_lock.lock_exists(self.get_signature()):
+			frappe.throw(_('This document is currently queued for execution. Please try again'),
+				title=_('Document Queued'), indicator='red')
+
 		self.lock()
-		frappe.db.commit()
 		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,
 			action=action, **kwargs)
+
+	def lock(self, timeout=None):
+		'''Creates a lock file for the given document. If timeout is set,
+		it will retry every 1 second for acquiring the lock again
+
+		:param timeout: Timeout in seconds, default 0'''
+		signature = self.get_signature()
+		if file_lock.lock_exists(signature):
+			lock_exists = True
+			if timeout:
+				for i in range(timeout):
+					time.sleep(1)
+					if not file_lock.lock_exists(signature):
+						lock_exists = False
+						break
+			if lock_exists:
+				raise frappe.DocumentLockedError
+		file_lock.create_lock(signature)
+
+	def unlock(self):
+		'''Delete the lock file for this document'''
+		file_lock.delete_lock(self.get_signature())
 
 def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''
 	doc = frappe.get_doc(doctype, name)
 	doc.unlock()
-	frappe.db.commit()
 	try:
 		getattr(doc, action)(**kwargs)
 	except Exception:

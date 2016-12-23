@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, os, json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
@@ -43,9 +43,16 @@ def update_controller_context(context, controller):
 				context[prop] = getattr(module, prop)
 
 		if hasattr(module, "get_context"):
-			ret = module.get_context(context)
-			if ret:
-				context.update(ret)
+			try:
+				ret = module.get_context(context)
+				if ret:
+					context.update(ret)
+			except frappe.Redirect:
+				raise
+			except frappe.PermissionError:
+				raise
+			except:
+				frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):
 			context.children = module.get_children(context)
@@ -98,6 +105,14 @@ def build_context(context):
 	if context.show_sidebar:
 		context.no_cache = 1
 		add_sidebar_data(context)
+	else:
+		if context.basepath:
+			sidebar_json_path = os.path.join(context.basepath, '_sidebar.json')
+			if os.path.exists(sidebar_json_path):
+				with open(sidebar_json_path, 'r') as sidebarfile:
+					context.sidebar_items = json.loads(sidebarfile.read())
+					context.show_sidebar = 1
+
 
 	# determine templates to be used
 	if not context.base_template_path:
@@ -111,6 +126,7 @@ def add_sidebar_data(context):
 	import frappe.www.list
 
 	if not context.sidebar_items:
+
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
 		if sidebar_items == None:
 			sidebar_items = []

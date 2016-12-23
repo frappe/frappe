@@ -262,6 +262,7 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
+		self.message_id = (self.mail.get('Message-ID') or "").strip(" <>")
 
 		if self.mail["Date"]:
 			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))

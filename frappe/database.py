@@ -382,7 +382,7 @@ class Database:
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, cache=False):
+		debug=False, order_by=None, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -391,6 +391,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -407,7 +408,7 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -421,6 +422,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -509,7 +511,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 
 	def get_singles_dict(self, doctype):
-		"""Get Single DocType as dict."""
+		"""Get Single DocType as dict.
+
+		:param doctype: DocType of the single object whose value is requested
+
+		Example:
+
+			# Get coulmn and value of the single doctype Accounts Settings
+			account_settings = frappe.db.get_singles_dict("Accounts Settings")
+		"""
+
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
@@ -520,7 +531,17 @@ class Database:
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
-		"""Get property of Single DocType. Cache locally by default"""
+		"""Get property of Single DocType. Cache locally by default
+
+		:param doctype: DocType of the single object whose value is requested
+		:param fieldname: `fieldname` of the property whose value is requested
+
+		Example:
+
+			# Get the default value of the company from the Global Defaults doctype.
+			company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		"""
+
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
 		if value:
 			return value
@@ -586,7 +607,7 @@ class Database:
 
 		:param dt: DocType name.
 		:param dn: Document name.
-		:param field: Property / field name.
+		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
 		:param modified_by: Set this user as `modified_by`.
@@ -598,28 +619,40 @@ class Database:
 		if not modified_by:
 			modified_by = frappe.session.user
 
+		to_update = {}
+		if update_modified:
+			to_update = {"modified": modified, "modified_by": modified_by}
+
+		if isinstance(field, dict):
+			to_update.update(field)
+		else:
+			to_update.update({field: val})
+
 		if dn and dt!=dn:
+			# with table
 			conditions, values = self.build_conditions(dn)
 
-			values.update({"val": val, "modified": modified, "modified_by": modified_by})
+			values.update(to_update)
 
-			if update_modified:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
-			else:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
+			set_values = []
+			for key in to_update:
+				set_values.append('`{0}`=%({0})s'.format(key))
 
+			self.sql("""update `tab{0}`
+				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
+				values, debug=debug)
 
 		else:
-			self.sql("delete from tabSingles where field=%s and doctype=%s", (field, dt))
-			self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)",
-				(dt, field, val), debug=debug)
-
-			if update_modified and (field not in ("modified", "modified_by")):
-				self.set_value(dt, dn, "modified", modified)
-				self.set_value(dt, dn, "modified_by", modified_by)
-
+			# for singles
+			keys = to_update.keys()
+			self.sql('''
+				delete from tabSingles
+				where field in ({0}) and
+					doctype=%s'''.format(', '.join(['%s']*len(keys))),
+					keys + [dt], debug=debug)
+			for key, value in to_update.iteritems():
+				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
+					(dt, key, value), debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
@@ -679,8 +712,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		pass
-		#self.sql("start transaction")
+		self.sql("start transaction")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""

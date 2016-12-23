@@ -45,11 +45,11 @@ frappe.DataImportTool = Class.extend({
 					var parent_doctype = frappe.get_doc('DocType', me.doctype);
 					parent_doctype["reqd"] = true;
 					var doctype_list = [parent_doctype];
-					
+
 					frappe.meta.get_table_fields(me.doctype).forEach(function(df) {
 						var d = frappe.get_doc('DocType', df.options);
 						d["reqd"]=df.reqd;
-						doctype_list.push(d);						
+						doctype_list.push(d);
 					});
 					$(frappe.render_template("data_import_tool_columns", {doctype_list: doctype_list}))
 						.appendTo(me.select_columns.empty());
@@ -70,16 +70,18 @@ frappe.DataImportTool = Class.extend({
 			me.select_columns.find('.select-column-check[data-reqd="1"]').prop('checked', true);
 		});
 
+		var get_template_url = '/api/method/frappe.core.page.data_import_tool.exporter.get_template';
+
 		this.page.main.find(".btn-download-template").on('click', function() {
-			window.open(me.get_export_url(false));
+			open_url_post(get_template_url, me.get_export_params(false));
 		});
 
 		this.page.main.find(".btn-download-data").on('click', function() {
-			window.open(me.get_export_url(true));
+			open_url_post(get_template_url, me.get_export_params(true));
 		});
 
 	},
-	get_export_url: function(with_data) {
+	get_export_params: function(with_data) {
 		var doctype = this.select.val();
 		var columns = {};
 
@@ -92,11 +94,13 @@ frappe.DataImportTool = Class.extend({
 			columns[_doctype].push(_fieldname);
 		});
 
-		return "/api/method/frappe.core.page.data_import_tool.exporter.get_template?"
-			+ "doctype=" + doctype
-			+ "&parent_doctype=" + doctype
-			+ "&select_columns=" + JSON.stringify(columns)
-			+ "&with_data="+ (with_data ? 'Yes' : 'No')+"&all_doctypes=Yes";
+		return {
+			doctype: doctype,
+			parent_doctype: doctype,
+			select_columns: JSON.stringify(columns),
+			with_data: with_data ? 'Yes' : 'No',
+			all_doctypes: 'Yes'
+		}
 	},
 	make_upload: function() {
 		var me = this;

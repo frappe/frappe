@@ -1,5 +1,6 @@
 .no-result {
-  padding: 15px;
+  padding: 150px 15px;
+  color: #8D99A6;
 }
 .result-list {
   min-height: 400px;
@@ -41,7 +42,6 @@
 }
 .filter-box {
   border-top: 1px solid #d1d8dd;
-  margin: 0px -15px;
   padding: 10px 15px 3px;
 }
 .filter-box .remove-filter {
@@ -51,6 +51,9 @@
 .filter-box .filter_field {
   padding-right: 15px;
   width: calc(64%);
+}
+.filter-box .filter_field .frappe-control {
+  position: relative;
 }
 .ui-autocomplete .filter-field-select {
   cursor: pointer;

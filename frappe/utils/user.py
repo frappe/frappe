@@ -91,6 +91,7 @@ class UserPermissions:
 		self.build_doctype_map()
 		self.build_perm_map()
 		user_shared = frappe.share.get_shared_doctypes()
+		no_list_view_link = []
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
@@ -109,7 +110,9 @@ class UserPermissions:
 					self.can_write.append(dt)
 				elif p.get('read'):
 					if dtp.get('read_only'):
+						# read_only = "User Cannot Search"
 						self.all_read.append(dt)
+						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
 
@@ -142,9 +145,13 @@ class UserPermissions:
 
 		self.all_read += self.can_read
 
+		for dt in no_list_view_link:
+			if dt in self.can_read:
+				self.can_read.remove(dt)
+
 		if "System Manager" in self.roles:
-			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
-				where allow_import = 1""")
+			self.can_import = filter(lambda d: d in self.can_create, frappe.db.sql_list("""select name from `tabDocType`
+				where allow_import = 1"""))
 
 	def get_defaults(self):
 		import frappe.defaults

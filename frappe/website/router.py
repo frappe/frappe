@@ -46,7 +46,10 @@ def make_page_context(path):
 		raise frappe.DoesNotExistError
 
 	context.doctype = context.ref_doctype
-	context.title = context.page_title
+
+	if context.page_title:
+		context.title = context.page_title
+
 	context.pathname = frappe.local.path
 
 	return context
@@ -249,12 +252,12 @@ def setup_index(page_info):
 		if os.path.exists(index_txt_path):
 			page_info.index = open(index_txt_path, 'r').read().splitlines()
 
-def make_toc(context, out):
+def make_toc(context, out, app=None):
 	'''Insert full index (table of contents) for {index} tag'''
 	from frappe.website.utils import get_full_index
 	if '{index}' in out:
 		html = frappe.get_template("templates/includes/full_index.html").render({
-			"full_index": get_full_index(),
+			"full_index": get_full_index(app=app),
 			"url_prefix": context.url_prefix or "/",
 			"route": context.route
 		})
@@ -264,7 +267,7 @@ def make_toc(context, out):
 	if '{next}' in out:
 		# insert next link
 		next_item = None
-		children_map = get_full_index()
+		children_map = get_full_index(app=app)
 		parent_route = os.path.dirname(context.route)
 		children = children_map[parent_route]
 
@@ -299,7 +302,7 @@ def load_properties(page_info):
 			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
 
 	if page_info.title and not '{% block title %}' in page_info.source:
-		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
+		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -313,7 +316,7 @@ def load_properties(page_info):
 		# every page needs a header
 		# add missing header if there is no <h1> tag
 		if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
-			page_info.source += '\n{% block header %}<h1>' + page_info.title + '</h1>{% endblock %}'
+			page_info.source += '\n{% block header %}<h1>{{ title }}</h1>{% endblock %}'
 
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1
@@ -325,10 +328,10 @@ def process_generators(func):
 			condition_field = None
 			controller = get_controller(doctype)
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
+			if "condition_field" in controller.website:
+				condition_field = controller.website['condition_field']
+			if 'order_by' in controller.website:
+				order_by = controller.website['order_by']
 
 			val = func(doctype, condition_field, order_by)
 			if val:

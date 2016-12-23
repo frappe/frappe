@@ -334,9 +334,6 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 	}
 
-	if(frappe.ui.toolbar.recent)
-		frappe.ui.toolbar.recent.add(this.doctype, this.docname, 1);
-
 	// show / hide buttons
 	if(this.toolbar) {
 		if (is_a_different_doc) {
@@ -889,7 +886,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
-	if(group && group.indexOf("icon")!==-1) group = null;
+	if(group && group.indexOf("fa fa-")!==-1) group = null;
 	return this.page.add_inner_button(label, fn, group);
 }
 

@@ -146,4 +146,6 @@ execute:frappe.db.set_default('language', '')
 frappe.patches.v7_1.refactor_integration_broker
 frappe.patches.v7_1.set_backup_limit
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
+frappe.patches.v7_2.set_doctype_engine
+frappe.patches.v7_2.merge_knowledge_base
 frappe.patches.v7_0.update_report_builder_json

@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .form-grid {
   border: 1px solid #d1d8dd;
   border-radius: 3px;

@@ -3,8 +3,10 @@ import frappe, json
 from frappe.oauth import OAuthWebRequestValidator, WebApplicationServer
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from urllib import quote, urlencode
+from werkzeug import url_fix
 from urlparse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
+from frappe import _
 
 def get_oauth_server():
 	if not getattr(frappe.local, 'oauth_server', None):
@@ -25,7 +27,7 @@ def get_urlparams_from_kwargs(param_kwargs):
 @frappe.whitelist()
 def approve(*args, **kwargs):
 	r = frappe.request
-	uri = r.url
+	uri = url_fix(r.url.replace("+"," "))
 	http_method = r.method
 	body = r.get_data()
 	headers = r.headers
@@ -62,7 +64,7 @@ def authorize(*args, **kwargs):
 	elif frappe.session['user']!='Guest':
 		try:
 			r = frappe.request
-			uri = r.url
+			uri = url_fix(r.url)
 			http_method = r.method
 			body = r.get_data()
 			headers = r.headers
@@ -96,14 +98,42 @@ def authorize(*args, **kwargs):
 def get_token(*args, **kwargs):
 	r = frappe.request
 
-	uri = r.url
+	uri = url_fix(r.url)
 	http_method = r.method
 	body = r.form
 	headers = r.headers
+	
+	#Check whether frappe server URL is set
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url") or None
+	if not frappe_server_url:
+		frappe.throw(_("Define Frappe Server URL in Social Login Keys"))
 
 	try:
 		headers, body, status = get_oauth_server().create_token_response(uri, http_method, body, headers, frappe.flags.oauth_credentials)
-		frappe.local.response = frappe._dict(json.loads(body))
+		out = frappe._dict(json.loads(body))
+		if not out.error and "openid" in out.scope:
+			token_user = frappe.db.get_value("OAuth Bearer Token", out.access_token, "user")
+			token_client = frappe.db.get_value("OAuth Bearer Token", out.access_token, "client")
+			client_secret = frappe.db.get_value("OAuth Client", token_client, "client_secret")
+			if token_user in ["Guest", "Administrator"]:
+				frappe.throw(_("Logged in as Guest or Administrator"))
+			import hashlib
+			id_token_header = {
+				"typ":"jwt",
+				"alg":"HS256"
+			}
+			id_token = {
+				"aud": token_client,
+				"exp": int((frappe.db.get_value("OAuth Bearer Token", out.access_token, "expiration_time") - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
+				"sub": frappe.db.get_value("User", token_user, "frappe_userid"),
+				"iss": frappe_server_url,
+				"at_hash": frappe.oauth.calculate_at_hash(out.access_token, hashlib.sha256)
+			}
+			import jwt
+			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
+			out.update({"id_token":id_token_encoded})
+		frappe.local.response = out
+
 	except FatalClientError as e:
 		return e
 
@@ -111,7 +141,7 @@ def get_token(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def revoke_token(*args, **kwargs):
 	r = frappe.request
-	uri = r.url
+	uri = url_fix(r.url)
 	http_method = r.method
 	body = r.form
 	headers = r.headers
@@ -123,3 +153,37 @@ def revoke_token(*args, **kwargs):
 		return "success"
 	else:
 		return "bad request"
+
+@frappe.whitelist()
+def openid_profile(*args, **kwargs):
+	picture = None
+	first_name, last_name, avatar, name, frappe_userid = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name", "frappe_userid"])
+	request_url = urlparse(frappe.request.url)
+
+	if avatar:
+		if validate_url(avatar):
+			picture = avatar
+		else:
+			picture = request_url.scheme + "://" + request_url.netloc + avatar
+
+	user_profile = frappe._dict({
+			"sub": frappe_userid,
+			"name": " ".join(filter(None, [first_name, last_name])),
+			"given_name": first_name,
+			"family_name": last_name,
+			"email": name,
+			"picture": picture
+		})
+	
+	frappe.local.response = user_profile
+
+def validate_url(url_string):
+	from urlparse import urlparse
+	try:
+		result = urlparse(url_string)
+		if result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]:
+			return True
+		else:
+			return False
+	except:
+		return False

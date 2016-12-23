@@ -398,7 +398,7 @@ bsEditorToolbar = Class.extend({
 bsHTMLEditor = Class.extend({
 	init: function() {
 		var me = this;
-		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
+		this.modal = bs_get_modal("<i class='fa fa-code'></i> Edit HTML", '<textarea class="form-control" \
 			style="height: 400px; width: 100%; font-family: Monaco, \'Courier New\', monospace; font-size: 11px">\
 			</textarea>');
 			this.modal.addClass("frappe-ignore-click");
@@ -435,7 +435,7 @@ bsLinkEditor = Class.extend({
 	init: function(toolbar) {
 		var me = this;
 		this.toolbar = toolbar;
-		this.modal = bs_get_modal("<i class='icon-globe'></i> Insert Link", '<div class="form-group">\
+		this.modal = bs_get_modal("<i class='fa fa-globe'></i> Insert Link", '<div class="form-group">\
 				<input type="text" class="form-control" placeholder="http://example.com" />\
 			</div>\
 			<div class="checkbox" style="position: static;">\

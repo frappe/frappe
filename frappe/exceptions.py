@@ -62,3 +62,4 @@ class AppNotInstalledError(ValidationError): pass
 class IncorrectSitePath(NotFound): pass
 class ImplicitCommitError(ValidationError): pass
 class RetryBackgroundJobError(Exception): pass
+class DocumentLockedError(ValidationError): pass

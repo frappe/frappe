@@ -197,8 +197,11 @@ var Gantt = Class.extend({
 			this.canvas.attr("width", actual_width);
 	},
 	set_scroll_position: function() {
-		document.querySelector(this.opts.parent_selector).parentElement.scrollLeft =
-				this.get_min_date().diff(this.start, 'hours') / this.opts.step * this.opts.column_width;
+		var parent_element = document.querySelector(this.opts.parent_selector).parentElement; 
+		if(!parent_element) return;
+		var scroll_pos = this.get_min_date().diff(this.start, 'hours') /
+			this.opts.step * this.opts.column_width;
+		parent_element.scrollLeft = scroll_pos;
 	},
 	get_min_date: function() {
 		return this.tasks.reduce(function(acc, curr) {

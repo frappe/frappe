@@ -1,7 +1,8 @@
 @import "variables.less";
 
 .no-result {
-	padding: 15px;
+	padding: 150px 15px;
+	color: @text-muted;
 }
 
 .result-list {
@@ -54,7 +55,7 @@
 
 .filter-box {
 	border-top: 1px solid @border-color;
-	margin: 0px -15px;
+	// margin: 0px -15px;
 	padding: 10px 15px 3px;
 
 	.remove-filter {
@@ -65,6 +66,10 @@
 	.filter_field {
 		padding-right: 15px;
 		width: calc(100% - 36px);
+
+		.frappe-control {
+			position: relative;
+		}
 	}
 }
 

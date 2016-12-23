@@ -38,21 +38,28 @@ frappe.views.QueryReport = Class.extend({
 	    multiColumnSort: true
 	},
 	make: function() {
+		var me = this;
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
 		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
-
+		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
+		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
+	},
+	toggle_expand_collapse_buttons: function(show) {
+		this.wrapper.find(".expand-all, .collapse-all").toggleClass('hidden', !!!show);
 	},
 	make_toolbar: function() {
 		var me = this;
@@ -146,6 +153,8 @@ frappe.views.QueryReport = Class.extend({
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
 		this.chart_area.toggle(false);
+		this.toggle_expand_collapse_buttons(false);
+		this.is_tree_report = false;
 
 		var report_settings = frappe.query_reports[this.report_name];
 
@@ -156,7 +165,9 @@ frappe.views.QueryReport = Class.extend({
 
 		}()).then(function() {
 			me.refresh();
-		})
+		});
+
+
 
 	},
 	print_report: function() {
@@ -175,6 +186,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	pdf_report: function() {
+		var me = this;
 		base_url = frappe.urllib.get_base_url();
 		print_css = frappe.boot.print_css;
 
@@ -200,11 +212,23 @@ frappe.views.QueryReport = Class.extend({
 				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
 		}
 
+		frappe.prompt({
+			fieldtype: "Select",
+			fieldname: "orientation",
+			label: __("Orientation"),
+			options: "Landscape\nPortrait",
+			default: "Landscape"
+		}, function(data) {
+			me.open_pdf_report(html, data.orientation);
+		}, __("Select orientation"));
+	},
+	open_pdf_report: function(html, orientation) {
 		//Create a form to place the HTML content
 		var formData = new FormData();
 
 		//Push the HTML content into an element
 		formData.append("html", html);
+		formData.append("orientation", orientation);
 		var blob = new Blob([], { type: "text/xml"});
 		//formData.append("webmasterfile", blob);
 		formData.append("blob", blob);
@@ -397,6 +421,8 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+
+		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
 
 	make_columns: function(columns) {
@@ -550,6 +576,15 @@ frappe.views.QueryReport = Class.extend({
 				item._collapsed = true;
 			}
 		}
+
+	},
+	toggle_all: function(collapse) {
+		var me = this;
+		for(var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+			item._collapsed = collapse;
+			me.dataView.updateItem(item.id, item);
+		}
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
@@ -576,6 +611,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.query_report;
+		me.is_tree_report = true;
 		var $span = $("<span></span>")
 			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
 			.html(value);

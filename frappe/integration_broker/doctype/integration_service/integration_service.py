@@ -64,14 +64,16 @@ class IntegrationService(Document):
 		pass
 
 	def create_request(self, data, integration_type, service_name, name=None):
-		if not isinstance(data, basestring):
-			data = json.dumps(data)
+		if isinstance(data, basestring):
+			data = json.loads(data)
 
 		integration_request = frappe.get_doc({
 			"doctype": "Integration Request",
 			"integration_type": integration_type,
 			"integration_request_service": service_name,
-			"data": data
+			"reference_doctype": data.get("reference_doctype"),
+			"reference_docname": data.get("reference_docname"),
+			"data": json.dumps(data)
 		})
 
 		if name:

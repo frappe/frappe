@@ -6,7 +6,9 @@ frappe.provide("frappe.search_path");
 cur_frm = null;
 
 $.extend(frappe, {
-	boot: {},
+	boot: {
+		lang: 'en'
+	},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
@@ -147,7 +149,7 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
+		if(!icon) icon="fa fa-refresh fa-spin";
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'

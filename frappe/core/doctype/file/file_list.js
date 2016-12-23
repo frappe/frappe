@@ -20,17 +20,17 @@ frappe.listview_settings['File'] = {
 		var icon = ""
 
 		if(data.is_folder) {
-			icon += '<i class="icon-folder-close-alt icon-fixed-width"></i> ';
+			icon += '<i class="fa fa-folder-close-alt fa-fw"></i> ';
 		} else if(frappe.utils.is_image_file(data.file_name)) {
-			icon += '<i class="icon-picture icon-fixed-width"></i> ';
+			icon += '<i class="fa fa-picture fa-fw"></i> ';
 		} else {
-			icon += '<i class="icon-file-alt icon-fixed-width"></i> '
+			icon += '<i class="fa fa-file-alt fa-fw"></i> '
 		}
 
 		data._title = icon + (data.file_name ? data.file_name : data.file_url)
 
 		if (data.is_private) {
-			data._title += ' <i class="icon-lock icon-fixed-width text-warning"></i>'
+			data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>'
 		}
 	},
 	onload: function(doclist) {
@@ -81,7 +81,32 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("Edit Folder"), function() {
 			frappe.set_route("Form", "File", doclist.current_folder);
 		});
-	},
+
+		doclist.page.add_menu_item(__("Import .zip"), function() {
+			// make upload dialog
+			dialog = frappe.ui.get_upload_dialog({
+				args: {
+					folder: doclist.current_folder,
+					from_form: 1
+				},
+				callback: function(attachment, r) {
+					frappe.call({
+						method: "frappe.core.doctype.file.file.unzip_file",
+						args: {
+							name: r.message["name"],
+						},
+						callback: function(r) {
+							if(!r.exc) {
+								//doclist.refresh();
+							} else {
+								frappe.msgprint(__("Error in uploading files." + r.exc));
+							}
+						}
+					});
+				},
+			});
+		});
+ 	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
 			.on('drop', function (e) {
@@ -123,7 +148,7 @@ frappe.listview_settings['File'] = {
 					"new_parent": doclist.current_folder,
 					"old_parent": doclist.old_parent
 				},
-				callback:function(r){
+				callback:function(r) {
 					doclist.paste = false;
 					frappe.msgprint(__(r.message));
 					doclist.selected_files = [];
@@ -143,7 +168,6 @@ frappe.listview_settings['File'] = {
 		}
 	},
 	refresh: function(doclist) {
-		// set folder before querying
 		var name_filter = doclist.filter_list.get_filter("file_name");
 
 		var folder_filter = doclist.filter_list.get_filter("folder");

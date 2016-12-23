@@ -1,7 +1,7 @@
 <div class="container setup-wizard-slide {%= css_class %}" data-slide-name="{%= name %}">
 	<div class="text-center setup-wizard-progress text-extra-muted">
 		{% for (var i=0; i < slides_count; i++) { %}
-		<i class="icon-fixed-width {% if (i+1==step) { %} icon-circle {% } else { %} icon-circle-blank {% } %}"></i>
+		<i class="fa-fw {% if (i+1==step) { %} fa fa-circle {% } else { %} fa fa-circle-o {% } %}"></i>
 		{% } %}
 	</div>
     <p class="text-center lead">{%= title %}</p>

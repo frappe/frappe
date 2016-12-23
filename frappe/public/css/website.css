@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -70,15 +71,6 @@ a.text-extra-muted {
 .underline {
   text-decoration: underline;
 }
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
-}
 .inline-block {
   display: inline-block;
 }
@@ -90,10 +82,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -237,6 +229,13 @@ a.no-decoration:active {
   font-size: 12px;
   letter-spacing: 0.4px;
   color: #8D99A6;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
 }
 .avatar {
   display: inline-block;
@@ -637,8 +636,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 10px;
-  margin: 0px -15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -738,7 +737,7 @@ textarea {
 }
 .more-block {
   margin: 0px -15px;
-  padding: 0px 15px 30px;
+  padding-bottom: 30px;
 }
 .btn-more {
   margin: 25px 0px;
@@ -828,6 +827,9 @@ a.active {
 .content-header {
   padding-bottom: 20px;
 }
+.footer-group {
+  margin-bottom: 28px;
+}
 .footer-group-label {
   display: inline-block;
   font-size: 11px;
@@ -863,6 +865,9 @@ li .footer-child-item {
   border-bottom: 1px solid #d1d8dd;
   width: 100%;
 }
+.item-search .input-wrapper {
+  margin-right: 30px;
+}
 .item-search .item-search-input {
   position: relative;
   outline: none;
@@ -870,10 +875,11 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
-  width: 80px;
+  width: 100%;
 }
 .item-search i {
-  padding: 10px 10px 10px 0;
+  margin-right: -30px;
+  margin-top: -25px;
 }
 .vert-line {
   overflow: hidden;

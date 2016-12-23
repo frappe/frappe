@@ -2,7 +2,33 @@
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
+from frappe import _
+
+@frappe.whitelist()
+def get_all_nodes(tree_method, tree_args, parent):
+	'''Recursively gets all data from tree nodes'''
+
+	tree_method = frappe.get_attr(tree_method)
+
+	if not tree_method in frappe.whitelisted:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	frappe.local.form_dict = frappe._dict(json.loads(tree_args))
+	frappe.local.form_dict.parent = parent
+	data = tree_method()
+	out = [dict(parent=parent, data=data)]
+
+	to_check = [d.value for d in data if d.expandable]
+	while to_check:
+		frappe.local.form_dict.parent = to_check.pop()
+		data = tree_method()
+		out.append(dict(parent=frappe.local.form_dict.parent, data=data))
+		for d in data:
+			if d.expandable:
+				to_check.append(d.value)
+
+	return out
 
 @frappe.whitelist()
 def get_children():

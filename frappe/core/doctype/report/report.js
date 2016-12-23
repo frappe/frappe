@@ -31,7 +31,7 @@ cur_frm.cscript.refresh = function(doc) {
 				frappe.set_route("query-report", doc.name);
 				break;
 		}
-	}, "icon-table");
+	}, "fa fa-table");
 
 	if (doc.is_standard === "Yes") {
 		cur_frm.add_custom_button(doc.disabled ? __("Enable Report") : __("Disable Report"), function() {
@@ -45,7 +45,7 @@ cur_frm.cscript.refresh = function(doc) {
 			}).always(function() {
 				cur_frm.reload_doc();
 			});
-		}, doc.disabled ? "icon-ok" : "icon-off");
+		}, doc.disabled ? "fa fa-check" : "fa fa-off");
 	}
 
 	cur_frm.cscript.report_type(doc);

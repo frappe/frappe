@@ -187,7 +187,6 @@ $.extend(frappe.model, {
 
 		} else if (df.fieldtype=="Time") {
 			return dateutil.now_time();
-
 		}
 	},
 
@@ -276,9 +275,11 @@ $.extend(frappe.model, {
 
 		return frappe.call({
 			type: "POST",
-			method: opts.method,
+			method: 'frappe.model.mapper.make_mapped_doc',
 			args: {
-				"source_name": opts.source_name
+				method: opts.method,
+				source_name: opts.source_name,
+				selected_children: opts.frm.get_selected()
 			},
 			freeze: true,
 			callback: function(r) {

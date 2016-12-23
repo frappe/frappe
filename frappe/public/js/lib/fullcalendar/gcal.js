@@ -1,9 +1,9 @@
 /*!
- * FullCalendar v2.8.0 Google Calendar Plugin
+ * FullCalendar v3.0.1 Google Calendar Plugin
  * Docs & License: http://fullcalendar.io/
  * (c) 2016 Adam Shaw
  */
-
+ 
 (function(factory) {
 	if (typeof define === 'function' && define.amd) {
 		define([ 'jquery' ], factory);

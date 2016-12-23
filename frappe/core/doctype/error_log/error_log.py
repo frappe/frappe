@@ -19,3 +19,9 @@ def set_old_logs_as_seen():
 
 	# clear old logs
 	frappe.db.sql("""delete from `tabError Log` where datediff(curdate(), creation) > 30""")
+
+@frappe.whitelist()
+def clear_error_logs():
+	'''Flush all Error Logs'''
+	frappe.only_for('System Manager')
+	frappe.db.sql('''delete from `tabError Log`''')

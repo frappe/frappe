@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
-	nowdate, get_datetime_str, cstr, get_datetime)
+	nowdate, get_datetime_str, cstr, get_datetime, now_datetime)
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 
@@ -13,6 +13,9 @@ weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", 
 
 class Event(Document):
 	def validate(self):
+		if not self.starts_on:
+			self.starts_on = now_datetime()
+
 		if self.starts_on and self.ends_on and get_datetime(self.starts_on) > get_datetime(self.ends_on):
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
 

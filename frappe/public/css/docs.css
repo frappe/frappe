@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .navbar .dropdown-toggle {
   padding-top: 8px;
   padding-bottom: 8px;
@@ -372,13 +373,22 @@ pre {
   color: #4f4fa4;
 }
 .navbar {
-  max-width: 870px;
+  background-color: #36414C !important;
   margin-left: auto;
   margin-right: auto;
+}
+.navbar .container {
+  max-width: 870px;
+}
+.navbar .brand-logo {
+  width: 30px;
+  margin-top: -4px;
+  margin-right: 7px;
 }
 .navbar a {
   font-size: 16px;
   font-weight: normal;
+  color: #fff !important;
 }
 .navbar a.navbar-brand {
   font-weight: bold;
