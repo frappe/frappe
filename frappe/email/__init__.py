@@ -39,32 +39,33 @@ def get_system_managers():
 def relink(name,reference_doctype=None,reference_name=None):
 		dt = reference_doctype
 		dn = reference_name
+		origin = frappe.db.get_value("Communication", name, ["reference_doctype", "reference_name", "communication_medium", "subject"], as_dict=1)
 
-		original_reference_doctype=frappe.db.get_value("Communication",name,"reference_doctype")
-		original_reference_name=frappe.db.get_value("Communication",name,"reference_name")
-		communication_medium=frappe.db.get_value("Communication",name,"communication_medium")
-		subject=frappe.db.get_value("Communication",name,"subject")
-		subject_link = '<a href="/desk#Form/Communication/' + name +'" target="_blank">' + subject
-		content= 'Relinked ' + communication_medium + ' ' + subject_link + '</a>'
+		subject_link = '<a href="/desk#Form/Communication/' + name +'" target="_blank">' + origin.subject
+		content= 'Relinked ' + origin.communication_medium + ' ' + subject_link + '</a>'
 
-		if original_reference_doctype:
-			from_link = '<a href="/desk#Form/' + original_reference_doctype +'/'+ original_reference_name +'" target="_blank">'
-			content += ' from ' + from_link + original_reference_doctype+' '+original_reference_name+'</a>'
+		if origin.reference_doctype:
+			from_link = '<a href="/desk#Form/' + origin.reference_doctype +'/'+ origin.reference_name +'" target="_blank">'
+			content += ' from ' + from_link + origin.reference_doctype +' '+ origin.reference_name +'</a>'
 
 		frappe.db.sql("""UPDATE `tabCommunication`
-					SET reference_doctype = %(ref_doc)s ,reference_name = %(ref_name)s ,STATUS = "Linked"
-					WHERE name = %(name)s OR timeline_hide = %(name)s; """,
+					SET reference_doctype = %(ref_doc)s, reference_name = %(ref_name)s, STATUS = "Linked"
+					WHERE communication_type = "Communication" and name = %(name)s OR timeline_hide = %(name)s""",
 		              {'ref_doc': dt,
 		               'ref_name': dn, 'name': name})
 
-		dup_list = [{"name":name,"timeline_label":False}] + frappe.db.get_values("Communication", {"timeline_hide": name}, ["name","timeline_label"],as_dict=1)
+		dup_list = [{"name":name, "timeline_label":False}] + frappe.db.get_values("Communication", {"timeline_hide": name, "communication_type":"Communication"}, ["name", "timeline_label"], as_dict=1)
 		for comm in dup_list:
 			if not comm["timeline_label"]:
 				doc = frappe.get_doc("Communication", comm["name"])
 				if not doc.timeline_label:
 					doc.timeline_doctype = None
 					doc.timeline_name = None
-					doc.save(ignore_permissions=True)
+					doc.set_timeline_doc()
+					if comm.name == dup_list[0].name:
+						doc.save(ignore_permissions=True)
+					else:
+						doc.db_update()
 
 		frappe.get_doc({
 				"doctype": "Communication",
@@ -72,7 +73,7 @@ def relink(name,reference_doctype=None,reference_name=None):
 				"comment_type": "Relinked",
 				"reference_doctype": dt,
 				"reference_name": dn,
-				"subject": subject,
+				"subject": origin.subject,
 				"communication_medium": frappe.db.get_value("Communication",name,"communication_medium"),
 				"reference_owner": frappe.db.get_value(dt, dn, "owner"),
 				"content": content,
