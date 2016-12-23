@@ -113,7 +113,7 @@
    "in_list_view": 0, 
    "in_standard_filter": 0, 
    "label": "From", 
-   "length": 0, 
+   "length": 255, 
    "no_copy": 0, 
    "options": "Email", 
    "permlevel": 0, 

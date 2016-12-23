@@ -24,9 +24,11 @@ frappe.ui.form.Timeline = Class.extend({
 		this.input.keydown("meta+return ctrl+return", function(e) {
 			me.comment_button.trigger("click");
 		});
-		this.list.on("click",".comment-header",function() {
-			$(this).parent().find(".timeline-content-show").toggleClass("hide");
-			$(this).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
+		this.list.on("click",".comment-header",function(e) {
+			if (!inList(["A","BUTTON"],e.target.tagName)) {
+				$(this).parent().find(".timeline-content-show").toggleClass("hide");
+				$(this).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
+			}
 		})
 		
 		this.email_button = this.wrapper.find(".btn-new-email")
@@ -177,58 +179,11 @@ frappe.ui.form.Timeline = Class.extend({
 		var me = this;
 		$timeline_item.find(".relink-link").on("click", function() {
 			var name = $(this).attr("data-name");
-			var lib ="frappe.desk.doctype.communication_reconciliation.communication_reconciliation"
-			var d = new frappe.ui.Dialog({
-				title: __("Relink Communication"),
-				fields: [{
-                            "fieldtype": "Link",
-                            "options": "DocType",
-                            "label": __("Reference Doctype"),
-					"name":"reference_doctype",
-					"reqd": 1,
-					"get_query": function() {
-					return {
-						query: lib+".get_communication_doctype"
-						}
-					}
-                        },
-                        {
-	                	"fieldtype": "Dynamic Link",
-	                	"options": "reference_doctype",
-	                	"label": __("Reference Name"),
-	                	"reqd": 1,
-				"name":"reference_name"
-                        }]
-			});
-			d.set_value("reference_doctype",cur_frm.doctype)
-			d.set_value("reference_name",cur_frm.docname)
-			d.set_primary_action(__("Relink"), function() {
-				values = d.get_values()
-                		if (values) {
-					frappe.confirm(
-    					'Are you sure you want to relink this communication to '+d.get_value("reference_name")+'?',
-    					function(){
-					frappe.call({
-						method: lib+".relink",
-						args: {
-							"name": name,
-							"reference_doctype": d.get_value("reference_doctype"),
-							"reference_name": d.get_value("reference_name")
-						},
-
-						callback: function (frm) {
+			callback= function (frm) {
 							$timeline_item.hide()
-							d.hide();
-							return false;
-						}})
-							},
-							function(){
-								show_alert('Document not Relinked')
-						})
-                		}
-			});
-			d.show();
-		});
+						}
+			frappe.timeline.relink_dialog(name, cur_frm.doctype, cur_frm.name, callback)
+		 });
 
 	},
 
@@ -655,4 +610,52 @@ $.extend(frappe.timeline, {
 
 		return index;
 	},
+	relink_dialog: function(name, reference_doctype, reference_name, callback, timeline_hide){
+		var lib = "frappe.email";
+		var d = new frappe.ui.Dialog ({
+			title: __("Relink Communication"),
+			fields: [{
+				"fieldtype": "Link",
+				"options": "DocType",
+				"label": __("Reference Doctype"),
+				"fieldname": "reference_doctype",
+				"get_query": function() {return {"query": lib +".get_communication_doctype"}}
+			},
+			{
+				"fieldtype": "Dynamic Link",
+				"options": "reference_doctype",
+				"label": __("Reference Name"),
+				"fieldname": "reference_name"
+			}]
+		});
+		d.set_value("reference_doctype", reference_doctype);
+		d.set_value("reference_name", reference_name);
+		d.set_primary_action(__("Relink"), function (frm) {
+			values = d.get_values();
+			if (values) {
+				frappe.confirm(
+					'Are you sure you want to relink this communication to ' + values["reference_name"] + '?',
+					function () {
+						d.hide();
+						frappe.call
+						({
+							method: lib + ".relink",
+							args: {
+								"name": timeline_hide ? timeline_hide: name,
+								"reference_doctype": values["reference_doctype"],
+								"reference_name": values["reference_name"]
+							},
+							callback: function (frm) {
+								callback(frm)
+							}
+						})
+					},
+					function () {
+						show_alert('Document not Relinked')
+					}
+				)
+			}
+		});
+		d.show();
+	}
 })

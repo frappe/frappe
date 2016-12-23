@@ -40,10 +40,10 @@
             {% $.each(data.attachments, function(i, a) { %}
             <div class="ellipsis">
                 <a href="{%= a.file_url.replace(/#/g, \'%23\') %}" class=" small" target="_blank">
-                    <i class="icon-paperclip"></i>
+                    <i class="fa fa-paperclip"></i>
                     {%= a.file_url.split("/").slice(-1)[0] %}
                     {% if (a.is_private) { %}
-                    <i class="icon icon-lock text-warning"></i>
+                    <i class="fa fa-lock text-warning"></i>
                     {% } %}
                 </a>
             </div>

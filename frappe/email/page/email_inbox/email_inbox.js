@@ -301,7 +301,9 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	email_open:function(row)
 	{
 		var me = this;
+		me.actions_opened = false;
 		//mark email as read
+		
 		this.mark_read({n:row.name, u:row.uid});
 		//start of open email
 
@@ -315,7 +317,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		//prompt for match
 		if (!row.timeline_label && !row.nomatch) {
 			setTimeout(function () {
-				if (frappe.ui.open_dialogs.indexOf(emailitem) != -1) {
+				if (frappe.ui.open_dialogs.indexOf(emailitem) != -1 && !me.actions_opened) {
 					me.company_select(row)
 				}}, 4000);
 		}
@@ -325,7 +327,9 @@ frappe.Inbox = frappe.ui.Listing.extend({
       $(emailitem.$wrapper).find(".reply").find("a").attr("target", "_blank");
 
 		//Action buttons
-		$(emailitem.$wrapper).find(".text-right").prepend(frappe.render_template("inbox_email_actions"));
+		$(emailitem.$wrapper).find(".text-right").prepend(frappe.render_template("inbox_email_actions")).on("click", function () {
+			me.actions_opened = true;
+		});
 		$(emailitem.$wrapper).find(".relink-link").on("click", function () {
 			me.relink(row); });
 		$(emailitem.$wrapper).find(".delete-link").on("click", function () {
@@ -418,66 +422,15 @@ frappe.Inbox = frappe.ui.Listing.extend({
     },
 	relink:function(row){
 		var me = this;
-		var lib = "frappe.desk.doctype.communication_reconciliation.communication_reconciliation";
-		var d = new frappe.ui.Dialog ({
-			title: __("Relink Communication"),
-			fields: [{
-				"fieldtype": "Link",
-				"options": "DocType",
-				"label": __("Reference Doctype"),
-				"fieldname": "reference_doctype",
-				"get_query": function() {
-				return {
-						"query": lib +".get_communication_doctype"
-					}
-				}
-			},
-				{
-					"fieldtype": "Dynamic Link",
-					"options": "reference_doctype",
-					"label": __("Reference Name"),
-					"fieldname": "reference_name"
-				},
-				{
-					"fieldtype": "Button",
-					"label": __("Relink")
-				}]
-		});
-		d.set_value("reference_doctype", row.reference_doctype);
-		d.set_value("reference_name", row.reference_name);
-		d.get_input("relink").on("click", function (frm) {
-			values = d.get_values();
-			if (values) {
-				frappe.confirm(
-					'Are you sure you want to relink this communication to ' + values["reference_name"] + '?',
-					function () {
-						d.hide();
-						frappe.call
-						({
-							method: lib + ".relink",
-							args: {
-								"name": row.timeline_hide ? row.timeline_hide:row.name,
-								"reference_doctype": values["reference_doctype"],
-								"reference_name": values["reference_name"]
-							},
-							callback: function (frm) {
-								$(me.wrapper).find(".row-named[data-name="+row.name+"]").find(".reference-document")
-									.html(values["reference_name"])
-								.attr("href",'#Form/'+values["reference_doctype"]+ '/'+values["reference_name"])
-								.attr("title","Linked Doctype: "+values["reference_doctype"]);
-								row.reference_doctype = values["reference_doctype"];
-								row.reference_name = values["reference_name"];
-								return false;
-							}
-						})
-					},
-					function () {
-						show_alert('Document not Relinked')
-					}
-				)
-			}
-		});
-		d.show();
+		var callback = function(frm){
+			$(me.wrapper).find(".row-named[data-name="+row.name+"]").find(".reference-document")
+				.html(values["reference_name"])
+			.attr("href",'#Form/'+values["reference_doctype"]+ '/'+values["reference_name"])
+			.attr("title","Linked Doctype: "+values["reference_doctype"]);
+			row.reference_doctype = values["reference_doctype"];
+			row.reference_name = values["reference_name"];
+		}
+		frappe.timeline.relink_dialog(row.name, row.reference_doctype, row.reference_name, callback, row.timeline_hide);
 	},
 	run:function(more,footer) {
 		var me = this;
