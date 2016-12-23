@@ -9,7 +9,7 @@ from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc)
 from frappe.core.doctype.communication.email import (validate_email,
-	notify, _notify, update_parent_status, match_email_to_contact)
+	notify, _notify, update_parent_status)
 from frappe.utils.bot import BotReply
 from email.utils import parseaddr
 from collections import Counter
@@ -67,7 +67,6 @@ class Communication(Document):
 					# reference_name contains the user who is addressed in the messages' page comment
 					frappe.publish_realtime('new_message', self.as_dict(),
 					    user=self.reference_name, after_commit=True)
-		match_email_to_contact(self)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
