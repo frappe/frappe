@@ -106,11 +106,12 @@ def build_context(context):
 		context.no_cache = 1
 		add_sidebar_data(context)
 	else:
-		sidebar_json_path = os.path.join(context.basepath, '_sidebar.json')
-		if os.path.exists(sidebar_json_path):
-			with open(sidebar_json_path, 'r') as sidebarfile:
-				context.sidebar_items = json.loads(sidebarfile.read())
-				context.show_sidebar = 1
+		if context.basepath:
+			sidebar_json_path = os.path.join(context.basepath, '_sidebar.json')
+			if os.path.exists(sidebar_json_path):
+				with open(sidebar_json_path, 'r') as sidebarfile:
+					context.sidebar_items = json.loads(sidebarfile.read())
+					context.show_sidebar = 1
 
 
 	# determine templates to be used
