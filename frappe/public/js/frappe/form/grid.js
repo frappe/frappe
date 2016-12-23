@@ -93,7 +93,7 @@ frappe.ui.form.Grid = Class.extend({
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 	},
 	get_selected: function() {
-		return this.grid_rows.map(function(row) { return row.doc.__checked ? row.doc.name : null; })
+		return (this.grid_rows || []).map(function(row) { return row.doc.__checked ? row.doc.name : null; })
 			.filter(function(d) { return d; });
 	},
 	make_head: function() {
