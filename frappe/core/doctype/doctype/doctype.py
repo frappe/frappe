@@ -61,7 +61,6 @@ class DocType(Document):
 		self.make_amendable()
 		self.validate_website()
 		self.update_fields_to_fetch()
-		self.sync_global_search()
 		self.before_update = frappe.get_doc('DocType', self.name)
 
 	def check_developer_mode(self):

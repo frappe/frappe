@@ -54,7 +54,7 @@ def update_global_search(doc):
 	content = []
 	for field in doc.meta.fields:
 		# subject, type etc in THAT event: EV00010
-		if getattr(field, 'in_global_search', None):
+		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
 			# subject is in global search
 			if getattr(field, 'fieldtype', None) == "Table":
 				# role(field) is of type Table
@@ -65,11 +65,13 @@ def update_global_search(doc):
 				  	innerdoc = frappe.get_doc(child_doctype, d.name)
 				  	if innerdoc.parent == doc.name:
 				  		for field in innerdoc.meta.fields:
-				  			if getattr(field, 'in_global_search', None):
-				  				content.append(innerdoc.get(field.fieldname))
+				  			if getattr(field, 'in_global_search', None) and innerdoc.get(field.fieldname):
+				  				content.append(field.label + ";" + innerdoc.get(field.fieldname))
+				  				print content
 			else:
-				content.append(doc.get(field.fieldname))
-
+				print field.label
+				content.append(field.label + ";" + doc.get(field.fieldname))
+				print content
 
 	if content:
 		frappe.flags.update_global_search.append(
