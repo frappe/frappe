@@ -27,7 +27,7 @@ def trigger_scheduler_event(context, event):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=context.force)
+			frappe.utils.scheduler.trigger(site, event, now=True)
 		finally:
 			frappe.destroy()
 

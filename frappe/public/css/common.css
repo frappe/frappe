@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -70,15 +71,6 @@ a.text-extra-muted {
 .underline {
   text-decoration: underline;
 }
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
-}
 .inline-block {
   display: inline-block;
 }
@@ -90,10 +82,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -237,4 +229,11 @@ a.no-decoration:active {
   font-size: 12px;
   letter-spacing: 0.4px;
   color: #8D99A6;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
 }

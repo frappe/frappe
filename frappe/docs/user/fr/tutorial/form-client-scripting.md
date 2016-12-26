@@ -13,7 +13,7 @@ faire, nous allons devoir écrire un gestionnaire d'évenements pour lorsque l'u
 
 Pour commencer ce script, dans le repertoire `library_management/doctype/library_transaction`, créez un nouveau fichier 
 `library_transaction.js`. Ce fichier sera automatiquement executé lorsque le modèle `Library Transaction` est appelé par l'utilisateur. 
-Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais aussi écrire d'autres fonctiones.
+Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais aussi écrire d'autres fonctions.
 
 #### library_transaction.js
 
@@ -43,4 +43,4 @@ Donc, dans ce fichier nous pouvons lier des actions à des événemenents mais a
 **Note:** Pour vérifier que votre script fonctionne, n'oubliez pas de recharger votre page avant de tester. 
 Les changements dans les scripts côté client ne sont pas automatiquement pris en compte quand vous êtes en mode développeur.
 
-{suite}
+{next}

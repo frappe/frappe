@@ -1,14 +1,18 @@
 import frappe, urllib
 
+from frappe import _
 from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
-from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant
+from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2.rfc6749.endpoints.authorization import AuthorizationEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
+
+def get_url_delimiter(separator_character=" "):
+	return separator_character
 
 class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoint,
 						   RevocationEndpoint):
@@ -32,10 +36,19 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		"""
 		auth_grant = AuthorizationCodeGrant(request_validator)
 		refresh_grant = RefreshTokenGrant(request_validator)
+		openid_connect_auth = OpenIDConnectAuthCode(request_validator)
 		bearer = BearerToken(request_validator, token_generator,
 							 token_expires_in, refresh_token_generator)
 		AuthorizationEndpoint.__init__(self, default_response_type='code',
-									   response_types={'code': auth_grant},
+									   response_types={
+											'code': auth_grant,
+											'code+token': openid_connect_auth,
+											'code+id_token': openid_connect_auth,
+											'code+token+id_token': openid_connect_auth,
+											'code token': openid_connect_auth,
+											'code id_token': openid_connect_auth,
+											'code token id_token': openid_connect_auth,
+										},
 									   default_token_type=bearer)
 		TokenEndpoint.__init__(self, default_grant_type='authorization_code',
 							   grant_types={
@@ -64,7 +77,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
 		# the client previously registered this EXACT redirect uri.
 
-		redirect_uris = frappe.db.get_value("OAuth Client", client_id, 'redirect_uris').split(';')
+		redirect_uris = frappe.db.get_value("OAuth Client", client_id, 'redirect_uris').split(get_url_delimiter())
 
 		if redirect_uri in redirect_uris:
 			return True
@@ -80,7 +93,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
-		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(';')
+		client_scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
 
 		are_scopes_valid = True
 
@@ -92,7 +105,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def get_default_scopes(self, client_id, request, *args, **kwargs):
 		# Scopes a client will authorize for if none are supplied in the
 		# authorization request.
-		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(';')
+		scopes = frappe.db.get_value("OAuth Client", client_id, 'scopes').split(get_url_delimiter())
 		request.scopes = scopes #Apparently this is possible.
 		return scopes
 
@@ -100,8 +113,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Clients should only be allowed to use one type of response type, the
 		# one associated with their one allowed grant type.
 		# In this case it must be "code".
+		allowed_response_types = [client.response_type.lower(),
+			"code token", "code id_token", "code token id_token",
+			"code+token", "code+id_token", "code+token id_token"]
 
-		return (client.response_type.lower() == response_type)
+		return (response_type in allowed_response_types)
 
 
 	# Post-authorization
@@ -111,7 +127,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		cookie_dict = get_cookie_dict_from_headers(request)
 
 		oac = frappe.new_doc('OAuth Authorization Code')
-		oac.scopes = ';'.join(request.scopes)
+		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
 		oac.user = urllib.unquote(cookie_dict['user_id'])
@@ -130,8 +146,10 @@ class OAuthWebRequestValidator(RequestValidator):
 			#Extract token, instantiate OAuth Bearer Token and use clientid from there.
 			if frappe.form_dict.has_key("refresh_token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", {"refresh_token": frappe.form_dict["refresh_token"]}, 'client'))
-			else:
+			elif frappe.form_dict.has_key("token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], 'client'))
+			else:
+				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception, e:
@@ -159,7 +177,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			checkcodes.append(vcode["name"])
 
 		if code in checkcodes:
-			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, 'scopes').split(';')
+			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, 'scopes').split(get_url_delimiter())
 			request.user = frappe.db.get_value("OAuth Authorization Code", code, 'user')
 			return True
 		else:
@@ -185,7 +203,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
 		otoken.user = request.user
-		otoken.scopes = ";".join(request.scopes)
+		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
 		otoken.refresh_token = token['refresh_token']
 		otoken.expires_in = token['expires_in']
@@ -209,7 +227,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken = frappe.get_doc("OAuth Bearer Token", token) #{"access_token": str(token)})
 		is_token_valid = (frappe.utils.datetime.datetime.now() < otoken.expiration_time) \
 			and otoken.status != "Revoked"
-		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, 'scopes').split(';')
+		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, 'scopes').split(get_url_delimiter())
 		are_scopes_valid = True
 		for scp in scopes:
 			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
@@ -261,7 +279,6 @@ class OAuthWebRequestValidator(RequestValidator):
 			# 	- Resource Owner Password Credentials Grant (also indirectly)
 			# 	- Refresh Token Grant
 			# """
-			# raise NotImplementedError('Subclasses must implement this method.')
 
 		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
 
@@ -270,7 +287,101 @@ class OAuthWebRequestValidator(RequestValidator):
 		else:
 			return True
 
-		#TODO: Validate scopes.
+	# OpenID Connect
+	def get_id_token(self, token, token_handler, request):
+		"""
+		In the OpenID Connect workflows when an ID Token is requested this method is called.
+		Subclasses should implement the construction, signing and optional encryption of the
+		ID Token as described in the OpenID Connect spec.
+
+		In addition to the standard OAuth2 request properties, the request may also contain
+		these OIDC specific properties which are useful to this method:
+
+		    - nonce, if workflow is implicit or hybrid and it was provided
+		    - claims, if provided to the original Authorization Code request
+
+		The token parameter is a dict which may contain an ``access_token`` entry, in which
+		case the resulting ID Token *should* include a calculated ``at_hash`` claim.
+
+		Similarly, when the request parameter has a ``code`` property defined, the ID Token
+		*should* include a calculated ``c_hash`` claim.
+
+		http://openid.net/specs/openid-connect-core-1_0.html (sections `3.1.3.6`_, `3.2.2.10`_, `3.3.2.11`_)
+
+		.. _`3.1.3.6`: http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
+		.. _`3.2.2.10`: http://openid.net/specs/openid-connect-core-1_0.html#ImplicitIDToken
+		.. _`3.3.2.11`: http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
+
+		:param token: A Bearer token dict
+		:param token_handler: the token handler (BearerToken class)
+		:param request: the HTTP Request (oauthlib.common.Request)
+		:return: The ID Token (a JWS signed JWT)
+		"""
+		# the request.scope should be used by the get_id_token() method to determine which claims to include in the resulting id_token
+
+	def validate_silent_authorization(self, request):
+		"""Ensure the logged in user has authorized silent OpenID authorization.
+
+		Silent OpenID authorization allows access tokens and id tokens to be
+		granted to clients without any user prompt or interaction.
+
+		:param request: The HTTP Request (oauthlib.common.Request)
+		:rtype: True or False
+
+		Method is used by:
+		    - OpenIDConnectAuthCode
+		    - OpenIDConnectImplicit
+		    - OpenIDConnectHybrid
+		"""
+		if request.prompt == "login":
+			False
+		else:
+			True
+
+	def validate_silent_login(self, request):
+		"""Ensure session user has authorized silent OpenID login.
+
+		If no user is logged in or has not authorized silent login, this
+		method should return False.
+
+		If the user is logged in but associated with multiple accounts and
+		not selected which one to link to the token then this method should
+		raise an oauthlib.oauth2.AccountSelectionRequired error.
+
+		:param request: The HTTP Request (oauthlib.common.Request)
+		:rtype: True or False
+
+		Method is used by:
+		    - OpenIDConnectAuthCode
+		    - OpenIDConnectImplicit
+		    - OpenIDConnectHybrid
+		"""
+		if frappe.session.user == "Guest" or request.prompt.lower() == "login":
+			return False
+		else:
+			return True
+
+	def validate_user_match(self, id_token_hint, scopes, claims, request):
+		"""Ensure client supplied user id hint matches session user.
+
+		If the sub claim or id_token_hint is supplied then the session
+		user must match the given ID.
+
+		:param id_token_hint: User identifier string.
+		:param scopes: List of OAuth 2 scopes and OpenID claims (strings).
+		:param claims: OpenID Connect claims dict.
+		:param request: The HTTP Request (oauthlib.common.Request)
+		:rtype: True or False
+
+		Method is used by:
+		    - OpenIDConnectAuthCode
+		    - OpenIDConnectImplicit
+		    - OpenIDConnectHybrid
+		"""
+		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
+			return True
+		else:
+			return False
 
 def get_cookie_dict_from_headers(r):
 	if r.headers.get('Cookie'):
@@ -280,3 +391,39 @@ def get_cookie_dict_from_headers(r):
 		return cookie_dict
 	else:
 		return {}
+
+def calculate_at_hash(access_token, hash_alg):
+	"""Helper method for calculating an access token
+	hash, as described in http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
+	Its value is the base64url encoding of the left-most half of the hash of the octets
+	of the ASCII representation of the access_token value, where the hash algorithm
+	used is the hash algorithm used in the alg Header Parameter of the ID Token's JOSE
+	Header. For instance, if the alg is RS256, hash the access_token value with SHA-256,
+	then take the left-most 128 bits and base64url encode them. The at_hash value is a
+	case sensitive string.
+	Args:
+		access_token (str): An access token string.
+		hash_alg (callable): A callable returning a hash object, e.g. hashlib.sha256
+	"""
+	hash_digest = hash_alg(access_token.encode('utf-8')).digest()
+	cut_at = int(len(hash_digest) / 2)
+	truncated = hash_digest[:cut_at]
+	from jwt.utils import base64url_encode
+	at_hash = base64url_encode(truncated)
+	return at_hash.decode('utf-8')
+
+def delete_oauth2_data():
+	# Delete Invalid Authorization Code and Revoked Token
+	commit_code, commit_token = False, False
+	code_list = frappe.get_all("OAuth Authorization Code", filters={"validity":"Invalid"})
+	token_list = frappe.get_all("OAuth Bearer Token", filters={"status":"Revoked"})
+	if len(code_list) > 0:
+		commit_code = True
+	if len(token_list) > 0:
+		commit_token = True
+	for code in code_list:
+		frappe.delete_doc("OAuth Authorization Code", code["name"])
+	for token in token_list:
+		frappe.delete_doc("OAuth Bearer Token", token["name"])
+	if commit_code or commit_token:
+		frappe.db.commit()

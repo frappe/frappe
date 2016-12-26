@@ -115,17 +115,23 @@ def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
-def add_total_row(result, columns):
+def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
 	has_percent = []
 	for i, col in enumerate(columns):
 		fieldtype, options = None, None
 		if isinstance(col, basestring):
-			col = col.split(":")
-			if len(col) > 1:
-				fieldtype = col[1]
-				if "/" in fieldtype:
-					fieldtype, options = fieldtype.split("/")
+			if meta:
+				# get fieldtype from the meta
+				field = meta.get_field(col)
+				if field:
+					fieldtype = meta.get_field(col).fieldtype
+			else:
+				col = col.split(":")
+				if len(col) > 1:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")

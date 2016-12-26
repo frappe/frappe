@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint, quoted
 from frappe.website.render import resolve_path
+from frappe.model.document import get_controller, Document
 from frappe import _
 
 no_cache = 1
@@ -31,9 +32,13 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 		txt = frappe.form_dict.search
 		del frappe.form_dict['search']
 
-	filters = prepare_filters(doctype, kwargs)
+	controller = get_controller(doctype)
 	meta = frappe.get_meta(doctype)
+
+	filters = prepare_filters(doctype, controller, kwargs)
 	list_context = get_list_context(frappe._dict(), doctype)
+	list_context.title_field = getattr(controller, 'website',
+		{}).get('page_title_field', meta.title_field or 'name')
 
 	if list_context.filters:
 		filters.update(list_context.filters)
@@ -56,7 +61,9 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 	for doc in raw_result:
 		doc.doctype = doctype
 		new_context = frappe._dict(doc=doc, meta=meta)
-		new_context.doc = frappe.get_doc(doc)
+
+		if not list_context.get_list and not isinstance(new_context.doc, Document):
+			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if not frappe.flags.in_test:
 			new_context["pathname"] = frappe.local.request.path.strip("/ ")
@@ -81,9 +88,12 @@ def set_route(context):
 		context.route = "{0}/{1}".format(context.pathname or quoted(context.doc.doctype),
 			quoted(context.doc.name))
 
-def prepare_filters(doctype, kwargs):
+def prepare_filters(doctype, controller, kwargs):
 	filters = frappe._dict(kwargs)
 	meta = frappe.get_meta(doctype)
+
+	if hasattr(controller, 'website') and controller.website.get('condition_field'):
+		filters[controller.website['condition_field']] = 1
 
 	if filters.pathname:
 		# resolve additional filters from path

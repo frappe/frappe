@@ -1,0 +1,15 @@
+{% set article = doc %}
+<div class="row">
+    <div class="col-sm-9">
+		<p>
+			<a class="no-decoration" href="/{{ article.route }}">
+				{{ article.title }}
+			</a><br>
+		</p>
+    </div>
+	<div class="col-sm-3 indicator-column text-right">
+		<span class="help-category-label indicator-right {{ get_level_class(article.level) }}">
+            {{ article.level }}
+        </span>
+	</div>
+</div>

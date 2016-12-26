@@ -49,7 +49,7 @@ def clear_global_cache():
 	frappe.model.meta.clear_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
 		"app_modules", "module_app", "notification_config", 'system_settings'
-		'scheduler_events'])
+		'scheduler_events', 'time_zone'])
 	frappe.setup_module_map()
 
 def clear_sessions(user=None, keep_current=False, device=None):
@@ -66,7 +66,7 @@ def clear_sessions(user=None, keep_current=False, device=None):
 
 	condition = ''
 	if keep_current:
-		condition = ' and sid != "{0}"'.format(frappe.session.sid)
+		condition = ' and sid != "{0}"'.format(frappe.db.escape(frappe.session.sid))
 
 
 	for i, sid in enumerate(frappe.db.sql_list("""select sid from tabSessions

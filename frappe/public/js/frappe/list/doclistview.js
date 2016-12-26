@@ -82,7 +82,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 
-		if(!frappe.model.can_read(this.doctype)) {
+		if(!in_list(frappe.boot.user.all_read, this.doctype)) {
 			frappe.show_not_permitted(frappe.get_route_str());
 			return;
 		};
@@ -242,6 +242,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				}
 			}
 		}
+
+		//Always sort based on start_date field for Gantt View
+		if(frappe.get_route()[2] === 'Gantt') {
+			var field_map = frappe.views.calendar[this.doctype].field_map;
+			args = {
+				sort_by: field_map.start,
+				sort_order: 'asc'
+			}
+		}
+
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
@@ -313,7 +323,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.init_headers();
 			this.dirty = true;
 		}
-
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -321,6 +330,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.set_filters_before_run();
 		if(this.dirty) {
 			this.run();
+			if (this.clean_dash != true) {
+				this.filter_list.reload_stats();
+			}
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
@@ -375,7 +387,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-
+		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
@@ -404,7 +416,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				list_view_doc="' + this.doctype + '">'+
 				__('Make a new {0}', [__(this.doctype)]) + '</button></p>')
 			: '';
-		var no_result_message = '<div class="msg-box no-border" style="margin: 100px 0px;">\
+		var no_result_message = '<div class="msg-box no-border">\
 			<p>' + __("No {0} found", [__(this.doctype)])  + '</p>' + new_button + '</div>';
 
 		return no_result_message;
@@ -647,7 +659,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			})
 
 			if(docname.length >= 1){
-				me.dialog = frappe.ui.to_do_dialog({
+				me.dialog = new frappe.ui.AssignToDialog({
 					obj: me,
 					method: 'frappe.desk.form.assign_to.add_multiple',
 					doctype: me.doctype,
@@ -786,8 +798,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.page.set_primary_action(__("Delete"), function() { me.delete_items() },
 				"octicon octicon-trashcan");
 			this.page.btn_primary.addClass("btn-danger");
-			this.page.checked_items_status.text(no_of_checked_items == 1 
-    				? __("1 item selected") 
+			this.page.checked_items_status.text(no_of_checked_items == 1
+    				? __("1 item selected")
     				: __("{0} items selected", [no_of_checked_items]))
 			this.page.checked_items_status.removeClass("hide");
 		} else {
@@ -848,60 +860,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	refresh_sidebar: function() {
 		var me = this;
-		this.list_sidebar = new frappe.views.ListSidebar({
-			doctype: this.doctype,
-			stats: this.listview.stats,
-			parent: this.$page.find('.layout-side-section'),
-			set_filter: function(fieldname, label) {
-				me.set_filter(fieldname, label);
+		me.list_sidebar = new frappe.views.ListSidebar({
+			doctype: me.doctype,
+			stats: me.listview.stats,
+			parent: me.$page.find('.layout-side-section'),
+			set_filter: function(fieldname, label, norun, noduplicates) {
+				me.set_filter(fieldname, label, norun, noduplicates);
 			},
-			page: this.page,
-			doclistview: this
+			default_filters:me.listview.settings.default_filters,
+			page: me.page,
+			doclistview: me
 		})
-	},
-	set_filter: function(fieldname, label, no_run) {
-		var filter = this.filter_list.get_filter(fieldname);
-		if(filter) {
-			var v = cstr(filter.field.get_parsed_value());
-			if(v.indexOf(label)!=-1) {
-				// already set
-				return false;
-			} else {
-				// second filter set for this field
-				if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-				} else {
-					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
-				}
-			}
-		} else {
-			// no filter for this item,
-			// setup one
-			if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
-			}
-		}
-		if(!no_run)
-			this.run();
-	},
-	call_for_selected_items: function(method, args) {
-		var me = this;
-		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
-
-		frappe.call({
-			method: method,
-			args: args,
-			freeze: true,
-			callback: function(r) {
-				if(!r.exc) {
-					me.list_header.find(".list-select-all").prop("checked", false);
-					me.refresh();
-				}
-			}
-		});
 	}
 });

@@ -71,19 +71,25 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
-	email_str = (email_str or "").strip()
+	email = email_str = (email_str or "").strip()
+
+	valid = True
 
 	if not email_str:
-		return False
+		valid = False
 
 	elif " " in email_str and "<" not in email_str:
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
-		return False
+		valid = False
 
-	email = extract_email_id(email_str.strip())
-	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
+	else:
+		email = extract_email_id(email_str.strip())
+		match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
-	if not match:
+		if not match:
+			valid = False
+
+	if not valid:
 		if throw:
 			frappe.throw(frappe._("{0} is not a valid email id").format(email),
 				frappe.InvalidEmailAddressError)
@@ -118,6 +124,7 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
+
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
 	if (frappe.flags.in_import
@@ -127,10 +134,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	if not isinstance(email, unicode):
-		email = unicode(email, 'utf-8')
-
-	hexdigest = md5.md5(email).hexdigest()
+	hexdigest = md5.md5(frappe.as_unicode(email)).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:

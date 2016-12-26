@@ -167,7 +167,7 @@ class HelpDatabase(object):
 			<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">
-					<i class="icon icon-smile text-muted"></i>
+					<i class="fa fa-smile text-muted"></i>
 					<a class="edit text-muted" href="https://github.com/frappe/{app_name}/blob/develop/{target}">
 						Improve this page
 					</a>

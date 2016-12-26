@@ -13,7 +13,8 @@ from frappe import _
 def get():
 	args = get_form_params()
 	args.save_list_settings = True
-	data = compress(execute(**args))
+
+	data = compress(execute(**args), args = args)
 
 	return data
 
@@ -33,13 +34,16 @@ def get_form_params():
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
 
+
 	# queries must always be server side
 	data.query = None
 
 	return data
 
-def compress(data):
+def compress(data, args = {}):
 	"""separate keys and values"""
+	from frappe.desk.query_report import add_total_row
+
 	if not data: return data
 	values = []
 	keys = data[0].keys()
@@ -49,11 +53,14 @@ def compress(data):
 			new_row.append(row[key])
 		values.append(new_row)
 
+	if args.get("add_total_row"):
+		meta = frappe.get_meta(args.doctype)
+		values = add_total_row(values, keys, meta)
+
 	return {
 		"keys": keys,
 		"values": values
 	}
-
 
 @frappe.whitelist()
 def save_report():
@@ -80,12 +87,21 @@ def export_query():
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	doctype = form_params.doctype
+	add_totals_row = None
+
 	del form_params["doctype"]
+
+	if 'add_totals_row' in form_params and form_params['add_totals_row']=='1':
+		add_totals_row = 1
+		del form_params["add_totals_row"]
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
+
+	if add_totals_row:
+		ret = append_totals_row(ret)
 
 	data = [['Sr'] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
@@ -105,6 +121,21 @@ def export_query():
 	frappe.response['result'] = unicode(f.read(), 'utf-8')
 	frappe.response['type'] = 'csv'
 	frappe.response['doctype'] = doctype
+
+def append_totals_row(data):
+	if not data:
+		return data
+	data = list(data)
+	totals = []
+	totals.extend([""]*len(data[0]))
+
+	for row in data:
+		for i in xrange(len(row)):
+			if isinstance(row[i], (float, int)):
+				totals[i] = (totals[i] or 0) + row[i]
+	data.append(totals)
+
+	return data
 
 def get_labels(fields, doctype):
 	"""get column labels based on column names"""
@@ -138,22 +169,74 @@ def delete_items():
 		frappe.delete_doc(doctype, d)
 
 @frappe.whitelist()
-def get_stats(stats, doctype):
+def get_sidebar_stats(stats, doctype, filters=[]):
+	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
+		from `tabTag Doc Category` as docCat
+		INNER JOIN  tabTag as tag on tag.parent = docCat.parent
+		where docCat.tagdoc=%s
+		ORDER BY tag.parent asc,tag.idx""",doctype,as_dict=1)
+
+	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
+
+@frappe.whitelist()
+def get_stats(stats, doctype, filters=[]):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = execute(doctype, fields=[tag, "count(*)"],
-			filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+		tagcount = frappe.get_all(doctype, fields=[tag, "count(*)"],
+			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
+			stats[tag].append(["No Tags", frappe.get_all(doctype,
+				fields=[tag, "count(*)"],
+				filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
+
+	return stats
+
+@frappe.whitelist()
+def get_filter_dashboard_data(stats, doctype, filters=[]):
+	"""get tags info"""
+	import json
+	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
+	stats = {}
+
+	columns = frappe.db.get_table_columns(doctype)
+	for tag in tags:
+		if not tag["name"] in columns: continue
+		tagcount = []
+		if tag["type"] not in ['Date', 'Datetime']:
+			tagcount = frappe.get_all(doctype,
+				fields=[tag["name"], "count(*)"],
+				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
+				group_by = tag["name"],
+				as_list = True)
+
+		if tag["type"] not in ['Check','Select','Date','Datetime','Int',
+			'Float','Currency','Percent'] and tag['name'] not in ['docstatus']:
+			stats[tag["name"]] = list(tagcount)
+			if stats[tag["name"]]:
+				data =["No Data", frappe.get_all(doctype,
+					fields=[tag["name"], "count(*)"],
+					filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
+					as_list=True)[0][1]]
+				if data and data[1]!=0:
+
+					stats[tag["name"]].append(data)
+		else:
+			stats[tag["name"]] = tagcount
 
 	return stats
 

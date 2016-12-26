@@ -9,7 +9,6 @@ import frappe
 import os
 import time
 import redis
-from functools import wraps
 from frappe.utils import get_site_path
 from frappe import conf
 
@@ -93,7 +92,9 @@ def publish_realtime(event=None, message=None, room=None,
 			room = get_site_room()
 
 	if after_commit:
-		frappe.local.realtime_log.append([event, message, room])
+		params = [event, message, room]
+		if not params in frappe.local.realtime_log:
+			frappe.local.realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)
 

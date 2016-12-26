@@ -8,7 +8,7 @@ import frappe, json, copy
 import frappe.defaults
 import frappe.share
 import frappe.permissions
-from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter
+from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
 from frappe.model import optional_fields
 from frappe.model.utils.list_settings import get_list_settings, update_list_settings
@@ -30,7 +30,7 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False,
-		update=None):
+		update=None, add_total_row=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -291,7 +291,13 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if df and df.fieldtype=="Date":
+			if f.operator=='Between' and \
+				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+				value = "'%s' AND '%s'" % (
+					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
+					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
+				fallback = "'0000-00-00 00:00:00'"
+			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
@@ -317,7 +323,7 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# put it inside double quotes
-			if isinstance(value, basestring):
+			if isinstance(value, basestring) and not f.operator=='Between':
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 		if (self.ignore_ifnull

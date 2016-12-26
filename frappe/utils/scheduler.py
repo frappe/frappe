@@ -144,6 +144,9 @@ def trigger(site, event, queued_jobs=(), now=False):
 	if not queued_jobs and not now:
 		queued_jobs = get_jobs(site=site, queue=queue)
 
+	if frappe.flags.in_test:
+		frappe.flags.ran_schedulers.append(event)
+
 	events = get_scheduler_events(event)
 	if not events:
 		return
@@ -155,8 +158,6 @@ def trigger(site, event, queued_jobs=(), now=False):
 		else:
 			scheduler_task(site=site, event=event, handler=handler, now=True)
 
-	if frappe.flags.in_test:
-		frappe.flags.ran_schedulers.append(event)
 
 def get_scheduler_events(event):
 	'''Get scheduler events from hooks and integrations'''
@@ -193,6 +194,9 @@ def log(method, message=None):
 	return message
 
 def get_enabled_scheduler_events():
+	if 'enabled_events' in frappe.flags:
+		return frappe.flags.enabled_events
+
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
 		if isinstance(enabled_events, basestring):

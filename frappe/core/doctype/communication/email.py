@@ -10,6 +10,7 @@ from frappe.utils import (get_url, get_formatted_email, cint,
 from frappe.utils.file_manager import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
+from frappe.email.email_body import get_message_id
 import frappe.email.smtp
 import MySQLdb
 import time
@@ -57,11 +58,22 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
-		"reference_name": name
+		"reference_name": name,
+		"message_id":get_message_id().strip(" <>")
 	})
 	comm.insert(ignore_permissions=True)
 
+	if not doctype:
+		# if no reference given, then send it against the communication
+		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+
+	if isinstance(attachments, basestring):
+		attachments = json.loads(attachments)
+
 	# if not committed, delayed task doesn't find the communication
+	if attachments:
+		add_attachments(comm.name, attachments)
+
 	frappe.db.commit()
 
 	if cint(send_email):
@@ -120,10 +132,15 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 
 	prepare_to_notify(doc, print_html, print_format, attachments)
 
+	if doc.outgoing_email_account.send_unsubscribe_message:
+		unsubscribe_message = _("Leave this conversation")
+	else:
+		unsubscribe_message = ""
+
 	frappe.sendmail(
-		recipients=(recipients or []) + (cc or []),
-		show_as_cc=(cc or []),
-		expose_recipients=True,
+		recipients=(recipients or []),
+		cc=(cc or []),
+		expose_recipients="header",
 		sender=doc.sender,
 		reply_to=doc.incoming_email_account,
 		subject=doc.subject,
@@ -131,8 +148,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		reference_doctype=doc.reference_doctype,
 		reference_name=doc.reference_name,
 		attachments=doc.attachments,
-		message_id=doc.name,
-		unsubscribe_message=_("Leave this conversation"),
+		message_id=doc.message_id,
+		unsubscribe_message=unsubscribe_message,
 		delayed=True,
 		communication=doc.name
 	)
@@ -252,7 +269,7 @@ def set_incoming_outgoing_accounts(doc):
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
 
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""
@@ -311,6 +328,20 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		cc = filter_email_list(doc, cc, exclude, is_cc=True)
 
 	return cc
+
+
+def add_attachments(name, attachments):
+	'''Add attachments to the given Communiction'''
+	from frappe.utils.file_manager import save_url
+
+	# loop through attachments
+	for a in attachments:
+		attach = frappe.db.get_value("File", {"name":a},
+			["file_name", "file_url", "is_private"], as_dict=1)
+
+		# save attachments to new doc
+		save_url(attach.file_url, attach.file_name, "Communication", name,
+			"Home/Attachments", attach.is_private)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False):
 	# temp variables
@@ -383,6 +414,8 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
+				if communication.sent_or_received == "Received":
+					communication.message_id = None
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 

@@ -48,7 +48,8 @@ web_include_css = [
 ]
 website_route_rules = [
 	{"from_route": "/blog", "to_route": "Blog Post"},
-	{"from_route": "/blog/<category>", "to_route": "Blog Post"}
+	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
+	{"from_route": "/kb/<category>", "to_route": "Help Article"}
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -57,7 +58,8 @@ notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
-website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
+website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form",
+	"Help Article"]
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
@@ -116,12 +118,12 @@ scheduler_events = {
 		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
+		"frappe.oauth.delete_oauth2_data"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots",
-		"frappe.integration_broker.doctype.integration_service.integration_service.trigger_integration_service_events"
+		"frappe.utils.error.collect_error_snapshots"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",

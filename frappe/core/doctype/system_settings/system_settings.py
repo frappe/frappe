@@ -26,6 +26,9 @@ class SystemSettings(Document):
 		if self.language:
 			set_default_language(self.language)
 
+		frappe.cache().delete_value('system_settings')
+		frappe.cache().delete_value('time_zone')
+
 @frappe.whitelist()
 def load():
 	if not "System Manager" in frappe.get_roles():

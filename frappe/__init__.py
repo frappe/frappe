@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.1.20'
+__version__ = '7.2.1'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -41,15 +41,25 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
-	from frappe.utils import cstr
 
 	if not lang:
 		lang = local.lang
 
 	# msg should always be unicode
-	msg = cstr(msg).strip()
+	msg = as_unicode(msg).strip()
 
 	return get_full_dict(local.lang).get(msg) or msg
+
+def as_unicode(text, encoding='utf-8'):
+	'''Convert to unicode if required'''
+	if isinstance(text, unicode):
+		return text
+	elif text==None:
+		return ''
+	elif isinstance(text, basestring):
+		return unicode(text, encoding)
+	else:
+		return unicode(text)
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
@@ -225,11 +235,11 @@ def errprint(msg):
 	"""Log error. This is sent back as `exc` in response.
 
 	:param msg: Message."""
-	from utils import cstr
+	msg = as_unicode(msg)
 	if not request or (not "cmd" in local.form_dict):
-		print cstr(msg)
+		print msg.encode('utf-8')
 
-	error_log.append(cstr(msg))
+	error_log.append(msg)
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -239,8 +249,7 @@ def log(msg):
 		if conf.get("logging") or False:
 			print repr(msg)
 
-	from utils import cstr
-	debug_log.append(cstr(msg))
+	debug_log.append(as_unicode(msg))
 
 def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False):
 	"""Print a message to the user (via HTTP response).
@@ -355,12 +364,12 @@ def get_request_header(key, default=None):
 	:param default: Default value."""
 	return request.headers.get(key, default)
 
-def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
+def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None, retry=1):
+		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
+		send_priority=1, communication=None, retry=1, now=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -383,25 +392,23 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	"""
+	message = content or message
 
-	if delayed:
-		import frappe.email.queue
-		frappe.email.queue.send(recipients=recipients, sender=sender,
-			subject=subject, message=content or message,
-			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
-			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
-			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication)
-	else:
-		import frappe.email
-		if as_markdown:
-			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
-		else:
-			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+	if as_markdown:
+		from markdown2 import markdown
+		message = markdown(message)
+
+	if not delayed:
+		now = True
+
+	import email.queue
+	email.queue.send(recipients=recipients, sender=sender,
+		subject=subject, message=message,
+		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
+		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
+		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
+		communication=communication, now=now)
 
 whitelisted = []
 guest_methods = []
@@ -489,7 +496,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 
 	return out
 
-def has_website_permission(doc=None, ptype='read', user=None, verbose=False):
+def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -847,13 +854,12 @@ def get_file_json(path):
 
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
-	from frappe.utils import cstr
 	if isinstance(path, unicode):
 		path = path.encode("utf-8")
 
 	if os.path.exists(path):
 		with open(path, "r") as f:
-			return cstr(f.read())
+			return as_unicode(f.read())
 	elif raise_not_found:
 		raise IOError("{} Not Found".format(path))
 	else:

@@ -161,7 +161,8 @@ frappe.ui.Listing = Class.extend({
 			listobj: this,
 			$parent: this.wrapper.find('.list-filters').toggle(true),
 			doctype: this.doctype,
-			filter_fields: this.filter_fields
+			filter_fields: this.filter_fields,
+			default_filters:this.default_filters? this.default_filters: this.listview?this.listview.settings.default_filters:[]
 		});
 		if(frappe.model.is_submittable(this.doctype)) {
 			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
@@ -174,6 +175,7 @@ frappe.ui.Listing = Class.extend({
 		this.wrapper.find('.result').toggle(true);
 		this.wrapper.find('.no-result').toggle(false);
 		this.start = 0;
+		if(this.onreset) this.onreset();
 	},
 
 	set_filters_from_route_options: function() {
@@ -307,11 +309,13 @@ frappe.ui.Listing = Class.extend({
 
 		this.wrapper.find('.btn-more, .list-loading').toggle(false);
 
+		r.values = [];
+
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
 		}
 
-		if(r.values && r.values.length) {
+		if(r.values.length) {
 			this.data = this.data.concat(r.values);
 			this.render_list(r.values);
 			this.update_paging(r.values);
@@ -323,13 +327,15 @@ frappe.ui.Listing = Class.extend({
 					? this.get_no_result_message()
 					: (this.no_result_message
 						? this.no_result_message
-						: __("Nothing to show"));
+						: __("No Result"));
 
 				this.wrapper.find('.no-result')
 					.html(msg)
 					.toggle(true);
 			}
 		}
+
+		this.wrapper.find('.list-paging-area').toggle((r.values.length || this.start > 0) ? true : false);
 
 		// callbacks
 		if(this.onrun) this.onrun();
@@ -407,36 +413,37 @@ frappe.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(fieldname, label, doctype) {
-		if(!doctype) doctype = this.doctype;
+	set_filter: function(fieldname, label, no_run, no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = filter.field.get_parsed_value();
+			var v = cstr(filter.field.get_parsed_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
-				return this;
+				return false
+
+			} else if(no_duplicate) {
+				filter.set_values(this.doctype, fieldname, "=", label);
 			} else {
 				// second filter set for this field
-				if(fieldname=='_user_tags') {
+				if(fieldname=='_user_tags' || fieldname=="_liked_by")  {
 					// and for tags
-					this.filter_list.add_filter(doctype, fieldname,
-						'like', '%' + label + '%');
+					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 				} else {
 					// or for rest using "in"
-					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
+					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
 				}
 			}
 		} else {
 			// no filter for this item,
 			// setup one
 			if(['_user_tags', '_comments', '_assign', '_liked_by'].indexOf(fieldname)!==-1) {
-				this.filter_list.add_filter(doctype, fieldname,
-					'like', '%' + label + '%');
+				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 			} else {
-				this.filter_list.add_filter(doctype, fieldname, '=', label);
+				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
 			}
 		}
-		return this;
+		if(!no_run)
+			this.run();
 	},
 	init_list_settings: function() {
 		if(frappe.model.list_settings[this.doctype]) {
@@ -445,4 +452,22 @@ frappe.ui.Listing = Class.extend({
 			this.list_settings = {};
 		}
 	},
+	call_for_selected_items: function(method, args) {
+		var me = this;
+		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
+
+		frappe.call({
+			method: method,
+			args: args,
+			freeze: true,
+			callback: function(r) {
+				if(!r.exc) {
+					if(me.list_header) {
+						me.list_header.find(".list-select-all").prop("checked", false);
+					}
+					me.refresh();
+				}
+			}
+		});
+	}
 });

@@ -37,7 +37,7 @@ Un nouveau repertoires appelé `library` sera créé dans le repertoire `sites`.
 
 ### COnfiguration par défaut
 
-Dans le cas ou vous avez plusieurs sites, utilisez la commande `bench use [site_name]` pour définir le site par défaut.
+Dans le cas où vous avez plusieurs sites, utilisez la commande `bench use [site_name]` pour définir le site par défaut.
 
 Exemple:
 
@@ -53,4 +53,4 @@ Exemple:
 
 	$ bench --site library install-app library_management
 
-{suite}
+{next}

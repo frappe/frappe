@@ -1,4 +1,4 @@
-<div class="col-xs-6 col-sm-4 col-md-3 doclist-row has-checkbox image-view text-ellipsis">
+<div class="col-xs-6 col-sm-4 col-md-3 doclist-row has-checkbox image-view ellipsis">
 	<div class="row">
 		<div class="col-xs-12 image-view-col">
 			{%= subject %}
@@ -12,7 +12,7 @@
 				 	else { %} background-color: {{ color }}; {% } %} border: 0px;">
 					{% if (!item_image) { %}{%= frappe.get_abbr(data.name) %}{% } %}
 					<button class="btn btn-info zoom-view">
-						<i class="icon-zoom-in"></i>
+						<i class="fa fa-zoom-in"></i>
 					</button>
 					<table class="table table-condensed field-info">
 						{% for (var i=0, l=columns.length; i < l; i++ ) {

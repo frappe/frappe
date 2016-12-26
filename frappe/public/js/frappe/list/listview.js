@@ -18,6 +18,7 @@ frappe.views.ListView = Class.extend({
 		this.doclistview = doclistview;
 		this.doctype = doctype;
 		this.meta = frappe.get_doc("DocType", this.doctype);
+		this.image_field = this.meta.image_field || 'image';
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		if(this.meta.__listview_template) {
 			this.template_name = doctype + "_listview";
@@ -78,11 +79,6 @@ frappe.views.ListView = Class.extend({
 				} else {
 					add_field(d.fieldname);
 				}
-
-				if(d.fieldtype=="Select") {
-					if(me.stats.indexOf(d.fieldname)===-1) me.stats.push(d.fieldname);
-				}
-
 				// currency field for symbol (multi-currency)
 				if(d.fieldtype=="Currency" && d.options) {
 					if(d.options.indexOf(":")!=-1) {
@@ -246,7 +242,7 @@ frappe.views.ListView = Class.extend({
 			"Percent", "Select", "Read Only", "Time"
 		];
 		var image_url = (data.image && window.cordova && data.image.indexOf('http')===-1) ?
-			frappe.base_url + data.image : data.image;
+			frappe.base_url + data[this.image_field] : data[this.image_field];
 
 		img_col = $(frappe.render_template("image_view_item_row", {
 			data: data,
@@ -279,6 +275,7 @@ frappe.views.ListView = Class.extend({
 				doctype: this.doctype,
 				docname: data.name
 			},
+			list_sidebar: me.doclistview.list_sidebar,
 			user_tags: data._user_tags,
 			on_change: function(user_tags) {
 				data._user_tags = user_tags;

@@ -1,5 +1,5 @@
 Assuming that you've already got your first site running and you've performed
-the [production deployment steps](production-setup.html), this section explains how to host your second
+the [production deployment steps](setup-production.html), this section explains how to host your second
 site (and more). Your first site is automatically set as default site. You can
 change it with the command,
 	

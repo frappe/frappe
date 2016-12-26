@@ -49,7 +49,7 @@ def download_pdf(doctype, name, format=None, doc=None):
 	frappe.local.response.type = "download"
 
 @frappe.whitelist()
-def report_to_pdf(html):
+def report_to_pdf(html, orientation="Landscape"):
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html, {"orientation": "Landscape"})
+	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
 	frappe.local.response.type = "download"

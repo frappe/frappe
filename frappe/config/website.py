@@ -5,7 +5,7 @@ def get_data():
 	return [
 		{
 			"label": _("Web Site"),
-			"icon": "icon-star",
+			"icon": "fa fa-star",
 			"items": [
 				{
 					"type": "doctype",
@@ -46,7 +46,7 @@ def get_data():
 		},
 		{
 			"label": _("Setup"),
-			"icon": "icon-cog",
+			"icon": "fa fa-cog",
 			"items": [
 				{
 					"type": "doctype",
@@ -84,5 +84,19 @@ def get_data():
 					"label": _("Portal Settings"),
 				}
 			]
-		}
+		},
+		{
+			"label": _("Knowledge Base"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Help Category",
+				},
+				{
+					"type": "doctype",
+					"name": "Help Article",
+				},
+			]
+		},
+
 	]

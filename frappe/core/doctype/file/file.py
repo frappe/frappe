@@ -23,6 +23,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
+import zipfile
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -238,6 +239,35 @@ class File(NestedSet):
 		self.flags.on_rollback = True
 		self.on_trash()
 
+	def unzip(self):
+		'''Unzip current file and replace it by its children'''
+		if not ".zip" in self.file_name:
+			frappe.msgprint(_("Not a zip file"))
+			return
+
+		zip_path = frappe.get_site_path(self.file_url.strip('/'))
+		base_url = os.path.dirname(self.file_url)
+		with zipfile.ZipFile(zip_path) as zf:
+			zf.extractall(os.path.dirname(zip_path))
+			for info in zf.infolist():
+				if not info.filename.startswith('__MACOSX'):
+					file_url = file_url = base_url + '/' + info.filename
+					file_name = frappe.db.get_value('File', dict(file_url=file_url))
+					if file_name:
+						file_doc = frappe.get_doc('File', file_name)
+					else:
+						file_doc = frappe.new_doc("File")
+					file_doc.file_name = info.filename
+					file_doc.file_size = info.file_size
+					file_doc.folder = self.folder
+					file_doc.is_private = self.is_private
+					file_doc.file_url = file_url
+					file_doc.attached_to_doctype = self.attached_to_doctype
+					file_doc.attached_to_name = self.attached_to_name
+					file_doc.save()
+
+		frappe.delete_doc('File', self.name)
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
@@ -368,3 +398,9 @@ def check_file_permission(file_url):
 			return True
 
 	raise frappe.PermissionError
+
+@frappe.whitelist()
+def unzip_file(name):
+	'''Unzip the given file and make file records for each of the extracted files'''
+	file_obj = frappe.get_doc('File', name)
+	file_obj.unzip()
