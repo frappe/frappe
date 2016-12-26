@@ -249,6 +249,7 @@ frappe.search = {
 				var results = r.message || [];
 				var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
 				var data = [];
+				var parts = [];
 				var initial_length = 6;
 				var more_length = 5;
 				var $modal = $('#global-search');
@@ -258,7 +259,8 @@ frappe.search = {
 					var fpath = '#Form/' + results[i].doctype + '/' + results[i].name;
 					var title = results[i].doctype + ": " + results[i].name;
 					var regEx = new RegExp("("+ keywords +")", "ig");
-					var rendered_content = results[i].content.replace(regEx, '<b>$1</b>');
+					parts = results[i].content.split(/;(.+)/);
+					var rendered_content = parts[0] + ": " + parts[1].replace(regEx, '<b>$1</b>');
 					data.push([fpath, title, rendered_content]);
 
 				}
