@@ -204,7 +204,109 @@ frappe.search = {
 				}
 			}
 		});
+	},
+
+	search_setup: function(keywords) {
+
+		var $search_modal = frappe.get_modal('Global Search', "");
+		$search_modal.addClass('search-modal');
+		var result_div = $('<div class="results">Results</div>');
+		result_div.appendTo('.modal-body');
+
+		$("#input-help").on("keydown", function (e) {
+			if(e.which == 13) {
+				var keywords = $(this).val();
+				show_help_results(keywords);
+				$(this).val("");
+			}
+		});
+
+		$("#input-help + span").on("click", function () {
+			var keywords = $("#input-help").val();
+			show_help_results(keywords);
+			$(this).val("");
+		});
+
+
+		frappe.search.show_search_results(keywords, $search_modal);
+
+	},
+
+	show_search_results: function (keywords, $modal) {
+
+		frappe.call({
+			method: "frappe.utils.global_search.search",
+			args: {
+				text: keywords, start: 0, limit: 20
+			},
+			callback: function(r) {
+				var results = r.message || [];
+				var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
+				var data = [];
+				var initial_length = 6;
+				var more_length = 5;
+
+				for (var i = 0, l = results.length; i < l; i++) {
+
+					var fpath = '#Form/' + results[i].doctype + '/' + results[i].name;
+					var title = results[i].doctype + ": " + results[i].name;
+					var regEx = new RegExp("("+ keywords +")", "ig");
+					var rendered_content = results[i].content.replace(regEx, '<b>$1</b>');
+					data.push([fpath, title, rendered_content]);
+
+				}
+
+				if(results.length === 0) {
+					result_html += "<p class='padding'>No results found</p>";
+
+				} else if(data.length <= initial_length) {
+					data.forEach(function(e) {
+						result_html +=	"<div class='search-result'>" +
+										"<a href=" + e[0] + " class='h4 close' data-dismiss='modal'>" + e[1] + "</a>" +
+										"<p>" + e[2] + "</p>" +
+										"</div>";
+					});
+					result_html += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
+
+				} else {
+					for (var i = 0; i < initial_length; i++){
+						result_html += "<div class='search-result'>" +
+										"<a href=" + data[0][0] + " class='h4'>" + data[0][1] + "</a>" +
+										"<p>" + data[0][2] + "</p>" +
+										"</div>";
+						data.splice(0, 1);
+					};
+					result_html += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
+				}
+
+				$modal.find('.results').html(result_html);
+				$modal.modal('show');
+
+				if(data.length > 0) {
+					var $show = document.getElementById("show-more");
+					$show.addEventListener('click', function() {
+						var more_rendered_results = "";
+						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
+							more_rendered_results += "<div class='search-result'>" +
+													"<a href='#' class='h4' data-path='"+data[0][0]+"'>" + data[0][1] + "</a>" +
+													"<p>" + data[0][2] + "</p>" +
+													"</div>";
+							data.splice(0, 1);	
+						}
+
+						$show.insertAdjacentHTML('beforebegin', more_rendered_results);
+						if(data.length === 0){
+							$modal.find('#show-more').html('No more results');
+						}	
+
+					}, false);
+
+				}
+
+			}
+		});
 	}
+
 }
 
 frappe.search.verbs = [
@@ -469,77 +571,11 @@ frappe.search.verbs = [
 		console.log("parts[1]: " + parts[1]);
 		if(parts.length <2) return;
 
-		var val, rendered_keyword, path;
-		var rendered_results = "";
-		var results = [];
-		var initial_length = 6;
-		var more_length = 5;
-
-		frappe.call({
-			method: "frappe.utils.global_search.search",
-			args: {
-				text: parts[1], start: 0, limit: 20
-			},
-			callback: function(r) {
-
-				if(r.message){
-					r.message.forEach(function(msg){
-						content = [];
-						val = msg.content;
-						index = val.indexOf(parts[1]);
-						path = '#Form/' + msg.doctype + '/' + msg.name;
-						var regEx = new RegExp("("+ parts[1] +")", "ig");
-						var replaceMask = parts[1].bold();
-						rendered_keyword = val.replace(regEx, '<b>$1</b>');
-						content = [path, msg.doctype, msg.name, rendered_keyword];
-						results.push(content);
-
-					});
-				}
-
-				if(results.length <= initial_length) {
-					results.forEach(function(e) {
-						rendered_results += ('<a href="' + e[0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + e[1] +": " + e[2] + '</h4><p class="list-group-item-text">' + e[3] + "</p></a>");
-					});
-					rendered_results += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
-					console.log("Results:", rendered_results);
-
-				} else {
-					for (var i = 0; i < initial_length; i++){
-						rendered_results += ('<a href="' + results[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + results[0][1] +": " + results[0][2] + '</h4><p class="list-group-item-text">' + results[0][3] + "</p></a>");
-						results.splice(0, 1);
-					};
-					rendered_results += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
-				}
-
-			}
-			
-		});
-
 		frappe.search.options.push({
 			label: __("Search: " + parts[1].bold()),
 			value: __("Search: " + parts[1].bold()),
 			onclick: function(match) {
-					msgprint('<div class="list-group" style="height: auto; max-height: 600px; overflow-y: scroll">' + rendered_results + '</div>', "Search Results");
-
-					if(results.length > 0) {
-						$("#show-more").on("click", function(){
-							var more_rendered_results = "";
-							for(var i = 0; (i < more_length) && (results.length !== 0); i++) {
-								more_rendered_results += ('<a href="' + results[0][0] + '" class="list-group-item"><h4 class="list-group-item-heading">' + results[0][1] +": " + results[0][2] + '</h4><p class="list-group-item-text">' + results[0][3] + "</p></a>");
-								results.splice(0, 1);	
-							}
-
-							$(more_rendered_results).insertAfter('.list-group-item:last');
-							
-							if(results.length === 0){
-								$("#show-more").html('No more results');
-							}								
-							
-
-						});
-					}
-
+					frappe.search.search_setup(parts[1]);
 			}
 		});
 	}

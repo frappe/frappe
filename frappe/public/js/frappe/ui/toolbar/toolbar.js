@@ -143,12 +143,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		var $help_modal = frappe.get_modal("Help", "");
-		$help_modal.addClass('help-modal');
+		$help_modal.addClass('search-modal');
 
 		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("help-modal");
+		$result_modal.addClass("search-modal");
 
-		$(document).on("click", ".help-modal a", show_results);
+		$(document).on("click", ".search-modal a", show_results);
 
 		function show_help_results(keywords) {
 			frappe.call({
