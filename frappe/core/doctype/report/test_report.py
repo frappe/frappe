@@ -16,14 +16,14 @@ class TestReport(unittest.TestCase):
 			frappe.get_doc(json.loads(f.read())).insert()
 
 		report = frappe.get_doc('Report', 'User Activity Report')
-		data = report.get_data()
+		columns, data = report.get_data()
 		self.assertEquals(data[0][0], 'ID')
 		self.assertEquals(data[0][1], 'User Type')
 		self.assertTrue('Administrator' in [d[0] for d in data])
 
 	def test_query_report(self):
 		report = frappe.get_doc('Report', 'Permitted Documents For User')
-		data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
+		columns, data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
 		self.assertEquals(data[0][0], 'Name')
 		self.assertEquals(data[0][1], 'Module')
 		self.assertTrue('User' in [d[0] for d in data])
