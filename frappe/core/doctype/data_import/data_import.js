@@ -17,7 +17,8 @@ frappe.ui.form.on('Data Import', {
 			frm.events.render_html(frm);
 			frm.get_field('selected_row').df.hidden = 0;
 			frm.doc.flag_file_preview = 1;
-			frm.get_field('import_button').$input.addClass("btn-primary btn-md").removeClass('btn-xs');
+			frm.get_field('import_button').$input.addClass("btn-primary btn-md")
+				.removeClass('btn-xs');
 		}
 	},
 
@@ -32,14 +33,6 @@ frappe.ui.form.on('Data Import', {
 			}
 		}
 	},
-
-	// after_save: function(frm) {
-	// 	console.log("after save");
-	// 	if(frm.doc.preview_data) {
-	// 		frm.events.render_html(frm);
-	// 		frm.get_field('selected_row').df.hidden = 0;
-	// 	}
-	// },
 
 	render_html: function(frm) {
 		var me = this;
@@ -79,10 +72,8 @@ frappe.ui.form.on('Data Import', {
             	"selected_row": frm.doc.selected_row,
             },
             callback: function(r) {
-                if (r.message==true) {
-	                frm.doc.docstatus = 1;
-	                frm.save();
-                }
+                frm.doc.freeze_doctype = 1;
+                frm.save();     
             }
         });
 	}
