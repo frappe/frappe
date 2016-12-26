@@ -13,13 +13,12 @@ from openpyxl import load_workbook
 
 class DataImport(Document):
 
-	def validate(self):
-		print "===============>>>>>> TEST"
-
 	def on_update(self):
 		if self.import_file and not self.flag_file_preview:
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file			
 			self.set_preview_data(file_path)
+		if self.freeze_doctype == 1:
+			self.docstatus = 1
 
 	def set_preview_data(self, file_path):
 		wb = load_workbook(filename=file_path)
@@ -51,7 +50,6 @@ class DataImport(Document):
 			if d > max_match:
 				max_match = d
 				matched_field = field
-		print column_name, matched_field
 		return matched_field
 
 
