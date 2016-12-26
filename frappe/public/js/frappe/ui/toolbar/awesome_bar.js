@@ -104,6 +104,9 @@ frappe.search = {
 
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
+
+		console.log("Awesome bar setup called ============>>>>>>>>>>>>") ;
+		frappe.search.setup_search();
 	},
 	add_help: function() {
 		frappe.search.options.push({
@@ -206,33 +209,36 @@ frappe.search = {
 		});
 	},
 
-	search_setup: function(keywords) {
+	setup_search: function() {
 
 		var $search_modal = frappe.get_modal('Global Search', "");
 		$search_modal.addClass('search-modal');
-		var result_div = $('<div class="results">Results</div>');
-		result_div.appendTo('.modal-body');
+		$search_modal.attr('id', 'global-search');
+		var $search_input = $('<div class="input-group" style="margin-top:5px; margin-bottom:5px; margin-left:80px; margin-right:80px">' + 
+							'<input id="input-global" type="text" class="form-control" placeholder="Search for..." autofocus>' + 
+							'<span class="input-group-btn"><button class="btn btn-secondary btn-default" type="button">' + 
+							'<i class="glyphicon glyphicon-search"></i></button></span></div>');
+		$search_input.appendTo('#global-search .modal-body');
+		var $result_div = $('<div class="results">Results</div>');
+		$result_div.appendTo('#global-search .modal-body');
 
-		$("#input-help").on("keydown", function (e) {
+		$("#input-global").on("keydown", function (e) {
+			console.log("search input typed", e.which);
 			if(e.which == 13) {
 				var keywords = $(this).val();
-				show_help_results(keywords);
-				$(this).val("");
+				console.log("input is", $(this).val());
+				frappe.search.show_search_results(keywords);
 			}
 		});
 
-		$("#input-help + span").on("click", function () {
-			var keywords = $("#input-help").val();
-			show_help_results(keywords);
-			$(this).val("");
+		$("#input-global + span").on("click", function () {
+			var keywords = $("#input-global").val();
+			frappe.search.show_search_results(keywords);
 		});
-
-
-		frappe.search.show_search_results(keywords, $search_modal);
 
 	},
 
-	show_search_results: function (keywords, $modal) {
+	show_search_results: function (keywords) {
 
 		frappe.call({
 			method: "frappe.utils.global_search.search",
@@ -245,6 +251,7 @@ frappe.search = {
 				var data = [];
 				var initial_length = 6;
 				var more_length = 5;
+				var $modal = $('#global-search');
 
 				for (var i = 0, l = results.length; i < l; i++) {
 
@@ -256,13 +263,15 @@ frappe.search = {
 
 				}
 
+				console.log("data", data);
+
 				if(results.length === 0) {
 					result_html += "<p class='padding'>No results found</p>";
 
 				} else if(data.length <= initial_length) {
 					data.forEach(function(e) {
 						result_html +=	"<div class='search-result'>" +
-										"<a href=" + e[0] + " class='h4 close' data-dismiss='modal'>" + e[1] + "</a>" +
+										"<a href=" + e[0] + " class='h4'>" + e[1] + "</a>" +
 										"<p>" + e[2] + "</p>" +
 										"</div>";
 					});
@@ -276,14 +285,22 @@ frappe.search = {
 										"</div>";
 						data.splice(0, 1);
 					};
+
+					// ISSUE for data-dismiss: https://github.com/twbs/bootstrap/issues/7192
 					result_html += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
 				}
 
 				$modal.find('.results').html(result_html);
-				$modal.modal('show');
+				if(!$modal.hasClass('in')) {
+					$modal.modal('show');
+				}
+				function toggle_modal () {
+					$modal.modal('toggle');
+				}
+				$('.results .h4').on('click', toggle_modal );
 
-				if(data.length > 0) {
-					var $show = document.getElementById("show-more");
+				if($("#show-more")) {
+					$show = document.getElementById("show-more");
 					$show.addEventListener('click', function() {
 						var more_rendered_results = "";
 						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
@@ -295,11 +312,12 @@ frappe.search = {
 						}
 
 						$show.insertAdjacentHTML('beforebegin', more_rendered_results);
+						$('.results .h4').on('click', toggle_modal );
 						if(data.length === 0){
 							$modal.find('#show-more').html('No more results');
 						}	
 
-					}, false);
+					});
 
 				}
 
@@ -575,7 +593,7 @@ frappe.search.verbs = [
 			label: __("Search: " + parts[1].bold()),
 			value: __("Search: " + parts[1].bold()),
 			onclick: function(match) {
-					frappe.search.search_setup(parts[1]);
+					frappe.search.show_search_results(parts[1]);
 			}
 		});
 	}
