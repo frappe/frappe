@@ -21,10 +21,6 @@ def setup_table():
 		print "Table created"
 	print "Table not created"
 	reset()
-	# insert_test_events()
-	# event_doctype = frappe.get_doc('DocType', 'Event')
-	# event_doctype.validate()
-	# event_doctype.sync_global_search()
 
 def reset():
 	'''Deletes all data in __global_search'''
