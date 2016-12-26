@@ -54,7 +54,7 @@ class DataImport(Document):
 
 
 @frappe.whitelist()
-def insert_into_db(reference_doctype,import_file,selected_columns,selected_row,file_path=None):
+def insert_into_db(reference_doctype,selected_columns,selected_row,import_file=None,file_path=None):
 	if not file_path:
 		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+import_file
 	error = False

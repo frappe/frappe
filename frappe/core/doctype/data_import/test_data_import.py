@@ -9,6 +9,8 @@ import os, json
 
 from openpyxl import load_workbook
 
+from frappe.core.doctype.data_import.data_import import insert_into_db
+
 # test_records = frappe.get_test_records('Data Import')
 
 class TestDataImport(unittest.TestCase):
@@ -39,7 +41,7 @@ class TestDataImport(unittest.TestCase):
 			"student_mobile_number", "student_email_id", "program"])
 		doc.selected_row = 1
 
-		doc.insert_into_db(file_path)
+		status = insert_into_db("Student Applicant",doc.selected_columns,1,file_path=file_path)
 
 		wb = load_workbook(filename=file_path, read_only=True)
 		ws = wb.active
