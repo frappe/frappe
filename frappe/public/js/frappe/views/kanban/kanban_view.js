@@ -16,13 +16,10 @@ var store = fluxify.createStore({
 			get_board(opts.board_name)
 				.then(function(board) {
 					var card_meta = get_card_meta(opts);
-					var cards = prepare_cards(
-						opts.cards,
-						opts.doctype,
-						card_meta.title_field,
-						board.field_name
-					);
-					var columns = prepare_columns(board.columns);	
+					opts.card_meta = card_meta;
+					opts.board = board;
+					var cards = prepare_cards(opts.cards, opts);
+					var columns = prepare_columns(board.columns);
 					updater.set({
 						doctype: opts.doctype,
 						board: board,
@@ -40,8 +37,8 @@ var store = fluxify.createStore({
 			fluxify.doAction('update_column', col, 'delete');
 		},
 		update_column: function(updater, col, action) {
-			var doctype = store.getState().doctype;
-			var board = store.getState().board;
+			var doctype = this.doctype;
+			var board = this.board;
 			fetch_customization(doctype)
 				.then(function(doc) {
 					return save_customization(board, doc, col.title, action)
@@ -53,25 +50,21 @@ var store = fluxify.createStore({
 						columns: prepare_columns(cols)
 					});
 				}, function(err) {
-					reject(err);
+					throw err;
 				});
 		},
 		set_filter_state: function(updater) {
-			var board = store.getState().board;
-			var cur_list = store.getState().cur_list;
 			updater.set({
-				filters_modified: is_filters_modified(board, cur_list)
-			})
+				filters_modified: is_filters_modified(this.board, this.cur_list)
+			});
 		},
 		save_filters: function(updater) {
-			var cur_list = store.getState().cur_list;
-			var board_name = store.getState().board.name;
-			var filters = JSON.stringify(cur_list.filter_list.get_filters());
+			var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
 			frappe.call({
 				method: "frappe.client.set_value",
 				args: {
 					doctype: 'Kanban Board',
-					name: board_name,
+					name: this.board.name,
 					fieldname: 'filters',
 					value: filters
 				},
@@ -82,7 +75,7 @@ var store = fluxify.createStore({
 			});
 		},
 		change_card_column: function(updater, card_name, column_title) {
-			var me = this;
+			var state = this;
 			frappe.call({
 				method: "frappe.client.set_value",
 				args: {
@@ -90,26 +83,21 @@ var store = fluxify.createStore({
 					name: card_name,
 					fieldname: this.board.field_name,
 					value: column_title
-				},
-				callback: function(r) {
-					var card = prepare_cards(
-						[r.message],
-						me.doctype,
-						me.card_meta.title_field,
-						me.board.field_name
-					);
-					var cards = me.cards.slice();
-					cards = cards.concat(card)
-					updater.set({
-						cards: cards
-					});
-					show_alert({message:__("Saved"), indicator:'green'}, 1);
 				}
-			});
+			}).then(function(r) {
+				var card = prepare_cards([r.message], state);
+				var cards = state.cards.slice();
+				cards = cards.concat(card);
+				updater.set({ cards: cards });
+				// show_alert({message:__("Saved"), indicator:'green'}, 1);
+			})
 		},
 		add_card: function(updater, card_title, column_title) {
 			var doc = frappe.model.get_new_doc(this.doctype);
-			var field = this.card_meta.title_field, quick_entry = this.card_meta.quick_entry;
+			var field = this.card_meta.title_field;
+			var quick_entry = this.card_meta.quick_entry;
+			var board = this.board;
+			var state = this;
 
 			if(field && !quick_entry) {
 				var doc_fields = {};
@@ -123,19 +111,15 @@ var store = fluxify.createStore({
 				if(quick_entry) {
 					frappe.route_options = {};
 					$.extend(frappe.route_options, doc_fields);
-					frappe.new_doc(self.doctype, doc);
+					frappe.new_doc(this.doctype, doc);
 				} else {
 					$.extend(doc, doc_fields);
 					return insert_doc(doc)
 						.then(function(r) {
 							var doc = r.message;
-							return {
-								doctype: doc.doctype,
-								name: doc.name,
-								title: doc.subject,
-								column: doc[self.board.field_name],
-								assigned_list: []
-							}
+							var card = prepare_cards([doc], state);
+							var cards = state.cards.slice().concat(card);
+							updater.set({ cards: cards });
 						});
 				}
 			}
@@ -196,15 +180,14 @@ function get_card_meta(opts) {
 }
 
 function prepare_cards(cards, state) {
-	
 	return cards.map(function(card) {
 		var assigned_list = card._assign ?
 			JSON.parse(card._assign) : [];
 		return {
 			doctype: state.doctype,
 			name: card.name,
-			title: card[state.title_field.fieldname],
-			column: card[state.column_field],
+			title: card[state.card_meta.title_field.fieldname],
+			column: card[state.board.field_name],
 			assigned_list: assigned_list,
 			comment_count: card._comment_count || 0
 		};
@@ -214,9 +197,10 @@ function prepare_cards(cards, state) {
 function prepare_columns(columns) {
 	return columns.map(function(col) {
 		return {
-			title: col.column_name
+			title: col.column_name,
+			status: col.status
 		};
-	});
+	})
 }
 
 function fetch_customization(doctype) {
@@ -238,21 +222,34 @@ function fetch_customization(doctype) {
 function save_customization(board, doc, title, action) {
 	doc.fields.forEach(function(df) {
 		if(df.fieldname === board.field_name && df.fieldtype === "Select") {
-				if(action==="add") {
-					//add column_name to Select field's option field
-					df.options += "\n" + title;
-				} else if(action==="delete") {
-					var options = df.options.split("\n");
-					var index = options.indexOf(title); 
-					if(index !== -1) options.splice(index, 1);
-					df.options = options.join("\n");
-				}
+			if(action==="add") {
+				//add column_name to Select field's option field
+				df.options += "\n" + title;
+			} else if(action==="delete") {
+				var options = df.options.split("\n");
+				var index = options.indexOf(title);
+				if(index !== -1) options.splice(index, 1);
+				df.options = options.join("\n");
 			}
-		});
+		}
+	});
 	doc.hide_success = true;
 	return frappe.call({
 		doc: doc,
 		method: "save_customization"
+	});
+}
+
+function insert_doc(doc) {
+	return frappe.call({
+		method: "frappe.client.insert",
+		args: {
+			doc: doc
+		},
+		callback: function(r) {
+			frappe.model.clear_doc(doc.doctype, doc.name);
+			show_alert({message:__("Saved"), indicator:'green'}, 1);
+		}
 	});
 }
 
@@ -272,7 +269,7 @@ function is_filters_modified(board, cur_list) {
 }
 
 
-frappe.stores = {} 
+frappe.stores = {}
 frappe.stores = function(opts, callback) {
 
 	var self = Object.assign({}, opts);
@@ -378,7 +375,7 @@ frappe.stores = function(opts, callback) {
 		return update_column(column, "add");
 	}
 	actions.add_column = add_column;
-	
+
 	function delete_column(column) {
 		return update_column(column, "delete");
 	}
@@ -406,7 +403,7 @@ frappe.stores = function(opts, callback) {
 			});
 		return defer;
 	}
-	
+
 	function fetch_customization() {
 		var defer = $.Deferred();
 		frappe.model.with_doc("Customize Form", "Customize Form", function() {
@@ -431,7 +428,7 @@ frappe.stores = function(opts, callback) {
 						df.options += "\n" + title;
 					} else if(action==="delete") {
 						var options = df.options.split("\n");
-						var index = options.indexOf(title); 
+						var index = options.indexOf(title);
 						if(index !== -1) options.splice(index, 1);
 						df.options = options.join("\n");
 					}
@@ -608,9 +605,12 @@ frappe.views.KanbanBoard = function(opts) {
 	function make_columns() {
 		self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 		var columns = store.getState().columns;
-		for(var column of columns) {
-			frappe.views.KanbanBoardColumn(column, self.$kanban_board);
-		}
+		
+		columns.filter(function(col) {
+			return col.status !== 'Archived'
+		}).map(function(col) {
+			frappe.views.KanbanBoardColumn(col, self.$kanban_board);
+		});
 	}
 
 	function bind_events() {
@@ -687,8 +687,9 @@ frappe.views.KanbanBoardColumn = function(column, wrapper) {
 
 	function init() {
 		make_dom();
-		make_cards();
 		setup_sortable();
+		make_cards();
+		store.on('change:cards', make_cards);
 		bind_add_card();
 		bind_options();
 	}
@@ -700,6 +701,7 @@ frappe.views.KanbanBoardColumn = function(column, wrapper) {
 	}
 
 	function make_cards() {
+		self.$kanban_cards.empty();
 		var cards = store.getState().cards;
 		cards.filter(function(card) {
 			return card.column === column.title
@@ -778,13 +780,13 @@ frappe.views.KanbanBoardColumn = function(column, wrapper) {
 				var action = $btn.data().action;
 
 				if(action === "delete") {
-					if(cards.length > 0) {
-						//warning
+					// if(cards.length > 0) {
+					// 	//warning
+					// }
+					var col = {
+						title: column.title
 					}
-					var args = {
-						title: column.title,
-						cards: cards
-					}
+					fluxify.doAction('delete_column', col);
 					// actions.delete_column(args)
 					// 	.then(function(col) {
 					// 		self.$kanban_column.remove();

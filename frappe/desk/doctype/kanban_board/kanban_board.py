@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+from frappe import _
 from frappe.model.document import Document
 
 class KanbanBoard(Document):
@@ -13,9 +14,13 @@ class KanbanBoard(Document):
 @frappe.whitelist()
 def add_column(board_name, column_title):
 	'''
-	Adds new column to Kanban Board's child table `columns`
+	Adds new column to Kanban Board
 	'''
 	doc = frappe.get_doc("Kanban Board", board_name)
+	for col in doc.columns:
+		if column_title == col.column_name:
+			frappe.throw(_("Column <b>{0}</b> already exist.").format(column_title))
+
 	doc.append("columns", dict(
 		column_name=column_title,
 		color=""
@@ -24,25 +29,15 @@ def add_column(board_name, column_title):
 	return doc.columns
 
 @frappe.whitelist()
-def delete_column(board_name, column_title):
+def archive_column(board_name, column_title):
 	'''
-	Deletes column from Kanban Board's child table `columns`
+	Set column's' status to 'Archived'
 	'''
 	doc = frappe.get_doc("Kanban Board", board_name)
-	doc.set("columns", doc.get("columns", {"column_name": ["not in", [column_title]]}))
-	frappe.db.sql("""delete from `tabKanban Board Column` 
-		where parent = %s and column_name = %s""", (doc.name, column_title))
-	
-	cards = frappe.get_list(doc.reference_doctype, filters={ doc.field_name: column_title })
-	archive_cards(cards, doc.field_name)
+	for col in doc.columns:
+		if column_title == col.column_name:
+			col.status = 'Archived'
+
+	doc.save()
 
 	return doc.columns
-
-def archive_cards(cards, field):
-	'''
-	Set's column value to 'Archived'
-	'''
-	for doc in docs:
-		doc.set(field, "Archived")
-		doc.save()
-	
