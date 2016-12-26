@@ -276,6 +276,7 @@ frappe.search = {
 										"</div>";
 					});
 					result_html += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
+					data = [];
 
 				} else {
 					for (var i = 0; i < initial_length; i++){
@@ -294,25 +295,25 @@ frappe.search = {
 				if(!$modal.hasClass('in')) {
 					$modal.modal('show');
 				}
-				function toggle_modal () {
-					$modal.modal('toggle');
-				}
-				$('.results .h4').on('click', toggle_modal );
 
-				if($("#show-more")) {
+				$(window).on('hashchange', function(e){
+					console.log("hashchange");
+				    $modal.modal('hide');
+				});
+
+				if(data.length > 0) {
 					$show = document.getElementById("show-more");
 					$show.addEventListener('click', function() {
 						var more_rendered_results = "";
 						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
 							more_rendered_results += "<div class='search-result'>" +
-													"<a href='#' class='h4' data-path='"+data[0][0]+"'>" + data[0][1] + "</a>" +
+													"<a href=" + data[0][0] + " class='h4'>" + data[0][1] + "</a>" +
 													"<p>" + data[0][2] + "</p>" +
 													"</div>";
 							data.splice(0, 1);	
 						}
 
 						$show.insertAdjacentHTML('beforebegin', more_rendered_results);
-						$('.results .h4').on('click', toggle_modal );
 						if(data.length === 0){
 							$modal.find('#show-more').html('No more results');
 						}	
