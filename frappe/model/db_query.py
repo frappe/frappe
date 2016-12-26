@@ -264,8 +264,6 @@ class DatabaseQuery(object):
 
 		f = get_filter(self.doctype, f)
 
-		print f
-
 		tname = ('`tab' + f.doctype + '`')
 		if not tname in self.tables:
 			self.append_table(tname)
