@@ -139,22 +139,24 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
 
-			var prepend_reply = function(reply_html) {
+			var prepend_reply = function(reply) {
 				if(me.reply_added===standard_reply) {
 					return;
 				}
 				var content_field = me.dialog.fields_dict.content;
+				var subject_field = me.dialog.fields_dict.subject;
 				var content = content_field.get_value() || "";
 
 				parts = content.split('<!-- salutation-ends -->');
 
 				if(parts.length===2) {
-					content = [reply_html, "<br>", parts[1]];
+					content = [reply.message, "<br>", parts[1]];
 				} else {
-					content = [reply_html, "<br>", content];
+					content = [reply.message, "<br>", content];
 				}
 
 				content_field.set_input(content.join(''));
+				subject_field.set_input(reply.subject);
 
 				me.reply_added = standard_reply;
 			}
