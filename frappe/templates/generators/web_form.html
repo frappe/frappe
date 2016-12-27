@@ -19,13 +19,15 @@
 		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
+		{% if not is_list %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
+		{% endif %}
 	</div>
 	{% endif %}
 	{% if is_list %}
 	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1" class="btn btn-primary btn-new btn-sm">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
 	    {{ _("New") }}
 	    </a>
 	</div>
@@ -34,7 +36,7 @@
 	<div class='text-right'>
 		<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
-			<i class='icon icon-print'></i> {{ _("Print") }}</a>
+			<i class='fa fa-print'></i> {{ _("Print") }}</a>
 	</div>
 	{%- endif -%}
 {% endblock %}
@@ -42,7 +44,7 @@
 {% block page_content %}
 <div class="introduction">
 	{% if introduction_text %}
-	<p class="text-muted">{{ introduction_text }}</p>
+	<p class="text-muted">{{ _(introduction_text) }}</p>
 	{% endif %}
 </div>
 <div class="form-message hide"></div>
@@ -129,7 +131,7 @@
 			{% for option in field.options.split("\n") -%}
 			<option value="{{ option }}"
 				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
-				{{ option }}</option>
+				{{ _(option) }}</option>
 			{%- endfor %}
 		</select>
 		{{ help(field) }}
@@ -169,6 +171,7 @@
 			{% if with_label %}
 			<label class='text-muted'>
 				<input type="checkbox" id="{{ field.fieldname }}"
+					{{ properties(field) }}
 					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
 					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
 					{{ _(field.label) }}
@@ -230,7 +233,7 @@
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
 		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
-		{% if loop.index==1 %}icon-circle{% else %}icon-circle-blank{% endif %}"></i>
+		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-blank{% endif %}"></i>
 	{% endfor %}
 </div>
 {% endif %}
@@ -265,6 +268,7 @@
 		<div class="section">
 			{% if section.label %}
 			<h5 class='uppercase'>{{ _(section.label) }}</h5>
+			<span class="help-block small text-muted">{{ _(section.description) }}</span>
 			{% endif %}
 			<div class="row">
 					{% for column in section.columns %}
@@ -459,7 +463,7 @@ frappe.ready(function() {
 		$('.web-form-page').addClass('hidden');
 
 		// slide-progress
-		$('.slide-progress .fa-fw.icon-circle')
+		$('.slide-progress .fa-fw fa-circle')
 			.removeClass('fa fa-circle').addClass('fa fa-circle-blank');
 		$('.slide-progress .fa-fw[data-idx="'+idx+'"]')
 			.removeClass('fa fa-circle-blank').addClass('fa fa-circle');

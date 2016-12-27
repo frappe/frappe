@@ -12,6 +12,7 @@ from frappe.custom.doctype.customize_form.customize_form import docfield_propert
 from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
+from urllib import urlencode
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -39,6 +40,9 @@ class WebForm(WebsiteGenerator):
 		if not frappe.flags.in_import:
 			self.validate_fields()
 
+		if self.accept_payment:
+			self.validate_payment_amount()
+
 	def validate_fields(self):
 		'''Validate all fields are present'''
 		from frappe.model import no_value_fields
@@ -50,6 +54,13 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_('Following fields are missing:') + '<br>' + '<br>'.join(missing))
+
+	def validate_payment_amount(self):
+		if self.amount_based_on_field and not self.amount_field:
+			frappe.throw(_("Please select a Amount Field."))
+		elif not self.amount_based_on_field and not self.amount > 0:
+			frappe.throw(_("Amount must be greater than 0."))
+
 
 	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
@@ -191,13 +202,27 @@ def get_context(context):
 		frappe.form_dict.doctype = self.doc_type
 		frappe.flags.web_form = self
 
+		self.update_params_from_form_dict(context)
 		self.update_list_context(context)
 		get_list_context(context)
 		context.is_list = True
 
+	def update_params_from_form_dict(self, context):
+		'''Copy params from list view to new view'''
+		context.params_from_form_dict = ''
+
+		params = {}
+		for key, value in frappe.form_dict.iteritems():
+			if frappe.get_meta(self.doc_type).get_field(key):
+				params[key] = value
+
+		if params:
+			context.params_from_form_dict = '&' + urlencode(params)
+
+
 	def update_list_context(self, context):
 		'''update list context for stanard modules'''
-		if self.web_form_module and hasattr(self.web_form_module, 'get_list_context'):
+		if hasattr(self, 'web_form_module') and hasattr(self.web_form_module, 'get_list_context'):
 			self.web_form_module.get_list_context(context)
 
 	def get_payment_gateway_url(self, doc):
@@ -205,9 +230,11 @@ def get_context(context):
 			controller = get_integration_controller(self.payment_gateway)
 
 			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
-
+			amount = self.amount
+			if self.amount_based_on_field:
+				amount = doc.get(self.amount_field)
 			payment_details = {
-				"amount": self.amount,
+				"amount": amount,
 				"title": title,
 				"description": title,
 				"reference_doctype": doc.doctype,

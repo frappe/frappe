@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 
 from frappe.utils import now, cint
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, default_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
@@ -59,14 +59,46 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
+		self.update_fields_to_fetch()
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
-		if frappe.flags.in_patch:
+		if frappe.flags.in_patch or frappe.flags.in_test:
 			return
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+
+	def update_fields_to_fetch(self):
+		'''Update values for newly set fetch values'''
+		try:
+			old_meta = frappe.get_meta(frappe.get_doc('DocType', self.name), cached=False)
+			old_fields_to_fetch = [df.fieldname for df in old_meta.get_fields_to_fetch()]
+		except frappe.DoesNotExistError:
+			old_fields_to_fetch = []
+
+		new_meta = frappe.get_meta(self, cached=False)
+
+		if set(old_fields_to_fetch) != set([df.fieldname for df in new_meta.get_fields_to_fetch()]):
+			for df in new_meta.get_fields_to_fetch():
+				if df.fieldname not in old_fields_to_fetch:
+					link_fieldname, source_fieldname = df.options.split('.', 1)
+					link_df = new_meta.get_field(link_fieldname)
+
+					frappe.db.sql('''update
+						`tab{link_doctype}` source,
+						`tab{doctype}` target
+					set
+						target.`{fieldname}` = source.`{source_fieldname}`
+					where
+						target.`{link_fieldname}` = source.name
+						and ifnull(target.`{fieldname}`, '')="" '''.format(
+							link_doctype = link_df.options,
+							source_fieldname = source_fieldname,
+							doctype = self.name,
+							fieldname = df.fieldname,
+							link_fieldname = link_fieldname
+						))
 
 	def validate_document_type(self):
 		if self.document_type=="Transaction":
@@ -387,7 +419,6 @@ def validate_fields(meta):
 		if not meta.search_fields:
 			return
 
-		fieldname_list = [d.fieldname for d in fields]
 		for fieldname in (meta.search_fields or "").split(","):
 			fieldname = fieldname.strip()
 			if fieldname not in fieldname_list:
@@ -397,8 +428,6 @@ def validate_fields(meta):
 		"""Throw exception if `title_field` isn't a valid fieldname."""
 		if not meta.get("title_field"):
 			return
-
-		fieldname_list = [d.fieldname for d in fields]
 
 		if meta.title_field not in fieldname_list:
 			frappe.throw(_("Title field must be a valid fieldname"), InvalidFieldNameError)
@@ -437,8 +466,6 @@ def validate_fields(meta):
 		if not meta.timeline_field:
 			return
 
-		fieldname_list = [d.fieldname for d in fields]
-
 		if meta.timeline_field not in fieldname_list:
 			frappe.throw(_("Timeline field must be a valid fieldname"), InvalidFieldNameError)
 
@@ -446,7 +473,22 @@ def validate_fields(meta):
 		if df.fieldtype not in ("Link", "Dynamic Link"):
 			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
 
+	def check_sort_field(meta):
+		'''Validate that sort_field(s) is a valid field'''
+		if meta.sort_field:
+			sort_fields = [meta.sort_field]
+			if ','  in meta.sort_field:
+				sort_fields = [d.split()[0] for d in meta.sort_field.split(',')]
+
+			for fieldname in sort_fields:
+				if not fieldname in fieldname_list + list(default_fields):
+					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
+						InvalidFieldNameError)
+
+
 	fields = meta.get("fields")
+	fieldname_list = [d.fieldname for d in fields]
+
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
@@ -470,6 +512,7 @@ def validate_fields(meta):
 	check_search_fields(meta)
 	check_title_field(meta)
 	check_timeline_field(meta)
+	check_sort_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""

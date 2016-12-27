@@ -12,7 +12,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 		if(!this.dialog)
 			this.make_dialog();
 
-		this.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center">'
+		this.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center" style="padding: 30px 0px">'
 			+ __("Loading") + '...</div>');
 
 		this.dialog.show();

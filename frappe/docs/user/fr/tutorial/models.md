@@ -1,10 +1,10 @@
 # Définir des modèles
 
-La prochaine étape est de définir les modèles que nous avons présenté en introduction. Dans Frappe, les modèles sont appelés
+La prochaine étape est de définir les modèles que nous avons présenté en introduction. Dans **Frappe**, les modèles sont appelés
 des **DocTypes**. Vous pouvez définir de nouveaux **DocTypes** depuis l'interface. Les **DocTypes** sont faits de **DocField** 
 et de permissions appelées **DocPerms**.
 
-Quand un DocType est sauvegardé, une nouvelle table est créee dans la base de données. Cette table est nommée `tab[doctype]`.
+Quand un DocType est sauvegardé, une nouvelle table est créée dans la base de données. Cette table est nommée `tab[doctype]`.
 
 Quand vous créez un **DocType**, un nouveau repertoire est créé dans le **Module**, un fichier JSON définissant le modèles
 ainsin qu'un template de controleur sont automatiquement créés.
@@ -23,4 +23,4 @@ pour appliquer les changements. Vous devriez maintenant voir l'application "Deve
 	 "developer_mode": 1
 	}
 
-{suite}
+{next}

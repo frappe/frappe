@@ -1,4 +1,4 @@
-# es vues web
+# Les vues web
 
 Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
 que **le web** est une collection plus traditionnelle de fichers HTML pour la consultation publique. Les vues web peuvent
@@ -16,7 +16,7 @@ y a 2 principaux types de templates.
 
 > Cette fonctionnalité est encore en développement.
 
-Jettons un oeuil aux vues standards:
+Jettons un oeil aux vues standards:
 
 Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
@@ -57,10 +57,10 @@ La mise à jour de la liste ressemble à ca !
 Frappe permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
 le web, il n'a pas accès à l'interface du desk par defaut.
 
-> Pour autoriser les utilisateurs à accéder au Desk, ouvrez la configuration de l'utilisateur (Setup > User) et définissez
+> Pour autoriser les utilisateurs à accéder au `Desk`, ouvrez la configuration de l'utilisateur (Setup > User) et définissez
  le type d'utilisatuer à "System User".
 
-Pour les utilisateurs qui n'ont pas accès au desk, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
+Pour les utilisateurs qui n'ont pas accès au `Desk`, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
 `hooks.py` le tout en respectant les rôles.
 
 Quand un membre de la librairie se connecte, il doit être redirigé vers la page `article` donc ouvrez le fichier `library_management/hooks.py` et ajoutez:
@@ -69,4 +69,4 @@ Quand un membre de la librairie se connecte, il doit être redirigé vers la pag
 		"Library Member": "article"
 	}
 
-{suite}
+{next}

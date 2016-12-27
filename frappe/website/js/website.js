@@ -6,7 +6,9 @@ frappe.provide("frappe.search_path");
 cur_frm = null;
 
 $.extend(frappe, {
-	boot: {},
+	boot: {
+		lang: 'en'
+	},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
@@ -376,9 +378,10 @@ $(document).ready(function() {
 
 	// switch to app link
 	if(getCookie("system_user")==="yes" && logged_in) {
-		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
+		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">'
+			+__('Switch To Desk')+'</a></li>');
 		$(".navbar-header .dropdown:not(.dropdown-submenu) > .dropdown-menu")
-			.append('<li><a href="/desk">Switch To Desk</a></li>');
+			.append('<li><a href="/desk">'+__('Switch To Desk')+'</a></li>');
 	}
 
 	frappe.render_user();

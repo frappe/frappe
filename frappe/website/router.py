@@ -46,7 +46,10 @@ def make_page_context(path):
 		raise frappe.DoesNotExistError
 
 	context.doctype = context.ref_doctype
-	context.title = context.page_title
+
+	if context.page_title:
+		context.title = context.page_title
+
 	context.pathname = frappe.local.path
 
 	return context
@@ -299,7 +302,7 @@ def load_properties(page_info):
 			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
 
 	if page_info.title and not '{% block title %}' in page_info.source:
-		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
+		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -313,7 +316,7 @@ def load_properties(page_info):
 		# every page needs a header
 		# add missing header if there is no <h1> tag
 		if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
-			page_info.source += '\n{% block header %}<h1>' + page_info.title + '</h1>{% endblock %}'
+			page_info.source += '\n{% block header %}<h1>{{ title }}</h1>{% endblock %}'
 
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1
@@ -325,10 +328,10 @@ def process_generators(func):
 			condition_field = None
 			controller = get_controller(doctype)
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
+			if "condition_field" in controller.website:
+				condition_field = controller.website['condition_field']
+			if 'order_by' in controller.website:
+				order_by = controller.website['order_by']
 
 			val = func(doctype, condition_field, order_by)
 			if val:

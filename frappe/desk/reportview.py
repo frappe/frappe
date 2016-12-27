@@ -190,13 +190,13 @@ def get_stats(stats, doctype, filters=[]):
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = frappe.get_all(doctype, fields=[tag, "count(*)"],
+		tagcount = frappe.get_list(doctype, fields=[tag, "count(*)"],
 			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
 			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags", frappe.get_all(doctype,
+			stats[tag].append(["No Tags", frappe.get_list(doctype,
 				fields=[tag, "count(*)"],
 				filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 		else:
@@ -218,7 +218,7 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 		if not tag["name"] in columns: continue
 		tagcount = []
 		if tag["type"] not in ['Date', 'Datetime']:
-			tagcount = frappe.get_all(doctype,
+			tagcount = frappe.get_list(doctype,
 				fields=[tag["name"], "count(*)"],
 				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
 				group_by = tag["name"],
@@ -228,7 +228,7 @@ def get_filter_dashboard_data(stats, doctype, filters=[]):
 			'Float','Currency','Percent'] and tag['name'] not in ['docstatus']:
 			stats[tag["name"]] = list(tagcount)
 			if stats[tag["name"]]:
-				data =["No Data", frappe.get_all(doctype,
+				data =["No Data", frappe.get_list(doctype,
 					fields=[tag["name"], "count(*)"],
 					filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
 					as_list=True)[0][1]]

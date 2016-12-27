@@ -38,6 +38,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		if(d && d.length) {
 			for(var i=0; i<d.length; i++) {
 				var info = frappe.user_info(d[i].owner);
+				info.assign_to_name = d[i].name
 				info.owner = d[i].owner;
 				info.avatar = frappe.avatar(d[i].owner);
 				info.description = d[i].description || "";
@@ -50,14 +51,14 @@ frappe.ui.form.AssignTo = Class.extend({
 				$(repl('<li class="assignment-row">\
 					<a class="close" data-owner="%(owner)s">&times;</a>\
 					%(avatar)s\
-					<span>%(_fullname)s</span>\
+					<span><a href="#Form/ToDo/%(assign_to_name)s">%(_fullname)s</a></span>\
 				</li>', info))
 					.insertBefore(this.parent.find('.add-assignment'));
 
 				if(d[i].owner===user) {
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
 						me.remove(user);
-					}, "fa fa-ok", "btn-success")
+					}, "fa fa-check", "btn-success")
 				}
 
 				if(!(d[i].owner === user || me.frm.perm[0].write)) {

@@ -416,7 +416,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				list_view_doc="' + this.doctype + '">'+
 				__('Make a new {0}', [__(this.doctype)]) + '</button></p>')
 			: '';
-		var no_result_message = '<div class="msg-box no-border" style="margin: 100px 0px;">\
+		var no_result_message = '<div class="msg-box no-border">\
 			<p>' + __("No {0} found", [__(this.doctype)])  + '</p>' + new_button + '</div>';
 
 		return no_result_message;
@@ -871,21 +871,5 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			page: me.page,
 			doclistview: me
 		})
-	},
-	call_for_selected_items: function(method, args) {
-		var me = this;
-		args.names = $.map(this.get_checked_items(), function(d) { return d.name; });
-
-		frappe.call({
-			method: method,
-			args: args,
-			freeze: true,
-			callback: function(r) {
-				if(!r.exc) {
-					me.list_header.find(".list-select-all").prop("checked", false);
-					me.refresh();
-				}
-			}
-		});
 	}
 });

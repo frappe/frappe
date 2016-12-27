@@ -289,7 +289,7 @@ frappe.RoleEditor = Class.extend({
 					for(key in perm) {
 						if(key!='parent' && key!='permlevel') {
 							if(perm[key]) {
-								perm[key] = '<i class="fa fa-ok"></i>';
+								perm[key] = '<i class="fa fa-check"></i>';
 							} else {
 								perm[key] = '';
 							}

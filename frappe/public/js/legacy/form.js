@@ -369,7 +369,7 @@ _f.Frm.prototype.show_web_link = function() {
 }
 
 _f.Frm.prototype.add_web_link = function(path) {
-	this.web_link = this.sidebar.add_user_action("See on Website",
+	this.web_link = this.sidebar.add_user_action(__("See on Website"),
 		function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 }
 
@@ -413,6 +413,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
+		if (this.read_only) this.set_read_only(true);
 
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {

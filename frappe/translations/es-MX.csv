@@ -1,3 +1,5 @@
+DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,"Fracción más pequeña de circulación (moneda). Por ejemplo, 1 centavo por USD y debe ser ingresado como 0.01"
 DocType: Website Settings,&lt;head&gt; HTML,HTML
-DocType: Web Page,Add code as &lt;script&gt;,Agregar código como &lt;script&gt;
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
+DocType: Error Snapshot,Snapshot View,Vista de instantánea
+DocType: Currency,Smallest Currency Fraction Value,Valor de la fracción de moneda más pequeña
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +219,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos

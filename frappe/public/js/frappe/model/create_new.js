@@ -61,7 +61,7 @@ $.extend(frappe.model, {
 		if(frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function(fieldname, value) {
 				var df = frappe.meta.has_field(doctype, fieldname);
-				if(df && in_list(['Link', 'Select'], df.fieldtype) && !df.no_copy) {
+				if(df && in_list(['Link', 'Data', 'Select'], df.fieldtype) && !df.no_copy) {
 					doc[fieldname]=value;
 				}
 			});
@@ -275,9 +275,11 @@ $.extend(frappe.model, {
 
 		return frappe.call({
 			type: "POST",
-			method: opts.method,
+			method: 'frappe.model.mapper.make_mapped_doc',
 			args: {
-				"source_name": opts.source_name
+				method: opts.method,
+				source_name: opts.source_name,
+				selected_children: opts.frm.get_selected()
 			},
 			freeze: true,
 			callback: function(r) {

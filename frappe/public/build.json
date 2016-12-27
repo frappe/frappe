@@ -38,7 +38,8 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
+		"public/js/lib/datepicker/datepicker.min.css",
+		"public/js/lib/awesomplete/awesomplete.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -56,9 +57,9 @@
 		"public/css/mobile.css"
 	],
 	"js/libs.min.js": [
-		"public/js/lib/jquery/jquery-ui.min.js",
+		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
-		"public/js/lib/tag-it.min.js",
+		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
@@ -66,6 +67,9 @@
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/markdown.js",
 		"public/js/lib/jSignature.min.js"
+		"public/js/frappe/translate.js",
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
@@ -73,7 +77,6 @@
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/translate.js",
 		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
@@ -192,8 +195,8 @@
 		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
+		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
-		"public/css/tag-it.css",
 		"public/css/calendar.css",
 		"public/css/filter_dashboard.css"
 	],

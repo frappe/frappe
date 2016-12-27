@@ -452,6 +452,10 @@ h6.uppercase, .h6.uppercase {
 
 	.comment-input-container {
 		padding: 15px;
+
+		.awesomplete > ul {
+			min-width: 200px;
+		}
 	}
 
 	.comment-input {
@@ -508,7 +512,7 @@ h6.uppercase, .h6.uppercase {
 	font-weight: normal;
 }
 
-.frappe-control {
+.frappe-control& {
 	margin-bottom: 10px;
 
 	.help-box {
@@ -643,7 +647,7 @@ select.form-control {
 			padding: 0px 15px;
 		}
 
-		.frappe-control {
+		.frappe-control& {
 			padding: 7px 15px;
 			border-bottom: 1px solid @light-border-color;
 			margin: 0px -15px;
@@ -654,6 +658,10 @@ select.form-control {
 
 			.like-disabled-input {
 				min-height: 0px !important;
+			}
+
+			&:last-child {
+				margin-bottom: 0px;
 			}
 		}
 

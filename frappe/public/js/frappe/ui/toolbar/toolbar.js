@@ -34,7 +34,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}, 300);
 		});
 
-		frappe.search.setup();
+		frappe.search.setup("#navbar-search");
+		frappe.search.setup("#modal-search");
 	},
 
 	setup_sidebar: function () {
@@ -63,7 +64,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			function close_sidebar(e) {
 				scroll_container.css("overflow-y", "");
 
-				layout_side_section.find(".close-sidebar").fadeOut(function() {
+				layout_side_section.find("div.close-sidebar").fadeOut(function() {
 					overlay_sidebar.removeClass('opened')
 						.find('.dropdown-toggle')
 						.removeClass('text-muted');

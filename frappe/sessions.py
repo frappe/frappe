@@ -66,7 +66,7 @@ def clear_sessions(user=None, keep_current=False, device=None):
 
 	condition = ''
 	if keep_current:
-		condition = ' and sid != "{0}"'.format(frappe.session.sid)
+		condition = ' and sid != "{0}"'.format(frappe.db.escape(frappe.session.sid))
 
 
 	for i, sid in enumerate(frappe.db.sql_list("""select sid from tabSessions

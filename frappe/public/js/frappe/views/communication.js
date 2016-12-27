@@ -15,7 +15,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			title: (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
-			primary_action_label: "Send",
+			primary_action_label: __("Send"),
 			primary_action: function() {
 				me.send_action();
 			}
@@ -49,7 +49,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		return [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
-			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC & Standard Reply")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
@@ -89,7 +89,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
-		this.setup_autosuggest();
+		this.setup_awesomplete();
 		this.setup_last_edited_communication();
 		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
@@ -139,22 +139,24 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
 
-			var prepend_reply = function(reply_html) {
+			var prepend_reply = function(reply) {
 				if(me.reply_added===standard_reply) {
 					return;
 				}
 				var content_field = me.dialog.fields_dict.content;
+				var subject_field = me.dialog.fields_dict.subject;
 				var content = content_field.get_value() || "";
 
 				parts = content.split('<!-- salutation-ends -->');
 
 				if(parts.length===2) {
-					content = [reply_html, "<br>", parts[1]];
+					content = [reply.message, "<br>", parts[1]];
 				} else {
-					content = [reply_html, "<br>", content];
+					content = [reply.message, "<br>", content];
 				}
 
 				content_field.set_input(content.join(''));
+				subject_field.set_input(reply.subject);
 
 				me.reply_added = standard_reply;
 			}
@@ -503,54 +505,54 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields.content.set_input(reply);
 		}
 	},
-	setup_autosuggest: function() {
+	setup_awesomplete: function() {
 		var me = this;
-
-		function split( val ) {
+		[this.dialog.fields_dict.recipients.input,
+		 this.dialog.fields_dict.cc.input]
+			.map(function(input) {
+				me.setup_awesomplete_for_input(input);
+			});
+	},
+	setup_awesomplete_for_input: function(input) {
+		function split(val) {
 			return val.split( /,\s*/ );
 		}
-		function extractLast( term ) {
+		function extractLast(term) {
 			return split(term).pop();
 		}
 
-		$(this.dialog.fields_dict.recipients.input).add(this.dialog.fields_dict.cc.input)
-			.bind( "keydown", function(event) {
-		        if (event.keyCode === $.ui.keyCode.TAB &&
-		            $(this).autocomplete("instance").menu.active) {
-					event.preventDefault();
-				}
-			})
-			.autocomplete({
-				source: function(request, response) {
-					return frappe.call({
-						method:'frappe.email.get_contact_list',
-						args: {
-							'fieldname': "email_id",
-							'doctype': "Contact",
-							'txt': extractLast(request.term).value || '%'
-						},
-						quiet: true,
-						callback: function(r) {
-							response($.ui.autocomplete.filter(
-								r.message || [], extractLast(request.term)));
-						}
-					});
+		var awesomplete = new Awesomplete(input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+			item: function(item, input) {
+				return $('<li>').text(item.value).get(0);
+			},
+			filter: function(text, input) {
+				return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+			},
+			replace: function(text) {
+				var before = this.input.value.match(/^.+,\s*|/)[0];
+				this.input.value = before + text + ", ";
+			}
+		});
+
+		var $input = $(input);
+		$input.on("input", function(e) {
+			var term = e.target.value;
+			frappe.call({
+				method:'frappe.email.get_contact_list',
+				args: {
+					'fieldname': "email_id",
+					'doctype': "Contact",
+					'txt': extractLast(term) || '%'
 				},
-				appendTo: this.dialog.$wrapper,
-				focus: function() {
-					return false;
-				},
-				select: function( event, ui ) {
-					var terms = split( this.value );
-					// remove the current input
-					terms.pop();
-					// add the selected item
-					terms.push( ui.item.value );
-					// add placeholder to get the comma-and-space at the end
-					terms.push( "" );
-					this.value = terms.join( ", " );
-					return false;
+				quiet: true,
+				callback: function(r) {
+					awesomplete.list = r.message;
 				}
 			});
+		});
 	}
 });
