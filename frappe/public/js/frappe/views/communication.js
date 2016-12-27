@@ -15,7 +15,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			title: (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
-			primary_action_label: "Send",
+			primary_action_label: __("Send"),
 			primary_action: function() {
 				me.send_action();
 			}
@@ -49,7 +49,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		return [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
-			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC & Standard Reply")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},

@@ -206,10 +206,10 @@ def set_content_type(response, data, path):
 def clear_cache(path=None):
 	frappe.cache().delete_value("website_generator_routes")
 	delete_page_cache(path)
+	frappe.cache().delete_value("website_404")
 	if not path:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		frappe.cache().delete_value("website_404")
 		frappe.cache().delete_value("portal_menu_items")
 		frappe.cache().delete_value("home_page")
 
