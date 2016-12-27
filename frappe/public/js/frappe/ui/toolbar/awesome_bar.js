@@ -105,8 +105,10 @@ frappe.search = {
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
 
-		console.log("Awesome bar setup called ============>>>>>>>>>>>>") ;
-		frappe.search.setup_search();
+
+		if ($('#global-search').length == 0){
+			frappe.search.setup_search();
+		}
 	},
 	add_help: function() {
 		frappe.search.options.push({
@@ -210,7 +212,6 @@ frappe.search = {
 	},
 
 	setup_search: function() {
-
 		var $search_modal = frappe.get_modal('Global Search', "");
 		$search_modal.addClass('search-modal');
 		$search_modal.attr('id', 'global-search');
@@ -218,9 +219,9 @@ frappe.search = {
 							'<input id="input-global" type="text" class="form-control" placeholder="Search for..." autofocus>' + 
 							'<span class="input-group-btn"><button class="btn btn-secondary btn-default" type="button">' + 
 							'<i class="glyphicon glyphicon-search"></i></button></span></div>');
-		$search_input.appendTo('#global-search .modal-body');
+		$search_input.appendTo($search_modal.find('.modal-body'));
 		var $result_div = $('<div class="results">Results</div>');
-		$result_div.appendTo('#global-search .modal-body');
+		$result_div.appendTo($search_modal.find('.modal-body'));
 
 		$("#input-global").on("keydown", function (e) {
 			console.log("search input typed", e.which);
@@ -247,53 +248,48 @@ frappe.search = {
 			},
 			callback: function(r) {
 				var results = r.message || [];
-				var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
+				var results_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
+				var result_base_html = "<div class='search-result'>" +
+									"<a href='{0}' class='h4'>{1}</a>" +
+									"<p>{2}</p>" +
+									"</div>";
 				var data = [];
-				var parts = [];
 				var initial_length = 6;
 				var more_length = 5;
 				var $modal = $('#global-search');
 
 				for (var i = 0, l = results.length; i < l; i++) {
-
 					var fpath = '#Form/' + results[i].doctype + '/' + results[i].name;
 					var title = results[i].doctype + ": " + results[i].name;
 					var regEx = new RegExp("("+ keywords +")", "ig");
-					parts = results[i].content.split(/;(.+)/);
-					var rendered_content = parts[0] + ": " + parts[1].replace(regEx, '<b>$1</b>');
+					// parts = results[i].content.split(/;(.+)/);
+					var rendered_content = results[i].content.replace(regEx, '<b>$1</b>');
 					data.push([fpath, title, rendered_content]);
 
 				}
 
-				console.log("data", data);
+				console.log("data after:", data);
 
 				if(results.length === 0) {
-					result_html += "<p class='padding'>No results found</p>";
+					results_html += "<p class='padding'>No results found</p>";
 
 				} else if(data.length <= initial_length) {
 					data.forEach(function(e) {
-						result_html +=	"<div class='search-result'>" +
-										"<a href=" + e[0] + " class='h4'>" + e[1] + "</a>" +
-										"<p>" + e[2] + "</p>" +
-										"</div>";
+						results_html += __(result_base_html, e);
 					});
-					result_html += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
+					results_html += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
 					data = [];
 
 				} else {
 					for (var i = 0; i < initial_length; i++){
-						result_html += "<div class='search-result'>" +
-										"<a href=" + data[0][0] + " class='h4'>" + data[0][1] + "</a>" +
-										"<p>" + data[0][2] + "</p>" +
-										"</div>";
+						results_html += __(result_base_html, data[0]);
 						data.splice(0, 1);
 					};
-
 					// ISSUE for data-dismiss: https://github.com/twbs/bootstrap/issues/7192
-					result_html += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
+					results_html += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
 				}
 
-				$modal.find('.results').html(result_html);
+				$modal.find('.results').html(results_html);
 				if(!$modal.hasClass('in')) {
 					$modal.modal('show');
 				}
@@ -308,10 +304,7 @@ frappe.search = {
 					$show.addEventListener('click', function() {
 						var more_rendered_results = "";
 						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
-							more_rendered_results += "<div class='search-result'>" +
-													"<a href=" + data[0][0] + " class='h4'>" + data[0][1] + "</a>" +
-													"<p>" + data[0][2] + "</p>" +
-													"</div>";
+							results_html += __(result_base_html, data[0]);
 							data.splice(0, 1);	
 						}
 
@@ -331,6 +324,19 @@ frappe.search = {
 }
 
 frappe.search.verbs = [
+
+	// Global Search
+	// But shows up at the very top
+	function(txt) {
+		frappe.search.options.unshift({
+			label: __("Search in Global Search: " + txt.bold()),
+			value: __("Search in Global Search: " + txt.bold()),
+			onclick: function(match) {
+					frappe.search.show_search_results(txt);
+			}
+		});
+	},
+
 	// search in list if current
 	function(txt) {
 		
@@ -582,22 +588,4 @@ frappe.search.verbs = [
 
 		};
 	},
-
-	// Global Search
-	function(txt) {
-		var parts = []
-		if(in_list(txt.split(" "), "search")) {
-			parts = txt.split(" ");
-		}
-		console.log("parts[1]: " + parts[1]);
-		if(parts.length <2) return;
-
-		frappe.search.options.push({
-			label: __("Search: " + parts[1].bold()),
-			value: __("Search: " + parts[1].bold()),
-			onclick: function(match) {
-					frappe.search.show_search_results(parts[1]);
-			}
-		});
-	}
 ];
