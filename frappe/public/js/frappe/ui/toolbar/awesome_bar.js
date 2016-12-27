@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide('frappe.ui.misc');
+
 frappe.search = {
 	setup: function(element) {
 		var $input = $(element);
@@ -340,80 +342,22 @@ frappe.search.verbs = [
 
 	// search in list if current
 	function(txt) {
-		
 		var route = frappe.get_route();
-		//console.log("current route", route);
 		if(route[0]==="List" && txt.indexOf(" in") === -1) {
 			// search in title field
 			var meta = frappe.get_meta(frappe.container.page.doclistview.doctype);
 			var search_field = meta.title_field || "name";
-			// console.log("meta", meta.name);
-			// var whatList = frappe.get_list(meta.name, fields=["name"], order_by="name");
-			// console.log("whatList", frappe.get_value(meta.name, 'Chair', 'Status'));
-			// frappe.model.with_doctype(meta.name, function(){
-				
-			// });
-
-			var list = $(".list-id").map(function(){return $(this).attr("data-name");}).get();
-			console.log("whatList", list);
 			var options = {};
-			var result = [];
-			frappe.require('assets/frappe/js/lib/fuse.min.js', function() {
-				var fuzzyEgList = 
-				[
-					 {
-					    title: "Old Man's War"
-					 },
-					 {
-					    title: "The Lock Artist"
-					 }
-				];
-
-				var fuzzyList = [];
-
-				list.forEach(function(d){
-					var element = {};
-					element["title"] = d;
-					fuzzyList.push(element);
-				});
-
-				console.log("fuzzyEgList", fuzzyEgList);
-				console.log("fuzzyList", fuzzyList);
-
-				var options = {
-					  id: "title",
-					  shouldSort: true,
-					  threshold: 0.4,
-					  location: 0,
-					  distance: 100,
-					  maxPatternLength: 32,
-					  minMatchCharLength: 1,
-					  keys: [ "title" ]
-				};
-
-				var fuse = new Fuse(fuzzyList, options);
-				result = fuse.search(txt);
-
-				
-				console.log(result);
-
-			});
-
 			options[search_field] = ["like", "%" + txt + "%"];
-			if(result){
-				result.forEach(function(res){
-					console.log("REEESSSS", res);
-					frappe.search.options.push({
-						label: __('{0}: {1}', [meta.name, res.bold()]),
-						value: __('{0}: {1}', [meta.name, res.bold()]),
-						//route_options: options,
-						onclick: function() {
-							//cur_list.refresh();
-						}
-						//,match: txt
-					});
-				});
-			}
+			frappe.search.options.push({
+				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
+				value: __('Find {0} in {1}', [txt, route[1]]),
+				route_options: options,
+				onclick: function() {
+					cur_list.refresh();
+				},
+				match: txt
+			});
 		}
 	},
 
