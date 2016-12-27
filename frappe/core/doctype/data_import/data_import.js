@@ -15,12 +15,15 @@ frappe.ui.form.on('Data Import', {
 	refresh: function(frm) {
 		if(frm.doc.preview_data && frm.doc.docstatus!=1) { 
 			frm.events.render_html(frm);
-			frm.get_field('selected_row').df.hidden = 0;
-			frm.doc.flag_file_preview = 1;
-			frm.get_field('import_button').$input.addClass("btn-primary btn-md")
-				.removeClass('btn-xs');
 		}
 	},
+
+	onload_post_render: function(frm) {
+		if (frm.doc.flag_file_preview == 1) {
+			frm.get_field('import_button').$input.addClass("btn-primary btn-md")
+					.removeClass('btn-xs');
+		}
+    },
 
 	before_save: function(frm) {
 		if (frm.doc.flag_file_preview) {
@@ -56,6 +59,7 @@ frappe.ui.form.on('Data Import', {
 				});
 			}
 		});
+		frm.doc.flag_file_preview = 1;
 	},
 
 	import_button: function(frm) {
