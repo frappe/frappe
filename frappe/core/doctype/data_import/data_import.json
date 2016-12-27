@@ -45,7 +45,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "depends_on": "eval:!doc.__islocal", 
+   "depends_on": "eval:(!doc.__islocal)", 
    "fieldname": "import_file", 
    "fieldtype": "Attach", 
    "hidden": 0, 
@@ -280,7 +280,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-26 12:03:51.362793", 
+ "modified": "2016-12-27 12:08:22.101424", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Data Import", 
@@ -314,5 +314,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "title_field": "reference_doctype", 
  "track_seen": 0
 }

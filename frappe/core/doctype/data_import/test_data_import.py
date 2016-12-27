@@ -60,5 +60,3 @@ class TestDataImport(unittest.TestCase):
 					"program": tmp_list[5]
 					}
 				))
-
-
