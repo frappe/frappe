@@ -250,9 +250,9 @@ frappe.search = {
 				var results = r.message || [];
 				var results_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
 				var result_base_html = "<div class='search-result'>" +
-									"<a href='{0}' class='h4'>{1}</a>" +
-									"<p>{2}</p>" +
-									"</div>";
+										"<a href='{0}' class='h4'>{1}</a>" +
+										"<p>{2}</p>" +
+										"</div>";
 				var data = [];
 				var initial_length = 6;
 				var more_length = 5;
@@ -292,6 +292,7 @@ frappe.search = {
 				$modal.find('.results').html(results_html);
 				if(!$modal.hasClass('in')) {
 					$modal.modal('show');
+					$("#input-global").focus();
 				}
 
 				$(window).on('hashchange', function(e){
@@ -304,7 +305,7 @@ frappe.search = {
 					$show.addEventListener('click', function() {
 						var more_rendered_results = "";
 						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
-							results_html += __(result_base_html, data[0]);
+							more_rendered_results += __(result_base_html, data[0]);
 							data.splice(0, 1);	
 						}
 
