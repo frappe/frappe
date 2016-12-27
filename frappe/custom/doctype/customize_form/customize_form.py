@@ -44,6 +44,7 @@ docfield_properties = {
 	'in_filter': 'Check',
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',

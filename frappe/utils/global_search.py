@@ -53,7 +53,9 @@ def update_global_search(doc):
 		frappe.flags.update_global_search = []
 
 	content = []
-	for field in doc.meta.fields:
+	print doc.doctype
+	print doc.meta.get_global_search_fields()
+	for field in doc.meta.get_global_search_fields():
 		# subject, type etc in THAT event: EV00010
 		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
 			# subject is in global search
@@ -75,15 +77,11 @@ def update_global_search(doc):
 				  				# 	content.append(field.label + ": " + innerdoc.get(field.fieldname))
 				  				# 	current_fieldname = field.fieldname
 			else:
-				print field.label
 				content.append(field.label + ": " + doc.get(field.fieldname))
-				print content
 
 	if content:
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=', '.join(content)))
-	print "FLAGS:"
-	print frappe.flags.update_global_search
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
