@@ -33,8 +33,8 @@ var store = fluxify.createStore({
 		add_column: function(updater, col) {
 			fluxify.doAction('update_column', col, 'add');
 		},
-		delete_column: function(updater, col) {
-			fluxify.doAction('update_column', col, 'delete');
+		archive_column: function(updater, col) {
+			fluxify.doAction('update_column', col, 'archive');
 		},
 		update_column: function(updater, col, action) {
 			var doctype = this.doctype;
@@ -605,7 +605,7 @@ frappe.views.KanbanBoard = function(opts) {
 	function make_columns() {
 		self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 		var columns = store.getState().columns;
-		
+
 		columns.filter(function(col) {
 			return col.status !== 'Archived'
 		}).map(function(col) {
@@ -779,19 +779,8 @@ frappe.views.KanbanBoardColumn = function(column, wrapper) {
 				var $btn = $(this);
 				var action = $btn.data().action;
 
-				if(action === "delete") {
-					// if(cards.length > 0) {
-					// 	//warning
-					// }
-					var col = {
-						title: column.title
-					}
-					fluxify.doAction('delete_column', col);
-					// actions.delete_column(args)
-					// 	.then(function(col) {
-					// 		self.$kanban_column.remove();
-					// 	});
-					//TODO
+				if(action === "archive") {
+					fluxify.doAction('archive_column', column);
 				}
 			});
 	}
