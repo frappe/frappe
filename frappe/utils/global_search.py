@@ -52,9 +52,6 @@ def update_global_search(doc):
 	if frappe.flags.update_global_search==None:
 		frappe.flags.update_global_search = []
 
-	# frappe.msgprint("============>>>>>>>>doc.name")
-	# frappe.msgprint(doc.name)
-
 	content = []
 	for field in doc.meta.fields:
 		# subject, type etc in THAT event: EV00010
@@ -68,13 +65,18 @@ def update_global_search(doc):
 					# For every bb54 of the Event Role doctype
 				  	innerdoc = frappe.get_doc(child_doctype, d.name)
 				  	if innerdoc.parent == doc.name:
+				  		current_fieldname = innerdoc.meta.fields[0].fieldname
 				  		for field in innerdoc.meta.fields:
 				  			if getattr(field, 'in_global_search', None) and innerdoc.get(field.fieldname):
-				  				content.append(field.label + ";" + innerdoc.get(field.fieldname))
-				  				print content
+				  				content.append(field.label + ": " + innerdoc.get(field.fieldname))
+				  				# if field.fieldname == current_fieldname:
+				  				# 	content.append(innerdoc.get(field.fieldname))
+				  				# else:
+				  				# 	content.append(field.label + ": " + innerdoc.get(field.fieldname))
+				  				# 	current_fieldname = field.fieldname
 			else:
 				print field.label
-				content.append(field.label + ";" + doc.get(field.fieldname))
+				content.append(field.label + ": " + doc.get(field.fieldname))
 				print content
 
 	if content:
@@ -132,7 +134,7 @@ def search(text, start=0, limit=20):
 		from
 			__global_search
 		where
-			match(content) against ('{term}' IN NATURAL LANGUAGE MODE)
+			match(content) against ('{term}' IN BOOLEAN MODE)
 		limit {start}, {limit}'''.format(start=start, limit=limit, term=text), as_dict=True)
 	print results
 	return results
