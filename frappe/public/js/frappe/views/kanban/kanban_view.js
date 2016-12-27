@@ -36,6 +36,9 @@ var store = fluxify.createStore({
 		archive_column: function(updater, col) {
 			fluxify.doAction('update_column', col, 'archive');
 		},
+		restore_column: function(updater, col) {
+			fluxify.doAction('update_column', col, 'restore');
+		},
 		update_column: function(updater, col, action) {
 			var doctype = this.doctype;
 			var board = this.board;
@@ -86,9 +89,10 @@ var store = fluxify.createStore({
 				}
 			}).then(function(r) {
 				var card = prepare_cards([r.message], state);
-				var cards = state.cards.slice();
-				cards = cards.concat(card);
-				updater.set({ cards: cards });
+				// fluxify.doAction('update_card', card[0]);
+				// var cards = state.cards.slice();
+				// cards = cards.concat(card);
+				// updater.set({ cards: cards });
 				// show_alert({message:__("Saved"), indicator:'green'}, 1);
 			})
 		},
@@ -317,6 +321,7 @@ frappe.views.KanbanBoard = function(opts) {
 		fluxify.doAction('init', opts)
 		store.on('change:columns', make_columns);
 		prepare();
+		store.on('change:cur_list', setup_restore_columns);
 	}
 
 	function prepare() {
@@ -400,6 +405,37 @@ frappe.views.KanbanBoard = function(opts) {
 
 		self.cur_list.wrapper.on('render-complete', function() {
 			fluxify.doAction('set_filter_state');
+		});
+	}
+
+	function setup_restore_columns() {
+		var cur_list = store.getState().cur_list;
+		var columns = store.getState().columns;
+
+		var options = columns.filter(function(col) {
+			return col.status === 'Archived';
+		}).reduce(function (a, b) {
+			return a + "<li><a class='option'>" +
+				__(b.title) +
+				"<button style='float:right;' data-column='" + b.title +
+				"' class='btn btn-default btn-xs restore-column text-muted'>"
+				+ __('Restore') +"</button></a></li>";
+		}, "");
+		var $dropdown = $("<div class='dropdown pull-right'>" +
+			"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
+			"<span class='dropdown-text'>"+__('Archived Columns')+"</span><i class='caret'></i></a>" +
+			"<ul class='dropdown-menu'>"+ options +"</ul>" +
+			"</div>")
+		
+		cur_list.$page.find(".list-row-right").css("margin-top", 0).html($dropdown);
+
+		$dropdown.find(".dropdown-menu").on("click", "button.restore-column", function(e) {
+			var column_title = $(this).data().column;
+			var col = {
+				title: column_title,
+				status: 'Archived'
+			}
+			fluxify.doAction('restore_column', col);
 		});
 	}
 

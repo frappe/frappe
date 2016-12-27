@@ -39,5 +39,17 @@ def archive_column(board_name, column_title):
 			col.status = 'Archived'
 
 	doc.save()
+	return doc.columns
 
+@frappe.whitelist()
+def restore_column(board_name, column_title):
+	'''
+	Set column's' status to 'Archived'
+	'''
+	doc = frappe.get_doc("Kanban Board", board_name)
+	for col in doc.columns:
+		if column_title == col.column_name:
+			col.status = 'Active'
+
+	doc.save()
 	return doc.columns
