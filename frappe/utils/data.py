@@ -13,7 +13,6 @@ from dateutil import parser
 from num2words import num2words
 import HTMLParser
 from html2text import html2text
-from frappe import _
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -493,6 +492,7 @@ def pretty_date(iso_datetime):
 		long ago the date represents.
 		Ported from PrettyDate by John Resig
 	"""
+	from frappe import _
 	if not iso_datetime: return ''
 	import math
 
