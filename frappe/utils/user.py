@@ -7,7 +7,6 @@ import frappe, json
 from frappe import _dict
 import frappe.share
 from frappe.utils import cint
-from frappe.core.doctype.user.user import get_total_users
 
 class UserPermissions:
 	"""
@@ -344,6 +343,8 @@ def disable_users(limits=None):
 			for user in active_users:
 				frappe.db.set_value("User", user, 'enabled', 0)
 
+		from frappe.core.doctype.user.user import get_total_users
+		
 		if get_total_users() > cint(limits.get('users')):
 			reset_simultaneous_sessions(cint(limits.get('users')))
 
