@@ -235,6 +235,10 @@ def delete_dynamic_links(doctype, name):
 		set timeline_doctype=null, timeline_name=null
 		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
 
+	# delete shares
+	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doctype, name)), ignore_on_trash=True)
+
 	# delete versions
 	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
 
@@ -253,6 +257,3 @@ def insert_feed(doc):
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
 
-def delete_shared(doc):
-	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)
