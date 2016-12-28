@@ -1115,16 +1115,6 @@ def get_value(*args, **kwargs):
 	"""
 	return db.get_value(*args, **kwargs)
 
-def add_version(doc):
-	"""Insert a new **Version** of the given document.
-	A **Version** is a JSON dump of the current document state."""
-	get_doc({
-		"doctype": "Version",
-		"ref_doctype": doc.doctype,
-		"docname": doc.name,
-		"doclist_json": as_json(doc.as_dict())
-	}).insert(ignore_permissions=True)
-
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
@@ -1253,6 +1243,21 @@ def local_cache(namespace, key, generator, regenerate_if_none=False):
 		local.cache[namespace][key] = generator()
 
 	return local.cache[namespace][key]
+
+def enqueue(*args, **kwargs):
+	'''
+		Enqueue method to be executed using a background worker
+
+		:param method: method string or method object
+		:param queue: (optional) should be either long, default or short
+		:param timeout: (optional) should be set according to the functions
+		:param event: this is passed to enable clearing of jobs from queues
+		:param async: (optional) if async=False, the method is executed immediately, else via a worker
+		:param job_name: (optional) can be used to name an enqueue call, which can be used to prevent duplicate calls
+		:param kwargs: keyword arguments to be passed to the method
+	'''
+	import frappe.utils.background_jobs
+	frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
 def get_doctype_app(doctype):
 	def _get_doctype_app():

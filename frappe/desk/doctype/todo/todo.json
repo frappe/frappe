@@ -481,7 +481,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-15 14:56:07.115129", 
+ "modified": "2016-12-27 16:51:24.882724", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 
@@ -536,5 +536,6 @@
  "search_fields": "description, reference_type, reference_name", 
  "sort_order": "DESC", 
  "title_field": "description", 
+ "track_changes": 1, 
  "track_seen": 1
 }

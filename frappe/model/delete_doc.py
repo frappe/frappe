@@ -72,18 +72,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method("on_trash")
 					doc.run_method('on_change')
 
-				dynamic_linked_doctypes = [df.parent for df in get_dynamic_link_map().get(doc.doctype, [])]
-				if "ToDo" in dynamic_linked_doctypes:
-					delete_linked_todos(doc)
-
-				if "Communication" in dynamic_linked_doctypes:
-					delete_linked_communications(doc)
-
-				if "DocShare" in dynamic_linked_doctypes:
-					delete_shared(doc)
-
-				if "Email Unsubscribe" in dynamic_linked_doctypes:
-					delete_email_subscribe(doc)
+				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name)
 
 				# check if links exist
 				if not force:
@@ -182,7 +171,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File'):
+		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
 			# don't check for communication and todo!
 			continue
 
@@ -214,38 +203,40 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 						.format(doc.doctype, doc.name, refdoc.parenttype if meta.istable else df.parent,
 					    refdoc.parent if meta.istable else refdoc.name,"Row: {0}".format(refdoc.idx) if meta.istable else ""), frappe.LinkExistsError)
 
-def delete_linked_todos(doc):
+def delete_dynamic_links(doctype, name):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
-		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)),
+		where reference_type=%s and reference_name=%s""", (doctype, name)),
 		ignore_permissions=True)
 
-def delete_email_subscribe(doc):
 	frappe.db.sql('''delete from `tabEmail Unsubscribe`
-		where reference_doctype=%s and reference_name=%s''', (doc.doctype, doc.name))
+		where reference_doctype=%s and reference_name=%s''', (doctype, name))
 
-def delete_linked_communications(doc):
 	# delete comments
 	frappe.db.sql("""delete from `tabCommunication`
 		where
 			communication_type = 'Comment'
-			and reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
+			and reference_doctype=%s and reference_name=%s""", (doctype, name))
 
-	# make communications orphans
+	# unlink communications
 	frappe.db.sql("""update `tabCommunication`
 		set reference_doctype=null, reference_name=null
 		where
 			communication_type = 'Communication'
 			and reference_doctype=%s
-			and reference_name=%s""", (doc.doctype, doc.name))
+			and reference_name=%s""", (doctype, name))
 
-	# make secondary references orphans
+	# unlink secondary references
 	frappe.db.sql("""update `tabCommunication`
 		set link_doctype=null, link_name=null
-		where link_doctype=%s and link_name=%s""", (doc.doctype, doc.name))
+		where link_doctype=%s and link_name=%s""", (doctype, name))
 
+	# unlink feed
 	frappe.db.sql("""update `tabCommunication`
 		set timeline_doctype=null, timeline_name=null
-		where timeline_doctype=%s and timeline_name=%s""", (doc.doctype, doc.name))
+		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
+
+	# delete versions
+	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

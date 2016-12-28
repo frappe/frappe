@@ -40,11 +40,6 @@ class WebsiteGenerator(Document):
 	def make_route(self):
 		return self.scrub(self.get(self.website.page_title_field or "name"))
 
-	def on_update(self):
-		clear_cache(self.route)
-		if getattr(self, "save_versions", False):
-			frappe.add_version(self)
-
 	def clear_cache(self):
 		clear_cache(self.route)
 

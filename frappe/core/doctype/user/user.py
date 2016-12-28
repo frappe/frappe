@@ -328,6 +328,7 @@ class User(Document):
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
 	def before_rename(self, old_name, new_name, merge=False):
+		self.check_demo()
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 

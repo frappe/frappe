@@ -13,7 +13,6 @@ from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
-	save_versions = True
 	website = frappe._dict(
 		template = "templates/generators/web_page.html",
 		condition_field = "published",
