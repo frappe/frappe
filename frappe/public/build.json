@@ -230,8 +230,7 @@
 		"public/js/frappe/list/image_view_item_main_head.html",
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
-		"public/js/frappe/views/treeview.js",
-		"public/js/frappe/views/gantt.js"
+		"public/js/frappe/views/treeview.js"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",
