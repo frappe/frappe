@@ -45,7 +45,6 @@ class BlogPost(WebsiteGenerator):
 			where name=%s""", (self.blogger,))
 
 	def on_update(self):
-		WebsiteGenerator.on_update(self)
 		clear_cache("writers")
 
 	def get_context(self, context):
