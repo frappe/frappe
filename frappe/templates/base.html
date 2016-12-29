@@ -48,16 +48,23 @@
 <body data-path="{{ path }}">
 	<div class="main-section">
 		<div>
+			<header>
 			{%- block banner -%}
-			{% include "templates/includes/banner_extension.html" ignore missing %}
+				{% include "templates/includes/banner_extension.html" ignore missing %}
 				{% if banner_html -%}
-				<header class="container">{{ banner_html or "" }}</header>
+				<div class="container">
+					<div class='banner'>
+						{{ banner_html or "" }}
+					</div>
+				</div>
 				{%- endif %}
 			{%- endblock -%}
 
 			{%- block navbar -%}
                 {% include "templates/includes/navbar/navbar.html" %}
             {%- endblock -%}
+			</header>
+
             <div class="hero-and-content">
                 <div data-html-block="hero">
 				{%- block hero -%}{%- endblock -%}
