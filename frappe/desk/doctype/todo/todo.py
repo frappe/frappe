@@ -46,8 +46,7 @@ class ToDo(Document):
 		if not (self.reference_type and self.reference_name):
 			return
 
-		frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text,
-			link_doctype=self.doctype, link_name=self.name)
+		frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):

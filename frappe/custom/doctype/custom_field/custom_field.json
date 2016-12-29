@@ -1028,7 +1028,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:23:16.370928", 
+ "modified": "2016-12-29 14:40:24.954077", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Custom Field", 
@@ -1082,5 +1082,6 @@
  "read_only_onload": 0, 
  "search_fields": "dt,label,fieldtype,options", 
  "sort_order": "ASC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

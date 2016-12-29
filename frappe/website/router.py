@@ -321,6 +321,9 @@ def load_properties(page_info):
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1
 
+	if "<!-- no-sitemap -->" in page_info.source:
+		page_info.no_cache = 1
+
 def process_generators(func):
 	for app in frappe.get_installed_apps():
 		for doctype in frappe.get_hooks("website_generators", app_name = app):

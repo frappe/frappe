@@ -11,7 +11,6 @@ from frappe.utils import today, cint, global_date_format, get_fullname, strip_ht
 from frappe.website.utils import find_first_image, get_comment_list
 
 class BlogPost(WebsiteGenerator):
-	save_versions = True
 	website = frappe._dict(
 		condition_field = "published",
 		template = "templates/generators/blog_post.html",
@@ -46,7 +45,6 @@ class BlogPost(WebsiteGenerator):
 			where name=%s""", (self.blogger,))
 
 	def on_update(self):
-		WebsiteGenerator.on_update(self)
 		clear_cache("writers")
 
 	def get_context(self, context):
