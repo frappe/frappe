@@ -3,9 +3,10 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe import _
 from frappe.model.document import Document
+from datetime import timedelta
 import frappe.utils
 from frappe.utils.xlsutils import get_xls
 from frappe.utils.csvutils import to_csv
@@ -42,28 +43,44 @@ class AutoEmailReport(Document):
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
-		raw = report.get_data(limit=self.no_of_rows or 100, user = self.user, filters = self.filters)
 
-		if len(raw)==1 and self.send_if_data:
+		if self.report_type=='Report Builder' and self.data_modified_till:
+			self.filters = json.loads(self.filters) if self.filters else {}
+			self.filters['modified'] = ('>', frappe.utils.now_datetime() - timedelta(hours=self.data_modified_till))
+
+		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
+			filters = self.filters, as_dict=True)
+
+		if len(data)==1 and self.send_if_data:
 			return None
 
 		if self.format == 'HTML':
-			return self.get_html_table(raw)
+			return self.get_html_table(columns, data)
 
 		elif self.format == 'XLS':
-			return get_xls(raw)
+			return get_xls(columns, data)
 
 		elif self.format == 'CSV':
-			return to_csv(raw)
+			return self.get_csv(columns, data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
 
-	def get_html_table(self, data):
+	def get_html_table(self, columns, data):
 		return frappe.render_template('frappe/templates/includes/print_table.html', {
-			'headings': data[0],
+			'columns': columns,
 			'data': data[1:]
 		})
+
+	def get_csv(self, columns, data):
+		out = [[df.label for df in columns], ]
+		for row in data:
+			new_row = []
+			out.append(new_row)
+			for df in columns:
+				new_row.append(frappe.format(row[df.fieldname], df, row))
+
+		return to_csv(out)
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())

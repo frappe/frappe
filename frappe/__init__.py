@@ -236,7 +236,7 @@ def errprint(msg):
 
 	:param msg: Message."""
 	msg = as_unicode(msg)
-	if not request or (not "cmd" in local.form_dict):
+	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print msg.encode('utf-8')
 
 	error_log.append(msg)

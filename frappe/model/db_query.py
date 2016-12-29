@@ -12,6 +12,7 @@ from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter
 from frappe import _
 from frappe.model import optional_fields
 from frappe.model.utils.list_settings import get_list_settings, update_list_settings
+from datetime import datetime
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -297,11 +298,12 @@ class DatabaseQuery(object):
 					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
 					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
+
 			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
-			elif df and df.fieldtype=="Datetime":
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
 				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
 				fallback = "'0000-00-00 00:00:00'"
 
