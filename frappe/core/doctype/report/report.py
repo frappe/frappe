@@ -85,7 +85,6 @@ class Report(Document):
 			_filters = params.get('filters') or []
 
 			if filters:
-				print filters
 				for key, value in filters.iteritems():
 					condition, _value = '=', value
 					if isinstance(value, (list, tuple)):
