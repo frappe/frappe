@@ -15,6 +15,7 @@
 
 		&.add-new-column {
 			order: 1;
+			border-right: none;
 		}
 	}
 
@@ -29,25 +30,15 @@
 		}
 	}
 
-	.kanban-card-wrapper:hover {
-		cursor: pointer;
-		text-decoration: none;
-
-		.kanban-card {
-			background-color: #f9f9f9;
-		}
-	}
-
 	.sortable-ghost > .kanban-card {
 		background: #ccc !important;
 		color: transparent;
 
-		.list-comment-count {
+		* {
+			background: transparent !important;
 			color: transparent !important;
 		}
-		.avatar-frame {
-			background: transparent !important;
-		}
+
 	}
 
 	.kanban-card {
@@ -78,7 +69,35 @@
 		}
 	}
 
-	.new-card-area {
+	.kanban-card-wrapper {
+		position: relative;
+	}
+
+	.kanban-card-wrapper:hover {
+		cursor: pointer;
+		text-decoration: none;
+
+		.kanban-card {
+			background-color: #f9f9f9;
+		}
+
+		.kanban-card-edit {
+			opacity: 1;
+		}
+	}
+
+	.kanban-card-title {
+		max-width: 90%;
+	}
+
+	.kanban-card-edit {
+		position: absolute;
+		right: 10px;
+		opacity: 0;
+		transition: 0.2s ease;
+	}
+
+	.new-card-area, .edit-card-area {
 		margin-bottom: 10px;
 
 		textarea {

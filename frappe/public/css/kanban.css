@@ -13,6 +13,7 @@
 }
 .kanban .kanban-column.add-new-column {
   order: 1;
+  border-right: none;
 }
 .kanban .kanban-column-title {
   margin-top: 0;
@@ -23,22 +24,13 @@
   position: absolute;
   right: 0px;
 }
-.kanban .kanban-card-wrapper:hover {
-  cursor: pointer;
-  text-decoration: none;
-}
-.kanban .kanban-card-wrapper:hover .kanban-card {
-  background-color: #f9f9f9;
-}
 .kanban .sortable-ghost > .kanban-card {
   background: #ccc !important;
   color: transparent;
 }
-.kanban .sortable-ghost > .kanban-card .list-comment-count {
-  color: transparent !important;
-}
-.kanban .sortable-ghost > .kanban-card .avatar-frame {
+.kanban .sortable-ghost > .kanban-card * {
   background: transparent !important;
+  color: transparent !important;
 }
 .kanban .kanban-card {
   background-color: #fff;
@@ -64,10 +56,34 @@
   margin-right: 5px;
   position: relative;
 }
-.kanban .new-card-area {
+.kanban .kanban-card-wrapper {
+  position: relative;
+}
+.kanban .kanban-card-wrapper:hover {
+  cursor: pointer;
+  text-decoration: none;
+}
+.kanban .kanban-card-wrapper:hover .kanban-card {
+  background-color: #f9f9f9;
+}
+.kanban .kanban-card-wrapper:hover .kanban-card-edit {
+  opacity: 1;
+}
+.kanban .kanban-card-title {
+  max-width: 90%;
+}
+.kanban .kanban-card-edit {
+  position: absolute;
+  right: 10px;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+.kanban .new-card-area,
+.kanban .edit-card-area {
   margin-bottom: 10px;
 }
-.kanban .new-card-area textarea {
+.kanban .new-card-area textarea,
+.kanban .edit-card-area textarea {
   resize: none;
   border: none;
   background: none;
@@ -75,7 +91,8 @@
   word-wrap: break-word;
   width: 100%;
 }
-.kanban .new-card-area textarea:focus {
+.kanban .new-card-area textarea:focus,
+.kanban .edit-card-area textarea:focus {
   outline: none;
 }
 .kanban .compose-column-form .new-column-title {

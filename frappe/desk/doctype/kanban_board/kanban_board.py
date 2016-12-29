@@ -53,3 +53,22 @@ def restore_column(board_name, column_title):
 
 	doc.save()
 	return doc.columns
+
+@frappe.whitelist()
+def update_doc(doc):
+	'''Update doc'''
+	doc = json.loads(doc)
+
+	try:
+		ddoc = doc
+		doctype = doc['doctype']
+		docname = doc['name']
+		doc = frappe.get_doc(doctype, docname)
+		doc.update(ddoc)
+		doc.save()
+	except:
+		return {
+			'doc': doc,
+			'exc': frappe.utils.get_traceback()
+		}
+	return doc
