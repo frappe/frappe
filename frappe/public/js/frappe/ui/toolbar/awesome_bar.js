@@ -1,8 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide('frappe.ui.misc');
-
 frappe.search = {
 	setup: function(element) {
 		var $input = $(element);
@@ -106,11 +104,7 @@ frappe.search = {
 
 		frappe.search.make_page_title_map();
 		frappe.search.setup_recent();
-
-
-		if ($('#global-search').length == 0){
-			frappe.search.setup_search();
-		}
+		frappe.ui.search.setup();
 	},
 	add_help: function() {
 		frappe.search.options.push({
@@ -213,117 +207,6 @@ frappe.search = {
 		});
 	},
 
-	setup_search: function() {
-		var $search_modal = frappe.get_modal('Global Search', "");
-		$search_modal.addClass('search-modal');
-		$search_modal.attr('id', 'global-search');
-		var $search_input = $('<div class="input-group" style="margin-top:5px; margin-bottom:5px; margin-left:80px; margin-right:80px">' + 
-							'<input id="input-global" type="text" class="form-control" placeholder="Search for..." autofocus>' + 
-							'<span class="input-group-btn"><button class="btn btn-secondary btn-default" type="button">' + 
-							'<i class="glyphicon glyphicon-search"></i></button></span></div>');
-		$search_input.appendTo($search_modal.find('.modal-body'));
-		var $result_div = $('<div class="results">Results</div>');
-		$result_div.appendTo($search_modal.find('.modal-body'));
-
-		$("#input-global").on("keydown", function (e) {
-			console.log("search input typed", e.which);
-			if(e.which == 13) {
-				var keywords = $(this).val();
-				console.log("input is", $(this).val());
-				frappe.search.show_search_results(keywords);
-			}
-		});
-
-		$("#input-global + span").on("click", function () {
-			var keywords = $("#input-global").val();
-			frappe.search.show_search_results(keywords);
-		});
-
-	},
-
-	show_search_results: function (keywords) {
-
-		frappe.call({
-			method: "frappe.utils.global_search.search",
-			args: {
-				text: keywords, start: 0, limit: 20
-			},
-			callback: function(r) {
-				var results = r.message || [];
-				var results_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
-				var result_base_html = "<div class='search-result'>" +
-										"<a href='{0}' class='h4'>{1}</a>" +
-										"<p>{2}</p>" +
-										"</div>";
-				var data = [];
-				var initial_length = 6;
-				var more_length = 5;
-				var $modal = $('#global-search');
-
-				for (var i = 0, l = results.length; i < l; i++) {
-					var fpath = '#Form/' + results[i].doctype + '/' + results[i].name;
-					var title = results[i].doctype + ": " + results[i].name;
-					var regEx = new RegExp("("+ keywords +")", "ig");
-					// parts = results[i].content.split(/;(.+)/);
-					var rendered_content = results[i].content.replace(regEx, '<b>$1</b>');
-					data.push([fpath, title, rendered_content]);
-
-				}
-
-				console.log("data after:", data);
-
-				if(results.length === 0) {
-					results_html += "<p class='padding'>No results found</p>";
-
-				} else if(data.length <= initial_length) {
-					data.forEach(function(e) {
-						results_html += __(result_base_html, e);
-					});
-					results_html += '<div id="no-more" align="center" style="color:#aaa; padding:5px;">No more results</div>';
-					data = [];
-
-				} else {
-					for (var i = 0; i < initial_length; i++){
-						results_html += __(result_base_html, data[0]);
-						data.splice(0, 1);
-					};
-					// ISSUE for data-dismiss: https://github.com/twbs/bootstrap/issues/7192
-					results_html += '<div id="show-more" align="center" style="color:#aaa; padding:5px;"><a>Show more results</a></div>';
-				}
-
-				$modal.find('.results').html(results_html);
-				if(!$modal.hasClass('in')) {
-					$modal.modal('show');
-					$("#input-global").focus();
-				}
-
-				$(window).on('hashchange', function(e){
-					console.log("hashchange");
-				    $modal.modal('hide');
-				});
-
-				if(data.length > 0) {
-					$show = document.getElementById("show-more");
-					$show.addEventListener('click', function() {
-						var more_rendered_results = "";
-						for(var i = 0; (i < more_length) && (data.length !== 0); i++) {
-							more_rendered_results += __(result_base_html, data[0]);
-							data.splice(0, 1);	
-						}
-
-						$show.insertAdjacentHTML('beforebegin', more_rendered_results);
-						if(data.length === 0){
-							$modal.find('#show-more').html('No more results');
-						}	
-
-					});
-
-				}
-
-			}
-		});
-	}
-
 }
 
 frappe.search.verbs = [
@@ -335,7 +218,13 @@ frappe.search.verbs = [
 			label: __("Search in Global Search: " + txt.bold()),
 			value: __("Search in Global Search: " + txt.bold()),
 			onclick: function(match) {
-					frappe.search.show_search_results(txt);
+					try {
+						frappe.ui.search.global_dialog.show();
+						$("#input-global").val("");
+						frappe.ui.search.get_results(txt);
+					} catch(e) {
+						console.log(e);
+					}
 			}
 		});
 	},
@@ -534,3 +423,4 @@ frappe.search.verbs = [
 		};
 	},
 ];
+
