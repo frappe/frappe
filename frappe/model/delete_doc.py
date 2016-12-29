@@ -102,7 +102,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 def add_to_deleted_document(doc):
 	'''Add this document to Deleted Document table. Called after delete'''
-	if doc.doctype != 'Deleted Document':
+	if doc.doctype != 'Deleted Document' and frappe.flags.in_install != 'frappe':
 		frappe.get_doc(dict(
 			doctype='Deleted Document',
 			deleted_doctype=doc.doctype,
