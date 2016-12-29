@@ -1051,8 +1051,8 @@
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 1, 
    "in_filter": 0, 
-   "in_standard_filter": 0, 
    "in_list_view": 0, 
+   "in_standard_filter": 0, 
    "label": "Message ID", 
    "length": 995, 
    "no_copy": 0, 
@@ -1107,7 +1107,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-14 16:02:10.145975", 
+ "modified": "2016-12-29 14:39:53.460122", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -1162,5 +1162,6 @@
  "search_fields": "subject", 
  "sort_order": "DESC", 
  "title_field": "subject", 
+ "track_changes": 1, 
  "track_seen": 0
 }

@@ -333,7 +333,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-15 14:56:25.069895", 
+ "modified": "2016-12-29 14:39:50.018704", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Help Article", 
@@ -410,5 +410,6 @@
  "sort_field": "modified", 
  "sort_order": "DESC", 
  "title_field": "title", 
+ "track_changes": 1, 
  "track_seen": 0
 }

@@ -446,7 +446,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 18:53:59.549740", 
+ "modified": "2016-12-29 14:40:03.031779", 
  "modified_by": "Administrator", 
  "module": "Integration Broker", 
  "name": "OAuth Client", 
@@ -481,5 +481,6 @@
  "sort_field": "modified", 
  "sort_order": "DESC", 
  "title_field": "app_name", 
+ "track_changes": 1, 
  "track_seen": 0
 }

@@ -108,7 +108,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:28:25.001760", 
+ "modified": "2016-12-29 14:40:21.545713", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Group Member", 
@@ -143,5 +143,6 @@
  "sort_field": "modified", 
  "sort_order": "DESC", 
  "title_field": "email", 
+ "track_changes": 1, 
  "track_seen": 0
 }

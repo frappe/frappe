@@ -609,7 +609,7 @@
  "istable": 0, 
  "max_attachments": 0, 
  "menu_index": 0, 
- "modified": "2016-11-07 05:52:55.387721", 
+ "modified": "2016-12-29 14:40:12.519235", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "File", 
@@ -663,5 +663,6 @@
  "read_only_onload": 0, 
  "sort_order": "ASC", 
  "title_field": "file_name", 
+ "track_changes": 1, 
  "track_seen": 0
 }

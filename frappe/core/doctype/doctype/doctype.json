@@ -1379,7 +1379,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-28 07:11:18.468482", 
+ "modified": "2016-12-29 14:39:46.191331", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
@@ -1434,6 +1434,6 @@
  "search_fields": "module", 
  "sort_field": "modified", 
  "sort_order": "DESC", 
- "track_changes": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }
