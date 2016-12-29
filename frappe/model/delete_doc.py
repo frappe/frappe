@@ -94,7 +94,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			except ImportError:
 				pass
 
-		add_to_deleted_document(doc)
+		if doc:
+			add_to_deleted_document(doc)
 
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
