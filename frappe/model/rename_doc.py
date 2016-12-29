@@ -66,6 +66,11 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
 	frappe.clear_cache()
 
+	if merge:
+		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
+	else:
+		new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
+
 	return new
 
 def update_attachments(doctype, old, new):
@@ -328,7 +333,8 @@ def rename_dynamic_links(doctype, old, new):
 			# because the table hasn't been renamed yet!
 			parent = df.parent if df.parent != new else old
 			frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
-				where {options}=%s and {fieldname}=%s""".format(**df), (new, doctype, old))
+				where {options}=%s and {fieldname}=%s""".format(parent = parent,
+					fieldname=df.fieldname, options=df.options), (new, doctype, old))
 
 def bulk_rename(doctype, rows=None, via_console = False):
 	"""Bulk rename documents

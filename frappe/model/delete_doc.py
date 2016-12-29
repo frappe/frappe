@@ -94,8 +94,20 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			except ImportError:
 				pass
 
+		add_to_deleted_document(doc)
+
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+
+def add_to_deleted_document(doc):
+	'''Add this document to Deleted Document table. Called after delete'''
+	if doc.doctype != 'Deleted Document':
+		frappe.get_doc(dict(
+			doctype='Deleted Document',
+			deleted_doctype=doc.doctype,
+			deleted_name=doc.name,
+			data=doc.as_json()
+		)).db_insert()
 
 def update_naming_series(doc):
 	if doc.meta.autoname:
@@ -207,7 +219,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 def delete_dynamic_links(doctype, name):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
 		where reference_type=%s and reference_name=%s""", (doctype, name)),
-		ignore_permissions=True)
+		ignore_permissions=True, force=True)
 
 	frappe.db.sql('''delete from `tabEmail Unsubscribe`
 		where reference_doctype=%s and reference_name=%s''', (doctype, name))
@@ -238,7 +250,8 @@ def delete_dynamic_links(doctype, name):
 
 	# delete shares
 	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doctype, name)), ignore_on_trash=True)
+		where share_doctype=%s and share_name=%s""", (doctype, name)),
+		ignore_on_trash=True, force=True)
 
 	# delete versions
 	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
