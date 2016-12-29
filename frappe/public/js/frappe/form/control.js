@@ -602,8 +602,6 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
 		language: "en",
-		minDate: moment().add(-70, 'year').toDate(),
-		maxDate: moment().add(10, 'year').toDate(),
 		autoClose: true
 	},
 	make_input: function() {
