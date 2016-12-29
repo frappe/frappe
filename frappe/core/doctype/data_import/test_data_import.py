@@ -16,10 +16,11 @@ from frappe.core.doctype.data_import.data_import import insert_into_db
 class TestDataImport(unittest.TestCase):
 	def test_preview_data_and_column(self):
 
-		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_file.xlsx")
+		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_csv_file.csv")
 
 		doc = frappe.new_doc("Data Import")
-		doc.reference_doctype = "Student Applicant"
+		doc.reference_doctype = "User"
+		doc.save()
 
 		doc.set_preview_data(file_path)
 
@@ -41,7 +42,7 @@ class TestDataImport(unittest.TestCase):
 			"student_mobile_number", "student_email_id", "program"])
 		doc.selected_row = 1
 
-		status = insert_into_db("Student Applicant",doc.selected_columns,1,file_path=file_path)
+		status = insert_into_db("Student Applicant", doc.selected_columns, 1, file_path=file_path)
 
 		wb = load_workbook(filename=file_path, read_only=True)
 		ws = wb.active
