@@ -461,7 +461,7 @@ class DatabaseQuery(object):
 				args.order_by = get_order_by(self.doctype, meta)
 
 	def check_sort_by_table(self, order_by_query):
-		for order_by in order_by_query.split(","):			
+		for order_by in order_by_query.split(","):
 			if "." in order_by:
 				tbl = order_by.split('.')[0].strip()
 				if tbl not in self.tables:
@@ -517,5 +517,5 @@ def get_order_by(doctype, meta):
 	# draft docs always on top
 	if meta.is_submittable:
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
-		
+
 	return order_by

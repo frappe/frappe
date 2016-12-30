@@ -309,6 +309,7 @@ frappe.ui.form.Timeline = Class.extend({
 			}
 
 			docinfo.versions.forEach(function(version) {
+				if(!version.data) return;
 				var data = JSON.parse(version.data);
 
 				// comment

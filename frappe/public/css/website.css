@@ -435,8 +435,10 @@ h6 a {
   max-width: 100%;
 }
 .banner {
-  margin-top: 20px;
-  padding: 0px 20px;
+  padding: 10px 0px;
+}
+.banner img {
+  max-height: 50px;
 }
 .no-border {
   border: none !important;
@@ -827,11 +829,10 @@ a.active {
   padding-bottom: 20px;
 }
 .footer-group {
-  margin-bottom: 28px;
+  margin-bottom: 1em;
 }
 .footer-group-label {
   display: inline-block;
-  font-size: 11px;
 }
 li .footer-child-item {
   margin: 15px 0px !important;
