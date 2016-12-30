@@ -128,7 +128,33 @@ frappe.ui.form.Timeline = Class.extend({
 				var name = $(this).parents(".timeline-item:first").attr("data-name");
 				me.delete_comment(name);
 				return false;
-			});
+			})
+            .on('click', '.edit', function() {
+                var is_editing = 'is-editing';
+                var content = $(this).parents('.media-content-wrapper').find('.timeline-item-content');
+                var name = $(this).parents('.timeline-item:first').data('name');
+
+                if(content.hasClass(is_editing)) {
+                    var val = content.find('textarea').val();
+                    // set content to new val so that on save and refresh the new content is shown
+                    c.content = val;
+
+                    me.update_comment(name, val);
+                    frappe.timeline.update_communication(c);
+                    me.refresh();
+                } else {
+                    var textarea = $('.comment-input').clone()
+                        .removeClass('comment-input');
+
+                    frappe.db.get_value('Communication', {name: name}, 'content', function(r) {
+                        textarea.val(r.content);
+                        content.html(textarea);
+                        content.addClass(is_editing);
+                    });
+                }
+
+                return false;
+            });
 
 
 		if(c.communication_type=="Communication" && c.communication_medium==="Email") {
@@ -163,12 +189,6 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	prepare_timeline_item: function(c) {
-		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Communication")) {
-			c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
-		} else {
-			c["delete"] = "";
-		}
-
 		if(!c.sender) c.sender = this.frm.doc.owner;
 
 		if(c.sender && c.sender.indexOf("<")!==-1) {
@@ -179,6 +199,18 @@ frappe.ui.form.Timeline = Class.extend({
 			c.user_info = frappe.user_info(c.sender);
 		} else {
 			c.user_info = frappe.user_info(c.owner);
+		}
+
+		c["delete"] = "";
+	    c["edit"] = "";
+		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
+		    if(frappe.model.can_delete("Communication")) {
+			    c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
+            }
+
+            if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
+			    c["edit"] = '<a class="edit" href="#"><i class="octicon octicon-pencil"></i></a>';
+            }
 		}
 
 		c.comment_on = comment_when(c.creation);
@@ -343,28 +375,53 @@ frappe.ui.form.Timeline = Class.extend({
 
 	delete_comment: function(name) {
 		var me = this;
-		return frappe.call({
-			method: "frappe.client.delete",
-			args: {
-				doctype: "Communication",
-				name: name
-			},
-			callback: function(r) {
-				if(!r.exc) {
-					frappe.utils.play_sound("delete");
 
-					me.frm.get_docinfo().communications =
-						$.map(me.frm.get_docinfo().communications,
-							function(v) {
-								if(v.name==name) return null;
-								else return v;
-							}
-						);
-					me.refresh(true);
-				}
-			}
-		});
+		frappe.confirm(__('Delete comment?'), function() {
+		    return frappe.call({
+                method: "frappe.client.delete",
+                args: {
+                    doctype: "Communication",
+                    name: name
+                },
+                callback: function(r) {
+                    if(!r.exc) {
+                        frappe.utils.play_sound("delete");
+
+                        me.frm.get_docinfo().communications =
+                            $.map(me.frm.get_docinfo().communications,
+                                function(v) {
+                                    if(v.name==name) return null;
+                                    else return v;
+                                }
+                            );
+                        me.refresh(true);
+                    }
+                }
+            });
+        });
 	},
+
+    /**
+     * Update comment
+     *
+     * @param {string} name
+     * @param {string} content
+     *
+     * @returns {boolean}
+     */
+    update_comment: function(name, content)
+    {
+	    // TODO: is there a frappe.client.update function?
+	    return frappe.call({
+	        method: 'frappe.desk.form.utils.update_comment',
+            args: {
+	            name: name,
+                content: content,
+            }, callback: function(r) {
+	            frappe.utils.play_sound('click');
+            }
+        });
+    },
 
 	get_recipient: function() {
 		if(this.frm.email_field) {

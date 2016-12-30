@@ -58,6 +58,16 @@ def add_comment(doc):
 
 	return doc.as_dict()
 
+
+@frappe.whitelist()
+def update_comment(name, content):
+	doc = frappe.get_doc('Communication', name)
+	doc.content = content
+	doc.save()
+
+	return doc
+
+
 @frappe.whitelist()
 def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 
