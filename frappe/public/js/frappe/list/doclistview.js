@@ -60,6 +60,10 @@ $(document).on("save", function(event, doc) {
 });
 
 frappe.views.set_list_as_dirty = function(doctype) {
+	if(frappe.views.trees[doctype]) {
+		frappe.views.trees[doctype].tree.refresh();
+	}
+
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
 		if(frappe.pages[list_page].doclistview) {
