@@ -190,8 +190,13 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
-				doc.name, alert.value_changed):
+			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			
+			# cast to string if not already for comparing to doc.get's value
+			if not isinstance(db_value, basestring):
+				db_value = str(frappe.db.get_value(doc.doctype, doc.name, alert.value_changed))
+			
+			if doc.get(alert.value_changed) == db_value:
 				return # value not changed
 
 		if event != "Value Change" and not doc.is_new():
