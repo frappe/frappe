@@ -6,6 +6,7 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
+from frappe.core.doctype.role.role import get_emails_from_role
 from frappe.utils import validate_email_add, nowdate
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -104,6 +105,13 @@ def get_context(context):
 			if recipient.cc:
 				recipient.cc = recipient.cc.replace(",", "\n")
 				recipients = recipients + recipient.cc.split("\n")
+
+			#For sending emails to specified role
+			if recipient.email_by_role:
+				emails = get_emails_from_role(recipient.email_by_role)
+
+				for email in emails:
+					recipients = recipients + email.split("\n")
 
 		if not recipients:
 			return
