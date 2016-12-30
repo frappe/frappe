@@ -322,7 +322,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2016-11-07 05:29:40.986597", 
+ "modified": "2016-12-29 14:40:20.508849", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 
@@ -376,5 +376,6 @@
  "read_only_onload": 0, 
  "sort_order": "ASC", 
  "title_field": "title", 
+ "track_changes": 1, 
  "track_seen": 0
 }

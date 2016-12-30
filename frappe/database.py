@@ -409,7 +409,8 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, order_by, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+			order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -437,6 +438,8 @@ class Database:
 		if cache and isinstance(filters, basestring) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
+
+		if not order_by: order_by = 'modified desc'
 
 		if isinstance(filters, list):
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)

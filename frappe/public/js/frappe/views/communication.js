@@ -15,7 +15,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			title: (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
-			primary_action_label: "Send",
+			primary_action_label: __("Send"),
 			primary_action: function() {
 				me.send_action();
 			}
@@ -49,7 +49,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		return [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients"},
-			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC & Standard Reply")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc"},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
@@ -139,22 +139,24 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.get_input("standard_reply").on("change", function() {
 			var standard_reply = $(this).val();
 
-			var prepend_reply = function(reply_html) {
+			var prepend_reply = function(reply) {
 				if(me.reply_added===standard_reply) {
 					return;
 				}
 				var content_field = me.dialog.fields_dict.content;
+				var subject_field = me.dialog.fields_dict.subject;
 				var content = content_field.get_value() || "";
 
 				parts = content.split('<!-- salutation-ends -->');
 
 				if(parts.length===2) {
-					content = [reply_html, "<br>", parts[1]];
+					content = [reply.message, "<br>", parts[1]];
 				} else {
-					content = [reply_html, "<br>", content];
+					content = [reply.message, "<br>", content];
 				}
 
 				content_field.set_input(content.join(''));
+				subject_field.set_input(reply.subject);
 
 				me.reply_added = standard_reply;
 			}

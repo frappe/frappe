@@ -13,7 +13,6 @@ from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
-	save_versions = True
 	website = frappe._dict(
 		template = "templates/generators/web_page.html",
 		condition_field = "published",
@@ -47,6 +46,11 @@ class WebPage(WebsiteGenerator):
 
 		if not self.show_title:
 			context["no_header"] = 1
+
+		if self.show_sidebar and self.website_sidebar:
+			context.sidebar_items = frappe.get_all('Website Sidebar Item',
+				filters=dict(parent=self.website_sidebar), fields=['title', 'route', '`group`'],
+				order_by='idx asc')
 
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)

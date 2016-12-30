@@ -11,6 +11,7 @@ import os
 import json
 from frappe import _
 from distutils.spawn import find_executable
+from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def get_app_list():
@@ -73,6 +74,12 @@ def install_app(name):
 	if app_hooks.get('hide_in_installer'):
 		frappe.throw(_("You cannot install this app"))
 
+	enqueue('frappe.desk.page.applications.applications.start_install', name=name)
+
+	frappe.msgprint(_('Queued for install'))
+
+
+def start_install(name):
 	frappe.publish_realtime("install_app_progress", {"status": _("Installing App {0}").format(name)},
 		user=frappe.session.user)
 
@@ -80,6 +87,20 @@ def install_app(name):
 
 	frappe.publish_realtime("install_app_progress", {"status": _("{0} Installed").format(name)},
 		user=frappe.session.user)
+
+@frappe.whitelist()
+def remove_app(name):
+	"""Remove installed app"""
+	frappe.only_for("System Manager")
+
+	if name in frappe.get_installed_apps():
+		enqueue('frappe.desk.page.applications.applications.start_remove', name=name)
+
+	frappe.msgprint(_('Queued for backup and removing {0}').format(frappe.bold(name)))
+
+def start_remove(name):
+	frappe.installer.remove_app(app_name=name, yes=True)
+	frappe.publish_realtime('msgprint', _('App {0} removed').format(frappe.bold(name)))
 
 def get_app(name):
 	"""Get app using git clone and install it in bench environment"""

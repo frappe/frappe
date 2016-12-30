@@ -343,4 +343,20 @@ def disable_users(limits=None):
 			for user in active_users:
 				frappe.db.set_value("User", user, 'enabled', 0)
 
+		from frappe.core.doctype.user.user import get_total_users
+		
+		if get_total_users() > cint(limits.get('users')):
+			reset_simultaneous_sessions(cint(limits.get('users')))
+
 	frappe.db.commit()
+
+def reset_simultaneous_sessions(user_limit):
+	for user in frappe.db.sql("""select name, simultaneous_sessions from tabUser
+		where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
+		order by creation desc""", as_dict=1):
+		if user.simultaneous_sessions < user_limit:
+			user_limit = user_limit - user.simultaneous_sessions
+		else:
+			frappe.db.set_value("User", user.name, "simultaneous_sessions", 1)
+			user_limit = user_limit - 1
+

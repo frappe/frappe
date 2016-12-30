@@ -187,7 +187,7 @@ frappe.awesome_bar = {
 			} else {
 				_item = item;
 			}
-			_item = __(_item).toLowerCase().replace(/-/g, " ");
+			_item = __(_item || '').toLowerCase().replace(/-/g, " ");
 			if(txt===_item || _item.indexOf(txt) !== -1) {
 				var option = process(item);
 

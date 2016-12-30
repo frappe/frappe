@@ -602,8 +602,6 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
 		language: "en",
-		minDate: moment().add(-70, 'year').toDate(),
-		maxDate: moment().add(10, 'year').toDate(),
 		autoClose: true
 	},
 	make_input: function() {
@@ -1310,13 +1308,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		var doctype = me.get_options();
-		if(!doctype) return;
-		if (!me.$input.cache[doctype]) {
-			me.$input.cache[doctype] = {};
-		}
-
 		this.$input.on("input", function(e) {
+			var doctype = me.get_options();
+			if(!doctype) return;
+			if (!me.$input.cache[doctype]) {
+				me.$input.cache[doctype] = {};
+			}
+			
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {

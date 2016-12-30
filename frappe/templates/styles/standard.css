@@ -133,8 +133,10 @@ table.no-border, table.no-border td {
 }
 
 table td div {
+	{% if not print_settings.allow_page_break_inside_tables %}
 	/* needed to avoid partial cutting of text between page break in wkhtmltopdf */
 	page-break-inside: avoid !important;
+	{% endif %}
 }
 
 /* hack for webkit specific browser */

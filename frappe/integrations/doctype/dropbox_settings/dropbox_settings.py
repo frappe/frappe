@@ -258,7 +258,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	from dropbox import rest
 	size = os.stat(encode(filename)).st_size
 
-	with open(filename, 'r') as f:
+	with open(encode(filename), 'r') as f:
 		# if max packet size reached, use chunked uploader
 		max_packet_size = 4194304
 

@@ -14,6 +14,7 @@ frappe.ui.TagEditor = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent)
+		if(!this.wrapper.length) return;
 		var id = frappe.dom.set_unique_id(this.wrapper);
 		this.taggle = new Taggle(id, {
 			placeholder: __('Add a tag') + "...",

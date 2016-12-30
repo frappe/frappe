@@ -1755,7 +1755,7 @@
  "istable": 0, 
  "max_attachments": 5, 
  "menu_index": 0, 
- "modified": "2016-11-07 18:53:28.155954", 
+ "modified": "2016-12-29 14:40:03.428429", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
@@ -1810,5 +1810,6 @@
  "search_fields": "full_name", 
  "sort_order": "DESC", 
  "title_field": "full_name", 
+ "track_changes": 1, 
  "track_seen": 0
 }

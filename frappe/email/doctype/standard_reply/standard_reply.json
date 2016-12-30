@@ -163,7 +163,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-09 08:06:13.965074", 
+ "modified": "2016-12-29 14:40:02.827994", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Standard Reply", 
@@ -218,5 +218,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

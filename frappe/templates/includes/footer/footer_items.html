@@ -1,7 +1,7 @@
 {% for page in footer_items %}
 <div class="col-sm-4 footer-group">
 	{% if not page.parent_label -%}
-		<li data-label='{{ page.label }}'>
+		<div data-label='{{ page.label }}'>
 		<a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
 		{% if page.child_items %} onclick="return false;" {% endif %}
 		{{ page.target or ''}}>
@@ -17,10 +17,10 @@
 			{%- endfor -%}
 			</ul>
 		{%- else -%}
-		<span class="footer-group-label text-extra-muted">{{ page.label }}<span>
+		<span class="footer-group-label small text-muted">{{ page.label }}<span>
 		</a>
 		{%- endif -%}
-		</li>
+		</div>
 	{%- endif -%}
 	</div>
 {% endfor %}

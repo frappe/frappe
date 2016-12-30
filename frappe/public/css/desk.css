@@ -404,6 +404,11 @@ fieldset[disabled] .form-control {
 .awesomplete > ul:before {
   display: none;
 }
+.awesomplete > ul li[aria-selected="true"] mark,
+.awesomplete > ul mark {
+  padding: 0px;
+  background-color: inherit;
+}
 .awesomplete > ul > li {
   font-size: 12px;
   padding: 9px 11.8px;

@@ -63,8 +63,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .banner {
-	margin-top: 20px;
-	padding: 0px 20px;
+	padding: 10px 0px;
+
+	img {
+		max-height: 50px;
+	}
 }
 
 .no-border {
@@ -556,12 +559,11 @@ a.active {
 }
 
 .footer-group {
-	margin-bottom: 28px;
+	margin-bottom: 1em;
 }
 
 .footer-group-label {
 	display:inline-block;
-	font-size: 11px;
 }
 
 
@@ -582,11 +584,6 @@ li .footer-child-item {
 	p {
 		margin-bottom: 30px;
 	}
-}
-
-.blogger-name {
-	margin-bottom:0px;
-	margin-top:0px;
 }
 
 .comment-view {
@@ -660,4 +657,14 @@ li .footer-child-item {
 	font-weight: 500;
 	margin-top: -10px;
 	margin-right: -8px;
+}
+
+.page-card {
+    max-width: 360px;
+	padding: 30px;
+	margin: auto;
+	border: 1px solid @border-color;
+	border-radius: 4px;
+    margin: 0 auto;
+    background-color: #fff;
 }

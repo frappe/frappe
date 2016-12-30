@@ -84,9 +84,7 @@ frappe.ui.form.Timeline = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 
-		// var communications = [].concat(this.get_communications());
-
-		var communications = this.get_communications();
+		var communications = this.get_communications(true);
 
 		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
@@ -108,8 +106,14 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 
 		// created
-		me.render_timeline_item({"content": __("Created"), "comment_type": "Created", "communication_type": "Comment",
-			"sender": this.frm.doc.owner, "creation": this.frm.doc.creation, "frm": this.frm});
+		me.render_timeline_item({
+			content: __("created"),
+			comment_type: "Created",
+			communication_type: "Comment",
+			sender: this.frm.doc.owner,
+			creation: this.frm.doc.creation,
+			frm: this.frm
+		});
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
@@ -256,7 +260,8 @@ frappe.ui.form.Timeline = Class.extend({
 			"Attachment Removed": "octicon octicon-trashcan",
 			"Shared": "octicon octicon-eye",
 			"Unshared": "octicon octicon-circle-slash",
-			"Like": "octicon octicon-heart"
+			"Like": "octicon octicon-heart",
+			"Edit": "octicon octicon-pencil"
 		}[c.comment_type || c.communication_medium]
 
 		c.color = {
@@ -284,8 +289,89 @@ frappe.ui.form.Timeline = Class.extend({
 			c.icon_fg = "#fff";
 
 	},
-	get_communications: function() {
-		return this.frm.get_docinfo().communications;
+	get_communications: function(with_versions) {
+		var docinfo = this.frm.get_docinfo(),
+			me = this,
+			out = [].concat(docinfo.communications);
+
+		if(with_versions) {
+			var add_comment = function(version, text, comment_type) {
+				if(!comment_type) {
+					text = '<a href="#Form/Version/'+version.name+'">' + text + '</a>';
+				}
+				out.push({
+					comment_type: comment_type || 'Edit',
+					creation: version.creation,
+					owner: version.owner,
+					version_name: version.name,
+					content: text
+				});
+			}
+
+			docinfo.versions.forEach(function(version) {
+				if(!version.data) return;
+				var data = JSON.parse(version.data);
+
+				// comment
+				if(data.comment) {
+					add_comment(version, data.comment, data.comment_type);
+					return;
+				}
+
+				// value changed in parent
+				if(data.changed && data.changed.length) {
+					var parts = [];
+					data.changed.slice(0, 3).forEach(function(p) {
+						if(p[0]==='docstatus') {
+							if(p[2]==1) {
+								add_comment(version, __('submitted this document'));
+							} else if (p[2]==2) {
+								add_comment(version, __('cancelled this document'));
+							}
+						} else {
+							parts.push(__('{0} from {1} to {2}', [
+								frappe.meta.get_label(me.frm.doctype, p[0]),
+								(frappe.ellipsis(p[1], 40) || '""').bold(),
+								(frappe.ellipsis(p[2], 40) || '""').bold()
+							]));
+						}
+					});
+					add_comment(version, __("changed value of {0}", [parts.join(', ')]));
+				}
+
+				// value changed in table field
+				if(data.row_changed && data.row_changed.length) {
+					var parts = [], count = 0;
+					data.row_changed.every(function(row) {
+						row[3].every(function(p) {
+							parts.push(__('{0} from {1} to {2} in row #{3}', [
+								frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
+									p[0]),
+								(frappe.ellipsis(p[1], 40) || '""').bold(),
+								(frappe.ellipsis(p[2], 40) || '""').bold(),
+								row[1]
+							]));
+							return parts.length < 3;
+						});
+						return parts.length < 3;
+					});
+					add_comment(version, __("changed values for {0}",
+						[parts.join(', ')]));
+				}
+
+				// rows added / removed
+				// __('added'), __('removed') # for translation, don't remove
+				['added', 'removed'].forEach(function(key) {
+					if(data[key] && data[key].length) {
+						parts = (data[key] || []).map(function(p) {
+							return frappe.meta.get_label(me.frm.doctype, p[0]) });
+						add_comment(version, __("{0} rows for {1}",
+							[__(key), parts.join(', ')]));
+					}
+				});
+			});
+		}
+		return out;
 	},
 	add_comment: function(btn) {
 		var txt = this.input.val();

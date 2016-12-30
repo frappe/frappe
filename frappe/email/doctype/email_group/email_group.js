@@ -5,7 +5,7 @@ frappe.ui.form.on("Email Group", "refresh", function(frm) {
 	if(!frm.is_new()) {
 		frm.add_custom_button(__("View Subscribers"), function() {
 			frappe.route_options = {"email_group": frm.doc.name};
-			frappe.set_route("Report", "Email Group Member");
+			frappe.set_route("List", "Email Group Member");
 		}, __("View"));
 
 		frm.add_custom_button(__("Import Subscribers"), function() {
