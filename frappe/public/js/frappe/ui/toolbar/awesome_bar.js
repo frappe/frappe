@@ -1,11 +1,12 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-frappe.provide('frappe.ui');
+frappe.provide('frappe.search');
 
 frappe.awesome_bar = {
 	setup: function(element) {
 		var $input = $(element);
 		var input = $input.get(0);
+		frappe.awesome_bar.global_search = new frappe.search.Global("Global Search");
 
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
@@ -105,7 +106,7 @@ frappe.awesome_bar = {
 
 		frappe.awesome_bar.make_page_title_map();
 		frappe.awesome_bar.setup_recent();
-		frappe.search.setup("Global Search");
+		frappe.awesome_bar.global_search.setup("Global Search");
 	},
 	add_help: function() {
 		frappe.awesome_bar.options.push({
@@ -220,9 +221,9 @@ frappe.awesome_bar.verbs = [
 			value: __("Search in Global Search: " + txt.bold()),
 			onclick: function(match) {
 					try {
-						frappe.search.$search_modal.show();
-						$(".search-modal input").val("");
-						frappe.search.get_results(txt);
+						frappe.awesome_bar.global_search.search_dialog.show();
+						//$(".search-modal input").val("");
+						frappe.awesome_bar.global_search.get_results(txt);
 					} catch(e) {
 						console.log(e);
 					}

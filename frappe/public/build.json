@@ -137,6 +137,8 @@
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/search.js",
 		"public/js/frappe/ui/toolbar/search.html",
+		"public/js/frappe/ui/toolbar/global_search.js",
+		"public/js/frappe/ui/toolbar/help_search.js",
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",

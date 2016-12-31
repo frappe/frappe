@@ -1,23 +1,30 @@
+frappe.provide('frappe.search');
 
-
-frappe.search = {
-	setup: function(type) {
+frappe.search.BaseSearch = Class.extend({
+	init: function(title) {
+		this.setup(title);
+		$.extend(this, title);
+	},
+	setup: function() {
 		var me = this;
-		var d = new frappe.ui.Dialog({title: __(type)});
+		var d = new frappe.ui.Dialog({title: __(me.title)});
 
 		$(frappe.render_template("search")).appendTo($(d.body));
-		$(d.$wrapper).addClass('search-modal');
-		this.$search_modal = d;
+		this.search_dialog = d;
+		this.search_modal = $(d.$wrapper);
+		this.search_modal.addClass('search-modal');
 
-		$(".search-modal input").on("keydown", function (e) {
+		this.search_modal.find(".search-input").on("keydown", function (e) {
+			console.log("enter pressed");
 			if(e.which === 13) {
-				var keywords = $(".search-modal input").val();
+				var keywords = me.search_modal.find(".search-input").val();
 				me.get_results(keywords);
 			}
 		});
 		
-		$(".search-modal input + span").on("click", function () {
-			var keywords = $(".search-modal input").val();
+		this.search_modal.find(".search-button").on("click", function () {
+			console.log("search clicked");
+			var keywords = me.search_modal.find(".search-input").val();
 			me.get_results(keywords);
 		});
 	},
@@ -27,69 +34,46 @@ frappe.search = {
 			"<a href='{0}' class='h4'>{1}</a>" +
 			"<p>{2}</p>" +
 			"</div>";
-		var regEx = new RegExp("("+ keywords +")", "ig");
-		data.forEach(function(d, i) {
-			if(i===1) return;
-			data[i] = d.replace(regEx, '<b>$1</b>');
-		});
+		// var regEx = new RegExp("("+ keywords +")", "ig");
+		// data.forEach(function(d, i) {
+		// 	if(i===1) return;
+		// 	data[i] = d.replace(regEx, '<b>$1</b>');
+		// });
 		return __(result_base_html, data);
 	},
 
-	get_results: function(keywords) {
-		var results = [];
-		var me = this;
-		frappe.call({
-			method: "frappe.utils.global_search.search",
-			args: {
-				text: keywords, start: 0, limit: 20
-			},
-			callback: function(r) {
-				if(r.message) {
-					r.message.forEach(function(e) {
-						var fpath = '#Form/' + e.doctype + '/' + e.name;
-						var title = e.doctype + ": " + e.name;
-						results.push(me.render_result(keywords, [fpath, title, e.content]));
-					});
-				}
-				$(".search-modal .modal-body h4").html("<span></span>'"+keywords+"'");
-				me.show_results(results);
-			}
-		});
-
-	},
-
-	show_results: function(results) {
+	show_results: function(results, keywords) {
 		var base_list_length = 8;
 		var more_results_length = 7;
-		var $results_list = $('.search-modal .results');
-		var $more_button = $('.search-modal .btn-more');
+		var results_list = this.search_modal.find('.results');
+		var more_button = this.search_modal.find('.btn-more');
 
-		$results_list.html("");
-		$more_button.hide();
+		results_list.html("");
+		more_button.hide();
 
 		if(results.length === 0) {
-			$(".search-modal h4 span").html("No results found for ");
+			this.search_modal.find('.results-status').html("No results found for '" + keywords + "'");
 		} else {
-			$(".search-modal h4 span").html("Showing results for ");
+			this.search_modal.find('.results-status').html("Showing results for '" + keywords + "'");
 			if(results.length <= base_list_length) {
 				results.forEach(function(e) {
-					$results_list.append(e);
+					results_list.append(e);
 				});
 			} else {
 				for (var i = 0; i < base_list_length; i++){
-					$results_list.append(results.shift());
+					results_list.append(results.shift());
 				};
-				$more_button.show();
-				$more_button.on("click", function () {
+				more_button.show();
+				more_button.on("click", function () {
 					for(var i = 0; (i < more_results_length) && (results.length !== 0); i++){
-						$results_list.append(results.shift());
+						results_list.append(results.shift());
 					}
 					if(results.length === 0) {
-						$more_button.hide();
+						more_button.hide();
 					}
 				});
 			}
 		}
 	}
 
-};
+});
