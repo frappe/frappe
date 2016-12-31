@@ -33,5 +33,40 @@ frappe.ui.form.on('Kanban Board', {
 			d.column_name = o;
 		});
 		frm.refresh();
+	},
+	after_save: function(frm, dt, dn) {
+		console.log(arguments);
+		frappe.model.with_doc("Customize Form", "Customize Form", function() {
+			var doc = frappe.get_doc("Customize Form");
+			doc.doc_type = dt;
+			frappe.call({
+				doc: doc,
+				method: "fetch_to_customize"
+			}).then(function(r) {
+				doc = r.docs[0];
+				
+				// check if prop already exists
+				var has_prop = false;
+				doc.fields.forEach(function(f) {
+					if(f.fieldname==='kanban_column_order') {
+						has_prop = true;
+					}
+				});
+				if(has_prop) return;
+
+				// add kanban_column_order order property
+				var f = frappe.model.get_new_doc('Customize Form Field');
+				f.is_custom_field = 1;
+				f.fieldtype = 'Read Only';
+				f.label = 'Kanban Column Order';
+				doc.fields.push(f);
+
+				doc.hide_success = true;
+				return frappe.call({
+					doc: doc,
+					method: "save_customization"
+				});
+			});
+		});
 	}
 });

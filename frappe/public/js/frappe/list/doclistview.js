@@ -638,6 +638,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		args.order_by = '`tab' + this.doctype + '`.`' + this.sort_selector.sort_by + '` ' + this.sort_selector.sort_order;
 
+		if(this.current_view==="Kanban") {
+			var f = '`tab' + this.doctype + '`.`kanban_column_order`';
+			args.fields.push(f);
+		}
+
 		return args;
 	},
 	assigned_to_me: function() {
