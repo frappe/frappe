@@ -36,6 +36,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		frappe.awesome_bar.setup("#navbar-search");
 		frappe.awesome_bar.setup("#modal-search");
+
+		this.help_search = new frappe.search.Help("Help");
 	},
 
 	setup_sidebar: function () {
@@ -142,43 +144,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			$('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
 		});
 
-		var $help_modal = frappe.get_modal("Help", "");
-		$help_modal.addClass('search-modal');
-
 		var $result_modal = frappe.get_modal("", "");
 		$result_modal.addClass("search-modal");
 
 		$(document).on("click", ".search-modal a", show_results);
 
+		this.help_search = new frappe.search.Help("Help");
 		function show_help_results(keywords) {
-			frappe.call({
-				method: "frappe.utils.help.get_help",
-				args: {
-					text: keywords
-				},
-				callback: function (r) {
-					var results = r.message || [];
-					var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
-
-					for (var i = 0, l = results.length; i < l; i++) {
-						var title = results[i][0];
-						var intro = results[i][1];
-						var fpath = results[i][2];
-
-						result_html +=	"<div class='search-result'>" +
-											"<a href='#' class='h4' data-path='"+fpath+"'>" + title + "</a>" +
-											"<p>" + intro + "</p>" +
-										"</div>";
-					}
-
-					if(results.length === 0) {
-						result_html += "<p class='padding'>No results found</p>";
-					}
-
-					$help_modal.find('.modal-body').html(result_html);
-					$help_modal.modal('show');
-				}
-			});
+			this.help_search = new frappe.search.Help("Help");
+			this.help_search.search_dialog.show();
+			this.help_search.get_results(keywords);
 		}
 
 		function show_results(e) {
