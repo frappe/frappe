@@ -72,3 +72,14 @@ def update_doc(doc):
 			'exc': frappe.utils.get_traceback()
 		}
 	return doc
+
+@frappe.whitelist()
+def bulk_update_order(docs):
+	'''Bulk updates kanban_column_order property in docs'''
+
+	docs = json.loads(docs)
+
+	for doc in docs:
+		print doc
+		frappe.db.sql("""update `tab%s` set `kanban_column_order`=%s where name=%s""" % (doc['doctype'],
+			"%s", "%s"), (doc['order'], doc['name']))

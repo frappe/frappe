@@ -38,7 +38,7 @@ frappe.ui.form.on('Kanban Board', {
 		console.log(arguments);
 		frappe.model.with_doc("Customize Form", "Customize Form", function() {
 			var doc = frappe.get_doc("Customize Form");
-			doc.doc_type = dt;
+			doc.doc_type = frm.doc.reference_doctype;
 			frappe.call({
 				doc: doc,
 				method: "fetch_to_customize"
@@ -57,7 +57,8 @@ frappe.ui.form.on('Kanban Board', {
 				// add kanban_column_order order property
 				var f = frappe.model.get_new_doc('Customize Form Field');
 				f.is_custom_field = 1;
-				f.fieldtype = 'Read Only';
+				f.hidden = 1;
+				f.fieldtype = 'Code';
 				f.label = 'Kanban Column Order';
 				doc.fields.push(f);
 

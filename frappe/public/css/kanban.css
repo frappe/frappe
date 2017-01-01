@@ -1,5 +1,5 @@
 .kanban {
-  min-height: 400px;
+  min-height: calc(100vh - 252px);
   background-color: #fafbfc;
   display: flex;
   overflow: scroll;
