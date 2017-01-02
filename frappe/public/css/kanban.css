@@ -59,12 +59,14 @@
 .kanban .kanban-card-wrapper {
   position: relative;
 }
+.kanban .kanban-card:hover,
+.kanban .new-card-area,
+.kanban .edit-card-area {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
 .kanban .kanban-card-wrapper:hover {
   cursor: pointer;
   text-decoration: none;
-}
-.kanban .kanban-card-wrapper:hover .kanban-card {
-  background-color: #f9f9f9;
 }
 .kanban .kanban-card-wrapper:hover .kanban-card-edit {
   opacity: 1;

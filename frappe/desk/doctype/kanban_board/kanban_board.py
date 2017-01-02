@@ -74,6 +74,21 @@ def update_doc(doc):
 	return doc
 
 @frappe.whitelist()
+def get_board(board_name):
+	doc = frappe.get_doc('Kanban Board', board_name)
+	return doc
+
+@frappe.whitelist()
+def update_order(board_name, column_title, order):
+	doc = frappe.get_doc('Kanban Board', board_name)
+
+	for col in doc.columns:
+		if column_title == col.column_name:
+			col.order = order
+	doc.save()
+	return doc
+
+@frappe.whitelist()
 def bulk_update_order(docs):
 	'''Bulk updates kanban_column_order property in docs'''
 

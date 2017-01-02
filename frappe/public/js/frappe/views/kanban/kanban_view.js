@@ -25,17 +25,14 @@ frappe.provide("frappe.views");
 						});
 						var columns = prepare_columns(board.columns);
 
-						set_kanban_column_order(cards, columns, board.name)
-							.then(function (cards) {
-								updater.set({
-									doctype: opts.doctype,
-									board: board,
-									card_meta: card_meta,
-									cards: cards,
-									columns: columns,
-									cur_list: opts.cur_list
-								});
-							});
+						updater.set({
+							doctype: opts.doctype,
+							board: board,
+							card_meta: card_meta,
+							cards: cards,
+							columns: columns,
+							cur_list: opts.cur_list
+						});
 					});
 			},
 			add_column: function (updater, col) {
@@ -56,7 +53,6 @@ frappe.provide("frappe.views");
 					})
 					.then(save_customization)
 					.then(function (r) {
-						console.log(r)
 						return update_kanban_board(board.name, col.title, action)
 					}).then(function (r) {
 						var cols = r.message;
@@ -64,7 +60,7 @@ frappe.provide("frappe.views");
 							columns: prepare_columns(cols)
 						});
 					}, function (err) {
-						console.log(err);
+						console.error(err);
 					});
 			},
 			set_filter_state: function (updater) {
@@ -99,9 +95,9 @@ frappe.provide("frappe.views");
 						value: column_title
 					}
 				}).then(function (r) {
-					var doc = r.message;
-					var new_card = prepare_card(card, state, doc);
-					fluxify.doAction('update_card', new_card);
+					// var doc = r.message;
+					// var new_card = prepare_card(card, state, doc);
+					// fluxify.doAction('update_card', new_card);
 				});
 			},
 			add_card: function (updater, card_title, column_title) {
@@ -159,7 +155,7 @@ frappe.provide("frappe.views");
 				}).then(function (r) {
 					var updated_doc = r.message;
 					var updated_card = prepare_card(card, state, updated_doc);
-					return fluxify.doAction('update_card', updated_card);
+					fluxify.doAction('update_card', updated_card);
 				});
 			},
 			assign_to: function (updater, user, desc, card) {
@@ -175,57 +171,42 @@ frappe.provide("frappe.views");
 					.then(function () {
 						card.assigned_list.push(user);
 						fluxify.doAction('update_card', card);
-
 					});
 			},
-			update_card_order: function (updater, card, order, board_name) {
-				card.kanban_column_order[board_name] = order;
-				console.log(order, card)
-				var doc = {
-					doctype: card.doctype,
-					name: card.name,
-					order: JSON.stringify(card.kanban_column_order)
-				}
-
+			update_order: function(updater, column_title, order) {
+				var board = store.getState().board.name;
 				return frappe.call({
-					method: "frappe.desk.doctype.kanban_board.kanban_board.bulk_update_order",
-					args: { docs: [doc] }
+					method: "frappe.desk.doctype.kanban_board.kanban_board.update_order",
+					args: {
+						board_name: board,
+						column_title: column_title,
+						order: order
+					}
 				});
-			},
-			add_order_property: function (updater, doctype) {
-				return fetch_customization(doctype)
-					.then(function (doc) {
-						var has_prop = false;
-						doc.fields.forEach(function (f) {
-							if (f.fieldname === 'kanban_column_order') {
-								has_prop = true;
-							}
-						});
-						if (!has_prop) {
-							return doc;
-						}
-						return false;
-					})
-					.then(add_order_property_in_c11n)
-					.then(save_customization)
 			}
 		}
 	});
 
 	function get_board(board_name) {
-		return new Promise(function (resolve, reject) {
-			var doctype = 'Kanban Board';
-			frappe.model.with_doc(doctype, board_name, function () {
-				var board = frappe.get_doc(doctype, board_name);
-				if (!board) {
-					reject(__('Kanban Board {0} does not exist.',
-						['<b>' + self.board_name + '</b>']));
-				}
-				board.filters_array = board.filters ?
-					JSON.parse(board.filters) : [];
-				resolve(board);
-			});
-		})
+		return frappe.call({
+			method: "frappe.desk.doctype.kanban_board.kanban_board.get_board",
+			args: {
+				board_name: board_name
+			}
+		}).then(function(r) {
+			var board = r.message;
+			if (!board) {
+				frappe.msgprint(__('Kanban Board {0} does not exist.',
+					['<b>' + self.board_name + '</b>']));
+			}
+			return prepare_board(board);
+		});
+	}
+
+	function prepare_board(board) {
+		board.filters_array = board.filters ?
+			JSON.parse(board.filters) : [];
+		return board;
 	}
 
 	function get_card_meta(opts) {
@@ -296,7 +277,8 @@ frappe.provide("frappe.views");
 		return columns.map(function (col) {
 			return {
 				title: col.column_name,
-				status: col.status
+				status: col.status,
+				order: col.order
 			};
 		})
 	}
@@ -327,44 +309,6 @@ frappe.provide("frappe.views");
 		doc.fields.push(f);
 		return doc;
 	}
-
-	function set_kanban_column_order(cards, columns, board_name) {
-		var indexes = {};
-
-		columns.forEach(function (col) {
-			indexes[col.title] = 0;
-		});
-
-		cards.forEach(function (card) {
-			var order = card.kanban_column_order[board_name];
-			console.log(card.title, order)
-			// TODO: handle: some cards have order property, some doesn't
-			if (!order) {
-				order = indexes[card.column];
-				indexes[card.column] += 1;
-				card.kanban_column_order[board_name] = order;
-			}
-		});
-
-		var docs = cards.map(function (card) {
-			return {
-				name: card.name,
-				doctype: card.doctype,
-				order: JSON.stringify(card.kanban_column_order),
-				title: card.title
-			}
-		});
-
-		// console.table(docs)
-
-		return frappe.call({
-			method: "frappe.desk.doctype.kanban_board.kanban_board.bulk_update_order",
-			args: { docs: docs }
-		}).then(function (r) {
-			return cards;
-		});
-	}
-
 	function fetch_customization(doctype) {
 		return new Promise(function (resolve, reject) {
 			frappe.model.with_doc("Customize Form", "Customize Form", function () {
@@ -440,7 +384,6 @@ frappe.provide("frappe.views");
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
-			initialize_order_for_cards()
 		}
 
 		function prepare() {
@@ -562,10 +505,6 @@ frappe.provide("frappe.views");
 			});
 		}
 
-		function initialize_order_for_cards() {
-
-		}
-
 		init();
 	}
 
@@ -591,18 +530,30 @@ frappe.provide("frappe.views");
 		function make_cards() {
 			self.$kanban_cards.empty();
 			var cards = store.getState().cards;
+			var board = store.getState().board;
 			filtered_cards = get_cards_for_column(cards, column);
-			filtered_cards.map(function (card) {
-				frappe.views.KanbanBoardCard(card, self.$kanban_cards);
-			});
+
+			var order = column.order;
+			if(order) {
+				order = order.split('|');
+				order.forEach(function(name) {
+					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
+				});
+			} else {
+				filtered_cards.map(function (card) {
+					frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+				});
+			}
 		}
 
 		function setup_sortable() {
-			Sortable.create(self.$kanban_cards.get(0), {
+			var sortable = Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
+				animation: 150,
+				dataIdAttr: 'data-name',
 				onStart: function (evt) {
 					wrapper.find('.kanban-card.add-card').fadeOut(200, function () {
-						wrapper.find('.kanban-cards').height('2000px');
+						wrapper.find('.kanban-cards').height('100vh');
 					});
 				},
 				onEnd: function (evt) {
@@ -611,24 +562,25 @@ frappe.provide("frappe.views");
 					var card_name = $(evt.item).data().name;
 					var card = get_card(card_name);
 					var board = store.getState().board.name;
-					fluxify.doAction('update_card_order', card, evt.newIndex, board);
+					// update order
+					var order = sortable.toArray();
+					fluxify.doAction('update_order', column.title, order.join('|'));
 				},
 				onAdd: function (evt) {
 					var card_name = $(evt.item).data().name;
 					var card = get_card(card_name);
 					fluxify.doAction('change_card_column', card, column.title);
+					// update order
+					var order = sortable.toArray();
+					fluxify.doAction('update_order', column.title, order.join('|'));
 				},
-				// store: {
-				// 	get: function(sortable) {
-				// 		var board = store.getState().board.name;
-				// 		return filtered_cards.map(function(card) {
-				// 			return card.kanban_column_order[board];
-				// 		});
-				// 	},
-				// 	set: function(sortable) {
-				// 		console.log(sortable.toArray(), filtered_cards)
-				// 	}
-				// }
+			});
+		}
+
+		function get_card_by_order(order) {
+			var board = store.getState().board.name;
+			filtered_cards.find(function(c) {
+				return c.kanban_column_order[board] === order;
 			});
 		}
 
