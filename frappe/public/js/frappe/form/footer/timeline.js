@@ -125,30 +125,35 @@ frappe.ui.form.Timeline = Class.extend({
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
-				var name = $(this).parents(".timeline-item:first").attr("data-name");
+				var name = $timeline_item.data('name');
 				me.delete_comment(name);
+
 				return false;
 			})
             .on('click', '.edit', function() {
                 var is_editing = 'is-editing';
-                var content = $(this).parents('.media-content-wrapper').find('.timeline-item-content');
-                var name = $(this).parents('.timeline-item:first').data('name');
+                var content = $timeline_item.find('.timeline-item-content');
+                var name = $timeline_item.data('name');
 
                 if(content.hasClass(is_editing)) {
                     var val = content.find('textarea').val();
                     // set content to new val so that on save and refresh the new content is shown
                     c.content = val;
 
-                    me.update_comment(name, val);
                     frappe.timeline.update_communication(c);
+                    me.update_comment(name, val);
+
+                    // all changes to the timeline_item for editing are reset after calling refresh
                     me.refresh();
                 } else {
-                    var textarea = $('.comment-input').clone()
+                	var $edit_btn = $(this);
+                    var editing_textarea = me.input.clone()
                         .removeClass('comment-input');
 
                     frappe.db.get_value('Communication', {name: name}, 'content', function(r) {
-                        textarea.val(r.content);
-                        content.html(textarea);
+                        $edit_btn.find('i').removeClass('octicon-pencil').addClass('octicon-check');
+                        editing_textarea.val(r.content);
+                        content.html(editing_textarea);
                         content.addClass(is_editing);
                     });
                 }

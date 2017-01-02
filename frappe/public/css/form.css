@@ -293,6 +293,14 @@ h6.uppercase,
   font-size: 21px;
   line-height: 1;
 }
+.timeline-item.user-content .edit-btn-container .edit .octicon-check {
+  color: #98d85b;
+  font-size: 1em;
+}
+.timeline-item.user-content .edit-btn-container .edit:hover,
+.timeline-item.user-content .edit-btn-container .edit:focus {
+  color: #000;
+}
 .timeline-item.user-content .comment-likes {
   margin-left: 5px;
 }
