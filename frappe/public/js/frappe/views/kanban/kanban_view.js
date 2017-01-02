@@ -539,6 +539,12 @@ frappe.provide("frappe.views");
 				order.forEach(function(name) {
 					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
 				});
+				// new cards
+				filtered_cards.forEach(function(card) {
+					if(order.indexOf(card.name) === -1) {
+						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+					}
+				});
 			} else {
 				filtered_cards.map(function (card) {
 					frappe.views.KanbanBoardCard(card, self.$kanban_cards);
