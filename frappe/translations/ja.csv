@@ -468,7 +468,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,クエリー
 DocType: DocType,Sort Order,並び順
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},「リスト表示」は行{1}のタイプ{0}では許可されません
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,あなたの電子メールID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,あなたの電子メールID
 DocType: Custom Field,Select the label after which you want to insert new field.,新たなフィールドを挿入後にラベルを選択してください。
 ,Document Share Report,文書共有レポート
 DocType: User,Last Login,最新ログイン
@@ -652,7 +652,7 @@ DocType: Page,Page HTML,ページのHTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,これ以上のノードは「グループ」タイプのノードの下にのみ作成することができます
 DocType: Web Page,Header,ヘッダー
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},不明なコラム：{0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,（オプション）常にこれらに送信します。各メールアドレスは新しい行になります
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,（オプション）常にこれらに送信します。各メールアドレスは新しい行になります
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,役割{0}を持つユーザー：
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},インストールアプリケーション{0}
 DocType: Print Format,Custom Format,カスタム書式
@@ -721,7 +721,7 @@ DocType: Workflow State,retweet,リツイート
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,添付する前に、テンプレートを更新してCSV（カンマ区切りテキスト）形式で保存する
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,フィールドの値を指定
 DocType: Report,Disabled,無効
-DocType: Email Account,Always use Account's Email ID as Sender,アカウントのメールアドレスを常に送信元として使用
+DocType: Email Account,Always use Account's Email Address as Sender,アカウントのメールアドレスを常に送信元として使用
 DocType: Workflow State,eye-close,目を閉じる
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',他のお支払い方法を選択してください。 {0} &#39;{1}&#39;の通貨で取引をサポートしていません。
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuthプロバイダーの設定
@@ -866,7 +866,7 @@ DocType: File,rgt,右
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,リーフ
 DocType: Portal Menu Item,Portal Menu Item,ポータルメニューアイテム
-DocType: Email Account,Email ID,メールアドレス
+DocType: Email Account,Email Address,メールアドレス
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,リンクの挿入
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,クライアントアプリケーションは、ユーザがそれを可能にした後にアクセスする必要がありますリソースのリスト。 <br>例えばプロジェクト
 DocType: Contact Us Settings,Query Options,クエリーオプション
@@ -902,7 +902,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,注:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,文書名
 DocType: ToDo,Medium,普通
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,メールアドレスを確認してください
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,メールアドレスを確認してください
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,リンクを参照する権限がありません
 DocType: Customize Form,Customize Form,フォームをカスタマイズ
 DocType: Currency,A symbol for this currency. For e.g. $,この通貨のシンボル（例：＄）
@@ -1093,7 +1093,7 @@ DocType: Workflow State,step-backward,戻る
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,サイト設定でDropboxのアクセスキーを設定してください
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,このメールアドレスに送信できるようにするには、このレコードを削除します
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,このアカウントを使用して送信する全てのメールについて、このアカウントに指定されたメールアドレスを送信元として使用する
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,このアカウントを使用して送信する全てのメールについて、このアカウントに指定されたメールアドレスを送信元として使用する
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,新しいレコードには必須フィールドのみが必要です。非必須の列は削除することができます。
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,イベントを更新することができません
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,お支払いを完了
@@ -1290,7 +1290,7 @@ DocType: Workflow State,bookmark,ブックマーク
 DocType: Note,Note,ノート
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,エラーレポート
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,タイムラインのフィールドは、有効なフィールド名でなければなりません
-DocType: Email Account,Email Ids,メールアドレス
+DocType: Email Account,Email Addresses,メールアドレス
 DocType: Currency,Symbol,シンボル
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,行 {0}：
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,新しいパスワードをメールで送信しました
@@ -1723,7 +1723,7 @@ DocType: Async Task,Queued,キュー追加済
 DocType: PayPal Settings,Use Sandbox,サンドボックスを使用してください
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,新しいカスタム印刷フォーマット
 DocType: DocPerm,Create,作成
-DocType: Newsletter,A Lead with this email id should exist,このメールアドレスを持つリードが必要です
+DocType: Newsletter,A Lead with this Email Address should exist,このメールアドレスを持つリードが必要です
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},無効なフィルタ：{0}
 DocType: Integration Service,Background Events,バックグラウンドイベント
 DocType: Dropbox Settings,App Access Key,アプリのアクセスキー
@@ -1899,7 +1899,7 @@ DocType: Workflow Document State,Only Allow Edit For,編集のみ可
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,あなたの名前
 DocType: DocType,InnoDB,InnoDBの
 DocType: File,Is Folder,フォルダ
-DocType: Newsletter,Test Email Id,テスト用メールアドレス
+DocType: Newsletter,Test Email Address,テスト用メールアドレス
 DocType: DocType,DocType,文書タイプ
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ユーザー{0}は存在しません
 DocType: Website Theme,"If image is selected, color will be ignored.",画像が選択された場合、色は無視されます
@@ -2254,7 +2254,7 @@ DocType: Communication,Email Account,メールアカウント
 DocType: Workflow State,Download,ダウンロード
 DocType: Blog Post,Blog Intro,ブログイントロ
 DocType: Async Task,Result,結果
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0}は有効なメールアドレスではありません
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0}は有効なメールアドレスではありません
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,レポートを有効にする
 DocType: DocField,Display Depends On,依存性を表示
 DocType: Web Page,Insert Code,コードを挿入

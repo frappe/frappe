@@ -39,7 +39,7 @@
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
-   "description": "Optional: Always send to these ids. Each email id on a new row", 
+   "description": "Optional: Always send to these ids. Each Email Address on a new row", 
    "fieldname": "cc", 
    "fieldtype": "Code", 
    "hidden": 0, 

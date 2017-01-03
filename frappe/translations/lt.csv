@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,užklausa
 DocType: DocType,Sort Order,Rikiuoti
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&quot;Sąrašo rodinyje&quot; neleidžiama tipas {0} iš eilės {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Jūsų elektroninio pašto numeris
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Jūsų elektroninio pašto numeris
 DocType: Custom Field,Select the label after which you want to insert new field.,"Pasirinkite etiketę, po kurios norite įterpti naują lauką."
 ,Document Share Report,Dokumento Dalintis ataskaita
 DocType: User,Last Login,Paskutinis prisijungimas
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,HTML puslapyje
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Daugiau mazgai gali būti kuriamos tik pagal &quot;grupė&quot; tipo mazgų
 DocType: Web Page,Header,antraštė
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Nėra skiltis: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Neprivaloma: Visada siųsti šiuos ID. Kiekvienas siųsti tapatybės apie naują eilutę
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Neprivaloma: Visada siųsti šiuos ID. Kiekvienas siųsti tapatybės apie naują eilutę
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Vartotojai su {0} vaidmenį:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Įdiegti programą {0}
 DocType: Print Format,Custom Format,Pasirinktinis Formatas
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Atnaujinkite šabloną ir išsaugoti CSV (kableliais Atskiri reikšmės) formatą Prieš tvirtindami.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Nurodykite srityje vertę
 DocType: Report,Disabled,neįgalusis
-DocType: Email Account,Always use Account's Email ID as Sender,Visada naudokite paskyros el ID kaip Siuntėjas
+DocType: Email Account,Always use Account's Email Address as Sender,Visada naudokite paskyros el ID kaip Siuntėjas
 DocType: Workflow State,eye-close,akių Uždaryti
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Prašome pasirinkti kitą mokėjimo būdą. {0} nepalaiko sandoriams valiuta &quot;{1}&quot;
 DocType: OAuth Provider Settings,OAuth Provider Settings,&quot;OAuth teikėjas Nustatymai
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,lapas
 DocType: Portal Menu Item,Portal Menu Item,Portalo Meniu punktas
-DocType: Email Account,Email ID,E-mail ID
+DocType: Email Account,Email Address,E-mail ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,įterpti nuorodą
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Šaltinių sąrašas, kuris Klientas ""App turės prieigą prie kai vartotojas leidžia. <br> pvz projektas"
 DocType: Contact Us Settings,Query Options,užklausa Nustatymai
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Pastabos:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Akcijos kainos
 DocType: DocShare,Document Name,Dokumento pavadinimas
 DocType: ToDo,Medium,vidutinis
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Prašome patikrinti savo elektroninio pašto ID
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Prašome patikrinti savo elektroninio pašto ID
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Nepakanka leidimo matyti nuorodas.
 DocType: Customize Form,Customize Form,tinkinti formą
 DocType: Currency,A symbol for this currency. For e.g. $,Simbolis šią valiutą. EG $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,žingsnis atgal
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{APP_TITLE}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Prašome nustatyti Dropbox prieigos raktus į savo svetainę config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,"Ištrinti šį įrašą, kad būtų galima siųsti į šį elektroninio pašto adresą"
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,"Naudoja minėtą šioje sąskaitoje kaip visų laiškų, siunčiamų naudojant šią paskyrą Siuntėjas elektroninio pašto numeris."
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,"Naudoja minėtą šioje sąskaitoje kaip visų laiškų, siunčiamų naudojant šią paskyrą Siuntėjas elektroninio pašto numeris."
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Tik privalomi laukai yra būtini naujų įrašų. Jūs galite ištrinti neprivalomi stulpelius, jei norite."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Nepavyko atnaujinti renginį
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Mokėjimo Užbaigti
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,Pažymėti
 DocType: Note,Note,pastaba
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,klaida ataskaita
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Laiko laukas turi būti galiojantis nazwapola
-DocType: Email Account,Email Ids,pašto ID
+DocType: Email Account,Email Addresses,pašto ID
 DocType: Currency,Symbol,simbolis
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Eilutės # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Naujas slaptažodis išsiųstas
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,eilėje
 DocType: PayPal Settings,Use Sandbox,Naudokite Smėlio
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Nauja Individualizuotos Spausdinti Formatas
 DocType: DocPerm,Create,kurti
-DocType: Newsletter,A Lead with this email id should exist,Kreipiančiųjų su šiuo elektroninio pašto id turėtų egzistuoti
+DocType: Newsletter,A Lead with this Email Address should exist,Kreipiančiųjų su šiuo elektroninio pašto id turėtų egzistuoti
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Neteisingas Filtras: {0}
 DocType: Integration Service,Background Events,fono Renginiai
 DocType: Dropbox Settings,App Access Key,Programos prieigos raktas
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Leisti tik redagavimą
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Tavo vardas
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Ar Byla
-DocType: Newsletter,Test Email Id,Testas elektroninio pašto numeris
+DocType: Newsletter,Test Email Address,Testas elektroninio pašto numeris
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Vartotojas {0} neegzistuoja
 DocType: Website Theme,"If image is selected, color will be ignored.","Jei paveikslėlis yra pasirinktas, spalva bus ignoruojami."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,Elektroninio pašto paskyra
 DocType: Workflow State,Download,parsisiųsti
 DocType: Blog Post,Blog Intro,Dienoraštis Intro
 DocType: Async Task,Result,Rezultatas
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} nėra galiojantis elektroninio pašto ID
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} nėra galiojantis elektroninio pašto ID
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Įjungti pranešimą
 DocType: DocField,Display Depends On,Rodyti Priklauso nuo
 DocType: Web Page,Insert Code,Įveskite kodą

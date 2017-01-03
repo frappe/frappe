@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Interogare
 DocType: DocType,Sort Order,Ordine de sortare
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},"""În vizualizare listă"" nu este permisã pentru tipul {0} în rândul {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,E-mail ID-ul dvs.
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,E-mail ID-ul dvs.
 DocType: Custom Field,Select the label after which you want to insert new field.,Selectați eticheta după care doriți să inserați câmpul nou.
 ,Document Share Report,Document Share Raporteaza
 DocType: User,Last Login,Ultima autentificare
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Pagina HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Noduri suplimentare pot fi create numai în noduri de tip 'Grup'
 DocType: Web Page,Header,Antet
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Coloana necunoscută: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Optional: trimite întotdeauna la aceste id-uri. Fiecare id-ul de e-mail pe un rând nou
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Optional: trimite întotdeauna la aceste id-uri. Fiecare id-ul de e-mail pe un rând nou
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Utilizatorii cu rol de {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Instalarea App {0}
 DocType: Print Format,Custom Format,Format personalizat
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Actualizati-șablon și salva în CSV (Comma Valori separate) format înainte de a atașa.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Precizați valoarea câmpului
 DocType: Report,Disabled,Dezactivat
-DocType: Email Account,Always use Account's Email ID as Sender,Utilizați întotdeauna cont de identitate Email Sender ca
+DocType: Email Account,Always use Account's Email Address as Sender,Utilizați întotdeauna cont de identitate Email Sender ca
 DocType: Workflow State,eye-close,ochi-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Vă rugăm să selectați o altă metodă de plată. {0} nu acceptă tranzacții în valută &quot;{1} &#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Setări Provider OAuth
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,frunze
 DocType: Portal Menu Item,Portal Menu Item,Meniu portal Articol
-DocType: Email Account,Email ID,Id Email
+DocType: Email Account,Email Address,Id Email
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Introduceți link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"O listă de resurse pe care App Clientul va avea acces la după ce utilizatorul permite acest lucru. <br> de exemplu, proiect"
 DocType: Contact Us Settings,Query Options,Opțiuni de interogare
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Observații
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Document Nume
 DocType: ToDo,Medium,Medie
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Vă rugăm să verificați ID-ul dvs. de e-mail
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Vă rugăm să verificați ID-ul dvs. de e-mail
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Nu este suficient de permisiunea de a vedea link-uri.
 DocType: Customize Form,Customize Form,Particularizarea Form
 DocType: Currency,A symbol for this currency. For e.g. $,"Un simbol pentru această monedă. De exemplu, $"
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,pas-înapoi
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Vă rugăm să setați tastele de acces Dropbox pe site-ul dvs. de configurare
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,"Ștergeți acest record, pentru a permite trimiterea de la această adresă de e-mail"
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Folosește ID-ul de e-mail menționată în acest cont ca Sender pentru toate e-mailurile trimise folosind acest cont.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Folosește ID-ul de e-mail menționată în acest cont ca Sender pentru toate e-mailurile trimise folosind acest cont.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Numai câmpurile obligatorii sunt necesare pentru noi recorduri. Puteți șterge coloane care nu sunt obligatorii, dacă doriți."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Imposibil de a actualiza eveniment
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,complet de plată
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,semn de carte
 DocType: Note,Note,Notă
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Eroare Raport
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,câmp Cronologie trebuie să fie un nume_camp validă
-DocType: Email Account,Email Ids,Email Id-urile
+DocType: Email Account,Email Addresses,Email Address-urile
 DocType: Currency,Symbol,Simbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Rând # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Noua parolă prin e-mail
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Coada de așteptare
 DocType: PayPal Settings,Use Sandbox,utilizare Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Nou format personalizat Print
 DocType: DocPerm,Create,Creează
-DocType: Newsletter,A Lead with this email id should exist,Un Lider cu acest id de e-mail ar trebui să existe
+DocType: Newsletter,A Lead with this Email Address should exist,Un Lider cu acest id de e-mail ar trebui să existe
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Filtru invalid: {0}
 DocType: Integration Service,Background Events,Evenimente de fundal
 DocType: Dropbox Settings,App Access Key,Aplicația Cheia de acces
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Permiteți numai Editare pe
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Numele dumneavoastră
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Este Folder
-DocType: Newsletter,Test Email Id,Test de e-mail Id-ul
+DocType: Newsletter,Test Email Address,Test de e-mail Id-ul
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Utilizatorul {0} nu există
 DocType: Website Theme,"If image is selected, color will be ignored.","Dacă este selectată a imaginii, culori vor fi ignorate."
@@ -2245,7 +2245,7 @@ DocType: Communication,Email Account,Contul de e-mail
 DocType: Workflow State,Download,Descărcare fişier
 DocType: Blog Post,Blog Intro,Intro blog
 DocType: Async Task,Result,Rezultat
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} nu este un id de email valid
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} nu este un id de email valid
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Activați Raport
 DocType: DocField,Display Depends On,Depinde de afișare
 DocType: Web Page,Insert Code,Introduceți codul

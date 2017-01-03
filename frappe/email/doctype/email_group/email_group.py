@@ -17,7 +17,7 @@ class EmailGroup(Document):
 				if d.parent not in singles]
 
 	def import_from(self, doctype):
-		"""Extract email ids from given doctype and add them to the current list"""
+		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
 		email_field = [d.fieldname for d in meta.fields 
 			if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options=="Email"][0]
@@ -84,7 +84,7 @@ def add_subscribers(name, email_list):
 			else:
 				pass
 		else:
-			frappe.msgprint(_("{0} is not a valid email id").format(email))
+			frappe.msgprint(_("{0} is not a valid Email Address").format(email))
 
 	frappe.msgprint(_("{0} subscribers added").format(count))
 

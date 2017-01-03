@@ -26,7 +26,7 @@ frappe.ui.form.on("Email Group", "refresh", function(frm) {
 
 		frm.add_custom_button(__("Add Subscribers"), function() {
 			frappe.prompt({fieldtype:"Text",
-				label:__("Email Ids"), fieldname:"email_list", reqd:1}, function(data) {
+				label:__("Email Addresses"), fieldname:"email_list", reqd:1}, function(data) {
 					frappe.call({
 						method: "frappe.email.doctype.email_group.email_group.add_subscribers",
 						args: {

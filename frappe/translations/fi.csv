@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Kysely
 DocType: DocType,Sort Order,Lajittelujärjestys
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'Listausnäkymässä' ei voi olla asetettuna rivin {1} tyypillä {0}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Sähköpostiosoitteesi
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Sähköpostiosoitteesi
 DocType: Custom Field,Select the label after which you want to insert new field.,Valitse nimike jonka jälkeen haluat lisätä uuden kentän
 ,Document Share Report,asiakirjanjako raportti
 DocType: User,Last Login,Viimeksi kirjautunut
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,HTML:
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,tulevat sidoket voi olla ainoastaan 'ryhmä' tyyppisiä sidoksia
 DocType: Web Page,Header,ylätunniste
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Tuntematon kolumni: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Valinnainen: Lähetä aina näihin osoitteisiin. Yksi osoite per rivi.
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Valinnainen: Lähetä aina näihin osoitteisiin. Yksi osoite per rivi.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,"Käyttäjät, joilla on rooli {0}:"
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Asentaminen App {0}
 DocType: Print Format,Custom Format,oma muoto
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Päivitä mallipohja ja tallenna se .csv tiedostoksi (Comma Separate Values) ennen liittämistä
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,määritä kentän arvo
 DocType: Report,Disabled,ei käytössä
-DocType: Email Account,Always use Account's Email ID as Sender,Käytä tiliä sähköpostiosoite tunnus kuten lähettäjän
+DocType: Email Account,Always use Account's Email Address as Sender,Käytä tiliä sähköpostiosoite tunnus kuten lähettäjän
 DocType: Workflow State,eye-close,silmä-kiinni
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Valitse toinen maksutapa. {0} ei tue käteisrahaan &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Provider Asetukset
@@ -862,7 +862,7 @@ DocType: File,rgt,Rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,jatko
 DocType: Portal Menu Item,Portal Menu Item,Portaalivalikon valinta
-DocType: Email Account,Email ID,sähköpostitunnus
+DocType: Email Account,Email Address,sähköpostitunnus
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,aseta linkki
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Luettelo resursseja, jotka asiakkaan App on pääsy, kun käyttäjä sallii sen. <br> esim projekti"
 DocType: Contact Us Settings,Query Options,"Kysely, vaihtoehdot"
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Huom:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,asiakirjan nimi
 DocType: ToDo,Medium,Keskikokoinen
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Tarkista sähköpostiosoitteesi
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Tarkista sähköpostiosoitteesi
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Ei tarpeeksi lupa nähdä linkkejä.
 DocType: Customize Form,Customize Form,Muokkaa tietuetyyppiä
 DocType: Currency,A symbol for this currency. For e.g. $,"valuutan symboli, esim €"
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,askel-taaksepäin
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_otsikko}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Määritä Dropbox pääsyn asetukset
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Poista tämä ennätys jotta lähettämällä tähän sähköpostiosoitteeseen
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Käytä tilin sähköpostiosoitetta kaikkien tililtä lähetettyjen sähköpostien lähettäjänä.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Käytä tilin sähköpostiosoitetta kaikkien tililtä lähetettyjen sähköpostien lähettäjänä.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Uusille tietueille vain pakolliset kentät ovat välttämättömiä, ylimääräiset sarakkeet voidaan poistaa tarvittaessa."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Tapahtumaa ei pysty päivittämään
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Maksu valmis
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,kirjanmerkki
 DocType: Note,Note,Muistiinpano
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Virheraportti
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Aikajana kentän täytyy olla kelvollinen fieldname
-DocType: Email Account,Email Ids,sähköpostiosoitteet
+DocType: Email Account,Email Addresses,sähköpostiosoitteet
 DocType: Currency,Symbol,symbooli
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Rivi # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Uusi salasana lähetetty
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Jonossa
 DocType: PayPal Settings,Use Sandbox,Käytä Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,uusi oma tulostusmuoto
 DocType: DocPerm,Create,tee
-DocType: Newsletter,A Lead with this email id should exist,kyseisen sähköpostin tunnuksella löytyy kytketty markkinavihje
+DocType: Newsletter,A Lead with this Email Address should exist,kyseisen sähköpostin tunnuksella löytyy kytketty markkinavihje
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},virheellinen suodatus: {0}
 DocType: Integration Service,Background Events,Taustatapahtumat
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Vain Salli Edit For
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Nimesi
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,On Folder
-DocType: Newsletter,Test Email Id,Testi sähköpostiosoite
+DocType: Newsletter,Test Email Address,Testi sähköpostiosoite
 DocType: DocType,DocType,Tietuetyyppi
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Käyttäjä {0} ei ole olemassa
 DocType: Website Theme,"If image is selected, color will be ignored.",mikäli kuva on valittuna väri ohitetaan
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,sähköpostitili
 DocType: Workflow State,Download,Vie
 DocType: Blog Post,Blog Intro,Blogi Intro
 DocType: Async Task,Result,Tulos
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ei sallittu sähköpostitunnus
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ei sallittu sähköpostitunnus
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,aktivoi raportti
 DocType: DocField,Display Depends On,Näyttö riippuu
 DocType: Web Page,Insert Code,aseta koodi

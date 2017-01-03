@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,ጥያቄ
 DocType: DocType,Sort Order,የድርድር ቅደም ተከተል
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;ዝርዝር ይመልከቱ ውስጥ&#39; ረድፍ ውስጥ አይነት {0} አይፈቀድም {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,የእርስዎ ኢሜይል መታወቂያ
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,የእርስዎ ኢሜይል መታወቂያ
 DocType: Custom Field,Select the label after which you want to insert new field.,አዲስ መስክ ማስገባት ይፈልጋሉ በኋላ ያለውን መለያ ይምረጡ.
 ,Document Share Report,የሰነድ አጋራ ሪፖርት
 DocType: User,Last Login,የመጨረሻው መግቢያ
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,ገጽ ኤችቲኤምኤል
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,ተጨማሪ መስቀለኛ ብቻ &#39;ቡድን&#39; አይነት አንጓዎች ስር ሊፈጠር ይችላል
 DocType: Web Page,Header,የራስጌ
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},ያልታወቀ አምድ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,አማራጭ: ሁልጊዜ እነዚህን መታወቂያዎች መላክ. አዲስ ረድፍ ላይ እያንዳንዱ የኢሜይል መታወቂያ
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,አማራጭ: ሁልጊዜ እነዚህን መታወቂያዎች መላክ. አዲስ ረድፍ ላይ እያንዳንዱ የኢሜይል መታወቂያ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ሚና {0} ጋር ተጠቃሚዎች:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},በመጫን ላይ መተግበሪያ {0}
 DocType: Print Format,Custom Format,ብጁ ቅርጸት
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,ትዊት
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,አብነቱን ያዘምኑ እና በማያያዝ በፊት በ CSV ውስጥ ቅርጸት (በኮማ የተለዩ እሴቶች) ማስቀመጥ.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ወደ መስክ ዋጋ ይግለጹ
 DocType: Report,Disabled,ተሰናክሏል
-DocType: Email Account,Always use Account's Email ID as Sender,ሁልጊዜ የላኪ እንደ መለያ ኢሜይል መታወቂያ ይጠቀሙ
+DocType: Email Account,Always use Account's Email Address as Sender,ሁልጊዜ የላኪ እንደ መለያ ኢሜይል መታወቂያ ይጠቀሙ
 DocType: Workflow State,eye-close,ዓይን-ዝጋ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',ሌላ የክፍያ ስልት ይምረጡ. {0} ምንዛሬ ግብይቶችን አይደግፍም «{1}»
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth አቅራቢ ቅንብሮች
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ቅጠል
 DocType: Portal Menu Item,Portal Menu Item,ፖርታል ምናሌ ንጥል
-DocType: Email Account,Email ID,የኢሜይል መታወቂያ
+DocType: Email Account,Email Address,የኢሜይል መታወቂያ
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,አገናኝ ያስገቡ
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,የደንበኛ መተግበሪያ ተጠቃሚው የሚፈቅድ በኋላ መዳረሻ ይኖራቸዋል ይህም ሀብት ዝርዝር. <br> ለምሳሌ ፕሮጀክት
 DocType: Contact Us Settings,Query Options,የመጠይቅ አማራጮች
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,ማስታ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,ስትቀንስ
 DocType: DocShare,Document Name,የሰነድ ስም
 DocType: ToDo,Medium,መካከለኛ
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,የኢሜይል መታወቂያ ያረጋግጡ
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,የኢሜይል መታወቂያ ያረጋግጡ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,አገናኞች ለማየት በቂ ፍቃድ.
 DocType: Customize Form,Customize Form,ቅጽ ያብጁ
 DocType: Currency,A symbol for this currency. For e.g. $,ለዚህ ምንዛሬ ያመለክታል. ለምሳሌ $ ለ
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ደረጃ-ወደኋላ
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{APP_TITLE}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,ጣቢያዎ ውቅር ውስጥ መሸወጃ መዳረሻ ቁልፎች ማዘጋጀት እባክዎ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,በዚህ ኢሜይል አድራሻ መላክ ለመፍቀድ ይህን መዝገብ ይሰርዙ
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ይህን መለያ በመጠቀም ይላካል ሁሉንም ኢሜይሎች ለማግኘት የላኪ እንደ በዚህ መለያ ላይ በተጠቀሰው የኢሜይል መታወቂያ ይጠቀማል.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ይህን መለያ በመጠቀም ይላካል ሁሉንም ኢሜይሎች ለማግኘት የላኪ እንደ በዚህ መለያ ላይ በተጠቀሰው የኢሜይል መታወቂያ ይጠቀማል.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,ብቻ የግዴታ መስኮች አዳዲስ መዝገቦች አስፈላጊ ናቸው. ከፈለጉ እርስዎ ያልሆኑ አስገዳጅ ዓምዶች መሰረዝ ይችላሉ.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ክስተት ማዘመን አልተቻለም
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ክፍያ ተጠናቅቋል
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,ዕልባት
 DocType: Note,Note,ማስታወሻ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,ስህተት ሪፖርት አድርግ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,የጊዜ ሂደት መስክ ልክ የሆነ fieldname መሆን አለበት
-DocType: Email Account,Email Ids,የኢሜይል መታወቂያዎች
+DocType: Email Account,Email Addresses,የኢሜይል መታወቂያዎች
 DocType: Currency,Symbol,ምልክት
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,የረድፍ # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,አዲስ የይለፍ ቃል ኢሜይል
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,ተሰልፏል
 DocType: PayPal Settings,Use Sandbox,ይጠቀሙ ማጠሪያ
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,አዲስ ብጁ ማተም ቅርጸት
 DocType: DocPerm,Create,ፈጠረ
-DocType: Newsletter,A Lead with this email id should exist,በዚህ ኢሜይል መታወቂያ ጋር አንድ ሊድ ሊኖር ይገባል
+DocType: Newsletter,A Lead with this Email Address should exist,በዚህ ኢሜይል መታወቂያ ጋር አንድ ሊድ ሊኖር ይገባል
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},ልክ ያልሆነ ማጣሪያ: {0}
 DocType: Integration Service,Background Events,የጀርባ ክስተቶች
 DocType: Dropbox Settings,App Access Key,የመተግበሪያ መዳረሻ ቁልፍ
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,ብቻ አርትዕ ያህ�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,የአንተ ስም
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,አቃፊ ነው
-DocType: Newsletter,Test Email Id,የሙከራ ኢሜይል መታወቂያ
+DocType: Newsletter,Test Email Address,የሙከራ ኢሜይል መታወቂያ
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,አባል {0} የለም
 DocType: Website Theme,"If image is selected, color will be ignored.","ምስል ተመርጧል ከሆነ, ቀለም ችላ ይባላሉ."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,የኢሜይል መለያ
 DocType: Workflow State,Download,አውርድ
 DocType: Blog Post,Blog Intro,መግቢያ ብሎግ
 DocType: Async Task,Result,ውጤት
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ልክ የሆነ የኢሜይል መታወቂያ አይደለም
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ልክ የሆነ የኢሜይል መታወቂያ አይደለም
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,ሪፖርት አንቃ
 DocType: DocField,Display Depends On,ማሳያ ላይ ይመረኮዛል
 DocType: Web Page,Insert Code,አስገባ ኮድ
