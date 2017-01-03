@@ -187,191 +187,6 @@ frappe.provide("frappe.views");
 		}
 	});
 
-	function get_board(board_name) {
-		return frappe.call({
-			method: "frappe.desk.doctype.kanban_board.kanban_board.get_board",
-			args: {
-				board_name: board_name
-			}
-		}).then(function(r) {
-			var board = r.message;
-			if (!board) {
-				frappe.msgprint(__('Kanban Board {0} does not exist.',
-					['<b>' + self.board_name + '</b>']));
-			}
-			return prepare_board(board);
-		});
-	}
-
-	function prepare_board(board) {
-		board.filters_array = board.filters ?
-			JSON.parse(board.filters) : [];
-		return board;
-	}
-
-	function get_card_meta(opts) {
-		var meta = frappe.get_meta(opts.doctype);
-		var doc = frappe.model.get_new_doc(opts.doctype);
-		var field = null;
-		var quick_entry = true;
-		var description_field = null;
-		var due_date_field = null;
-
-		meta.fields.forEach(function (df) {
-			if (df.reqd && !doc[df.fieldname]) {
-				// missing mandatory
-				if (in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !field) {
-					// can be mapped to textarea
-					field = df;
-					quick_entry = false;
-				} else {
-					// second mandatory missing, use quick_entry
-					quick_entry = true;
-				}
-			}
-			if (df.fieldtype === "Text Editor" && !description_field) {
-				description_field = df;
-			}
-			if (df.fieldtype === "Date" && df.fieldname.indexOf("end") !== -1 && !due_date_field) {
-				due_date_field = df;
-			}
-		});
-		return {
-			quick_entry: quick_entry,
-			title_field: field,
-			description_field: description_field,
-			due_date_field: due_date_field,
-		}
-	}
-
-	function prepare_card(card, state, doc) {
-		var assigned_list = card._assign ?
-			JSON.parse(card._assign) : [];
-		var comment_count = card._comment_count || 0;
-
-		if (card.kanban_column_order === null || card.kanban_column_order === '') {
-			var kanban_column_order = {};
-		} else if (typeof card.kanban_column_order === 'string') {
-			kanban_column_order = JSON.parse(card.kanban_column_order);
-		} else if (typeof card.kanban_column_order === 'object') {
-			kanban_column_order = card.kanban_column_order;
-		}
-
-		if (doc) {
-			card = Object.assign({}, card, doc);
-		}
-
-		return {
-			doctype: state.doctype,
-			name: card.name,
-			title: card[state.card_meta.title_field.fieldname],
-			column: card[state.board.field_name],
-			assigned_list: card.assigned_list || assigned_list,
-			comment_count: card.comment_count || comment_count,
-			kanban_column_order: kanban_column_order,
-			doc: doc
-		};
-	}
-
-	function prepare_columns(columns) {
-		return columns.map(function (col) {
-			return {
-				title: col.column_name,
-				status: col.status,
-				order: col.order
-			};
-		})
-	}
-
-	function modify_column_field_in_c11n(doc, board, title, action) {
-		doc.fields.forEach(function (df) {
-			if (df.fieldname === board.field_name && df.fieldtype === "Select") {
-				if (action === "add") {
-					//add column_name to Select field's option field
-					df.options += "\n" + title;
-				} else if (action === "delete") {
-					var options = df.options.split("\n");
-					var index = options.indexOf(title);
-					if (index !== -1) options.splice(index, 1);
-					df.options = options.join("\n");
-				}
-			}
-		});
-		return doc;
-	}
-
-	function add_order_property_in_c11n(doc) {
-		if (!doc) return;
-		var f = frappe.model.get_new_doc('Customize Form Field');
-		f.is_custom_field = 1;
-		f.fieldtype = 'Read Only';
-		f.label = 'Kanban Column Order';
-		doc.fields.push(f);
-		return doc;
-	}
-	function fetch_customization(doctype) {
-		return new Promise(function (resolve, reject) {
-			frappe.model.with_doc("Customize Form", "Customize Form", function () {
-				var doc = frappe.get_doc("Customize Form");
-				doc.doc_type = doctype;
-				frappe.call({
-					doc: doc,
-					method: "fetch_to_customize",
-					callback: function (r) {
-						resolve(r.docs[0]);
-					}
-				});
-			});
-		});
-	}
-
-	function save_customization(doc) {
-		if (!doc) return;
-		doc.hide_success = true;
-		return frappe.call({
-			doc: doc,
-			method: "save_customization"
-		});
-	}
-
-	function insert_doc(doc) {
-		return frappe.call({
-			method: "frappe.client.insert",
-			args: {
-				doc: doc
-			},
-			callback: function (r) {
-				frappe.model.clear_doc(doc.doctype, doc.name);
-				show_alert({ message: __("Saved"), indicator: 'green' }, 1);
-			}
-		});
-	}
-
-	function update_kanban_board(board_name, column_title, action) {
-		return frappe.call({
-			method: "frappe.desk.doctype.kanban_board.kanban_board." + action + "_column",
-			args: {
-				board_name: board_name,
-				column_title: column_title
-			}
-		});
-	}
-
-	function is_filters_modified(board, cur_list) {
-		var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
-		return list_filters !== board.filters;
-	}
-
-	function is_active_column(col) {
-		return col.status !== 'Archived'
-	}
-
-	function get_cards_for_column(cards, column) {
-		return cards.filter(function (card) {
-			return card.column === column.title
-		});
-	}
-
 	frappe.views.KanbanBoard = function (opts) {
 
 		var self = {};
@@ -898,6 +713,183 @@ frappe.provide("frappe.views");
 		}
 
 		init();
+	}
+
+	// Helpers
+	function get_board(board_name) {
+		return frappe.call({
+			method: "frappe.desk.doctype.kanban_board.kanban_board.get_board",
+			args: {
+				board_name: board_name
+			}
+		}).then(function(r) {
+			var board = r.message;
+			if (!board) {
+				frappe.msgprint(__('Kanban Board {0} does not exist.',
+					['<b>' + self.board_name + '</b>']));
+			}
+			return prepare_board(board);
+		});
+	}
+
+	function prepare_board(board) {
+		board.filters_array = board.filters ?
+			JSON.parse(board.filters) : [];
+		return board;
+	}
+
+	function get_card_meta(opts) {
+		var meta = frappe.get_meta(opts.doctype);
+		var doc = frappe.model.get_new_doc(opts.doctype);
+		var field = null;
+		var quick_entry = true;
+		var description_field = null;
+		var due_date_field = null;
+
+		meta.fields.forEach(function (df) {
+			if (df.reqd && !doc[df.fieldname]) {
+				// missing mandatory
+				if (in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !field) {
+					// can be mapped to textarea
+					field = df;
+					quick_entry = false;
+				} else {
+					// second mandatory missing, use quick_entry
+					quick_entry = true;
+				}
+			}
+			if (df.fieldtype === "Text Editor" && !description_field) {
+				description_field = df;
+			}
+			if (df.fieldtype === "Date" && df.fieldname.indexOf("end") !== -1 && !due_date_field) {
+				due_date_field = df;
+			}
+		});
+		return {
+			quick_entry: quick_entry,
+			title_field: field,
+			description_field: description_field,
+			due_date_field: due_date_field,
+		}
+	}
+
+	function prepare_card(card, state, doc) {
+		var assigned_list = card._assign ?
+			JSON.parse(card._assign) : [];
+		var comment_count = card._comment_count || 0;
+
+		if (card.kanban_column_order === null || card.kanban_column_order === '') {
+			var kanban_column_order = {};
+		} else if (typeof card.kanban_column_order === 'string') {
+			kanban_column_order = JSON.parse(card.kanban_column_order);
+		} else if (typeof card.kanban_column_order === 'object') {
+			kanban_column_order = card.kanban_column_order;
+		}
+
+		if (doc) {
+			card = Object.assign({}, card, doc);
+		}
+
+		return {
+			doctype: state.doctype,
+			name: card.name,
+			title: card[state.card_meta.title_field.fieldname],
+			column: card[state.board.field_name],
+			assigned_list: card.assigned_list || assigned_list,
+			comment_count: card.comment_count || comment_count,
+			kanban_column_order: kanban_column_order,
+			doc: doc
+		};
+	}
+
+	function prepare_columns(columns) {
+		return columns.map(function (col) {
+			return {
+				title: col.column_name,
+				status: col.status,
+				order: col.order
+			};
+		})
+	}
+
+	function modify_column_field_in_c11n(doc, board, title, action) {
+		doc.fields.forEach(function (df) {
+			if (df.fieldname === board.field_name && df.fieldtype === "Select") {
+				if (action === "add") {
+					//add column_name to Select field's option field
+					df.options += "\n" + title;
+				} else if (action === "delete") {
+					var options = df.options.split("\n");
+					var index = options.indexOf(title);
+					if (index !== -1) options.splice(index, 1);
+					df.options = options.join("\n");
+				}
+			}
+		});
+		return doc;
+	}
+
+	function fetch_customization(doctype) {
+		return new Promise(function (resolve, reject) {
+			frappe.model.with_doc("Customize Form", "Customize Form", function () {
+				var doc = frappe.get_doc("Customize Form");
+				doc.doc_type = doctype;
+				frappe.call({
+					doc: doc,
+					method: "fetch_to_customize",
+					callback: function (r) {
+						resolve(r.docs[0]);
+					}
+				});
+			});
+		});
+	}
+
+	function save_customization(doc) {
+		if (!doc) return;
+		doc.hide_success = true;
+		return frappe.call({
+			doc: doc,
+			method: "save_customization"
+		});
+	}
+
+	function insert_doc(doc) {
+		return frappe.call({
+			method: "frappe.client.insert",
+			args: {
+				doc: doc
+			},
+			callback: function (r) {
+				frappe.model.clear_doc(doc.doctype, doc.name);
+				show_alert({ message: __("Saved"), indicator: 'green' }, 1);
+			}
+		});
+	}
+
+	function update_kanban_board(board_name, column_title, action) {
+		return frappe.call({
+			method: "frappe.desk.doctype.kanban_board.kanban_board." + action + "_column",
+			args: {
+				board_name: board_name,
+				column_title: column_title
+			}
+		});
+	}
+
+	function is_filters_modified(board, cur_list) {
+		var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
+		return list_filters !== board.filters;
+	}
+
+	function is_active_column(col) {
+		return col.status !== 'Archived'
+	}
+
+	function get_cards_for_column(cards, column) {
+		return cards.filter(function (card) {
+			return card.column === column.title
+		});
 	}
 
 })();

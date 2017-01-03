@@ -144,12 +144,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init_headers: function() {
 		this.page.main.find(".list-headers").empty();
 
-		// no header in kanban view
-		// if(this.current_view === 'Kanban') {
-		// 	this.list_header = $();
-		// 	return;
-		// }
-
 		this.header = this.current_view === 'List' ? "list_item_main_head": "image_view_item_main_head";
 		var main = frappe.render_template(this.header, {
 			columns: this.listview.columns,
@@ -637,11 +631,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		});
 
 		args.order_by = '`tab' + this.doctype + '`.`' + this.sort_selector.sort_by + '` ' + this.sort_selector.sort_order;
-
-		if(this.current_view==="Kanban") {
-			var f = '`tab' + this.doctype + '`.`kanban_column_order`';
-			args.fields.push(f);
-		}
 
 		return args;
 	},

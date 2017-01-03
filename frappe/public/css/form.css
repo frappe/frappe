@@ -248,7 +248,7 @@ h6.uppercase,
   top: 0px;
   bottom: -124px;
   left: 43px;
-  z-index: -1;
+  z-index: 0;
 }
 .timeline.in-dialog::before {
   bottom: 0px;
@@ -355,6 +355,8 @@ h6.uppercase,
   background-color: white;
   border: 1px solid #d1d8dd;
   border-radius: 2px;
+  position: relative;
+  z-index: 1;
 }
 .timeline-head .comment-input-header {
   background-color: #fafbfc;
