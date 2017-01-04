@@ -89,7 +89,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		this.run();
 	},
 	render_headers: function(){
-        //$(cur_frm.fields_dict['inbox_list'].wrapper)
 		$(".layout-main-section-wrapper").css("padding-left","0px").css("padding-right","0px");
 		var data = {"start":this.start,"page_length":this.page_length.toString()};
 		this.list_header = $(frappe.render_template("inbox_headers", data)).appendTo(this.page.main.find(".list-headers"));
@@ -114,6 +113,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					me.allaccounts = $.map(me.accounts,function(v){return v.name}).join(",");
 					buttons += '<div class="list-row inbox-select list-row-head" style="font-weight:bold"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="All Accounts" data-account="'+me.allaccounts+'" style="margin-left: 10px;">All Accounts</a> </div></div>';
 					buttons += rows;
+					buttons += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="Sent" data-account="Sent" style="margin-left: 10px;">Sent</a> </div></div>';
 					me.account = me.allaccounts;
 					me.default_filters=[["Communication", "communication_type", "=", "Communication"],["Communication", "email_account", "in", me.account]]
 
@@ -125,9 +125,16 @@ frappe.Inbox = frappe.ui.Listing.extend({
 						me.cur_page = 1;
 						$(me.page.main).find(".list-select-all,.list-delete").prop("checked",false);
 						me.toggle_actions();
-						me.filter_list.default_filters=[
-							["Communication", "communication_type", "=", "Communication"],
-							["Communication", "email_account", "in", me.account]];
+
+						if(me.account=="Sent"){
+							me.filter_list.default_filters=[
+								["Communication", "communication_type", "=", "Communication"],
+								["Communication", "sent_or_received", "=", "Sent"]]
+						}else {
+							me.filter_list.default_filters = [
+								["Communication", "communication_type", "=", "Communication"],
+								["Communication", "email_account", "in", me.account]];
+						}
 						me.filter_list.clear_filters();
 						me.filter_list.add_filter("Communication", "deleted", "=", "No");
 						if (me.filter_list.reload_stats){me.filter_list.reload_stats()}
@@ -147,9 +154,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			order_by: 'communication_date desc'
 		}
 
-		// apply default filters, if specified for a listing
-		args.filters.push(["Communication", "communication_type", "=", "Communication"]);
-		args.filters.push(["Communication", "email_account", "in", this.account]);
+		args.filters = args.filters.concat(this.filter_list.default_filters)
 
 		return args;
 	},
