@@ -130,6 +130,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
 		this.init_list_settings();
+		this.setup_view_variables();
 		this.setup_listview();
 		this.init_list(false);
 		this.init_menu();
@@ -144,7 +145,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init_headers: function() {
 		this.page.main.find(".list-headers").empty();
 
-		this.header = this.current_view === 'List' ? "list_item_main_head": "image_view_item_main_head";
+		if (this.current_view === 'List') {
+			this.header = "list_item_main_head";
+		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
+			this.header = "image_view_item_main_head";
+		}
+
 		var main = frappe.render_template(this.header, {
 			columns: this.listview.columns,
 			right_column: this.listview.settings.right_column,
@@ -292,7 +298,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	setup_view_variables: function() {
-		var route = frappe.get_route(); 
+		var route = frappe.get_route();
+		this.last_view = this.current_view || ''; 
 		this.current_view = route[2] || route[0];
 		if(this.current_view==="Kanban") {
 			this.last_kanban_board = this.kanban_board;
@@ -342,7 +349,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_view_variables();
 
 		// if view has changed, re-render header
-		if(this.current_view !== this.list_sidebar.current_view) {
+		if(this.current_view !== this.last_view) {
 			this.init_headers();
 			this.dirty = true;
 		}
@@ -361,7 +368,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.set_filters_before_run();
 		this.execute_run();
-
 	},
 
 	execute_run: function() {

@@ -46,7 +46,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && (route[2]==='Gantt' || route[2]==='Image'|| route[2]==='Kanban')) {
+		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban'], route[2])) {
 			this.current_view = route[2];
 
 			if(this.current_view === 'Kanban') {
@@ -62,10 +62,6 @@ frappe.views.ListSidebar = Class.extend({
 		//enable link for Kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"] a')
 			.attr('disabled', null).removeClass('disabled')
-
-		// this.sidebar.find('.list-link[data-view="Kanban" .dropdown-toggle')
-		// 	.innerHTML
-
 
 		// show image link if image_view
 		if(this.doclistview.meta.image_field) {
@@ -132,7 +128,7 @@ frappe.views.ListSidebar = Class.extend({
 			$('<li><a href="#'+ route + '">'+board.name+'</a></li>').appendTo($dropdown);
 		});
 
-		$dropdown.find('li:first-child a').click(function() {
+		$dropdown.find('.new-kanban-board').click(function() {
 			frappe.new_doc('Kanban Board');
 		});
 	},
