@@ -1,5 +1,5 @@
 frappe.pages['email_inbox'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Email Inbox',
 		icon: 'fa fa-inbox',
@@ -183,7 +183,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	},
 	render_footer:function(){
 		var me = this;
-		me.footer = $(me.wrapper).append(' <footer class="footer hidden-xs" style="position: fixed;bottom: 0;width: 100%;height: 60px;background-color: #f5f5f5;"><div class="container" > <div class="col-sm-7"><ul class="foot-con"></ul><div class="footer-numbers" style="vertical-align: middle;float:right;margin: 20px 0"></div></div> </footer>').find(".foot-con");
+		me.footer = $(me.wrapper).append(frappe.render_template("inbox_footer","")).find(".foot-con");
 		frappe.require('assets/frappe/js/lib/bootstrap-paginator.min.js',function(){
 		me.footer.bootstrapPaginator({
 			currentPage: 1,
