@@ -126,7 +126,6 @@ def add_sidebar_data(context):
 	import frappe.www.list
 
 	if not context.sidebar_items:
-
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
 		if sidebar_items == None:
 			sidebar_items = []

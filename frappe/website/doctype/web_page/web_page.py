@@ -8,7 +8,7 @@ from frappe.utils import strip_html
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import find_first_image, get_comment_list
+from frappe.website.utils import find_first_image, get_comment_list, extract_title
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
 
@@ -83,11 +83,8 @@ class WebPage(WebsiteGenerator):
 			if "<!-- no-header -->" in context.main_section:
 				context.no_header = 1
 
-		if "<!-- title:" in context.main_section:
-			context.title = re.findall('<!-- title:([^>]*) -->', context.main_section)[0].strip()
-
-		if context.get("page_titles") and context.page_titles.get(context.pathname):
-			context.title = context.page_titles.get(context.pathname)[0]
+		if not context.title:
+			context.title = extract_title(context.main_section, context.path_name)
 
 		# header
 		if context.no_header and "header" in context:
