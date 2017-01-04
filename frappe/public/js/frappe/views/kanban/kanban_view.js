@@ -466,8 +466,9 @@ frappe.provide("frappe.views");
 
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
 		var self = {};
-		//TODO: create a store for each card
+
 		function init() {
+			if(!card) return;
 			make_dom();
 			render_card_meta();
 			bind_edit_card();
