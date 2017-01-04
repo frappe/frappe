@@ -364,7 +364,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					doctype: c.reference_doctype,
 					name: c.reference_name
 				},
-				txt: "",
 				sender:sender,
 				subject: "Re: " + c.subject,
 				recipients: c.sender,
@@ -386,7 +385,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					doctype: c.reference_doctype,
 					name: c.reference_name
 				},
-				txt: "",
 				sender:sender,
 				subject: "Re: " + c.subject,
 				recipients: c.sender+ (c.cc ? ","+c.cc:""),
@@ -408,7 +406,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					doctype: c.reference_doctype,
 					name: c.reference_name
 				},
-				txt: "",
 				sender:sender,
 				subject: "FW: " + c.subject,
 				last_email: c,
@@ -417,7 +414,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			});
 	
 			$(communication.dialog.fields_dict.select_attachments.wrapper).find("input[type=checkbox]").prop("checked",true)
-
         });
     },
 	relink:function(row){
