@@ -101,13 +101,12 @@ frappe.views.CommunicationComposer = Class.extend({
 				if (list["message"]) {
 					var accounts = [];
 
-					for (var i =0;i<list["message"].length;i++)
-					{
+					for (var i =0;i<list["message"].length;i++){
 						accounts.push(list["message"][i]["email_id"])
 					}
 					me.from = {label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender", options: accounts}
 
-				}else {
+				} else {
 					me.from = false
 				}
 			}
@@ -125,7 +124,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
 		if(this.dialog.fields_dict.sender) {
-		$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
+			$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
 		}
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();

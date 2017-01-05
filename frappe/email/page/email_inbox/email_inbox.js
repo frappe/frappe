@@ -310,8 +310,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		var me = this;
 		me.actions_opened = false;
 		//mark email as read
-		
-		this.mark_read({n:row.name, u:row.uid});
+		this.mark_read(row);
 		//start of open email
 
 		var emailitem = new frappe.ui.Dialog ({
@@ -539,8 +538,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			}
 			new frappe.views.CommunicationComposer({
 					doc: {},
-					sender: sender,
-					txt: ""
+					sender: sender
 			});
 		},"fa-plus","New Email");
 	},
@@ -559,10 +557,10 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	delete_email:function(data){
 		var me = this;
 		if (!data) {
-			var names = $.map(me.action_checked_items('.data("data")'),function(v){return {n:v.name, u:v.uid}})
+			var names = $.map(me.action_checked_items('.data("data")'),function(v){return {name:v.name, uid:v.uid}});
 			me.action_checked_items('.remove()')
 		} else {
-			var names = [data]
+			var names = [{name:data.name, uid:data.uid}]
 		}
 		//could add flag to sync deletes but not going to as keeps history
 		
@@ -573,7 +571,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	},
 	mark_unread:function(){
 		var me = this;
-		var names = $.map(me.action_checked_items('.data("data")'), function(v){return {n:v.name, u:v.uid}})
+		var names = $.map(me.action_checked_items('.data("data")'), function(v){return {name:v.name, uid:v.uid}});
 		me.create_flag_queue(names,"-FLAGS","(\\SEEN)","seen");
 		me.action_checked_items('.css("font-weight", "BOLD")');
 		me.update_local_flags(names,"seen","0")
@@ -581,13 +579,13 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	mark_read:function(data){
 		var me = this;
 		if (!data) {
-			var names = $.map(me.action_checked_items('.data("data")'), function(v){return {n:v.name, u:v.uid}})
+			var names = $.map(me.action_checked_items('.data("data")'), function(v){return {name:v.name, uid:v.uid}});
 			me.action_checked_items('.css("font-weight", "normal")')
 		} else{
-				var names = [data]
-				$(".row-named").filter("[data-name=" + data.n + "]").css("font-weight", "normal")
+				var names = [{name:data.name, uid:data.uid}];
+				$(".row-named").filter("[data-name=" + data.name + "]").css("font-weight", "normal")
 		}
-		me.create_flag_queue(names,"+FLAGS","(\\SEEN)","seen")
+		me.create_flag_queue(names,"+FLAGS","(\\SEEN)","seen");
 		me.update_local_flags(names,"seen","1")
 
 	},

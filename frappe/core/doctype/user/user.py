@@ -57,7 +57,7 @@ class User(Document):
 			permissions = set([x.defvalue for x in get_permissions(self.name, "Email Account")])
 			user_emails = set([x.email_account for x in self.user_emails])
 
-			# compare vs user emails
+			# compare vs user email
 			add = user_emails - permissions
 			remove = permissions - user_emails
 
@@ -581,13 +581,13 @@ def has_email_account(email):
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
 	waiting = frappe.db.sql("""select email_account,email_id
-		from `tabUser Emails`
+		from `tabUser Email`
 		where awaiting_password = 1
 		and parent = %(user)s""", {"user":user}, as_dict=1)
 	if waiting:
 		return waiting
 	else:
-		frappe.db.sql("""update `tabUser Emails`
+		frappe.db.sql("""update `tabUser Email`
 	    		set awaiting_password =0
 	    		where parent = %(user)s""",{"user":user})
 		return False
@@ -602,7 +602,7 @@ def set_email_password(email_account, user, password):
 		try:
 			validate = account.validate()
 			save= account.save(ignore_permissions=True)
-			frappe.db.sql("""update `tabUser Emails` set awaiting_password = 0
+			frappe.db.sql("""update `tabUser Email` set awaiting_password = 0
 				where email_account = %(account)s""",{"account": email_account})
 			ask_pass_update()
 		except Exception, e:
@@ -614,7 +614,7 @@ def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
 	users = frappe.db.sql("""SELECT DISTINCT(parent)
-                    FROM `tabUser Emails`
+                    FROM `tabUser Email`
                     WHERE awaiting_password = 1""", as_list=1)
 
 	password_list = []

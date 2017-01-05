@@ -113,7 +113,7 @@ frappe.ui.form.on("Email Account", {
 				delete frappe.route_titles["create user account"];
 				var userdoc = frappe.get_doc("User",user);
 				frappe.model.with_doc("User", user, function (doc) { 
-					var new_row = frappe.model.add_child(userdoc, "User Emails", "user_emails");
+					var new_row = frappe.model.add_child(userdoc, "User Email", "user_email");
 					new_row.email_account = cur_frm.doc.name;
 					new_row.awaiting_password = cur_frm.doc.awaiting_password;
 					new_row.email_id = cur_frm.doc.email_id;

@@ -81,10 +81,10 @@ class EmailAccount(Document):
 		self.there_must_be_only_one_default()
 		if self.awaiting_password:
 			# push values to user_emails
-			frappe.db.sql("""UPDATE `tabUser Emails` SET awaiting_password = 1
+			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 1
 						  WHERE email_account = %(account)s""", {"account": self.name})
 		else:
-			frappe.db.sql("""UPDATE `tabUser Emails` SET awaiting_password = 0
+			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 0
 									  WHERE email_account = %(account)s""", {"account": self.name})
 		from frappe.core.doctype.user.user import ask_pass_update
 		ask_pass_update()
@@ -287,7 +287,7 @@ class EmailAccount(Document):
 				message_id = "can't be parsed"
 
 			unhandled_email = frappe.get_doc({
-				"doctype": "Unhandled Emails",
+				"doctype": "Unhandled Email",
 				"email_account": email_server.settings.email_account,
 				"uid": uid,
 				"message_id": message_id,

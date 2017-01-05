@@ -6,6 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
-class UnhandledEmails(Document):
+class UnhandledEmail(Document):
 	def on_trash(self):
-		frappe.db.set_value("Email Account",self.email_account,"uidnext",None)
+		frappe.db.set_value("Email Account",self.email_account,"no_remaining",None)

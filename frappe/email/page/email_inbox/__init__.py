@@ -56,12 +56,12 @@ def create_flag_queue(names,action,flag,field):
 		pass
 
 	for item in names:
-		if item["u"]:
-			state = frappe.db.get_value("Communication", item["n"], field)
+		if item["uid"]:
+			state = frappe.db.get_value("Communication", item["name"], field)
 			if (action =='+FLAGS' and state ==0) or (action =='-FLAGS' and state ==1): #check states are correct
 				try:
 					queue = frappe.db.sql("""select name,action,flag from `tabEmail Flag Queue`
-					where comm_name = %(name)s""",{"name":item["n"]},as_dict=1)
+					where comm_name = %(name)s""",{"name":item["name"]},as_dict=1)
 					for q in queue:
 						if q.flag==flag:#is same email with same flag
 							if q.action!=action:#to prevent flag local and server states being out of sync
@@ -70,7 +70,7 @@ def create_flag_queue(names,action,flag,field):
 	
 					flag_queue = frappe.get_doc({
 						"doctype": "Email Flag Queue",
-						"comm_name": str(item["n"]),
+						"comm_name": str(item["name"]),
 						"action":action,
 						"flag":flag
 					})
@@ -86,7 +86,7 @@ def setnomatch(name):
 def update_local_flags(names,field,val):
 	names = json.loads(names)
 	for d in names:
-		frappe.db.set_value("Communication", str(d["n"]), field, val,update_modified=False)
+		frappe.db.set_value("Communication", str(d["name"]), field, val,update_modified=False)
 
 @frappe.whitelist()
 def get_length(email_account):
@@ -101,7 +101,7 @@ def get_length(email_account):
 def get_accounts(user):
 	try:
 		return frappe.db.sql("""select email_account,email_id
-		from `tabUser Emails`
+		from `tabUser Email`
 		where parent = %(user)s
 		order by idx""",{"user":user},as_dict=1)
 	except:

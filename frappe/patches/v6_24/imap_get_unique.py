@@ -8,7 +8,7 @@ from frappe.email.receive import get_unique_id
 
 def execute():
 	frappe.reload_doctype("Communication")
-	frappe.reload_doctype("Unhandled Emails")
+	frappe.reload_doctype("Unhandled Email")
 	for email_account in frappe.get_list("Email Account", filters={"awaiting_password": 0}):
 		email_acc = frappe.get_doc("Email Account", email_account)
 		try:
@@ -18,7 +18,7 @@ def execute():
 			messages = email_server.imap.uid('fetch', "1:*",'(BODY.PEEK[HEADER])')
 			comms = frappe.db.sql("""select uid,name from `tabCommunication`
 					where email_account=%(email_account)s""",{"email_account":email_account.name},as_dict=1 )
-			unhandled = frappe.db.sql("""select uid,name from `tabUnhandled Emails`
+			unhandled = frappe.db.sql("""select uid,name from `tabUnhandled Email`
 					where email_account=%(email_account)s""",{"email_account":email_account.name},as_dict=1 )
 			count =0;
 			for i, item in enumerate(messages[1]):
@@ -58,7 +58,7 @@ def execute():
 						for comm in unhandled:
 							if comm.uid == uid:
 								found = True
-								frappe.db.sql("""update `tabUnhandled Emails`
+								frappe.db.sql("""update `tabUnhandled Email`
 	                                                   set unique_id = %(unique_id)s
 	                                               where  name = %(name)s
 	                                               """, {"unique_id": unique_id,

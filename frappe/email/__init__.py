@@ -49,10 +49,10 @@ def relink(name,reference_doctype=None,reference_name=None):
 			content += ' from ' + from_link + origin.reference_doctype +' '+ origin.reference_name +'</a>'
 
 		frappe.db.sql("""UPDATE `tabCommunication`
-					SET reference_doctype = %(ref_doc)s, reference_name = %(ref_name)s, STATUS = "Linked"
-					WHERE communication_type = "Communication" and name = %(name)s OR timeline_hide = %(name)s""",
-		              {'ref_doc': dt,
-		               'ref_name': dn, 'name': name})
+			SET reference_doctype = %(ref_doc)s, reference_name = %(ref_name)s, STATUS = "Linked"
+			WHERE communication_type = "Communication" and name = %(name)s OR timeline_hide = %(name)s""",
+              {'ref_doc': dt,
+               'ref_name': dn, 'name': name})
 
 		dup_list = [{"name":name, "timeline_label":False}] + frappe.db.get_values("Communication", {"timeline_hide": name, "communication_type":"Communication"}, ["name", "timeline_label"], as_dict=1)
 		for comm in dup_list:
@@ -62,7 +62,7 @@ def relink(name,reference_doctype=None,reference_name=None):
 					doc.timeline_doctype = None
 					doc.timeline_name = None
 					doc.set_timeline_doc()
-					if comm.name == dup_list[0].name:
+					if comm["name"] == dup_list[0]["name"]:
 						doc.save(ignore_permissions=True)
 					else:
 						doc.db_update()

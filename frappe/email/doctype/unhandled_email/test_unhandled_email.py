@@ -8,5 +8,5 @@ import unittest
 
 # test_records = frappe.get_test_records('Unhandled Emails')
 
-class TestUnhandledEmails(unittest.TestCase):
+class TestUnhandledEmail(unittest.TestCase):
 	pass

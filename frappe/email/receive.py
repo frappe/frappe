@@ -235,7 +235,7 @@ class EmailServer:
 	    			""", {"email_account": self.settings.email_account}, as_dict=1)
 
 		unhandled_uid_list = frappe.db.sql("""select name,uid ,unique_id
-		    				from `tabUnhandled Emails`
+		    				from `tabUnhandled Email`
 		    				where email_account = %(email_account)s and unique_id is not Null
 		    				#order by uid
 		    			""", {"email_account": self.settings.email_account}, as_dict=1)
@@ -273,7 +273,7 @@ class EmailServer:
 	    				set uid = NULL
 	    			where email_account = %(email_account)s
 	    			""", {"email_account": self.settings.email_account})
-		frappe.db.sql("""update `tabUnhandled Emails`
+		frappe.db.sql("""update `tabUnhandled Email`
 			    				set uid = NULL
 			    			where email_account = %(email_account)s
 			    			""", {"email_account": self.settings.email_account})
@@ -292,7 +292,7 @@ class EmailServer:
 		for old in unhandled_uid_list:
 			for new in message_list:
 				if old["unique_id"] == new[1]:
-					frappe.db.sql("""update `tabUnhandled Emails`
+					frappe.db.sql("""update `tabUnhandled Email`
                             set uid = %(uid)s
                         where name = %(name)s
                         """, {"name": old["name"],
@@ -316,7 +316,7 @@ class EmailServer:
 						order by uid
 			""",{"email_account":self.settings.email_account},as_list=1)
 			uid_list = uid_list + (frappe.db.sql("""select uid
-						from `tabUnhandled Emails`
+						from `tabUnhandled Email`
 						where email_account = %(email_account)s and uid is not Null
 						order by uid
 			""",{"email_account":self.settings.email_account},as_list=1))
