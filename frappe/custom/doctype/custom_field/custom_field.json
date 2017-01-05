@@ -908,7 +908,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "fieldname": "in_filter_dash", 
+   "fieldname": "in_standard_filter",
    "fieldtype": "Check", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
