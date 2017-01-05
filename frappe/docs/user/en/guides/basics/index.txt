@@ -5,4 +5,4 @@ site_config
 hooks
 translations
 writing-tests
-client-side-api
+frappe_ajax_call

@@ -1,17 +1,6 @@
-In Web applications Client initiates the request, server accept the request, process it and sends response back to client.
+In frappe framework, you can manage ajax calls via frappe.call. The frappe.call works in asynchronous manner ie. send requests and handle response via callback mechanism.
 
-<img class="screenshot" src="{{docs_base_url}}/assets/img/client_server_communication.png">
-
-In frappe framework, `frappe.call` calls an AJAX request on the specified white listed server method.
-
-This can be used while scripting forms or building custom UI on the Desk. 
-
-Sample use cases are:
-
-- Querying data from the server using REST API
-- Calling whitelisted server methods
-
-## Basic Structure of frappe.call
+## frappe.call Structure
 
 	frappe.call({
 		type: opts.type || "POST",
@@ -26,7 +15,7 @@ Sample use cases are:
 		url: opts.url || frappe.request.url,
 	})
 
-##### Parameter description :
+#### Parameter description :
 - type: String parameter, http request type "GET", "POST", "PUT", "DELETE". Default set to "POST".
 - args: associative array, arguments that will pass with request.
 - success: Function parameter, code snippet, will after successful execution of request
@@ -39,37 +28,35 @@ Sample use cases are:
 - url: String parameter, location from where hitting the request
 
 
-## Example
+## How to use frappe.call ?
 
-### Without server access
-frappe.call() design supports, request making without having access to server script.
-
+### Calling standard API
+	frappe.call({
+		method: 'frappe.client.get_value',
+		args: {
+			'doctype': 'Item',
+			'filters': {'name': item_code},
+			'fieldname': [
+				'item_name',
+				'web_long_description',
+				'description',
+				'image',
+				'thumbnail'
+			]
+		},
+		callback: function(r) {
+			if (!r.exc) {
+				// code snippet
+			}
+		}
+	});
+	
 - Param description:
 	- doctype: name of doctype for which you want to pull information
 	- filters: condition specifier
 	- fieldname: you can specify fields in array that you want back in response
 
-			frappe.call({
-				method: 'frappe.client.get_value',
-				args: {
-					'doctype': 'Item',
-					'filters': {'name': item_code},
-					'fieldname': [
-						'item_name',
-						'web_long_description',
-						'description',
-						'image',
-						'thumbnail'
-					]
-				},
-				callback: function(r) {
-					if (!r.exc) {
-						// code snippet
-					}
-				}
-			});
-	
-### With server access
+### Calling whitelisted functions
 - Code client side
 
 		frappe.call({
@@ -86,4 +73,4 @@ frappe.call() design supports, request making without having access to server sc
 			// business logic
 			return value
 
-Note: While accessing any server side method via frappe.call(), you need to whitelist server side method by using decorator `@frappe.whitelist`
+Note: While accessing any server side method via frappe.call(), you need to whitelist server side method using decorator `@frappe.whitelist`
