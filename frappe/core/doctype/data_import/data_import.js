@@ -15,14 +15,11 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	refresh: function(frm) {
-		if (frm.doc.import_file) {
-			frm.get_field('import_button').$input.addClass("btn-primary btn-md")
-				.removeClass('btn-xs');
-		}
 		if(frm.doc.preview_data && frm.doc.docstatus!=1) { 
-			frm.events.render_html(frm);
-			
+			frm.events.render_html(frm);	
 		}
+		// frm.get_field('import_button').$input.addClass("btn-primary btn-md")
+		// 	.removeClass('btn-xs');
 	},
 
 	before_save: function(frm) {
@@ -65,7 +62,7 @@ frappe.ui.form.on('Data Import', {
 	import_button: function(frm) {
 		var me = this;
 		frm.save();
-		if (!frm.doc.idmport_file) {
+		if (!frm.doc.import_file) {
 			frappe.throw("Attach a file for importing")
 		}
 		if (frm.doc.file_format == '.xlsx') {
@@ -96,6 +93,9 @@ frappe.ui.form.on('Data Import', {
 				},
 				callback: function(r) {
 					frm.doc.freeze_doctype = 1;
+					// frm.save();
+
+					console.log(r);
 
 					if(r.message.error || r.message.messages.length==0) {
 						me.onerror(r);
@@ -107,34 +107,37 @@ frappe.ui.form.on('Data Import', {
 						}
 
 						r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
-							concat(r.message.messages)
+							concat(r.message.messages);
 
-						me.write_messages(r.messages);
+						frm.doc.import_log = "<h5 style='color:green'>" + __("Import Successful!") + "</h5>";
+						cur_frm.cscript.display_import_log(r.messages);
 					}
 				}
 			});
 		}
 	},
-	write_messages: function(data) {
-
-		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();		
-		// TODO render using template!
-		for (var i=0, l=data.length; i<l; i++) {
-			var v = data[i];
-			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo($log_wrapper);
-			if(v.substr(0,5)=='Error') {
-				$p.css('color', 'red');
-			} else if(v.substr(0,8)=='Inserted') {
-				$p.css('color', 'green');
-			} else if(v.substr(0,7)=='Updated') {
-				$p.css('color', 'green');
-			} else if(v.substr(0,5)=='Valid') {
-				$p.css('color', '#777');
-			} else if(v.substr(0,7)=='Ignored') {
-				$p.css('color', '#777');
-			}
-		}
-	},
+	// write_messages: function(frm, data) {
+	// 	console.log("in write messages");
+	// 	$(frm.fields_dict.import_log.wrapper).empty();
+	// 	// var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();		
+		
+	// 	// TODO render using template!
+	// 	for (var i=0, l=data.length; i<l; i++) {
+	// 		var v = data[i];
+	// 		var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(frm.fields_dict.import_log.wrapper);
+	// 		if(v.substr(0,5)=='Error') {
+	// 			$p.css('color', 'red');
+	// 		} else if(v.substr(0,8)=='Inserted') {
+	// 			$p.css('color', 'green');
+	// 		} else if(v.substr(0,7)=='Updated') {
+	// 			$p.css('color', 'green');
+	// 		} else if(v.substr(0,5)=='Valid') {
+	// 			$p.css('color', '#777');
+	// 		} else if(v.substr(0,7)=='Ignored') {
+	// 			$p.css('color', '#777');
+	// 		}
+	// 	}
+	// },
 
 	onerror: function(r) {
 		if(r.message) {
@@ -155,7 +158,34 @@ frappe.ui.form.on('Data Import', {
 
 			r.messages.push("Please correct the format of the file and import again.");
 			frappe.show_progress(__("Importing"), 1, 1);
-			this.write_messages(r.messages);
+			cur_frm.cscript.display_import_log(r.messages);
 		}
 	}
 });
+
+cur_frm.cscript.display_import_log = function(data) {
+	if(!cur_frm.log_html)
+		cur_frm.log_html = $a(cur_frm.fields_dict['import_log'].wrapper,'p');
+	if(data) {
+		for (var i=0, l=data.length; i<l; i++) {
+			var v = data[i];
+			// cur_frm.log_html.innerHTML ='<h4>'+__("Activity Log:")+'</h4>'+msg;
+			cur_frm.log_html.innerHTML = '<p class="padding"><h4>'+frappe.markdown(v)+'</h4>'+'</p>';
+
+			// var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(frm.fields_dict.import_log.wrapper);
+			// if(v.substr(0,5)=='Error') {
+			// 	$p.css('color', 'red');
+			// } else if(v.substr(0,8)=='Inserted') {
+			// 	$p.css('color', 'green');
+			// } else if(v.substr(0,7)=='Updated') {
+			// 	$p.css('color', 'green');
+			// } else if(v.substr(0,5)=='Valid') {
+			// 	$p.css('color', '#777');
+			// } else if(v.substr(0,7)=='Ignored') {
+			// 	$p.css('color', '#777');
+			// }
+		}
+	} else {
+		cur_frm.log_html.innerHTML = "";
+	}
+}
