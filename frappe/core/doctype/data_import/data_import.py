@@ -105,8 +105,8 @@ def insert_into_db(reference_doctype, selected_columns, selected_row, import_fil
 
 
 @frappe.whitelist()
-def upload(doc_name, overwrite=None, update_only = None, submit_after_import=None, ignore_encoding_errors=False,
-		no_email=True, rows = None, ignore_links=False, pre_process=None, via_console=False):
+def upload(doc_name, overwrite, update_only, submit_after_import, ignore_encoding_errors,
+		no_email, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""
 
 	frappe.flags.in_import = True
@@ -364,24 +364,24 @@ def upload(doc_name, overwrite=None, update_only = None, submit_after_import=Non
 
 	return {"messages": ret, "error": error}
 
-def get_parent_field(doctype, parenttype):
-	parentfield = None
+	def get_parent_field(doctype, parenttype):
+		parentfield = None
 
-	# get parentfield
-	if parenttype:
-		for d in frappe.get_meta(parenttype).get_table_fields():
-			if d.options==doctype:
-				parentfield = d.fieldname
-				break
+		# get parentfield
+		if parenttype:
+			for d in frappe.get_meta(parenttype).get_table_fields():
+				if d.options==doctype:
+					parentfield = d.fieldname
+					break
 
-		if not parentfield:
-			frappe.msgprint(_("Did not find {0} for {0} ({1})").format("parentfield", parenttype, doctype))
-			raise Exception
+			if not parentfield:
+				frappe.msgprint(_("Did not find {0} for {0} ({1})").format("parentfield", parenttype, doctype))
+				raise Exception
 
-	return parentfield
+		return parentfield
 
-def delete_child_rows(rows, doctype):
-	"""delete child rows for all parents"""
-	for p in list(set([r[1] for r in rows])):
-		if p:
-			frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)
+	def delete_child_rows(rows, doctype):
+		"""delete child rows for all parents"""
+		for p in list(set([r[1] for r in rows])):
+			if p:
+				frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)
