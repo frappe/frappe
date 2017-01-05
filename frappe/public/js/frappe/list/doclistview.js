@@ -156,7 +156,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if (this.current_view === 'List') {
 			this.header = "list_item_main_head";
-		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
+		} else if (in_list(['Image', 'Kanban', 'Gantt', 'Calendar'], this.current_view)) {
 			this.header = "image_view_item_main_head";
 		}
 
@@ -429,7 +429,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(!this.listview.settings.use_route) {
 			var route = frappe.get_route();
-			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban'], route[2])) {
+			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -613,6 +613,25 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.set_filters(filters);
 				me.run();
 			});
+	},
+
+	render_rows_Calendar: function(values) {
+
+		var options = $.extend(
+			{
+				doctype: this.doctype,
+				parent: this.wrapper.find('.result-list'),
+				page: this.page,
+				filter_vals: this.filter_list.get_filters()
+			},
+			frappe.views.calendar[this.doctype]
+		);
+		frappe.require([
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		], function() {
+			frappe.views.calendars[this.doctype] = new frappe.views.Calendar(options);
+		});
 	},
 
 	render_row: function(row, data) {

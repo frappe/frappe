@@ -5,12 +5,12 @@
 	<li class="divider"></li>
 	<li>
 		<div class="btn-group">
-		  <a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		    {{ __("Reports") }} <span class="caret"></span>
 		  </a>
-		  <ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
-		    <li><a href="#Report/{{ doctype }}">{{ __("Report Builder") }}</a></li>
-		  </ul>
+			<ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
+				<li><a href="#Report/{{ doctype }}">{{ __("Report Builder") }}</a></li>
+			</ul>
 		</div>
 	</li>
 	<li class="divider"></li>
@@ -20,9 +20,10 @@
 		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
 	<li class="hide list-link" data-view="Gantt">
 		<a href="#List/{%= doctype %}/Gantt">{%= __("Gantt") %}</a></li>
-
-	<li class="hide tree-link"><a href="#Tree/{%= doctype %}">{%= __("Tree") %}</a></li>
-	<li class="hide calendar-link"><a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
+	<li class="hide tree-link">
+		<a href="#Tree/{%= doctype %}">{%= __("Tree") %}</a></li>
+	<li class="hide list-link" data-view="Calendar">
+		<a href="#List/{%= doctype %}/Calendar">{%= __("Calendar") %}</a></li>
 	<li class="hide list-link" data-view="Kanban">
 		<div class="btn-group">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

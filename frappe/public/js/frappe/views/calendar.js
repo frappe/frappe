@@ -34,13 +34,11 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	},
 	make_page: function() {
 		var me = this;
-		this.parent = frappe.make_page();
 
 		$(this.parent).on("show", function() {
 			me.set_filters_from_route_options();
 		});
 
-		this.page = this.parent.page;
 		var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
 
@@ -70,7 +68,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		$.each(frappe.boot.calendars, function(i, doctype) {
 			if(frappe.model.can_read(doctype)) {
 				me.page.add_menu_item(__(doctype), function() {
-					frappe.set_route("Calendar", doctype);
+					frappe.set_route("List", doctype, "Calendar");
 				});
 			}
 		});
@@ -84,9 +82,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 	make: function() {
 		var me = this;
-		this.$wrapper = this.page.main;
+		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		footnote = frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
+		footnote = frappe.utils.set_footnote(this, this.$wrapper,
+			__("Select or drag across time slots to create a new event."));
 		footnote.css({"border-top": "0px"});
 		//
 		// $('<div class="help"></div>')
@@ -221,11 +220,20 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		}
 	},
 	get_args: function(start, end) {
+		console.log(this.filter_vals)
+		if(this.filter_vals) {
+			var filters = {};
+			this.filter_vals.forEach(function(f) {
+				if(f[2]==="=") {
+					filters[f[1]] = f[3];
+				}
+			});
+		}
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: this.get_filters()
+			filters: filters
 		};
 		return args;
 	},
