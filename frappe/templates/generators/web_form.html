@@ -758,7 +758,7 @@ frappe.ready(function() {
 });
 
 {% if script is defined %}
-{{ script }}
+{{ script.decode('utf-8') }}
 {% endif %}
 
 </script>
