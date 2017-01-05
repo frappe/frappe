@@ -675,7 +675,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_date_options: function() {
 		this._super();
 		this.datepicker_options.timepicker = true;
-		this.datepicker_options.timeFormat = "hh:ii";
+		this.datepicker_options.timeFormat = "hh:ii:ss";
 	},
 	parse: function(value) {
 		if(value) {

@@ -353,7 +353,8 @@ fieldset[disabled] .form-control {
   z-index: 9999 !important;
 }
 .datepicker--time-current-hours,
-.datepicker--time-current-minutes {
+.datepicker--time-current-minutes,
+.datepicker--time-current-seconds {
   font-family: inherit;
 }
 .datepicker--day-name {
