@@ -96,7 +96,7 @@ class AutoEmailReport(Document):
 					frappe.utils.format_datetime(frappe.utils.now_datetime())))
 
 		if self.description:
-			message += '<hr>' + self.description
+			message += '<hr style="margin: 15px 0px;">' + self.description
 
 		if self.format=='HTML':
 			message += '<hr>' + data
@@ -122,12 +122,10 @@ class AutoEmailReport(Document):
 		)
 
 	def get_report_footer(self):
-		return """<hr style="margin-top:30px; margin-bottom:30px;">
-		<p style="font-size: 10px;">
+		return """<hr style="margin: 30px 0px 15px 0px;">
+		<p style="font-size: 9px;">
 			View report in your browser: 
-			<a href= {{report_url}} target="_blank">{{report_name}}</a>
-		</p>
-		<p style="font-size: 10px;">
+			<a href= {{report_url}} target="_blank">{{report_name}}</a><br><br>
 			Edit Auto Email Report Settings: {{edit_report_settings}}
 		</p>"""
 
