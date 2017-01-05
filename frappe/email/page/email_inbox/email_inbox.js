@@ -151,8 +151,9 @@ frappe.Inbox = frappe.ui.Listing.extend({
 				"subject", "status" ,"reference_doctype", "reference_name", "timeline_doctype", "timeline_name",
 				"timeline_label", "sent_or_received", "uid", "message_id", "seen", "nomatch", "has_attachment", "timeline_hide"],
 			filters: this.filter_list.get_filters(),
-			order_by: 'communication_date desc'
-		}
+			order_by: 'communication_date desc',
+			save_list_settings: false
+		};
 
 		args.filters = args.filters.concat(this.filter_list.default_filters)
 
@@ -216,7 +217,8 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			args: {
 				doctype: me.doctype,
 				fields: ["count(*) as number"],
-				filters: filters
+				filters: filters,
+				save_list_settings: false
 			},
 			callback: function (r) {
 				r.values = me.get_values_from_response(r.message);
