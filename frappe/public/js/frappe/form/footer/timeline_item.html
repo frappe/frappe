@@ -18,14 +18,14 @@
 				</span>
 			</div>
 			<div class="pull-right edit-btn-container">
-                <span class="small text-muted">
-                    {%= data.edit %}
-                </span>
-            </div>
+				<span class="small text-muted">
+					{%= data.edit %}
+				</span>
+			</div>
 			{% if(data.communication_type==="Communication" || (data.communication_type==="Comment" && data.comment_type==="Comment")) { %}
 				<div class="comment-header small">
-                    <i class="{%= data.icon %} fa-fw"></i>
-                    <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
+					<i class="{%= data.icon %} fa-fw"></i>
+					<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 					<span>
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							&ndash;
@@ -34,12 +34,12 @@
 							</a>
 						{% } %}
 					</span>
-                    <span class="text-muted" style="font-weight: normal;">
-                        &ndash; {%= data.comment_on %}</span>
-                    {% if(data.communication_type==="Communication") { %}
+					<span class="text-muted" style="font-weight: normal;">
+						&ndash; {%= data.comment_on %}</span>
+					{% if(data.communication_type==="Communication") { %}
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
-                            class="text-muted">
+							class="text-muted">
 						{% } %}
 
 							{% if (data.delivery_status) {
@@ -69,9 +69,9 @@
 
 						{% if (data.communication_medium === "Email") { %}
 						<a class="text-muted reply-link pull-right"
-                            data-name="{%= data.name %}">{%= __("Reply") %}</a>
+							data-name="{%= data.name %}">{%= __("Reply") %}</a>
 						{% } %}
-                    {% } %}
+					{% } %}
 					<span class="comment-likes" data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
 						<i class="octicon octicon-heart like-action
 							{% if (!data.liked_by_user) { %}
@@ -81,15 +81,15 @@
 							data-name="{%= data.name %}"></i>
 						<span class="likes-count text-muted">{{ (data._liked_by || []).length }}</span>
 					</span>
-                </div>
+				</div>
 				<div class="reply" style="overflow-x: auto">
-        			<div class="timeline-item-content">
-        				{%= data.content_html %}
-        			</div>
-                </div>
-            {% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
-                <div class="small">
-                    <i class="{%= data.icon %} fa-fw"></i>
+					<div class="timeline-item-content">
+						{%= data.content_html %}
+					</div>
+				</div>
+			{% } else if(in_list(["Assignment Completed", "Assigned", "Shared", "Unshared"], data.comment_type)) { %}
+				<div class="small">
+					<i class="{%= data.icon %} fa-fw"></i>
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
 								<strong>{{ __(data.reference_doctype) }}</strong> {{ data.reference_name }}
@@ -99,16 +99,16 @@
 						{% if(data.link_doctype && data.link_name) { %}
 						<a href="#Form/{%= data.link_doctype %}/{%= data.link_name %}">
 						{% } %}
-	                        {%= __(data.content) %}
+							{%= __(data.content) %}
 						{% if(data.link_doctype && data.link_name) { %}
 						</a>
 						{% } %}
-                        <span class="text-muted" style="font-weight: normal;">
-                        &ndash; {%= data.comment_on %}</span>
-                </div>
-            {% } else { %}
-                <div class="small">
-                    <i class="{%= data.icon %} fa-fw"></i>
+						<span class="text-muted" style="font-weight: normal;">
+						&ndash; {%= data.comment_on %}</span>
+				</div>
+			{% } else { %}
+				<div class="small">
+					<i class="{%= data.icon %} fa-fw"></i>
 					{% if (data.comment_type == "Like") { %}
 					<span title="{%= data.comment_by %}">
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
@@ -119,7 +119,7 @@
 						{%= __("Liked by {0}", [data.fullname]) %}
 					</span>
 					{% } else { %}
-                    	<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
+						<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 						{%= __(data.content) %}
 						{% if (data.timeline_doctype===data.frm.doc.doctype && data.timeline_name===data.frm.doc.name) { %}
 							 &ndash;
@@ -128,10 +128,10 @@
 							</a>
 						{% } %}
 					{% } %}
-                    <span class="text-muted" style="font-weight: normal;">
-                    &ndash; {%= data.comment_on %}</span>
-                </div>
-            {% } %}
+					<span class="text-muted" style="font-weight: normal;">
+					&ndash; {%= data.comment_on %}</span>
+				</div>
+			{% } %}
 			{% if(data.attachments && data.attachments.length) { %}
 			<div style="margin: 10px 0px">
 				{% $.each(data.attachments, function(i, a) { %}
