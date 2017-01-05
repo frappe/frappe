@@ -464,7 +464,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,سوال
 DocType: DocType,Sort Order,ترتیب
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'فہرست میں،' صف میں داخل {0} کرنے کی اجازت نہیں {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,آپ کا ای میل کی شناخت
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,آپ کا ای میل کی شناخت
 DocType: Custom Field,Select the label after which you want to insert new field.,آپ نئے میدان داخل کرنا چاہتے ہیں، جس کے بعد لیبل منتخب کریں.
 ,Document Share Report,دستاویز کا اشتراک رپورٹ
 DocType: User,Last Login,آخری لاگ ان
@@ -646,7 +646,7 @@ DocType: Page,Page HTML,صفحے کے HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,مزید نوڈس صرف &#39;گروپ&#39; قسم نوڈس کے تحت پیدا کیا جا سکتا
 DocType: Web Page,Header,ہیڈر
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},نامعلوم کالم: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,اختیاری: ہمیشہ ان کی شناخت کرنے کے لئے بھیج. ایک نئی صف پر ہر ای میل کی شناخت
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,اختیاری: ہمیشہ ان کی شناخت کرنے کے لئے بھیج. ایک نئی صف پر ہر ای میل کی شناخت
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,کردار {0} کے ساتھ صارفین:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},نصب اپلی کیشن {0}
 DocType: Print Format,Custom Format,اپنی مرضی کی شکل
@@ -714,7 +714,7 @@ DocType: Workflow State,retweet,ریٹویٹ
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,سانچے کو اپ ڈیٹ اور منسلک کرنے سے پہلے CSV میں فارمیٹ (کاما علیحدہ اقدار) کو بچانے کے.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,فیلڈ کی قدر کی وضاحت
 DocType: Report,Disabled,معذور
-DocType: Email Account,Always use Account's Email ID as Sender,ہمیشہ مرسل کے طور پر اکاؤنٹ کی ای میل آئی ڈی کا استعمال کرتے ہیں
+DocType: Email Account,Always use Account's Email Address as Sender,ہمیشہ مرسل کے طور پر اکاؤنٹ کی ای میل آئی ڈی کا استعمال کرتے ہیں
 DocType: Workflow State,eye-close,آنکھ بند
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',ایک اور طریقہ ادائیگی کا انتخاب کریں. {0} کرنسی میں لین دین کی حمایت نہیں کرتا &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,سے OAuth مھیا ترتیبات
@@ -855,7 +855,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,میل Sendgrid
 DocType: Workflow State,leaf,پتی
 DocType: Portal Menu Item,Portal Menu Item,پورٹل مینو اشیاء
-DocType: Email Account,Email ID,ای میل ID
+DocType: Email Account,Email Address,ای میل ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,داخل کریں لنک
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,وسائل کی ایک فہرست ہے جس میں کلائنٹ اے پی پی کے بعد صارف کو یہ اجازت دیتا ہے تک رسائی حاصل ہوگی. <br> مثال کے طور پر اس منصوبے
 DocType: Contact Us Settings,Query Options,استفسار کے اختیارات
@@ -889,7 +889,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,نوٹس:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,ڈالنے
 DocType: DocShare,Document Name,دستاویز کا نام
 DocType: ToDo,Medium,میڈیم
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,آپ کا ای میل ID براہ کرم توثیق کریں
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,آپ کا ای میل ID براہ کرم توثیق کریں
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,لنک دیکھنے کے لئے کافی نہیں کی اجازت.
 DocType: Customize Form,Customize Form,فارم اپنی مرضی کے مطابق
 DocType: Currency,A symbol for this currency. For e.g. $,اس کرنسی کے لئے ایک علامت. مثال کے طور پر $ کے لئے
@@ -1080,7 +1080,7 @@ DocType: Workflow State,step-backward,قدم پیچھے
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,آپ کی ویب سائٹ تشکیل میں ڈراپ باکس رسائی کی چابیاں مقرر کریں
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,اس ای میل ایڈریس پر بھیجنے کی اجازت دینے کے لیے اس ریکارڈ کو حذف کریں
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,اس اکاؤنٹ کا استعمال کرتے ہوئے بھیجے گئے تمام ای میلز کے لئے مرسل کے طور پر اس کے اکاؤنٹ میں ذکر ای میل آئی ڈی کا استعمال کرتا ہے.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,اس اکاؤنٹ کا استعمال کرتے ہوئے بھیجے گئے تمام ای میلز کے لئے مرسل کے طور پر اس کے اکاؤنٹ میں ذکر ای میل آئی ڈی کا استعمال کرتا ہے.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,صرف لازمی شعبوں نئے ریکارڈ کے لئے ضروری ہیں. اگر تم چاہو تو غیر لازمی کالم حذف کر سکتے ہیں.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ایونٹ کو اپ ڈیٹ کرنے سے قاصر
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ادائیگی مکمل
@@ -1272,7 +1272,7 @@ DocType: Workflow State,bookmark,بک مارک
 DocType: Note,Note,نوٹ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,غلطی کی رپورٹ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,ٹائم لائن میدان میں ایک درست FIELDNAME ہونا ضروری ہے
-DocType: Email Account,Email Ids,ای میل کی شناخت
+DocType: Email Account,Email Addresses,ای میل کی شناخت
 DocType: Currency,Symbol,علامت
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,صف # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,نیا پاس ورڈ ای میل
@@ -1694,7 +1694,7 @@ DocType: Async Task,Queued,قطار میں
 DocType: PayPal Settings,Use Sandbox,سینڈباکس استعمال
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,نئے اپنی مرضی کے پرنٹ کی شکل
 DocType: DocPerm,Create,بنائیں
-DocType: Newsletter,A Lead with this email id should exist,یہ ای میل آئی ڈی کے ساتھ ایک لیڈ وجود چاہئے
+DocType: Newsletter,A Lead with this Email Address should exist,یہ ای میل آئی ڈی کے ساتھ ایک لیڈ وجود چاہئے
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},غلط فلٹر: {0}
 DocType: Integration Service,Background Events,پس منظر تقریبات
 DocType: Dropbox Settings,App Access Key,اپلی رسائی کلید
@@ -1869,7 +1869,7 @@ DocType: Workflow Document State,Only Allow Edit For,صرف ترمیم کے لئ
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,تمھارا نام
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,فولڈر ہے
-DocType: Newsletter,Test Email Id,ٹیسٹ ای میل کی شناخت
+DocType: Newsletter,Test Email Address,ٹیسٹ ای میل کی شناخت
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,صارف {0} موجود نہیں ہے
 DocType: Website Theme,"If image is selected, color will be ignored.",تصویر منتخب کیا جاتا ہے تو، رنگ کو نظر انداز کیا جائے گا.
@@ -2219,7 +2219,7 @@ DocType: Communication,Email Account,ای میل اکاؤنٹ
 DocType: Workflow State,Download,ڈاؤن لوڈ
 DocType: Blog Post,Blog Intro,انٹرو بلاگ
 DocType: Async Task,Result,نتیجہ
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ایک درست ای میل کی شناخت نہیں ہے
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ایک درست ای میل کی شناخت نہیں ہے
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,رپورٹ فعال
 DocType: DocField,Display Depends On,ڈسپلے پر انحصار کرتا ہے
 DocType: Web Page,Insert Code,داخل کوڈ

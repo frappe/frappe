@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Truy vấn
 DocType: DocType,Sort Order,Xếp theo thứ tự
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},"""Trong danh sách Xem' không cho phép loại {0} trong hàng {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Email của bạn Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Email của bạn Id
 DocType: Custom Field,Select the label after which you want to insert new field.,Chọn nhãn sau đó bạn muốn chèn lĩnh vực mới.
 ,Document Share Report,Tài liệu Chia sẻ Báo cáo
 DocType: User,Last Login,Đăng nhập
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Trang HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Các nút khác có thể được chỉ tạo ra dưới các nút kiểu 'Nhóm'
 DocType: Web Page,Header,Phần đầu
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Cột không rõ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Tùy chọn: Luôn luôn gửi đến các id. Mỗi email id trên một hàng mới
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Tùy chọn: Luôn luôn gửi đến các id. Mỗi Email Address trên một hàng mới
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Người sử dụng với vai trò {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Cài đặt App {0}
 DocType: Print Format,Custom Format,Tuỳ chỉnh Format
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Cập nhật các mẫu và lưu trong CSV (Comma giá trị riêng) định dạng trước khi đính kèm.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Xác định giá trị của trường
 DocType: Report,Disabled,Đã tắt
-DocType: Email Account,Always use Account's Email ID as Sender,Luôn luôn sử dụng Email ID tài khoản của người gửi là
+DocType: Email Account,Always use Account's Email Address as Sender,Luôn luôn sử dụng Email Address tài khoản của người gửi là
 DocType: Workflow State,eye-close,mắt gần
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Vui lòng chọn phương thức thanh toán khác. {0} không hỗ trợ giao dịch tiền tệ &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Cài đặt nhà cung cấp OAuth
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,lá
 DocType: Portal Menu Item,Portal Menu Item,Portal Menu Item
-DocType: Email Account,Email ID,Email ID
+DocType: Email Account,Email Address,Email Address
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Chèn Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,Một danh sách các nguồn App Khách hàng sẽ có quyền truy cập đến sau khi người dùng cho phép nó. <br> ví dụ như dự án
 DocType: Contact Us Settings,Query Options,Tùy chọn truy vấn
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Ghi chú:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Document Name
 DocType: ToDo,Medium,Trung bình
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Vui lòng kiểm tra id email của bạn
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Vui lòng kiểm tra id email của bạn
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Không đủ quyền để xem liên kết.
 DocType: Customize Form,Customize Form,Tùy chỉnh mẫu
 DocType: Currency,A symbol for this currency. For e.g. $,Biểu tượng đồng tiền này. Ví dụ như $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,bước lùi
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Xin vui lòng thiết lập các phím truy cập Dropbox trong cấu hình trang web của bạn
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Xóa hồ sơ này để cho phép gửi đến địa chỉ email này
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Sử dụng ID Email nêu tại khoản này là người gửi cho tất cả các email được gửi bằng cách sử dụng tài khoản này.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Sử dụng ID Email nêu tại khoản này là người gửi cho tất cả các email được gửi bằng cách sử dụng tài khoản này.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Chỉ các trường bắt buộc là cần thiết để làm hồ sơ mới. Bạn có thể xóa các cột không bắt buộc nếu bạn muốn.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Không thể cập nhật sự kiện
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Hoàn tất thanh toán
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,bookmark
 DocType: Note,Note,Nốt nhạc
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Báo cáo lỗi
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,lĩnh vực Timeline phải là một fieldname hợp lệ
-DocType: Email Account,Email Ids,Email Id
+DocType: Email Account,Email Addresses,Email Address
 DocType: Currency,Symbol,Biểu tượng
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Hàng # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Mật khẩu mới qua email
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,Xếp hàng
 DocType: PayPal Settings,Use Sandbox,sử dụng Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Mới Custom In Format
 DocType: DocPerm,Create,Tạo
-DocType: Newsletter,A Lead with this email id should exist,Một Lead với id email này nên có
+DocType: Newsletter,A Lead with this Email Address should exist,Một Lead với id email này nên có
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Bộ lọc không hợp lệ: {0}
 DocType: Integration Service,Background Events,Bối cảnh sự kiện
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,Cho phép chỉ sửa Đố
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Tên của bạn
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Là Folder
-DocType: Newsletter,Test Email Id,Kiểm tra Email Id
+DocType: Newsletter,Test Email Address,Kiểm tra Email Address
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Người sử dụng {0} không tồn tại
 DocType: Website Theme,"If image is selected, color will be ignored.","Nếu hình ảnh được lựa chọn, màu sắc sẽ được bỏ qua."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,Tài khoản Email
 DocType: Workflow State,Download,Đã tải xuống
 DocType: Blog Post,Blog Intro,Giới thiệu Blog
 DocType: Async Task,Result,Kết quả
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} không phải là một id email hợp lệ
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} không phải là một id email hợp lệ
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Kích hoạt tính năng Report
 DocType: DocField,Display Depends On,Hiện thị dựa trên
 DocType: Web Page,Insert Code,Chèn Mã

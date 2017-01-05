@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Query
 DocType: DocType,Sort Order,Järjekord
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&quot;In List View &#39;ei ole lubatud tüüp {0} järjest {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Sinu e-post Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Sinu e-post Id
 DocType: Custom Field,Select the label after which you want to insert new field.,"Valige silt, mille järel soovite lisada uue valdkonna."
 ,Document Share Report,Dokumendi Jaga aruanne
 DocType: User,Last Login,Viimane sisselogimine
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Lisaks sõlmed saab ainult loodud töörühm tüüpi sõlmed
 DocType: Web Page,Header,Päise
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Tundmatu veerg: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Valikuline: Alati saatke need IDd. Iga e-posti id uue rea
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Valikuline: Alati saatke need IDd. Iga e-posti id uue rea
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,"Kasutajad, kellel on osa {0}:"
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Paigaldamine App {0}
 DocType: Print Format,Custom Format,Custom Formaat
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Uuenda malli ja salvestada CSV (Comma Eraldi väärtused) formaadis enne kinnitamist.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Määrake väärtus valdkonnas
 DocType: Report,Disabled,Invaliidistunud
-DocType: Email Account,Always use Account's Email ID as Sender,Kasutage alati konto Email ID saatja kujul
+DocType: Email Account,Always use Account's Email Address as Sender,Kasutage alati konto Email Address saatja kujul
 DocType: Workflow State,eye-close,silmade lähedal
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Palun valige mõni teine makseviis. {0} ei toeta tehingud sularaha &quot;{1}&quot;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Provider seaded
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,leht
 DocType: Portal Menu Item,Portal Menu Item,Portaal Menüüvalik
-DocType: Email Account,Email ID,Email ID
+DocType: Email Account,Email Address,Email Address
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Lingi lisamine
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Nimekirja ressursse, mida klient App on juurdepääs pärast kasutaja seda lubab. <br> nt projekti"
 DocType: Contact Us Settings,Query Options,Päringu valikud
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Märkused:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Hinnaalandus
 DocType: DocShare,Document Name,Dokumendi nimi
 DocType: ToDo,Medium,Medium
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Palun kontrollige oma e-posti id
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Palun kontrollige oma e-posti id
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Ei piisa vaatamiseks luba linke.
 DocType: Customize Form,Customize Form,Kohanda vorm
 DocType: Currency,A symbol for this currency. For e.g. $,Sümbol selle valuuta. Sest näiteks $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,samm-tagasi
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Palun määra Dropbox sissepääsuvõtmetena saidi config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Kustuta see rekord lubada saates selle e-posti aadress
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Kasutab Email ID mainitud seda Konto saatja kõigile kirju saata kasutades selle konto.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Kasutab Email Address mainitud seda Konto saatja kõigile kirju saata kasutades selle konto.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Ainult kohustuslikud väljad on vajalikud uue rekordi. Võite kustutada mittekohustuslikud kolonnid, kui soovite."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Ei saa uuendada juhul
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,makse on
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,järjehoidja
 DocType: Note,Note,Märge
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Viga aruanne
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Timeline valdkonnas peab olema kehtiv fieldname
-DocType: Email Account,Email Ids,E-IDd
+DocType: Email Account,Email Addresses,E-IDd
 DocType: Currency,Symbol,Sümbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Uus salasõna saadetakse
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Järjekorras
 DocType: PayPal Settings,Use Sandbox,Kasuta liivakasti
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,New Custom Print Format
 DocType: DocPerm,Create,Loo
-DocType: Newsletter,A Lead with this email id should exist,Plii See e-id peaksid olemas
+DocType: Newsletter,A Lead with this Email Address should exist,Plii See e-id peaksid olemas
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Vale Filter: {0}
 DocType: Integration Service,Background Events,Taust sündmused
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Ainult Laske Muuda
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Sinu nimi
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Kas Folder
-DocType: Newsletter,Test Email Id,Test Email Id
+DocType: Newsletter,Test Email Address,Test Email Address
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Kasutaja {0} ei ole olemas
 DocType: Website Theme,"If image is selected, color will be ignored.",Kui pilt on valitud värvi ignoreeritakse.
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,Emaili konto
 DocType: Workflow State,Download,Laadi alla
 DocType: Blog Post,Blog Intro,Blogi tutvustus
 DocType: Async Task,Result,Tulemus
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ei ole kehtiv e-posti id
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ei ole kehtiv e-posti id
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Luba aruanne
 DocType: DocField,Display Depends On,Näita sõltub
 DocType: Web Page,Insert Code,Sisesta kood

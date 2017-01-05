@@ -54,7 +54,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
+	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr
@@ -62,7 +62,7 @@ def get_formatted_email(user):
 	return formataddr((fullname, user))
 
 def extract_email_id(email):
-	"""fetch only the email part of the email id"""
+	"""fetch only the email part of the Email Address"""
 	from email.utils import parseaddr
 	fullname, email_id = parseaddr(email)
 	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
@@ -91,7 +91,7 @@ def validate_email_add(email_str, throw=False):
 
 	if not valid:
 		if throw:
-			frappe.throw(frappe._("{0} is not a valid email id").format(email),
+			frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
 				frappe.InvalidEmailAddressError)
 		else:
 			return False
@@ -102,7 +102,7 @@ def validate_email_add(email_str, throw=False):
 		match = matched==email.lower()
 
 	if not match and throw:
-		frappe.throw(frappe._("{0} is not a valid email id").format(email),
+		frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
 			frappe.InvalidEmailAddressError)
 
 	return matched

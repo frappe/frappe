@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,မေးခွန်း
 DocType: DocType,Sort Order,Sort အမိန့်
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;&#39; List ကိုကြည့်ရန်ခုနှစ်တွင် &#39;&#39; အတန်းအတွက်အမျိုးအစား {0} သည်အခွင့်မပေး {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,သင်၏ Email Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,သင်၏ Email Address
 DocType: Custom Field,Select the label after which you want to insert new field.,သင်အသစ်များသည်လယ်ပြင်၌ထည့်သွင်းရန်လိုသည့်နောက်ပိုင်းတံဆိပ်ကိုရွေးချယ်ပါ။
 ,Document Share Report,စာရွက်စာတမ်းဝေမျှမယ်အစီရင်ခံစာ
 DocType: User,Last Login,နောက်ဆုံးဝင်မည်
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,စာမျက်နှာက HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,နောက်ထပ်ဆုံမှတ်များသာ &#39;&#39; Group မှ &#39;&#39; type ကိုဆုံမှတ်များအောက်မှာနေသူများကဖန်တီးနိုင်ပါသည်
 DocType: Web Page,Header,header
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},အမည်မသိစစ်ကြောင်း: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,optional: အမြဲတမ်းသည်ဤ IDs မှပေးပို့ပါ။ အတန်းအသစ်ကိုအပေါ်တစ်ခုချင်းစီအီးမေးလ်က id
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,optional: အမြဲတမ်းသည်ဤ IDs မှပေးပို့ပါ။ အတန်းအသစ်ကိုအပေါ်တစ်ခုချင်းစီအီးမေးလ်က id
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,အခန်းကဏ္ဍ {0} နှင့်အတူအသုံးပြုသူများက:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},App ကို {0} Installing
 DocType: Print Format,Custom Format,custom စီစဉ်ဖွဲ့စည်းမှုပုံစံ
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,တင်းပလိတ်ဖိုင် Update နှင့် CSV အတွက်ကိုကယ်တင် (ကော်မာကိုသီးခြားတန်ဖိုးများ) တွဲခင် format နဲ့။
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,လယ်ပြင်၏တန်ဖိုးကို specify
 DocType: Report,Disabled,ချို့ငဲသော
-DocType: Email Account,Always use Account's Email ID as Sender,ပေးပို့သူအဖြစ်အကောင့်ဖွင့်အီးမေးလ် ID ကိုအမြဲသုံး
+DocType: Email Account,Always use Account's Email Address as Sender,ပေးပို့သူအဖြစ်အကောင့်ဖွင့်အီးမေးလ် ID ကိုအမြဲသုံး
 DocType: Workflow State,eye-close,မျက်စိ-နီးစပ်
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',အခြားပေးချေမှုနည်းလမ်းရွေးချယ်ပါ။ {0} &#39;&#39; {1} &#39;&#39; ငွေကြေးအရောင်းအထောကျပံ့ပေးမထားဘူး
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth ပေးသူက Settings
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,အရွက်
 DocType: Portal Menu Item,Portal Menu Item,portal Menu ကို Item
-DocType: Email Account,Email ID,အီးမေးလ် ID ကို
+DocType: Email Account,Email Address,အီးမေးလ် ID ကို
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Link ကိုထည့်ပါ
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,အသုံးပြုသူကခွင့်ပြုပြီးနောက်လိုင်း App ကိုမှဝင်ရောက်ခွင့်ရှိလိမ့်မည်သည့်အရင်းအမြစ်များကိုစာရင်းတစ်ခု။ <br> ဥပမာစီမံကိန်းအတွက်
 DocType: Contact Us Settings,Query Options,query က Options
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,မှတ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,စာရွက်စာတမ်းအမည်
 DocType: ToDo,Medium,အလယ်အလတ်
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,သင့်ရဲ့အီးမေးလ်က id အတည်ပြုရန် ကျေးဇူးပြု.
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,သင့်ရဲ့အီးမေးလ်က id အတည်ပြုရန် ကျေးဇူးပြု.
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,လင့်များကြည့်ဖို့မလုံလောက်သောခွင့်ပြုချက်။
 DocType: Customize Form,Customize Form,Form တွင် Customize
 DocType: Currency,A symbol for this currency. For e.g. $,ဒီငွေကြေးများအတွက်သင်္ကေတ။ ဥပမာ $ for
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ခြေလှမ်း-နောက်�
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,သင့်ရဲ့ site ကို config ကိုအတွက် Dropbox ကို access ကိုသော့ထားပေးပါ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,အဲဒီအီးမေးလ်လိပ်စာပေးပို့ခြင်းခွင့်ပြုပါရန်ဤမှတ်တမ်း Delete
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ဒီအကောင့်ကိုသုံးပြီးစလှေတျတျောအားလုံးအီးမေးလ်များများအတွက်ပေးပို့သူကြောင့်ဒီအကောင့်အတွက်ဖော်ပြခဲ့သောအီးမေးလ် ID ကိုအသုံးပြုသည်။
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ဒီအကောင့်ကိုသုံးပြီးစလှေတျတျောအားလုံးအီးမေးလ်များများအတွက်ပေးပို့သူကြောင့်ဒီအကောင့်အတွက်ဖော်ပြခဲ့သောအီးမေးလ် ID ကိုအသုံးပြုသည်။
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,သာမဖြစ်မနေလယ်ကွက်အသစ်မှတ်တမ်းများသည်လိုအပ်သောဖြစ်ကြ၏။ အကယ်လို့ဆန္ဒရှိတယ်ဆိုရင် Non-မဖြစ်မနေကော်လံဖျက်ပစ်နိုင်ပါတယ်။
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,အဖြစ်အပျက် update ဖို့မအောင်မြင်ဘူး
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ငွေပေးချေမှုရမည့်အပြီးအစီး
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,bookmark
 DocType: Note,Note,မှတ်ချက်
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,error အစီရင်ခံစာ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Timeline ကိုလယ်တရားဝင် fieldname ဖြစ်ရပါမည်
-DocType: Email Account,Email Ids,အီးမေးလ် IDS
+DocType: Email Account,Email Addresses,အီးမေးလ် IDS
 DocType: Currency,Symbol,အထိမ်းအမှတ်
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,စကားဝှက်အသစ်မေးလ်ပို့ပေး
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Queued
 DocType: PayPal Settings,Use Sandbox,Sandbox ကိုသုံးပါ
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,နယူးအကောက်ခွန်ပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံ
 DocType: DocPerm,Create,ဖန်တီး
-DocType: Newsletter,A Lead with this email id should exist,ဒီအီးမေးလ်က id နှင့်အတူတစ်ခဲတည်ရှိနေသင့်ပါတယ်
+DocType: Newsletter,A Lead with this Email Address should exist,ဒီအီးမေးလ်က id နှင့်အတူတစ်ခဲတည်ရှိနေသင့်ပါတယ်
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},မမှန်ကန်ခြင်း Filter: {0}
 DocType: Integration Service,Background Events,နောက်ခံသမိုင်းပွဲများ
 DocType: Dropbox Settings,App Access Key,App ကို Access ကို Key ကို
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Edit ကိုသည်သ�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,မင်းနာမည်
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Folder ကို Is
-DocType: Newsletter,Test Email Id,စမ်းသပ်မှုအီးမေးလ် Id
+DocType: Newsletter,Test Email Address,စမ်းသပ်မှုအီးမေးလ် Id
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,အသုံးပြုသူ {0} မတည်ရှိပါဘူး
 DocType: Website Theme,"If image is selected, color will be ignored.",image ကိုရွေးချယ်ထားလျှင်အရောင်လျစ်လျူရှုခံရပါလိမ့်မယ်။
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,အီးမေးလ်အကောင်�
 DocType: Workflow State,Download,ဒေါင်းလုပ်
 DocType: Blog Post,Blog Intro,ဘလော့ Intro
 DocType: Async Task,Result,ရလဒ်ကတော့
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} မှန်ကန်သော email က id မဟုတ်ပါဘူး
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} မှန်ကန်သော email က id မဟုတ်ပါဘူး
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,အစီရင်ခံစာ Enable
 DocType: DocField,Display Depends On,display တွင်မူတည်
 DocType: Web Page,Insert Code,INSERT Code ကို

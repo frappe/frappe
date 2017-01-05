@@ -128,7 +128,7 @@ def subscribe(email):
 
 	messages = (
 		_("Thank you for your interest in subscribing to our updates"),
-		_("Please verify your email id"),
+		_("Please verify your Email Address"),
 		url,
 		_("Click here to verify")
 	)

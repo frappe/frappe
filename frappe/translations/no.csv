@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Spørring
 DocType: DocType,Sort Order,Sorteringsrekkefølge
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;I List View&#39; ikke tillatt for typen {0} i rad {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Din e-ID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Din e-ID
 DocType: Custom Field,Select the label after which you want to insert new field.,Velg etiketten etter som du vil sette inn nytt felt.
 ,Document Share Report,Dokument Del Rapporter
 DocType: User,Last Login,Siste innlogging
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Ytterligere noder kan bare skapt under &#39;Gruppe&#39; type noder
 DocType: Web Page,Header,Header
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Ukjent Kolonne: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Valgfritt: Send alltid til disse IDer. Hver e-id på en ny rad
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Valgfritt: Send alltid til disse IDer. Hver e-id på en ny rad
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Brukere med rollen {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Installere App {0}
 DocType: Print Format,Custom Format,Custom Format
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Oppdatere malen og lagre i CSV (Comma Separate Values) format før du fester.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Angi verdien av feltet
 DocType: Report,Disabled,Funksjonshemmede
-DocType: Email Account,Always use Account's Email ID as Sender,Bruk alltid kontoens e-ID som avsender
+DocType: Email Account,Always use Account's Email Address as Sender,Bruk alltid kontoens e-ID som avsender
 DocType: Workflow State,eye-close,eye-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Vennligst velg en annen betalingsmåte. {0} tillater ikke transaksjoner i valuta {1}
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Provider Innstillinger
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,blad
 DocType: Portal Menu Item,Portal Menu Item,Portal menypunkt
-DocType: Email Account,Email ID,E-ID
+DocType: Email Account,Email Address,E-ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Sett Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,En liste over ressurser som klient app vil ha tilgang til etter at brukeren tillater det. <br> f.eks prosjekt
 DocType: Contact Us Settings,Query Options,Query Options
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Merknader:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Dokumentnavn
 DocType: ToDo,Medium,Medium
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Bekreft e-id
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Bekreft e-id
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Ikke nok tillatelse til å se linker.
 DocType: Customize Form,Customize Form,Tilpass Form
 DocType: Currency,A symbol for this currency. For e.g. $,Et symbol for denne valuta. For eksempel $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,trinn bakover
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Vennligst sett Dropbox hurtigtaster på din config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Slett denne posten for å tillate sende til denne e-postadressen
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Bruker e-ID er nevnt i denne kontoen som avsender for alle e-poster sendt fra denne kontoen.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Bruker e-ID er nevnt i denne kontoen som avsender for alle e-poster sendt fra denne kontoen.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Bare obligatoriske feltene er nødvendige for nye rekorder. Du kan slette ikke-obligatoriske kolonner hvis du ønsker det.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Kan ikke oppdatere event
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,betaling Komplett
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,bokmerke
 DocType: Note,Note,Notat
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Feilrapport
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Tidslinje feltet må være en gyldig feltnavn
-DocType: Email Account,Email Ids,E-IDer
+DocType: Email Account,Email Addresses,E-IDer
 DocType: Currency,Symbol,Symbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Nytt passord mailet
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,I kø
 DocType: PayPal Settings,Use Sandbox,bruk Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,New Custom Print Format
 DocType: DocPerm,Create,Skape
-DocType: Newsletter,A Lead with this email id should exist,En Lead med denne e-id skal eksistere
+DocType: Newsletter,A Lead with this Email Address should exist,En Lead med denne e-id skal eksistere
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Ugyldig Filter: {0}
 DocType: Integration Service,Background Events,bakgrunns~~POS=TRUNC Hendelser
 DocType: Dropbox Settings,App Access Key,App tilgangsnøkkel
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Bare Tillat Rediger For
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Navnet ditt
 DocType: DocType,InnoDB,Uskyldig
 DocType: File,Is Folder,Er Folder
-DocType: Newsletter,Test Email Id,Test Email Id
+DocType: Newsletter,Test Email Address,Test Email Address
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Bruker {0} finnes ikke
 DocType: Website Theme,"If image is selected, color will be ignored.","Hvis bildet er valgt, vil fargen bli ignorert."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,E-postkonto
 DocType: Workflow State,Download,Last ned
 DocType: Blog Post,Blog Intro,Blogg Intro
 DocType: Async Task,Result,Resultat
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} er ikke en gyldig e-id
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} er ikke en gyldig e-id
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Aktiver Rapporter
 DocType: DocField,Display Depends On,Visningen avhenger
 DocType: Web Page,Insert Code,Sett inn kode

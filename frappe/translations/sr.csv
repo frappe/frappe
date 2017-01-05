@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Питање
 DocType: DocType,Sort Order,сортировку
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},""" В Список"" не допускается для типа {0} в строке {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Ваш Емаил ИД
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Ваш Емаил ИД
 DocType: Custom Field,Select the label after which you want to insert new field.,Изаберите ознаку након чега желите да убаците ново поље.
 ,Document Share Report,Документ Подели Пријави
 DocType: User,Last Login,Последњи Улазак
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Страна ХТМЛ
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Даље чворови могу бити само створена под ' групе' типа чворова
 DocType: Web Page,Header,Заглавље
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Неизвестный Колонка: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Опционо: Увек пошаљите ове ИД. Сваки емаил ид на нови ред
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Опционо: Увек пошаљите ове ИД. Сваки емаил ид на нови ред
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Пользователи с ролью {0} :
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Инсталирање апликација {0}
 DocType: Print Format,Custom Format,Прилагођени Формат
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,ретвеет
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Упдате предложак и сачувајте у ЦСВ (Цомма посебних вредности) формат пре постављања.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Одређивање вредности на терену
 DocType: Report,Disabled,Онеспособљен
-DocType: Email Account,Always use Account's Email ID as Sender,Увек користите обзир Емаил ИД као Сендер
+DocType: Email Account,Always use Account's Email Address as Sender,Увек користите обзир Емаил ИД као Сендер
 DocType: Workflow State,eye-close,ока близу
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Молимо одаберите други начин плаћања. {0} не подржава трансакције у валути &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,ОАутх Провидер Подешавања
@@ -862,7 +862,7 @@ DocType: File,rgt,ргт
 DocType: Email Account,Sendgrid,Сендгрид
 DocType: Workflow State,leaf,лист
 DocType: Portal Menu Item,Portal Menu Item,Портал Ставка менија
-DocType: Email Account,Email ID,Е-маил ИД
+DocType: Email Account,Email Address,Е-маил ИД
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Убаци линк
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,Листа средстава које ће клијент апликација има приступ након што корисник то дозвољава. <br> нпр пројекат
 DocType: Contact Us Settings,Query Options,Упит Опције
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Напом�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Маркдовн
 DocType: DocShare,Document Name,Документ Име
 DocType: ToDo,Medium,Средњи
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Молимо Вас да потврдите свој емаил ид
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Молимо Вас да потврдите свој емаил ид
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Није довољно дозволу да виде линкове.
 DocType: Customize Form,Customize Form,Прилагодите формулар
 DocType: Currency,A symbol for this currency. For e.g. $,Симбол за ову валуту. За пример $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,корак-назад
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{ app_title }
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,"Пожалуйста, установите ключи доступа Dropbox на своем сайте конфигурации"
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Обриши овај запис како би се омогућило слање на ову емаил адресу
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Користи Емаил ИД поменути у овом рачуну као пошиљалац за све емаил поруке послате преко овог рачуна.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Користи Емаил ИД поменути у овом рачуну као пошиљалац за све емаил поруке послате преко овог рачуна.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Само обавезна поља су неопходни за нове евиденције. Можете обрисати необавезне колоне ако желите.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Није могуће ажурирати догађај
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,plaćanje Комплетна
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,боокмарк
 DocType: Note,Note,Приметити
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Грешка Извештај
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Тимелине поље мора бити валидан фиелднаме
-DocType: Email Account,Email Ids,Е-маил Идс
+DocType: Email Account,Email Addresses,Е-маил Идс
 DocType: Currency,Symbol,Симбол
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Ред # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Новый пароль по электронной почте
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,Куеуед
 DocType: PayPal Settings,Use Sandbox,Употреба Песак
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Нови Прилагођени Принт Формат
 DocType: DocPerm,Create,Створити
-DocType: Newsletter,A Lead with this email id should exist,Олово са овом е ид треба да постоје
+DocType: Newsletter,A Lead with this Email Address should exist,Олово са овом е ид треба да постоје
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Неверный Фильтр: {0}
 DocType: Integration Service,Background Events,бацкгроунд догађаји
 DocType: Dropbox Settings,App Access Key,Апп Приступни тастер
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,Само Дозволи Е�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Твоје име
 DocType: DocType,InnoDB,ИнноДБ
 DocType: File,Is Folder,Да ли је Папка
-DocType: Newsletter,Test Email Id,Тест маил Ид
+DocType: Newsletter,Test Email Address,Тест маил Ид
 DocType: DocType,DocType,ДОЦТИПЕ
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Пользователь {0} не существует
 DocType: Website Theme,"If image is selected, color will be ignored.","Ако је изабрана слика, боја ће бити игнорисан."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,Емаил рачуна
 DocType: Workflow State,Download,скачать
 DocType: Blog Post,Blog Intro,Блог Интро
 DocType: Async Task,Result,Резултат
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} не является допустимым ID E-mail
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} не является допустимым ID E-mail
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Омогући Репорт
 DocType: DocField,Display Depends On,Екрану зависе од
 DocType: Web Page,Insert Code,Инсерт Цоде

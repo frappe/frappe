@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,അന്വേഷണം
 DocType: DocType,Sort Order,ക്രമീകരണം
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;പട്ടിക കാഴ്ചയിൽ&#39; വരി ടൈപ്പ് {0} അനുവദിച്ചിട്ടില്ല {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,നിങ്ങളുടെ ഇമെയിൽ ഐഡി
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,നിങ്ങളുടെ ഇമെയിൽ ഐഡി
 DocType: Custom Field,Select the label after which you want to insert new field.,നിങ്ങൾ പുതിയ ഫീൽഡ് തിരുകാൻ ആഗ്രഹിക്കുന്ന ശേഷം ലേബൽ തിരഞ്ഞെടുക്കുക.
 ,Document Share Report,ഡോക്യുമെന്റ് പങ്കിടുക റിപ്പോർട്ട്
 DocType: User,Last Login,കഴിഞ്ഞ ലോഗിൻ
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,പേജ് എച്ച്ടിഎംഎൽ
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,കൂടുതലായ നോഡുകൾ മാത്രം &#39;ഗ്രൂപ്പ്&#39; ടൈപ്പ് നോഡുകൾ പ്രകാരം സൃഷ്ടിക്കാൻ കഴിയും
 DocType: Web Page,Header,തലക്കുറി
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},അറിയപ്പെടാത്ത നിരയുടെ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ഓപ്ഷണൽ: എല്ലായ്പ്പോഴും ഈ ഐഡികൾ വരെ അയയ്ക്കുക. ഒരു പുതിയ വരി ഓരോ ഇമെയിൽ ഐഡി
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ഓപ്ഷണൽ: എല്ലായ്പ്പോഴും ഈ ഐഡികൾ വരെ അയയ്ക്കുക. ഒരു പുതിയ വരി ഓരോ ഇമെയിൽ ഐഡി
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,പങ്ക് {0} ഉപയോഗിച്ച് ഉപയോക്താക്കൾ:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},അപ്ലിക്കേഷൻ {0} ഇൻസ്റ്റാൾ
 DocType: Print Format,Custom Format,കസ്റ്റം ഫോർമാറ്റ്
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,ReTweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,"ടെംപ്ലേറ്റ് അപ്ഡേറ്റ്, CSV സംരക്ഷിക്കുക (കോമ പ്രത്യേക മൂല്യങ്ങൾ) കൂട്ടിച്ചേർത്തപ്പോൾ മുമ്പ് ഫോർമാറ്റ്."
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,വയലിലെ മൂല്യം വ്യക്തമാക്കുക
 DocType: Report,Disabled,രഹിതമായ
-DocType: Email Account,Always use Account's Email ID as Sender,അയയ്ക്കുന്നയാൾ ആയി അക്കൗണ്ടിന്റെ ഇമെയിൽ ഐഡി എപ്പോഴും ഉപയോഗിക്കുക
+DocType: Email Account,Always use Account's Email Address as Sender,അയയ്ക്കുന്നയാൾ ആയി അക്കൗണ്ടിന്റെ ഇമെയിൽ ഐഡി എപ്പോഴും ഉപയോഗിക്കുക
 DocType: Workflow State,eye-close,കണ്ണ്-അടുത്ത
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',മറ്റൊരു പേയ്മെന്റ് രീതി തിരഞ്ഞെടുക്കുക. {0} കറൻസി ഇടപാടുകളും പിന്തുണയ്ക്കുന്നില്ല &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth ദാതാവ് ക്രമീകരണങ്ങൾ
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ഇല
 DocType: Portal Menu Item,Portal Menu Item,പോർട്ടൽ മെനു ഇനം
-DocType: Email Account,Email ID,ഇമെയിൽ ഐഡി
+DocType: Email Account,Email Address,ഇമെയിൽ ഐഡി
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,ലിങ്ക് ഉൾപ്പെടുത്തുക
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,ഉപയോക്താക്കൾക്ക് അനുവദിക്കുന്നു ശേഷം ക്ലയന്റ് അപ്ലിക്കേഷൻ ആക്സസ് ഉണ്ടായിരിക്കും ഉറവിടങ്ങളിലെ ഒരു ലിസ്റ്റ്. <br> ഉദാ പദ്ധതി
 DocType: Contact Us Settings,Query Options,അന്വേഷണം ഓപ്ഷനുകൾ
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,കുറ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ഡോക്യുമെന്റ് പേര്
 DocType: ToDo,Medium,മീഡിയം
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,നിങ്ങളുടെ ഇമെയിൽ ഐഡി സ്ഥിരീകരിക്കുന്നതിന് ദയവായി
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,നിങ്ങളുടെ ഇമെയിൽ ഐഡി സ്ഥിരീകരിക്കുന്നതിന് ദയവായി
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,ലിങ്കുകൾ കാണാൻ വേണ്ടത്ര അനുമതി.
 DocType: Customize Form,Customize Form,ഫോം ഇഷ്ടാനുസൃതമാക്കുക
 DocType: Currency,A symbol for this currency. For e.g. $,ഈ കറൻസി പ്രതീകമായി. ഉദാ $ വേണ്ടി
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ഘട്ടം പിന്നാക്�
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,നിങ്ങളുടെ സൈറ്റ് ക്രമീകരണ ലെ ഡ്രോപ്പ്ബോക്സ് പ്രവേശനം സജ്ജീകരിക്കുക
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,ഈ ഇമെയിൽ വിലാസത്തിലേക്ക് അയയ്ക്കുന്നത് അനുവദിക്കുന്നതിന് ഈ റെക്കോർഡ് ഇല്ലാതാക്കുക
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ഈ അക്കൗണ്ട് ഉപയോഗിച്ച് എല്ലാ ഇമെയിലുകളും വേണ്ടി അയയ്ക്കുന്നയാളുടെ ഈ അക്കൗണ്ട് പരാമർശിച്ചിരിക്കുന്ന ഇമെയിൽ ഐഡി ഉപയോഗിക്കുന്നു.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ഈ അക്കൗണ്ട് ഉപയോഗിച്ച് എല്ലാ ഇമെയിലുകളും വേണ്ടി അയയ്ക്കുന്നയാളുടെ ഈ അക്കൗണ്ട് പരാമർശിച്ചിരിക്കുന്ന ഇമെയിൽ ഐഡി ഉപയോഗിക്കുന്നു.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,മാത്രം നിർബന്ധമായി ഫീൽഡുകളിൽ പുതിയ റെക്കോഡുകൾ അനിവാര്യവുമാണ്. നിങ്ങൾ ആഗ്രഹിക്കുന്നെങ്കിൽ-അല്ലാത്ത നിർബന്ധമായി നിരകൾ ഇല്ലാതാക്കാൻ കഴിയും.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ചേര്ക്കാന് കഴിഞ്ഞില്ല
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,പേയ്മെന്റ് പൂർത്തിയായി
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,ബുക്ക്മാർക്ക്
 DocType: Note,Note,കുറിപ്പ്
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,പിശക് റിപ്പോർട്ട്
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,ടൈംലൈൻ ഫീൽഡ് സാധുവായ FIELDNAME ആയിരിക്കണം
-DocType: Email Account,Email Ids,ഇമെയിൽ ഐഡികൾ
+DocType: Email Account,Email Addresses,ഇമെയിൽ ഐഡികൾ
 DocType: Currency,Symbol,ചിഹ്നം
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,വരി # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,പുതിയ പാസ്വേഡ് ഇമെയിൽ ചെയ്തു
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,ക്യൂവിലാക്കി
 DocType: PayPal Settings,Use Sandbox,താങ്കളെ
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,പുതിയ കസ്റ്റം പ്രിന്റ് ഫോർമാറ്റ്
 DocType: DocPerm,Create,സൃഷ്ടിക്കുക
-DocType: Newsletter,A Lead with this email id should exist,ഈ ഇമെയിൽ ഐഡി ഉപയോഗിച്ച് ലീഡ് നിലവിലില്ല വേണം
+DocType: Newsletter,A Lead with this Email Address should exist,ഈ ഇമെയിൽ ഐഡി ഉപയോഗിച്ച് ലീഡ് നിലവിലില്ല വേണം
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},അസാധുവായ ഫിൽറ്റർ: {0}
 DocType: Integration Service,Background Events,പശ്ചാത്തല ഇവന്റുകൾ
 DocType: Dropbox Settings,App Access Key,അപ്ലിക്കേഷൻ ആക്സസ് കീ
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,എഡിറ്റ് എ�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,താങ്കളുടെ പേര്
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ഫോൾഡർ
-DocType: Newsletter,Test Email Id,ടെസ്റ്റ് ഇമെയിൽ ഐഡി
+DocType: Newsletter,Test Email Address,ടെസ്റ്റ് ഇമെയിൽ ഐഡി
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ഉപയോക്താവ് {0} നിലവിലില്ല
 DocType: Website Theme,"If image is selected, color will be ignored.","ഇമേജ് തിരഞ്ഞെടുത്താൽ, നിറം അവഗണിക്കപ്പെടുന്നു."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ഇമെയിൽ അക്കൗണ്ട
 DocType: Workflow State,Download,ഡൗൺലോഡ്
 DocType: Blog Post,Blog Intro,ബ്ലോഗ് അവതാരിക
 DocType: Async Task,Result,ഫലം
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} സാധുവായ ഇമെയിൽ ഐഡി അല്ല
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} സാധുവായ ഇമെയിൽ ഐഡി അല്ല
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,റിപ്പോർട്ട് പ്രാപ്തമാക്കുക
 DocType: DocField,Display Depends On,പ്രദർശിപ്പിക്കുക ആശ്രയിച്ചിരിക്കുന്നു
 DocType: Web Page,Insert Code,തിരുകുക കോഡ്

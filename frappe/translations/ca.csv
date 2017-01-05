@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Query
 DocType: DocType,Sort Order,Ordre de Classificació
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'A Vista de llista' no permès per al tipus {0} a la fila {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,El seu ID de correu electrònic
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,El seu ID de correu electrònic
 DocType: Custom Field,Select the label after which you want to insert new field.,Selecciona l'etiqueta després de la qual vols inserir el nou camp.
 ,Document Share Report,Document Compartir Reportar
 DocType: User,Last Login,Últim ingrés
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Pàgina HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Només es poden crear més nodes amb el tipus 'Grup'
 DocType: Web Page,Header,Encapçalament
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Columna desconeguda : {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Opcional: Enviar sempre a aquests identificadors. Cada correu electrònic d'identificació en una nova fila
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Opcional: Enviar sempre a aquests identificadors. Cada correu electrònic d'identificació en una nova fila
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Els usuaris amb rol {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Instal·lació de l&#39;aplicació {0}
 DocType: Print Format,Custom Format,Format personalitzat
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Actualització de la plantilla i guardar en format CSV (Comma Valors Separats) format abans de fixar.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Especifica el valor del camp
 DocType: Report,Disabled,Deshabilitat
-DocType: Email Account,Always use Account's Email ID as Sender,Utilitzeu sempre de compte de correu electrònic com ID del remitent
+DocType: Email Account,Always use Account's Email Address as Sender,Utilitzeu sempre de compte de correu electrònic com ID del remitent
 DocType: Workflow State,eye-close,ull-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Si us plau seleccioneu un altre mètode de pagament. {0} no suporta transaccions en moneda &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Configuració del proveïdor OAuth
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,SendGrid
 DocType: Workflow State,leaf,full
 DocType: Portal Menu Item,Portal Menu Item,Portal de l&#39;Menú
-DocType: Email Account,Email ID,Identificació de l'email
+DocType: Email Account,Email Address,Identificació de l'email
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Inserir enllaç
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Una llista dels recursos que el client d'aplicació tindrà accés a la vegada que l'usuari ho permet. <br> per exemple, el projecte"
 DocType: Contact Us Settings,Query Options,Opcions de consulta
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Notes:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Nom del document
 DocType: ToDo,Medium,Medium
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Verifiqui si us plau el seu correu electrònic d&#39;identificació
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Verifiqui si us plau el seu correu electrònic d&#39;identificació
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,No tens prou permisos per veure enllaços.
 DocType: Customize Form,Customize Form,Personalitza el Formulari
 DocType: Currency,A symbol for this currency. For e.g. $,Un símbol per a aquesta moneda. Per exemple: $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,pas enrere
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Please set Dropbox access keys in your site config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Eliminar aquest registre per permetre l&#39;enviament a aquesta adreça de correu electrònic
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Utilitza el ID de correu electrònic esmentat en aquest compte com a remitent per a tots els correus electrònics enviats amb aquest compte.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Utilitza el ID de correu electrònic esmentat en aquest compte com a remitent per a tots els correus electrònics enviats amb aquest compte.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Només els camps obligatoris són necessaris per als nous registres. Pots eliminar columnes de caràcter no obligatori, si ho desitges."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,No es pot actualitzar esdeveniment
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,El pagament complet
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,marcador
 DocType: Note,Note,Nota
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Informa d&#39;un problema
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,camp de línia de temps ha de ser un nom de camp vàlid
-DocType: Email Account,Email Ids,E-mail Ids
+DocType: Email Account,Email Addresses,E-mail Ids
 DocType: Currency,Symbol,Símbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Fila # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,S'ha enviat una nova contrassenya per correu electrònic
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,En cua
 DocType: PayPal Settings,Use Sandbox,ús Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Nou format personalitzat Imprimir
 DocType: DocPerm,Create,Crear
-DocType: Newsletter,A Lead with this email id should exist,Hauria d'haver-hi un client potencial amb aquest correu electrònic
+DocType: Newsletter,A Lead with this Email Address should exist,Hauria d'haver-hi un client potencial amb aquest correu electrònic
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Filtre no vàlid: {0}
 DocType: Integration Service,Background Events,antecedents Esdeveniments
 DocType: Dropbox Settings,App Access Key,Aplicació Clau d&#39;Accés
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,Només Permetre Edita Per
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,El teu nom
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,És Carpeta
-DocType: Newsletter,Test Email Id,Test Email Id
+DocType: Newsletter,Test Email Address,Test Email Address
 DocType: DocType,DocType,Doctype
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,L'usuari {0} no existeix
 DocType: Website Theme,"If image is selected, color will be ignored.","Si es selecciona la imatge, es tindrà en compte el color."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,Compte de correu electrònic
 DocType: Workflow State,Download,Descarregar
 DocType: Blog Post,Blog Intro,Bloc Intro
 DocType: Async Task,Result,Resultat
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} no és un correu electrònicvàlid
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} no és un correu electrònicvàlid
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Habilita Reportar
 DocType: DocField,Display Depends On,display depèn
 DocType: Web Page,Insert Code,Insereix Codi

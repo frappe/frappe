@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,نه خوری
 DocType: DocType,Sort Order,سمبالول، منظمول
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;په List View لپاره ډول {0} په قطار نه اجازه {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,ستاسو دبرېښنا ليک Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,ستاسو دبرېښنا ليک Id
 DocType: Custom Field,Select the label after which you want to insert new field.,ليبل وروسته چې تاسو غواړئ چې نوي ډګر ورننباسئ وټاکئ.
 ,Document Share Report,سند Share راپور
 DocType: User,Last Login,تېره ننوتل
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,لا غوټو يوازې ډله &#39;ډول غوټو لاندې جوړ شي
 DocType: Web Page,Header,سرۍ
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},نامعلوم کالم: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,اختیاري: تل د دغو تذکرو واستوي. پر يوه نوي هر يو قطار ایمیل پېژند
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,اختیاري: تل د دغو تذکرو واستوي. پر يوه نوي هر يو قطار ایمیل پېژند
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,سره د {0} رول کاروونکي:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},نصبولو ددفتروسایل {0}
 DocType: Print Format,Custom Format,د ګمرکونو شکل
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,د کېنډۍ د نوي کولو او ضميمه مخکې په CSV وژغوري (Comma جلا ارزښتونه) بڼه لري.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,د ډګر د ارزښت د مشخص
 DocType: Report,Disabled,معلولينو
-DocType: Email Account,Always use Account's Email ID as Sender,حساب ليک تذکرو د تل استوونکی وکاروي
+DocType: Email Account,Always use Account's Email Address as Sender,حساب ليک تذکرو د تل استوونکی وکاروي
 DocType: Workflow State,eye-close,د سترګو نږدې
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',لطفا بل طریقه ټاکي. {0} په اسعارو د راکړې ورکړې ملاتړ نه کوي &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Provider امستنې
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,د پاڼی
 DocType: Portal Menu Item,Portal Menu Item,تانبه Menu د قالب
-DocType: Email Account,Email ID,Email ID
+DocType: Email Account,Email Address,Email Address
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,درج لینک
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,د سرچینو لست چې د مراجع ددفتروسایل به وروسته د کارونکي ته اجازه ورکوي چې دا ته لاسرسی ولري. <br> د بيلګې په توګه د پروژې د
 DocType: Contact Us Settings,Query Options,خوری غوراوي
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,یادښت�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,سند نوم
 DocType: ToDo,Medium,منځني
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,خپل ایمیل پېژند تایید کړي
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,خپل ایمیل پېژند تایید کړي
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,نه کافي اجازې سره د اړيکو په وګورئ.
 DocType: Customize Form,Customize Form,دتنظيمولو فورمه
 DocType: Currency,A symbol for this currency. For e.g. $,د دې پيسو د يو سمبول. د بيلګې په توګه $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ګام په شا
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,مهرباني وکړئ په خپل ځای جوړول Useragent Dropbox لاسرسي کیلي ګانو څخه جوړ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,دغه ریکارډ ړنګول چې د دې ایمیل ادرس استولو اجازه
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,کاروي د برېښليک تذکرو د ټولو برېښلیکونه د دې حساب په کارولو سره لیږل د استوونکی په توګه يادونه په دې حساب.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,کاروي د برېښليک تذکرو د ټولو برېښلیکونه د دې حساب په کارولو سره لیږل د استوونکی په توګه يادونه په دې حساب.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,يوازې جبري پټی لپاره د نوي ریکارډونه ضروري دي. تاسو کولای غیر الزامی ستنې ړنګول که تاسو غواړئ.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,د غونډې د اوسمهالولو توان نلري
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,د تادیاتو بشپړ
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,ليکی
 DocType: Note,Note,یادښت
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,تېروتنه راپور
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,مهال ویش په برخه باید یو قانوني fieldname وي
-DocType: Email Account,Email Ids,Email پېژندپاڼې
+DocType: Email Account,Email Addresses,Email پېژندپاڼې
 DocType: Currency,Symbol,سمبول
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,د کتارونو تر # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,نوی پټنوم راولي
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,له پيله
 DocType: PayPal Settings,Use Sandbox,sandbox استعمال
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,د نوي ګمرک د چاپ شکل
 DocType: DocPerm,Create,جوړول
-DocType: Newsletter,A Lead with this email id should exist,سره د دې برېښناليک پېژند يو کوونکۍ باید شتون
+DocType: Newsletter,A Lead with this Email Address should exist,سره د دې برېښناليک پېژند يو کوونکۍ باید شتون
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},باطلې Filter: {0}
 DocType: Integration Service,Background Events,شاليد پیښې
 DocType: Dropbox Settings,App Access Key,ددفتروسایل لاسرسی لپاره عمده
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,يوازې اجازه سم�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,ستاسو نوم
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ده پوښی
-DocType: Newsletter,Test Email Id,امتحان دبرېښنا ليک Id
+DocType: Newsletter,Test Email Address,امتحان دبرېښنا ليک Id
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,کارن {0} نه شته
 DocType: Website Theme,"If image is selected, color will be ignored.",که انځور، انتخاب، رنګ به سترګې پټې شي.
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,Email اکانټ
 DocType: Workflow State,Download,دانلود
 DocType: Blog Post,Blog Intro,Blog سریزه
 DocType: Async Task,Result,د پايلو
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} یو باوري برېښنالیک پېژند نه دی
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} یو باوري برېښنالیک پېژند نه دی
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,راپور فعال کړه
 DocType: DocField,Display Depends On,وښایئ پورې تړلی دی د
 DocType: Web Page,Insert Code,درج کوډ

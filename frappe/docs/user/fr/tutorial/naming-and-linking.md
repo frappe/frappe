@@ -2,7 +2,7 @@
 
 Définissons un nouveau **DocType**:
 
-1. Library Member (First Name, Last Name, Email ID, Phone, Address)
+1. Library Member (First Name, Last Name, Email Address, Phone, Address)
 
 <img class="screenshot" alt="Doctype Saved" src="{{docs_base_url}}/assets/img/naming_doctype.png">
 
