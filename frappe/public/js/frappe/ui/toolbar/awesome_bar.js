@@ -1,7 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+frappe.provide('frappe.ui');
 
-frappe.search = {
+frappe.awesome_bar = {
 	setup: function(element) {
 		var $input = $(element);
 		var input = $input.get(0);
@@ -29,24 +30,24 @@ frappe.search = {
 		$input.on("input", function(e) {
 			var value = e.target.value;
 			var txt = strip(value);
-			frappe.search.options = [];
+			frappe.awesome_bar.options = [];
 			if(txt) {
 				var lower = strip(txt.toLowerCase());
-				$.each(frappe.search.verbs, function(i, action) {
+				$.each(frappe.awesome_bar.verbs, function(i, action) {
 					action(lower);
 				});
 			}
 
 			// sort options
-			frappe.search.options.sort(function(a, b) {
+			frappe.awesome_bar.options.sort(function(a, b) {
 				return (a.match || "").length - (b.match || "").length; });
 
-			frappe.search.add_recent(txt || "");
-			frappe.search.add_help();
+			frappe.awesome_bar.add_recent(txt || "");
+			frappe.awesome_bar.add_help();
 
 			// de-duplicate
 			var out = [], routes = [];
-			frappe.search.options.forEach(function(option) {
+			frappe.awesome_bar.options.forEach(function(option) {
 				if(option.route) {
 					var str_route = (typeof option.route==='string') ?
 							option.route : option.route.join('/');
@@ -62,18 +63,18 @@ frappe.search = {
 		});
 
 		var open_recent = function() {
-			if (!frappe.search.autocomplete_open) {
+			if (!frappe.awesome_bar.autocomplete_open) {
 				$(this).trigger("input");
 			}
 		}
 		$input.on("focus", open_recent);
 
 		$input.on("awesomplete-open", function(e) {
-			frappe.search.autocomplete_open = e.target;
+			frappe.awesome_bar.autocomplete_open = e.target;
 		});
 
 		$input.on("awesomplete-close", function(e) {
-			frappe.search.autocomplete_open = false;
+			frappe.awesome_bar.autocomplete_open = false;
 		});
 
 		$input.on("awesomplete-select", function(e) {
@@ -102,11 +103,12 @@ frappe.search = {
 			$input.val("");
 		});
 
-		frappe.search.make_page_title_map();
-		frappe.search.setup_recent();
+		frappe.awesome_bar.make_page_title_map();
+		frappe.awesome_bar.setup_recent();
+		frappe.search.setup("Global Search");
 	},
 	add_help: function() {
-		frappe.search.options.push({
+		frappe.awesome_bar.options.push({
 			label: __("Help on Search"),
 			value: "Help on Search",
 			onclick: function() {
@@ -128,7 +130,7 @@ frappe.search = {
 	},
 	add_recent: function(txt) {
 		values = [];
-		$.each(frappe.search.recent, function(i, doctype) {
+		$.each(frappe.awesome_bar.recent, function(i, doctype) {
 			values.push([doctype[1], ['Form', doctype[0], doctype[1]]]);
 		});
 
@@ -148,7 +150,7 @@ frappe.search = {
 			}
 		});
 
-		frappe.search.find(values, txt, function(match) {
+		frappe.awesome_bar.find(values, txt, function(match) {
 			out = {
 				route: match[1]
 			}
@@ -169,14 +171,14 @@ frappe.search = {
 		}, true);
 	},
 	make_page_title_map: function() {
-		frappe.search.pages = {};
+		frappe.awesome_bar.pages = {};
 		$.each(frappe.boot.page_info, function(name, p) {
-			frappe.search.pages[p.title] = p;
+			frappe.awesome_bar.pages[p.title] = p;
 			p.name = name;
 		});
 	},
 	setup_recent: function() {
-		frappe.search.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
+		frappe.awesome_bar.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 	find: function(list, txt, process, prepend) {
 		$.each(list, function(i, item) {
@@ -197,17 +199,37 @@ frappe.search = {
 					option.forEach(function(o) { o.match = item; });
 
 					if(prepend) {
-						frappe.search.options = option.concat(frappe.search.options);
+						frappe.awesome_bar.options = option.concat(frappe.awesome_bar.options);
 					} else {
-						frappe.search.options = frappe.search.options.concat(option);
+						frappe.awesome_bar.options = frappe.awesome_bar.options.concat(option);
 					}
 				}
 			}
 		});
-	}
+	},
+
 }
 
-frappe.search.verbs = [
+frappe.awesome_bar.verbs = [
+
+	// Global Search
+	// But shows up at the very top
+	function(txt) {
+		frappe.awesome_bar.options.unshift({
+			label: __("Search in Global Search: " + txt.bold()),
+			value: __("Search in Global Search: " + txt.bold()),
+			onclick: function(match) {
+					try {
+						frappe.search.$search_modal.show();
+						$(".search-modal input").val("");
+						frappe.search.get_results(txt);
+					} catch(e) {
+						console.log(e);
+					}
+			}
+		});
+	},
+
 	// search in list if current
 	function(txt) {
 		var route = frappe.get_route();
@@ -217,7 +239,7 @@ frappe.search.verbs = [
 			var search_field = meta.title_field || "name";
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
-			frappe.search.options.push({
+			frappe.awesome_bar.options.push({
 				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
@@ -233,7 +255,7 @@ frappe.search.verbs = [
 	function(txt) {
 		var ret = false;
 		if(txt.split(" ")[0]==="new") {
-			frappe.search.find(frappe.boot.user.can_create, txt.substr(4), function(match) {
+			frappe.awesome_bar.find(frappe.boot.user.can_create, txt.substr(4), function(match) {
 				return {
 					label: __("New {0}", [match.bold()]),
 					value: __("New {0}", [match]),
@@ -250,7 +272,7 @@ frappe.search.verbs = [
 			txt = txt.replace(/ list/ig, "").trim();
 		}
 
-		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
+		frappe.awesome_bar.find(frappe.boot.user.can_read, txt, function(match) {
 			if(in_list(frappe.boot.single_types, match)) {
 				return {
 					label: __("{0}", [__(match).bold()]),
@@ -298,9 +320,11 @@ frappe.search.verbs = [
 
 	// reports
 	function(txt) {
-		frappe.search.find(keys(frappe.boot.user.all_reports), txt, function(match) {
+		frappe.awesome_bar.find(keys(frappe.boot.user.all_reports), txt, function(match) {
+			//console.log("Reports", (frappe.boot.user.all_reports));
 			var report = frappe.boot.user.all_reports[match];
 			var route = [];
+			
 			if(report.report_type == "Report Builder")
 				route = ["Report", report.ref_doctype, match];
 			else
@@ -316,18 +340,19 @@ frappe.search.verbs = [
 
 	// pages
 	function(txt) {
-		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
+		frappe.awesome_bar.find(keys(frappe.awesome_bar.pages), txt, function(match) {
+			//console.log("Pages", frappe.awesome_bar.pages)
 			return {
 				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
-				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
+				route: [frappe.awesome_bar.pages[match].route || frappe.awesome_bar.pages[match].name]
 			}
 		});
 
 		// calendar
 		var match = 'Calendar';
 		if(__('calendar').indexOf(txt.toLowerCase()) === 0) {
-			frappe.search.options.push({
+			frappe.awesome_bar.options.push({
 				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
 				route: [match, 'Event'],
@@ -338,7 +363,7 @@ frappe.search.verbs = [
 
 	// modules
 	function(txt) {
-		frappe.search.find(keys(frappe.modules), txt, function(match) {
+		frappe.awesome_bar.find(keys(frappe.modules), txt, function(match) {
 			var module = frappe.modules[match];
 
 			if(module._doctype) return;
@@ -360,7 +385,8 @@ frappe.search.verbs = [
 	function(txt) {
 		if(in_list(txt.split(" "), "in")) {
 			parts = txt.split(" in ");
-			frappe.search.find(frappe.boot.user.can_read, parts[1], function(match) {
+			frappe.awesome_bar.find(frappe.boot.user.can_read, parts[1], function(match) {
+				//console.log("Can read: ", frappe.boot.user.can_read);
 				return {
 					label: __('Find {0} in {1}', [__(parts[0]).bold(), __(match).bold()]),
 					value: __('Find {0} in {1}', [__(parts[0]), __(match)]),
@@ -382,11 +408,12 @@ frappe.search.verbs = [
 			try {
 				var val = eval(txt);
 				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
-				frappe.search.options.push({
+				frappe.awesome_bar.options.push({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
 					onclick: function(match) {
+						//console.log("match1 ", match);
 						msgprint(formatted_value, "Result");
 					}
 				});
@@ -395,5 +422,6 @@ frappe.search.verbs = [
 			}
 
 		};
-	}
+	},
 ];
+

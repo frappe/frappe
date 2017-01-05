@@ -611,34 +611,37 @@ fieldset[disabled] .form-control {
   margin: 8px 0px;
   max-width: 100%;
 }
-.help-modal a {
+.search-modal a {
   color: #5E64FF;
 }
-.help-modal .modal-dialog {
+.search-modal .modal-dialog {
   width: 768px;
 }
-.help-modal .modal-body {
+.search-modal .modal-body {
   padding: 15px 27px;
 }
-.help-modal .parent-link:before {
+.search-modal .parent-link:before {
   font-family: 'Octicons';
   content: '\f0a4';
 }
-.help-modal .edit-container {
+.search-modal .edit-container {
   padding-bottom: 12px;
 }
 @media (max-width: 767px) {
-  .help-modal .modal-dialog {
+  .search-modal .modal-dialog {
     width: auto;
   }
-  .help-modal .modal-content {
+  .search-modal .modal-content {
     height: auto !important;
   }
-  .help-modal iframe {
+  .search-modal iframe {
     height: auto;
     width: 100%;
   }
 }
 .search-result {
   margin-bottom: 24px;
+}
+.search-result p {
+  margin-top: 0.2em;
 }
