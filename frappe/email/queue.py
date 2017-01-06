@@ -240,7 +240,7 @@ def flush(from_test=False):
 	for i in xrange(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
 
-		if cint(frappe.defaults.get_defaults().get("hold_bulk"))==1:
+		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
 			break
 		
 		if email:
@@ -274,6 +274,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
+		return
+	if cint(frappe.defaults.get_defaults().get("hold_queue"))==1 :
 		return
 
 	if email.status not in ('Not Sent','Partially Sent') :
