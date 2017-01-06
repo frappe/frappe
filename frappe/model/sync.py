@@ -12,17 +12,17 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
 
-def sync_all(force=0, verbose=False):
+def sync_all(force=0, verbose=False, reset_permissions=False):
 	block_user(True)
 
 	for app in frappe.get_installed_apps():
-		sync_for(app, force, verbose=verbose)
+		sync_for(app, force, verbose=verbose, reset_permissions=reset_permissions)
 
 	block_user(False)
 
 	frappe.clear_cache()
 
-def sync_for(app_name, force=0, sync_everything = False, verbose=False):
+def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_permissions=False):
 	files = []
 
 	if app_name == "frappe":
@@ -41,7 +41,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 	l = len(files)
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(doc_path, force=force)
+			import_file_by_path(doc_path, force=force, reset_permissions=reset_permissions)
 			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()

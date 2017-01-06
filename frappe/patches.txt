@@ -5,7 +5,7 @@ frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2016-10-17
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2016-02-26
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-01-06
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-24
 execute:frappe.reload_doc('core', 'doctype', 'role')
 execute:frappe.reload_doc('core', 'doctype', 'user')
@@ -149,3 +149,4 @@ frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 frappe.patches.v7_2.set_doctype_engine
 frappe.patches.v7_2.merge_knowledge_base
 frappe.patches.v7_0.update_report_builder_json
+frappe.patches.v7_2.set_in_standard_filter_property #1
