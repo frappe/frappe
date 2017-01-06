@@ -593,20 +593,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	set_kanban_board_filters: function() {
 		var me = this;
-		frappe.call({
-			method: "frappe.client.get_value",
-			args: {
-				doctype: "Kanban Board",
-				fieldname: "filters",
-				filters: { name: this.kanban_board }
-			}
-		}).done(function(r) {
-			var filters = r.message.filters ? JSON.parse(r.message.filters) : [];
+		frappe.db.get_value('Kanban Board',
+			{name: this.kanban_board}, 'filters',
+			function(res) {
+				var filters = res.filters ? JSON.parse(res.filters) : [];
 
-			me.filter_list.clear_filters();
-			me.set_filters(filters);
-			me.run();
-		});
+				me.filter_list.clear_filters();
+				me.set_filters(filters);
+				me.run();
+			});
 	},
 
 	render_row: function(row, data) {

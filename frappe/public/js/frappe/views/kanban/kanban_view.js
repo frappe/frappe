@@ -719,9 +719,10 @@ frappe.provide("frappe.views");
 	// Helpers
 	function get_board(board_name) {
 		return frappe.call({
-			method: "frappe.desk.doctype.kanban_board.kanban_board.get_board",
+			method: "frappe.client.get",
 			args: {
-				board_name: board_name
+				doctype: 'Kanban Board',
+				name: board_name
 			}
 		}).then(function(r) {
 			var board = r.message;
@@ -869,12 +870,20 @@ frappe.provide("frappe.views");
 	}
 
 	function update_kanban_board(board_name, column_title, action) {
+		var method;
+		var args = {
+			board_name: board_name,
+			column_title: column_title
+		};
+		if (action === 'add') {
+			method = 'add_column';
+		} else if (action === 'archive' || action === 'restore') {
+			method = 'archive_restore_column';
+			args.status = action === 'archive' ? 'Archived' : 'Active';
+		}
 		return frappe.call({
-			method: "frappe.desk.doctype.kanban_board.kanban_board." + action + "_column",
-			args: {
-				board_name: board_name,
-				column_title: column_title
-			}
+			method: 'frappe.desk.doctype.kanban_board.kanban_board.' + method,
+			args: args
 		});
 	}
 

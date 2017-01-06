@@ -172,9 +172,8 @@ class FormMeta(Meta):
 		self.set('__dashboard', self.get_dashboard_data())
 
 	def load_kanban_boards(self):
-		kanban_boards = frappe.db.sql("""select name, field_name FROM `tabKanban Board`
-			WHERE reference_doctype=%s""", (self.name,), as_dict=1)
-
+		kanban_boards = frappe.get_all(
+			'Kanban Board', filters={'reference_doctype': self.name})
 		self.set("__kanban_boards", kanban_boards, as_value=True)
 
 def get_code_files_via_hooks(hook, name):
