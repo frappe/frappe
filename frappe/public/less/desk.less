@@ -529,7 +529,7 @@ th.fc-day-header {
 }
 
 .fc-event-container .fc-content {
-	padding: 8px 4px;
+	padding: 5px;
 }
 
 .fc-body {
@@ -560,4 +560,11 @@ body[data-route$='Calendar'] {
 	.result-list {
 		background: @light-bg;
 	}
+}
+
+.fc-day-grid-event {
+	background-color: lighten(@indicator-blue, 28%) !important;
+	border-color: lighten(@indicator-blue, 28%) !important;
+	border-radius: 3px !important;
+	border-left: 3px solid @indicator-blue !important;
 }

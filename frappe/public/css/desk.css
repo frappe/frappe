@@ -659,7 +659,7 @@ th.fc-day-header {
   padding-bottom: 11px;
 }
 .fc-event-container .fc-content {
-  padding: 8px 4px;
+  padding: 5px;
 }
 .fc-body {
   background: #ffffff;
@@ -685,4 +685,10 @@ th.fc-day-header {
 }
 body[data-route$='Calendar'] .result-list {
   background: #fafbfc;
+}
+.fc-day-grid-event {
+  background-color: #ededff !important;
+  border-color: #ededff !important;
+  border-radius: 3px !important;
+  border-left: 3px solid #5e64ff !important;
 }
