@@ -309,6 +309,12 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	{
 		var me = this;
 		me.actions_opened = false;
+		if(me.open_email == row.name){
+			return
+		}
+		me.open_email = row.name
+		
+		//mark email as read
 		//mark email as read
 		this.mark_read(row);
 		//start of open email
@@ -351,6 +357,11 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		$(".modal-dialog").addClass("modal-lg");
 		$(emailitem.$wrapper).find(".modal-title").parent().removeClass("col-xs-7").addClass("col-xs-7 col-sm-8 col-md-9");
 		$(emailitem.$wrapper).find(".text-right").parent().removeClass("col-xs-5").addClass("col-xs-5 col-sm-4 col-md-3");
+		
+		//setup close
+		emailitem.onhide = function() {
+			me.open_email = null
+		}
 		
 		emailitem.show();
 	},
@@ -565,9 +576,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		//could add flag to sync deletes but not going to as keeps history
 		
 		me.update_local_flags(names, "deleted", "1")
-		
-		me.refresh();
-
 	},
 	mark_unread:function(){
 		var me = this;
