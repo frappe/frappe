@@ -151,8 +151,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var me = this;
 		this.cal_options = {
 			header: {
-				left: 'prev,next today',
-				center: 'title',
+				left: '',
+				center: 'prev,title,next',
 				right: 'month,agendaWeek,agendaDay'
 			},
 			editable: true,

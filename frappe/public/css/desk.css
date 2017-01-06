@@ -642,3 +642,47 @@ fieldset[disabled] .form-control {
 .search-result {
   margin-bottom: 24px;
 }
+.fc-day-top {
+  padding: 12px 12px 0 0 !important;
+}
+th.fc-day-header {
+  text-align: right !important;
+  padding: 10px 12px 10px 0 !important;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.fc.fc-unthemed {
+  padding: 16px 16px 0;
+}
+.fc.fc-unthemed .fc-toolbar {
+  padding: 0;
+  padding-bottom: 11px;
+}
+.fc-event-container .fc-content {
+  padding: 8px 4px;
+}
+.fc-body {
+  background: #ffffff;
+}
+.fc-center {
+  margin-left: 155px;
+}
+.fc-center h2 {
+  display: inline-block;
+  font-size: 14px;
+  padding: 0 .6em;
+}
+.fc-center div {
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+  background: #ffffff;
+}
+.fc-center .fc-next-button {
+  border-radius: 0 2px 2px 0;
+}
+.fc-center .fc-prev-button {
+  border-radius: 2px 0 0 2px;
+}
+body[data-route$='Calendar'] .result-list {
+  background: #fafbfc;
+}
