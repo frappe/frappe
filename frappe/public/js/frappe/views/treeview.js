@@ -214,7 +214,6 @@ frappe.views.TreeView = Class.extend({
 			}
 
 			$.extend(args, v)
-
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
 				args: args,
