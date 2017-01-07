@@ -1314,7 +1314,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
-			
+
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {
