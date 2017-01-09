@@ -63,6 +63,7 @@ frappe.ui.form.on('Auto Email Report', {
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
 			var report_filters = frappe.query_reports[frm.doc.report].filters;
+			frm.set_value('filter_meta', JSON.stringify(report_filters));
 
 			report_filters_list = []
 			$.each(report_filters, function(key, val){
