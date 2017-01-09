@@ -339,7 +339,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
       $(emailitem.$wrapper).find(".reply").find("a").attr("target", "_blank");
 
 		//Action buttons
-		$(emailitem.$wrapper).find(".text-right").prepend(frappe.render_template("inbox_email_actions")).on("click", function () {
+		$(emailitem.$wrapper).find(".text-right").prepend(frappe.render_template("inbox_email_actions",{data:row})).on("click", function () {
 			me.actions_opened = true;
 		});
 		$(emailitem.$wrapper).find(".relink-link").on("click", function () {
@@ -404,7 +404,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 				},
 				sender:sender,
 				subject: "Re: " + c.subject,
-				recipients: c.sender+ (c.cc ? ","+c.cc:""),
+				recipients: (c.sender + (c.recipients ? ", "+c.recipients:"") + (c.cc ? ", "+c.cc:"")).replace(sender,""),
 				last_email: c,
 				attachments:c.attachments
 			});
