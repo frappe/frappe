@@ -635,11 +635,12 @@ def delete_doc_if_exists(doctype, name, force=0):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name, force=force)
 
-def reload_doctype(doctype, force=False):
+def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), force=force)
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), 
+		force=force, reset_permissions=reset_permissions)
 
-def reload_doc(module, dt=None, dn=None, force=False):
+def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.
 
 	:param module: Module name.
@@ -649,7 +650,7 @@ def reload_doc(module, dt=None, dn=None, force=False):
 	"""
 
 	import frappe.modules
-	return frappe.modules.reload_doc(module, dt, dn, force=force)
+	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
