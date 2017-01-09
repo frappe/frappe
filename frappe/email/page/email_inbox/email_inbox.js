@@ -115,7 +115,10 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					buttons += rows;
 					buttons += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="Sent" data-account="Sent" style="margin-left: 10px;">Sent</a> </div></div>';
 					me.account = me.allaccounts;
-					me.default_filters=[["Communication", "communication_type", "=", "Communication"],["Communication", "email_account", "in", me.account]]
+					me.default_filters=[
+						["Communication", "communication_type", "=", "Communication"],
+						["Communication", "email_account", "in", me.account],
+						["Communication", "sent_or_received", "=", "Received"]]
 
 					me.page.sidebar.empty().append(buttons);
 					$(".inbox-select").on("click",function(btn){
@@ -133,7 +136,8 @@ frappe.Inbox = frappe.ui.Listing.extend({
 						}else {
 							me.filter_list.default_filters = [
 								["Communication", "communication_type", "=", "Communication"],
-								["Communication", "email_account", "in", me.account]];
+								["Communication", "email_account", "in", me.account],
+								["Communication", "sent_or_received", "=", "Received"]];
 						}
 						me.filter_list.clear_filters();
 						me.filter_list.add_filter("Communication", "deleted", "=", "No");

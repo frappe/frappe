@@ -700,7 +700,7 @@ class Email:
 		if self.from_email:
 			self.from_email = self.from_email.lower()
 			
-		self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'

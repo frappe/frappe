@@ -118,7 +118,7 @@ class Communication(Document):
 						sender_name = None
 
 				self.sender = sender_email
-				self.sender_full_name = sender_name #or get_fullname(frappe.session.user) #makes sender as administrator if not found
+				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
 
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
