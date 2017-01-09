@@ -30,7 +30,9 @@ def execute_cmd(cmd, from_async=False):
 	try:
 		method = get_attr(cmd)
 	except:
-		frappe.throw('Invalid method', frappe.NotFound)
+		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+			indicator_color='red', http_status_code=404)
+		return
 
 	if from_async:
 		method = method.queue

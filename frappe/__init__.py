@@ -301,6 +301,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	message_log.append(json.dumps(out))
 	_raise_exception()
 
+def clear_messages():
+	local.message_log = []
+
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
 
@@ -993,7 +996,8 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def respond_as_web_page(title, html, success=None, http_status_code=None, context=None):
+def respond_as_web_page(title, html, success=None, http_status_code=None,
+	context=None, indicator_color=None, primary_action='/', primary_label = None):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1008,8 +1012,14 @@ def respond_as_web_page(title, html, success=None, http_status_code=None, contex
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 
-	if context:
-		local.response['context'] = context
+	if not context:
+		context = {}
+
+	context['indicator_color'] = indicator_color
+	context['primary_label'] = primary_label
+	context['primary_action'] = primary_action
+
+	local.response['context'] = context
 
 def redirect_to_message(title, html, http_status_code=None, context=None):
 	"""Redirects to /message?id=random
