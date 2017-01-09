@@ -70,7 +70,7 @@ class AutoEmailReport(Document):
 
 	def send(self):
 		if self.filter_meta and not self.filters:
-			frappe.throw(_("You havent set filters. Please set filters value in Report Filter table."))
+			frappe.throw(_("Please set filters value in Report Filter table."))
 		
 		data = self.get_report_content()
 		if not data:
