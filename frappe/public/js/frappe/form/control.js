@@ -706,7 +706,8 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.datepicker_options = {
 			language: "en",
 			range: true,
-			autoClose: true
+			autoClose: true,
+			toggleSelected: false
 		}
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
