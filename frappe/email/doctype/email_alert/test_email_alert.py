@@ -78,7 +78,7 @@ class TestEmailAlert(unittest.TestCase):
 		event.subject = "test 1"
 		event.save()
 
-		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
+		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
 
 		event.description = "test"
@@ -106,7 +106,7 @@ class TestEmailAlert(unittest.TestCase):
 		event.starts_on  = frappe.utils.add_days(frappe.utils.nowdate(), 2) + " 12:00:00"
 		event.save()
 
-		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
+		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
 
 		frappe.utils.scheduler.trigger(frappe.local.site, "daily", now=True)
