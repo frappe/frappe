@@ -6,8 +6,7 @@
 
 <div class='page-card'>
 	<div class='page-card-head'>
-		<span class='indicator {{ indicator_color or
-			("red" if (error_code and error_code > 200) else "blue") }}'>{{ title or _("Message") }}</span>
+		<span class='indicator {{ indicator_color }}'>{{ title or _("Message") }}</span>
 	</div>
 	<p>{{ message or "" }}</p>
 	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-xs'>
