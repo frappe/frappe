@@ -345,6 +345,7 @@ class Session:
 				"name": frappe.session.user
 			})
 
+			frappe.db.commit()
 			frappe.cache().hset("last_db_session_update", self.sid, now)
 			updated_in_db = True
 
