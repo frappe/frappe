@@ -91,7 +91,7 @@ frappe.listview_settings['File'] = {
 				}
 				e.stopPropagation();
 				e.preventDefault();
-				frappe.upload.upload_file(dataTransfer.files[0], {
+				frappe.upload.multifile_upload(dataTransfer.files, {
 					"folder": doclist.current_folder,
 					"from_form": 1
 				}, {
