@@ -22,7 +22,7 @@
 .form-clickable-section {
   border-top: 1px solid #d1d8dd;
   padding: 10px 15px;
-  background-color: #f7fafc;
+  background-color: #F7FAFC;
 }
 .form-page.second-page {
   border-top: 1px solid #d1d8dd;
@@ -33,7 +33,7 @@
 .document-flow-wrapper {
   padding: 40px 15px 30px;
   font-size: 12px;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .document-flow-wrapper .document-flow {
   display: inline-block;
@@ -80,7 +80,7 @@
 }
 .form-dashboard-section {
   padding: 15px 30px;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .form-dashboard-section:last-child {
   border-bottom: none;
@@ -126,7 +126,7 @@
   border-radius: 0px 3px 3px 0px;
 }
 .inline-graph .inline-graph-half .inline-graph-bar-inner.dark {
-  background-color: #36414c;
+  background-color: #36414C;
 }
 .inline-graph .inline-graph-half:first-child {
   border-right: 1px solid #d1d8dd;
@@ -158,7 +158,7 @@ h6.uppercase,
   font-weight: normal;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .form-section {
   margin: 0px;
@@ -188,7 +188,7 @@ h6.uppercase,
 }
 .form-section:not(:last-child),
 .form-inner-toolbar {
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .empty-section {
   display: none !important;
@@ -269,8 +269,8 @@ h6.uppercase,
   background-color: #fafbfc;
   padding: 7px 15px;
   margin: 0px;
-  color: #8d99a6;
-  border-bottom: 1px solid #ebeff2;
+  color: #8D99A6;
+  border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .comment-header .octicon-heart {
   color: #ff5858;
@@ -334,10 +334,10 @@ h6.uppercase,
   padding-left: 30px;
   margin: 30px 0px;
   position: relative;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .timeline-item.notification-content * {
-  color: #8d99a6;
+  color: #8D99A6;
 }
 .timeline-item.notification-content .fa-fw {
   margin-left: 36px;
@@ -372,7 +372,7 @@ h6.uppercase,
 .timeline-head .comment-input-header {
   background-color: #fafbfc;
   padding: 7px 15px;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #EBEFF2;
 }
 .timeline-head .comment-input-container {
   padding: 15px;
@@ -381,7 +381,7 @@ h6.uppercase,
   min-width: 200px;
 }
 .timeline-head .comment-input {
-  border-color: #ebeff2;
+  border-color: #EBEFF2;
   max-width: 100%;
 }
 .timeline-head .comment-input:focus {
@@ -415,7 +415,7 @@ h6.uppercase,
 }
 .control-label,
 .grid-heading-row {
-  color: #8d99a6;
+  color: #8D99A6;
   font-size: 12px;
 }
 .control-label {
@@ -488,7 +488,7 @@ select.form-control {
   margin-top: -3px;
   margin-left: 1px;
   font-weight: 500;
-  color: #8d99a6;
+  color: #8D99A6;
 }
 @media (min-width: 768px) {
   .layout-main .form-column.col-sm-12 > form > .input-max-width {
@@ -513,7 +513,7 @@ select.form-control {
     padding: 15px 15px 15px 0px;
   }
   .form-column {
-    border-bottom: 1px solid #ebeff2;
+    border-bottom: 1px solid #EBEFF2;
   }
   .form-column:last-child {
     border-bottom: 0px;
@@ -534,7 +534,7 @@ select.form-control {
   }
   .frappe-control.form-page {
     padding: 7px 15px;
-    border-bottom: 1px solid #ebeff2;
+    border-bottom: 1px solid #EBEFF2;
     margin: 0px -15px;
   }
   .frappe-control.form-page .link-btn {
