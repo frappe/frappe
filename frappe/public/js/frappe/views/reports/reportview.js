@@ -54,10 +54,6 @@ frappe.views.ReportViewPage = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		frappe.breadcrumbs.add(module, this.doctype);
 
-		if(frappe.model.can_write(this.doctype)) {
-			this.page.footer.html('<p class="text-muted">'+__("Tip: Double click cell to edit")+'</p>').removeClass("hide");
-		}
-
 		this.parent.reportview = new frappe.views.ReportView({
 			doctype: this.doctype,
 			docname: this.docname,
@@ -73,17 +69,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.can_delete = frappe.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
 		this.setup();
-	},
-
-	set_init_columns: function() {
-		// pre-select mandatory columns
-		var columns = [['name'], ['owner']];
-		$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
-			if(df.in_filter && df.fieldname!='naming_series' && df.fieldtype!='Table') {
-				columns.push([df.fieldname]);
-			}
-		});
-		this.columns = columns;
 	},
 
 	setup: function() {
@@ -172,7 +157,36 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			});
 		}
 
+		this.set_columns(columns);
+
+		this.page.footer.on('click', '.show-all-data', function() {
+			me.show_all_data = $(this).prop('checked');
+			me.run();
+		})
+	},
+
+	set_columns: function(columns) {
 		this.columns = columns;
+		this.column_info = this.get_columns();
+		this.refresh_footer();
+	},
+
+	refresh_footer: function() {
+		var can_write = frappe.model.can_write(this.doctype);
+		var has_child_column = this.has_child_column();
+
+		this.page.footer.empty();
+
+		if(can_write || has_child_column) {
+			$(frappe.render_template('reportview_footer', {
+				has_child_column: has_child_column,
+				can_write: can_write,
+				show_all_data: this.show_all_data
+			})).appendTo(this.page.footer);
+			this.page.footer.removeClass('hide');
+		} else {
+			this.page.footer.addClass('hide');
+		}
 	},
 
 	// preset columns and filters from saved info
@@ -180,7 +194,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 		this.filter_list.clear_filters();
 		if(opts.columns) {
-			this.columns = opts.columns;
+			this.set_columns(opts.columns);
 		}
 		if(opts.filters) {
 			$.each(opts.filters, function(i, f) {
@@ -232,8 +246,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	setup_print: function() {
 		var me = this;
 		this.page.add_menu_item(__("Print"), function() {
-			var title =  __(me.docname || me.doctype);
-			frappe.render_grid({grid:me.grid, title:title});
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				var title =  __(me.docname || me.doctype);
+				frappe.render_grid({grid:me.grid, title:title, print_settings:print_settings});
+			})
+
 		}, true);
 	},
 
@@ -343,12 +360,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	// render data
 	render_list: function() {
 		var me = this;
-		var columns = this.get_columns();
+		var data = this.get_unique_data(this.column_info);
 
 		this.set_totals_row();
 
 		// add sr in data
-		$.each(this.data, function(i, v) {
+		$.each(data, function(i, v) {
 			// add index
 			v._idx = i+1;
 			v.id = v._idx;
@@ -363,9 +380,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			$.extend(options, this.slickgrid_options);
 		}
 
-		this.col_defs = columns;
 		this.dataView = new Slick.Data.DataView();
-		this.set_data(this.data);
+		this.set_data(data);
 
 		var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
 
@@ -375,7 +391,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 		this.grid = new Slick.Grid(grid_wrapper
 			.get(0), this.dataView,
-			columns, options);
+			this.column_info, options);
 
 		if (!frappe.dom.is_touchscreen()) {
 			this.grid.setSelectionModel(new Slick.CellSelectionModel());
@@ -388,7 +404,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 		frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
 		if(this.start!=0 && !options.autoHeight) {
-			this.grid.scrollRowIntoView(this.data.length-1);
+			this.grid.scrollRowIntoView(data.length-1);
 		}
 
 		this.grid.onDblClick.subscribe(function(e, args) {
@@ -421,12 +437,48 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 	},
 
+	has_child_column: function() {
+		var me = this;
+		return this.column_info.some(function(c) {
+			return c.docfield && c.docfield.parent !== me.doctype;
+		});
+	},
+
+	get_unique_data: function(columns) {
+		// if child columns are selected, show parent data only once
+
+		var me = this;
+		if (this.show_all_data || !this.has_child_column()) {
+			return this.data;
+		}
+
+		var data = [], prev_row = null;
+		this.data.forEach(function(d) {
+			if(prev_row && d.name == prev_row.name) {
+				var new_row = {};
+				columns.forEach(function(c) {
+					if(!c.docfield || c.docfield.parent!==me.doctype) {
+						var val = d[c.field];
+					} else {
+						var val = '';
+					}
+					new_row[c.field] = val;
+				});
+				data.push(new_row);
+			} else {
+				data.push(d);
+			}
+			prev_row = d;
+		});
+		return data;
+	},
+
 	edit_cell: function(row, docfield) {
-		if(docfield.fieldname !== "idx" &&
+		if(!docfield || docfield.fieldname !== "idx" &&
 			frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
-			frappe.throw(__("Cannot edit standard fields"));
+				return;
 		} else if(frappe.boot.user.can_write.indexOf(this.doctype)===-1) {
-			frappe.throw(__("No permission to edit"));
+			frappe.throw({message:__("No permission to edit"), title:__('Not Permitted')});
 		}
 		var me = this;
 		var d = new frappe.ui.Dialog({
@@ -486,9 +538,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 	},
 
-	set_data: function() {
+	set_data: function(data) {
 		this.dataView.beginUpdate();
-		this.dataView.setItems(this.data);
+		this.dataView.setItems(data);
 		this.dataView.endUpdate();
 	},
 
@@ -802,13 +854,14 @@ frappe.ui.ColumnPicker = Class.extend({
 		if(!c) return;
 		var me = this;
 
-		var w = $('<div class="column-list-item">\
-				<i class="fa fa-sort text-muted drag-handle"></i>\
-				<a class="close">&times;</a>\
-			</div>')
+		var w = $('<div class="column-list-item"><div class="row">\
+				<div class="col-xs-1"><i class="fa fa-sort text-muted drag-handle" style="margin-top: 9px;"></i></div>\
+				<div class="col-xs-10"></div>\
+				<div class="col-xs-1"><a class="close">&times;</a></div>\
+			</div></div>')
 			.appendTo(this.column_list);
 
-		var fieldselect = new frappe.ui.FieldSelect({parent:w, doctype:this.doctype});
+		var fieldselect = new frappe.ui.FieldSelect({parent:w.find('.col-xs-10'), doctype:this.doctype});
 		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
 
 		w.data("fieldselect", fieldselect);
@@ -816,7 +869,7 @@ frappe.ui.ColumnPicker = Class.extend({
 		w.find('.close').data("fieldselect", fieldselect)
 			.click(function() {
 				delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
-				$(this).parent().remove();
+				$(this).parents('.column-list-item').remove();
 			});
 
 		this.columns.push(fieldselect);
@@ -830,7 +883,7 @@ frappe.ui.ColumnPicker = Class.extend({
 				: null;
 		});
 
-		this.list.columns = columns;
+		this.list.set_columns(columns);
 		this.list.run();
 	}
 });

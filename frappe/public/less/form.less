@@ -370,7 +370,26 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	.close-btn-container {
-		padding: 2px 15px;
+		padding: 2px 10px 2px 5px;
+	}
+
+	.edit-btn-container {
+		padding: 2px 5px;
+
+		.edit {
+			color: inherit;
+			font-size: 21px;
+			line-height: 1;
+
+			.octicon-check {
+				color: #98d85b;
+				font-size: 1em;
+			}
+
+			&:hover, &:focus {
+				color: #000;
+			}
+		}
 	}
 
 	.comment-likes {
@@ -390,15 +409,15 @@ h6.uppercase, .h6.uppercase {
 
 	.media-body:after {
 		border-color: rgba(136, 183, 213, 0);
-	    border-right-color: #fafbfc;
-	    border-width: 6px;
-	    margin-top: -6px;
+		border-right-color: #fafbfc;
+		border-width: 6px;
+		margin-top: -6px;
 	}
 	.media-body:before {
 		border-color: rgba(194, 225, 245, 0);
-	    border-right-color: @border-color;
-	    border-width: 7px;
-	    margin-top: -7px;
+		border-right-color: @border-color;
+		border-width: 7px;
+		margin-top: -7px;
 	}
 }
 
@@ -430,20 +449,20 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-indicator() {
-    content: " ";
-    width: 7px;
-    height: 7px;
-    background-color: @border-color;
+	content: " ";
+	width: 7px;
+	height: 7px;
+	background-color: @border-color;
 	// background-color: white;
 	// border: 1px solid @border-color;
-    position: absolute;
-    left: 40px;
-    border-radius: 50%;
-    top: 5px;
+	position: absolute;
+	left: 40px;
+	border-radius: 50%;
+	top: 5px;
 }
 
 .timeline-item.notification-content::before {
-    .timeline-indicator();
+	.timeline-indicator();
 }
 
 .timeline-item .reply-link {
