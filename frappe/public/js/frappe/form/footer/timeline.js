@@ -418,10 +418,12 @@ frappe.ui.form.Timeline = Class.extend({
 	{
 		// TODO: is there a frappe.client.update function?
 		return frappe.call({
-			method: 'frappe.desk.form.utils.update_comment',
+			method: 'frappe.client.set_value',
 			args: {
+				doctype: 'Communication',
 				name: name,
-				content: content,
+				fieldname: 'content',
+				value: content,
 			}, callback: function(r) {
 				frappe.utils.play_sound('click');
 			}
