@@ -23,6 +23,16 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.input.keydown("meta+return ctrl+return", function(e) {
 			me.comment_button.trigger("click");
+		}).keyup(function(e) {
+			if(me.input.val()) {
+				if(me.comment_button.hasClass('btn-default')) {
+					me.comment_button.removeClass('btn-default').addClass('btn-primary');
+				}
+			} else {
+				if(me.comment_button.hasClass('btn-primary')) {
+					me.comment_button.removeClass('btn-primary').addClass('btn-default');
+				}
+			}
 		});
 
 		this.email_button = this.wrapper.find(".btn-new-email")
@@ -139,7 +149,7 @@ frappe.ui.form.Timeline = Class.extend({
 				var content = $timeline_item.find('.timeline-item-content');
 				var name = $timeline_item.data('name');
 
-				if(content.hasClass(is_editing)) {
+				var update_comment = function() {
 					var val = content.find('textarea').val();
 					// set content to new val so that on save and refresh the new content is shown
 					c.content = val;
@@ -149,10 +159,18 @@ frappe.ui.form.Timeline = Class.extend({
 
 					// all changes to the timeline_item for editing are reset after calling refresh
 					me.refresh();
+				}
+
+				if(content.hasClass(is_editing)) {
+					update_comment();
 				} else {
 					var $edit_btn = $(this);
 					var editing_textarea = me.input.clone()
 						.removeClass('comment-input');
+
+					editing_textarea.keydown("meta+return ctrl+return", function(e) {
+						update_comment();
+					});
 
 					frappe.db.get_value('Communication', {name: name}, 'content', function(r) {
 						$edit_btn.find('i').removeClass('octicon-pencil').addClass('octicon-check');

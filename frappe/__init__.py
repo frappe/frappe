@@ -640,7 +640,7 @@ def delete_doc_if_exists(doctype, name, force=0):
 
 def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), 
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype),
 		force=force, reset_permissions=reset_permissions)
 
 def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
@@ -998,7 +998,7 @@ def compare(val1, condition, val2):
 	return frappe.utils.compare(val1, condition, val2)
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
-	context=None, indicator_color=None, primary_action='/', primary_label = None):
+	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1008,7 +1008,8 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param context: web template context
 	:param indicator_color: color of indicator in title
 	:param primary_action: route on primary button (default is `/`)
-	:param primary_label: label on primary button (defaut is "Home")"""
+	:param primary_label: label on primary button (defaut is "Home")
+	:param fullpage: hide header / footer"""
 	local.message_title = title
 	local.message = html
 	local.response['type'] = 'page'
@@ -1031,6 +1032,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context['primary_label'] = primary_label
 	context['primary_action'] = primary_action
 	context['error_code'] = http_status_code
+	context['fullpage'] = fullpage
 
 	local.response['context'] = context
 
