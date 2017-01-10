@@ -631,6 +631,12 @@ def get_url_to_form(doctype, name):
 def get_url_to_list(doctype):
 	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
+def get_url_to_report(name, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
+	else:
+		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
 operator_map = {
 	# startswith
 	"^": lambda (a, b): (a or "").startswith(b),

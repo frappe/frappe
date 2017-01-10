@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,查询
 DocType: DocType,Sort Order,排序
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},行{1}中的类型{0}不允许选择“显示在列表视图中”
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,您的电子邮件ID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,您的电子邮件ID
 DocType: Custom Field,Select the label after which you want to insert new field.,选择标签，在其后插入新字段。
 ,Document Share Report,文档分享报告
 DocType: User,Last Login,最后登录
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,页面的HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,只能在“组”节点下新建节点
 DocType: Web Page,Header,头
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},未知列： {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,可选：总是发送给这些ID。在一个新行的每一个电子邮件ID
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,可选：总是发送给这些ID。在一个新行的每一个电子邮件ID
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,拥有角色{0}的用户：
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},安装应用程序{0}
 DocType: Print Format,Custom Format,自定义格式
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,转推
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,在附加之前更新模板并将其保存为CSV格式
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,指定字段的值
 DocType: Report,Disabled,已禁用
-DocType: Email Account,Always use Account's Email ID as Sender,始终使用帐户的电子邮件ID作为发件人
+DocType: Email Account,Always use Account's Email Address as Sender,始终使用帐户的电子邮件ID作为发件人
 DocType: Workflow State,eye-close,eye-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',请选择其他付款方式。 {0}不支持货币交易“{1}”
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth的提供商设置
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,leaf
 DocType: Portal Menu Item,Portal Menu Item,门户菜单项
-DocType: Email Account,Email ID,电子邮件ID
+DocType: Email Account,Email Address,电子邮件ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,插入链接
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,资源的列表，它的客户端应用程序必须将用户允许后访问。 <br>如项目
 DocType: Contact Us Settings,Query Options,查询选项
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,注意事�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,文档名称
 DocType: ToDo,Medium,中
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,请验证您的电子邮件ID
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,请验证您的电子邮件ID
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,没有足够的权限查看链接。
 DocType: Customize Form,Customize Form,自定义表单
 DocType: Currency,A symbol for this currency. For e.g. $,货币符号。例如$
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,step-backward
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{ app_title }
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,请在您的网站配置设置Dropbox的访问键
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,删除此记录允许发送此邮件地址
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,使用此帐户提到作为发件人使用此帐户发送的所有电子邮件的电子邮件ID。
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,使用此帐户提到作为发件人使用此帐户发送的所有电子邮件的电子邮件ID。
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,只有必填字段所必需的新记录。如果你愿意，你可以删除非强制性列。
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,无法更新事件
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,付款完成
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,书签
 DocType: Note,Note,注
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,错误报告
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,时间轴场必须是有效的字段名
-DocType: Email Account,Email Ids,电子邮件ID
+DocType: Email Account,Email Addresses,电子邮件ID
 DocType: Currency,Symbol,符号
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,行＃{0}：
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,新密码已通过电子邮件发送
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,排队
 DocType: PayPal Settings,Use Sandbox,使用沙盒
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,新的自定义打印格式
 DocType: DocPerm,Create,创建
-DocType: Newsletter,A Lead with this email id should exist,与此电子邮件关联的潜在客户不存在
+DocType: Newsletter,A Lead with this Email Address should exist,与此电子邮件关联的潜在客户不存在
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},无效的过滤器： {0}
 DocType: Integration Service,Background Events,背景事件
 DocType: Dropbox Settings,App Access Key,应用程序访问密钥
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,只允许编辑
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,你的名字
 DocType: DocType,InnoDB,InnoDB的
 DocType: File,Is Folder,在文件夹
-DocType: Newsletter,Test Email Id,测试电子邮件Id
+DocType: Newsletter,Test Email Address,测试电子邮件Id
 DocType: DocType,DocType,文档类型
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,用户{0}不存在
 DocType: Website Theme,"If image is selected, color will be ignored.",如果图像被选择时，颜色将被忽略。
@@ -2244,7 +2244,7 @@ DocType: Communication,Email Account,邮件帐户
 DocType: Workflow State,Download,下载
 DocType: Blog Post,Blog Intro,博客介绍
 DocType: Async Task,Result,成绩
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0}不是有效的电子邮件地址
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0}不是有效的电子邮件地址
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,启用报告
 DocType: DocField,Display Depends On,显示的内容取决于
 DocType: Web Page,Insert Code,插入代码

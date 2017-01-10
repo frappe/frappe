@@ -56,6 +56,10 @@
 		"public/css/form.css",
 		"public/css/mobile.css"
 	],
+	"css/frappe-rtl.css": [
+		"public/css/bootstrap-rtl.css",
+		"public/css/desk-rtl.css"
+	],
 	"js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",

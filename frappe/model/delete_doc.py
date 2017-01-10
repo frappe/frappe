@@ -87,18 +87,17 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			# delete attachments
 			remove_all(doctype, name, from_delete=True)
 
-		if doc and not frappe.flags.in_patch:
-			try:
-				doc.notify_update()
-				insert_feed(doc)
-			except ImportError:
-				pass
-
-		if doc:
+		if doc and not for_reload:
 			add_to_deleted_document(doc)
+			if not frappe.flags.in_patch:
+				try:
+					doc.notify_update()
+					insert_feed(doc)
+				except ImportError:
+					pass
 
-		# delete user_permissions
-		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+			# delete user_permissions
+			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 def add_to_deleted_document(doc):
 	'''Add this document to Deleted Document table. Called after delete'''

@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Query
 DocType: DocType,Sort Order,ordine
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'Modalità Lista' non consentito per il tipo {0} in riga {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,La tua email Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,La tua Email Address
 DocType: Custom Field,Select the label after which you want to insert new field.,Selezionare l&#39;etichetta dopo la quale si desidera inserire nuovo campo.
 ,Document Share Report,Documento Share Relazione
 DocType: User,Last Login,Ultimo Login
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Pagina HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Ulteriori nodi possono essere creati solo sotto i nodi di tipo ' Gruppo '
 DocType: Web Page,Header,Intestazione
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Sconosciuto Colonna : {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Optional: Invia a queste ids. Ogni id-mail su una nuova riga
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Optional: Invia a queste ids. Ogni id-mail su una nuova riga
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Gli utenti con ruolo {0} :
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Installazione di App {0}
 DocType: Print Format,Custom Format,Formato personalizzato
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,rispondi
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Aggiornare il modello e salvarlo in formato CSV (Comma Values separato) formato prima di attaccare.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Specificare il valore del campo
 DocType: Report,Disabled,Disabilitato
-DocType: Email Account,Always use Account's Email ID as Sender,Usare sempre di ID account e-mail come mittente
+DocType: Email Account,Always use Account's Email Address as Sender,Usare sempre di ID account e-mail come mittente
 DocType: Workflow State,eye-close,occhio da vicino
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Si prega di selezionare un altro metodo di pagamento. {0} non supporta le transazioni in valuta &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Impostazioni OAuth Provider
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,SendGrid
 DocType: Workflow State,leaf,foglia
 DocType: Portal Menu Item,Portal Menu Item,Portal voce di menu
-DocType: Email Account,Email ID,ID Email
+DocType: Email Account,Email Address,ID Email
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Inserisci Collegamento
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Un elenco di risorse che l'applicazione client avrà accesso a dopo che l'utente lo permette. <br> ad esempio, del progetto"
 DocType: Contact Us Settings,Query Options,Opzioni query
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Note:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Riduzione Prezzo
 DocType: DocShare,Document Name,Documento Nome
 DocType: ToDo,Medium,Media
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Verifica il tuo id e-mail
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Verifica il tuo id e-mail
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Permessi non sufficienti per vedere i links.
 DocType: Customize Form,Customize Form,Personalizzare modulo
 DocType: Currency,A symbol for this currency. For e.g. $,Un simbolo per questa valuta. Per esempio $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,passo indietro
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Si prega di impostare tasti di accesso Dropbox nel tuo sito config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Eliminare questo record per consentire l&#39;invio a questo indirizzo email
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Utilizza l&#39;ID e-mail citato in questo account come mittente per tutte le email inviate tramite questo account.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Utilizza l&#39;ID e-mail citato in questo account come mittente per tutte le email inviate tramite questo account.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Solo campi obbligatori sono necessari per i nuovi record. È possibile eliminare le colonne non obbligatori, se lo si desidera."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Impossibile aggiornare evento
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,completa di pagamento
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,segnalibro
 DocType: Note,Note,Nota
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Rapporto di errore
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,campo Timeline deve essere un nome di campo valido
-DocType: Email Account,Email Ids,Email Ids
+DocType: Email Account,Email Addresses,Email Addresses
 DocType: Currency,Symbol,Simbolo
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Nuova password inviata per email
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,In coda
 DocType: PayPal Settings,Use Sandbox,Usa Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Nuovo formato di stampa personalizzato
 DocType: DocPerm,Create,Crea
-DocType: Newsletter,A Lead with this email id should exist,Un potenziale cliente (lead) con questa e-mail dovrebbe esistere
+DocType: Newsletter,A Lead with this Email Address should exist,Un potenziale cliente (lead) con questa e-mail dovrebbe esistere
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Filtro non valido: {0}
 DocType: Integration Service,Background Events,Sfondo Eventi
 DocType: Dropbox Settings,App Access Key,App Accessibilità
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Consenti solo Edit Per
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Il tuo nome
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,È Cartella
-DocType: Newsletter,Test Email Id,Test Email Id
+DocType: Newsletter,Test Email Address,Test Email Address
 DocType: DocType,DocType,TipoDoc
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Utente {0} non esiste
 DocType: Website Theme,"If image is selected, color will be ignored.","Se si seleziona l&#39;immagine, il colore verrà ignorato."
@@ -2245,7 +2245,7 @@ DocType: Communication,Email Account,Account Email
 DocType: Workflow State,Download,Scarica
 DocType: Blog Post,Blog Intro,Intro Blog
 DocType: Async Task,Result,Risultato
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} non è un id di email valido
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} non è un id di email valido
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Abilita Report
 DocType: DocField,Display Depends On,Visualizzazione dipende
 DocType: Web Page,Insert Code,Inserire Codice

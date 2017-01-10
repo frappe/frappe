@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os
 
-from frappe.website.utils import can_cache, delete_page_cache
+from frappe.website.utils import can_cache, delete_page_cache, extract_title
 from frappe.model.document import get_controller
 from frappe import _
 
@@ -292,14 +292,7 @@ def load_properties(page_info):
 	import re
 
 	if not page_info.title:
-		if "<!-- title:" in page_info.source:
-			page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
-		elif "<h1>" in page_info.source:
-			match = re.findall('<h1>([^>]*)</h1>', page_info.source)
-			if match:
-				page_info.title = match[0].strip()
-		else:
-			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
+		page_info.title = extract_title(page_info.source, page_info.name)
 
 	if page_info.title and not '{% block title %}' in page_info.source:
 		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'

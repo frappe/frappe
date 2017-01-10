@@ -159,7 +159,7 @@ class EMail:
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
 	def validate(self):
-		"""validate the email ids"""
+		"""validate the Email Addresses"""
 		from frappe.utils import validate_email_add
 
 		if not self.sender:

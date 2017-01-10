@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.4'
+__version__ = '7.2.7'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -385,7 +385,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
 	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
 	:param attachments: List of attachments.
-	:param reply_to: Reply-To email id.
+	:param reply_to: Reply-To Email Address.
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
@@ -635,11 +635,12 @@ def delete_doc_if_exists(doctype, name, force=0):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name, force=force)
 
-def reload_doctype(doctype, force=False):
+def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), force=force)
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), 
+		force=force, reset_permissions=reset_permissions)
 
-def reload_doc(module, dt=None, dn=None, force=False):
+def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.
 
 	:param module: Module name.
@@ -649,7 +650,7 @@ def reload_doc(module, dt=None, dn=None, force=False):
 	"""
 
 	import frappe.modules
-	return frappe.modules.reload_doc(module, dt, dn, force=force)
+	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""

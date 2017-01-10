@@ -112,7 +112,7 @@ def add(recipients, sender, subject, formatted, text_content=None,
 		e.sender = mail.sender
 
 	except frappe.InvalidEmailAddressError:
-		# bad email id - don't add to queue
+		# bad Email Address - don't add to queue
 		return
 
 	e.set("recipient", [])

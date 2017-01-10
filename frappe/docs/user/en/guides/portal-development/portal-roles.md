@@ -12,7 +12,7 @@ Roles can be assigned to Website Users and they will see menu based on their rol
 
 #### Rules for Default Role
 
-For example if the email id matches with a contact id, then set role Customer or Supplier:
+For example if the Email Address matches with a contact id, then set role Customer or Supplier:
 
 	default_roles = [
 		{'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',

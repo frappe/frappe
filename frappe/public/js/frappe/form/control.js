@@ -675,7 +675,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_date_options: function() {
 		this._super();
 		this.datepicker_options.timepicker = true;
-		this.datepicker_options.timeFormat = "hh:ii";
+		this.datepicker_options.timeFormat = "hh:ii:ss";
 	},
 	parse: function(value) {
 		if(value) {
@@ -706,7 +706,8 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.datepicker_options = {
 			language: "en",
 			range: true,
-			autoClose: true
+			autoClose: true,
+			toggleSelected: false
 		}
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
@@ -1314,7 +1315,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
-			
+
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {

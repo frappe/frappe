@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,ప్రశ్న
 DocType: DocType,Sort Order,క్రమబద్ధీకరణ క్రమం
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;లిస్ట్ వ్యూ&#39; వరుసగా రకం {0} అనుమతించబడలేదు {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,మీ టపా
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,మీ టపా
 DocType: Custom Field,Select the label after which you want to insert new field.,మీరు కొత్త రంగంలో ఇన్సర్ట్ కోరుకుంటున్న తర్వాత లేబుల్ ఎంచుకోండి.
 ,Document Share Report,డాక్యుమెంట్ Share నివేదిక
 DocType: User,Last Login,చివరి లాగిన్
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,పేజ్ HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,మరింత నోడ్స్ మాత్రమే &#39;గ్రూప్&#39; రకం నోడ్స్ కింద రూపొందించినవారు చేయవచ్చు
 DocType: Web Page,Header,శీర్షిక
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},తెలియని కాలమ్: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ఐచ్ఛిక: ఎల్లప్పుడూ లో ఈ ఐడిలు కు పంపండి. ఒక కొత్త వరుసగా ప్రతి టపా
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ఐచ్ఛిక: ఎల్లప్పుడూ లో ఈ ఐడిలు కు పంపండి. ఒక కొత్త వరుసగా ప్రతి టపా
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,పాత్ర {0} తో వినియోగదారులు:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},సంస్థాపిస్తోంది App {0}
 DocType: Print Format,Custom Format,కస్టమ్ ఫార్మాట్
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,మళ్ళీ ట్వీట్
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,టెంప్లేట్ అప్డేట్ మరియు అటాచ్ ముందు CSV ఫార్మాట్ (కామాతో ప్రత్యేక విలువలు) సేవ్.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ఫీల్డ్ యొక్క విలువను
 DocType: Report,Disabled,వికలాంగుల
-DocType: Email Account,Always use Account's Email ID as Sender,ఎల్లప్పుడూ పంపినవారు గా ఖాతా యొక్క ఇమెయిల్ ID ఉపయోగించడానికి
+DocType: Email Account,Always use Account's Email Address as Sender,ఎల్లప్పుడూ పంపినవారు గా ఖాతా యొక్క ఇమెయిల్ ID ఉపయోగించడానికి
 DocType: Workflow State,eye-close,కంటికి దగ్గరగా
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',దయచేసి మరొక చెల్లింపు విధానాన్ని ఎంచుకోండి. {0} కరెన్సీలో లావాదేవీలు మద్దతు లేదు &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,ను ప్రొవైడర్ సెట్టింగులు
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ఆకు
 DocType: Portal Menu Item,Portal Menu Item,పోర్టల్ మెను ఐటెమ్
-DocType: Email Account,Email ID,ఇమెయిల్ ID
+DocType: Email Account,Email Address,ఇమెయిల్ ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,లింక్ ను ఇన్సర్ట్
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,క్లయింట్ అనువర్తనం వినియోగదారు తర్వాత అది అనుమతిస్తుంది ప్రాప్యత కలిగి ఉంటుంది ఇది వనరుల జాబితా. <br> ఉదా ప్రాజెక్ట్
 DocType: Contact Us Settings,Query Options,ప్రశ్న ఎంపికల్లో
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,గమన�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,డాక్యుమెంట్ పేరు
 DocType: ToDo,Medium,మీడియం
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,మీ మెయిల్ ఐడి ధృవీకరించండి
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,మీ మెయిల్ ఐడి ధృవీకరించండి
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,లింకులు చూడటానికి తగినంత అనుమతి.
 DocType: Customize Form,Customize Form,ఫారం అనుకూలీకరించండి
 DocType: Currency,A symbol for this currency. For e.g. $,ఈ కరెన్సీ కోసం ఒక చిహ్నం. ఉదా $ కోసం
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,దశల వెనుకబడిన
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,మీ సైట్ config డ్రాప్బాక్స్ యాక్సెస్ కీలు సెట్ చెయ్యండి
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,ఈ ఈమెయిల్ చిరునామాకు పంపడం అనుమతిస్తుంది ఈ రికార్డ్ తొలగించు
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ఈ ఖాతా ఉపయోగించి పంపిన అన్ని ఇమెయిల్స్ కోసం పంపినవారు ఈ ఖాతా పేర్కొన్నారు ఇమెయిల్ ID ఉపయోగిస్తుంది.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ఈ ఖాతా ఉపయోగించి పంపిన అన్ని ఇమెయిల్స్ కోసం పంపినవారు ఈ ఖాతా పేర్కొన్నారు ఇమెయిల్ ID ఉపయోగిస్తుంది.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,మాత్రమే తప్పనిసరి ఖాళీలను కొత్త రికార్డులు అవసరం. మీరు అనుకుంటే మీరు కాని తప్పనిసరి నిలువు తొలగించవచ్చు.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ఈవెంట్ నవీకరించలేకపోతున్నారా
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,చెల్లింపు పూర్తయింది
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,బుక్మార్క్
 DocType: Note,Note,గమనిక
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,లోపం నివేదిక
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,కాలక్రమం లో ఒక చెల్లుబాటు అయ్యే FIELDNAME ఉండాలి
-DocType: Email Account,Email Ids,ఇమెయిల్ ఐడీలు
+DocType: Email Account,Email Addresses,ఇమెయిల్ ఐడీలు
 DocType: Currency,Symbol,మానవ చిత్ర
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,రో # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,కొత్త సంకేతపదం ఇమెయిల్
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,క్యూలో
 DocType: PayPal Settings,Use Sandbox,శాండ్బాక్స్ ఉపయోగించండి
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,న్యూ కస్టమ్ ప్రింట్ ఫార్మాట్
 DocType: DocPerm,Create,సృష్టించు
-DocType: Newsletter,A Lead with this email id should exist,ఈ టపా ఒక ప్రధాన ఉండాలి
+DocType: Newsletter,A Lead with this Email Address should exist,ఈ టపా ఒక ప్రధాన ఉండాలి
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},చెల్లని వడపోత: {0}
 DocType: Integration Service,Background Events,నేపధ్యం ఈవెంట్స్
 DocType: Dropbox Settings,App Access Key,అనువర్తనం యాక్సెస్ కీ
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,మాత్రమే మ�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,నీ పేరు
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ఫోల్డర్ని
-DocType: Newsletter,Test Email Id,టెస్ట్ ఇమెయిల్ ఐడి
+DocType: Newsletter,Test Email Address,టెస్ట్ ఇమెయిల్ ఐడి
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,వాడుకరి {0} ఉనికిలో లేదు
 DocType: Website Theme,"If image is selected, color will be ignored.","చిత్రం ఎంపిక చేస్తే, రంగు విస్మరించబడుతుంది."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ఇమెయిల్ ఖాతా
 DocType: Workflow State,Download,డౌన్లోడ్
 DocType: Blog Post,Blog Intro,పరిచయ బ్లాగ్
 DocType: Async Task,Result,ఫలితం
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} చెల్లుబాటు అయ్యే ఇమెయిల్ ID కాదు
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} చెల్లుబాటు అయ్యే ఇమెయిల్ ID కాదు
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,నివేదిక ప్రారంభించు
 DocType: DocField,Display Depends On,ప్రదర్శించు ఆధారపడి
 DocType: Web Page,Insert Code,చొప్పించు కోడ్

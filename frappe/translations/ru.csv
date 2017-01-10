@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Запрос
 DocType: DocType,Sort Order,Порядок сортировки
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},"""Режим Просмотра Списком"" не допускается для типа {0} в строке {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Ваш E-mail Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Ваш E-mail Id
 DocType: Custom Field,Select the label after which you want to insert new field.,"Выберите метку, после чего Вы хотите вставить новое поле."
 ,Document Share Report,Документ Поделиться Пожаловаться
 DocType: User,Last Login,Последний Войти
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Страница HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Дальнейшие узлы могут быть созданы только под узлами типа «Группа»
 DocType: Web Page,Header,Шапка
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Неизвестный Колонка: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Дополнительно: Всегда отправить этих идентификаторов. Каждый электронный идентификатор на новую строку
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Дополнительно: Всегда отправить этих идентификаторов. Каждый электронный идентификатор на новую строку
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Пользователи с ролью {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Установка приложения {0}
 DocType: Print Format,Custom Format,Собственный формат
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,ретвит
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Обновить шаблон и сохранить в формате CSV (Comma отдельные значения) формат перед установкой.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Укажите значение поля
 DocType: Report,Disabled,Отключено
-DocType: Email Account,Always use Account's Email ID as Sender,"Всегда используйте счета Email ID, как Sender"
+DocType: Email Account,Always use Account's Email Address as Sender,"Всегда используйте счета Email Address, как Sender"
 DocType: Workflow State,eye-close,глаз близко
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',"Пожалуйста, выберите другой способ оплаты. {0} не поддерживает транзакции в валюте &#39;{1}&#39;"
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth провайдера Настройки
@@ -862,7 +862,7 @@ DocType: File,rgt,РТГ
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,лист
 DocType: Portal Menu Item,Portal Menu Item,Портал Пункт меню
-DocType: Email Account,Email ID,Email ID
+DocType: Email Account,Email Address,Email Address
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Вставить ссылку
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Список ресурсов, которые Клиент App будет иметь доступ к после того, как пользователь позволяет. <br> например, проект"
 DocType: Contact Us Settings,Query Options,Параметры запроса
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Замет�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Уценка
 DocType: DocShare,Document Name,Название документа
 DocType: ToDo,Medium,Средний
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,"Пожалуйста, проверьте ваш электронный идентификатор"
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,"Пожалуйста, проверьте ваш электронный идентификатор"
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,"Не хватает разрешения, чтобы увидеть ссылки."
 DocType: Customize Form,Customize Form,Настроить форму
 DocType: Currency,A symbol for this currency. For e.g. $,"Символ для этой валюты. Например, $"
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,шаг назад
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,"Пожалуйста, установите ключи доступа Dropbox на своем сайте конфигурации"
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,"Удалить эту запись, чтобы отправлять на этот адрес"
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,"Использование указанного в этом счете в качестве отправителя для всех писем, отправляемых с помощью этого счета Email ID."
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,"Использование указанного в этом счете в качестве отправителя для всех писем, отправляемых с помощью этого счета Email Address."
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Только обязательные поля обязательны для новых записей. Вы можете удалить необязательные столбцы, если хотите."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Не удалось обновить событие
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Оплата Полная
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,закладка
 DocType: Note,Note,Заметка
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Сообщение об ошибке
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Сроки поле должно быть действительным имя_поля
-DocType: Email Account,Email Ids,E-mail идентификаторы
+DocType: Email Account,Email Addresses,E-mail идентификаторы
 DocType: Currency,Symbol,Символ
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Строка #{0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Новый пароль выслан на email
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,В очереди
 DocType: PayPal Settings,Use Sandbox,Использование Песочница
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Новый пользовательский Формат печати
 DocType: DocPerm,Create,Создать
-DocType: Newsletter,A Lead with this email id should exist,Руководитеть с таким email должен существовать
+DocType: Newsletter,A Lead with this Email Address should exist,Руководитеть с таким email должен существовать
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Неверный Фильтр: {0}
 DocType: Integration Service,Background Events,Фоновые события
 DocType: Dropbox Settings,App Access Key,App Ключ доступа
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,Только Разреши
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Ваше имя
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Папка
-DocType: Newsletter,Test Email Id,Тест электронный идентификатор
+DocType: Newsletter,Test Email Address,Тест электронный идентификатор
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Пользователь {0} не существует
 DocType: Website Theme,"If image is selected, color will be ignored.","Если выбранное изображение, цвет будет игнорироваться."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,Email Account
 DocType: Workflow State,Download,Скачать
 DocType: Blog Post,Blog Intro,Блог Intro
 DocType: Async Task,Result,Результат
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} не является допустимым E-mail ID
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} не является допустимым E-mail ID
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Включить отчет
 DocType: DocField,Display Depends On,Показание зависит от
 DocType: Web Page,Insert Code,Вставить код
