@@ -74,6 +74,11 @@ frappe.render = function(str, data, name) {
 	return frappe.template.compile(str, name)(data);
 };
 frappe.render_template = function(name, data) {
+	if(name.indexOf(' ')!==-1) {
+		var template = name;
+	} else {
+		var template = frappe.templates[name];
+	}
 	if(data===undefined) {
 		data = {};
 	}
