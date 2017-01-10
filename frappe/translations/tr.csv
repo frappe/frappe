@@ -496,7 +496,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Sorgu
 DocType: DocType,Sort Order,Sıralama
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'Liste görüntüle' izin türü için {0} üst üste {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,E-posta Kimliği
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,E-posta Kimliği
 DocType: Custom Field,Select the label after which you want to insert new field.,Select the label after which you want to insert new field.
 ,Document Share Report,Belge Paylaş Raporu
 DocType: User,Last Login,Son Giriş
@@ -684,7 +684,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be 
 DocType: Web Page,Header,Başlık
 DocType: Web Page,Header,Başlık
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Bilinmeyen Sütun: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,"İsteğe Bağlı: Daima bu kimlikleri gönderin. Yeni bir satırda, her e-posta id"
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,"İsteğe Bağlı: Daima bu kimlikleri gönderin. Yeni bir satırda, her e-posta id"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Rolüne sahip kullanıcılar {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},App Kurma{0}
 DocType: Print Format,Custom Format,Özel Formatı
@@ -757,7 +757,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Şablonu güncelleyin ve takmadan önce CSV formatında (Virgülle Ayrı Değerler) kaydedin.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Alanın değerini belirtin
 DocType: Report,Disabled,Devredışı
-DocType: Email Account,Always use Account's Email ID as Sender,Daima Sender olarak Hesabınızın E-Posta kimliği kullanmak
+DocType: Email Account,Always use Account's Email Address as Sender,Daima Sender olarak Hesabınızın E-Posta kimliği kullanmak
 DocType: Workflow State,eye-close,eye-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',başka bir ödeme yöntemi seçin. {0} para işlemleri desteklemiyor &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Sağlayıcı Ayarları
@@ -907,7 +907,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,yaprak
 DocType: Portal Menu Item,Portal Menu Item,Portal Menü Maddesi
-DocType: Email Account,Email ID,E-posta kimliği
+DocType: Email Account,Email Address,E-posta kimliği
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Ekle Bağlantı
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Müşteri App kullanıcı izin verdiği sonra erişimi olacak kaynakların listesi. <br> örneğin, proje"
 DocType: Contact Us Settings,Query Options,Sorgu Seçenekleri
@@ -950,7 +950,7 @@ apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Tümünü İ�
 DocType: DocShare,Document Name,Belge Adı
 DocType: ToDo,Medium,Orta
 DocType: ToDo,Medium,Orta
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,E-posta id doğrulayın
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,E-posta id doğrulayın
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Değil linkleri görmek için yeterli izin yok
 DocType: Customize Form,Customize Form,Formu özelleştirmek
 DocType: Currency,A symbol for this currency. For e.g. $,Bu para için bir sembol mesela $ için
@@ -1148,7 +1148,7 @@ DocType: Workflow State,step-backward,step-backward
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Lütfen site yapılandırmanızda Dropbox erişim anahtarı ayarlayınız
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Bu e-posta adresine gönderilmesine izin Bu kayıt silinsin
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Bu Hesap kullanılarak gönderilen tüm e-postalar için Sender olarak bu Hesabına belirtilen e-posta kimliği kullanır.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Bu Hesap kullanılarak gönderilen tüm e-postalar için Sender olarak bu Hesabına belirtilen e-posta kimliği kullanır.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Sadece zorunlu alanlar yeni kayıtlar için gereklidir. İsterseniz zorunlu olmayan sütunları silebilirsiniz.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Etkinlik güncellenemedi
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Ödeme Tamamlandı
@@ -1358,7 +1358,7 @@ DocType: Note,Note,Not
 DocType: Note,Note,Not
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Hata raporu
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Zaman alanı geçerli AlanAdı olmalıdır
-DocType: Email Account,Email Ids,E-posta Noları
+DocType: Email Account,Email Addresses,E-posta Noları
 DocType: Currency,Symbol,Sembol
 DocType: Currency,Symbol,Sembol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Satır # {0}:
@@ -1808,7 +1808,7 @@ DocType: Async Task,Queued,Sıraya alınmış
 DocType: PayPal Settings,Use Sandbox,Kullanım Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Yeni Özel Baskı Biçimi
 DocType: DocPerm,Create,Oluştur
-DocType: Newsletter,A Lead with this email id should exist,Bu e-posta sistemde zaten kayıtlı
+DocType: Newsletter,A Lead with this Email Address should exist,Bu e-posta sistemde zaten kayıtlı
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Geçersiz Filtre: {0}
 DocType: Integration Service,Background Events,Arka plan Olaylar
 DocType: Dropbox Settings,App Access Key,Uygulama Erişim Anahtarı
@@ -1992,8 +1992,8 @@ DocType: Workflow Document State,Only Allow Edit For,Only Allow Edit For
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Adınız
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Klasör mı
-DocType: Newsletter,Test Email Id,Test E-posta Kimliği
-DocType: Newsletter,Test Email Id,Test E-posta Kimliği
+DocType: Newsletter,Test Email Address,Test E-posta Kimliği
+DocType: Newsletter,Test Email Address,Test E-posta Kimliği
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Kullanıcı {0} yok
 DocType: Website Theme,"If image is selected, color will be ignored.","Görüntü seçilirse, renk göz ardı edilecektir."
@@ -2367,7 +2367,7 @@ DocType: Communication,Email Account,E-posta Hesabı
 DocType: Workflow State,Download,indir
 DocType: Blog Post,Blog Intro,Blog girişi
 DocType: Async Task,Result,Sonuç
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} geçerli bir e-posta adresi değildir
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} geçerli bir e-posta adresi değildir
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Rapor etkinleştirin
 DocType: DocField,Display Depends On,Görüntü şuna bağlı
 DocType: Web Page,Insert Code,Kod Ekle

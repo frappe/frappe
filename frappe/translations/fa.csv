@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,پرس و جو
 DocType: DocType,Sort Order,ترتیب
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'نمایش لیستی'  برای نوع {0} در ردیف {1} مجاز نیست
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,ایمیل خود را در ID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,ایمیل خود را در ID
 DocType: Custom Field,Select the label after which you want to insert new field.,برچسب و پس از آن شما می خواهید برای وارد کردن زمینه های جدید را انتخاب کنید.
 ,Document Share Report,سند اشتراک گزارش
 DocType: User,Last Login,تاریخ و زمان آخرین ورود
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,صفحه HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,گره علاوه بر این می تواند تنها تحت نوع گره &#39;گروه&#39; ایجاد
 DocType: Web Page,Header,سربرگ
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},ستون ناشناخته: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,اختیاری: همیشه به این شناسه را ارسال. هر شناسه ایمیل را در یک ردیف جدید
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,اختیاری: همیشه به این شناسه را ارسال. هر شناسه ایمیل را در یک ردیف جدید
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,کاربران با نقش {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},نصب برنامه {0}
 DocType: Print Format,Custom Format,قالب های سفارشی
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,بازتوییت
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,به روز رسانی قالب و ذخیره در CSV (با کاما جدا ارزش) فرمت قبل از اتصال.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,مشخص ارزش این زمینه
 DocType: Report,Disabled,غیر فعال
-DocType: Email Account,Always use Account's Email ID as Sender,همیشه حساب ایمیل ID به عنوان فرستنده استفاده
+DocType: Email Account,Always use Account's Email Address as Sender,همیشه حساب ایمیل ID به عنوان فرستنده استفاده
 DocType: Workflow State,eye-close,چشم نزدیک
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',لطفا روش پرداخت دیگری را انتخاب کنید. {0} از انجام تراکنش در ارز را پشتیبانی نمی کند: &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,تنظیمات ارائه دهنده OAuth تأیید
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,برگ
 DocType: Portal Menu Item,Portal Menu Item,آیتم های منو را پورتال
-DocType: Email Account,Email ID,ایمیل ID
+DocType: Email Account,Email Address,ایمیل ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,درج لینک
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,فهرستی از منابع که برنامه سرویس گیرنده دسترسی به پس از کاربر اجازه می دهد تا داشته باشد. <br> به عنوان مثال پروژه
 DocType: Contact Us Settings,Query Options,گزینه های پرس و جو
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,یاددا�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,نام سند
 DocType: ToDo,Medium,متوسط
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,لطفا شناسه ایمیل خود را تایید کنید
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,لطفا شناسه ایمیل خود را تایید کنید
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,هنوز به اندازه کافی اجازه دیدن لینک ها.
 DocType: Customize Form,Customize Form,سفارشی کردن فرم
 DocType: Currency,A symbol for this currency. For e.g. $,نماد برای این ارز. برای مثال $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,گام به گام به عقب
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,لطفا کلیدهای دسترسی Dropbox به پیکربندی در سایت خود تنظیم
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,حذف این رکورد اجازه می دهد تا ارسال به این آدرس ایمیل
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,با استفاده از ID ایمیل در این حساب به عنوان فرستنده برای همه ایمیل های فرستاده شده از این حساب ذکر شده است.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,با استفاده از ID ایمیل در این حساب به عنوان فرستنده برای همه ایمیل های فرستاده شده از این حساب ذکر شده است.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,تنها فیلدها اجباری لازم برای پرونده جدید است. شما می توانید ستون اجباری اگر شما می خواهید حذف کنید.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,به روز نمی شود رویداد
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,کامل پرداخت
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,چوب الف
 DocType: Note,Note,یادداشت
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,گزارش خطا
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,درست گاهشمار باید یک FIELDNAME معتبر باشد
-DocType: Email Account,Email Ids,ایمیل شناسه
+DocType: Email Account,Email Addresses,ایمیل شناسه
 DocType: Currency,Symbol,نماد
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,ردیف # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,کلمه عبور جدید را در ایمیل فرستاده
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,صف
 DocType: PayPal Settings,Use Sandbox,استفاده از گودال ماسهبازی
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,جدید سفارشی چاپ فرمت
 DocType: DocPerm,Create,ساختن
-DocType: Newsletter,A Lead with this email id should exist,یک نفر با این آدرس ایمیل موجود است
+DocType: Newsletter,A Lead with this Email Address should exist,یک نفر با این آدرس ایمیل موجود است
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},فیلتر نامعتبر: {0}
 DocType: Integration Service,Background Events,پس زمینه رویدادها
 DocType: Dropbox Settings,App Access Key,برنامه کلید دسترسی
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,تنها اجازه می د
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,اسم شما
 DocType: DocType,InnoDB,سازی InnoDB
 DocType: File,Is Folder,است پوشه
-DocType: Newsletter,Test Email Id,تست ایمیل کد
+DocType: Newsletter,Test Email Address,تست ایمیل کد
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,کاربر {0} وجود ندارد
 DocType: Website Theme,"If image is selected, color will be ignored.",اگر تصویر انتخاب شده است، رنگ نادیده گرفته می شود.
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,حساب کاربری ایمیل
 DocType: Workflow State,Download,دانلود
 DocType: Blog Post,Blog Intro,وبلاگ معرفی
 DocType: Async Task,Result,نتیجه
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} این یک شناسه ایمیل معتبر نیست
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} این یک شناسه ایمیل معتبر نیست
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,فعال گزارش
 DocType: DocField,Display Depends On,ها بستگی به
 DocType: Web Page,Insert Code,قرار دادن کد

@@ -26,7 +26,7 @@ class User(Document):
 		self.flags.ignore_save_passwords = True
 
 	def autoname(self):
-		"""set name as email id"""
+		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
 		else:
@@ -321,6 +321,9 @@ class User(Document):
 		frappe.db.sql("""delete from `tabEvent` where owner=%s
 			and event_type='Private'""", (self.name,))
 
+		# delete shares
+		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
+
 		# delete messages
 		frappe.db.sql("""delete from `tabCommunication`
 			where communication_type in ('Chat', 'Notification')
@@ -328,6 +331,7 @@ class User(Document):
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
 	def before_rename(self, old_name, new_name, merge=False):
+		self.check_demo()
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 

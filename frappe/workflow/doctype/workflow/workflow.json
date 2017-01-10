@@ -282,7 +282,7 @@
  "istable": 0, 
  "max_attachments": 0, 
  "menu_index": 0, 
- "modified": "2016-11-07 06:00:30.277777", 
+ "modified": "2016-12-29 14:40:05.383145", 
  "modified_by": "Administrator", 
  "module": "Workflow", 
  "name": "Workflow", 
@@ -313,5 +313,6 @@
  "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }

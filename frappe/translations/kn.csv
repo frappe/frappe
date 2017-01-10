@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,ಪ್ರಶ್ನೆಯ
 DocType: DocType,Sort Order,ವಿಂಗಡಣಾ ಕ್ರಮ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},' ListView ರಲ್ಲಿ ' ಅವಕಾಶ ಮಾದರಿ {0} ಸತತವಾಗಿ {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,ನಿಮ್ಮ ಇಮೇಲ್
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,ನಿಮ್ಮ ಇಮೇಲ್
 DocType: Custom Field,Select the label after which you want to insert new field.,ನೀವು ಹೊಸ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೇರಿಸಲು ಬಯಸುವ afterwhich ಲೇಬಲ್ ಆಯ್ಕೆ .
 ,Document Share Report,ಡಾಕ್ಯುಮೆಂಟ್ ಪಾಲಿನ ವರದಿಯು
 DocType: User,Last Login,ಕೊನೆಯ ಲಾಗಿನ್
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,HTML ಪುಟ
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,ಮತ್ತಷ್ಟು ಗ್ರಂಥಿಗಳು ಮಾತ್ರ ' ಗ್ರೂಪ್ ' ರೀತಿಯ ನೋಡ್ಗಳನ್ನು ಅಡಿಯಲ್ಲಿ ರಚಿಸಬಹುದಾಗಿದೆ
 DocType: Web Page,Header,ತಲೆಹೊಡೆತ
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},ಅಪರಿಚಿತ ಅಂಕಣ : {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ಐಚ್ಛಿಕ: ಯಾವಾಗಲೂ ಈ ಐಡಿಗಳನ್ನು ಕಳುಹಿಸಿ. ಹೊಸ ಸಾಲಿನಲ್ಲಿ ಪ್ರತಿ ಇಮೇಲ್ ಐಡಿ
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ಐಚ್ಛಿಕ: ಯಾವಾಗಲೂ ಈ ಐಡಿಗಳನ್ನು ಕಳುಹಿಸಿ. ಹೊಸ ಸಾಲಿನಲ್ಲಿ ಪ್ರತಿ ಇಮೇಲ್ ಐಡಿ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ಪಾತ್ರ ಬಳಕೆದಾರರು {0} :
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},ಅನುಸ್ಥಾಪಿಸುವುದು ಅಪ್ಲಿಕೇಶನ್ {0}
 DocType: Print Format,Custom Format,ಕಸ್ಟಮ್ ಸ್ವರೂಪ
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,ರಿಟ್ವೀಟ್
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,ಟೆಂಪ್ಲೇಟ್ ನವೀಕರಿಸಲು ಮತ್ತು ಲಗತ್ತಿಸುತ್ತಿದ್ದೇನೆ ಮೊದಲು CSV ನಲ್ಲಿ ಸ್ವರೂಪ (ಅಲ್ಪವಿರಾಮದಿಂದ ಪ್ರತ್ಯೇಕ ಮೌಲ್ಯಗಳು) ಉಳಿಸಲು.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ಕ್ಷೇತ್ರದ ನಿಗದಿಸಿ
 DocType: Report,Disabled,ಅಂಗವಿಕಲ
-DocType: Email Account,Always use Account's Email ID as Sender,ಯಾವಾಗಲೂ ಕಳುಹಿಸಿದವರ ಎಂದು ಖಾತೆ ಇ-ಮೇಲ್ ಐಡಿ ಬಳಸಿ
+DocType: Email Account,Always use Account's Email Address as Sender,ಯಾವಾಗಲೂ ಕಳುಹಿಸಿದವರ ಎಂದು ಖಾತೆ ಇ-ಮೇಲ್ ಐಡಿ ಬಳಸಿ
 DocType: Workflow State,eye-close,ಕಣ್ಣಿನ ಹತ್ತಿರ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',ಮತ್ತೊಂದು ಪಾವತಿ ವಿಧಾನವನ್ನು ಆಯ್ಕೆ. {0} ಇಲ್ಲ ಚಲಾವಣೆಯ ವ್ಯವಹಾರದಲ್ಲಿ ಬೆಂಬಲ &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth ಅನ್ನು ಒದಗಿಸುವವರು ಸೆಟ್ಟಿಂಗ್ಗಳು
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ಎಲೆ
 DocType: Portal Menu Item,Portal Menu Item,ಪೋರ್ಟಲ್ ಮೆನು ಐಟಂ
-DocType: Email Account,Email ID,ಇಮೇಲ್
+DocType: Email Account,Email Address,ಇಮೇಲ್
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,ಲಿಂಕ್ ಸೇರಿಸಿ
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,ಪಟ್ಟಿ ಸಂಪನ್ಮೂಲಗಳ ಕ್ಲೈಂಟ್ ಅಪ್ಲಿಕೇಶನ್ ಬಳಕೆದಾರ ನಂತರ ಅನುಮತಿಸುತ್ತದೆ ಪ್ರವೇಶವನ್ನು ಹೊಂದಿರುತ್ತದೆ. <br> ಉದಾ ಯೋಜನೆಯ
 DocType: Contact Us Settings,Query Options,ಪ್ರಶ್ನೆಯ ಆಯ್ಕೆಗಳು
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,ಟಿಪ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ಡಾಕ್ಯುಮೆಂಟ್ ಹೆಸರು
 DocType: ToDo,Medium,ಮಧ್ಯಮ
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,ನಿಮ್ಮ ಇಮೇಲ್ ಐಡಿ ಪರಿಶೀಲಿಸಿ
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,ನಿಮ್ಮ ಇಮೇಲ್ ಐಡಿ ಪರಿಶೀಲಿಸಿ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,ಮಾಡಿರುವುದಿಲ್ಲ ಕೊಂಡಿಗಳು ನೋಡಲು ಸಾಕಷ್ಟು ಅನುಮತಿ .
 DocType: Customize Form,Customize Form,ಫಾರ್ಮ್ ಕಸ್ಟಮೈಸ್
 DocType: Currency,A symbol for this currency. For e.g. $,ಈ ಕರೆನ್ಸಿ ಒಂದು ಸಂಕೇತ. ಇ ಜಿ ಫಾರ್ $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ಹಂತ ಹಿಂದುಳಿದ
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{ App_title }
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,ನಿಮ್ಮ ಸೈಟ್ ಸಂರಚನಾ ಡ್ರಾಪ್ಬಾಕ್ಸ್ accesskeys ಸೆಟ್ ದಯವಿಟ್ಟು
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,ಈ ವಿಳಾಸಕ್ಕೆ ಕಳುಹಿಸಲು ಅವಕಾಶ ಈ ರೆಕಾರ್ಡ್ ಅಳಿಸು
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ಈ ಖಾತೆ ಬಳಸಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ ಎಲ್ಲಾ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಿದವರ ಈ ಖಾತೆ ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ ಈಮೇಲ್ ಅಡ್ರೆಸ್ ಬಳಸುತ್ತದೆ.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ಈ ಖಾತೆ ಬಳಸಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ ಎಲ್ಲಾ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಿದವರ ಈ ಖಾತೆ ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ ಈಮೇಲ್ ಅಡ್ರೆಸ್ ಬಳಸುತ್ತದೆ.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,ಮಾತ್ರ ಕಡ್ಡಾಯವಾಗಿ ಜಾಗ ಹೊಸ ದಾಖಲೆಗಳು ಅವಶ್ಯಕ. ನೀವು ಬಯಸಿದರೆ ನೀವು ಕಡ್ಡಾಯವಲ್ಲದ ಕಾಲಮ್ಗಳನ್ನು ಅಳಿಸಬಹುದು.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ಕ್ರಿಯೆಯನ್ನು ನವೀಕರಿಸಲಾಗುತ್ತಿಲ್ಲ
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದೆ
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,ಓದು - ಗುರುತು
 DocType: Note,Note,ನೋಡು
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,ದೋಷ ವರದಿ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,ಟೈಮ್ಲೈನ್ ಕ್ಷೇತ್ರ ಮಾನ್ಯ FIELDNAME ಇರಬೇಕು
-DocType: Email Account,Email Ids,ಇಮೇಲ್ ಐಡಿಗಳನ್ನು
+DocType: Email Account,Email Addresses,ಇಮೇಲ್ ಐಡಿಗಳನ್ನು
 DocType: Currency,Symbol,ವಿಗ್ರಹ
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,ರೋ # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,ಹೊಸ ಗುಪ್ತಪದವನ್ನು ಇಮೇಲ್
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,ಸರತಿಯಲ್ಲಿ
 DocType: PayPal Settings,Use Sandbox,ಸ್ಯಾಂಡ್ಬಾಕ್ಸ್ ಬಳಸಿ
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,ಹೊಸ ಕಸ್ಟಮ್ ಪ್ರಿಂಟ್ ಸ್ವರೂಪ
 DocType: DocPerm,Create,ರಚಿಸಿ
-DocType: Newsletter,A Lead with this email id should exist,ಈ ಇಮೇಲ್ ಐಡಿ Shoulderstand ಒಂದು ಪ್ರಮುಖ ಅಸ್ತಿತ್ವದಲ್ಲಿವೆ
+DocType: Newsletter,A Lead with this Email Address should exist,ಈ ಇಮೇಲ್ ಐಡಿ Shoulderstand ಒಂದು ಪ್ರಮುಖ ಅಸ್ತಿತ್ವದಲ್ಲಿವೆ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},ಅಮಾನ್ಯವಾದ ಫಿಲ್ಟರ್ : {0}
 DocType: Integration Service,Background Events,ಹಿನ್ನೆಲೆ ಕ್ರಿಯೆಗಳು
 DocType: Dropbox Settings,App Access Key,ಅಪ್ಲಿಕೇಶನ್ ಪ್ರವೇಶ ಕೀ
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,ಮಾತ್ರ ಸಂಪ�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,ನಿಮ್ಮ ಹೆಸರು
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ಫೋಲ್ಡರ್
-DocType: Newsletter,Test Email Id,ಟೆಸ್ಟ್ ಮಿಂಚಂಚೆ
+DocType: Newsletter,Test Email Address,ಟೆಸ್ಟ್ ಮಿಂಚಂಚೆ
 DocType: DocType,DocType,doctype
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ಬಳಕೆದಾರ {0} ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ
 DocType: Website Theme,"If image is selected, color will be ignored.","ಚಿತ್ರ ಆರಿಸಿದಲ್ಲಿ, ಬಣ್ಣ ನಿರ್ಲಕ್ಷಿಸಲಾಗುತ್ತದೆ."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,ಇಮೇಲ್ ಖಾತೆ
 DocType: Workflow State,Download,ಡೌನ್ಲೋಡ್
 DocType: Blog Post,Blog Intro,ಪರಿಚಯ ಬ್ಲಾಗ್
 DocType: Async Task,Result,ಫಲಿತಾಂಶ
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ಒಂದು ಮಾನ್ಯ ಇಮೇಲ್ ಐಡಿ ಅಲ್ಲ
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ಒಂದು ಮಾನ್ಯ ಇಮೇಲ್ ಐಡಿ ಅಲ್ಲ
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,ವರದಿ ಸಕ್ರಿಯಗೊಳಿಸಿ
 DocType: DocField,Display Depends On,ಪ್ರದರ್ಶನ ಅವಲಂಬಿಸಿರುತ್ತದೆ
 DocType: Web Page,Insert Code,ಕೋಡ್ ಸೇರಿಸಿ

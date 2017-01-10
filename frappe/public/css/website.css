@@ -435,8 +435,10 @@ h6 a {
   max-width: 100%;
 }
 .banner {
-  margin-top: 20px;
-  padding: 0px 20px;
+  padding: 10px 0px;
+}
+.banner img {
+  max-height: 50px;
 }
 .no-border {
   border: none !important;
@@ -827,11 +829,10 @@ a.active {
   padding-bottom: 20px;
 }
 .footer-group {
-  margin-bottom: 28px;
+  margin-bottom: 1em;
 }
 .footer-group-label {
   display: inline-block;
-  font-size: 11px;
 }
 li .footer-child-item {
   margin: 15px 0px !important;
@@ -848,10 +849,6 @@ li .footer-child-item {
 }
 .blog-text p {
   margin-bottom: 30px;
-}
-.blogger-name {
-  margin-bottom: 0px;
-  margin-top: 0px;
 }
 .comment-view {
   padding-bottom: 30px;
@@ -920,4 +917,13 @@ li .footer-child-item {
   font-weight: 500;
   margin-top: -10px;
   margin-right: -8px;
+}
+.page-card {
+  max-width: 360px;
+  padding: 30px;
+  margin: auto;
+  border: 1px solid #d1d8dd;
+  border-radius: 4px;
+  margin: 0 auto;
+  background-color: #fff;
 }

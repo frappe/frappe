@@ -244,7 +244,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 18:31:32.243853", 
+ "modified": "2016-12-29 14:40:04.209039", 
  "modified_by": "Administrator", 
  "module": "Integration Broker", 
  "name": "OAuth Bearer Token", 
@@ -278,5 +278,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

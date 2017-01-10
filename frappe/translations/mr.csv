@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,क्वेरी
 DocType: DocType,Sort Order,अनुक्रम
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;यादी पहा मध्ये&#39; सलग प्रकार {0} परवानगी नाही {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,आपला ई-मेल आयडी
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,आपला ई-मेल आयडी
 DocType: Custom Field,Select the label after which you want to insert new field.,ज्यानंतर नवीन क्षेत्रात समाविष्ट करायचे असेल ते  लेबल निवडा.
 ,Document Share Report,दस्तऐवज  अहवाल सामायिक करा
 DocType: User,Last Login,अखेरचे लॉगिन
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,पृष्ठ HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,पुढील नोडस् फक्त &#39;ग्रुप प्रकार नोडस् अंतर्गत तयार केले जाऊ शकते
 DocType: Web Page,Header,शीर्षलेख
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},अज्ञात स्तंभ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,पर्यायी: नेहमी या आयडीला  पाठवा.  प्रत्येक ई-मेल आयडी नवीन रांगेत
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,पर्यायी: नेहमी या आयडीला  पाठवा.  प्रत्येक ई-मेल आयडी नवीन रांगेत
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,भूमिका {0} सह वापरकर्ते:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},प्रतिष्ठापन अनुप्रयोग {0}
 DocType: Print Format,Custom Format,सानुकूल स्वरूप
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,पुन्हा ट्विट करा
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,टेम्प्लेट अद्ययावत करा आणि  आधी CSV मध्ये संलग्न करण्याआधी CSV स्वरूपामध्ये  (स्वल्पविराम विभक्त मूल्ये) जतन करा.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,शेतातील मूल्य निर्देशीत
 DocType: Report,Disabled,अपंग
-DocType: Email Account,Always use Account's Email ID as Sender,नेहमी प्रेषक म्हणून खात्याचा ईमेल आयडी वापरा
+DocType: Email Account,Always use Account's Email Address as Sender,नेहमी प्रेषक म्हणून खात्याचा ईमेल आयडी वापरा
 DocType: Workflow State,eye-close,डोळे बंद
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',कृपया दुसरी देयक पद्धत निवडा. {0} चलन व्यवहार समर्थन करत नाही &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth प्रदाता सेटिंग्ज
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,पाने/leaf
 DocType: Portal Menu Item,Portal Menu Item,पोर्टल मेन्यू घटक
-DocType: Email Account,Email ID,ई-मेल आयडी
+DocType: Email Account,Email Address,ई-मेल आयडी
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,लिंक घाला
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,क्लायंट अनुप्रयोग वापरकर्ता परवानगी नंतर प्रवेश असेल संसाधने यादी. <br> उदा प्रकल्प
 DocType: Contact Us Settings,Query Options,क्वेरी पर्याय
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,टिप�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,दस्तऐवज नाव
 DocType: ToDo,Medium,मध्यम
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,आपला ई-मेल आयडी सत्यापित करा
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,आपला ई-मेल आयडी सत्यापित करा
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,दुवे पहाण्यासाठी पुरेशी परवानगी नाही .
 DocType: Customize Form,Customize Form,फॉर्म सानुकूलित
 DocType: Currency,A symbol for this currency. For e.g. $,या चलनासाठी एक चिन्ह. उदा $ साठी
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,चरण-मागे
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,आपली साइट संरचना मध्ये ड्रॉपबॉक्स प्रवेश कळा सेट करा
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,या ईमेल पत्त्यावर पाठवून परवानगी देण्यासाठी हे रेकॉर्ड हटवा
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,हे खाते वापरुन पाठवला सर्व ईमेल साठी प्रेषक म्हणून या खात्यात नमूद ईमेल आयडी वापरते.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,हे खाते वापरुन पाठवला सर्व ईमेल साठी प्रेषक म्हणून या खात्यात नमूद ईमेल आयडी वापरते.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,फक्त अनिवार्य शेतात नवीन रेकॉर्डसाठी आवश्यक आहेत. आपली इच्छा असेल तर आपण न-अनिवार्य स्तंभ हटवू शकता.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,कार्यक्रम अद्यतनित करण्यात अक्षम
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,देयक पूर्ण
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,बुकमार्क
 DocType: Note,Note,टीप
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,त्रुटी अहवाल
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,टाइमलाइन फील्ड वैध FIELDNAME असणे आवश्यक आहे
-DocType: Email Account,Email Ids,ईमेल आयडी
+DocType: Email Account,Email Addresses,ईमेल आयडी
 DocType: Currency,Symbol,प्रतीक
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,रो # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,नवीन पासवर्ड ई-मेल
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,रांगेत आहे
 DocType: PayPal Settings,Use Sandbox,Sandbox वापर
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,नवीन सानुकूल प्रिंट स्वरूप
 DocType: DocPerm,Create,तयार करा
-DocType: Newsletter,A Lead with this email id should exist,या ई-मेल id असलेले लीड अस्तित्वात पाहिजे
+DocType: Newsletter,A Lead with this Email Address should exist,या ई-मेल id असलेले लीड अस्तित्वात पाहिजे
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},अवैध फिल्टर: {0}
 DocType: Integration Service,Background Events,पार्श्वभूमी आगामी कार्यक्रम
 DocType: Dropbox Settings,App Access Key,अनुप्रयोग प्रवेश की
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,फक्त संपा�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,आपले नाव
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,फोल्डर आहे
-DocType: Newsletter,Test Email Id,कसोटी ई मेल आयडी
+DocType: Newsletter,Test Email Address,कसोटी ई मेल आयडी
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,सदस्य {0} अस्तित्वात नाही
 DocType: Website Theme,"If image is selected, color will be ignored.","प्रतिमा निवडले असेल, तर रंग दुर्लक्ष केले जाईल."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ईमेल खाते
 DocType: Workflow State,Download,डाउनलोड
 DocType: Blog Post,Blog Intro,Intro ब्लॉग
 DocType: Async Task,Result,निकाल
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} हा ई-मेल आयडी वैध नाही
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} हा ई-मेल आयडी वैध नाही
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,अहवाल सक्षम
 DocType: DocField,Display Depends On,रोजी प्रदर्शन अवलंबून
 DocType: Web Page,Insert Code,घाला कोड

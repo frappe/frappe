@@ -60,6 +60,10 @@ $(document).on("save", function(event, doc) {
 });
 
 frappe.views.set_list_as_dirty = function(doctype) {
+	if(frappe.views.trees[doctype]) {
+		frappe.views.trees[doctype].tree.refresh();
+	}
+
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
 		if(frappe.pages[list_page].doclistview) {
@@ -446,7 +450,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	render_rows_Gantt: function(values) {
-		var gantt_area = $('<svg height="400" width="6000"></svg>')
+		var gantt_area = $('<svg width="20" height="20"></svg>')
 			.appendTo(this.wrapper.find('.result-list').css("overflow", "scroll"));
 		var id = frappe.dom.set_unique_id(gantt_area);
 
@@ -460,41 +464,36 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				id: item[field_map.id],
 				doctype: me.doctype,
 				progress: item.progress,
-				dependent: item.depends_on_tasks || ""
+				dependencies: item.depends_on_tasks || ""
 			};
 		});
-		frappe.require(["assets/frappe/js/lib/snap.svg-min.js", "assets/frappe/css/gantt.css"], function() {
-			me.gantt = new Gantt({
-				parent_selector: '#' + id,
-				tasks: tasks,
-				date_format: "YYYY-MM-DD",
-				bar: {
-					height: 20
-				},
-				events: {
-					bar_on_click: function (task) {
+		frappe.require([
+				"assets/frappe/js/lib/snap.svg-min.js",
+				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+			], function() {
+				me.gantt = new Gantt("#"+id, tasks, {
+					date_format: "YYYY-MM-DD",
+					on_click: function (task) {
 						frappe.set_route('Form', task.doctype, task.id);
 					},
-					bar_on_date_change: function(task, start, end) {
+					on_date_change: function(task, start, end) {
 						update_field(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
 							update_field(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
 								show_alert({message:__("Saved"), indicator:'green'}, 1);
 							});
 						});
 					},
-					bar_on_progress_change: function(task, progress) {
+					on_progress_change: function(task, progress) {
 						update_field(task.id, 'progress', progress, function() {
 							show_alert({message:__("Saved"), indicator:'green'}, 1);
 						});
 					},
-					on_viewmode_change: function(mode) {
+					on_view_change: function(mode) {
 						me.list_settings.view_mode = mode;
 					}
-				}
-			});
-			me.gantt.render();
+				});
 
-			var view_modes = me.gantt.get_view_modes() || [];
+			var view_modes = me.gantt.config.view_modes || [];
 			var dropdown = "<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
 				"<span class='dropdown-text'>"+__('Day')+"</span><i class='caret'></i></a>" +
@@ -518,7 +517,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 			$dropdown.on("click", ".option", function() {
 				var mode = $(this).data('value');
-				me.gantt.set_view_mode(mode)
+				me.gantt.change_view_mode(mode)
 				$dropdown.find(".dropdown-text").text(mode);
 			})
 		});

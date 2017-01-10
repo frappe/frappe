@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,প্রশ্ন
 DocType: DocType,Sort Order,সজ্জাক্রম
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},সারি {1} এর টাইপ {0} জন্য 'তালিকা দেখুন' অনুমোদিত নয়
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,আপনার ইমেইল আইডি
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,আপনার ইমেইল আইডি
 DocType: Custom Field,Select the label after which you want to insert new field.,"আপনি নতুন ক্ষেত্র সন্নিবেশ করতে চান, যা পরে ট্যাগ নির্বাচন করুন."
 ,Document Share Report,ডকুমেন্ট শেয়ার প্রতিবেদন
 DocType: User,Last Login,সর্বশেষ লগইন
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,পৃষ্ঠা এইচটিএমএল
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,আরও নোড শুধুমাত্র &#39;গ্রুপ&#39; টাইপ নোড অধীনে তৈরি করা যেতে পারে
 DocType: Web Page,Header,শিরোলেখ
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},অজানা কলাম: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ঐচ্ছিক: সর্বদা এই আইডিতে পাঠাতে. একটি নতুন সারি প্রতিটি ইমেইল আইডি
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ঐচ্ছিক: সর্বদা এই আইডিতে পাঠাতে. একটি নতুন সারি প্রতিটি ইমেইল আইডি
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ভূমিকা {0} সঙ্গে ব্যবহারকারী:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},ইনস্টল অ্যাপ্লিকেশন {0}
 DocType: Print Format,Custom Format,পছন্দসই বিন্যাস
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,রিট্যুইট
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,টেমপ্লেট হালনাগাদ ও সংযোজনের আগে CSV বিন্যাসে (কমা পৃথক মান) সংরক্ষণ করুন.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ক্ষেত্রের মান উল্লেখ
 DocType: Report,Disabled,অক্ষম
-DocType: Email Account,Always use Account's Email ID as Sender,সর্বদা প্রেরক হিসাবে অ্যাকাউন্টের ইমেল আইডি ব্যবহার
+DocType: Email Account,Always use Account's Email Address as Sender,সর্বদা প্রেরক হিসাবে অ্যাকাউন্টের ইমেল আইডি ব্যবহার
 DocType: Workflow State,eye-close,চোখের বন্ধ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',দয়া করে অন্য একটি পেমেন্ট পদ্ধতি নির্বাচন করুন. {0} মুদ্রায় লেনদেন সমর্থন করে না &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth এর প্রোভাইডার সেটিংস
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,পাতা
 DocType: Portal Menu Item,Portal Menu Item,পোর্টাল মেনু আইটেম
-DocType: Email Account,Email ID,ইমেইল আইডি
+DocType: Email Account,Email Address,ইমেইল আইডি
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,সন্নিবেশ লিংক
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,সম্পদের একটি তালিকা যা ক্লায়েন্ট অ্যাপ ব্যবহারকারী এটি করতে সক্ষম হবেন পরে অ্যাক্সেস থাকবে. <br> যেমন প্রকল্প
 DocType: Contact Us Settings,Query Options,ক্যোয়ারী অপশন
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,নোট:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ডকুমেন্ট নাম
 DocType: ToDo,Medium,মাঝারি
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,আপনার ইমেইল আইডি যাচাই করুন
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,আপনার ইমেইল আইডি যাচাই করুন
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,লিঙ্ক দেখতে নেই পর্যাপ্ত অনুমতি.
 DocType: Customize Form,Customize Form,ফরম কাস্টমাইজ
 DocType: Currency,A symbol for this currency. For e.g. $,এই মুদ্রার জন্য একটি প্রতীক. যেমন $ জন্য
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ধাপে অনগ্রসর
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{অ্যাপ_শিরোনাম}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,আপনার সাইটে কনফিগ ড্রপবক্স এক্সেস কী সেট করুন
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,এই ইমেইল ঠিকানায় পাঠানোর অনুমতি এই রেকর্ড মুছে
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,এই অ্যাকাউন্টটি ব্যবহার করে পাঠানো সব ইমেইল জন্য প্রেরক হিসাবে এই অ্যাকাউন্টের উল্লিখিত ইমেইল আইডি ব্যবহার করে.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,এই অ্যাকাউন্টটি ব্যবহার করে পাঠানো সব ইমেইল জন্য প্রেরক হিসাবে এই অ্যাকাউন্টের উল্লিখিত ইমেইল আইডি ব্যবহার করে.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,শুধু বাধ্যতামূলক ক্ষেত্র নতুন রেকর্ডের জন্য প্রয়োজন হয়. যদি আপনি চান আপনি অ বাধ্যতামূলক কলাম মুছে দিতে পারেন.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ইভেন্ট আপডেট করতে অক্ষম
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,পেমেন্ট সমাপ্তি
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,বুকমার্ক
 DocType: Note,Note,বিঃদ্রঃ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,ভুলের তথ্য
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,সময়রেখা ক্ষেত্রের একটি বৈধ FIELDNAME হবে
-DocType: Email Account,Email Ids,ইমেল আইডি
+DocType: Email Account,Email Addresses,ইমেল আইডি
 DocType: Currency,Symbol,প্রতীক
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,সারি # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,নতুন পাসওয়ার্ড ইমেইল
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,সারিবদ্ধ
 DocType: PayPal Settings,Use Sandbox,ব্যবহারের স্যান্ডবক্স
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,নতুন কাস্টম মুদ্রন বিন্যাস
 DocType: DocPerm,Create,তৈরি করুন
-DocType: Newsletter,A Lead with this email id should exist,এই ইমেইল আইডি দিয়ে লিড বিদ্যমান উচিত
+DocType: Newsletter,A Lead with this Email Address should exist,এই ইমেইল আইডি দিয়ে লিড বিদ্যমান উচিত
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},অকার্যকর ফিল্টার: {0}
 DocType: Integration Service,Background Events,পটভূমি ঘটনাবলী
 DocType: Dropbox Settings,App Access Key,অ্যাপ্লিকেশন অ্যাক্সেস কী
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,শুধু সম্প�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,তোমার নাম
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ফোল্ডার
-DocType: Newsletter,Test Email Id,টেস্ট ইমেইল আইডি
+DocType: Newsletter,Test Email Address,টেস্ট ইমেইল আইডি
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ব্যবহারকারী {0} অস্তিত্ব নেই
 DocType: Website Theme,"If image is selected, color will be ignored.","ইমেজ নির্বাচন করা হয় তাহলে, রঙ উপেক্ষা করা হবে."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ইমেইল একাউন্ট
 DocType: Workflow State,Download,ডাউনলোড
 DocType: Blog Post,Blog Intro,মুখ্য পৃষ্ঠা Privacy Policy ব্লগ
 DocType: Async Task,Result,ফল
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} একটি বৈধ ইমেইল আইডি নয়
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} একটি বৈধ ইমেইল আইডি নয়
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,গালাগাল প্রতিবেদন সক্রিয়
 DocType: DocField,Display Depends On,প্রদর্শন উপর নির্ভর
 DocType: Web Page,Insert Code,কোড প্রবেশ করান

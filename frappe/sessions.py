@@ -288,7 +288,8 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		self.device = frappe.db.get_value("Sessions", {"sid": self.sid}, "device") or 'desktop'
+		self.device = frappe.db.sql('select device from tabSessions where sid=%s', self.sid)
+		self.device = self.device and self.device[0][0] or 'desktop'
 
 		rec = frappe.db.sql("""select user, sessiondata
 			from tabSessions where sid=%s and

@@ -59,27 +59,37 @@ class Report(Document):
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
 
-	def get_data(self, filters=None, limit=None, user=None):
-
+	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
+		columns = []
 		out = []
 
 		if self.report_type in ('Query Report', 'Script Report'):
 			# query and script reports
 			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
-			columns_list = []
 			for d in data.get('columns'):
 				if isinstance(d, dict):
-					columns_list.append(d.get('label'))
+					columns.append(frappe._dict(d))
 				else:
-					columns_list.append(d.split(':')[0])
+					parts = d.split(':')
+					fieldtype, options = parts[1], None
+					if fieldtype and '/' in fieldtype:
+						fieldtype, options = fieldtype.split('/')
 
-			out.append(columns_list)
+					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0]))
+
 			out += data.get('result')
 		else:
 			# standard report
 			params = json.loads(self.json)
 			columns = params.get('columns')
-			filters = params.get('filters')
+			_filters = params.get('filters') or []
+
+			if filters:
+				for key, value in filters.iteritems():
+					condition, _value = '=', value
+					if isinstance(value, (list, tuple)):
+						condition, _value = value
+					_filters.append([key, condition, _value])
 
 			def _format(parts):
 				# sort by is saved as DocType.fieldname, covert it to sql
@@ -90,14 +100,26 @@ class Report(Document):
 				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
 
 			result = frappe.get_list(self.ref_doctype, fields = [_format([c[1], c[0]]) for c in columns],
-				filters=filters, order_by = order_by, as_list=True, limit=limit, user=user)
+				filters=_filters, order_by = order_by, as_list=True, limit=limit, user=user)
 
 			meta = frappe.get_meta(self.ref_doctype)
 
-			out.append([meta.get_label(c[0]) for c in columns])
+			columns = [meta.get_field(c[0]) or frappe._dict(label=meta.get_label(c[0]), fieldname=c[0])
+				for c in columns]
+
 			out = out + [list(d) for d in result]
 
-		return out
+		if as_dict:
+			data = []
+			for row in out:
+				_row = frappe._dict()
+				data.append(_row)
+				for i, val in enumerate(row):
+					_row[columns[i].get('fieldname')] = val
+		else:
+			data = out
+
+		return columns, data
 
 
 	@Document.whitelist

@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Jautājums
 DocType: DocType,Sort Order,Kārtošanas secība
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},"""List View"" nav atļauts veidam {0} rindā {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Jūsu e-pasts ID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Jūsu e-pasts ID
 DocType: Custom Field,Select the label after which you want to insert new field.,"Izvēlieties etiķeti, pēc kura vēlaties ievietot jauno darbības jomu."
 ,Document Share Report,Dokumentu Share Ziņojums
 DocType: User,Last Login,Pēdējā pieteikšanās
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,"Turpmākas mezglus var izveidot tikai ar ""grupa"" tipa mezgliem"
 DocType: Web Page,Header,Galvene
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Nezināms sleja: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Pēc izvēles: Vienmēr sūtīt uz šiem ID. Katrā e-pasta id par jaunu kārtas
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Pēc izvēles: Vienmēr sūtīt uz šiem ID. Katrā e-pasta id par jaunu kārtas
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Lietotāji ar lomu {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Instalēšana App {0}
 DocType: Print Format,Custom Format,Custom Format
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Atjaunināt veidni un saglabāt CSV (Comma Atsevišķi vērtības) formātā pirms pievienošanas.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Precizēt vērtību lauka
 DocType: Report,Disabled,Invalīdiem
-DocType: Email Account,Always use Account's Email ID as Sender,Vienmēr izmantojiet konta e-pasta ID kā sūtītājs
+DocType: Email Account,Always use Account's Email Address as Sender,Vienmēr izmantojiet konta e-pasta ID kā sūtītājs
 DocType: Workflow State,eye-close,eye-close
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',"Lūdzu, izvēlieties citu maksājuma veidu. {0} neatbalsta darījumus valūtā &#39;{1}&#39;"
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth sniedzējs iestatījumi
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,lapa
 DocType: Portal Menu Item,Portal Menu Item,Portāls Izvēlnes pozīcija
-DocType: Email Account,Email ID,E-pasta ID
+DocType: Email Account,Email Address,E-pasta ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Ievietot Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Saraksts no resursiem, kas Klientam App būs pieejama pēc tam, kad lietotājs to atļauj. <br> piemēram, projekts"
 DocType: Contact Us Settings,Query Options,Vaicājuma opcijas
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Piezīmes:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Dokumenta nosaukums
 DocType: ToDo,Medium,Medijs
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,"Lūdzu, apstipriniet savu e-pasta id"
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,"Lūdzu, apstipriniet savu e-pasta id"
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,"Nepietiek atļauju, lai redzētu saites."
 DocType: Customize Form,Customize Form,Pielāgot forma
 DocType: Currency,A symbol for this currency. For e.g. $,"Simbols šajā valūtā. Lai, piemēram, $$"
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,soli atpakaļ
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Lūdzu noteikt Dropbox piekļuves atslēgas vietnes config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,"Dzēst šo ierakstu, kas ļauj sūtīt uz šo e-pasta adresi"
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,"Izmanto minēto šajā kontā kā nosūtītājs visiem e-pastiem nosūtītas, izmantojot šo kontu e-pasta ID."
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,"Izmanto minēto šajā kontā kā nosūtītājs visiem e-pastiem nosūtītas, izmantojot šo kontu e-pasta ID."
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Tikai obligāti lauki ir vajadzīgs jaunām ierakstiem. Jūs varat dzēst neobligātiem kolonnas, ja vēlaties."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Nevar atjaunināt notikumu
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,maksājumu Complete
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,grāmatzīme
 DocType: Note,Note,Piezīme
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Kļūdas ziņojums
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Timeline laukam jābūt derīgam fieldname
-DocType: Email Account,Email Ids,E-pasta ID
+DocType: Email Account,Email Addresses,E-pasta ID
 DocType: Currency,Symbol,Simbols
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Jaunā parole pa e-pastu
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Rindā
 DocType: PayPal Settings,Use Sandbox,Izmantot Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,New Custom Print Format
 DocType: DocPerm,Create,Izveidot
-DocType: Newsletter,A Lead with this email id should exist,Svins ar šo e-pasta id jāpastāv
+DocType: Newsletter,A Lead with this Email Address should exist,Svins ar šo e-pasta id jāpastāv
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Nederīga Filter: {0}
 DocType: Integration Service,Background Events,fona notikumi
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Tikai Atļaut Rediģēt
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Tavs vārds
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Vai Folder
-DocType: Newsletter,Test Email Id,Tests Email Id
+DocType: Newsletter,Test Email Address,Tests Email Address
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Lietotāja {0} nepastāv
 DocType: Website Theme,"If image is selected, color will be ignored.","Ja ir izvēlēts attēls, krāsu tiks ignorētas."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,E-pasta konta
 DocType: Workflow State,Download,Download
 DocType: Blog Post,Blog Intro,Blogs Intro
 DocType: Async Task,Result,Rezultāts
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} nav derīga e-pasta id
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} nav derīga e-pasta id
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Ieslēgt ziņojumu
 DocType: DocField,Display Depends On,Displejs Atkarīgs On
 DocType: Web Page,Insert Code,Ievietot Code

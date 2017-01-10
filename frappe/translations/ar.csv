@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,سؤال
 DocType: DocType,Sort Order,ترتيب
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'في عرض القائمة' لا يسمح لنوع {0} في {1} الصف
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,البريد الالكتروني رقم
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,البريد الالكتروني رقم
 DocType: Custom Field,Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.
 ,Document Share Report,وثيقة حصة تقرير
 DocType: User,Last Login,آخر تسجيل دخول
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,صفحة HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,العقد الإضافية التي يمكن أن تنشأ إلا في ظل العقد نوع ' المجموعة '
 DocType: Web Page,Header,رأس
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},غير معروف العمود: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,اختياري: دائما إرسالها إلى هذه الهوية. كل معرف البريد الإلكتروني على صف جديد
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,اختياري: دائما إرسالها إلى هذه الهوية. كل معرف البريد الإلكتروني على صف جديد
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,المستخدمين مع دور {0} :
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},تثبيت التطبيقات {0}
 DocType: Print Format,Custom Format,تنسيق مخصص
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,تحديث القالب وحفظ في CSV (الفاصلة قيم منفصلة) شكل قبل إرفاق.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,تحديد قيمة الحقل
 DocType: Report,Disabled,معطل
-DocType: Email Account,Always use Account's Email ID as Sender,دائما استخدام الحساب ID البريد الإلكتروني كما المرسل
+DocType: Email Account,Always use Account's Email Address as Sender,دائما استخدام الحساب ID البريد الإلكتروني كما المرسل
 DocType: Workflow State,eye-close,إغلاق العين
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',يرجى تحديد طريقة دفع أخرى. {0} لا تدعم المعاملات بالعملة &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,إعدادات مزود أوث
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ورق
 DocType: Portal Menu Item,Portal Menu Item,بوابة عنصر القائمة
-DocType: Email Account,Email ID,البريد الإلكتروني
+DocType: Email Account,Email Address,البريد الإلكتروني
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,إدراج رابط
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,قائمة الموارد التي سيكون لها التطبيق العميل الوصول إلى بعد قيام المستخدم يسمح بذلك. <br> على سبيل المثال مشروع
 DocType: Contact Us Settings,Query Options,خيارات الاستعلام
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,الملا�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,مصغر
 DocType: DocShare,Document Name,اسم المستند
 DocType: ToDo,Medium,متوسط
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,يرجى التحقق من اسم المستخدم البريد الالكتروني
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,يرجى التحقق من اسم المستخدم البريد الالكتروني
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,لا إذن بما يكفي لرؤية الروابط.
 DocType: Customize Form,Customize Form,تخصيص نموذج
 DocType: Currency,A symbol for this currency. For e.g. $,رمز هذه العملة. ر.س مثلاً
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,خطوة إلى الوراء
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{ app_title }
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,الرجاء تعيين مفاتيح الوصول دروببوإكس في التكوين موقعك
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,حذف هذا السجل للسماح إرسالها إلى عنوان البريد الإلكتروني هذا
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,يستخدم ID البريد الإلكتروني المذكور في هذا الحساب باسم المرسل لجميع رسائل البريد الإلكتروني المرسلة باستخدام هذا الحساب.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,يستخدم ID البريد الإلكتروني المذكور في هذا الحساب باسم المرسل لجميع رسائل البريد الإلكتروني المرسلة باستخدام هذا الحساب.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,ضرورية لسجلات جديدة الحقول الإلزامية فقط. يمكنك حذف الأعمدة غير الإلزامية إذا كنت ترغب في ذلك.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,غير قادر على تحديث الحدث
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,دفع كامل
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,المرجعية
 DocType: Note,Note,ملاحظات
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,أبلغ عن مشكلة
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,يجب أن يكون حقل الزمني لFIELDNAME صحيح
-DocType: Email Account,Email Ids,البريد الإلكتروني معرفات
+DocType: Email Account,Email Addresses,البريد الإلكتروني معرفات
 DocType: Currency,Symbol,رمز
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,الصف # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,كلمة مرور جديدة عبر البريد الالكتروني
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,قائمة الانتظار
 DocType: PayPal Settings,Use Sandbox,استخدام رمل
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,تنسيق مخصص للطباعة جديد
 DocType: DocPerm,Create,انشاء
-DocType: Newsletter,A Lead with this email id should exist,يجب أن يكون هنالك قائد يستخدم هذا البريد الإلكتروني
+DocType: Newsletter,A Lead with this Email Address should exist,يجب أن يكون هنالك قائد يستخدم هذا البريد الإلكتروني
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},تصفية الباطلة: {0}
 DocType: Integration Service,Background Events,خلفية الأحداث
 DocType: Dropbox Settings,App Access Key,التطبيق مفتاح الوصول
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,السماح فقط للت�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,اسمك
 DocType: DocType,InnoDB,ك InnoDB
 DocType: File,Is Folder,هو مجلد
-DocType: Newsletter,Test Email Id,اختبار البريد الإلكتروني
+DocType: Newsletter,Test Email Address,اختبار البريد الإلكتروني
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,المستخدم {0} غير موجود
 DocType: Website Theme,"If image is selected, color will be ignored.",إذا تم تحديد صورة، سيتم تجاهل اللون.
@@ -2248,7 +2248,7 @@ DocType: Communication,Email Account,حساب البريد الإلكتروني
 DocType: Workflow State,Download,تحميل
 DocType: Blog Post,Blog Intro,بدايه المدونه
 DocType: Async Task,Result,نتيجة
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} بريد إلكتروني غير صحيح
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} بريد إلكتروني غير صحيح
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,تمكين تقرير
 DocType: DocField,Display Depends On,العرض يعتمد على
 DocType: Web Page,Insert Code,إدراج كود

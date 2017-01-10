@@ -26,7 +26,7 @@ class SentEmailInInbox(Exception): pass
 
 class EmailAccount(Document):
 	def autoname(self):
-		"""Set name as `email_account_name` or make title from email id."""
+		"""Set name as `email_account_name` or make title from Email Address."""
 		if not self.email_account_name:
 			self.email_account_name = self.email_id.split("@", 1)[0]\
 				.replace("_", " ").replace(".", " ").replace("-", " ").title()
@@ -37,7 +37,7 @@ class EmailAccount(Document):
 		self.name = self.email_account_name
 
 	def validate(self):
-		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
+		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
 			validate_email_add(self.email_id, True)
 

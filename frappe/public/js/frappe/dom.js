@@ -172,6 +172,15 @@ frappe.dom = {
 	}
 }
 
+frappe.ellipsis = function(text, max) {
+	if(!max) max = 20;
+	text = cstr(text);
+	if(text.length > max) {
+		text = text.substr(0, max) + '...';
+	}
+	return text;
+}
+
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
