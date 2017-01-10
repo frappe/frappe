@@ -250,9 +250,12 @@ frappe.ui.Listing = Class.extend({
 			var different = false;
 
 			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {
-				// settings are dirty if filters change
-				list_settings.filters = args.filters || [];
-				different = true;
+				//dont save filters in Kanban view
+				if(!frappe.get_route()[2]==="Kanban") {
+					// settings are dirty if filters change
+					list_settings.filters = args.filters || [];
+					different = true;
+				}
 			}
 
 			if(list_settings.order_by !== args.order_by) {

@@ -358,15 +358,18 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	filter_exists: function(doctype, fieldname, condition, value) {
+		var flag = false;
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
-					&& f[3]==value) return true;
-
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && f[3]==value) {
+					flag = true;
+				} else if($.isArray(value) && frappe.utils.arrays_equal(value, f[3])) {
+					flag = true;
+				}
 			}
 		}
-		return false;
+		return flag;
 	},
 
 	get_filters: function() {

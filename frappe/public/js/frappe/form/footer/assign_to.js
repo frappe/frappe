@@ -152,7 +152,11 @@ frappe.ui.form.AssignToDialog = Class.extend({
 						{value:'High', label:__('High')}],
 					'default':'Medium'},
 			],
-			primary_action: function() { frappe.ui.add_assignment(opts, me); },
+			primary_action: function() {
+				var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
+				var args = opts.obj.dialog.get_values();
+				frappe.ui.add_assignment(assign_to, args, opts, dialog);
+			},
 			primary_action_label: __("Add")
 		}));
 
@@ -180,9 +184,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 
 });
 
-frappe.ui.add_assignment = function(opts, dialog) {
-	var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
-	var args = opts.obj.dialog.get_values();
+frappe.ui.add_assignment = function(assign_to, args, opts, dialog) {
 	if(args && assign_to) {
 		return frappe.call({
 			method: opts.method,
@@ -198,7 +200,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 					if(opts.callback){
 						opts.callback(r);
 					}
-					dialog.hide();
+					dialog && dialog.hide();
 				}
 			},
 			btn: this
