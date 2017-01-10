@@ -9,7 +9,7 @@
 		<span class='indicator {{ indicator_color }}'>{{ title or _("Message") }}</span>
 	</div>
 	<p>{{ message or "" }}</p>
-	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-xs'>
+	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
 		{{ primary_label or _("Home") }}</a></div>
 </div>
 {% if error_code %}

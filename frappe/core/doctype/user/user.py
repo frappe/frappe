@@ -534,15 +534,7 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	res = _get_user_for_update_password(key, old_password)
-	if not res:
-		return
-	elif res.get('message'):
-		return res['message']
-	else:
-		user = res['user']
-
-	user_data = frappe.db.get_value('User', user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+	user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
 		return _test_password_strength(new_password, user_inputs=user_data)
