@@ -77,18 +77,16 @@ frappe.ui.form.on('User', {
 			}
 		}
 		if (frm.doc.user_emails){
-			var found =0
+			var found =0;
 			for (var i = 0;i<frm.doc.user_emails.length;i++){
 				if (frm.doc.email==frm.doc.user_emails[i].email_id){
 					found = 1;
 				}
 			}
-			frm.get_field("create_user_email").df.hidden = found;
-			frm.refresh_field("create_user_email");
-		}else{
-			frm.get_field("create_user_email").df.hidden = 1
+			if (!found){
+				frm.add_custom_button("Create User Email",frm.events.create_user_email)
+			}
 		}
-		frm.refresh_field("create_user_email");
 
 		if (frappe.route_titles["unsaved"]===1){
 			delete frappe.route_titles["unsaved"];
