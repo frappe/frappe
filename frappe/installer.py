@@ -129,7 +129,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	if name != "frappe":
 		add_module_defs(name)
 
-	sync_for(name, force=True, sync_everything=True, verbose=verbose)
+	sync_for(name, force=True, sync_everything=True, verbose=verbose, reset_permissions=True)
 
 	sync_from_app(name)
 
