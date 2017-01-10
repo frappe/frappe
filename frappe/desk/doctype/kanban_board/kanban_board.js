@@ -6,7 +6,7 @@ frappe.ui.form.on('Kanban Board', {
 		if(frm.is_new()) return;
 		frm.add_custom_button("Show Board", function() {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
-		}, "icon-table");
+		});
 	},
 	reference_doctype: function(frm) {
 
@@ -23,6 +23,7 @@ frappe.ui.form.on('Kanban Board', {
 					return null;
 				});
 			frm.set_df_property('field_name', 'options', options);
+			frm.get_field('field_name').refresh();
 		});
 	},
 	field_name: function(frm) {

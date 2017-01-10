@@ -192,7 +192,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-22 17:06:11.163857", 
+ "modified": "2017-01-10 04:51:19.413720", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "Kanban Board", 
@@ -226,5 +226,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "track_changes": 0, 
  "track_seen": 0
 }

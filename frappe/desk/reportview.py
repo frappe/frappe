@@ -165,8 +165,15 @@ def delete_items():
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 
-	for d in il:
-		frappe.delete_doc(doctype, d)
+	for i, d in enumerate(il):
+		try:
+			frappe.delete_doc(doctype, d)
+			if len(il) >= 5:
+				frappe.publish_realtime("progress",
+					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
+					user=frappe.session.user)
+		except Exception:
+			pass
 
 @frappe.whitelist()
 def get_sidebar_stats(stats, doctype, filters=[]):

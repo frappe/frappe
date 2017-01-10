@@ -129,7 +129,7 @@ frappe.views.ListSidebar = Class.extend({
 		});
 
 		$dropdown.find('.new-kanban-board').click(function() {
-			frappe.new_doc('Kanban Board');
+			frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
 		});
 	},
 	setup_assigned_to_me: function() {

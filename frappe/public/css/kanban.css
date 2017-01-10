@@ -19,6 +19,8 @@
   margin-top: 0;
   margin-bottom: 15px;
   position: relative;
+  font-weight: bold;
+  font-size: 12px;
 }
 .kanban .kanban-column-title .column-options {
   position: absolute;
@@ -34,8 +36,8 @@
 }
 .kanban .kanban-card {
   background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
   padding: 6px 6px 6px 8px;
   margin-top: 10px;
 }
@@ -73,6 +75,7 @@
 }
 .kanban .kanban-card-title {
   max-width: 90%;
+  font-size: 12px;
 }
 .kanban .kanban-card-edit {
   position: absolute;
@@ -86,6 +89,7 @@
 }
 .kanban .new-card-area textarea,
 .kanban .edit-card-area textarea {
+  font-size: 12px;
   resize: none;
   border: none;
   background: none;
