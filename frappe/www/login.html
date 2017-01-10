@@ -11,9 +11,9 @@
 <section class='for-login'>
 	<div class="login-content page-card" style="margin-top: 20px;">
 		<form class="form-signin form-login" role="form">
-		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _("Sign In") }}"></span>
-		</div>
+			<div class="page-card-head">
+				<span class="indicator blue" data-text="{{ _("Sign In") }}"></span>
+			</div>
 
 			<input type="text" id="login_email"
 				class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
@@ -23,44 +23,45 @@
 
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
 				{{ _("Sign in") }}</button>
-			<div class='social-logins'>
 
-			{%- if social_login -%}
-				<h5><span>{{ _("Or login with") }}</span></h5>
-
-
-				<p class="text-center" style="margin-top: 15px">
-					{%- if facebook_login is defined %}
-					<a href="{{ facebook_login }}" class="no-decoration btn-social btn-facebook">
-						<i class="fa fa-facebook fa-2x"></i></a>
-					{%- endif -%}
-
-					{%- if google_login is defined %}
-					<a href="{{ google_login }}" class="no-decoration btn-social btn-google">
-						<i class="fa fa-google-plus fa-2x"></i></a>
-					{%- endif -%}
-
-					{%- if github_login is defined %}
-					<a href="{{ github_login }}" class="no-decoration btn-social btn-github">
-						<i class="fa fa-github fa-2x"></i></a>
-					{%- endif -%}
-
-					{%- if frappe_login is defined %}
-					<a href="{{ frappe_login }}" class="no-decoration">
-						<img src="/assets/frappe/images/favicon.png"></a>
-					{%- endif -%}
-				</p>
-			{%- endif -%}
 			{% if ldap_settings.enabled %}
-				<p>
-					<button class="btn btn-sm btn-default btn-block btn-login btn-ldpa-login">
-							{{ _("Login via LDAP") }}</button>
-				</p>
+			<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
+				{{ _("Login with LDAP") }}</button>
 			{% endif %}
-		</div>
 		</form>
 	</div>
 	<div class='form-footer'>
+
+			<div class='social-logins'>
+			{%- if social_login -%}
+				<h6>{{ _("Or login with") }}</h6>
+
+				<p class="text-center" style="margin-top: 15px">
+				{%- if facebook_login is defined %}
+				<a href="{{ facebook_login }}"
+					class="btn btn-default btn-xs btn-social btn-facebook">
+					<i class="fa fa-facebook-official"></i> {{ _("Facebook") }}</a>
+				{%- endif -%}
+
+				{%- if google_login is defined %}
+				<a href="{{ google_login }}" class="btn btn-default btn-xs btn-social btn-google">
+					<i class="fa fa-google-plus"></i> {{ _("Google") }}</a>
+				{%- endif -%}
+
+				{%- if github_login is defined %}
+				<a href="{{ github_login }}" class="btn btn-default btn-xs btn-social btn-github">
+					<i class="fa fa-github"></i> {{ _("GitHub") }}</a>
+				{%- endif -%}
+
+				{%- if frappe_login is defined %}
+				<a href="{{ frappe_login }}" class="btn btn-default btn-xs btn-social">
+					<img style='width: 16px; height: 16px;'
+						src="/assets/frappe/images/favicon.png"> {{ _("Frappe") }}</a>
+				{%- endif -%}
+				</p>
+			{%- endif -%}
+			</div>
+
 	{%- if not disable_signup -%}
 		<p class="text-center">
 			<a href="#signup" style="margin-top: -2px;">{{ _("Dont have an account? Sign up") }}</a>

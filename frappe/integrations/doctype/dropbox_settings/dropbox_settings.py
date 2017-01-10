@@ -148,15 +148,16 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 			close = '<p class="text-muted">' + _('Please close this window') + '</p>'
 			frappe.respond_as_web_page(_("Dropbox Setup"),
 				_("Illegal Access Token. Please try again") + close,
-				success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+				indicator_color='red',
+				http_status_code=frappe.AuthenticationError.http_status_code)
 	else:
 		frappe.respond_as_web_page(_("Dropbox Setup"),
 			_("You did not apporve Dropbox Access.") + close,
-			success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+			indicator_color='red')
 
 	frappe.respond_as_web_page(_("Dropbox Setup"),
 		_("Dropbox access is approved!") + close,
-		success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+		indicator_color='red')
 
 # backup process
 @frappe.whitelist()

@@ -98,7 +98,8 @@ def unsubscribe(email, name):
 	return_unsubscribed_page(email)
 
 def return_unsubscribed_page(email):
-	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has been successfully unsubscribed from this list.").format(email))
+	frappe.respond_as_web_page(_("Unsubscribed"),
+		_("{0} has been successfully unsubscribed from this list.").format(email), indicator_color='green')
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""
@@ -157,7 +158,9 @@ def confirm_subscription(email):
 	add_subscribers(_("Website"), email)
 	frappe.db.commit()
 
-	frappe.respond_as_web_page(_("Confirmed"), _("{0} has been successfully added to our Email Group.").format(email))
+	frappe.respond_as_web_page(_("Confirmed"),
+		_("{0} has been successfully added to the Email Group.").format(email),
+		indicator_color='green')
 
 
 def send_newsletter(newsletter):

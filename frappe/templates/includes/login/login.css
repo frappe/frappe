@@ -14,16 +14,6 @@
 	width: 100%;
 }
 
-.icon-facebook, .icon-facebook-sign{
-    color: #3b5998;
-}
-.icon-google-plus, .icon-google-plus-sign{
-    color: #C63D2D;
-}
-.icon-github, .icon-github-sign{
-    color: black;
-}
-
 .icon-twitter, .icon-twitter-sign{
     color: #00a0d1;
 }
@@ -66,15 +56,24 @@ section {
 	margin: 10px;
 }
 
+.social-logins .fa {
+	margin-right: 5px;
+	color: #8D99A6;
+}
+
 .form-footer {
 	margin-top: -45px;
 	text-align: center;
 }
 
-.form-footer, .form-footer a {
+.form-footer, .form-footer a, .form-footer h6 {
 	font-size: 12px;
 	color: #8D99A6;
 	font-weight: bold;
+}
+
+.form-footer .btn-default {
+	color: #36414C;
 }
 
 h5 {

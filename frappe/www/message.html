@@ -6,12 +6,16 @@
 
 <div class='page-card'>
 	<div class='page-card-head'>
-		<span class='indicator {{ indicator_color or "blue" }}'>{{ title or _("Message") }}</span>
+		<span class='indicator {{ indicator_color or
+			("red" if (error_code and error_code > 200) else "blue") }}'>{{ title or _("Message") }}</span>
 	</div>
 	<p>{{ message or "" }}</p>
 	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-xs'>
 		{{ primary_label or _("Home") }}</a></div>
 </div>
+{% if error_code %}
+<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Error Code: {0}").format(error_code) }}</p>
+{% endif %}
 <style>
 .hero-and-content {
 	background-color: #f5f7fa;

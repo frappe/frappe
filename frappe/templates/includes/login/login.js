@@ -53,7 +53,7 @@ login.bind_events = function() {
 		return false;
 	});
 
-	$(".btn-ldpa-login").on("click", function(){
+	$(".btn-ldap-login").on("click", function(){
 		var args = {};
 		args.cmd = "{{ ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
