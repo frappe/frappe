@@ -12,7 +12,7 @@ from frappe import _
 @frappe.whitelist()
 def get():
 	args = get_form_params()
-	args.save_list_settings = True
+
 	data = compress(execute(**args))
 
 	return data
@@ -32,6 +32,11 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
+	if isinstance(data.get("save_list_settings"), basestring):
+		data["save_list_settings"] = json.loads(data["save_list_settings"])
+	else:
+		data["save_list_settings"] = True
+
 
 	# queries must always be server side
 	data.query = None

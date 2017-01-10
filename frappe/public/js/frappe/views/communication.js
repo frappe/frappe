@@ -209,21 +209,39 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_last_edited_communication: function() {
 		var me = this;
-		this.dialog.onhide = function() {
-			if(cur_frm && cur_frm.docname) {
-				var last_edited_communication = me.get_last_edited_communication();
-				$.extend(last_edited_communication, {
-					recipients: me.dialog.get_value("recipients"),
-					subject: me.dialog.get_value("subject"),
-					content: me.dialog.get_value("content"),
-				});
+		if (!this.doc){
+			if (cur_frm){
+				this.doc = cur_frm.doctype;
+			}else{
+				this.doc = "Inbox";
 			}
+		}
+		if (cur_frm && cur_frm.docname) {
+			this.key = cur_frm.docname;
+		} else {
+			this.key = "Inbox";
+		}
+		if(this.last_email) {
+			this.key = this.key + ":" + this.last_email.name;
+		}
+		if(this.subject){
+			this.key = this.key + ":" + this.subject;
+		}
+		this.dialog.onhide = function() {
+			var last_edited_communication = me.get_last_edited_communication();
+			$.extend(last_edited_communication, {
+				sender: me.dialog.get_value("sender"),
+				recipients: me.dialog.get_value("recipients"),
+				subject: me.dialog.get_value("subject"),
+				content: me.dialog.get_value("content"),
+			});
 		}
 
 		this.dialog.on_page_show = function() {
-			if (cur_frm && cur_frm.docname && !me.txt) {
+			if (!me.txt) {
 				var last_edited_communication = me.get_last_edited_communication();
 				if(last_edited_communication.content) {
+					me.dialog.set_value("sender", last_edited_communication.sender || "");
 					me.dialog.set_value("subject", last_edited_communication.subject || "");
 					me.dialog.set_value("recipients", last_edited_communication.recipients || "");
 					me.dialog.set_value("content", last_edited_communication.content || "");
@@ -234,19 +252,15 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_last_edited_communication: function() {
-		var key = cur_frm.docname;
-		if(this.last_email) {
-			key = key + ":" + this.last_email.name;
-		}
-		if (!frappe.last_edited_communication[cur_frm.doctype]) {
-			frappe.last_edited_communication[cur_frm.doctype] = {};
+		if (!frappe.last_edited_communication[this.doc]) {
+			frappe.last_edited_communication[this.doc] = {};
 		}
 
-		if(!frappe.last_edited_communication[cur_frm.doctype][key]) {
-			frappe.last_edited_communication[cur_frm.doctype][key] = {};
+		if(!frappe.last_edited_communication[this.doc][this.key]) {
+			frappe.last_edited_communication[this.doc][this.key] = {};
 		}
 
-		return frappe.last_edited_communication[cur_frm.doctype][key];
+		return frappe.last_edited_communication[this.doc][this.key];
 	},
 
 	setup_print_language: function() {
@@ -475,10 +489,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 					me.dialog.hide();
 
+					if ((frappe.last_edited_communication[me.doc] || {})[me.key]) {
+							delete frappe.last_edited_communication[me.doc][me.key];
+					}
 					if (cur_frm) {
-						if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
-							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
-						}
 						// clear input
 						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
