@@ -1288,7 +1288,11 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
+<<<<<<< HEAD
  "modified": "2017-01-30 02:31:32.591687", 
+=======
+ "modified": "2017-01-05 05:54:02.620116", 
+>>>>>>> f6d822d... II: save list state, UI, default condensed view, refactor
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 

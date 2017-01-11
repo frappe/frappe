@@ -611,14 +611,12 @@ fieldset[disabled] .form-control {
   margin: 8px 0px;
   max-width: 100%;
 }
-.search-modal a {
-  color: #5E64FF;
-}
 .search-modal .modal-dialog {
   width: 768px;
+  height: 500px;
 }
 .search-modal .modal-body {
-  padding: 15px 27px;
+  padding: 0px 20px;
 }
 .search-modal .parent-link:before {
   font-family: 'Octicons';
@@ -626,6 +624,74 @@ fieldset[disabled] .form-control {
 }
 .search-modal .edit-container {
   padding-bottom: 12px;
+}
+.search-modal input.form-control, .search-modal .input-group-addon{
+  border: none;
+  border-left-style:none;
+}
+.search-modal input.form-control:focus{
+  outline: none;
+  box-shadow: none;
+}
+.search-modal .input-group-addon{
+    background-color: #FFF;
+}
+.search-modal .layout-side-section, .search-modal .layout-main-section {
+  height: 500px;
+  padding: 0px 5px;
+  overflow-y: scroll;
+}
+.search-modal .layout-side-section {
+  padding-left: 15px;
+}
+/*.search-modal .results-list button:hover,
+.search-modal .results-list button:focus{
+  background-color: #f0f4f7;
+}*/
+.search-modal .results-list button:focus{
+  z-index: 2;
+  /*outline: none;*/
+}
+
+/*.search-modal .results-list button.active,
+.search-modal .results-list button:active{
+  background-color: #cfdce5;
+}*/
+.search-modal .list-group-item {
+  padding: 5px 10px;
+  width: 100%;
+  text-align: left;
+}
+.search-modal .panel {
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+.search-modal .panel-heading {
+  padding: 2px 10px;
+}
+.search-modal .search-category, 
+.search-modal .btn-help {
+  display: none;
+}
+.search-modal .btn-more {
+  margin-bottom: 20px;
+}
+.search-modal .btn-help {
+  background-color: #f7fafc;
+}
+/*.search-modal .result-area {
+  padding: 25px 20px;
+}*/
+.search-modal .results-div {
+  padding: 10px 20px;
+}
+.search-modal .results-div h4 {
+  text-transform: uppercase;
+  font-size: 14px;
+  color: #717171;
+}
+.search-modal .result-area a {
+  color: #5E64FF;
 }
 @media (max-width: 767px) {
   .search-modal .modal-dialog {
@@ -639,9 +705,10 @@ fieldset[disabled] .form-control {
     width: 100%;
   }
 }
-.search-result {
+.search-result, .help-result {
   margin-bottom: 24px;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 .note-editor {
   margin-top: 5px;
@@ -664,6 +731,6 @@ fieldset[disabled] .form-control {
   overflow: scroll;
 }
 
-.search-result p {
+.search-result p, .help-result p {
   margin-top: 0.2em;
 }

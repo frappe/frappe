@@ -37,7 +37,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.awesome_bar.setup("#navbar-search");
 		frappe.awesome_bar.setup("#modal-search");
 
-		this.help_search = new frappe.search.Help("Help");
+		this.help_search = new frappe.search.Search();
 	},
 
 	setup_sidebar: function () {
@@ -103,9 +103,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
+			console.log("$help_links", $help_links);
 			$help_links.html("");
 
 			var route = frappe.get_route_str();
+			console.log("route", route);
 			var breadcrumbs = route.split("/");
 
 			var links = [];
@@ -113,7 +115,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				var r = route.split("/", i + 1);
 				var key = r.join("/");
 				var help_links = frappe.help.help_links[key] || [];
+				console.log("help_links", help_links);
 				links = $.merge(links, help_links);
+				console.log("links", links);
 			}
 
 			if(links.length === 0) {
@@ -141,48 +145,78 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				}).appendTo($help_links);
 			}
 
-			$('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
+			// $('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
 		});
 
-		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("search-modal");
+		// var $help_modal = frappe.get_modal("Help", "");
+		// $help_modal.addClass('search-modal');
 
-		$(document).on("click", ".search-modal a", show_results);
+		// var $result_modal = frappe.get_modal("", "");
+		// $result_modal.addClass("search-modal");
 
-		this.help_search = new frappe.search.Help("Help");
-		function show_help_results(keywords) {
-			this.help_search = new frappe.search.Help("Help");
-			this.help_search.search_dialog.show();
-			this.help_search.get_results(keywords);
-		}
+		// $(document).on("click", ".search-modal a", show_results);
 
-		function show_results(e) {
-			//edit links
-			href = e.target.href;
-			if(href.indexOf('blob') > 0) {
-				window.open(href, '_blank');
-			}
+		// function show_help_results(keywords) {
+		// 	frappe.call({
+		// 		method: "frappe.utils.help.get_help",
+		// 		args: {
+		// 			text: keywords
+		// 		},
+		// 		callback: function (r) {
+		// 			var results = r.message || [];
+		// 			var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
 
-			var converter = new Showdown.converter();
-			var path = $(this).attr("data-path");
-			if(path) {
-				e.preventDefault();
-				frappe.call({
-					method: "frappe.utils.help.get_help_content",
-					args: {
-						path: path
-					},
-					callback: function (r) {
-						if(r.message && r.message.title) {
-							$result_modal.find('.modal-title').html("<span>"
-								+ r.message.title + "</span>");
-							$result_modal.find('.modal-body').html(r.message.content);
-							$result_modal.modal('show');
-						}
-					}
-				});
-			}
-		}
+		// 			for (var i = 0, l = results.length; i < l; i++) {
+		// 				var title = results[i][0];
+		// 				var intro = results[i][1];
+		// 				var fpath = results[i][2];
+
+		// 				result_html +=	"<div class='search-result'>" +
+		// 									"<a href='#' class='h4' data-path='"+fpath+"'>" + title + "</a>" +
+		// 									"<p>" + intro + "</p>" +
+		// 								"</div>";
+		// 			}
+
+		// 			if(results.length === 0) {
+		// 				result_html += "<p class='padding'>No results found</p>";
+		// 			}
+
+		// 			$help_modal.find('.modal-body').html(result_html);
+		// 			$help_modal.modal('show');
+		// 		}
+		// 	});
+
+		// }
+
+		// function show_results(e) {
+		// 	//edit links
+		// 	href = e.target.href;
+		// 	if(href.indexOf('blob') > 0) {
+		// 		window.open(href, '_blank');
+		// 	}
+
+		// 	var converter = new Showdown.converter();
+		// 	var path = $(this).attr("data-path");
+		// 	console.log("inside help path", path);
+		// 	if(path) {
+		// 		e.preventDefault();
+		// 		frappe.call({
+		// 			method: "frappe.utils.help.get_help_content",
+		// 			args: {
+		// 				path: path
+		// 			},
+		// 			callback: function (r) {
+		// 				console.log("inside help callback:", r.message);
+		// 				if(r.message && r.message.title) {
+		// 					$result_modal.find('.modal-title').html("<span>"
+		// 						+ r.message.title + "</span>");
+		// 					$result_modal.find('.modal-body').html(r.message.content);
+		// 					$result_modal.modal('show');
+		// 				}
+		// 			}
+		// 		});
+		// 	}
+		// }
 	}
 });
 

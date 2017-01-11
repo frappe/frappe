@@ -6,7 +6,7 @@ frappe.awesome_bar = {
 	setup: function(element) {
 		var $input = $(element);
 		var input = $input.get(0);
-		frappe.awesome_bar.global_search = new frappe.search.Global("Global Search");
+		frappe.awesome_bar.search = new frappe.search.Search();
 
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
@@ -106,7 +106,7 @@ frappe.awesome_bar = {
 
 		frappe.awesome_bar.make_page_title_map();
 		frappe.awesome_bar.setup_recent();
-		frappe.awesome_bar.global_search.setup("Global Search");
+		frappe.awesome_bar.search.setup();
 	},
 	add_help: function() {
 		frappe.awesome_bar.options.push({
@@ -214,16 +214,14 @@ frappe.awesome_bar = {
 frappe.awesome_bar.verbs = [
 
 	// Global Search
-	// But shows up at the very top
 	function(txt) {
 		frappe.awesome_bar.options.unshift({
 			label: __("Search in Global Search: " + txt.bold()),
 			value: __("Search in Global Search: " + txt.bold()),
 			onclick: function(match) {
 					try {
-						frappe.awesome_bar.global_search.search_dialog.show();
-						//$(".search-modal input").val("");
-						frappe.awesome_bar.global_search.get_results(txt);
+						frappe.awesome_bar.search.search_dialog.show();
+						frappe.awesome_bar.search.on_dialog_show(txt);
 					} catch(e) {
 						console.log(e);
 					}

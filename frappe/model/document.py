@@ -787,7 +787,7 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
-		frappe.msgprint("Update GS after document update");
+		# frappe.msgprint("Update GS after document update");
 		update_global_search(self)
 
 		if self._doc_before_save and not self.flags.ignore_version:

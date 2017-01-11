@@ -32,7 +32,7 @@ class TestGlobalSearch(unittest.TestCase):
 		phrases2 = ['Hydrus is a small constellation in the deep southern sky. ','It was first depicted on a celestial atlas by Johann Bayer in his 1603 Uranometria. ','The French explorer and astronomer Nicolas Louis de Lacaille charted the brighter stars and gave their Bayer designations in 1756. ','Its name means "male water snake", as opposed to Hydra, a much larger constellation that represents a female water snake. ','It remains below the horizon for most Northern Hemisphere observers.',
 		'The brightest star is the 2.8-magnitude Beta Hydri, also the closest reasonably bright star to the south celestial pole. ','Pulsating between magnitude 3.26 and 3.33, Gamma Hydri is a variable red giant some 60 times the diameter of our Sun. ','Lying near it is VW Hydri, one of the brightest dwarf novae in the heavens. ','Four star systems have been found to have exoplanets to date, most notably HD 10180, which could bear up to nine planetary companions.']
 		phrases3 = ['Keyzer and de Houtman assigned 15 stars to the constellation in their Malay and Madagascan vocabulary, with a star that ','Gamma the chest and a number of stars that were later allocated to Tucana, Reticulum, Mensa and Horologium marking the body and tail. ','Lacaille charted and designated 20 stars with the Bayer designations Alpha through to Tau in 1756. ','Of these, he used the designations Eta, Pi and Tau twice each, for three sets of two stars close together, and omitted Omicron and Xi. ','He assigned Rho to a star that subsequent astronomers were unable to find.']
-		phrases = phrases1 + phrases2 + phrases3;
+		phrases = phrases1 + phrases2 + phrases3
 
 		for text in phrases:
 			frappe.get_doc(dict(
