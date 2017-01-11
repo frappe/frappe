@@ -735,11 +735,11 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
-		if(value) {
-			vals = value.split(",")
-			value = dateutil.user_to_obj(vals[0]);
-			value2 = dateutil.user_to_obj(vals[vals.length-1]);
-			return [value,value2];
+		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
+			vals = value.split(/[( to )(,)]/)
+			from_date = moment(dateutil.user_to_obj(vals[0])).format('YYYY-MM-DD');
+			to_date = moment(dateutil.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
+			return [from_date, to_date];
 		}
 	},
 	format_for_input: function(value,value2) {
