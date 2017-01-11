@@ -207,6 +207,7 @@ class Meta(Document):
 		self.apply_property_setters()
 		self.sort_fields()
 		self.get_valid_columns()
+		self.set_custom_permissions()
 
 	def add_custom_fields(self):
 		try:
@@ -277,6 +278,14 @@ class Meta(Document):
 				f.idx = i + 1
 
 			self.fields = newlist
+
+	def set_custom_permissions(self):
+		'''Reset `permissions` with Custom DocPerm if exists'''
+		if not self.istable and self.name not in ('DocType', 'DocField', 'DocPerm', 'Custom DocPerm'):
+			custom_perms = frappe.get_all('Custom DocPerm', fields='*',
+				filters=dict(parent=self.name))
+			if custom_perms:
+				self.permissions = custom_perms
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {

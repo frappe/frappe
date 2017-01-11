@@ -355,8 +355,8 @@ def get_roles(username=None):
 		return ["Guest"]
 
 	if username:
-		import frappe.utils.user
-		return frappe.utils.user.get_roles(username)
+		import frappe.permissions
+		return frappe.permissions.get_roles(username)
 	else:
 		return get_user().get_roles()
 
@@ -447,6 +447,9 @@ def only_for(roles):
 	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
 
 	:param roles: List of roles to check."""
+	if local.flags.in_test:
+		return
+
 	if not isinstance(roles, (tuple, list)):
 		roles = (roles,)
 	roles = set(roles)

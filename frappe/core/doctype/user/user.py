@@ -499,10 +499,10 @@ def get_user_roles(arg=None):
 	return frappe.get_roles(frappe.form_dict['uid'])
 
 @frappe.whitelist()
-def get_perm_info(arg=None):
+def get_perm_info(role):
 	"""get permission info"""
-	return frappe.db.sql("""select * from tabDocPerm where role=%s
-		and docstatus<2 order by parent, permlevel""", (frappe.form_dict['role'],), as_dict=1)
+	from frappe.permissions import get_all_perms
+	return get_all_perms(role)
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):

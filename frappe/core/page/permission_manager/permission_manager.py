@@ -7,7 +7,7 @@ import frappe.defaults
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.translate import send_translations
 from frappe.desk.notifications import delete_notification_count_for
-from frappe.permissions import reset_perms, get_linked_doctypes
+from frappe.permissions import reset_perms, get_linked_doctypes, get_all_perms
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -17,7 +17,6 @@ def get_roles_and_doctypes():
 		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
 			istable=0 and
 			name not in ('DocType') and
-			exists(select * from `tabDocField` where parent=dt.name) and
 			exists(select * from `tabDocPerm` dp,`tabRole` role where dp.role = role.name and dp.parent=dt.name and not role.disabled)""")],
 		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where
 			name != 'Administrator' and disabled=0""")]
@@ -26,29 +25,30 @@ def get_roles_and_doctypes():
 @frappe.whitelist()
 def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
-	out = frappe.db.sql("""select * from tabDocPerm
-		where %s%s order by parent, permlevel, role""" %
-		(doctype and (" parent='%s'" % frappe.db.escape(doctype)) or "",
-		role and ((doctype and " and " or "") + " role='%s'" % frappe.db.escape(role)) or ""),
-		as_dict=True)
+	if role:
+		out = get_all_perms(role)
+		if doctype:
+			out = [p for p in out if p.parent == doctype]
+	else:
+		out = frappe.get_all('Custom DocPerm', fields='*', filters=dict(parent = doctype))
+		if not out:
+			out = frappe.get_all('DocPerm', fields='*', filters=dict(parent = doctype))
 
 	linked_doctypes = {}
 	for d in out:
-		d.linked_doctypes = linked_doctypes.setdefault(d.parent, get_linked_doctypes(d.parent))
+		if not d.parent in linked_doctypes:
+			linked_doctypes[d.parent] = get_linked_doctypes(d.parent)
+		d.linked_doctypes = linked_doctypes[d.parent]
 
 	return out
 
 @frappe.whitelist()
-def remove(doctype, name):
-	frappe.only_for("System Manager")
-	frappe.db.sql("""delete from tabDocPerm where name=%s""", name)
-	validate_and_reset(doctype, for_remove=True)
-
-@frappe.whitelist()
 def add(parent, role, permlevel):
 	frappe.only_for("System Manager")
+	setup_custom_perms(parent)
+
 	frappe.get_doc({
-		"doctype":"DocPerm",
+		"doctype":"Custom DocPerm",
 		"__islocal": 1,
 		"parent": parent,
 		"parenttype": "DocType",
@@ -61,11 +61,55 @@ def add(parent, role, permlevel):
 	validate_and_reset(parent)
 
 @frappe.whitelist()
-def update(name, doctype, ptype, value=None):
+def update(doctype, role, permlevel, ptype, value=None):
 	frappe.only_for("System Manager")
-	frappe.db.sql("""update tabDocPerm set `%s`=%s where name=%s"""\
+
+	out = None
+	if setup_custom_perms(doctype):
+		out = 'refresh'
+
+	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role, permlevel=permlevel))
+
+	frappe.db.sql("""update `tabCustom DocPerm` set `%s`=%s where name=%s"""\
 	 	% (frappe.db.escape(ptype), '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
+
+	return out
+
+@frappe.whitelist()
+def remove(doctype, role, permlevel):
+	frappe.only_for("System Manager")
+	setup_custom_perms(doctype)
+
+	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role, permlevel=permlevel))
+
+	frappe.db.sql('delete from `tabCustom DocPerm` where name=%s', name)
+	validate_and_reset(doctype, for_remove=True)
+
+def setup_custom_perms(parent):
+	'''if custom permssions are not setup for the current doctype, set them up'''
+	if not frappe.db.exists('Custom DocPerm', dict(parent=parent)):
+		copy_perms(parent)
+		return True
+
+def copy_perms(parent):
+	'''Copy all DocPerm in to Custom DocPerm for the given document'''
+	for d in frappe.get_all('DocPerm', fields='*', filters=dict(parent=parent)):
+		custom_perm = frappe.new_doc('Custom DocPerm')
+		custom_perm.update(d)
+		custom_perm.insert(ignore_permissions=True)
+
+def get_custom_perm_name(name):
+	'''Get the custom permission name for this DocPerm'''
+	if frappe.db.exists('Custom DocPerm', name):
+		return name
+	else:
+		original_perm = frappe.get_doc('DocPerm', name)
+		copy_perms(original_perm.parent)
+		name = frappe.db.get_value('Custom DocPerm', dict(parent=original_perm.parent,
+			role=original_perm.role, permlevel=original_perm.permlevel))
+
+	return name
 
 def validate_and_reset(doctype, for_remove=False):
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -81,9 +125,10 @@ def reset(doctype):
 def clear_doctype_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole, tabDocPerm
-		where tabDocPerm.parent = %s
-		and tabDocPerm.role = tabUserRole.role""", doctype):
+	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole,
+		tabDocPerm
+			where tabDocPerm.parent = %s
+			and tabDocPerm.role = tabUserRole.role""", doctype):
 		frappe.clear_cache(user=user)
 
 @frappe.whitelist()

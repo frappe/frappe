@@ -11,11 +11,11 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process, 
+			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process,
 				reset_permissions=reset_permissions))
 		return out
 	else:
-		return import_file(module, dt, dn, force=force, pre_process=pre_process, 
+		return import_file(module, dt, dn, force=force, pre_process=pre_process,
 			reset_permissions=reset_permissions)
 
 def import_file(module, dt, dn, force=False, pre_process=None, reset_permissions=False):
@@ -32,7 +32,7 @@ def get_file_path(module, dt, dn):
 
 	return path
 
-def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None, 
+def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
 		reset_permissions=False):
 	frappe.flags.in_import = True
 	try:
@@ -89,9 +89,9 @@ ignore_values = {
 	"Print Format": ["disabled"]
 }
 
-ignore_doctypes = ["Page Role", "DocPerm"]
+ignore_doctypes = ["Page Role"]
 
-def import_doc(docdict, force=False, data_import=False, pre_process=None, 
+def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
 
 	frappe.flags.in_import = True
