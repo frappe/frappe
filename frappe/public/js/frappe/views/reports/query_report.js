@@ -762,8 +762,6 @@ frappe.views.QueryReport = Class.extend({
 		});
 
 		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
-			this.chart_area.toggle(true);
-		}
+		
 	}
 })
