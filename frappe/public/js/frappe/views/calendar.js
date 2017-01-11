@@ -94,6 +94,11 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
+
+		if (this.setview) {
+			//can change view to ["agendaDay", "agendaWeek", "month"]
+			this.$cal.fullCalendar("changeView", this.setview);
+		}
 	},
 	set_css: function() {
 		// flatify buttons
