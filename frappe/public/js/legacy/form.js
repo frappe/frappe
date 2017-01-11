@@ -147,6 +147,7 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				callback: function(attachment, r) {
 					me.attachments.attachment_uploaded(attachment, r);
 				},
+				
 				confirm_is_private: true
 			});
 		});

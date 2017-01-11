@@ -106,7 +106,7 @@ frappe.listview_settings['File'] = {
 				},
 			});
 		});
- 	},
+	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
 			.on('drop', function (e) {
