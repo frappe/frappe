@@ -1,14 +1,23 @@
-<div class="result-area">
-	<div class="input-group" style="margin:5px 60px;">
-		<input type="text" class="form-control search-input" placeholder="Search for..." autofocus>
-		<span class="input-group-btn">
-			<button class="btn btn-secondary btn-default search-button" type="button">
-				<i class="glyphicon glyphicon-search"></i>
-			</button>
-		</span>
-	</div>
-	<h4 class="results-status" style="margin-bottom: 25px"></h4>
-	<div class="results"></div>
-	<hr>
-	<button class="btn btn-default btn-more btn-sm">More...</button>
+<div class="row">
+  <div class="col-md-2 hidden-xs layout-side-section">
+    <ul class="list-unstyled sidebar-menu search-list hide">
+        <!--<li class="list-link" data-view="List"> <a href="#List/Customer">Reports</a></li>-->
+    </ul>
+    <ul class="list-unstyled sidebar-menu report-list hide">
+        
+    </ul>  
+    <ul class="list-unstyled sidebar-menu help-list hide">
+        <li class="divider"></li>
+        <li class="h6 list-link help-link " data-category="Help">
+            <a href="#">{%= __("Help") %}</a></li>
+    </ul>
+  </div>
+
+  <div class="col-md-10 layout-main-section result-area">
+
+  </div>
 </div>
+
+
+
+

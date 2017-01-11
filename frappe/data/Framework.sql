@@ -31,6 +31,7 @@ CREATE TABLE `tabDocField` (
   `report_hide` int(1) NOT NULL DEFAULT 0,
   `reqd` int(1) NOT NULL DEFAULT 0,
   `bold` int(1) NOT NULL DEFAULT 0,
+  `in_global_search` int(1) NOT NULL DEFAULT 0,
   `collapsible` int(1) NOT NULL DEFAULT 0,
   `unique` int(1) NOT NULL DEFAULT 0,
   `no_copy` int(1) NOT NULL DEFAULT 0,

@@ -53,7 +53,7 @@ def update_global_search(doc):
 				  	innerdoc = frappe.get_doc(child_doctype, d.name)
 				  	if innerdoc.parent == doc.name:
 				  		for field in innerdoc.meta.fields:
-				  			if getattr(field, 'in_global_search', None) and innerdoc.get(field.fieldname):
+				  			if innerdoc.get(field.fieldname):
 				  				content.append(field.label + ": " + innerdoc.get(field.fieldname))
 			else:
 				content.append(field.label + ": " + doc.get(field.fieldname))
