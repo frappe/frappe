@@ -15,6 +15,6 @@ class TestIntegrationService(unittest.TestCase):
 		dropbox_settings.db_set('enabled', 1)
 
 		events = get_scheduler_events('daily_long')
-		self.assertTrue('frappe.integrations.dropbox_integration.take_backups_daily' in events)
+		self.assertTrue('frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily' in events)
 
 		dropbox_settings.db_set('enabled', 0)

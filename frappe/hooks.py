@@ -139,12 +139,6 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups"
 	],
-	"daily_long": [
-		"frappe.integrations.dropbox_integration.take_backups_daily"
-	],
-	"weekly_long": [
-		"frappe.integrations.dropbox_integration.take_backups_weekly"
-	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
 	]
