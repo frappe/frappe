@@ -9,17 +9,16 @@ frappe.ui.form.on('Data Import', {
 			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
 		}
 		frm.get_field('reference_doctype').df.options = doctype_options;
-		if (frm.doc.flag_file_preview == 1) {
-			console.log(frm.doc.flag_file_preview);
-		}
 	},
 
 	refresh: function(frm) {
+		if (frm.get_field('import_button').$input) {
+			frm.get_field('import_button').$input.addClass("btn-primary btn-md")
+				.removeClass('btn-xs');
+		}
 		if(frm.doc.preview_data && frm.doc.docstatus!=1) { 
 			frm.events.render_html(frm);	
 		}
-		// frm.get_field('import_button').$input.addClass("btn-primary btn-md")
-		// 	.removeClass('btn-xs');
 	},
 
 	before_save: function(frm) {
@@ -81,21 +80,18 @@ frappe.ui.form.on('Data Import', {
 			});
 		}
 		if (frm.doc.file_format == '.csv') {
+
 			frappe.call({
-				method: "frappe.core.doctype.data_import.data_import.upload",
+				method: "frappe.core.doctype.data_import.data_import.upload_template",
 				args: {
 					"doc_name": frm.doc.name,
 					"overwrite": frm.doc.only_new_records,
-					"update_only": frm.doc.onyl_update,
+					"update_only": frm.doc.only_update,
 					"submit_after_import": frm.doc.submit_after_import,
 					"ignore_encoding_errors": frm.doc.ignore_encoding_errors,
 					"no_email": frm.doc.no_email,
 				},
 				callback: function(r) {
-					frm.doc.freeze_doctype = 1;
-					// frm.save();
-
-					console.log(r);
 
 					if(r.message.error || r.message.messages.length==0) {
 						me.onerror(r);
@@ -109,35 +105,38 @@ frappe.ui.form.on('Data Import', {
 						r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
 							concat(r.message.messages);
 
-						frm.doc.import_log = "<h5 style='color:green'>" + __("Import Successful!") + "</h5>";
-						cur_frm.cscript.display_import_log(r.messages);
+						// cur_frm.cscript.display_import_log(r.messages);
+						frm.events.write_messages(frm, r.messages);
 					}
 				}
 			});
 		}
+		frm.doc.freeze_doctype = 1;
+		frm.save();
 	},
-	// write_messages: function(frm, data) {
-	// 	console.log("in write messages");
-	// 	$(frm.fields_dict.import_log.wrapper).empty();
-	// 	// var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();		
+
+	write_messages: function(frm, data) {
+		console.log("in write messages");
+		$(frm.fields_dict.import_log.wrapper).empty();
+		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
 		
-	// 	// TODO render using template!
-	// 	for (var i=0, l=data.length; i<l; i++) {
-	// 		var v = data[i];
-	// 		var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(frm.fields_dict.import_log.wrapper);
-	// 		if(v.substr(0,5)=='Error') {
-	// 			$p.css('color', 'red');
-	// 		} else if(v.substr(0,8)=='Inserted') {
-	// 			$p.css('color', 'green');
-	// 		} else if(v.substr(0,7)=='Updated') {
-	// 			$p.css('color', 'green');
-	// 		} else if(v.substr(0,5)=='Valid') {
-	// 			$p.css('color', '#777');
-	// 		} else if(v.substr(0,7)=='Ignored') {
-	// 			$p.css('color', '#777');
-	// 		}
-	// 	}
-	// },
+		// TODO render using template!
+		for (var i=0, l=data.length; i<l; i++) {
+			var v = data[i];
+			var $p = $('<h6></h6>').html(frappe.markdown(v)).appendTo($log_wrapper);
+			if(v.substr(0,5)=='Error') {
+				$p.css('color', 'red');
+			} else if(v.substr(0,8)=='Inserted') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,7)=='Updated') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,5)=='Valid') {
+				$p.css('color', '#777');
+			} else if(v.substr(0,7)=='Ignored') {
+				$p.css('color', '#777');
+			}
+		}
+	},
 
 	onerror: function(r) {
 		if(r.message) {
@@ -153,39 +152,26 @@ frappe.ui.form.on('Data Import', {
 				return v;
 			});
 
-			r.messages = ["<h4 style='color:red'>" + __("Import Failed") + "</h4>"]
+			r.messages = ["<h5 style='color:red'>" + __("Import Failed") + "</h5>"]
 				.concat(r.messages);
 
 			r.messages.push("Please correct the format of the file and import again.");
 			frappe.show_progress(__("Importing"), 1, 1);
-			cur_frm.cscript.display_import_log(r.messages);
+			// cur_frm.cscript.display_import_log(r.messages);
+			frm.events.write_messages(frm, r.messages);
 		}
 	}
 });
 
-cur_frm.cscript.display_import_log = function(data) {
-	if(!cur_frm.log_html)
-		cur_frm.log_html = $a(cur_frm.fields_dict['import_log'].wrapper,'p');
-	if(data) {
-		for (var i=0, l=data.length; i<l; i++) {
-			var v = data[i];
-			// cur_frm.log_html.innerHTML ='<h4>'+__("Activity Log:")+'</h4>'+msg;
-			cur_frm.log_html.innerHTML = '<p class="padding"><h4>'+frappe.markdown(v)+'</h4>'+'</p>';
-
-			// var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(frm.fields_dict.import_log.wrapper);
-			// if(v.substr(0,5)=='Error') {
-			// 	$p.css('color', 'red');
-			// } else if(v.substr(0,8)=='Inserted') {
-			// 	$p.css('color', 'green');
-			// } else if(v.substr(0,7)=='Updated') {
-			// 	$p.css('color', 'green');
-			// } else if(v.substr(0,5)=='Valid') {
-			// 	$p.css('color', '#777');
-			// } else if(v.substr(0,7)=='Ignored') {
-			// 	$p.css('color', '#777');
-			// }
-		}
-	} else {
-		cur_frm.log_html.innerHTML = "";
-	}
-}
+// cur_frm.cscript.display_import_log = function(data) {
+// 	cur_frm.log_html = $a(cur_frm.fields_dict['import_log'].wrapper,'p');
+// 	var msg = "";
+// 	if(data) {
+// 		for (var i=0, l=data.length; i<l; i++) {
+// 			var v = data[i];
+// 			// cur_frm.log_html.innerHTML ='<h4>'+__("Activity Log:")+'</h4>'+msg;
+// 			msg += '<h6>'+frappe.markdown(v)+'</h6>';
+// 		}
+// 	}
+// 	cur_frm.log_html.innerHTML = msg;
+// }
