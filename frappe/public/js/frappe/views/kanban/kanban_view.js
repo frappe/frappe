@@ -160,21 +160,6 @@ frappe.provide("frappe.views");
 					fluxify.doAction('update_card', updated_card);
 				});
 			},
-			assign_to: function (updater, user, desc, card) {
-				var opts = {
-					method: "frappe.desk.form.assign_to.add",
-					doctype: this.doctype,
-					docname: card.name,
-				}
-				var args = {
-					description: desc
-				}
-				return frappe.ui.add_assignment(user, args, opts)
-					.then(function () {
-						card.assigned_list.push(user);
-						fluxify.doAction('update_card', card);
-					});
-			},
 			update_order: function(updater, order) {
 				var board = store.getState().board.name;
 				return frappe.call({
@@ -502,9 +487,9 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_edit_card() {
-			if (self.dialog) {
+			if (self.edit_dialog) {
 				refresh_dialog();
-				self.dialog.show();
+				self.edit_dialog.show();
 				return;
 			}
 
@@ -556,10 +541,10 @@ frappe.provide("frappe.views");
 		}
 
 		function set_dialog_fields() {
-			self.dialog.fields.forEach(function (df) {
+			self.edit_dialog.fields.forEach(function (df) {
 				var value = card.doc[df.fieldname];
 				if (value) {
-					self.dialog.set_value(df.fieldname, value);
+					self.edit_dialog.set_value(df.fieldname, value);
 				}
 			});
 		}
@@ -587,15 +572,15 @@ frappe.provide("frappe.views");
 		}
 
 		function make_edit_dialog(title, fields) {
-			self.dialog = new frappe.ui.Dialog({
+			self.edit_dialog = new frappe.ui.Dialog({
 				title: title,
 				fields: fields
 			});
-			return self.dialog;
+			return self.edit_dialog;
 		}
 
 		function make_assignees() {
-			var d = self.dialog;
+			var d = self.edit_dialog;
 			var html = get_assignees_html() + '<a class="add-assignment avatar avatar-small avatar-empty">\
 				<i class="octicon octicon-plus text-muted" style="margin: 3px 0 0 5px;"></i></a>';
 
@@ -616,27 +601,24 @@ frappe.provide("frappe.views");
 		}
 
 		function show_assign_to_dialog() {
-			var ad = new frappe.ui.Dialog({
-				title: __("Assign to"),
-				fields: [
-					{ fieldtype: "Link", fieldname: "user", label: __("User"), options: "User" },
-					{ fieldtype: "Small Text", fieldname: "description", label: __("Description") }
-				]
-			})
-			ad.set_primary_action(__("Save"), function () {
-				var values = ad.get_values();
-				fluxify.doAction('assign_to', values.user, values.description, card)
-					.then(function () {
-						refresh_dialog();
-						ad.hide();
-					});
+			self.dialog = new frappe.ui.form.AssignToDialog({
+				obj: self,
+				method: 'frappe.desk.form.assign_to.add',
+				doctype: card.doctype,
+				docname: card.name,
+				callback: function(r) {
+					var user = self.assign_to_dialog.get_values().assign_to;
+					card.assigned_list.push(user);
+					fluxify.doAction('update_card', card);
+					refresh_dialog();
+				}
 			});
-			ad.show();
-			self.assign_to_dialog = ad;
+			self.assign_to_dialog = self.dialog;
+			self.assign_to_dialog.show();
 		}
 
 		function make_timeline() {
-			var d = self.dialog;
+			var d = self.edit_dialog;
 			// timeline wrapper
 			d.$wrapper.find('.modal-body').append('<div class="form-comments" style="padding:7px">');
 
