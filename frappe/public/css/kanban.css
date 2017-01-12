@@ -119,3 +119,16 @@
 body[data-route*="Kanban"] .modal .add-assignment:hover i {
   color: #36414C !important;
 }
+.edit-card-title .h4 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.edit-card-title span:hover {
+  background-color: #fffce7;
+  cursor: pointer;
+}
+.edit-card-title input {
+  border: none;
+  outline: none;
+  width: 100%;
+}

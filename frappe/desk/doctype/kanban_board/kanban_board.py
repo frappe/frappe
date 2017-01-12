@@ -65,26 +65,32 @@ def update_doc(doc):
 def update_order(board_name, order):
 	'''Save the order of cards in columns'''
 	board = frappe.get_doc('Kanban Board', board_name)
+	doctype = board.reference_doctype
+	fieldname = board.field_name
 	order_dict = json.loads(order)
 
+	updated_cards = []
 	for col_name, cards in order_dict.iteritems():
 		order_list = []
 		for card in cards:
 			column = frappe.get_value(
-				board.reference_doctype,
+				doctype,
 				{'name': card},
-				board.field_name
+				fieldname
 			)
-			if column == col_name:
-				order_list.append(card)
-		order_list = json.dumps(order_list)
+			if column != col_name:
+				frappe.set_value(doctype, card, fieldname, col_name)
+				updated_cards.append(dict(
+					name=card,
+					column=col_name
+				))
 
 		for column in board.columns:
 			if column.column_name == col_name:
-				column.order = order_list
+				column.order = json.dumps(cards)
 
 	board.save()
-	return board
+	return board, updated_cards
 
 
 @frappe.whitelist()
