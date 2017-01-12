@@ -69,6 +69,15 @@ class DataImport(Document):
 		return matched_field
 
 
+def get_data_keys_definition():
+		return frappe._dict({
+			"data_separator": _('Start entering data below this line'),
+			"main_table": _("Table") + ":",
+			"parent_table": _("Parent Table") + ":",
+			"columns": _("Column Name") + ":",
+			"doctype": _("DocType") + ":"
+		})
+
 @frappe.whitelist()
 def insert_into_db(reference_doctype, selected_columns, selected_row, import_file=None,
 		file_path=None):
@@ -105,22 +114,15 @@ def insert_into_db(reference_doctype, selected_columns, selected_row, import_fil
 
 
 @frappe.whitelist()
-def upload(doc_name, overwrite, update_only, submit_after_import, ignore_encoding_errors,
+def upload_template(doc_name, overwrite, update_only, submit_after_import, ignore_encoding_errors,
 		no_email, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload data"""
+
+	print doc_name,overwrite,update_only,submit_after_import,ignore_encoding_errors,no_email
 
 	frappe.flags.in_import = True
 
 	frappe.flags.mute_emails = no_email
-
-	def get_data_keys_definition():
-		return frappe._dict({
-			"data_separator": _('Start entering data below this line'),
-			"main_table": _("Table") + ":",
-			"parent_table": _("Parent Table") + ":",
-			"columns": _("Column Name") + ":",
-			"doctype": _("DocType") + ":"
-		})
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
@@ -357,10 +359,6 @@ def upload(doc_name, overwrite, update_only, submit_after_import, ignore_encodin
 
 	frappe.flags.mute_emails = False
 	frappe.flags.in_import = False
-
-	print ret
-	print "===========>>>>>>>>>>>>>>>>>"
-	print error
 
 	return {"messages": ret, "error": error}
 
