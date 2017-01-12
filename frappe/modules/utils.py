@@ -40,13 +40,13 @@ def get_doc_module(module, doctype, name):
 	return frappe.get_module(module_name)
 
 @frappe.whitelist()
-def export_customizations(module, doctype, sync_on_migrate=0):
+def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 		This will be synced with bench migrate"""
 	if not frappe.get_conf().developer_mode:
 		raise 'Not developer mode'
 
-	custom = {'custom_fields': [], 'property_setters': [],
+	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],
 		'doctype': doctype, 'sync_on_migrate': 1}
 
 	def add(_doctype):
@@ -56,6 +56,10 @@ def export_customizations(module, doctype, sync_on_migrate=0):
 			fields='*', filters={'doc_type': _doctype})
 
 	add(doctype)
+
+	if with_permissions:
+		custom['custom_perms'] = frappe.get_all('Custom DocPerm',
+			fields='*', filters={'parent': doctype})
 
 	# add custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
@@ -97,25 +101,27 @@ def sync_customizations_for_doctype(data):
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 	doctype = data['doctype']
-	if data['custom_fields']:
-		frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
 
-		for d in data['custom_fields']:
-			d['doctype'] = 'Custom Field'
+	def sync(key, custom_doctype, doctype_fieldname):
+		frappe.db.sql('delete from `tab{0}` where `{1}`=%s'.format(custom_doctype, doctype_fieldname),
+			doctype)
+
+		for d in data[key]:
+			d['doctype'] = custom_doctype
 			doc = frappe.get_doc(d)
 			doc.db_insert()
+
+	if data['custom_fields']:
+		sync('custom_fields', 'Custom Field', 'dt')
 
 	if data['property_setters']:
-		frappe.db.sql('delete from `tabProperty Setter` where doc_type=%s', doctype)
+		sync('property_setters', 'Property Setter', 'doc_type')
 
-		for d in data['property_setters']:
-			d['doctype'] = 'Property Setter'
-			doc = frappe.get_doc(d)
-			doc.db_insert()
+	if data.get('custom_perms'):
+		sync('custom_perms', 'Custom DocPerm', 'parent')
 
 	print 'Updating customizations for {0}'.format(doctype)
 	validate_fields_for_doctype(doctype)
-
 
 def scrub(txt):
 	return frappe.scrub(txt)

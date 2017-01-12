@@ -7,7 +7,8 @@ import frappe.defaults
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.translate import send_translations
 from frappe.desk.notifications import delete_notification_count_for
-from frappe.permissions import reset_perms, get_linked_doctypes, get_all_perms
+from frappe.permissions import reset_perms, get_linked_doctypes, get_all_perms, setup_custom_perms
+from frappe import _
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -84,32 +85,10 @@ def remove(doctype, role, permlevel):
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role, permlevel=permlevel))
 
 	frappe.db.sql('delete from `tabCustom DocPerm` where name=%s', name)
+	if not frappe.get_all('Custom DocPerm', dict(parent=doctype)):
+		frappe.throw(_('There must be atleast one permission rule.'), title=_('Cannot Remove'))
+
 	validate_and_reset(doctype, for_remove=True)
-
-def setup_custom_perms(parent):
-	'''if custom permssions are not setup for the current doctype, set them up'''
-	if not frappe.db.exists('Custom DocPerm', dict(parent=parent)):
-		copy_perms(parent)
-		return True
-
-def copy_perms(parent):
-	'''Copy all DocPerm in to Custom DocPerm for the given document'''
-	for d in frappe.get_all('DocPerm', fields='*', filters=dict(parent=parent)):
-		custom_perm = frappe.new_doc('Custom DocPerm')
-		custom_perm.update(d)
-		custom_perm.insert(ignore_permissions=True)
-
-def get_custom_perm_name(name):
-	'''Get the custom permission name for this DocPerm'''
-	if frappe.db.exists('Custom DocPerm', name):
-		return name
-	else:
-		original_perm = frappe.get_doc('DocPerm', name)
-		copy_perms(original_perm.parent)
-		name = frappe.db.get_value('Custom DocPerm', dict(parent=original_perm.parent,
-			role=original_perm.role, permlevel=original_perm.permlevel))
-
-	return name
 
 def validate_and_reset(doctype, for_remove=False):
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype

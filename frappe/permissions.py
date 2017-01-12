@@ -451,6 +451,19 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 
 	return user_permission_doctypes
 
+def setup_custom_perms(parent):
+	'''if custom permssions are not setup for the current doctype, set them up'''
+	if not frappe.db.exists('Custom DocPerm', dict(parent=parent)):
+		copy_perms(parent)
+		return True
+
+def copy_perms(parent):
+	'''Copy all DocPerm in to Custom DocPerm for the given document'''
+	for d in frappe.get_all('DocPerm', fields='*', filters=dict(parent=parent)):
+		custom_perm = frappe.new_doc('Custom DocPerm')
+		custom_perm.update(d)
+		custom_perm.insert(ignore_permissions=True)
+
 def reset_perms(doctype):
 	"""Reset permissions for given doctype."""
 	from frappe.desk.notifications import delete_notification_count_for
