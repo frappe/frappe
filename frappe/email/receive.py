@@ -629,14 +629,23 @@ class Email:
 		#self.from_real_name = email.Header.decode_header(email.utils.parseaddr(_from_email)[0])[0][0]
 		self.To = self.mail.get("To")
 		if self.To:
-			self.To = self.To.lower()
+			to = u""
+			for name, encoding in decode_header(self.To):
+				if encoding:
+					to += name.decode(encoding)
+				else:
+					to += name
+			self.To = to.lower()
 		self.CC = self.mail.get("CC")
 		if self.CC:
 			self.CC = self.CC.lower()
 		if self.mail["Date"]:
-			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-			utc_dt = datetime.datetime.utcfromtimestamp(utc)
-			self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			try:
+				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
+				utc_dt = datetime.datetime.utcfromtimestamp(utc)
+				self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			except:
+				self.date = now()
 		else:
 			self.date = now()
 
@@ -647,15 +656,17 @@ class Email:
 
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
-		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
+		from email.errors import HeaderParseError
 		try:
+			_subject = decode_header(self.mail.get("Subject", "No Subject"))
+			self.subject = _subject[0][0] or ""
+		
 			if _subject[0][1]:
 				self.subject = self.subject.decode(_subject[0][1])
 			else:
 				# assume that the encoding is utf-8
 				self.subject = self.subject.decode("utf-8")[:140]
-		except UnicodeDecodeError:
+		except (UnicodeDecodeError, HeaderParseError):
 			#try:
 			#	self.subject = self.subject.decode("gb18030")
 			#except UnicodeDecodeError:
