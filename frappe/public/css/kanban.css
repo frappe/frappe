@@ -47,8 +47,7 @@
   color: #8D99A6;
 }
 .kanban .kanban-card.add-card:hover {
-  background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
   color: #36414C;
   cursor: pointer;
 }
@@ -116,4 +115,7 @@
 .kanban .kanban-card-meta .avatar {
   width: 16px;
   height: 16px;
+}
+body[data-route*="Kanban"] .modal .add-assignment:hover i {
+  color: #36414C !important;
 }

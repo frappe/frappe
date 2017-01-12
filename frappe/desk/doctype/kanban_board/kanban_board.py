@@ -66,3 +66,21 @@ def update_order(board_name, column_title, order):
 			col.order = order
 	doc.save()
 	return doc
+
+@frappe.whitelist()
+def quick_kanban_board(doctype, board_name, field_name):
+	'''Create new KanbanBoard quickly with default options'''
+	doc = frappe.new_doc('Kanban Board')
+	columns = frappe.get_value('DocField',
+		dict(parent=doctype, fieldname=field_name), 'options').split('\n')
+	
+	for column in columns:
+		doc.append("columns", dict(
+			column_name=column,
+			color=""
+		))
+	doc.kanban_board_name = board_name
+	doc.reference_doctype = doctype
+	doc.field_name = field_name
+	doc.save()
+	return doc

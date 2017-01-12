@@ -595,8 +595,8 @@ frappe.provide("frappe.views");
 
 		function make_assignees() {
 			var d = self.dialog;
-			var html = get_assignees_html() + '<a class="strong add-assignment">\
-		Assign <i class="octicon octicon-plus" style="margin-left: 2px;"></i></a>';
+			var html = get_assignees_html() + '<a class="add-assignment avatar avatar-small avatar-empty">\
+				<i class="octicon octicon-plus text-muted" style="margin: 3px 0 0 5px;"></i></a>';
 
 			d.$wrapper.find("[data-fieldname='assignees'] .control-input-wrapper").empty().append(html);
 			d.$wrapper.find(".add-assignment").on("click", function () {

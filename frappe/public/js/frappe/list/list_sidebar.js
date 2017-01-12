@@ -129,7 +129,47 @@ frappe.views.ListSidebar = Class.extend({
 		});
 
 		$dropdown.find('.new-kanban-board').click(function() {
-			frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
+			// frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
+			var select_fields = frappe.get_meta(me.doctype)
+				.fields.filter(function(df) {
+					return df.fieldtype === 'Select';
+				}).map(function(df) {
+					return df.fieldname;
+				});
+			console.log(select_fields)
+			var d = new frappe.ui.Dialog({
+				title: __('New Kanban Board'),
+				fields: [{
+					fieldtype: 'Data',
+					fieldname: 'board_name',
+					label: __('Kanban Board Name'),
+					reqd: 1
+				}, {
+					fieldtype: 'Select',
+					fieldname: 'field_name',
+					label: __('Columns based on'),
+					options: select_fields.join('\n'),
+					default: select_fields[0]
+				}],
+				primary_action: function() {
+					var values = d.get_values();
+					console.log(values);
+					frappe.call({
+						method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
+						args: {
+							doctype: me.doctype,
+							board_name: values.board_name,
+							field_name: values.field_name
+						},
+						callback: function(r) {
+							console.log(r);
+							d.hide();
+							frappe.set_route('List', me.doctype, 'Kanban', r.message.kanban_board_name);
+						}
+					});
+				}
+			});
+			d.show();
 		});
 	},
 	setup_assigned_to_me: function() {
