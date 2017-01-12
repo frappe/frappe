@@ -8,8 +8,10 @@ import json
 from frappe import _
 from frappe.model.document import Document
 
+
 class KanbanBoard(Document):
 	pass
+
 
 @frappe.whitelist()
 def add_column(board_name, column_title):
@@ -26,6 +28,7 @@ def add_column(board_name, column_title):
 	doc.save()
 	return doc.columns
 
+
 @frappe.whitelist()
 def archive_restore_column(board_name, column_title, status):
 	'''Set column's status to status'''
@@ -36,6 +39,7 @@ def archive_restore_column(board_name, column_title, status):
 
 	doc.save()
 	return doc.columns
+
 
 @frappe.whitelist()
 def update_doc(doc):
@@ -56,29 +60,48 @@ def update_doc(doc):
 		}
 	return doc
 
-@frappe.whitelist()
-def update_order(board_name, column_title, order):
-	'''Save the order of cards in a column'''
-	doc = frappe.get_doc('Kanban Board', board_name)
 
-	for col in doc.columns:
-		if column_title == col.column_name:
-			col.order = order
-	doc.save()
-	return doc
+@frappe.whitelist()
+def update_order(board_name, order):
+	'''Save the order of cards in columns'''
+	board = frappe.get_doc('Kanban Board', board_name)
+	order_dict = json.loads(order)
+
+	for col_name, cards in order_dict.iteritems():
+		order_list = []
+		for card in cards:
+			column = frappe.get_value(
+				board.reference_doctype,
+				{'name': card},
+				board.field_name
+			)
+			if column == col_name:
+				order_list.append(card)
+		order_list = json.dumps(order_list)
+
+		for column in board.columns:
+			if column.column_name == col_name:
+				column.order = order_list
+
+	board.save()
+	return board
+
 
 @frappe.whitelist()
 def quick_kanban_board(doctype, board_name, field_name):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
-	columns = frappe.get_value('DocField',
-		dict(parent=doctype, fieldname=field_name), 'options').split('\n')
-	
+	columns = frappe.get_value('DocField', dict(
+            parent=doctype,
+            fieldname=field_name
+        ), 'options').split('\n')
+
 	for column in columns:
 		doc.append("columns", dict(
 			column_name=column,
 			color=""
 		))
+
 	doc.kanban_board_name = board_name
 	doc.reference_doctype = doctype
 	doc.field_name = field_name
