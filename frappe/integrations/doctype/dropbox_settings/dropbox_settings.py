@@ -131,6 +131,7 @@ def get_dropbox_authorize_url():
 @frappe.whitelist(allow_guest=True)
 def dropbox_callback(oauth_token=None, not_approved=False):
 	doc = frappe.get_doc("Dropbox Settings")
+	close = '<p class="text-muted">' + _('Please close this window') + '</p>'
 
 	if not not_approved:
 		if doc.get_password(fieldname="dropbox_access_key", raise_exception=False)==oauth_token:
@@ -145,7 +146,6 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 
 			frappe.db.commit()
 		else:
-			close = '<p class="text-muted">' + _('Please close this window') + '</p>'
 			frappe.respond_as_web_page(_("Dropbox Setup"),
 				_("Illegal Access Token. Please try again") + close,
 				success=False, http_status_code=frappe.AuthenticationError.http_status_code)
