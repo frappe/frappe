@@ -155,7 +155,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 			primary_action: function() {
 				var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
 				var args = opts.obj.dialog.get_values();
-				frappe.ui.add_assignment(assign_to, args, opts, dialog);
+				frappe.ui.add_assignment(assign_to, args, opts, opts.obj.dialog);
 			},
 			primary_action_label: __("Add")
 		}));
