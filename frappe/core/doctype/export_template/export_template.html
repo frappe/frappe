@@ -1,4 +1,13 @@
 <div style="margin: 15px 0px;">
+<h4>{{ __("Select Columns") }}</h4>
+    <p>
+		<a class="btn btn-default btn-xs btn-select-all" style="margin-right: 7px;">
+        {%= __("Select All") %}</a>
+		<a class="btn btn-default btn-xs btn-select-mandatory" style="margin-right: 7px;">
+        {%= __("Select Mandatory") %}</a>
+		<a class="btn btn-default btn-xs btn-unselect-all">
+        {%= __("Unselect All") %}</a>
+	</p>
 {% for doctype in doctype_list %}
 	<h5 style="margin-top: 25px; margin-bottom: 5px;">{{ doctype.name }}</h5>
 	<div class="row">
