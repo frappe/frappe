@@ -41,12 +41,14 @@ class FormMeta(Meta):
 			self.load_workflows()
 			self.load_templates()
 			self.load_dashboard()
+			self.load_kanban_boards()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template", "__tree_js", '__dashboard'):
+			"__form_grid_templates", "__listview_template", "__tree_js",
+			"__dashboard", "__kanban_boards"):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -168,6 +170,11 @@ class FormMeta(Meta):
 
 	def load_dashboard(self):
 		self.set('__dashboard', self.get_dashboard_data())
+
+	def load_kanban_boards(self):
+		kanban_boards = frappe.get_all(
+			'Kanban Board', filters={'reference_doctype': self.name})
+		self.set("__kanban_boards", kanban_boards, as_value=True)
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

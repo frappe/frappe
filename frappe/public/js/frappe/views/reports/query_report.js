@@ -75,15 +75,17 @@ frappe.views.QueryReport = Class.extend({
 		}, true);
 
 		this.page.add_menu_item(__("Print"), function() {
-			me.report_print_settings(function(){
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				me.print_settings = print_settings;
 				me.print_report();
-			})
+			}, me.report_doc.letter_head);
 		}, true);
 
 		this.page.add_menu_item(__("PDF"), function() {
-			me.report_print_settings(function(){
+			frappe.ui.get_print_settings(true, function(print_settings) {
+				me.print_settings = print_settings;
 				me.pdf_report();
-			}, pdf=true)
+			}, me.report_doc.letter_head);
 		}, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
@@ -121,7 +123,6 @@ frappe.views.QueryReport = Class.extend({
 				frappe.model.with_doc("Report", me.report_name, function() {
 
 					me.report_doc = frappe.get_doc("Report", me.report_name);
-					me.print_settings = locals[":Print Settings"]["Print Settings"];
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						var module = locals.DocType[me.report_doc.ref_doctype].module;
@@ -176,37 +177,6 @@ frappe.views.QueryReport = Class.extend({
 			me.refresh();
 		});
 	},
-	report_print_settings: function(callback, pdf) {
-		var me = this;
-		columns = [{
-			fieldtype: "Check",
-			fieldname: "with_letter_head",
-			label: __("With Letter head")
-		},{
-			fieldtype: "Select",
-			fieldname: "letter_head",
-			label: __("Letter Head"),
-			depends_on: "with_letter_head",
-			options: $.map(frappe.boot.letter_heads, function(i,d){ return d }),
-			default: me.report_doc.letter_head || me.get_default_letter_head()
-		}]
-
-		if(pdf) {
-			columns.push({
-				fieldtype: "Select",
-				fieldname: "orientation",
-				label: __("Orientation"),
-				options: "Landscape\nPortrait",
-				default: "Landscape"
-			})
-		}
-
-		frappe.prompt(columns, function(data) {
-			me.letter_head = data.with_letter_head ? frappe.boot.letter_heads[data.letter_head] : {};
-			me.print_setting_data = data;
-			callback();
-		}, __("Print Settings"));
-	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to print this report"));
@@ -214,14 +184,23 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(this.html_format) {
-			var content = frappe.render(this.html_format,
-				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
+			var content = frappe.render(this.html_format, {
+				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
+				filters:this.get_values(),
+				report:this});
 
-			frappe.render_grid({content:content, title:__(this.report_name),
-				print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
+			frappe.render_grid({
+				content:content,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		} else {
-			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name),
-				print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
+			frappe.render_grid({
+				grid:this.grid,
+				report: this,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		}
 	},
 	pdf_report: function() {
@@ -239,21 +218,33 @@ frappe.views.QueryReport = Class.extend({
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css,
-					print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
+				var html = frappe.render_template("print_template", {
+					content:content,
+					title:__(this.report_name),
+					base_url: base_url,
+					print_css: print_css,
+					print_settings: this.print_settings
+				});
 		} else {
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
-			var content = frappe.render_template("print_grid", {columns:columns, data:data, title:__(this.report_name)})
+			var content = frappe.render_template("print_grid", {
+				columns:columns,
+				data:data,
+				title:__(this.report_name)
+			})
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css,
-					print_settings: this.print_settings, header: this.letter_head.header, footer: this.letter_head.footer});
+			var html = frappe.render_template("print_template",{
+				content:content,
+				title:__(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: this.print_settings
+			});
 		}
 
-		orientation = this.print_setting_data.orientation;
+		orientation = this.print_settings.orientation;
 		this.open_pdf_report(html, orientation)
 	},
 	open_pdf_report: function(html, orientation) {
@@ -282,9 +273,6 @@ frappe.views.QueryReport = Class.extend({
 		    }
 		};
 		xhr.send(formData);
-	},
-	get_default_letter_head: function() {
-		return locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]
 	},
 	setup_filters: function() {
 		this.clear_filters();

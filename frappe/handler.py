@@ -30,7 +30,9 @@ def execute_cmd(cmd, from_async=False):
 	try:
 		method = get_attr(cmd)
 	except:
-		frappe.throw('Invalid method', frappe.NotFound)
+		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+			indicator_color='red', http_status_code=404)
+		return
 
 	if from_async:
 		method = method.queue
@@ -79,7 +81,8 @@ def logout():
 def web_logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
-	frappe.respond_as_web_page("Logged Out", """<p><a href="/index" class="text-muted">Back to Home</a></p>""")
+	frappe.respond_as_web_page(_("Logged Out"), _("You have been successfully logged out"),
+		indicator_color='green')
 
 @frappe.whitelist(allow_guest=True)
 def run_custom_method(doctype, name, custom_method):

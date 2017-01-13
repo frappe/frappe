@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.5'
+__version__ = '7.2.9'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -300,6 +300,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 
 	message_log.append(json.dumps(out))
 	_raise_exception()
+
+def clear_messages():
+	local.message_log = []
 
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
@@ -635,11 +638,12 @@ def delete_doc_if_exists(doctype, name, force=0):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name, force=force)
 
-def reload_doctype(doctype, force=False):
+def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
-	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype), force=force)
+	reload_doc(scrub(db.get_value("DocType", doctype, "module")), "doctype", scrub(doctype),
+		force=force, reset_permissions=reset_permissions)
 
-def reload_doc(module, dt=None, dn=None, force=False):
+def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.
 
 	:param module: Module name.
@@ -649,7 +653,7 @@ def reload_doc(module, dt=None, dn=None, force=False):
 	"""
 
 	import frappe.modules
-	return frappe.modules.reload_doc(module, dt, dn, force=force)
+	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
@@ -993,23 +997,44 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def respond_as_web_page(title, html, success=None, http_status_code=None, context=None):
+def respond_as_web_page(title, html, success=None, http_status_code=None,
+	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
 	:param message: Message to be shown.
 	:param success: Alert message.
-	:param http_status_code: HTTP status code."""
+	:param http_status_code: HTTP status code
+	:param context: web template context
+	:param indicator_color: color of indicator in title
+	:param primary_action: route on primary button (default is `/`)
+	:param primary_label: label on primary button (defaut is "Home")
+	:param fullpage: hide header / footer"""
 	local.message_title = title
 	local.message = html
-	local.message_success = success
 	local.response['type'] = 'page'
 	local.response['route'] = 'message'
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 
-	if context:
-		local.response['context'] = context
+	if not context:
+		context = {}
+
+	if not indicator_color:
+		if success:
+			indicator_color = 'green'
+		elif http_status_code and http_status_code > 300:
+			indicator_color = 'red'
+		else:
+			indicator_color = 'blue'
+
+	context['indicator_color'] = indicator_color
+	context['primary_label'] = primary_label
+	context['primary_action'] = primary_action
+	context['error_code'] = http_status_code
+	context['fullpage'] = fullpage
+
+	local.response['context'] = context
 
 def redirect_to_message(title, html, http_status_code=None, context=None):
 	"""Redirects to /message?id=random

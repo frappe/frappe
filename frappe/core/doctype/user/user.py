@@ -560,15 +560,7 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	res = _get_user_for_update_password(key, old_password)
-	if not res:
-		return
-	elif res.get('message'):
-		return res['message']
-	else:
-		user = res['user']
-
-	user_data = frappe.db.get_value('User', user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+	user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
 		return _test_password_strength(new_password, user_inputs=user_data)
@@ -661,9 +653,9 @@ def sign_up(email, full_name, redirect_to):
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
-			return _("Registered but disabled.")
+			return 0, _("Registered but disabled")
 		else:
-			return _("Already Registered")
+			return 0, _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
@@ -688,24 +680,25 @@ def sign_up(email, full_name, redirect_to):
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
 
 		if user.flags.email_sent:
-			return _("Please check your email for verification")
+			return 1, _("Please check your email for verification")
 		else:
-			return _("Please ask your administrator to verify your sign-up")
+			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
 	if user=="Administrator":
-		return _("Not allowed to reset the password of {0}").format(user)
+		return 'not allowed'
 
 	try:
 		user = frappe.get_doc("User", user)
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 
-		return _("Password reset instructions have been sent to your email")
+		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
 
 	except frappe.DoesNotExistError:
-		return _("User {0} does not exist").format(user)
+		frappe.clear_messages()
+		return 'not found'
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond

@@ -17,6 +17,11 @@
 					{%= data.delete %}
 				</span>
 			</div>
+			<div class="pull-right edit-btn-container">
+				<span class="small text-muted">
+					{%= data.edit %}
+				</span>
+			</div>
 			{% if(data.communication_type==="Communication"
 				|| (data.communication_type==="Comment"
 					&& data.comment_type==="Comment")) { %}
@@ -120,6 +125,7 @@
 			</div>
 			{% } %}
 				</div>
+
 			{% } else if(in_list(["Assignment Completed", "Assigned", "Shared",
 				"Unshared"], data.comment_type)) { %}
 				<div class="small">

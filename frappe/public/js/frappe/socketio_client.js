@@ -35,13 +35,16 @@ frappe.socket = {
 		});
 
 		frappe.socket.socket.on('progress', function(data) {
+			if(data.progress) {
+				data.percent = flt(data.progress[0]) / data.progress[1] * 100;
+			}
 			if(data.percent) {
 				if(data.percent==100) {
 					frappe.hide_progress();
 				} else {
 					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
 				}
-			}
+			}s
 		});
 
 		frappe.socket.setup_listeners();

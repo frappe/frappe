@@ -106,7 +106,7 @@ frappe.listview_settings['File'] = {
 				},
 			});
 		});
- 	},
+	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
 			.on('drop', function (e) {
@@ -116,7 +116,7 @@ frappe.listview_settings['File'] = {
 				}
 				e.stopPropagation();
 				e.preventDefault();
-				frappe.upload.upload_file(dataTransfer.files[0], {
+				frappe.upload.multifile_upload(dataTransfer.files, {
 					"folder": doclist.current_folder,
 					"from_form": 1
 				}, {
@@ -148,7 +148,7 @@ frappe.listview_settings['File'] = {
 					"new_parent": doclist.current_folder,
 					"old_parent": doclist.old_parent
 				},
-				callback:function(r) {
+				callback:function(r){
 					doclist.paste = false;
 					frappe.msgprint(__(r.message));
 					doclist.selected_files = [];

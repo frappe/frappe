@@ -79,10 +79,16 @@ frappe.ui.form.Grid = Class.extend({
 		});
 
 		this.remove_rows_button.on('click', function() {
+			var dirty = false;
 			me.get_selected().forEach(function(docname) {
 				me.grid_rows_by_docname[docname].remove();
+				dirty = true;
 			});
-			setTimeout(function() { me.refresh_remove_rows_button(); }, 100);
+			if(dirty) {
+				setTimeout(function() {
+					me.refresh();
+				}, 100);
+			}
 		});
 	},
 	select_row: function(name) {

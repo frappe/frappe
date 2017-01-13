@@ -218,11 +218,13 @@ def clear_cache(path=None):
 
 def render_403(e, pathname):
 	path = "message"
-	frappe.local.message = """<p><strong>{error}</strong></p>
-	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
-	</p>""".format(error=cstr(e.message), login=_("Login"), pathname=frappe.local.path)
+	frappe.local.message = cstr(e.message)
 	frappe.local.message_title = _("Not Permitted")
+	frappe.local.response['context'] = dict(
+		indicator_color = 'red',
+		primary_action = '/login',
+		primary_label = _('Login')
+	)
 	return render_page(path), e.http_status_code
 
 def get_doctype_from_path(path):

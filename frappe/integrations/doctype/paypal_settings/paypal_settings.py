@@ -217,7 +217,7 @@ def get_express_checkout_details(token):
 		if response.get("ACK")[0] != "Success":
 			frappe.respond_as_web_page(_("Something went wrong"),
 				_("Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.").format(response.get("CORRELATIONID", [None])[0]),
-				success=False,
+				indicator_color='red',
 				http_status_code=frappe.ValidationError.http_status_code)
 
 			return
@@ -300,5 +300,5 @@ def get_checkout_url(**kwargs):
 	except Exception:
 		frappe.respond_as_web_page(_("Something went wrong"),
 			_("Looks like something is wrong with this site's Paypal configuration. Don't worry! No payment has been made from your Paypal account."),
-			success=False,
+			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
