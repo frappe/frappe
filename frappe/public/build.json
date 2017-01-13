@@ -3,7 +3,8 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/website.css",
-		"public/css/avatar.css"
+		"public/css/avatar.css",
+		"public/js/lib/awesomplete/awesomplete.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
@@ -19,7 +20,8 @@
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
-		"website/js/website.js"
+		"website/js/website.js",
+		"public/js/lib/awesomplete/awesomplete.min.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
@@ -39,7 +41,6 @@
 	],
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
-		"public/js/lib/awesomplete/awesomplete.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -62,7 +63,6 @@
 		"public/css/desk-rtl.css"
 	],
 	"js/libs.min.js": [
-		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/notify.js",
