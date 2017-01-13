@@ -50,7 +50,7 @@ def get_default_contact(doctype, name):
 			dl.parenttype = "Contact"
 		order by
 			contact.is_primary_contact desc, name
-		limit 1''', (doctype, name), debug=1)
+		limit 1''', (doctype, name))
 
 	print out
 	return out and out[0][0] or None
