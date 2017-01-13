@@ -282,3 +282,27 @@ def build_match_conditions(doctype, as_condition=True):
 		return match_conditions.replace("%", "%%")
 	else:
 		return match_conditions
+
+def get_filters_cond(doctype, filters, conditions):
+	if filters:
+		flt = filters
+		if isinstance(filters, dict):
+			filters = filters.items()
+			flt = []
+			for f in filters:
+				if isinstance(f[1], basestring) and f[1][0] == '!':
+					flt.append([doctype, f[0], '!=', f[1][1:]])
+				else:
+					value = frappe.db.escape(f[1]) if isinstance(f[1], basestring) else f[1]
+					flt.append([doctype, f[0], '=', value])
+
+		query = DatabaseQuery(doctype)
+		query.filters = flt
+		query.conditions = conditions
+		query.build_filter_conditions(flt, conditions)
+
+		cond = ' and ' + ' and '.join(query.conditions)
+	else:
+		cond = ''
+	return cond
+
