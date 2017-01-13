@@ -136,6 +136,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Email Domain",
+					"description": _("Add / Manage Email Domains.")
+				},
+				{
+					"type": "doctype",
 					"name": "Email Alert",
 					"description": _("Setup Email Alert based on various criteria.")
 				},

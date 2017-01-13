@@ -16,11 +16,12 @@ import MySQLdb
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+import email.utils
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
-	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
+	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None,read_receipt=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -53,13 +54,15 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"subject": subject,
 		"content": content,
 		"sender": sender,
+		"sender_full_name":sender_full_name,
 		"recipients": recipients,
 		"cc": cc or None,
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
-		"message_id":get_message_id().strip(" <>")
+		"message_id":get_message_id().strip(" <>"),
+		"read_receipt":read_receipt
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -151,7 +154,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		message_id=doc.message_id,
 		unsubscribe_message=unsubscribe_message,
 		delayed=True,
-		communication=doc.name
+		communication=doc.name,
+		read_receipt = doc.read_receipt
 	)
 
 def update_parent_status(doc):
@@ -196,8 +200,9 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 		original_recipients, recipients = recipients, []
 
 		# send email to the sender of the previous email in the thread which this email is a reply to
-		if doc.previous_email_sender:
-			recipients.append(doc.previous_email_sender)
+		#provides erratic results and can send external 
+		#if doc.previous_email_sender:
+		#	recipients.append(doc.previous_email_sender)
 
 		# cc that was received in the email
 		original_cc = split_emails(doc.cc)
@@ -254,9 +259,13 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 def set_incoming_outgoing_accounts(doc):
 	doc.incoming_email_account = doc.outgoing_email_account = None
 
-	if doc.reference_doctype:
+	if not doc.incoming_email_account and doc.sender:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, "enable_incoming": 1}, "email_id")
+			{"email_id": doc.sender, "enable_incoming": 1}, "email_id")
+
+	if not doc.incoming_email_account and doc.reference_doctype:
+		doc.incoming_email_account = frappe.db.get_value("Email Account",
+			{"append_to": doc.reference_doctype, }, "email_id")
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
@@ -276,20 +285,13 @@ def get_recipients(doc, fetched_from_email_account=False):
 	# [EDGE CASE] doc.recipients can be None when an email is sent as BCC
 	recipients = split_emails(doc.recipients)
 
-	if fetched_from_email_account and doc.in_reply_to:
+	#if fetched_from_email_account and doc.in_reply_to:
 		# add sender of previous reply
-		doc.previous_email_sender = frappe.db.get_value("Communication", doc.in_reply_to, "sender")
-		recipients.append(doc.previous_email_sender)
+		#doc.previous_email_sender = frappe.db.get_value("Communication", doc.in_reply_to, "sender")
+		#recipients.append(doc.previous_email_sender)
 
 	if recipients:
-		# exclude email accounts
-		exclude = [d[0] for d in
-			frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		exclude += [d[0] for d in
-			frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-			if d[0]]
-
-		recipients = filter_email_list(doc, recipients, exclude)
+		recipients = filter_email_list(doc, recipients, [])
 
 	return recipients
 
@@ -308,12 +310,8 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		cc.append(doc.sender)
 
 	if cc:
-		# exclude email accounts, unfollows, recipients and unsubscribes
-		exclude = [d[0] for d in
-			frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		exclude += [d[0] for d in
-			frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-			if d[0]]
+		# exclude unfollows, recipients and unsubscribes
+		exclude = [] #added to remove account check
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
 

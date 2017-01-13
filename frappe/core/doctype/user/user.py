@@ -44,6 +44,29 @@ class User(Document):
 	def after_insert(self):
 		self.set_default_roles()
 
+	def force_user_email_update(self):
+		for user_email in self.user_emails:
+			if not user_email.email_id:
+				user_email.email_id = frappe.db.get_value("Email Account", {"name": user_email.email_account},
+				                                          "email_id")
+
+	def user_emails_to_permissions(self):
+		if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
+			from frappe.core.page.user_permissions.user_permissions import get_permissions
+
+			permissions = set([x.defvalue for x in get_permissions(self.name, "Email Account")])
+			user_emails = set([x.email_account for x in self.user_emails])
+
+			# compare vs user email
+			add = user_emails - permissions
+			remove = permissions - user_emails
+
+			# set the difference
+			for r in remove:
+				frappe.permissions.remove_user_permission("Email Account", r, self.name)
+			for a in add:
+				frappe.permissions.add_user_permission("Email Account", a, self.name, with_message=True)
+
 	def validate(self):
 		self.check_demo()
 
@@ -63,6 +86,9 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
+		self.force_user_email_update()
+		self.user_emails_to_permissions()
+		ask_pass_update()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -538,6 +564,55 @@ def test_password_strength(new_password, key=None, old_password=None):
 
 	if new_password:
 		return _test_password_strength(new_password, user_inputs=user_data)
+
+#for login
+@frappe.whitelist()
+def has_email_account(email):
+	return frappe.get_list("Email Account", filters={"email_id": email})
+
+@frappe.whitelist(allow_guest=False)
+def get_email_awaiting(user):
+	waiting = frappe.db.sql("""select email_account,email_id
+		from `tabUser Email`
+		where awaiting_password = 1
+		and parent = %(user)s""", {"user":user}, as_dict=1)
+	if waiting:
+		return waiting
+	else:
+		frappe.db.sql("""update `tabUser Email`
+	    		set awaiting_password =0
+	    		where parent = %(user)s""",{"user":user})
+		return False
+
+@frappe.whitelist(allow_guest=False)
+def set_email_password(email_account, user, password):
+	account = frappe.get_doc("Email Account",
+				email_account)
+	if account.awaiting_password:
+		account.set("awaiting_password",0)
+		account.set("password",password)
+		try:
+			validate = account.validate()
+			save= account.save(ignore_permissions=True)
+			frappe.db.sql("""update `tabUser Email` set awaiting_password = 0
+				where email_account = %(account)s""",{"account": email_account})
+			ask_pass_update()
+		except Exception, e:
+			frappe.db.rollback()
+			return False
+	return True
+
+def ask_pass_update():
+	# update the sys defaults as to awaiting users
+	from frappe.utils import set_default
+	users = frappe.db.sql("""SELECT DISTINCT(parent)
+                    FROM `tabUser Email`
+                    WHERE awaiting_password = 1""", as_list=1)
+
+	password_list = []
+	for u in users:
+		password_list.append(u[0])
+	set_default("email_user_password", u','.join(password_list))
 
 def _get_user_for_update_password(key, old_password):
 	# verify old password

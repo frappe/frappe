@@ -25,9 +25,9 @@
 			{% if(data.communication_type==="Communication"
 				|| (data.communication_type==="Comment"
 					&& data.comment_type==="Comment")) { %}
-
-				<div class="comment-header small">
+				<div class="comment-header small" style="cursor: pointer;">
 					<i class="{%= data.icon %} fa-fw"></i>
+					<i class="expand-icon octicon octicon-chevron-down"></i>
 					<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 					<span>
 						{% if (data.timeline_doctype===data.frm.doc.doctype
@@ -39,6 +39,15 @@
 							</a>
 						{% } %}
 					</span>
+			{% if(data.communication_type==="Communication") { %}
+						<span title="{%=data.subject%}" class="hidden-xs">
+						&ndash;
+						{% if (data.subject.length > 40){
+							data.subject = data.subject.substr(0,37)+"...";
+							} %}
+						{%= data.subject %}
+						</span>
+						{% } %}
 					<span class="text-muted" style="font-weight: normal;">
 						&ndash; {%= data.comment_on %}</span>
 					{% if(data.communication_type==="Communication") { %}
@@ -72,9 +81,14 @@
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						</a>
 						{% } %}
+						
+						{% if (data.communication_medium === "Email") { %}
+						<a class="text-muted relink-link timeline-content-show hide"
+                            data-name="{%= data.name %}"> &ndash; {%= __("Relink") %}</a>
+						{% } %}
 
 						{% if (data.communication_medium === "Email") { %}
-						<a class="text-muted reply-link pull-right"
+						<a class="text-muted reply-link pull-right timeline-content-show hide"
 							data-name="{%= data.name %}">{%= __("Reply") %}</a>
 						{% } %}
 					{% } %}
@@ -90,10 +104,26 @@
 							{{ (data._liked_by || []).length }}</span>
 					</span>
 				</div>
-				<div class="reply" style="overflow-x: auto">
+				<div class="reply timeline-content-show hide" style="overflow-x: auto">
 					<div class="timeline-item-content">
 						{%= data.content_html %}
 					</div>
+					{% if(data.attachments && data.attachments.length) { %}
+			<div style="margin: 10px 0px">
+				{% $.each(data.attachments, function(i, a) { %}
+				<div class="ellipsis">
+					<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
+						class="text-muted small" target="_blank">
+						<i class="fa fa-paperclip"></i>
+						{%= a.file_url.split("/").slice(-1)[0] %}
+						{% if (a.is_private) { %}
+						<i class="fa fa-lock text-warning"></i>
+						{% } %}
+					</a>
+				</div>
+				{% }); %}
+			</div>
+			{% } %}
 				</div>
 
 			{% } else if(in_list(["Assignment Completed", "Assigned", "Shared",
@@ -147,22 +177,6 @@
 					<span class="text-muted" style="font-weight: normal;">
 					&ndash; {%= data.comment_on %}</span>
 				</div>
-			{% } %}
-			{% if(data.attachments && data.attachments.length) { %}
-			<div style="margin: 10px 0px">
-				{% $.each(data.attachments, function(i, a) { %}
-				<div class="ellipsis">
-					<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
-						class="text-muted small" target="_blank">
-						<i class="fa fa-paperclip"></i>
-						{%= a.file_url.split("/").slice(-1)[0] %}
-						{% if (a.is_private) { %}
-						<i class="fa fa-lock text-warning"></i>
-						{% } %}
-					</a>
-				</div>
-				{% }); %}
-			</div>
 			{% } %}
 		</div>
 	</div>

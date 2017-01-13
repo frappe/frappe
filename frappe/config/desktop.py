@@ -4,6 +4,14 @@ from frappe import _
 def get_data():
 	return [
 		{
+			"module_name": "Email",
+			"color": "grey",
+			"icon": "octicon octicon-mail",
+			"type": "page",
+			"link": "email_inbox",
+			"label": _("Email Inbox")
+		},
+		{
 			"module_name": "Desk",
 			"label": _("Tools"),
 			"color": "#FFF5A7",
