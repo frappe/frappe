@@ -522,7 +522,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 
 		this.page.add_inner_button(__('Show Totals'), function() {
-			me.add_totals_row = 1 - me.add_totals_row;
+			me.add_totals_row = 1 - (me.add_totals_row ? me.add_totals_row : 0);
 			me.render_list();
 		});
 	},
