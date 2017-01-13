@@ -41,14 +41,11 @@ class User(Document):
 	def before_insert(self):
 		self.flags.in_insert = True
 
-	def after_insert(self):
-		self.set_default_roles()
-
 	def force_user_email_update(self):
 		for user_email in self.user_emails:
 			if not user_email.email_id:
-				user_email.email_id = frappe.db.get_value("Email Account", {"name": user_email.email_account},
-				                                          "email_id")
+				user_email.email_id = frappe.db.get_value("Email Account",
+					{"name": user_email.email_account}, "email_id")
 
 	def user_emails_to_permissions(self):
 		if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
@@ -126,33 +123,6 @@ class User(Document):
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
-
-	def set_default_roles(self):
-		"""Set a default role if specified by rules (`default_role`) in hooks or Portal Settings
-
-		Hooks for default roles can be set as:
-
-			default_roles = [
-				{'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',
-					'filters': {'ifnull(customer, "")': ('!=', '')}}
-			]
-
-		"""
-		role_found = False
-		for rule in frappe.get_hooks('default_roles'):
-			filters = {rule.get('email_field'): self.email}
-			if rule.get('filters'):
-				filters.update(rule.get('filters'))
-
-			match = frappe.get_all(rule.get('doctype'), filters=filters, limit=1)
-			if match:
-				role_found = True
-				self.add_roles(rule.get('role'))
-
-		if not role_found:
-			default_role = frappe.db.get_single_value('Portal Settings', 'default_role')
-			if default_role:
-				self.add_roles(default_role)
 
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
@@ -586,18 +556,16 @@ def get_email_awaiting(user):
 
 @frappe.whitelist(allow_guest=False)
 def set_email_password(email_account, user, password):
-	account = frappe.get_doc("Email Account",
-				email_account)
+	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password:
 		account.set("awaiting_password",0)
 		account.set("password",password)
 		try:
-			validate = account.validate()
-			save= account.save(ignore_permissions=True)
+			account.save(ignore_permissions=True)
 			frappe.db.sql("""update `tabUser Email` set awaiting_password = 0
 				where email_account = %(account)s""",{"account": email_account})
 			ask_pass_update()
-		except Exception, e:
+		except Exception:
 			frappe.db.rollback()
 			return False
 	return True
