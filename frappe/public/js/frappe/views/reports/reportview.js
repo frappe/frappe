@@ -221,7 +221,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		if(opts.sort_by_next) this.sort_by_next_select.val(opts.sort_by_next);
 		if(opts.sort_order_next) this.sort_order_next_select.val(opts.sort_order_next);
 
-		this.add_totals_row = opts.add_totals_row;
+		this.add_totals_row = cint(opts.add_totals_row);
 	},
 
 	set_route_filters: function(first_load) {
@@ -711,6 +711,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						sort_order: me.sort_order_select.val(),
 						sort_by_next: me.sort_by_next_select.val(),
 						sort_order_next: me.sort_order_next_select.val(),
+						add_totals_row: me.add_totals_row
 					})
 				},
 				callback: function(r) {

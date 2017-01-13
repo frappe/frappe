@@ -8,7 +8,7 @@ def execute():
 	except Exception, e:
 		if e.args[0]!=1054: raise e
 
-	for doctype in frappe.get_all("DocType", {"istable": 0, "issingle": 0}):
+	for doctype in frappe.get_all("DocType", {"istable": 0, "issingle": 0, "custom": 0}):
 		try:
 			frappe.reload_doctype(doctype.name, force=True)
 		except KeyError:

@@ -91,6 +91,10 @@ has_permission = {
 	"Communication": "frappe.core.doctype.communication.communication.has_permission"
 }
 
+has_website_permission = {
+	"Address": "erpnext.utilities.doctype.address.address.has_website_permission"
+}
+
 standard_queries = {
 	"User": "frappe.core.doctype.user.user.user_query"
 }

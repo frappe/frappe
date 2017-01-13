@@ -34,7 +34,13 @@ frappe.ui.form.Timeline = Class.extend({
 				}
 			}
 		});
-
+		this.list.on("click",".comment-header",function(e) {
+			if (!inList(["A","BUTTON"],e.target.tagName)) {
+				$(this).parent().find(".timeline-content-show").toggleClass("hide");
+				$(this).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
+			}
+		})
+		
 		this.email_button = this.wrapper.find(".btn-new-email")
 			.on("click", function() {
 				new frappe.views.CommunicationComposer({
@@ -96,7 +102,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		var communications = this.get_communications(true);
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
+		$.each(communications.sort(function(a, b) { return a.communication_date > b.communication_date ? -1 : 1 }),
 			function(i, c) {
 				if(c.content) {
 					c.frm = me.frm;
@@ -121,7 +127,7 @@ frappe.ui.form.Timeline = Class.extend({
 			comment_type: "Created",
 			communication_type: "Comment",
 			sender: this.frm.doc.owner,
-			creation: this.frm.doc.creation,
+			communication_date: this.frm.doc.creation,
 			frm: this.frm
 		});
 
@@ -130,6 +136,8 @@ frappe.ui.form.Timeline = Class.extend({
 		this.frm.sidebar.refresh_comments();
 
 		this.frm.trigger('timeline_refresh');
+		$(this.list.find(".comment-header")[0]).parent().find(".timeline-content-show").toggleClass("hide")
+		$(this.list.find(".comment-header")[0]).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
 	},
 
 	render_timeline_item: function(c) {
@@ -187,6 +195,7 @@ frappe.ui.form.Timeline = Class.extend({
 		if(c.communication_type=="Communication" && c.communication_medium==="Email") {
 			this.last_type = c.communication_medium;
 			this.add_reply_btn_event($timeline_item, c);
+			this.add_relink_btn_event($timeline_item, c);
 		}
 
 	},
@@ -215,6 +224,18 @@ frappe.ui.form.Timeline = Class.extend({
 		});
 	},
 
+	add_relink_btn_event: function($timeline_item, c) {
+		var me = this;
+		$timeline_item.find(".relink-link").on("click", function() {
+			var name = $(this).attr("data-name");
+			callback= function (frm) {
+							$timeline_item.hide()
+						}
+			frappe.timeline.relink_dialog(name, cur_frm.doctype, cur_frm.name, callback)
+		 });
+
+	},
+
 	prepare_timeline_item: function(c) {
 		if(!c.sender) c.sender = this.frm.doc.owner;
 
@@ -240,7 +261,7 @@ frappe.ui.form.Timeline = Class.extend({
 			}
 		}
 
-		c.comment_on = comment_when(c.creation);
+		c.comment_on = comment_when(c.communication_date || c.creation);
 		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 
 		if(c.attachments && typeof c.attachments==="string")
@@ -272,6 +293,7 @@ frappe.ui.form.Timeline = Class.extend({
 			} else {
 				c.content_html = c.content;
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
+				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">")
 			}
 
 			// bold @mentions
@@ -294,7 +316,7 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	is_communication_or_comment: function(c) {
-		return c.communication_type==="Communication" || (c.communication_type==="Comment" && c.comment_type==="Comment");
+		return c.communication_type==="Communication" || (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
 	},
 
 	set_icon_and_color: function(c) {
@@ -316,7 +338,8 @@ frappe.ui.form.Timeline = Class.extend({
 			"Shared": "octicon octicon-eye",
 			"Unshared": "octicon octicon-circle-slash",
 			"Like": "octicon octicon-heart",
-			"Edit": "octicon octicon-pencil"
+			"Edit": "octicon octicon-pencil",
+			"Relinked": "octicon octicon-check"
 		}[c.comment_type || c.communication_medium]
 
 		c.color = {
@@ -333,7 +356,8 @@ frappe.ui.form.Timeline = Class.extend({
 			"Workflow": "#2c3e50",
 			"Label": "#2c3e50",
 			"Attachment": "#7f8c8d",
-			"Attachment Removed": "#eee"
+			"Attachment Removed": "#eee",
+			"Relinked": "#16a085"
 		}[c.comment_type || c.communication_medium];
 
 		c.icon_fg = {
@@ -547,7 +571,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communications = this.frm.get_docinfo().communications,
 			email = this.get_recipient();
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
+		$.each(communications.sort(function(a, b) { return a.communication_date > b.communication_date ? -1 : 1 }), function(i, c) {
 			if(c.communication_type=='Communication' && c.communication_medium=="Email") {
 				if(from_recipient) {
 					if(c.sender.indexOf(email)!==-1) {
@@ -668,4 +692,52 @@ $.extend(frappe.timeline, {
 
 		return index;
 	},
+	relink_dialog: function(name, reference_doctype, reference_name, callback, timeline_hide){
+		var lib = "frappe.email";
+		var d = new frappe.ui.Dialog ({
+			title: __("Relink Communication"),
+			fields: [{
+				"fieldtype": "Link",
+				"options": "DocType",
+				"label": __("Reference Doctype"),
+				"fieldname": "reference_doctype",
+				"get_query": function() {return {"query": lib +".get_communication_doctype"}}
+			},
+			{
+				"fieldtype": "Dynamic Link",
+				"options": "reference_doctype",
+				"label": __("Reference Name"),
+				"fieldname": "reference_name"
+			}]
+		});
+		d.set_value("reference_doctype", reference_doctype);
+		d.set_value("reference_name", reference_name);
+		d.set_primary_action(__("Relink"), function (frm) {
+			values = d.get_values();
+			if (values) {
+				frappe.confirm(
+					'Are you sure you want to relink this communication to ' + values["reference_name"] + '?',
+					function () {
+						d.hide();
+						frappe.call
+						({
+							method: lib + ".relink",
+							args: {
+								"name": timeline_hide ? timeline_hide: name,
+								"reference_doctype": values["reference_doctype"],
+								"reference_name": values["reference_name"]
+							},
+							callback: function (frm) {
+								callback(frm)
+							}
+						})
+					},
+					function () {
+						show_alert('Document not Relinked')
+					}
+				)
+			}
+		});
+		d.show();
+	}
 })
