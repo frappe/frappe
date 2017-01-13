@@ -25,6 +25,7 @@ frappe.ui.form.on('Export Template', {
 	reference_doctype: function(frm) {
 
 		frm.$columns = $(cur_frm.fields_dict.doctype_columns.wrapper).empty();
+
 		frappe.model.with_doctype(frm.doc.reference_doctype, function() {
 			if(frm.doc.reference_doctype) {
 				// render select columns
@@ -38,65 +39,58 @@ frappe.ui.form.on('Export Template', {
 				});
 				$(frappe.render_template("export_template", {doctype_list: doctype_list}))
 					.appendTo(frm.$columns.empty());
+
+				frm.$columns.find('.btn-select-all').on('click', function() {
+					frm.$columns.find('.select-column-check').prop('checked', true);
+				});
+
+				frm.$columns.find('.btn-unselect-all').on('click', function() {
+					frm.$columns.find('.select-column-check').prop('checked', false);
+				});
+
+				frm.$columns.find('.btn-select-mandatory').on('click', function() {
+					frm.$columns.find('.select-column-check').prop('checked', false);
+					frm.$columns.find('.select-column-check[data-reqd="1"]').prop('checked', true);
+				});
 			}
 		});
-
-	},
-
-	select_all: function(frm) {
-		if (frm.$columns) {
-			frm.$columns.find('.select-column-check').prop('checked', true);
-		}
-	},
-
-	unselect_all: function(frm) {
-		if (frm.$columns) {
-			frm.$columns.find('.select-column-check').prop('checked', false);
-		}
-	},
-
-	select_mandatory: function(frm) {
-		if (frm.$columns) {
-			frm.$columns.find('.select-column-check').prop('checked', false);
-			frm.$columns.find('.select-column-check[data-reqd="1"]').prop('checked', true);			
-		}
 	},
 
 	download_in_xlsx: function(frm) {
 
+	},
+
+	download_blank_template: function(frm) {
+		var get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
+		open_url_post(get_template_url, frm.events.get_export_params(frm, false));
+	},
+
+	download_with_data: function(frm) {
+		var get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
+		open_url_post(get_template_url, frm.events.get_export_params(frm, true));
+	},
+
+	get_export_params: function(frm, with_data) {
+		var doctype = frm.doc.reference_doctype;
+		var columns = {};
+
+		frm.$columns.find('.select-column-check:checked').each(function() {
+			var _doctype = $(this).attr('data-doctype');
+			var _fieldname = $(this).attr('data-fieldname');
+			if(!columns[_doctype]) {
+				columns[_doctype] = [];
+			}
+			columns[_doctype].push(_fieldname);
+		});
+
+		return {
+			doctype: doctype,
+			parent_doctype: doctype,
+			select_columns: JSON.stringify(columns),
+			with_data: with_data ? 'Yes' : 'No',
+			all_doctypes: 'Yes',
+			xlsx_format: frm.doc.download_in_xlsx
+		}
 	}
-
-	// download_blank_template: function(frm) {
-	// 	var get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
-	// 	open_url_post(get_template_url, frm.events.get_export_params(frm, false));
-	// },
-
-	// download_with_data: function(frm) {
-	// 	var get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
-	// 	open_url_post(get_template_url, frm.events.get_export_params(frm, true));
-	// },
-
-	// get_export_params: function(frm, with_data) {
-	// 	var doctype = frm.doc.reference_doctype;
-	// 	var columns = {};
-
-	// 	frm.$columns.find('.select-column-check:checked').each(function() {
-	// 		var _doctype = $(this).attr('data-doctype');
-	// 		var _fieldname = $(this).attr('data-fieldname');
-	// 		if(!columns[_doctype]) {
-	// 			columns[_doctype] = [];
-	// 		}
-	// 		columns[_doctype].push(_fieldname);
-	// 	});
-
-	// 	return {
-	// 		doctype: doctype,
-	// 		parent_doctype: doctype,
-	// 		select_columns: JSON.stringify(columns),
-	// 		with_data: with_data ? 'Yes' : 'No',
-	// 		all_doctypes: 'Yes',
-	// 		xlsx_format: frm.doc.download_in_xlsx
-	// 	}
-	// }
 
 });
