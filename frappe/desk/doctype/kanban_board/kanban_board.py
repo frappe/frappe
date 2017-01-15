@@ -10,7 +10,10 @@ from frappe.model.document import Document
 
 
 class KanbanBoard(Document):
-	pass
+	def validate(self):
+		for column in self.columns:
+			if not column.column_name:
+				frappe.msgprint(frappe._("Column Name cannot be empty"), raise_exception=True)
 
 
 @frappe.whitelist()

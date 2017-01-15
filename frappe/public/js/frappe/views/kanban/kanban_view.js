@@ -930,12 +930,10 @@ frappe.provide("frappe.views");
 
 	function update_cards_column(updated_cards) {
 		var cards = store.getState().cards;
-		console.log('update_cards_column', updated_cards)
 		cards.forEach(function(c) {
 			updated_cards.forEach(function(uc) {
 				if(uc.name === c.name) {
 					c.column = uc.column;
-					console.log(c);
 				}
 			});
 		});
