@@ -72,35 +72,16 @@ frappe.provide("frappe.views");
 			},
 			save_filters: function (updater) {
 				var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
-				frappe.call({
-					method: "frappe.client.set_value",
-					args: {
-						doctype: 'Kanban Board',
-						name: this.board.name,
-						fieldname: 'filters',
-						value: filters
-					},
-					callback: function () {
+				frappe.db.set_value(
+					'Kanban Board', this.board.name,
+					'filters', filters,
+					function() {
 						updater.set({ filters_modified: false });
-						show_alert({ message: __("Filters saved"), indicator: 'green' }, 1);
-					}
-				});
-			},
-			change_card_column: function (updater, card, column_title) {
-				var state = this;
-				return frappe.call({
-					method: "frappe.client.set_value",
-					args: {
-						doctype: this.doctype,
-						name: card.name,
-						fieldname: this.board.field_name,
-						value: column_title
-					}
-				}).then(function (r) {
-					var doc = r.message;
-					var new_card = prepare_card(card, state, doc);
-					return fluxify.doAction('update_card', new_card);
-				});
+						show_alert({
+							message: __("Filters saved"),
+							indicator: 'green'
+						}, 1);
+					});
 			},
 			add_card: function (updater, card_title, column_title) {
 				var doc = frappe.model.get_new_doc(this.doctype);
@@ -215,7 +196,7 @@ frappe.provide("frappe.views");
 
 		function bind_events() {
 			bind_add_column();
-			bind_save_filter_button();
+			bind_save_filter();
 		}
 
 		function bind_add_column() {
@@ -257,21 +238,9 @@ frappe.provide("frappe.views");
 			});
 		}
 
-		function bind_save_filter_button() {
-			self.$save_filter_btn = self.$filter_area.find('.save-filters');
-			if (self.$save_filter_btn.length) return;
-
-			//make save filter button
-			self.$save_filter_btn = $('<button>', {
-				class: 'btn btn-xs btn-default text-muted save-filters',
-				text: __('Save filters')
-			}).on('click', function () {
-				fluxify.doAction('save_filters')
-			}).appendTo(self.$filter_area).hide();
-
-			store.on('change:filters_modified', function (val) {
-				val ? self.$save_filter_btn.show() :
-					self.$save_filter_btn.hide();
+		function bind_save_filter() {
+			store.on('change:filters_modified', function (modified) {
+				if(modified) fluxify.doAction('save_filters');
 			});
 
 			self.cur_list.wrapper.on('render-complete', function () {
