@@ -25,8 +25,7 @@ def add_column(board_name, column_title):
 			frappe.throw(_("Column <b>{0}</b> already exist.").format(column_title))
 
 	doc.append("columns", dict(
-		column_name=column_title,
-		color=""
+		column_name=column_title
 	))
 	doc.save()
 	return doc.columns
@@ -107,8 +106,7 @@ def quick_kanban_board(doctype, board_name, field_name):
 
 	for column in columns:
 		doc.append("columns", dict(
-			column_name=column,
-			color=""
+			column_name=column
 		))
 
 	doc.kanban_board_name = board_name
@@ -116,3 +114,31 @@ def quick_kanban_board(doctype, board_name, field_name):
 	doc.field_name = field_name
 	doc.save()
 	return doc
+
+
+@frappe.whitelist()
+def update_column_order(board_name, order):
+	'''Set the order of columns in Kanban Board'''
+	board = frappe.get_doc('Kanban Board', board_name)
+	order = json.loads(order)
+	old_columns = board.columns
+	new_columns = []
+
+	for col in order:
+		for column in old_columns:
+			if col == column.column_name:
+				new_columns.append(column)
+				old_columns.remove(column)
+
+	new_columns.extend(old_columns)
+
+	board.columns = []
+	for col in new_columns:
+		board.append("columns", dict(
+			column_name=col.column_name,
+			status=col.status,
+			order=col.order
+		))
+
+	board.save()
+	return board

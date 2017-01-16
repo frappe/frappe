@@ -26,6 +26,9 @@
   position: absolute;
   right: 0px;
 }
+.kanban .kanban-column-title:hover {
+  cursor: pointer;
+}
 .kanban .sortable-ghost > .kanban-card {
   background: #ccc !important;
   color: transparent;

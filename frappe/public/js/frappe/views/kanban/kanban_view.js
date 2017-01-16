@@ -142,11 +142,10 @@ frappe.provide("frappe.views");
 				});
 			},
 			update_order: function(updater, order) {
-				var board = store.getState().board.name;
 				return frappe.call({
 					method: method_prefix + "update_order",
 					args: {
-						board_name: board,
+						board_name: this.board.name,
 						order: order
 					}
 				}).then(function(r) {
@@ -157,6 +156,21 @@ frappe.provide("frappe.views");
 					var columns = prepare_columns(board.columns);
 					updater.set({
 						cards: cards,
+						columns: columns
+					});
+				});
+			},
+			update_column_order: function(updater, order) {
+				return frappe.call({
+					method: method_prefix + "update_column_order",
+					args: {
+						board_name: this.board.name,
+						order: order
+					}
+				}).then(function(r) {
+					var board = r.message;
+					var columns = prepare_columns(board.columns);
+					updater.set({
 						columns: columns
 					});
 				});
@@ -183,6 +197,7 @@ frappe.provide("frappe.views");
 			self.$kanban_board.appendTo(self.wrapper);
 			self.$filter_area = self.cur_list.$page.find('.set-filters');
 			bind_events();
+			setup_sortable();
 		}
 
 		function make_columns() {
@@ -197,6 +212,21 @@ frappe.provide("frappe.views");
 		function bind_events() {
 			bind_add_column();
 			bind_save_filter();
+		}
+
+		function setup_sortable() {
+			var sortable = new Sortable(self.$kanban_board.get(0), {
+				group: 'columns',
+				animation: 150,
+				dataIdAttr: 'data-column-value',
+				filter: '.add-new-column',
+				handle: '.kanban-column-title',
+				onEnd: function(evt) {
+					var order = sortable.toArray();
+					order = order.slice(1);
+					fluxify.doAction('update_column_order', order);
+				}
+			});
 		}
 
 		function bind_add_column() {
