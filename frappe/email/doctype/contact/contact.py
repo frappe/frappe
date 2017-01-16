@@ -31,6 +31,14 @@ class Contact(Document):
 		frappe.db.sql("""update `tabIssue` set contact='' where contact=%s""",
 			self.name)
 
+	def get_link_for(self, link_doctype):
+		'''Return the link name, if exists for the given link DocType'''
+		for link in self.links:
+			if link.link_doctype==link_doctype:
+				return link.link_name
+
+		return None
+
 	def has_common_link(self, doc):
 		reference_links = [(link.link_doctype, link.link_name) for link in doc.links]
 		for link in self.links:
@@ -52,7 +60,6 @@ def get_default_contact(doctype, name):
 			contact.is_primary_contact desc, name
 		limit 1''', (doctype, name))
 
-	print out
 	return out and out[0][0] or None
 
 @frappe.whitelist()
