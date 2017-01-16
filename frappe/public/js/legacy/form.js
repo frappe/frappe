@@ -147,7 +147,7 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				callback: function(attachment, r) {
 					me.attachments.attachment_uploaded(attachment, r);
 				},
-				
+
 				confirm_is_private: true
 			});
 		});
@@ -348,7 +348,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 	this.dashboard.refresh();
 
 	if(this.meta.is_submittable &&
-		frappe.perm.get_perm(this.docname, this.doc).submit &&
+		this.perm[0] && this.perm[0].submit &&
 		! this.is_dirty() &&
 		! this.is_new() &&
 		this.doc.docstatus===0) {

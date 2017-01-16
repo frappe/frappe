@@ -173,7 +173,7 @@ def get_shipping_address(company):
 		name, address_template = get_address_templates(address_as_dict)
 		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
 
-def contact_query(doctype, txt, searchfield, start, page_len, filters):
+def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
 	return frappe.db.sql("""select
