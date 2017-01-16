@@ -88,8 +88,8 @@ frappe.ui.form.on('User', {
 			}
 		}
 
-		if (frappe.route_titles["unsaved"]===1){
-			delete frappe.route_titles["unsaved"];
+		if (frappe.route_flags.unsaved===1){
+			delete frappe.route_flags.unsaved;
 			for ( var i=0;i<frm.doc.user_emails.length;i++){
 				frm.doc.user_emails[i].idx=frm.doc.user_emails[i].idx+1;
 			}
@@ -127,11 +127,11 @@ frappe.ui.form.on('User', {
 					};
 					frappe.model.with_doctype("Email Account", function (doc) {
 						var doc = frappe.model.get_new_doc("Email Account");
-					frappe.route_titles["create user account"]=cur_frm.doc.name;
+					frappe.route_flags.create_user_account=cur_frm.doc.name;
 					frappe.set_route("Form", "Email Account", doc.name);
 					})
 				}else{
-					frappe.route_titles["create user account"]=cur_frm.doc.name;					
+					frappe.route_flags.create_user_account=cur_frm.doc.name;					
 					frappe.set_route("Form", "Email Account", r["message"][0]["name"]);
 				}
 			}
