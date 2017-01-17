@@ -55,7 +55,8 @@
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
-		"public/css/desk-rtl.css"
+		"public/css/desk-rtl.css",
+		"public/css/report-rtl.css"
 	],
 	"js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
