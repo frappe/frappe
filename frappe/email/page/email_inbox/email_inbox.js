@@ -84,8 +84,8 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		}
     },
 	refresh:function(){
-    	delete frappe.route_titles["create_contact"];
-		delete frappe.route_titles["update_contact"];
+    	delete frappe.route_flags.create_contact;
+		delete frappe.route_flags.update_contact;
 		this.run();
 	},
 	render_headers: function(){
@@ -279,8 +279,8 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		});
 		d.get_input("newcontact").on("click", function (frm) {
 			d.hide();
-			delete frappe.route_titles["update_contact"];
-			frappe.route_titles["create_contact"] = 1;
+			delete frappe.route_flags.update_contact;
+			frappe.route_flags.create_contact = 1;
 			var name_split = row.sender_full_name?row.sender_full_name.split(' '):["",""];
 			row.nomatch = 1;
 
