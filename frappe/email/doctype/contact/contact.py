@@ -135,3 +135,13 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_doctype': filters.get('link_doctype'),
 			'link_name': filters.get('link_name')
 		})
+
+def contact_links(doctype, txt, searchfield, start, page_len, filters):
+	if not txt: txt = ""
+	txt = txt.lower()
+	return [[d] for d in get_link_doctypes() if txt in d.lower()]
+
+@frappe.whitelist()
+def get_link_doctypes():
+	return [x.parent for x in frappe.db.get_values("DocField", {"fieldname": 'contact_html'}, "parent", order_by="name", as_dict=1)]
+
