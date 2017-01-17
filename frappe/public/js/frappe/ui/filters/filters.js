@@ -238,59 +238,33 @@ frappe.ui.FilterList = Class.extend({
 		//setup date-time range pickers
 		this.wrapper.find(".filter-input-date").each(function(i,v) {
 			var self = this;
-			var date;
 			var date_wrapper = $('<div>').appendTo($(this));
-			make_date("range");
 
-			var check = frappe.ui.form.make_control({
-				parent: this,
+			var name = $(v).data("name");
+			
+			var date = frappe.ui.form.make_control({
 				df: {
-					fieldtype: "Check",
-					fieldname: "is_date_range",
-					label: __("Date Range"),
-					input_css: { "margin-top": "-2px" }
+					fieldtype: "DateRange",
+					fieldname: name,
+				},
+				parent: date_wrapper,
+				only_input: true
+			});
+			date.refresh();
+
+			date.datepicker.update("onSelect", function(fd, dateObj) {
+				var filt = me.get_filter(name);
+				filt && filt.remove(true);
+				if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
+					me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
+					me.listobj.run();
+				} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
+					me.add_filter(me.doctype, name, 'Between',
+						[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
+					me.listobj.run();
 				}
 			});
-			check.change = function() {
-				date.datepicker.clear();
-				date && date.wrapper.remove();
-				check.get_value() ?
-					make_date("range"):
-					make_date("single");
-			}
-			check.refresh();
-			check.set_input(1);
-
-			function make_date(mode) {
-				var fieldtype = mode==="range" ? "DateRange" : "Date";
-				var name = $(v).data("name");
-				if(date) {
-					//cleanup old datepicker
-					date.datepicker.destroy();
-				}
-				date = frappe.ui.form.make_control({
-					df: {
-						fieldtype: fieldtype,
-						fieldname: name,
-					},
-					parent: date_wrapper,
-					only_input: true
-				});
-				date.refresh();
-
-				date.datepicker.update("onSelect", function(fd, dateObj) {
-					var filt = me.get_filter(name);
-					filt && filt.remove(true);
-					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
-						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.listobj.run();
-					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						me.add_filter(me.doctype, name, 'Between',
-							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
-						me.listobj.run();
-					}
-				});
-			}
+			
 		})
 	},
 
