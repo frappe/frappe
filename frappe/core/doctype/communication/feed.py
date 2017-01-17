@@ -58,6 +58,15 @@ def login_feed(login_manager):
 		"full_name": get_fullname(login_manager.user)
 	})
 
+def logout_feed(user, reason):
+	if not user:
+		return
+
+	add_info_comment(**{
+		"subject": _("{0} logged out: <b>{1}</b>").format(get_fullname(user), reason),
+		"full_name": get_fullname(user),
+	})
+
 def get_feed_match_conditions(user=None, force=True):
 	if not user: user = frappe.session.user
 

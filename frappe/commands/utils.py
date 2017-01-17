@@ -52,15 +52,16 @@ def clear_website_cache(context):
 			frappe.destroy()
 
 @click.command('destroy-all-sessions')
+@click.option('--reason')
 @pass_context
-def destroy_all_sessions(context):
+def destroy_all_sessions(context, reason=None):
 	"Clear sessions of all users (logs them out)"
 	import frappe.sessions
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.sessions.clear_all_sessions()
+			frappe.sessions.clear_all_sessions(reason)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()

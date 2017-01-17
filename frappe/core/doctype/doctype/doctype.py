@@ -59,7 +59,8 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
-		self.update_fields_to_fetch()
+		if not self.is_new():
+			self.update_fields_to_fetch()
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""

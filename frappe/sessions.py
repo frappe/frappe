@@ -73,19 +73,27 @@ def clear_sessions(user=None, keep_current=False, device=None):
 		where user=%s and device=%s {condition}
 		order by lastupdate desc limit {limit}, 100""".format(condition=condition, limit=limit),
 		(user, device))):
-		delete_session(sid)
+		delete_session(sid, reason="Logged In From Another Session")
 
-def delete_session(sid=None, user=None):
+def delete_session(sid=None, user=None, reason="Session Expired"):
+	from frappe.core.doctype.communication.feed import logout_feed
+
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
+	if sid and not user:
+		user_details = frappe.db.sql("""select user from tabSessions where sid=%s""", sid, as_dict=True)
+		if user_details: user = user_details[0].get("user")
+
+	logout_feed(user, reason)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
 	frappe.db.commit()
 
-def clear_all_sessions():
+def clear_all_sessions(reason=None):
 	"""This effectively logs out all users"""
 	frappe.only_for("Administrator")
+	if not reason: reason = "Deleted All Active Session"
 	for sid in frappe.db.sql_list("select sid from `tabSessions`"):
-		delete_session(sid)
+		delete_session(sid, reason=reason)
 
 def clear_expired_sessions():
 	"""This function is meant to be called from scheduler"""
@@ -93,7 +101,7 @@ def clear_expired_sessions():
 		for sid in frappe.db.sql_list("""select sid from tabSessions
 				where TIMEDIFF(NOW(), lastupdate) > TIME(%s)
 				and device = %s""", (get_expiry_period(device), device)):
-			delete_session(sid)
+			delete_session(sid, reason="Session Expired")
 
 def get():
 	"""get session boot info"""
@@ -310,7 +318,7 @@ class Session:
 		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
-		delete_session(self.sid)
+		delete_session(self.sid, reason="Session Expired")
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
