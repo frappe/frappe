@@ -122,8 +122,7 @@ frappe.ui.form.on('User', {
 					frappe.route_options = {
 						"email_id": cur_frm.doc.email,
 						"awaiting_password":1,
-						"enable_incoming":1,
-						"append_to":"Communication"
+						"enable_incoming":1
 					};
 					frappe.model.with_doctype("Email Account", function (doc) {
 						var doc = frappe.model.get_new_doc("Email Account");

@@ -552,7 +552,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(last_email.creation) , last_email.sender]) + '</p>' +
+					[frappe.datetime.global_date_format(last_email.communication_date) , last_email.sender]) + '</p>' +
 					last_email_content +
 				'<blockquote>');
 		} else {
@@ -598,8 +598,6 @@ frappe.views.CommunicationComposer = Class.extend({
 			frappe.call({
 				method:'frappe.email.get_contact_list',
 				args: {
-					'fieldname': "email_id",
-					'doctype': "Contact",
 					'txt': extractLast(term) || '%'
 				},
 				quiet: true,
