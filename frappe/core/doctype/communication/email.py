@@ -336,12 +336,13 @@ def add_attachments(name, attachments):
 
 	# loop through attachments
 	for a in attachments:
-		attach = frappe.db.get_value("File", {"name":a},
-			["file_name", "file_url", "is_private"], as_dict=1)
+		if isinstance(a, basestring):
+			attach = frappe.db.get_value("File", {"name":a},
+				["file_name", "file_url", "is_private"], as_dict=1)
 
-		# save attachments to new doc
-		save_url(attach.file_url, attach.file_name, "Communication", name,
-			"Home/Attachments", attach.is_private)
+			# save attachments to new doc
+			save_url(attach.file_url, attach.file_name, "Communication", name,
+				"Home/Attachments", attach.is_private)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False):
 	# temp variables
