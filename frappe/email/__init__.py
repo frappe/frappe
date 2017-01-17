@@ -31,7 +31,7 @@ def sendmail_to_system_managers(subject, content):
 	send(get_email(get_system_managers(), None, content, subject))
 
 @frappe.whitelist()
-def get_contact_list(doctype, fieldname, txt):
+def get_contact_list(txt):
 	"""Returns contacts (from autosuggest)"""
 	txt = txt.replace('%', '')
 
@@ -39,9 +39,14 @@ def get_contact_list(doctype, fieldname, txt):
 		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
 			('%' + txt + '%')))
 	try:
-		out = filter(None, frappe.db.sql_list('select `{0}` from `tab{1}` where `{0}` like %s'.format(fieldname, doctype),
-			'%' + txt + '%'))
-		if out:
+		out = filter(None, frappe.db.sql_list("""select email_id from `tabContact` 
+			where `email_id` like %(txt)s order by
+			if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999)""",
+		        {'txt': "%%%s%%" % frappe.db.escape(txt),
+	            '_txt': txt.replace("%", "")
+		        })
+		)
+		if not out:
 			out = get_users()
 	except Exception, e:
 		if e.args[0]==1146:
