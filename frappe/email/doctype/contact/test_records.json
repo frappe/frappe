@@ -1,7 +1,7 @@
 [
  {
   "doctype": "Contact",
-  "email_id": "test_contact_customer@example.com",
+  "email_id": "test_conctact@example.com",
   "first_name": "_Test Contact For _Test Customer",
   "is_primary_contact": 1,
   "phone": "+91 0000000000",
@@ -9,7 +9,7 @@
  },
  {
   "doctype": "Contact",
-  "email_id": "test_contact_supplier@example.com",
+  "email_id": "test_contact@example.com",
   "first_name": "_Test Contact For _Test Supplier",
   "is_primary_contact": 1,
   "phone": "+91 0000000000",
