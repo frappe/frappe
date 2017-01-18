@@ -234,7 +234,8 @@ frappe.PermissionEngine = Class.extend({
 		checkbox.find("input")
 			.prop("checked", d[fieldname] ? true: false)
 			.attr("data-ptype", fieldname)
-			.attr("data-name", d.name)
+			.attr("data-role", d.role)
+			.attr("data-permlevel", d.permlevel)
 			.attr("data-doctype", d.parent)
 
 		checkbox.find("label")
@@ -307,16 +308,18 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 		$("<button class='btn btn-default btn-sm'><i class='fa fa-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
-			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)
+			.attr("data-role", d.role)
+			.attr("data-permlevel", d.permlevel)
 			.click(function() {
 				return frappe.call({
 					module: "frappe.core",
 					page: "permission_manager",
 					method: "remove",
 					args: {
-						name: $(this).attr("data-name"),
-						doctype: $(this).attr("data-doctype")
+						doctype: $(this).attr("data-doctype"),
+						role: $(this).attr("data-role"),
+						permlevel: $(this).attr("data-permlevel")
 					},
 					callback: function(r) {
 						if(r.exc) {
@@ -339,7 +342,8 @@ frappe.PermissionEngine = Class.extend({
 		this.body.on("click", "input[type='checkbox']", function() {
 			var chk = $(this);
 			var args = {
-				name: chk.attr("data-name"),
+				role: chk.attr("data-role"),
+				permlevel: chk.attr("data-permlevel"),
 				doctype: chk.attr("data-doctype"),
 				ptype: chk.attr("data-ptype"),
 				value: chk.prop("checked") ? 1 : 0
@@ -465,7 +469,8 @@ frappe.PermissionEngine = Class.extend({
 					method: "update",
 					args: {
 						doctype: d.parent,
-						name: d.name,
+						role: d.role,
+						permlevel: d.permlevel,
 						ptype: "user_permission_doctypes",
 						value: user_permission_doctypes
 					},
@@ -477,6 +482,9 @@ frappe.PermissionEngine = Class.extend({
 							setTimeout(function() { msg.hide(); }, 3000);
 							d.user_permission_doctypes = user_permission_doctypes;
 							dialog.hide();
+							if(r.message==='refresh') {
+								me.refresh();
+							}
 						}
 					}
 				});

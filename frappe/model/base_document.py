@@ -544,7 +544,7 @@ class BaseDocument(object):
 		for fieldname in constants:
 			df = self.meta.get_field(fieldname)
 
-			# This conversion to string only when fieldtype is Date 
+			# This conversion to string only when fieldtype is Date
 			if df.fieldtype == 'Date':
 				value = str(values.get(fieldname))
 

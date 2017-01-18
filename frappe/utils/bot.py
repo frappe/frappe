@@ -7,6 +7,10 @@ import frappe, re, frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
 
+@frappe.whitelist()
+def get_bot_reply(question):
+	return BotReply().get_reply(question)
+
 class BotParser(object):
 	'''Base class for bot parser'''
 	def __init__(self, reply, query):

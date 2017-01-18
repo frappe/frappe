@@ -78,7 +78,6 @@ CREATE TABLE `tabDocPerm` (
   `permlevel` int(11) DEFAULT '0',
   `role` varchar(255) DEFAULT NULL,
   `match` varchar(255) DEFAULT NULL,
-  `is_custom` int(1) NOT NULL DEFAULT 0,
   `read` int(1) NOT NULL DEFAULT 1,
   `write` int(1) NOT NULL DEFAULT 1,
   `create` int(1) NOT NULL DEFAULT 1,
