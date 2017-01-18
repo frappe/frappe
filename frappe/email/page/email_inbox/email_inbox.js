@@ -1,5 +1,7 @@
+frappe.provide("frappe.email")
+
 frappe.pages['email_inbox'].on_page_load = function(wrapper) {
-	frappe.ui.make_app_page({
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Email Inbox',
 		icon: 'fa fa-inbox',
@@ -7,7 +9,7 @@ frappe.pages['email_inbox'].on_page_load = function(wrapper) {
 	});
 
 	frappe.model.with_doctype('Communication', function() {
-		wrapper.Inbox = new frappe.Inbox({
+		wrapper.Inbox = new frappe.email.EmailList({
 			method: 'frappe.desk.reportview.get',
 			wrapper: wrapper,
 			page: wrapper.page,
@@ -22,37 +24,77 @@ frappe.pages['email_inbox'].refresh = function(wrapper) {
 	}
 };
 
-frappe.Inbox = frappe.ui.Listing.extend({
+frappe.email.EmailListSidebar = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts)
+		this.make();
+	},
+
+	make: function() {
+		var sidebar_content = frappe.render_template("email_list_sidebar", {
+			accounts: this.accounts || [],
+			all_accounts: this.all_accounts
+		});
+
+		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
+			.html(sidebar_content)
+			.appendTo(this.page.sidebar.empty());
+
+		this.bind_events();
+	},
+
+	bind_events: function() {
+		// bind click events
+		var me = this;
+		this.sidebar.find(".list-link").on("click", function(event) {
+			me.sidebar.find(".list-link").removeClass("bold");
+			$(this).addClass("bold");
+			
+			// render email list
+			account = $(this).attr("data-account");
+			if(account == "Sent") 
+				filters = me.get_filters(me.all_accounts, "Sent")
+			else {
+				filters = me.get_filters(account, "Received")
+				me.filter_list.add_filter("Communication", "deleted", "=", "No");
+			}
+
+			me.filter_list.default_filters = filters;
+		});
+	}
+});
+
+frappe.email.EmailList = frappe.ui.Listing.extend({
     init: function(opts) {
 		$.extend(this, opts);
-		wrap = this;
-		this.wrapper = opts.wrapper;
+		var me = this;
 		this.filters = {};
-		this.page_length  = 20;
-		this.start = 0;
 		this.cur_page = 1;
+		this.wrapper = opts.wrapper;
 		this.no_result_message = 'No Emails to Display';
 
-		this.render_sidemenu();
+		// this.get_user_email_accounts();
+		this.render_sidebar();
 		if (this.account) {
 			var me = this;
-				// setup listing
-				me.make({
-					doctype: 'Communication',
-					page: me.page,
-					method: 'frappe.desk.reportview.get',
-					get_args: me.get_args,
-					parent: me.page.main,
-					start: 0,
-					show_filters: true
-				});
+			// setup listing
+			me.make({
+				doctype: 'Communication',
+				page: me.page,
+				method: 'frappe.desk.reportview.get',
+				get_args: me.get_args,
+				parent: me.page.main,
+				start: 0,
+				show_filters: true
+			});
+
 			this.filter_list.add_filter("Communication", "deleted", "=", "No");
 			this.render_headers();
 			this.render_footer();
 			this.run();
 			this.render_buttons();
 			this.init_select_all();
-			var me = this;
+
 			frappe.realtime.on("new_email", function(data) {
 				for(var i =0; i<me.accounts.length; i++) {
 					if (data.account == me.accounts[i].name) {
@@ -74,15 +116,25 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		} else {
 			frappe.msgprint(__("No Email Account assigned to you. Please contact your System Administrator"));
 
-			setTimeout(function() {
-				if (frappe.session.user==="Administrator") {
-					frappe.set_route("List", "User");
-				} else {
-					frappe.set_route('');
-				}
-			}, 3000);
+			// setTimeout(function() {
+			// 	if (frappe.session.user==="Administrator") {
+			// 		frappe.set_route("List", "User");
+			// 	} else {
+			// 		frappe.set_route('');
+			// 	}
+			// }, 3000);
 		}
     },
+
+    get_filters: function(account, sent_or_received) {
+    	filters = [
+			["Communication", "communication_type", "=", "Communication"],
+			["Communication", "sent_or_received", "=", sent_or_received]
+		];
+
+		sent_or_received != "Sent": filters.push(["Communication", "email_account", "in", account]): ""
+    },
+
 	refresh:function(){
     	delete frappe.route_flags.create_contact;
 		delete frappe.route_flags.update_contact;
@@ -93,60 +145,85 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		var data = {"start":this.start,"page_length":this.page_length.toString()};
 		this.list_header = $(frappe.render_template("inbox_headers", data)).appendTo(this.page.main.find(".list-headers"));
     },
-	render_sidemenu: function () {
+	render_sidebar: function () {
 		var me = this;
         frappe.call({
 			method: 'frappe.email.page.email_inbox.get_accounts',
-			args:{user:frappe.user["name"]},
+			args:{
+				user: user
+			},
 			async:false,
-			callback:function(list){
-				var buttons = '<div class="layout-main-section overlay-sidebar">';
-				if (list["message"]){
-					me.accounts = [];
-					var rows = "";
+			callback:function(list) {
+				r = list
+				me.accounts = []
+				me.active_account = ""
 
-					for (var i = 0;i<list["message"].length;i++)
-					{
-						rows += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12" title ="'+list["message"][i]["email_id"]+'" data-account="'+list["message"][i]["email_account"]+'" style="margin-left: 10px;">'+list["message"][i]["email_id"]+'</a> </div></div>';
-						me.accounts.push({name:list["message"][i]["email_account"],email:list["message"][i]["email_id"]})
-					}
-					me.allaccounts = $.map(me.accounts,function(v){return v.name}).join(",");
-					buttons += '<div class="list-row inbox-select list-row-head" style="font-weight:bold"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="All Accounts" data-account="'+me.allaccounts+'" style="margin-left: 10px;">All Accounts</a> </div></div>';
-					buttons += rows;
-					buttons += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="Sent" data-account="Sent" style="margin-left: 10px;">Sent</a> </div></div>';
-					me.account = me.allaccounts;
-					me.default_filters=[
-						["Communication", "communication_type", "=", "Communication"],
-						["Communication", "email_account", "in", me.account],
-						["Communication", "sent_or_received", "=", "Received"]]
-
-					me.page.sidebar.empty().append(buttons);
-					$(".inbox-select").on("click",function(btn){
-						me.account = $(btn.currentTarget).find(".inbox-item").data("account");
-						$(me.page.sidebar).find(".list-row").removeClass("list-row-head").css("font-weight","normal");
-						$(btn.currentTarget).closest(".list-row").addClass("list-row-head").css("font-weight","bold");
-						me.cur_page = 1;
-						$(me.page.main).find(".list-select-all,.list-delete").prop("checked",false);
-						me.toggle_actions();
-
-						if(me.account=="Sent"){
-							me.filter_list.default_filters=[
-								["Communication", "communication_type", "=", "Communication"],
-								["Communication", "sent_or_received", "=", "Sent"]]
-						}else {
-							me.filter_list.default_filters = [
-								["Communication", "communication_type", "=", "Communication"],
-								["Communication", "email_account", "in", me.account],
-								["Communication", "sent_or_received", "=", "Received"]];
-						}
-						me.filter_list.clear_filters();
-						me.filter_list.add_filter("Communication", "deleted", "=", "No");
-						if (me.filter_list.reload_stats){me.filter_list.reload_stats()}
-						me.refresh();
+				if(r.message) {
+					me.user_acounts = r.message;
+					me.email_accounts = $.map(me.user_acounts, function(account) { 
+						return account.email_account
+					})
+					me.all_accounts = me.active_account = me.email_accounts.join(",")
+					new frappe.email.EmailListSidebar({
+						page: me.page,
+						accounts: me.user_acounts,
+						all_accounts: me.all_accounts
 					});
+
+					me.default_filters = me.get_filters(me.active_account, "Received");
 				}
+				
+
+				// var buttons = '<div class="layout-main-section overlay-sidebar">';
+				// if(list.message){
+				// 	me.accounts = [];
+				// 	var rows = "";
+
+				// 	for (var i = 0;i<list["message"].length;i++)
+				// 	{
+				// 		rows += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12" title ="'+list["message"][i]["email_id"]+'" data-account="'+list["message"][i]["email_account"]+'" style="margin-left: 10px;">'+list["message"][i]["email_id"]+'</a> </div></div>';
+				// 		me.accounts.push({name:list["message"][i]["email_account"],email:list["message"][i]["email_id"]})
+				// 	}
+				// 	me.allaccounts = $.map(me.accounts,function(v){return v.name}).join(",");
+				// 	console.log("rbt", me.allaccounts)
+				// 	buttons += '<div class="list-row inbox-select list-row-head" style="font-weight:bold"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="All Accounts" data-account="'+me.allaccounts+'" style="margin-left: 10px;">All Accounts</a> </div></div>';
+				// 	buttons += rows;
+				// 	buttons += '<div class="list-row inbox-select"> <div class="row"><a class="inbox-item ellipsis col-md-12 " title ="Sent" data-account="Sent" style="margin-left: 10px;">Sent</a> </div></div>';
+				// 	me.account = me.allaccounts;
+				// 	me.default_filters=[
+				// 		["Communication", "communication_type", "=", "Communication"],
+				// 		["Communication", "email_account", "in", me.account],
+				// 		["Communication", "sent_or_received", "=", "Received"]]
+
+				// 	me.page.sidebar.empty().append(buttons);
+				// 	$(".inbox-select").on("click",function(btn){
+				// 		me.account = $(btn.currentTarget).find(".inbox-item").data("account");
+				// 		$(me.page.sidebar).find(".list-row").removeClass("list-row-head").css("font-weight","normal");
+				// 		$(btn.currentTarget).closest(".list-row").addClass("list-row-head").css("font-weight","bold");
+				// 		me.cur_page = 1;
+				// 		$(me.page.main).find(".list-select-all,.list-delete").prop("checked",false);
+				// 		me.toggle_actions();
+
+				// 		if(me.account=="Sent"){
+				// 			me.filter_list.default_filters=[
+				// 				["Communication", "communication_type", "=", "Communication"],
+				// 				["Communication", "sent_or_received", "=", "Sent"]]
+				// 		}else {
+				// 			me.filter_list.default_filters = [
+				// 				["Communication", "communication_type", "=", "Communication"],
+				// 				["Communication", "email_account", "in", me.account],
+				// 				["Communication", "sent_or_received", "=", "Received"]];
+				// 		}
+				// 		me.filter_list.clear_filters();
+				// 		me.filter_list.add_filter("Communication", "deleted", "=", "No");
+				// 		if(me.filter_list.reload_stats) {
+				// 			me.filter_list.reload_stats()
+				// 		}
+				// 		me.refresh();
+				// 	});
+				// }
 			}
-        })
+        });
     },
 	get_args: function(){
 		var args = {
@@ -220,10 +297,12 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		return frappe.call({
 			method: me.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
-			freeze: (me.freeze != undefined ? me.freeze : true),
+			freeze: (me.freeze != undefined? me.freeze : true),
 			args: {
 				doctype: me.doctype,
-				fields: ["count(*) as number"],
+				fields: [
+					"count(*) as number"
+				],
 				filters: filters,
 				save_list_settings: false
 			},
@@ -301,7 +380,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 				frappe.call({
 					method: 'frappe.email.page.email_inbox.setnomatch',
 					args: {
-						name: row.name
+						docname: row.name
 					}
 				});
 				row.nomatch = 1;
@@ -453,27 +532,26 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		}
 		frappe.timeline.relink_dialog(row.name, row.reference_doctype, row.reference_name, callback, row.timeline_hide);
 	},
-	run:function(more,footer) {
-		var me = this;
-		me.start = (me.cur_page-1) * me.page_length;
-		if (!footer) {
-			this.update_footer()
-		}
-		this._super(more)
-	},
+	// run:function(more,footer) {
+	// 	var me = this;
+	// 	me.start = (me.cur_page-1) * me.page_length;
+	// 	if (!footer) {
+	// 		this.update_footer()
+	// 	}
+	// 	this._super(more)
+	// },
 	prepare_email:function(c){
 		var me = this;
 		frappe.call({
 			method:'frappe.email.page.email_inbox.get_email_content',
 			args:{
-				doctype:"Communication",
-				name:c.name
+				docname: c.name
 			},
 			async:false,
 			callback:function(r){
-				c.attachments =r["message"][0];
-				c.content = r["message"][1];
-					}
+				c.attachments = r.message[0];
+				c.content = r.message[1];
+			}
 		});
 		c.doctype ="Communication";
 
@@ -609,10 +687,10 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		frappe.call({
 			method: 'frappe.email.page.email_inbox.create_flag_queue',
 			args:{
-				names:JSON.stringify(names),
-				action:action,
-				flag:flag,
-				field:field
+				docnames: JSON.stringify(names),
+				action: action,
+				flag: flag,
+				field: field
 			}
 		})
 	},
@@ -620,9 +698,9 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		frappe.call({
 			method: 'frappe.email.page.email_inbox.update_local_flags',
 			args:{
-				names:JSON.stringify(names),
-				field:field,
-				val:val
+				docnames: JSON.stringify(names),
+				field: field,
+				val: val
 			}
 		})
 		$('.list-delete:checked').prop( "checked", false );

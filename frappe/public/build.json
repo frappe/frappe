@@ -149,7 +149,9 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js"
+		"public/js/frappe/ui/charts.js",
+
+		"public/js/frappe/ui/email/email_list_sidebar.html"
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",
