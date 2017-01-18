@@ -322,6 +322,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	bind_change_event: function() {
 		var me = this;
+
 		this.$input && this.$input.on("change", this.change || function(e) {
 			if(me.df.change || me.df.onchange) {
 				// onchange event specified in df
@@ -618,6 +619,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 
 		this.datepicker_options.onSelect = function(dateObj) {
 			me.set_value(me.get_value())
+			me.$input.trigger('change')
 		}
 	},
 	set_datepicker: function() {
