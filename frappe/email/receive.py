@@ -270,6 +270,8 @@ class Email:
 			self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
 		else:
 			self.date = now()
+		if self.date > now():
+			self.date = now()
 
 	def parse(self):
 		"""Walk and process multi-part email."""
